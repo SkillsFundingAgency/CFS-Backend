@@ -1,10 +1,15 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using CalculateFunding.Models.Policy;
 using CalculateFunding.Services.Providers.Validators;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
+using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NSubstitute;
 
 namespace CalculateFunding.Services.Policy.Validators
 {
@@ -12,59 +17,216 @@ namespace CalculateFunding.Services.Policy.Validators
     public class FundingPeriodValidatorTests
     {
         private FundingPeriod _fundingPeriod;
-        private FundingPeriodValidator _validator;
+        private FundingPeriodJsonModelValidator _validator;
 
         private ValidationResult _validationResult;
 
         [TestInitialize]
         public void SetUp()
         {
-            _validator = new FundingPeriodValidator();
+            _validator = new FundingPeriodJsonModelValidator();
         }
 
         [TestMethod]
-        [DataRow("")]
-        [DataRow(null)]
-        [DataRow("  ")]
-        public void IsInvalidIfPeriodMissingOrEmpty(string period)
+        public async Task ValidateAsync_WhenNameIsEmpty_ValidIsFalse()
         {
-            GivenTheFundingPeriod(_ => _.WithPeriod(period));
+            //Arrange
+            List<FundingPeriod> fundingPeriods = CreateModel();
+            FundingPeriodsJsonModel model = new FundingPeriodsJsonModel();
+            model.FundingPeriods = fundingPeriods.ToArray();
+            model.FundingPeriods[0].Name = string.Empty;
 
-            WhenTheFundingPeriodIsValidated();
+            IValidator<FundingPeriodsJsonModel> validator = CreateValidator();
 
-            ThenTheValidationResultShouldBe(false);
-        }
+            //Act
+            ValidationResult result = await validator.ValidateAsync(model);
 
-        [TestMethod]
-        public void IsOtherwiseValid()
-        {
-            GivenTheFundingPeriod(_ => _.WithPeriod(new RandomString()));
-
-            WhenTheFundingPeriodIsValidated();
-
-            ThenTheValidationResultShouldBe(true);
-        }
-
-        private void ThenTheValidationResultShouldBe(bool expectedIsValidFlag)
-        {
-            _validationResult
+            //Assert
+            result
                 .IsValid
                 .Should()
-                .Be(expectedIsValidFlag);
+                .BeFalse();
+
+            result
+                .Errors.Select(x => x.PropertyName == "FundingPeriods[0].Name" && x.ErrorMessage == "No funding name was provided for the FundingPeriod")
+                .Count()
+                .Should()
+                .Be(1);
         }
 
-        private void WhenTheFundingPeriodIsValidated()
+        [TestMethod]
+        public async Task ValidateAsync_WhenModelFieldsIsEmpty_ValidIsFalse()
         {
-            _validationResult = _validator.Validate(_fundingPeriod);
+            //Arrange
+            List<FundingPeriod> fundingPeriods = CreateModel();
+            FundingPeriodsJsonModel model = new FundingPeriodsJsonModel();
+            model.FundingPeriods = fundingPeriods.ToArray();
+
+            
+            model.FundingPeriods[0].Name = string.Empty;
+            model.FundingPeriods[0].Period = string.Empty;           
+
+            IValidator<FundingPeriodsJsonModel> validator = CreateValidator();
+
+            //Act
+            ValidationResult result = await validator.ValidateAsync(model);
+
+            //Assert
+            result
+                .IsValid
+                .Should()
+                .BeFalse();
+
+           
+
+            result
+                .Errors.Select(x => x.PropertyName == "FundingPeriods[0].Name" && x.ErrorMessage == "No funding name was provided for the FundingPeriod")
+                .Contains(true).Should().Be(true);
+
+            result
+                .Errors.Select(x => x.PropertyName == "FundingPeriods[0].Period" && x.ErrorMessage == "No funding period was provided for the FundingPeriod")
+                .Contains(true).Should().Be(true);
+
+            
         }
 
-        private void GivenTheFundingPeriod(Action<FundingPeriodBuilder> setUp = null)
+        [TestMethod]
+        public async Task ValidateAsync_WhenModelFieldsIsNull_ValidIsFalse()
         {
-            FundingPeriodBuilder fundingPeriodBuilder = new FundingPeriodBuilder();
+            //Arrange
 
-            setUp?.Invoke(fundingPeriodBuilder);
+            List<FundingPeriod> fundingPeriods = CreateModel();
+            FundingPeriod nullStartDatefundingPeriod = new FundingPeriod()
+            {
+                Id = "AY2017181",
+                Name = "Academic 2017/18",
+                Type = FundingPeriodType.AY,
+                Period = "1980",               
+                EndDate = DateTimeOffset.Now.Date
+            };
+            FundingPeriod nullEndDatefundingPeriod = new FundingPeriod()
+            {
+                Id = "AY2017181",
+                Name = "Academic 2017/18",
+                Type = FundingPeriodType.AY,
+                Period = "1980",
+                StartDate = DateTimeOffset.Now.Date
+            };
 
-            _fundingPeriod = fundingPeriodBuilder.Build();
+            fundingPeriods.Add(nullStartDatefundingPeriod);
+            fundingPeriods.Add(nullEndDatefundingPeriod);
+
+            FundingPeriodsJsonModel model = new FundingPeriodsJsonModel();
+            model.FundingPeriods = fundingPeriods.ToArray();
+
+            model.FundingPeriods[0].Name = null;
+            model.FundingPeriods[0].Period = null;
+            model.FundingPeriods[1].Type = null;
+
+
+
+            IValidator<FundingPeriodsJsonModel> validator = CreateValidator();
+
+            //Act
+            ValidationResult result = await validator.ValidateAsync(model);
+
+            //Assert
+            result
+                .IsValid
+                .Should()
+                .BeFalse();
+
+            result
+                .Errors.Select(x => x.PropertyName == "FundingPeriods[0].Name" && x.ErrorMessage == "No funding name was provided for the FundingPeriod")
+               .Contains(true).Should().Be(true);
+
+            result
+                .Errors.Select(x => x.PropertyName == "FundingPeriods[0].Period" && x.ErrorMessage == "No funding period was provided for the FundingPeriod")
+                .Contains(true).Should().Be(true);
+
+            result
+               .Errors.Select(x => x.PropertyName == "FundingPeriods[1].Type" && x.ErrorMessage == "Null funding type was provided for the FundingPeriod")
+               .Contains(true).Should().Be(true);
+
+            result
+               .Errors.Select(x => x.PropertyName == "FundingPeriods[2].StartDate" && x.ErrorMessage == "No funding start date was provided for the FundingPeriod")
+               .Contains(true).Should().Be(true);
+
+            result
+              .Errors.Select(x => x.PropertyName == "FundingPeriods[3].EndDate" && x.ErrorMessage == "No funding end date was provided for the FundingPeriod")
+              .Contains(true).Should().Be(true);
+        }
+
+        [TestMethod]       
+        public async Task ValidateAsync_IsValidIsTrue()
+        {
+            //Arrange
+            List<FundingPeriod> fundingPeriods = CreateModel();
+            FundingPeriodsJsonModel model = new FundingPeriodsJsonModel();
+            model.FundingPeriods = fundingPeriods.ToArray();
+          
+
+            IValidator<FundingPeriodsJsonModel> validator = CreateValidator();
+
+            //Act
+            ValidationResult result = await validator.ValidateAsync(model);
+
+            //Assert
+            result
+                .IsValid
+                .Should()
+                .BeTrue();
+
+        }
+
+        private List<FundingPeriod> CreateModel()
+        {
+            List<FundingPeriod> periods = new List<FundingPeriod>
+            {
+                new FundingPeriod()
+                {
+                     Id = "AY2017181",
+                     Name = "Academic 2017/18",
+                     Type= FundingPeriodType.AY,
+                     Period = "1980",
+                     StartDate = DateTimeOffset.Now.Date,
+                     EndDate = DateTimeOffset.Now.Date
+                },
+                new FundingPeriod()
+                {
+                     Id = "AY2018191",
+                     Name = "Academic 2018/19",
+                     Type= FundingPeriodType.AY,
+                     Period = "1980",
+                     StartDate = DateTimeOffset.Now.Date,
+                     EndDate = DateTimeOffset.Now.Date
+                }
+               
+            };      
+
+            return periods;
+        }
+
+        private  IValidator<FundingPeriodsJsonModel> CreateFundingPeriodValidator()
+        {
+            ValidationResult validationResult = null;
+            if (validationResult == null)
+            {
+                validationResult = new ValidationResult();
+            }
+
+            IValidator<FundingPeriodsJsonModel> validator = Substitute.For<IValidator<FundingPeriodsJsonModel>>();
+
+            validator
+               .ValidateAsync(Arg.Any<FundingPeriodsJsonModel>())
+               .Returns(validationResult);
+
+            return validator;
+        }
+
+        private static FundingPeriodJsonModelValidator CreateValidator()
+        {
+            return new FundingPeriodJsonModelValidator();
         }
     }
 }

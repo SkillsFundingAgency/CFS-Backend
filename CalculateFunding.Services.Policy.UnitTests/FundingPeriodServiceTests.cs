@@ -12,6 +12,7 @@ using CalculateFunding.Services.Policy.Interfaces;
 using CalculateFunding.Services.Providers.Validators;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
+using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -25,8 +26,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
 {
     [TestClass]
     public class FundingPeriodServiceTests
-    {
-        private const string jsonlFile = "12345.json";
+    {       
 
         [TestMethod]
         public async Task GetFundingPeriods_GivenNullOrEmptyPeriodsReturned_LogsAndReturnsOKWithEmptyList()
@@ -235,39 +235,14 @@ namespace CalculateFunding.Services.Policy.UnitTests
                 .Value
                 .Should()
                 .Be(fundingPeriod);
-        }
+        }        
 
         [TestMethod]
-        public async Task SaveFundingPeriod_GivenNoJsonWasProvidedWithNoFileName_ReturnsBadRequest()
+        public async Task SaveFundingPeriod_GivenNoJsonWasProvided_ReturnsBadRequest()
         {
             //Arrange
-            HttpRequest request = Substitute.For<HttpRequest>();
-
-            ILogger logger = CreateLogger();
-
-            FundingPeriodService fundingPeriodService = CreateFundingPeriodService(logger: logger);
-
-            //Act
-            IActionResult result = await fundingPeriodService.SaveFundingPeriods(request);
-
-            //Assert
-            result
-                .Should()
-                .BeOfType<BadRequestObjectResult>();
-
-            logger
-                .Received(1)
-                .Error(Arg.Is($"Null or empty json provided for file: File name not provided"));
-        }
-
-        [TestMethod]
-        public async Task SaveFundingPeriod_GivenNoJsonWasProvidedButFileNameWas_ReturnsBadRequest()
-        {
-            //Arrange
-            IHeaderDictionary headerDictionary = new HeaderDictionary
-            {
-                { "json-file", new StringValues(jsonlFile) }
-            };
+            IHeaderDictionary headerDictionary = new HeaderDictionary();
+           
 
             HttpRequest request = Substitute.For<HttpRequest>();
             request
@@ -288,7 +263,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
 
             logger
                 .Received(1)
-                .Error(Arg.Is($"Null or empty json provided for file: {jsonlFile}"));
+                .Error(Arg.Is($"Null or empty json provided for file"));
         }
 
         [TestMethod]
@@ -299,10 +274,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
             byte[] byteArray = Encoding.UTF8.GetBytes(json);
             MemoryStream stream = new MemoryStream(byteArray);
 
-            IHeaderDictionary headerDictionary = new HeaderDictionary
-            {
-                { "json-file", new StringValues(jsonlFile) }
-            };
+            IHeaderDictionary headerDictionary = new HeaderDictionary();           
 
             HttpRequest request = Substitute.For<HttpRequest>();
             request
@@ -327,7 +299,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
 
             logger
                 .Received(1)
-                .Error(Arg.Any<Exception>(), Arg.Is($"Invalid json was provided for file: {jsonlFile}"));
+                .Error(Arg.Any<Exception>(), Arg.Is($"Invalid json was provided for file"));
         }
 
         [TestMethod]
@@ -338,10 +310,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
             byte[] byteArray = Encoding.UTF8.GetBytes(json);
             MemoryStream stream = new MemoryStream(byteArray);
 
-            IHeaderDictionary headerDictionary = new HeaderDictionary
-            {
-                { "json-file", new StringValues(jsonlFile) }
-            };
+            IHeaderDictionary headerDictionary = new HeaderDictionary();
 
             HttpRequest request = Substitute.For<HttpRequest>();
             request
@@ -352,8 +321,8 @@ namespace CalculateFunding.Services.Policy.UnitTests
                 .Body
                 .Returns(stream);
 
-            ILogger logger = CreateLogger();
-            IFundingPeriodValidator fundingPeriodValidator = Substitute.For<IFundingPeriodValidator>();
+            ILogger logger = CreateLogger();         
+            IValidator<FundingPeriodsJsonModel> fundingPeriodValidator = CreateFundingPeriodValidator();
             fundingPeriodValidator.Validate(Arg.Any<FundingPeriod>())
                 .Returns(new ValidationResult(new[] { new ValidationFailure("anything", "anything") }));
 
@@ -369,7 +338,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
 
             logger
                 .Received(1)
-                .Error(Arg.Any<Exception>(), Arg.Is($"Invalid json was provided for file: {jsonlFile}"));
+                .Error(Arg.Any<Exception>(), Arg.Is($"Invalid json was provided for file"));
         }
 
         [TestMethod]
@@ -380,11 +349,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
             byte[] byteArray = Encoding.UTF8.GetBytes(yaml);
             MemoryStream stream = new MemoryStream(byteArray);
 
-            IHeaderDictionary headerDictionary = new HeaderDictionary
-            {
-                { "json-file", new StringValues(jsonlFile) }
-            };
-
+            IHeaderDictionary headerDictionary = new HeaderDictionary();
             HttpRequest request = Substitute.For<HttpRequest>();
             request
                 .Headers
@@ -405,7 +370,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
 
             FundingPeriodService fundingPeriodService = CreateFundingPeriodService(logger: logger, policyRepository: policyRepository);
 
-            string errorMessage = $"Exception occurred writing json file: {jsonlFile} to cosmos db";
+            string errorMessage = $"Exception occurred writing json file to cosmos db";
 
             //Act
             IActionResult result = await fundingPeriodService.SaveFundingPeriods(request);
@@ -432,10 +397,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
             byte[] byteArray = Encoding.UTF8.GetBytes(yaml);
             MemoryStream stream = new MemoryStream(byteArray);
 
-            IHeaderDictionary headerDictionary = new HeaderDictionary
-            {
-                { "json-file", new StringValues(jsonlFile) }
-            };
+            IHeaderDictionary headerDictionary = new HeaderDictionary();
 
             HttpRequest request = Substitute.For<HttpRequest>();
             request
@@ -464,7 +426,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
 
             logger
                 .Received(1)
-                .Information(Arg.Is($"Successfully saved file: {jsonlFile} to cosmos db"));
+                .Information(Arg.Is($"Successfully saved file to cosmos db"));
 
             await
                 policyRepository
@@ -482,7 +444,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
            ILogger logger = null,
            ICacheProvider cacheProvider = null,
            IPolicyRepository policyRepository = null,
-           IFundingPeriodValidator fundingPeriodValidator = null)
+           IValidator<FundingPeriodsJsonModel> fundingPeriodValidator = null)
         {
             return new FundingPeriodService(
                 logger ?? CreateLogger(),
@@ -492,14 +454,21 @@ namespace CalculateFunding.Services.Policy.UnitTests
                 fundingPeriodValidator ?? CreateFundingPeriodValidator());
         }
 
-        private static IFundingPeriodValidator CreateFundingPeriodValidator()
-        {
-            IFundingPeriodValidator fundingPeriodValidator = Substitute.For<IFundingPeriodValidator>();
+        private static IValidator<FundingPeriodsJsonModel> CreateFundingPeriodValidator()
+        {           
+            ValidationResult validationResult = null;
+            if (validationResult == null)
+            {
+                validationResult = new ValidationResult();
+            }
 
-            fundingPeriodValidator.Validate(Arg.Any<FundingPeriod>())
-                .Returns(new ValidationResult());
+            IValidator<FundingPeriodsJsonModel> validator = Substitute.For<IValidator<FundingPeriodsJsonModel>>();
 
-            return fundingPeriodValidator;
+            validator
+               .ValidateAsync(Arg.Any<FundingPeriodsJsonModel>())
+               .Returns(validationResult);
+
+            return validator;
         }
 
         private static ILogger CreateLogger()

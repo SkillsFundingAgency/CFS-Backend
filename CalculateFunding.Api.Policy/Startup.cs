@@ -9,6 +9,7 @@ using CalculateFunding.Common.TemplateMetadata;
 using CalculateFunding.Common.WebApi.Extensions;
 using CalculateFunding.Common.WebApi.Middleware;
 using CalculateFunding.Models.FundingPolicy;
+using CalculateFunding.Models.Policy;
 using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.AspNet.HealthChecks;
 using CalculateFunding.Services.Core.Extensions;
@@ -16,6 +17,7 @@ using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Policy;
 using CalculateFunding.Services.Policy.Interfaces;
+using CalculateFunding.Services.Policy.Validators;
 using CalculateFunding.Services.Providers.Validators;
 using FluentValidation;
 using Microsoft.AspNetCore.Builder;
@@ -105,7 +107,8 @@ namespace CalculateFunding.Api.Policy
             builder
                 .AddSingleton<IFundingPeriodService, FundingPeriodService>()
                 .AddSingleton<IHealthChecker, FundingPeriodService>()
-                .AddSingleton<IFundingPeriodValidator, FundingPeriodValidator>();
+                .AddSingleton<IFundingPeriodValidator, FundingPeriodValidator>()
+                .AddSingleton<IValidator<FundingPeriodsJsonModel>, FundingPeriodJsonModelValidator>();
 
             builder
                 .AddSingleton<IFundingSchemaService, FundingSchemaService>()

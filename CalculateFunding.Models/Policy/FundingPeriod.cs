@@ -16,7 +16,7 @@ namespace CalculateFunding.Models.Policy
         public string Period { get; set; }
 
         [JsonProperty("type")]
-        public FundingPeriodType Type { get; set; }
+        public FundingPeriodType? Type { get; set; }
 
         [JsonProperty("startYear")]
         public int StartYear => StartDate.Year;

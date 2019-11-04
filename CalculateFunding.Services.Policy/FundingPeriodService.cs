@@ -14,7 +14,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Serilog;
-
+using FluentValidation;
+using CalculateFunding.Services.Policy.Validators;
 
 namespace CalculateFunding.Services.Policy
 {
@@ -24,28 +25,28 @@ namespace CalculateFunding.Services.Policy
         private readonly IPolicyRepository _policyRepository;
         private readonly ICacheProvider _cacheProvider;
         private readonly Polly.Policy _policyRepositoryPolicy;
-        private readonly Polly.Policy _cacheProviderPolicy;
-        private readonly IFundingPeriodValidator _fundingPeriodValidator;
+        private readonly Polly.Policy _cacheProviderPolicy;      
+        private readonly IValidator<FundingPeriodsJsonModel> _fundingPeriodJsonModelValidator;
 
         public FundingPeriodService(ILogger logger,
             ICacheProvider cacheProvider,
             IPolicyRepository policyRepository,
             IPolicyResiliencePolicies policyResiliencePolicies,
-            IFundingPeriodValidator fundingPeriodValidator)
+            IValidator<FundingPeriodsJsonModel> fundingPeriodJsonModelValidator)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
-            Guard.ArgumentNotNull(policyRepository, nameof(policyRepository));
-            Guard.ArgumentNotNull(fundingPeriodValidator, nameof(fundingPeriodValidator));
+            Guard.ArgumentNotNull(policyRepository, nameof(policyRepository));           
             Guard.ArgumentNotNull(policyResiliencePolicies?.PolicyRepository, nameof(policyResiliencePolicies.PolicyRepository));
             Guard.ArgumentNotNull(policyResiliencePolicies?.CacheProvider, nameof(policyResiliencePolicies.CacheProvider));
+            Guard.ArgumentNotNull(fundingPeriodJsonModelValidator, nameof(fundingPeriodJsonModelValidator));
 
             _logger = logger;
             _cacheProvider = cacheProvider;
-            _policyRepository = policyRepository;
-            _fundingPeriodValidator = fundingPeriodValidator;
+            _policyRepository = policyRepository;           
             _policyRepositoryPolicy = policyResiliencePolicies.PolicyRepository;
             _cacheProviderPolicy = policyResiliencePolicies.CacheProvider;
+            _fundingPeriodJsonModelValidator = fundingPeriodJsonModelValidator;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -111,12 +112,10 @@ namespace CalculateFunding.Services.Policy
         {
             string json = await request.GetRawBodyStringAsync();
 
-            string jsonFilename = request.GetJsonFileNameFromRequest();
-
             if (string.IsNullOrEmpty(json))
             {
-                _logger.Error($"Null or empty json provided for file: {jsonFilename}");
-                return new BadRequestObjectResult($"Invalid json was provided for file: {jsonFilename}");
+                _logger.Error($"Null or empty json provided for file");
+                return new BadRequestObjectResult($"Invalid json was provided for file");
             }
 
             FundingPeriodsJsonModel fundingPeriodsJsonModel = null;
@@ -124,11 +123,19 @@ namespace CalculateFunding.Services.Policy
             try
             {               
                 fundingPeriodsJsonModel = JsonConvert.DeserializeObject<FundingPeriodsJsonModel>(json);
+
+                BadRequestObjectResult validationResult = (await _fundingPeriodJsonModelValidator.ValidateAsync(fundingPeriodsJsonModel)).PopulateModelState();
+
+                if (validationResult != null)
+                {
+                    return validationResult;
+                }
+
             }
             catch (Exception exception)
             {
-                _logger.Error(exception, $"Invalid json was provided for file: {jsonFilename}");
-                return new BadRequestObjectResult($"Invalid json was provided for file: {jsonFilename}");
+                _logger.Error(exception, $"Invalid json was provided for file");
+                return new BadRequestObjectResult($"Invalid json was provided for file");
             }
 
             try
@@ -146,14 +153,14 @@ namespace CalculateFunding.Services.Policy
             }
             catch (Exception exception)
             {
-                string errorMessage = $"Exception occurred writing json file: {jsonFilename} to cosmos db";
+                string errorMessage = $"Exception occurred writing json file to cosmos db";
 
                 _logger.Error(exception, errorMessage);
 
                 return new InternalServerErrorResult(errorMessage);
             }
 
-            _logger.Information($"Successfully saved file: {jsonFilename} to cosmos db");
+            _logger.Information($"Successfully saved file to cosmos db");
 
             return new OkResult();
         }
