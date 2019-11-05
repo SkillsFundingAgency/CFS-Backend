@@ -1220,5 +1220,17 @@ WHERE   s.documentType = @DocumentType",
 
             return new OkObjectResult(updateSpecificationResult);
         }
+
+        public async Task<IActionResult> GetFundingStreamIdsForSelectedFundingSpecifications()
+        {
+            IEnumerable<Specification> spec = await _specificationsRepository.GetSpecificationsByQuery();
+
+            IEnumerable<string> fundingStreamIds = spec
+                .Where(c=> c.IsSelectedForFunding)
+                .SelectMany(c => c.Current.FundingStreams.Select(s => s.Id))
+                .Distinct();
+
+            return new OkObjectResult(fundingStreamIds);
+        }
     }
 }

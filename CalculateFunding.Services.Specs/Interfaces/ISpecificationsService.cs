@@ -47,5 +47,6 @@ namespace CalculateFunding.Services.Specs.Interfaces
         Task<IActionResult> GetPublishDates(string specificationId);
 
         Task<IActionResult> SetPublishDates(string specificationId, SpecificationPublishDateModel specificationPublishDateModel);
+        Task<IActionResult> GetFundingStreamIdsForSelectedFundingSpecifications();
     }
 }

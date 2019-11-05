@@ -32,6 +32,6 @@ namespace CalculateFunding.Services.Specs.Interfaces
 
         Task<IEnumerable<T>> GetSpecificationsByRawQuery<T>(SqlQuerySpec sqlQuerySpec);
 
-        Task<IEnumerable<Specification>> GetApprovedOrUpdatedSpecificationsByFundingPeriodAndFundingStream(string fundingPeriodId, string fundingStreamId);       
+        Task<IEnumerable<Specification>> GetApprovedOrUpdatedSpecificationsByFundingPeriodAndFundingStream(string fundingPeriodId, string fundingStreamId);
     }
 }

@@ -141,6 +141,13 @@ namespace CalculateFunding.Api.Specs.Controllers
             return await _specService.GetCurrentSpecificationsByFundingPeriodIdAndFundingStreamId(ControllerContext.HttpContext.Request);
         }
 
+        [Route("api/specs/fundingstream-ids-for-funding-specifications")]
+        [HttpGet]
+        public async Task<IActionResult> RunGetFundingStreamIdsForFundingSpecifications()
+        {
+            return await _specService.GetFundingStreamIdsForSelectedFundingSpecifications();
+        }
+
         [Route("api/specs/select-for-funding")]
         [HttpPost]
         public async Task<IActionResult> RunSelectSpecificationForFunding()
