@@ -11,6 +11,8 @@ using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Policy.Interfaces;
 using FluentAssertions;
+using FluentValidation;
+using FluentValidation.Results;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
@@ -23,8 +25,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
 {
     [TestClass]
     public class FundingStreamServiceTests
-    {
-        private const string jsonFile = "12345.json";
+    {       
 
         [TestMethod]
         public async Task GetFundingStreams_GivenNullOrEmptyFundingStreamsReturned_LogsAndReturnsOKWithEmptyList()
@@ -235,39 +236,13 @@ namespace CalculateFunding.Services.Policy.UnitTests
                 .Value
                 .Should()
                 .Be(fundingStream);
-        }
-
-        [TestMethod]
-        async public Task SaveFundingStream_GivenNoJsonWasProvidedWithNoFileName_ReturnsBadRequest()
-        {
-            //Arrange
-            HttpRequest request = Substitute.For<HttpRequest>();
-
-            ILogger logger = CreateLogger();
-
-            FundingStreamService fundingStreamsService = CreateFundingStreamService(logger: logger);
-
-            //Act
-            IActionResult result = await fundingStreamsService.SaveFundingStream(request);
-
-            //Assert
-            result
-                .Should()
-                .BeOfType<BadRequestObjectResult>();
-
-            logger
-                .Received(1)
-                .Error(Arg.Is($"Null or empty json provided for file: File name not provided"));
-        }
+        }        
 
         [TestMethod]
         async public Task SaveFundingStream_GivenNoJsonWasProvidedButFileNameWas_ReturnsBadRequest()
         {
             //Arrange
-            IHeaderDictionary headerDictionary = new HeaderDictionary
-            {
-                { "json-file", new StringValues(jsonFile) }
-            };
+            IHeaderDictionary headerDictionary = new HeaderDictionary();           
 
             HttpRequest request = Substitute.For<HttpRequest>();
             request
@@ -288,7 +263,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
 
             logger
                 .Received(1)
-                .Error(Arg.Is($"Null or empty json provided for file: {jsonFile}"));
+                .Error(Arg.Is($"Null or empty json provided for file"));
         }
 
         [TestMethod]
@@ -299,10 +274,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
             byte[] byteArray = Encoding.UTF8.GetBytes(yaml);
             MemoryStream stream = new MemoryStream(byteArray);
 
-            IHeaderDictionary headerDictionary = new HeaderDictionary
-            {
-                { "json-file", new StringValues(jsonFile) }
-            };
+            IHeaderDictionary headerDictionary = new HeaderDictionary();            
 
             HttpRequest request = Substitute.For<HttpRequest>();
             request
@@ -327,7 +299,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
 
             logger
                 .Received(1)
-                .Error(Arg.Any<Exception>(), Arg.Is($"Invalid json was provided for file: {jsonFile}"));
+                .Error(Arg.Any<Exception>(), Arg.Is($"Invalid json was provided for file"));
         }
 
         [TestMethod]
@@ -338,10 +310,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
             byte[] byteArray = Encoding.UTF8.GetBytes(json);
             MemoryStream stream = new MemoryStream(byteArray);
 
-            IHeaderDictionary headerDictionary = new HeaderDictionary
-            {
-                { "json-file", new StringValues(jsonFile) }
-            };
+            IHeaderDictionary headerDictionary = new HeaderDictionary();
 
             HttpRequest request = Substitute.For<HttpRequest>();
             request
@@ -379,7 +348,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
 
             logger
                 .Received(1)
-                .Error(Arg.Is($"Failed to save json file: {jsonFile} to cosmos db with status 502"));
+                .Error(Arg.Is($"Failed to save to cosmos db with status 502"));
         }
 
         [TestMethod]
@@ -390,10 +359,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
             byte[] byteArray = Encoding.UTF8.GetBytes(json);
             MemoryStream stream = new MemoryStream(byteArray);
 
-            IHeaderDictionary headerDictionary = new HeaderDictionary
-            {
-                { "json-file", new StringValues(jsonFile) }
-            };
+            IHeaderDictionary headerDictionary = new HeaderDictionary();
 
             HttpRequest request = Substitute.For<HttpRequest>();
             request
@@ -413,7 +379,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
 
             FundingStreamService fundingStreamsService = CreateFundingStreamService(logger: logger, policyRepository: policyRepository);
 
-            string expectedErrorMessage = $"Exception occurred writing to json file: {jsonFile} to cosmos db";
+            string expectedErrorMessage = $"Exception occurred writing to json file to cosmos db";
 
             //Act
             IActionResult result = await fundingStreamsService.SaveFundingStream(request);
@@ -440,10 +406,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
             byte[] byteArray = Encoding.UTF8.GetBytes(json);
             MemoryStream stream = new MemoryStream(byteArray);
 
-            IHeaderDictionary headerDictionary = new HeaderDictionary
-            {
-                { "json-file", new StringValues(jsonFile) }
-            };
+            IHeaderDictionary headerDictionary = new HeaderDictionary();
 
             HttpRequest request = Substitute.For<HttpRequest>();
             request
@@ -475,19 +438,38 @@ namespace CalculateFunding.Services.Policy.UnitTests
 
             logger
                 .Received(1)
-                .Information(Arg.Is($"Successfully saved file: {jsonFile} to cosmos db"));
+                .Information(Arg.Is($"Successfully saved file to cosmos db"));
         }
 
         private static FundingStreamService CreateFundingStreamService(
             ILogger logger = null,
             ICacheProvider cacheProvider = null,
-            IPolicyRepository policyRepository = null)
+            IPolicyRepository policyRepository = null,
+            IValidator<FundingStreamSaveModel> fundingStreamSaveModelValidator = null)
         {
             return new FundingStreamService(
                 logger ?? CreateLogger(),
                 cacheProvider ?? CreateCacheProvider(),
                 policyRepository ?? CreatePolicyRepository(),
-                PolicyResiliencePoliciesTestHelper.GenerateTestPolicies());
+                PolicyResiliencePoliciesTestHelper.GenerateTestPolicies(),
+                fundingStreamSaveModelValidator ?? CreateFundingStreamSaveModelValidator());
+        }
+
+        private static IValidator<FundingStreamSaveModel> CreateFundingStreamSaveModelValidator()
+        {
+            ValidationResult validationResult = null;
+            if (validationResult == null)
+            {
+                validationResult = new ValidationResult();
+            }
+
+            IValidator<FundingStreamSaveModel> validator = Substitute.For<IValidator<FundingStreamSaveModel>>();
+
+            validator
+               .ValidateAsync(Arg.Any<FundingStreamSaveModel>())
+               .Returns(validationResult);
+
+            return validator;
         }
 
         private static ILogger CreateLogger()

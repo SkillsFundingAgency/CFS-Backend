@@ -5,6 +5,7 @@ using CalculateFunding.Models.Policy;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Policy.Interfaces;
+using FluentValidation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
@@ -25,24 +26,28 @@ namespace CalculateFunding.Services.Policy
         private readonly ICacheProvider _cacheProvider;
         private readonly Polly.Policy _policyRepositoryPolicy;
         private readonly Polly.Policy _cacheProviderPolicy;
+        private readonly IValidator<FundingStreamSaveModel> _fundingStreamSaveModelValidator;
 
         public FundingStreamService(
             ILogger logger, 
             ICacheProvider cacheProvider, 
             IPolicyRepository policyRepository,
-            IPolicyResiliencePolicies policyResiliencePolicies)
+            IPolicyResiliencePolicies policyResiliencePolicies,
+            IValidator<FundingStreamSaveModel> fundingStreamSaveModelValidator)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
             Guard.ArgumentNotNull(policyRepository, nameof(policyRepository));
             Guard.ArgumentNotNull(policyResiliencePolicies?.PolicyRepository, nameof(policyResiliencePolicies.PolicyRepository));
             Guard.ArgumentNotNull(policyResiliencePolicies?.CacheProvider, nameof(policyResiliencePolicies.CacheProvider));
+            Guard.ArgumentNotNull(fundingStreamSaveModelValidator, nameof(fundingStreamSaveModelValidator));
 
             _logger = logger;
             _cacheProvider = cacheProvider;
             _policyRepository = policyRepository;
             _policyRepositoryPolicy = policyResiliencePolicies.PolicyRepository;
             _cacheProviderPolicy = policyResiliencePolicies.CacheProvider;
+            _fundingStreamSaveModelValidator = fundingStreamSaveModelValidator;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -106,51 +111,67 @@ namespace CalculateFunding.Services.Policy
         {
             Guard.ArgumentNotNull(request, nameof(request));
 
-            string json = await request.GetRawBodyStringAsync();
-
-            string jsonFilename = request.GetJsonFileNameFromRequest();
+            string json = await request.GetRawBodyStringAsync();           
 
             if (string.IsNullOrEmpty(json))
             {
-                _logger.Error($"Null or empty json provided for file: {jsonFilename}");
-                return new BadRequestObjectResult($"Invalid json was provided for file: {jsonFilename}");
+                _logger.Error($"Null or empty json provided for file");
+                return new BadRequestObjectResult($"Invalid json was provided for file");
             }
 
-            FundingStream fundingStream = null;
+            //FundingStream fundingStream = null;
+            FundingStreamSaveModel fundingStreamSaveModel = null;
 
             try
             {
-                fundingStream = JsonConvert.DeserializeObject<FundingStream>(json);               
-            }
-            catch (Exception exception)
-            {
-                _logger.Error(exception, $"Invalid json was provided for file: {jsonFilename}");
-                return new BadRequestObjectResult($"Invalid json was provided for file: {jsonFilename}");
-            }
+                fundingStreamSaveModel = JsonConvert.DeserializeObject<FundingStreamSaveModel>(json);
 
-            try
-            {
-                HttpStatusCode result = await _policyRepositoryPolicy.ExecuteAsync(() => _policyRepository.SaveFundingStream(fundingStream));
+                BadRequestObjectResult validationResult = (await _fundingStreamSaveModelValidator.ValidateAsync(fundingStreamSaveModel)).PopulateModelState();
 
-                if (!result.IsSuccess())
+                if (validationResult != null)
                 {
-                    int statusCode = (int)result;
-
-                    _logger.Error($"Failed to save json file: {jsonFilename} to cosmos db with status {statusCode}");
-
-                    return new StatusCodeResult(statusCode);
+                    return validationResult;
                 }
             }
             catch (Exception exception)
             {
-                string errorMessage = $"Exception occurred writing to json file: {jsonFilename} to cosmos db";
+                _logger.Error(exception, $"Invalid json was provided for file");
+                return new BadRequestObjectResult($"Invalid json was provided for file");
+            }
+
+            try
+            {                
+                FundingStream fundingStream = new FundingStream()
+                {
+                    Id = fundingStreamSaveModel.Id,
+                    Name = fundingStreamSaveModel.Name,
+                    ShortName = fundingStreamSaveModel.ShortName
+                };
+
+                if (fundingStream != null)
+                {
+                    HttpStatusCode result = await _policyRepositoryPolicy.ExecuteAsync(() => _policyRepository.SaveFundingStream(fundingStream));
+
+                    if (!result.IsSuccess())
+                    {
+                        int statusCode = (int)result;
+
+                        _logger.Error($"Failed to save to cosmos db with status {statusCode}");
+
+                        return new StatusCodeResult(statusCode);
+                    }
+                }
+            }
+            catch (Exception exception)
+            {
+                string errorMessage = $"Exception occurred writing to json file to cosmos db";
 
                 _logger.Error(exception, errorMessage);
 
                 return new InternalServerErrorResult(errorMessage);
             }
 
-            _logger.Information($"Successfully saved file: {jsonFilename} to cosmos db");
+            _logger.Information($"Successfully saved file to cosmos db");
 
             bool keyExists = await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.KeyExists<FundingStream[]>(CacheKeys.AllFundingStreams));
 

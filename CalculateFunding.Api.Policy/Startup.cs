@@ -102,7 +102,8 @@ namespace CalculateFunding.Api.Policy
             
             builder
                 .AddSingleton<IFundingStreamService, FundingStreamService>()
-                .AddSingleton<IHealthChecker, FundingStreamService>();
+                .AddSingleton<IHealthChecker, FundingStreamService>()
+                .AddSingleton<IValidator<FundingStreamSaveModel>, FundingStreamSaveModelValidator>();
 
             builder
                 .AddSingleton<IFundingPeriodService, FundingPeriodService>()
