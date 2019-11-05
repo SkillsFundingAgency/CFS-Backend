@@ -54,7 +54,11 @@ namespace CalculateFunding.Functions.Results.UnitTests
                 { "providerProfilingAzureBearerTokenOptions:ClientId", "client-id" },
                 { "providerProfilingAzureBearerTokenOptions:ClientSecret", "client-secret"},
                 { "redisSettings:CacheConnection", "CacheConnection"},
-                { "CommonStorageSettings:ConnectionString", "StorageConnection" }
+                { "CommonStorageSettings:ConnectionString", "StorageConnection" },
+                { "providersClient:ApiEndpoint", "https://localhost:7010/api/" },
+                { "providersClient:ApiKey", "Local" },
+                { "jobsClient:ApiEndpoint", "https://localhost:7010/api/" },
+                { "jobsClient:ApiKey", "Local" },
             };
 
             return configData;

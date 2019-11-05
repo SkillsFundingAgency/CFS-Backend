@@ -60,9 +60,13 @@ namespace CalculateFunding.Functions.Calcs.UnitTests
                 { "resultsClient:ApiKey", "Local" },
                 { "datasetsClient:ApiEndpoint", "https://localhost:7004/api/"},
                 { "datasetsClient:ApiKey", "Local"},
+                { "calcsClient:ApiEndpoint", "https://localhost:7004/api/"},
+                { "calcsClient:ApiKey", "Local"},
                 { "jobsClient:ApiEndpoint", "https://localhost:7010/api/"},
                 { "jobsClient:ApiKey", "Local"},
-                { "CommonStorageSettings:ConnectionString", "StorageConnection" }
+                { "CommonStorageSettings:ConnectionString", "StorageConnection" },
+                { "providersClient:ApiEndpoint", "https://localhost:7010/api/" },
+                { "providersClient:ApiKey", "Local" },
             };
 
             return configData;

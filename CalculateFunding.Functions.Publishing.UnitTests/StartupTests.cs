@@ -45,6 +45,14 @@ namespace CalculateFunding.Functions.Publishing.UnitTests
                 { "CosmosDbSettings:ConnectionString", "AccountEndpoint=https://test.documents.azure.com:443/;AccountKey=dGVzdA==;" },
                 { "profilingClient:BaseUrl", "https://localhost:5003" },
                 { "profilingClient:ApiKey", "Test" },
+                { "providersClient:ApiEndpoint", "https://localhost:7010/api/" },
+                { "providersClient:ApiKey", "Local" },
+                { "jobsClient:ApiEndpoint", "https://localhost:7010/api/" },
+                { "jobsClient:ApiKey", "Local" },
+                { "calcsClient:ApiEndpoint", "https://localhost:7010/api/" },
+                { "calcsClient:ApiKey", "Local" },
+                { "providerProfilingClient:ApiEndpoint", "https://localhost:7010/api/" },
+                { "providerProfilingClientt:ApiKey", "Local" },
             };
 
             return configData;
