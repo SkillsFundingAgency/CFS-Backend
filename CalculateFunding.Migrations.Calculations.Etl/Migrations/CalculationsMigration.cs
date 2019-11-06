@@ -453,7 +453,7 @@ namespace CalculateFunding.Migrations.Calculations.Etl.Migrations
                 {
                     int hashCode = (obj.Name?.GetHashCode()).GetValueOrDefault();
 
-                    hashCode = hashCode * 297 + (obj.Definition?.GetHashCode()).GetValueOrDefault();
+                    hashCode = hashCode * 297 + (obj.Definition?.Id.GetHashCode()).GetValueOrDefault();
 
                     return hashCode;
                 }
