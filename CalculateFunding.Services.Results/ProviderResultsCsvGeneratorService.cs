@@ -96,7 +96,7 @@ namespace CalculateFunding.Services.Results
                 }, BatchSize)
             );
 
-            ICloudBlob blob = _blobClient.GetBlockBlobReference($"calculation-results-{specificationId}");
+            ICloudBlob blob = _blobClient.GetBlockBlobReference($"calculation-results-{specificationId}.csv");
 
             using (Stream csvFileStream = _fileSystemAccess.OpenRead(temporaryFilePath))
             {

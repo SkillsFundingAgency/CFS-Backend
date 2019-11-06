@@ -126,7 +126,7 @@ namespace CalculateFunding.Functions.Results
 
                     config.Bind("AzureStorageSettings", storageSettings);
 
-                    storageSettings.ContainerName = "datasets";
+                    storageSettings.ContainerName = "calcresults";
 
                     return new AzureStorage.BlobClient(storageSettings);
                 });

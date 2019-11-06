@@ -162,7 +162,7 @@ namespace CalculateFunding.Services.Results
         private void AndTheCloudBlobForSpecificationId(string specificationId)
         {
             _blobClient
-                .GetBlockBlobReference($"calculation-results-{specificationId}")
+                .GetBlockBlobReference($"calculation-results-{specificationId}.csv")
                 .Returns(_cloudBlob);
         }
 
