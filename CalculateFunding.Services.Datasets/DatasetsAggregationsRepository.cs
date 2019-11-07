@@ -21,7 +21,7 @@ namespace CalculateFunding.Services.Datasets
         {
             ServiceHealth health = new ServiceHealth();
 
-            var cosmosHealth = await _cosmosRepository.IsHealthOk();
+            var cosmosHealth = _cosmosRepository.IsHealthOk();
 
             health.Name = nameof(DatasetsAggregationsRepository);
             health.Dependencies.Add(new DependencyHealth { HealthOk = cosmosHealth.Ok, DependencyName = this.GetType().Name, Message = cosmosHealth.Message });
@@ -34,11 +34,9 @@ namespace CalculateFunding.Services.Datasets
             await _cosmosRepository.CreateAsync<DatasetAggregations>(datasetAggregations);
         }
 
-        public Task<IEnumerable<DatasetAggregations>> GetDatasetAggregationsForSpecificationId(string specificationId)
+        public async Task<IEnumerable<DatasetAggregations>> GetDatasetAggregationsForSpecificationId(string specificationId)
         {
-            IEnumerable<DatasetAggregations> results = _cosmosRepository.Query<DatasetAggregations>().Where(x => x.SpecificationId == specificationId).ToList();
-
-            return Task.FromResult(results);
+            return (await _cosmosRepository.Query<DatasetAggregations>(x => x.Content.SpecificationId == specificationId));
         }
     }
 }

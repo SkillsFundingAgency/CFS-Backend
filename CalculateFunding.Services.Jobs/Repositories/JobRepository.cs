@@ -9,7 +9,7 @@ using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Jobs;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Jobs.Interfaces;
-using Microsoft.Azure.Documents;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Trigger = CalculateFunding.Models.Jobs.Trigger;
 
@@ -28,7 +28,7 @@ namespace CalculateFunding.Services.Jobs.Repositories
         {
             ServiceHealth health = new ServiceHealth();
 
-            (bool Ok, string Message) cosmosHealth = await _cosmosRepository.IsHealthOk();
+            (bool Ok, string Message) cosmosHealth = _cosmosRepository.IsHealthOk();
 
             health.Name = nameof(JobDefinitionsRepository);
             health.Dependencies.Add(new DependencyHealth { HealthOk = cosmosHealth.Ok, DependencyName = this.GetType().Name, Message = cosmosHealth.Message });
@@ -58,40 +58,37 @@ namespace CalculateFunding.Services.Jobs.Repositories
             return await _cosmosRepository.CreateAsync(jobLog, jobLog.JobId);
         }
 
-        public IQueryable<Job> GetJobs()
+        public async Task<IEnumerable<Job>> GetJobs()
         {
-            return _cosmosRepository.Query<Job>(enableCrossPartitionQuery: true);
+            return await _cosmosRepository.Query<Job>();
         }
 
         public async Task<Job> GetJobById(string jobId)
         {
             Guard.IsNullOrWhiteSpace(jobId, nameof(jobId));
 
-            SqlQuerySpec sqlQuerySpec = new SqlQuerySpec("SELECT TOP 1 * FROM Jobs AS j WHERE j.documentType = \"Job\" AND j.deleted = false");
+            CosmosDbQuery cosmosDbQuery = new CosmosDbQuery("SELECT TOP 1 * FROM Jobs AS j WHERE j.documentType = \"Job\" AND j.deleted = false");
 
-            IEnumerable<Job> jobs = await _cosmosRepository.QueryPartitionedEntity<Job>(sqlQuerySpec, partitionEntityId: jobId);
+            IEnumerable<Job> jobs = await _cosmosRepository.QueryPartitionedEntity<Job>(cosmosDbQuery, partitionKey: jobId);
 
             return jobs.FirstOrDefault();
         }
 
-        public IEnumerable<Job> GetRunningJobsForSpecificationAndJobDefinitionId(string specificationId, string jobDefinitionId)
+        public async Task<IEnumerable<Job>> GetRunningJobsForSpecificationAndJobDefinitionId(string specificationId, string jobDefinitionId)
         {
-            IQueryable<Job> query = _cosmosRepository
-                .Query<Job>(enableCrossPartitionQuery: true)
-                .Where(m => m.SpecificationId == specificationId
-                            && m.JobDefinitionId == jobDefinitionId
-                            && m.RunningStatus != RunningStatus.Completed);
-
-            return query.AsEnumerable();
+            return await _cosmosRepository
+                .Query<Job>((m) => m.Content.SpecificationId == specificationId
+                            && m.Content.JobDefinitionId == jobDefinitionId
+                            && m.Content.RunningStatus != RunningStatus.Completed);
         }
 
         public async Task<IEnumerable<JobLog>> GetJobLogsByJobId(string jobId)
         {
             Guard.IsNullOrWhiteSpace(jobId, nameof(jobId));
 
-            SqlQuerySpec sqlQuerySpec = new SqlQuerySpec("SELECT j FROM Jobs j WHERE j.documentType = \"JobLog\" AND j.deleted = false");
+            CosmosDbQuery cosmosDbQuery = new CosmosDbQuery("SELECT j FROM Jobs j WHERE j.documentType = \"JobLog\" AND j.deleted = false");
 
-            IEnumerable<JobLog> jobLogs = await _cosmosRepository.QueryPartitionedEntity<JobLog>(sqlQuerySpec, partitionEntityId: jobId);
+            IEnumerable<JobLog> jobLogs = await _cosmosRepository.QueryPartitionedEntity<JobLog>(cosmosDbQuery, partitionKey: jobId);
 
             return jobLogs;
         }
@@ -103,23 +100,19 @@ namespace CalculateFunding.Services.Jobs.Repositories
             return await _cosmosRepository.UpsertAsync<Job>(job, job.JobId);
         }
 
-        public IEnumerable<Job> GetChildJobsForParent(string jobId)
+        public async Task<IEnumerable<Job>> GetChildJobsForParent(string jobId)
         {
-            IQueryable<Job> query = _cosmosRepository.Query<Job>(enableCrossPartitionQuery: true).Where(m => m.ParentJobId == jobId);
-
-            return query.AsEnumerable();
+            return (await _cosmosRepository.Query<Job>((m) => m.Content.ParentJobId == jobId));
         }
 
-        public IEnumerable<Job> GetNonCompletedJobs()
+        public async Task<IEnumerable<Job>> GetNonCompletedJobs()
         {
-            IQueryable<Job> query = _cosmosRepository.Query<Job>(enableCrossPartitionQuery: true).Where(m => !m.CompletionStatus.HasValue);
-
-            return query.AsEnumerable();
+            return (await _cosmosRepository.Query<Job>((m) => !m.Content.CompletionStatus.HasValue));
         }
 
         public async Task<Job> GetLatestJobBySpecificationId(string specificationId, IEnumerable<string> jobDefinitionIds = null)
         {
-            string query = @"SELECT TOP 1   r.content.id AS id, 
+            string query = @"SELECT TOP 1 r.content.id AS id, 
                                     r.content.jobDefinitionId AS jobDefinitionId, 
                                     r.content.runningStatus AS runningStatus, 
                                     r.content.completionStatus AS completionStatus, 
@@ -144,8 +137,8 @@ namespace CalculateFunding.Services.Jobs.Repositories
                                     AND r.deleted = false 
                                     AND r.content.specificationId = @SpecificationId";
 
-            List<SqlParameter> sqlParameters = new List<SqlParameter>();
-            sqlParameters.Add(new SqlParameter("@SpecificationId", specificationId));
+            List<CosmosDbQueryParameter> cosmosDbQueryParameters = new List<CosmosDbQueryParameter>();
+            cosmosDbQueryParameters.Add(new CosmosDbQueryParameter("@SpecificationId", specificationId));
 
             string[] jobDefinitionIdsArray = jobDefinitionIds.ToArray();
 
@@ -156,28 +149,28 @@ namespace CalculateFunding.Services.Jobs.Repositories
                 for (int cnt = 0; cnt < jobDefinitionIds.Count(); cnt++)
                 {
                     jobDefinitionIdFilters.Add($"r.content.jobDefinitionId = @JobDefinitionId{cnt}");
-                    sqlParameters.Add(new SqlParameter($"@JobDefinitionId{cnt}", jobDefinitionIdsArray[cnt]));
+                    cosmosDbQueryParameters.Add(new CosmosDbQueryParameter($"@JobDefinitionId{cnt}", jobDefinitionIdsArray[cnt]));
                 }
                 query += $" AND ({string.Join(" or ", jobDefinitionIdFilters)})";
             }
 
             query += " ORDER BY r.content.created DESC";
 
-            IEnumerable<dynamic> existingResults = await _cosmosRepository.QueryDynamic(new SqlQuerySpec(query, new SqlParameterCollection(sqlParameters)), true, 1);
+            IEnumerable<dynamic> existingResults = await _cosmosRepository.DynamicQuery(new CosmosDbQuery(query, cosmosDbQueryParameters), 1);
 
             dynamic existingResult = existingResults.FirstOrDefault();
 
-            if (existingResult == null)
-            {
-                return null;
-            }
+            if (existingResult == null) return null;
+
+            string runningStatus = existingResult.runningStatus;
+            string completionStatus = existingResult.completionStatus;
 
             return new Job
             {
                 Id = existingResult.id,
                 JobDefinitionId = existingResult.jobDefinitionId,
-                RunningStatus = Enum.Parse(typeof(RunningStatus), existingResult.runningStatus),
-                CompletionStatus = string.IsNullOrWhiteSpace(existingResult.completionStatus) ? null : Enum.Parse(typeof(CompletionStatus), existingResult.completionStatus),
+                RunningStatus = Enum.Parse<RunningStatus>(runningStatus),
+                CompletionStatus = string.IsNullOrWhiteSpace(completionStatus) ? default(CompletionStatus?) : Enum.Parse<CompletionStatus>(completionStatus),
                 InvokerUserId = existingResult.invokeUserId,
                 InvokerUserDisplayName = existingResult.invokerDisplayName,
                 ItemCount = existingResult.itemCount,
@@ -227,15 +220,15 @@ namespace CalculateFunding.Services.Jobs.Repositories
                                     AND r.deleted = false 
                                     AND (r.content.lastUpdated >= @dateTimeFrom and r.content.lastUpdated <= @dateTimeTo) and r.content.runningStatus != 'Completed'";
 
-            List<SqlParameter> sqlParameters = new List<SqlParameter>
+            List<CosmosDbQueryParameter> sqlParameters = new List<CosmosDbQueryParameter>
             {
-                new SqlParameter($"@dateTimeFrom", dateTimeFrom),
-                new SqlParameter($"@dateTimeTo", dateTimeTo),
+                new CosmosDbQueryParameter($"@dateTimeFrom", dateTimeFrom),
+                new CosmosDbQueryParameter($"@dateTimeTo", dateTimeTo),
             };
 
             query += " ORDER BY r.content.created DESC";
 
-            IEnumerable<dynamic> existingResults = await _cosmosRepository.QueryDynamic(new SqlQuerySpec(query, new SqlParameterCollection(sqlParameters)), true, 1);
+            IEnumerable<dynamic> existingResults = await _cosmosRepository.DynamicQuery(new CosmosDbQuery(query, sqlParameters), 1);
 
             IList<Job> jobs = new List<Job>();
 
@@ -250,8 +243,8 @@ namespace CalculateFunding.Services.Jobs.Repositories
                 {
                     Id = existingResult.id,
                     JobDefinitionId = existingResult.jobDefinitionId,
-                    RunningStatus = Enum.Parse(typeof(RunningStatus), existingResult.runningStatus),
-                    CompletionStatus = string.IsNullOrWhiteSpace(existingResult.completionStatus) ? null : Enum.Parse(typeof(CompletionStatus), existingResult.completionStatus),
+                    RunningStatus = Enum.Parse<RunningStatus>(existingResult.runningStatus),
+                    CompletionStatus = string.IsNullOrWhiteSpace(existingResult.completionStatus) ? default(CompletionStatus?) : Enum.Parse<CompletionStatus>(existingResult.completionStatus),
                     InvokerUserId = existingResult.invokeUserId,
                     InvokerUserDisplayName = existingResult.invokerDisplayName,
                     ItemCount = existingResult.itemCount,

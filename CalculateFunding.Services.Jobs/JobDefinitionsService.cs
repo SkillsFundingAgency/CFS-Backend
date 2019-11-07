@@ -22,7 +22,6 @@ namespace CalculateFunding.Services.Jobs
         private readonly IJobDefinitionsRepository _jobDefinitionsRepository;
         private readonly ILogger _logger;
         private readonly Polly.Policy _jobDefinitionsRepositoryPolicy;
-        private readonly Polly.Policy _jobDefinitionsRepositoryNonAsyncPolicy;
         private readonly ICacheProvider _cacheProvider;
         private readonly Polly.Policy _cachePolicy;
 
@@ -34,13 +33,11 @@ namespace CalculateFunding.Services.Jobs
             Guard.ArgumentNotNull(resiliencePolicies, nameof(resiliencePolicies));
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
             Guard.ArgumentNotNull(resiliencePolicies?.JobDefinitionsRepository, nameof(resiliencePolicies.JobDefinitionsRepository));
-            Guard.ArgumentNotNull(resiliencePolicies?.JobRepositoryNonAsync, nameof(resiliencePolicies.JobRepositoryNonAsync));
             Guard.ArgumentNotNull(resiliencePolicies?.CacheProviderPolicy, nameof(resiliencePolicies.CacheProviderPolicy));
 
             _jobDefinitionsRepository = jobDefinitionsRepository;
             _logger = logger;
             _jobDefinitionsRepositoryPolicy = resiliencePolicies.JobDefinitionsRepository;
-            _jobDefinitionsRepositoryNonAsyncPolicy = resiliencePolicies.JobRepositoryNonAsync;
             _cacheProvider = cacheProvider;
             _cachePolicy = resiliencePolicies.CacheProviderPolicy;
         }
@@ -148,7 +145,7 @@ namespace CalculateFunding.Services.Jobs
                 return jobDefinitions;
             }
 
-            jobDefinitions = _jobDefinitionsRepositoryNonAsyncPolicy.Execute(() => _jobDefinitionsRepository.GetJobDefinitions());
+            jobDefinitions = await _jobDefinitionsRepositoryPolicy.ExecuteAsync(() => _jobDefinitionsRepository.GetJobDefinitions());
 
             if (!jobDefinitions.IsNullOrEmpty())
             {

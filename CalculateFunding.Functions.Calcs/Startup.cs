@@ -118,7 +118,7 @@ namespace CalculateFunding.Functions.Calcs
 
                 config.Bind("CosmosDbSettings", calcsVersioningDbSettings);
 
-                calcsVersioningDbSettings.CollectionName = "calcs";
+                calcsVersioningDbSettings.ContainerName = "calcs";
 
                 CosmosRepository resultsRepostory = new CosmosRepository(calcsVersioningDbSettings);
 

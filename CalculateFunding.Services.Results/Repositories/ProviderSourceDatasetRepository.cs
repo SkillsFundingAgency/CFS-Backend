@@ -21,7 +21,7 @@ namespace CalculateFunding.Services.Results.Repositories
 
         public async Task<ServiceHealth> IsHealthOk()
         {
-            (bool Ok, string Message) = await _cosmosRepository.IsHealthOk();
+            (bool Ok, string Message) = _cosmosRepository.IsHealthOk();
 
             ServiceHealth health = new ServiceHealth()
             {
@@ -34,7 +34,7 @@ namespace CalculateFunding.Services.Results.Repositories
 
         public Task<IEnumerable<ProviderSourceDataset>> GetProviderSourceDatasets(string providerId, string specificationId)
         {
-            SqlQuerySpec sqlQuerySpec = new SqlQuerySpec
+            CosmosDbQuery cosmosDbQuery = new CosmosDbQuery
             {
                 QueryText = @"SELECT *
                             FROM    Root r
@@ -42,20 +42,20 @@ namespace CalculateFunding.Services.Results.Repositories
                                     AND r.content.specificationId = @SpecificationId
                                     AND r.documentType = @DocumentType 
                                     AND r.deleted = false",
-                Parameters = new SqlParameterCollection
+                Parameters = new []
                 {
-                      new SqlParameter("@ProviderId", providerId),
-                      new SqlParameter("@SpecificationId", specificationId), 
-                      new SqlParameter("@DocumentType", nameof(ProviderSourceDataset))
+                      new CosmosDbQueryParameter("@ProviderId", providerId),
+                      new CosmosDbQueryParameter("@SpecificationId", specificationId), 
+                      new CosmosDbQueryParameter("@DocumentType", nameof(ProviderSourceDataset))
                 }
             };
 
-            return _cosmosRepository.QueryPartitionedEntity<ProviderSourceDataset>(sqlQuerySpec, -1, providerId);
+            return _cosmosRepository.QueryPartitionedEntity<ProviderSourceDataset>(cosmosDbQuery, -1, providerId);
         }
 
         public async Task<IEnumerable<string>> GetAllScopedProviderIdsForSpecificationId(string specificationId)
         {
-            SqlQuerySpec sqlQuerySpec = new SqlQuerySpec
+            CosmosDbQuery cosmosDbQuery = new CosmosDbQuery
             {
                 QueryText = @"SELECT    r.content.providerId
                             FROM        Root r 
@@ -63,16 +63,16 @@ namespace CalculateFunding.Services.Results.Repositories
                                         AND r.documentType = @DocumentType
                                         AND r.deleted = false 
                                         AND r.content.definesScope = true",
-                Parameters = new SqlParameterCollection
+                Parameters = new []
                 {
-                    new SqlParameter("@SpecificationId", specificationId),
-                    new SqlParameter("@DocumentType", nameof(ProviderSourceDataset))
+                    new CosmosDbQueryParameter("@SpecificationId", specificationId),
+                    new CosmosDbQueryParameter("@DocumentType", nameof(ProviderSourceDataset))
                 }
             };
 
-            IEnumerable<dynamic> providerSourceDatasets = await _cosmosRepository.QueryDynamic(sqlQuerySpec, true);
+            IEnumerable<dynamic> providerSourceDatasets = await _cosmosRepository.DynamicQuery(cosmosDbQuery);
 
-            IEnumerable<string> providerIds = providerSourceDatasets.Select(m => new string(m.providerId)).Distinct();
+            IEnumerable<string> providerIds = providerSourceDatasets.Select(m => (string)m.providerId).Distinct();
 
             return providerIds;
         }

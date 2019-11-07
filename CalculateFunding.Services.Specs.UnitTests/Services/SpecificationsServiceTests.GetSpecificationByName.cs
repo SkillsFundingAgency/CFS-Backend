@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Specs.Interfaces;
 using FluentAssertions;
@@ -63,7 +64,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
             specificationsRepository
-                 .GetSpecificationsByQuery(Arg.Any<Expression<Func<Specification, bool>>>())
+                 .GetSpecificationsByQuery(Arg.Any<Expression<Func<DocumentEntity<Specification>, bool>>>())
                  .Returns(specs);
 
             SpecificationsService service = CreateService(specificationsRepository: specificationsRepository, logs: logger);
@@ -105,7 +106,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
             specificationsRepository
-                 .GetSpecificationsByQuery(Arg.Any<Expression<Func<Specification, bool>>>())
+                 .GetSpecificationsByQuery(Arg.Any<Expression<Func<DocumentEntity<Specification>, bool>>>())
                  .Returns(specs);
 
             SpecificationsService service = CreateService(specificationsRepository: specificationsRepository, logs: logger);

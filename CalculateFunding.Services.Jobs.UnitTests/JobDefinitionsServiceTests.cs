@@ -524,8 +524,7 @@ namespace CalculateFunding.Services.Jobs.Services
             return new ResiliencePolicies()
             {
                 JobDefinitionsRepository = Policy.NoOpAsync(),
-                CacheProviderPolicy = Policy.NoOpAsync(),
-                JobRepositoryNonAsync = Policy.NoOp()
+                CacheProviderPolicy = Policy.NoOpAsync()
             };
         }
     }

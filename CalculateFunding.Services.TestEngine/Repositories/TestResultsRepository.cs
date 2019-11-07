@@ -3,7 +3,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Threading;
 using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models;
@@ -13,7 +12,6 @@ using CalculateFunding.Models.Results;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.TestRunner.Interfaces;
-using Microsoft.Azure.Documents;
 using Serilog;
 
 namespace CalculateFunding.Services.TestRunner.Repositories
@@ -39,7 +37,7 @@ namespace CalculateFunding.Services.TestRunner.Repositories
         {
             ServiceHealth health = new ServiceHealth();
 
-            var (Ok, Message) = await _cosmosRepository.IsHealthOk();
+            var (Ok, Message) = _cosmosRepository.IsHealthOk();
 
             health.Name = nameof(TestResultsRepository);
             health.Dependencies.Add(new DependencyHealth { HealthOk = Ok, DependencyName = GetType().Name, Message = Message });
@@ -73,21 +71,21 @@ namespace CalculateFunding.Services.TestRunner.Repositories
             {
                 try
                 {
-                    SqlQuerySpec sqlQuerySpec = new SqlQuerySpec
+                    CosmosDbQuery cosmosDbQuery = new CosmosDbQuery
                     {
                         QueryText = @"SELECT * 
                                 FROM    Root r 
                                 WHERE   r.documentType = @DocumentType 
                                         AND r.content.specification.id = @SpecificationId
                                         AND r.deleted = false",
-                        Parameters = new SqlParameterCollection
+                        Parameters = new[]
                         {
-                            new SqlParameter("@DocumentType", nameof(TestScenarioResult)),
-                            new SqlParameter("@SpecificationId", specificationId)
+                            new CosmosDbQueryParameter("@DocumentType", nameof(TestScenarioResult)),
+                            new CosmosDbQueryParameter("@SpecificationId", specificationId)
                         }
                     };
 
-                    IEnumerable<TestScenarioResult> testScenarioResults = await _cosmosRepository.QueryPartitionedEntity<TestScenarioResult>(sqlQuerySpec, partitionEntityId: providerId);
+                    IEnumerable<TestScenarioResult> testScenarioResults = await _cosmosRepository.QueryPartitionedEntity<TestScenarioResult>(cosmosDbQuery, partitionKey: providerId);
                     foreach (TestScenarioResult testScenarioResult in testScenarioResults)
                     {
                         results.Add(testScenarioResult);
@@ -106,7 +104,7 @@ namespace CalculateFunding.Services.TestRunner.Repositories
 
             return results.AsEnumerable();
         }
-        
+
         public async Task<HttpStatusCode> SaveTestProviderResults(IEnumerable<TestScenarioResult> providerResult)
         {
             Guard.ArgumentNotNull(providerResult, nameof(providerResult));
@@ -151,9 +149,9 @@ namespace CalculateFunding.Services.TestRunner.Repositories
 
         public async Task<ProviderTestScenarioResultCounts> GetProviderCounts(string providerId)
         {
-            Task<int> passedTask = Task.Run(() => _cosmosRepository.Query<TestScenarioResult>().Where(c => c.Provider.Id == providerId && c.TestResult == TestResult.Passed).Count());
-            Task<int> failedTask = Task.Run(() => _cosmosRepository.Query<TestScenarioResult>().Where(c => c.Provider.Id == providerId && c.TestResult == TestResult.Failed).Count());
-            Task<int> ignoredTask = Task.Run(() => _cosmosRepository.Query<TestScenarioResult>().Where(c => c.Provider.Id == providerId && c.TestResult == TestResult.Ignored).Count());
+            Task<int> passedTask = Task.Run(async() => (await _cosmosRepository.Query<TestScenarioResult>(c => c.Content.Provider.Id == providerId && c.Content.TestResult == TestResult.Passed)).Count());
+            Task<int> failedTask = Task.Run(async () => (await _cosmosRepository.Query<TestScenarioResult>(c => c.Content.Provider.Id == providerId && c.Content.TestResult == TestResult.Failed)).Count());
+            Task<int> ignoredTask = Task.Run(async () => (await _cosmosRepository.Query<TestScenarioResult>(c => c.Content.Provider.Id == providerId && c.Content.TestResult == TestResult.Ignored)).Count());
 
             await TaskHelper.WhenAllAndThrow(passedTask, failedTask, ignoredTask);
 
@@ -170,9 +168,9 @@ namespace CalculateFunding.Services.TestRunner.Repositories
 
         public async Task<SpecificationTestScenarioResultCounts> GetSpecificationCounts(string specificationId)
         {
-            Task<int> passedTask = Task.Run(() => _cosmosRepository.Query<TestScenarioResult>(enableCrossPartitionQuery: true).Where(c => c.Specification.Id == specificationId && c.TestResult == TestResult.Passed).Count());
-            Task<int> failedTask = Task.Run(() => _cosmosRepository.Query<TestScenarioResult>(enableCrossPartitionQuery: true).Where(c => c.Specification.Id == specificationId && c.TestResult == TestResult.Failed).Count());
-            Task<int> ignoredTask = Task.Run(() => _cosmosRepository.Query<TestScenarioResult>(enableCrossPartitionQuery: true).Where(c => c.Specification.Id == specificationId && c.TestResult == TestResult.Ignored).Count());
+            Task<int> passedTask = Task.Run(async() => (await _cosmosRepository.Query<TestScenarioResult>(c => c.Content.Specification.Id == specificationId && c.Content.TestResult == TestResult.Passed)).Count());
+            Task<int> failedTask = Task.Run(async() => (await _cosmosRepository.Query<TestScenarioResult>(c => c.Content.Specification.Id == specificationId && c.Content.TestResult == TestResult.Failed)).Count());
+            Task<int> ignoredTask = Task.Run(async() => (await _cosmosRepository.Query<TestScenarioResult>(c => c.Content.Specification.Id == specificationId && c.Content.TestResult == TestResult.Ignored)).Count());
 
             await TaskHelper.WhenAllAndThrow(passedTask, failedTask, ignoredTask);
 
@@ -187,9 +185,9 @@ namespace CalculateFunding.Services.TestRunner.Repositories
 
         public async Task<ScenarioResultCounts> GetProvideCountForSpecification(string providerId, string specificationId)
         {
-            Task<int> passedTask = Task.Run(() => _cosmosRepository.Query<TestScenarioResult>().Where(c => c.Specification.Id == specificationId && c.Provider.Id == providerId && c.TestResult == TestResult.Passed).Count());
-            Task<int> failedTask = Task.Run(() => _cosmosRepository.Query<TestScenarioResult>().Where(c => c.Specification.Id == specificationId && c.Provider.Id == providerId && c.TestResult == TestResult.Failed).Count());
-            Task<int> ignoredTask = Task.Run(() => _cosmosRepository.Query<TestScenarioResult>().Where(c => c.Specification.Id == specificationId && c.Provider.Id == providerId && c.TestResult == TestResult.Ignored).Count());
+            Task<int> passedTask = Task.Run(async() => (await _cosmosRepository.Query<TestScenarioResult>(c => c.Content.Specification.Id == specificationId && c.Content.Provider.Id == providerId && c.Content.TestResult == TestResult.Passed)).Count());
+            Task<int> failedTask = Task.Run(async() => (await _cosmosRepository.Query<TestScenarioResult>(c => c.Content.Specification.Id == specificationId && c.Content.Provider.Id == providerId && c.Content.TestResult == TestResult.Failed)).Count());
+            Task<int> ignoredTask = Task.Run(async() => (await _cosmosRepository.Query<TestScenarioResult>(c => c.Content.Specification.Id == specificationId && c.Content.Provider.Id == providerId && c.Content.TestResult == TestResult.Ignored)).Count());
 
             await TaskHelper.WhenAllAndThrow(passedTask, failedTask, ignoredTask);
 

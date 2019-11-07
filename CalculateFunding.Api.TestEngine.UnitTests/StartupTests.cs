@@ -31,7 +31,7 @@ namespace CalculateFunding.Api.TestEngine.UnitTests
             {
                 { "SearchServiceName", "ss-t1te-cfs"},
                 { "SearchServiceKey", "test" },
-                { "CosmosDbSettings:CollectionName", "tests" },
+                { "CosmosDbSettings:ContainerName", "tests" },
                 { "CosmosDbSettings:DatabaseName", "calculate-funding" },
                 { "CosmosDbSettings:ConnectionString", "AccountEndpoint=https://test.documents.azure.com:443/;AccountKey=dGVzdA==;" },
                 { "specificationsClient:ApiEndpoint", "https://localhost:7001/api/" },
@@ -40,8 +40,8 @@ namespace CalculateFunding.Api.TestEngine.UnitTests
                 { "calcsClient:ApiKey", "Local" },
                 { "scenariosClient:ApiEndpoint", "https://localhost:7006/api/" },
                 { "scenariosClient:ApiKey", "Local" },
-                { "providersClient:ApiEndpoint", "https://localhost:7010/api/" },
-                { "providersClient:ApiKey", "Local" },
+                { "providersClient:ApiEndpoint", "https://localhost:7011/api/" },
+                { "providersClient:ApiKey", "Local" }
             };
 
             return configData;

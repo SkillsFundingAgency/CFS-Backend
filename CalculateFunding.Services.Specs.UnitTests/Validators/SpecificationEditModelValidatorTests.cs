@@ -7,6 +7,7 @@ using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.ApiClient.Policies.Models;
 using CalculateFunding.Common.ApiClient.Providers;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Specs.Interfaces;
 using CalculateFunding.Services.Specs.Validators;
@@ -244,7 +245,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Validators
             ISpecificationsRepository repository = Substitute.For<ISpecificationsRepository>();
 
             repository
-                .GetSpecificationByQuery(Arg.Any<Expression<Func<Specification, bool>>>())
+                .GetSpecificationByQuery(Arg.Any<Expression<Func<DocumentEntity<Specification>, bool>>>())
                 .Returns(hasSpecification ? new Specification() : null);
 
             return repository;

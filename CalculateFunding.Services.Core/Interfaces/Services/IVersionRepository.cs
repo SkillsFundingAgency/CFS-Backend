@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Models.Versioning;
 
 namespace CalculateFunding.Services.Core.Interfaces

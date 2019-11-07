@@ -443,7 +443,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IDatasetRepository datasetRepository = CreateDatasetRepository();
             datasetRepository
-                .GetDefinitionSpecificationRelationshipsByQuery(Arg.Any<Expression<Func<DefinitionSpecificationRelationship, bool>>>())
+                .GetDefinitionSpecificationRelationshipsByQuery(Arg.Any<Expression<Func<DocumentEntity<DefinitionSpecificationRelationship>, bool>>>())
                 .Returns(relationships);
 
             DefinitionSpecificationRelationshipService service = CreateService(logger: logger, datasetRepository: datasetRepository);
@@ -685,7 +685,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IDatasetRepository datasetRepository = CreateDatasetRepository();
             datasetRepository
-                .GetDefinitionSpecificationRelationshipsByQuery(Arg.Any<Expression<Func<DefinitionSpecificationRelationship, bool>>>())
+                .GetDefinitionSpecificationRelationshipsByQuery(Arg.Any<Expression<Func<DocumentEntity<DefinitionSpecificationRelationship>, bool>>>())
                 .Returns(relationships);
 
             DefinitionSpecificationRelationshipService service = CreateService(logger: logger,
@@ -750,7 +750,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IDatasetRepository datasetRepository = CreateDatasetRepository();
             datasetRepository
-                .GetDefinitionSpecificationRelationshipsByQuery(Arg.Any<Expression<Func<DefinitionSpecificationRelationship, bool>>>())
+                .GetDefinitionSpecificationRelationshipsByQuery(Arg.Any<Expression<Func<DocumentEntity<DefinitionSpecificationRelationship>, bool>>>())
                 .Returns(relationships);
 
             DefinitionSpecificationRelationshipService service = CreateService(logger: logger,
@@ -830,7 +830,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IDatasetRepository datasetRepository = CreateDatasetRepository();
             datasetRepository
-                .GetDefinitionSpecificationRelationshipsByQuery(Arg.Any<Expression<Func<DefinitionSpecificationRelationship, bool>>>())
+                .GetDefinitionSpecificationRelationshipsByQuery(Arg.Any<Expression<Func<DocumentEntity<DefinitionSpecificationRelationship>, bool>>>())
                 .Returns(relationships);
             datasetRepository
                 .GetDatasetDefinition(Arg.Is(definitionId))
@@ -945,7 +945,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IDatasetRepository datasetRepository = CreateDatasetRepository();
             datasetRepository
-                .GetDefinitionSpecificationRelationshipsByQuery(Arg.Any<Expression<Func<DefinitionSpecificationRelationship, bool>>>())
+                .GetDefinitionSpecificationRelationshipsByQuery(Arg.Any<Expression<Func<DocumentEntity<DefinitionSpecificationRelationship>, bool>>>())
                 .Returns(relationships);
             datasetRepository
                 .GetDatasetDefinition(Arg.Is(definitionId))
@@ -1071,7 +1071,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IDatasetRepository datasetRepository = CreateDatasetRepository();
             datasetRepository
-                .GetDefinitionSpecificationRelationshipsByQuery(Arg.Any<Expression<Func<DefinitionSpecificationRelationship, bool>>>())
+                .GetDefinitionSpecificationRelationshipsByQuery(Arg.Any<Expression<Func<DocumentEntity<DefinitionSpecificationRelationship>, bool>>>())
                 .Returns(relationships);
             datasetRepository
                 .GetDatasetDefinition(Arg.Is(definitionId))
@@ -1173,7 +1173,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IDatasetRepository datasetRepository = CreateDatasetRepository();
             datasetRepository
-                .GetDefinitionSpecificationRelationshipsByQuery(Arg.Any<Expression<Func<DefinitionSpecificationRelationship, bool>>>())
+                .GetDefinitionSpecificationRelationshipsByQuery(Arg.Any<Expression<Func<DocumentEntity<DefinitionSpecificationRelationship>, bool>>>())
                 .Returns(relationships);
 
             DefinitionSpecificationRelationshipService service = CreateService(logger: logger, datasetRepository: datasetRepository);
@@ -1243,7 +1243,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IDatasetRepository datasetRepository = CreateDatasetRepository();
             datasetRepository
-                .GetDefinitionSpecificationRelationshipsByQuery(Arg.Any<Expression<Func<DefinitionSpecificationRelationship, bool>>>())
+                .GetDefinitionSpecificationRelationshipsByQuery(Arg.Any<Expression<Func<DocumentEntity<DefinitionSpecificationRelationship>, bool>>>())
                 .Returns(relationships);
             datasetRepository
                 .GetDatasetDefinition(Arg.Is(definitionId))
@@ -1481,7 +1481,7 @@ namespace CalculateFunding.Services.Datasets.Services
             };
 
             datasetRepository
-                .GetDatasetsByQuery(Arg.Any<Expression<Func<Dataset, bool>>>())
+                .GetDatasetsByQuery(Arg.Any<Expression<Func<DocumentEntity<Dataset>, bool>>>())
                 .Returns(datasets);
 
             DefinitionSpecificationRelationshipService service = CreateService(logger: logger, datasetRepository: datasetRepository);
@@ -1891,7 +1891,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IDatasetRepository datasetRepository = CreateDatasetRepository();
             datasetRepository
-                .GetDefinitionSpecificationRelationshipsByQuery(Arg.Any<Expression<Func<DefinitionSpecificationRelationship, bool>>>())
+                .GetDefinitionSpecificationRelationshipsByQuery(Arg.Any<Expression<Func<DocumentEntity<DefinitionSpecificationRelationship>, bool>>>())
                 .Returns(Enumerable.Empty<DefinitionSpecificationRelationship>());
 
             DefinitionSpecificationRelationshipService service = CreateService(logger: logger, datasetRepository: datasetRepository);
@@ -1924,7 +1924,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IDatasetRepository datasetRepository = CreateDatasetRepository();
             datasetRepository
-                .GetDefinitionSpecificationRelationshipsByQuery(Arg.Any<Expression<Func<DefinitionSpecificationRelationship, bool>>>())
+                .GetDefinitionSpecificationRelationshipsByQuery(Arg.Any<Expression<Func<DocumentEntity<DefinitionSpecificationRelationship>, bool>>>())
                 .Returns(relationships);
 
             datasetRepository
@@ -1983,7 +1983,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IDatasetRepository datasetRepository = CreateDatasetRepository();
             datasetRepository
-                .GetDefinitionSpecificationRelationshipsByQuery(Arg.Any<Expression<Func<DefinitionSpecificationRelationship, bool>>>())
+                .GetDefinitionSpecificationRelationshipsByQuery(Arg.Any<Expression<Func<DocumentEntity<DefinitionSpecificationRelationship>, bool>>>())
                 .Returns(relationships);
 
             DefinitionSpecificationRelationshipService service = CreateService(logger: logger, datasetRepository: datasetRepository);

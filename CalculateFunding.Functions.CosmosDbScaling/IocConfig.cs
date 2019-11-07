@@ -49,20 +49,20 @@ namespace CalculateFunding.Functions.CosmosDbScaling
 
                 config.Bind("CosmosDbSettings", cosmosDbSettings);
 
-                cosmosDbSettings.CollectionName = "calculationresults";
+                cosmosDbSettings.ContainerName = "calculationresults";
 
                 CosmosRepository cosmosRepostory = new CosmosRepository(cosmosDbSettings);
 
                 return new CalculationProviderResultsScalingRepository(cosmosRepostory);
             });
-            
+
             builder.AddSingleton<ProviderSourceDatasetsScalingRepository>((ctx) =>
             {
                 CosmosDbSettings cosmosDbSettings = new CosmosDbSettings();
 
                 config.Bind("CosmosDbSettings", cosmosDbSettings);
 
-                cosmosDbSettings.CollectionName = "providerdatasets";
+                cosmosDbSettings.ContainerName = "providerdatasets";
 
                 CosmosRepository cosmosRepository = new CosmosRepository(cosmosDbSettings);
 
@@ -75,7 +75,7 @@ namespace CalculateFunding.Functions.CosmosDbScaling
 
                 config.Bind("CosmosDbSettings", cosmosDbSettings);
 
-                cosmosDbSettings.CollectionName = "publishedfunding";
+                cosmosDbSettings.ContainerName = "publishedfunding";
 
                 CosmosRepository cosmosRepository = new CosmosRepository(cosmosDbSettings);
 
@@ -88,7 +88,7 @@ namespace CalculateFunding.Functions.CosmosDbScaling
 
                 config.Bind("CosmosDbSettings", cosmosDbSettings);
 
-                cosmosDbSettings.CollectionName = "cosmosscalingconfig";
+                cosmosDbSettings.ContainerName = "cosmosscalingconfig";
 
                 CosmosRepository cosmosRepository = new CosmosRepository(cosmosDbSettings);
 

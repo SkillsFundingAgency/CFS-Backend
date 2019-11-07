@@ -5,7 +5,6 @@ using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
-using Microsoft.Azure.Documents;
 using Polly;
 using Serilog;
 
@@ -17,8 +16,8 @@ namespace CalculateFunding.Migrations.ProviderVersionDefectCorrection.Migrations
         private readonly Policy _resiliencePolicy;
         private readonly ILogger _logger;
 
-        public ProviderVersionMigration(ICosmosRepository cosmosRepository, 
-            IPublishingResiliencePolicies resiliencePolicies, 
+        public ProviderVersionMigration(ICosmosRepository cosmosRepository,
+            IPublishingResiliencePolicies resiliencePolicies,
             ILogger logger)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
@@ -34,7 +33,7 @@ namespace CalculateFunding.Migrations.ProviderVersionDefectCorrection.Migrations
         {
             try
             {
-                SqlQuerySpec query = new SqlQuerySpec
+                CosmosDbQuery query = new CosmosDbQuery
                 {
                     QueryText = @"  SELECT * 
                                     FROM c 
@@ -55,10 +54,10 @@ namespace CalculateFunding.Migrations.ProviderVersionDefectCorrection.Migrations
                         }
 
                         _logger.Information(
-                            $"Bulk upserting batch number {batchCount} of provider version migration. Total provider versions migrated will be {batchCount*1000}.");
-                        
+                            $"Bulk upserting batch number {batchCount} of provider version migration. Total provider versions migrated will be {batchCount * 1000}.");
+
                         await _cosmosRepository.BulkUpsertAsync(providerVersions);
-                        
+
                         batchCount++;
                     },
                     query,

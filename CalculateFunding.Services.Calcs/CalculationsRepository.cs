@@ -11,7 +11,6 @@ using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Core.Helpers;
-using Microsoft.Azure.Documents;
 using Newtonsoft.Json;
 
 namespace CalculateFunding.Services.Calcs
@@ -29,18 +28,18 @@ namespace CalculateFunding.Services.Calcs
         {
             ServiceHealth health = new ServiceHealth();
 
-            (bool Ok, string Message) cosmosHealth = await _cosmosRepository.IsHealthOk();
+            (bool Ok, string Message) cosmosHealth = _cosmosRepository.IsHealthOk();
 
             health.Name = nameof(CalculationsRepository);
             health.Dependencies.Add(new DependencyHealth { HealthOk = cosmosHealth.Ok, DependencyName = GetType().Name, Message = cosmosHealth.Message });
 
             return health;
         }
-        
+
         public async Task<TemplateMapping> GetTemplateMapping(string specificationId, string fundingStreamId)
         {
-            DocumentEntity<TemplateMapping> result = await _cosmosRepository.ReadAsync<TemplateMapping>($"templatemapping-{specificationId}-{fundingStreamId}");
-            
+            DocumentEntity<TemplateMapping> result = await _cosmosRepository.ReadDocumentByIdAsync<TemplateMapping>($"templatemapping-{specificationId}-{fundingStreamId}");
+
             return result?.Content;
         }
 
@@ -58,16 +57,14 @@ namespace CalculateFunding.Services.Calcs
 
         public async Task<Calculation> GetCalculationById(string calculationId)
         {
-            Common.Models.DocumentEntity<Calculation> calculation = await _cosmosRepository.ReadAsync<Calculation>(calculationId);
+            DocumentEntity<Calculation> calculation = await _cosmosRepository.ReadDocumentByIdAsync<Calculation>(calculationId);
 
             return calculation?.Content;
         }
 
-        public Task<IEnumerable<Calculation>> GetCalculationsBySpecificationId(string specificationId)
+        public async Task<IEnumerable<Calculation>> GetCalculationsBySpecificationId(string specificationId)
         {
-            IQueryable<Calculation> calculations = _cosmosRepository.Query<Calculation>().Where(x => x.SpecificationId == specificationId);
-
-            return Task.FromResult(calculations.AsEnumerable());
+            return await _cosmosRepository.Query<Calculation>(x => x.Content.SpecificationId == specificationId);
         }
 
         public async Task<Calculation> GetCalculationsBySpecificationIdAndCalculationName(string specificationId, string calculationName)
@@ -75,7 +72,7 @@ namespace CalculateFunding.Services.Calcs
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
             Guard.IsNullOrWhiteSpace(calculationName, nameof(calculationName));
 
-            IQueryable<Calculation> calculations = _cosmosRepository.Query<Calculation>().Where(m => m.SpecificationId == specificationId && m.Current.Name == calculationName);
+            IEnumerable<Calculation> calculations = await _cosmosRepository.Query<Calculation>(m => m.Content.SpecificationId == specificationId && m.Content.Current.Name == calculationName);
 
             return (await GetCalculationsBySpecificationId(specificationId)).FirstOrDefault(m => string.Equals(m.Name.RemoveAllSpaces(), calculationName.RemoveAllSpaces(), StringComparison.CurrentCultureIgnoreCase));
         }
@@ -85,11 +82,9 @@ namespace CalculateFunding.Services.Calcs
             return await _cosmosRepository.UpdateAsync(calculation);
         }
 
-        public Task<IEnumerable<Calculation>> GetAllCalculations()
+        public async Task<IEnumerable<Calculation>> GetAllCalculations()
         {
-            IQueryable<Calculation> calculations = _cosmosRepository.Query<Calculation>();
-
-            return Task.FromResult(calculations.AsEnumerable());
+            return await _cosmosRepository.Query<Calculation>();
         }
 
         public async Task UpdateCalculations(IEnumerable<Calculation> calculations)
@@ -101,19 +96,19 @@ namespace CalculateFunding.Services.Calcs
         {
             StatusCounts statusCounts = new StatusCounts();
 
-            Task approvedCountTask = Task.Run(() =>
+            Task approvedCountTask = Task.Run(async () =>
             {
-                statusCounts.Approved = QueryStatus(specificationId, "Approved").AsEnumerable().First();
+                statusCounts.Approved = (await QueryStatus(specificationId, "Approved")).First();
             });
 
-            Task updatedCountTask = Task.Run(() =>
+            Task updatedCountTask = Task.Run(async () =>
             {
-                statusCounts.Updated = QueryStatus(specificationId, "Updated").AsEnumerable().First();
+                statusCounts.Updated = (await QueryStatus(specificationId, "Updated")).First();
             });
 
-            Task draftCountTask = Task.Run(() =>
+            Task draftCountTask = Task.Run(async () =>
             {
-                statusCounts.Draft = QueryStatus(specificationId, "Draft").AsEnumerable().First();
+                statusCounts.Draft = (await QueryStatus(specificationId, "Draft")).First();
             });
 
             await TaskHelper.WhenAllAndThrow(approvedCountTask, updatedCountTask, draftCountTask);
@@ -123,46 +118,44 @@ namespace CalculateFunding.Services.Calcs
 
         public async Task<CompilerOptions> GetCompilerOptions(string specificationId)
         {
-            Common.Models.DocumentEntity<CompilerOptions> options = await _cosmosRepository.ReadAsync<CompilerOptions>(specificationId);
+            CompilerOptions options = await _cosmosRepository.ReadByIdAsync<CompilerOptions>(specificationId);
 
-            return options?.Content ?? new CompilerOptions();
+            return options ?? new CompilerOptions();
         }
 
-        public Task<int> GetCountOfNonApprovedTemplateCalculations(string specificationId)
+        public async Task<int> GetCountOfNonApprovedTemplateCalculations(string specificationId)
         {
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
-           
-            IQueryable<int> count = GetCountOfNonApprovedTemplateCalculationsForSpecificationId(specificationId);
 
-            return Task.FromResult(count.AsEnumerable().First());
+            IEnumerable<int> count = await GetCountOfNonApprovedTemplateCalculationsForSpecificationId(specificationId);
+
+            return count.First();
         }
 
-        private IQueryable<int> QueryStatus(string specificationId, string publishStatus)
+        private async Task<IEnumerable<int>> QueryStatus(string specificationId, string publishStatus)
         {
-            SqlQuerySpec sqlQuerySpec = new SqlQuerySpec
+            CosmosDbQuery cosmosDbQuery = new CosmosDbQuery
             {
                 QueryText = @"SELECT VALUE COUNT(1)
                             FROM    c 
                             WHERE   c.documentType = 'Calculation' 
                                     AND c.content.current.calculationType = 'Template'
                                     AND c.content.current.publishStatus = @PublishStatus
-                                    AND c.content.specificationId = @SpecificationId"
+                                    AND c.content.specificationId = @SpecificationId",
+                Parameters = new[]
+                {
+                    new CosmosDbQueryParameter("@PublishStatus", publishStatus),
+                    new CosmosDbQueryParameter("@SpecificationId", specificationId)
+                }
             };
 
-            SqlParameter[] sqlParameters =
-            {
-                new SqlParameter("@PublishStatus", publishStatus),
-                new SqlParameter("@SpecificationId", specificationId)
-            };
-
-            sqlQuerySpec.Parameters = new SqlParameterCollection(sqlParameters);
-            IQueryable<int> result = _cosmosRepository.RawQuery<int>(sqlQuerySpec, 1, true);
+            IEnumerable<int> result = await _cosmosRepository.RawQuery<int>(cosmosDbQuery, 1);
             return result;
         }
 
         public async Task<IEnumerable<CalculationMetadata>> GetCalculationsMetatadataBySpecificationId(string specificationId)
         {
-            SqlQuerySpec sqlQuerySpec = new SqlQuerySpec
+            CosmosDbQuery cosmosDbQuery = new CosmosDbQuery
             {
                 QueryText = @"SELECT 
                                     c.content.specificationId as SpecificationId,
@@ -178,40 +171,38 @@ namespace CalculateFunding.Services.Calcs
                                     c.content.current.publishStatus as PublishStatus
                                     FROM c 
                                     WHERE c.content.specificationId = @SpecificationId and c.documentType = 'Calculation'",
-                Parameters = new SqlParameterCollection
+                Parameters = new[]
                 {
-                    new SqlParameter("@SpecificationId", specificationId)
+                    new CosmosDbQueryParameter("@SpecificationId", specificationId)
                 }
             };
 
-            dynamic[] resultsArray = _cosmosRepository.DynamicQuery<dynamic>(sqlQuerySpec, enableCrossPartitionQuery: true).ToArray();
+            IEnumerable<dynamic> results = await _cosmosRepository.DynamicQuery(cosmosDbQuery);
 
-            string resultsString = JsonConvert.SerializeObject(resultsArray);
+            string resultsString = JsonConvert.SerializeObject(results.ToArray());
 
             CalculationMetadata[] items = JsonConvert.DeserializeObject<CalculationMetadata[]>(resultsString);
 
             return await Task.FromResult(items);
         }
 
-        private IQueryable<int> GetCountOfNonApprovedTemplateCalculationsForSpecificationId(string specificationId)
+        private async Task<IEnumerable<int>> GetCountOfNonApprovedTemplateCalculationsForSpecificationId(string specificationId)
         {
-            SqlQuerySpec sqlQuerySpec = new SqlQuerySpec
+            CosmosDbQuery cosmosDbQuery = new CosmosDbQuery
             {
                 QueryText = $@"SELECT VALUE COUNT(1)
                             FROM    c 
                             WHERE   c.documentType = 'Calculation' 
                                     AND c.content.current.publishStatus != 'Approved'
                                     AND c.content.specificationId = @SpecificationId
-                                    AND c.content.current.calculationType = 'Template'"
+                                    AND c.content.current.calculationType = 'Template'",
+                Parameters = new[]
+                {
+                    new CosmosDbQueryParameter("@SpecificationId", specificationId)
+                }
             };
 
-            SqlParameter[] sqlParameters =
-            {
-                new SqlParameter("@SpecificationId", specificationId)
-            };
-
-            sqlQuerySpec.Parameters = new SqlParameterCollection(sqlParameters);
-            IQueryable<int> result = _cosmosRepository.RawQuery<int>(sqlQuerySpec, 1, true);
+            IEnumerable<int> result = await _cosmosRepository.RawQuery<int>(cosmosDbQuery, 1);
             return result;
         }
     }

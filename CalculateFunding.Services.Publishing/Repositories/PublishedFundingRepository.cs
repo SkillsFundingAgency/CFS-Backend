@@ -10,7 +10,6 @@ using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Publishing.Interfaces;
-using Microsoft.Azure.Documents;
 
 namespace CalculateFunding.Services.Publishing.Repositories
 {
@@ -38,7 +37,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
 
         public async Task<ServiceHealth> IsHealthOk()
         {
-            (bool Ok, string Message) cosmosRepoHealth = await _repository.IsHealthOk();
+            (bool Ok, string Message) cosmosRepoHealth = _repository.IsHealthOk();
 
             ServiceHealth health = new ServiceHealth
             {
@@ -68,7 +67,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
 
             string id = $"publishedprovider-{fundingStreamId}-{fundingPeriodId}-{providerId}-{version}";
 
-            return (await _repository.ReadAsync<PublishedProviderVersion>(id, true))?.Content;
+            return (await _repository.ReadDocumentByIdPartitionedAsync<PublishedProviderVersion>(id, id))?.Content;
         }
 
         public async Task<HttpStatusCode> UpsertPublishedFunding(PublishedFunding publishedFunding)
@@ -85,8 +84,8 @@ namespace CalculateFunding.Services.Publishing.Repositories
 
 
             Dictionary<string, string> results = new Dictionary<string, string>();
-            IEnumerable<dynamic> queryResults = _repository
-             .DynamicQuery<dynamic>(new SqlQuerySpec
+            IEnumerable<dynamic> queryResults = await _repository
+             .DynamicQuery(new CosmosDbQuery
              {
                  QueryText = @"
                                 SELECT c.id as id, c.content.partitionKey as partitionKey FROM c
@@ -94,16 +93,16 @@ namespace CalculateFunding.Services.Publishing.Repositories
                                 AND c.content.current.fundingStreamId = @fundingStreamId
                                 AND c.content.current.fundingPeriodId = @fundingPeriodId
                                 AND (c.content.current.status = 'Draft' OR c.content.current.status = 'Updated')",
-                 Parameters = new SqlParameterCollection
+                 Parameters = new[]
                  {
-                                    new SqlParameter("@fundingStreamId", fundingStreamId),
-                                    new SqlParameter("@fundingPeriodId", fundingPeriodId)
+                    new CosmosDbQueryParameter("@fundingStreamId", fundingStreamId),
+                    new CosmosDbQueryParameter("@fundingPeriodId", fundingPeriodId)
                  }
-             }, true);
+             });
 
             foreach (dynamic item in queryResults)
             {
-                results.Add(item.id, item.partitionKey);
+                results.Add((string)item.id, (string)item.partitionKey);
             }
 
             return await Task.FromResult(results);
@@ -114,7 +113,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
             Guard.IsNullOrWhiteSpace(cosmosId, nameof(cosmosId));
             Guard.IsNullOrWhiteSpace(partitionKey, nameof(partitionKey));
 
-            return await _repository.ReadByIdPartitionedAsync<PublishedProvider>(cosmosId, partitionKey);
+            return (await _repository.ReadDocumentByIdPartitionedAsync<PublishedProvider>(cosmosId, partitionKey))?.Content;
         }
 
         public async Task<IEnumerable<KeyValuePair<string, string>>> GetPublishedProviderIds(string fundingStreamId, string fundingPeriodId)
@@ -124,24 +123,24 @@ namespace CalculateFunding.Services.Publishing.Repositories
 
 
             Dictionary<string, string> results = new Dictionary<string, string>();
-            IEnumerable<dynamic> queryResults = _repository
-             .DynamicQuery<dynamic>(new SqlQuerySpec
+            IEnumerable<dynamic> queryResults = await _repository
+             .DynamicQuery(new CosmosDbQuery
              {
                  QueryText = @"
                                 SELECT c.id as id, c.content.partitionKey as partitionKey FROM c
                                 WHERE c.documentType = 'PublishedProvider'
                                 AND c.content.current.fundingStreamId = @fundingStreamId
                                 AND c.content.current.fundingPeriodId = @fundingPeriodId",
-                 Parameters = new SqlParameterCollection
+                 Parameters = new[]
                  {
-                                    new SqlParameter("@fundingStreamId", fundingStreamId),
-                                    new SqlParameter("@fundingPeriodId", fundingPeriodId)
+                                    new CosmosDbQueryParameter("@fundingStreamId", fundingStreamId),
+                                    new CosmosDbQueryParameter("@fundingPeriodId", fundingPeriodId)
                  }
-             }, true);
+             });
 
             foreach (dynamic item in queryResults)
             {
-                results.Add(item.id, item.partitionKey);
+                results.Add((string)item.id, (string)item.partitionKey);
             }
 
             return await Task.FromResult(results);
@@ -154,24 +153,24 @@ namespace CalculateFunding.Services.Publishing.Repositories
 
 
             Dictionary<string, string> results = new Dictionary<string, string>();
-            IEnumerable<dynamic> queryResults = _repository
-             .DynamicQuery<dynamic>(new SqlQuerySpec
+            IEnumerable<dynamic> queryResults = await _repository
+             .DynamicQuery(new CosmosDbQuery
              {
                  QueryText = @"
                                 SELECT c.id as id, c.content.partitionKey as partitionKey FROM c
                                 WHERE c.documentType = 'PublishedFunding'
                                 AND c.content.current.fundingStreamId = @fundingStreamId
                                 AND c.content.current.fundingPeriod.id = @fundingPeriodId",
-                 Parameters = new SqlParameterCollection
+                 Parameters = new[]
                  {
-                                    new SqlParameter("@fundingStreamId", fundingStreamId),
-                                    new SqlParameter("@fundingPeriodId", fundingPeriodId)
+                                    new CosmosDbQueryParameter("@fundingStreamId", fundingStreamId),
+                                    new CosmosDbQueryParameter("@fundingPeriodId", fundingPeriodId)
                  }
-             }, true);
+             });
 
             foreach (dynamic item in queryResults)
             {
-                results.Add(item.id, item.partitionKey);
+                results.Add((string)item.id, (string)item.partitionKey);
             }
 
             return await Task.FromResult(results);
@@ -182,12 +181,12 @@ namespace CalculateFunding.Services.Publishing.Repositories
             Guard.IsNullOrWhiteSpace(cosmosId, nameof(cosmosId));
             Guard.IsNullOrWhiteSpace(partitionKey, nameof(partitionKey));
 
-            return await _repository.ReadByIdPartitionedAsync<PublishedFunding>(cosmosId, partitionKey);
+            return (await _repository.ReadDocumentByIdPartitionedAsync<PublishedFunding>(cosmosId, partitionKey))?.Content;
         }
 
         public async Task AllPublishedProviderBatchProcessing(Func<List<PublishedProviderVersion>, Task> persistIndexBatch, int batchSize)
         {
-             SqlQuerySpec query = new SqlQuerySpec
+            CosmosDbQuery query = new CosmosDbQuery
             {
                 QueryText = @"SELECT
                                         c.content.id,
@@ -206,8 +205,8 @@ namespace CalculateFunding.Services.Publishing.Repositories
                                AND      c.deleted = false"
             };
 
-            await _repository.DocumentsBatchProcessingAsync(persistBatchToIndex: persistIndexBatch, 
-                sqlQuerySpec: query, 
+            await _repository.DocumentsBatchProcessingAsync(persistBatchToIndex: persistIndexBatch,
+                cosmosDbQuery: query,
                 itemsPerPage: batchSize);
         }
     }

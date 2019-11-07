@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.TemplateMetadata;
@@ -48,7 +46,7 @@ namespace CalculateFunding.Functions.Policy
                {
                    CosmosDbSettings cosmosDbSettings = new CosmosDbSettings();
 
-                   cosmosDbSettings.CollectionName = "policy";
+                   cosmosDbSettings.ContainerName = "policy";
 
                    config.Bind("CosmosDbSettings", cosmosDbSettings);
 

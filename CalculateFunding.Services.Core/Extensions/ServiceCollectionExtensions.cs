@@ -59,7 +59,7 @@ namespace CalculateFunding.Services.Core.Extensions
 
             if (!string.IsNullOrWhiteSpace(collectionNameOverride))
             {
-                cosmosDbSettings.CollectionName = collectionNameOverride;
+                cosmosDbSettings.ContainerName = collectionNameOverride;
             }
 
             builder.AddSingleton<CosmosDbSettings>(cosmosDbSettings);

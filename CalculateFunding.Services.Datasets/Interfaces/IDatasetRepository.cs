@@ -15,9 +15,9 @@ namespace CalculateFunding.Services.Datasets.Interfaces
 
         Task<IEnumerable<DatasetDefinition>> GetDatasetDefinitions();
 
-        Task<IEnumerable<Dataset>> GetDatasetsByQuery(Expression<Func<Dataset, bool>> query);
+        Task<IEnumerable<Dataset>> GetDatasetsByQuery(Expression<Func<DocumentEntity<Dataset>, bool>> query);
 
-        Task<IEnumerable<DatasetDefinition>> GetDatasetDefinitionsByQuery(Expression<Func<DatasetDefinition, bool>> query);
+        Task<IEnumerable<DatasetDefinition>> GetDatasetDefinitionsByQuery(Expression<Func<DocumentEntity<DatasetDefinition>, bool>> query);
 
         Task<HttpStatusCode> SaveDataset(Dataset dataset);
 
@@ -27,7 +27,7 @@ namespace CalculateFunding.Services.Datasets.Interfaces
 
         Task<DatasetDefinition> GetDatasetDefinition(string definitionId);
 
-        Task<IEnumerable<DefinitionSpecificationRelationship>> GetDefinitionSpecificationRelationshipsByQuery(Expression<Func<DefinitionSpecificationRelationship, bool>> query);
+        Task<IEnumerable<DefinitionSpecificationRelationship>> GetDefinitionSpecificationRelationshipsByQuery(Expression<Func<DocumentEntity<DefinitionSpecificationRelationship>, bool>> query);
 
         Task<DefinitionSpecificationRelationship> GetRelationshipBySpecificationIdAndName(string specificationId, string name);
 

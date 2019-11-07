@@ -122,7 +122,7 @@ namespace CalculateFunding.Functions.Datasets
 
                 config.Bind("CosmosDbSettings", dbSettings);
 
-                dbSettings.CollectionName = "providerdatasets";
+                dbSettings.ContainerName = "providerdatasets";
 
                 CosmosRepository calcsCosmosRepostory = new CosmosRepository(dbSettings);
 
@@ -162,7 +162,7 @@ namespace CalculateFunding.Functions.Datasets
 
                 config.Bind("CosmosDbSettings", ProviderSourceDatasetVersioningDbSettings);
 
-                ProviderSourceDatasetVersioningDbSettings.CollectionName = "providerdatasets";
+                ProviderSourceDatasetVersioningDbSettings.ContainerName = "providerdatasets";
 
                 CosmosRepository cosmosRepository = new CosmosRepository(ProviderSourceDatasetVersioningDbSettings);
 
@@ -175,7 +175,7 @@ namespace CalculateFunding.Functions.Datasets
 
                 config.Bind("CosmosDbSettings", dbSettings);
 
-                dbSettings.CollectionName = "datasetaggregations";
+                dbSettings.ContainerName = "datasetaggregations";
 
                 CosmosRepository aggsCosmosRepostory = new CosmosRepository(dbSettings);
 

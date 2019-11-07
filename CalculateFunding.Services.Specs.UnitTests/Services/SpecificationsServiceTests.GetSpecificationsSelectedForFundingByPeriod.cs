@@ -68,7 +68,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
             specificationsRepository
-                .GetSpecificationsByQuery(Arg.Any<Expression<Func<Specification, bool>>>())
+                .GetSpecificationsByQuery(Arg.Any<Expression<Func<DocumentEntity<Specification>, bool>>>())
                 .Returns((Enumerable.Empty<Specification>()));
 
             SpecificationsService service = CreateService(specificationsRepository: specificationsRepository, logs: logger);
@@ -112,7 +112,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
             specificationsRepository
-                .GetSpecificationsByQuery(Arg.Any<Expression<Func<Specification, bool>>>())
+                .GetSpecificationsByQuery(Arg.Any<Expression<Func<DocumentEntity<Specification>, bool>>>())
                 .Returns(new[] { spec1 });
 
             SpecificationsService service = CreateService(specificationsRepository: specificationsRepository, logs: logger);

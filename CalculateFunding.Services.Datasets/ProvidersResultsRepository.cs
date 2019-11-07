@@ -24,7 +24,7 @@ namespace CalculateFunding.Services.Datasets
 
         public async Task<ServiceHealth> IsHealthOk()
         {
-            var cosmosRepoHealth = await _cosmosRepository.IsHealthOk();
+            var cosmosRepoHealth = _cosmosRepository.IsHealthOk();
 
             ServiceHealth health = new ServiceHealth()
             {
@@ -37,7 +37,7 @@ namespace CalculateFunding.Services.Datasets
 
         public Task<IEnumerable<ProviderSourceDatasetHistory>> GetProviderSourceDatasetHistories(string specificationId, string relationshipId)
         {
-            SqlQuerySpec sqlQuerySpec = new SqlQuerySpec
+            CosmosDbQuery cosmosDbQuery = new CosmosDbQuery
             {
                 QueryText = @"SELECT *
                             FROM    r 
@@ -45,20 +45,20 @@ namespace CalculateFunding.Services.Datasets
                                     AND r.content.dataRelationship.id = @RelationshipId
                                     AND r.deleted = false
                                     AND r.documentType = @DocumentType",
-                Parameters = new SqlParameterCollection
+                Parameters = new []
                 {
-                    new SqlParameter("@SpecificationId", specificationId),
-                    new SqlParameter("@RelationshipId", relationshipId),
-                    new SqlParameter("@DocumentType", nameof(ProviderSourceDatasetHistory))
+                    new CosmosDbQueryParameter("@SpecificationId", specificationId),
+                    new CosmosDbQueryParameter("@RelationshipId", relationshipId),
+                    new CosmosDbQueryParameter("@DocumentType", nameof(ProviderSourceDatasetHistory))
                 }
             };
 
-            return _cosmosRepository.QuerySql<ProviderSourceDatasetHistory>(sqlQuerySpec, -1, enableCrossPartitionQuery: true);
+            return _cosmosRepository.QuerySql<ProviderSourceDatasetHistory>(cosmosDbQuery, -1);
         }
 
         public async Task<IEnumerable<ProviderSourceDataset>> GetCurrentProviderSourceDatasets(string specificationId, string relationshipId)
         {
-            SqlQuerySpec sqlQuerySpec = new SqlQuerySpec
+            CosmosDbQuery cosmosDbQuery = new CosmosDbQuery
             {
                 QueryText = @"SELECT *
                             FROM    r
@@ -66,14 +66,14 @@ namespace CalculateFunding.Services.Datasets
                                     AND r.content.dataRelationship.id = @RelationshipId
                                     AND r.deleted = false
                                     AND r.documentType = @DocumentType",
-                Parameters = new SqlParameterCollection
+                Parameters = new []
                 {
-                    new SqlParameter("@SpecificationId", specificationId),
-                    new SqlParameter("@RelationshipId", relationshipId),
-                    new SqlParameter("@DocumentType", nameof(ProviderSourceDataset))
+                    new CosmosDbQueryParameter("@SpecificationId", specificationId),
+                    new CosmosDbQueryParameter("@RelationshipId", relationshipId),
+                    new CosmosDbQueryParameter("@DocumentType", nameof(ProviderSourceDataset))
                 }
             };
-            return await _cosmosRepository.QuerySql<ProviderSourceDataset>(sqlQuerySpec, enableCrossPartitionQuery: true, itemsPerPage: 1000);
+            return await _cosmosRepository.QuerySql<ProviderSourceDataset>(cosmosDbQuery, itemsPerPage: 1000);
         }
 
         public async Task DeleteCurrentProviderSourceDatasets(IEnumerable<ProviderSourceDataset> providerSourceDatasets)

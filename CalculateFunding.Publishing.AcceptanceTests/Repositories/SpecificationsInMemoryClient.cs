@@ -86,5 +86,40 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         {
             throw new NotImplementedException();
         }
+
+        public Task<ValidatedApiResponse<SpecificationSummary>> UpdateSpecification(string specificationId, EditSpecificationModel specification)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ApiResponse<SpecificationSummary>> GetSpecificationByName(string specificationName)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ValidatedApiResponse<SpecificationVersion>> CreateSpecification(CreateSpecificationModel specification)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<PagedResult<SpecificationDatasourceRelationshipSearchResultItem>> FindSpecificationAndRelationships(SearchFilterRequest filterOptions)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ApiResponse<IEnumerable<SpecificationSummary>>> GetSpecifications(string fundingPeriodId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ApiResponse<IEnumerable<SpecificationSummary>>> GetSpecificationSummaries(IEnumerable<string> specificationIds)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ApiResponse<IEnumerable<string>>> GetFundingStreamIdsForSelectedFundingSpecification()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

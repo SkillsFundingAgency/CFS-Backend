@@ -14,6 +14,7 @@ using FluentValidation.Results;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.Models;
 
 namespace CalculateFunding.Services.Specs.UnitTests.Validators
 {
@@ -290,7 +291,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Validators
             ISpecificationsRepository repository = Substitute.For<ISpecificationsRepository>();
 
             repository
-                .GetSpecificationByQuery(Arg.Any<Expression<Func<Specification, bool>>>())
+                .GetSpecificationByQuery(Arg.Any<Expression<Func<DocumentEntity<Specification>, bool>>>())
                 .Returns(hasSpecification ? new Specification() : null);
 
             return repository;

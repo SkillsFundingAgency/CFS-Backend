@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Models.Versioning;
 using FluentAssertions;
-using Microsoft.Azure.Documents;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 
@@ -39,7 +38,7 @@ namespace CalculateFunding.Services.Core.Services
                     .UpsertAsync<TestVersionItem>(Arg.Is<TestVersionItem>(
                             m => m.Id == "spec-id_version_1" &&
                                  m.EntityId == "spec-id"
-                        ), enableCrossPartitionQuery: Arg.Any<bool>());
+                        ));
         }
 
         [TestMethod]
@@ -186,7 +185,7 @@ namespace CalculateFunding.Services.Core.Services
 
             ICosmosRepository cosmosRepository = CreateCosmosRepository();
             cosmosRepository
-                .DynamicQuery<dynamic>(Arg.Any<SqlQuerySpec>())
+                .DynamicQuery(Arg.Any<CosmosDbQuery>())
                 .Returns(maxNumber.AsQueryable());
 
             VersionRepository<TestVersionItem> versionRepository = new VersionRepository<TestVersionItem>(cosmosRepository);
@@ -217,7 +216,7 @@ namespace CalculateFunding.Services.Core.Services
             return Substitute.For<ICosmosRepository>();
         }
 
-        private class TestVersionItem : VersionedItem
+        public class TestVersionItem : VersionedItem
         {
             public override string Id
             {

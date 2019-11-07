@@ -8,10 +8,10 @@
   
   <ItemGroup>
     <PackageReference Include="CalculateFunding.Common.ApiClient.Calcs" Version="1.0.19" />
-    <PackageReference Include="CalculateFunding.Common.ApiClient.Jobs" Version="1.0.11" />
-    <PackageReference Include="CalculateFunding.Common.ApiClient.Policies" Version="2.0.7" />
-    <PackageReference Include="CalculateFunding.Common.ApiClient.Profiling" Version="1.0.8" />
-    <PackageReference Include="CalculateFunding.Common.ApiClient.Specifications" Version="1.0.12" />
+    <PackageReference Include="CalculateFunding.Common.ApiClient.Jobs" Version="1.0.12" />
+    <PackageReference Include="CalculateFunding.Common.ApiClient.Policies" Version="2.0.11" />
+    <PackageReference Include="CalculateFunding.Common.ApiClient.Profiling" Version="1.0.9" />
+    <PackageReference Include="CalculateFunding.Common.ApiClient.Specifications" Version="1.0.18" />
     <PackageReference Include="CalculateFunding.Common.JobManagement" Version="1.0.0" />
     <PackageReference Include="CalculateFunding.Common.Storage" Version="1.0.3" />
     <PackageReference Include="CalculateFunding.Generators.Funding" Version="1.0.3" />

@@ -7,7 +7,6 @@ using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Repositories;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
-using Microsoft.Azure.Documents;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 
@@ -27,7 +26,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
             _providers = new List<PublishedProvider>();
             _cosmosRepository = Substitute.For<ICosmosRepository>();
 
-            _cosmosRepository.Query<PublishedProvider>(true)
+            _cosmosRepository.Query<PublishedProvider>()
                 .Returns(_providers.AsQueryable());
 
             _repository = new CalculationResultsRepository(_cosmosRepository);
@@ -97,18 +96,17 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
 
         private void GivenTheSqlQueryResultsForSpecificationResults(string specificationId, params ProviderCalculationResult[] results)
         {
-            _cosmosRepository.DynamicQuery<ProviderCalculationResult>(Arg.Is<SqlQuerySpec>(sql =>
-                    sql.QueryText == @"
-SELECT
-	    doc.content.provider.id AS providerId,
-	    ARRAY(  SELECT calcResult.calculation.id,
-	                   calcResult['value']
-	            FROM   calcResult IN doc.content.calcResults) AS Results
-FROM 	doc
-WHERE   doc.documentType='ProviderResult'
-AND     doc.content.specificationId = @specificationId" &&
+            _cosmosRepository.DynamicQueryPartitionedEntity<ProviderCalculationResult>(Arg.Is<CosmosDbQuery>(sql =>
+                    sql.QueryText == @"SELECT
+	                                        doc.content.provider.id AS providerId,
+	                                        ARRAY(SELECT calcResult.calculation.id,
+	                                                       calcResult['value']
+	                                                FROM   calcResult IN doc.content.calcResults) AS Results
+                                        FROM 	doc
+                                        WHERE   doc.documentType='ProviderResult'
+                                        AND     doc.content.specificationId = @specificationId" &&
                     sql.Parameters.First().Name == "@specificationId" &&
-                    sql.Parameters.First().Value == specificationId), Arg.Is(true))
+                    sql.Parameters.First().Value.ToString() == specificationId), Arg.Is(specificationId))
                 .Returns(results.AsQueryable());
         }
 

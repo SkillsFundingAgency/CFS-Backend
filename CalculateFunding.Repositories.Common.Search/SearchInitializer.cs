@@ -84,7 +84,7 @@ namespace CalculateFunding.Repositories.Common.Search
                 Name = attribute.IndexerForType.Name.ToLowerInvariant(),
                 Type = type,
                 Credentials = new DataSourceCredentials($"{_documentDbConnectionString}Database={attribute.DatabaseName}"),
-                Container = new DataContainer { Name = attribute.CollectionName, Query = attribute.IndexerQuery },
+                Container = new DataContainer { Name = attribute.ContainerName, Query = attribute.IndexerQuery },
                 //DataChangeDetectionPolicy =
                 //    new HighWaterMarkChangeDetectionPolicy { HighWaterMarkColumnName = "_ts" },
                 DataDeletionDetectionPolicy =

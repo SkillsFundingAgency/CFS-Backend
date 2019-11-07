@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Models;
@@ -81,16 +82,24 @@ namespace CalculateFunding.Repositories.Common.Search
 
         public async Task<ISearchIndexClient> GetOrCreateIndex()
         {
-            if (_searchIndexClient == null)
+            try
             {
-                if (!await _searchServiceClient.Indexes.ExistsAsync(_indexName))
+                if (_searchIndexClient == null)
                 {
-                    await Initialize();
-                }
-                _searchIndexClient = _searchServiceClient.Indexes.GetClient(_indexName);
-            }
+                    if (!await _searchServiceClient.Indexes.ExistsAsync(_indexName))
+                    {
+                        await Initialize();
+                    }
 
-            return _searchIndexClient;
+                    _searchIndexClient = _searchServiceClient.Indexes.GetClient(_indexName);
+                }
+
+                return _searchIndexClient;
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"Index failure calling search service client: {e.Message}", e);
+            }
         }
 
         public async Task Initialize()

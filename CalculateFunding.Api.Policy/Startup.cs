@@ -99,7 +99,7 @@ namespace CalculateFunding.Api.Policy
         {
             builder
                 .AddSingleton<IHealthChecker, ControllerResolverHealthCheck>();
-            
+
             builder
                 .AddSingleton<IFundingStreamService, FundingStreamService>()
                 .AddSingleton<IHealthChecker, FundingStreamService>()
@@ -108,8 +108,7 @@ namespace CalculateFunding.Api.Policy
             builder
                 .AddSingleton<IFundingPeriodService, FundingPeriodService>()
                 .AddSingleton<IHealthChecker, FundingPeriodService>()
-                .AddSingleton<IFundingPeriodValidator, FundingPeriodValidator>()
-                .AddSingleton<IValidator<FundingPeriodsJsonModel>, FundingPeriodJsonModelValidator>();
+                .AddSingleton<IFundingPeriodValidator, FundingPeriodValidator>();
 
             builder
                 .AddSingleton<IFundingSchemaService, FundingSchemaService>()
@@ -156,7 +155,7 @@ namespace CalculateFunding.Api.Policy
              {
                  CosmosDbSettings cosmosDbSettings = new CosmosDbSettings();
 
-                 cosmosDbSettings.CollectionName = "policy";
+                 cosmosDbSettings.ContainerName = "policy";
 
                  Configuration.Bind("CosmosDbSettings", cosmosDbSettings);
 
@@ -165,21 +164,6 @@ namespace CalculateFunding.Api.Policy
                  return new PolicyRepository(cosmosRepostory);
              })
              .AddSingleton<IHealthChecker, FundingStreamService>();
-
-            builder
-                .AddSingleton<IPolicyRepository, PolicyRepository>((ctx) =>
-                    {
-                        CosmosDbSettings cosmosDbSettings = new CosmosDbSettings();
-
-                        cosmosDbSettings.CollectionName = "policy";
-
-                        Configuration.Bind("CosmosDbSettings", cosmosDbSettings);
-
-                        CosmosRepository cosmosRepostory = new CosmosRepository(cosmosDbSettings);
-
-                        return new PolicyRepository(cosmosRepostory);
-                    })
-                .AddSingleton<IHealthChecker, FundingStreamService>();
 
             builder.AddSingleton<IPolicyResiliencePolicies>((ctx) =>
             {
@@ -210,6 +194,7 @@ namespace CalculateFunding.Api.Policy
             });
 
             builder.AddSingleton<IValidator<FundingConfiguration>, SaveFundingConfigurationValidator>();
+            builder.AddSingleton<IValidator<FundingPeriodsJsonModel>, FundingPeriodJsonModelValidator>();
 
             builder.AddPolicySettings(Configuration);
 

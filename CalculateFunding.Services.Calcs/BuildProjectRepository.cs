@@ -22,7 +22,7 @@ namespace CalculateFunding.Services.Calcs
         {
             ServiceHealth health = new ServiceHealth();
 
-            var cosmosHealth = await _cosmosRepository.IsHealthOk();
+            var cosmosHealth = _cosmosRepository.IsHealthOk();
 
             health.Name = this.GetType().Name;
             health.Dependencies.Add(new DependencyHealth { HealthOk = cosmosHealth.Ok, DependencyName = typeof(CosmosRepository).Name, Message = cosmosHealth.Message });
@@ -30,11 +30,11 @@ namespace CalculateFunding.Services.Calcs
             return health;
         }
 
-        public Task<BuildProject> GetBuildProjectBySpecificationId(string specificiationId)
+        public async Task<BuildProject> GetBuildProjectBySpecificationId(string specificiationId)
         {
-            IEnumerable<BuildProject> buildProjects = _cosmosRepository.Query<BuildProject>().Where(x => x.SpecificationId == specificiationId).ToList();
+            IEnumerable<BuildProject> buildProjects = await _cosmosRepository.Query<BuildProject>(x => x.Content.SpecificationId == specificiationId);
 
-            return Task.FromResult(buildProjects.FirstOrDefault());
+            return buildProjects.FirstOrDefault();
         }
 
         public Task<HttpStatusCode> CreateBuildProject(BuildProject buildProject)

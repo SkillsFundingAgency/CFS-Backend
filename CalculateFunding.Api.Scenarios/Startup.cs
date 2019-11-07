@@ -71,7 +71,7 @@ namespace CalculateFunding.Api.Scenarios
         {
             builder
                 .AddSingleton<IHealthChecker, ControllerResolverHealthCheck>();
-            
+
             builder.AddSingleton<IScenariosRepository, ScenariosRepository>();
             builder
                 .AddSingleton<IScenariosService, ScenariosService>()
@@ -95,7 +95,7 @@ namespace CalculateFunding.Api.Scenarios
 
                 Configuration.Bind("CosmosDbSettings", scenariosVersioningDbSettings);
 
-                scenariosVersioningDbSettings.CollectionName = "tests";
+                scenariosVersioningDbSettings.ContainerName = "tests";
 
                 CosmosRepository resultsRepostory = new CosmosRepository(scenariosVersioningDbSettings);
 

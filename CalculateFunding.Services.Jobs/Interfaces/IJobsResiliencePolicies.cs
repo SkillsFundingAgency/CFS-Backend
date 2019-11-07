@@ -11,7 +11,5 @@ namespace CalculateFunding.Services.Jobs.Interfaces
         Policy MessengerServicePolicy { get; set; }
 
         Policy JobRepository { get; set; }
-
-        Policy JobRepositoryNonAsync { get; set; }
     }
 }

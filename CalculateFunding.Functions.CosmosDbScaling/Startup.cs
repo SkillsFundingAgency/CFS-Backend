@@ -1,4 +1,5 @@
-﻿using CalculateFunding.Common.CosmosDb;
+﻿using System;
+using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Functions.CosmosDbScaling.EventHubs;
 using CalculateFunding.Functions.CosmosDbScaling.ServiceBus;
 using CalculateFunding.Functions.CosmosDbScaling.Timer;
@@ -15,7 +16,6 @@ using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Polly.Bulkhead;
-using System;
 
 [assembly: FunctionsStartup(typeof(CalculateFunding.Functions.CosmosDbScaling.Startup))]
 
@@ -65,7 +65,7 @@ namespace CalculateFunding.Functions.CosmosDbScaling
 
                 config.Bind("CosmosDbSettings", cosmosDbSettings);
 
-                cosmosDbSettings.CollectionName = "calculationresults";
+                cosmosDbSettings.ContainerName = "calculationresults";
 
                 CosmosRepository cosmosRepostory = new CosmosRepository(cosmosDbSettings);
 
@@ -78,7 +78,7 @@ namespace CalculateFunding.Functions.CosmosDbScaling
 
                 config.Bind("CosmosDbSettings", cosmosDbSettings);
 
-                cosmosDbSettings.CollectionName = "providerdatasets";
+                cosmosDbSettings.ContainerName = "providerdatasets";
 
                 CosmosRepository cosmosRepository = new CosmosRepository(cosmosDbSettings);
 
@@ -91,7 +91,7 @@ namespace CalculateFunding.Functions.CosmosDbScaling
 
                 config.Bind("CosmosDbSettings", cosmosDbSettings);
 
-                cosmosDbSettings.CollectionName = "publishedfunding";
+                cosmosDbSettings.ContainerName = "publishedfunding";
 
                 CosmosRepository cosmosRepository = new CosmosRepository(cosmosDbSettings);
 
@@ -104,7 +104,7 @@ namespace CalculateFunding.Functions.CosmosDbScaling
 
                 config.Bind("CosmosDbSettings", cosmosDbSettings);
 
-                cosmosDbSettings.CollectionName = "calcs";
+                cosmosDbSettings.ContainerName = "calcs";
 
                 CosmosRepository cosmosRepository = new CosmosRepository(cosmosDbSettings);
 
@@ -117,7 +117,7 @@ namespace CalculateFunding.Functions.CosmosDbScaling
 
                 config.Bind("CosmosDbSettings", cosmosDbSettings);
 
-                cosmosDbSettings.CollectionName = "jobs";
+                cosmosDbSettings.ContainerName = "jobs";
 
                 CosmosRepository cosmosRepository = new CosmosRepository(cosmosDbSettings);
 
@@ -130,7 +130,7 @@ namespace CalculateFunding.Functions.CosmosDbScaling
 
                 config.Bind("CosmosDbSettings", cosmosDbSettings);
 
-                cosmosDbSettings.CollectionName = "datasetaggregations";
+                cosmosDbSettings.ContainerName = "datasetaggregations";
 
                 CosmosRepository cosmosRepository = new CosmosRepository(cosmosDbSettings);
 
@@ -143,7 +143,7 @@ namespace CalculateFunding.Functions.CosmosDbScaling
 
                 config.Bind("CosmosDbSettings", cosmosDbSettings);
 
-                cosmosDbSettings.CollectionName = "datasets";
+                cosmosDbSettings.ContainerName = "datasets";
 
                 CosmosRepository cosmosRepository = new CosmosRepository(cosmosDbSettings);
 
@@ -156,7 +156,7 @@ namespace CalculateFunding.Functions.CosmosDbScaling
 
                 config.Bind("CosmosDbSettings", cosmosDbSettings);
 
-                cosmosDbSettings.CollectionName = "profiling";
+                cosmosDbSettings.ContainerName = "profiling";
 
                 CosmosRepository cosmosRepository = new CosmosRepository(cosmosDbSettings);
 
@@ -169,7 +169,7 @@ namespace CalculateFunding.Functions.CosmosDbScaling
 
                 config.Bind("CosmosDbSettings", cosmosDbSettings);
 
-                cosmosDbSettings.CollectionName = "specs";
+                cosmosDbSettings.ContainerName = "specs";
 
                 CosmosRepository cosmosRepository = new CosmosRepository(cosmosDbSettings);
 
@@ -182,7 +182,7 @@ namespace CalculateFunding.Functions.CosmosDbScaling
 
                 config.Bind("CosmosDbSettings", cosmosDbSettings);
 
-                cosmosDbSettings.CollectionName = "testresults";
+                cosmosDbSettings.ContainerName = "testresults";
 
                 CosmosRepository cosmosRepository = new CosmosRepository(cosmosDbSettings);
 
@@ -195,7 +195,7 @@ namespace CalculateFunding.Functions.CosmosDbScaling
 
                 config.Bind("CosmosDbSettings", cosmosDbSettings);
 
-                cosmosDbSettings.CollectionName = "tests";
+                cosmosDbSettings.ContainerName = "tests";
 
                 CosmosRepository cosmosRepository = new CosmosRepository(cosmosDbSettings);
 
@@ -208,7 +208,7 @@ namespace CalculateFunding.Functions.CosmosDbScaling
 
                 config.Bind("CosmosDbSettings", cosmosDbSettings);
 
-                cosmosDbSettings.CollectionName = "users";
+                cosmosDbSettings.ContainerName = "users";
 
                 CosmosRepository cosmosRepository = new CosmosRepository(cosmosDbSettings);
 
@@ -221,7 +221,7 @@ namespace CalculateFunding.Functions.CosmosDbScaling
 
                 config.Bind("CosmosDbSettings", cosmosDbSettings);
 
-                cosmosDbSettings.CollectionName = "publishedproviderresults";
+                cosmosDbSettings.ContainerName = "publishedproviderresults";
 
                 CosmosRepository cosmosRepository = new CosmosRepository(cosmosDbSettings);
 
@@ -234,7 +234,7 @@ namespace CalculateFunding.Functions.CosmosDbScaling
 
                 config.Bind("CosmosDbSettings", cosmosDbSettings);
 
-                cosmosDbSettings.CollectionName = "cosmosscalingconfig";
+                cosmosDbSettings.ContainerName = "cosmosscalingconfig";
 
                 CosmosRepository cosmosRepository = new CosmosRepository(cosmosDbSettings);
 

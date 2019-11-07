@@ -26,7 +26,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Polly.Bulkhead;
 using Serilog;
-using TemplateMetadataSchema10 = CalculateFunding.Common.TemplateMetadata.Schema10;
 
 [assembly: FunctionsStartup(typeof(CalculateFunding.Functions.Specs.Startup))]
 
@@ -95,7 +94,7 @@ namespace CalculateFunding.Functions.Specs
 
                 config.Bind("CosmosDbSettings", specsVersioningDbSettings);
 
-                specsVersioningDbSettings.CollectionName = "specs";
+                specsVersioningDbSettings.ContainerName = "specs";
 
                 CosmosRepository resultsRepostory = new CosmosRepository(specsVersioningDbSettings);
 

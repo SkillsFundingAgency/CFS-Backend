@@ -150,7 +150,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             throw new NotImplementedException();
         }
 
-        public Task<ApiResponse<FundingStream>> SaveFundingStream()
+        public Task<ApiResponse<FundingStream>> SaveFundingStream(FundingStreamUpdateModel fundingStreamUpdateModel)
         {
             throw new NotImplementedException();
         }
@@ -176,7 +176,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             }
         }
 
-        public Task<ApiResponse<FundingPeriod>> SaveFundingPeriods(FundingPeriodsModel fundingPeriodsModel, string fileName)
+        public Task<ApiResponse<FundingPeriod>> SaveFundingPeriods(FundingPeriodsUpdateModel fundingPeriodsModel)
         {
             throw new NotImplementedException();
         }

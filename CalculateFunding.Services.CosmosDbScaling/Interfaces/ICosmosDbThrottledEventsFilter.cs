@@ -7,6 +7,6 @@ namespace CalculateFunding.Services.CosmosDbScaling.Interfaces
 {
     public interface ICosmosDbThrottledEventsFilter
     {
-        IEnumerable<string> GetUniqueCosmosDbCollectionNamesFromEventData(IEnumerable<EventData> events);
+        IEnumerable<string> GetUniqueCosmosDBContainerNamesFromEventData(IEnumerable<EventData> events);
     }
 }

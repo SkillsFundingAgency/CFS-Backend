@@ -99,7 +99,7 @@ namespace CalculateFunding.Functions.Results
 
                 config.Bind("CosmosDbSettings", calssDbSettings);
 
-                calssDbSettings.CollectionName = "calculationresults";
+                calssDbSettings.ContainerName = "calculationresults";
 
                 CosmosRepository calcsCosmosRepostory = new CosmosRepository(calssDbSettings);
 
@@ -112,7 +112,7 @@ namespace CalculateFunding.Functions.Results
 
                 config.Bind("CosmosDbSettings", provDbSettings);
 
-                provDbSettings.CollectionName = "providerdatasets";
+                provDbSettings.ContainerName = "providerdatasets";
 
                 CosmosRepository calcsCosmosRepostory = new CosmosRepository(provDbSettings);
 
@@ -169,30 +169,19 @@ namespace CalculateFunding.Functions.Results
 
             builder.AddSingleton<IProfilingApiClient>((ctx) =>
             {
-                IFeatureToggle featureToggle = ctx.GetService<IFeatureToggle>();
+                IHttpClientFactory httpClientFactory = ctx.GetService<IHttpClientFactory>();
+                ILogger logger = ctx.GetService<ILogger>();
+                ICancellationTokenProvider cancellationTokenProvider = ctx.GetService<ICancellationTokenProvider>();
 
-                bool enableMockProvider = featureToggle.IsProviderProfilingServiceDisabled();
+                IAzureBearerTokenProxy azureBearerTokenProxy = ctx.GetService<IAzureBearerTokenProxy>();
+                ICacheProvider cacheProvider = ctx.GetService<ICacheProvider>();
 
-                if (enableMockProvider)
-                {
-                    return new MockProviderProfilingRepository();
-                }
-                else
-                {
-                    IHttpClientFactory httpClientFactory = ctx.GetService<IHttpClientFactory>();
-                    ILogger logger = ctx.GetService<ILogger>();
-                    ICancellationTokenProvider cancellationTokenProvider = ctx.GetService<ICancellationTokenProvider>();
+                AzureBearerTokenOptions azureBearerTokenOptions = new AzureBearerTokenOptions();
+                config.Bind("providerProfilingAzureBearerTokenOptions", azureBearerTokenOptions);
 
-                    IAzureBearerTokenProxy azureBearerTokenProxy = ctx.GetService<IAzureBearerTokenProxy>();
-                    ICacheProvider cacheProvider = ctx.GetService<ICacheProvider>();
+                AzureBearerTokenProvider bearerTokenProvider = new AzureBearerTokenProvider(azureBearerTokenProxy, cacheProvider, azureBearerTokenOptions);
 
-                    AzureBearerTokenOptions azureBearerTokenOptions = new AzureBearerTokenOptions();
-                    config.Bind("providerProfilingAzureBearerTokenOptions", azureBearerTokenOptions);
-
-                    AzureBearerTokenProvider bearerTokenProvider = new AzureBearerTokenProvider(azureBearerTokenProxy, cacheProvider, azureBearerTokenOptions);
-
-                    return new ProfilingApiClient(httpClientFactory, HttpClientKeys.Profiling, logger, bearerTokenProvider, cancellationTokenProvider);
-                }
+                return new ProfilingApiClient(httpClientFactory, HttpClientKeys.Profiling, logger, bearerTokenProvider, cancellationTokenProvider);
             });
 
             PolicySettings policySettings = builder.GetPolicySettings(config);
@@ -200,7 +189,7 @@ namespace CalculateFunding.Functions.Results
 
             builder.AddSingleton<IResultsResiliencePolicies>(resultsResiliencePolicies);
             builder.AddSingleton<IJobHelperResiliencePolicies>(resultsResiliencePolicies);
-            
+
             builder.AddSingleton<IJobManagementResiliencePolicies>((ctx) =>
             {
                 BulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);

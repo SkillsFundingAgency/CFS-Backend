@@ -1,10 +1,9 @@
-using CalculateFunding.Api.Scenarios;
+using System.Collections.Generic;
 using CalculateFunding.Api.Scenarios.Controllers;
 using CalculateFunding.Tests.Common;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Collections.Generic;
 
 namespace CalculateFunding.Api.Scenarios.UnitTests
 {
@@ -31,7 +30,7 @@ namespace CalculateFunding.Api.Scenarios.UnitTests
             {
                 { "SearchServiceName", "ss-t1te-cfs"},
                 { "SearchServiceKey", "test" },
-                { "CosmosDbSettings:CollectionName", "scenarios" },
+                { "CosmosDbSettings:ContainerName", "scenarios" },
                 { "CosmosDbSettings:DatabaseName", "calculate-funding" },
                 { "CosmosDbSettings:ConnectionString", "AccountEndpoint=https://test.documents.azure.com:443/;AccountKey=dGVzdA==;" },
                 { "specificationsClient:ApiEndpoint", "https://localhost:7001/api/" },

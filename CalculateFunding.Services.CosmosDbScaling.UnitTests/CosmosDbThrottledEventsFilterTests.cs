@@ -14,7 +14,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
     public class CosmosDbThrottledEventsFilterTests
     {
         [TestMethod]
-        public void GetUniqueCosmosDbCollectionNamesFromEventData_GivenEventsWhereStatusCodeDoesNotSupplied_ReturnsEmptyCollections()
+        public void GetUniqueCosmosDBContainerNamesFromEventData_GivenEventsWhereStatusCodeDoesNotSupplied_ReturnsEmptyCollections()
         {
             //Arrange
             EventData eventData1 = new EventData(Encoding.UTF8.GetBytes(""));
@@ -29,7 +29,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
             CosmosDbThrottledEventsFilter cosmosDbThrottledEventsFilter = new CosmosDbThrottledEventsFilter();
 
             //Act
-            IEnumerable<string> collections = cosmosDbThrottledEventsFilter.GetUniqueCosmosDbCollectionNamesFromEventData(events);
+            IEnumerable<string> collections = cosmosDbThrottledEventsFilter.GetUniqueCosmosDBContainerNamesFromEventData(events);
 
             //Assert
             collections
@@ -38,7 +38,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
         }
         
         [TestMethod]
-        public void GetUniqueCosmosDbCollectionNamesFromEventData_GivenEventsWhereStatusCodeDoesNotExist_ReturnsEmptyCollections()
+        public void GetUniqueCosmosDBContainerNamesFromEventData_GivenEventsWhereStatusCodeDoesNotExist_ReturnsEmptyCollections()
         {
             //Arrange
             EventData eventData1 = new EventData(Encoding.UTF8.GetBytes(""));
@@ -55,7 +55,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
             CosmosDbThrottledEventsFilter cosmosDbThrottledEventsFilter = new CosmosDbThrottledEventsFilter();
 
             //Act
-            IEnumerable<string> collections = cosmosDbThrottledEventsFilter.GetUniqueCosmosDbCollectionNamesFromEventData(events);
+            IEnumerable<string> collections = cosmosDbThrottledEventsFilter.GetUniqueCosmosDBContainerNamesFromEventData(events);
 
             //Assert
             collections
@@ -64,7 +64,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
         }
 
         [TestMethod]
-        public void GetUniqueCosmosDbCollectionNamesFromEventData_GivenEventsWhereOneStatusCodeIs429_ReturnsCollectionWithOneItem()
+        public void GetUniqueCosmosDBContainerNamesFromEventData_GivenEventsWhereOneStatusCodeIs429_ReturnsCollectionWithOneItem()
         {
             //Arrange
             EventData eventData1 = new EventData(Encoding.UTF8.GetBytes(""));
@@ -84,7 +84,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
             CosmosDbThrottledEventsFilter cosmosDbThrottledEventsFilter = new CosmosDbThrottledEventsFilter();
 
             //Act
-            IEnumerable<string> collections = cosmosDbThrottledEventsFilter.GetUniqueCosmosDbCollectionNamesFromEventData(events);
+            IEnumerable<string> collections = cosmosDbThrottledEventsFilter.GetUniqueCosmosDBContainerNamesFromEventData(events);
 
             //Assert
             collections
@@ -98,7 +98,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
         }
 
         [TestMethod]
-        public void GetUniqueCosmosDbCollectionNamesFromEventData_GivenMultiplEventsForSameCollectionWhereStatusCodeIs429_ReturnsCollectionWithOneItem()
+        public void GetUniqueCosmosDBContainerNamesFromEventData_GivenMultiplEventsForSameCollectionWhereStatusCodeIs429_ReturnsCollectionWithOneItem()
         {
             //Arrange
             EventData eventData1 = new EventData(Encoding.UTF8.GetBytes(""));
@@ -118,7 +118,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
             CosmosDbThrottledEventsFilter cosmosDbThrottledEventsFilter = new CosmosDbThrottledEventsFilter();
 
             //Act
-            IEnumerable<string> collections = cosmosDbThrottledEventsFilter.GetUniqueCosmosDbCollectionNamesFromEventData(events);
+            IEnumerable<string> collections = cosmosDbThrottledEventsFilter.GetUniqueCosmosDBContainerNamesFromEventData(events);
 
             //Assert
             collections

@@ -95,7 +95,7 @@ namespace CalculateFunding.Api.Publishing
         {
             builder
                 .AddSingleton<IHealthChecker, ControllerResolverHealthCheck>();
-            
+
             builder.AddSingleton<IPublishedProviderVersionService, PublishedProviderVersionService>();
             builder.AddSingleton<ISpecificationFundingStatusService, SpecificationFundingStatusService>();
             builder.AddSingleton<IPublishedSearchService, PublishedSearchService>()
@@ -107,7 +107,7 @@ namespace CalculateFunding.Api.Publishing
 
                 Configuration.Bind("CosmosDbSettings", calssDbSettings);
 
-                calssDbSettings.CollectionName = "publishedfunding";
+                calssDbSettings.ContainerName = "publishedfunding";
 
                 CosmosRepository calcsCosmosRepostory = new CosmosRepository(calssDbSettings);
 

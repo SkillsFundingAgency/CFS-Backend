@@ -6,8 +6,6 @@ using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.WebApi.Extensions;
 using CalculateFunding.Common.WebApi.Middleware;
-using CalculateFunding.Models.MappingProfiles;
-using CalculateFunding.Models.Providers;
 using CalculateFunding.Models.Providers.ViewModels;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.AspNet;
@@ -28,7 +26,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Polly.Bulkhead;
-using StackExchange.Redis;
 using Swashbuckle.AspNetCore.Swagger;
 
 namespace CalculateFunding.Api.Providers
@@ -100,7 +97,7 @@ namespace CalculateFunding.Api.Providers
         {
             builder
                 .AddSingleton<IHealthChecker, ControllerResolverHealthCheck>();
-            
+
             builder.AddCaching(Configuration);
 
             builder
@@ -138,7 +135,7 @@ namespace CalculateFunding.Api.Providers
 
                     Configuration.Bind("CosmosDbSettings", specRepoDbSettings);
 
-                    specRepoDbSettings.CollectionName = "providerversionsmetadata";
+                    specRepoDbSettings.ContainerName = "providerversionsmetadata";
 
                     CosmosRepository cosmosRepository = new CosmosRepository(specRepoDbSettings);
 

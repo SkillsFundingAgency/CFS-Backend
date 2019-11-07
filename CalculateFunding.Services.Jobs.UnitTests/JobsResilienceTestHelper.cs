@@ -12,8 +12,7 @@ namespace CalculateFunding.Services.Jobs
                 JobDefinitionsRepository = Policy.NoOpAsync(),
                 CacheProviderPolicy = Policy.NoOpAsync(),
                 MessengerServicePolicy = Policy.NoOpAsync(),
-                JobRepository = Policy.NoOpAsync(),
-                JobRepositoryNonAsync = Policy.NoOp()
+                JobRepository = Policy.NoOpAsync()
             };
         }
     }

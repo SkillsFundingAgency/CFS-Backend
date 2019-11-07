@@ -30,7 +30,7 @@ namespace CalculateFunding.Api.Users.UnitTests
             {
                 { "SearchServiceName", "ss-t1te-cfs"},
                 { "SearchServiceKey", "test" },
-                { "CosmosDbSettings:CollectionName", "users" },
+                { "CosmosDbSettings:ContainerName", "users" },
                 { "CosmosDbSettings:DatabaseName", "calculate-funding" },
                 { "CosmosDbSettings:ConnectionString", "AccountEndpoint=https://test.documents.azure.com:443/;AccountKey=dGVzdA==;" }
             };

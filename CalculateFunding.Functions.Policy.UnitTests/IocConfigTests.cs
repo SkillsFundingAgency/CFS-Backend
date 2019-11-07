@@ -31,7 +31,7 @@ namespace CalculateFunding.Functions.Policy.UnitTests
             Dictionary<string, string> configData = new Dictionary<string, string>
             {
                 { "CosmosDbSettings:DatabaseName", "calculate-funding" },
-                { "CosmosDbSettings:CollectionName", "policy" },
+                { "CosmosDbSettings:ContainerName", "policy" },
                 { "CosmosDbSettings:ConnectionString", "AccountEndpoint=https://test.documents.azure.com:443/;AccountKey=dGVzdA==;" }
             };
 

@@ -6,6 +6,7 @@ using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Extensions;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.FundingPolicy;
@@ -25,7 +26,7 @@ namespace CalculateFunding.Services.Policy
 
         public async Task<ServiceHealth> IsHealthOk()
         {
-            var (Ok, Message) = await _cosmosRepository.IsHealthOk();
+            var (Ok, Message) = _cosmosRepository.IsHealthOk();
 
             ServiceHealth health = new ServiceHealth()
             {
@@ -41,16 +42,16 @@ namespace CalculateFunding.Services.Policy
         {
             Guard.IsNullOrWhiteSpace(fundingStreamId, nameof(fundingStreamId));
 
-            return (await _cosmosRepository.ReadAsync<FundingStream>(fundingStreamId, true))?.Content;
+            return (await _cosmosRepository.ReadDocumentByIdPartitionedAsync<FundingStream>(fundingStreamId, fundingStreamId))?.Content;
         }
 
-        public async Task<IEnumerable<FundingStream>> GetFundingStreams(Expression<Func<FundingStream, bool>> query = null)
+        public async Task<IEnumerable<FundingStream>> GetFundingStreams(Expression<Func<DocumentEntity<FundingStream>, bool>> query = null)
         {
-            IQueryable<FundingStream> fundingStreams = query == null
-               ? _cosmosRepository.Query<FundingStream>(true)
-               : _cosmosRepository.Query<FundingStream>(true).Where(query);
+            IEnumerable<FundingStream> fundingStreams = query == null
+               ? await _cosmosRepository.Query<FundingStream>()
+               : (await _cosmosRepository.Query<FundingStream>(query));
 
-            return await Task.FromResult(fundingStreams.AsEnumerable());
+            return fundingStreams;
         }
 
         public async Task<HttpStatusCode> SaveFundingStream(FundingStream fundingStream)
@@ -71,39 +72,37 @@ namespace CalculateFunding.Services.Policy
         {
             Guard.IsNullOrWhiteSpace(configId, nameof(configId));
 
-            return (await _cosmosRepository.ReadAsync<FundingConfiguration>(configId, true))?.Content;
+            return (await _cosmosRepository.ReadDocumentByIdPartitionedAsync<FundingConfiguration>(configId, configId))?.Content;
         }
 
         public async Task<IEnumerable<FundingConfiguration>> GetFundingConfigurationsByFundingStreamId(string fundingStreamId)
         {
             Guard.IsNullOrWhiteSpace(fundingStreamId, nameof(fundingStreamId));
 
-            IQueryable<FundingConfiguration> fundingConfigurations = _cosmosRepository.Query<FundingConfiguration>(true).Where(m => m.FundingStreamId == fundingStreamId);
-
-            return await Task.FromResult(fundingConfigurations.AsEnumerable());
+            return (await _cosmosRepository.Query<FundingConfiguration>(m => m.Content.FundingStreamId == fundingStreamId));
         }
 
         public async Task<FundingPeriod> GetFundingPeriodById(string fundingPeriodId)
         {
             Guard.IsNullOrWhiteSpace(fundingPeriodId, nameof(fundingPeriodId));
 
-            return (await _cosmosRepository.ReadAsync<FundingPeriod>(fundingPeriodId, true))?.Content;
+            return (await _cosmosRepository.ReadDocumentByIdPartitionedAsync<FundingPeriod>(fundingPeriodId, fundingPeriodId))?.Content;
         }
 
-        public async Task<IEnumerable<FundingPeriod>> GetFundingPeriods(Expression<Func<FundingPeriod, bool>> query = null)
+        public async Task<IEnumerable<FundingPeriod>> GetFundingPeriods(Expression<Func<DocumentEntity<FundingPeriod>, bool>> query = null)
         {
-            IQueryable<FundingPeriod> fundingPeriods = query == null
-               ? _cosmosRepository.Query<FundingPeriod>(true)
-               : _cosmosRepository.Query<FundingPeriod>(true).Where(query);
+            IEnumerable<FundingPeriod> fundingPeriods = query == null
+               ? await _cosmosRepository.Query<FundingPeriod>()
+               : (await _cosmosRepository.Query<FundingPeriod>(query));
 
-            return await Task.FromResult(fundingPeriods.AsEnumerable());
+            return fundingPeriods;
         }
 
         public async Task SaveFundingPeriods(IEnumerable<FundingPeriod> fundingPeriods)
         {
             Guard.ArgumentNotNull(fundingPeriods, nameof(fundingPeriods));
 
-            await _cosmosRepository.BulkUpsertAsync<FundingPeriod>(fundingPeriods.ToList(), enableCrossPartitionQuery: true);
+            await _cosmosRepository.BulkUpsertAsync<FundingPeriod>(fundingPeriods.ToList());
         }
     }
 }

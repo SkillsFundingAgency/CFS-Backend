@@ -31,7 +31,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Net.Http.Headers;
 using Polly.Bulkhead;
 
 namespace CalculateFunding.Api.Calcs
@@ -80,7 +79,7 @@ namespace CalculateFunding.Api.Calcs
         {
             builder
                 .AddSingleton<IHealthChecker, ControllerResolverHealthCheck>();
-            
+
             builder
                 .AddSingleton<ICalculationsRepository, CalculationsRepository>();
 
@@ -167,7 +166,7 @@ namespace CalculateFunding.Api.Calcs
 
                 Configuration.Bind("CosmosDbSettings", calcsVersioningDbSettings);
 
-                calcsVersioningDbSettings.CollectionName = "calcs";
+                calcsVersioningDbSettings.ContainerName = "calcs";
 
                 CosmosRepository resultsRepostory = new CosmosRepository(calcsVersioningDbSettings);
 

@@ -60,7 +60,7 @@ namespace CalculateFunding.Functions.Jobs
 
                     config.Bind("CosmosDbSettings", cosmosDbSettings);
 
-                    cosmosDbSettings.CollectionName = "jobs";
+                    cosmosDbSettings.ContainerName = "jobs";
 
                     CosmosRepository jobCosmosRepostory = new CosmosRepository(cosmosDbSettings);
 
@@ -80,7 +80,7 @@ namespace CalculateFunding.Functions.Jobs
 
                     config.Bind("CosmosDbSettings", cosmosDbSettings);
 
-                    cosmosDbSettings.CollectionName = "jobdefinitions";
+                    cosmosDbSettings.ContainerName = "jobdefinitions";
 
                     CosmosRepository jobDefinitionsCosmosRepostory = new CosmosRepository(cosmosDbSettings);
 
@@ -105,7 +105,6 @@ namespace CalculateFunding.Functions.Jobs
                     JobDefinitionsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
                     CacheProviderPolicy = ResiliencePolicyHelpers.GenerateRedisPolicy(totalNetworkRequestsPolicy),
                     JobRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
-                    JobRepositoryNonAsync = CosmosResiliencePolicyHelper.GenerateNonAsyncCosmosPolicy(totalNetworkRequestsPolicyNonAsync),
                     MessengerServicePolicy = ResiliencePolicyHelpers.GenerateMessagingPolicy(totalNetworkRequestsPolicy)
                 };
             });

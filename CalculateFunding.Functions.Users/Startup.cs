@@ -64,7 +64,7 @@ namespace CalculateFunding.Functions.Users
 
                 config.Bind("CosmosDbSettings", usersDbSettings);
 
-                usersDbSettings.CollectionName = "users";
+                usersDbSettings.ContainerName = "users";
 
                 CosmosRepository usersCosmosRepostory = new CosmosRepository(usersDbSettings);
 
@@ -81,7 +81,7 @@ namespace CalculateFunding.Functions.Users
 
                 config.Bind("CosmosDbSettings", versioningDbSettings);
 
-                versioningDbSettings.CollectionName = "users";
+                versioningDbSettings.ContainerName = "users";
 
                 CosmosRepository versioningRepository = new CosmosRepository(versioningDbSettings);
 

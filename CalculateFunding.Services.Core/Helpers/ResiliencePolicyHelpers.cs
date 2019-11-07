@@ -1,15 +1,13 @@
-﻿using CalculateFunding.Services.Core.Options;
-using Microsoft.Azure.Documents;
-using Microsoft.Extensions.Configuration;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net.Http;
+using CalculateFunding.Services.Core.Options;
+using Microsoft.Azure.Cosmos;
 using Polly;
 using Polly.Bulkhead;
 using Polly.Wrap;
 using StackExchange.Redis;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
-using System.Text;
 
 namespace CalculateFunding.Services.Core.Helpers
 {
@@ -106,7 +104,7 @@ namespace CalculateFunding.Services.Core.Helpers
 
         public static Policy CosmosManagementPolicy(IAsyncPolicy[] chainedPolicies = null)
         {
-            Policy cosmosExceptionRetry = Policy.Handle<DocumentClientException>()
+            Policy cosmosExceptionRetry = Policy.Handle<CosmosException>()
                .WaitAndRetryAsync(new[] { TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(20) });
 
             Policy circuitBreakerRequestException = Policy.Handle<Exception>().CircuitBreakerAsync(100, TimeSpan.FromMinutes(1));

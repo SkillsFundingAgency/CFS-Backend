@@ -1,4 +1,5 @@
-﻿using CalculateFunding.Models.Datasets;
+﻿using CalculateFunding.Common.Models;
+using CalculateFunding.Models.Datasets;
 using CalculateFunding.Services.Datasets.Interfaces;
 using FluentAssertions;
 using FluentValidation.Results;
@@ -156,7 +157,7 @@ namespace CalculateFunding.Services.Datasets.Validators
 
             IDatasetRepository repository = CreateDatasetsRepository(true);
             repository
-                .GetDatasetsByQuery(Arg.Any<Expression<Func<Dataset, bool>>>())
+                .GetDatasetsByQuery(Arg.Any<Expression<Func<DocumentEntity<Dataset>, bool>>>())
                 .Returns(datasets);
 
             CreateNewDatasetModelValidator validator = CreateValidator(repository);
@@ -254,7 +255,7 @@ namespace CalculateFunding.Services.Datasets.Validators
             IDatasetRepository repository = Substitute.For<IDatasetRepository>();
 
             repository
-                .GetDatasetsByQuery(Arg.Any<Expression<Func<Dataset, bool>>>())
+                .GetDatasetsByQuery(Arg.Any<Expression<Func<DocumentEntity<Dataset>, bool>>>())
                 .Returns(hasDataset ? new[] { new Dataset() } : new Dataset[0]);
 
             return repository;

@@ -1794,7 +1794,7 @@
               "value": "calculate-funding"
             },
             {
-              "name": "CosmosDbSettings:CollectionName",
+              "name": "CosmosDbSettings:ContainerName",
               "value": "datasets"
             },
             {
@@ -1957,7 +1957,7 @@
               "value": "calculate-funding"
             },
             {
-              "name": "CosmosDbSettings:CollectionName",
+              "name": "CosmosDbSettings:ContainerName",
               "value": "calcs"
             },
             {
@@ -2124,7 +2124,7 @@
               "value": "calculate-funding"
             },
             {
-              "name": "CosmosDbSettings:CollectionName",
+              "name": "CosmosDbSettings:ContainerName",
               "value": "providersourcedatasets"
             },
             {
@@ -2323,7 +2323,7 @@
               "value": "calculate-funding"
             },
             {
-              "name": "CosmosDbSettings:CollectionName",
+              "name": "CosmosDbSettings:ContainerName",
               "value": "testresults"
             },
             {
@@ -2426,7 +2426,7 @@
               "value": "calculate-funding"
             },
             {
-              "name": "CosmosDbSettings:CollectionName",
+              "name": "CosmosDbSettings:ContainerName",
               "value": "providersourcedatasets"
             },
             {
@@ -2604,7 +2604,7 @@
               "value": "calculate-funding"
             },
             {
-              "name": "CosmosDbSettings:CollectionName",
+              "name": "CosmosDbSettings:ContainerName",
               "value": "specs"
             },
             {
@@ -2742,7 +2742,7 @@
               "value": "calculate-funding"
             },
             {
-              "name": "CosmosDbSettings:CollectionName",
+              "name": "CosmosDbSettings:ContainerName",
               "value": "tests"
             },
             {
@@ -2868,7 +2868,7 @@
               "value": "calculate-funding"
             },
             {
-              "name": "CosmosDbSettings:CollectionName",
+              "name": "CosmosDbSettings:ContainerName",
               "value": "users"
             },
             {
@@ -2971,7 +2971,7 @@
               "value": "calculate-funding"
             },
             {
-              "name": "CosmosDbSettings:CollectionName",
+              "name": "CosmosDbSettings:ContainerName",
               "value": "jobs"
             },
             {
@@ -3071,7 +3071,7 @@
               "value": "calculate-funding"
             },
             {
-              "name": "CosmosDbSettings:CollectionName",
+              "name": "CosmosDbSettings:ContainerName",
               "value": "jobs"
             },
             {
@@ -3297,7 +3297,7 @@
               "value": "calculate-funding"
             },
             {
-              "name": "CosmosDbSettings:CollectionName",
+              "name": "CosmosDbSettings:ContainerName",
               "value": "providersourcedatasets"
             },
             {
@@ -3485,7 +3485,7 @@
               "value": "calculate-funding"
             },
             {
-              "name": "CosmosDbSettings:CollectionName",
+              "name": "CosmosDbSettings:ContainerName",
               "value": "providerversionmetadata"
             },
             {
@@ -3737,7 +3737,7 @@
               "value": "calculate-funding"
             },
             {
-              "name": "CosmosDbSettings:CollectionName",
+              "name": "CosmosDbSettings:ContainerName",
               "value": "datasets"
             },
             {
@@ -3905,7 +3905,7 @@
               "value": "calculate-funding"
             },
             {
-              "name": "CosmosDbSettings:CollectionName",
+              "name": "CosmosDbSettings:ContainerName",
               "value": "calcs"
             },
             {
@@ -4266,7 +4266,7 @@
               "value": "calculate-funding"
             },
             {
-              "name": "CosmosDbSettings:CollectionName",
+              "name": "CosmosDbSettings:ContainerName",
               "value": "testresults"
             },
             {
@@ -4381,7 +4381,7 @@
               "value": "calculate-funding"
             },
             {
-              "name": "CosmosDbSettings:CollectionName",
+              "name": "CosmosDbSettings:ContainerName",
               "value": "providersourcedatasets"
             },
             {
@@ -4544,7 +4544,7 @@
               "value": "calculate-funding"
             },
             {
-              "name": "CosmosDbSettings:CollectionName",
+              "name": "CosmosDbSettings:ContainerName",
               "value": "specs"
             },
             {
@@ -4727,7 +4727,7 @@
               "value": "calculate-funding"
             },
             {
-              "name": "CosmosDbSettings:CollectionName",
+              "name": "CosmosDbSettings:ContainerName",
               "value": "tests"
             },
             {
@@ -4859,7 +4859,7 @@
               "value": "calculate-funding"
             },
             {
-              "name": "CosmosDbSettings:CollectionName",
+              "name": "CosmosDbSettings:ContainerName",
               "value": "users"
             },
             {
@@ -4979,7 +4979,7 @@
               "value": "calculate-funding"
             },
             {
-              "name": "CosmosDbSettings:CollectionName",
+              "name": "CosmosDbSettings:ContainerName",
               "value": "jobs"
             },
             {
@@ -5083,7 +5083,7 @@
               "value": "calculate-funding"
             },
             {
-              "name": "CosmosDbSettings:CollectionName",
+              "name": "CosmosDbSettings:ContainerName",
               "value": "profiling"
             },
             {
@@ -5234,7 +5234,7 @@
               "value": "calculate-funding"
             },
             {
-              "name": "CosmosDbSettings:CollectionName",
+              "name": "CosmosDbSettings:ContainerName",
               "value": "policy"
             },
             {
@@ -5357,7 +5357,7 @@
               "value": "calculate-funding"
             },
             {
-              "name": "CosmosDbSettings:CollectionName",
+              "name": "CosmosDbSettings:ContainerName",
               "value": "publishing"
             },
             {
@@ -5505,7 +5505,7 @@
               "value": "calculate-funding"
             },
             {
-              "name": "CosmosDbSettings:CollectionName",
+              "name": "CosmosDbSettings:ContainerName",
               "value": "policy"
             },
             {

@@ -5,6 +5,10 @@
     <DebugType>full</DebugType>
     <LangVersion>7.1</LangVersion>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CalculateFunding.Common.CosmosDb" Version="2.0.3" />
+  </ItemGroup>
   
   <ItemGroup>
     <ProjectReference Include="..\CalculateFunding.Models\CalculateFunding.Models.csproj" />

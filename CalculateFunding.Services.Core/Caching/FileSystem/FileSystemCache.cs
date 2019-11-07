@@ -3,7 +3,6 @@ using System.Collections.Concurrent;
 using System.IO;
 using System.Threading;
 using CalculateFunding.Common.Utility;
-using Microsoft.Azure.Documents;
 using Serilog;
 // ReSharper disable InconsistentlySynchronizedField
 
@@ -14,8 +13,8 @@ namespace CalculateFunding.Services.Core.Caching.FileSystem
         private readonly ILogger _logger;
         private readonly IFileSystemAccess _fileSystemAccess;
         private readonly IFileSystemCacheSettings _settings;
-        
-        private static readonly ConcurrentDictionary<string, object> KeyLocks 
+
+        private static readonly ConcurrentDictionary<string, object> KeyLocks
             = new ConcurrentDictionary<string, object>();
 
         public FileSystemCache(IFileSystemCacheSettings settings,
@@ -38,7 +37,7 @@ namespace CalculateFunding.Services.Core.Caching.FileSystem
                 return _fileSystemAccess.Exists(CachePathForKey(key));
             }
         }
-        
+
         public void Add(FileSystemCacheKey key, Stream contents, CancellationToken cancellationToken = default)
         {
             try
@@ -50,14 +49,14 @@ namespace CalculateFunding.Services.Core.Caching.FileSystem
                         .GetResult();
                 }
             }
-            catch(IOException ioException) when (_fileSystemAccess.Exists(CachePathForKey(key)))
+            catch (IOException ioException) when (_fileSystemAccess.Exists(CachePathForKey(key)))
             {
                 _logger.Warning("Detected file collision for CachePathForKey(key). Swallowing exception");
             }
             catch (Exception exception)
             {
                 string message = $"Unable to write content for file system cache item with key {key.Key}";
-                
+
                 _logger.Error(exception, message);
 
                 throw new Exception(message, exception);
@@ -76,9 +75,9 @@ namespace CalculateFunding.Services.Core.Caching.FileSystem
             catch (Exception exception)
             {
                 string errorMessage = $"Unable to read content for file system cache item with key {key.Key}";
-                
+
                 _logger.Error(errorMessage, exception);
-                
+
                 throw new Exception(errorMessage, exception);
             }
         }
@@ -86,7 +85,7 @@ namespace CalculateFunding.Services.Core.Caching.FileSystem
         public void EnsureFoldersExist(params string[] folders)
         {
             string settingsPath = _settings.Path;
-            
+
             EnsureFolderExists(settingsPath);
 
             foreach (string folder in folders)
@@ -98,7 +97,7 @@ namespace CalculateFunding.Services.Core.Caching.FileSystem
         private void EnsureFolderExists(string path)
         {
             if (_fileSystemAccess.FolderExists(path)) return;
-            
+
             _fileSystemAccess.CreateFolder(path);
         }
 

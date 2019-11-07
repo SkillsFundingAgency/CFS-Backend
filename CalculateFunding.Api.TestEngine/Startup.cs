@@ -72,7 +72,7 @@ namespace CalculateFunding.Api.TestRunner
         {
             builder
                 .AddSingleton<IHealthChecker, ControllerResolverHealthCheck>();
-            
+
             builder.AddApiKeyMiddlewareSettings((IConfigurationRoot)Configuration);
 
             builder
@@ -117,7 +117,7 @@ namespace CalculateFunding.Api.TestRunner
 
                 Configuration.Bind("CosmosDbSettings", providersDbSettings);
 
-                providersDbSettings.CollectionName = "providersources";
+                providersDbSettings.ContainerName = "providersources";
 
                 CosmosRepository providersCosmosRepostory = new CosmosRepository(providersDbSettings);
 
@@ -132,7 +132,7 @@ namespace CalculateFunding.Api.TestRunner
 
                 Configuration.Bind("CosmosDbSettings", providersDbSettings);
 
-                providersDbSettings.CollectionName = "calculationresults";
+                providersDbSettings.ContainerName = "calculationresults";
 
                 CosmosRepository providersCosmosRepostory = new CosmosRepository(providersDbSettings);
 

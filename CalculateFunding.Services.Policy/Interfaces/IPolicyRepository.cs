@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Net;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Models.FundingPolicy;
 using CalculateFunding.Models.Policy;
 
@@ -14,7 +15,7 @@ namespace CalculateFunding.Services.Policy.Interfaces
 
         Task<HttpStatusCode> SaveFundingConfiguration(FundingConfiguration configuration);
 
-        Task<IEnumerable<FundingStream>> GetFundingStreams(Expression<Func<FundingStream, bool>> query = null);
+        Task<IEnumerable<FundingStream>> GetFundingStreams(Expression<Func<DocumentEntity<FundingStream>, bool>> query = null);
 
         Task<FundingStream> GetFundingStreamById(string fundingStreamId);
 
@@ -22,7 +23,7 @@ namespace CalculateFunding.Services.Policy.Interfaces
 
         Task<FundingPeriod> GetFundingPeriodById(string fundingPeriodId);
 
-        Task<IEnumerable<FundingPeriod>> GetFundingPeriods(Expression<Func<FundingPeriod, bool>> query = null);
+        Task<IEnumerable<FundingPeriod>> GetFundingPeriods(Expression<Func<DocumentEntity<FundingPeriod>, bool>> query = null);
 
         Task SaveFundingPeriods(IEnumerable<FundingPeriod> fundingPeriods);
 

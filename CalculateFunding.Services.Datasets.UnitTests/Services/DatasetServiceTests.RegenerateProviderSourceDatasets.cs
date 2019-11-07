@@ -4,6 +4,7 @@ using System.Linq.Expressions;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Services.Datasets.Interfaces;
 using Microsoft.AspNetCore.Http;
@@ -31,7 +32,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IDatasetRepository datasetRepository = CreateDatasetsRepository();
             datasetRepository
-                .GetDefinitionSpecificationRelationshipsByQuery(Arg.Any<Expression<Func<DefinitionSpecificationRelationship, bool>>>())
+                .GetDefinitionSpecificationRelationshipsByQuery(Arg.Any<Expression<Func<DocumentEntity<DefinitionSpecificationRelationship>, bool>>>())
                 .Returns(new List<DefinitionSpecificationRelationship>
                 {
                     new DefinitionSpecificationRelationship{
@@ -40,7 +41,7 @@ namespace CalculateFunding.Services.Datasets.Services
                     }
                 });
             datasetRepository
-                .GetDatasetsByQuery(Arg.Any<Expression<Func<Dataset, bool>>>())
+                .GetDatasetsByQuery(Arg.Any<Expression<Func<DocumentEntity<Dataset>, bool>>>())
                 .Returns(new List<Dataset>
                 {
                     new Dataset { Id = "DS1"}

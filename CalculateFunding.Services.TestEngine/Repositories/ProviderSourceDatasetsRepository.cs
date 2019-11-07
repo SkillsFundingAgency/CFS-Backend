@@ -9,7 +9,6 @@ using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.TestRunner.Interfaces;
-using Microsoft.Azure.Documents;
 
 namespace CalculateFunding.Services.TestRunner.Repositories
 {
@@ -21,7 +20,7 @@ namespace CalculateFunding.Services.TestRunner.Repositories
         public ProviderSourceDatasetsRepository(ICosmosRepository cosmosRepository, EngineSettings engineSettings)
         {
             Guard.ArgumentNotNull(cosmosRepository, nameof(cosmosRepository));
-            Guard.ArgumentNotNull(engineSettings, nameof(engineSettings));  
+            Guard.ArgumentNotNull(engineSettings, nameof(engineSettings));
 
             _cosmosRepository = cosmosRepository;
             _engineSettings = engineSettings;
@@ -31,7 +30,7 @@ namespace CalculateFunding.Services.TestRunner.Repositories
         {
             ServiceHealth health = new ServiceHealth();
 
-            (bool Ok, string Message) = await _cosmosRepository.IsHealthOk();
+            (bool Ok, string Message) = _cosmosRepository.IsHealthOk();
 
             health.Name = nameof(ProviderSourceDatasetsRepository);
             health.Dependencies.Add(new DependencyHealth { HealthOk = Ok, DependencyName = GetType().Name, Message = Message });
@@ -60,22 +59,22 @@ namespace CalculateFunding.Services.TestRunner.Repositories
                     {
                         try
                         {
-                            SqlQuerySpec sqlQuerySpec = new SqlQuerySpec
+                            CosmosDbQuery cosmosDbQuery = new CosmosDbQuery
                             {
                                 QueryText = @"SELECT *
                                             FROM    Root r
                                             WHERE   r.documentType = @DocumentType 
                                                     AND r.content.specificationId = @SpecificationId 
                                                     AND r.deleted = false",
-                                Parameters = new SqlParameterCollection
+                                Parameters = new[]
                                 {
-                                    new SqlParameter("@DocumentType", nameof(ProviderSourceDataset)),
-                                    new SqlParameter("@SpecificationId", specificationId)
+                                    new CosmosDbQueryParameter("@DocumentType", nameof(ProviderSourceDataset)),
+                                    new CosmosDbQueryParameter("@SpecificationId", specificationId)
                                 }
                             };
 
                             IEnumerable<ProviderSourceDataset> providerSourceDatasetResults =
-                                await _cosmosRepository.QueryPartitionedEntity<ProviderSourceDataset>(sqlQuerySpec, partitionEntityId: providerId);
+                                await _cosmosRepository.QueryPartitionedEntity<ProviderSourceDataset>(cosmosDbQuery, partitionKey: providerId);
 
                             foreach (ProviderSourceDataset repoResult in providerSourceDatasetResults)
                             {

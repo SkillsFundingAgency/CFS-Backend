@@ -72,7 +72,7 @@ namespace CalculateFunding.Api.Jobs.Controllers
         [HttpGet]
         [Route("api/jobs")]
         [ProducesResponseType(200, Type = typeof(JobQueryResponseModel))]
-        public IActionResult GetJobs([FromQuery] string specificationId = null,
+        public async Task<IActionResult> GetJobs([FromQuery] string specificationId = null,
                                       [FromQuery] string jobType = null,
                                       [FromQuery] string entityId = null,
                                       [FromQuery] RunningStatus? runningStatus = null,
@@ -80,7 +80,7 @@ namespace CalculateFunding.Api.Jobs.Controllers
                                       [FromQuery] bool excludeChildJobs = false,
                                       [FromQuery] int pageNumber = 1)
         {
-            return _jobService.GetJobs(specificationId, jobType, entityId, runningStatus, completionStatus, excludeChildJobs, pageNumber);
+            return await _jobService.GetJobs(specificationId, jobType, entityId, runningStatus, completionStatus, excludeChildJobs, pageNumber);
         }
 
         [HttpGet]

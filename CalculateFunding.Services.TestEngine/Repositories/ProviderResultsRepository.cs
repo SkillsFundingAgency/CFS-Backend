@@ -5,7 +5,6 @@ using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Services.TestRunner.Interfaces;
-using Microsoft.Azure.Documents;
 
 namespace CalculateFunding.Services.TestRunner.Repositories
 {
@@ -32,19 +31,19 @@ namespace CalculateFunding.Services.TestRunner.Repositories
                 throw new ArgumentNullException(nameof(specificationId));
             }
 
-            SqlQuerySpec sqlQuerySpec = new SqlQuerySpec
+            CosmosDbQuery cosmosDbQuery = new CosmosDbQuery
             {
                 QueryText = @"SELECT *
                             FROM    c 
                             WHERE   c.documentType = 'ProviderResult'
                                     AND c.content.specification.id = @SpecificationId",
-                Parameters = new SqlParameterCollection
+                Parameters = new[]
                 {
-                    new SqlParameter("@SpecificationId", specificationId)
+                    new CosmosDbQueryParameter("@SpecificationId", specificationId)
                 }
             };
 
-            ProviderResult providerResult = (await _cosmosRepository.QueryPartitionedEntity<ProviderResult>(sqlQuerySpec, partitionEntityId: providerId)).FirstOrDefault();
+            ProviderResult providerResult = (await _cosmosRepository.QueryPartitionedEntity<ProviderResult>(cosmosDbQuery, partitionKey: providerId)).FirstOrDefault();
 
             return providerResult;
         }

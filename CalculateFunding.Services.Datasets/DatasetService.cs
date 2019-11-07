@@ -34,8 +34,8 @@ using FluentValidation.Results;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
-using Microsoft.Extensions.Primitives;
 using Microsoft.Azure.Storage.Blob;
+using Microsoft.Extensions.Primitives;
 using Newtonsoft.Json;
 using OfficeOpenXml;
 using Polly;
@@ -242,7 +242,7 @@ namespace CalculateFunding.Services.Datasets
                 return new BadRequestObjectResult("Null or empty dataset name provided");
             }
 
-            IEnumerable<Dataset> datasets = await _datasetRepository.GetDatasetsByQuery(m => m.Name.ToLower() == datasetName.ToLower());
+            IEnumerable<Dataset> datasets = await _datasetRepository.GetDatasetsByQuery(m => m.Content.Name.ToLower() == datasetName.ToLower());
 
             if (!datasets.Any())
             {
@@ -269,7 +269,7 @@ namespace CalculateFunding.Services.Datasets
                 return new BadRequestObjectResult($"Null or empty {nameof(definitionId)} provided");
             }
 
-            IEnumerable<Dataset> datasets = await _datasetRepository.GetDatasetsByQuery(m => m.Definition.Id == datasetDefinitionId.ToLower());
+            IEnumerable<Dataset> datasets = await _datasetRepository.GetDatasetsByQuery(m => m.Content.Definition.Id == datasetDefinitionId.ToLower());
 
             IEnumerable<DatasetViewModel> result = datasets?.Select(_mapper.Map<DatasetViewModel>).ToArraySafe();
 
@@ -833,7 +833,7 @@ namespace CalculateFunding.Services.Datasets
             }
             else
             {
-                relationships = await _datasetRepository.GetDefinitionSpecificationRelationshipsByQuery(r => r.Specification.Id == specificationId);
+                relationships = await _datasetRepository.GetDefinitionSpecificationRelationshipsByQuery(r => r.Content.Specification.Id == specificationId);
             }
 
             Dictionary<string, Dataset> datasets = new Dictionary<string, Dataset>();
@@ -893,7 +893,7 @@ namespace CalculateFunding.Services.Datasets
                 throw new NonRetriableException("A null dataset definition reference was supplied");
             }
 
-            IEnumerable<Dataset> datasets = (await _datasetRepository.GetDatasetsByQuery(m => m.Definition.Id == datsetDefinitionReference.Id)).ToList();
+            IEnumerable<Dataset> datasets = (await _datasetRepository.GetDatasetsByQuery(m => m.Content.Definition.Id == datsetDefinitionReference.Id)).ToList();
 
             if (datasets.IsNullOrEmpty())
             {

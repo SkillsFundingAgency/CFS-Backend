@@ -24,7 +24,7 @@ namespace CalculateFunding.Services.Scenarios
 
         public async Task<ServiceHealth> IsHealthOk()
         {
-            var cosmosRepoHealth = await _cosmosRepository.IsHealthOk();
+            var cosmosRepoHealth = _cosmosRepository.IsHealthOk();
 
             ServiceHealth health = new ServiceHealth()
             {
@@ -35,28 +35,25 @@ namespace CalculateFunding.Services.Scenarios
             return health;
         }
 
-        public Task<IEnumerable<DocumentEntity<TestScenario>>> GetAllTestScenarios()
+        public async Task<IEnumerable<DocumentEntity<TestScenario>>> GetAllTestScenarios()
         {
-            return Task.FromResult(_cosmosRepository.Read<TestScenario>().AsEnumerable());
+            return await _cosmosRepository.Read<TestScenario>();
         }
 
-        public Task<TestScenario> GetTestScenarioById(string testScenarioId)
+        public async Task<TestScenario> GetTestScenarioById(string testScenarioId)
         {
-            var scenarios = _cosmosRepository.Query<TestScenario>().Where(m => m.Id == testScenarioId);
+            var scenarios = (await _cosmosRepository.Query<TestScenario>(m => m.Id == testScenarioId));
 
-            return Task.FromResult(scenarios.AsEnumerable().FirstOrDefault());
+            return scenarios.FirstOrDefault();
         }
 
         public async Task<CurrentTestScenario> GetCurrentTestScenarioById(string testScenarioId)
         {
             Guard.IsNullOrWhiteSpace(testScenarioId, nameof(testScenarioId));
 
-            DocumentEntity<TestScenario> scenario = await _cosmosRepository.ReadAsync<TestScenario>(testScenarioId);
+            DocumentEntity<TestScenario> scenario = await _cosmosRepository.ReadDocumentByIdAsync<TestScenario>(testScenarioId);
 
-            if (scenario == null)
-            {
-                return null;
-            }
+            if (scenario?.Content == null) return null;
 
             CurrentTestScenario currentTestScenario = new CurrentTestScenario
             {
@@ -76,11 +73,9 @@ namespace CalculateFunding.Services.Scenarios
             return currentTestScenario;
         }
 
-        public Task<IEnumerable<TestScenario>> GetTestScenariosBySpecificationId(string specificationId)
+        public async Task<IEnumerable<TestScenario>> GetTestScenariosBySpecificationId(string specificationId)
         {
-            var scenarios = _cosmosRepository.Query<TestScenario>().Where(m => m.SpecificationId == specificationId);
-
-            return Task.FromResult(scenarios.AsEnumerable());
+            return (await _cosmosRepository.Query<TestScenario>(m => m.Content.SpecificationId == specificationId));
         }
 
         public Task<HttpStatusCode> SaveTestScenario(TestScenario testScenario)

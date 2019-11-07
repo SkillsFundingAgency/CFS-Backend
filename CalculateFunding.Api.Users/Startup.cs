@@ -69,7 +69,7 @@ namespace CalculateFunding.Api.Users
         {
             builder
                 .AddSingleton<IHealthChecker, ControllerResolverHealthCheck>();
-            
+
             builder.AddApiKeyMiddlewareSettings((IConfigurationRoot)Configuration);
 
             builder
@@ -88,7 +88,7 @@ namespace CalculateFunding.Api.Users
 
                 Configuration.Bind("CosmosDbSettings", usersDbSettings);
 
-                usersDbSettings.CollectionName = "users";
+                usersDbSettings.ContainerName = "users";
 
                 CosmosRepository usersCosmosRepostory = new CosmosRepository(usersDbSettings);
 
@@ -105,7 +105,7 @@ namespace CalculateFunding.Api.Users
 
                 Configuration.Bind("CosmosDbSettings", versioningDbSettings);
 
-                versioningDbSettings.CollectionName = "users";
+                versioningDbSettings.ContainerName = "users";
 
                 CosmosRepository versioningRepository = new CosmosRepository(versioningDbSettings);
 

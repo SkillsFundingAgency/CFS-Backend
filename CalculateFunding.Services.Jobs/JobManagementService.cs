@@ -27,7 +27,6 @@ namespace CalculateFunding.Services.Jobs
         private readonly INotificationService _notificationService;
         private readonly IJobDefinitionsService _jobDefinitionsService;
         private readonly Polly.Policy _jobsRepositoryPolicy;
-        private readonly Polly.Policy _jobsRepositoryNonAsyncPolicy;
         private readonly Polly.Policy _jobDefinitionsRepositoryPolicy;
         private readonly Polly.Policy _messengerServicePolicy;
         private readonly ILogger _logger;
@@ -52,7 +51,6 @@ namespace CalculateFunding.Services.Jobs
             Guard.ArgumentNotNull(messengerService, nameof(messengerService));
             Guard.ArgumentNotNull(resiliencePolicies?.JobRepository, nameof(resiliencePolicies.JobRepository));
             Guard.ArgumentNotNull(resiliencePolicies?.JobDefinitionsRepository, nameof(resiliencePolicies.JobDefinitionsRepository));
-            Guard.ArgumentNotNull(resiliencePolicies?.JobRepositoryNonAsync, nameof(resiliencePolicies.JobRepositoryNonAsync));
             Guard.ArgumentNotNull(resiliencePolicies?.MessengerServicePolicy, nameof(resiliencePolicies.MessengerServicePolicy));
 
             _jobRepository = jobRepository;
@@ -60,7 +58,6 @@ namespace CalculateFunding.Services.Jobs
             _jobDefinitionsService = jobDefinitionsService;
             _jobsRepositoryPolicy = resiliencePolicies.JobRepository;
             _jobDefinitionsRepositoryPolicy = resiliencePolicies.JobDefinitionsRepository;
-            _jobsRepositoryNonAsyncPolicy = resiliencePolicies.JobRepositoryNonAsync;
             _logger = logger;
             _createJobValidator = createJobValidator;
             _messengerService = messengerService;
@@ -379,7 +376,7 @@ namespace CalculateFunding.Services.Jobs
 
                 if (!string.IsNullOrEmpty(job.ParentJobId))
                 {
-                    IEnumerable<Job> childJobs = _jobsRepositoryNonAsyncPolicy.Execute(() => _jobRepository.GetChildJobsForParent(job.ParentJobId));
+                    IEnumerable<Job> childJobs = await _jobsRepositoryPolicy.ExecuteAsync(() => _jobRepository.GetChildJobsForParent(job.ParentJobId));
 
                     if (!childJobs.IsNullOrEmpty() && childJobs.All(j => j.RunningStatus == RunningStatus.Completed))
                     {
@@ -421,7 +418,7 @@ namespace CalculateFunding.Services.Jobs
 
         public async Task CheckAndProcessTimedOutJobs()
         {
-            IEnumerable<Job> nonCompletedJobs = _jobsRepositoryNonAsyncPolicy.Execute(() => _jobRepository.GetNonCompletedJobs());
+            IEnumerable<Job> nonCompletedJobs = await _jobsRepositoryPolicy.ExecuteAsync(() => _jobRepository.GetNonCompletedJobs());
 
             if (nonCompletedJobs.IsNullOrEmpty())
             {
@@ -549,7 +546,7 @@ namespace CalculateFunding.Services.Jobs
 
             if (jobDefinition.SupersedeExistingRunningJobOnEnqueue)
             {
-                IEnumerable<Job> runningJobs = _jobsRepositoryNonAsyncPolicy.Execute(() =>
+                IEnumerable<Job> runningJobs = await _jobsRepositoryPolicy.ExecuteAsync(() =>
                     _jobRepository.GetRunningJobsForSpecificationAndJobDefinitionId(currentJob.SpecificationId, jobDefinition.Id));
 
                 if (!runningJobs.IsNullOrEmpty())

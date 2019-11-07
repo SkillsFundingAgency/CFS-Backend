@@ -68,7 +68,7 @@ namespace CalculateFunding.Functions.Publishing
 
                 config.Bind("CosmosDbSettings", calssDbSettings);
 
-                calssDbSettings.CollectionName = "publishedfunding";
+                calssDbSettings.ContainerName = "publishedfunding";
 
                 CosmosRepository calcsCosmosRepostory = new CosmosRepository(calssDbSettings);
 
@@ -117,7 +117,7 @@ namespace CalculateFunding.Functions.Publishing
                         return settings;
                     }
                 );
-            
+
             builder
                 .AddSingleton<IPublishingEngineOptions>(_ =>
                     {
@@ -147,7 +147,7 @@ namespace CalculateFunding.Functions.Publishing
 
                 config.Bind("CosmosDbSettings", publishedProviderVersioningDbSettings);
 
-                publishedProviderVersioningDbSettings.CollectionName = "publishedfunding";
+                publishedProviderVersioningDbSettings.ContainerName = "publishedfunding";
 
                 CosmosRepository resultsRepostory = new CosmosRepository(publishedProviderVersioningDbSettings);
 
@@ -160,7 +160,7 @@ namespace CalculateFunding.Functions.Publishing
 
                 config.Bind("CosmosDbSettings", ProviderSourceDatasetVersioningDbSettings);
 
-                ProviderSourceDatasetVersioningDbSettings.CollectionName = "publishedfunding";
+                ProviderSourceDatasetVersioningDbSettings.ContainerName = "publishedfunding";
 
                 CosmosRepository cosmosRepository = new CosmosRepository(ProviderSourceDatasetVersioningDbSettings);
 
@@ -174,7 +174,7 @@ namespace CalculateFunding.Functions.Publishing
 
                 config.Bind("CosmosDbSettings", calssDbSettings);
 
-                calssDbSettings.CollectionName = "calculationresults";
+                calssDbSettings.ContainerName = "calculationresults";
 
                 CosmosRepository calcsCosmosRepostory = new CosmosRepository(calssDbSettings);
 

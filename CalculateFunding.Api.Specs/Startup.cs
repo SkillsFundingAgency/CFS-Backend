@@ -77,7 +77,7 @@ namespace CalculateFunding.Api.Specs
         {
             builder
                 .AddSingleton<IHealthChecker, ControllerResolverHealthCheck>();
-            
+
             builder.AddSingleton<ISpecificationsRepository, SpecificationsRepository>();
             builder
                 .AddSingleton<ISpecificationsService, SpecificationsService>()
@@ -123,7 +123,7 @@ namespace CalculateFunding.Api.Specs
 
                 Configuration.Bind("CosmosDbSettings", specsVersioningDbSettings);
 
-                specsVersioningDbSettings.CollectionName = "specs";
+                specsVersioningDbSettings.ContainerName = "specs";
 
                 CosmosRepository resultsRepostory = new CosmosRepository(specsVersioningDbSettings);
 

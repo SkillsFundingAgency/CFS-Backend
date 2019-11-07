@@ -7,7 +7,6 @@ using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Users;
 using CalculateFunding.Services.Users.Interfaces;
-using Microsoft.Azure.Documents;
 using User = CalculateFunding.Models.Users.User;
 
 namespace CalculateFunding.Services.Users
@@ -26,7 +25,7 @@ namespace CalculateFunding.Services.Users
         {
             ServiceHealth health = new ServiceHealth();
 
-            var cosmosHealth = await _cosmosRepository.IsHealthOk();
+            var cosmosHealth = _cosmosRepository.IsHealthOk();
 
             health.Name = nameof(UserRepository);
             health.Dependencies.Add(new DependencyHealth { HealthOk = cosmosHealth.Ok, DependencyName = this.GetType().Name, Message = cosmosHealth.Message });
@@ -38,16 +37,16 @@ namespace CalculateFunding.Services.Users
         {
             Guard.IsNullOrWhiteSpace(id, nameof(id));
 
-            SqlQuerySpec sqlQuerySpec = new SqlQuerySpec
+            CosmosDbQuery cosmosDbQuery = new CosmosDbQuery
             {
                 QueryText = "SELECT * FROM Root r WHERE r.content.userId = @UserId AND r.documentType = @DocumentType AND r.deleted = false",
-                Parameters = new SqlParameterCollection
+                Parameters = new[]
                 {
-                    new SqlParameter("@UserId", id), 
-                    new SqlParameter("@DocumentType", nameof(User))
+                    new CosmosDbQueryParameter("@UserId", id),
+                    new CosmosDbQueryParameter("@DocumentType", nameof(User))
                 }
             };
-            IEnumerable<User> user = await _cosmosRepository.QueryPartitionedEntity<User>(sqlQuerySpec, partitionEntityId: id);
+            IEnumerable<User> user = await _cosmosRepository.QueryPartitionedEntity<User>(cosmosDbQuery, partitionKey: id);
 
             if (!user.AnyWithNullCheck()) return null;
 
@@ -66,21 +65,21 @@ namespace CalculateFunding.Services.Users
             Guard.IsNullOrWhiteSpace(userId, nameof(userId));
             Guard.IsNullOrWhiteSpace(fundingStreamId, nameof(fundingStreamId));
 
-            SqlQuerySpec sqlQuerySpec = new SqlQuerySpec
+            CosmosDbQuery cosmosDbQuery = new CosmosDbQuery
             {
                 QueryText = @"SELECT *
                             FROM    Root r
                             WHERE   r.content.fundingStreamId = @FundingStreamID
                                     AND r.documentType = @DocumentType
                                     AND r.deleted = false",
-                Parameters = new SqlParameterCollection
+                Parameters = new[]
                 {
-                    new SqlParameter("@FundingStreamID", fundingStreamId),
-                    new SqlParameter("@DocumentType", nameof(FundingStreamPermission))
+                    new CosmosDbQueryParameter("@FundingStreamID", fundingStreamId),
+                    new CosmosDbQueryParameter("@DocumentType", nameof(FundingStreamPermission))
                 }
             };
-            
-            IEnumerable<FundingStreamPermission> permission = await _cosmosRepository.QueryPartitionedEntity<FundingStreamPermission>(sqlQuerySpec, partitionEntityId: userId);
+
+            IEnumerable<FundingStreamPermission> permission = await _cosmosRepository.QueryPartitionedEntity<FundingStreamPermission>(cosmosDbQuery, partitionKey: userId);
 
             if (!permission.AnyWithNullCheck())
             {
@@ -101,35 +100,35 @@ namespace CalculateFunding.Services.Users
         {
             Guard.IsNullOrWhiteSpace(userId, nameof(userId));
 
-            SqlQuerySpec sqlQuerySpec = new SqlQuerySpec
+            CosmosDbQuery cosmosDbQuery = new CosmosDbQuery
             {
                 QueryText = @"SELECT * FROM Root r WHERE r.content.userId = @UserId AND r.documentType = @DocumentType AND r.deleted = false",
-                Parameters = new SqlParameterCollection
+                Parameters = new[]
                 {
-                    new SqlParameter("@UserId", userId),
-                    new SqlParameter("@DocumentType", nameof(FundingStreamPermission))
+                    new CosmosDbQueryParameter("@UserId", userId),
+                    new CosmosDbQueryParameter("@DocumentType", nameof(FundingStreamPermission))
                 }
             };
-            
-            return await _cosmosRepository.QueryPartitionedEntity<FundingStreamPermission>(sqlQuerySpec, partitionEntityId: userId);
+
+            return await _cosmosRepository.QueryPartitionedEntity<FundingStreamPermission>(cosmosDbQuery, partitionKey: userId);
         }
 
         public async Task<IEnumerable<FundingStreamPermission>> GetUsersWithFundingStreamPermissions(string fundingStreamId)
         {
-            SqlQuerySpec sqlQuerySpec = new SqlQuerySpec
+            CosmosDbQuery cosmosDbQuery = new CosmosDbQuery
             {
                 QueryText = @"SELECT * 
                             FROM    Root r 
                             WHERE   r.content.fundingStreamId = @FundingStreamID 
                                     AND r.documentType = @DocumentType
                                     AND r.deleted = false",
-                Parameters = new SqlParameterCollection
+                Parameters = new[]
                 {
-                    new SqlParameter("@FundingStreamID", fundingStreamId),
-                    new SqlParameter("@DocumentType", nameof(FundingStreamPermission))
+                    new CosmosDbQueryParameter("@FundingStreamID", fundingStreamId),
+                    new CosmosDbQueryParameter("@DocumentType", nameof(FundingStreamPermission))
                 }
             };
-            return await _cosmosRepository.QuerySql<FundingStreamPermission>(sqlQuerySpec, enableCrossPartitionQuery: true);
+            return await _cosmosRepository.QuerySql<FundingStreamPermission>(cosmosDbQuery);
         }
     }
 }

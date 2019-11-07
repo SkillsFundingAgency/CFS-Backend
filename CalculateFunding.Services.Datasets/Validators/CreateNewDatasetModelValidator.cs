@@ -43,7 +43,7 @@ namespace CalculateFunding.Services.Datasets.Validators
                     context.AddFailure("Use a descriptive unique name other users can understand");
                 else
                 {
-                    IEnumerable<Dataset> datasets = _datasetsRepository.GetDatasetsByQuery(m => m.Name.ToLower() == model.Name.ToLower()).Result;
+                    IEnumerable<Dataset> datasets = _datasetsRepository.GetDatasetsByQuery(m => m.Content.Name.ToLower() == model.Name.ToLower()).Result;
                     if (datasets != null && datasets.Any())
                         context.AddFailure("Use a descriptive unique name other users can understand");
                 }

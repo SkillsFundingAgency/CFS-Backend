@@ -25,7 +25,7 @@ namespace CalculateFunding.Services.Providers
 
         public async Task<ServiceHealth> IsHealthOk()
         {
-            (bool Ok, string Message) = await _repository.IsHealthOk();
+            (bool Ok, string Message) = _repository.IsHealthOk();
 
             ServiceHealth health = new ServiceHealth()
             {

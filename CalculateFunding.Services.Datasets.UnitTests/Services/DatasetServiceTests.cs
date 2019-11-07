@@ -80,7 +80,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IDatasetRepository datasetsRepository = CreateDatasetsRepository();
             datasetsRepository
-                 .GetDatasetsByQuery(Arg.Any<Expression<Func<Dataset, bool>>>())
+                 .GetDatasetsByQuery(Arg.Any<Expression<Func<DocumentEntity<Dataset>, bool>>>())
                  .Returns(datasets);
 
             DatasetService service = CreateDatasetService(datasetRepository: datasetsRepository, logger: logger);
@@ -122,7 +122,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IDatasetRepository datasetsRepository = CreateDatasetsRepository();
             datasetsRepository
-                 .GetDatasetsByQuery(Arg.Any<Expression<Func<Dataset, bool>>>())
+                 .GetDatasetsByQuery(Arg.Any<Expression<Func<DocumentEntity<Dataset>, bool>>>())
                  .Returns(datasets);
 
             DatasetService service = CreateDatasetService(datasetRepository: datasetsRepository, logger: logger);
@@ -327,7 +327,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IDatasetRepository datasetRepository = CreateDatasetsRepository();
             datasetRepository
-                .GetDatasetsByQuery(Arg.Any<Expression<Func<Dataset, bool>>>())
+                .GetDatasetsByQuery(Arg.Any<Expression<Func<DocumentEntity<Dataset>, bool>>>())
                 .Returns((IEnumerable<Dataset>)null);
 
             DatasetService service = CreateDatasetService(datasetRepository: datasetRepository);
@@ -372,7 +372,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IDatasetRepository datasetRepository = CreateDatasetsRepository();
             datasetRepository
-                .GetDatasetsByQuery(Arg.Any<Expression<Func<Dataset, bool>>>())
+                .GetDatasetsByQuery(Arg.Any<Expression<Func<DocumentEntity<Dataset>, bool>>>())
                 .Returns(datasets);
 
             DatasetViewModel datasetViewModel = new DatasetViewModel();
@@ -1498,7 +1498,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IDatasetRepository datasetRepository = CreateDatasetsRepository();
             datasetRepository
-                .GetDatasetsByQuery(Arg.Any<Expression<Func<Dataset, bool>>>())
+                .GetDatasetsByQuery(Arg.Any<Expression<Func<DocumentEntity<Dataset>, bool>>>())
                 .Returns(Enumerable.Empty<Dataset>());
 
             DatasetService datasetService = CreateDatasetService(logger: logger, datasetRepository: datasetRepository);
@@ -1530,7 +1530,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IDatasetRepository datasetRepository = CreateDatasetsRepository();
             datasetRepository
-                .GetDatasetsByQuery(Arg.Any<Expression<Func<Dataset, bool>>>())
+                .GetDatasetsByQuery(Arg.Any<Expression<Func<DocumentEntity<Dataset>, bool>>>())
                 .Returns(datasets);
 
             datasetRepository
@@ -1584,7 +1584,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IDatasetRepository datasetRepository = CreateDatasetsRepository();
             datasetRepository
-                .GetDatasetsByQuery(Arg.Any<Expression<Func<Dataset, bool>>>())
+                .GetDatasetsByQuery(Arg.Any<Expression<Func<DocumentEntity<Dataset>, bool>>>())
                 .Returns(datasets);
 
             ISearchRepository<DatasetIndex> datasetSearchRepository = CreateSearchRepository();

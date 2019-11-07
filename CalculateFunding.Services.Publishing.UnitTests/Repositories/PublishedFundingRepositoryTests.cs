@@ -29,10 +29,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
             _funding = new List<PublishedFunding>();
             _cosmosRepository = Substitute.For<ICosmosRepository>();
 
-            _cosmosRepository.Query<PublishedProvider>(true)
+            _cosmosRepository.Query<PublishedProvider>()
                 .Returns(_providers.AsQueryable());
 
-            _cosmosRepository.Query<PublishedFunding>(true)
+            _cosmosRepository.Query<PublishedFunding>()
                 .Returns(_funding.AsQueryable());
 
             _repository = new PublishedFundingRepository(_cosmosRepository);

@@ -30,13 +30,15 @@ namespace CalculateFunding.Api.Publishing.UnitTests
         {
             var configData = new Dictionary<string, string>
             {
-               { "CosmosDbSettings:CollectionName", "publishedfunding" },
+               { "CosmosDbSettings:ContainerName", "publishedfunding" },
                { "CosmosDbSettings:DatabaseName", "calculate-funding" },
                { "CosmosDbSettings:ConnectionString", "AccountEndpoint=https://test.documents.azure.com:443/;AccountKey=dGVzdA==;" },
                { "SearchServiceName", "ss-t1te-cfs"},
                 { "SearchServiceKey", "test" },
-                { "jobsClient:ApiEndpoint", "https://localhost:7010/api/" },
-                { "jobsClient:ApiKey", "Local" },
+                { "jobsClient:ApiEndpoint", "https://localhost:7010/api/"},
+                { "jobsClient:ApiKey", "Local"},
+                { "providersClient:ApiEndpoint", "https://localhost:7011/api/" },
+                { "providersClient:ApiKey", "Local" }
             };
 
             return configData;

@@ -16,6 +16,7 @@ using FluentAssertions;
 using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.EventHubs;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -567,7 +568,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
             //Arrange
             ICosmosDbThrottledEventsFilter cosmosDbThrottledEventsFilter = CreateCosmosDbThrottledEventsFilter();
             cosmosDbThrottledEventsFilter
-                .GetUniqueCosmosDbCollectionNamesFromEventData(Arg.Any<IEnumerable<EventData>>())
+                .GetUniqueCosmosDBContainerNamesFromEventData(Arg.Any<IEnumerable<EventData>>())
                 .Returns(Enumerable.Empty<string>());
 
             ILogger logger = CreateLogger();
@@ -591,7 +592,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
             ICosmosDbThrottledEventsFilter cosmosDbThrottledEventsFilter = CreateCosmosDbThrottledEventsFilter();
             cosmosDbThrottledEventsFilter
-                .GetUniqueCosmosDbCollectionNamesFromEventData(Arg.Any<IEnumerable<EventData>>())
+                .GetUniqueCosmosDBContainerNamesFromEventData(Arg.Any<IEnumerable<EventData>>())
                 .Returns(new[] { specsCollection });
 
             ILogger logger = CreateLogger();
@@ -649,7 +650,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
             ICosmosDbThrottledEventsFilter cosmosDbThrottledEventsFilter = CreateCosmosDbThrottledEventsFilter();
             cosmosDbThrottledEventsFilter
-                .GetUniqueCosmosDbCollectionNamesFromEventData(Arg.Any<IEnumerable<EventData>>())
+                .GetUniqueCosmosDBContainerNamesFromEventData(Arg.Any<IEnumerable<EventData>>())
                 .Returns(new[] { specsCollection });
 
             ILogger logger = CreateLogger();
@@ -710,7 +711,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
             ICosmosDbThrottledEventsFilter cosmosDbThrottledEventsFilter = CreateCosmosDbThrottledEventsFilter();
             cosmosDbThrottledEventsFilter
-                .GetUniqueCosmosDbCollectionNamesFromEventData(Arg.Any<IEnumerable<EventData>>())
+                .GetUniqueCosmosDBContainerNamesFromEventData(Arg.Any<IEnumerable<EventData>>())
                 .Returns(new[] { specsCollection });
 
             ILogger logger = CreateLogger();
@@ -763,7 +764,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
             ICosmosDbThrottledEventsFilter cosmosDbThrottledEventsFilter = CreateCosmosDbThrottledEventsFilter();
             cosmosDbThrottledEventsFilter
-                .GetUniqueCosmosDbCollectionNamesFromEventData(Arg.Any<IEnumerable<EventData>>())
+                .GetUniqueCosmosDBContainerNamesFromEventData(Arg.Any<IEnumerable<EventData>>())
                 .Returns(new[] { specsCollection });
 
             ILogger logger = CreateLogger();
@@ -1841,7 +1842,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
         [DataRow(1000, 1001, 1000)]
         [DataRow(1001, 1000, 1000)]
         [DataRow(1000, 1000, 1000)]
-        public async Task ScaleCollection_NeverExceeds_SuppliedMaxValue(int requestedRUs,
+        public async Task ScaleCollection_CallsScalingRepositoryCorrectly(int requestedRUs,
             int maxAllowedRUs,
             int expectedRUs)
         {

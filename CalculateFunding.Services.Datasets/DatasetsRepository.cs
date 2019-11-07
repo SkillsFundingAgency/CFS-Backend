@@ -11,7 +11,6 @@ using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Services.Datasets.Interfaces;
-using Microsoft.Azure.Documents;
 
 namespace CalculateFunding.Services.Datasets
 {
@@ -30,7 +29,7 @@ namespace CalculateFunding.Services.Datasets
         {
             ServiceHealth health = new ServiceHealth();
 
-            (bool Ok, string Message) cosmosHealth = await _cosmosRepository.IsHealthOk();
+            (bool Ok, string Message) cosmosHealth = _cosmosRepository.IsHealthOk();
 
             health.Name = nameof(DataSetsRepository);
             health.Dependencies.Add(new DependencyHealth { HealthOk = cosmosHealth.Ok, DependencyName = this.GetType().Name, Message = cosmosHealth.Message });
@@ -67,25 +66,19 @@ namespace CalculateFunding.Services.Datasets
             return datasets.FirstOrDefault();
         }
 
-        public Task<IEnumerable<DatasetDefinition>> GetDatasetDefinitions()
+        public async Task<IEnumerable<DatasetDefinition>> GetDatasetDefinitions()
         {
-            IQueryable<DatasetDefinition> definitions = _cosmosRepository.Query<DatasetDefinition>();
-
-            return Task.FromResult(definitions.ToList().AsEnumerable());
+            return await _cosmosRepository.Query<DatasetDefinition>();
         }
 
-        public Task<IEnumerable<DatasetDefinition>> GetDatasetDefinitionsByQuery(Expression<Func<DatasetDefinition, bool>> query)
+        public async Task<IEnumerable<DatasetDefinition>> GetDatasetDefinitionsByQuery(Expression<Func<DocumentEntity<DatasetDefinition>, bool>> query)
         {
-            IQueryable<DatasetDefinition> definitions = _cosmosRepository.Query<DatasetDefinition>().Where(query);
-
-            return Task.FromResult(definitions.AsEnumerable());
+            return await _cosmosRepository.Query<DatasetDefinition>(query);
         }
 
-        public Task<IEnumerable<Dataset>> GetDatasetsByQuery(Expression<Func<Dataset, bool>> query)
+        public async Task<IEnumerable<Dataset>> GetDatasetsByQuery(Expression<Func<DocumentEntity<Dataset>, bool>> query)
         {
-            IQueryable<Dataset> datasets = _cosmosRepository.Query<Dataset>().Where(query);
-
-            return Task.FromResult(datasets.AsEnumerable());
+            return await _cosmosRepository.Query<Dataset>(query);
         }
 
         public Task<HttpStatusCode> SaveDefinitionSpecificationRelationship(DefinitionSpecificationRelationship relationship)
@@ -103,16 +96,14 @@ namespace CalculateFunding.Services.Datasets
             await _cosmosRepository.BulkUpsertAsync(relationships.ToList());
         }
 
-        public Task<IEnumerable<DefinitionSpecificationRelationship>> GetDefinitionSpecificationRelationshipsByQuery(Expression<Func<DefinitionSpecificationRelationship, bool>> query)
+        public async Task<IEnumerable<DefinitionSpecificationRelationship>> GetDefinitionSpecificationRelationshipsByQuery(Expression<Func<DocumentEntity<DefinitionSpecificationRelationship>, bool>> query)
         {
-            IQueryable<DefinitionSpecificationRelationship> relationships = _cosmosRepository.Query<DefinitionSpecificationRelationship>().Where(query);
-
-            return Task.FromResult(relationships.AsEnumerable());
+            return await _cosmosRepository.Query<DefinitionSpecificationRelationship>(query);
         }
 
         public async Task<DefinitionSpecificationRelationship> GetRelationshipBySpecificationIdAndName(string specificationId, string name)
         {
-            IEnumerable<DefinitionSpecificationRelationship> relationships = await GetDefinitionSpecificationRelationshipsByQuery(m => m.Specification.Id == specificationId);
+            IEnumerable<DefinitionSpecificationRelationship> relationships = await GetDefinitionSpecificationRelationshipsByQuery(m => m.Content.Specification.Id == specificationId);
 
             if (relationships.IsNullOrEmpty())
             {
@@ -134,38 +125,34 @@ namespace CalculateFunding.Services.Datasets
             return _cosmosRepository.GetAllDocumentsAsync<Dataset>();
         }
 
-        public Task<DocumentEntity<Dataset>> GetDatasetDocumentByDatasetId(string datasetId)
+        public async Task<DocumentEntity<Dataset>> GetDatasetDocumentByDatasetId(string datasetId)
         {
-            DocumentEntity<Dataset> dataset = _cosmosRepository.QueryDocuments<Dataset>(1).Where(c => c.Id == datasetId && !c.Deleted).AsEnumerable().FirstOrDefault();
-
-            return Task.FromResult(dataset);
+            return (await _cosmosRepository.QueryDocuments<Dataset>(1)).Where(c => c.Id == datasetId && !c.Deleted).FirstOrDefault();
         }
 
-        public Task<IEnumerable<DefinitionSpecificationRelationship>> GetAllDefinitionSpecificationsRelationships()
+        public async Task<IEnumerable<DefinitionSpecificationRelationship>> GetAllDefinitionSpecificationsRelationships()
         {
-            IQueryable<DefinitionSpecificationRelationship> relationships = _cosmosRepository.Query<DefinitionSpecificationRelationship>();
-
-            return Task.FromResult(relationships.AsEnumerable());
+            return await _cosmosRepository.Query<DefinitionSpecificationRelationship>();
         }
 
         public async Task<IEnumerable<string>> GetDistinctRelationshipSpecificationIdsForDatasetDefinitionId(string datasetDefinitionId)
         {
-            SqlQuerySpec sqlQuerySpec = new SqlQuerySpec
+            CosmosDbQuery cosmosDbQuery = new CosmosDbQuery
             {
                 QueryText = @"SELECT d.content.Specification.id AS specificationId
                             FROM    datasets d
                             WHERE   d.deleted = false 
                                     AND d.documentType = ""DefinitionSpecificationRelationship"" 
                                     AND d.content.DatasetDefinition.id = @DatasetDefinitionId",
-                Parameters = new SqlParameterCollection
+                Parameters = new[]
                 {
-                    new SqlParameter("@DatasetDefinitionID", datasetDefinitionId)
+                    new CosmosDbQueryParameter("@DatasetDefinitionID", datasetDefinitionId)
                 }
             };
 
             HashSet<string> specificationIds = new HashSet<string>();
 
-            IEnumerable<dynamic> results = await _cosmosRepository.QueryDynamic(sqlQuerySpec, true, 1000);
+            IEnumerable<dynamic> results = await _cosmosRepository.DynamicQuery(cosmosDbQuery, 1000);
 
             foreach (dynamic result in results)
             {

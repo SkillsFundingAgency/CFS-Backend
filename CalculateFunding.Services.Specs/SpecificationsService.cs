@@ -10,6 +10,7 @@ using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
 using CalculateFunding.Common.Caching;
+using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
@@ -30,7 +31,6 @@ using CalculateFunding.Services.Specs.Interfaces;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.Documents;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Extensions.Primitives;
 using Newtonsoft.Json;
@@ -281,7 +281,7 @@ namespace CalculateFunding.Services.Specs
             List<SpecificationSummary> result = await _cacheProvider.GetAsync<List<SpecificationSummary>>(cacheKey);
             if (result.IsNullOrEmpty())
             {
-                IEnumerable<Specification> specifications = await _specificationsRepository.GetSpecificationsByQuery(m => m.Current.FundingPeriod.Id == fundingPeriodId);
+                IEnumerable<Specification> specifications = await _specificationsRepository.GetSpecificationsByQuery(m => m.Content.Current.FundingPeriod.Id == fundingPeriodId);
 
                 result = new List<SpecificationSummary>();
 
@@ -354,9 +354,9 @@ namespace CalculateFunding.Services.Specs
 
         public async Task<IActionResult> GetSpecificationsSelectedForFunding(HttpRequest request)
         {
-            IEnumerable<SpecificationSummary> specifications = (
-                await _specificationsRepository.GetSpecificationsByQuery(c => c.IsSelectedForFunding)
-                    ).Select(s => _mapper.Map<SpecificationSummary>(s));
+            IEnumerable<SpecificationSummary> specifications = 
+                (await _specificationsRepository.GetSpecificationsByQuery(c => c.Content.IsSelectedForFunding))
+                .Select(s => _mapper.Map<SpecificationSummary>(s));
 
             return new OkObjectResult(specifications);
         }
@@ -375,7 +375,7 @@ namespace CalculateFunding.Services.Specs
             }
 
             IEnumerable<SpecificationSummary> specifications = (
-                    await _specificationsRepository.GetSpecificationsByQuery(c => c.IsSelectedForFunding && c.Current.FundingPeriod.Id == fundingPeriodId)
+                    await _specificationsRepository.GetSpecificationsByQuery(c => c.Content.IsSelectedForFunding && c.Content.Current.FundingPeriod.Id == fundingPeriodId)
                     ).Select(s => _mapper.Map<SpecificationSummary>(s));
 
 
@@ -403,7 +403,7 @@ namespace CalculateFunding.Services.Specs
             }
 
             IEnumerable<FundingStream> fundingStreams = (
-                    await _specificationsRepository.GetSpecificationsByQuery(c => c.IsSelectedForFunding && c.Id == specificationId)
+                    await _specificationsRepository.GetSpecificationsByQuery(c => c.Content.IsSelectedForFunding && c.Id == specificationId)
                     ).Select(s => _mapper.Map<FundingStream>(s));
 
             return new OkObjectResult(fundingStreams);
@@ -422,7 +422,7 @@ namespace CalculateFunding.Services.Specs
                 return new BadRequestObjectResult("Null or empty specification name provided");
             }
 
-            IEnumerable<Specification> specifications = await _specificationsRepository.GetSpecificationsByQuery(m => m.Name.ToLower() == specificationName.ToLower());
+            IEnumerable<Specification> specifications = await _specificationsRepository.GetSpecificationsByQuery(m => m.Content.Name.ToLower() == specificationName.ToLower());
 
             if (!specifications.Any())
             {
@@ -856,7 +856,7 @@ namespace CalculateFunding.Services.Specs
             {
                 await _searchRepository.DeleteIndex();
 
-                SqlQuerySpec sqlQuerySpec = new SqlQuerySpec
+                CosmosDbQuery cosmosDbQuery = new CosmosDbQuery
                 {
                     QueryText = @"
 SELECT  s.id, 
@@ -870,13 +870,13 @@ SELECT  s.id,
         s.updatedAt
 FROM    specs s 
 WHERE   s.documentType = @DocumentType",
-                    Parameters = new SqlParameterCollection
+                    Parameters = new[]
                     {
-                        new SqlParameter("@DocumentType", "Specification")
+                        new CosmosDbQueryParameter("@DocumentType", "Specification")
                     }
                 };
 
-                IEnumerable<SpecificationSearchModel> specifications = (await _specificationsRepository.GetSpecificationsByRawQuery<SpecificationSearchModel>(sqlQuerySpec)).ToArraySafe();
+                IEnumerable<SpecificationSearchModel> specifications = (await _specificationsRepository.GetSpecificationsByRawQuery<SpecificationSearchModel>(cosmosDbQuery)).ToArraySafe();
 
                 List<SpecificationIndex> specDocuments = new List<SpecificationIndex>();
 

@@ -6,28 +6,23 @@ using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.WebApi.Extensions;
 using CalculateFunding.Common.WebApi.Middleware;
 using CalculateFunding.Models.MappingProfiles;
-using CalculateFunding.Models.Results;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.AspNet.HealthChecks;
 using CalculateFunding.Services.Core.AzureStorage;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
-using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.Core.Options;
-using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Services.Results;
 using CalculateFunding.Services.Results.Interfaces;
 using CalculateFunding.Services.Results.Repositories;
-using FluentValidation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Polly.Bulkhead;
-using Serilog;
 
 namespace CalculateFunding.Api.Results
 {
@@ -76,7 +71,7 @@ namespace CalculateFunding.Api.Results
         {
             builder
                 .AddSingleton<IHealthChecker, ControllerResolverHealthCheck>();
-            
+
             builder.AddSingleton<ICalculationResultsRepository, CalculationResultsRepository>();
             builder
                 .AddSingleton<IResultsService, ResultsService>()
@@ -107,7 +102,7 @@ namespace CalculateFunding.Api.Results
 
                                Configuration.Bind("CosmosDbSettings", calssDbSettings);
 
-                               calssDbSettings.CollectionName = "calculationresults";
+                               calssDbSettings.ContainerName = "calculationresults";
 
                                CosmosRepository calcsCosmosRepostory = new CosmosRepository(calssDbSettings);
 
@@ -120,7 +115,7 @@ namespace CalculateFunding.Api.Results
 
                 Configuration.Bind("CosmosDbSettings", provDbSettings);
 
-                provDbSettings.CollectionName = "providerdatasets";
+                provDbSettings.ContainerName = "providerdatasets";
 
                 CosmosRepository calcsCosmosRepostory = new CosmosRepository(provDbSettings);
 

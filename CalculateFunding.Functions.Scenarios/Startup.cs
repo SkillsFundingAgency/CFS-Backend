@@ -77,7 +77,7 @@ namespace CalculateFunding.Functions.Scenarios
 
                 config.Bind("CosmosDbSettings", scenariosVersioningDbSettings);
 
-                scenariosVersioningDbSettings.CollectionName = "tests";
+                scenariosVersioningDbSettings.ContainerName = "tests";
 
                 CosmosRepository resultsRepostory = new CosmosRepository(scenariosVersioningDbSettings);
 

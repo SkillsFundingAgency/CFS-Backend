@@ -11,7 +11,6 @@ using CalculateFunding.Models.Specs;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Specs.Interfaces;
-using Microsoft.Azure.Documents;
 
 namespace CalculateFunding.Services.Specs
 {
@@ -26,7 +25,7 @@ namespace CalculateFunding.Services.Specs
 
         public async Task<ServiceHealth> IsHealthOk()
         {
-            var (Ok, Message) = await _repository.IsHealthOk();
+            var (Ok, Message) = _repository.IsHealthOk();
 
             ServiceHealth health = new ServiceHealth()
             {
@@ -52,7 +51,7 @@ namespace CalculateFunding.Services.Specs
             return GetSpecificationByQuery(m => m.Id == specificationId);
         }
 
-        public async Task<Specification> GetSpecificationByQuery(Expression<Func<Specification, bool>> query)
+        public async Task<Specification> GetSpecificationByQuery(Expression<Func<DocumentEntity<Specification>, bool>> query)
         {
             return (await GetSpecificationsByQuery(query)).FirstOrDefault();
         }
@@ -64,61 +63,50 @@ namespace CalculateFunding.Services.Specs
             return results.Select(c => c.Content);
         }
 
-        public Task<IEnumerable<Specification>> GetSpecificationsByQuery(Expression<Func<Specification, bool>> query = null)
+        public async Task<IEnumerable<Specification>> GetSpecificationsByQuery(Expression<Func<DocumentEntity<Specification>, bool>> query = null)
         {
-            var specifications = query == null
-                ? _repository.Query<Specification>()
-                : _repository.Query<Specification>().Where(query);
+            IEnumerable<Specification> specifications;
+            if (query == null)
+            {
+                specifications = await _repository.Query<Specification>(x => true);
+            }
+            else
+            {
+                specifications = (await _repository.Query<Specification>(query));
+            }
 
-            return Task.FromResult(specifications.AsEnumerable());
+            return specifications;
         }
 
-        public Task<IEnumerable<Specification>> GetApprovedOrUpdatedSpecificationsByFundingPeriodAndFundingStream(string fundingPeriodId, string fundingStreamId)
+        public async Task<IEnumerable<Specification>> GetApprovedOrUpdatedSpecificationsByFundingPeriodAndFundingStream(string fundingPeriodId, string fundingStreamId)
         {
-            IQueryable<Specification> specificationsQuery =
-                _repository.Query<Specification>()
-                    .Where(m => m.Current.FundingPeriod.Id == fundingPeriodId && (m.Current.PublishStatus == PublishStatus.Approved || m.Current.PublishStatus == PublishStatus.Updated));
+            IEnumerable<Specification> specifications =
+                await _repository.Query<Specification>(m => m.Content.Current.FundingPeriod.Id == fundingPeriodId && (m.Content.Current.PublishStatus == PublishStatus.Approved || m.Content.Current.PublishStatus == PublishStatus.Updated));
 
-            //This needs fixing either after doc db client upgrade or add some sql as can't use Any() to check funding stream ids    
-
-            IEnumerable<Specification> specifications = specificationsQuery.AsEnumerable().ToList();
-
-            specifications = specifications.Where(m => m.Current.FundingStreams.Any(fs => fs.Id == fundingStreamId));
-
-            return Task.FromResult(specifications);
+            return specifications.Where(m => m.Current.FundingStreams.Any(fs => fs.Id == fundingStreamId));
         }
 
-        public Task<IEnumerable<Specification>> GetSpecificationsSelectedForFundingByPeriod(string fundingPeriodId)
+        public async Task<IEnumerable<Specification>> GetSpecificationsSelectedForFundingByPeriod(string fundingPeriodId)
         {
-            IQueryable<Specification> specificationsQuery =
-              _repository.Query<Specification>()
-                  .Where(m => m.IsSelectedForFunding && m.Current.FundingPeriod.Id == fundingPeriodId);
+            IEnumerable<Specification> specifications =
+              await _repository.Query<Specification>(m => m.Content.IsSelectedForFunding && m.Content.Current.FundingPeriod.Id == fundingPeriodId);
 
-            IEnumerable<Specification> specifications = specificationsQuery.AsEnumerable().ToList();
-
-            specifications = specifications.Where(m => m.Current.FundingPeriod.Id == fundingPeriodId);
-
-            return Task.FromResult(specifications);
+            return specifications.Where(m => m.Current.FundingPeriod.Id == fundingPeriodId);
         }
 
-        [Obsolete]
-        public Task<IEnumerable<T>> GetSpecificationsByRawQuery<T>(string sql)
+        public async Task<IEnumerable<T>> GetSpecificationsByRawQuery<T>(CosmosDbQuery cosmosDbQuery)
         {
-            var specifications = _repository.RawQuery<T>(sql);
+            var specifications = await _repository.RawQuery<T>(cosmosDbQuery);
 
-            return Task.FromResult(specifications.AsEnumerable());
+            return specifications;
         }
 
-        public Task<IEnumerable<T>> GetSpecificationsByRawQuery<T>(SqlQuerySpec sqlQuerySpec)
+        public async Task<DocumentEntity<Specification>> GetSpecificationDocumentEntityById(string specificationId)
         {
-            var specifications = _repository.RawQuery<T>(sqlQuerySpec);
-
-            return Task.FromResult(specifications.AsEnumerable());
-        }
-
-        public Task<DocumentEntity<Specification>> GetSpecificationDocumentEntityById(string specificationId)
-        {
-            return Task.FromResult(_repository.QueryDocuments<Specification>().Where(c => c.Id == specificationId).AsEnumerable().FirstOrDefault());
+            return (await _repository
+                .QueryDocuments<Specification>())
+                .Where(c => c.Id == specificationId)
+                .FirstOrDefault();
         }
     }
 }

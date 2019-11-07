@@ -206,7 +206,7 @@ namespace CalculateFunding.Services.Datasets
             }
 
             IEnumerable<DefinitionSpecificationRelationship> relationships =
-                await _datasetRepository.GetDefinitionSpecificationRelationshipsByQuery(m => m.Specification.Id == specificationId);
+                await _datasetRepository.GetDefinitionSpecificationRelationshipsByQuery(m => m.Content.Specification.Id == specificationId);
 
             if (relationships.IsNullOrEmpty())
             {
@@ -268,7 +268,7 @@ namespace CalculateFunding.Services.Datasets
             selectDatasourceModel.DefinitionId = relationship.DatasetDefinition.Id;
             selectDatasourceModel.DefinitionName = relationship.DatasetDefinition.Name;
 
-            IEnumerable<Dataset> datasets = await _datasetRepository.GetDatasetsByQuery(m => m.Definition.Id == relationship.DatasetDefinition.Id);
+            IEnumerable<Dataset> datasets = await _datasetRepository.GetDatasetsByQuery(m => m.Content.Definition.Id == relationship.DatasetDefinition.Id);
 
             if (!datasets.IsNullOrEmpty())
             {
@@ -426,7 +426,7 @@ namespace CalculateFunding.Services.Datasets
             }
 
             IEnumerable<DefinitionSpecificationRelationship> relationships =
-               (await _datasetRepository.GetDefinitionSpecificationRelationshipsByQuery(m => m.Specification.Id == specificationId)).ToList();
+               (await _datasetRepository.GetDefinitionSpecificationRelationshipsByQuery(m => m.Content.Specification.Id == specificationId)).ToList();
 
             if (relationships.IsNullOrEmpty())
             {
@@ -465,7 +465,7 @@ namespace CalculateFunding.Services.Datasets
             Guard.IsNullOrWhiteSpace(datasetDefinitionId, nameof(datasetDefinitionId));
 
             IEnumerable<DefinitionSpecificationRelationship> relationships =
-               await _datasetRepository.GetDefinitionSpecificationRelationshipsByQuery(m => m.Specification.Id == specificationId && m.DatasetDefinition.Id == datasetDefinitionId);
+               await _datasetRepository.GetDefinitionSpecificationRelationshipsByQuery(m => m.Content.Specification.Id == specificationId && m.Content.DatasetDefinition.Id == datasetDefinitionId);
 
             if (relationships.IsNullOrEmpty())
             {
@@ -503,7 +503,7 @@ namespace CalculateFunding.Services.Datasets
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
 
             IEnumerable<DefinitionSpecificationRelationship> relationships =
-               (await _datasetRepository.GetDefinitionSpecificationRelationshipsByQuery(m => m.Specification.Id == specificationId)).ToList();
+               (await _datasetRepository.GetDefinitionSpecificationRelationshipsByQuery(m => m.Content.Specification.Id == specificationId)).ToList();
 
             if (relationships.IsNullOrEmpty())
             {
@@ -558,7 +558,7 @@ namespace CalculateFunding.Services.Datasets
             }
 
             IEnumerable<DefinitionSpecificationRelationship> relationships =
-              (await _datasetRepository.GetDefinitionSpecificationRelationshipsByQuery(m => m.DatasetDefinition.Id == datsetDefinitionReference.Id)).ToList();
+              (await _datasetRepository.GetDefinitionSpecificationRelationshipsByQuery(m => m.Content.DatasetDefinition.Id == datsetDefinitionReference.Id)).ToList();
 
             if (!relationships.IsNullOrEmpty())
             {

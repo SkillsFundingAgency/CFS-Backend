@@ -91,7 +91,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
                 resiliencePolicies,
                 versionRepository,
                 idGeneratorResolver,
-                logger, 
+                logger,
                 new PublishingEngineOptions());
 
             SpecificationInMemoryRepository specificationInMemoryRepository = _currentSpecificationStepContext.Repo;
@@ -121,7 +121,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
             IMapper mapper = mapperConfiguration.CreateMapper();
 
             PublishedFundingContentsGeneratorResolver resolver = new PublishedFundingContentsGeneratorResolver();
-            IPublishedFundingContentsGenerator v10Generator = new CalculateFunding.Generators.Schema10.PublishedFundingContentsGenerator();
+            IPublishedFundingContentsGenerator v10Generator = new Generators.Schema10.PublishedFundingContentsGenerator();
             resolver.Register("1.0", v10Generator);
 
             PublishedFundingGenerator publishedFundingGenerator = new PublishedFundingGenerator(mapper, idGeneratorResolver);
@@ -131,7 +131,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
             PublishedFundingInMemorySearchRepository publishedFundingInMemorySearchRepository = new PublishedFundingInMemorySearchRepository();
             PublishedProviderInMemorySearchRepository publishedProviderInMemorySearchRepository = new PublishedProviderInMemorySearchRepository();
 
-            PublishedFundingContentsPersistanceService publishedFundingContentsPersistanceService = 
+            PublishedFundingContentsPersistanceService publishedFundingContentsPersistanceService =
                 new PublishedFundingContentsPersistanceService(resolver, _publishedFundingRepositoryStepContext.BlobRepo, resiliencePolicies, new PublishingEngineOptions());
 
             PublishedProviderVersionInMemoryRepository publishedProviderVersionInMemoryRepository = new PublishedProviderVersionInMemoryRepository();
@@ -141,7 +141,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
             IJobTracker jobTracker = new JobTracker(_jobStepContext.JobsClient, resiliencePolicies, logger);
             PublishedProviderStatusUpdateSettings publishedProviderStatusUpdateSettings = new PublishedProviderStatusUpdateSettings();
 
-            PublishedProviderIndexerService publishedProviderIndexerService = 
+            PublishedProviderIndexerService publishedProviderIndexerService =
                 new PublishedProviderIndexerService(logger, _publishedProviderStepContext.SearchRepo, resiliencePolicies, new PublishingEngineOptions());
 
             IPublishedProviderStatusUpdateService publishedProviderStatusUpdateService = new PublishedProviderStatusUpdateService(
@@ -159,7 +159,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
                 specificationInMemoryRepository,
                 resiliencePolicies,
                 new PublishingEngineOptions());
-            
+
             IJobsApiClient jobsApiClient = new JobsInMemoryRepository();
 
             InMemoryAzureBlobClient inMemoryAzureBlobClient = new InMemoryAzureBlobClient();
@@ -170,7 +170,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
             IPublishedProviderContentsGenerator v10ProviderGenerator = new CalculateFunding.Generators.Schema10.PublishedProviderContentsGenerator();
             publishedProviderContentsGeneratorResolver.Register("1.0", v10ProviderGenerator);
             CalculationResultsService calculationResultsService = new CalculationResultsService(resiliencePolicies, calculationResultsRepository, logger, new PublishingEngineOptions());
-            PublishedProviderVersionService publishedProviderVersionService = 
+            PublishedProviderVersionService publishedProviderVersionService =
                 new PublishedProviderVersionService(logger, _publishedProviderStepContext.BlobRepo, resiliencePolicies, jobsApiClient);
 
             Common.ApiClient.Calcs.ICalculationsApiClient calculationsApiClient = new CalculationsInMemoryClient(TemplateMapping);

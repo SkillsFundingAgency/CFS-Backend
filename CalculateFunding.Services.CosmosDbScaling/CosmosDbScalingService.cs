@@ -15,6 +15,7 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.CosmosDbScaling.Interfaces;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.EventHubs;
 using Microsoft.Azure.ServiceBus;
 using Polly;
@@ -123,7 +124,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
         {
             Guard.ArgumentNotNull(events, nameof(events));
 
-            IEnumerable<string> collectionsToProcess = _cosmosDbThrottledEventsFilter.GetUniqueCosmosDbCollectionNamesFromEventData(events);
+            IEnumerable<string> collectionsToProcess = _cosmosDbThrottledEventsFilter.GetUniqueCosmosDBContainerNamesFromEventData(events);
 
             if (collectionsToProcess.IsNullOrEmpty())
             {
@@ -132,11 +133,11 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
             _logger.Information($"Found {collectionsToProcess.Count()} collections to process");
 
-            foreach (string collectionName in collectionsToProcess)
+            foreach (string containerName in collectionsToProcess)
             {
                 try
                 {
-                    CosmosCollectionType cosmosRepositoryType = collectionName.GetEnumValueFromDescription<CosmosCollectionType>();
+                    CosmosCollectionType cosmosRepositoryType = containerName.GetEnumValueFromDescription<CosmosCollectionType>();
 
                     CosmosDbScalingCollectionSettings settings = await _scalingConfigRepositoryPolicy.ExecuteAsync(() =>
                         _cosmosDbScalingConfigRepository.GetCollectionSettingsByRepositoryType(cosmosRepositoryType));
@@ -145,7 +146,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
                     if (settings.AvailableRequestUnits == 0)
                     {
-                        string errorMessage = $"The collection '{collectionName}' throughput is already at the maximum of {settings.MaxRequestUnits} RU's";
+                        string errorMessage = $"The collection '{containerName}' throughput is already at the maximum of {settings.MaxRequestUnits} RU's";
                         _logger.Warning(errorMessage);
                         continue;
                     }
@@ -173,7 +174,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 }
                 catch (Exception ex)
                 {
-                    string errorMessage = $"Failed to increase cosmosdb request units on collection '{collectionName}'";
+                    string errorMessage = $"Failed to increase cosmosdb request units on collection '{containerName}'";
 
                     _logger.Error(ex, errorMessage);
 
@@ -316,7 +317,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
             }
 
             int currentRequestUnits = settings.CurrentRequestUnits;
-            
+
             if (settings.IsAtBaseLine)
             {
                 settings.CurrentRequestUnits = cosmosDbScalingJobConfig.JobRequestUnits;
@@ -367,7 +368,21 @@ namespace CalculateFunding.Services.CosmosDbScaling
             try
             {
                 //added brute force guard to prevent scaling beyond the configured max permitted in the settings for this collection
-                await _scalingRepositoryPolicy.ExecuteAsync(() => cosmosDbScalingRepository.SetThroughput(Math.Min(requestUnits, maxRequestUnits)));
+
+                await _scalingRepositoryPolicy.ExecuteAsync(async () => await cosmosDbScalingRepository.SetThroughput(Math.Min(requestUnits, maxRequestUnits)));
+
+                //HACK Couldn't find a way to make a mock ThroughputResponse, without which this code stops being testable
+                //The below would be more robust, but without refactoring the service along SOLID principles to remove the dependencies
+                //loads of methods aren't testable without that mock.
+                //https://docs.microsoft.com/en-us/dotnet/api/microsoft.azure.cosmos.throughputresponse.-ctor?view=azure-dotnet#Microsoft_Azure_Cosmos_ThroughputResponse__ctor implies MS _think_ it's testable, so hopefully...
+
+                //ThroughputResponse throughputResponse;
+                //throughputResponse = await _scalingRepositoryPolicy.ExecuteAsync(async () => await cosmosDbScalingRepository.SetThroughput(Math.Min(requestUnits, maxRequestUnits)));
+
+                //if (throughputResponse?.StatusCode != HttpStatusCode.OK)
+                //{
+                //    throw new Exception($"Unable to set throughput as requested: {throughputResponse?.StatusCode.ToString() ?? "No throughput response"}");
+                //}
             }
             catch (Exception ex)
             {

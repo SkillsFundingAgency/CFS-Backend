@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using CalculateFunding.Models.Jobs;
 using CalculateFunding.Services.Jobs.Interfaces;
 using FluentAssertions;
@@ -31,7 +32,7 @@ namespace CalculateFunding.Services.Jobs
         };
 
         [TestMethod]
-        public void GetJobs_WithNoFilter_ReturnsAllResults()
+        public async Task GetJobs_WithNoFilter_ReturnsAllResults()
         {
             // Arrange
             IJobRepository jobRepository = CreateJobRepository();
@@ -42,7 +43,7 @@ namespace CalculateFunding.Services.Jobs
             IJobService jobService = CreateJobService(jobRepository);
 
             // Act
-            IActionResult results = jobService.GetJobs(null, null, null, null, null, false, 1);
+            IActionResult results = await jobService.GetJobs(null, null, null, null, null, false, 1);
 
             // Assert
             OkObjectResult objResult = results
@@ -67,7 +68,7 @@ namespace CalculateFunding.Services.Jobs
         }
 
         [TestMethod]
-        public void GetJobs_WithSpecificationFilter_ReturnsResultsMatchingFilter()
+        public async Task GetJobs_WithSpecificationFilter_ReturnsResultsMatchingFilter()
         {
             // Arrange
             string specId = "spec123";
@@ -80,7 +81,7 @@ namespace CalculateFunding.Services.Jobs
             IJobService jobService = CreateJobService(jobRepository);
 
             // Act
-            IActionResult results = jobService.GetJobs(specId, null, null, null, null, false, 1);
+            IActionResult results = await jobService.GetJobs(specId, null, null, null, null, false, 1);
 
             // Assert
             OkObjectResult objResult = results
@@ -109,7 +110,7 @@ namespace CalculateFunding.Services.Jobs
         }
 
         [TestMethod]
-        public void GetJobs_WithUnknownSpecificationFilter_ReturnsZeroResults()
+        public async Task GetJobs_WithUnknownSpecificationFilter_ReturnsZeroResults()
         {
             // Arrange
             string specId = "unknown";
@@ -122,7 +123,7 @@ namespace CalculateFunding.Services.Jobs
             IJobService jobService = CreateJobService(jobRepository);
 
             // Act
-            IActionResult results = jobService.GetJobs(specId, null, null, null, null, false, 1);
+            IActionResult results = await jobService.GetJobs(specId, null, null, null, null, false, 1);
 
             // Assert
             OkObjectResult objResult = results
@@ -147,7 +148,7 @@ namespace CalculateFunding.Services.Jobs
         }
 
         [TestMethod]
-        public void GetJobs_WithJobTypeFilter_ReturnsResultsMatchingFilter()
+        public async Task GetJobs_WithJobTypeFilter_ReturnsResultsMatchingFilter()
         {
             // Arrange
             string jobType = "jobType1";
@@ -160,7 +161,7 @@ namespace CalculateFunding.Services.Jobs
             IJobService jobService = CreateJobService(jobRepository);
 
             // Act
-            IActionResult results = jobService.GetJobs(null, jobType, null, null, null, false, 1);
+            IActionResult results = await jobService.GetJobs(null, jobType, null, null, null, false, 1);
 
             // Assert
             OkObjectResult objResult = results
@@ -189,7 +190,7 @@ namespace CalculateFunding.Services.Jobs
         }
 
         [TestMethod]
-        public void GetJobs_WithUnknownJobTypeFilter_ReturnsZeroResults()
+        public async Task GetJobs_WithUnknownJobTypeFilter_ReturnsZeroResults()
         {
             // Arrange
             string jobType = "unknown";
@@ -202,7 +203,7 @@ namespace CalculateFunding.Services.Jobs
             IJobService jobService = CreateJobService(jobRepository);
 
             // Act
-            IActionResult results = jobService.GetJobs(null, jobType, null, null, null, false, 1);
+            IActionResult results = await jobService.GetJobs(null, jobType, null, null, null, false, 1);
 
             // Assert
             OkObjectResult objResult = results
@@ -227,7 +228,7 @@ namespace CalculateFunding.Services.Jobs
         }
 
         [TestMethod]
-        public void GetJobs_WithEntityIdFilter_ReturnsResultsMatchingFilter()
+        public async Task GetJobs_WithEntityIdFilter_ReturnsResultsMatchingFilter()
         {
             // Arrange
             string entityId = "entity1";
@@ -240,7 +241,7 @@ namespace CalculateFunding.Services.Jobs
             IJobService jobService = CreateJobService(jobRepository);
 
             // Act
-            IActionResult results = jobService.GetJobs(null, null, entityId, null, null, false, 1);
+            IActionResult results = await jobService.GetJobs(null, null, entityId, null, null, false, 1);
 
             // Assert
             OkObjectResult objResult = results
@@ -269,7 +270,7 @@ namespace CalculateFunding.Services.Jobs
         }
 
         [TestMethod]
-        public void GetJobs_WithUnknownEntityIdFilter_ReturnsZeroResults()
+        public async Task GetJobs_WithUnknownEntityIdFilter_ReturnsZeroResults()
         {
             // Arrange
             string entityId = "unknown";
@@ -282,7 +283,7 @@ namespace CalculateFunding.Services.Jobs
             IJobService jobService = CreateJobService(jobRepository);
 
             // Act
-            IActionResult results = jobService.GetJobs(null, null, entityId, null, null, false, 1);
+            IActionResult results = await jobService.GetJobs(null, null, entityId, null, null, false, 1);
 
             // Assert
             OkObjectResult objResult = results
@@ -307,7 +308,7 @@ namespace CalculateFunding.Services.Jobs
         }
 
         [TestMethod]
-        public void GetJobs_WithRunningStatusFilter_ReturnsResultsMatchingFilter()
+        public async Task GetJobs_WithRunningStatusFilter_ReturnsResultsMatchingFilter()
         {
             // Arrange
             RunningStatus runningStatus = RunningStatus.InProgress;
@@ -320,7 +321,7 @@ namespace CalculateFunding.Services.Jobs
             IJobService jobService = CreateJobService(jobRepository);
 
             // Act
-            IActionResult results = jobService.GetJobs(null, null, null, runningStatus, null, false, 1);
+            IActionResult results = await jobService.GetJobs(null, null, null, runningStatus, null, false, 1);
 
             // Assert
             OkObjectResult objResult = results
@@ -349,7 +350,7 @@ namespace CalculateFunding.Services.Jobs
         }
 
         [TestMethod]
-        public void GetJobs_WithCompletionStatusFilter_ReturnsResultsMatchingFilter()
+        public async Task GetJobs_WithCompletionStatusFilter_ReturnsResultsMatchingFilter()
         {
             // Arrange
             CompletionStatus completionStatus = CompletionStatus.Succeeded;
@@ -362,7 +363,7 @@ namespace CalculateFunding.Services.Jobs
             IJobService jobService = CreateJobService(jobRepository);
 
             // Act
-            IActionResult results = jobService.GetJobs(null, null, null, null, completionStatus, false, 1);
+            IActionResult results = await jobService.GetJobs(null, null, null, null, completionStatus, false, 1);
 
             // Assert
             OkObjectResult objResult = results
@@ -391,7 +392,7 @@ namespace CalculateFunding.Services.Jobs
         }
 
         [TestMethod]
-        public void GetJobs_WithExcludeChildJobsOption_ReturnsOnlyParentJobs()
+        public async Task GetJobs_WithExcludeChildJobsOption_ReturnsOnlyParentJobs()
         {
             // Arrange
             string specId = "spec123";
@@ -404,7 +405,7 @@ namespace CalculateFunding.Services.Jobs
             IJobService jobService = CreateJobService(jobRepository);
 
             // Act
-            IActionResult results = jobService.GetJobs(specId, null, null, null, null, true, 1);
+            IActionResult results = await jobService.GetJobs(specId, null, null, null, null, true, 1);
 
             // Assert
             OkObjectResult objResult = results
@@ -433,7 +434,7 @@ namespace CalculateFunding.Services.Jobs
         }
 
         [TestMethod]
-        public void GetJobs_WhenAllFiltersPresent_ReturnsResultsMatchingFilter()
+        public async Task GetJobs_WhenAllFiltersPresent_ReturnsResultsMatchingFilter()
         {
             // Arrange
             string specificationId = "spec123";
@@ -450,7 +451,7 @@ namespace CalculateFunding.Services.Jobs
             IJobService jobService = CreateJobService(jobRepository);
 
             // Act
-            IActionResult results = jobService.GetJobs(specificationId, jobType, entityId, runningStatus, completionStatus, false, 1);
+            IActionResult results = await jobService.GetJobs(specificationId, jobType, entityId, runningStatus, completionStatus, false, 1);
 
             // Assert
             OkObjectResult objResult = results
@@ -484,7 +485,7 @@ namespace CalculateFunding.Services.Jobs
         }
 
         [TestMethod]
-        public void GetJobs_WhenFirstPageRequested_AndMoreThanOnePage_ReturnsFirstPageOfResults()
+        public async Task GetJobs_WhenFirstPageRequested_AndMoreThanOnePage_ReturnsFirstPageOfResults()
         {
             // Arrange
             List<Job> largeTestData = new List<Job>();
@@ -502,7 +503,7 @@ namespace CalculateFunding.Services.Jobs
             IJobService jobService = CreateJobService(jobRepository);
 
             // Act
-            IActionResult results = jobService.GetJobs(null, null, null, null, null, false, 1);
+            IActionResult results = await jobService.GetJobs(null, null, null, null, null, false, 1);
 
             // Assert
             OkObjectResult objResult = results
@@ -539,7 +540,7 @@ namespace CalculateFunding.Services.Jobs
         }
 
         [TestMethod]
-        public void GetJobs_WhenSecondPageRequested_ReturnsSecondPageOfResults()
+        public async Task GetJobs_WhenSecondPageRequested_ReturnsSecondPageOfResults()
         {
             // Arrange
             List<Job> largeTestData = new List<Job>();
@@ -557,7 +558,7 @@ namespace CalculateFunding.Services.Jobs
             IJobService jobService = CreateJobService(jobRepository);
 
             // Act
-            IActionResult results = jobService.GetJobs(null, null, null, null, null, false, 2);
+            IActionResult results = await jobService.GetJobs(null, null, null, null, null, false, 2);
 
             // Assert
             OkObjectResult objResult = results
@@ -594,7 +595,7 @@ namespace CalculateFunding.Services.Jobs
         }
 
         [TestMethod]
-        public void GetJobs_WhenNonExistantPageRequested_ReturnsEmptyList()
+        public async Task GetJobs_WhenNonExistantPageRequested_ReturnsEmptyList()
         {
             // Arrange
             List<Job> largeTestData = new List<Job>();
@@ -612,7 +613,7 @@ namespace CalculateFunding.Services.Jobs
             IJobService jobService = CreateJobService(jobRepository);
 
             // Act
-            IActionResult results = jobService.GetJobs(null, null, null, null, null, false, 3);
+            IActionResult results = await jobService.GetJobs(null, null, null, null, null, false, 3);
 
             // Assert
             OkObjectResult objResult = results
@@ -637,13 +638,13 @@ namespace CalculateFunding.Services.Jobs
         }
 
         [TestMethod]
-        public void GetJobs_WhenInvalidPageNumberRequested_Returns400()
+        public async Task GetJobs_WhenInvalidPageNumberRequested_Returns400()
         {
             // Arrange
             IJobService jobService = CreateJobService();
 
             // Act
-            IActionResult result = jobService.GetJobs(null, null, null, null, null, false, 0);
+            IActionResult result = await jobService.GetJobs(null, null, null, null, null, false, 0);
 
             // Assert
             result
@@ -656,7 +657,7 @@ namespace CalculateFunding.Services.Jobs
         }
 
         [TestMethod]
-        public void GetJobs_CheckFieldsMapped()
+        public async Task GetJobs_CheckFieldsMapped()
         {
             // Arrange
             string entityId = "entity99";
@@ -669,7 +670,7 @@ namespace CalculateFunding.Services.Jobs
             IJobService jobService = CreateJobService(jobRepository);
 
             // Act
-            IActionResult results = jobService.GetJobs(null, null, entityId, null, null, false, 1);
+            IActionResult results = await jobService.GetJobs(null, null, entityId, null, null, false, 1);
 
             // Assert
             OkObjectResult objResult = results

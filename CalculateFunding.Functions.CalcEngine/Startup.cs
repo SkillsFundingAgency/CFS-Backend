@@ -68,7 +68,7 @@ namespace CalculateFunding.Functions.CalcEngine
 
                 config.Bind("CosmosDbSettings", providerSourceDatasetsCosmosSettings);
 
-                providerSourceDatasetsCosmosSettings.CollectionName = "providerdatasets";
+                providerSourceDatasetsCosmosSettings.ContainerName = "providerdatasets";
 
                 CosmosRepository calcsCosmosRepostory = new CosmosRepository(providerSourceDatasetsCosmosSettings);
 
@@ -85,7 +85,7 @@ namespace CalculateFunding.Functions.CalcEngine
 
                 config.Bind("CosmosDbSettings", calcResultsDbSettings);
 
-                calcResultsDbSettings.CollectionName = "calculationresults";
+                calcResultsDbSettings.ContainerName = "calculationresults";
 
                 CosmosRepository calcsCosmosRepostory = new CosmosRepository(calcResultsDbSettings);
 

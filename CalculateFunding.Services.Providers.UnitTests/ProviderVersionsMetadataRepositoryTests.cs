@@ -36,7 +36,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
             ServiceHealth serviceHealth = await providerVersionsMetadataRepository.IsHealthOk();
 
             //Assert
-            await repository.Received(1).IsHealthOk();
+            repository.Received(1).IsHealthOk();
 
             serviceHealth.Dependencies.Count.Should().Be(1);
 

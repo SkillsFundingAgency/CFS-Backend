@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Net;
 using System.Threading.Tasks;
+using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Specs;
-using Microsoft.Azure.Documents;
 
 namespace CalculateFunding.Services.Specs.Interfaces
 {
@@ -17,20 +17,17 @@ namespace CalculateFunding.Services.Specs.Interfaces
 
         Task<DocumentEntity<Specification>> GetSpecificationDocumentEntityById(string specificationId);
 
-        Task<IEnumerable<Specification>> GetSpecificationsByQuery(Expression<Func<Specification, bool>> query = null);
+        Task<IEnumerable<Specification>> GetSpecificationsByQuery(Expression<Func<DocumentEntity<Specification>, bool>> query = null);
 
         Task<IEnumerable<Specification>> GetSpecificationsSelectedForFundingByPeriod(string fundingPeriodId);
 
         Task<IEnumerable<Specification>> GetSpecifications();
 
-        Task<Specification> GetSpecificationByQuery(Expression<Func<Specification, bool>> query);
+        Task<Specification> GetSpecificationByQuery(Expression<Func<DocumentEntity<Specification>, bool>> query);
 
         Task<HttpStatusCode> UpdateSpecification(Specification specification);
 
-        [Obsolete]
-        Task<IEnumerable<T>> GetSpecificationsByRawQuery<T>(string sql);
-
-        Task<IEnumerable<T>> GetSpecificationsByRawQuery<T>(SqlQuerySpec sqlQuerySpec);
+        Task<IEnumerable<T>> GetSpecificationsByRawQuery<T>(CosmosDbQuery cosmosDbQuery);
 
         Task<IEnumerable<Specification>> GetApprovedOrUpdatedSpecificationsByFundingPeriodAndFundingStream(string fundingPeriodId, string fundingStreamId);
     }

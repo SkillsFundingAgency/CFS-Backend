@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Search;
@@ -8,7 +9,6 @@ using CalculateFunding.Services.Specs.Interfaces;
 using FluentAssertions;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.Documents;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
@@ -58,7 +58,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
             specificationsRepository
-                .When(x => x.GetSpecificationsByRawQuery<SpecificationSearchModel>(Arg.Any<SqlQuerySpec>()))
+                .When(x => x.GetSpecificationsByRawQuery<SpecificationSearchModel>(Arg.Any<CosmosDbQuery>()))
                 .Do(x => { throw new Exception(); });
 
             ILogger logger = CreateLogger();
@@ -114,7 +114,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
             specificationsRepository
-                .GetSpecificationsByRawQuery<SpecificationSearchModel>(Arg.Any<SqlQuerySpec>())
+                .GetSpecificationsByRawQuery<SpecificationSearchModel>(Arg.Any<CosmosDbQuery>())
                 .Returns(specifications);
 
             ILogger logger = CreateLogger();
@@ -152,7 +152,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
             specificationsRepository
-                .GetSpecificationsByRawQuery<SpecificationSearchModel>(Arg.Any<SqlQuerySpec>())
+                .GetSpecificationsByRawQuery<SpecificationSearchModel>(Arg.Any<CosmosDbQuery>())
                 .Returns(specifications);
 
             ILogger logger = CreateLogger();
@@ -193,7 +193,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
             specificationsRepository
-                .GetSpecificationsByRawQuery<SpecificationSearchModel>(Arg.Any<SqlQuerySpec>())
+                .GetSpecificationsByRawQuery<SpecificationSearchModel>(Arg.Any<CosmosDbQuery>())
                 .Returns(specifications);
 
             ILogger logger = CreateLogger();

@@ -86,7 +86,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .Returns(context);
 
             specificationsRepository
-                .GetSpecificationByQuery(Arg.Any<Expression<Func<Specification, bool>>>())
+                .GetSpecificationByQuery(Arg.Any<Expression<Func<DocumentEntity<Specification>, bool>>>())
                 .Returns((Specification)null);
 
             PolicyModels.FundingPeriod fundingPeriod = new PolicyModels.FundingPeriod
@@ -268,7 +268,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .Returns(context);
 
             specificationsRepository
-                .GetSpecificationByQuery(Arg.Any<Expression<Func<Specification, bool>>>())
+                .GetSpecificationByQuery(Arg.Any<Expression<Func<DocumentEntity<Specification>, bool>>>())
                 .Returns((Specification)null);
 
             PolicyModels.FundingPeriod fundingPeriod = new PolicyModels.FundingPeriod
@@ -449,7 +449,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .Returns(context);
 
             specificationsRepository
-                .GetSpecificationByQuery(Arg.Any<Expression<Func<Specification, bool>>>())
+                .GetSpecificationByQuery(Arg.Any<Expression<Func<DocumentEntity<Specification>, bool>>>())
                 .Returns((Specification)null);
 
             PolicyModels.FundingPeriod fundingPeriod = new PolicyModels.FundingPeriod

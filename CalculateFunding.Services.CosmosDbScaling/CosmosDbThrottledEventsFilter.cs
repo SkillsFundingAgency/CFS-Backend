@@ -9,7 +9,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
 {
     public class CosmosDbThrottledEventsFilter : ICosmosDbThrottledEventsFilter
     {
-        public IEnumerable<string> GetUniqueCosmosDbCollectionNamesFromEventData(IEnumerable<EventData> events)
+        public IEnumerable<string> GetUniqueCosmosDBContainerNamesFromEventData(IEnumerable<EventData> events)
         {
             Guard.ArgumentNotNull(events, nameof(events));
 

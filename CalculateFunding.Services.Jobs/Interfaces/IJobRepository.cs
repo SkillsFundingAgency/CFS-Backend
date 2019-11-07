@@ -14,17 +14,17 @@ namespace CalculateFunding.Services.Jobs.Interfaces
 
         Task<HttpStatusCode> UpdateJob(Job job);
 
-        IEnumerable<Job> GetRunningJobsForSpecificationAndJobDefinitionId(string specificationId, string jobDefinitionId);
+        Task<IEnumerable<Job>> GetRunningJobsForSpecificationAndJobDefinitionId(string specificationId, string jobDefinitionId);
 
-        IQueryable<Job> GetJobs();
+        Task<IEnumerable<Job>> GetJobs();
 
         Task<Job> GetJobById(string jobId);
 
-        IEnumerable<Job> GetChildJobsForParent(string jobId);
+        Task<IEnumerable<Job>> GetChildJobsForParent(string jobId);
 
         Task<IEnumerable<JobLog>> GetJobLogsByJobId(string jobId);
 
-        IEnumerable<Job> GetNonCompletedJobs();
+        Task<IEnumerable<Job>> GetNonCompletedJobs();
 
         Task<Job> GetLatestJobBySpecificationId(string specificationId, IEnumerable<string> jobDefinitionIds = null);
 

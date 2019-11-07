@@ -1,11 +1,7 @@
-﻿using CalculateFunding.Common.CosmosDb;
+﻿using System.Threading.Tasks;
+using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Services.CosmosDbScaling.Interfaces;
-using Microsoft.Azure.Documents;
-using System;
-using System.Collections.Generic;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.Azure.Cosmos;
 
 namespace CalculateFunding.Services.CosmosDbScaling.Repositories
 {
@@ -18,12 +14,12 @@ namespace CalculateFunding.Services.CosmosDbScaling.Repositories
             _cosmosRepository = cosmosRepository;
         }
 
-        public async Task SetThroughput(int throughput)
+        public async Task<ThroughputResponse> SetThroughput(int throughput)
         {
-            await _cosmosRepository.SetThroughput(throughput);
+            return await _cosmosRepository.SetThroughput(throughput);
         }
 
-        public async Task<int> GetCurrentThroughput()
+        public async Task<int?> GetCurrentThroughput()
         {
             return await _cosmosRepository.GetThroughput();
         }

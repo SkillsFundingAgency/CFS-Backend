@@ -83,7 +83,7 @@ namespace CalculateFunding.Api.Datasets
         {
             builder
                 .AddSingleton<IHealthChecker, ControllerResolverHealthCheck>();
-            
+
             builder
                 .AddSingleton<IDefinitionsService, DefinitionsService>()
                 .AddSingleton<IHealthChecker, DefinitionsService>();
@@ -144,7 +144,7 @@ namespace CalculateFunding.Api.Datasets
 
                 Configuration.Bind("CosmosDbSettings", dbSettings);
 
-                dbSettings.CollectionName = "providerdatasets";
+                dbSettings.ContainerName = "providerdatasets";
 
                 CosmosRepository calcsCosmosRepostory = new CosmosRepository(dbSettings);
 
@@ -157,7 +157,7 @@ namespace CalculateFunding.Api.Datasets
 
                 Configuration.Bind("CosmosDbSettings", dbSettings);
 
-                dbSettings.CollectionName = "datasetaggregations";
+                dbSettings.ContainerName = "datasetaggregations";
 
                 CosmosRepository aggsCosmosRepostory = new CosmosRepository(dbSettings);
 
@@ -170,7 +170,7 @@ namespace CalculateFunding.Api.Datasets
 
                 Configuration.Bind("CosmosDbSettings", ProviderSourceDatasetVersioningDbSettings);
 
-                ProviderSourceDatasetVersioningDbSettings.CollectionName = "providersources";
+                ProviderSourceDatasetVersioningDbSettings.ContainerName = "providersources";
 
                 CosmosRepository cosmosRepository = new CosmosRepository(ProviderSourceDatasetVersioningDbSettings);
 

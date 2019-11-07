@@ -68,7 +68,7 @@ namespace CalculateFunding.API.CosmosDbScaling
         {
             builder
                 .AddSingleton<IHealthChecker, ControllerResolverHealthCheck>();
-            
+
             builder.AddSingleton<ICosmosRepository, CosmosRepository>();
             builder.AddSingleton<ICosmosDbScalingService, CosmosDbScalingService>();
             builder.AddSingleton<ICosmosDbScalingRepositoryProvider, CosmosDbScalingRepositoryProvider>();
@@ -82,7 +82,7 @@ namespace CalculateFunding.API.CosmosDbScaling
 
                 Configuration.Bind("CosmosDbSettings", cosmosDbSettings);
 
-                cosmosDbSettings.CollectionName = "cosmosscalingconfig";
+                cosmosDbSettings.ContainerName = "cosmosscalingconfig";
 
                 CosmosRepository cosmosRepository = new CosmosRepository(cosmosDbSettings);
 

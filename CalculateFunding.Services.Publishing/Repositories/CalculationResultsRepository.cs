@@ -6,7 +6,6 @@ using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Interfaces;
-using Microsoft.Azure.Documents;
 
 namespace CalculateFunding.Services.Publishing.Repositories
 {
@@ -21,7 +20,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
 
         public async Task<ServiceHealth> IsHealthOk()
         {
-            (bool Ok, string Message) = await _cosmosRepository.IsHealthOk();
+            (bool Ok, string Message) = _cosmosRepository.IsHealthOk();
 
             ServiceHealth health = new ServiceHealth
             {
@@ -34,24 +33,24 @@ namespace CalculateFunding.Services.Publishing.Repositories
 
         public async Task<ProviderCalculationResult> GetCalculationResultsBySpecificationAndProvider(string specificationId, string providerId)
         {
-            List<ProviderCalculationResult> providerResultSummaries = _cosmosRepository
-             .DynamicQueryPartionedEntity<ProviderCalculationResult>(new SqlQuerySpec
-             {
-                 QueryText = @"
-                                SELECT
-	                                    doc.content.provider.id AS providerId,
-	                                    ARRAY(  SELECT calcResult.calculation.id,
-	                                                   calcResult['value']
-	                                            FROM   calcResult IN doc.content.calcResults) AS Results
-                                FROM 	doc
-                                WHERE   doc.documentType='ProviderResult'
-                                AND     doc.content.specificationId = @specificationId",
-                 Parameters = new SqlParameterCollection
-                 {
-                                    new SqlParameter("@specificationId", specificationId)
-                 }
-             }, providerId)
-             .ToList();
+            List<ProviderCalculationResult> providerResultSummaries = (await _cosmosRepository
+                .DynamicQueryPartitionedEntity<ProviderCalculationResult>(new CosmosDbQuery
+                {
+                    QueryText = @"SELECT
+	                                        doc.content.provider.id AS providerId,
+	                                        ARRAY(SELECT calcResult.calculation.id,
+	                                                       calcResult['value']
+	                                                FROM   calcResult IN doc.content.calcResults) AS Results
+                                        FROM 	doc
+                                        WHERE   doc.documentType='ProviderResult'
+                                        AND     doc.content.specificationId = @specificationId",
+                    Parameters = new[]
+                         {
+                             new CosmosDbQueryParameter("@specificationId", specificationId)
+                         }
+                },
+                    partitionEntityId: providerId))
+                .ToList();
 
             return await Task.FromResult(providerResultSummaries.FirstOrDefault());
         }

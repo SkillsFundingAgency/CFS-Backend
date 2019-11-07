@@ -3,7 +3,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Threading;
 using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models;
@@ -13,7 +12,6 @@ using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Results.Interfaces;
-using Microsoft.Azure.Documents;
 using Newtonsoft.Json;
 
 namespace CalculateFunding.Services.Results.Repositories
@@ -29,7 +27,7 @@ namespace CalculateFunding.Services.Results.Repositories
 
         public async Task<ServiceHealth> IsHealthOk()
         {
-            (bool Ok, string Message) = await _cosmosRepository.IsHealthOk();
+            (bool Ok, string Message) = _cosmosRepository.IsHealthOk();
 
             ServiceHealth health = new ServiceHealth()
             {
@@ -40,29 +38,25 @@ namespace CalculateFunding.Services.Results.Repositories
             return health;
         }
 
-        public Task<ProviderResult> GetProviderResult(string providerId, string specificationId)
+        public async Task<ProviderResult> GetProviderResult(string providerId, string specificationId)
         {
             //HACK "FirstOrDefault not supported", hence the roundabout code
-            IEnumerable<ProviderResult> result = _cosmosRepository
-                .Query<ProviderResult>()
-                .Where(x => x.Provider.Id == providerId && x.SpecificationId == specificationId)
-                .Take(1);
+            IEnumerable<ProviderResult> result = await _cosmosRepository
+                .Query<ProviderResult>(x => x.Content.Provider.Id == providerId && x.Content.SpecificationId == specificationId, 1);
 
-            return Task.FromResult(result.FirstOrDefault());
+            return result.FirstOrDefault();
         }
 
-        public Task<ProviderResult> GetProviderResultByCalculationType(string providerId, string specificationId, CalculationType calculationType)
+        public async Task<ProviderResult> GetProviderResultByCalculationType(string providerId, string specificationId, CalculationType calculationType)
         {
-            IEnumerable<ProviderResult> result = _cosmosRepository
-                .Query<ProviderResult>()
-                .Where(x => x.Provider.Id == providerId && x.SpecificationId == specificationId)
-                .Take(1);
+            IEnumerable<ProviderResult> result = await _cosmosRepository
+                .Query<ProviderResult>(x => x.Content.Provider.Id == providerId && x.Content.SpecificationId == specificationId, 1);
 
             ProviderResult providerResult = result.FirstOrDefault();
 
             providerResult?.CalculationResults.RemoveAll(_ => _.CalculationType != calculationType);
 
-            return Task.FromResult(providerResult);
+            return providerResult;
         }
 
         public Task<IEnumerable<DocumentEntity<ProviderResult>>> GetAllProviderResults()
@@ -72,7 +66,7 @@ namespace CalculateFunding.Services.Results.Repositories
 
         public async Task ProviderResultsBatchProcessing(string specificationId, Func<List<ProviderResult>, Task> processProcessProviderResultsBatch, int itemsPerPage = 1000)
         {
-            SqlQuerySpec sqlQuerySpec = new SqlQuerySpec
+            CosmosDbQuery cosmosDbQuery = new CosmosDbQuery
             {
                 QueryText = $@"SELECT
                                 c.id as id,
@@ -102,14 +96,14 @@ namespace CalculateFunding.Services.Results.Repositories
                             WHERE   c.content.specificationId = @SpecificationId 
                                     AND c.documentType = 'ProviderResult' 
                                     AND c.deleted = false",
-                Parameters = new SqlParameterCollection
+                Parameters = new[]
                 {
-                    new SqlParameter("@SpecificationId", specificationId)
+                    new CosmosDbQueryParameter("@SpecificationId", specificationId)
                 }
             };
 
-            await _cosmosRepository.DocumentsBatchProcessingAsync(persistBatchToIndex: processProcessProviderResultsBatch, 
-                sqlQuerySpec: sqlQuerySpec, 
+            await _cosmosRepository.DocumentsBatchProcessingAsync(persistBatchToIndex: processProcessProviderResultsBatch,
+				cosmosDbQuery: cosmosDbQuery,
                 itemsPerPage: itemsPerPage);
         }
 
@@ -141,21 +135,21 @@ namespace CalculateFunding.Services.Results.Repositories
             {
                 try
                 {
-                    SqlQuerySpec sqlQuerySpec = new SqlQuerySpec
+                    CosmosDbQuery cosmosDbQuery = new CosmosDbQuery
                     {
                         QueryText = @"SELECT * 
                                 FROM    Root r 
                                 WHERE   r.documentType = @DocumentType 
                                         AND r.content.specificationId = @SpecificationId
                                         AND r.deleted = false",
-                        Parameters = new SqlParameterCollection
+                        Parameters = new[]
                    {
-                       new SqlParameter("@DocumentType", nameof(ProviderResult)),
-                       new SqlParameter("@SpecificationId", specificationId)
+                       new CosmosDbQueryParameter("@DocumentType", nameof(ProviderResult)),
+                       new CosmosDbQueryParameter("@SpecificationId", specificationId)
                    }
                     };
 
-                    IEnumerable<ProviderResult> providerResults = await _cosmosRepository.QueryPartitionedEntity<ProviderResult>(sqlQuerySpec, partitionEntityId: providerId);
+                    IEnumerable<ProviderResult> providerResults = await _cosmosRepository.QueryPartitionedEntity<ProviderResult>(cosmosDbQuery, partitionKey: providerId);
                     foreach (ProviderResult providerResult in providerResults)
                     {
                         results.Add(providerResult);
@@ -175,35 +169,35 @@ namespace CalculateFunding.Services.Results.Repositories
             return results.AsEnumerable();
         }
 
-        public Task<IEnumerable<ProviderResult>> GetProviderResultsBySpecificationId(string specificationId, int maxItemCount = -1)
+        public async Task<IEnumerable<ProviderResult>> GetProviderResultsBySpecificationId(string specificationId, int maxItemCount = -1)
         {
-            List<ProviderResult> results;
+            IEnumerable<ProviderResult> results;
             if (maxItemCount > 0)
             {
-                results = _cosmosRepository.Query<ProviderResult>(enableCrossPartitionQuery: true).Where(x => x.SpecificationId == specificationId).Take(maxItemCount).ToList();
+                results = await _cosmosRepository.Query<ProviderResult>(x => x.Content.SpecificationId == specificationId , maxItemCount);
             }
             else
             {
-                results = _cosmosRepository.Query<ProviderResult>(enableCrossPartitionQuery: true).Where(x => x.SpecificationId == specificationId).ToList();
+                results = await _cosmosRepository.Query<ProviderResult>(x => x.Content.SpecificationId == specificationId);
             }
 
-            return Task.FromResult(results.AsEnumerable());
+            return results;
         }
 
-        public Task<IEnumerable<ProviderResult>> GetSpecificationResults(string providerId)
+        public async Task<IEnumerable<ProviderResult>> GetSpecificationResults(string providerId)
         {
-            SqlQuerySpec sqlQuerySpec = new SqlQuerySpec
+            CosmosDbQuery cosmosDbQuery = new CosmosDbQuery
             {
                 QueryText = "SELECT * FROM r WHERE r.content.provider.id = @ProviderId",
-                Parameters = new SqlParameterCollection
+                Parameters = new[]
                 {
-                    new SqlParameter("@ProviderId", providerId)
+                    new CosmosDbQueryParameter("@ProviderId", providerId)
                 }
             };
 
-            dynamic[] resultsArray = _cosmosRepository.DynamicQuery<dynamic>(sqlQuerySpec, enableCrossPartitionQuery: true).ToArray();
+            IEnumerable<dynamic> results = await _cosmosRepository.DynamicQuery(cosmosDbQuery);
 
-            string resultsString = JsonConvert.SerializeObject(resultsArray);
+            string resultsString = JsonConvert.SerializeObject(results.ToArray());
 
             resultsString = resultsString.ConvertExpotentialNumber();
 
@@ -211,7 +205,7 @@ namespace CalculateFunding.Services.Results.Repositories
 
             IEnumerable<ProviderResult> providerResults = documentEntities.Select(m => m.Content).ToList();
 
-            return Task.FromResult(providerResults);
+            return providerResults;
         }
 
         public Task<HttpStatusCode> UpdateProviderResults(List<ProviderResult> results)
@@ -219,9 +213,9 @@ namespace CalculateFunding.Services.Results.Repositories
             return _cosmosRepository.BulkUpdateAsync(results, "usp_update_provider_results");
         }
 
-        public Task<decimal> GetCalculationResultTotalForSpecificationId(string specificationId)
+        public async Task<decimal> GetCalculationResultTotalForSpecificationId(string specificationId)
         {
-            SqlQuerySpec sqlQuerySpec = new SqlQuerySpec
+            CosmosDbQuery cosmosDbQuery = new CosmosDbQuery
             {
                 QueryText = @"SELECT value sum(c[""value""])
                             FROM results f 
@@ -229,20 +223,20 @@ namespace CalculateFunding.Services.Results.Repositories
                             WHERE c.calculationType = 10 
                                 AND c[""value""] != null 
                                 AND f.content.specificationId = @SpecificationId",
-                Parameters = new SqlParameterCollection
+                Parameters = new[]
                 {
-                    new SqlParameter("@SpecificationId", specificationId)
+                    new CosmosDbQueryParameter("@SpecificationId", specificationId)
                 }
             };
 
-            IQueryable<decimal> result = _cosmosRepository.RawQuery<decimal>(sqlQuerySpec, 1, true);
+            IEnumerable<decimal> result = await _cosmosRepository.RawQuery<decimal>(cosmosDbQuery, 1);
 
-            return Task.FromResult(result.AsEnumerable().First());
+            return result.First();
         }
 
         public async Task<bool> CheckHasNewResultsForSpecificationIdAndTimePeriod(string specificationId, DateTimeOffset dateFrom, DateTimeOffset dateTo)
         {
-            SqlQuerySpec sqlQuerySpec = new SqlQuerySpec
+            CosmosDbQuery cosmosDbQuery = new CosmosDbQuery
             {
                 QueryText = @"SELECT c.id 
                             FROM calculationresults c
@@ -250,15 +244,15 @@ namespace CalculateFunding.Services.Results.Repositories
                             AND c.documentType = 'ProviderResult'
                             AND (c.createdAt >= @DateFrom AND c.createdAt < @DateTo)",
 
-                Parameters = new SqlParameterCollection
+                Parameters = new[]
                 {
-                    new SqlParameter("@SpecificationId", specificationId),
-                    new SqlParameter("@DateFrom", dateFrom),
-                    new SqlParameter("@DateTo", dateTo)
+                    new CosmosDbQueryParameter("@SpecificationId", specificationId),
+                    new CosmosDbQueryParameter("@DateFrom", dateFrom),
+                    new CosmosDbQueryParameter("@DateTo", dateTo)
                 }
             };
 
-            IEnumerable<dynamic> result = await _cosmosRepository.QueryDynamic(sqlQuerySpec, true, 1);
+            IEnumerable<dynamic> result = await _cosmosRepository.DynamicQuery(cosmosDbQuery, 1);
 
             return result.FirstOrDefault() != null;
         }

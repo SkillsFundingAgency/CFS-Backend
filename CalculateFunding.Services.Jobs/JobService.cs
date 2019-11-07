@@ -18,7 +18,6 @@ namespace CalculateFunding.Services.Jobs
         private readonly IJobRepository _jobRepository;
         private readonly IMapper _mapper;
         private readonly Polly.Policy _jobsRepositoryPolicy;
-        private readonly Polly.Policy _jobsRepositoryNonAsyncPolicy;
 
         public JobService(IJobRepository jobRepository, IMapper mapper, IJobsResiliencePolicies resiliencePolicies)
         {
@@ -26,12 +25,10 @@ namespace CalculateFunding.Services.Jobs
             Guard.ArgumentNotNull(mapper, nameof(mapper));
             Guard.ArgumentNotNull(resiliencePolicies, nameof(resiliencePolicies));
             Guard.ArgumentNotNull(resiliencePolicies?.JobRepository, nameof(resiliencePolicies.JobRepository));
-            Guard.ArgumentNotNull(resiliencePolicies?.JobRepositoryNonAsync, nameof(resiliencePolicies.JobRepositoryNonAsync));
-
+            
             _jobRepository = jobRepository;
             _mapper = mapper;
             _jobsRepositoryPolicy = resiliencePolicies.JobRepository;
-            _jobsRepositoryNonAsyncPolicy = resiliencePolicies.JobRepositoryNonAsync;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -59,7 +56,7 @@ namespace CalculateFunding.Services.Jobs
 
             JobViewModel jobViewModel = _mapper.Map<JobViewModel>(job);
 
-            IEnumerable<Job> childJobs = _jobsRepositoryNonAsyncPolicy.Execute(() => _jobRepository.GetChildJobsForParent(jobId));
+            IEnumerable<Job> childJobs = await _jobsRepositoryPolicy.ExecuteAsync(() => _jobRepository.GetChildJobsForParent(jobId));
 
             if (!childJobs.IsNullOrEmpty())
             {
@@ -87,14 +84,14 @@ namespace CalculateFunding.Services.Jobs
             return new OkObjectResult(logs);
         }
 
-        public IActionResult GetJobs(string specificationId, string jobType, string entityId, RunningStatus? runningStatus, CompletionStatus? completionStatus, bool excludeChildJobs, int pageNumber)
+        public async Task<IActionResult> GetJobs(string specificationId, string jobType, string entityId, RunningStatus? runningStatus, CompletionStatus? completionStatus, bool excludeChildJobs, int pageNumber)
         {
             if (pageNumber < 1)
             {
                 return new BadRequestObjectResult("Invalid page number, pages start from 1");
             }
 
-            IQueryable<Job> allJobs = _jobsRepositoryNonAsyncPolicy.Execute(() => _jobRepository.GetJobs());
+            IEnumerable<Job> allJobs = await _jobsRepositoryPolicy.ExecuteAsync(() => _jobRepository.GetJobs());
 
             if (!string.IsNullOrEmpty(specificationId))
             {

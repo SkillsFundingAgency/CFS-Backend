@@ -24,7 +24,7 @@ namespace CalculateFunding.Services.Jobs.Repositories
         {
             ServiceHealth health = new ServiceHealth();
 
-            (bool Ok, string Message) cosmosHealth = await _cosmosRepository.IsHealthOk();
+            (bool Ok, string Message) cosmosHealth = _cosmosRepository.IsHealthOk();
 
             health.Name = nameof(JobDefinitionsRepository);
             health.Dependencies.Add(new DependencyHealth { HealthOk = cosmosHealth.Ok, DependencyName = this.GetType().Name, Message = cosmosHealth.Message });
@@ -37,18 +37,16 @@ namespace CalculateFunding.Services.Jobs.Repositories
             return await _cosmosRepository.UpsertAsync(definition);
         }
 
-        public IEnumerable<JobDefinition> GetJobDefinitions()
+        public async Task<IEnumerable<JobDefinition>> GetJobDefinitions()
         {
-            IQueryable<JobDefinition> jobDefinitions = _cosmosRepository.Query<JobDefinition>();
-
-            return jobDefinitions.AsEnumerable();
+            return await _cosmosRepository.Query<JobDefinition>();
         }
 
         public async Task<JobDefinition> GetJobDefinitionById(string jobDefinitionId)
         {
             Guard.IsNullOrWhiteSpace(jobDefinitionId, nameof(jobDefinitionId));
 
-            DocumentEntity<JobDefinition> jobDefinition = await _cosmosRepository.ReadAsync<JobDefinition>(jobDefinitionId);
+            DocumentEntity<JobDefinition> jobDefinition = await _cosmosRepository.ReadDocumentByIdAsync<JobDefinition>(jobDefinitionId);
 
             if (jobDefinition != null)
             {
