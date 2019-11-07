@@ -563,7 +563,9 @@ namespace CalculateFunding.Services.Specs
 
             await _queueCreateSpecificationJobAction.Run(specificationVersion, user, request.GetCorrelationId());
 
-            return new OkObjectResult(specificationVersion);
+            SpecificationSummary specificationSummary = _mapper.Map<SpecificationSummary>(specification);
+
+            return new OkObjectResult(specificationSummary);
         }
 
         public async Task<IActionResult> EditSpecification(HttpRequest request)

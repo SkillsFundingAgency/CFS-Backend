@@ -164,7 +164,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .Which
                 .Value
                 .Should()
-                .BeOfType<SpecificationVersion>()
+                .BeOfType<SpecificationSummary>()
                 .And
                 .NotBeNull();
 
@@ -346,7 +346,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .Which
                 .Value
                 .Should()
-                .BeOfType<SpecificationVersion>()
+                .BeOfType<SpecificationSummary>()
                 .And
                 .NotBeNull();
 
