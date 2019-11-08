@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 using System.Web.Mvc;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.TemplateMetadata;
+using CalculateFunding.Common.TemplateMetadata.Models;
+using CalculateFunding.Models.Policy;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
@@ -190,7 +192,7 @@ namespace CalculateFunding.Services.Policy
         }
 
         [TestMethod]
-        public async Task SaveFundingTemplate_GivenValidTemplateAndSaves_UpdatesCacheReturnsCreatedAtActionResult()
+        public async Task SaveFundingTemplate_GivenValidTemplateAndSaves_InvalidatesCacheReturnsCreatedAtActionResult()
         {
             //Arrange
             string template = CreateJsonFile("CalculateFunding.Services.Policy.Resources.LogicalModelTemplateNoProfilePeriods.json");
@@ -210,7 +212,7 @@ namespace CalculateFunding.Services.Policy
                 SchemaVersion = "1.0",
             };
 
-            string cacheKey = $"{CacheKeys.FundingTemplatePrefix}{validationResult.FundingStreamId}-{validationResult.TemplateVersion}";
+            string cacheKey = $"{CacheKeys.FundingTemplatePrefix}{validationResult.FundingStreamId}-{validationResult.TemplateVersion}".ToLowerInvariant();
 
             string blobName = $"{validationResult.FundingStreamId}/{validationResult.TemplateVersion}.json";
 
@@ -267,7 +269,16 @@ namespace CalculateFunding.Services.Policy
             await
                 cacheProvider
                     .Received(1)
-                    .SetAsync(Arg.Is(cacheKey), Arg.Is(template));
+                    .RemoveAsync<string>(Arg.Is(cacheKey));
+
+            await
+                cacheProvider
+                    .Received(1)
+                    .RemoveAsync<FundingTemplateContents>(Arg.Is($"{CacheKeys.FundingTemplateContents}pes:1.5"));
+
+            await cacheProvider
+                .Received(1)
+                .RemoveAsync<TemplateMetadataContents>($"{CacheKeys.FundingTemplateContentMetadata}pes:1.5");
         }
 
         [TestMethod]

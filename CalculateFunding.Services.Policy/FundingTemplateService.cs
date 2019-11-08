@@ -109,13 +109,12 @@ namespace CalculateFunding.Services.Policy
             {
                 byte[] templateFileBytes = Encoding.UTF8.GetBytes(template);
 
-                await _cacheProvider.RemoveAsync<FundingTemplateContents>($"{CacheKeys.FundingTemplateContents}{validationResult.FundingStreamId}:{validationResult.TemplateVersion}");
-
                 await SaveFundingTemplateVersion(blobName, templateFileBytes);
 
-                string cacheKey = $"{CacheKeys.FundingTemplatePrefix}{validationResult.FundingStreamId}-{validationResult.TemplateVersion}";
-
-                await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync(cacheKey, template));
+                string cacheKey = $"{CacheKeys.FundingTemplatePrefix}{validationResult.FundingStreamId}-{validationResult.TemplateVersion}".ToLowerInvariant();
+                await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.RemoveAsync<string>(cacheKey));
+                await _cacheProvider.RemoveAsync<FundingTemplateContents>($"{CacheKeys.FundingTemplateContents}{validationResult.FundingStreamId}:{validationResult.TemplateVersion}".ToLowerInvariant());
+                await _cacheProvider.RemoveAsync<TemplateMetadataContents>($"{CacheKeys.FundingTemplateContentMetadata}{validationResult.FundingStreamId}:{validationResult.TemplateVersion}".ToLowerInvariant());
 
                 return new CreatedAtActionResult(actionName, controllerName, new { fundingStreamId = validationResult.FundingStreamId, templateVersion = validationResult.TemplateVersion }, string.Empty);
             }
