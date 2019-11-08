@@ -6,7 +6,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="CalculateFunding.Common.TemplateMetadata" Version="1.0.8" />
-    <PackageReference Include="CalculateFunding.Common.TemplateMetadata.Schema10" Version="1.0.11" />
+    <PackageReference Include="CalculateFunding.Common.TemplateMetadata.Schema10" Version="1.0.12" />
     <PackageReference Include="Microsoft.Azure.WebJobs.ServiceBus" Version="3.0.0-beta8" />
     <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="1.0.29" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />

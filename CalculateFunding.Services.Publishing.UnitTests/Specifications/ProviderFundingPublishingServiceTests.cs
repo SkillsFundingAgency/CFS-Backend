@@ -63,7 +63,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
         [TestMethod]
         public async Task ReturnsBadRequestWhenSuppliedSpecificationIdFailsValidation()
         {
-            string[] expectedErrors = {NewRandomString(), NewRandomString()};
+            string[] expectedErrors = { NewRandomString(), NewRandomString() };
 
             GivenTheValidationErrors(expectedErrors);
 
@@ -97,7 +97,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
         [TestMethod]
         public async Task CreatesPublishFundingJobForSpecificationWithSuppliedId()
         {
-            var publishFundingJobId = NewRandomString();
+            string publishFundingJobId = NewRandomString();
             ApiJob publishFundingJob = NewJob(_ => _.WithId(publishFundingJobId));
 
             GivenTheApiResponseDetailsForTheSuppliedId(NewApiSpecificationSummary(_ =>
@@ -106,8 +106,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
 
             await WhenTheProviderFundingIsPublished();
 
-            ThenTheResponseShouldBe<CreatedResult>(_ => _.Location == $"api/jobs/{publishFundingJobId}" &&
-                                                        ReferenceEquals(_.Value, publishFundingJob));
+            JobCreationResponse expectedJobCreationResponse = NewJobCreationResponse(_ => _.WithJobId(publishFundingJobId));
+
+            ActionResult
+                .Should()
+                .BeOfType<OkObjectResult>()
+                .Which
+                .Value
+                .Should()
+                .BeEquivalentTo(expectedJobCreationResponse);
         }
 
         [TestMethod]

@@ -112,10 +112,17 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
             AndTheApiResponseDetailsForTheFundingPeriodId(fundingPeriodId);
             AndTheApiResponseDetailsForSpecificationsJob(refreshFundingJob);
 
+            JobCreationResponse expectedJobCreationResponse = NewJobCreationResponse(_ => _.WithJobId(refreshFundingJobId));
+
             await WhenTheSpecificationIsPublished();
 
-            ThenTheResponseShouldBe<CreatedResult>(_ => _.Location == $"api/jobs/{refreshFundingJobId}" &&
-                                                        ReferenceEquals(_.Value, refreshFundingJob));
+            ActionResult
+                .Should()
+                .BeOfType<OkObjectResult>()
+                .Which
+                .Value
+                .Should()
+                .BeEquivalentTo(expectedJobCreationResponse);
         }
 
         [TestMethod]
@@ -186,7 +193,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
 
             await WhenTheSpecificationIsApproved();
 
-            ThenTheResponseShouldBe<AcceptedAtActionResult>(_ => _.RouteValues["specificationId"].ToString() == SpecificationId && ReferenceEquals(_.Value, approveFundingJob));
+            JobCreationResponse expectedJobCreationResponse = NewJobCreationResponse(_ => _.WithJobId(approveFundingJobId));
+
+            ActionResult
+                .Should()
+                .BeOfType<OkObjectResult>()
+                .Which
+                .Value
+                .Should()
+                .BeEquivalentTo(expectedJobCreationResponse);
         }
 
         [TestMethod]

@@ -10,7 +10,7 @@ namespace CalculateFunding.Services.Policy.Models
             ValidationState = new ModelState();
         }
 
-        public string Version { get; set; }
+        public string TemplateVersion { get; set; }
 
         public string FundingStreamId { get; set; }
 

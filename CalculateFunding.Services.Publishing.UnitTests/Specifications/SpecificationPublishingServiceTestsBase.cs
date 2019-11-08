@@ -6,6 +6,7 @@ using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Models;
+using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
@@ -69,6 +70,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
         protected Job NewJob(Action<JobBuilder> setUp = null)
         {
             JobBuilder jobBuilder = new JobBuilder();
+
+            setUp?.Invoke(jobBuilder);
+
+            return jobBuilder.Build();
+        }
+
+        protected JobCreationResponse NewJobCreationResponse(Action<JobCreationResponseBuilder> setUp = null)
+        {
+            JobCreationResponseBuilder jobBuilder = new JobCreationResponseBuilder();
 
             setUp?.Invoke(jobBuilder);
 

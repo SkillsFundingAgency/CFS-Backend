@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
+using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -19,7 +20,7 @@ namespace CalculateFunding.Api.Publishing.Controllers
         public PublishingController(ISpecificationPublishingService specificationPublishingService,
             IProviderFundingPublishingService providerFundingPublishingService,
             IPublishedProviderFundingService publishedProviderFundingService,
-            IPublishedSearchService publishedSearchService, 
+            IPublishedSearchService publishedSearchService,
             IPublishedProviderVersionService publishedProviderVersionService)
         {
             Guard.ArgumentNotNull(specificationPublishingService, nameof(specificationPublishingService));
@@ -40,7 +41,7 @@ namespace CalculateFunding.Api.Publishing.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpPost("api/specifications/{specificationId}/refresh")]
-        [ProducesResponseType(201)]
+        [ProducesResponseType(200, Type = typeof(JobCreationResponse))]
         public async Task<IActionResult> RefreshFundingForSpecification([FromRoute] string specificationId)
         {
             return await _specificationPublishingService.CreateRefreshFundingJob(specificationId,
@@ -54,7 +55,7 @@ namespace CalculateFunding.Api.Publishing.Controllers
         /// <param name="specificationId">The specification id</param>
         /// <returns></returns>
         [HttpPost("api/specifications/{specificationId}/approve")]
-        [ProducesResponseType(201)]
+        [ProducesResponseType(200, Type = typeof(JobCreationResponse))]
         public async Task<IActionResult> ApproveSpecification([FromRoute] string specificationId)
         {
             var controllerName = string.Empty;
@@ -76,7 +77,7 @@ namespace CalculateFunding.Api.Publishing.Controllers
         /// <param name="specificationId">The specification id</param>
         /// <returns></returns>
         [HttpPost("api/specifications/{specificationId}/publish")]
-        [ProducesResponseType(201)]
+        [ProducesResponseType(200, Type = typeof(JobCreationResponse))]
         public async Task<IActionResult> PublishProviderFunding([FromRoute] string specificationId)
         {
             return await _providerFundingPublishingService.PublishProviderFunding(specificationId,
@@ -116,7 +117,7 @@ namespace CalculateFunding.Api.Publishing.Controllers
         [ProducesResponseType(204)]
         public async Task<IActionResult> ReIndex()
         {
-            return await _publishedProviderVersionService.ReIndex(GetUser(), 
+            return await _publishedProviderVersionService.ReIndex(GetUser(),
                 GetCorrelationId());
         }
 

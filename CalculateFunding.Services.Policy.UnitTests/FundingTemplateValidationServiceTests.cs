@@ -553,7 +553,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
 
             TestClassWithFundingProperty testClassWithFunding = new TestClassWithFundingProperty
             {
-                SchemaVersion = "1.0",
+                SchemaVersion = schemaVersion,
                 Funding = new { templateVersion = "2.1", fundingStream = new { code = "PES" } }
             };
 
@@ -591,9 +591,14 @@ namespace CalculateFunding.Services.Policy.UnitTests
                 .BeEmpty();
 
             result
-                .Version
+                .TemplateVersion
                 .Should()
                 .Be("2.1");
+
+            result
+                .SchemaVersion
+                .Should()
+                .Be("1.0");
 
             result
                 .FundingStreamId

@@ -12,7 +12,7 @@ using Policy = Polly.Policy;
 
 namespace CalculateFunding.Services.Publishing.Specifications
 {
-    public class JobCreationForSpecification<TJobDefinition> : ICreateJobsForSpecifications<TJobDefinition> 
+    public class JobCreationForSpecification<TJobDefinition> : ICreateJobsForSpecifications<TJobDefinition>
         where TJobDefinition : IJobDefinition
     {
         private readonly IJobsApiClient _jobs;
@@ -44,8 +44,8 @@ namespace CalculateFunding.Services.Publishing.Specifications
             Dictionary<string, string> properties = null,
             string messageBody = null)
         {
-            Dictionary<string, string> messageProperties = 
-                properties ?? new Dictionary<string, string> ();
+            Dictionary<string, string> messageProperties =
+                properties ?? new Dictionary<string, string>();
 
             messageProperties.Add("specification-id", specificationId);
 

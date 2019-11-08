@@ -88,7 +88,12 @@ namespace CalculateFunding.Services.Publishing.Specifications
 
             Guard.ArgumentNotNull(refreshFundingJob, nameof(refreshFundingJob), "Failed to create RefreshFundingJob");
 
-            return new CreatedResult($"api/jobs/{refreshFundingJob.Id}", refreshFundingJob);
+            JobCreationResponse jobCreationResponse = new JobCreationResponse()
+            {
+                JobId = refreshFundingJob.Id,
+            };
+
+            return new OkObjectResult(jobCreationResponse);
         }
 
         public async Task<IActionResult> ApproveSpecification(string action,
@@ -122,7 +127,12 @@ namespace CalculateFunding.Services.Publishing.Specifications
 
             if (job != null)
             {
-                return new AcceptedAtActionResult(action, controller, new { specificationId = specificationId }, job);
+                JobCreationResponse jobCreationResponse = new JobCreationResponse()
+                {
+                    JobId = job.Id,
+                };
+
+                return new OkObjectResult(jobCreationResponse);
             }
             else
             {

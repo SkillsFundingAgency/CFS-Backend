@@ -19,7 +19,6 @@ using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Serilog;
-using TemplateMetadataModels = CalculateFunding.Common.TemplateMetadata.Models;
 
 namespace CalculateFunding.Services.Policy
 {
@@ -95,7 +94,7 @@ namespace CalculateFunding.Services.Policy
                 return new BadRequestObjectResult(validationResult.ValidationState);
             }
 
-            ITemplateMetadataGenerator templateMetadataGenerator = _templateMetadataResolver.GetService(validationResult.Version);
+            ITemplateMetadataGenerator templateMetadataGenerator = _templateMetadataResolver.GetService(validationResult.SchemaVersion);
 
             ValidationResult validationGeneratorResult = templateMetadataGenerator.Validate(template);
 
@@ -104,21 +103,21 @@ namespace CalculateFunding.Services.Policy
                 return validationGeneratorResult.PopulateModelState();
             }
 
-            string blobName =  GetBlobNameFor(validationResult.FundingStreamId, validationResult.Version);
+            string blobName = GetBlobNameFor(validationResult.FundingStreamId, validationResult.TemplateVersion);
 
             try
             {
                 byte[] templateFileBytes = Encoding.UTF8.GetBytes(template);
 
-                await _cacheProvider.RemoveAsync<FundingTemplateContents>($"{CacheKeys.FundingTemplateContents}{validationResult.FundingStreamId}:{validationResult.Version}");
+                await _cacheProvider.RemoveAsync<FundingTemplateContents>($"{CacheKeys.FundingTemplateContents}{validationResult.FundingStreamId}:{validationResult.TemplateVersion}");
 
                 await SaveFundingTemplateVersion(blobName, templateFileBytes);
 
-                string cacheKey = $"{CacheKeys.FundingTemplatePrefix}{validationResult.FundingStreamId}-{validationResult.Version}";
+                string cacheKey = $"{CacheKeys.FundingTemplatePrefix}{validationResult.FundingStreamId}-{validationResult.TemplateVersion}";
 
                 await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync(cacheKey, template));
 
-                return new CreatedAtActionResult(actionName, controllerName, new { fundingStreamId = validationResult.FundingStreamId, templateVersion = validationResult.Version }, string.Empty);
+                return new CreatedAtActionResult(actionName, controllerName, new { fundingStreamId = validationResult.FundingStreamId, templateVersion = validationResult.TemplateVersion }, string.Empty);
             }
             catch (Exception ex)
             {
@@ -219,7 +218,7 @@ namespace CalculateFunding.Services.Policy
         public async Task<IActionResult> GetFundingTemplateContents(string fundingStreamId, string templateVersion)
         {
             IActionResult getFundingTemplateMetadataResult = await GetFundingTemplateContentMetadata(fundingStreamId, templateVersion);
-            if(!(getFundingTemplateMetadataResult is OkObjectResult))
+            if (!(getFundingTemplateMetadataResult is OkObjectResult))
             {
                 return getFundingTemplateMetadataResult;
             }

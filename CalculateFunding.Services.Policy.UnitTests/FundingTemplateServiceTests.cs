@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -16,10 +15,8 @@ using CalculateFunding.Services.Policy.Models;
 using CalculateFunding.Services.Policy.UnitTests;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
-using FluentValidation.Results;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.Search.Models;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
@@ -46,7 +43,7 @@ namespace CalculateFunding.Services.Policy
 
             fundingTemplateRepository.TemplateVersionExists($"{fundingStreamId}/{templateVersion}.json")
                 .Returns(expectedExistsFlag);
-            
+
             bool templateExists = await service.TemplateExists(fundingStreamId, templateVersion);
 
             templateExists
@@ -55,7 +52,7 @@ namespace CalculateFunding.Services.Policy
         }
 
         private string NewRandomString() => new RandomString();
-        
+
         [DataRow("")]
         [DataRow("     ")]
         [TestMethod]
@@ -144,11 +141,12 @@ namespace CalculateFunding.Services.Policy
 
             FundingTemplateValidationResult validationResult = new FundingTemplateValidationResult
             {
-                Version = "1.0",
-                FundingStreamId = "PES"
+                TemplateVersion = "1.8",
+                FundingStreamId = "PES",
+                SchemaVersion = "1.0",
             };
 
-            string blobName = $"{validationResult.FundingStreamId}/{validationResult.Version}.json";
+            string blobName = $"{validationResult.FundingStreamId}/{validationResult.TemplateVersion}.json";
 
             IFundingTemplateValidationService fundingTemplateValidationService = CreateFundingTemplateValidationService();
             fundingTemplateValidationService
@@ -207,13 +205,14 @@ namespace CalculateFunding.Services.Policy
 
             FundingTemplateValidationResult validationResult = new FundingTemplateValidationResult
             {
-                Version = "1.0",
-                FundingStreamId = "PES"
+                TemplateVersion = "1.5",
+                FundingStreamId = "PES",
+                SchemaVersion = "1.0",
             };
 
-            string cacheKey = $"{CacheKeys.FundingTemplatePrefix}{validationResult.FundingStreamId}-{validationResult.Version}";
+            string cacheKey = $"{CacheKeys.FundingTemplatePrefix}{validationResult.FundingStreamId}-{validationResult.TemplateVersion}";
 
-            string blobName = $"{validationResult.FundingStreamId}/{validationResult.Version}.json";
+            string blobName = $"{validationResult.FundingStreamId}/{validationResult.TemplateVersion}.json";
 
             ITemplateMetadataResolver templateMetadataResolver = CreateMetadataResolver("1.0");
 
@@ -263,7 +262,7 @@ namespace CalculateFunding.Services.Policy
             actionResult
                 .RouteValues["templateVersion"].ToString()
                 .Should()
-                .Be("1.0");
+                .Be("1.5");
 
             await
                 cacheProvider
@@ -287,13 +286,14 @@ namespace CalculateFunding.Services.Policy
 
             FundingTemplateValidationResult validationResult = new FundingTemplateValidationResult
             {
-                Version = "1.0",
-                FundingStreamId = "PES"
+                TemplateVersion = "1.9",
+                FundingStreamId = "PES",
+                SchemaVersion = "1.0",
             };
 
-            string cacheKey = $"{CacheKeys.FundingTemplatePrefix}{validationResult.FundingStreamId}-{validationResult.Version}";
+            string cacheKey = $"{CacheKeys.FundingTemplatePrefix}{validationResult.FundingStreamId}-{validationResult.TemplateVersion}";
 
-            string blobName = $"{validationResult.FundingStreamId}/{validationResult.Version}.json";
+            string blobName = $"{validationResult.FundingStreamId}/{validationResult.TemplateVersion}.json";
 
             ITemplateMetadataResolver templateMetadataResolver = CreateMetadataResolver("1.0");
 
@@ -627,7 +627,7 @@ namespace CalculateFunding.Services.Policy
         private static ITemplateMetadataResolver CreateMetadataResolver(string schemaVersion = "1.0", ITemplateMetadataGenerator tempateMetadataGenerator = null)
         {
             TemplateMetadataResolver resolver = new TemplateMetadataResolver();
-            switch(schemaVersion)
+            switch (schemaVersion)
             {
                 case "1.0":
                     {

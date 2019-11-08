@@ -85,6 +85,7 @@ namespace CalculateFunding.Services.Policy
             }
 
             string schemaVersion = parsedFundingTemplate["schemaVersion"].Value<string>();
+            fundingTemplateValidationResult.SchemaVersion = schemaVersion;
 
             string blobName = $"{fundingSchemaFolder}/{schemaVersion}.json";
 
@@ -108,7 +109,7 @@ namespace CalculateFunding.Services.Policy
 
             return fundingTemplateValidationResult;
         }
-    
+
         private async Task ValidateAgainstSchema(string blobName, JObject parsedFundingTemplate, FundingTemplateValidationResult fundingTemplateValidationResult)
         {
             string fundingSchemaJson = await _fundingSchemaRepositoryPolicy.ExecuteAsync(() => _fundingSchemaRepository.GetFundingSchemaVersion(blobName));
@@ -172,7 +173,7 @@ namespace CalculateFunding.Services.Policy
                 }
             }
 
-            string templateVersion = fundingTemplateValidationResult.Version = parsedFundingTemplate["funding"]["templateVersion"].Value<string>();
+            string templateVersion = parsedFundingTemplate["funding"]["templateVersion"].Value<string>();
 
             if (string.IsNullOrWhiteSpace(templateVersion))
             {
@@ -180,7 +181,7 @@ namespace CalculateFunding.Services.Policy
             }
             else
             {
-                fundingTemplateValidationResult.Version = templateVersion;
+                fundingTemplateValidationResult.TemplateVersion = templateVersion;
             }
         }
     }

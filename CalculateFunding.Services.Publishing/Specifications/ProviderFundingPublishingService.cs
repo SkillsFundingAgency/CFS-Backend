@@ -67,7 +67,12 @@ namespace CalculateFunding.Services.Publishing.Specifications
             Guard.ArgumentNotNull(publishProviderFundingJob, nameof(publishProviderFundingJob),
                 "Failed to create PublishProviderFundingJob");
 
-            return new CreatedResult($"api/jobs/{publishProviderFundingJob.Id}", publishProviderFundingJob);
+            JobCreationResponse jobCreationResponse = new JobCreationResponse()
+            {
+                JobId = publishProviderFundingJob.Id,
+            };
+
+            return new OkObjectResult(jobCreationResponse);
         }
 
         public async Task<IActionResult> GetPublishedProviderVersion(string fundingStreamId,
