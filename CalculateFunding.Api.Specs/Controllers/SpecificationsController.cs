@@ -169,7 +169,6 @@ namespace CalculateFunding.Api.Specs.Controllers
             return await _specService.GetPublishDates(specificationId);
         }
 
-
         [Route("/api/specs/{specificationId}/publishdates")]
         [HttpPut]
         public async Task<IActionResult> SetPublishDates([FromRoute]string specificationId,
@@ -178,5 +177,11 @@ namespace CalculateFunding.Api.Specs.Controllers
             return await _specService.SetPublishDates(specificationId, specificationPublishDateModel);
         }
 
+        [Route("api/specs/fundingperiods-by-fundingstream-id/{fundingStreamId}")]
+        [HttpGet]
+        public async Task<IActionResult> RunGetFundingPeriodsByFundingStreamIds([FromRoute]string fundingStreamId)
+        {
+            return await _specService.GetFundingPeriodsByFundingStreamIds(fundingStreamId);
+        }
     }
 }

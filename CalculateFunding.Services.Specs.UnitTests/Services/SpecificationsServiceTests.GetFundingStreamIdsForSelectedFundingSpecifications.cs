@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Specs;
@@ -45,7 +47,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         public async Task ReturnsDistinctFundingStreamIds_GivenValidSelectedSpecWithFundingStreams()
         {
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            specificationsRepository.GetSpecificationsByQuery()
+            specificationsRepository.GetSpecificationsByQuery(Arg.Any<Expression<Func<DocumentEntity<Specification>, bool>>>())
                 .Returns(new[] { _specSelectedForFunding, _specNotSelectedForFunding });
             SpecificationsService service = CreateService(specificationsRepository: specificationsRepository);
 
@@ -62,7 +64,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         public async Task ReturnsOkObjectResultWithNoFundingStreamIds_GivenNoSpecificationWithSelectedForFunding()
         {
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            specificationsRepository.GetSpecificationsByQuery()
+            specificationsRepository.GetSpecificationsByQuery(Arg.Any<Expression<Func<DocumentEntity<Specification>, bool>>>())
                 .Returns(new[] { _specNotSelectedForFunding });
             SpecificationsService service = CreateService(specificationsRepository: specificationsRepository);
 

@@ -354,7 +354,7 @@ namespace CalculateFunding.Services.Specs
 
         public async Task<IActionResult> GetSpecificationsSelectedForFunding(HttpRequest request)
         {
-            IEnumerable<SpecificationSummary> specifications = 
+            IEnumerable<SpecificationSummary> specifications =
                 (await _specificationsRepository.GetSpecificationsByQuery(c => c.Content.IsSelectedForFunding))
                 .Select(s => _mapper.Map<SpecificationSummary>(s));
 
@@ -1225,14 +1225,56 @@ WHERE   s.documentType = @DocumentType",
 
         public async Task<IActionResult> GetFundingStreamIdsForSelectedFundingSpecifications()
         {
-            IEnumerable<Specification> spec = await _specificationsRepository.GetSpecificationsByQuery();
+            IEnumerable<Specification> specificationsByQuery =
+                await _specificationsRepository.GetSpecificationsByQuery(c => c.Content.IsSelectedForFunding);
 
-            IEnumerable<string> fundingStreamIds = spec
-                .Where(c=> c.IsSelectedForFunding)
-                .SelectMany(c => c.Current.FundingStreams.Select(s => s.Id))
+            IEnumerable<string> fundingStreamIds = specificationsByQuery
+                .Where(specification => specification.IsSelectedForFunding)
+                .SelectMany(specification => specification.Current.FundingStreams
+                    .Select(fundingStream => fundingStream.Id))
                 .Distinct();
 
             return new OkObjectResult(fundingStreamIds);
+        }
+
+        public async Task<IActionResult> GetFundingPeriodsByFundingStreamIds(string fundingStreamId)
+        {
+            // Get Specification which are selected for funding, and filter by FundingStreamId
+            IEnumerable<Specification> specificationsByQuery =
+                await _specificationsRepository.GetSpecificationsByQuery(c => c.Content.IsSelectedForFunding);
+
+            IEnumerable<SpecificationSummary> specificationsForFunding =
+                specificationsByQuery.Select(s => _mapper.Map<SpecificationSummary>(s));
+
+            IEnumerable<SpecificationSummary> specificationByFundingStreamId = specificationsForFunding
+                .Where(specificationSummary => specificationSummary.FundingStreams != null &&
+                                               specificationSummary.FundingStreams
+                                                   .Select(fundingStream => fundingStream.Id)
+                                                   .Contains(fundingStreamId));
+
+            var specificationsFundingPeriods = specificationByFundingStreamId
+                .Select(specificationSummary => specificationSummary.FundingPeriod)
+                .ToList();
+
+            // Get all FundingPeriods in order to access the 'Period' property 
+            ApiResponse<IEnumerable<PolicyModels.FundingPeriod>> fundingPeriodResponse =
+                await _policiesApiClient.GetFundingPeriods();
+            IEnumerable<PolicyModels.FundingPeriod> fundingPeriods = fundingPeriodResponse.Content;
+
+            // Filter FundingPeriod by matching 'Id' and 'Period' to Specification FundingPeriod's 'Id' and 'Name'
+            var filteredFundingPeriodsByIdAndPeriod = fundingPeriods
+                .Where(fundingPeriod =>
+                    specificationsFundingPeriods
+                        .Any(specFundingPeriod =>
+                            specFundingPeriod.Id == fundingPeriod.Id &&
+                            specFundingPeriod.Name == fundingPeriod.Period)
+                ).Select(fundingPeriod=> new Reference
+                {
+                    Id = fundingPeriod.Id,
+                    Name = fundingPeriod.Name
+                });
+
+            return new OkObjectResult(filteredFundingPeriodsByIdAndPeriod);
         }
     }
 }
