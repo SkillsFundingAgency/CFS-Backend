@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Dynamic;
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Specifications;
@@ -24,7 +23,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Search.Models;
 using Microsoft.Azure.ServiceBus;
-using Microsoft.Azure.Storage.Blob;
 using Serilog;
 using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
 
@@ -191,7 +189,7 @@ namespace CalculateFunding.Services.Results
 
             return providerResults;
         }
-        
+
         //TODO; change this all to work in a batch basis
 
         private async Task<IEnumerable<ProviderResult>> ProviderResultsBySpecificationId(string specificationId, int maxResults = -1)
@@ -464,7 +462,7 @@ namespace CalculateFunding.Services.Results
         {
             Guard.IsNullOrWhiteSpace(calculationId, nameof(calculationId));
 
-            Models.Calcs.Calculation calculation = await _calculationsRepositoryPolicy.ExecuteAsync(() => _calculationRepository.GetCalculationById(calculationId));
+            Common.ApiClient.Calcs.Models.Calculation calculation = await _calculationsRepositoryPolicy.ExecuteAsync(() => _calculationRepository.GetCalculationById(calculationId));
 
             if (calculation == null)
             {

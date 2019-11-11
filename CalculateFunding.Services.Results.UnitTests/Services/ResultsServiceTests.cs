@@ -14,7 +14,6 @@ using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Results.Search;
 using CalculateFunding.Repositories.Common.Search;
-using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
@@ -26,7 +25,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Internal;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
-using Microsoft.Azure.Storage.Blob;
 using Microsoft.Extensions.Primitives;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
@@ -885,7 +883,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
             calculationsRepository
                 .GetCalculationById(Arg.Is(calculationId))
-                .Returns((Models.Calcs.Calculation)null);
+                .Returns((Common.ApiClient.Calcs.Models.Calculation)null);
 
             ILogger logger = CreateLogger();
 
@@ -915,7 +913,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             const string calculationId = "calc-1";
             const string specificationId = "spec-1";
 
-            Models.Calcs.Calculation calculation = new Models.Calcs.Calculation
+            Common.ApiClient.Calcs.Models.Calculation calculation = new Common.ApiClient.Calcs.Models.Calculation
             {
                 Id = calculationId,
                 SpecificationId = specificationId
@@ -953,7 +951,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             const string calculationId = "calc-1";
             const string specificationId = "spec-1";
 
-            Models.Calcs.Calculation calculation = new Models.Calcs.Calculation
+            Common.ApiClient.Calcs.Models.Calculation calculation = new Common.ApiClient.Calcs.Models.Calculation
             {
                 Id = calculationId,
                 SpecificationId = specificationId
@@ -993,7 +991,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             const string calculationId = "calc-1";
             const string specificationId = "spec-1";
 
-            Models.Calcs.Calculation calculation = new Models.Calcs.Calculation
+            Common.ApiClient.Calcs.Models.Calculation calculation = new Common.ApiClient.Calcs.Models.Calculation
             {
                 Id = calculationId,
                 SpecificationId = specificationId
@@ -1046,7 +1044,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             const string calculationId = "calc-1";
             const string specificationId = "spec-1";
 
-            Models.Calcs.Calculation calculation = new Models.Calcs.Calculation
+            Common.ApiClient.Calcs.Models.Calculation calculation = new Common.ApiClient.Calcs.Models.Calculation
             {
                 Id = calculationId,
                 SpecificationId = specificationId
@@ -1092,49 +1090,49 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                 .Be(true);
         }
 
-       [TestMethod]
-       [DataRow(true, 1)]
-       [DataRow(false, 0)]
+        [TestMethod]
+        [DataRow(true, 1)]
+        [DataRow(false, 0)]
         public async Task QueueCsvGenerationMessage_RunsAsExpected(bool hasResults, int expectedOperations)
-       {
-           //Arrange
-           string specificationId = "12345";
+        {
+            //Arrange
+            string specificationId = "12345";
 
-           ICalculationResultsRepository calculationResultsRepository = CreateResultsRepository();
-           calculationResultsRepository
-               .CheckHasNewResultsForSpecificationIdAndTimePeriod(Arg.Any<string>(), Arg.Any<DateTimeOffset>(), Arg.Any<DateTimeOffset>())
-               .Returns(hasResults);
+            ICalculationResultsRepository calculationResultsRepository = CreateResultsRepository();
+            calculationResultsRepository
+                .CheckHasNewResultsForSpecificationIdAndTimePeriod(Arg.Any<string>(), Arg.Any<DateTimeOffset>(), Arg.Any<DateTimeOffset>())
+                .Returns(hasResults);
 
-           ILogger logger = CreateLogger();
+            ILogger logger = CreateLogger();
 
-           IMessengerService messengerService = CreateMessengerService();
+            IMessengerService messengerService = CreateMessengerService();
 
-           ResultsService resultsService = CreateResultsService(logger: logger,
-               resultsRepository: calculationResultsRepository,
-               messengerService: messengerService);
+            ResultsService resultsService = CreateResultsService(logger: logger,
+                resultsRepository: calculationResultsRepository,
+                messengerService: messengerService);
 
-           //Act
-           await resultsService.QueueCsvGenerationMessage(specificationId);
+            //Act
+            await resultsService.QueueCsvGenerationMessage(specificationId);
 
-           //Assert
-           await calculationResultsRepository
-               .Received(1)
-               .CheckHasNewResultsForSpecificationIdAndTimePeriod(specificationId,
-                   Arg.Is<DateTimeOffset>(x => Math.Abs((DateTimeOffset.UtcNow.AddDays(-1) - x).TotalSeconds) < 3),
-                   Arg.Is<DateTimeOffset>(x => Math.Abs((DateTimeOffset.UtcNow.AddDays(1) - x).TotalSeconds) < 3));
+            //Assert
+            await calculationResultsRepository
+                .Received(1)
+                .CheckHasNewResultsForSpecificationIdAndTimePeriod(specificationId,
+                    Arg.Is<DateTimeOffset>(x => Math.Abs((DateTimeOffset.UtcNow.AddDays(-1) - x).TotalSeconds) < 3),
+                    Arg.Is<DateTimeOffset>(x => Math.Abs((DateTimeOffset.UtcNow.AddDays(1) - x).TotalSeconds) < 3));
 
-           logger
-               .Received(expectedOperations)
-               .Information($"Found new calculation results for specification id '{specificationId}'");
+            logger
+                .Received(expectedOperations)
+                .Information($"Found new calculation results for specification id '{specificationId}'");
 
-           await messengerService
-               .Received(expectedOperations)
-               .SendToQueue(ServiceBusConstants.QueueNames.CalculationResultsCsvGeneration,
-                   string.Empty,
-                   Arg.Is<Dictionary<string, string>>(x => x.Count(y => y.Key == "specification-id" && y.Value == specificationId) == 1));
-       }
+            await messengerService
+                .Received(expectedOperations)
+                .SendToQueue(ServiceBusConstants.QueueNames.CalculationResultsCsvGeneration,
+                    string.Empty,
+                    Arg.Is<Dictionary<string, string>>(x => x.Count(y => y.Key == "specification-id" && y.Value == specificationId) == 1));
+        }
 
-       #region "Dependency creation"
+        #region "Dependency creation"
         static ResultsService CreateResultsService(ILogger logger = null,
             ICalculationResultsRepository resultsRepository = null,
             IMapper mapper = null,
@@ -1290,7 +1288,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                 }
             };
         }
-        
+
         #endregion "Test data"
     }
 }

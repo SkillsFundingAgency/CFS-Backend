@@ -1,9 +1,9 @@
 ﻿using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Common.ApiClient.Calcs;
+using CalculateFunding.Common.ApiClient.Calcs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.Utility;
-using CalculateFunding.Models.Calcs;
 using CalculateFunding.Services.Results.Interfaces;
 
 namespace CalculateFunding.Services.Results.Repositories
@@ -26,9 +26,9 @@ namespace CalculateFunding.Services.Results.Repositories
         {
             Guard.ArgumentNotNull(calculationId, nameof(calculationId));
 
-            ApiResponse<Common.ApiClient.Calcs.Models.Calculation> apiResponse = await _calcsApiClient.GetCalculationById(calculationId);
+            ApiResponse<Calculation> apiResponse = await _calcsApiClient.GetCalculationById(calculationId);
 
-            return _mapper.Map<Calculation>(apiResponse?.Content);
+            return apiResponse?.Content;
         }
     }
 }

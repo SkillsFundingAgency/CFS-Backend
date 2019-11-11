@@ -1,5 +1,5 @@
 ﻿using System.Threading.Tasks;
-using CalculateFunding.Models.Calcs;
+using CalculateFunding.Common.ApiClient.Calcs.Models;
 
 namespace CalculateFunding.Services.Results.Interfaces
 {
