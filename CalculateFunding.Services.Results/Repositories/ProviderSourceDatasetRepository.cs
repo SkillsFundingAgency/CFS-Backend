@@ -50,7 +50,7 @@ namespace CalculateFunding.Services.Results.Repositories
                 }
             };
 
-            return _cosmosRepository.QueryPartitionedEntity<ProviderSourceDataset>(cosmosDbQuery, -1, providerId);
+            return _cosmosRepository.QueryPartitionedEntity<ProviderSourceDataset>(cosmosDbQuery, partitionKey: providerId);
         }
 
         public async Task<IEnumerable<string>> GetAllScopedProviderIdsForSpecificationId(string specificationId)

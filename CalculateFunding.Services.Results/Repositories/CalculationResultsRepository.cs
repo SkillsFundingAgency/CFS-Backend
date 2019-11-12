@@ -174,7 +174,7 @@ namespace CalculateFunding.Services.Results.Repositories
             IEnumerable<ProviderResult> results;
             if (maxItemCount > 0)
             {
-                results = await _cosmosRepository.Query<ProviderResult>(x => x.Content.SpecificationId == specificationId , maxItemCount);
+                results = await _cosmosRepository.Query<ProviderResult>(x => x.Content.SpecificationId == specificationId, maxItemCount: maxItemCount);
             }
             else
             {

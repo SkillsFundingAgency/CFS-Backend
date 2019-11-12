@@ -68,7 +68,7 @@ namespace CalculateFunding.Services.Specs
             IEnumerable<Specification> specifications;
             if (query == null)
             {
-                specifications = await _repository.Query<Specification>(x => true);
+                specifications = await _repository.Query<Specification>();
             }
             else
             {
