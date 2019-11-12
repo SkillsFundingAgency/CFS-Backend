@@ -16,7 +16,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Polly.Bulkhead;
 using Serilog;
-using StackExchange.Redis;
 
 namespace CalculateFunding.Services.Publishing.IoC
 {
@@ -39,7 +38,7 @@ namespace CalculateFunding.Services.Publishing.IoC
 
                 return options;
             });
-            
+
             serviceCollection.AddSingleton<ISpecificationPublishingService, SpecificationPublishingService>();
             serviceCollection.AddSingleton<IProviderFundingPublishingService, ProviderFundingPublishingService>();
             serviceCollection.AddSingleton<IHealthChecker, ProviderFundingPublishingService>();
@@ -55,21 +54,21 @@ namespace CalculateFunding.Services.Publishing.IoC
             serviceCollection.AddSingleton<IPublishedProviderContentPersistanceService, PublishedProviderContentPersistanceService>();
 
 
-            serviceCollection.AddTransient<ICreateJobsForSpecifications<RefreshFundingJobDefinition>>(ctx =>
+            serviceCollection.AddSingleton<ICreateJobsForSpecifications<RefreshFundingJobDefinition>>(ctx =>
             {
                 return new JobCreationForSpecification<RefreshFundingJobDefinition>(ctx.GetService<IJobsApiClient>(),
                     ctx.GetService<IPublishingResiliencePolicies>(),
                     ctx.GetService<ILogger>(),
                     new RefreshFundingJobDefinition());
             });
-            serviceCollection.AddTransient<ICreateJobsForSpecifications<PublishProviderFundingJobDefinition>>(ctx =>
+            serviceCollection.AddSingleton<ICreateJobsForSpecifications<PublishProviderFundingJobDefinition>>(ctx =>
             {
                 return new JobCreationForSpecification<PublishProviderFundingJobDefinition>(ctx.GetService<IJobsApiClient>(),
                     ctx.GetService<IPublishingResiliencePolicies>(),
                     ctx.GetService<ILogger>(),
                     new PublishProviderFundingJobDefinition());
             });
-            serviceCollection.AddTransient<ICreateJobsForSpecifications<ApproveFundingJobDefinition>>(ctx =>
+            serviceCollection.AddSingleton<ICreateJobsForSpecifications<ApproveFundingJobDefinition>>(ctx =>
             {
                 return new JobCreationForSpecification<ApproveFundingJobDefinition>(ctx.GetService<IJobsApiClient>(),
                     ctx.GetService<IPublishingResiliencePolicies>(),
