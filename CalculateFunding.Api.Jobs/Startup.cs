@@ -119,6 +119,7 @@ namespace CalculateFunding.Api.Jobs
 
             builder.AddSingleton(mappingConfig.CreateMapper());
 
+            builder.AddApplicationInsightsTelemetry();
             builder.AddApplicationInsightsForApiApp(Configuration, "CalculateFunding.Api.Jobs");
             builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Api.Jobs");
             builder.AddLogging("CalculateFunding.Api.Jobs");

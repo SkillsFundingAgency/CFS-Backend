@@ -1,7 +1,10 @@
 using CalculateFunding.Api.Calcs.Controllers;
 using CalculateFunding.Tests.Common;
 using FluentAssertions;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Hosting.Internal;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
 
@@ -14,6 +17,7 @@ namespace CalculateFunding.Api.Calcs.UnitTests
         public void ConfigureServices_RegisterDependenciesCorrectly()
         {
             // Arrange
+            Services.AddSingleton<IHostingEnvironment>(new HostingEnvironment());
             IConfigurationRoot configuration = CreateTestConfiguration();
             Startup target = new Startup(configuration);
 

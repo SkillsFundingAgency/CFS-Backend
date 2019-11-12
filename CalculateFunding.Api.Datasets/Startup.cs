@@ -225,6 +225,7 @@ namespace CalculateFunding.Api.Datasets
 
             builder.AddFeatureToggling(Configuration);
 
+            builder.AddApplicationInsightsTelemetry();
             builder.AddApplicationInsightsForApiApp(Configuration, "CalculateFunding.Api.Datasets");
             builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Api.Datasets");
             builder.AddLogging("CalculateFunding.Api.Datasets");

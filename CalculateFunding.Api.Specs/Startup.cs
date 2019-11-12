@@ -176,6 +176,7 @@ namespace CalculateFunding.Api.Specs
                 };
             });
 
+            builder.AddApplicationInsightsTelemetry();
             builder.AddApplicationInsightsForApiApp(Configuration, "CalculateFunding.Api.Specs");
             builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Apis.Specs");
             builder.AddLogging("CalculateFunding.Apis.Specs");

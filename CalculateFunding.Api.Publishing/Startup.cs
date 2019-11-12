@@ -128,6 +128,7 @@ namespace CalculateFunding.Api.Publishing
 
             builder.AddCaching(Configuration);
             builder.AddSearch(Configuration);
+            builder.AddApplicationInsightsTelemetry();
             builder.AddApplicationInsightsForApiApp(Configuration, "CalculateFunding.Api.Publishing");
             builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Api.Publishing");
             builder.AddLogging("CalculateFunding.Api.Publishing");

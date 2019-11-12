@@ -20,6 +20,7 @@ using CalculateFunding.Services.Policy.Interfaces;
 using CalculateFunding.Services.Policy.Validators;
 using CalculateFunding.Services.Providers.Validators;
 using FluentValidation;
+using Microsoft.ApplicationInsights.AspNetCore.Extensions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -208,10 +209,11 @@ namespace CalculateFunding.Api.Policy
 
             builder.AddCaching(Configuration);
 
+            builder.AddApplicationInsightsTelemetry();
             builder.AddApplicationInsightsForApiApp(Configuration, "CalculateFunding.Api.Policy");
             builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Api.Policy");
             builder.AddLogging("CalculateFunding.Api.Policy");
-            builder.AddTelemetry();
+            builder.AddTelemetry();            
 
             builder.AddApiKeyMiddlewareSettings((IConfigurationRoot)Configuration);
 

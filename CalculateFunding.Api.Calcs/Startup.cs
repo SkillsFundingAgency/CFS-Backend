@@ -32,6 +32,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Polly.Bulkhead;
+using Microsoft.ApplicationInsights.AspNetCore.Extensions;
 
 namespace CalculateFunding.Api.Calcs
 {
@@ -193,6 +194,7 @@ namespace CalculateFunding.Api.Calcs
 
             builder.AddCaching(Configuration);
 
+            builder.AddApplicationInsightsTelemetry();
             builder.AddApplicationInsightsForApiApp(Configuration, "CalculateFunding.Api.Calcs");
             builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Api.Calcs");
             builder.AddLogging("CalculateFunding.Api.Calcs");
