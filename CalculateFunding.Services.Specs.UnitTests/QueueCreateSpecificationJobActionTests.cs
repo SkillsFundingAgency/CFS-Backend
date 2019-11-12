@@ -84,6 +84,12 @@ namespace CalculateFunding.Services.Specs.UnitTests
 
             string fundingPeriodId = NewRandomString();
 
+            uint templateCalculationId1 = NewRandomUint();
+            uint templateCalculationId2 = NewRandomUint();
+            uint templateCalculationId3 = NewRandomUint();
+            uint templateCalculationId4 = NewRandomUint();
+            uint templateCalculationId5 = NewRandomUint();
+
             SpecificationVersion specificationVersion = NewSpecificationVersion(_ => _.WithSpecificationId(specificationId)
                 .WithFundingStreamsIds(fundingStreamIds)
                 .WithFundingPeriodId(fundingPeriodId));
@@ -97,8 +103,8 @@ namespace CalculateFunding.Services.Specs.UnitTests
                     .WithFundingStreamId(fundingSteam1)
                     .WithFundingPeriodId(fundingPeriodId)),
                 NewTemplateMetadataContents(_ => _.WithFundingLines(
-                    NewFundingLine(fl => fl.WithCalculations(NewCalculation(cal => cal.WithReferenceData(NewReferenceData(), NewReferenceData())))),
-                    NewFundingLine(fl => fl.WithCalculations(NewCalculation(), NewCalculation()))))); //item count 5
+                    NewFundingLine(fl => fl.WithCalculations(NewCalculation(cal => cal.WithReferenceData(NewReferenceData(), NewReferenceData()).WithTemplateCalculationId(templateCalculationId1)))),
+                    NewFundingLine(fl => fl.WithCalculations(NewCalculation(cal => cal.WithTemplateCalculationId(templateCalculationId2)), NewCalculation(cal => cal.WithTemplateCalculationId(templateCalculationId3))))))); //item count 5
             AndTheFundingConfigurationForPeriodAndStream(fundingPeriodId, fundingSteam2, NewFundingConfiguration(), NewTemplateMetadataContents());
             AndTheFundingConfigurationForPeriodAndStream(fundingPeriodId, fundingSteam3,
                 NewFundingConfiguration(_ => _.WithDefaultTemplateVersion(templateVersion2)
@@ -106,8 +112,8 @@ namespace CalculateFunding.Services.Specs.UnitTests
                     
                     .WithFundingPeriodId(fundingPeriodId)),
                 NewTemplateMetadataContents(_ => _.WithFundingLines(
-                    NewFundingLine(fl => fl.WithCalculations(NewCalculation(cal => cal.WithReferenceData(NewReferenceData())))),
-                    NewFundingLine(fl => fl.WithCalculations(NewCalculation()))))); //item count 3
+                    NewFundingLine(fl => fl.WithCalculations(NewCalculation(cal => cal.WithReferenceData(NewReferenceData()).WithTemplateCalculationId(templateCalculationId4)))),
+                    NewFundingLine(fl => fl.WithCalculations(NewCalculation(cal => cal.WithTemplateCalculationId(templateCalculationId5))))))); //item count 3
             AndTheJobIsCreateForARequestModelMatching(CreateJobModelMatching(_ => _.JobDefinitionId == JobConstants.DefinitionNames.CreateSpecificationJob &&
                                                                                   HasProperty(_, SpecificationId, specificationId) &&
                                                                                   _.ParentJobId == null),
@@ -150,6 +156,11 @@ namespace CalculateFunding.Services.Specs.UnitTests
         private static string NewRandomString()
         {
             return new RandomString();
+        }
+
+        private static uint NewRandomUint()
+        {
+            return (uint) new RandomNumberBetween(0, int.MaxValue);
         }
 
         private bool HasProperty(JobCreateModel jobCreateModel,

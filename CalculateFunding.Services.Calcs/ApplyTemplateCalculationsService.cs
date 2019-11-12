@@ -113,7 +113,7 @@ namespace CalculateFunding.Services.Calcs
 
                 IEnumerable<Calculation> flattenedCalculations = flattenedFundingLines.SelectMany(_ => _.Calculations.Flatten(cal => cal.Calculations)) ?? new Calculation[0];
 
-                IEnumerable<Calculation> uniqueflattenedCalculations = flattenedCalculations.GroupBy(x => x.TemplateCalculationId).Select(x => x.First());
+                IEnumerable<Calculation> uniqueflattenedCalculations = flattenedCalculations.GroupBy(x => x.TemplateCalculationId).Select(x => x.FirstOrDefault());
 
                 Func<TemplateMappingItem, Task<bool>> isMissingCalculation = IsMissingCalculation(specificationId,
                         author,

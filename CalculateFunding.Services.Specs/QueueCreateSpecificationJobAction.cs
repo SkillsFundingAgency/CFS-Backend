@@ -117,10 +117,13 @@ namespace CalculateFunding.Services.Specs
             IEnumerable<FundingLine> flattenedFundingLines = templateContents?.Content?.RootFundingLines.Flatten(_ => _.FundingLines)
                                                              ?? new FundingLine[0];
 
-            int itemCount = flattenedFundingLines.Sum(_ =>
-                _.Calculations.Count() + _.Calculations.Sum(
-                    cal => (cal.ReferenceData?.Count())
-                        .GetValueOrDefault()));
+            IEnumerable<Calculation> flattenedCalculations = flattenedFundingLines.SelectMany(_ => _.Calculations.Flatten(cal => cal.Calculations)) ?? new Calculation[0];
+
+            IEnumerable<Calculation> uniqueflattenedCalculations = flattenedCalculations.GroupBy(x => x.TemplateCalculationId).Select(x => x.FirstOrDefault());
+
+            int itemCount = uniqueflattenedCalculations?.Count() + uniqueflattenedCalculations?.Sum(
+                       cal => (cal.ReferenceData?.Count())
+                           .GetValueOrDefault()) ?? 0;
 
             if (itemCount == 0)
             {
