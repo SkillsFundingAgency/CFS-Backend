@@ -3,11 +3,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using AutoMapper;
 using CalculateFunding.Common.ApiClient;
-using CalculateFunding.Common.ApiClient.Bearer;
-using CalculateFunding.Common.ApiClient.Profiling;
-using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.CosmosDb;
-using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Interfaces;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Utility;
@@ -30,9 +26,7 @@ using CalculateFunding.Services.Results.Repositories;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Polly;
 using Polly.Bulkhead;
-using Serilog;
 using AzureStorage = CalculateFunding.Services.Core.AzureStorage;
 
 [assembly: FunctionsStartup(typeof(CalculateFunding.Functions.Results.Startup))]
@@ -152,37 +146,6 @@ namespace CalculateFunding.Functions.Results
             builder.AddFeatureToggling(config);
 
             builder.AddSingleton<ICancellationTokenProvider, InactiveCancellationTokenProvider>();
-
-            builder.AddSingleton<IAzureBearerTokenProxy, AzureBearerTokenProxy>();
-
-            builder.AddHttpClient(HttpClientKeys.Profiling,
-                c =>
-                {
-                    ApiClientConfigurationOptions opts = new ApiClientConfigurationOptions();
-                    config.Bind("providerProfilingClient", opts);
-
-                    SetDefaultApiClientConfigurationOptions(c, opts, builder);
-                })
-                .ConfigurePrimaryHttpMessageHandler(() => new ApiClientHandler())
-                .AddTransientHttpErrorPolicy(c => c.WaitAndRetryAsync(retryTimeSpans))
-                .AddTransientHttpErrorPolicy(c => c.CircuitBreakerAsync(numberOfExceptionsBeforeCircuitBreaker, circuitBreakerFailurePeriod));
-
-            builder.AddSingleton<IProfilingApiClient>((ctx) =>
-            {
-                IHttpClientFactory httpClientFactory = ctx.GetService<IHttpClientFactory>();
-                ILogger logger = ctx.GetService<ILogger>();
-                ICancellationTokenProvider cancellationTokenProvider = ctx.GetService<ICancellationTokenProvider>();
-
-                IAzureBearerTokenProxy azureBearerTokenProxy = ctx.GetService<IAzureBearerTokenProxy>();
-                ICacheProvider cacheProvider = ctx.GetService<ICacheProvider>();
-
-                AzureBearerTokenOptions azureBearerTokenOptions = new AzureBearerTokenOptions();
-                config.Bind("providerProfilingAzureBearerTokenOptions", azureBearerTokenOptions);
-
-                AzureBearerTokenProvider bearerTokenProvider = new AzureBearerTokenProvider(azureBearerTokenProxy, cacheProvider, azureBearerTokenOptions);
-
-                return new ProfilingApiClient(httpClientFactory, HttpClientKeys.Profiling, logger, bearerTokenProvider, cancellationTokenProvider);
-            });
 
             PolicySettings policySettings = builder.GetPolicySettings(config);
             ResiliencePolicies resultsResiliencePolicies = CreateResiliencePolicies(policySettings);
