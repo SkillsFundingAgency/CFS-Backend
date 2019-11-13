@@ -96,7 +96,7 @@ namespace CalculateFunding.Api.Datasets
                 .AddSingleton<IJobManagement, JobManagement>();
 
             builder
-                .AddSingleton<IProcessDatasetService, ProcessDatasetService>()
+                .AddScoped<IProcessDatasetService, ProcessDatasetService>()
                 .AddSingleton<IHealthChecker, ProcessDatasetService>();
 
             builder
