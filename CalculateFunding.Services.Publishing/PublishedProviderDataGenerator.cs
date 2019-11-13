@@ -52,7 +52,7 @@ namespace CalculateFunding.Services.Publishing
                     GeneratorModels.FundingValue fundingValue = _fundingLineTotalAggregator.GenerateTotals(templateMetadata, templateMapping, calculationResultsForProvider.Results);
 
                     // Get funding lines
-                    IEnumerable<GeneratorModels.FundingLine> fundingLines = fundingValue.FundingLines?.Flatten(_ => _.FundingLines) ?? new GeneratorModels.FundingLine[0];
+                    IEnumerable<GeneratorModels.FundingLine> fundingLines = fundingValue.FundingLines?.Flatten(_ => _.FundingLines).DistinctBy(_ => _.TemplateLineId) ?? new GeneratorModels.FundingLine[0];
 
                     generatedProviderResult.FundingLines = _mapper.Map<IEnumerable<Models.Publishing.FundingLine>>(fundingLines);
 
@@ -62,7 +62,7 @@ namespace CalculateFunding.Services.Publishing
                         .Sum(p => p.Value);
 
                     // Get calculations
-                    IEnumerable<GeneratorModels.Calculation> fundingCalculations = fundingLines?.SelectMany(_ => _.Calculations.Flatten(calc => calc.Calculations)) ?? new GeneratorModels.Calculation[0];
+                    IEnumerable<GeneratorModels.Calculation> fundingCalculations = fundingLines?.SelectMany(_ => _.Calculations.Flatten(calc => calc.Calculations)).DistinctBy(_ => _.TemplateCalculationId) ?? new GeneratorModels.Calculation[0];
 
                     generatedProviderResult.Calculations = _mapper.Map<IEnumerable<FundingCalculation>>(fundingCalculations);
 

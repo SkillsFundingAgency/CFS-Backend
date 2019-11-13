@@ -71,12 +71,13 @@ namespace CalculateFunding.Services.Publishing
                     throw new Exception($"Missing PublishedProvider result for organisation group '{organisationGroup.OrganisationGroupResult.GroupReason}' '{organisationGroup.OrganisationGroupResult.GroupTypeCode}' '{organisationGroup.OrganisationGroupResult.GroupTypeIdentifier}' '{organisationGroup.OrganisationGroupResult.IdentifierValue}'. Provider IDs={providerIdsString}");
                 }
 
-                IEnumerable<AggregateFundingLine> fundingLineAggregates = fundingValueAggregator.GetTotals(templateMetadataContents, publishedProviderVersionsForOrganisationGroup);
+                List<AggregateFundingLine> fundingLineAggregates = new List<AggregateFundingLine>(fundingValueAggregator.GetTotals(templateMetadataContents, publishedProviderVersionsForOrganisationGroup));
+
 
                 IEnumerable<Common.TemplateMetadata.Models.FundingLine> fundingLineDefinitons = templateMetadataContents.RootFundingLines.Flatten(_ => _.FundingLines) ?? Enumerable.Empty<Common.TemplateMetadata.Models.FundingLine>();
 
                 List<PublishingModels.FundingLine> fundingLines = GenerateFundingLines(fundingLineAggregates, fundingLineDefinitons);
-                List<PublishingModels.FundingCalculation> calculations = GenerateCalculations(fundingLineAggregates.SelectMany(c => c.Calculations));
+                List<PublishingModels.FundingCalculation> calculations = GenerateCalculations(fundingLineAggregates.Flatten(_ => _.FundingLines).SelectMany(c => c.Calculations));
 
                 // IEnumerable<Common.TemplateMetadata.Models.Calculation> calculationDefinitions = fundingLineDefinitons.SelectMany(_ => _.Calculations.Flatten(calculation => calculation.Calculations)) ?? new Calculation[0];
                 //IEnumerable<TemplateModels.ReferenceData> refernceData = calculations.Where(_ => _.ReferenceData != null)?.SelectMany(_ => _.ReferenceData) ?? new ReferenceData[0];
@@ -158,6 +159,11 @@ namespace CalculateFunding.Services.Publishing
 
             foreach (AggregateFundingLine aggregateFundingLine in fundingLineAggregates)
             {
+                if (aggregateFundingLine == null)
+                {
+                    throw new InvalidOperationException("Null aggregate funding line");
+                }
+
                 Common.TemplateMetadata.Models.FundingLine fundingLineDefinition = fundingLineDefinitons.FirstOrDefault(c => c.TemplateLineId == aggregateFundingLine.TemplateLineId);
                 if (fundingLineDefinition == null)
                 {
@@ -175,7 +181,7 @@ namespace CalculateFunding.Services.Publishing
 
                 fundingLines.Add(fundingline);
 
-                fundingline.DistributionPeriods = aggregateFundingLine.DistributionPeriods.ToList();
+                fundingline.DistributionPeriods = aggregateFundingLine.DistributionPeriods?.ToList();
 
                 if (aggregateFundingLine.FundingLines.AnyWithNullCheck())
                 {

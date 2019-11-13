@@ -32,7 +32,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Polly.Bulkhead;
-using Microsoft.ApplicationInsights.AspNetCore.Extensions;
 
 namespace CalculateFunding.Api.Calcs
 {
@@ -85,11 +84,11 @@ namespace CalculateFunding.Api.Calcs
                 .AddSingleton<ICalculationsRepository, CalculationsRepository>();
 
             builder
-               .AddSingleton<ICalculationService, CalculationService>()
+               .AddScoped<ICalculationService, CalculationService>()
                .AddSingleton<ICalculationNameInUseCheck, CalculationNameInUseCheck>()
                .AddSingleton<IInstructionAllocationJobCreation, InstructionAllocationJobCreation>()
                .AddSingleton<IHealthChecker, CalculationService>()
-               .AddSingleton<ICreateCalculationService, CreateCalculationService>();
+               .AddScoped<ICreateCalculationService, CreateCalculationService>();
 
             builder
                 .AddSingleton<ICalculationCodeReferenceUpdate, CalculationCodeReferenceUpdate>()
@@ -103,13 +102,13 @@ namespace CalculateFunding.Api.Calcs
                 .AddSingleton<IValidator<Calculation>, CalculationModelValidator>();
 
             builder
-               .AddSingleton<IValidator<CalculationCreateModel>, CalculationCreateModelValidator>();
+               .AddScoped<IValidator<CalculationCreateModel>, CalculationCreateModelValidator>();
 
             builder
-               .AddSingleton<IValidator<CalculationEditModel>, CalculationEditModelValidator>();
+               .AddScoped<IValidator<CalculationEditModel>, CalculationEditModelValidator>();
 
             builder
-                .AddSingleton<IPreviewService, PreviewService>()
+                .AddScoped<IPreviewService, PreviewService>()
                 .AddSingleton<IHealthChecker, PreviewService>();
 
             builder
@@ -130,7 +129,7 @@ namespace CalculateFunding.Api.Calcs
                .AddSingleton<ISpecificationRepository, SpecificationRepository>();
 
             builder
-                .AddSingleton<IBuildProjectsService, BuildProjectsService>()
+                .AddScoped<IBuildProjectsService, BuildProjectsService>()
                 .AddSingleton<IHealthChecker, BuildProjectsService>();
 
             builder

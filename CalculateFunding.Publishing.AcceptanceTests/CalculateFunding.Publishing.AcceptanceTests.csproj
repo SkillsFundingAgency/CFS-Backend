@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Resources\DSG1.0.json" />
     <None Remove="Resources\PSG-AY-1920-Information-Provider-1000201-1_0.json" />
     <None Remove="Resources\PSG-AY-1920-Information-Provider-1000202-1_0.json" />
     <None Remove="Resources\PSG-AY-1920-Payment-AcademyTrust-8000001-1_0.json" />
@@ -21,6 +22,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <SpecFlowObsoleteCodeBehindFiles Remove="Features\PublishingPsg - Copy.feature.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\DSG1.0.json" />
     <EmbeddedResource Include="Resources\PublishedFunding\PSG-AY-1920-Information-Provider-1000201-1_0.json" />
     <EmbeddedResource Include="Resources\PublishedFunding\PSG-AY-1920-Information-Provider-1000202-1_0.json" />
     <EmbeddedResource Include="Resources\PublishedFunding\PSG-AY-1920-Payment-AcademyTrust-8000001-1_0.json" />
@@ -53,6 +59,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="Features\PublishingDsg.feature.cs">
+      <DependentUpon>PublishingDsg.feature</DependentUpon>
+    </Compile>
     <Compile Update="Properties\Resources.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
@@ -65,6 +74,13 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <SpecFlowFeatureFiles Update="Features\PublishingDsg.feature">
+      <Visible>$(UsingMicrosoftNETSdk)</Visible>
+      <CodeBehindFile>%(RelativeDir)%(Filename).feature$(DefaultLanguageSourceExtension)</CodeBehindFile>
+    </SpecFlowFeatureFiles>
   </ItemGroup>
 
   <ProjectExtensions><VisualStudio><UserProperties /></VisualStudio></ProjectExtensions>

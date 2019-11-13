@@ -1,9 +1,7 @@
-﻿using System.Collections.Concurrent;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Models.Publishing;
-using Newtonsoft.Json;
 
 namespace CalculateFunding.Services.Publishing
 {
@@ -36,7 +34,11 @@ namespace CalculateFunding.Services.Publishing
                 provider.FundingLines?.ToList().ForEach(fundingLine => GetFundingLine(fundingLines, fundingLine));
             });
 
-            return templateMetadataContent.RootFundingLines?.Select(fundingLine => GetAggregateFundingLine(fundingLine));
+            var result = templateMetadataContent.RootFundingLines?.Select(fundingLine => GetAggregateFundingLine(fundingLine));
+
+            var r = new List<AggregateFundingLine>(result);
+
+            return r;
         }
 
         public void GetCalculation(Dictionary<uint, decimal> calculations, FundingCalculation calculation)
@@ -66,13 +68,13 @@ namespace CalculateFunding.Services.Publishing
         {
             if (aggregatedFundingLines.TryGetValue(key, out (decimal? Total, IEnumerable<Models.Publishing.DistributionPeriod> DistributionPeriods) aggregate))
             {
-                aggregate = (aggregate.Total + value, aggregate.DistributionPeriods );
+                aggregate = (aggregate.Total + value, aggregate.DistributionPeriods);
                 // aggregate the value
                 aggregatedFundingLines[key] = aggregate;
             }
             else
             {
-                aggregatedFundingLines.Add(key, ( value, distributionPeriods ));
+                aggregatedFundingLines.Add(key, (value, distributionPeriods));
             }
         }
 
@@ -109,11 +111,11 @@ namespace CalculateFunding.Services.Publishing
             if (aggregatedCalculations.TryGetValue(key, out (decimal Total, int Count) aggregate))
             {
                 // aggregate the value
-                aggregatedCalculations[key] = ( aggregate.Total + value, aggregate.Count + 1 );
+                aggregatedCalculations[key] = (aggregate.Total + value, aggregate.Count + 1);
             }
             else
             {
-                aggregatedCalculations.Add(key, ( value, 1 ));
+                aggregatedCalculations.Add(key, (value, 1));
             }
         }
 

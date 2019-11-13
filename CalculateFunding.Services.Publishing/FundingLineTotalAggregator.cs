@@ -103,7 +103,13 @@ namespace CalculateFunding.Services.Publishing
 
         private string GetCalculationId(TemplateMapping mapping, uint templateId)
         {
-            return mapping.TemplateMappingItems.SingleOrDefault(_ => _.TemplateId == templateId)?.CalculationId;
+            string calculationId = mapping.TemplateMappingItems.SingleOrDefault(_ => _.TemplateId == templateId)?.CalculationId;
+            if (string.IsNullOrWhiteSpace(calculationId))
+            {
+                throw new InvalidOperationException($"Unable to find calculation for templatecalculation ID {templateId}");
+            }
+
+            return calculationId;
         }
     }
 }

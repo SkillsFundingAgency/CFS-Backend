@@ -1,11 +1,10 @@
-﻿using CalculateFunding.Common.Utility;
-using CalculateFunding.Services.Core.Interfaces.AzureStorage;
-using Microsoft.Azure.Storage.Blob;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Utility;
+using CalculateFunding.Services.Core.Interfaces.AzureStorage;
+using Microsoft.Azure.Storage.Blob;
 
 namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 {
@@ -54,7 +53,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         {
             _files[blob.Name] = data;
 
-            //            File.WriteAllText($"c:\\dev\\output\\{blobName}.json", fileContents);
+            //File.WriteAllText($"c:\\dev\\output\\{blob.Name}.json", data);
 
             await Task.CompletedTask;
         }
