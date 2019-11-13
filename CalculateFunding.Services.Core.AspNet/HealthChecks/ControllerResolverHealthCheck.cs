@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using CalculateFunding.Common.Extensions;
 using CalculateFunding.Common.Models.HealthCheck;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace CalculateFunding.Services.Core.AspNet.HealthChecks
 {
@@ -32,13 +33,18 @@ namespace CalculateFunding.Services.Core.AspNet.HealthChecks
             {
                 try
                 {
-                    _serviceProvider.GetService(controllerType);
 
-                    serviceHealth.Dependencies.Add(new DependencyHealth
+                    using (IServiceScope scope = _serviceProvider.CreateScope())
                     {
-                        DependencyName = controllerType.GetFriendlyName(),
-                        HealthOk = true
-                    });
+                        scope.ServiceProvider.GetService(controllerType);
+
+                        serviceHealth.Dependencies.Add(new DependencyHealth
+                        {
+                            DependencyName = controllerType.GetFriendlyName(),
+                            HealthOk = true
+                        });  
+                    }
+                    
                 }
                 catch (Exception exception)
                 {

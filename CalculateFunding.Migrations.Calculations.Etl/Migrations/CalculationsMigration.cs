@@ -127,7 +127,7 @@ namespace CalculateFunding.Migrations.Calculations.Etl.Migrations
             Task<IEnumerable<TemplateMappingItem>> destinationTemplateMappingsQueryTask = GetTemplateMappingItemsInSpecification(destinationSpecification, _destinationClients);
             Task<ApiResponse<IEnumerable<CalculationCurrentVersion>>> sourceCalculationsQueryTask = _sourceClients.MakeCalculationsCall(
                 _ => _.GetCurrentCalculationsBySpecificationId(sourceSpecificationId));
-            Task<ApiResponse<IEnumerable<CalculationCurrentVersion>>> destinationCalculationsQueryTask = _sourceClients.MakeCalculationsCall(
+            Task<ApiResponse<IEnumerable<CalculationCurrentVersion>>> destinationCalculationsQueryTask = _destinationClients.MakeCalculationsCall(
                 _ => _.GetCurrentCalculationsBySpecificationId(destinationSpecificationId));
 
             WriteLine("Fetching template mappings and current calculation versions from source and destination specifications");
@@ -371,9 +371,11 @@ namespace CalculateFunding.Migrations.Calculations.Etl.Migrations
             }
         }
 
-        private Task<ApiResponse<IEnumerable<DatasetSpecificationRelationshipViewModel>>> GetSpecificationCurrentRelationshipsTask(string specificationId)
+        private Task<ApiResponse<IEnumerable<DatasetSpecificationRelationshipViewModel>>> GetSpecificationCurrentRelationshipsTask(
+            MigrationClients clients,
+            string specificationId)
         {
-            return _sourceClients.MakeDataSetsCall(_ => _.GetCurrentRelationshipsBySpecificationId(specificationId));
+            return clients.MakeDataSetsCall(_ => _.GetCurrentRelationshipsBySpecificationId(specificationId));
         }
 
         private Task<ApiResponse<SpecificationSummary>> GetSpecificationTask(string specificationId, MigrationClients migrationClients)
@@ -394,9 +396,9 @@ namespace CalculateFunding.Migrations.Calculations.Etl.Migrations
         private async Task<bool> HaveIncompatibleDataSources(string sourceSpecificationId, string destinationSpecificationId)
         {
             Task<ApiResponse<IEnumerable<DatasetSpecificationRelationshipViewModel>>> sourceRelationshipsTask =
-                GetSpecificationCurrentRelationshipsTask(sourceSpecificationId);
+                GetSpecificationCurrentRelationshipsTask(_sourceClients, sourceSpecificationId);
             Task<ApiResponse<IEnumerable<DatasetSpecificationRelationshipViewModel>>> destinationRelationshipsTask =
-                GetSpecificationCurrentRelationshipsTask(destinationSpecificationId);
+                GetSpecificationCurrentRelationshipsTask(_destinationClients, destinationSpecificationId);
 
             await TaskHelper.WhenAllAndThrow(sourceRelationshipsTask, destinationRelationshipsTask);
 

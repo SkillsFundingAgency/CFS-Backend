@@ -4,7 +4,9 @@ using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Services.Core.AspNet.HealthChecks;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
+using Microsoft.AspNetCore.Identity.UI.V3.Pages.Internal;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 
@@ -20,6 +22,19 @@ namespace CalculateFunding.Services.Core.AspNet.UnitTests.HealthChecks
         public void SetUp()
         {
             _services = Substitute.For<IServiceProvider>();
+
+            IServiceScopeFactory factory = Substitute.For<IServiceScopeFactory>();
+            IServiceScope scope = Substitute.For<IServiceScope>();
+
+            _services.GetService(typeof(IServiceScopeFactory))
+                .Returns(factory);
+            
+            factory.CreateScope()
+                .Returns(scope);
+            
+            scope.ServiceProvider
+                .Returns(_services);
+            
             _healthCheck = new ControllerResolverHealthCheck(_services);
         }
 
