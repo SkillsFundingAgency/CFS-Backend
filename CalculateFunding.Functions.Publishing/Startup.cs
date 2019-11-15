@@ -31,6 +31,7 @@ using CalculateFunding.Services.Publishing.Specifications;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Http;
 using Polly;
 using Polly.Bulkhead;
 using Serilog;
@@ -267,6 +268,9 @@ namespace CalculateFunding.Functions.Publishing
             builder.AddSingleton<IPublishingResiliencePolicies>(publishingResiliencePolicies);
 
             builder.AddSingleton<IJobHelperResiliencePolicies>(publishingResiliencePolicies);
+
+            // Fix recommended by Microsoft for issues with disposed scopes when running in functions in the cloud
+            builder.Configure<HttpClientFactoryOptions>(options => options.SuppressHandlerScope = true);
 
             builder.AddSpecificationsInterServiceClient(config);
             builder.AddProvidersInterServiceClient(config);
