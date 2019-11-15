@@ -132,7 +132,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Validators
         }
 
         [TestMethod]
-        public void Validate_GivenEmptyDescription_ValidIsFalse()
+        public void Validate_GivenEmptyDescription_ValidIsTrue()
         {
             //Arrange
             SpecificationEditModel model = CreateModel();
@@ -148,13 +148,13 @@ namespace CalculateFunding.Services.Specs.UnitTests.Validators
             result
                 .IsValid
                 .Should()
-                .BeFalse();
+                .BeTrue();
 
             result
                 .Errors
                 .Count
                 .Should()
-                .Be(1);
+                .Be(0);
         }
 
         [TestMethod]

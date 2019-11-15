@@ -18,14 +18,9 @@ namespace CalculateFunding.Services.Specs.Validators
             IPoliciesApiClient policiesApiClient
             )
         {
-            
             _specificationsRepository = specificationsRepository;
             _providersApiClient = providersApiClient;
             _policiesApiClient = policiesApiClient;
-
-            RuleFor(model => model.Description)
-               .NotEmpty()
-               .WithMessage("You must give a description for the specification");
 
             RuleFor(model => model.FundingPeriodId)
                 .NotEmpty()

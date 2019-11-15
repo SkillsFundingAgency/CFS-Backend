@@ -33,10 +33,6 @@ namespace CalculateFunding.Services.Specs.Validators
             _policiesApiClient = policiesApiClient;
             _policiesApiClientPolicy = resiliencePolicies.PoliciesApiClient;
 
-            RuleFor(model => model.Description)
-               .NotEmpty()
-               .WithMessage("You must give a description for the specification");
-
             RuleFor(model => model.FundingPeriodId)
                 .NotEmpty()
                 .WithMessage("Null or empty academic year id provided")
