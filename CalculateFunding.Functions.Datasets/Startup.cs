@@ -69,7 +69,7 @@ namespace CalculateFunding.Functions.Datasets
                .AddSingleton<IDefinitionsService, DefinitionsService>();
 
             builder
-                .AddSingleton<IDatasetService, DatasetService>();
+                .AddScoped<IDatasetService, DatasetService>();
 
             builder
                 .AddSingleton<IJobManagement, JobManagement>();
@@ -102,7 +102,7 @@ namespace CalculateFunding.Functions.Datasets
                 .AddSingleton<IDefinitionChangesDetectionService, DefinitionChangesDetectionService>();
 
             builder
-                .AddSingleton<IDatasetDefinitionNameChangeProcessor, DatasetDefinitionNameChangeProcessor>();
+                .AddScoped<IDatasetDefinitionNameChangeProcessor, DatasetDefinitionNameChangeProcessor>();
 
             builder
                 .AddSingleton<IBlobClient, BlobClient>((ctx) =>

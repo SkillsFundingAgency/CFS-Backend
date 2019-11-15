@@ -62,7 +62,7 @@ namespace CalculateFunding.Functions.Calcs
             builder.AddSingleton<OnDataDefinitionChanges>();
             builder.AddSingleton<OnApplyTemplateCalculations>();
             builder.AddSingleton<OnApplyTemplateCalculationsFailure>();
-            builder.AddSingleton<IApplyTemplateCalculationsService, ApplyTemplateCalculationsService>();
+            builder.AddScoped<IApplyTemplateCalculationsService, ApplyTemplateCalculationsService>();
             builder.AddSingleton<ICalculationsRepository, CalculationsRepository>();
             builder.AddSingleton<ITemplateContentsCalculationQuery, TemplateContentsCalculationQuery>();
             builder.AddSingleton<IApplyTemplateCalculationsJobTrackerFactory, ApplyTemplateCalculationsJobTrackerFactory>();
@@ -85,14 +85,14 @@ namespace CalculateFunding.Functions.Calcs
             builder.AddSingleton<ISourceFileGeneratorProvider, SourceFileGeneratorProvider>();
             builder.AddSingleton<IValidator<PreviewRequest>, PreviewRequestModelValidator>();
             builder.AddSingleton<ISpecificationRepository, SpecificationRepository>();
-            builder.AddSingleton<IBuildProjectsService, BuildProjectsService>();
+            builder.AddScoped<IBuildProjectsService, BuildProjectsService>();
             builder.AddSingleton<IBuildProjectsRepository, BuildProjectsRepository>();
             builder.AddSingleton<ICodeMetadataGeneratorService, ReflectionCodeMetadataGenerator>();
             builder.AddSingleton<ICancellationTokenProvider, InactiveCancellationTokenProvider>();
             builder.AddSingleton<ISourceCodeService, SourceCodeService>();
-            builder.AddSingleton<IJobHelperService, JobHelperService>();
+            builder.AddScoped<IJobHelperService, JobHelperService>();
             builder
-               .AddSingleton<IDatasetDefinitionFieldChangesProcessor, DatasetDefinitionFieldChangesProcessor>();
+               .AddScoped<IDatasetDefinitionFieldChangesProcessor, DatasetDefinitionFieldChangesProcessor>();
 
             builder.AddSingleton<ICalculationEngineRunningChecker, CalculationEngineRunningChecker>();
 
