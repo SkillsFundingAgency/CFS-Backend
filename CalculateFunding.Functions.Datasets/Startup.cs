@@ -75,7 +75,7 @@ namespace CalculateFunding.Functions.Datasets
                 .AddSingleton<IJobManagement, JobManagement>();
 
             builder
-                .AddSingleton<IProcessDatasetService, ProcessDatasetService>();
+                .AddScoped<IProcessDatasetService, ProcessDatasetService>();
 
             builder
               .AddSingleton<IValidator<CreateNewDatasetModel>, CreateNewDatasetModelValidator>();

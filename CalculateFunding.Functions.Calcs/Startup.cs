@@ -66,15 +66,15 @@ namespace CalculateFunding.Functions.Calcs
             builder.AddSingleton<ICalculationsRepository, CalculationsRepository>();
             builder.AddSingleton<ITemplateContentsCalculationQuery, TemplateContentsCalculationQuery>();
             builder.AddSingleton<IApplyTemplateCalculationsJobTrackerFactory, ApplyTemplateCalculationsJobTrackerFactory>();
-            builder.AddSingleton<ICalculationService, CalculationService>()
-                .AddSingleton<IInstructionAllocationJobCreation, InstructionAllocationJobCreation>()
-                .AddSingleton<ICreateCalculationService, CreateCalculationService>();
+            builder.AddScoped<ICalculationService, CalculationService>()
+                .AddScoped<IInstructionAllocationJobCreation, InstructionAllocationJobCreation>()
+                .AddScoped<ICreateCalculationService, CreateCalculationService>();
             builder.AddSingleton<ICalculationNameInUseCheck, CalculationNameInUseCheck>();
             builder.AddSingleton<ICalculationsSearchService, CalculationSearchService>();
             builder.AddSingleton<ICalculationCodeReferenceUpdate, CalculationCodeReferenceUpdate>();
             builder.AddSingleton<ITokenChecker, TokenChecker>();
             builder.AddSingleton<IValidator<Calculation>, CalculationModelValidator>();
-            builder.AddSingleton<IPreviewService, PreviewService>();
+            builder.AddScoped<IPreviewService, PreviewService>();
             builder.AddSingleton<ICompilerFactory, CompilerFactory>();
             builder.AddSingleton<IDatasetRepository, DatasetRepository>();
             builder.AddSingleton<IJobService, JobService>();
@@ -96,10 +96,10 @@ namespace CalculateFunding.Functions.Calcs
 
             builder.AddSingleton<ICalculationEngineRunningChecker, CalculationEngineRunningChecker>();
 
-            builder.AddSingleton<IValidator<CalculationCreateModel>, CalculationCreateModelValidator>();
+            builder.AddScoped<IValidator<CalculationCreateModel>, CalculationCreateModelValidator>();
 
             builder
-              .AddSingleton<IValidator<CalculationEditModel>, CalculationEditModelValidator>();
+              .AddScoped<IValidator<CalculationEditModel>, CalculationEditModelValidator>();
 
             builder.AddSingleton<ISourceFileRepository, SourceFileRepository>(ctx =>
             {
