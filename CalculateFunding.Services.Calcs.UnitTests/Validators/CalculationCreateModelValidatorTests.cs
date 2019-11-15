@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Calcs;
@@ -33,7 +35,11 @@ namespace CalculateFunding.Services.Calcs.Validators
             result
                 .IsValid
                 .Should()
-                .BeFalse();
+                .BeFalse();         
+
+            result.Errors
+               .Should()
+               .Contain(_ => _.ErrorMessage == "Null or empty calculation name provided.");
         }
 
         [TestMethod]
@@ -52,7 +58,11 @@ namespace CalculateFunding.Services.Calcs.Validators
             result
                 .IsValid
                 .Should()
-                .BeFalse();
+                .BeFalse();           
+
+            result.Errors
+                .Should()
+                .Contain(_ => _.ErrorMessage == "'Specification Id' must not be empty.");
         }
 
         [TestMethod]
@@ -72,6 +82,11 @@ namespace CalculateFunding.Services.Calcs.Validators
                 .IsValid
                 .Should()
                 .BeFalse();
+
+
+            result.Errors
+                .Should()
+                .Contain(_ => _.ErrorMessage == "Null or empty funding stream id provided.");
         }
         
         [TestMethod]
@@ -115,6 +130,10 @@ namespace CalculateFunding.Services.Calcs.Validators
                 .IsValid
                 .Should()
                 .BeFalse();
+
+            result.Errors
+               .Should()
+               .Contain(_ => _.ErrorMessage == "Null value type was provided.");
         }
 
         [TestMethod]
@@ -134,6 +153,11 @@ namespace CalculateFunding.Services.Calcs.Validators
                 .IsValid
                 .Should()
                 .BeFalse();
+
+            result.Errors
+              .Should()
+              .Contain(_ => _.ErrorMessage == "Null or empty source code provided.");
+
         }
 
         [TestMethod]
@@ -159,38 +183,11 @@ namespace CalculateFunding.Services.Calcs.Validators
                 .IsValid
                 .Should()
                 .BeFalse();
-        }
-
-        [TestMethod]
-        public async Task ValidateAsync_WhenSourceCodeDoesNotCompile_ValidIsFalse()
-        {
-            //Arrange
-            CalculationCreateModel model = CreateModel();
-
-            PreviewResponse previewResponse = new PreviewResponse
-            {
-                CompilerOutput = new Build
-                {
-                    CompilerMessages = new List<CompilerMessage>
-                    {
-                        new CompilerMessage { Message = "Failed" }
-                    }
-                }
-            };
-
-            IPreviewService previewService = CreatePreviewService(previewResponse);
            
-            CalculationCreateModelValidator validator = CreateValidator(previewService: previewService);
-
-            //Act
-            ValidationResult result = await validator.ValidateAsync(model);
-
-            //Assert
-            result
-                .IsValid
-                .Should()
-                .BeFalse();
-        }
+            result.Errors
+              .Should()
+              .Contain(_ => _.ErrorMessage == "A calculation already exists with the name: 'test calc' for this specification");
+        }       
 
         [TestMethod]
         public async Task ValidateAsync_WhenSpecificationCanNotBeFound_ValidIsFalse()
@@ -213,6 +210,10 @@ namespace CalculateFunding.Services.Calcs.Validators
                 .IsValid
                 .Should()
                 .BeFalse();
+         
+            result.Errors
+             .Should()
+             .Contain(_ => _.ErrorMessage == "Failed to find specification for provided specification id.");
         }
 
         [TestMethod]
@@ -241,6 +242,148 @@ namespace CalculateFunding.Services.Calcs.Validators
                 .IsValid
                 .Should()
                 .BeFalse();
+            
+            result.Errors
+             .Should()
+             .Contain(_ => _.ErrorMessage == "The funding stream id provided is not associated with the provided specification.");
+        }
+
+        [TestMethod]
+        public async Task ValidateAsync_WhenSourceCodeDoesNotCompile__ValidIsFalse()
+        {
+            //Arrange
+            CalculationCreateModel model = CreateModel();
+            model.CalculationType = CalculationType.Additional;
+
+            ICalculationsRepository calculationsRepository = CreateCalculationRepository();
+            calculationsRepository
+                .GetCalculationsBySpecificationIdAndCalculationName(Arg.Is(model.SpecificationId), Arg.Is(model.Name))
+                .Returns((Calculation)null);
+
+            SpecModel.SpecificationSummary specificationSummary = new SpecModel.SpecificationSummary
+            {
+                Name = "spec name",
+                FundingStreams = new[] { new Reference(model.FundingStreamId, "funding stream name") }
+            };
+
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+            specificationsApiClient
+                .GetSpecificationSummaryById(Arg.Is(model.SpecificationId))
+                .Returns(new Common.ApiClient.Models.ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
+
+            PreviewResponse previewResponse = new PreviewResponse
+            {
+                CompilerOutput = new Build
+                {
+                    CompilerMessages = new List<CompilerMessage>
+                    {
+                        new CompilerMessage { Message = "Failed" }
+                    }
+                }
+            };
+
+            IPreviewService previewService = CreatePreviewService(previewResponse);
+
+            CalculationCreateModelValidator validator = CreateValidator(
+                calculationsRepository, previewService: previewService,specificationsApiClient: specificationsApiClient);
+
+            //Act
+            ValidationResult result = await validator.ValidateAsync(model);
+
+            //Assert
+            result
+               .IsValid
+               .Should()
+               .BeFalse();
+
+            result.Errors
+             .Should()
+             .Contain(_ => _.ErrorMessage == "There are errors in the source code provided");
+        }
+
+        [TestMethod]
+        public async Task ValidateAsync_WhenSourceCodeDoesCompile__ValidIsTrue()
+        {
+            //Arrange
+            CalculationCreateModel model = CreateModel();
+            model.CalculationType = CalculationType.Additional;
+
+            ICalculationsRepository calculationsRepository = CreateCalculationRepository();
+            calculationsRepository
+                .GetCalculationsBySpecificationIdAndCalculationName(Arg.Is(model.SpecificationId), Arg.Is(model.Name))
+                .Returns((Calculation)null);
+
+            SpecModel.SpecificationSummary specificationSummary = new SpecModel.SpecificationSummary
+            {
+                Name = "spec name",
+                FundingStreams = new[] { new Reference(model.FundingStreamId, "funding stream name") }
+            };
+
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+            specificationsApiClient
+                .GetSpecificationSummaryById(Arg.Is(model.SpecificationId))
+                .Returns(new Common.ApiClient.Models.ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
+
+            IPreviewService previewService = CreatePreviewService();
+
+            CalculationCreateModelValidator validator = CreateValidator(
+                calculationsRepository, previewService: previewService, specificationsApiClient: specificationsApiClient);
+
+            //Act
+            ValidationResult result = await validator.ValidateAsync(model);
+
+            //Assert
+            result
+               .IsValid
+               .Should()
+               .BeTrue();
+
+            previewService
+                .Received(1);
+
+
+        }
+
+        [TestMethod]
+        public async Task ValidateAsync_WhenSourceCodeSkipCompile__ValidIsTrue()
+        {
+            //Arrange
+            CalculationCreateModel model = CreateModel();
+          
+            ICalculationsRepository calculationsRepository = CreateCalculationRepository();
+            calculationsRepository
+                .GetCalculationsBySpecificationIdAndCalculationName(Arg.Is(model.SpecificationId), Arg.Is(model.Name))
+                .Returns((Calculation)null);
+
+            SpecModel.SpecificationSummary specificationSummary = new SpecModel.SpecificationSummary
+            {
+                Name = "spec name",
+                FundingStreams = new[] { new Reference(model.FundingStreamId, "funding stream name") }
+            };
+
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+            specificationsApiClient
+                .GetSpecificationSummaryById(Arg.Is(model.SpecificationId))
+                .Returns(new Common.ApiClient.Models.ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
+
+            IPreviewService previewService = CreatePreviewService();
+
+            CalculationCreateModelValidator validator = CreateValidator(
+                calculationsRepository, previewService: previewService, specificationsApiClient: specificationsApiClient);
+
+            //Act
+            ValidationResult result = await validator.ValidateAsync(model);
+
+            //Assert
+            result
+               .IsValid
+               .Should()
+               .BeTrue();
+
+            previewService
+                .Received(0);
+
+
         }
 
         [TestMethod]
@@ -329,7 +472,22 @@ namespace CalculateFunding.Services.Calcs.Validators
 
         private static ISpecificationsApiClient CreateSpecificationsApiClient()
         {
-            return Substitute.For<ISpecificationsApiClient>();
+            ISpecificationsApiClient specificationsApiClient =  Substitute.For<ISpecificationsApiClient>();
+
+            SpecModel.SpecificationSummary specificationSummary = new SpecModel.SpecificationSummary()
+            {
+                TemplateIds = new Dictionary<string, string> { { "fs-1", "2.2" } },
+                FundingStreams = new List<Reference>()
+                {
+                    new Reference("fs-1", "PE and Sports"),
+                },
+            };
+
+            specificationsApiClient
+               .GetSpecificationSummaryById(Arg.Any<string>())
+                .Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
+
+            return specificationsApiClient;
         }
 
         private static CalculationCreateModel CreateModel(CalculationType calculationType = CalculationType.Template)

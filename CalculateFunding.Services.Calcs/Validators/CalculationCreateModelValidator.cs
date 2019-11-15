@@ -78,25 +78,28 @@ namespace CalculateFunding.Services.Calcs.Validators
                  }
                  else
                  {
-                     PreviewRequest previewRequest = new PreviewRequest
+                     if (calculationCreateModel.CalculationType == CalculationType.Additional)
                      {
-                         SpecificationId = calculationCreateModel.SpecificationId,
-                         CalculationId = calculationCreateModel.Id,
-                         Name = calculationCreateModel.Name,
-                         SourceCode = calculationCreateModel.SourceCode
-                     };
-
-                     IActionResult result = _previewService.Compile(previewRequest).Result;
-
-                     OkObjectResult okObjectResult = result as OkObjectResult;
-
-                     PreviewResponse response = okObjectResult.Value as PreviewResponse;
-
-                     if (response != null)
-                     {
-                         if (!response.CompilerOutput.CompilerMessages.IsNullOrEmpty())
+                         PreviewRequest previewRequest = new PreviewRequest
                          {
-                             context.AddFailure("There are errors in the source code provided");
+                             SpecificationId = calculationCreateModel.SpecificationId,
+                             CalculationId = calculationCreateModel.Id,
+                             Name = calculationCreateModel.Name,
+                             SourceCode = calculationCreateModel.SourceCode
+                         };
+
+                         IActionResult result = _previewService.Compile(previewRequest).Result;
+
+                         OkObjectResult okObjectResult = result as OkObjectResult;
+
+                         PreviewResponse response = okObjectResult.Value as PreviewResponse;
+
+                         if (response != null)
+                         {
+                             if (!response.CompilerOutput.CompilerMessages.IsNullOrEmpty())
+                             {
+                                 context.AddFailure("There are errors in the source code provided");
+                             }
                          }
                      }
 
