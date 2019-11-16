@@ -5,12 +5,14 @@ using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies;
+using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Calcs.Interfaces;
+using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
@@ -32,6 +34,8 @@ namespace CalculateFunding.Services.Calcs
         private readonly Policy _calculationsRepositoryPolicy;
         private readonly ILogger _logger;
         private readonly ICalculationService _calculationService;
+        private readonly Polly.Policy _cachePolicy;
+        private readonly ICacheProvider _cacheProvider;
 
         public ApplyTemplateCalculationsService(ICreateCalculationService createCalculationService,
             IPoliciesApiClient policiesApiClient,
@@ -41,7 +45,8 @@ namespace CalculateFunding.Services.Calcs
             IApplyTemplateCalculationsJobTrackerFactory jobTrackerFactory,
             IInstructionAllocationJobCreation instructionAllocationJobCreation,
             ILogger logger,
-            ICalculationService calculationService)
+            ICalculationService calculationService,
+            ICacheProvider cacheProvider)
         {
             Guard.ArgumentNotNull(instructionAllocationJobCreation, nameof(instructionAllocationJobCreation));
             Guard.ArgumentNotNull(jobTrackerFactory, nameof(jobTrackerFactory));
@@ -53,6 +58,8 @@ namespace CalculateFunding.Services.Calcs
             Guard.ArgumentNotNull(templateContentsCalculationQuery, nameof(templateContentsCalculationQuery));
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(calculationService, nameof(calculationService));
+            Guard.ArgumentNotNull(calculationsResiliencePolicies?.CacheProviderPolicy, nameof(calculationsResiliencePolicies.CacheProviderPolicy));
+            Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
 
             _createCalculationService = createCalculationService;
             _calculationsRepository = calculationsRepository;
@@ -64,6 +71,8 @@ namespace CalculateFunding.Services.Calcs
             _instructionAllocationJobCreation = instructionAllocationJobCreation;
             _jobTrackerFactory = jobTrackerFactory;
             _calculationService = calculationService;
+            _cachePolicy = calculationsResiliencePolicies.CacheProviderPolicy;
+            _cacheProvider = cacheProvider;
         }
 
         public async Task ApplyTemplateCalculation(Message message)
@@ -140,10 +149,8 @@ namespace CalculateFunding.Services.Calcs
                     author,
                     correlationId,
                     startingItemCount,
-                    jobTracker);
-
-                await _calculationsRepositoryPolicy.ExecuteAsync(
-                    () => _calculationsRepository.UpdateTemplateMapping(specificationId, fundingStreamId, templateMapping));
+                    jobTracker,
+                    templateMapping);
 
                 await EnsureAllExistingCalculationsModified(mappingsWithCalculations,
                     specificationId,
@@ -152,6 +159,8 @@ namespace CalculateFunding.Services.Calcs
                     flattenedFundingLines,
                     jobTracker,
                     startingItemCount + mappingsWithoutCalculations.Length);
+
+                await RefreshTemplateMapping(specificationId, fundingStreamId, templateMapping);
 
                 await jobTracker.CompleteTrackingJob("Completed Successfully", itemCount);
 
@@ -219,7 +228,8 @@ namespace CalculateFunding.Services.Calcs
             Reference author,
             string correlationId,
             int startingItemCount,
-            IApplyTemplateCalculationsJobTracker jobTracker)
+            IApplyTemplateCalculationsJobTracker jobTracker,
+            TemplateMapping templateMapping)
         {
             if (!mappingsWithoutCalculations.Any()) return;
 
@@ -233,6 +243,8 @@ namespace CalculateFunding.Services.Calcs
                     specificationId,
                     author,
                     correlationId);
+
+                await RefreshTemplateMapping(specificationId, fundingStreamId, templateMapping);
 
                 if ((calculationCount + 1) % 10 == 0) await jobTracker.NotifyProgress(startingItemCount + calculationCount);
             }
@@ -336,6 +348,15 @@ namespace CalculateFunding.Services.Calcs
             _logger.Error(message);
 
             throw new Exception(message);
+        }
+
+        private async Task RefreshTemplateMapping(string specificationId, string fundingStreamId, TemplateMapping templateMapping)
+        {
+            await _calculationsRepositoryPolicy.ExecuteAsync(
+                    () => _calculationsRepository.UpdateTemplateMapping(specificationId, fundingStreamId, templateMapping));
+
+            string cacheKey = $"{CacheKeys.TemplateMapping}{specificationId}-{fundingStreamId}";
+            await _cachePolicy.ExecuteAsync(() => _cacheProvider.RemoveAsync<TemplateMapping>(cacheKey));
         }
     }
 }

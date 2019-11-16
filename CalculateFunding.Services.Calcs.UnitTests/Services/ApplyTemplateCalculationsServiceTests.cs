@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies;
+using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.TemplateMetadata.Enums;
 using CalculateFunding.Common.TemplateMetadata.Models;
@@ -38,6 +39,7 @@ namespace CalculateFunding.Services.Calcs.Services
         private IInstructionAllocationJobCreation _instructionAllocationJobCreation;
         private IPoliciesApiClient _policies;
         private ICalculationService _calculationService;
+        private ICacheProvider _cacheProvider;
 
         private string _specificationId;
         private string _fundingStreamId;
@@ -67,6 +69,7 @@ namespace CalculateFunding.Services.Calcs.Services
             _jobTracker = Substitute.For<IApplyTemplateCalculationsJobTracker>();
             _instructionAllocationJobCreation = Substitute.For<IInstructionAllocationJobCreation>();
             _calculationService = Substitute.For<ICalculationService>();
+            _cacheProvider = Substitute.For<ICacheProvider>();
 
             _jobTrackerFactory.CreateJobTracker(Arg.Any<Message>())
                 .Returns(_jobTracker);
@@ -95,14 +98,16 @@ namespace CalculateFunding.Services.Calcs.Services
                 new ResiliencePolicies
                 {
                     PoliciesApiClient = Policy.NoOpAsync(),
-                    CalculationsRepository = Policy.NoOpAsync()
+                    CalculationsRepository = Policy.NoOpAsync(),
+                    CacheProviderPolicy = Policy.NoOpAsync()
                 },
                 _calculationsRepository,
                 _calculationQuery,
                 _jobTrackerFactory,
                 _instructionAllocationJobCreation,
                 Substitute.For<ILogger>(),
-                _calculationService);
+                _calculationService,
+                _cacheProvider);
         }
 
         [TestMethod]
@@ -243,7 +248,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .CalculationId
                 .Should().Be(newCalculationId3);
 
-            AndTheTemplateMappingWasUpdated(templateMapping);
+            AndTheTemplateMappingWasUpdated(templateMapping, 4);
             AndTheJobsStartWasLogged();
             AndTheProgressNotificationsWereMade(1);
             AndTheJobCompletionWasLogged(4);
@@ -364,7 +369,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .CalculationId
                 .Should().Be(newCalculationId2);
 
-            AndTheTemplateMappingWasUpdated(templateMapping);
+            AndTheTemplateMappingWasUpdated(templateMapping, 3);
             AndTheJobsStartWasLogged();
             AndTheProgressNotificationsWereMade(-1);
             AndTheJobCompletionWasLogged(3);
@@ -451,7 +456,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .CalculationId
                 .Should().Be(newCalculationId2);
 
-            AndTheTemplateMappingWasUpdated(templateMapping);
+            AndTheTemplateMappingWasUpdated(templateMapping, 3);
             AndTheJobsStartWasLogged();
             AndTheProgressNotificationsWereMade(0);
             AndTheJobCompletionWasLogged(4);
@@ -586,9 +591,9 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Returns(calculation);
         }
 
-        private void AndTheTemplateMappingWasUpdated(TemplateMapping templateMapping)
+        private void AndTheTemplateMappingWasUpdated(TemplateMapping templateMapping, int numberOfCalls)
         {
-            _calculationsRepository.Received(1)
+            _calculationsRepository.Received(numberOfCalls)
                 .UpdateTemplateMapping(_specificationId, _fundingStreamId, templateMapping);
         }
 
