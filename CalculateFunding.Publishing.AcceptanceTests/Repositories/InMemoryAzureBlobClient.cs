@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
@@ -10,7 +11,12 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 {
     public class InMemoryAzureBlobClient : IBlobClient
     {
-        Dictionary<string, string> _files = new Dictionary<string, string>();
+        private readonly ConcurrentDictionary<string, string> _files;
+
+        public InMemoryAzureBlobClient()
+        {
+            _files = new ConcurrentDictionary<string, string>();
+        }
 
         public Task<bool> BlobExistsAsync(string blobName)
         {
@@ -34,7 +40,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 
         public ICloudBlob GetBlockBlobReference(string blobName)
         {
-            _files.Add(blobName, string.Empty);
+            _files.TryAdd(blobName, string.Empty);
 
             return new CloudBlobInMemory(blobName);
         }
@@ -74,7 +80,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             return Task.FromResult(blobName);
         }
 
-        public Dictionary<string, string> GetFiles()
+        public ConcurrentDictionary<string, string> GetFiles()
         {
             return _files;
         }

@@ -17,6 +17,7 @@ using Polly;
 using Serilog;
 using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.ApiClient.Calcs;
+using CalculateFunding.Common.ApiClient.Profiling;
 
 namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
 {
@@ -162,6 +163,8 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
 
             IJobsApiClient jobsApiClient = new JobsInMemoryRepository();
 
+            ProfilingInMemoryClient profilingApiClient = new ProfilingInMemoryClient();
+
             InMemoryAzureBlobClient inMemoryAzureBlobClient = new InMemoryAzureBlobClient();
             ICalculationResultsRepository calculationResultsRepository = new CalculationInMemoryRepository(CalculationResults);
             FundingLineTotalAggregator fundingLineTotalAggregator = new FundingLineTotalAggregator();
@@ -176,6 +179,8 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
             Common.ApiClient.Calcs.ICalculationsApiClient calculationsApiClient = new CalculationsInMemoryClient(TemplateMapping);
 
             PublishedProviderContentPersistanceService publishedProviderContentsPersistanceService = new PublishedProviderContentPersistanceService(publishedProviderVersionService, publishedProviderIndexerService, logger, new PublishingEngineOptions());
+
+            ProfilingService profilingService = new ProfilingService(logger, profilingApiClient);
 
             PublishService publishService = new PublishService(publishedFundingStatusUpdateService,
                 publishedFundingDataService,
@@ -200,7 +205,8 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
                 calculationsApiClient,
                 logger,
                 new PublishingEngineOptions(),
-                _jobManagement);
+                _jobManagement,
+                profilingService);
 
             Message message = new Message();
 

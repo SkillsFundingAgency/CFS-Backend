@@ -73,7 +73,6 @@ namespace CalculateFunding.Services.Publishing
 
                 List<AggregateFundingLine> fundingLineAggregates = new List<AggregateFundingLine>(fundingValueAggregator.GetTotals(templateMetadataContents, publishedProviderVersionsForOrganisationGroup));
 
-
                 IEnumerable<Common.TemplateMetadata.Models.FundingLine> fundingLineDefinitons = templateMetadataContents.RootFundingLines.Flatten(_ => _.FundingLines) ?? Enumerable.Empty<Common.TemplateMetadata.Models.FundingLine>();
 
                 List<PublishingModels.FundingLine> fundingLines = GenerateFundingLines(fundingLineAggregates, fundingLineDefinitons);

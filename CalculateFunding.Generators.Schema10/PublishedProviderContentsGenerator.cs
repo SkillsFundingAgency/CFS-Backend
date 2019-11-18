@@ -164,7 +164,7 @@ namespace CalculateFunding.Generators.Schema10
             {
                 calculation.Name,
                 calculation.TemplateCalculationId,
-                Value = $"{calculationResults.Where(x => x.TemplateCalculationId == calculation.TemplateCalculationId)?.Single().Value}",
+                calculationResults.Where(x => x.TemplateCalculationId == calculation.TemplateCalculationId)?.Single().Value,
                 ValueFormat = calculation.ValueFormat.ToString(),
                 Type = calculation.Type.ToString(),
                 calculation.FormulaText,

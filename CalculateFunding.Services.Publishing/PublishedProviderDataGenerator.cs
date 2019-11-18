@@ -67,7 +67,7 @@ namespace CalculateFunding.Services.Publishing
                     generatedProviderResult.Calculations = _mapper.Map<IEnumerable<FundingCalculation>>(fundingCalculations);
 
                     // Get reference data
-                    IEnumerable<GeneratorModels.ReferenceData> fundingReferenceData = fundingCalculations?.SelectMany(_ => _.ReferenceData);
+                    IEnumerable<GeneratorModels.ReferenceData> fundingReferenceData = fundingCalculations?.SelectMany(_ => _.ReferenceData).DistinctBy(_ => _.TemplateReferenceId);
 
                     generatedProviderResult.ReferenceData = _mapper.Map<IEnumerable<FundingReferenceData>>(fundingReferenceData);
 

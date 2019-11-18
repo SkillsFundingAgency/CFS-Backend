@@ -241,7 +241,7 @@ namespace CalculateFunding.Services.Publishing
                 Dictionary<string, PublishedProvider> existingPublishedProvidersToUpdate = new Dictionary<string, PublishedProvider>();
 
                 FundingLine[] flattenedTemplateFundingLines = templateMetadataContents.RootFundingLines.Flatten(_ => _.FundingLines).ToArray();
-                Calculation[] flattedCalculations = flattenedTemplateFundingLines.SelectMany(_ => _.Calculations).ToArray();
+                Calculation[] flattedCalculations = flattenedTemplateFundingLines.SelectMany(_ => _.Calculations.Flatten(c => c.Calculations)).ToArray();
 
                 _logger.Information("Profiling providers for refresh");
 

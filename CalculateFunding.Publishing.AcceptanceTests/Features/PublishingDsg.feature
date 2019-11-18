@@ -79,7 +79,7 @@ Scenario Outline: Successful publishing of funding
 		| Field             | Value                |
 		| ProviderVersionId | <ProviderVersionId>  |
 		| VersionType       | Custom               |
-		| Name              | PSG Provider Version |
+		| Name              | DSG Provider Version |
 		| Description       | Acceptance Tests     |
 		| Version           | 1                    |
 		| TargetDate        | 2019-12-12 00:00     |
@@ -127,14 +127,14 @@ Scenario Outline: Successful publishing of funding
 		| School Block After recoupment                        | DSG-005         | 640   | 12             | Information |
 		| Total DSG before deductions and recoupment           | DSG-001         | 3840  | 2              | Information |
 		| Total DSG after deductions and recoupment            | DSG-002         | 15360 | 3              | Payment     |
-	#And the Published Provider has the following distribution period for funding line 'TotalAllocation'
-	#	| DistributionPeriodId | Value |
-	#	| FY-1920              | 7000  |
-	#	| FY-2021              | 5000  |
-	#And the Published Providers distribution period has the following profiles for funding line 'TotalAllocation'
-	#	| DistributionPeriodId | Type          | TypeValue | Year | Occurrence | ProfiledValue |
-	#	| FY-1920              | CalendarMonth | October   | 1920 | 1          | 7000          |
-	#	| FY-2021              | CalendarMonth | April     | 2021 | 1          | 5000          |
+	And the Published Provider has the following distribution period for funding line 'DSG-002'
+		| DistributionPeriodId | Value |
+		| FY-1920              | 7000  |
+		| FY-2021              | 5000  |
+	And the Published Providers distribution period has the following profiles for funding line 'DSG-002'
+		| DistributionPeriodId | Type          | TypeValue | Year | Occurrence | ProfiledValue |
+		| FY-1920              | CalendarMonth | October   | 1920 | 1          | 7000          |
+		| FY-2021              | CalendarMonth | April     | 2021 | 1          | 5000          |
 	And the Published Provider contains the following calculation results
 		| TemplateCalculationId | Value |
 		| 15                    | 320   |
@@ -400,6 +400,320 @@ Scenario Outline: Successful publishing of funding
 		| WardCode                      |                          |
 		| WardName                      |                          |
 	And the provider with id '1000000' should be a scoped provider in the current specification in provider version '<ProviderVersionId>'
+	And the following Published Provider has been previously generated for the current specification
+		| Field           | Value             |
+		| ProviderId      | 1000002           |
+		| FundingStreamId | <FundingStreamId> |
+		| FundingPeriodId | <FundingPeriodId> |
+		| TemplateVersion | <TemplateVersion> |
+		| Status          | Approved          |
+		| TotalFunding    | 12000             |
+		| MajorVersion    | 0                 |
+		| MinorVersion    | 1                 |
+	And the Published Provider has the following funding lines
+		| Name                                                 | FundingLineCode | Value | TemplateLineId | Type        |
+		| Pupil Led Factors                                    | DSG-004         | 640   | 5              | Information |
+		| Funding Through Premises and Mobility Factors        | DSG-007         | 0     | 6              | Information |
+		| Growth funding                                       | DSG-006         | 0     | 7              | Information |
+		| CSSB Pupil Led Funding                               | DSG-012         | 320   | 23             | Information |
+		| Funding for Historic Commitments                     | DSG-013         | 0     | 27             | Information |
+		| Universal Entitlement for 3 and 4 Year Olds          | DSG-014         | 320   | 130            | Information |
+		| Funding for Additional Hours for working parents     | DSG-015         | 320   | 135            | Information |
+		| Participation Funding for Disadvantaged 2 Year Olds  | DSG-016         | 320   | 140            | Information |
+		| Funding Allocation for Early Years Pupil Premium     | DSG-017         | 320   | 145            | Information |
+		| Funding Allocation for Maintained Nursery Supplement | DSG-018         | 320   | 150            | Information |
+		| Funding Allocation for Disability Access Fund        | DSG-019         | 0     | 155            | Information |
+		| Schools Block before recoupment                      | DSG-003         | 640   | 4              | Information |
+		| Central School Services Block                        | DSG-008         | 320   | 8              | Information |
+		| Early Years Block                                    | DSG-009         | 1600  | 9              | Information |
+		| High Needs Block before deductions                   | DSG-010         | 1280  | 10             | Information |
+		| CSSB Pupil Led Funding                               | DSG-012         | 0     | 23             | Information |
+		| Funding for Historic Commitments                     | DSG-013         | 0     | 27             | Information |
+		| Universal Entitlement for 3 and 4 Year Olds          | DSG-014         | 0     | 130            | Information |
+		| Funding for Additional Hours for working parents     | DSG-015         | 0     | 135            | Information |
+		| Participation Funding for Disadvantaged 2 Year Olds  | DSG-016         | 0     | 140            | Information |
+		| Funding Allocation for Early Years Pupil Premium     | DSG-017         | 0     | 145            | Information |
+		| Funding Allocation for Maintained Nursery Supplement | DSG-018         | 0     | 150            | Information |
+		| Funding Allocation for Disability Access Fund        | DSG-019         | 0     | 155            | Information |
+		| Central School Services Block                        | DSG-008         | 0     | 8              | Information |
+		| Early Years Block                                    | DSG-009         | 0     | 9              | Information |
+		| Total High Needs Block After Deductions              | DSG-011         | 14720 | 11             | Information |
+		| School Block After recoupment                        | DSG-005         | 640   | 12             | Information |
+		| Total DSG before deductions and recoupment           | DSG-001         | 3840  | 2              | Information |
+		| Total DSG after deductions and recoupment            | DSG-002         | 15360 | 3              | Payment     |
+	And the Published Provider has the following distribution period for funding line 'DSG-002'
+		| DistributionPeriodId | Value |
+		| FY-1920              | 7000  |
+		| FY-2021              | 5000  |
+	And the Published Providers distribution period has the following profiles for funding line 'DSG-002'
+		| DistributionPeriodId | Type          | TypeValue | Year | Occurrence | ProfiledValue |
+		| FY-1920              | CalendarMonth | October   | 1920 | 1          | 7000          |
+		| FY-2021              | CalendarMonth | April     | 2021 | 1          | 5000          |
+	And the Published Provider contains the following calculation results
+		| TemplateCalculationId | Value |
+		| 15                    | 320   |
+		| 16                    | 320   |
+		| 17                    | 320   |
+		| 18                    | 320   |
+		| 13                    | 320   |
+		| 14                    | 320   |
+		| 19                    | 320   |
+		| 20                    | 320   |
+		| 25                    | 320   |
+		| 26                    | 320   |
+		| 24                    | 320   |
+		| 28                    | 320   |
+		| 132                   | 320   |
+		| 133                   | 320   |
+		| 134                   | 320   |
+		| 131                   | 320   |
+		| 137                   | 320   |
+		| 138                   | 320   |
+		| 139                   | 320   |
+		| 136                   | 320   |
+		| 142                   | 320   |
+		| 143                   | 320   |
+		| 144                   | 320   |
+		| 141                   | 320   |
+		| 147                   | 320   |
+		| 148                   | 320   |
+		| 149                   | 320   |
+		| 146                   | 320   |
+		| 152                   | 320   |
+		| 153                   | 320   |
+		| 154                   | 320   |
+		| 151                   | 320   |
+		| 31                    | 320   |
+		| 32                    | 320   |
+		| 34                    | 320   |
+		| 35                    | 320   |
+		| 37                    | 320   |
+		| 38                    | 320   |
+		| 29                    | 320   |
+		| 237                   | 320   |
+		| 30                    | 320   |
+		| 33                    | 320   |
+		| 36                    | 320   |
+		| 65                    | 320   |
+		| 66                    | 320   |
+		| 67                    | 320   |
+		| 68                    | 320   |
+		| 64                    | 320   |
+		| 70                    | 320   |
+		| 71                    | 320   |
+		| 235                   | 320   |
+		| 236                   | 320   |
+		| 72                    | 320   |
+		| 73                    | 320   |
+		| 69                    | 320   |
+		| 75                    | 320   |
+		| 76                    | 320   |
+		| 77                    | 320   |
+		| 78                    | 320   |
+		| 74                    | 320   |
+		| 80                    | 320   |
+		| 81                    | 320   |
+		| 82                    | 320   |
+		| 83                    | 320   |
+		| 79                    | 320   |
+		| 50                    | 320   |
+		| 51                    | 320   |
+		| 52                    | 320   |
+		| 53                    | 320   |
+		| 163                   | 320   |
+		| 164                   | 320   |
+		| 165                   | 320   |
+		| 166                   | 320   |
+		| 162                   | 320   |
+		| 90                    | 320   |
+		| 91                    | 320   |
+		| 92                    | 320   |
+		| 93                    | 320   |
+		| 89                    | 320   |
+		| 95                    | 320   |
+		| 96                    | 320   |
+		| 97                    | 320   |
+		| 98                    | 320   |
+		| 94                    | 320   |
+		| 158                   | 320   |
+		| 175                   | 320   |
+		| 174                   | 320   |
+		| 168                   | 320   |
+		| 169                   | 320   |
+		| 170                   | 320   |
+		| 171                   | 320   |
+		| 167                   | 320   |
+		| 176                   | 320   |
+		| 177                   | 320   |
+		| 178                   | 320   |
+		| 179                   | 320   |
+		| 232                   | 320   |
+		| 182                   | 320   |
+		| 183                   | 320   |
+		| 180                   | 320   |
+		| 181                   | 320   |
+		| 234                   | 320   |
+		| 159                   | 320   |
+		| 161                   | 320   |
+		| 233                   | 320   |
+		| 189                   | 320   |
+		| 190                   | 320   |
+		| 187                   | 320   |
+		| 188                   | 320   |
+		| 186                   | 320   |
+		| 195                   | 320   |
+		| 196                   | 320   |
+		| 193                   | 320   |
+		| 194                   | 320   |
+		| 192                   | 320   |
+		| 185                   | 320   |
+		| 191                   | 320   |
+		| 202                   | 320   |
+		| 203                   | 320   |
+		| 200                   | 320   |
+		| 201                   | 320   |
+		| 199                   | 320   |
+		| 198                   | 320   |
+		| 209                   | 320   |
+		| 210                   | 320   |
+		| 207                   | 320   |
+		| 208                   | 320   |
+		| 206                   | 320   |
+		| 205                   | 320   |
+		| 214                   | 320   |
+		| 215                   | 320   |
+		| 213                   | 320   |
+		| 223                   | 320   |
+		| 224                   | 320   |
+		| 221                   | 320   |
+		| 222                   | 320   |
+		| 220                   | 320   |
+		| 212                   | 320   |
+		| 128                   | 320   |
+		| 129                   | 320   |
+		| 228                   | 320   |
+		| 229                   | 320   |
+		| 227                   | 320   |
+		| 226                   | 320   |
+		| 42                    | 320   |
+		| 156                   | 320   |
+		| 157                   | 320   |
+		| 184                   | 320   |
+		| 197                   | 320   |
+		| 204                   | 320   |
+		| 211                   | 320   |
+		| 218                   | 320   |
+		| 225                   | 320   |
+		| 40                    | 320   |
+		| 41                    | 320   |
+		| 39                    | 320   |
+		| 21                    | 320   |
+		| 22                    | 320   |
+	And the Published Provider has the following provider information
+		| Field                         | Value                    |
+		| ProviderId                    | 1000002                  |
+		| Name                          | Maintained School 2      |
+		| Authority                     | Local Authority 1        |
+		| CensusWardCode                |                          |
+		| CensusWardName                |                          |
+		| CompaniesHouseNumber          |                          |
+		| CountryCode                   |                          |
+		| CountryName                   |                          |
+		| CrmAccountId                  |                          |
+		| DateClosed                    |                          |
+		| DateOpened                    | 2012-03-15               |
+		| DfeEstablishmentNumber        |                          |
+		| DistrictCode                  |                          |
+		| DistrictName                  |                          |
+		| EstablishmentNumber           |                          |
+		| GovernmentOfficeRegionCode    |                          |
+		| GovernmentOfficeRegionName    |                          |
+		| GroupIdNumber                 |                          |
+		| LACode                        | 200                      |
+		| LegalName                     |                          |
+		| LocalAuthorityName            | Maintained School 2      |
+		| LowerSuperOutputAreaCode      |                          |
+		| LowerSuperOutputAreaName      |                          |
+		| MiddleSuperOutputAreaCode     |                          |
+		| MiddleSuperOutputAreaName     |                          |
+		| NavVendorNo                   |                          |
+		| ParliamentaryConstituencyCode |                          |
+		| ParliamentaryConstituencyName |                          |
+		| PhaseOfEducation              |                          |
+		| Postcode                      |                          |
+		| ProviderProfileIdType         |                          |
+		| ProviderType                  | LA maintained schools    |
+		| ProviderSubType               | Community school         |
+		| ProviderVersionId             | <ProviderVersionId>      |
+		| ReasonEstablishmentClosed     |                          |
+		| ReasonEstablishmentOpened     |                          |
+		| RscRegionCode                 |                          |
+		| RscRegionName                 |                          |
+		| Status                        |                          |
+		| Successor                     |                          |
+		| Town                          |                          |
+		| TrustCode                     |                          |
+		| TrustName                     |                          |
+		| TrustStatus                   | Not Supported By A Trust |
+		| UKPRN                         | 1000002                  |
+		| UPIN                          |                          |
+		| URN                           |                          |
+		| WardCode                      |                          |
+		| WardName                      |                          |
+	And the Published Provider is available in the repository for this specification
+	# Maintained schools in Core Provider Data
+	And the following provider exists within core provider data in provider version '<ProviderVersionId>'
+		| Field                         | Value                    |
+		| ProviderId                    | 1000002                  |
+		| Name                          | Maintained School 2      |
+		| Authority                     | Local Authority 1        |
+		| CensusWardCode                |                          |
+		| CensusWardName                |                          |
+		| CompaniesHouseNumber          |                          |
+		| CountryCode                   |                          |
+		| CountryName                   |                          |
+		| CrmAccountId                  |                          |
+		| DateClosed                    |                          |
+		| DateOpened                    | 2012-03-15               |
+		| DfeEstablishmentNumber        |                          |
+		| DistrictCode                  |                          |
+		| DistrictName                  |                          |
+		| EstablishmentNumber           |                          |
+		| GovernmentOfficeRegionCode    |                          |
+		| GovernmentOfficeRegionName    |                          |
+		| GroupIdNumber                 |                          |
+		| LACode                        | 200                      |
+		| LegalName                     |                          |
+		| LocalAuthorityName            | Maintained School 2      |
+		| LowerSuperOutputAreaCode      |                          |
+		| LowerSuperOutputAreaName      |                          |
+		| MiddleSuperOutputAreaCode     |                          |
+		| MiddleSuperOutputAreaName     |                          |
+		| NavVendorNo                   |                          |
+		| ParliamentaryConstituencyCode |                          |
+		| ParliamentaryConstituencyName |                          |
+		| PhaseOfEducation              |                          |
+		| Postcode                      |                          |
+		| ProviderProfileIdType         |                          |
+		| ProviderType                  | LA maintained schools    |
+		| ProviderSubType               | Community school         |
+		| ProviderVersionId             | <ProviderVersionId>      |
+		| ReasonEstablishmentClosed     |                          |
+		| ReasonEstablishmentOpened     |                          |
+		| RscRegionCode                 |                          |
+		| RscRegionName                 |                          |
+		| Status                        |                          |
+		| Successor                     |                          |
+		| Town                          |                          |
+		| TrustCode                     |                          |
+		| TrustName                     |                          |
+		| TrustStatus                   | Not Supported By A Trust |
+		| UKPRN                         | 1000002                  |
+		| UPIN                          |                          |
+		| URN                           |                          |
+		| WardCode                      |                          |
+		| WardName                      |                          |
+	And the provider with id '1000002' should be a scoped provider in the current specification in provider version '<ProviderVersionId>'
 	# Local Authorities in Core Provider Data
 	And the following provider exists within core provider data in provider version '<ProviderVersionId>'
 		| Field                         | Value                    |
@@ -781,10 +1095,19 @@ Scenario Outline: Successful publishing of funding
 		| OrganisationGroupIdentifierValue | 9000000           |
 		| FundingPeriodId                  | <FundingPeriodId> |
 		| FundingStreamId                  | <FundingStreamId> |
-	And the total funding is '12000'
+	And the total funding is '24000'
 	And the published funding contains the following published provider ids
 		| FundingIds                                      |
 		| <FundingStreamId>-<FundingPeriodId>-1000000-1_0 |I
+		| <FundingStreamId>-<FundingPeriodId>-1000002-1_0 |I
+	And the published funding contains a distribution period in funding line 'DSG-002' with id of 'FY-1920' has the value of '14000'
+	And the published funding contains a distribution period in funding line 'DSG-002' with id of 'FY-2021' has the value of '10000'
+	And the published funding contains a distribution period in funding line 'DSG-002' with id of 'FY-1920' has the following profiles
+		| DistributionPeriodId | Type          | TypeValue | Year | Occurrence | ProfiledValue |
+		| FY-1920              | CalendarMonth | October   | 1920 | 1          | 14000         |
+	And the published funding contains a distribution period in funding line 'DSG-002' with id of 'FY-2021' has the following profiles
+		| DistributionPeriodId | Type          | TypeValue | Year | Occurrence | ProfiledValue |
+		| FY-2021              | CalendarMonth | April     | 2021 | 1          | 10000         |	
 	And the following job is requested is completed for the current specification
 		| Field                  | Value             |
 		| JobDefinitionId        | PublishFundingJob |

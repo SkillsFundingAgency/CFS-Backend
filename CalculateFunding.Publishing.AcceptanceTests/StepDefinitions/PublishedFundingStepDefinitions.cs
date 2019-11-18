@@ -206,8 +206,8 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
                 var content = Resources.ResourceManager.GetObject(fileName, Resources.Culture);
                 string expected = GetResourceContent(fileName);
 
-                publishedFunding.TryGetValue(fileName, out string acutal);
-                acutal.Should()
+                publishedFunding.TryGetValue(fileName, out string actual);
+                actual.Should()
                         .Equals(expected);
             }
         }

@@ -60,6 +60,7 @@ namespace CalculateFunding.Services.Publishing
         private readonly Policy _policyApiClientPolicy;
         private readonly IPublishingEngineOptions _publishingEngineOptions;
         private readonly IJobManagement _jobManagement;
+        private readonly IProfilingService _profilingService;
 
         public PublishService(IPublishedFundingStatusUpdateService publishedFundingStatusUpdateService,
             IPublishedFundingDataService publishedFundingDataService,
@@ -84,7 +85,8 @@ namespace CalculateFunding.Services.Publishing
             ICalculationsApiClient calculationsApiClient,
             ILogger logger,
             IPublishingEngineOptions publishingEngineOptions,
-            IJobManagement jobManagement)
+            IJobManagement jobManagement,
+            IProfilingService profilingService)
         {
             Guard.ArgumentNotNull(publishedFundingStatusUpdateService, nameof(publishedFundingStatusUpdateService));
             Guard.ArgumentNotNull(publishedFundingDataService, nameof(publishedFundingDataService));
@@ -109,6 +111,7 @@ namespace CalculateFunding.Services.Publishing
             Guard.ArgumentNotNull(calculationsApiClient, nameof(calculationsApiClient));
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(publishingEngineOptions, nameof(publishingEngineOptions));
+            Guard.ArgumentNotNull(profilingService, nameof(profilingService));
 
             Guard.ArgumentNotNull(publishingResiliencePolicies.PublishedFundingRepository, nameof(publishingResiliencePolicies.PublishedFundingRepository));
             Guard.ArgumentNotNull(publishingResiliencePolicies.JobsApiClient, nameof(publishingResiliencePolicies.JobsApiClient));
@@ -143,6 +146,7 @@ namespace CalculateFunding.Services.Publishing
             _calculationsApiClientPolicy = publishingResiliencePolicies.CalculationsApiClient;
             _policyApiClientPolicy = publishingResiliencePolicies.PoliciesApiClient;
             _jobManagement = jobManagement;
+            _profilingService = profilingService;
         }
 
         public async Task PublishResults(Message message)
@@ -285,6 +289,18 @@ namespace CalculateFunding.Services.Publishing
             catch (Exception ex)
             {
                 _logger.Error(ex, "Exception during generating provider data");
+                throw;
+            }
+
+            // Profile payment funding lines
+            try
+            {
+                await _profilingService.ProfileFundingLines(generatedPublishedProviderData.SelectMany(c => c.Value.FundingLines.Where(f => f.Type == OrganisationGroupingReason.Payment)), fundingStream.Id, specification.FundingPeriod.Id);
+            }
+            catch (Exception ex)
+            {
+
+                _logger.Error(ex, "Exception during generating provider profiling");
                 throw;
             }
 
