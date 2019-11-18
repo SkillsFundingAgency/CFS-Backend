@@ -124,7 +124,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                     .WithProviderId(providerTwoMissing.ProviderId)
                     .WithProvider(publishingProviderTwo)
                     .WithSpecificationId(specificationId)
-                    .WithMajorVersion(1)
+                    .WithMajorVersion(0)
+                    .WithMinorVersion(1)
                     .WithPublishedProviderStatus(providerTwoMissing.Status.AsEnum<PublishedProviderStatus>())))));
             AndTheResultsContainsPublishedProviderMatching(NewPublishedProvider(_ => _.WithCurrent(NewPublishedProviderVersion(pv =>
                 pv.WithVersion(1)
@@ -133,7 +134,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                     .WithProviderId(providerThreeMissing.ProviderId)
                     .WithProvider(publishingProviderThree)
                     .WithSpecificationId(specificationId)
-                    .WithMajorVersion(1)
+                    .WithMajorVersion(0)
+                    .WithMinorVersion(1)
                     .WithPublishedProviderStatus(providerThreeMissing.Status.AsEnum<PublishedProviderStatus>())))));
         }
 

@@ -54,8 +54,8 @@ namespace CalculateFunding.Services.Publishing
                     Current = new PublishedProviderVersion
                     {
                         Version = 1,
-                        MajorVersion = 1,
-                        MinorVersion = 0,
+                        MajorVersion = 0,
+                        MinorVersion = 1,
                         FundingPeriodId = fundingPeriodId,
                         FundingStreamId = fundingStreamId,
                         ProviderId = _.ProviderId,
