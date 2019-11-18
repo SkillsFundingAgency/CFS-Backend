@@ -59,8 +59,6 @@ namespace CalculateFunding.Services.Calcs
                 return false;
             }
 
-            await AddJobLog(new JobLogUpdateModel());
-
             return true;
         }
 

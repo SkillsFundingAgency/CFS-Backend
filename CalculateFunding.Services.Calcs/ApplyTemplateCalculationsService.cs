@@ -140,7 +140,7 @@ namespace CalculateFunding.Services.Calcs
 
                 int startingItemCount = itemCount - mappingsWithoutCalculations.Length - mappingsWithCalculations.Length;
 
-                await jobTracker.NotifyProgress(startingItemCount);
+                await jobTracker.NotifyProgress(startingItemCount + 1);
 
                 await EnsureAllRequiredCalculationsExist(mappingsWithoutCalculations,
                     templateMetadataContents,
@@ -197,7 +197,7 @@ namespace CalculateFunding.Services.Calcs
                 Calculation templateCalculation = flattenedCalculations.FirstOrDefault(_ => _.TemplateCalculationId == mappingWithCalculations.TemplateId);
                 Models.Calcs.Calculation existingCalculation = existingCalculations.SingleOrDefault(_ => _.Id == mappingWithCalculations.CalculationId);
 
-                if ((calculationCount + 1) % 10 == 0) await jobTracker.NotifyProgress(startingItemCount + calculationCount);
+                if ((calculationCount + 1) % 10 == 0) await jobTracker.NotifyProgress(startingItemCount + calculationCount + 1);
 
                 if (templateCalculation?.Name == existingCalculation?.Current.Name && templateCalculation?.ValueFormat.AsMatchingEnum<CalculationValueType>() == existingCalculation?.Current.ValueType)
                 {
@@ -246,7 +246,7 @@ namespace CalculateFunding.Services.Calcs
 
                 await RefreshTemplateMapping(specificationId, fundingStreamId, templateMapping);
 
-                if ((calculationCount + 1) % 10 == 0) await jobTracker.NotifyProgress(startingItemCount + calculationCount);
+                if ((calculationCount + 1) % 10 == 0) await jobTracker.NotifyProgress(startingItemCount + calculationCount + 1);
             }
         }
 
@@ -260,8 +260,6 @@ namespace CalculateFunding.Services.Calcs
 
                     if (existingCalculation != null)
                     {
-                        CalculationVersion calculationVersion = existingCalculation.Current.Clone() as CalculationVersion;
-
                         CalculationEditModel calculationEditModel = new CalculationEditModel
                         {
                             Description = existingCalculation.Current.Description,
@@ -285,15 +283,15 @@ namespace CalculateFunding.Services.Calcs
             };
         }
 
-        private async Task InitiateCalculationRun(string specifiationId, Reference user, string correlationId)
+        private async Task InitiateCalculationRun(string specificationId, Reference user, string correlationId)
         {
-            await _instructionAllocationJobCreation.SendInstructAllocationsToJobService(specifiationId,
+            await _instructionAllocationJobCreation.SendInstructAllocationsToJobService(specificationId,
                 user.Id,
                 user.Name,
                 new Trigger
                 {
                     Message = "Assigned Template Calculations",
-                    EntityId = specifiationId,
+                    EntityId = specificationId,
                     EntityType = nameof(Specification)
                 },
                 correlationId);

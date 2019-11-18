@@ -250,7 +250,6 @@ namespace CalculateFunding.Services.Calcs.Services
 
             AndTheTemplateMappingWasUpdated(templateMapping, 4);
             AndTheJobsStartWasLogged();
-            AndTheProgressNotificationsWereMade(1);
             AndTheJobCompletionWasLogged(4);
             AndACalculationRunWasInitialised();
         }
@@ -609,7 +608,7 @@ namespace CalculateFunding.Services.Calcs.Services
             foreach (int count in itemCount)
                 _jobTracker
                     .Received(1)
-                    .NotifyProgress(count);
+                    .NotifyProgress(count + 1);
         }
 
         private void AndTheJobCompletionWasLogged(int itemCount)

@@ -48,7 +48,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task TryStartLogsAnInitialJobUpdate()
+        public async Task TryStartDoesNotLogsAnInitialJobUpdate()
         {
             GivenTheJobForTheJobId();
 
@@ -58,7 +58,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Should()
                 .BeTrue();
 
-            AndTheJobWasAddedForTheJobId(_ => _.Outcome.IsNullOrWhitespace() &&
+            AndTheJobWasNotAddedForTheJobId(_ => _.Outcome.IsNullOrWhitespace() &&
                                               _.CompletedSuccessfully == null &&
                                               _.ItemsFailed == null &&
                                               _.ItemsSucceeded == null &&
