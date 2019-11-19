@@ -357,7 +357,9 @@ namespace CalculateFunding.Services.Providers
                     ParliamentaryConstituencyCode = m.Result.ParliamentaryConstituencyCode,
                     ParliamentaryConstituencyName = m.Result.ParliamentaryConstituencyName,
                     CountryCode = m.Result.CountryCode,
-                    CountryName = m.Result.CountryName
+                    CountryName = m.Result.CountryName,
+                    LocalGovernmentGroupTypeCode = m.Result.LocalGovernmentGroupTypeCode,
+                    LocalGovernmentGroupTypeName = m.Result.LocalGovernmentGroupTypeName,
                 });
             }
         }

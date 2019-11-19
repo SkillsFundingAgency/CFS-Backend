@@ -79,7 +79,7 @@ namespace CalculateFunding.Functions.TestEngine
                 .AddSingleton<IScenariosRepository, ScenariosRepository>();
 
             builder
-                .AddSingleton<ITestEngineService, Services.TestRunner.Services.TestEngineService>();
+                .AddScoped<ITestEngineService, Services.TestRunner.Services.TestEngineService>();
 
             builder
                 .AddSingleton<ITestEngine, Services.TestRunner.TestEngine>();
@@ -141,7 +141,7 @@ namespace CalculateFunding.Functions.TestEngine
             builder
                 .AddSingleton(resultsMappingConfiguration.CreateMapper());
 
-            builder.AddSingleton<ITestResultsService, TestResultsService>();
+            builder.AddScoped<ITestResultsService, TestResultsService>();
 
             if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
             {

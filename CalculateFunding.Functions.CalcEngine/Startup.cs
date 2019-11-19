@@ -57,10 +57,10 @@ namespace CalculateFunding.Functions.CalcEngine
         {
             builder.AddSingleton<OnCalcsGenerateAllocationResults>();
             builder.AddSingleton<OnCalculationGenerateFailure>();
-            builder.AddSingleton<ICalculationEngineService, CalculationEngineService>();
+            builder.AddScoped<ICalculationEngineService, CalculationEngineService>();
             builder.AddSingleton<ICalculationEngine, CalculationEngine>();
             builder.AddSingleton<IAllocationFactory, AllocationFactory>();
-            builder.AddSingleton<IJobHelperService, JobHelperService>();
+            builder.AddScoped<IJobHelperService, JobHelperService>();
 
             builder.AddSingleton<IProviderSourceDatasetsRepository, ProviderSourceDatasetsRepository>((ctx) =>
             {

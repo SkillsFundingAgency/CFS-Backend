@@ -10,7 +10,7 @@
   <ItemGroup>
     <PackageReference Include="CalculateFunding.Common.ApiClient.Calcs" Version="1.0.19" />
     <PackageReference Include="CalculateFunding.Common.ApiClient.Jobs" Version="1.0.12" />
-    <PackageReference Include="CalculateFunding.Common.ApiClient.Policies" Version="2.0.11" />
+    <PackageReference Include="CalculateFunding.Common.ApiClient.Policies" Version="2.0.12" />
     <PackageReference Include="CalculateFunding.Common.TemplateMetadata" Version="1.0.8" />
     <PackageReference Include="FluentValidation" Version="8.4.0" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />

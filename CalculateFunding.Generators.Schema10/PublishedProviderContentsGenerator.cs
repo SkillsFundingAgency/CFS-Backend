@@ -70,7 +70,7 @@ namespace CalculateFunding.Generators.Schema10
                         publishedProviderVersion.Provider.ParliamentaryConstituencyName,
                         publishedProviderVersion.Provider.ParliamentaryConstituencyCode,
                         publishedProviderVersion.Provider.CountryCode,
-                        publishedProviderVersion.Provider.CountryName
+                        publishedProviderVersion.Provider.CountryName,
                     }
                 },
                 FundingStreamCode = publishedProviderVersion.FundingStreamId,
@@ -173,7 +173,7 @@ namespace CalculateFunding.Generators.Schema10
                 ReferenceData = !refernceData.IsNullOrEmpty() ? refernceData : null
             };
         }
-        
+
         private dynamic ToReferenceData(ReferenceData referenceData, FundingReferenceData fundingReferenceData)
         {
             return new

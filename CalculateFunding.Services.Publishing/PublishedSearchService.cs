@@ -1,4 +1,8 @@
-﻿using CalculateFunding.Models;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using CalculateFunding.Common.Models.HealthCheck;
+using CalculateFunding.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Repositories.Common.Search.Results;
@@ -9,10 +13,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Serilog;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using CalculateFunding.Common.Models.HealthCheck;
 
 
 namespace CalculateFunding.Services.Publishing
@@ -50,7 +50,6 @@ namespace CalculateFunding.Services.Publishing
         {
             SearchModel searchModel = await GetSearchModelFromRequest(request);
 
-
             if (searchModel == null)
             {
                 return new BadRequestObjectResult("An invalid search model was provided");
@@ -58,7 +57,10 @@ namespace CalculateFunding.Services.Publishing
 
             try
             {
-                searchModel.OrderBy = new[] { "providerName desc" }; ;
+                if (searchModel.OrderBy.IsNullOrEmpty())
+                {
+                    searchModel.OrderBy = new[] { "providerName" };
+                }
 
                 IEnumerable<Task<SearchResults<PublishedProviderIndex>>> searchTasks = await BuildSearchTasks(searchModel, Facets);
 
@@ -94,8 +96,7 @@ namespace CalculateFunding.Services.Publishing
                             SpecificationId = m.Result.SpecificationId,
                             FundingStreamId = m.Result.FundingStreamId,
                             FundingPeriodId = m.Result.FundingPeriodId
-
-                        }) ;
+                        });
                     }
                 }
 

@@ -103,5 +103,9 @@ namespace CalculateFunding.Repositories.Common.Search.Results
         public string CountryCode { get; set; }
 
         public string CountryName { get; set; }
+
+        public string LocalGovernmentGroupTypeCode { get; set; }
+
+        public string LocalGovernmentGroupTypeName { get; set; }
     }
 }

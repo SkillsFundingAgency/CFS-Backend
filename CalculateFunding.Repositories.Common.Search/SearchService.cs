@@ -1,10 +1,9 @@
-﻿using CalculateFunding.Models;
-using Microsoft.Azure.Search.Models;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
+using CalculateFunding.Models;
+using Microsoft.Azure.Search.Models;
 
 namespace CalculateFunding.Repositories.Common.Search
 {
