@@ -46,12 +46,12 @@ namespace CalculateFunding.Services.Publishing.Specifications
 
             if (!validationResults.IsValid) return validationResults.AsBadRequest();
 
-            SpecificationSummary specificationSummary = 
+            SpecificationSummary specificationSummary =
                 await _specificationsRepositoryPolicy.ExecuteAsync(() => _specificationService.GetSpecificationSummaryById(specificationId));
 
-            IEnumerable<PublishedProviderFundingStreamStatus> publishedProviderFundingStreamStatuses = 
-                await _publishedFundingRepositoryResilience.ExecuteAsync(()=> _publishedFundingRepository.GetPublishedProviderStatusCounts(specificationId));
-
+            IEnumerable<PublishedProviderFundingStreamStatus> publishedProviderFundingStreamStatuses =
+                await _publishedFundingRepositoryResilience.ExecuteAsync(() => _publishedFundingRepository.GetPublishedProviderStatusCounts(specificationId));
+            
             List<ProviderFundingStreamStatusResponse> response = new List<ProviderFundingStreamStatusResponse>();
 
             foreach (IGrouping<string, PublishedProviderFundingStreamStatus> publishedProviderFundingStreamGroup in publishedProviderFundingStreamStatuses.GroupBy(x => x.FundingStreamId))

@@ -220,7 +220,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
             {
                 QueryText = @"SELECT COUNT(1) AS count, f.content.current.fundingStreamId, f.content.current.status
                                 FROM f
-                                where f.documentType = 'PublishedProvider' and f.content.current.specificationId = @specificationId
+                                where f.documentType = 'PublishedProvider' and f.content.current.specificationId = @specificationId and f.deleted = false
                                 GROUP BY f.content.current.fundingStreamId, f.content.current.status",
                 Parameters = new[]
                 {
