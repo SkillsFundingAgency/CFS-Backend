@@ -17,6 +17,7 @@ using CalculateFunding.Services.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.IoC;
 using CalculateFunding.Services.Publishing.Repositories;
+using CalculateFunding.Services.Publishing.Specifications;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -100,6 +101,7 @@ namespace CalculateFunding.Api.Publishing
             builder.AddSingleton<ISpecificationFundingStatusService, SpecificationFundingStatusService>();
             builder.AddSingleton<IPublishedSearchService, PublishedSearchService>()
                     .AddSingleton<IHealthChecker, PublishedSearchService>();
+            builder.AddSingleton<IPublishedProviderStatusService, PublishedProviderStatusService>();
 
             builder.AddSingleton<IPublishedFundingRepository, PublishedFundingRepository>((ctx) =>
             {

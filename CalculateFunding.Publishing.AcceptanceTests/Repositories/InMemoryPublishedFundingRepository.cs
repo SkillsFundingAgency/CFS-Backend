@@ -203,5 +203,21 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 
             return Task.FromResult(publishedFunding);
         }
+
+        public Task<IEnumerable<PublishedProviderFundingStreamStatus>> GetPublishedProviderStatusCounts(string specificationId)
+        {
+            IEnumerable<PublishedProviderFundingStreamStatus> statuses = _repo.PublishedFunding
+                .SelectMany(c => c.Value)
+                .Where(p => p.Current.SpecificationId == specificationId)
+                .GroupBy(p => new { p.Current.FundingStreamId, p.Current.Status })
+                .Select(r => new PublishedProviderFundingStreamStatus
+                {
+                    FundingStreamId = r.Key.FundingStreamId,
+                    Status = Enum.GetName(r.Key.Status.GetType(), r.Key.Status),
+                    Count = r.Count()
+                });
+
+            return Task.FromResult(statuses);
+        }
     }
 }

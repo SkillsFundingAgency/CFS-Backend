@@ -209,5 +209,34 @@ namespace CalculateFunding.Services.Publishing.Repositories
                 cosmosDbQuery: query,
                 itemsPerPage: batchSize);
         }
+
+        public async Task<IEnumerable<PublishedProviderFundingStreamStatus>> GetPublishedProviderStatusCounts(string specificationId)
+        {
+            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
+
+            List<PublishedProviderFundingStreamStatus> results = new List<PublishedProviderFundingStreamStatus>();
+
+            CosmosDbQuery query = new CosmosDbQuery
+            {
+                QueryText = @"SELECT COUNT(1) AS count, f.content.current.fundingStreamId, f.content.current.status
+                                FROM f
+                                where f.documentType = 'PublishedProvider' and f.content.current.specificationId = @specificationId
+                                GROUP BY f.content.current.fundingStreamId, f.content.current.status",
+                Parameters = new[]
+                {
+                    new CosmosDbQueryParameter("@specificationId", specificationId)
+                }
+            };
+
+            IEnumerable<dynamic> queryResults = await _repository
+             .DynamicQuery(query);
+
+            foreach (dynamic item in queryResults)
+            {
+                results.Add(new PublishedProviderFundingStreamStatus { Count = (int)item.count, FundingStreamId = (string)item.fundingStreamId, Status = (string)item.status });
+            }
+
+            return await Task.FromResult(results);
+        }
     }
 }

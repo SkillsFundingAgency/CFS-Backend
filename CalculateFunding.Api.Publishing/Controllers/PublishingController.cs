@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
@@ -16,24 +17,28 @@ namespace CalculateFunding.Api.Publishing.Controllers
         private readonly IPublishedProviderFundingService _publishedProviderFundingService;
         private readonly IPublishedSearchService _publishedSearchService;
         private readonly IPublishedProviderVersionService _publishedProviderVersionService;
+        private readonly IPublishedProviderStatusService _publishedProviderStatusService;
 
         public PublishingController(ISpecificationPublishingService specificationPublishingService,
             IProviderFundingPublishingService providerFundingPublishingService,
             IPublishedProviderFundingService publishedProviderFundingService,
             IPublishedSearchService publishedSearchService,
-            IPublishedProviderVersionService publishedProviderVersionService)
+            IPublishedProviderVersionService publishedProviderVersionService,
+            IPublishedProviderStatusService publishedProviderStatusService)
         {
             Guard.ArgumentNotNull(specificationPublishingService, nameof(specificationPublishingService));
             Guard.ArgumentNotNull(providerFundingPublishingService, nameof(providerFundingPublishingService));
             Guard.ArgumentNotNull(publishedProviderFundingService, nameof(publishedProviderFundingService));
             Guard.ArgumentNotNull(publishedSearchService, nameof(publishedSearchService));
             Guard.ArgumentNotNull(publishedProviderVersionService, nameof(publishedProviderVersionService));
+            Guard.ArgumentNotNull(publishedProviderStatusService, nameof(publishedProviderStatusService));
 
             _specificationPublishingService = specificationPublishingService;
             _providerFundingPublishingService = providerFundingPublishingService;
             _publishedProviderFundingService = publishedProviderFundingService;
             _publishedSearchService = publishedSearchService;
             _publishedProviderVersionService = publishedProviderVersionService;
+            _publishedProviderStatusService = publishedProviderStatusService;
         }
 
         /// <summary>
@@ -119,6 +124,19 @@ namespace CalculateFunding.Api.Publishing.Controllers
         {
             return await _publishedProviderVersionService.ReIndex(GetUser(),
                 GetCorrelationId());
+        }
+
+        /// <summary>
+        /// Get count of published provider by state
+        /// </summary>
+        /// <param name="specificationId"></param>
+        /// <returns></returns>
+        [HttpGet("api/specifications/{specificationId}/publishedproviders/publishingstatus")]
+        [ProducesResponseType(200, Type = typeof(IEnumerable<ProviderFundingStreamStatusResponse>))]
+        public async Task<IActionResult> GetProviderStatusCounts([FromRoute] string specificationId)
+        {
+            return await _publishedProviderStatusService
+                .GetProviderStatusCounts(specificationId);
         }
 
         private Reference GetUser()
