@@ -42,7 +42,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             //Assert
             generatedProviderResult["1234"].FundingLines.Single(_ => _.TemplateLineId == 1).Value
                 .Should()
-                .Be(16500.64M); //the 5000.635 figure should be midpoint rounded away from zero to 5000.64
+                .Be(16200.64M); //the 5000.635 figure should be midpoint rounded away from zero to 5000.64
 
             generatedProviderResult["1234"].Calculations.Single(_ => _.TemplateCalculationId == 1).Value
                 .Should()
@@ -58,7 +58,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             generatedProviderResult["1234"].FundingLines.Single(_ => _.TemplateLineId == 3).Value
                 .Should()
-                .Be(3500M);
+                .Be(3200M);
 
             generatedProviderResult["1234"].Calculations.Single(_ => _.TemplateCalculationId == 3).Value
                 .Should()
@@ -94,7 +94,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             generatedProviderResult["1234"].FundingLines.Single(_ => _.TemplateLineId == 8).Value
                 .Should()
-                .Be(1500M);
+                .Be(1200M);
 
             generatedProviderResult["1234"].Calculations.Single(_ => _.TemplateCalculationId == 8).Value
                 .Should()

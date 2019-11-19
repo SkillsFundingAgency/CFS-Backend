@@ -35,54 +35,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             //Act
             GeneratorModels.FundingValue fundingValue = fundingLineTotalAggregator.GenerateTotals(contents, mapping, CreateCalculations(mapping));
 
-            //Assert
-            List<Models.Publishing.FundingLine> fundingLines = new List<Models.Publishing.FundingLine>()
-            {
-                new Models.Publishing.FundingLine()
-                {
-                    TemplateLineId = 1,
-                    Value = 16500.63M,
-                },
-                new Models.Publishing.FundingLine()
-                {
-                    TemplateLineId = 2,
-                    Value = 8000M,
-                },
-                new Models.Publishing.FundingLine()
-                {
-                    TemplateLineId = 3,
-                    Value = 3500M,
-                },
-                new Models.Publishing.FundingLine()
-                {
-                    TemplateLineId = 4,
-                    Value =5000.63M
-                },
-                new Models.Publishing.FundingLine()
-                {
-                    TemplateLineId = 5,
-                    Value = 0M,
-                },
-                new Models.Publishing.FundingLine()
-                {
-                    TemplateLineId = 6,
-                    Value = 8000M,
-                },
-                new Models.Publishing.FundingLine()
-                {
-                    TemplateLineId = 7,
-                    Value = 500M
-                },
-                new Models.Publishing.FundingLine()
-                {
-                    TemplateLineId = 8,
-                    Value = 1500M,
-                }
-            };
+            IEnumerable<GeneratorModels.FundingLine> fundingLines = fundingValue.FundingLines.Flatten(_ => _.FundingLines);
 
+            //Assert
             fundingLines.Single(_ => _.TemplateLineId == 1).Value
                 .Should()
-                .Be(16500.63M);
+                .Be(16200.63M);
 
             fundingLines.Single(_ => _.TemplateLineId == 2).Value
                 .Should()
@@ -90,7 +48,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             fundingLines.Single(_ => _.TemplateLineId == 3).Value
                 .Should()
-                .Be(3500M);
+                .Be(3200M);
 
             fundingLines.Single(_ => _.TemplateLineId == 4).Value
                 .Should()
@@ -110,103 +68,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             fundingLines.Single(_ => _.TemplateLineId == 8).Value
                 .Should()
-                .Be(1500M);
+                .Be(1200M);
         }
-
-        public void GenerateTotals_GivenValidTemplateMetadataContentsAndInvalidCalculations_ReturnsTemplateCalculationTotals()
-        {
-            //Arrange
-            ILogger logger = CreateLogger();
-
-            ITemplateMetadataGenerator templateMetaDataGenerator = CreateTemplateGenerator(logger);
-
-            TemplateMetadataContents contents = templateMetaDataGenerator.GetMetadata(GetResourceString("CalculateFunding.Services.Publishing.UnitTests.Resources.exampleFundingLineTemplate1.json"));
-
-            FundingLineTotalAggregator fundingLineTotalAggregator = new FundingLineTotalAggregator();
-
-            TemplateMapping mapping = CreateTemplateMappings();
-
-            //Act
-            GeneratorModels.FundingValue fundingValue = fundingLineTotalAggregator.GenerateTotals(contents, mapping, new CalculationResult[0]);
-
-            //Assert
-            List<Models.Publishing.FundingLine> fundingLines = new List<Models.Publishing.FundingLine>()
-            {
-                new Models.Publishing.FundingLine()
-                {
-                    TemplateLineId = 1,
-                    Value = 0M,
-                },
-                new Models.Publishing.FundingLine()
-                {
-                    TemplateLineId = 2,
-                    Value = 8000M,
-                },
-                new Models.Publishing.FundingLine()
-                {
-                    TemplateLineId = 3,
-                    Value = 3500M,
-                },
-                new Models.Publishing.FundingLine()
-                {
-                    TemplateLineId = 4,
-                    Value =5000.63M
-                },
-                new Models.Publishing.FundingLine()
-                {
-                    TemplateLineId = 5,
-                    Value = 0M,
-                },
-                new Models.Publishing.FundingLine()
-                {
-                    TemplateLineId = 6,
-                    Value = 8000M,
-                },
-                new Models.Publishing.FundingLine()
-                {
-                    TemplateLineId = 7,
-                    Value = 500M
-                },
-                new Models.Publishing.FundingLine()
-                {
-                    TemplateLineId = 8,
-                    Value = 1500M,
-                }
-            };
-
-            fundingLines.Single(_ => _.TemplateLineId == 1).Value
-                .Should()
-                .Be(0M);
-
-            fundingLines.Single(_ => _.TemplateLineId == 2).Value
-                .Should()
-                .Be(8000M);
-
-            fundingLines.Single(_ => _.TemplateLineId == 3).Value
-                .Should()
-                .Be(3500M);
-
-            fundingLines.Single(_ => _.TemplateLineId == 4).Value
-                .Should()
-                .Be(5000.63M);
-
-            fundingLines.Single(_ => _.TemplateLineId == 5).Value
-                .Should()
-                .Be(0M);
-
-            fundingLines.Single(_ => _.TemplateLineId == 6).Value
-                .Should()
-                .Be(8000M);
-
-            fundingLines.Single(_ => _.TemplateLineId == 7).Value
-                .Should()
-                .Be(500M);
-
-            fundingLines.Single(_ => _.TemplateLineId == 8).Value
-                .Should()
-                .Be(1500M);
-        }
-
 
         public ITemplateMetadataGenerator CreateTemplateGenerator(ILogger logger = null)
         {
