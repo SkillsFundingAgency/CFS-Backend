@@ -10,8 +10,11 @@ namespace CalculateFunding.Services.Calcs.Services
     {
         private string _name;
         private CalculationValueFormat? _valueFormat;
+        private CalculationType? _type;
+        private AggregationType? _aggregationType;
+        private string _formulaText;
         private uint _templateCalculationId;
-        private IEnumerable<Calculation> _calculations = Enumerable.Empty<Calculation>();
+        private IEnumerable<Calculation> _calculations = null;
 
         public TemplateMappingCalculationBuilder WithCalculations(params Calculation[] calculations)
         {
@@ -34,6 +37,27 @@ namespace CalculateFunding.Services.Calcs.Services
             return this;
         }
 
+        public TemplateMappingCalculationBuilder WithType(CalculationType type)
+        {
+            _type = type;
+
+            return this;
+        }
+
+        public TemplateMappingCalculationBuilder WithAggregationType(AggregationType aggregationType)
+        {
+            _aggregationType = aggregationType;
+
+            return this;
+        }
+
+        public TemplateMappingCalculationBuilder WithFormulaText(string formulaText)
+        {
+            _formulaText = formulaText;
+
+            return this;
+        }
+
         public TemplateMappingCalculationBuilder WithName(string name)
         {
             _name = name;
@@ -47,6 +71,9 @@ namespace CalculateFunding.Services.Calcs.Services
             {
                 Name = _name ?? NewRandomString(),
                 ValueFormat = _valueFormat.GetValueOrDefault(NewRandomEnum<CalculationValueFormat>()),
+                Type = _type.GetValueOrDefault(CalculationType.Cash),
+                FormulaText = _formulaText,
+                AggregationType = _aggregationType.GetValueOrDefault(AggregationType.Sum),
                 TemplateCalculationId = _templateCalculationId,
                 Calculations = _calculations
             };

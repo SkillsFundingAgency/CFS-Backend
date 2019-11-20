@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.2</TargetFramework>
-    <RootNamespace>CalculateFunding.Services.Calcs</RootNamespace>
+    <RootNamespace>CalculateFunding.Services.Calcs.UnitTests</RootNamespace>
     <DebugType>full</DebugType>
     <LangVersion>7.1</LangVersion>
   </PropertyGroup>
@@ -12,10 +12,19 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="Resources\DSG1.0.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\DSG1.0.json" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Include="Services\CalculationServiceTests.GetCaclculationSummariesForSpecification.cs" />
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="CalculateFunding.Common.TemplateMetadata.Schema10" Version="1.0.14" />
     <PackageReference Include="FluentAssertions" Version="5.9.0" />
     <PackageReference Include="FluentValidation" Version="8.4.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.3.0" />
