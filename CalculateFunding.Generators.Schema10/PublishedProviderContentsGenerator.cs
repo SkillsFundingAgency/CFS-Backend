@@ -75,7 +75,7 @@ namespace CalculateFunding.Generators.Schema10
                 },
                 FundingStreamCode = publishedProviderVersion.FundingStreamId,
                 publishedProviderVersion.FundingPeriodId,
-                FundingValue = new { TotalValue = publishedProviderVersion.TotalFunding, FundingLines = templateMetadataContents.RootFundingLines?.Select(x => ToFundingLine(x, generatedProviderResult.FundingLines, templateMapping, generatedProviderResult.Calculations, generatedProviderResult.ReferenceData)) },
+                FundingValue = new { TotalValue = publishedProviderVersion.TotalFunding, FundingLines = templateMetadataContents.RootFundingLines?.Select(x => ToFundingLine(x, generatedProviderResult.FundingLines, templateMapping, generatedProviderResult.Calculations, generatedProviderResult.ReferenceData, generatedProviderResult.Provider.ProviderId)) },
                 publishedProviderVersion.VariationReasons,
                 Successors = string.IsNullOrWhiteSpace(publishedProviderVersion.Provider.Successor) ? null : new List<string> { publishedProviderVersion.Provider.Successor },
                 publishedProviderVersion.Predecessors
@@ -139,7 +139,7 @@ namespace CalculateFunding.Generators.Schema10
             return otherIdentifiers;
         }
 
-        private dynamic ToFundingLine(TemplateFundingLine fundingLine, IEnumerable<FundingLine> fundingLineValues, TemplateMapping templateMapping, IEnumerable<FundingCalculation> calculationResults, IEnumerable<FundingReferenceData> referenceData)
+        private dynamic ToFundingLine(TemplateFundingLine fundingLine, IEnumerable<FundingLine> fundingLineValues, TemplateMapping templateMapping, IEnumerable<FundingCalculation> calculationResults, IEnumerable<FundingReferenceData> referenceData, string providerId)
         {
             return new
             {
@@ -148,28 +148,35 @@ namespace CalculateFunding.Generators.Schema10
                 Value = Convert.ToInt32(fundingLineValues.Where(x => x.TemplateLineId == fundingLine.TemplateLineId)?.Single().Value),
                 fundingLine.TemplateLineId,
                 Type = fundingLine.Type.ToString(),
-                Calculations = fundingLine.Calculations?.Select(x => ToCalculation(x, templateMapping, calculationResults, referenceData)),
-                FundingLines = fundingLine.FundingLines?.Select(x => ToFundingLine(x, fundingLineValues, templateMapping, calculationResults, referenceData)),
+                Calculations = fundingLine.Calculations?.Select(x => ToCalculation(x, templateMapping, calculationResults, referenceData, providerId)),
+                FundingLines = fundingLine.FundingLines?.Select(x => ToFundingLine(x, fundingLineValues, templateMapping, calculationResults, referenceData, providerId)),
                 fundingLineValues.Where(x => x.TemplateLineId == fundingLine.TemplateLineId)?.Single().DistributionPeriods
             };
         }
 
-        private dynamic ToCalculation(Common.TemplateMetadata.Models.Calculation calculation, TemplateMapping templateMapping, IEnumerable<FundingCalculation> calculationResults, IEnumerable<FundingReferenceData> referenceData)
+        private dynamic ToCalculation(Common.TemplateMetadata.Models.Calculation calculation, TemplateMapping templateMapping, IEnumerable<FundingCalculation> calculationResults, IEnumerable<FundingReferenceData> referenceData, string providerId)
         {
             string calculationId = templateMapping.TemplateMappingItems.Where(x => x.TemplateId == calculation.TemplateCalculationId)?.Single().CalculationId;
             IEnumerable<FundingReferenceData> publishedFundingReferenceData = referenceData?.Where(_ => calculation.ReferenceData?.Any(calcReferenceData => calcReferenceData.TemplateReferenceId == _.TemplateReferenceId) ?? false);
             IEnumerable<dynamic> refernceData = publishedFundingReferenceData?.Select(_ => ToReferenceData(calculation.ReferenceData.Where(calcReferenceData => calcReferenceData.TemplateReferenceId == _.TemplateReferenceId).Single(), _));
 
+            FundingCalculation fundingCalculationResult = calculationResults.Where(x => x.TemplateCalculationId == calculation.TemplateCalculationId)?.SingleOrDefault();
+            if (fundingCalculationResult == null)
+            {
+                int totalCount = calculationResults.Count(c => c.TemplateCalculationId == calculation.TemplateCalculationId);
+                throw new InvalidOperationException($"Unable to find calculation result for provider '{providerId}' with TemplateCalculationId '{calculation.TemplateCalculationId}'. A total of {totalCount} results found.");
+            }
+
             return new
             {
                 calculation.Name,
                 calculation.TemplateCalculationId,
-                calculationResults.Where(x => x.TemplateCalculationId == calculation.TemplateCalculationId)?.Single().Value,
+                fundingCalculationResult.Value,
                 ValueFormat = calculation.ValueFormat.ToString(),
                 Type = calculation.Type.ToString(),
                 calculation.FormulaText,
                 AggregationType = calculation.AggregationType.ToString(),
-                Calculations = calculation.Calculations?.Select(x => ToCalculation(x, templateMapping, calculationResults, referenceData)),
+                Calculations = calculation.Calculations?.Select(x => ToCalculation(x, templateMapping, calculationResults, referenceData, providerId)),
                 ReferenceData = !refernceData.IsNullOrEmpty() ? refernceData : null
             };
         }

@@ -76,7 +76,7 @@ namespace CalculateFunding.Services.Publishing
                 IEnumerable<Common.TemplateMetadata.Models.FundingLine> fundingLineDefinitons = templateMetadataContents.RootFundingLines.Flatten(_ => _.FundingLines) ?? Enumerable.Empty<Common.TemplateMetadata.Models.FundingLine>();
 
                 List<PublishingModels.FundingLine> fundingLines = GenerateFundingLines(fundingLineAggregates, fundingLineDefinitons);
-                List<PublishingModels.FundingCalculation> calculations = GenerateCalculations(fundingLineAggregates.Flatten(_ => _.FundingLines).SelectMany(c => c.Calculations));
+                List<PublishingModels.FundingCalculation> calculations = GenerateCalculations(fundingLineAggregates.Flatten(_ => _.FundingLines).SelectMany(c => c.Calculations ?? Enumerable.Empty<AggregateFundingCalculation>()));
 
                 // IEnumerable<Common.TemplateMetadata.Models.Calculation> calculationDefinitions = fundingLineDefinitons.SelectMany(_ => _.Calculations.Flatten(calculation => calculation.Calculations)) ?? new Calculation[0];
                 //IEnumerable<TemplateModels.ReferenceData> refernceData = calculations.Where(_ => _.ReferenceData != null)?.SelectMany(_ => _.ReferenceData) ?? new ReferenceData[0];
@@ -135,6 +135,7 @@ namespace CalculateFunding.Services.Publishing
         private List<FundingCalculation> GenerateCalculations(IEnumerable<AggregateFundingCalculation> aggregateCalculations)
         {
             List<PublishingModels.FundingCalculation> calculations = new List<PublishingModels.FundingCalculation>();
+
             foreach (AggregateFundingCalculation aggregateFundingCalculation in aggregateCalculations)
             {
                 calculations.Add(new FundingCalculation()
@@ -143,7 +144,7 @@ namespace CalculateFunding.Services.Publishing
                     Value = aggregateFundingCalculation.Value,
                 });
 
-                if (aggregateFundingCalculation.Calculations.AnyWithNullCheck())
+                if (aggregateFundingCalculation.Calculations != null && aggregateFundingCalculation.Calculations.AnyWithNullCheck())
                 {
                     calculations.AddRange(GenerateCalculations(aggregateFundingCalculation.Calculations));
                 }

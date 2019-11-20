@@ -106,7 +106,7 @@ namespace CalculateFunding.Services.Publishing
             string calculationId = mapping.TemplateMappingItems.SingleOrDefault(_ => _.TemplateId == templateId)?.CalculationId;
             if (string.IsNullOrWhiteSpace(calculationId))
             {
-                throw new InvalidOperationException($"Unable to find calculation for templatecalculation ID {templateId}");
+                throw new InvalidOperationException($"Unable to find CalculationId for TemplateCalculationId '{templateId}' in template mapping");
             }
 
             return calculationId;

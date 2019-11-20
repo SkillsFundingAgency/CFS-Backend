@@ -107,7 +107,7 @@ namespace CalculateFunding.Generators.Schema10
                     FundingValue = new
                     {
                         TotalValue = publishedFundingVersion.TotalFunding,
-                        FundingLines = templateMetadataContents.RootFundingLines?.Select(_ => BuildSchemaJsonFundingLines(publishedFundingVersion.ReferenceData, publishedFundingVersion.Calculations, publishedFundingVersion.FundingLines, _))
+                        FundingLines = templateMetadataContents.RootFundingLines?.Select(_ => BuildSchemaJsonFundingLines(publishedFundingVersion.ReferenceData, publishedFundingVersion.Calculations, publishedFundingVersion.FundingLines, _, publishedFundingVersion.OrganisationGroupTypeIdentifier, publishedFundingVersion.OrganisationGroupIdentifierValue))
                     },
                     ProviderFundings = publishedFundingVersion.ProviderFundings?.ToArray(),
                     GroupingReason = publishedFundingVersion.GroupingReason,
@@ -121,7 +121,7 @@ namespace CalculateFunding.Generators.Schema10
         }
 
         private SchemaJsonFundingLine BuildSchemaJsonFundingLines(IEnumerable<FundingReferenceData> referenceData, IEnumerable<FundingCalculation> fundingCalculations, IEnumerable<FundingLine> fundingLines,
-            Common.TemplateMetadata.Models.FundingLine templateFundingLine)
+            Common.TemplateMetadata.Models.FundingLine templateFundingLine, string organisationGroupTypeIdentifier, string organisationGroupIdentifierValue)
         {
             FundingLine publishedFundingLine = fundingLines.Where(_ => _.TemplateLineId == templateFundingLine.TemplateLineId).FirstOrDefault();
 
@@ -132,7 +132,7 @@ namespace CalculateFunding.Generators.Schema10
                 Value = DecimalAsObject(publishedFundingLine.Value),
                 TemplateLineId = templateFundingLine.TemplateLineId,
                 Type = templateFundingLine.Type.ToString(),
-                Calculations = templateFundingLine.Calculations?.Where(IsAggregationOrHasChildCalculations)?.Select(_ => BuildSchemaJsonCalculations(referenceData, fundingCalculations, _)),
+                Calculations = templateFundingLine.Calculations?.Where(IsAggregationOrHasChildCalculations)?.Select(_ => BuildSchemaJsonCalculations(referenceData, fundingCalculations, _, organisationGroupTypeIdentifier, organisationGroupIdentifierValue)),
                 DistributionPeriods = publishedFundingLine.DistributionPeriods?.Where(_ => _ != null).Select(distributionPeriod => new
                 {
                     Value = Convert.ToInt32(distributionPeriod.Value),
@@ -147,13 +147,17 @@ namespace CalculateFunding.Generators.Schema10
                         profilePeriod.DistributionPeriodId
                     }).ToArray()
                 }).ToArray() ?? new dynamic[0],
-                FundingLines = templateFundingLine.FundingLines?.Select(_ => BuildSchemaJsonFundingLines(referenceData, fundingCalculations, fundingLines, _))
+                FundingLines = templateFundingLine.FundingLines?.Select(_ => BuildSchemaJsonFundingLines(referenceData, fundingCalculations, fundingLines, _, organisationGroupTypeIdentifier, organisationGroupIdentifierValue))
             };
         }
 
-        private SchemaJsonCalculation BuildSchemaJsonCalculations(IEnumerable<FundingReferenceData> referenceData, IEnumerable<FundingCalculation> fundingCalculations, Common.TemplateMetadata.Models.Calculation calculation)
+        private SchemaJsonCalculation BuildSchemaJsonCalculations(IEnumerable<FundingReferenceData> referenceData, IEnumerable<FundingCalculation> fundingCalculations, Common.TemplateMetadata.Models.Calculation calculation, string organisationGroupTypeIdentifier, string organisationGroupIdentifierValue)
         {
-            FundingCalculation publishedFundingCalculation = fundingCalculations?.Where(_ => _.TemplateCalculationId == calculation.TemplateCalculationId)?.First();
+            FundingCalculation publishedFundingCalculation = fundingCalculations?.Where(_ => _.TemplateCalculationId == calculation.TemplateCalculationId)?.FirstOrDefault();
+            if (publishedFundingCalculation == null)
+            {
+                throw new InvalidOperationException($"Unable to find calculation result for TemplateCalculationId '{calculation.TemplateCalculationId}' for group identifier '{organisationGroupTypeIdentifier}' value '{organisationGroupIdentifierValue}'");
+            }
             IEnumerable<FundingReferenceData> publishedFundingReferenceData = referenceData?.Where(_ => calculation.ReferenceData?.Any(calcReferenceData => calcReferenceData.TemplateReferenceId == _.TemplateReferenceId) ?? false);
             IEnumerable<dynamic> refernceData = publishedFundingReferenceData?.Select(_ => ToReferenceData(calculation.ReferenceData.Where(calcReferenceData => calcReferenceData.TemplateReferenceId == _.TemplateReferenceId).Single(), _));
 
@@ -166,7 +170,7 @@ namespace CalculateFunding.Generators.Schema10
                 Value = publishedFundingCalculation.Value,
                 TemplateCalculationId = calculation.TemplateCalculationId,
                 ValueFormat = calculation.ValueFormat.ToString(),
-                Calculations = calculation.Calculations?.Where(IsAggregationOrHasChildCalculations)?.Select(_ => BuildSchemaJsonCalculations(referenceData, fundingCalculations, _)),
+                Calculations = calculation.Calculations?.Where(IsAggregationOrHasChildCalculations)?.Select(_ => BuildSchemaJsonCalculations(referenceData, fundingCalculations, _, organisationGroupTypeIdentifier, organisationGroupIdentifierValue)),
                 ReferenceData = !refernceData.IsNullOrEmpty() ? refernceData : null
             };
         }

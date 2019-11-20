@@ -137,6 +137,7 @@ Scenario Outline: Successful publishing of funding
 		| FY-2021              | CalendarMonth | April     | 2021 | 1          | 5000          |
 	And the Published Provider contains the following calculation results
 		| TemplateCalculationId | Value |
+		| 238                   | 320   |
 		| 15                    | 320   |
 		| 16                    | 320   |
 		| 17                    | 320   |
@@ -295,6 +296,9 @@ Scenario Outline: Successful publishing of funding
 		| 39                    | 320   |
 		| 21                    | 320   |
 		| 22                    | 320   |
+		| 216                   | 320   |
+		| 217                   | 320   |
+		| 219                   | 320   |
 	And the Published Provider has the following provider information
 		| Field                         | Value                    |
 		| ProviderId                    | 1000000                  |
@@ -451,6 +455,7 @@ Scenario Outline: Successful publishing of funding
 		| FY-2021              | CalendarMonth | April     | 2021 | 1          | 5000          |
 	And the Published Provider contains the following calculation results
 		| TemplateCalculationId | Value |
+		| 238                   | 320   |
 		| 15                    | 320   |
 		| 16                    | 320   |
 		| 17                    | 320   |
@@ -609,6 +614,9 @@ Scenario Outline: Successful publishing of funding
 		| 39                    | 320   |
 		| 21                    | 320   |
 		| 22                    | 320   |
+		| 216                   | 320   |
+		| 217                   | 320   |
+		| 219                   | 320   |
 	And the Published Provider has the following provider information
 		| Field                         | Value                    |
 		| ProviderId                    | 1000002                  |
@@ -926,6 +934,11 @@ Scenario Outline: Successful publishing of funding
 		| Calculation | b03fbd41-8454-4a4e-a9d1-e6cdfd4eeb60 | 39         | HN after deductions                                                                                                                                    |
 		| Calculation | 8277b567-6d82-4760-95d3-56e26d31704e | 21         | Recoupment                                                                                                                                             |
 		| Calculation | 82a82df7-a4e3-4d5d-b378-23af3607ceec | 22         | School Block After Recoupment                                                                                                                          |
+		| Calculation | 1c066b09-3e98-48fc-966f-ea3f09401b54 | 238        | Disability Access Fund                                                                                                                                 |
+		| Calculation | 4afd7426-1787-4b71-a5f7-971db86811be | 216        | Hospital Academies Funding Total Hospital Education Deduction April (Year 1) - August (Year 1) rate                                                    |
+		| Calculation | 8fdd4341-88ea-47f2-ba81-511951ca7efd | 217        | Hospital Academies Funding Total Hospital Education Deduction September (Year 1) - March (Year 2) rate                                                 |
+		| Calculation | 5cfb28de-88d6-4faa-a936-d81a065fb596 | 219        | 16-19 Academies and Free Schools Total Post-16 Schools SEN Places                                                                                      |
+
 	And calculations exists
 		| Value                                | CalculationId |
 		| e46c0b59-6900-4fae-90b5-da6e558d9491 | 320           |
@@ -1086,6 +1099,10 @@ Scenario Outline: Successful publishing of funding
 		| b03fbd41-8454-4a4e-a9d1-e6cdfd4eeb60 | 320           |
 		| 8277b567-6d82-4760-95d3-56e26d31704e | 320           |
 		| 82a82df7-a4e3-4d5d-b378-23af3607ceec | 320           |
+		| 1c066b09-3e98-48fc-966f-ea3f09401b54 | 320           |
+		| 4afd7426-1787-4b71-a5f7-971db86811be | 320           |
+		| 8fdd4341-88ea-47f2-ba81-511951ca7efd | 320           |
+		| 5cfb28de-88d6-4faa-a936-d81a065fb596 | 320           |
 	When funding is published
 	Then publishing succeeds
 	And the following published funding is produced

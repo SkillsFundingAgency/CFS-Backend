@@ -254,46 +254,46 @@
                   "type": "Information",
                   "fundingLines": [],
                   "distributionPeriods": [],
-				  "calculations": [
-					{
-					  "name": "Universal Entitlement for 3 and 4 Year Olds total",
-					  "templateCalculationId": 131,
-					  "value": "",
-					  "valueFormat": "Currency",
-					  "type": "Cash",
-					  "formulaText": "",
-					  "aggregationType": "Sum",
-					  "calculations": [
-						{
-						  "name": "Universal Entitlement for 3 and 4 Year Olds total Early Years Universal Entitlement for 3 and 4 Year Olds Rate",
-						  "templateCalculationId": 132,
-						  "value": "",
-						  "valueFormat": "Currency",
-						  "type": "Rate",
-						  "formulaText": "",
-						  "aggregationType": "Average"
-						},
-						{
-						  "name": "Total 3 and 4 Year Olds (PTE)",
-						  "templateCalculationId": 133,
-						  "value": "",
-						  "valueFormat": "Number",
-						  "type": "PupilNumber",
-						  "formulaText": "",
-						  "aggregationType": "Average"
-						},
-						{
-						  "name": "Universal Entitlement for 3 and 4 Year Olds total PTE Funded hours",
-						  "templateCalculationId": 134,
-						  "value": "",
-						  "valueFormat": "Number",
-						  "type": "Number",
-						  "formulaText": "",
-						  "aggregationType": "None"
-						}
-					  ]
-					}
-				  ]
+                  "calculations": [
+                    {
+                      "name": "Universal Entitlement for 3 and 4 Year Olds total",
+                      "templateCalculationId": 131,
+                      "value": "",
+                      "valueFormat": "Currency",
+                      "type": "Cash",
+                      "formulaText": "",
+                      "aggregationType": "Sum",
+                      "calculations": [
+                        {
+                          "name": "Universal Entitlement for 3 and 4 Year Olds total Early Years Universal Entitlement for 3 and 4 Year Olds Rate",
+                          "templateCalculationId": 132,
+                          "value": "",
+                          "valueFormat": "Currency",
+                          "type": "Rate",
+                          "formulaText": "",
+                          "aggregationType": "Average"
+                        },
+                        {
+                          "name": "Total 3 and 4 Year Olds (PTE)",
+                          "templateCalculationId": 133,
+                          "value": "",
+                          "valueFormat": "Number",
+                          "type": "PupilNumber",
+                          "formulaText": "",
+                          "aggregationType": "Average"
+                        },
+                        {
+                          "name": "Universal Entitlement for 3 and 4 Year Olds total PTE Funded hours",
+                          "templateCalculationId": 134,
+                          "value": "",
+                          "valueFormat": "Number",
+                          "type": "Number",
+                          "formulaText": "",
+                          "aggregationType": "None"
+                        }
+                      ]
+                    }
+                  ]
                 },
                 {
                   "name": "Funding for Additional Hours for working parents",
@@ -303,46 +303,46 @@
                   "type": "Information",
                   "fundingLines": [],
                   "distributionPeriods": [],
-				  "calculations": [
-					{
-					  "name": "Funding for Additional Hours for working parents total",
-					  "templateCalculationId": 136,
-					  "value": "",
-					  "valueFormat": "Currency",
-					  "type": "Cash",
-					  "formulaText": "",
-					  "aggregationType": "Sum",
-					  "calculations": [
-						{
-						  "name": "Funding for Additional Hours for working parents total Early Years Universal Entitlement for 3 and 4 Year Olds Rate",
-						  "templateCalculationId": 137,
-						  "value": "",
-						  "valueFormat": "Currency",
-						  "type": "Rate",
-						  "formulaText": "",
-						  "aggregationType": "Average"
-						},
-						{
-						  "name": "Total 3 and 4 Year Old for Additional Hours for Working Parents (PTE)",
-						  "templateCalculationId": 138,
-						  "value": "",
-						  "valueFormat": "Number",
-						  "type": "PupilNumber",
-						  "formulaText": "",
-						  "aggregationType": "Average"
-						},
-						{
-						  "name": "Funding for Additional Hours for working parents total PTE Funded hours",
-						  "templateCalculationId": 139,
-						  "value": "",
-						  "valueFormat": "Number",
-						  "type": "Number",
-						  "formulaText": "",
-						  "aggregationType": "None"
-						}
-					  ]
-					}
-				  ]
+                  "calculations": [
+                    {
+                      "name": "Funding for Additional Hours for working parents total",
+                      "templateCalculationId": 136,
+                      "value": "",
+                      "valueFormat": "Currency",
+                      "type": "Cash",
+                      "formulaText": "",
+                      "aggregationType": "Sum",
+                      "calculations": [
+                        {
+                          "name": "Funding for Additional Hours for working parents total Early Years Universal Entitlement for 3 and 4 Year Olds Rate",
+                          "templateCalculationId": 137,
+                          "value": "",
+                          "valueFormat": "Currency",
+                          "type": "Rate",
+                          "formulaText": "",
+                          "aggregationType": "Average"
+                        },
+                        {
+                          "name": "Total 3 and 4 Year Old for Additional Hours for Working Parents (PTE)",
+                          "templateCalculationId": 138,
+                          "value": "",
+                          "valueFormat": "Number",
+                          "type": "PupilNumber",
+                          "formulaText": "",
+                          "aggregationType": "Average"
+                        },
+                        {
+                          "name": "Funding for Additional Hours for working parents total PTE Funded hours",
+                          "templateCalculationId": 139,
+                          "value": "",
+                          "valueFormat": "Number",
+                          "type": "Number",
+                          "formulaText": "",
+                          "aggregationType": "None"
+                        }
+                      ]
+                    }
+                  ]
                 },
                 {
                   "name": "Participation Funding for Disadvantaged 2 Year Olds",
@@ -352,46 +352,46 @@
                   "type": "Information",
                   "fundingLines": [],
                   "distributionPeriods": [],
-				  "calculations": [
-					{
-					  "name": "Participation Funding for Disadvantaged 2 Year Olds total",
-					  "templateCalculationId": 141,
-					  "value": "",
-					  "valueFormat": "Currency",
-					  "type": "Cash",
-					  "formulaText": "",
-					  "aggregationType": "Sum",
-					  "calculations": [
-						{
-						  "name": "Early Years Participation Funding for 2 Year Olds Rate",
-						  "templateCalculationId": 142,
-						  "value": "",
-						  "valueFormat": "Currency",
-						  "type": "Rate",
-						  "formulaText": "",
-						  "aggregationType": "Average"
-						},
-						{
-						  "name": "Total 2 Year Olds (PTE)",
-						  "templateCalculationId": 143,
-						  "value": "",
-						  "valueFormat": "Number",
-						  "type": "PupilNumber",
-						  "formulaText": "",
-						  "aggregationType": "Sum"
-						},
-						{
-						  "name": "Participation Funding for Disadvantaged 2 Year Olds total PTE Funded hours",
-						  "templateCalculationId": 144,
-						  "value": "",
-						  "valueFormat": "Number",
-						  "type": "Number",
-						  "formulaText": "",
-						  "aggregationType": "None"
-						}
-					  ]
-					}
-				  ]
+                  "calculations": [
+                    {
+                      "name": "Participation Funding for Disadvantaged 2 Year Olds total",
+                      "templateCalculationId": 141,
+                      "value": "",
+                      "valueFormat": "Currency",
+                      "type": "Cash",
+                      "formulaText": "",
+                      "aggregationType": "Sum",
+                      "calculations": [
+                        {
+                          "name": "Early Years Participation Funding for 2 Year Olds Rate",
+                          "templateCalculationId": 142,
+                          "value": "",
+                          "valueFormat": "Currency",
+                          "type": "Rate",
+                          "formulaText": "",
+                          "aggregationType": "Average"
+                        },
+                        {
+                          "name": "Total 2 Year Olds (PTE)",
+                          "templateCalculationId": 143,
+                          "value": "",
+                          "valueFormat": "Number",
+                          "type": "PupilNumber",
+                          "formulaText": "",
+                          "aggregationType": "Sum"
+                        },
+                        {
+                          "name": "Participation Funding for Disadvantaged 2 Year Olds total PTE Funded hours",
+                          "templateCalculationId": 144,
+                          "value": "",
+                          "valueFormat": "Number",
+                          "type": "Number",
+                          "formulaText": "",
+                          "aggregationType": "None"
+                        }
+                      ]
+                    }
+                  ]
                 },
                 {
                   "name": "Funding Allocation for Early Years Pupil Premium",
@@ -401,46 +401,46 @@
                   "type": "Information",
                   "fundingLines": [],
                   "distributionPeriods": [],
-				  "calculations": [
-					{
-					  "name": "Funding Allocation for Early Years Pupil Premium total",
-					  "templateCalculationId": 146,
-					  "value": "",
-					  "valueFormat": "Currency",
-					  "type": "Cash",
-					  "formulaText": "",
-					  "aggregationType": "Sum",
-					  "calculations": [
-						{
-						  "name": "Early Years Pupil Premium",
-						  "templateCalculationId": 147,
-						  "value": "",
-						  "valueFormat": "Currency",
-						  "type": "Rate",
-						  "formulaText": "",
-						  "aggregationType": "Average"
-						},
-						{
-						  "name": "Pupil Premium Pupil Count for 3 to 4 Year Olds (PTE)",
-						  "templateCalculationId": 148,
-						  "value": "",
-						  "valueFormat": "Number",
-						  "type": "PupilNumber",
-						  "formulaText": "",
-						  "aggregationType": "Sum"
-						},
-						{
-						  "name": "Funding Allocation for Early Years Pupil Premium total PTE Funded hours",
-						  "templateCalculationId": 149,
-						  "value": "",
-						  "valueFormat": "Number",
-						  "type": "Number",
-						  "formulaText": "",
-						  "aggregationType": "None"
-						}
-					  ]
-					}
-				  ]
+                  "calculations": [
+                    {
+                      "name": "Funding Allocation for Early Years Pupil Premium total",
+                      "templateCalculationId": 146,
+                      "value": "",
+                      "valueFormat": "Currency",
+                      "type": "Cash",
+                      "formulaText": "",
+                      "aggregationType": "Sum",
+                      "calculations": [
+                        {
+                          "name": "Early Years Pupil Premium",
+                          "templateCalculationId": 147,
+                          "value": "",
+                          "valueFormat": "Currency",
+                          "type": "Rate",
+                          "formulaText": "",
+                          "aggregationType": "Average"
+                        },
+                        {
+                          "name": "Pupil Premium Pupil Count for 3 to 4 Year Olds (PTE)",
+                          "templateCalculationId": 148,
+                          "value": "",
+                          "valueFormat": "Number",
+                          "type": "PupilNumber",
+                          "formulaText": "",
+                          "aggregationType": "Sum"
+                        },
+                        {
+                          "name": "Funding Allocation for Early Years Pupil Premium total PTE Funded hours",
+                          "templateCalculationId": 149,
+                          "value": "",
+                          "valueFormat": "Number",
+                          "type": "Number",
+                          "formulaText": "",
+                          "aggregationType": "None"
+                        }
+                      ]
+                    }
+                  ]
                 },
                 {
                   "name": "Funding Allocation for Maintained Nursery Supplement",
@@ -450,46 +450,46 @@
                   "type": "Information",
                   "fundingLines": [],
                   "distributionPeriods": [],
-				  "calculations": [
-					{
-					  "name": "Funding Allocation for Maintained Nursery Supplement total",
-					  "templateCalculationId": 151,
-					  "value": "",
-					  "valueFormat": "Currency",
-					  "type": "Cash",
-					  "formulaText": "",
-					  "aggregationType": "Sum",
-					  "calculations": [
-						{
-						  "name": "Maintained Nursery Schools Supplement Hourly Rate",
-						  "templateCalculationId": 152,
-						  "value": "",
-						  "valueFormat": "Currency",
-						  "type": "Rate",
-						  "formulaText": "",
-						  "aggregationType": "Average"
-						},
-						{
-						  "name": "Maintained Nursery Schools Supplement (PTE)",
-						  "templateCalculationId": 153,
-						  "value": "",
-						  "valueFormat": "Number",
-						  "type": "PupilNumber",
-						  "formulaText": "",
-						  "aggregationType": "Sum"
-						},
-						{
-						  "name": "PTE Funded hours",
-						  "templateCalculationId": 154,
-						  "value": "",
-						  "valueFormat": "Number",
-						  "type": "Number",
-						  "formulaText": "",
-						  "aggregationType": "None"
-						}
-					  ]
-					}
-				  ]
+                  "calculations": [
+                    {
+                      "name": "Funding Allocation for Maintained Nursery Supplement total",
+                      "templateCalculationId": 151,
+                      "value": "",
+                      "valueFormat": "Currency",
+                      "type": "Cash",
+                      "formulaText": "",
+                      "aggregationType": "Sum",
+                      "calculations": [
+                        {
+                          "name": "Maintained Nursery Schools Supplement Hourly Rate",
+                          "templateCalculationId": 152,
+                          "value": "",
+                          "valueFormat": "Currency",
+                          "type": "Rate",
+                          "formulaText": "",
+                          "aggregationType": "Average"
+                        },
+                        {
+                          "name": "Maintained Nursery Schools Supplement (PTE)",
+                          "templateCalculationId": 153,
+                          "value": "",
+                          "valueFormat": "Number",
+                          "type": "PupilNumber",
+                          "formulaText": "",
+                          "aggregationType": "Sum"
+                        },
+                        {
+                          "name": "PTE Funded hours",
+                          "templateCalculationId": 154,
+                          "value": "",
+                          "valueFormat": "Number",
+                          "type": "Number",
+                          "formulaText": "",
+                          "aggregationType": "None"
+                        }
+                      ]
+                    }
+                  ]
                 },
                 {
                   "name": "Funding Allocation for Disability Access Fund",
@@ -498,11 +498,20 @@
                   "templateLineId": 155,
                   "type": "Information",
                   "fundingLines": [],
-                  "calculations": [],
+                  "calculations": [
+                    {
+                      "name": "Disability Access Fund",
+                      "templateCalculationId": 238,
+                      "value": "",
+                      "valueFormat": "Currency",
+                      "type": "Cash",
+                      "formulaText": "",
+                      "aggregationType": "Sum"
+                    }
+                  ],
                   "distributionPeriods": []
                 }
               ],
-              "calculations": [],
               "distributionPeriods": []
             },
             {
@@ -522,15 +531,15 @@
                   "formulaText": "",
                   "aggregationType": "Sum"
                 },
-              {
-                      "name": "Additional Funding For free Schools",
-                      "templateCalculationId": 237,
-                      "value": "",
-                      "valueFormat": "Currency",
-                      "type": "LumpSum",
-                      "formulaText": "",
-                      "aggregationType": "Sum"
-                    },
+                {
+                  "name": "Additional Funding For free Schools",
+                  "templateCalculationId": 237,
+                  "value": "",
+                  "valueFormat": "Currency",
+                  "type": "LumpSum",
+                  "formulaText": "",
+                  "aggregationType": "Sum"
+                },
                 {
                   "name": "Basic Entitlement",
                   "templateCalculationId": 30,
@@ -590,7 +599,7 @@
                   ]
                 },
                 {
-                  "name": "Additonal High Needs Funding",
+                  "name": "Additional High Needs Funding",
                   "templateCalculationId": 36,
                   "value": "",
                   "valueFormat": "Currency",
@@ -622,7 +631,6 @@
               "distributionPeriods": []
             }
           ],
-          "calculations": [],
           "distributionPeriods": []
         },
         {
@@ -646,7 +654,39 @@
                   "templateLineId": 23,
                   "type": "Information",
                   "fundingLines": [],
-                  "calculations": [],
+                  "calculations": [
+                    {
+                      "name": "CSSB Pupil Led Total",
+                      "templateCalculationId": 24,
+                      "value": "",
+                      "formulaText": "",
+                      "type": "Cash",
+                      "aggregationType": "Sum",
+                      "valueFormat": "Currency",
+                      "calculations": [
+                        {
+                          "name": "CSSB per Pupil Rate",
+                          "templateCalculationId": 25,
+                          "value": "",
+                          "formulaText": "",
+                          "type": "Rate",
+                          "aggregationType": "Average",
+                          "valueFormat": "Currency",
+                          "calculations": []
+                        },
+                        {
+                          "name": "CSSB Pupil Number",
+                          "templateCalculationId": 26,
+                          "value": "",
+                          "formulaText": "",
+                          "type": "PupilNumber",
+                          "aggregationType": "Sum",
+                          "valueFormat": "Number",
+                          "calculations": []
+                        }
+                      ]
+                    }
+                  ],
                   "distributionPeriods": []
                 },
                 {
@@ -656,7 +696,17 @@
                   "templateLineId": 27,
                   "type": "Information",
                   "fundingLines": [],
-                  "calculations": [],
+                  "calculations": [
+                    {
+                      "name": "Actual CSSB Funding for Historic Commitments",
+                      "templateCalculationId": 28,
+                      "value": "",
+                      "formulaText": "",
+                      "type": "LumpSum",
+                      "aggregationType": "Sum",
+                      "valueFormat": "Currency"
+                    }
+                  ],
                   "distributionPeriods": []
                 }
               ],
@@ -677,7 +727,46 @@
                   "templateLineId": 130,
                   "type": "Information",
                   "fundingLines": [],
-                  "calculations": [],
+                  "calculations": [
+                    {
+                      "name": "Universal Entitlement for 3 and 4 Year Olds total",
+                      "templateCalculationId": 131,
+                      "value": "",
+                      "valueFormat": "Currency",
+                      "type": "Cash",
+                      "formulaText": "",
+                      "aggregationType": "Sum",
+                      "calculations": [
+                        {
+                          "name": "Universal Entitlement for 3 and 4 Year Olds total Early Years Universal Entitlement for 3 and 4 Year Olds Rate",
+                          "templateCalculationId": 132,
+                          "value": "",
+                          "valueFormat": "Currency",
+                          "type": "Rate",
+                          "formulaText": "",
+                          "aggregationType": "Average"
+                        },
+                        {
+                          "name": "Total 3 and 4 Year Olds (PTE)",
+                          "templateCalculationId": 133,
+                          "value": "",
+                          "valueFormat": "Number",
+                          "type": "PupilNumber",
+                          "formulaText": "",
+                          "aggregationType": "Average"
+                        },
+                        {
+                          "name": "Universal Entitlement for 3 and 4 Year Olds total PTE Funded hours",
+                          "templateCalculationId": 134,
+                          "value": "",
+                          "valueFormat": "Number",
+                          "type": "Number",
+                          "formulaText": "",
+                          "aggregationType": "None"
+                        }
+                      ]
+                    }
+                  ],
                   "distributionPeriods": []
                 },
                 {
@@ -687,7 +776,46 @@
                   "templateLineId": 135,
                   "type": "Information",
                   "fundingLines": [],
-                  "calculations": [],
+                  "calculations": [
+                    {
+                      "name": "Funding for Additional Hours for working parents total",
+                      "templateCalculationId": 136,
+                      "value": "",
+                      "valueFormat": "Currency",
+                      "type": "Cash",
+                      "formulaText": "",
+                      "aggregationType": "Sum",
+                      "calculations": [
+                        {
+                          "name": "Funding for Additional Hours for working parents total Early Years Universal Entitlement for 3 and 4 Year Olds Rate",
+                          "templateCalculationId": 137,
+                          "value": "",
+                          "valueFormat": "Currency",
+                          "type": "Rate",
+                          "formulaText": "",
+                          "aggregationType": "Average"
+                        },
+                        {
+                          "name": "Total 3 and 4 Year Old for Additional Hours for Working Parents (PTE)",
+                          "templateCalculationId": 138,
+                          "value": "",
+                          "valueFormat": "Number",
+                          "type": "PupilNumber",
+                          "formulaText": "",
+                          "aggregationType": "Average"
+                        },
+                        {
+                          "name": "Funding for Additional Hours for working parents total PTE Funded hours",
+                          "templateCalculationId": 139,
+                          "value": "",
+                          "valueFormat": "Number",
+                          "type": "Number",
+                          "formulaText": "",
+                          "aggregationType": "None"
+                        }
+                      ]
+                    }
+                  ],
                   "distributionPeriods": []
                 },
                 {
@@ -697,7 +825,46 @@
                   "templateLineId": 140,
                   "type": "Information",
                   "fundingLines": [],
-                  "calculations": [],
+                  "calculations": [
+                    {
+                      "name": "Participation Funding for Disadvantaged 2 Year Olds total",
+                      "templateCalculationId": 141,
+                      "value": "",
+                      "valueFormat": "Currency",
+                      "type": "Cash",
+                      "formulaText": "",
+                      "aggregationType": "Sum",
+                      "calculations": [
+                        {
+                          "name": "Early Years Participation Funding for 2 Year Olds Rate",
+                          "templateCalculationId": 142,
+                          "value": "",
+                          "valueFormat": "Currency",
+                          "type": "Rate",
+                          "formulaText": "",
+                          "aggregationType": "Average"
+                        },
+                        {
+                          "name": "Total 2 Year Olds (PTE)",
+                          "templateCalculationId": 143,
+                          "value": "",
+                          "valueFormat": "Number",
+                          "type": "PupilNumber",
+                          "formulaText": "",
+                          "aggregationType": "Sum"
+                        },
+                        {
+                          "name": "Participation Funding for Disadvantaged 2 Year Olds total PTE Funded hours",
+                          "templateCalculationId": 144,
+                          "value": "",
+                          "valueFormat": "Number",
+                          "type": "Number",
+                          "formulaText": "",
+                          "aggregationType": "None"
+                        }
+                      ]
+                    }
+                  ],
                   "distributionPeriods": []
                 },
                 {
@@ -707,7 +874,46 @@
                   "templateLineId": 145,
                   "type": "Information",
                   "fundingLines": [],
-                  "calculations": [],
+                  "calculations": [
+                    {
+                      "name": "Funding Allocation for Early Years Pupil Premium total",
+                      "templateCalculationId": 146,
+                      "value": "",
+                      "valueFormat": "Currency",
+                      "type": "Cash",
+                      "formulaText": "",
+                      "aggregationType": "Sum",
+                      "calculations": [
+                        {
+                          "name": "Early Years Pupil Premium",
+                          "templateCalculationId": 147,
+                          "value": "",
+                          "valueFormat": "Currency",
+                          "type": "Rate",
+                          "formulaText": "",
+                          "aggregationType": "Average"
+                        },
+                        {
+                          "name": "Pupil Premium Pupil Count for 3 to 4 Year Olds (PTE)",
+                          "templateCalculationId": 148,
+                          "value": "",
+                          "valueFormat": "Number",
+                          "type": "PupilNumber",
+                          "formulaText": "",
+                          "aggregationType": "Sum"
+                        },
+                        {
+                          "name": "Funding Allocation for Early Years Pupil Premium total PTE Funded hours",
+                          "templateCalculationId": 149,
+                          "value": "",
+                          "valueFormat": "Number",
+                          "type": "Number",
+                          "formulaText": "",
+                          "aggregationType": "None"
+                        }
+                      ]
+                    }
+                  ],
                   "distributionPeriods": []
                 },
                 {
@@ -717,7 +923,46 @@
                   "templateLineId": 150,
                   "type": "Information",
                   "fundingLines": [],
-                  "calculations": [],
+                  "calculations": [
+                    {
+                      "name": "Funding Allocation for Maintained Nursery Supplement total",
+                      "templateCalculationId": 151,
+                      "value": "",
+                      "valueFormat": "Currency",
+                      "type": "Cash",
+                      "formulaText": "",
+                      "aggregationType": "Sum",
+                      "calculations": [
+                        {
+                          "name": "Maintained Nursery Schools Supplement Hourly Rate",
+                          "templateCalculationId": 152,
+                          "value": "",
+                          "valueFormat": "Currency",
+                          "type": "Rate",
+                          "formulaText": "",
+                          "aggregationType": "Average"
+                        },
+                        {
+                          "name": "Maintained Nursery Schools Supplement (PTE)",
+                          "templateCalculationId": 153,
+                          "value": "",
+                          "valueFormat": "Number",
+                          "type": "PupilNumber",
+                          "formulaText": "",
+                          "aggregationType": "Sum"
+                        },
+                        {
+                          "name": "PTE Funded hours",
+                          "templateCalculationId": 154,
+                          "value": "",
+                          "valueFormat": "Number",
+                          "type": "Number",
+                          "formulaText": "",
+                          "aggregationType": "None"
+                        }
+                      ]
+                    }
+                  ],
                   "distributionPeriods": []
                 },
                 {
@@ -727,7 +972,17 @@
                   "templateLineId": 155,
                   "type": "Information",
                   "fundingLines": [],
-                  "calculations": [],
+                  "calculations": [
+                    {
+                      "name": "Disability Access Fund",
+                      "templateCalculationId": 238,
+                      "value": "",
+                      "valueFormat": "Currency",
+                      "type": "Cash",
+                      "formulaText": "",
+                      "aggregationType": "Sum"
+                    }
+                  ],
                   "distributionPeriods": []
                 }
               ],
@@ -770,7 +1025,7 @@
                           "aggregationType": "Sum",
                           "calculations": [
                             {
-                              "name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @£6k",
+                              "name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @6k",
                               "templateCalculationId": 50,
                               "value": "",
                               "valueFormat": "Currency",
@@ -779,7 +1034,7 @@
                               "aggregationType": "Sum",
                               "calculations": [
                                 {
-                                  "name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @£6k SEN places deduction",
+                                  "name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @6k SEN places deduction",
                                   "templateCalculationId": 64,
                                   "value": "",
                                   "valueFormat": "Currency",
@@ -788,7 +1043,7 @@
                                   "aggregationType": "Sum",
                                   "calculations": [
                                     {
-                                      "name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @£6k SEN places deduction April (Year 1) - August (Year 1)",
+                                      "name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @6k SEN places deduction April (Year 1) - August (Year 1)",
                                       "templateCalculationId": 65,
                                       "value": "",
                                       "valueFormat": "Number",
@@ -797,7 +1052,7 @@
                                       "aggregationType": "Sum"
                                     },
                                     {
-                                      "name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @£6k SEN places deduction September (Year 1) - March (Year 2)",
+                                      "name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @6k SEN places deduction September (Year 1) - March (Year 2)",
                                       "templateCalculationId": 66,
                                       "value": "",
                                       "valueFormat": "Number",
@@ -806,7 +1061,7 @@
                                       "aggregationType": "Sum"
                                     },
                                     {
-                                      "name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @£6k SEN places deduction April (Year 1) - August (Year 1) rate",
+                                      "name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @6k SEN places deduction April (Year 1) - August (Year 1) rate",
                                       "templateCalculationId": 67,
                                       "value": "",
                                       "valueFormat": "Currency",
@@ -815,7 +1070,7 @@
                                       "aggregationType": "None"
                                     },
                                     {
-                                      "name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @£6k SEN places deduction September (Year 1) - March (Year 2) rate",
+                                      "name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @6k SEN places deduction September (Year 1) - March (Year 2) rate",
                                       "templateCalculationId": 68,
                                       "value": "",
                                       "valueFormat": "Currency",
@@ -828,7 +1083,7 @@
                               ]
                             },
                             {
-                              "name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @£10k",
+                              "name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @10k",
                               "templateCalculationId": 51,
                               "value": "",
                               "valueFormat": "Currency",
@@ -837,7 +1092,7 @@
                               "aggregationType": "Sum",
                               "calculations": [
                                 {
-                                  "name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @£10k SEN places deduction",
+                                  "name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @10k SEN places deduction",
                                   "templateCalculationId": 69,
                                   "value": "",
                                   "valueFormat": "Currency",
@@ -846,7 +1101,7 @@
                                   "aggregationType": "Sum",
                                   "calculations": [
                                     {
-                                      "name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @£10k SEN places deduction April (Year 1) - August (Year 1)",
+                                      "name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @10k SEN places deduction April (Year 1) - August (Year 1)",
                                       "templateCalculationId": 70,
                                       "value": "",
                                       "valueFormat": "Number",
@@ -855,7 +1110,7 @@
                                       "aggregationType": "Sum"
                                     },
                                     {
-                                      "name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @£10k SEN places deduction September (Year 1) - March (Year 2)",
+                                      "name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @10k SEN places deduction September (Year 1) - March (Year 2)",
                                       "templateCalculationId": 71,
                                       "value": "",
                                       "valueFormat": "Number",
@@ -864,7 +1119,7 @@
                                       "aggregationType": "Sum"
                                     },
                                     {
-                                      "name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @£10k SEN places deduction April (Year 1) - August (Year 1) Top Up rate",
+                                      "name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @10k SEN places deduction April (Year 1) - August (Year 1) Top Up rate",
                                       "templateCalculationId": 235,
                                       "value": "",
                                       "valueFormat": "Currency",
@@ -873,7 +1128,7 @@
                                       "aggregationType": "None"
                                     },
                                     {
-                                      "name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @£10k SEN places deduction September (Year 1) - March (Year 2) Top Up rate",
+                                      "name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @10k SEN places deduction September (Year 1) - March (Year 2) Top Up rate",
                                       "templateCalculationId": 236,
                                       "value": "",
                                       "valueFormat": "Currency",
@@ -882,7 +1137,7 @@
                                       "aggregationType": "None"
                                     },
                                     {
-                                      "name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @£10k SEN places deduction April (Year 1) - August (Year 1) rate",
+                                      "name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @10k SEN places deduction April (Year 1) - August (Year 1) rate",
                                       "templateCalculationId": 72,
                                       "value": "",
                                       "valueFormat": "Currency",
@@ -891,7 +1146,7 @@
                                       "aggregationType": "None"
                                     },
                                     {
-                                      "name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @£10k SEN places deduction September (Year 1) - March (Year 2) rate",
+                                      "name": "Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @10k SEN places deduction September (Year 1) - March (Year 2) rate",
                                       "templateCalculationId": 73,
                                       "value": "",
                                       "valueFormat": "Currency",
@@ -1067,7 +1322,7 @@
                                       "aggregationType": "Sum"
                                     },
                                     {
-                                      "name": "Special Academies Pre-16 SEN Places Deduction April (Year 1)  - July (Year 1) rate",
+                                      "name": "Special Academies Pre-16 SEN Places Deduction April (Year 1) - July (Year 1) rate",
                                       "templateCalculationId": 165,
                                       "value": "",
                                       "valueFormat": "Currency",
@@ -1125,7 +1380,7 @@
                                       "aggregationType": "Sum"
                                     },
                                     {
-                                      "name": "Special Academies Post-16 SEN Places Deduction April (Year 1)  - July (Year 1) rate",
+                                      "name": "Special Academies Post-16 SEN Places Deduction April (Year 1) - July (Year 1) rate",
                                       "templateCalculationId": 92,
                                       "value": "",
                                       "valueFormat": "Currency",
@@ -1147,7 +1402,7 @@
                               ]
                             },
                             {
-                              "name": "Special Academies Pre-16 AP Places",
+                              "name": "Special Academies Pre-16 AP Places",
                               "templateCalculationId": 174,
                               "value": "",
                               "valueFormat": "Currency",
@@ -1183,7 +1438,7 @@
                                       "aggregationType": "Sum"
                                     },
                                     {
-                                      "name": "Special Academies Pre-16 AP Places Deduction April (Year 1)  - July (Year 1) rate",
+                                      "name": "Special Academies Pre-16 AP Places Deduction April (Year 1) - July (Year 1) rate",
                                       "templateCalculationId": 97,
                                       "value": "",
                                       "valueFormat": "Currency",
@@ -1252,7 +1507,7 @@
                                       "aggregationType": "Sum"
                                     },
                                     {
-                                      "name": "Special Free Schools Pre-16 SEN Places Deduction April (Year 1) - August (Year 1) rate",
+                                      "name": "Special Free Schools Pre-16 SEN Places Deduction April (Year 1) - August (Year 1) rate",
                                       "templateCalculationId": 170,
                                       "value": "",
                                       "valueFormat": "Currency",
@@ -1332,7 +1587,7 @@
                               ]
                             },
                             {
-                              "name": "Special Free Schools Pre-16 AP Places",
+                              "name": "Special Free Schools Pre-16 AP Places",
                               "templateCalculationId": 233,
                               "value": "",
                               "valueFormat": "Currency",
@@ -1368,7 +1623,7 @@
                                       "aggregationType": "Sum"
                                     },
                                     {
-                                      "name": "Special Free Schools Pre-16 AP Places Deduction April (Year 1) - August (Year 1) rate",
+                                      "name": "Special Free Schools Pre-16 AP Places Deduction April (Year 1) - August (Year 1) rate",
                                       "templateCalculationId": 180,
                                       "value": "",
                                       "valueFormat": "Currency",
@@ -1392,7 +1647,7 @@
                           ]
                         },
                         {
-                          "name": "AP Academies & Free schools *",
+                          "name": "AP Academies & Free schools",
                           "templateCalculationId": 184,
                           "value": "",
                           "valueFormat": "Currency",
@@ -1401,7 +1656,7 @@
                           "aggregationType": "Sum",
                           "calculations": [
                             {
-                              "name": "AP Academies & Free schools * Pre- 16 SEN places",
+                              "name": "AP Academies & Free schools Pre- 16 SEN places",
                               "templateCalculationId": 185,
                               "value": "",
                               "valueFormat": "Currency",
@@ -1410,7 +1665,7 @@
                               "aggregationType": "Sum",
                               "calculations": [
                                 {
-                                  "name": "AP Academies and Free Schools* Pre-16 SEN Places Deduction",
+                                  "name": "AP Academies and Free Schools Pre-16 SEN Places Deduction",
                                   "templateCalculationId": 186,
                                   "value": "",
                                   "valueFormat": "Currency",
@@ -1419,7 +1674,7 @@
                                   "aggregationType": "Sum",
                                   "calculations": [
                                     {
-                                      "name": "AP Academies and Free Schools* Pre-16 SEN Places April (Year 1) - August (Year 1)",
+                                      "name": "AP Academies and Free Schools Pre-16 SEN Places April (Year 1) - August (Year 1)",
                                       "templateCalculationId": 189,
                                       "value": "",
                                       "valueFormat": "Number",
@@ -1428,7 +1683,7 @@
                                       "aggregationType": "Sum"
                                     },
                                     {
-                                      "name": "AP Academies and Free Schools* Pre-16 SEN Places Sept (Year 1) - March (Year 2)",
+                                      "name": "AP Academies and Free Schools Pre-16 SEN Places Sept (Year 1) - March (Year 2)",
                                       "templateCalculationId": 190,
                                       "value": "",
                                       "valueFormat": "Number",
@@ -1437,7 +1692,7 @@
                                       "aggregationType": "Sum"
                                     },
                                     {
-                                      "name": "AP Academies and Free Schools* April (Year 1) - August (Year 1) rate",
+                                      "name": "AP Academies and Free Schools April (Year 1) - August (Year 1) rate",
                                       "templateCalculationId": 187,
                                       "value": "",
                                       "valueFormat": "Currency",
@@ -1446,7 +1701,7 @@
                                       "aggregationType": "None"
                                     },
                                     {
-                                      "name": "AP Academies and Free Schools* September (Year 1) - March (Year 2) rate",
+                                      "name": "AP Academies and Free Schools September (Year 1) - March (Year 2) rate",
                                       "templateCalculationId": 188,
                                       "value": "",
                                       "valueFormat": "Currency",
@@ -1459,7 +1714,7 @@
                               ]
                             },
                             {
-                              "name": "AP Academies & Free schools * Pre-16 AP Places",
+                              "name": "AP Academies & Free schools Pre-16 AP Places",
                               "templateCalculationId": 191,
                               "value": "",
                               "valueFormat": "Currency",
@@ -1468,7 +1723,7 @@
                               "aggregationType": "Sum",
                               "calculations": [
                                 {
-                                  "name": "AP Academies & Free schools * Pre-16 AP Places Deduction ",
+                                  "name": "AP Academies & Free schools Pre-16 AP Places Deduction",
                                   "templateCalculationId": 192,
                                   "value": "",
                                   "valueFormat": "Currency",
@@ -1477,7 +1732,7 @@
                                   "aggregationType": "Sum",
                                   "calculations": [
                                     {
-                                      "name": "AP Academies & Free schools * Pre-16 AP Places Deduction April (Year 1) - August (Year 1)",
+                                      "name": "AP Academies & Free schools Pre-16 AP Places Deduction April (Year 1) - August (Year 1)",
                                       "templateCalculationId": 195,
                                       "value": "",
                                       "valueFormat": "Number",
@@ -1486,7 +1741,7 @@
                                       "aggregationType": "Sum"
                                     },
                                     {
-                                      "name": "AP Academies & Free schools * Pre-16 AP Places Deduction September (Year 1) - March (Year 2)",
+                                      "name": "AP Academies & Free schools Pre-16 AP Places Deduction September (Year 1) - March (Year 2)",
                                       "templateCalculationId": 196,
                                       "value": "",
                                       "valueFormat": "Number",
@@ -1495,7 +1750,7 @@
                                       "aggregationType": "Sum"
                                     },
                                     {
-                                      "name": "AP Academies & Free schools * Pre-16 AP Places Deduction April (Year 1) - August (Year 1) rate",
+                                      "name": "AP Academies & Free schools Pre-16 AP Places Deduction April (Year 1) - August (Year 1) rate",
                                       "templateCalculationId": 193,
                                       "value": "",
                                       "valueFormat": "Currency",
@@ -1504,7 +1759,7 @@
                                       "aggregationType": "None"
                                     },
                                     {
-                                      "name": "AP Academies & Free schools * Pre-16 AP Places Deduction September (Year 1) - March (Year 2) rate",
+                                      "name": "AP Academies & Free schools Pre-16 AP Places Deduction September (Year 1) - March (Year 2) rate",
                                       "templateCalculationId": 194,
                                       "value": "",
                                       "valueFormat": "Currency",
@@ -1700,6 +1955,25 @@
                                       "type": "PupilNumber",
                                       "formulaText": "",
                                       "aggregationType": "Sum"
+                                    },
+
+                                    {
+                                      "name": "Hospital Academies Funding Total Hospital Education Deduction April (Year 1) - August (Year 1) rate",
+                                      "templateCalculationId": 216,
+                                      "value": "",
+                                      "valueFormat": "Currency",
+                                      "type": "Rate",
+                                      "formulaText": "",
+                                      "aggregationType": "None"
+                                    },
+                                    {
+                                      "name": "Hospital Academies Funding Total Hospital Education Deduction September (Year 1) - March (Year 2) rate",
+                                      "templateCalculationId": 217,
+                                      "value": "",
+                                      "valueFormat": "Currency",
+                                      "type": "Rate",
+                                      "formulaText": "",
+                                      "aggregationType": "None"
                                     }
                                   ]
                                 }
@@ -1717,8 +1991,8 @@
                           "aggregationType": "Sum",
                           "calculations": [
                             {
-                              "name": "Hospital Academies Funding Total Hospital Education",
-                              "templateCalculationId": 212,
+                              "name": "16-19 Academies and Free Schools Total Post-16 Schools SEN Places",
+                              "templateCalculationId": 219,
                               "value": "",
                               "valueFormat": "Currency",
                               "type": "Cash",
@@ -1804,7 +2078,7 @@
                                   "aggregationType": "Sum",
                                   "calculations": [
                                     {
-                                      "name": "FE and ILP Places April 2019 - July 2019",
+                                      "name": "FE and ILP Places April (Year 1) - July (Year 1)",
                                       "templateCalculationId": 128,
                                       "value": "",
                                       "valueFormat": "Number",
@@ -1813,7 +2087,7 @@
                                       "aggregationType": "Sum"
                                     },
                                     {
-                                      "name": "FE and ILP Places August 2019- March 2020",
+                                      "name": "FE and ILP Places August (Year 1)- March (Year 2)",
                                       "templateCalculationId": 129,
                                       "value": "",
                                       "valueFormat": "Number",
