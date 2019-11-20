@@ -8,6 +8,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private int _count;
         private string _fundingStreamId;
         private string _status;
+        private decimal? _totalFunding;
 
         public PublishedProviderFundingStreamStatusBuilder WithCount(int count)
         {
@@ -27,13 +28,20 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             return this;
         }
 
+        public PublishedProviderFundingStreamStatusBuilder WithTotalFunding(decimal? totalFunding)
+        {
+            _totalFunding = totalFunding;
+            return this;
+        }
+
         public PublishedProviderFundingStreamStatus Build()
         {
             return new PublishedProviderFundingStreamStatus
             {
                 Count = _count,
                 FundingStreamId = _fundingStreamId,
-                Status = _status
+                Status = _status,
+                TotalFunding = _totalFunding
             };
         }
     }

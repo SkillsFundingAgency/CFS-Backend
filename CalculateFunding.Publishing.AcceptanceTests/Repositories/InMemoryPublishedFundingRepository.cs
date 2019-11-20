@@ -214,7 +214,8 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
                 {
                     FundingStreamId = r.Key.FundingStreamId,
                     Status = Enum.GetName(r.Key.Status.GetType(), r.Key.Status),
-                    Count = r.Count()
+                    Count = r.Count(),
+                    TotalFunding = r.Sum(x=>x.Current.TotalFunding)
                 });
 
             return Task.FromResult(statuses);

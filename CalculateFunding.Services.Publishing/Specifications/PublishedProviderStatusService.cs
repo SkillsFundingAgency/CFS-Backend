@@ -67,7 +67,8 @@ namespace CalculateFunding.Services.Publishing.Specifications
                     ProviderApprovedCount = GetCountValueOrDefault(publishedProviderFundingStreamGroup, "Approved"),
                     ProviderDraftCount = GetCountValueOrDefault(publishedProviderFundingStreamGroup, "Draft"),
                     ProviderReleasedCount = GetCountValueOrDefault(publishedProviderFundingStreamGroup, "Released"),
-                    ProviderUpdatedCount = GetCountValueOrDefault(publishedProviderFundingStreamGroup, "Updated")
+                    ProviderUpdatedCount = GetCountValueOrDefault(publishedProviderFundingStreamGroup, "Updated"),
+                    TotalFunding = publishedProviderFundingStreamGroup.Sum(x=>x.TotalFunding)
                 });
             }
 

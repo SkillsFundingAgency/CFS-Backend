@@ -7,5 +7,6 @@
         public int ProviderApprovedCount { get; set; }
         public int ProviderUpdatedCount { get; set; }
         public int ProviderReleasedCount { get; set; }
+        public decimal? TotalFunding { get; set; }
     }
 }

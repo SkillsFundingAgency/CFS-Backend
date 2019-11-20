@@ -84,29 +84,41 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
             int fs2ReleasedCount = NewRandomNumber();
             int fs2UpdatedCount = NewRandomNumber();
 
+            decimal fs1ApprovedTotalFunding = NewRandomNumber();
+            decimal fs1DraftTotalFunding = NewRandomNumber();
+            decimal fs1ReleasedTotalFunding = NewRandomNumber();
+            decimal fs1UpdatedTotalFunding = NewRandomNumber();
+
+            decimal fs2ApprovedTotalFunding = NewRandomNumber();
+            decimal fs2DraftTotalFunding = NewRandomNumber();
+            decimal fs2ReleasedTotalFunding = NewRandomNumber();
+            decimal fs2UpdatedTotalFunding = NewRandomNumber();
+
             ProviderFundingStreamStatusResponse firstExpectedResponse = NewProviderFundingStreamStatusResponse(_ => _
                 .WithFundingStreamId(fundingStreamId1)
                 .WithProviderApprovedCount(fs1ApprovedCount)
                 .WithProviderReleasedCount(fs1ReleasedCount)
                 .WithProviderUpdatedCount(fs1UpdatedCount)
-                .WithProviderDraftCount(fs1DraftCount));
+                .WithProviderDraftCount(fs1DraftCount)
+                .WithTotalFunding(fs1ApprovedTotalFunding + fs1DraftTotalFunding + fs1ReleasedTotalFunding + fs1UpdatedTotalFunding));
 
             ProviderFundingStreamStatusResponse secondExpectedResponse = NewProviderFundingStreamStatusResponse(_ => _
                 .WithFundingStreamId(fundingStreamId2)
                 .WithProviderApprovedCount(fs2ApprovedCount)
                 .WithProviderReleasedCount(fs2ReleasedCount)
                 .WithProviderUpdatedCount(fs2UpdatedCount)
-                .WithProviderDraftCount(fs2DraftCount));
+                .WithProviderDraftCount(fs2DraftCount)
+                .WithTotalFunding(fs2ApprovedTotalFunding + fs2DraftTotalFunding + fs2ReleasedTotalFunding + fs2UpdatedTotalFunding));
 
             GivenThePublishedProvidersForTheSpecificationId(
-                NewPublishedProviderFundingStreamStatus(_ => _.WithFundingStreamId(fundingStreamId1).WithCount(fs1ApprovedCount).WithStatus(approvedStatus)),
-                NewPublishedProviderFundingStreamStatus(_ => _.WithFundingStreamId(fundingStreamId1).WithCount(fs1DraftCount).WithStatus(draftStatus)),
-                NewPublishedProviderFundingStreamStatus(_ => _.WithFundingStreamId(fundingStreamId1).WithCount(fs1ReleasedCount).WithStatus(releasedStatus)),
-                NewPublishedProviderFundingStreamStatus(_ => _.WithFundingStreamId(fundingStreamId1).WithCount(fs1UpdatedCount).WithStatus(updatedStatus)),
-                NewPublishedProviderFundingStreamStatus(_ => _.WithFundingStreamId(fundingStreamId2).WithCount(fs2ApprovedCount).WithStatus(approvedStatus)),
-                NewPublishedProviderFundingStreamStatus(_ => _.WithFundingStreamId(fundingStreamId2).WithCount(fs2DraftCount).WithStatus(draftStatus)),
-                NewPublishedProviderFundingStreamStatus(_ => _.WithFundingStreamId(fundingStreamId2).WithCount(fs2ReleasedCount).WithStatus(releasedStatus)),
-                NewPublishedProviderFundingStreamStatus(_ => _.WithFundingStreamId(fundingStreamId2).WithCount(fs2UpdatedCount).WithStatus(updatedStatus)));
+                NewPublishedProviderFundingStreamStatus(_ => _.WithFundingStreamId(fundingStreamId1).WithCount(fs1ApprovedCount).WithStatus(approvedStatus).WithTotalFunding(fs1ApprovedTotalFunding)),
+                NewPublishedProviderFundingStreamStatus(_ => _.WithFundingStreamId(fundingStreamId1).WithCount(fs1DraftCount).WithStatus(draftStatus).WithTotalFunding(fs1DraftTotalFunding)),
+                NewPublishedProviderFundingStreamStatus(_ => _.WithFundingStreamId(fundingStreamId1).WithCount(fs1ReleasedCount).WithStatus(releasedStatus).WithTotalFunding(fs1ReleasedTotalFunding)),
+                NewPublishedProviderFundingStreamStatus(_ => _.WithFundingStreamId(fundingStreamId1).WithCount(fs1UpdatedCount).WithStatus(updatedStatus).WithTotalFunding(fs1UpdatedTotalFunding)),
+                NewPublishedProviderFundingStreamStatus(_ => _.WithFundingStreamId(fundingStreamId2).WithCount(fs2ApprovedCount).WithStatus(approvedStatus).WithTotalFunding(fs2ApprovedTotalFunding)),
+                NewPublishedProviderFundingStreamStatus(_ => _.WithFundingStreamId(fundingStreamId2).WithCount(fs2DraftCount).WithStatus(draftStatus).WithTotalFunding(fs2DraftTotalFunding)),
+                NewPublishedProviderFundingStreamStatus(_ => _.WithFundingStreamId(fundingStreamId2).WithCount(fs2ReleasedCount).WithStatus(releasedStatus).WithTotalFunding(fs2ReleasedTotalFunding)),
+                NewPublishedProviderFundingStreamStatus(_ => _.WithFundingStreamId(fundingStreamId2).WithCount(fs2UpdatedCount).WithStatus(updatedStatus).WithTotalFunding(fs2UpdatedTotalFunding)));
 
             AndTheSpecificationSummaryIsRetrieved(NewSpecificationSummary(s =>
             {

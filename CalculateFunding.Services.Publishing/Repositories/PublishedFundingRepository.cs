@@ -218,7 +218,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
 
             CosmosDbQuery query = new CosmosDbQuery
             {
-                QueryText = @"SELECT COUNT(1) AS count, f.content.current.fundingStreamId, f.content.current.status
+                QueryText = @"SELECT COUNT(1) AS count, f.content.current.fundingStreamId, f.content.current.status, SUM(f.content.current.totalFunding) AS totalFundingSum
                                 FROM f
                                 where f.documentType = 'PublishedProvider' and f.content.current.specificationId = @specificationId and f.deleted = false
                                 GROUP BY f.content.current.fundingStreamId, f.content.current.status",
@@ -233,7 +233,13 @@ namespace CalculateFunding.Services.Publishing.Repositories
 
             foreach (dynamic item in queryResults)
             {
-                results.Add(new PublishedProviderFundingStreamStatus { Count = (int)item.count, FundingStreamId = (string)item.fundingStreamId, Status = (string)item.status });
+                results.Add(new PublishedProviderFundingStreamStatus
+                {
+                    Count = (int)item.count,
+                    FundingStreamId = (string)item.fundingStreamId,
+                    Status = (string)item.status,
+                    TotalFunding = (int)item.totalFundingSum
+                });
             }
 
             return await Task.FromResult(results);
