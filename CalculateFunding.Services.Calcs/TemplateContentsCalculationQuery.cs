@@ -19,7 +19,7 @@ namespace CalculateFunding.Services.Calcs
         {
             foreach (FundingLine fundingLine in fundingLines)
             {
-                Calculation match = fundingLine?.Calculations.Select(_ => GetCalculation(templateCalculationId, _)).FirstOrDefault(m => m != null);
+                Calculation match = fundingLine?.Calculations?.Select(_ => GetCalculation(templateCalculationId, _)).FirstOrDefault(m => m != null);
 
                 if (match == null && fundingLine.FundingLines?.Any() == true)
                     match = GetCalculationFromFundingLines(templateCalculationId, fundingLine.FundingLines);
