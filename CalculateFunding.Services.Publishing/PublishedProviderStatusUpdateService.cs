@@ -62,7 +62,7 @@ namespace CalculateFunding.Services.Publishing
             return health;
         }
 
-        public async Task UpdatePublishedProviderStatus(IEnumerable<PublishedProvider> publishedProviders,
+        public async Task<int> UpdatePublishedProviderStatus(IEnumerable<PublishedProvider> publishedProviders,
             Reference author,
             PublishedProviderStatus publishedProviderStatus,
             string jobId = null)
@@ -73,24 +73,24 @@ namespace CalculateFunding.Services.Publishing
             IEnumerable<PublishedProviderCreateVersionRequest> publishedProviderCreateVersionRequests =
                _publishedProviderVersioningService.AssemblePublishedProviderCreateVersionRequests(publishedProviders.ToList(), author, publishedProviderStatus);
 
-            if (publishedProviderCreateVersionRequests.IsNullOrEmpty())
-            {
-                string errorMessage = "No published providers were assembled for updating.";
+            if (!publishedProviderCreateVersionRequests.IsNullOrEmpty())
+            { 
+                bool shouldNotifyProgress = !jobId.IsNullOrWhitespace();
 
-                _logger.Error(errorMessage);
+                if (shouldNotifyProgress)
+                {
+                    await CreatePublishedProviderVersionsInBatches(publishedProviderStatus, publishedProviderCreateVersionRequests.ToList(), jobId);
+                }
+                else
+                {
+                    await CreateLatestPublishedProviderVersions(publishedProviderStatus, publishedProviderCreateVersionRequests);
+                }
 
-                throw new NonRetriableException(errorMessage);
-            }
-
-            bool shouldNotifyProgress = !jobId.IsNullOrWhitespace();
-
-            if (shouldNotifyProgress)
-            {
-                await CreatePublishedProviderVersionsInBatches(publishedProviderStatus, publishedProviderCreateVersionRequests.ToList(), jobId);
+                return publishedProviderCreateVersionRequests.Count();
             }
             else
             {
-                await CreateLatestPublishedProviderVersions(publishedProviderStatus, publishedProviderCreateVersionRequests);
+                return 0;
             }
         }
 

@@ -73,10 +73,11 @@ namespace CalculateFunding.Services.Publishing
                 throw new RetriableException($"Null or empty published providers returned for specification id : '{specificationId}' when setting status to approved.");
 
             _logger.Information($"Persisting new versions of published providers");
-            await _publishedProviderStatusUpdateService.UpdatePublishedProviderStatus(publishedProviders, author, PublishedProviderStatus.Approved, jobId);
-
-            _logger.Information($"Indexing published providers");
-            await _publishedProviderIndexerService.IndexPublishedProviders(publishedProviders.Select(_ => _.Current));
+            if ((await _publishedProviderStatusUpdateService.UpdatePublishedProviderStatus(publishedProviders, author, PublishedProviderStatus.Approved, jobId)) > 0)
+            {
+                _logger.Information($"Indexing published providers");
+                await _publishedProviderIndexerService.IndexPublishedProviders(publishedProviders.Select(_ => _.Current));
+            }
 
             _logger.Information($"Completing approve funding job. JobId='{jobId}'");
             await _jobTracker.CompleteTrackingJob(jobId);

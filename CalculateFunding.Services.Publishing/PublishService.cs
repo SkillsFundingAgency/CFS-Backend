@@ -337,10 +337,13 @@ namespace CalculateFunding.Services.Publishing
 
             List<PublishedProvider> publishedProvidersToSaveAsReleased = await SavePublishedProvidersAsPublishedReleased(jobId, author, publishedProviders);
 
-            // Update Published Providers in search 
-            _logger.Information($"Updating published providers in search. Total='{publishedProvidersToSaveAsReleased.Count}'");
-            await _publishedProviderIndexerService.IndexPublishedProviders(publishedProvidersToSaveAsReleased.Select(_ => _.Current));
-            _logger.Information($"Finished updating published providers in search");
+            if (!publishedProvidersToSaveAsReleased.IsNullOrEmpty())
+            {
+                // Update Published Providers in search 
+                _logger.Information($"Updating published providers in search. Total='{publishedProvidersToSaveAsReleased.Count}'");
+                await _publishedProviderIndexerService.IndexPublishedProviders(publishedProvidersToSaveAsReleased.Select(_ => _.Current));
+                _logger.Information($"Finished updating published providers in search");
+            }
 
             _logger.Information($"Generating published funding");
             IEnumerable<(PublishedFunding PublishedFunding, PublishedFundingVersion PublishedFundingVersion)> publishedFundingToSave =
@@ -358,10 +361,13 @@ namespace CalculateFunding.Services.Publishing
                 templateMetadataContents);
             _logger.Information($"Finished saving published funding contents");
 
-            // Generate contents JSON for provider and save to blob storage
-            IPublishedProviderContentsGenerator generator = _publishedProviderContentsGeneratorResolver.GetService(templateMetadataContents.SchemaVersion);
-            await _publishedProviderContentsPersistanceService.SavePublishedProviderContents(templateMetadataContents, templateMapping, generatedPublishedProviderData,
-                publishedProvidersToSaveAsReleased, generator);
+            if (!publishedProvidersToSaveAsReleased.IsNullOrEmpty())
+            {
+                // Generate contents JSON for provider and save to blob storage
+                IPublishedProviderContentsGenerator generator = _publishedProviderContentsGeneratorResolver.GetService(templateMetadataContents.SchemaVersion);
+                await _publishedProviderContentsPersistanceService.SavePublishedProviderContents(templateMetadataContents, templateMapping, generatedPublishedProviderData,
+                    publishedProvidersToSaveAsReleased, generator);
+            }
         }
 
         private async Task<List<PublishedProvider>> SavePublishedProvidersAsPublishedReleased(string jobId, Reference author, List<PublishedProvider> publishedProviders)

@@ -116,7 +116,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         }
 
         [TestMethod]
-        public void UpdatePublishedProviderStatus_GivenNoPublishedProviderCreateVersionRequestsAssembled_ThrowsNonRetriableException()
+        public async Task UpdatePublishedProviderStatus_GivenNoPublishedProviderCreateVersionRequestsAssembled_ReturnsZeroUpdatedCount()
         {
             //Arrange
             IEnumerable<PublishedProvider> publishedProviders = Enumerable.Empty<PublishedProvider>();
@@ -135,22 +135,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             PublishedProviderStatusUpdateService publishedProviderStatusUpdateService =
                 CreatePublishedProviderStatusUpdateService(providerVersioningService, logger);
 
-            string errorMessage = "No published providers were assembled for updating.";
-
             //Assert
-            Func<Task> test = async () => await publishedProviderStatusUpdateService.UpdatePublishedProviderStatus(publishedProviders, author, PublishedProviderStatus.Approved);
+            int updateCount = await publishedProviderStatusUpdateService.UpdatePublishedProviderStatus(publishedProviders, author, PublishedProviderStatus.Approved);
 
-            test
+            updateCount
                 .Should()
-                .ThrowExactly<NonRetriableException>()
-                .Which
-                .Message
-                .Should()
-                .Be(errorMessage);
-
-            logger
-                .Received(1)
-                .Error(Arg.Is(errorMessage));
+                .Be(0);
         }
 
         [TestMethod]

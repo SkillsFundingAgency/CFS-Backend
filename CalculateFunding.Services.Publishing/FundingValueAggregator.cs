@@ -95,14 +95,15 @@ namespace CalculateFunding.Services.Publishing
 
         public void AggregateProfilePeriod(Models.Publishing.ProfilePeriod profilePeriod)
         {
-            if (aggregatedProfilePeriods.TryGetValue(profilePeriod.DistributionPeriodId, out decimal total))
+            string uniqueProfilePeriodKey = $"{profilePeriod.DistributionPeriodId}-{profilePeriod.TypeValue}-{profilePeriod.Year}-{profilePeriod.Occurrence}";
+            if (aggregatedProfilePeriods.TryGetValue(uniqueProfilePeriodKey, out decimal total))
             {
                 // aggregate the value
-                aggregatedProfilePeriods[profilePeriod.DistributionPeriodId] = total + profilePeriod.ProfiledValue;
+                aggregatedProfilePeriods[uniqueProfilePeriodKey] = total + profilePeriod.ProfiledValue;
             }
             else
             {
-                aggregatedProfilePeriods.Add(profilePeriod.DistributionPeriodId, profilePeriod.ProfiledValue);
+                aggregatedProfilePeriods.Add(uniqueProfilePeriodKey, profilePeriod.ProfiledValue);
             }
         }
 
@@ -202,7 +203,9 @@ namespace CalculateFunding.Services.Publishing
 
         public void SetAggregateProfilePeriods(Models.Publishing.ProfilePeriod profilePeriod)
         {
-            if (profilePeriod != null && aggregatedProfilePeriods.TryGetValue(profilePeriod.DistributionPeriodId, out decimal total))
+            string uniqueProfilePeriodKey = $"{profilePeriod.DistributionPeriodId}-{profilePeriod.TypeValue}-{profilePeriod.Year}-{profilePeriod.Occurrence}";
+
+            if (profilePeriod != null && aggregatedProfilePeriods.TryGetValue(uniqueProfilePeriodKey, out decimal total))
             {
                 profilePeriod.ProfiledValue = total;
             }
