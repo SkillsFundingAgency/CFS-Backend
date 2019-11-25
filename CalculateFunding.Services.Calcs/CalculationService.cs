@@ -25,7 +25,6 @@ using CalculateFunding.Models.Versioning;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Calcs.ResultModels;
-using CalculateFunding.Services.CodeGeneration;
 using CalculateFunding.Services.CodeGeneration.VisualBasic;
 using CalculateFunding.Services.Compiler;
 using CalculateFunding.Services.Core;
@@ -35,13 +34,12 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
 using FluentValidation;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
 using Newtonsoft.Json;
 using Serilog;
 using Calculation = CalculateFunding.Models.Calcs.Calculation;
-using CalculationCurrentVersion = CalculateFunding.Models.Calcs.CalculationCurrentVersion;
+using CalculationResponseModel = CalculateFunding.Models.Calcs.CalculationResponseModel;
 using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
 
 namespace CalculateFunding.Services.Calcs
@@ -165,12 +163,8 @@ namespace CalculateFunding.Services.Calcs
             return health;
         }
 
-        public async Task<IActionResult> GetCalculationHistory(HttpRequest request)
+        public async Task<IActionResult> GetCalculationHistory(string calculationId)
         {
-            request.Query.TryGetValue("calculationId", out Microsoft.Extensions.Primitives.StringValues calcId);
-
-            string calculationId = calcId.FirstOrDefault();
-
             if (string.IsNullOrWhiteSpace(calculationId))
             {
                 _logger.Error("No calculation Id was provided to GetCalculationHistory");
@@ -187,43 +181,45 @@ namespace CalculateFunding.Services.Calcs
                 return new NotFoundResult();
             }
 
-            return new OkObjectResult(history);
+            IEnumerable<CalculationVersionResponseModel> result = history.Select(c => c.ToResponseModel());
+
+            return new OkObjectResult(result);
         }
 
-        public async Task<IActionResult> GetCalculationVersions(HttpRequest request)
+        public async Task<IActionResult> GetCalculationVersions(CalculationVersionsCompareModel calculationVersionsCompareModel)
         {
-            string json = await request.GetRawBodyStringAsync();
-
-            CalculationVersionsCompareModel compareModel = JsonConvert.DeserializeObject<CalculationVersionsCompareModel>(json);
-
             //Need custom validator here
 
-            if (compareModel == null || string.IsNullOrEmpty(compareModel.CalculationId) || compareModel.Versions == null || compareModel.Versions.Count() < 2)
+            if (calculationVersionsCompareModel == null || string.IsNullOrEmpty(calculationVersionsCompareModel.CalculationId) || calculationVersionsCompareModel.Versions == null || calculationVersionsCompareModel.Versions.Count() < 2)
             {
                 _logger.Warning("A null or invalid compare model was provided for comparing models");
 
                 return new BadRequestObjectResult("A null or invalid compare model was provided for comparing models");
             }
 
-            IEnumerable<CalculationVersion> allVersions = await _calculationVersionsRepositoryPolicy.ExecuteAsync(() => _calculationVersionRepository.GetVersions(compareModel.CalculationId));
+            IEnumerable<CalculationVersion> allVersions = await _calculationVersionsRepositoryPolicy.ExecuteAsync(() => _calculationVersionRepository.GetVersions(calculationVersionsCompareModel.CalculationId));
 
             if (allVersions.IsNullOrEmpty())
             {
-                _logger.Information($"No history was not found for calculation id {compareModel.CalculationId}");
+                _logger.Information($"No history was not found for calculation id {calculationVersionsCompareModel.CalculationId}");
 
                 return new NotFoundResult();
             }
 
-            IList<CalculationVersion> versions = new List<CalculationVersion>();
+            List<CalculationVersionResponseModel> versions = new List<CalculationVersionResponseModel>();
 
-            foreach (int version in compareModel.Versions)
+            foreach (int version in calculationVersionsCompareModel.Versions)
             {
-                versions.Add(allVersions.FirstOrDefault(m => m.Version == version));
+                CalculationVersion versionModel = allVersions.FirstOrDefault(m => m.Version == version);
+                if (versionModel != null)
+                {
+                    versions.Add(versionModel.ToResponseModel());
+                }
             }
 
             if (!versions.Any())
             {
-                _logger.Information($"A calculation was not found for calculation id {compareModel.CalculationId}");
+                _logger.Information($"A calculation was not found for calculation id {calculationVersionsCompareModel.CalculationId}");
 
                 return new NotFoundResult();
             }
@@ -231,12 +227,8 @@ namespace CalculateFunding.Services.Calcs
             return new OkObjectResult(versions);
         }
 
-        public async Task<IActionResult> GetCalculationCurrentVersion(HttpRequest request)
+        public async Task<IActionResult> GetCalculationById(string calculationId)
         {
-            request.Query.TryGetValue("calculationId", out Microsoft.Extensions.Primitives.StringValues calcId);
-
-            string calculationId = calcId.FirstOrDefault();
-
             if (string.IsNullOrWhiteSpace(calculationId))
             {
                 _logger.Error("No calculation Id was provided to GetCalculationCurrentVersion");
@@ -246,7 +238,7 @@ namespace CalculateFunding.Services.Calcs
 
             string cacheKey = $"{CacheKeys.CurrentCalculation}{calculationId}";
 
-            CalculationCurrentVersion calculation = await _cachePolicy.ExecuteAsync(() => _cacheProvider.GetAsync<CalculationCurrentVersion>(cacheKey));
+            CalculationResponseModel calculation = await _cachePolicy.ExecuteAsync(() => _cacheProvider.GetAsync<CalculationResponseModel>(cacheKey));
 
             if (calculation == null)
             {
@@ -265,7 +257,7 @@ namespace CalculateFunding.Services.Calcs
                     return new NotFoundResult();
                 }
 
-                calculation = GetCurrentVersionFromCalculation(repoCalculation);
+                calculation = repoCalculation.ToResponseModel();
 
                 await _cachePolicy.ExecuteAsync(() => _cacheProvider.SetAsync(cacheKey, calculation, TimeSpan.FromDays(7), true));
             }
@@ -273,43 +265,7 @@ namespace CalculateFunding.Services.Calcs
             return new OkObjectResult(calculation);
         }
 
-        async public Task<IActionResult> GetCalculationById(HttpRequest request)
-        {
-            request.Query.TryGetValue("calculationId", out Microsoft.Extensions.Primitives.StringValues calcId);
-
-            string calculationId = calcId.FirstOrDefault();
-
-            if (string.IsNullOrWhiteSpace(calculationId))
-            {
-                _logger.Error("No calculation Id was provided to GetCalculationById");
-
-                return new BadRequestObjectResult("Null or empty calculation Id provided");
-            }
-
-            Models.Calcs.Calculation calculation = await _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCalculationById(calculationId));
-
-            if (calculation != null)
-            {
-                _logger.Information($"A calculation was found for calculation id {calculationId}");
-
-                return new OkObjectResult(calculation);
-            }
-
-            _logger.Information($"A calculation was not found for calculation id {calculationId}");
-
-            return new NotFoundResult();
-        }
-
-        public async Task<IActionResult> GetCurrentCalculationsForSpecification(HttpRequest request)
-        {
-            request.Query.TryGetValue("specificationId", out Microsoft.Extensions.Primitives.StringValues specId);
-
-            string specificationId = specId.FirstOrDefault();
-
-            return await GetCurrentCalculationsForSpecification(specificationId);
-        }
-
-        private async Task<IActionResult> GetCurrentCalculationsForSpecification(string specificationId)
+        public async Task<IActionResult> GetCurrentCalculationsForSpecification(string specificationId)
         {
             if (string.IsNullOrWhiteSpace(specificationId))
             {
@@ -319,7 +275,7 @@ namespace CalculateFunding.Services.Calcs
             }
             string cacheKey = $"{CacheKeys.CurrentCalculationsForSpecification}{specificationId}";
 
-            List<CalculationCurrentVersion> calculations = await _cachePolicy.ExecuteAsync(() => _cacheProvider.GetAsync<List<CalculationCurrentVersion>>(cacheKey));
+            List<CalculationResponseModel> calculations = await _cachePolicy.ExecuteAsync(() => _cacheProvider.GetAsync<List<CalculationResponseModel>>(cacheKey));
             if (calculations == null)
             {
                 IEnumerable<Calculation> calculationsFromRepository = await _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCalculationsBySpecificationId(specificationId));
@@ -331,10 +287,10 @@ namespace CalculateFunding.Services.Calcs
                     return new InternalServerErrorResult("Calculations from repository returned null");
                 }
 
-                calculations = new List<CalculationCurrentVersion>(calculationsFromRepository.Count());
+                calculations = new List<CalculationResponseModel>(calculationsFromRepository.Count());
                 foreach (Calculation calculation in calculationsFromRepository)
                 {
-                    calculations.Add(GetCurrentVersionFromCalculation(calculation));
+                    calculations.Add(calculation.ToResponseModel());
                 }
 
                 await _cachePolicy.ExecuteAsync(() => _cacheProvider.SetAsync(cacheKey, calculations, TimeSpan.FromDays(7), true));
@@ -343,12 +299,8 @@ namespace CalculateFunding.Services.Calcs
             return new OkObjectResult(calculations);
         }
 
-        public async Task<IActionResult> GetCalculationSummariesForSpecification(HttpRequest request)
+        public async Task<IActionResult> GetCalculationSummariesForSpecification(string specificationId)
         {
-            request.Query.TryGetValue("specificationId", out Microsoft.Extensions.Primitives.StringValues specId);
-
-            string specificationId = specId.FirstOrDefault();
-
             if (string.IsNullOrWhiteSpace(specificationId))
             {
                 _logger.Warning("No specificationId was provided to GetCalculationSummariesForSpecification");
@@ -372,7 +324,7 @@ namespace CalculateFunding.Services.Calcs
                 calculations = new List<CalculationSummaryModel>(calculationsFromRepository.Count());
                 foreach (Calculation calculation in calculationsFromRepository)
                 {
-                    calculations.Add(GetCalculationSummaryFromCalculation(calculation));
+                    calculations.Add(calculation.ToSummaryModel());
                 }
 
                 await _cachePolicy.ExecuteAsync(() => _cacheProvider.SetAsync(cacheKey, calculations, TimeSpan.FromDays(7), true));
@@ -451,7 +403,7 @@ namespace CalculateFunding.Services.Calcs
 
             if (createCalculationResponse.Succeeded)
             {
-                return new OkObjectResult(createCalculationResponse.Calculation);
+                return new OkObjectResult(createCalculationResponse.Calculation.ToResponseModel());
             }
 
             if (createCalculationResponse.ErrorType == CreateCalculationErrorType.InvalidRequest)
@@ -469,7 +421,7 @@ namespace CalculateFunding.Services.Calcs
             SpecificationVersionComparisonModel specificationVersionComparison = message.GetPayloadAsInstanceOf<SpecificationVersionComparisonModel>();
 
             SpecificationVersion specificationVersion = specificationVersionComparison.Current;
-            
+
             if (specificationVersionComparison == null || specificationVersion == null)
             {
                 _logger.Error("A null specificationVersionComparison was provided to UpdateCalculationsForSpecification");
@@ -498,7 +450,7 @@ namespace CalculateFunding.Services.Calcs
             foreach (Calculation calculation in calculations)
             {
                 string fundingStreamName = specificationVersion.FundingStreams?.FirstOrDefault(_ => _.Id == calculation.FundingStreamId)?.Name;
-                
+
                 calcIndexes.Add(CreateCalculationIndexItem(calculation, specificationVersion.Name, fundingStreamName));
             }
 
@@ -689,7 +641,7 @@ namespace CalculateFunding.Services.Calcs
 
             await UpdateSearch(calculation, specificationSummary.Name, fundingStreamName);
 
-            CalculationCurrentVersion currentVersion = GetCurrentVersionFromCalculation(calculation);
+            CalculationResponseModel currentVersion = calculation.ToResponseModel();
             await UpdateCalculationInCache(calculation, currentVersion);
 
             return new UpdateCalculationResult()
@@ -700,12 +652,8 @@ namespace CalculateFunding.Services.Calcs
             };
         }
 
-        public async Task<IActionResult> UpdateCalculationStatus(HttpRequest request)
+        public async Task<IActionResult> UpdateCalculationStatus(string calculationId, EditStatusModel editStatusModel)
         {
-            request.Query.TryGetValue("calculationId", out Microsoft.Extensions.Primitives.StringValues calcId);
-
-            string calculationId = calcId.FirstOrDefault();
-
             if (string.IsNullOrWhiteSpace(calculationId))
             {
                 _logger.Error("No calculation Id was provided to EditCalculationStatus");
@@ -713,25 +661,10 @@ namespace CalculateFunding.Services.Calcs
                 return new BadRequestObjectResult("Null or empty calculation Id provided");
             }
 
-            string json = await request.GetRawBodyStringAsync();
-
-            EditStatusModel editStatusModel = null;
-
-            try
+            if (editStatusModel == null)
             {
-                editStatusModel = JsonConvert.DeserializeObject<EditStatusModel>(json);
-
-                if (editStatusModel == null)
-                {
-                    _logger.Error("A null status model was provided");
-                    return new BadRequestObjectResult("Null status model provided");
-                }
-            }
-            catch (JsonSerializationException jse)
-            {
-                _logger.Error(jse, $"An invalid status was provided for calculation: {calculationId}");
-
-                return new BadRequestObjectResult("An invalid status was provided");
+                _logger.Error("A null status model was provided");
+                return new BadRequestObjectResult("Null status model provided");
             }
 
             Calculation calculation = await _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCalculationById(calculationId));
@@ -784,7 +717,7 @@ namespace CalculateFunding.Services.Calcs
             }
 
             await UpdateBuildProject(calculation.SpecificationId);
-            
+
             string fundingStreamName = specificationSummary.FundingStreams.FirstOrDefault(_ => _.Id == calculation.FundingStreamId)?.Name;
 
             await UpdateSearch(calculation, specificationSummary.Name, fundingStreamName);
@@ -794,19 +727,15 @@ namespace CalculateFunding.Services.Calcs
                 PublishStatus = calculation.Current.PublishStatus,
             };
 
-            CalculationCurrentVersion currentVersion = GetCurrentVersionFromCalculation(calculation);
+            CalculationResponseModel currentVersion = calculation.ToResponseModel();
 
             await UpdateCalculationInCache(calculation, currentVersion);
 
             return new OkObjectResult(result);
         }
 
-        public async Task<IActionResult> GetCalculationCodeContext(HttpRequest request)
+        public async Task<IActionResult> GetCalculationCodeContext(string specificationId)
         {
-            request.Query.TryGetValue("specificationId", out Microsoft.Extensions.Primitives.StringValues specId);
-
-            string specificationId = specId.FirstOrDefault();
-
             if (string.IsNullOrWhiteSpace(specificationId))
             {
                 _logger.Error("No specificationId was provided to GetCalculationCodeContext");
@@ -836,7 +765,6 @@ namespace CalculateFunding.Services.Calcs
 
         public async Task<IActionResult> ReIndex()
         {
-            //Not spending too much time her as probably will go to sql server
             await _searchRepository.DeleteIndex();
 
             IEnumerable<Calculation> calculations = await _calculationsRepository.GetAllCalculations();
@@ -867,7 +795,6 @@ namespace CalculateFunding.Services.Calcs
                 string fundingStreamName = specification.FundingStreams.FirstOrDefault(_ => _.Id == calculation.FundingStreamId)?.Name;
 
                 CalculationIndex indexItem = CreateCalculationIndexItem(calculation, specification.Name, fundingStreamName);
-                //indexItem.CalculationType = calculation.AllocationLine == null ? CalculationType.Number.ToString() : CalculationType.Funding.ToString();
 
                 calcIndexItems.Add(indexItem);
             }
@@ -876,20 +803,17 @@ namespace CalculateFunding.Services.Calcs
 
             if (indexingResults.Any())
             {
-                _logger.Error($"Failed to re-index calculation with the following errors: {string.Join(";", indexingResults.Select(m => m.ErrorMessage).ToArraySafe())}");
+                string errorMessage = $"Failed to re-index calculation with the following errors: {string.Join(";", indexingResults.Select(m => m.ErrorMessage).ToArraySafe())}";
+                _logger.Error(errorMessage);
 
-                return new StatusCodeResult(500);
+                return new InternalServerErrorResult(errorMessage);
             }
 
             return new NoContentResult();
         }
 
-        public async Task<IActionResult> GetCalculationStatusCounts(HttpRequest request)
+        public async Task<IActionResult> GetCalculationStatusCounts(SpecificationListModel specifications)
         {
-            string json = await request.GetRawBodyStringAsync();
-
-            SpecificationListModel specifications = JsonConvert.DeserializeObject<SpecificationListModel>(json);
-
             if (specifications == null)
             {
                 _logger.Error("Null specification model provided");
@@ -962,7 +886,7 @@ namespace CalculateFunding.Services.Calcs
                 return new NotFoundResult();
             }
 
-            return new OkObjectResult(calculation.Current);
+            return new OkObjectResult(calculation.ToResponseModel());
         }
 
         private async Task UpdateSearch(Calculation calculation, string specificationName, string fundingStreamName)
@@ -973,8 +897,8 @@ namespace CalculateFunding.Services.Calcs
             });
         }
 
-        private CalculationIndex CreateCalculationIndexItem(Calculation calculation, 
-            string specificationName, 
+        private CalculationIndex CreateCalculationIndexItem(Calculation calculation,
+            string specificationName,
             string fundingStreamName)
         {
             return new CalculationIndex
@@ -1005,53 +929,6 @@ namespace CalculateFunding.Services.Calcs
             }
 
             return isNameInUseCheckResult == true ? (IActionResult)new ConflictResult() : new OkResult();
-        }
-
-        public async Task<IActionResult> DuplicateCalcNamesMigration()
-        {
-            try
-            {
-                _logger.Information("Starting migration for duplicate calc names");
-
-                Task<IEnumerable<Calculation>> getAllCalcsTask = _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetAllCalculations());
-                Task<ApiResponse<IEnumerable<SpecModel.SpecificationSummary>>> getAllSpecsTask = _specificationsApiClientPolicy.ExecuteAsync(()=> _specificationsApiClient.GetSpecificationSummaries());
-
-                await TaskHelper.WhenAllAndThrow(getAllCalcsTask, getAllSpecsTask);
-
-                IEnumerable<Calculation> allCalcs = getAllCalcsTask.Result;
-                IEnumerable<SpecModel.SpecificationSummary> allSpecs = getAllSpecsTask.Result.Content;
-
-                _logger.Information("Processing calcs for duplicate calc names migration");
-
-                foreach (Calculation calculation in allCalcs)
-                {
-                    calculation.Current.SourceCodeName = VisualBasicTypeGenerator.GenerateIdentifier(calculation.Name);
-                    await _calculationsRepository.UpdateCalculation(calculation);
-
-                    SpecModel.SpecificationSummary specificationSummary = allSpecs.SingleOrDefault(s => s.Id == calculation.SpecificationId);
-
-                    if (specificationSummary != null)
-                    {
-                        string fundingStreamName = specificationSummary.FundingStreams.FirstOrDefault(_ => _.Id == calculation.FundingStreamId)?.Name;
-                        
-                        await UpdateSearch(calculation, specificationSummary.Name, fundingStreamName);
-
-                        CalculationCurrentVersion currentVersion = GetCurrentVersionFromCalculation(calculation);
-                        await UpdateCalculationInCache(calculation, currentVersion);
-                    }
-                    else
-                    {
-                        _logger.Warning($"Could not find specification with id '{calculation.SpecificationId} for calculation '{calculation.Id} when performing migration for duplicate calc names.");
-                    }
-                }
-
-                return new OkResult();
-            }
-            catch (Exception ex)
-            {
-                _logger.Error(ex, $"Failed to perform migration for duplicate calc names. {ex.Message}");
-                return new InternalServerErrorResult(ex.Message);
-            }
         }
 
         public async Task ResetCalculationForFieldDefinitionChanges(IEnumerable<DatasetSpecificationRelationshipViewModel> relationships, string specificationId, IEnumerable<string> currentFieldDefinitionNames)
@@ -1143,51 +1020,17 @@ namespace CalculateFunding.Services.Calcs
             return buildProject;
         }
 
-        private CalculationCurrentVersion GetCurrentVersionFromCalculation(Calculation calculation)
-        {
-            CalculationCurrentVersion calculationCurrentVersion = new CalculationCurrentVersion
-            {
-                SpecificationId = calculation.SpecificationId,
-                Author = calculation.Current?.Author,
-                Date = calculation.Current?.Date,
-                FundingStreamId = calculation.FundingStreamId,
-                PublishStatus = calculation.Current.PublishStatus,
-                Id = calculation.Id,
-                Name = calculation.Name,
-                SourceCode = calculation.Current?.SourceCode ?? CodeGenerationConstants.VisualBasicDefaultSourceCode,
-                Version = calculation.Current.Version,
-                CalculationType = calculation.Current.CalculationType.ToString(),
-                SourceCodeName = calculation.Current.SourceCodeName
-            };
-
-            return calculationCurrentVersion;
-        }
-
-        private CalculationSummaryModel GetCalculationSummaryFromCalculation(Calculation calculation)
-        {
-            CalculationSummaryModel calculationCurrentVersion = new CalculationSummaryModel
-            {
-                Id = calculation.Id,
-                Name = calculation.Name,
-                CalculationType = calculation.Current.CalculationType,
-                Status = calculation.Current.PublishStatus,
-                Version = calculation.Current.Version
-            };
-
-            return calculationCurrentVersion;
-        }
-
         private async Task<Job> SendInstructAllocationsToJobService(string specificationId, string userId, string userName, Trigger trigger, string correlationId)
         {
             return await _instructionAllocationJobCreation.SendInstructAllocationsToJobService(specificationId, userId, userName, trigger, correlationId);
         }
 
-        private async Task UpdateCalculationInCache(Calculation calculation, CalculationCurrentVersion currentVersion)
+        private async Task UpdateCalculationInCache(Calculation calculation, CalculationResponseModel currentVersion)
         {
             // Invalidate cached calculations for this specification
             await _cachePolicy.ExecuteAsync(() => _cacheProvider.KeyDeleteAsync<List<CalculationSummaryModel>>($"{CacheKeys.CalculationsSummariesForSpecification}{calculation.SpecificationId}"));
-            await _cachePolicy.ExecuteAsync(() => _cacheProvider.KeyDeleteAsync<List<CalculationCurrentVersion>>($"{CacheKeys.CurrentCalculationsForSpecification}{calculation.SpecificationId}"));
-            await _cachePolicy.ExecuteAsync(() => _cacheProvider.KeyDeleteAsync<List<CalculationCurrentVersion>>($"{CacheKeys.CalculationsMetadataForSpecification}{calculation.SpecificationId}"));
+            await _cachePolicy.ExecuteAsync(() => _cacheProvider.KeyDeleteAsync<List<CalculationResponseModel>>($"{CacheKeys.CurrentCalculationsForSpecification}{calculation.SpecificationId}"));
+            await _cachePolicy.ExecuteAsync(() => _cacheProvider.KeyDeleteAsync<List<CalculationResponseModel>>($"{CacheKeys.CalculationsMetadataForSpecification}{calculation.SpecificationId}"));
 
 
             // Set current version in cache
@@ -1295,7 +1138,7 @@ namespace CalculateFunding.Services.Calcs
                 await _cachePolicy.ExecuteAsync(() => _cacheProvider.RemoveAsync<TemplateMapping>(cacheKey));
             }
 
-            return new OkObjectResult(templateMapping);
+            return new OkObjectResult(templateMapping.ToSummaryResponseModel());
         }
 
         public async Task<IActionResult> CheckHasAllApprovedTemplateCalculationsForSpecificationId(string specificationId)
@@ -1305,7 +1148,7 @@ namespace CalculateFunding.Services.Calcs
             int countNonApproved = await _calculationSearchRepositoryPolicy.ExecuteAsync(() => _calculationsRepository
                 .GetCountOfNonApprovedTemplateCalculations(specificationId));
 
-            BooleanResponseModel booleanResponseModel = new BooleanResponseModel
+            Models.BooleanResponseModel booleanResponseModel = new Models.BooleanResponseModel
             {
                 Value = countNonApproved == 0
             };
@@ -1444,12 +1287,7 @@ namespace CalculateFunding.Services.Calcs
                 await _cachePolicy.ExecuteAsync(() => _cacheProvider.SetAsync(cacheKey, templateMapping, TimeSpan.FromDays(7), true));
             }
 
-            TemplateMappingSummary result = new TemplateMappingSummary()
-            {
-                SpecificationId = specificationId,
-                FundingStreamId = fundingStreamId,
-                TemplateMappingItems = templateMapping?.TemplateMappingItems,
-            };
+            TemplateMappingSummary result = templateMapping.ToSummaryResponseModel();
 
             return new OkObjectResult(result);
         }

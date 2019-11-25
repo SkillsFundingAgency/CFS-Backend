@@ -1,17 +1,10 @@
-﻿using CalculateFunding.Models.Versioning;
+﻿using System.Threading.Tasks;
+using CalculateFunding.Models;
 using CalculateFunding.Services.Calcs.Interfaces;
-using CalculateFunding.Services.Core.Caching;
-using CalculateFunding.Common.Caching;
 using FluentAssertions;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Internal;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Primitives;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
-using Serilog;
-using System.Threading.Tasks;
-using CalculateFunding.Common.ApiClient.Models;
 
 namespace CalculateFunding.Services.Calcs.Services
 {

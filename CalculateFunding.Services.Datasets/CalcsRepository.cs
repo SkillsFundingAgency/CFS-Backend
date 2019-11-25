@@ -48,14 +48,14 @@ namespace CalculateFunding.Services.Datasets
             return _mapper.Map<BuildProject>(apiResponse?.Content);
         }
 
-        public async Task<IEnumerable<CalculationCurrentVersion>> GetCurrentCalculationsBySpecificationId(string specificationId)
+        public async Task<IEnumerable<CalculationResponseModel>> GetCurrentCalculationsBySpecificationId(string specificationId)
         {
             if (string.IsNullOrWhiteSpace(specificationId))
                 throw new ArgumentNullException(nameof(specificationId));
 
-            ApiResponse<IEnumerable<Common.ApiClient.Calcs.Models.CalculationCurrentVersion>> apiResponse = await _apiClient.GetCurrentCalculationsBySpecificationId(specificationId);
+            ApiResponse<IEnumerable<Common.ApiClient.Calcs.Models.Calculation>> apiResponse = await _apiClient.GetCalculationsForSpecification(specificationId);
 
-            return _mapper.Map<IEnumerable<CalculationCurrentVersion>>(apiResponse?.Content);
+            return _mapper.Map<IEnumerable<CalculationResponseModel>>(apiResponse?.Content);
         }
 
         public async Task<HttpStatusCode> CompileAndSaveAssembly(string specificationId)

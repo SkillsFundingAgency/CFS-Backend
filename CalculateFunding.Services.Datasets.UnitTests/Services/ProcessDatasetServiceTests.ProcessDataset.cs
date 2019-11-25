@@ -3249,9 +3249,9 @@ namespace CalculateFunding.Services.Datasets.Services
                 SpecificationId = SpecificationId,
             };
 
-            IEnumerable<CalculationCurrentVersion> calculations = new[]
+            IEnumerable<CalculationResponseModel> calculations = new[]
             {
-                new CalculationCurrentVersion
+                new CalculationResponseModel
                 {
                      SourceCode = "return Sum(Calc1)"
                 }

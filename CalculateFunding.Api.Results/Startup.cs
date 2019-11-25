@@ -84,10 +84,6 @@ namespace CalculateFunding.Api.Results
                 .AddSingleton<IProviderCalculationResultsSearchService, ProviderCalculationResultsSearchService>()
                 .AddSingleton<IHealthChecker, ProviderCalculationResultsSearchService>();
 
-            builder
-                .AddSingleton<ICalculationProviderResultsSearchService, CalculationProviderResultsSearchService>()
-                .AddSingleton<IHealthChecker, CalculationProviderResultsSearchService>();
-
             MapperConfiguration resultsConfig = new MapperConfiguration(c =>
             {
                 c.AddProfile<DatasetsMappingProfile>();

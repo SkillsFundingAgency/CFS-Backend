@@ -1,20 +1,17 @@
-﻿using CalculateFunding.Models;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using CalculateFunding.Common.Models.HealthCheck;
+using CalculateFunding.Models;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Repositories.Common.Search.Results;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Search.Models;
-using Newtonsoft.Json;
 using Serilog;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using CalculateFunding.Common.Models.HealthCheck;
 
 namespace CalculateFunding.Services.Calcs
 {
@@ -51,12 +48,8 @@ namespace CalculateFunding.Services.Calcs
             return health;
         }
 
-        async public Task<IActionResult> SearchCalculations(HttpRequest request)
+        public async Task<IActionResult> SearchCalculations(SearchModel searchModel)
         {
-            string json = await request.GetRawBodyStringAsync();
-
-            SearchModel searchModel = JsonConvert.DeserializeObject<SearchModel>(json);
-
             if (searchModel == null || searchModel.PageNumber < 1 || searchModel.Top < 1)
             {
                 _logger.Error("A null or invalid search model was provided for searching calculations");
@@ -107,7 +100,7 @@ namespace CalculateFunding.Services.Calcs
                 if (searchModel.Filters.ContainsKey(facet.Name) && searchModel.Filters[facet.Name].AnyWithNullCheck())
                 {
                     if (facet.IsMulti)
-                        filter = $"({facet.Name}/any(x: {string.Join(" or ", searchModel.Filters[facet.Name].Select(x => $"x eq '{x.Replace("'","''")}'"))}))";
+                        filter = $"({facet.Name}/any(x: {string.Join(" or ", searchModel.Filters[facet.Name].Select(x => $"x eq '{x.Replace("'", "''")}'"))}))";
                     else
                         filter = $"({string.Join(" or ", searchModel.Filters[facet.Name].Select(x => $"{facet.Name} eq '{x.Replace("'", "''")}'"))})";
                 }

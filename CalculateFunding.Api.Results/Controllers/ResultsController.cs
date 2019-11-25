@@ -10,25 +10,21 @@ namespace CalculateFunding.Api.Results.Controllers
     public class ResultsController : Controller
     {
         private readonly IResultsService _resultsService;
-        private readonly ICalculationProviderResultsSearchService _calculationProviderResultsSearchService;
         private readonly IProviderCalculationResultsSearchService _providerCalculationResultsSearchService;
         private readonly IFeatureToggle _featureToggle;
         private readonly IProviderCalculationResultsReIndexerService _providerCalculationResultsReIndexerService;
 
         public ResultsController(
              IResultsService resultsService,
-             ICalculationProviderResultsSearchService calculationProviderResultsSearchService,
              IProviderCalculationResultsSearchService providerCalculationResultsSearchService,
              IFeatureToggle featureToggle,
              IProviderCalculationResultsReIndexerService providerCalculationResultsReIndexerService)
         {
             Guard.ArgumentNotNull(resultsService, nameof(resultsService));
-            Guard.ArgumentNotNull(calculationProviderResultsSearchService, nameof(calculationProviderResultsSearchService));
             Guard.ArgumentNotNull(providerCalculationResultsSearchService, nameof(providerCalculationResultsSearchService));
             Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
             Guard.ArgumentNotNull(providerCalculationResultsReIndexerService, nameof(providerCalculationResultsReIndexerService));
 
-            _calculationProviderResultsSearchService = calculationProviderResultsSearchService;
             _resultsService = resultsService;
             _providerCalculationResultsSearchService = providerCalculationResultsSearchService;
             _featureToggle = featureToggle;
@@ -81,14 +77,7 @@ namespace CalculateFunding.Api.Results.Controllers
         [HttpPost]
         public async Task<IActionResult> RunCalculationProviderResultsSearch()
         {
-            if (_featureToggle.IsNewProviderCalculationResultsIndexEnabled())
-            {
-                return await _providerCalculationResultsSearchService.SearchCalculationProviderResults(ControllerContext.HttpContext.Request);
-            }
-            else
-            {
-                return await _calculationProviderResultsSearchService.SearchCalculationProviderResults(ControllerContext.HttpContext.Request);
-            }
+            return await _providerCalculationResultsSearchService.SearchCalculationProviderResults(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/results/get-scoped-providerids")]
@@ -111,7 +100,7 @@ namespace CalculateFunding.Api.Results.Controllers
         {
             return await _resultsService.GetProviderResultsBySpecificationId(ControllerContext.HttpContext.Request);
         }
-        
+
         [Route("api/results/hasCalculationResults/{calculationId}")]
         [HttpGet]
         public async Task<IActionResult> HasCalculationResults(string calculationId)

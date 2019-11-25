@@ -69,7 +69,7 @@ namespace CalculateFunding.Api.CosmosDbScaling.UnitTests
                 { "jobsClient:ApiEndpoint", "https://localhost:7010/api/"},
                 { "jobsClient:ApiKey", "Local"},
                 { "cosmosDbScalingClient:ApiEndpoint", "https://localhost:7003/api" },
-                { "cosmosDbScalingClient:ApiKey", "Local" }
+                { "cosmosDbScalingClient:ApiKey", "Local" },
             };
 
             return configData;

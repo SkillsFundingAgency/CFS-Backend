@@ -11,7 +11,7 @@ namespace CalculateFunding.Services.Datasets.Interfaces
 
         Task<BuildProject> UpdateBuildProjectRelationships(string specificationId, DatasetRelationshipSummary datasetRelationshipSummary);
 
-        Task<IEnumerable<CalculationCurrentVersion>> GetCurrentCalculationsBySpecificationId(string specificationId);
+        Task<IEnumerable<CalculationResponseModel>> GetCurrentCalculationsBySpecificationId(string specificationId);
 
         Task<HttpStatusCode> CompileAndSaveAssembly(string specificationId);
     }

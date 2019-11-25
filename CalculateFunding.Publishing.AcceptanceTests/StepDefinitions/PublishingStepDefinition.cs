@@ -44,6 +44,11 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
         {
             IEnumerable<CalculationMetadata> calculationMetadata = table.CreateSet<CalculationMetadata>();
 
+            foreach (CalculationMetadata calculation in calculationMetadata)
+            {
+                calculation.SpecificationId = _currentSpecificationStepContext.SpecificationId;
+            }
+
             _publishFundingStepContext.CalculationMetadata = calculationMetadata.Select(_ =>
             {
                 _.FundingStreamId = fundingStreamId;

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using CalculateFunding.Api.Calcs.Controllers;
 using CalculateFunding.Tests.Common;
 using FluentAssertions;
@@ -6,7 +7,6 @@ using Microsoft.AspNetCore.Hosting.Internal;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Collections.Generic;
 
 namespace CalculateFunding.Api.Calcs.UnitTests
 {
@@ -30,7 +30,7 @@ namespace CalculateFunding.Api.Calcs.UnitTests
 
         protected override Dictionary<string, string> AddToConfiguration()
         {
-            var configData = new Dictionary<string, string>
+            return new Dictionary<string, string>
             {
                 { "SearchServiceName", "ss-t1te-cfs"},
                 { "SearchServiceKey", "test" },
@@ -46,11 +46,9 @@ namespace CalculateFunding.Api.Calcs.UnitTests
                 { "jobsClient:ApiEndpoint", "https://localhost:7010/api/" },
                 { "jobsClient:ApiKey", "Local" },
                 { "CommonStorageSettings:ConnectionString", "StorageConnection" },
-                { "providersClient:ApiEndpoint", "https://localhost:7011/api/" },
-                { "providersClient:ApiKey", "Local" }
+                { "providersClient:ApiEndpoint", "https://localhost:7002/api" },
+                { "providersClient:ApiKey", "Local" },
             };
-
-            return configData;
         }
     }
 }

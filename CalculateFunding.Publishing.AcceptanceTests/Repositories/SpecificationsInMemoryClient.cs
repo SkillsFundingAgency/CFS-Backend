@@ -41,7 +41,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             throw new NotImplementedException();
         }
 
-        public Task<ApiResponse<IEnumerable<string>>> GetFundingStreamIdsForSelectedFundingSpecification()
+        public Task<ApiResponse<PublishStatusResponseModel>> UpdateSpecificationStatus(string specificationId, PublishStatusRequestModel publishStatusRequestModel)
         {
             throw new NotImplementedException();
         }
@@ -61,6 +61,16 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             return Task.FromResult(result);
         }
 
+        public Task<ApiResponse<IEnumerable<SpecificationSummary>>> GetSpecificationSummaries()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ValidatedApiResponse<SpecificationSummary>> UpdateSpecification(string specificationId, EditSpecificationModel specification)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<ApiResponse<SpecificationSummary>> GetSpecificationByName(string specificationName)
         {
             throw new NotImplementedException();
@@ -77,11 +87,6 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         }
 
         public Task<ApiResponse<IEnumerable<SpecificationSummary>>> GetSpecificationsSelectedForFundingByPeriod(string fundingPeriodId)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<ApiResponse<IEnumerable<SpecificationSummary>>> GetSpecificationSummaries()
         {
             throw new NotImplementedException();
         }
@@ -124,12 +129,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             _specificationPublishDateModels[specificationId] = specificationPublishDateModel;
         }
 
-        public Task<ValidatedApiResponse<SpecificationSummary>> UpdateSpecification(string specificationId, EditSpecificationModel specification)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<ApiResponse<PublishStatusResponseModel>> UpdateSpecificationStatus(string specificationId, PublishStatusRequestModel publishStatusRequestModel)
+        public Task<ApiResponse<IEnumerable<string>>> GetFundingStreamIdsForSelectedFundingSpecification()
         {
             throw new NotImplementedException();
         }

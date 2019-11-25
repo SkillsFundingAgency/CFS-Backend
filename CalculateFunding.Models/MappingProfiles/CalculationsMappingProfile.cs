@@ -17,8 +17,8 @@ namespace CalculateFunding.Models.MappingProfiles
             CreateMap<Common.ApiClient.Calcs.Models.CompilerMessage, CompilerMessage>();
             CreateMap<Common.ApiClient.Calcs.Models.Severity, Severity>();
             CreateMap<Common.ApiClient.Calcs.Models.SourceLocation, SourceLocation>();
-            CreateMap<Common.ApiClient.Calcs.Models.CalculationSummaryModel, CalculationSummaryModel>();
-            CreateMap<Common.ApiClient.Calcs.Models.CalculationCurrentVersion, CalculationCurrentVersion>();
+            CreateMap<Common.ApiClient.Calcs.Models.CalculationSummary, CalculationSummaryModel>();
+            CreateMap<Common.ApiClient.Calcs.Models.CalculationVersion, CalculationResponseModel>();
             CreateMap<DatasetRelationshipSummary, Common.ApiClient.Calcs.Models.DatasetRelationshipSummary>();
             CreateMap<DatasetDefinition, Common.ApiClient.Calcs.Models.Schema.DatasetDefinition>();
             CreateMap<TableDefinition, Common.ApiClient.Calcs.Models.Schema.TableDefinition>();

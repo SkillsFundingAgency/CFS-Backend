@@ -32,7 +32,7 @@ namespace CalculateFunding.Api.Publishing.UnitTests
 
         protected override Dictionary<string, string> AddToConfiguration()
         {
-            var configData = new Dictionary<string, string>
+            return new Dictionary<string, string>
             {
                { "CosmosDbSettings:ContainerName", "publishedfunding" },
                { "CosmosDbSettings:DatabaseName", "calculate-funding" },
@@ -44,8 +44,6 @@ namespace CalculateFunding.Api.Publishing.UnitTests
                 { "providersClient:ApiEndpoint", "https://localhost:7011/api/" },
                 { "providersClient:ApiKey", "Local" }
             };
-
-            return configData;
         }
     }
 }

@@ -1,18 +1,14 @@
-﻿using CalculateFunding.Models;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+using CalculateFunding.Models;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Repositories.Common.Search;
 using FluentAssertions;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Search.Models;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Newtonsoft.Json;
 using NSubstitute;
 using Serilog;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Calcs.Services
 {
@@ -31,15 +27,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 Top = 50,
             };
 
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
             ILogger logger = CreateLogger();
 
             ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
@@ -52,7 +39,7 @@ namespace CalculateFunding.Services.Calcs.Services
             CalculationSearchService service = CreateCalculationSearchService(logger: logger, serachRepository: searchRepository);
 
             //Act
-            IActionResult result = await service.SearchCalculations(request);
+            IActionResult result = await service.SearchCalculations(model);
 
             //Assert
             logger
@@ -69,8 +56,6 @@ namespace CalculateFunding.Services.Calcs.Services
         public async Task SearchCalculation_GivenNullSearchModel_LogsAndCreatesDefaultSearcModel()
         {
             //Arrange
-            HttpRequest request = Substitute.For<HttpRequest>();
-
             ILogger logger = CreateLogger();
 
             ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
@@ -78,7 +63,7 @@ namespace CalculateFunding.Services.Calcs.Services
             CalculationSearchService service = CreateCalculationSearchService(logger: logger, serachRepository: searchRepository);
 
             //Act
-            IActionResult result = await service.SearchCalculations(request);
+            IActionResult result = await service.SearchCalculations(null);
 
             //Assert
             logger
@@ -95,14 +80,6 @@ namespace CalculateFunding.Services.Calcs.Services
         {
             //Arrange
             SearchModel model = new SearchModel();
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
 
             ILogger logger = CreateLogger();
 
@@ -111,7 +88,7 @@ namespace CalculateFunding.Services.Calcs.Services
             CalculationSearchService service = CreateCalculationSearchService(logger: logger, serachRepository: searchRepository);
 
             //Act
-            IActionResult result = await service.SearchCalculations(request);
+            IActionResult result = await service.SearchCalculations(model);
 
             //Assert
             logger
@@ -133,14 +110,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 Top = 0
             };
 
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
 
             ILogger logger = CreateLogger();
 
@@ -149,7 +118,7 @@ namespace CalculateFunding.Services.Calcs.Services
             CalculationSearchService service = CreateCalculationSearchService(logger: logger, serachRepository: searchRepository);
 
             //Act
-            IActionResult result = await service.SearchCalculations(request);
+            IActionResult result = await service.SearchCalculations(model);
 
             //Assert
             logger
@@ -172,15 +141,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 IncludeFacets = true
             };
 
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
             SearchResults<CalculationIndex> searchResults = new SearchResults<CalculationIndex>();
 
             ILogger logger = CreateLogger();
@@ -193,7 +153,7 @@ namespace CalculateFunding.Services.Calcs.Services
             CalculationSearchService service = CreateCalculationSearchService(logger: logger, serachRepository: searchRepository);
 
             //Act
-            IActionResult result = await service.SearchCalculations(request);
+            IActionResult result = await service.SearchCalculations(model);
 
             //Assert
             result
@@ -218,15 +178,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 Filters = null,
             };
 
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
             SearchResults<CalculationIndex> searchResults = new SearchResults<CalculationIndex>();
 
             ILogger logger = CreateLogger();
@@ -239,7 +190,7 @@ namespace CalculateFunding.Services.Calcs.Services
             CalculationSearchService service = CreateCalculationSearchService(logger: logger, serachRepository: searchRepository);
 
             //Act
-            IActionResult result = await service.SearchCalculations(request);
+            IActionResult result = await service.SearchCalculations(model);
 
             //Assert
             result
@@ -262,15 +213,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 Top = 50
             };
 
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
             SearchResults<CalculationIndex> searchResults = new SearchResults<CalculationIndex>();
 
             ILogger logger = CreateLogger();
@@ -283,7 +225,7 @@ namespace CalculateFunding.Services.Calcs.Services
             CalculationSearchService service = CreateCalculationSearchService(logger: logger, serachRepository: searchRepository);
 
             //Act
-            IActionResult result = await service.SearchCalculations(request);
+            IActionResult result = await service.SearchCalculations(model);
 
             //Assert
             result
@@ -308,15 +250,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 Top = 50
             };
 
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
             SearchResults<CalculationIndex> searchResults = new SearchResults<CalculationIndex>();
 
             ILogger logger = CreateLogger();
@@ -329,7 +262,7 @@ namespace CalculateFunding.Services.Calcs.Services
             CalculationSearchService service = CreateCalculationSearchService(logger: logger, serachRepository: searchRepository);
 
             //Act
-            IActionResult result = await service.SearchCalculations(request);
+            IActionResult result = await service.SearchCalculations(model);
 
             //Assert
             result
@@ -354,15 +287,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 Top = 50
             };
 
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
             SearchResults<CalculationIndex> searchResults = new SearchResults<CalculationIndex>();
 
             ILogger logger = CreateLogger();
@@ -375,7 +299,7 @@ namespace CalculateFunding.Services.Calcs.Services
             CalculationSearchService service = CreateCalculationSearchService(logger: logger, serachRepository: searchRepository);
 
             //Act
-            IActionResult result = await service.SearchCalculations(request);
+            IActionResult result = await service.SearchCalculations(model);
 
             //Assert
             result
@@ -399,15 +323,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 IncludeFacets = true
             };
 
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
             SearchResults<CalculationIndex> searchResults = new SearchResults<CalculationIndex>
             {
                 Facets = new List<Facet>
@@ -429,7 +344,7 @@ namespace CalculateFunding.Services.Calcs.Services
             CalculationSearchService service = CreateCalculationSearchService(logger: logger, serachRepository: searchRepository);
 
             //Act
-            IActionResult result = await service.SearchCalculations(request);
+            IActionResult result = await service.SearchCalculations(model);
 
             //Assert
             result

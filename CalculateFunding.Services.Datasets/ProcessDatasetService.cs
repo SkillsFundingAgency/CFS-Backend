@@ -250,7 +250,7 @@ namespace CalculateFunding.Services.Datasets
                     };
                     string correlationId = message.GetCorrelationId();
 
-                    IEnumerable<CalculationCurrentVersion> allCalculations = await _calcsRepository.GetCurrentCalculationsBySpecificationId(specificationId);
+                    IEnumerable<CalculationResponseModel> allCalculations = await _calcsRepository.GetCurrentCalculationsBySpecificationId(specificationId);
 
                     bool generateCalculationAggregations = allCalculations.IsNullOrEmpty()
                         ? false

@@ -23,11 +23,8 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.Core.Options;
 using FluentAssertions;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Internal;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
-using Microsoft.Extensions.Primitives;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using NSubstitute;
@@ -395,14 +392,12 @@ namespace CalculateFunding.Services.Calcs.Services
         public async Task GetBuildProjectBySpecificationId_GivenNoSpecificationId_ReturnsBadRequest()
         {
             //Arrange
-            HttpRequest request = Substitute.For<HttpRequest>();
-
             ILogger logger = CreateLogger();
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(logger: logger);
 
             //Act
-            IActionResult result = await buildProjectsService.GetBuildProjectBySpecificationId(request);
+            IActionResult result = await buildProjectsService.GetBuildProjectBySpecificationId(null);
 
             //Assert
             result
@@ -418,20 +413,10 @@ namespace CalculateFunding.Services.Calcs.Services
         public async Task GetBuildProjectBySpecificationId_GivenBuildProjectGeneratedButNoDatasetRelationshipsFound_ReturnsOKResult()
         {
             //Arrange
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "specificationId", new StringValues(SpecificationId) }
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-
             BuildProjectsService buildProjectsService = CreateBuildProjectsService();
 
             //Act
-            IActionResult result = await buildProjectsService.GetBuildProjectBySpecificationId(request);
+            IActionResult result = await buildProjectsService.GetBuildProjectBySpecificationId(SpecificationId);
 
             //Assert
             result
@@ -451,16 +436,6 @@ namespace CalculateFunding.Services.Calcs.Services
         public async Task GetBuildProjectBySpecificationId_GivenBuildProjectGeneratedAndDatasetRelationshipsFound_ReturnsOKResult()
         {
             //Arrange
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "specificationId", new StringValues(SpecificationId) }
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-
             DatasetSpecificationRelationshipViewModel datasetSpecificationRelationshipViewModel = new DatasetSpecificationRelationshipViewModel
             {
                 DatasetId = "ds-1",
@@ -498,7 +473,7 @@ namespace CalculateFunding.Services.Calcs.Services
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(datasetRepository: datasetRepository);
 
             //Act
-            IActionResult result = await buildProjectsService.GetBuildProjectBySpecificationId(request);
+            IActionResult result = await buildProjectsService.GetBuildProjectBySpecificationId(SpecificationId);
 
             //Assert
             result
@@ -523,16 +498,6 @@ namespace CalculateFunding.Services.Calcs.Services
         public async Task GetBuildProjectBySpecificationId_GivenIsDynamicBuildProjectFeatureToggleSwitchedOffAndBuildProjectFound_ReturnsOKResult()
         {
             //Arrange
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "specificationId", new StringValues(SpecificationId) }
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-
             IFeatureToggle featureToggle = CreateFeatureToggle();
             featureToggle
                 .IsDynamicBuildProjectEnabled()
@@ -548,7 +513,7 @@ namespace CalculateFunding.Services.Calcs.Services
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(featureToggle: featureToggle, buildProjectsRepository: buildProjectsRepository);
 
             //Act
-            IActionResult result = await buildProjectsService.GetBuildProjectBySpecificationId(request);
+            IActionResult result = await buildProjectsService.GetBuildProjectBySpecificationId(SpecificationId);
 
             //Assert
             result
@@ -560,16 +525,6 @@ namespace CalculateFunding.Services.Calcs.Services
         public async Task GetBuildProjectBySpecificationId_GivenIsDynamicBuildProjectFeatureToggleSwitchedOffAndBuildProjectNotFound_ReturnsOKResult()
         {
             //Arrange
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "specificationId", new StringValues(SpecificationId) }
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-
             IFeatureToggle featureToggle = CreateFeatureToggle();
             featureToggle
                 .IsDynamicBuildProjectEnabled()
@@ -583,7 +538,7 @@ namespace CalculateFunding.Services.Calcs.Services
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(featureToggle: featureToggle, buildProjectsRepository: buildProjectsRepository);
 
             //Act
-            IActionResult result = await buildProjectsService.GetBuildProjectBySpecificationId(request);
+            IActionResult result = await buildProjectsService.GetBuildProjectBySpecificationId(SpecificationId);
 
             //Assert
             result
@@ -909,8 +864,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Returns(jobViewModelResponse);
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(jobsApiClient: jobsApiClient,
-                logger: logger, 
-                cacheProvider: cacheProvider, 
+                logger: logger,
+                cacheProvider: cacheProvider,
                 specificationsRepository: specificationRepository,
                 providersApiClient: providersApiClient);
 

@@ -57,7 +57,7 @@ namespace CalculateFunding.Services.Calcs.Services
         {
             //Arrange
             PreviewRequest model = new PreviewRequest();
-          
+
             ValidationResult validationResult = new ValidationResult(new[]{
                     new ValidationFailure("prop1", "oh no an error!!!")
                 });
@@ -324,7 +324,6 @@ namespace CalculateFunding.Services.Calcs.Services
             PreviewResponse previewResponse = (PreviewResponse)okResult.Value;
             previewResponse
                 .Calculation
-                .Current
                 .SourceCode
                 .Should()
                 .Be(SourceCode);
@@ -460,7 +459,6 @@ namespace CalculateFunding.Services.Calcs.Services
             PreviewResponse previewResponse = (PreviewResponse)okResult.Value;
             previewResponse
                 .Calculation
-                .Current
                 .SourceCode
                 .Should()
                 .Be(SourceCode);
@@ -639,7 +637,6 @@ End Class";
 
             previewResponse
                 .Calculation
-                .Current
                 .SourceCode
                 .Should()
                 .Be(stringCompareCode);
@@ -760,7 +757,6 @@ End Class";
 
             previewResponse
                 .Calculation
-                .Current
                 .SourceCode
                 .Should()
                 .Be(stringCompareCode);
@@ -812,7 +808,7 @@ End Class";
                     Name = "TestFunction"
                 },
                 SpecificationId = SpecificationId,
-               
+
             };
 
             IEnumerable<Calculation> calculations = new List<Calculation>() { calculation };
@@ -886,7 +882,6 @@ End Class";
 
             previewResponse
                 .Calculation
-                .Current
                 .SourceCode
                 .Should()
                 .Be(stringCompareCode);
@@ -970,7 +965,6 @@ End Class";
 
             previewResponse
                 .Calculation
-                .Current
                 .SourceCode
                 .Should()
                 .Be(stringCompareCode);
@@ -1077,7 +1071,6 @@ End Class";
 
             previewResponse
                 .Calculation
-                .Current
                 .SourceCode
                 .Should()
                 .Be(stringCompareCode);
@@ -1186,7 +1179,6 @@ End Class";
 
             previewResponse
                 .Calculation
-                .Current
                 .SourceCode
                 .Should()
                 .Be(stringCompareCode);
@@ -1308,7 +1300,6 @@ End Class";
 
             previewResponse
                 .Calculation
-                .Current
                 .SourceCode
                 .Should()
                 .Be(stringCompareCode);
@@ -1445,7 +1436,6 @@ End Class";
 
             previewResponse
                 .Calculation
-                .Current
                 .SourceCode
                 .Should()
                 .Be(stringCompareCode);
@@ -1566,7 +1556,6 @@ End Class";
 
             previewResponse
                 .Calculation
-                .Current
                 .SourceCode
                 .Should()
                 .Be(stringCompareCode);
@@ -1690,7 +1679,6 @@ End Class";
 
             previewResponse
                 .Calculation
-                .Current
                 .SourceCode
                 .Should()
                 .Be(stringCompareCode);
@@ -1814,7 +1802,6 @@ End Class";
             PreviewResponse previewResponse = (PreviewResponse)okResult.Value;
             previewResponse
                 .Calculation
-                .Current
                 .SourceCode
                 .Should()
                 .Be(SourceCode);
@@ -1927,7 +1914,6 @@ End Class";
             PreviewResponse previewResponse = (PreviewResponse)okResult.Value;
             previewResponse
                 .Calculation
-                .Current
                 .SourceCode
                 .Should()
                 .Be(SourceCode);
@@ -2049,7 +2035,6 @@ End Class";
             PreviewResponse previewResponse = (PreviewResponse)okResult.Value;
             previewResponse
                 .Calculation
-                .Current
                 .SourceCode
                 .Should()
                 .Be(SourceCode);
@@ -2073,10 +2058,10 @@ End Class";
         [TestMethod]
         [DynamicData(nameof(CodeContainsItsOwnNameTestCases), DynamicDataSourceType.Method)]
         public async Task Compile_GivenCodeContainsItsOwnName_ReturnsBasedOnWhetherNameIsToken(
-            CalculationNamespace calcNamespace, 
-            string calculationName, 
-            string sourceCode, 
-            bool codeContainsName, 
+            CalculationNamespace calcNamespace,
+            string calculationName,
+            string sourceCode,
+            bool codeContainsName,
             int? isToken)
         {
             string BuildCalcName(Calculation calc, string name)
@@ -2194,8 +2179,10 @@ End Class";
             PreviewResponse previewResponse = okResult.Value.Should().BeOfType<PreviewResponse>().Subject;
 
             previewResponse
-                .Calculation.Current.SourceCode
-                .Should().Be(sourceCode);
+                .Calculation
+                .SourceCode
+                .Should()
+                .Be(sourceCode);
 
             previewResponse
                 .CompilerOutput.Success
@@ -2232,7 +2219,7 @@ End Class";
             {
                 foreach (var calcNamespace in new[] { CalculationNamespace.Additional, CalculationNamespace.Template })
                 {
-                    foreach (var calculationName in new[] {"Horace", "Alice"})
+                    foreach (var calculationName in new[] { "Horace", "Alice" })
                     {
                         yield return new object[] { calcNamespace, calculationName, $"Return {calculationName}", true, tokenPosition };
                         yield return new object[] { calcNamespace, calculationName, $"Return {calculationName.ToUpper()}", true, tokenPosition };
@@ -2372,7 +2359,7 @@ Calculation Name: {{calculationName}}").ToArray()
         static IFeatureToggle CreateFeatureToggle()
         {
             IFeatureToggle featureToggle = Substitute.For<IFeatureToggle>();
- 
+
             return featureToggle;
         }
 

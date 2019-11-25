@@ -44,11 +44,6 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             }
         }
 
-        public Task<ApiResponse<IEnumerable<FundingConfiguration>>> GetFundingConfigurationsByFundingStreamId(string fundingStreamId)
-        {
-            throw new NotImplementedException();
-        }
-
         public Task<ApiResponse<FundingPeriod>> GetFundingPeriodById(string fundingPeriodId)
         {
             ApiResponse<FundingPeriod> result;
@@ -62,31 +57,6 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             }
 
             return Task.FromResult(result);
-        }
-
-        public Task<ApiResponse<IEnumerable<FundingPeriod>>> GetFundingPeriods()
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<ApiResponse<string>> GetFundingSchemaByVersion(string schemaVersion)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<ApiResponse<FundingStream>> GetFundingStreamById(string fundingStreamId)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<ApiResponse<IEnumerable<FundingStream>>> GetFundingStreams()
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<ApiResponse<FundingTemplateContents>> GetFundingTemplate(string fundingStreamId, string templateVersion)
-        {
-            throw new NotImplementedException();
         }
 
         public async Task<ApiResponse<TemplateMetadataContents>> GetFundingTemplateContents(string fundingStreamId, string templateVersion)
@@ -122,11 +92,6 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             _fundingPeriods[fundingPeriod.Id] = fundingPeriod;
         }
 
-        public Task<ApiResponse<FundingConfiguration>> SaveFundingConfiguration(string fundingStreamId, string fundingPeriodId, FundingConfigurationUpdateViewModel configuration)
-        {
-            throw new NotImplementedException();
-        }
-
         public Task<ApiResponse<FundingConfiguration>> SaveFundingConfiguration(string fundingStreamId, string fundingPeriodId, FundingConfiguration configuration)
         {
             Guard.IsNullOrWhiteSpace(fundingStreamId, nameof(fundingStreamId));
@@ -138,21 +103,6 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             _fundingConfigurations[fundingConfigurationKey] = configuration;
 
             return Task.FromResult(new ApiResponse<FundingConfiguration>(System.Net.HttpStatusCode.OK, configuration));
-        }
-
-        public Task<ApiResponse<FundingPeriod>> SaveFundingPeriods()
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<ApiResponse<string>> SaveFundingSchema(string schema)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<ApiResponse<FundingStream>> SaveFundingStream(FundingStreamUpdateModel fundingStreamUpdateModel)
-        {
-            throw new NotImplementedException();
         }
 
         public Task<ApiResponse<string>> SaveFundingTemplate(string templateJson)
@@ -176,12 +126,52 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             }
         }
 
+        public Task<ApiResponse<FundingConfiguration>> SaveFundingConfiguration(string fundingStreamId, string fundingPeriodId, FundingConfigurationUpdateViewModel configuration)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ApiResponse<IEnumerable<FundingPeriod>>> GetFundingPeriods()
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<ApiResponse<FundingPeriod>> SaveFundingPeriods(FundingPeriodsUpdateModel fundingPeriodsModel)
         {
             throw new NotImplementedException();
         }
 
-        public Task<ApiResponse<FundingStream>> SaveFundingStream(FundingStream fundingStream, string fileName)
+        public Task<ApiResponse<IEnumerable<FundingStream>>> GetFundingStreams()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ApiResponse<FundingStream>> GetFundingStreamById(string fundingStreamId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ApiResponse<FundingStream>> SaveFundingStream(FundingStreamUpdateModel fundingStream)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ApiResponse<string>> GetFundingSchemaByVersion(string schemaVersion)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ApiResponse<string>> SaveFundingSchema(string schema)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ApiResponse<FundingTemplateContents>> GetFundingTemplate(string fundingStreamId, string templateVersion)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ApiResponse<IEnumerable<FundingConfiguration>>> GetFundingConfigurationsByFundingStreamId(string fundingStreamId)
         {
             throw new NotImplementedException();
         }

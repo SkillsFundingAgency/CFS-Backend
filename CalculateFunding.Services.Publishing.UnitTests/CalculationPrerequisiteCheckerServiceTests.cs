@@ -142,7 +142,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
         private void GivenTheCalculationsForTheSpecificationId(string specificationId, params CalculationMetadata[] calculations)
         {
-            _calculationsApiClient.GetCalculations(specificationId)
+            _calculationsApiClient.GetCalculationMetadataForSpecification(specificationId)
                 .Returns(new ApiResponse<IEnumerable<CalculationMetadata>>(HttpStatusCode.OK, calculations));
         }
 

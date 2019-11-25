@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Common.ApiClient.Calcs;
+using CalculateFunding.Common.ApiClient.Calcs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.Utility;
-using CalculateFunding.Models.Calcs;
 using CalculateFunding.Services.Scenarios.Interfaces;
 
 namespace CalculateFunding.Services.Scenarios
@@ -24,16 +24,16 @@ namespace CalculateFunding.Services.Scenarios
             _mapper = mapper;
         }
 
-        public async Task<IEnumerable<CalculationCurrentVersion>> GetCurrentCalculationsBySpecificationId(string specificationId)
+        public async Task<IEnumerable<Calculation>> GetCurrentCalculationsBySpecificationId(string specificationId)
         {
             if (string.IsNullOrWhiteSpace(specificationId))
             {
                 throw new ArgumentNullException(nameof(specificationId));
             }
 
-            ApiResponse<IEnumerable<Common.ApiClient.Calcs.Models.CalculationCurrentVersion>> apiResponse = await _apiClient.GetCurrentCalculationsBySpecificationId(specificationId);
+            ApiResponse<IEnumerable<Calculation>> apiResponse = await _apiClient.GetCalculationsForSpecification(specificationId);
 
-            return _mapper.Map<IEnumerable<CalculationCurrentVersion>>(apiResponse?.Content);
+            return apiResponse?.Content;
         }
     }
 }

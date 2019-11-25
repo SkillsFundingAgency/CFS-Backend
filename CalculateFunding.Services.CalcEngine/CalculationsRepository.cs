@@ -29,7 +29,7 @@ namespace CalculateFunding.Services.CalcEngine
             if (string.IsNullOrWhiteSpace(specificationId))
                 throw new ArgumentNullException(nameof(specificationId));
 
-            ApiResponse<IEnumerable<Common.ApiClient.Calcs.Models.CalculationSummaryModel>> apiResponse = await _apiClient.GetCalculationSummariesForSpecification(specificationId);
+            ApiResponse<IEnumerable<Common.ApiClient.Calcs.Models.CalculationSummary>> apiResponse = await _apiClient.GetCalculationSummariesForSpecification(specificationId);
 
             return _mapper.Map<IEnumerable<CalculationSummaryModel>>(apiResponse?.Content);
         }
@@ -40,7 +40,7 @@ namespace CalculateFunding.Services.CalcEngine
                 throw new ArgumentNullException(nameof(specificationId));
 
             ApiResponse<Common.ApiClient.Calcs.Models.BuildProject> apiResponse = await _apiClient.GetBuildProjectBySpecificationId(specificationId);
-            
+
             return _mapper.Map<BuildProject>(apiResponse?.Content);
         }
 

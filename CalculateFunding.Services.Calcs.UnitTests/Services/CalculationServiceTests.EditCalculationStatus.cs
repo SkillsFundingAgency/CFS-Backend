@@ -1,8 +1,5 @@
 ﻿using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Net;
-using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.Models;
@@ -13,12 +10,8 @@ using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces;
 using FluentAssertions;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Internal;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Primitives;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Newtonsoft.Json;
 using NSubstitute;
 using Serilog;
 using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
@@ -31,14 +24,12 @@ namespace CalculateFunding.Services.Calcs.Services
         public async Task EditCalculationStatus_GivenNoCalculationIdWasProvided_ReturnsBadRequest()
         {
             //Arrange
-            HttpRequest request = Substitute.For<HttpRequest>();
-
             ILogger logger = CreateLogger();
 
             CalculationService service = CreateCalculationService(logger: logger);
 
             //Act
-            IActionResult result = await service.UpdateCalculationStatus(request);
+            IActionResult result = await service.UpdateCalculationStatus(null, null);
 
             //Arrange
             result
@@ -54,22 +45,12 @@ namespace CalculateFunding.Services.Calcs.Services
         public async Task EditCalculationStatus_GivenNullEditModeldWasProvided_ReturnsBadRequest()
         {
             //Arrange
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "calculationId", new StringValues(CalculationId) },
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-
             ILogger logger = CreateLogger();
 
             CalculationService service = CreateCalculationService(logger: logger);
 
             //Act
-            IActionResult result = await service.UpdateCalculationStatus(request);
+            IActionResult result = await service.UpdateCalculationStatus(CalculationId, null);
 
             //Arrange
             result
@@ -86,59 +67,6 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task EditCalculationStatus_GivenAnInvalidStatus_ReturnsBadRequest()
-        {
-            //Arrange
-
-            string json = @"{
-	                            ""publishStatus"" : ""whatever""
-                            }";
-
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpContext context = Substitute.For<HttpContext>();
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "calculationId", new StringValues(CalculationId) },
-            });
-
-            request
-                .Query
-                .Returns(queryStringValues);
-            request
-                .Body
-                .Returns(stream);
-
-            request
-                .HttpContext
-                .Returns(context);
-
-            ILogger logger = CreateLogger();
-
-            CalculationService service = CreateCalculationService(logger: logger);
-
-            //Act
-            IActionResult result = await service.UpdateCalculationStatus(request);
-
-            //Arrange
-            result
-                .Should()
-                .BeOfType<BadRequestObjectResult>()
-                .Which
-                .Value
-                .Should()
-                .Be("An invalid status was provided");
-
-            logger
-                .Received(1)
-                .Error(Arg.Any<JsonSerializationException>(), Arg.Is($"An invalid status was provided for calculation: {CalculationId}"));
-        }
-
-        [TestMethod]
         public async Task EditCalculationStatus_GivenCalculationWasNotFound_ReturnsNotFoundResult()
         {
             //Arrange
@@ -146,30 +74,6 @@ namespace CalculateFunding.Services.Calcs.Services
             {
                 PublishStatus = PublishStatus.Approved
             };
-
-            string json = JsonConvert.SerializeObject(CalculationEditStatusModel);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpContext context = Substitute.For<HttpContext>();
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "calculationId", new StringValues(CalculationId) },
-            });
-
-            request
-                .Query
-                .Returns(queryStringValues);
-            request
-                .Body
-                .Returns(stream);
-
-            request
-                .HttpContext
-                .Returns(context);
 
             ILogger logger = CreateLogger();
 
@@ -181,7 +85,7 @@ namespace CalculateFunding.Services.Calcs.Services
             CalculationService service = CreateCalculationService(logger: logger, calculationsRepository: CalculationsRepository);
 
             //Act
-            IActionResult result = await service.UpdateCalculationStatus(request);
+            IActionResult result = await service.UpdateCalculationStatus(CalculationId, CalculationEditStatusModel);
 
             //Arrange
             result
@@ -207,30 +111,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 PublishStatus = PublishStatus.Approved
             };
 
-            string json = JsonConvert.SerializeObject(CalculationEditStatusModel);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpContext context = Substitute.For<HttpContext>();
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "calculationId", new StringValues(CalculationId) },
-            });
-
-            request
-                .Query
-                .Returns(queryStringValues);
-            request
-                .Body
-                .Returns(stream);
-
-            request
-                .HttpContext
-                .Returns(context);
-
             ILogger logger = CreateLogger();
 
             Calculation calculation = new Calculation();
@@ -243,7 +123,7 @@ namespace CalculateFunding.Services.Calcs.Services
             CalculationService service = CreateCalculationService(logger: logger, calculationsRepository: CalculationsRepository);
 
             //Act
-            IActionResult result = await service.UpdateCalculationStatus(request);
+            IActionResult result = await service.UpdateCalculationStatus(CalculationId, CalculationEditStatusModel);
 
             //Arrange
             result
@@ -264,30 +144,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 PublishStatus = PublishStatus.Approved
             };
 
-            string json = JsonConvert.SerializeObject(CalculationEditStatusModel);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpContext context = Substitute.For<HttpContext>();
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "calculationId", new StringValues(CalculationId) },
-            });
-
-            request
-                .Query
-                .Returns(queryStringValues);
-            request
-                .Body
-                .Returns(stream);
-
-            request
-                .HttpContext
-                .Returns(context);
-
             ILogger logger = CreateLogger();
 
             Calculation calculation = CreateCalculation();
@@ -301,7 +157,7 @@ namespace CalculateFunding.Services.Calcs.Services
             CalculationService service = CreateCalculationService(logger: logger, calculationsRepository: CalculationsRepository);
 
             //Act
-            IActionResult result = await service.UpdateCalculationStatus(request);
+            IActionResult result = await service.UpdateCalculationStatus(CalculationId, CalculationEditStatusModel);
 
             //Arrange
             result
@@ -327,30 +183,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 PublishStatus = PublishStatus.Approved
             };
 
-            string json = JsonConvert.SerializeObject(CalculationEditStatusModel);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpContext context = Substitute.For<HttpContext>();
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "calculationId", new StringValues(CalculationId) },
-            });
-
-            request
-                .Query
-                .Returns(queryStringValues);
-            request
-                .Body
-                .Returns(stream);
-
-            request
-                .HttpContext
-                .Returns(context);
-
             ILogger logger = CreateLogger();
 
             Calculation calculation = CreateCalculation();
@@ -370,7 +202,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 logger: logger, calculationsRepository: CalculationsRepository, specificationsApiClient: specificationsApiClient);
 
             //Act
-            IActionResult result = await service.UpdateCalculationStatus(request);
+            IActionResult result = await service.UpdateCalculationStatus(CalculationId, CalculationEditStatusModel);
 
             //Arrange
             result
@@ -390,30 +222,6 @@ namespace CalculateFunding.Services.Calcs.Services
             {
                 PublishStatus = PublishStatus.Approved
             };
-
-            string json = JsonConvert.SerializeObject(CalculationEditStatusModel);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpContext context = Substitute.For<HttpContext>();
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "calculationId", new StringValues(CalculationId) },
-            });
-
-            request
-                .Query
-                .Returns(queryStringValues);
-            request
-                .Body
-                .Returns(stream);
-
-            request
-                .HttpContext
-                .Returns(context);
 
             ILogger logger = CreateLogger();
 
@@ -441,7 +249,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 logger: logger, calculationsRepository: CalculationsRepository, specificationsApiClient: specificationsApiClient);
 
             //Act
-            IActionResult result = await service.UpdateCalculationStatus(request);
+            IActionResult result = await service.UpdateCalculationStatus(CalculationId, CalculationEditStatusModel);
 
             //Arrange
             result
@@ -461,30 +269,6 @@ namespace CalculateFunding.Services.Calcs.Services
             {
                 PublishStatus = PublishStatus.Approved
             };
-
-            string json = JsonConvert.SerializeObject(CalculationEditStatusModel);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpContext context = Substitute.For<HttpContext>();
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "calculationId", new StringValues(CalculationId) },
-            });
-
-            request
-                .Query
-                .Returns(queryStringValues);
-            request
-                .Body
-                .Returns(stream);
-
-            request
-                .HttpContext
-                .Returns(context);
 
             ILogger logger = CreateLogger();
 
@@ -506,7 +290,7 @@ namespace CalculateFunding.Services.Calcs.Services
             SpecModel.SpecificationSummary specificationSummary = new SpecModel.SpecificationSummary()
             {
                 Name = "spec name",
-                FundingStreams = new []
+                FundingStreams = new[]
                 {
                     new Reference(calculation.FundingStreamId, "funding stream name")
                 }
@@ -547,7 +331,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 sourceCodeService: sourceCodeService, buildProjectsService: buildProjectsService);
 
             //Act
-            IActionResult result = await service.UpdateCalculationStatus(request);
+            IActionResult result = await service.UpdateCalculationStatus(CalculationId, CalculationEditStatusModel);
 
             //Arrange
             result
@@ -578,30 +362,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 PublishStatus = PublishStatus.Draft
             };
 
-            string json = JsonConvert.SerializeObject(CalculationEditStatusModel);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpContext context = Substitute.For<HttpContext>();
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "calculationId", new StringValues(CalculationId) },
-            });
-
-            request
-                .Query
-                .Returns(queryStringValues);
-            request
-                .Body
-                .Returns(stream);
-
-            request
-                .HttpContext
-                .Returns(context);
-
             ILogger logger = CreateLogger();
 
             Calculation calculation = CreateCalculation();
@@ -631,7 +391,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 logger: logger, calculationsRepository: CalculationsRepository, searchRepository: searchRepository, specificationsApiClient: specificationsApiClient);
 
             //Act
-            IActionResult result = await service.UpdateCalculationStatus(request);
+            IActionResult result = await service.UpdateCalculationStatus(CalculationId, CalculationEditStatusModel);
 
             //Arrange
             result
@@ -663,30 +423,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 PublishStatus = PublishStatus.Updated
             };
 
-            string json = JsonConvert.SerializeObject(CalculationEditStatusModel);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpContext context = Substitute.For<HttpContext>();
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "calculationId", new StringValues(CalculationId) },
-            });
-
-            request
-                .Query
-                .Returns(queryStringValues);
-            request
-                .Body
-                .Returns(stream);
-
-            request
-                .HttpContext
-                .Returns(context);
-
             ILogger logger = CreateLogger();
 
             Calculation calculation = CreateCalculation();
@@ -704,14 +440,14 @@ namespace CalculateFunding.Services.Calcs.Services
             CalculationsRepository
                 .UpdateCalculation(Arg.Any<Calculation>())
                 .Returns(HttpStatusCode.OK);
-            
-           
+
+
             ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
 
             SpecModel.SpecificationSummary specificationSummary = new SpecModel.SpecificationSummary()
             {
                 Name = "spec name",
-                FundingStreams = new []
+                FundingStreams = new[]
                 {
                     new Reference(calculation.FundingStreamId, "funding stream name")
                 }
@@ -750,7 +486,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 sourceCodeService: sourceCodeService, buildProjectsService: buildProjectsService);
 
             //Act
-            IActionResult result = await service.UpdateCalculationStatus(request);
+            IActionResult result = await service.UpdateCalculationStatus(CalculationId, CalculationEditStatusModel);
 
             //Arrange
             result

@@ -183,6 +183,13 @@ namespace CalculateFunding.Services.Policy
             {
                 fundingTemplateValidationResult.TemplateVersion = templateVersion;
             }
+
+            if (parsedFundingTemplate["schemaVersion"] == null)
+            {
+                fundingTemplateValidationResult.ValidationState.Errors.Add("No schemaVersion property found");
+
+                return;
+            }
         }
     }
 }

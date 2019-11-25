@@ -223,7 +223,7 @@ namespace CalculateFunding.Services.Scenarios
 
             await _cacheProvider.RemoveAsync<GherkinParseResult>($"{CacheKeys.GherkinParseResult}{testScenario.Id}");
 
-            IEnumerable<Models.Calcs.CalculationCurrentVersion> calculations = await _calcsRepositoryPolicy.ExecuteAsync(() => _calcsRepository.GetCurrentCalculationsBySpecificationId(specification.Id));
+            IEnumerable<Common.ApiClient.Calcs.Models.Calculation> calculations = await _calcsRepositoryPolicy.ExecuteAsync(() => _calcsRepository.GetCurrentCalculationsBySpecificationId(specification.Id));
 
             if (calculations.IsNullOrEmpty())
             {

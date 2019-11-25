@@ -18,14 +18,14 @@ namespace CalculateFunding.Services.Publishing
         private readonly ILogger _logger;
         private readonly Policy _policy;
 
-        public CalculationPrerequisiteCheckerService(ICalculationsApiClient calculationsApiClient, 
-            IPublishingResiliencePolicies publishingResiliencePolicies, 
+        public CalculationPrerequisiteCheckerService(ICalculationsApiClient calculationsApiClient,
+            IPublishingResiliencePolicies publishingResiliencePolicies,
             ILogger logger)
         {
             Guard.ArgumentNotNull(calculationsApiClient, nameof(calculationsApiClient));
             Guard.ArgumentNotNull(publishingResiliencePolicies?.CalculationsApiClient, nameof(publishingResiliencePolicies.CalculationsApiClient));
             Guard.ArgumentNotNull(logger, nameof(logger));
-            
+
             _calcsApiClient = calculationsApiClient;
             _policy = publishingResiliencePolicies.CalculationsApiClient;
             _logger = logger;
@@ -36,8 +36,8 @@ namespace CalculateFunding.Services.Publishing
             List<string> validationErrors = new List<string>();
 
             string specificationId = specification.Id;
-            
-            ApiResponse<IEnumerable<CalculationMetadata>> calculationsResponse = await _policy.ExecuteAsync(() =>  _calcsApiClient.GetCalculations(specificationId));
+
+            ApiResponse<IEnumerable<CalculationMetadata>> calculationsResponse = await _policy.ExecuteAsync(() => _calcsApiClient.GetCalculationMetadataForSpecification(specificationId));
 
             if (calculationsResponse?.Content == null)
             {
@@ -48,7 +48,7 @@ namespace CalculateFunding.Services.Publishing
 
                 return validationErrors;
             }
-            
+
             validationErrors.AddRange(calculationsResponse?.Content.Where(_ => _.PublishStatus != PublishStatus.Approved)
                 .Select(_ => $"Calculation {_.Name} must be approved but is {_.PublishStatus}"));
 

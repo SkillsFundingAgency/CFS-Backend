@@ -24,8 +24,6 @@ namespace CalculateFunding.Functions.Results.UnitTests
                 // Assert
                 scope.ServiceProvider.GetService<ICalculationResultsRepository>().Should().NotBeNull(nameof(ICalculationResultsRepository));
                 scope.ServiceProvider.GetService<IResultsService>().Should().NotBeNull(nameof(IResultsService));
-                scope.ServiceProvider.GetService<ICalculationProviderResultsSearchService>().Should().NotBeNull(nameof(ICalculationProviderResultsSearchService));
-                scope.ServiceProvider.GetService<ICalculationResultsRepository>().Should().NotBeNull(nameof(ICalculationResultsRepository));
                 scope.ServiceProvider.GetService<IProviderSourceDatasetRepository>().Should().NotBeNull(nameof(IProviderSourceDatasetRepository));
                 scope.ServiceProvider.GetService<IJobHelperService>().Should().NotBeNull(nameof(IJobHelperService));
                 scope.ServiceProvider.GetService<IProviderResultsCsvGeneratorService>().Should().NotBeNull(nameof(IJobHelperService));

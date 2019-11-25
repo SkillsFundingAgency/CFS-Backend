@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
@@ -21,7 +19,6 @@ using FluentAssertions;
 using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
@@ -130,6 +127,20 @@ namespace CalculateFunding.Services.Calcs.Services
                 logger: logger,
                 cacheProvider: cacheProvider);
 
+            IEnumerable<CalculationIndex> indexedCalculations = null;
+
+            await
+              searchRepository
+                  .Index(Arg.Do<IEnumerable<CalculationIndex>>(m =>
+                  indexedCalculations = m
+                  ));
+
+            CalculationVersion savedCalculationVersion = null;
+
+            await
+               versionRepository
+                   .SaveVersion(Arg.Do<CalculationVersion>(m => savedCalculationVersion = m));
+
             //Act
             IActionResult result = await calculationService.CreateAdditionalCalculation(SpecificationId, model, author, CorrelationId);
 
@@ -175,30 +186,50 @@ namespace CalculateFunding.Services.Calcs.Services
                         m.SourceCodeName == VisualBasicTypeGenerator.GenerateIdentifier(model.Name)
                     ));
 
-            await
-               searchRepository
-                   .Received(1)
-                   .Index(Arg.Is<IEnumerable<CalculationIndex>>(m =>
-                       !string.IsNullOrWhiteSpace(m.First().Id) &&
-                       m.First().Name == model.Name &&
-                       m.First().SpecificationId == SpecificationId &&
-                       m.First().SpecificationName == model.SpecificationName &&
-                       m.First().ValueType == model.ValueType.ToString() &&
-                       m.First().CalculationType == CalculationType.Additional.ToString() &&
-                       m.First().Namespace == CalculationNamespace.Additional.ToString() &&
-                       m.First().FundingStreamId == model.FundingStreamId &&
-                       m.First().FundingStreamName == model.FundingStreamName &&
-                       m.First().WasTemplateCalculation == false &&
-                       m.First().Description == model.Description &&
-                       m.First().Status == calculation.Current.PublishStatus.ToString() &&
-                       m.First().LastUpdatedDate.Value.Date == DateTime.Now.Date
-                   ));
+
+            await searchRepository
+                .Received(1)
+                .Index(Arg.Any<IEnumerable<CalculationIndex>>());
+
+            indexedCalculations
+                .Should()
+                .BeEquivalentTo(new List<CalculationIndex>()
+                {
+                    new CalculationIndex()
+                    {
+                        CalculationType = "Additional",
+                        Description = "test description",
+                        FundingStreamId ="fs-1",
+                        FundingStreamName = model.FundingStreamName,
+                        Id = model.Id,
+                        Name = model.Name,
+                        Namespace = "Additional",
+                        SpecificationId = "spec-id-1",
+                        SpecificationName = "spec-id-1_specificationName",
+                        Status = "Draft",
+                        ValueType = "Currency",
+                        WasTemplateCalculation = false,
+                        LastUpdatedDate = savedCalculationVersion.Date,
+                    }
+                });
+
+            //!string.IsNullOrWhiteSpace(m.First().Id) &&
+            //m.First().Name == model.Name &&
+            //m.First().SpecificationId == SpecificationId &&
+            //m.First().SpecificationName == model.SpecificationName &&
+            //m.First().ValueType == model.ValueType.ToString() &&
+            //m.First().CalculationType == CalculationType.Additional.ToString() &&
+            //m.First().Namespace == CalculationNamespace.Additional.ToString() &&
+            //m.First().FundingStreamId == model.FundingStreamId &&
+            //m.First().FundingStreamName == model.FundingStreamName &&
+            //m.First().WasTemplateCalculation == false &&
+            //m.First().Description == model.Description &&
+            //m.First().Status == calculation.Current.PublishStatus.ToString()
 
             await
                 cacheProvider
                     .Received(1)
                     .RemoveAsync<List<CalculationMetadata>>(Arg.Is(cacheKey));
-
         }
 
         [TestMethod]

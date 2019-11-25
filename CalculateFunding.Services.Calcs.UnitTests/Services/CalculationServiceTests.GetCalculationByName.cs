@@ -1,5 +1,5 @@
-﻿using System.Threading.Tasks;
-using AutoMapper;
+﻿using System;
+using System.Threading.Tasks;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Services.Calcs.Interfaces;
 using FluentAssertions;
@@ -17,7 +17,7 @@ namespace CalculateFunding.Services.Calcs.Services
         {
             //Arrange
             CalculationGetModel model = new CalculationGetModel();
-            
+
             ILogger logger = CreateLogger();
 
             CalculationService service = CreateCalculationService(logger: logger);
@@ -65,7 +65,11 @@ namespace CalculateFunding.Services.Calcs.Services
         public async Task GetCalculationByName_GivenSpecificationExistsAndCalculationExists_ReturnsSuccess()
         {
             //Arrange
-            CalculationVersion calculationVersion = new CalculationVersion { Name = CalculationName };
+            CalculationVersion calculationVersion = new CalculationVersion
+            {
+                Name = CalculationName,
+                Date = new DateTimeOffset(2013, 1, 2, 3, 4, 55, TimeSpan.Zero),
+            };
 
             Calculation calc = new Calculation { Current = calculationVersion };
 
@@ -94,7 +98,12 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Which
                 .Value
                 .Should()
-                .Be(calculationVersion);
+                .BeEquivalentTo(new CalculationResponseModel()
+                {
+                    Name = CalculationName,
+                    SourceCode = "Return 0",
+                    LastUpdated = new DateTimeOffset(2013, 1, 2, 3, 4, 55, TimeSpan.Zero),
+                });
         }
 
         [TestMethod]

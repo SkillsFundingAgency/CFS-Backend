@@ -1,10 +1,16 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using CalculateFunding.Models;
+using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Code;
+using CalculateFunding.Models.Versioning;
+using CalculateFunding.Repositories.Common.Search.Results;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Core.Extensions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.ServiceBus;
 
 namespace CalculateFunding.Api.Calcs.Controllers
 {
@@ -21,7 +27,7 @@ namespace CalculateFunding.Api.Calcs.Controllers
             IPreviewService previewService,
             IBuildProjectsService buildProjectsService)
         {
-            
+
             _calcsService = calcsService;
             _previewService = previewService;
             _calcsSearchService = calcsSearchService;
@@ -30,41 +36,48 @@ namespace CalculateFunding.Api.Calcs.Controllers
 
         [Route("api/calcs/calculations-search")]
         [HttpPost]
-        public Task<IActionResult> RunCalculationsSearch()
+        [Produces(typeof(CalculationSearchResults))]
+        public Task<IActionResult> RunCalculationsSearch([FromBody]SearchModel searchModel)
         {
-            return _calcsSearchService.SearchCalculations(ControllerContext.HttpContext.Request);
+            return _calcsSearchService.SearchCalculations(searchModel);
         }
 
+        [Obsolete("Migrate to REST method")]
         [Route("api/calcs/calculation-by-id")]
         [HttpGet]
-        public Task<IActionResult> RunCalculationById()
+        [Produces(typeof(CalculationResponseModel))]
+        public Task<IActionResult> RunCalculationById([FromQuery] string calculationId)
         {
-            return _calcsService.GetCalculationById(ControllerContext.HttpContext.Request);
+            return _calcsService.GetCalculationById(calculationId);
+        }
+
+        [Route("api/calcs/calculations/by-id/{calculationId}")]
+        [HttpGet]
+        [Produces(typeof(CalculationResponseModel))]
+        public Task<IActionResult> GetCalculationById([FromRoute] string calculationId)
+        {
+            return _calcsService.GetCalculationById(calculationId);
         }
 
         [Route("api/calcs/calculation-summaries-for-specification")]
         [HttpGet]
-        public Task<IActionResult> RunGetCalculationSummariesForSpecification()
+        [Produces(typeof(IEnumerable<CalculationSummaryModel>))]
+        public Task<IActionResult> RunGetCalculationSummariesForSpecification([FromQuery]string specificationId)
         {
-            return _calcsService.GetCalculationSummariesForSpecification(ControllerContext.HttpContext.Request);
+            return _calcsService.GetCalculationSummariesForSpecification(specificationId);
         }
 
         [Route("api/calcs/current-calculations-for-specification")]
         [HttpGet]
-        public Task<IActionResult> RunGetCurrentCalculationsForSpecification()
+        [Produces(typeof(IEnumerable<CalculationResponseModel>))]
+        public Task<IActionResult> RunGetCurrentCalculationsForSpecification([FromQuery]string specificationId)
         {
-            return _calcsService.GetCurrentCalculationsForSpecification(ControllerContext.HttpContext.Request);
-        }
-
-        [Route("api/calcs/calculation-current-version")]
-        [HttpGet]
-        public Task<IActionResult> RunCalculationCurrentVersion()
-        {
-            return _calcsService.GetCalculationCurrentVersion(ControllerContext.HttpContext.Request);
+            return _calcsService.GetCurrentCalculationsForSpecification(specificationId);
         }
 
         [Route("api/calcs/specifications/{specificationId}/calculations/{calculationId}")]
         [HttpPut]
+        [Produces(typeof(CalculationResponseModel))]
         public Task<IActionResult> EditCalculation([FromRoute]string specificationId, [FromRoute]string calculationId, [FromBody]CalculationEditModel model)
         {
             HttpRequest httpRequest = ControllerContext.HttpContext.Request;
@@ -74,27 +87,31 @@ namespace CalculateFunding.Api.Calcs.Controllers
 
         [Route("api/calcs/calculation-version-history")]
         [HttpGet]
-        public Task<IActionResult> RunCalculationVersionHistory()
+        [Produces(typeof(IEnumerable<CalculationVersionResponseModel>))]
+        public Task<IActionResult> RunCalculationVersionHistory([FromQuery]string calculationId)
         {
-            return _calcsService.GetCalculationHistory(ControllerContext.HttpContext.Request);
+            return _calcsService.GetCalculationHistory(calculationId);
         }
 
         [Route("api/calcs/calculation-versions")]
         [HttpPost]
-        public Task<IActionResult> RunCalculationVersions()
+        [Produces(typeof(IEnumerable<CalculationVersionResponseModel>))]
+        public Task<IActionResult> RunCalculationVersions([FromBody]CalculationVersionsCompareModel calculationVersionsCompareModel)
         {
-            return _calcsService.GetCalculationVersions(ControllerContext.HttpContext.Request);
+            return _calcsService.GetCalculationVersions(calculationVersionsCompareModel);
         }
 
         [Route("api/calcs/calculation-edit-status")]
         [HttpPut]
-        public Task<IActionResult> RunCalculationEditStatus()
+        [Produces(typeof(PublishStatusResultModel))]
+        public Task<IActionResult> RunCalculationEditStatus([FromQuery]string calculationId, [FromBody] EditStatusModel editStatusModel)
         {
-            return _calcsService.UpdateCalculationStatus(ControllerContext.HttpContext.Request);
+            return _calcsService.UpdateCalculationStatus(calculationId, editStatusModel);
         }
 
         [Route("api/calcs/compile-preview")]
         [HttpPost]
+        [Produces(typeof(PreviewResponse))]
         public Task<IActionResult> RunCompilePreview([FromBody] PreviewRequest previewRequest)
         {
             return _previewService.Compile(previewRequest);
@@ -102,27 +119,31 @@ namespace CalculateFunding.Api.Calcs.Controllers
 
         [Route("api/calcs/get-buildproject-by-specification-id")]
         [HttpGet]
-        public Task<IActionResult> RunGetBuildProjectBySpecificationId()
+        [Produces(typeof(BuildProject))]
+        public Task<IActionResult> RunGetBuildProjectBySpecificationId([FromQuery]string specificationId)
         {
-            return _buildProjectsService.GetBuildProjectBySpecificationId(ControllerContext.HttpContext.Request);
+            return _buildProjectsService.GetBuildProjectBySpecificationId(specificationId);
         }
 
         [Route("api/calcs/get-calculation-code-context")]
         [HttpGet]
-        public Task<IActionResult> RunGetCalculationCodeContext()
+        [Produces(typeof(IEnumerable<TypeInformation>))]
+        public Task<IActionResult> RunGetCalculationCodeContext([FromQuery]string specificationId)
         {
-            return _calcsService.GetCalculationCodeContext(ControllerContext.HttpContext.Request);
+            return _calcsService.GetCalculationCodeContext(specificationId);
         }
 
         [Route("api/calcs/update-buildproject-relationships")]
         [HttpPost]
-        public Task<IActionResult> RunUpdateBuildProjectRelationships()
+        [Produces(typeof(BuildProject))]
+        public Task<IActionResult> RunUpdateBuildProjectRelationships([FromQuery]string specificationId, [FromBody] DatasetRelationshipSummary relationship)
         {
-            return _buildProjectsService.UpdateBuildProjectRelationships(ControllerContext.HttpContext.Request);
+            return _buildProjectsService.UpdateBuildProjectRelationships(specificationId, relationship);
         }
 
         [Route("api/calcs/reindex")]
         [HttpGet]
+        [ProducesResponseType(201)]
         public Task<IActionResult> RunCalculationReIndex()
         {
             return _calcsService.ReIndex();
@@ -130,51 +151,32 @@ namespace CalculateFunding.Api.Calcs.Controllers
 
         [Route("api/calcs/status-counts")]
         [HttpPost]
-        public Task<IActionResult> RunGetCalculationStatusCounts()
+        [Produces(typeof(IEnumerable<CalculationStatusCountsModel>))]
+        public Task<IActionResult> RunGetCalculationStatusCounts([FromBody]SpecificationListModel specifications)
         {
-            return _calcsService.GetCalculationStatusCounts(ControllerContext.HttpContext.Request);
-        }
-
-        [Route("api/calcs/update-allocations")]
-        [HttpPost]
-        public async Task<IActionResult> RunUpdateAllocations()
-        {
-
-            //local debug testing only
-            Message message = new Message();
-            message.UserProperties.Add("sfa-correlationId", "d3942352-5121-4c87-9c79-2fe21ff20605");
-            message.UserProperties.Add("user-id", "c2585580-b1a9-487d-81b9-440fdb6e2560");
-            message.UserProperties.Add("user-name", "Adam BRYANT");
-            message.UserProperties.Add("specification-id", "dc790603-8e9a-45ac-bde1-485bc0cfb327");
-            message.UserProperties.Add("provider-cache-key", "scoped-provider-summaries:dc790603-8e9a-45ac-bde1-485bc0cfb327");
-
-            await _buildProjectsService.UpdateAllocations(message);
-            return new OkResult();
+            return _calcsService.GetCalculationStatusCounts(specifications);
         }
 
         [Route("api/calcs/{specificationId}/assembly")]
         [HttpGet]
-        public Task<IActionResult> GetAssemblyBySpecificationId(string specificationId)
+        [Produces(typeof(byte[]))]
+        public Task<IActionResult> GetAssemblyBySpecificationId([FromRoute]string specificationId)
         {
             return _buildProjectsService.GetAssemblyBySpecificationId(specificationId);
         }
 
         [Route("api/calcs/validate-calc-name/{specificationId}/{calculationName}/{existingCalculationId?}")]
         [HttpGet]
-        public async Task<IActionResult> ValidationCalculationName(string specificationId, string calculationName, string existingCalculationId)
+        [ProducesResponseType(200)]
+        [ProducesResponseType(409)]
+        public async Task<IActionResult> ValidationCalculationName([FromRoute]string specificationId, [FromRoute]string calculationName, [FromRoute]string existingCalculationId)
         {
             return await _calcsService.IsCalculationNameValid(specificationId, calculationName, existingCalculationId);
         }
 
-        [Route("api/calcs/duplicate-calc-names-migration")]
-        [HttpGet]
-        public async Task<IActionResult> DuplicateCalcNamesMigration()
-        {
-            return await _calcsService.DuplicateCalcNamesMigration();
-        }
-
         [Route("api/calcs/{specificationId}/compileAndSaveAssembly")]
         [HttpGet]
+        [ProducesResponseType(201)]
         public async Task<IActionResult> CompileAndSaveAssembly([FromRoute]string specificationId)
         {
             return await _buildProjectsService.CompileAndSaveAssembly(specificationId);
@@ -182,6 +184,7 @@ namespace CalculateFunding.Api.Calcs.Controllers
 
         [Route("api/calcs/{specificationId}/sourceFiles/release")]
         [HttpPost]
+        [ProducesResponseType(201)]
         public async Task<IActionResult> SaveSourceFilesRelease([FromRoute]string specificationId)
         {
             return await _buildProjectsService.GenerateAndSaveSourceProject(specificationId, SourceCodeType.Release);
@@ -189,6 +192,7 @@ namespace CalculateFunding.Api.Calcs.Controllers
 
         [Route("api/calcs/{specificationId}/sourceFiles/preview")]
         [HttpPost]
+        [ProducesResponseType(201)]
         public async Task<IActionResult> SaveSourceFilesPreview([FromRoute]string specificationId)
         {
             return await _buildProjectsService.GenerateAndSaveSourceProject(specificationId, SourceCodeType.Preview);
@@ -196,6 +200,7 @@ namespace CalculateFunding.Api.Calcs.Controllers
 
         [Route("api/calcs/{specificationId}/sourceFiles/diagnostics")]
         [HttpPost]
+        [ProducesResponseType(201)]
         public async Task<IActionResult> SaveSourceFilesDiagnostics([FromRoute]string specificationId)
         {
             return await _buildProjectsService.GenerateAndSaveSourceProject(specificationId, SourceCodeType.Diagnostics);
@@ -203,6 +208,7 @@ namespace CalculateFunding.Api.Calcs.Controllers
 
         [Route("api/calcs/calculation-by-name")]
         [HttpPost]
+        [Produces(typeof(CalculationResponseModel))]
         public async Task<IActionResult> GetCalculationByName([FromBody]CalculationGetModel model)
         {
             return await _calcsService.GetCalculationByName(model);
@@ -210,6 +216,7 @@ namespace CalculateFunding.Api.Calcs.Controllers
 
         [Route("api/calcs/specifications/{specificationId}/calculations/metadata")]
         [HttpGet]
+        [Produces(typeof(IEnumerable<CalculationMetadata>))]
         public async Task<IActionResult> GetCalculationsMetadata([FromRoute]string specificationId)
         {
             return await _calcsService.GetCalculationsMetadataForSpecification(specificationId);
@@ -217,6 +224,7 @@ namespace CalculateFunding.Api.Calcs.Controllers
 
         [Route("api/calcs/specifications/{specificationId}/calculations")]
         [HttpPost]
+        [Produces(typeof(CalculationResponseModel))]
         public async Task<IActionResult> CreateAdditionalCalculation([FromRoute]string specificationId, [FromBody]CalculationCreateModel model)
         {
             HttpRequest httpRequest = ControllerContext.HttpContext.Request;
@@ -226,6 +234,7 @@ namespace CalculateFunding.Api.Calcs.Controllers
 
         [Route("api/calcs/specifications/{specificationId}/templates/{fundingStreamId}")]
         [HttpPut]
+        [Produces(typeof(TemplateMappingSummary))]
         public async Task<IActionResult> RunAssociateTemplateIdWithSpecification([FromRoute]string specificationId, [FromRoute]string fundingStreamId, [FromBody] string templateId)
         {
             return await _calcsService.AssociateTemplateIdWithSpecification(specificationId, templateId, fundingStreamId);
@@ -233,6 +242,7 @@ namespace CalculateFunding.Api.Calcs.Controllers
 
         [Route("api/calcs/specifications/{specificationId}/templatemapping/{fundingStreamId}")]
         [HttpGet]
+        [Produces(typeof(TemplateMappingSummary))]
         public async Task<IActionResult> GetMappedCalculationsOfSpecificationTemplate([FromRoute]string specificationId, [FromRoute]string fundingStreamId)
         {
             return await _calcsService.GetMappedCalculationsOfSpecificationTemplate(specificationId, fundingStreamId);
@@ -240,6 +250,7 @@ namespace CalculateFunding.Api.Calcs.Controllers
 
         [Route("api/calcs/specifications/{specificationId}/templateCalculations/allApproved")]
         [HttpGet]
+        [Produces(typeof(BooleanResponseModel))]
         public async Task<IActionResult> CheckHasAllApprovedTemplateCalculationsForSpecificationId([FromRoute]string specificationId)
         {
             return await _calcsService.CheckHasAllApprovedTemplateCalculationsForSpecificationId(specificationId);

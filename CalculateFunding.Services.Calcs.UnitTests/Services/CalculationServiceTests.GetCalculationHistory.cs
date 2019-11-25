@@ -1,16 +1,12 @@
-﻿using CalculateFunding.Models.Calcs;
-using CalculateFunding.Services.Calcs.Interfaces;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+using CalculateFunding.Models.Calcs;
 using CalculateFunding.Services.Core.Interfaces;
 using FluentAssertions;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Internal;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Primitives;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Calcs.Services
 {
@@ -20,14 +16,12 @@ namespace CalculateFunding.Services.Calcs.Services
         async public Task GetCalculationHistory_GivenNoCalculationIdWasProvided_ReturnsBadRequest()
         {
             //Arrange
-            HttpRequest request = Substitute.For<HttpRequest>();
-
             ILogger logger = CreateLogger();
 
             CalculationService service = CreateCalculationService(logger: logger);
 
             //Act
-            IActionResult result = await service.GetCalculationHistory(request);
+            IActionResult result = await service.GetCalculationHistory(null);
 
             //Assert
             result
@@ -43,16 +37,6 @@ namespace CalculateFunding.Services.Calcs.Services
         async public Task GetCalculationHistory_GivenCalculationIdWasProvidedButHistoryWasNull_ReturnsNotFound()
         {
             //Arrange
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "calculationId", new StringValues(CalculationId) }
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-
             ILogger logger = CreateLogger();
 
             IVersionRepository<CalculationVersion> versionsRepository = CreateCalculationVersionRepository();
@@ -63,7 +47,7 @@ namespace CalculateFunding.Services.Calcs.Services
             CalculationService service = CreateCalculationService(logger: logger, calculationVersionRepository: versionsRepository);
 
             //Act
-            IActionResult result = await service.GetCalculationHistory(request);
+            IActionResult result = await service.GetCalculationHistory(CalculationId);
 
             //Assert
             result
@@ -85,16 +69,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 new CalculationVersion()
             };
 
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "calculationId", new StringValues(CalculationId) }
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-
             ILogger logger = CreateLogger();
 
             IVersionRepository<CalculationVersion> versionsRepository = CreateCalculationVersionRepository();
@@ -105,7 +79,7 @@ namespace CalculateFunding.Services.Calcs.Services
             CalculationService service = CreateCalculationService(logger: logger, calculationVersionRepository: versionsRepository);
 
             //Act
-            IActionResult result = await service.GetCalculationHistory(request);
+            IActionResult result = await service.GetCalculationHistory(CalculationId);
 
             //Assert
             result

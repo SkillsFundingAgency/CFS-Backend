@@ -46,9 +46,9 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
         public void GetCalculationSummariesForSpecification_WhenGivenASpecificationIdInValidFormat_ShouldReturnResult()
         {
             // Arrange 
-            List<Common.ApiClient.Calcs.Models.CalculationSummaryModel> summaryModels = new List<Common.ApiClient.Calcs.Models.CalculationSummaryModel>()
+            List<Common.ApiClient.Calcs.Models.CalculationSummary> summaryModels = new List<Common.ApiClient.Calcs.Models.CalculationSummary>()
             {
-                new Common.ApiClient.Calcs.Models.CalculationSummaryModel()
+                new Common.ApiClient.Calcs.Models.CalculationSummary()
                 {
                     Name = "TestCalc",
                     CalculationType = Common.ApiClient.Calcs.Models.CalculationType.Template,
@@ -59,7 +59,7 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
             ICalculationsApiClient mockApi = Substitute.For<ICalculationsApiClient>();
             mockApi
                 .GetCalculationSummariesForSpecification(Arg.Any<string>())
-                .Returns(new ApiResponse<IEnumerable<Common.ApiClient.Calcs.Models.CalculationSummaryModel>>(HttpStatusCode.OK, summaryModels));
+                .Returns(new ApiResponse<IEnumerable<Common.ApiClient.Calcs.Models.CalculationSummary>>(HttpStatusCode.OK, summaryModels));
 
             CalculationsRepository calculationsRepository = new CalculationsRepository(mockApi, CreateMapper());
             ArgumentNullException exception = null;

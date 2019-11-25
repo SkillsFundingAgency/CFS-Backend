@@ -13,9 +13,7 @@ using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using FluentValidation;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
 using Serilog;
 using Severity = CalculateFunding.Models.Calcs.Severity;
 
@@ -98,7 +96,7 @@ namespace CalculateFunding.Services.Calcs
                 }
             };
 
-            var validationResult = await _previewRequestValidator.ValidateAsync(previewRequest);
+            FluentValidation.Results.ValidationResult validationResult = await _previewRequestValidator.ValidateAsync(previewRequest);
 
             if (!validationResult.IsValid)
             {
@@ -143,7 +141,7 @@ namespace CalculateFunding.Services.Calcs
             {
                 PreviewResponse response = new PreviewResponse
                 {
-                    Calculation = calculation,
+                    Calculation = calculation.ToResponseModel(),
                     CompilerOutput = build
                 };
 
@@ -170,7 +168,7 @@ namespace CalculateFunding.Services.Calcs
             if (compilerOutput.Success)
             {
                 _logger.Information($"Build compiled successfully for calculation id {calculationToPreview.Id}");
-               
+
                 string calculationIdentifier = $"{calculationToPreview.Namespace}.{VisualBasicTypeGenerator.GenerateIdentifier(calculationToPreview.Name)}";
 
                 IDictionary<string, string> functions = _sourceCodeService.GetCalculationFunctions(compilerOutput.SourceFiles);
@@ -238,7 +236,7 @@ namespace CalculateFunding.Services.Calcs
 
             return new OkObjectResult(new PreviewResponse
             {
-                Calculation = calculationToPreview,
+                Calculation = calculationToPreview.ToResponseModel(),
                 CompilerOutput = compilerOutput
             });
         }

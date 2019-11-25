@@ -230,7 +230,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
         }
 
         [TestMethod]
-        public async Task ValidateFundingTemplate_GivenTemplateWIthValidSchemaVersionAndFundingPropertyButNoFundingStreamProperty_ReturnsValidationResultWithErrors()
+        public async Task ValidateFundingTemplate_GivenTemplateWithValidSchemaVersionAndFundingPropertyButNoFundingStreamProperty_ReturnsValidationResultWithErrors()
         {
             //Arrange
             const string schemaVersion = "1.0";
@@ -276,6 +276,11 @@ namespace CalculateFunding.Services.Policy.UnitTests
                .IsValid
                .Should()
                .BeFalse();
+
+            result
+                .SchemaVersion
+                .Should()
+                .Be("1.0");
         }
 
         [TestMethod]

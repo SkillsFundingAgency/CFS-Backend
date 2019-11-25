@@ -25,10 +25,8 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.Core.Options;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
-using Newtonsoft.Json;
 using Serilog;
 using static CalculateFunding.Services.Core.Constants.JobConstants;
 
@@ -289,22 +287,14 @@ namespace CalculateFunding.Services.Calcs
             }
         }
 
-        public async Task<IActionResult> UpdateBuildProjectRelationships(HttpRequest request)
+        public async Task<IActionResult> UpdateBuildProjectRelationships(string specificationId, DatasetRelationshipSummary relationship)
         {
-            request.Query.TryGetValue("specificationId", out Microsoft.Extensions.Primitives.StringValues specId);
-
-            string specificationId = specId.FirstOrDefault();
-
             if (string.IsNullOrWhiteSpace(specificationId))
             {
                 _logger.Error("No specification Id was provided to UpdateBuildProjectRelationships");
 
                 return new BadRequestObjectResult("Null or empty specification Id provided");
             }
-
-            string json = await request.GetRawBodyStringAsync();
-
-            DatasetRelationshipSummary relationship = JsonConvert.DeserializeObject<DatasetRelationshipSummary>(json);
 
             if (relationship == null)
             {
@@ -429,12 +419,8 @@ namespace CalculateFunding.Services.Calcs
             }
         }
 
-        public async Task<IActionResult> GetBuildProjectBySpecificationId(HttpRequest request)
+        public async Task<IActionResult> GetBuildProjectBySpecificationId(string specificationId)
         {
-            request.Query.TryGetValue("specificationId", out Microsoft.Extensions.Primitives.StringValues specId);
-
-            string specificationId = specId.FirstOrDefault();
-
             if (string.IsNullOrWhiteSpace(specificationId))
             {
                 _logger.Error("No specification Id was provided to GetBuildProjectBySpecificationId");

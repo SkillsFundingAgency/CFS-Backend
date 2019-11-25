@@ -1,12 +1,9 @@
 ﻿using System;
-using System.Net.Http;
-using System.Net.Http.Headers;
 using AutoMapper;
 using CalculateFunding.Common.ApiClient;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Interfaces;
 using CalculateFunding.Common.JobManagement;
-using CalculateFunding.Common.Utility;
 using CalculateFunding.Functions.Results.ServiceBus;
 using CalculateFunding.Functions.Results.Timer;
 using CalculateFunding.Models.MappingProfiles;
@@ -67,7 +64,6 @@ namespace CalculateFunding.Functions.Results
             builder.AddSingleton<ICalculationResultsRepository, CalculationResultsRepository>();
             builder.AddSingleton<IResultsService, ResultsService>();
             builder.AddSingleton<IJobManagement, JobManagement>();
-            builder.AddSingleton<ICalculationProviderResultsSearchService, CalculationProviderResultsSearchService>();
             builder.AddSingleton<ICalculationsRepository, CalculationsRepository>();
             builder.AddSingleton<IJobHelperService, JobHelperService>();
             builder.AddSingleton<IProviderCalculationResultsReIndexerService, ProviderCalculationResultsReIndexerService>();
@@ -139,7 +135,6 @@ namespace CalculateFunding.Functions.Results
             builder.AddCalculationsInterServiceClient(config);
             builder.AddSpecificationsInterServiceClient(config);
             builder.AddJobsInterServiceClient(config);
-            builder.AddResultsInterServiceClient(config);
             builder.AddProvidersInterServiceClient(config);
             builder.AddPoliciesInterServiceClient(config);
 
@@ -188,33 +183,6 @@ namespace CalculateFunding.Functions.Results
             };
 
             return resiliencePolicies;
-        }
-
-        private static void SetDefaultApiClientConfigurationOptions(HttpClient httpClient, ApiClientConfigurationOptions options, IServiceCollection services)
-        {
-            Guard.ArgumentNotNull(httpClient, nameof(httpClient));
-            Guard.ArgumentNotNull(options, nameof(options));
-            Guard.ArgumentNotNull(services, nameof(services));
-
-            if (string.IsNullOrWhiteSpace(options.ApiEndpoint))
-            {
-                throw new InvalidOperationException("options EndPoint is null or empty string");
-            }
-
-            string baseAddress = options.ApiEndpoint;
-            if (!baseAddress.EndsWith("/", StringComparison.CurrentCulture))
-            {
-                baseAddress = $"{baseAddress}/";
-            }
-
-            IServiceProvider serviceProvider = services.BuildServiceProvider();
-
-            httpClient.BaseAddress = new Uri(baseAddress, UriKind.Absolute);
-            httpClient.DefaultRequestHeaders?.Add(ApiClientHeaders.ApiKey, options.ApiKey);
-
-            httpClient.DefaultRequestHeaders?.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            httpClient.DefaultRequestHeaders?.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
-            httpClient.DefaultRequestHeaders?.AcceptEncoding.Add(new StringWithQualityHeaderValue("deflate"));
         }
     }
 }

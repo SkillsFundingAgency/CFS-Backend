@@ -125,34 +125,34 @@ namespace CalculateFunding.Migrations.Calculations.Etl.Migrations
 
             Task<IEnumerable<TemplateMappingItem>> sourceTemplateMappingsQueryTask = GetTemplateMappingItemsInSpecification(sourceSpecification, _sourceClients);
             Task<IEnumerable<TemplateMappingItem>> destinationTemplateMappingsQueryTask = GetTemplateMappingItemsInSpecification(destinationSpecification, _destinationClients);
-            Task<ApiResponse<IEnumerable<CalculationCurrentVersion>>> sourceCalculationsQueryTask = _sourceClients.MakeCalculationsCall(
-                _ => _.GetCurrentCalculationsBySpecificationId(sourceSpecificationId));
-            Task<ApiResponse<IEnumerable<CalculationCurrentVersion>>> destinationCalculationsQueryTask = _destinationClients.MakeCalculationsCall(
-                _ => _.GetCurrentCalculationsBySpecificationId(destinationSpecificationId));
+            Task<ApiResponse<IEnumerable<Calculation>>> sourceCalculationsQueryTask = _sourceClients.MakeCalculationsCall(
+                _ => _.GetCalculationsForSpecification(sourceSpecificationId));
+            Task<ApiResponse<IEnumerable<Calculation>>> destinationCalculationsQueryTask = _sourceClients.MakeCalculationsCall(
+                _ => _.GetCalculationsForSpecification(destinationSpecificationId));
 
             WriteLine("Fetching template mappings and current calculation versions from source and destination specifications");
 
             await TaskHelper.WhenAllAndThrow(sourceCalculationsQueryTask, destinationCalculationsQueryTask, sourceTemplateMappingsQueryTask, destinationTemplateMappingsQueryTask);
 
-            ApiResponse<IEnumerable<CalculationCurrentVersion>> sourceCalculationsResponse = sourceCalculationsQueryTask.Result;
-            ApiResponse<IEnumerable<CalculationCurrentVersion>> destinationCalculationsResponse = destinationCalculationsQueryTask.Result;
+            ApiResponse<IEnumerable<Calculation>> sourceCalculationsResponse = sourceCalculationsQueryTask.Result;
+            ApiResponse<IEnumerable<Calculation>> destinationCalculationsResponse = destinationCalculationsQueryTask.Result;
 
             CheckApiResponse(sourceCalculationsResponse, $"Unable to query current calculations for source specification {sourceSpecificationId}");
             CheckApiResponse(destinationCalculationsResponse, $"Unable to query current calculations for destination specification {destinationSpecificationId}");
 
-            string additional = CalculationSpecificationType.Additional.ToString();
+            CalculationType additional = CalculationType.Additional;
 
 
-            CalculationCurrentVersion[] sourceAdditionalCalculations = sourceCalculationsResponse.Content.Where(
+            Calculation[] sourceAdditionalCalculations = sourceCalculationsResponse.Content.Where(
                 _ => _.CalculationType == additional).ToArray();
-            CalculationCurrentVersion[] destinationAdditionalCalculations = destinationCalculationsResponse.Content.Where(
+            Calculation[] destinationAdditionalCalculations = destinationCalculationsResponse.Content.Where(
                 _ => _.CalculationType == additional).ToArray();
 
-            string template = CalculationSpecificationType.Template.ToString();
+            var template = CalculationType.Template;
 
-            Dictionary<string, CalculationCurrentVersion> sourceTemplateCalculations = sourceCalculationsResponse.Content.Where(
+            Dictionary<string, Calculation> sourceTemplateCalculations = sourceCalculationsResponse.Content.Where(
                 _ => _.CalculationType == template).ToDictionary(_ => _.Id, _ => _);
-            Dictionary<string, CalculationCurrentVersion> destinationTemplateCalculations = destinationCalculationsResponse.Content.Where(
+            Dictionary<string, Calculation> destinationTemplateCalculations = destinationCalculationsResponse.Content.Where(
                 _ => _.CalculationType == template).ToDictionary(_ => _.Id, _ => _);
 
             TemplateMappingItem[] sourceTemplateMappings = sourceTemplateMappingsQueryTask.Result.Where(
@@ -204,8 +204,8 @@ namespace CalculateFunding.Migrations.Calculations.Etl.Migrations
 
         private async Task EnsureDestinationTemplateCalculationSourceCodeMatchesSource(TemplateMappingItem[] sourceTemplateMappings,
             Dictionary<uint, string> destinationTemplateIdToCalculationIdMappings,
-            Dictionary<string, CalculationCurrentVersion> sourceTemplateCalculations,
-            Dictionary<string, CalculationCurrentVersion> destinationTemplateCalculations,
+            Dictionary<string, Calculation> sourceTemplateCalculations,
+            Dictionary<string, Calculation> destinationTemplateCalculations,
             string destinationSpecificationId)
         {
             foreach (TemplateMappingItem sourceTemplateMapping in sourceTemplateMappings)
@@ -217,14 +217,14 @@ namespace CalculateFunding.Migrations.Calculations.Etl.Migrations
                     continue;
                 }
 
-                if (!sourceTemplateCalculations.TryGetValue(sourceTemplateMapping.CalculationId, out CalculationCurrentVersion sourceCalculation))
+                if (!sourceTemplateCalculations.TryGetValue(sourceTemplateMapping.CalculationId, out Calculation sourceCalculation))
                 {
                     AddError($"Unable to locate source calculation for template mapping id {sourceTemplateMapping.TemplateId}");
 
                     continue;
                 }
 
-                if (!destinationTemplateCalculations.TryGetValue(destinationCalculationId, out CalculationCurrentVersion destinationCalculation))
+                if (!destinationTemplateCalculations.TryGetValue(destinationCalculationId, out Calculation destinationCalculation))
                 {
                     AddError($"Unable to locate destination calculation for template mapping id {sourceTemplateMapping.TemplateId}");
 
@@ -260,7 +260,7 @@ namespace CalculateFunding.Migrations.Calculations.Etl.Migrations
                         SourceCode = sourceCalculation.SourceCode,
                         Description = sourceCalculationDetails.Description,
                         Name = destinationCalculation.Name,
-                        ValueType = sourceCalculationDetails.Current.ValueType
+                        ValueType = sourceCalculationDetails.ValueType
                     }));
             }
         }
@@ -274,11 +274,11 @@ namespace CalculateFunding.Migrations.Calculations.Etl.Migrations
             return sourceCalculationDetailResponse.Content;
         }
 
-        private async Task CreateMissingAdditionalCalculations(CalculationCurrentVersion[] sourceAdditionalCalculations,
-            CalculationCurrentVersion[] destinationAdditionalCalculations,
+        private async Task CreateMissingAdditionalCalculations(Calculation[] sourceAdditionalCalculations,
+            Calculation[] destinationAdditionalCalculations,
             string destinationSpecificationId)
         {
-            foreach (CalculationCurrentVersion sourceAdditionalCalculation in sourceAdditionalCalculations)
+            foreach (Calculation sourceAdditionalCalculation in sourceAdditionalCalculations)
             {
                 string sourceCalculationName = sourceAdditionalCalculation.Name.Trim().ToLowerInvariant();
                 string fundingStreamId = sourceAdditionalCalculation.FundingStreamId;
@@ -314,7 +314,7 @@ namespace CalculateFunding.Migrations.Calculations.Etl.Migrations
                     {
                         Description = sourceCalculationDetails.Description,
                         Name = sourceAdditionalCalculation.Name,
-                        ValueType = sourceCalculationDetails.Current.ValueType,
+                        ValueType = sourceCalculationDetails.ValueType,
                         SourceCode = sourceAdditionalCalculation.SourceCode
                     }));
                 }

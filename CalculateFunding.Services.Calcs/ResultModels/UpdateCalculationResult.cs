@@ -11,6 +11,6 @@ namespace CalculateFunding.Services.Calcs.ResultModels
 
         public BuildProject BuildProject { get; set; }
 
-        public CalculationCurrentVersion CurrentVersion { get; set; }
+        public CalculationResponseModel CurrentVersion { get; set; }
     }
 }

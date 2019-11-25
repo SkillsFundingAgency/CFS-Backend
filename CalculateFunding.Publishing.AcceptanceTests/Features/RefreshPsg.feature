@@ -1162,12 +1162,12 @@ Scenario Outline: Successful refresh of funding
 		| Calculation | calculation4 | 5		  | Rate				|
 		| Calculation | calculation5 | 6		  | Additional Rate		|
 	And calculation meta data exists for '<FundingStreamId>'
-	    | CalculationType | CalculationId | Name				 | PublishStatus |
-	    | Template        | calculation1  | Total Allocation	 | Approved       |
-	    | Template		  | calculation2  | Eligible Pupils      | Approved       |
-	    | Template		  | calculation3  | Pupil rate threshold | Approved       |
-	    | Template		  | calculation4  | Rate                 | Approved       |
-	    | Template		  | calculation5  | Additional Rate      | Approved       |
+	    | CalculationType | CalculationId | Name                 | PublishStatus |
+	    | Template        | calculation1  | Total Allocation     | Approved      |
+	    | Template        | calculation2  | Eligible Pupils      | Approved      |
+	    | Template        | calculation3  | Pupil rate threshold | Approved      |
+	    | Template        | calculation4  | Rate                 | Approved      |
+	    | Template        | calculation5  | Additional Rate      | Approved      |
 	And calculations exists
 		| Value         | CalculationId    |
 		| 24000         | calculation1	   |

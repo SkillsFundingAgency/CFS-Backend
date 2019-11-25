@@ -51,7 +51,7 @@ namespace CalculateFunding.Services.Results
             Guard.ArgumentNotNull(searchRepository, nameof(searchRepository));
             Guard.ArgumentNotNull(resiliencePolicies?.ProviderCalculationResultsSearchRepository, nameof(resiliencePolicies.ProviderCalculationResultsSearchRepository));
             Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
-            
+
             _logger = logger;
             _searchRepository = searchRepository;
             _searchRepositoryPolicy = resiliencePolicies.ProviderCalculationResultsSearchRepository;
@@ -102,7 +102,7 @@ namespace CalculateFunding.Services.Results
             string calculationId = (searchModel.Filters != null &&
                                         searchModel.Filters.ContainsKey("calculationId") &&
                                         searchModel.Filters["calculationId"].FirstOrDefault() != null)
-                ? searchModel.Filters["calculationId"].FirstOrDefault() 
+                ? searchModel.Filters["calculationId"].FirstOrDefault()
                 : "";
 
             IEnumerable<Task<SearchResults<ProviderCalculationResultsIndex>>> searchTasks = BuildSearchTasks(searchModel, calculationId);
@@ -293,14 +293,10 @@ namespace CalculateFunding.Services.Results
                             EstablishmentNumber = result.Result.EstablishmentNumber,
                             CalculationId = calculationId,
                             CalculationName = result.Result.CalculationName[calculationIdIndex],
-                            CalculationResult = result.Result.CalculationResult[calculationIdIndex].GetValueOrNull<double>()
+                            CalculationResult = result.Result.CalculationResult[calculationIdIndex].GetValueOrNull<double>(),
+                            CalculationExceptionType = !result.Result.CalculationExceptionType.IsNullOrEmpty() ? result.Result.CalculationExceptionType[calculationIdIndex] : string.Empty,
+                            CalculationExceptionMessage = !result.Result.CalculationExceptionMessage.IsNullOrEmpty() ? result.Result.CalculationExceptionMessage[calculationIdIndex] : string.Empty,
                         };
-
-                        if (_featureToggle.IsExceptionMessagesEnabled())
-                        {
-                            calculationResult.CalculationExceptionType = !result.Result.CalculationExceptionType.IsNullOrEmpty() ? result.Result.CalculationExceptionType[calculationIdIndex] : string.Empty;
-                            calculationResult.CalculationExceptionMessage = !result.Result.CalculationExceptionMessage.IsNullOrEmpty() ? result.Result.CalculationExceptionMessage[calculationIdIndex] : string.Empty;
-                        }
 
                         calculationResults.Add(calculationResult);
                     }

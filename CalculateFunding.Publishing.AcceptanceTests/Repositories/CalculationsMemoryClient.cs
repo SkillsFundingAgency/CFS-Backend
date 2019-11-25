@@ -7,12 +7,7 @@ using CalculateFunding.Common.ApiClient.Calcs;
 using CalculateFunding.Common.ApiClient.Calcs.Models;
 using CalculateFunding.Common.ApiClient.Calcs.Models.Code;
 using CalculateFunding.Common.ApiClient.Models;
-using CalculateFunding.Common.ApiClient.Providers;
 using CalculateFunding.Common.ApiClient.Providers.Models;
-using CalculateFunding.Common.ApiClient.Providers.Models.Search;
-using CalculateFunding.Common.ApiClient.Providers.ViewModels;
-using CalculateFunding.Common.Models.Search;
-using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Results;
 
 namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
@@ -80,13 +75,24 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             throw new NotImplementedException();
         }
 
-        public async Task<ApiResponse<IEnumerable<CalculationMetadata>>> GetCalculations(string specificationId)
+        public Task<ApiResponse<IEnumerable<CalculationMetadata>>> GetCalculationMetadataForSpecification(string specificationId)
         {
-            return await Task.FromResult(new ApiResponse<IEnumerable<CalculationMetadata>>(HttpStatusCode.OK, _calculationMetadata.Select(_ =>
+            IEnumerable<CalculationMetadata> items = _calculationMetadata.Where(c => c.SpecificationId == specificationId);
+
+            if (items.Any())
             {
-                _.SpecificationId = specificationId;
-                return _;
-            })));
+                return Task.FromResult(new ApiResponse<IEnumerable<CalculationMetadata>>(HttpStatusCode.OK, items));
+
+            }
+            else
+            {
+                return Task.FromResult(new ApiResponse<IEnumerable<CalculationMetadata>>(HttpStatusCode.NotFound));
+            }
+        }
+
+        public Task<ApiResponse<IEnumerable<Calculation>>> GetCalculationsForSpecification(string specificationId)
+        {
+            throw new NotImplementedException();
         }
 
         public Task<ApiResponse<IEnumerable<CalculationStatusCounts>>> GetCalculationStatusCounts(SpecificationIdsRequestModel request)
@@ -94,17 +100,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             throw new NotImplementedException();
         }
 
-        public Task<ApiResponse<IEnumerable<CalculationSummaryModel>>> GetCalculationSummariesForSpecification(string specificationId)
-        {
-            throw new NotImplementedException();
-        }
-
         public Task<ApiResponse<IEnumerable<TypeInformation>>> GetCodeContextForSpecification(string specificationId)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<ApiResponse<IEnumerable<CalculationCurrentVersion>>> GetCurrentCalculationsBySpecificationId(string specificationId)
         {
             throw new NotImplementedException();
         }
@@ -140,6 +136,11 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         }
 
         public Task<ValidatedApiResponse<PublishStatusResult>> UpdatePublishStatus(string calculationId, PublishStatusEditModel model)
+        {
+            throw new NotImplementedException();
+        }
+
+        Task<ApiResponse<IEnumerable<CalculationSummary>>> ICalculationsApiClient.GetCalculationSummariesForSpecification(string specificationId)
         {
             throw new NotImplementedException();
         }

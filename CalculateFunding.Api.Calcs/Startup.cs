@@ -31,6 +31,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.OpenApi.Models;
 using Polly.Bulkhead;
 
 namespace CalculateFunding.Api.Calcs
@@ -68,17 +69,27 @@ namespace CalculateFunding.Api.Calcs
 
             app.UseMiddleware<LoggedInUserMiddleware>();
 
-            app.UseMiddleware<ApiKeyMiddleware>();
-
             app.UseMvc();
 
             app.UseHealthCheckMiddleware();
+
+            app.MapWhen(
+                context => !context.Request.Path.Value.StartsWith("/swagger"),
+                appBuilder => appBuilder.UseMiddleware<ApiKeyMiddleware>());
+
+            app.UseSwagger();
+
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Calcs Microservice API");
+                c.DocumentTitle = "Calcs Microservice - Swagger";
+            });
         }
 
         public void RegisterComponents(IServiceCollection builder)
         {
             builder
-                .AddSingleton<IHealthChecker, ControllerResolverHealthCheck>();
+                .AddScoped<IHealthChecker, ControllerResolverHealthCheck>();
 
             builder
                 .AddSingleton<ICalculationsRepository, CalculationsRepository>();
@@ -87,7 +98,7 @@ namespace CalculateFunding.Api.Calcs
                .AddScoped<ICalculationService, CalculationService>()
                .AddSingleton<ICalculationNameInUseCheck, CalculationNameInUseCheck>()
                .AddSingleton<IInstructionAllocationJobCreation, InstructionAllocationJobCreation>()
-               .AddSingleton<IHealthChecker, CalculationService>()
+               .AddScoped<IHealthChecker, CalculationService>()
                .AddScoped<ICreateCalculationService, CreateCalculationService>();
 
             builder
@@ -109,7 +120,7 @@ namespace CalculateFunding.Api.Calcs
 
             builder
                 .AddScoped<IPreviewService, PreviewService>()
-                .AddSingleton<IHealthChecker, PreviewService>();
+                .AddScoped<IHealthChecker, PreviewService>();
 
             builder
                .AddSingleton<ICompilerFactory, CompilerFactory>();
@@ -130,7 +141,7 @@ namespace CalculateFunding.Api.Calcs
 
             builder
                 .AddScoped<IBuildProjectsService, BuildProjectsService>()
-                .AddSingleton<IHealthChecker, BuildProjectsService>();
+                .AddScoped<IHealthChecker, BuildProjectsService>();
 
             builder
                   .AddSingleton<IBuildProjectsRepository, BuildProjectsRepository>()
@@ -233,6 +244,17 @@ namespace CalculateFunding.Api.Calcs
             builder.AddHttpContextAccessor();
 
             builder.AddHealthCheckMiddleware();
+
+            builder.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Calcs Microservice API", Version = "v1" });
+                c.AddSecurityDefinition("API Key", new OpenApiSecurityScheme()
+                {
+                    Type = SecuritySchemeType.ApiKey,
+                    Name = "Ocp-Apim-Subscription-Key",
+                    In = ParameterLocation.Header,
+                });
+            });
         }
     }
 }

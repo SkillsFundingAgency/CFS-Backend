@@ -7,6 +7,8 @@ using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Calcs;
@@ -14,6 +16,7 @@ using CalculateFunding.Models.Datasets.ViewModels;
 using CalculateFunding.Models.Exceptions;
 using CalculateFunding.Models.Gherkin;
 using CalculateFunding.Models.Scenarios;
+using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Constants;
@@ -32,10 +35,9 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using NSubstitute;
 using Serilog;
-using CalculateFunding.Models.Specs;
-using Calculation = CalculateFunding.Models.Calcs.Calculation;
-using CalculateFunding.Common.ApiClient.Specifications;
-using CalculateFunding.Common.ApiClient.Models;
+using Calculation = CalculateFunding.Common.ApiClient.Calcs.Models.Calculation;
+using CalculationType = CalculateFunding.Models.Calcs.CalculationType;
+using CalculationVersion = CalculateFunding.Models.Calcs.CalculationVersion;
 using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
 
 namespace CalculateFunding.Services.Scenarios.Services
@@ -717,7 +719,7 @@ namespace CalculateFunding.Services.Scenarios.Services
             ICalcsRepository calcsRepository = CreateCalcsRepository();
             calcsRepository
                 .GetCurrentCalculationsBySpecificationId(Arg.Is(specificationId))
-                .Returns((IEnumerable<Models.Calcs.CalculationCurrentVersion>)null);
+                .Returns((IEnumerable<Calculation>)null);
 
             IJobsApiClient jobsApiClient = CreateJobsApiClient();
 
@@ -788,9 +790,9 @@ namespace CalculateFunding.Services.Scenarios.Services
                 }
             };
 
-            IEnumerable<Models.Calcs.CalculationCurrentVersion> calculations = new[]
+            IEnumerable<Calculation> calculations = new[]
             {
-                new Models.Calcs.CalculationCurrentVersion
+                new Calculation
                 {
                     SourceCode = "return 100"
                 }
@@ -895,9 +897,9 @@ namespace CalculateFunding.Services.Scenarios.Services
                 }
             };
 
-            IEnumerable<Models.Calcs.CalculationCurrentVersion> calculations = new[]
+            IEnumerable<Calculation> calculations = new[]
             {
-                new Models.Calcs.CalculationCurrentVersion
+                new Calculation
                 {
                     SourceCode = "return 100"
                 }
@@ -1017,9 +1019,9 @@ namespace CalculateFunding.Services.Scenarios.Services
                 }
             };
 
-            IEnumerable<Models.Calcs.CalculationCurrentVersion> calculations = new[]
+            IEnumerable<Calculation> calculations = new[]
             {
-                new Models.Calcs.CalculationCurrentVersion
+                new Calculation
                 {
                     SourceCode = "return Sum(Calc1)"
                 }
@@ -1463,7 +1465,7 @@ namespace CalculateFunding.Services.Scenarios.Services
             {
                 CalculationId = "calcId",
                 SpecificationId = "specId",
-                Previous = new Calculation()
+                Previous = new Models.Calcs.Calculation()
                 {
                     Id = "calc1",
                     Current = new CalculationVersion
@@ -1473,7 +1475,7 @@ namespace CalculateFunding.Services.Scenarios.Services
                         Name = "Calc Name"
                     }
                 },
-                Current = new Calculation()
+                Current = new Models.Calcs.Calculation()
                 {
                     Id = "calc1",
                     Current = new CalculationVersion
@@ -1567,7 +1569,7 @@ namespace CalculateFunding.Services.Scenarios.Services
             {
                 CalculationId = "calcId",
                 SpecificationId = "specId",
-                Previous = new Calculation()
+                Previous = new Models.Calcs.Calculation()
                 {
                     Id = "calc1",
                     Current = new CalculationVersion
@@ -1577,7 +1579,7 @@ namespace CalculateFunding.Services.Scenarios.Services
                         Name = "Calc Name"
                     }
                 },
-                Current = new Calculation()
+                Current = new Models.Calcs.Calculation()
                 {
                     Id = "calc1",
                     Current = new CalculationVersion
@@ -1691,7 +1693,7 @@ namespace CalculateFunding.Services.Scenarios.Services
             {
                 CalculationId = "calcId",
                 SpecificationId = "specId",
-                Previous = new Calculation()
+                Previous = new Models.Calcs.Calculation()
                 {
                     Id = "calc1",
                     Current = new CalculationVersion
@@ -1701,7 +1703,7 @@ namespace CalculateFunding.Services.Scenarios.Services
                         Name = "Calc Name"
                     }
                 },
-                Current = new Calculation()
+                Current = new Models.Calcs.Calculation()
                 {
                     Id = "calc1",
                     Current = new CalculationVersion
@@ -1790,7 +1792,7 @@ namespace CalculateFunding.Services.Scenarios.Services
             {
                 CalculationId = "calcId",
                 SpecificationId = "specId",
-                Previous = new Calculation()
+                Previous = new Models.Calcs.Calculation()
                 {
                     Id = "calc1",
                     Current = new CalculationVersion
@@ -1800,7 +1802,7 @@ namespace CalculateFunding.Services.Scenarios.Services
                         Name = "Calc Name"
                     }
                 },
-                Current = new Calculation()
+                Current = new Models.Calcs.Calculation()
                 {
                     Id = "calc1",
                     Current = new CalculationVersion
@@ -1879,7 +1881,7 @@ namespace CalculateFunding.Services.Scenarios.Services
             {
                 CalculationId = "calcId",
                 SpecificationId = "specId",
-                Previous = new Calculation()
+                Previous = new Models.Calcs.Calculation()
                 {
                     Id = "calc1",
                     Current = new CalculationVersion
@@ -1889,7 +1891,7 @@ namespace CalculateFunding.Services.Scenarios.Services
                         Name = "Calc Name"
                     }
                 },
-                Current = new Calculation()
+                Current = new Models.Calcs.Calculation()
                 {
                     Id = "calc1",
                     Current = new CalculationVersion
@@ -1941,7 +1943,7 @@ namespace CalculateFunding.Services.Scenarios.Services
             {
                 CalculationId = "calcId",
                 SpecificationId = "specId",
-                Previous = new Calculation()
+                Previous = new Models.Calcs.Calculation()
                 {
                     Id = "calc1",
                     Current = new CalculationVersion
@@ -1951,7 +1953,7 @@ namespace CalculateFunding.Services.Scenarios.Services
                         Name = "Calc Name"
                     }
                 },
-                Current = new Calculation()
+                Current = new Models.Calcs.Calculation()
                 {
                     Id = "calc1",
                     Current = new CalculationVersion
@@ -2027,10 +2029,10 @@ namespace CalculateFunding.Services.Scenarios.Services
 
             CalculationVersionComparisonModel comparison = new CalculationVersionComparisonModel()
             {
-                Current = new Calculation(),
+                Current = new Models.Calcs.Calculation(),
                 SpecificationId = "specId",
                 CalculationId = null,
-                Previous = new Calculation(),
+                Previous = new Models.Calcs.Calculation(),
             };
 
             string json = JsonConvert.SerializeObject(comparison);
@@ -2065,10 +2067,10 @@ namespace CalculateFunding.Services.Scenarios.Services
 
             CalculationVersionComparisonModel comparison = new CalculationVersionComparisonModel()
             {
-                Current = new Calculation(),
+                Current = new Models.Calcs.Calculation(),
                 SpecificationId = null,
                 CalculationId = "calcId",
-                Previous = new Calculation(),
+                Previous = new Models.Calcs.Calculation(),
             };
 
             string json = JsonConvert.SerializeObject(comparison);
