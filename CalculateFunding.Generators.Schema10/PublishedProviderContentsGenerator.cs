@@ -75,7 +75,7 @@ namespace CalculateFunding.Generators.Schema10
                 },
                 FundingStreamCode = publishedProviderVersion.FundingStreamId,
                 publishedProviderVersion.FundingPeriodId,
-                FundingValue = new { TotalValue = publishedProviderVersion.TotalFunding, FundingLines = templateMetadataContents.RootFundingLines?.Select(x => ToFundingLine(x, generatedProviderResult.FundingLines, templateMapping, generatedProviderResult.Calculations, generatedProviderResult.ReferenceData, generatedProviderResult.Provider.ProviderId)) },
+                FundingValue = new { TotalValue = publishedProviderVersion.TotalFunding, FundingLines = templateMetadataContents.RootFundingLines?.Select(x => ToFundingLine(x, generatedProviderResult.FundingLines, templateMapping, generatedProviderResult.Calculations, generatedProviderResult.ReferenceData, publishedProviderVersion.ProviderId)) },
                 publishedProviderVersion.VariationReasons,
                 Successors = string.IsNullOrWhiteSpace(publishedProviderVersion.Provider.Successor) ? null : new List<string> { publishedProviderVersion.Provider.Successor },
                 publishedProviderVersion.Predecessors
