@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models;
@@ -38,6 +39,7 @@ namespace CalculateFunding.Migrations.ProviderVersionDefectCorrection.Migrations
                     QueryText = @"  SELECT * 
                                     FROM c 
                                     WHERE c.documentType = 'PublishedProviderVersion' 
+                                    AND c.deleted = false
                                     AND (c.content.status = 'Approved' OR c.content.status = 'Draft') 
                                     AND c.content.majorVersion = 1 
                                     AND c.content.minorVersion = 0"
@@ -54,14 +56,14 @@ namespace CalculateFunding.Migrations.ProviderVersionDefectCorrection.Migrations
                         }
 
                         _logger.Information(
-                            $"Bulk upserting batch number {batchCount} of provider version migration. Total provider versions migrated will be {batchCount * 1000}.");
+                            $"Bulk upserting batch number {batchCount} of provider version migration. Total provider versions migrated will be {batchCount * 10}.");
 
-                        await _cosmosRepository.BulkUpsertAsync(providerVersions);
+                        await _cosmosRepository.BulkUpsertAsync(providerVersions.Select(_ => _.Content).ToArray(), 1);
 
                         batchCount++;
                     },
                     query,
-                    1000));
+                    10));
             }
             catch (Exception e)
             {
