@@ -13,7 +13,7 @@
 
   <ItemGroup>
     <PackageReference Include="CalculateFunding.Common.TemplateMetadata" Version="1.0.8" />
-    <PackageReference Include="CalculateFunding.Common.TemplateMetadata.Schema10" Version="1.0.14" />
+    <PackageReference Include="CalculateFunding.Common.TemplateMetadata.Schema10" Version="1.0.15" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.8.2" />
     <PackageReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
