@@ -185,8 +185,9 @@ namespace CalculateFunding.Services.Calcs
             if (!mappingsWithCalculations.Any()) return;
 
             IEnumerable<Calculation> flattenedCalculations = flattenedFundingLines
+                .Where(_ => _.Calculations != null)
                 .SelectMany(_ => _.Calculations)
-                .Flatten(_ => _.Calculations)
+                .Flatten(_ => _?.Calculations)
                 ?? new Calculation[0];
 
             IEnumerable<Models.Calcs.Calculation> existingCalculations = await _calculationsRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCalculationsBySpecificationId(specificationId));
