@@ -2130,7 +2130,10 @@ namespace CalculateFunding.Services.Calcs.Services
         public async Task CompileAndSaveAssembly_GivenFeatureToggleIsDynamicBuildProjectEnabledIsOff_EnsuresUpdatesCosmos()
         {
             //Arrange
-            Build build = new Build();
+            Build build = new Build()
+            {
+                Success = true,
+            };
 
             IEnumerable<Calculation> calculations = new[]
             {
@@ -2140,17 +2143,17 @@ namespace CalculateFunding.Services.Calcs.Services
             ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
             calculationsRepository
                 .GetCalculationsBySpecificationId(Arg.Is(SpecificationId))
-                .Returns(calculations);
+                    .Returns(calculations);
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
                 .Compile(Arg.Any<BuildProject>(), Arg.Is(calculations), Arg.Any<CompilerOptions>())
-                .Returns(build);
+                    .Returns(build);
 
             IFeatureToggle featureToggle = CreateFeatureToggle();
             featureToggle
                 .IsDynamicBuildProjectEnabled()
-                .Returns(false);
+                    .Returns(false);
 
             IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectRepository();
 
@@ -2166,7 +2169,7 @@ namespace CalculateFunding.Services.Calcs.Services
             //Assert
             actionResult
                 .Should()
-                .BeAssignableTo<NoContentResult>();
+                    .BeAssignableTo<NoContentResult>();
 
             await
                 buildProjectsRepository
@@ -2176,14 +2179,17 @@ namespace CalculateFunding.Services.Calcs.Services
             await
                 sourceCodeService
                     .Received(1)
-                    .SaveAssembly(Arg.Any<BuildProject>());
+                        .SaveAssembly(Arg.Any<BuildProject>());
         }
 
         [TestMethod]
         public async Task CompileAndSaveAssembly_GivenFeatureToggleIsDynamicBuildProjectEnabledIson_DoesNotUpdateCosmos()
         {
             //Arrange
-            Build build = new Build();
+            Build build = new Build()
+            {
+                Success = true,
+            };
 
             IEnumerable<Calculation> calculations = new[]
             {

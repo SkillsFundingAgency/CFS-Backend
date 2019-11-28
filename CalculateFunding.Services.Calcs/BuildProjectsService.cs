@@ -26,6 +26,7 @@ using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.Core.Options;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Azure.ServiceBus;
 using Serilog;
 using static CalculateFunding.Services.Core.Constants.JobConstants;
@@ -327,17 +328,29 @@ namespace CalculateFunding.Services.Calcs
 
             IEnumerable<Models.Calcs.Calculation> calculations = await _calculationsRepository.GetCalculationsBySpecificationId(specificationId);
             CompilerOptions compilerOptions = await _calculationsRepository.GetCompilerOptions(specificationId);
+            (compilerOptions ?? (compilerOptions = new CompilerOptions())).ConfigureForReleaseBuild();
 
             buildProject.Build = _sourceCodeService.Compile(buildProject, calculations ?? Enumerable.Empty<Models.Calcs.Calculation>(), compilerOptions);
 
-            if (!_featureToggle.IsDynamicBuildProjectEnabled())
+            if (buildProject.Build.Success)
             {
-                await _buildProjectsRepositoryPolicy.ExecuteAsync(() => _buildProjectsRepository.UpdateBuildProject(buildProject));
+                if (!_featureToggle.IsDynamicBuildProjectEnabled())
+                {
+                    await _buildProjectsRepositoryPolicy.ExecuteAsync(() => _buildProjectsRepository.UpdateBuildProject(buildProject));
+                }
+
+                await _sourceCodeService.SaveAssembly(buildProject);
+                return new NoContentResult();
+
             }
 
-            await _sourceCodeService.SaveAssembly(buildProject);
+            ModelStateDictionary keyValuePairs = new ModelStateDictionary();
+            for (int i = 0; i < buildProject.Build.CompilerMessages.Count(); i++)
+            {
+                keyValuePairs.AddModelError(i.ToString(), buildProject.Build.CompilerMessages[i].Message);
+            }
 
-            return new NoContentResult();
+            return new BadRequestObjectResult(keyValuePairs);
         }
 
         public async Task<IActionResult> GenerateAndSaveSourceProject(string specificationId, SourceCodeType sourceCodeType)

@@ -34,5 +34,13 @@ namespace CalculateFunding.Models.Calcs
         [JsonIgnore]
         [JsonProperty("useDiagnosticsMode")]
         public bool UseDiagnosticsMode { get; set; }
+
+        /// <summary>
+        /// Compiler options for performing a release build of the project
+        /// </summary>
+        public void ConfigureForReleaseBuild()
+        {
+            OptionStrictEnabled = false;
+        }
     }
 }

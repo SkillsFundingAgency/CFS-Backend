@@ -8,8 +8,6 @@ using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Datasets.Interfaces;
-using Microsoft.Azure.Documents;
-using Microsoft.Azure.Documents.Linq;
 
 namespace CalculateFunding.Services.Datasets
 {
@@ -45,7 +43,7 @@ namespace CalculateFunding.Services.Datasets
                                     AND r.content.dataRelationship.id = @RelationshipId
                                     AND r.deleted = false
                                     AND r.documentType = @DocumentType",
-                Parameters = new []
+                Parameters = new[]
                 {
                     new CosmosDbQueryParameter("@SpecificationId", specificationId),
                     new CosmosDbQueryParameter("@RelationshipId", relationshipId),
@@ -66,14 +64,15 @@ namespace CalculateFunding.Services.Datasets
                                     AND r.content.dataRelationship.id = @RelationshipId
                                     AND r.deleted = false
                                     AND r.documentType = @DocumentType",
-                Parameters = new []
+                Parameters = new[]
                 {
                     new CosmosDbQueryParameter("@SpecificationId", specificationId),
                     new CosmosDbQueryParameter("@RelationshipId", relationshipId),
                     new CosmosDbQueryParameter("@DocumentType", nameof(ProviderSourceDataset))
                 }
             };
-            return await _cosmosRepository.QuerySql<ProviderSourceDataset>(cosmosDbQuery, itemsPerPage: 1000);
+
+            return await _cosmosRepository.QueryPartitionedEntity<ProviderSourceDataset>(cosmosDbQuery, itemsPerPage: 1000);
         }
 
         public async Task DeleteCurrentProviderSourceDatasets(IEnumerable<ProviderSourceDataset> providerSourceDatasets)

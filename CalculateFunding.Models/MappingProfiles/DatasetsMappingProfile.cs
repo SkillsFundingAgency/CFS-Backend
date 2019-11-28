@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.ViewModels;
 
@@ -27,6 +28,8 @@ namespace CalculateFunding.Models.MappingProfiles
                 .ForMember(m => m.Versions, opt => opt.MapFrom(s => s.History));
 
             CreateMap<DatasetVersion, DatasetVersionViewModel>();
+
+            CreateMap<Common.ApiClient.Calcs.Models.Calculation, CalculationResponseModel>();
         }
     }
 }
