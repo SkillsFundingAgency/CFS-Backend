@@ -12,15 +12,11 @@ namespace CalculateFunding.Services.Core.Helpers
         [DynamicData(nameof(CreateCsvExpandoTestCases), DynamicDataSourceType.Method)]
         public void CreateCsv_ProjectsSuppliedItemsIntoExpandoObjectRows(IEnumerable<dynamic> input, string expectedOutput, bool outputHeaders)
         {
-            using(StreamWriter stream = new CsvUtils().AsCsvStream(input, outputHeaders))
-            using (StreamReader streamReader = new StreamReader(stream?.BaseStream ?? new MemoryStream()))
-            {
-                string actualCsvOutput = streamReader.ReadToEnd();
+            string actualCsvOutput = new CsvUtils().AsCsv(input, outputHeaders);
 
-                actualCsvOutput
-                    .Should()
-                    .Be(expectedOutput);
-            }
+            actualCsvOutput
+                .Should()
+                .Be(expectedOutput);
         }
 
         private static IEnumerable<object[]> CreateCsvExpandoTestCases()
@@ -28,7 +24,7 @@ namespace CalculateFunding.Services.Core.Helpers
             yield return new object[]
             {
                 new dynamic[0],
-                "",
+                null,
                 true
             };
             yield return new object[]

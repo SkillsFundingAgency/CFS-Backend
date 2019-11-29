@@ -23,6 +23,18 @@ namespace CalculateFunding.Services.Core.Caching.FileSystem
             await WriteStreamToFile(path, content, FileMode.Append, cancellationToken);
         }
 
+        public async Task Append(string path,
+            string content,
+            CancellationToken cancellationToken = default)
+        {
+            using (FileStream stream = new FileStream(path, FileMode.Append, FileAccess.Write))
+            using (StreamWriter writer = new StreamWriter(stream))
+            {
+                await writer.WriteAsync(content);
+                await writer.FlushAsync();
+            }
+        }
+
         public async Task Write(string path,
             Stream content,
             CancellationToken cancellationToken = default)

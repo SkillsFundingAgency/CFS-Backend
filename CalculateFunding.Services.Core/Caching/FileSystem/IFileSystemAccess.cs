@@ -23,5 +23,9 @@ namespace CalculateFunding.Services.Core.Caching.FileSystem
         Task Append(string path,
             Stream content,
             CancellationToken cancellationToken = default);
+
+        Task Append(string path,
+            string content,
+            CancellationToken cancellationToken = default);
     }
 }

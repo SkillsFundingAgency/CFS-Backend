@@ -83,13 +83,11 @@ namespace CalculateFunding.Services.Results
                 {
                     IEnumerable<ExpandoObject>csvRows = _resultsToCsvRowsTransformation.TransformProviderResultsIntoCsvRows(providerResults);
 
-                    StreamWriter streamWriter = _csvUtils.AsCsvStream(csvRows, outputHeaders);
+                    string csv = _csvUtils.AsCsv(csvRows, outputHeaders);
 
-                    _fileSystemAccess.Append(temporaryFilePath, streamWriter.BaseStream)
+                    _fileSystemAccess.Append(temporaryFilePath, csv)
                         .GetAwaiter()
                         .GetResult();
-                    
-                    _csvUtils.ReturnStreamWriter(streamWriter);
 
                     outputHeaders = false;
                     return Task.CompletedTask;

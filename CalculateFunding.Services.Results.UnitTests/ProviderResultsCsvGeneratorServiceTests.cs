@@ -112,8 +112,8 @@ namespace CalculateFunding.Services.Results
             
             MemoryStream incrementalFileStream = new MemoryStream();
 
-            GivenTheCsvRowTransformation(providerResultsOne, transformedRowsOne, expectedCsvOne, streamWriterOne, true);
-            AndTheCsvRowTransformation(providerResultsTwo, transformedRowsTwo, expectedCsvTwo, streamWriterTwo, false);
+            GivenTheCsvRowTransformation(providerResultsOne, transformedRowsOne, expectedCsvOne, true);
+            AndTheCsvRowTransformation(providerResultsTwo, transformedRowsTwo, expectedCsvTwo,  false);
             AndTheMessageProperties(("specification-id", specificationId));
             AndTheCloudBlobForSpecificationId(specificationId);
             AndTheFileStream(expectedInterimFilePath, incrementalFileStream);
@@ -144,15 +144,9 @@ namespace CalculateFunding.Services.Results
 
             await _fileSystemAccess
                 .Append(expectedInterimFilePath, streamWriterOne.BaseStream);
-            _csvUtils
-                .Received(1)
-                .ReturnStreamWriter(streamWriterOne);
             
             await _fileSystemAccess
                 .Append(expectedInterimFilePath, streamWriterTwo.BaseStream);
-            _csvUtils
-                .Received(1)
-                .ReturnStreamWriter(streamWriterTwo);
             
             await _blobClient
                 .Received(1)
@@ -180,19 +174,19 @@ namespace CalculateFunding.Services.Results
                 .Returns(true);
         }
 
-        private void AndTheCsvRowTransformation(List<ProviderResult> providerResults, ExpandoObject[] transformedRows, string csv, StreamWriter csvStream, bool outputHeaders)
+        private void AndTheCsvRowTransformation(List<ProviderResult> providerResults, ExpandoObject[] transformedRows, string csv, bool outputHeaders)
         {
-            GivenTheCsvRowTransformation(providerResults, transformedRows, csv, csvStream, outputHeaders);
+            GivenTheCsvRowTransformation(providerResults, transformedRows, csv, outputHeaders);
         }
 
-        private void GivenTheCsvRowTransformation(List<ProviderResult> providerResult, ExpandoObject[] transformedRows, string csv, StreamWriter csvStreamWriter, bool outputHeaders)
+        private void GivenTheCsvRowTransformation(List<ProviderResult> providerResult, ExpandoObject[] transformedRows, string csv, bool outputHeaders)
         {
             _transformation
                 .TransformProviderResultsIntoCsvRows(Arg.Is(providerResult))
                 .Returns(transformedRows);
             
-            _csvUtils.AsCsvStream(Arg.Is<IEnumerable<dynamic>>(_ => _.SequenceEqual(transformedRows)), Arg.Is(outputHeaders))
-                .Returns(csvStreamWriter);
+            _csvUtils.AsCsv(Arg.Is<IEnumerable<dynamic>>(_ => _.SequenceEqual(transformedRows)), Arg.Is(outputHeaders))
+                .Returns(csv);
         }
 
         private static RandomString NewRandomString()
