@@ -33,7 +33,7 @@
 
         public static string AllProviderSummaries { get; set; } = "all-provider-summaries:";
 
-        public static string AllProviderSummaryCount { get; set; } = " all-provider-summary-count:";
+        public static string ScopedProviderSummariesCount { get; set; } = "scoped-provider-summaries-count:";
 
         public static string AllFundingStreams { get; set; } = "all-funding-streams";
 

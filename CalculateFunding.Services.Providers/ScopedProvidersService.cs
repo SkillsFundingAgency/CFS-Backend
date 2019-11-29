@@ -24,7 +24,7 @@ namespace CalculateFunding.Services.Providers
         private const string getProviderVersion = "providers/versions/{0}";
         private const string getScopedProviderIdsUrl = "results/get-scoped-providerids?specificationId=";
 
-        private readonly ICacheProvider _cacheProvider;
+        private readonly ICacheProvider _cacheProvider;      
         private readonly IResultsApiClientProxy _resultsApiClient;
         private readonly ISpecificationsApiClientProxy _specificationsApiClient;
         private readonly IProviderVersionService _providerVersionService;
@@ -65,13 +65,13 @@ namespace CalculateFunding.Services.Providers
         {
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
 
-            string cacheKeyAllProviderSummaryCount = $"{CacheKeys.AllProviderSummaryCount}{specificationId}";
+            string cacheKeyScopedProviderSummariesCount = $"{CacheKeys.ScopedProviderSummariesCount}{specificationId}";
             string cacheKeyAllProviderSummaries = $"{CacheKeys.AllProviderSummaries}{specificationId}";
             string cacheKey = $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}";
 
             IEnumerable<ProviderSummary> allCachedProviders = Enumerable.Empty<ProviderSummary>();
 
-            string providerCount = await _cacheProvider.GetAsync<string>(cacheKeyAllProviderSummaryCount);
+            string providerCount = await _cacheProvider.GetAsync<string>(cacheKeyScopedProviderSummariesCount);
             int allSummariesCount = 0;
 
             if (!string.IsNullOrWhiteSpace(providerCount) && !int.TryParse(providerCount, out allSummariesCount))
@@ -114,6 +114,7 @@ namespace CalculateFunding.Services.Providers
             await _cacheProvider.KeyDeleteAsync<ProviderSummary>(cacheKey);
 
             await _cacheProvider.CreateListAsync(providerSummaries, cacheKey);
+            await _cacheProvider.SetExpiry<ProviderSummary>(cacheKey, DateTime.UtcNow.AddDays(7));
 
             return new OkObjectResult(providerSummaries.Count());
         }
@@ -174,8 +175,8 @@ namespace CalculateFunding.Services.Providers
 
             int totalCount = providerVersion.Providers.Count();
 
-            string cacheKeyAllProviderSummaryCount = $"{CacheKeys.AllProviderSummaryCount}{specificationId}";
-            string currentProviderCount = await _cacheProvider.GetAsync<string>(cacheKeyAllProviderSummaryCount);
+            string cacheKeyScopedProviderSummariesCount = $"{CacheKeys.ScopedProviderSummariesCount}{specificationId}";
+            string currentProviderCount = await _cacheProvider.GetAsync<string>(cacheKeyScopedProviderSummariesCount);
 
             string cacheKeyAllProviderSummaries = $"{CacheKeys.AllProviderSummaries}{specificationId}";
             long totalProviderListCount = await _cacheProvider.ListLengthAsync<ProviderSummary>(cacheKeyAllProviderSummaries);
@@ -242,9 +243,10 @@ namespace CalculateFunding.Services.Providers
                 foreach (IEnumerable<ProviderSummary> batch in providerSummaries.ToBatches(1000))
                 {
                     await _cacheProvider.CreateListAsync(batch, cacheKeyAllProviderSummaries);
+                    await _cacheProvider.SetExpiry<ProviderSummary>(cacheKeyAllProviderSummaries, DateTime.UtcNow.AddDays(7));
                 }
 
-                await _cacheProvider.SetAsync(cacheKeyAllProviderSummaryCount, totalCount.ToString(), TimeSpan.FromDays(365), true);
+                await _cacheProvider.SetAsync(cacheKeyScopedProviderSummariesCount, totalCount.ToString(), TimeSpan.FromDays(7), true);
                 return providerSummaries;
             }
             else

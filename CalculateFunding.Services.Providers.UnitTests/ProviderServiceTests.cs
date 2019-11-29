@@ -126,6 +126,10 @@ namespace CalculateFunding.Services.Providers.UnitTests
                     x.First().LocalGovernmentGroupTypeName == provider.LocalGovernmentGroupTypeName
                 ), Arg.Is(cacheKey));
 
+            await cacheProvider
+               .Received(1)
+               .SetExpiry<ProviderSummary>(Arg.Is(cacheKey), Arg.Any<DateTime>());
+
             totalCountResult
                 .Should()
                 .BeOfType<OkObjectResult>();
@@ -146,7 +150,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
             // Arrange
             string specificationId = Guid.NewGuid().ToString();
             string providerVersionId = Guid.NewGuid().ToString();
-            string cacheKeyAllProviderSummaryCount = $"{CacheKeys.AllProviderSummaryCount}{specificationId}";
+            string cacheKeyScopedProviderSummariesCount = $"{CacheKeys.ScopedProviderSummariesCount}{specificationId}";
             string cacheKeyAllProviderSummaries = $"{CacheKeys.AllProviderSummaries}{specificationId}";
 
             Provider provider = CreateProvider();
@@ -168,7 +172,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
 
             ICacheProvider cacheProvider = CreateCacheProvider();
             cacheProvider
-                .GetAsync<string>(Arg.Is(cacheKeyAllProviderSummaryCount))
+                .GetAsync<string>(Arg.Is(cacheKeyScopedProviderSummariesCount))
                 .Returns("1");
 
             cacheProvider
@@ -213,12 +217,12 @@ namespace CalculateFunding.Services.Providers.UnitTests
             // Arrange
             string specificationId = Guid.NewGuid().ToString();
             string providerVersionId = Guid.NewGuid().ToString();
-            string cacheKeyAllProviderSummaryCount = $"{CacheKeys.AllProviderSummaryCount}{specificationId}";
+            string cacheKeyScopedProviderSummariesCount = $"{CacheKeys.ScopedProviderSummariesCount}{specificationId}";
             string cacheKeyAllProviderSummaries = $"{CacheKeys.AllProviderSummaries}{specificationId}";
 
             ICacheProvider cacheProvider = CreateCacheProvider();
             cacheProvider
-                .GetAsync<string>(Arg.Is(cacheKeyAllProviderSummaryCount))
+                .GetAsync<string>(Arg.Is(cacheKeyScopedProviderSummariesCount))
                 .Returns("0");
 
             Provider provider = CreateProvider();
@@ -271,7 +275,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
             // Arrange
             string specificationId = Guid.NewGuid().ToString();
             string providerVersionId = Guid.NewGuid().ToString();
-            string cacheKeyAllProviderSummaryCount = $"{CacheKeys.AllProviderSummaryCount}{specificationId}";
+            string cacheKeyScopedProviderSummariesCount = $"{CacheKeys.ScopedProviderSummariesCount}{specificationId}";
             string cacheKeyAllProviderSummaries = $"{CacheKeys.AllProviderSummaries}{specificationId}"; ;
 
             Provider provider = CreateProvider();
@@ -298,7 +302,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
 
             ICacheProvider cacheProvider = CreateCacheProvider();
             cacheProvider
-                .GetAsync<string>(Arg.Is(cacheKeyAllProviderSummaryCount))
+                .GetAsync<string>(Arg.Is(cacheKeyScopedProviderSummariesCount))
                 .Returns("0");
 
             IProviderVersionService providerVersionService = CreateProviderVersionService();
