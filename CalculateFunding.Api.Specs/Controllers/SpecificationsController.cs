@@ -181,7 +181,7 @@ namespace CalculateFunding.Api.Specs.Controllers
         [HttpGet]
         public async Task<IActionResult> RunGetFundingPeriodsByFundingStreamIds([FromRoute]string fundingStreamId)
         {
-            return await _specService.GetFundingPeriodsByFundingStreamIds(fundingStreamId);
+            return await _specService.GetFundingPeriodsByFundingStreamIdsForSelectedSpecifications(fundingStreamId);
         }
     }
 }

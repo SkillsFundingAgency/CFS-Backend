@@ -1237,42 +1237,33 @@ WHERE   s.documentType = @DocumentType",
             return new OkObjectResult(fundingStreamIds);
         }
 
-        public async Task<IActionResult> GetFundingPeriodsByFundingStreamIds(string fundingStreamId)
+        public async Task<IActionResult> GetFundingPeriodsByFundingStreamIdsForSelectedSpecifications(string fundingStreamId)
         {
+            Guard.IsNullOrWhiteSpace(fundingStreamId, nameof(fundingStreamId));
+
             // Get Specification which are selected for funding, and filter by FundingStreamId
             IEnumerable<Specification> specificationsByQuery =
-                await _specificationsRepository.GetSpecificationsByQuery(c => c.Content.IsSelectedForFunding);
+                await _specificationsRepository.GetSpecificationsByQuery(c => c.Content.IsSelectedForFunding && c.Content.Current.FundingStreams.Any(f => f.Id == fundingStreamId));
 
-            IEnumerable<SpecificationSummary> specificationsForFunding =
-                specificationsByQuery.Select(s => _mapper.Map<SpecificationSummary>(s));
+            IEnumerable<string> specificationsFundingPeriodIds = specificationsByQuery
+                .Select(specificationSummary => specificationSummary.Current.FundingPeriod.Id)
+                .Distinct()
+                .ToArray();
 
-            IEnumerable<SpecificationSummary> specificationByFundingStreamId = specificationsForFunding
-                .Where(specificationSummary => specificationSummary.FundingStreams != null &&
-                                               specificationSummary.FundingStreams
-                                                   .Select(fundingStream => fundingStream.Id)
-                                                   .Contains(fundingStreamId));
-
-            var specificationsFundingPeriods = specificationByFundingStreamId
-                .Select(specificationSummary => specificationSummary.FundingPeriod)
-                .ToList();
-
-            // Get all FundingPeriods in order to access the 'Period' property 
+            // Get all FundingPeriods from policy service to get the latest name
             ApiResponse<IEnumerable<PolicyModels.FundingPeriod>> fundingPeriodResponse =
                 await _policiesApiClient.GetFundingPeriods();
             IEnumerable<PolicyModels.FundingPeriod> fundingPeriods = fundingPeriodResponse.Content;
 
-            // Filter FundingPeriod by matching 'Id' and 'Period' to Specification FundingPeriod's 'Id' and 'Name'
-            var filteredFundingPeriodsByIdAndPeriod = fundingPeriods
-                .Where(fundingPeriod =>
-                    specificationsFundingPeriods
-                        .Any(specFundingPeriod =>
-                            specFundingPeriod.Id == fundingPeriod.Id &&
-                            specFundingPeriod.Name == fundingPeriod.Period)
-                ).Select(fundingPeriod=> new Reference
+            // Only return periods where there are matching specifications
+            IEnumerable<Reference> filteredFundingPeriodsByIdAndPeriod = fundingPeriods
+                .Where(c => specificationsFundingPeriodIds.Contains(c.Id))
+                .Select(fundingPeriod => new Reference
                 {
                     Id = fundingPeriod.Id,
                     Name = fundingPeriod.Name
-                });
+                })
+                .OrderBy(f => f.Name);
 
             return new OkObjectResult(filteredFundingPeriodsByIdAndPeriod);
         }

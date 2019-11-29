@@ -71,18 +71,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             },
             IsSelectedForFunding = true
         };
-        private readonly Specification _specWithNoFundingPeriod = new Specification
-        {
-            Id = "spec-no-funding-period",
-            Current = new SpecificationVersion
-            {
-                FundingStreams = new List<Reference>
-                {
-                    new Reference("SOME-ID", "XYZ")
-                }
-            },
-            IsSelectedForFunding = true
-        };
+
         private IMapper mapper;
         private IPoliciesApiClient policiesApiClient;
         private ISpecificationsRepository specificationsRepository;
@@ -103,7 +92,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                     },
                     new FundingPeriod
                     {
-                        Id = ExpectedFundingPeriodId,
+                        Id = "FIRST DIFFERENT ID",
                         Period = "A DIFFERENT PERIOD"
                     },
                     new FundingPeriod
@@ -120,8 +109,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .Returns(MapSpecification(_specWithFundingPeriodAndFundingStream2));
             mapper.Map<SpecificationSummary>(_specWithNoFundingStream)
                 .Returns(MapSpecification(_specWithNoFundingStream));
-            mapper.Map<SpecificationSummary>(_specWithNoFundingPeriod)
-                .Returns(MapSpecification(_specWithNoFundingPeriod));
         }
 
         [TestMethod]
@@ -131,9 +118,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .Returns(new[]
                 {
                     _specWithFundingPeriodAndFundingStream,
-                    _specWithFundingPeriodAndFundingStream2,
-                    _specWithNoFundingStream,
-                    _specWithNoFundingPeriod
                 });
             SpecificationsService service = CreateService(
                 specificationsRepository: specificationsRepository,
@@ -141,7 +125,11 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 mapper: mapper);
 
             OkObjectResult fundingPeriodsResult =
-                await service.GetFundingPeriodsByFundingStreamIds(FundingStreamIdForExpectedFundingPeriod) as OkObjectResult;
+                await service.GetFundingPeriodsByFundingStreamIdsForSelectedSpecifications(FundingStreamIdForExpectedFundingPeriod) as OkObjectResult;
+
+            await specificationsRepository
+               .Received(1)
+               .GetSpecificationsByQuery(Arg.Any<Expression<Func<DocumentEntity<Specification>, bool>>>());
 
             IEnumerable<Reference> fundingPeriod = fundingPeriodsResult.Value as IEnumerable<Reference>;
             fundingPeriod.Count().Should().Be(1);
@@ -155,7 +143,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .Returns(new[]
                 {
                     _specWithNoFundingStream,
-                    _specWithNoFundingPeriod
                 });
             SpecificationsService service = CreateService(
                 specificationsRepository: specificationsRepository,
@@ -163,7 +150,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 mapper: mapper);
 
             OkObjectResult fundingPeriodsResult =
-                await service.GetFundingPeriodsByFundingStreamIds(FundingStreamIdForExpectedFundingPeriod) as OkObjectResult;
+                await service.GetFundingPeriodsByFundingStreamIdsForSelectedSpecifications(FundingStreamIdForExpectedFundingPeriod) as OkObjectResult;
 
             IEnumerable<Reference> fundingPeriod = fundingPeriodsResult.Value as IEnumerable<Reference>;
             fundingPeriodsResult.Should().BeOfType<OkObjectResult>();
