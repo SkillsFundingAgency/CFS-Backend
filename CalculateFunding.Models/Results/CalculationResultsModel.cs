@@ -15,7 +15,7 @@ namespace CalculateFunding.Models.Results
         {
             get
             {
-                if(ProviderResults == null) return false;
+                if (ProviderResults == null) return false;
 
                 return ProviderResults.Any(m => m.CalculationResults != null && m.CalculationResults.Any(res => !string.IsNullOrWhiteSpace(res.ExceptionMessage)));
             }
@@ -27,13 +27,23 @@ namespace CalculateFunding.Models.Results
             {
                 if (ProviderResults == null) return "";
 
-                var messages = ProviderResults.SelectMany(p => p.CalculationResults.Any(r => !string.IsNullOrWhiteSpace(r.ExceptionMessage))
-                    ? p.CalculationResults
-                        .Where(r => !string.IsNullOrWhiteSpace(r.ExceptionMessage))
-                        .Select(c => $"{c.Calculation?.Id ?? "" }: {c.ExceptionMessage}")
-                    : null);
+                List<string> messages = new List<string>();
+                foreach (ProviderResult providerResult in ProviderResults)
+                {
+                    foreach (CalculationResult calculationResult in providerResult.CalculationResults)
+                    {
+                        if (string.IsNullOrWhiteSpace(calculationResult.ExceptionMessage))
+                        {
+                            messages.Add($"{calculationResult.Calculation?.Id ?? "" }: {calculationResult.ExceptionMessage}");
+                        }
+                    }
+                }
+                if (messages.Count > 0)
+                {
+                    return string.Join(Environment.NewLine, messages);
+                }
 
-                return string.Join(Environment.NewLine, messages);
+                return string.Empty;
             }
         }
     }

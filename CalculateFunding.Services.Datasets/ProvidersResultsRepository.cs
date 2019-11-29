@@ -72,7 +72,7 @@ namespace CalculateFunding.Services.Datasets
                 }
             };
 
-            return await _cosmosRepository.QueryPartitionedEntity<ProviderSourceDataset>(cosmosDbQuery, itemsPerPage: 1000);
+            return await _cosmosRepository.QuerySql<ProviderSourceDataset>(cosmosDbQuery, itemsPerPage: 1000);
         }
 
         public async Task DeleteCurrentProviderSourceDatasets(IEnumerable<ProviderSourceDataset> providerSourceDatasets)
