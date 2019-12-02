@@ -9,6 +9,24 @@
     "aggregationType": "Sum"
   },
   {
+    "name": "Made up no value calc",
+    "templateCalculationId": 156,
+    "value": "0",
+    "valueFormat": "Number",
+    "type": "Rate",
+    "formulaText": "Something * something else",
+    "aggregationType": "None"
+  },
+  {
+    "name": "Test None",
+    "templateCalculationId": 157,
+    "value": "0",
+    "valueFormat": "Number",
+    "type": "Rate",
+    "formulaText": "Something * something else",
+    "aggregationType": "None"
+  },
+  {
     "name": "Test Rate",
     "templateCalculationId": 152,
     "value": "1540000.325",

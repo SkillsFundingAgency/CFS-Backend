@@ -56,13 +56,35 @@
               "aggregationType": "Sum",
               "calculations": [
                 {
-                  "name": "Test Rate",
-                  "templateCalculationId": 152,
+                  "name": "Made up no value calc",
+                  "templateCalculationId": 156,
                   "value": "",
                   "valueFormat": "Number",
                   "type": "Rate",
                   "formulaText": "Something * something else",
-                  "aggregationType": "Sum",
+                  "aggregationType": "None",
+                  "calculations": [
+                    {
+                      "name": "Test Rate",
+                      "templateCalculationId": 152,
+                      "value": "",
+                      "valueFormat": "Number",
+                      "type": "Rate",
+                      "formulaText": "Something * something else",
+                      "aggregationType": "Sum",
+                      "referenceData": null
+                    },
+                    {
+                      "name": "Test None",
+                      "templateCalculationId": 157,
+                      "value": "",
+                      "valueFormat": "Number",
+                      "type": "Rate",
+                      "formulaText": "Something * something else",
+                      "aggregationType": "None",
+                      "referenceData": null
+                    }
+                  ],
                   "referenceData": null
                 },
                 {
@@ -133,13 +155,35 @@
                   "aggregationType": "Sum",
                   "calculations": [
                     {
-                      "name": "Test Rate",
-                      "templateCalculationId": 152,
+                      "name": "Made up no value calc",
+                      "templateCalculationId": 156,
                       "value": "",
                       "valueFormat": "Number",
                       "type": "Rate",
                       "formulaText": "Something * something else",
-                      "aggregationType": "Sum",
+                      "aggregationType": "None",
+                      "calculations": [
+                        {
+                          "name": "Test Rate",
+                          "templateCalculationId": 152,
+                          "value": "",
+                          "valueFormat": "Number",
+                          "type": "Rate",
+                          "formulaText": "Something * something else",
+                          "aggregationType": "Sum",
+                          "referenceData": null
+                        },
+                        {
+                          "name": "Test None",
+                          "templateCalculationId": 157,
+                          "value": "",
+                          "valueFormat": "Number",
+                          "type": "Rate",
+                          "formulaText": "Something * something else",
+                          "aggregationType": "None",
+                          "referenceData": null
+                        }
+                      ],
                       "referenceData": null
                     },
                     {
@@ -274,13 +318,25 @@
                   "aggregationType": "Sum",
                   "calculations": [
                     {
-                      "name": "Test Rate",
-                      "templateCalculationId": 152,
+                      "name": "Made up no value calc",
+                      "templateCalculationId": 156,
                       "value": "",
                       "valueFormat": "Number",
                       "type": "Rate",
                       "formulaText": "Something * something else",
-                      "aggregationType": "Sum",
+                      "aggregationType": "None",
+                      "calculations": [
+                        {
+                          "name": "Test Rate",
+                          "templateCalculationId": 152,
+                          "value": "",
+                          "valueFormat": "Number",
+                          "type": "Rate",
+                          "formulaText": "Something * something else",
+                          "aggregationType": "Sum",
+                          "referenceData": null
+                        }
+                      ],
                       "referenceData": null
                     }
                   ],

@@ -122,7 +122,8 @@ namespace CalculateFunding.Services.Publishing
 
         public AggregateFundingCalculation GetAggregateCalculation(Common.TemplateMetadata.Models.Calculation calculation)
         {
-            if (aggregatedCalculations.TryGetValue(calculation.TemplateCalculationId, out (decimal Total, int Count) aggregate))
+            // make sure there this or one if it's children has an aggregation type of Sum or Average
+            if (aggregatedCalculations.TryGetValue(calculation.TemplateCalculationId, out (decimal Total, int Count) aggregate) && ShouldIncludeCalculation(calculation))
             {
                 decimal aggregateValue = 0;
 
@@ -150,18 +151,23 @@ namespace CalculateFunding.Services.Publishing
 
         private AggregateFundingCalculation GetAggregateCalculationForAggregatorType(Calculation calculation, decimal aggregateValue)
         {
-            if (calculation.AggregationType != Common.TemplateMetadata.Enums.AggregationType.None)
+            return new AggregateFundingCalculation
             {
-                return new AggregateFundingCalculation
-                {
-                    TemplateCalculationId = calculation.TemplateCalculationId,
-                    Value = aggregateValue,
-                    Calculations = calculation.Calculations?.Select(x => GetAggregateCalculation(x)).Where(x => x != null)
-                };
+                TemplateCalculationId = calculation.TemplateCalculationId,
+                Value = aggregateValue,
+                Calculations = calculation.Calculations?.Select(x => GetAggregateCalculation(x)).Where(x => x != null)
+            };
+        }
+
+        private bool ShouldIncludeCalculation(Calculation calculation)
+        {
+            if (calculation.AggregationType == Common.TemplateMetadata.Enums.AggregationType.Sum || calculation.AggregationType == Common.TemplateMetadata.Enums.AggregationType.Average)
+            {
+                return true;
             }
             else
             {
-                return null;
+                return calculation.Calculations.AnyWithNullCheck(_ => ShouldIncludeCalculation(_));
             }
         }
 

@@ -38,9 +38,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .Should()
                 .Be(6000.975M);
 
-            fundingLines.First().Calculations.Where(x => x.TemplateCalculationId == 1).First().Calculations.Where(x => x.TemplateCalculationId == 152).First().Value
+            fundingLines.First().Calculations.Where(x => x.TemplateCalculationId == 1).First().Calculations.Where(x => x.TemplateCalculationId == 156).First().Calculations.Where(x => x.TemplateCalculationId == 152).First().Value
                 .Should()
                 .Be(4590000.975M);
+
+            fundingLines.First().Calculations.Where(x => x.TemplateCalculationId == 1).First().Calculations.Where(x => x.TemplateCalculationId == 156).First().Calculations.Where(x => x.TemplateCalculationId == 157).IsNullOrEmpty()
+                .Should()
+                .BeTrue();
 
             fundingLines.First().Calculations.Where(x => x.TemplateCalculationId == 126).First().Value
                 .Should()
@@ -50,7 +54,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .Should()
                 .Be(6000.975M);
 
-            fundingLines.First().FundingLines.First().Calculations.Where(x => x.TemplateCalculationId == 1).First().Calculations.Where(x => x.TemplateCalculationId == 152).First().Value
+            fundingLines.First().FundingLines.First().Calculations.Where(x => x.TemplateCalculationId == 1).First().Calculations.Where(x => x.TemplateCalculationId == 156).First().Calculations.Where(x => x.TemplateCalculationId == 152).First().Value
                 .Should()
                 .Be(4590000.975M);
 

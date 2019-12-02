@@ -528,7 +528,7 @@ namespace CalculateFunding.Services.Calcs
             return updatedCalculations;
         }
 
-        public async Task<IActionResult> EditCalculation(string specificationId, string calculationId, CalculationEditModel calculationEditModel, Reference author, string correlationId, bool setAdditional = false)
+        public async Task<IActionResult> EditCalculation(string specificationId, string calculationId, CalculationEditModel calculationEditModel, Reference author, string correlationId, bool setAdditional = false, bool skipInstruct = false)
         {
             Guard.ArgumentNotNull(calculationEditModel, nameof(calculationEditModel));
             Guard.ArgumentNotNull(author, nameof(author));
@@ -574,6 +574,11 @@ namespace CalculateFunding.Services.Calcs
 
             Job job = null;
 
+            if(skipInstruct)
+            {
+                return new OkObjectResult(result.CurrentVersion);
+            }
+
             try
             {
                 job = await SendInstructAllocationsToJobService(result.BuildProject.SpecificationId, author.Id, author.Name, new Trigger
@@ -603,7 +608,6 @@ namespace CalculateFunding.Services.Calcs
                 return new InternalServerErrorResult(ex.Message);
             }
         }
-
 
         private async Task<UpdateCalculationResult> UpdateCalculation(Calculation calculation, CalculationVersion calculationVersion, Reference user, bool updateBuildProject = true)
         {

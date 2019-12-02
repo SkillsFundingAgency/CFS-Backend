@@ -1575,5 +1575,131 @@ namespace CalculateFunding.Services.Calcs.Services
                     .Received(1)
                     .SaveSourceFiles(Arg.Is<IEnumerable<SourceFile>>(m => m.Count() == 1), Arg.Is(specificationId), Arg.Is(SourceCodeType.Release));
         }
+
+        [TestMethod]
+        public async Task EditCalculation_GivenCalcsContainCalculationAggregatesButSkipInstruct_NewJobToAggregateCalculationsNotAdded()
+        {
+            //Arrange
+            IEnumerable<Calculation> calculations = new[]
+            {
+                new Calculation
+                {
+                    Current = new CalculationVersion
+                    {
+                        SourceCode = "return Sum(Calc1)"
+                    }
+                }
+            };
+
+            string buildProjectId = Guid.NewGuid().ToString();
+
+            string specificationId = Guid.NewGuid().ToString();
+
+            CalculationEditModel calculationEditModel = CreateCalculationEditModel();
+
+            Reference author = CreateAuthor();
+
+            BuildProject buildProject = new BuildProject
+            {
+                Id = buildProjectId,
+                SpecificationId = specificationId
+            };
+
+            Calculation calculation = CreateCalculation();
+            calculation.SpecificationId = specificationId;
+
+            ILogger logger = CreateLogger();
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository
+                .GetCalculationById(Arg.Is(CalculationId))
+                .Returns(calculation);
+
+            calculationsRepository
+                .UpdateCalculation(Arg.Any<Calculation>())
+                .Returns(HttpStatusCode.OK);
+
+            calculationsRepository
+                .GetCalculationsBySpecificationId(Arg.Is(specificationId))
+                .Returns(calculations);
+
+            IBuildProjectsService buildProjectsService = CreateBuildProjectsService();
+            buildProjectsService
+                .GetBuildProjectForSpecificationId(Arg.Is(specificationId))
+                .Returns(buildProject);
+
+            CalculationIndex calcIndex = new CalculationIndex();
+
+            ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
+            searchRepository
+                .SearchById(Arg.Is(CalculationId))
+                .Returns(calcIndex);
+
+            SpecModel.SpecificationSummary specificationSummary = new SpecModel.SpecificationSummary()
+            {
+                Id = calculation.SpecificationId,
+                Name = "Test Spec Name",
+                FundingStreams = new[]
+                {
+                    new Reference(calculation.FundingStreamId, "funding stream name")
+                }
+            };
+
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+            specificationsApiClient
+                .GetSpecificationSummaryById(Arg.Is(calculation.SpecificationId))
+                .Returns(new Common.ApiClient.Models.ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
+
+            CalculationVersion calculationVersion = calculation.Current as CalculationVersion;
+            calculationVersion.PublishStatus = PublishStatus.Updated;
+
+            IVersionRepository<CalculationVersion> versionRepository = CreateCalculationVersionRepository();
+            versionRepository
+                .CreateVersion(Arg.Any<CalculationVersion>(), Arg.Any<CalculationVersion>())
+                .Returns(calculationVersion);
+
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
+                .CreateJob(Arg.Any<JobCreateModel>())
+                .Returns(new Job { Id = "job-id-1" });
+
+            Build build = new Build
+            {
+                SourceFiles = new List<SourceFile> { new SourceFile() }
+            };
+
+            ISourceCodeService sourceCodeService = CreateSourceCodeService();
+            sourceCodeService
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>())
+                .Returns(build);
+
+            CalculationService service = CreateCalculationService(
+                logger: logger,
+                calculationsRepository: calculationsRepository,
+                 buildProjectsService: buildProjectsService,
+                searchRepository: searchRepository,
+                specificationsApiClient: specificationsApiClient,
+                calculationVersionRepository: versionRepository,
+                jobsApiClient: jobsApiClient,
+                sourceCodeService: sourceCodeService);
+
+            //Act
+            IActionResult result = await service.EditCalculation(SpecificationId, CalculationId, calculationEditModel, author, CorrelationId, skipInstruct: true);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>();
+
+            calculation
+                .Current
+                .PublishStatus
+                .Should()
+                .Be(PublishStatus.Updated);
+
+            jobsApiClient
+                    .DidNotReceive();
+
+        }
     }
 }
