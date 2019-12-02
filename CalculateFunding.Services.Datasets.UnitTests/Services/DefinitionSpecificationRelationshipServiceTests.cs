@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Net;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
@@ -41,7 +42,7 @@ namespace CalculateFunding.Services.Datasets.Services
     public class DefinitionSpecificationRelationshipServiceTests
     {
         [TestMethod]
-        async public Task CreateRelationship_GivenNullModelProvided_ReturnesBadRequest()
+        public async Task CreateRelationship_GivenNullModelProvided_ReturnesBadRequest()
         {
             //Arrange
             HttpRequest request = Substitute.For<HttpRequest>();
@@ -64,7 +65,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        async public Task CreateRelationship_GivenModelButWasInvalid_ReturnesBadRequest()
+        public async Task CreateRelationship_GivenModelButWasInvalid_ReturnesBadRequest()
         {
             //Arrange
             CreateDefinitionSpecificationRelationshipModel model = new CreateDefinitionSpecificationRelationshipModel();
@@ -97,7 +98,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        async public Task CreateRelationship_GivenValidModelButDefinitionCouldNotBeFound_ReturnsPreConditionFailed()
+        public async Task CreateRelationship_GivenValidModelButDefinitionCouldNotBeFound_ReturnsPreConditionFailed()
         {
             //Arrange
             string datasetDefinitionId = Guid.NewGuid().ToString();
@@ -146,7 +147,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        async public Task CreateRelationship_GivenValidModelButSpecificationCouldNotBeFound_ReturnsPreConditionFailed()
+        public async Task CreateRelationship_GivenValidModelButSpecificationCouldNotBeFound_ReturnsPreConditionFailed()
         {
             //Arrange
             string datasetDefinitionId = Guid.NewGuid().ToString();
@@ -205,7 +206,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        async public Task CreateRelationship_GivenValidModelButFailedToSave_ReturnsFailedResult()
+        public async Task CreateRelationship_GivenValidModelButFailedToSave_ReturnsFailedResult()
         {
             //Arrange
             string datasetDefinitionId = Guid.NewGuid().ToString();
@@ -270,7 +271,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        async public Task CreateRelationship_GivenValidModelAndSavesWithoutError_ReturnsOK()
+        public async Task CreateRelationship_GivenValidModelAndSavesWithoutError_ReturnsOK()
         {
             //Arrange
             string datasetDefinitionId = Guid.NewGuid().ToString();
@@ -1332,7 +1333,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        async public Task GetDataSourcesByRelationshipId_GivenNullRelationshipIdProvided_ReturnesBadRequest()
+        public async Task GetDataSourcesByRelationshipId_GivenNullRelationshipIdProvided_ReturnesBadRequest()
         {
             //Arrange
             HttpRequest request = Substitute.For<HttpRequest>();
@@ -1522,7 +1523,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        async public Task AssignDatasourceVersionToRelationship_GivenNullModelProvided_ReturnesBadRequest()
+        public async Task AssignDatasourceVersionToRelationship_GivenNullModelProvided_ReturnesBadRequest()
         {
             //Arrange
             HttpRequest request = Substitute.For<HttpRequest>();
@@ -1545,7 +1546,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        async public Task AssignDatasourceVersionToRelationship_GivenModelDatasetNotFound_ReturnsPreConditionFailed()
+        public async Task AssignDatasourceVersionToRelationship_GivenModelDatasetNotFound_ReturnsPreConditionFailed()
         {
             //Arrange
             string datasetId = Guid.NewGuid().ToString();
@@ -1593,7 +1594,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        async public Task AssignDatasourceVersionToRelationship_GivenModelButRelationshipNotFound_ReturnsPreConditionFailed()
+        public async Task AssignDatasourceVersionToRelationship_GivenModelButRelationshipNotFound_ReturnsPreConditionFailed()
         {
             //Arrange
             string datasetId = Guid.NewGuid().ToString();
@@ -1648,7 +1649,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        async public Task AssignDatasourceVersionToRelationship_GivenModelButSavingReturnsBadRequest_ReturnsBadRequest()
+        public async Task AssignDatasourceVersionToRelationship_GivenModelButSavingReturnsBadRequest_ReturnsBadRequest()
         {
             //Arrange
             string datasetId = Guid.NewGuid().ToString();
@@ -1708,7 +1709,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        async public Task AssignDatasourceVersionToRelationship_GivenModelAndSaves_ReturnsNoContent()
+        public async Task AssignDatasourceVersionToRelationship_GivenModelAndSaves_ReturnsNoContent()
         {
             //Arrange
             string datasetId = Guid.NewGuid().ToString();
@@ -1783,6 +1784,21 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Body
                 .Returns(stream);
 
+            DefaultHttpContext defaultHttpContext = new DefaultHttpContext
+            {
+                User = new ClaimsPrincipal(new[]
+                {
+                    new ClaimsIdentity(new[]
+                    {
+                        new Claim(ClaimTypes.Sid, "user-id-1"),
+                        new Claim(ClaimTypes.Name, "user-name-1")
+                    })
+                })
+            };
+
+            request.HttpContext
+                .Returns(defaultHttpContext);
+
             ILogger logger = CreateLogger();
 
             Dataset dataset = new Dataset();
@@ -1818,7 +1834,12 @@ namespace CalculateFunding.Services.Datasets.Services
 
             await jobsApiClient
                 .Received(1)
-                .CreateJob(Arg.Is<JobCreateModel>(j => j.JobDefinitionId == "MapDatasetJob" && j.SpecificationId == relationship.Specification.Id));
+                .CreateJob(Arg.Is<JobCreateModel>(j => j.JobDefinitionId == "MapDatasetJob" && 
+                                                       j.SpecificationId == relationship.Specification.Id &&
+                                                       j.Properties.ContainsKey("user-id") &&
+                                                       j.Properties["user-id"] == "user-id-1" &&
+                                                       j.Properties.ContainsKey("user-name") &&
+                                                       j.Properties["user-name"] == "user-name-1"));
 
             await messengerService
                 .DidNotReceive()
@@ -1883,9 +1904,9 @@ namespace CalculateFunding.Services.Datasets.Services
         {
             //Arrange
             const string definitionId = "id-1";
-            const string defintionName = "name-1";
+            const string definitionName = "name-1";
 
-            Reference reference = new Reference(definitionId, defintionName);
+            Reference reference = new Reference(definitionId, definitionName);
 
             ILogger logger = CreateLogger();
 
@@ -1910,9 +1931,9 @@ namespace CalculateFunding.Services.Datasets.Services
         {
             //Arrange
             const string definitionId = "id-1";
-            const string defintionName = "name-1";
+            const string definitionName = "name-1";
 
-            Reference reference = new Reference(definitionId, defintionName);
+            Reference reference = new Reference(definitionId, definitionName);
 
             ILogger logger = CreateLogger();
 
@@ -1929,7 +1950,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             datasetRepository
                 .When(x => x.UpdateDefinitionSpecificationRelationship(Arg.Any<DefinitionSpecificationRelationship>()))
-                .Do(x => { throw new Exception("Failed to update relationship"); });
+                .Do(x => throw new Exception("Failed to update relationship"));
 
             DefinitionSpecificationRelationshipService service = CreateService(logger: logger, datasetRepository: datasetRepository);
 
@@ -1943,7 +1964,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Which
                 .Message
                 .Should()
-                .Be($"Failed to update relationships with new definition name: {defintionName}");
+                .Be($"Failed to update relationships with new definition name: {definitionName}");
 
             logger
                 .Received(1)
@@ -1951,11 +1972,11 @@ namespace CalculateFunding.Services.Datasets.Services
 
             logger
                 .Received(1)
-                .Information(Arg.Is($"Updating 2 relationships with new definition name: {defintionName}"));
+                .Information(Arg.Is($"Updating 2 relationships with new definition name: {definitionName}"));
 
             logger
                 .DidNotReceive()
-                .Information($"Updated 2 relationships with new definition name: {defintionName}");
+                .Information($"Updated 2 relationships with new definition name: {definitionName}");
         }
 
         [TestMethod]
@@ -1992,10 +2013,6 @@ namespace CalculateFunding.Services.Datasets.Services
             await service.UpdateRelationshipDatasetDefinitionName(reference);
 
             //Assert
-            logger
-                .Received(1)
-                .Information($"Updated 2 relationships with new definition name: {defintionName}");
-
             await
                 datasetRepository
                     .Received(1)

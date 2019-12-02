@@ -346,7 +346,7 @@ namespace CalculateFunding.Services.Datasets
             };
 
             string correlationId = request.GetCorrelationId();
-
+            
             JobCreateModel job = new JobCreateModel
             {
                 InvokerUserDisplayName = user.Name,
@@ -356,7 +356,9 @@ namespace CalculateFunding.Services.Datasets
                 Properties = new Dictionary<string, string>
                     {
                         { "specification-id", relationship.Specification.Id },
-                        { "relationship-id", relationship.Id }
+                        { "relationship-id", relationship.Id },
+                        { "user-id", user.Id},
+                        { "user-name", user.Name},
                     },
                 SpecificationId = relationship.Specification.Id,
                 Trigger = trigger,
