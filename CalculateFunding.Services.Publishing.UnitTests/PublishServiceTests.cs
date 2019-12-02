@@ -110,7 +110,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 _publishedFundingDateService,
                 _publishedProviderStatusUpdateService,
                 _providerService,
-                _calculationResultsService,
                 _publishedFundingSearchRepository,
                 _publishedProviderIndexerService,
                 _jobsApiClient,
@@ -118,8 +117,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 _calculationsApiClient,
                 _logger,
                 new PublishingEngineOptions(),
-                _jobManagement,
-                _profilingService);
+                _jobManagement);
         }
 
 

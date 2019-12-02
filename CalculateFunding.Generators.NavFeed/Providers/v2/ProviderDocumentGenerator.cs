@@ -56,7 +56,7 @@ namespace CalculateFunding.Generators.NavFeed.Providers.v2
                 TemplateMapping templateMapping = GetTemplateMapping();
                 GeneratedProviderResult generatedProviderResult = GetGeneratedProviderResult(provider);
 
-                string generatedProviderDocumentContent = _publishedProviderContentsGenerator.GenerateContents(publishedProviderVersion, templateMetadataContents, templateMapping, generatedProviderResult);
+                string generatedProviderDocumentContent = _publishedProviderContentsGenerator.GenerateContents(publishedProviderVersion, templateMetadataContents, templateMapping);
                 PublishProviderDocument(options, publishedProviderVersion, generatedProviderDocumentContent);
             }
 

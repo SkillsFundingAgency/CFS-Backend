@@ -68,7 +68,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             // Act
             Func<Task> invocation = async () => await _publishedProviderContentPersistanceService.SavePublishedProviderContents(
-                templateMetadataContents, templateMapping, generatedPublishedProviderData, publishedProvidersToUpdate, publishedProviderContentsGenerator);
+                templateMetadataContents, templateMapping, publishedProvidersToUpdate, publishedProviderContentsGenerator);
 
             // Assert
             ThenExceptionShouldBeThrown($"Generator failed to generate content for published provider version with id: '{publishedProviderVersion.Id}'", invocation);
@@ -82,10 +82,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             TemplateMapping templateMapping = Substitute.For<TemplateMapping>();
             IPublishedProviderContentsGenerator publishedProviderContentsGenerator = Substitute.For<IPublishedProviderContentsGenerator>();
 
-            Dictionary<string, GeneratedProviderResult> generatedPublishedProviderData = new Dictionary<string, GeneratedProviderResult>();
             List<PublishedProvider> publishedProvidersToUpdate = new List<PublishedProvider>();
-
-            GeneratedProviderResult generatedProviderResult = new GeneratedProviderResult();
 
             PublishedProviderVersion publishedProviderVersion = NewPublishedProviderVersion(providerVersion => providerVersion
                 .WithProviderId(ProviderVersionProviderId)
@@ -95,11 +92,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             PublishedProvider publishedProvider = NewPublishedProvider(provider => provider.WithCurrent(publishedProviderVersion));
 
-            generatedPublishedProviderData.Add(key, generatedProviderResult);
             publishedProvidersToUpdate.Add(publishedProvider);
 
             publishedProviderContentsGenerator
-                .GenerateContents(publishedProviderVersion, templateMetadataContents, templateMapping, generatedPublishedProviderData[key])
+                .GenerateContents(publishedProviderVersion, templateMetadataContents, templateMapping)
                 .Returns("contents");
 
             string exceptionMessage = "Exception Message";
@@ -110,7 +106,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             // Act
             Func<Task> invocation = async () => await _publishedProviderContentPersistanceService.SavePublishedProviderContents(
-                templateMetadataContents, templateMapping, generatedPublishedProviderData, publishedProvidersToUpdate, publishedProviderContentsGenerator);
+                templateMetadataContents, templateMapping, publishedProvidersToUpdate, publishedProviderContentsGenerator);
 
             // Assert
             ThenExceptionShouldBeThrown(exceptionMessage, invocation);
@@ -124,10 +120,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             TemplateMapping templateMapping = Substitute.For<TemplateMapping>();
             IPublishedProviderContentsGenerator publishedProviderContentsGenerator = Substitute.For<IPublishedProviderContentsGenerator>();
 
-            Dictionary<string, GeneratedProviderResult> generatedPublishedProviderData = new Dictionary<string, GeneratedProviderResult>();
             List<PublishedProvider> publishedProvidersToUpdate = new List<PublishedProvider>();
-
-            GeneratedProviderResult generatedProviderResult = new GeneratedProviderResult();
 
             PublishedProviderVersion publishedProviderVersion = NewPublishedProviderVersion(providerVersion => providerVersion
                 .WithProviderId(ProviderVersionProviderId)
@@ -137,11 +130,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             PublishedProvider publishedProvider = NewPublishedProvider(provider => provider.WithCurrent(publishedProviderVersion));
 
-            generatedPublishedProviderData.Add(key, generatedProviderResult);
             publishedProvidersToUpdate.Add(publishedProvider);
 
             publishedProviderContentsGenerator
-                .GenerateContents(publishedProviderVersion, templateMetadataContents, templateMapping, generatedPublishedProviderData[key])
+                .GenerateContents(publishedProviderVersion, templateMetadataContents, templateMapping)
                 .Returns("contents");
 
             string exceptionMessage = "Exception Message";
@@ -152,7 +144,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             // Act
             Func<Task> invocation = async () => await _publishedProviderContentPersistanceService.SavePublishedProviderContents(
-                templateMetadataContents, templateMapping, generatedPublishedProviderData, publishedProvidersToUpdate, publishedProviderContentsGenerator);
+                templateMetadataContents, templateMapping, publishedProvidersToUpdate, publishedProviderContentsGenerator);
 
             // Assert
             ThenExceptionShouldBeThrown(exceptionMessage, invocation);
@@ -166,10 +158,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             TemplateMapping templateMapping = Substitute.For<TemplateMapping>();
             IPublishedProviderContentsGenerator publishedProviderContentsGenerator = Substitute.For<IPublishedProviderContentsGenerator>();
 
-            Dictionary<string, GeneratedProviderResult> generatedPublishedProviderData = new Dictionary<string, GeneratedProviderResult>();
             List<PublishedProvider> publishedProvidersToUpdate = new List<PublishedProvider>();
-
-            GeneratedProviderResult generatedProviderResult = new GeneratedProviderResult();
 
             PublishedProviderVersion publishedProviderVersion = NewPublishedProviderVersion(providerVersion => providerVersion
                 .WithProviderId(ProviderVersionProviderId)
@@ -179,16 +168,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             PublishedProvider publishedProvider = NewPublishedProvider(provider => provider.WithCurrent(publishedProviderVersion));
 
-            generatedPublishedProviderData.Add(key, generatedProviderResult);
             publishedProvidersToUpdate.Add(publishedProvider);
 
             publishedProviderContentsGenerator
-                .GenerateContents(publishedProviderVersion, templateMetadataContents, templateMapping, generatedPublishedProviderData[key])
+                .GenerateContents(publishedProviderVersion, templateMetadataContents, templateMapping)
                 .Returns("contents");
 
             // Act
             await _publishedProviderContentPersistanceService.SavePublishedProviderContents(
-                templateMetadataContents, templateMapping, generatedPublishedProviderData, publishedProvidersToUpdate, publishedProviderContentsGenerator);
+                templateMetadataContents, templateMapping, publishedProvidersToUpdate, publishedProviderContentsGenerator);
 
             // Assert
             await _publishedProviderVersionService

@@ -16,12 +16,11 @@ namespace CalculateFunding.Generators.Schema10
 {
     public class PublishedProviderContentsGenerator : IPublishedProviderContentsGenerator
     {
-        public string GenerateContents(PublishedProviderVersion publishedProviderVersion, TemplateMetadataContents templateMetadataContents, TemplateMapping templateMapping, GeneratedProviderResult generatedProviderResult)
+        public string GenerateContents(PublishedProviderVersion publishedProviderVersion, TemplateMetadataContents templateMetadataContents, TemplateMapping templateMapping)
         {
             Guard.ArgumentNotNull(publishedProviderVersion, nameof(publishedProviderVersion));
             Guard.ArgumentNotNull(templateMetadataContents, nameof(templateMetadataContents));
             Guard.ArgumentNotNull(templateMapping, nameof(templateMapping));
-            Guard.ArgumentNotNull(generatedProviderResult, nameof(generatedProviderResult));
 
             Guard.ArgumentNotNull(publishedProviderVersion.Provider, nameof(publishedProviderVersion.Provider));
 
@@ -75,7 +74,7 @@ namespace CalculateFunding.Generators.Schema10
                 },
                 FundingStreamCode = publishedProviderVersion.FundingStreamId,
                 publishedProviderVersion.FundingPeriodId,
-                FundingValue = new { TotalValue = publishedProviderVersion.TotalFunding, FundingLines = templateMetadataContents.RootFundingLines?.Select(x => ToFundingLine(x, generatedProviderResult.FundingLines, templateMapping, generatedProviderResult.Calculations, generatedProviderResult.ReferenceData, publishedProviderVersion.ProviderId)) },
+                FundingValue = new { TotalValue = publishedProviderVersion.TotalFunding, FundingLines = templateMetadataContents.RootFundingLines?.Select(x => ToFundingLine(x, publishedProviderVersion.FundingLines, templateMapping, publishedProviderVersion.Calculations, publishedProviderVersion.ReferenceData, publishedProviderVersion.ProviderId)) },
                 publishedProviderVersion.VariationReasons,
                 Successors = string.IsNullOrWhiteSpace(publishedProviderVersion.Provider.Successor) ? null : new List<string> { publishedProviderVersion.Provider.Successor },
                 publishedProviderVersion.Predecessors
@@ -158,7 +157,7 @@ namespace CalculateFunding.Generators.Schema10
         {
             string calculationId = templateMapping.TemplateMappingItems.Where(x => x.TemplateId == calculation.TemplateCalculationId)?.Single().CalculationId;
             IEnumerable<FundingReferenceData> publishedFundingReferenceData = referenceData?.Where(_ => calculation.ReferenceData?.Any(calcReferenceData => calcReferenceData.TemplateReferenceId == _.TemplateReferenceId) ?? false);
-            IEnumerable<dynamic> refernceData = publishedFundingReferenceData?.Select(_ => ToReferenceData(calculation.ReferenceData.Where(calcReferenceData => calcReferenceData.TemplateReferenceId == _.TemplateReferenceId).Single(), _));
+            IEnumerable<dynamic> refernceData = publishedFundingReferenceData?.Select(_ => ToReferenceData(calculation.ReferenceData?.Where(calcReferenceData => calcReferenceData.TemplateReferenceId == _.TemplateReferenceId).Single(), _));
 
             FundingCalculation fundingCalculationResult = calculationResults.Where(x => x.TemplateCalculationId == calculation.TemplateCalculationId)?.SingleOrDefault();
             if (fundingCalculationResult == null)

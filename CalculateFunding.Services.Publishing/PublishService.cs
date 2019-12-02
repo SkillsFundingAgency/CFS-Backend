@@ -45,7 +45,6 @@ namespace CalculateFunding.Services.Publishing
         private readonly IPublishedFundingChangeDetectorService _publishedFundingChangeDetectorService;
         private readonly IPublishedFundingGenerator _publishedFundingGenerator;
         private readonly IPublishedProviderDataGenerator _publishedProviderDataGenerator;
-        private readonly ICalculationResultsService _calculationResultsService;
         private readonly IPublishedFundingContentsPersistanceService _publishedFundingContentsPersistanceService;
         private readonly IPublishedProviderContentPersistanceService _publishedProviderContentsPersistanceService;
         private readonly IPublishedProviderContentsGeneratorResolver _publishedProviderContentsGeneratorResolver;
@@ -60,7 +59,6 @@ namespace CalculateFunding.Services.Publishing
         private readonly Policy _policyApiClientPolicy;
         private readonly IPublishingEngineOptions _publishingEngineOptions;
         private readonly IJobManagement _jobManagement;
-        private readonly IProfilingService _profilingService;
 
         public PublishService(IPublishedFundingStatusUpdateService publishedFundingStatusUpdateService,
             IPublishedFundingDataService publishedFundingDataService,
@@ -77,7 +75,6 @@ namespace CalculateFunding.Services.Publishing
             IPublishedFundingDateService publishedFundingDateService,
             IPublishedProviderStatusUpdateService publishedProviderStatusUpdateService,
             IProviderService providerService,
-            ICalculationResultsService calculationResultsService,
             ISearchRepository<PublishedFundingIndex> publishedFundingSearchRepository,
             IPublishedProviderIndexerService publishedProviderIndexerService,
             IJobsApiClient jobsApiClient,
@@ -85,8 +82,7 @@ namespace CalculateFunding.Services.Publishing
             ICalculationsApiClient calculationsApiClient,
             ILogger logger,
             IPublishingEngineOptions publishingEngineOptions,
-            IJobManagement jobManagement,
-            IProfilingService profilingService)
+            IJobManagement jobManagement)
         {
             Guard.ArgumentNotNull(publishedFundingStatusUpdateService, nameof(publishedFundingStatusUpdateService));
             Guard.ArgumentNotNull(publishedFundingDataService, nameof(publishedFundingDataService));
@@ -97,7 +93,6 @@ namespace CalculateFunding.Services.Publishing
             Guard.ArgumentNotNull(publishedFundingChangeDetectorService, nameof(publishedFundingChangeDetectorService));
             Guard.ArgumentNotNull(publishedFundingGenerator, nameof(publishedFundingGenerator));
             Guard.ArgumentNotNull(publishedProviderDataGenerator, nameof(publishedProviderDataGenerator));
-            Guard.ArgumentNotNull(calculationResultsService, nameof(calculationResultsService));
             Guard.ArgumentNotNull(publishedFundingGenerator, nameof(publishedProviderContentsGeneratorResolver));
             Guard.ArgumentNotNull(publishedFundingContentsPersistanceService, nameof(publishedFundingContentsPersistanceService));
             Guard.ArgumentNotNull(publishedProviderContentsPersistanceService, nameof(publishedProviderContentsPersistanceService));
@@ -111,7 +106,6 @@ namespace CalculateFunding.Services.Publishing
             Guard.ArgumentNotNull(calculationsApiClient, nameof(calculationsApiClient));
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(publishingEngineOptions, nameof(publishingEngineOptions));
-            Guard.ArgumentNotNull(profilingService, nameof(profilingService));
 
             Guard.ArgumentNotNull(publishingResiliencePolicies.PublishedFundingRepository, nameof(publishingResiliencePolicies.PublishedFundingRepository));
             Guard.ArgumentNotNull(publishingResiliencePolicies.JobsApiClient, nameof(publishingResiliencePolicies.JobsApiClient));
@@ -129,7 +123,6 @@ namespace CalculateFunding.Services.Publishing
             _publishedProviderContentsGeneratorResolver = publishedProviderContentsGeneratorResolver;
             _publishedFundingContentsPersistanceService = publishedFundingContentsPersistanceService;
             _publishedProviderContentsPersistanceService = publishedProviderContentsPersistanceService;
-            _calculationResultsService = calculationResultsService;
             _publishedFundingDateService = publishedFundingDateService;
             _publishedProviderStatusUpdateService = publishedProviderStatusUpdateService;
             _providerService = providerService;
@@ -146,7 +139,6 @@ namespace CalculateFunding.Services.Publishing
             _calculationsApiClientPolicy = publishingResiliencePolicies.CalculationsApiClient;
             _policyApiClientPolicy = publishingResiliencePolicies.PoliciesApiClient;
             _jobManagement = jobManagement;
-            _profilingService = profilingService;
         }
 
         public async Task PublishResults(Message message)
@@ -259,52 +251,7 @@ namespace CalculateFunding.Services.Publishing
 
             Dictionary<string, Provider> scopedProviders = await ReadScopedProviders(specificationId, specification, publishedProviders);
 
-            // Get calculation results for specification 
-            _logger.Information($"Looking up calculation results");
-
-            IDictionary<string, ProviderCalculationResult> allCalculationResults;
-            try
-            {
-                allCalculationResults = await _calculationResultsService.GetCalculationResultsBySpecificationId(specificationId, scopedProviders.Keys);
-            }
-            catch (Exception ex)
-            {
-                _logger.Error(ex, "Exception during calculation result lookup");
-                throw;
-            }
-
-            _logger.Information($"Found calculation results for {allCalculationResults.Count} providers from cosmos for publish job");
-
             TemplateMapping templateMapping = await GetTemplateMapping(fundingStream, specificationId);
-
-            _logger.Information("Generating PublishedProviders for publish");
-
-            // Generate populated data for each provider in this funding line
-            Dictionary<string, GeneratedProviderResult> generatedPublishedProviderData;
-            try
-            {
-                generatedPublishedProviderData =
-                    _publishedProviderDataGenerator.Generate(templateMetadataContents, templateMapping, scopedProviders.Values, allCalculationResults);
-            }
-            catch (Exception ex)
-            {
-                _logger.Error(ex, "Exception during generating provider data");
-                throw;
-            }
-
-            // Profile payment funding lines
-            try
-            {
-                await _profilingService.ProfileFundingLines(generatedPublishedProviderData.SelectMany(c => c.Value.FundingLines.Where(f => f.Type == OrganisationGroupingReason.Payment)), fundingStream.Id, specification.FundingPeriod.Id);
-            }
-            catch (Exception ex)
-            {
-
-                _logger.Error(ex, "Exception during generating provider profiling");
-                throw;
-            }
-
-            _logger.Information("Populated PublishedProviders for publish");
 
             _logger.Information($"Generating organisation groups");
 
@@ -365,7 +312,7 @@ namespace CalculateFunding.Services.Publishing
             {
                 // Generate contents JSON for provider and save to blob storage
                 IPublishedProviderContentsGenerator generator = _publishedProviderContentsGeneratorResolver.GetService(templateMetadataContents.SchemaVersion);
-                await _publishedProviderContentsPersistanceService.SavePublishedProviderContents(templateMetadataContents, templateMapping, generatedPublishedProviderData,
+                await _publishedProviderContentsPersistanceService.SavePublishedProviderContents(templateMetadataContents, templateMapping,
                     publishedProvidersToSaveAsReleased, generator);
             }
         }

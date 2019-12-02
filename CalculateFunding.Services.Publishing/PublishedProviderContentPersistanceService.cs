@@ -37,7 +37,7 @@ namespace CalculateFunding.Services.Publishing
             _publishingEngineOptions = publishingEngineOptions;
         }
 
-        public async Task SavePublishedProviderContents(TemplateMetadataContents templateMetadataContents, Common.ApiClient.Calcs.Models.TemplateMapping templateMapping, Dictionary<string, GeneratedProviderResult> generatedPublishedProviderData, IEnumerable<PublishedProvider> publishedProvidersToUpdate, IPublishedProviderContentsGenerator generator)
+        public async Task SavePublishedProviderContents(TemplateMetadataContents templateMetadataContents, TemplateMapping templateMapping, IEnumerable<PublishedProvider> publishedProvidersToUpdate, IPublishedProviderContentsGenerator generator)
         {
             _logger.Information("Saving published provider contents");
             List<Task> allTasks = new List<Task>();
@@ -52,7 +52,7 @@ namespace CalculateFunding.Services.Publishing
                         {
                             PublishedProviderVersion publishedProviderVersion = provider.Current;
 
-                            string contents = generator.GenerateContents(publishedProviderVersion, templateMetadataContents, templateMapping, generatedPublishedProviderData[provider.Current.ProviderId]);
+                            string contents = generator.GenerateContents(publishedProviderVersion, templateMetadataContents, templateMapping);
 
                             if (string.IsNullOrWhiteSpace(contents))
                             {

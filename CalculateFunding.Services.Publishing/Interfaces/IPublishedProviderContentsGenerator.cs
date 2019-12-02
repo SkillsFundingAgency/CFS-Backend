@@ -17,6 +17,6 @@ namespace CalculateFunding.Services.Publishing.Interfaces
         /// <param name="calculationResults">Calculation Results</param>
         /// <param name="fundingLines">Funding Lines (with precalculated totals). Should contain all funding lines, not just payment</param>
         /// <returns>Contents to be saved for this provider version</returns>
-        string GenerateContents(PublishedProviderVersion publishedProviderVersion, TemplateMetadataContents templateMetadataContents, TemplateMapping templateMapping, GeneratedProviderResult generatedProviderResult);
+        string GenerateContents(PublishedProviderVersion publishedProviderVersion, TemplateMetadataContents templateMetadataContents, TemplateMapping templateMapping);
     }
 }

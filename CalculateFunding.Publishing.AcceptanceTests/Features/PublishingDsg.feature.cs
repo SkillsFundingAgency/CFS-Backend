@@ -459,66 +459,6 @@ this.ScenarioInitialize(scenarioInfo);
                         "10",
                         "Information"});
             table92.AddRow(new string[] {
-                        "CSSB Pupil Led Funding",
-                        "DSG-012",
-                        "0",
-                        "23",
-                        "Information"});
-            table92.AddRow(new string[] {
-                        "Funding for Historic Commitments",
-                        "DSG-013",
-                        "0",
-                        "27",
-                        "Information"});
-            table92.AddRow(new string[] {
-                        "Universal Entitlement for 3 and 4 Year Olds",
-                        "DSG-014",
-                        "0",
-                        "130",
-                        "Information"});
-            table92.AddRow(new string[] {
-                        "Funding for Additional Hours for working parents",
-                        "DSG-015",
-                        "0",
-                        "135",
-                        "Information"});
-            table92.AddRow(new string[] {
-                        "Participation Funding for Disadvantaged 2 Year Olds",
-                        "DSG-016",
-                        "0",
-                        "140",
-                        "Information"});
-            table92.AddRow(new string[] {
-                        "Funding Allocation for Early Years Pupil Premium",
-                        "DSG-017",
-                        "0",
-                        "145",
-                        "Information"});
-            table92.AddRow(new string[] {
-                        "Funding Allocation for Maintained Nursery Supplement",
-                        "DSG-018",
-                        "0",
-                        "150",
-                        "Information"});
-            table92.AddRow(new string[] {
-                        "Funding Allocation for Disability Access Fund",
-                        "DSG-019",
-                        "0",
-                        "155",
-                        "Information"});
-            table92.AddRow(new string[] {
-                        "Central School Services Block",
-                        "DSG-008",
-                        "0",
-                        "8",
-                        "Information"});
-            table92.AddRow(new string[] {
-                        "Early Years Block",
-                        "DSG-009",
-                        "0",
-                        "9",
-                        "Information"});
-            table92.AddRow(new string[] {
                         "Total High Needs Block After Deductions",
                         "DSG-011",
                         "14720",
@@ -554,7 +494,7 @@ this.ScenarioInitialize(scenarioInfo);
             table93.AddRow(new string[] {
                         "FY-2021",
                         "5000"});
-#line 130
+#line 120
  testRunner.And("the Published Provider has the following distribution period for funding line \'DS" +
                     "G-002\'", ((string)(null)), table93, "And ");
 #line hidden
@@ -579,7 +519,7 @@ this.ScenarioInitialize(scenarioInfo);
                         "2021",
                         "1",
                         "5000"});
-#line 134
+#line 124
  testRunner.And("the Published Providers distribution period has the following profiles for fundin" +
                     "g line \'DSG-002\'", ((string)(null)), table94, "And ");
 #line hidden
@@ -1072,7 +1012,7 @@ this.ScenarioInitialize(scenarioInfo);
             table95.AddRow(new string[] {
                         "219",
                         "320"});
-#line 138
+#line 128
  testRunner.And("the Published Provider contains the following calculation results", ((string)(null)), table95, "And ");
 #line hidden
             TechTalk.SpecFlow.Table table96 = new TechTalk.SpecFlow.Table(new string[] {
@@ -1225,9 +1165,9 @@ this.ScenarioInitialize(scenarioInfo);
             table96.AddRow(new string[] {
                         "WardName",
                         ""});
-#line 302
+#line 292
  testRunner.And("the Published Provider has the following provider information", ((string)(null)), table96, "And ");
-#line 353
+#line 343
  testRunner.And("the Published Provider is available in the repository for this specification", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             TechTalk.SpecFlow.Table table97 = new TechTalk.SpecFlow.Table(new string[] {
@@ -1380,10 +1320,10 @@ this.ScenarioInitialize(scenarioInfo);
             table97.AddRow(new string[] {
                         "WardName",
                         ""});
-#line 355
+#line 345
  testRunner.And(string.Format("the following provider exists within core provider data in provider version \'{0}\'" +
                         "", providerVersionId), ((string)(null)), table97, "And ");
-#line 406
+#line 396
  testRunner.And(string.Format("the provider with id \'1000000\' should be a scoped provider in the current specifi" +
                         "cation in provider version \'{0}\'", providerVersionId), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
@@ -1414,7 +1354,7 @@ this.ScenarioInitialize(scenarioInfo);
             table98.AddRow(new string[] {
                         "MinorVersion",
                         "1"});
-#line 407
+#line 397
  testRunner.And("the following Published Provider has been previously generated for the current sp" +
                     "ecification", ((string)(null)), table98, "And ");
 #line hidden
@@ -1515,66 +1455,6 @@ this.ScenarioInitialize(scenarioInfo);
                         "10",
                         "Information"});
             table99.AddRow(new string[] {
-                        "CSSB Pupil Led Funding",
-                        "DSG-012",
-                        "0",
-                        "23",
-                        "Information"});
-            table99.AddRow(new string[] {
-                        "Funding for Historic Commitments",
-                        "DSG-013",
-                        "0",
-                        "27",
-                        "Information"});
-            table99.AddRow(new string[] {
-                        "Universal Entitlement for 3 and 4 Year Olds",
-                        "DSG-014",
-                        "0",
-                        "130",
-                        "Information"});
-            table99.AddRow(new string[] {
-                        "Funding for Additional Hours for working parents",
-                        "DSG-015",
-                        "0",
-                        "135",
-                        "Information"});
-            table99.AddRow(new string[] {
-                        "Participation Funding for Disadvantaged 2 Year Olds",
-                        "DSG-016",
-                        "0",
-                        "140",
-                        "Information"});
-            table99.AddRow(new string[] {
-                        "Funding Allocation for Early Years Pupil Premium",
-                        "DSG-017",
-                        "0",
-                        "145",
-                        "Information"});
-            table99.AddRow(new string[] {
-                        "Funding Allocation for Maintained Nursery Supplement",
-                        "DSG-018",
-                        "0",
-                        "150",
-                        "Information"});
-            table99.AddRow(new string[] {
-                        "Funding Allocation for Disability Access Fund",
-                        "DSG-019",
-                        "0",
-                        "155",
-                        "Information"});
-            table99.AddRow(new string[] {
-                        "Central School Services Block",
-                        "DSG-008",
-                        "0",
-                        "8",
-                        "Information"});
-            table99.AddRow(new string[] {
-                        "Early Years Block",
-                        "DSG-009",
-                        "0",
-                        "9",
-                        "Information"});
-            table99.AddRow(new string[] {
                         "Total High Needs Block After Deductions",
                         "DSG-011",
                         "14720",
@@ -1598,7 +1478,7 @@ this.ScenarioInitialize(scenarioInfo);
                         "15360",
                         "3",
                         "Payment"});
-#line 417
+#line 407
  testRunner.And("the Published Provider has the following funding lines", ((string)(null)), table99, "And ");
 #line hidden
             TechTalk.SpecFlow.Table table100 = new TechTalk.SpecFlow.Table(new string[] {
@@ -1610,7 +1490,7 @@ this.ScenarioInitialize(scenarioInfo);
             table100.AddRow(new string[] {
                         "FY-2021",
                         "5000"});
-#line 448
+#line 428
  testRunner.And("the Published Provider has the following distribution period for funding line \'DS" +
                     "G-002\'", ((string)(null)), table100, "And ");
 #line hidden
@@ -1635,7 +1515,7 @@ this.ScenarioInitialize(scenarioInfo);
                         "2021",
                         "1",
                         "5000"});
-#line 452
+#line 432
  testRunner.And("the Published Providers distribution period has the following profiles for fundin" +
                     "g line \'DSG-002\'", ((string)(null)), table101, "And ");
 #line hidden
@@ -2128,7 +2008,7 @@ this.ScenarioInitialize(scenarioInfo);
             table102.AddRow(new string[] {
                         "219",
                         "320"});
-#line 456
+#line 436
  testRunner.And("the Published Provider contains the following calculation results", ((string)(null)), table102, "And ");
 #line hidden
             TechTalk.SpecFlow.Table table103 = new TechTalk.SpecFlow.Table(new string[] {
@@ -2281,9 +2161,9 @@ this.ScenarioInitialize(scenarioInfo);
             table103.AddRow(new string[] {
                         "WardName",
                         ""});
-#line 620
+#line 600
  testRunner.And("the Published Provider has the following provider information", ((string)(null)), table103, "And ");
-#line 671
+#line 651
  testRunner.And("the Published Provider is available in the repository for this specification", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             TechTalk.SpecFlow.Table table104 = new TechTalk.SpecFlow.Table(new string[] {
@@ -2436,10 +2316,10 @@ this.ScenarioInitialize(scenarioInfo);
             table104.AddRow(new string[] {
                         "WardName",
                         ""});
-#line 673
+#line 653
  testRunner.And(string.Format("the following provider exists within core provider data in provider version \'{0}\'" +
                         "", providerVersionId), ((string)(null)), table104, "And ");
-#line 724
+#line 704
  testRunner.And(string.Format("the provider with id \'1000002\' should be a scoped provider in the current specifi" +
                         "cation in provider version \'{0}\'", providerVersionId), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
@@ -2593,7 +2473,7 @@ this.ScenarioInitialize(scenarioInfo);
             table105.AddRow(new string[] {
                         "WardName",
                         ""});
-#line 726
+#line 706
  testRunner.And(string.Format("the following provider exists within core provider data in provider version \'{0}\'" +
                         "", providerVersionId), ((string)(null)), table105, "And ");
 #line hidden
@@ -3474,7 +3354,7 @@ this.ScenarioInitialize(scenarioInfo);
                         "5cfb28de-88d6-4faa-a936-d81a065fb596",
                         "219",
                         "16-19 Academies and Free Schools Total Post-16 Schools SEN Places"});
-#line 777
+#line 757
  testRunner.And("template mapping exists", ((string)(null)), table106, "And ");
 #line hidden
             TechTalk.SpecFlow.Table table107 = new TechTalk.SpecFlow.Table(new string[] {
@@ -3966,11 +3846,11 @@ this.ScenarioInitialize(scenarioInfo);
             table107.AddRow(new string[] {
                         "5cfb28de-88d6-4faa-a936-d81a065fb596",
                         "320"});
-#line 942
+#line 922
  testRunner.And("calculations exists", ((string)(null)), table107, "And ");
-#line 1106
+#line 1086
  testRunner.When("funding is published", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
-#line 1107
+#line 1087
  testRunner.Then("publishing succeeds", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
             TechTalk.SpecFlow.Table table108 = new TechTalk.SpecFlow.Table(new string[] {
@@ -3991,9 +3871,9 @@ this.ScenarioInitialize(scenarioInfo);
             table108.AddRow(new string[] {
                         "FundingStreamId",
                         string.Format("{0}", fundingStreamId)});
-#line 1108
+#line 1088
  testRunner.And("the following published funding is produced", ((string)(null)), table108, "And ");
-#line 1115
+#line 1095
  testRunner.And("the total funding is \'24000\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             TechTalk.SpecFlow.Table table109 = new TechTalk.SpecFlow.Table(new string[] {
@@ -4002,12 +3882,12 @@ this.ScenarioInitialize(scenarioInfo);
                         string.Format("{0}-{1}-1000000-1_0", fundingStreamId, fundingPeriodId)});
             table109.AddRow(new string[] {
                         string.Format("{0}-{1}-1000002-1_0", fundingStreamId, fundingPeriodId)});
-#line 1116
+#line 1096
  testRunner.And("the published funding contains the following published provider ids", ((string)(null)), table109, "And ");
-#line 1120
+#line 1100
  testRunner.And("the published funding contains a distribution period in funding line \'DSG-002\' wi" +
                     "th id of \'FY-1920\' has the value of \'14000\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-#line 1121
+#line 1101
  testRunner.And("the published funding contains a distribution period in funding line \'DSG-002\' wi" +
                     "th id of \'FY-2021\' has the value of \'10000\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
@@ -4025,7 +3905,7 @@ this.ScenarioInitialize(scenarioInfo);
                         "1920",
                         "1",
                         "14000"});
-#line 1122
+#line 1102
  testRunner.And("the published funding contains a distribution period in funding line \'DSG-002\' wi" +
                     "th id of \'FY-1920\' has the following profiles", ((string)(null)), table110, "And ");
 #line hidden
@@ -4043,7 +3923,7 @@ this.ScenarioInitialize(scenarioInfo);
                         "2021",
                         "1",
                         "10000"});
-#line 1125
+#line 1105
  testRunner.And("the published funding contains a distribution period in funding line \'DSG-002\' wi" +
                     "th id of \'FY-2021\' has the following profiles", ((string)(null)), table111, "And ");
 #line hidden
@@ -4062,7 +3942,7 @@ this.ScenarioInitialize(scenarioInfo);
             table112.AddRow(new string[] {
                         "ParentJobId",
                         ""});
-#line 1128
+#line 1108
  testRunner.And("the following job is requested is completed for the current specification", ((string)(null)), table112, "And ");
 #line hidden
             this.ScenarioCleanup();

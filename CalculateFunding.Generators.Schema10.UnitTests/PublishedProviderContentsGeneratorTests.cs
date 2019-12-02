@@ -39,7 +39,7 @@ namespace CalculateFunding.Generators.Schema10.UnitTests
             PublishedProviderContentsGenerator publishedProviderContentsGenerator = new PublishedProviderContentsGenerator();
 
             //Act
-            string publishedcontents = publishedProviderContentsGenerator.GenerateContents(GetProviderVersion(), contents, GetTemplateMapping(), GetGeneratedProviderResult());
+            string publishedcontents = publishedProviderContentsGenerator.GenerateContents(GetProviderVersion(), contents, GetTemplateMapping());
 
             //Assert
             string expectedOutput = GetResourceString("CalculateFunding.Generators.Schema10.UnitTests.Resources.exampleProviderOutput1.json").Prettify();
@@ -70,11 +70,6 @@ namespace CalculateFunding.Generators.Schema10.UnitTests
             }
 
             return new TemplateMapping { TemplateMappingItems = items };
-        }
-
-        public GeneratedProviderResult GetGeneratedProviderResult()
-        {
-            return new GeneratedProviderResult { FundingLines = GetFundingLines(), Calculations = GetCalculationResults(), ReferenceData = GetReferenceData() };
         }
 
         public IEnumerable<Models.Publishing.FundingReferenceData> GetReferenceData()
@@ -165,7 +160,10 @@ namespace CalculateFunding.Generators.Schema10.UnitTests
                 Version = 1,
                 MajorVersion = 1,
                 MinorVersion = 0,
-                VariationReasons = new List<VariationReason> { VariationReason.NameFieldUpdated, VariationReason.FundingUpdated }
+                VariationReasons = new List<VariationReason> { VariationReason.NameFieldUpdated, VariationReason.FundingUpdated },
+                FundingLines = GetFundingLines(),
+                Calculations = GetCalculationResults(),
+                ReferenceData = GetReferenceData()
             };
         }
 

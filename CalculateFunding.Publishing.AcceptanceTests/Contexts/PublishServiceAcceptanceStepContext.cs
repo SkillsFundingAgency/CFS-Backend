@@ -197,7 +197,6 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
                 _publishingDatesStepContext.Service,
                 publishedProviderStatusUpdateService,
                 _providersStepContext.Service,
-                calculationResultsService,
                 publishedFundingInMemorySearchRepository,
                 publishedProviderIndexerService,
                 _jobStepContext.JobsClient,
@@ -205,8 +204,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
                 calculationsApiClient,
                 logger,
                 new PublishingEngineOptions(),
-                _jobManagement,
-                profilingService);
+                _jobManagement);
 
             Message message = new Message();
 

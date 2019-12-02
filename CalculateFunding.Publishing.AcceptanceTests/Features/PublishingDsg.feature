@@ -113,16 +113,6 @@ Scenario Outline: Successful publishing of funding
 		| Central School Services Block                        | DSG-008         | 320   | 8              | Information |
 		| Early Years Block                                    | DSG-009         | 1600  | 9              | Information |
 		| High Needs Block before deductions                   | DSG-010         | 1280  | 10             | Information |
-		| CSSB Pupil Led Funding                               | DSG-012         | 0     | 23             | Information |
-		| Funding for Historic Commitments                     | DSG-013         | 0     | 27             | Information |
-		| Universal Entitlement for 3 and 4 Year Olds          | DSG-014         | 0     | 130            | Information |
-		| Funding for Additional Hours for working parents     | DSG-015         | 0     | 135            | Information |
-		| Participation Funding for Disadvantaged 2 Year Olds  | DSG-016         | 0     | 140            | Information |
-		| Funding Allocation for Early Years Pupil Premium     | DSG-017         | 0     | 145            | Information |
-		| Funding Allocation for Maintained Nursery Supplement | DSG-018         | 0     | 150            | Information |
-		| Funding Allocation for Disability Access Fund        | DSG-019         | 0     | 155            | Information |
-		| Central School Services Block                        | DSG-008         | 0     | 8              | Information |
-		| Early Years Block                                    | DSG-009         | 0     | 9              | Information |
 		| Total High Needs Block After Deductions              | DSG-011         | 14720 | 11             | Information |
 		| School Block After recoupment                        | DSG-005         | 640   | 12             | Information |
 		| Total DSG before deductions and recoupment           | DSG-001         | 3840  | 2              | Information |
@@ -431,16 +421,6 @@ Scenario Outline: Successful publishing of funding
 		| Central School Services Block                        | DSG-008         | 320   | 8              | Information |
 		| Early Years Block                                    | DSG-009         | 1600  | 9              | Information |
 		| High Needs Block before deductions                   | DSG-010         | 1280  | 10             | Information |
-		| CSSB Pupil Led Funding                               | DSG-012         | 0     | 23             | Information |
-		| Funding for Historic Commitments                     | DSG-013         | 0     | 27             | Information |
-		| Universal Entitlement for 3 and 4 Year Olds          | DSG-014         | 0     | 130            | Information |
-		| Funding for Additional Hours for working parents     | DSG-015         | 0     | 135            | Information |
-		| Participation Funding for Disadvantaged 2 Year Olds  | DSG-016         | 0     | 140            | Information |
-		| Funding Allocation for Early Years Pupil Premium     | DSG-017         | 0     | 145            | Information |
-		| Funding Allocation for Maintained Nursery Supplement | DSG-018         | 0     | 150            | Information |
-		| Funding Allocation for Disability Access Fund        | DSG-019         | 0     | 155            | Information |
-		| Central School Services Block                        | DSG-008         | 0     | 8              | Information |
-		| Early Years Block                                    | DSG-009         | 0     | 9              | Information |
 		| Total High Needs Block After Deductions              | DSG-011         | 14720 | 11             | Information |
 		| School Block After recoupment                        | DSG-005         | 640   | 12             | Information |
 		| Total DSG before deductions and recoupment           | DSG-001         | 3840  | 2              | Information |
