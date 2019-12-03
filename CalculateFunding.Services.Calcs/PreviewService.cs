@@ -182,34 +182,42 @@ namespace CalculateFunding.Services.Calcs
                 {
                     if (previewRequest != null)
                     {
-                        IEnumerable<string> aggregateParameters = SourceCodeHelpers.GetCalculationAggregateFunctionParameters(previewRequest.SourceCode);
-
-                        bool continueChecking = true;
-
-                        if (!aggregateParameters.IsNullOrEmpty())
+                        if (!SourceCodeHelpers.HasReturn(previewRequest.SourceCode))
                         {
-                            foreach (string aggregateParameter in aggregateParameters)
-                            {
-                                if (!functions.ContainsKey(aggregateParameter))
-                                {
-                                    compilerOutput.Success = false;
-                                    compilerOutput.CompilerMessages.Add(new CompilerMessage { Message = $"{aggregateParameter} is not an aggregable field", Severity = Severity.Error });
-                                    continueChecking = false;
-                                    break;
-                                }
-                            }
+                            compilerOutput.Success = false;
+                            compilerOutput.CompilerMessages.Add(new CompilerMessage { Message = $"{calculationIdentifier} must have a return statement so that a calculation result will be returned", Severity = Severity.Error });
+                        }
+                        else
+                        {
+                            IEnumerable<string> aggregateParameters = SourceCodeHelpers.GetCalculationAggregateFunctionParameters(previewRequest.SourceCode);
 
-                            if (continueChecking)
+                            bool continueChecking = true;
+
+                            if (!aggregateParameters.IsNullOrEmpty())
                             {
-                                if (SourceCodeHelpers.IsCalcReferencedInAnAggregate(functions, calculationIdentifier))
+                                foreach (string aggregateParameter in aggregateParameters)
                                 {
-                                    compilerOutput.Success = false;
-                                    compilerOutput.CompilerMessages.Add(new CompilerMessage { Message = $"{calculationIdentifier} is already referenced in an aggregation that would cause nesting", Severity = Severity.Error });
+                                    if (!functions.ContainsKey(aggregateParameter))
+                                    {
+                                        compilerOutput.Success = false;
+                                        compilerOutput.CompilerMessages.Add(new CompilerMessage { Message = $"{aggregateParameter} is not an aggregable field", Severity = Severity.Error });
+                                        continueChecking = false;
+                                        break;
+                                    }
                                 }
-                                else if (SourceCodeHelpers.CheckSourceForExistingCalculationAggregates(functions, previewRequest.SourceCode))
+
+                                if (continueChecking)
                                 {
-                                    compilerOutput.Success = false;
-                                    compilerOutput.CompilerMessages.Add(new CompilerMessage { Message = $"{calculationIdentifier} cannot reference another calc that is being aggregated", Severity = Severity.Error });
+                                    if (SourceCodeHelpers.IsCalcReferencedInAnAggregate(functions, calculationIdentifier))
+                                    {
+                                        compilerOutput.Success = false;
+                                        compilerOutput.CompilerMessages.Add(new CompilerMessage { Message = $"{calculationIdentifier} is already referenced in an aggregation that would cause nesting", Severity = Severity.Error });
+                                    }
+                                    else if (SourceCodeHelpers.CheckSourceForExistingCalculationAggregates(functions, previewRequest.SourceCode))
+                                    {
+                                        compilerOutput.Success = false;
+                                        compilerOutput.CompilerMessages.Add(new CompilerMessage { Message = $"{calculationIdentifier} cannot reference another calc that is being aggregated", Severity = Severity.Error });
+                                    }
                                 }
                             }
                         }

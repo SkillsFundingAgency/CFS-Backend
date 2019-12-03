@@ -10,6 +10,15 @@ namespace CalculateFunding.Services.Compiler
 {
     public static class SourceCodeHelpers
     {
+        public static bool HasReturn(string sourceCode)
+        {
+            // remove all comments from code
+            string sourceCodeCommentsStripped = Regex.Replace(sourceCode, @"(""+\s*(\W |\w).+"")|(('|REM)+\s*(\W|\w).+)", string.Empty, RegexOptions.IgnoreCase);
+            
+            // make sure there is a return in active code
+            return Regex.IsMatch(sourceCodeCommentsStripped, @"\s?return\s", RegexOptions.IgnoreCase);
+        }
+
         public static IEnumerable<string> GetCalculationAggregateFunctionParameters(string sourceCode)
         {
             if (string.IsNullOrWhiteSpace(sourceCode))

@@ -27,7 +27,7 @@ namespace CalculateFunding.Services.Calcs.Services
         const string SpecificationId = "b13cd3ba-bdf8-40a8-9ec4-af48eb8a4386";
         const string CalculationId = "2d30bb44-0862-4524-a2f6-381c5534027a";
         const string BuildProjectId = "4d30bb44-0862-4524-a2f6-381c553402a7";
-        const string SourceCode = "Dim i as int = 1";
+        const string SourceCode = "Dim i as int = 1 Return i";
 
         [TestMethod]
         public async Task Compile_GivenNullPreviewRequest_ReturnsBadRequest()
@@ -657,6 +657,148 @@ End Class";
                     .SaveSourceFiles(Arg.Is(sourceFiles), Arg.Is(SpecificationId), Arg.Is(SourceCodeType.Release));
         }
 
+
+        [TestMethod]
+        public async Task Compile_GivenStringCompareInCodeNoReturnSet_ReturnsCompileErrorWithOneMessage()
+        {
+            //Arrange
+            const string stringCompareCode = @"Public Class AdditionalCalculations
+Public Property E1 As ExampleClass
+Public Function TestFunction As String
+REM return ""blah""
+End Function
+End Class";
+
+            PreviewRequest model = new PreviewRequest
+            {
+                CalculationId = CalculationId,
+                SourceCode = stringCompareCode,
+                SpecificationId = SpecificationId
+            };
+
+            Calculation calculation = new Calculation
+            {
+                Id = CalculationId,
+                Current = new CalculationVersion
+                {
+                    SourceCodeName = "Horace",
+                    Name = "Test Function"
+                },
+                SpecificationId = SpecificationId,
+            };
+
+            IEnumerable<Calculation> calculations = new List<Calculation>() { calculation };
+
+            BuildProject buildProject = new BuildProject
+            {
+                SpecificationId = SpecificationId
+            };
+
+            IValidator<PreviewRequest> validator = CreatePreviewRequestValidator();
+
+            ILogger logger = CreateLogger();
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository
+                .GetCalculationById(Arg.Is(CalculationId))
+                .Returns(calculation);
+
+            calculationsRepository
+                .GetCalculationsBySpecificationId(Arg.Is(SpecificationId))
+                .Returns(calculations);
+
+            IBuildProjectsService buildProjectsService = CreateBuildProjectsService();
+            buildProjectsService
+                .GetBuildProjectForSpecificationId(Arg.Is(calculation.SpecificationId))
+                .Returns(buildProject);
+
+            List<SourceFile> sourceFiles = new List<SourceFile>
+            {
+                new SourceFile { FileName = "project.vbproj", SourceCode = "<Project Sdk=\"Microsoft.NET.Sdk\"><PropertyGroup><TargetFramework>netcoreapp2.0</TargetFramework></PropertyGroup></Project>" },
+                new SourceFile { FileName = "ExampleClass.vb", SourceCode = "Public Class ExampleClass\nPublic Property ProviderType() As String\nEnd Class" },
+                new SourceFile { FileName = "Calculation.vb", SourceCode = model.SourceCode }
+            };
+
+            Build build = new Build
+            {
+                Success = true,
+                SourceFiles = sourceFiles,
+                CompilerMessages = new List<CompilerMessage>()
+            };
+
+            Dictionary<string, string> sourceCodes = new Dictionary<string, string>()
+            {
+                { "Calculations.TestFunction", model.SourceCode },
+                { "Calculations.Calc1", "return 1" }
+            };
+
+            ISourceCodeService sourceCodeService = CreateSourceCodeService();
+            sourceCodeService
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>())
+                .Returns(build);
+
+            sourceCodeService
+                .GetCalculationFunctions(Arg.Any<IEnumerable<SourceFile>>())
+                .Returns(sourceCodes);
+
+            Build nonPreviewBuild = new Build
+            {
+                Success = true,
+                SourceFiles = sourceFiles
+            };
+
+            sourceCodeService
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Is<CompilerOptions>(
+                        m => m.OptionStrictEnabled == false
+                    )).Returns(nonPreviewBuild);
+
+            PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository,
+                buildProjectsService: buildProjectsService, sourceCodeService: sourceCodeService);
+
+            //Act
+            IActionResult result = await service.Compile(model);
+
+            //Assert
+            OkObjectResult okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+
+            PreviewResponse previewResponse = okResult.Value.Should().BeOfType<PreviewResponse>().Subject;
+
+            previewResponse
+                .Calculation
+                .SourceCode
+                .Should()
+                .Be(stringCompareCode);
+
+            previewResponse
+                .CompilerOutput
+                .Success
+                .Should()
+                .BeFalse();
+
+            previewResponse
+               .CompilerOutput
+               .CompilerMessages
+               .Count()
+               .Should()
+               .Be(1);
+
+            previewResponse
+               .CompilerOutput
+               .CompilerMessages
+               .First()
+               .Severity
+               .Should()
+               .Be(Models.Calcs.Severity.Error);
+
+            previewResponse
+              .CompilerOutput
+              .CompilerMessages
+              .First()
+              .Message
+              .Should()
+              .Be("Calculations.TestFunction must have a return statement so that a calculation result will be returned");
+        }
+
         [TestMethod]
         public async Task Compile_GivenStringCompareInCodeAndAggregatesIsEnabledAndNoAggregateFunctionsUsed_CompilesCodeAndReturnsOk()
         {
@@ -775,6 +917,138 @@ End Class";
                 sourceCodeService
                     .Received(1)
                     .SaveSourceFiles(Arg.Is(sourceFiles), Arg.Is(SpecificationId), Arg.Is(SourceCodeType.Preview));
+        }
+
+        [TestMethod]
+        public async Task Compile_GivenStringCompareInCodeAndAggregatesIsEnabledAndNoAggregateFunctionsUsedButNoReturnSet_ReturnsCompileErrorWithOneMessage()
+        {
+            //Arrange
+            const string stringCompareCode = @"Public Class AdditionalCalculations
+Public Property E1 As ExampleClass
+Public Function TestFunction As String
+' return ""blah""
+End Function
+End Class";
+
+            PreviewRequest model = new PreviewRequest
+            {
+                CalculationId = CalculationId,
+                SourceCode = stringCompareCode,
+                SpecificationId = SpecificationId
+            };
+
+            Calculation calculation = new Calculation
+            {
+                Id = CalculationId,
+                Current = new CalculationVersion
+                {
+                    Name = "TestFunction",
+                    SourceCodeName = "Horace"
+                },
+                SpecificationId = SpecificationId
+            };
+
+            IEnumerable<Calculation> calculations = new List<Calculation>() { calculation };
+
+            BuildProject buildProject = new BuildProject
+            {
+                SpecificationId = SpecificationId
+            };
+
+            IValidator<PreviewRequest> validator = CreatePreviewRequestValidator();
+
+            ILogger logger = CreateLogger();
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository
+                .GetCalculationById(Arg.Is(CalculationId))
+                .Returns(calculation);
+
+            calculationsRepository
+                .GetCalculationsBySpecificationId(Arg.Is(SpecificationId))
+                .Returns(calculations);
+
+            IBuildProjectsService buildProjectsService = CreateBuildProjectsService();
+            buildProjectsService
+                .GetBuildProjectForSpecificationId(Arg.Is(calculation.SpecificationId))
+                .Returns(buildProject);
+
+            List<SourceFile> sourceFiles = new List<SourceFile>
+            {
+                new SourceFile { FileName = "project.vbproj", SourceCode = "<Project Sdk=\"Microsoft.NET.Sdk\"><PropertyGroup><TargetFramework>netcoreapp2.0</TargetFramework></PropertyGroup></Project>" },
+                new SourceFile { FileName = "ExampleClass.vb", SourceCode = "Public Class ExampleClass\nPublic Property ProviderType() As String\nEnd Class" },
+                new SourceFile { FileName = "Calculation.vb", SourceCode = model.SourceCode }
+            };
+
+            Dictionary<string, string> sourceCodes = new Dictionary<string, string>()
+            {
+                { "Calculations.TestFunction", model.SourceCode }
+            };
+
+            Build compilerOutput = new Build
+            {
+                Success = true,
+                CompilerMessages = new List<CompilerMessage>(),
+                SourceFiles = sourceFiles
+            };
+
+            ISourceCodeService sourceCodeService = CreateSourceCodeService();
+            sourceCodeService
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>())
+                .Returns(compilerOutput);
+
+            sourceCodeService
+                .GetCalculationFunctions(Arg.Any<IEnumerable<SourceFile>>())
+                .Returns(sourceCodes);
+
+            IDatasetRepository datasetRepository = CreateDatasetRepository();
+
+            PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository,
+                buildProjectsService: buildProjectsService,
+                datasetRepository: datasetRepository, sourceCodeService: sourceCodeService);
+
+            //Act
+            IActionResult result = await service.Compile(model);
+
+            //Assert
+            OkObjectResult okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+
+            PreviewResponse previewResponse = okResult.Value.Should().BeOfType<PreviewResponse>().Subject;
+
+            previewResponse
+                .Calculation
+                .SourceCode
+                .Should()
+                .Be(stringCompareCode);
+
+            previewResponse
+                .CompilerOutput
+                .Success
+                .Should()
+                .BeFalse();
+
+            previewResponse
+               .CompilerOutput
+               .CompilerMessages
+               .Count()
+               .Should()
+               .Be(1);
+
+            previewResponse
+               .CompilerOutput
+               .CompilerMessages
+               .First()
+               .Severity
+               .Should()
+               .Be(Models.Calcs.Severity.Error);
+
+            previewResponse
+              .CompilerOutput
+              .CompilerMessages
+              .First()
+              .Message
+              .Should()
+              .Be("Calculations.TestFunction must have a return statement so that a calculation result will be returned");
         }
 
         [TestMethod]
