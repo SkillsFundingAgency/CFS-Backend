@@ -144,7 +144,7 @@ namespace CalculateFunding.Generators.Schema10
             {
                 fundingLine.Name,
                 fundingLine.FundingLineCode,
-                Value = Convert.ToInt32(fundingLineValues.Where(x => x.TemplateLineId == fundingLine.TemplateLineId)?.Single().Value),
+                Value = fundingLineValues.Where(x => x.TemplateLineId == fundingLine.TemplateLineId)?.Single().Value.DecimalAsObject(),
                 fundingLine.TemplateLineId,
                 Type = fundingLine.Type.ToString(),
                 Calculations = fundingLine.Calculations?.Select(x => ToCalculation(x, templateMapping, calculationResults, referenceData, providerId)),

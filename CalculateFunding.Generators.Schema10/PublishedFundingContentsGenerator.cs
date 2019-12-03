@@ -129,13 +129,13 @@ namespace CalculateFunding.Generators.Schema10
             {
                 Name = templateFundingLine.Name,
                 FundingLineCode = templateFundingLine.FundingLineCode,
-                Value = DecimalAsObject(publishedFundingLine.Value),
+                Value = publishedFundingLine.Value.DecimalAsObject(),
                 TemplateLineId = templateFundingLine.TemplateLineId,
                 Type = templateFundingLine.Type.ToString(),
                 Calculations = templateFundingLine.Calculations?.Where(IsAggregationOrHasChildCalculations)?.Select(_ => BuildSchemaJsonCalculations(referenceData, fundingCalculations, _, organisationGroupTypeIdentifier, organisationGroupIdentifierValue)),
                 DistributionPeriods = publishedFundingLine.DistributionPeriods?.Where(_ => _ != null).Select(distributionPeriod => new
                 {
-                    Value = Convert.ToInt32(distributionPeriod.Value),
+                    Value = distributionPeriod.Value.DecimalAsObject(),
                     distributionPeriod.DistributionPeriodId,
                     ProfilePeriods = distributionPeriod.ProfilePeriods?.Where(_ => _ != null).Select(profilePeriod => new
                     {
@@ -143,7 +143,7 @@ namespace CalculateFunding.Generators.Schema10
                         profilePeriod.TypeValue,
                         profilePeriod.Year,
                         profilePeriod.Occurrence,
-                        ProfiledValue = DecimalAsObject(profilePeriod.ProfiledValue),
+                        ProfiledValue = profilePeriod.ProfiledValue.DecimalAsObject(),
                         profilePeriod.DistributionPeriodId
                     }).ToArray()
                 }).ToArray() ?? new dynamic[0],
@@ -191,15 +191,6 @@ namespace CalculateFunding.Generators.Schema10
         {
             return fundingCalculation.AggregationType != Common.TemplateMetadata.Enums.AggregationType.None
                    || fundingCalculation.Calculations?.Any() == true;
-        }
-
-        private object DecimalAsObject(decimal? value)
-        {
-            bool isWholeNumber = value % 1M == 0M;
-
-            object decimalAsObject = isWholeNumber ? Convert.ToInt32(value) : (object)value;
-
-            return decimalAsObject;
         }
     }
 }
