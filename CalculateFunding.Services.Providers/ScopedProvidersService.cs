@@ -308,9 +308,8 @@ namespace CalculateFunding.Services.Providers
                 cacheGuid = Guid.NewGuid().ToString();
                 await _cacheProvider.SetAsync(redisCacheKey, cacheGuid, TimeSpan.FromDays(7), true);
             }
-
-            string fileSystemCachekey = $"scopedproviders-{specificationId}-{cacheGuid}";
-            ScopedProvidersFileSystemCacheKey cacheKey = new ScopedProvidersFileSystemCacheKey(fileSystemCachekey);
+           
+            ScopedProvidersFileSystemCacheKey cacheKey = new ScopedProvidersFileSystemCacheKey(specificationId, cacheGuid);
 
 
             if (fileSystemCacheEnabled && _fileSystemCache.Exists(cacheKey))

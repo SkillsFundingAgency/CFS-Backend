@@ -5,8 +5,8 @@ namespace CalculateFunding.Services.Providers.Caching
     public class ScopedProvidersFileSystemCacheKey : FileSystemCacheKey
 
     {
-        public ScopedProvidersFileSystemCacheKey(string key)
-            : base(key)
+        public ScopedProvidersFileSystemCacheKey(string specificationId,string cacheGuid)
+            : base($"scopedproviders_{specificationId}_{cacheGuid}")
         {
         }
 
