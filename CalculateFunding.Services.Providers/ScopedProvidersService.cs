@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Net;
+using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Common.Caching;
@@ -11,10 +14,16 @@ using CalculateFunding.Models.Providers;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Core.Caching;
+using CalculateFunding.Services.Core.Caching.FileSystem;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.Core.Interfaces.Proxies;
+using CalculateFunding.Services.Providers.Caching;
 using CalculateFunding.Services.Providers.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.Storage.Blob;
+using Newtonsoft.Json;
+using Serilog;
 
 namespace CalculateFunding.Services.Providers
 {
@@ -29,20 +38,35 @@ namespace CalculateFunding.Services.Providers
         private readonly ISpecificationsApiClientProxy _specificationsApiClient;
         private readonly IProviderVersionService _providerVersionService;
         private readonly IMapper _mapper;
+        private readonly IScopedProvidersServiceSettings _scopedProvidersServiceSettings;
+        private static volatile bool _haveCheckedFileSystemCacheFolder;
+        private readonly IFileSystemCache _fileSystemCache;
+             
 
-        public ScopedProvidersService(ICacheProvider cacheProvider, IResultsApiClientProxy resultsApiClient, ISpecificationsApiClientProxy specificationsApiClient, IProviderVersionService providerVersionService, IMapper mapper)
+        public ScopedProvidersService(ICacheProvider cacheProvider, 
+            IResultsApiClientProxy resultsApiClient, 
+            ISpecificationsApiClientProxy specificationsApiClient, 
+            IProviderVersionService providerVersionService, 
+            IMapper mapper,
+            IScopedProvidersServiceSettings scopedProvidersServiceSettings,
+            IFileSystemCache fileSystemCache)
         {
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
             Guard.ArgumentNotNull(resultsApiClient, nameof(resultsApiClient));
             Guard.ArgumentNotNull(specificationsApiClient, nameof(specificationsApiClient));
             Guard.ArgumentNotNull(providerVersionService, nameof(providerVersionService));
             Guard.ArgumentNotNull(mapper, nameof(mapper));
+            Guard.ArgumentNotNull(scopedProvidersServiceSettings, nameof(scopedProvidersServiceSettings));
+            Guard.ArgumentNotNull(fileSystemCache, nameof(fileSystemCache));
+                      
 
             _cacheProvider = cacheProvider;
             _resultsApiClient = resultsApiClient;
             _specificationsApiClient = specificationsApiClient;
             _providerVersionService = providerVersionService;
             _mapper = mapper;
+            _fileSystemCache = fileSystemCache;
+            _scopedProvidersServiceSettings = scopedProvidersServiceSettings;                    
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -66,8 +90,7 @@ namespace CalculateFunding.Services.Providers
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
 
             string cacheKeyScopedProviderSummariesCount = $"{CacheKeys.ScopedProviderSummariesCount}{specificationId}";
-            string cacheKeyAllProviderSummaries = $"{CacheKeys.AllProviderSummaries}{specificationId}";
-            string cacheKey = $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}";
+            string cacheKeyAllProviderSummaries = $"{CacheKeys.AllProviderSummaries}{specificationId}";          
 
             IEnumerable<ProviderSummary> allCachedProviders = Enumerable.Empty<ProviderSummary>();
 
@@ -110,6 +133,8 @@ namespace CalculateFunding.Services.Providers
                     providerSummaries.Add(cachedProvider);
                 }
             }
+            string cacheKey = $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}-CurrentVersion";
+            await _cacheProvider.SetAsync(cacheKey, Guid.NewGuid().ToString(), TimeSpan.FromDays(7),true);
 
             await _cacheProvider.KeyDeleteAsync<ProviderSummary>(cacheKey);
 
@@ -120,15 +145,15 @@ namespace CalculateFunding.Services.Providers
         }
 
         public async Task<IActionResult> FetchCoreProviderData(string specificationId)
-        {
-            IEnumerable<ProviderSummary> providerSummaries = await this.GetScopedProvidersBySpecification(specificationId);
+        {           
 
-            if (providerSummaries.IsNullOrEmpty())
+            IEnumerable<ProviderSummary> scopedProviderSummaries = await GetScopedProviders(specificationId);
+            if (scopedProviderSummaries.IsNullOrEmpty())
             {
                 return new NoContentResult();
             }
 
-            return new OkObjectResult(providerSummaries);
+            return new OkObjectResult(scopedProviderSummaries);
         }
 
         public async Task<IActionResult> GetScopedProviderIds(string specificationId)
@@ -252,6 +277,93 @@ namespace CalculateFunding.Services.Providers
             else
             {
                 return await _cacheProvider.ListRangeAsync<ProviderSummary>(cacheKeyAllProviderSummaries, 0, totalCount);
+            }
+        }
+
+        private async Task<IEnumerable<ProviderSummary>> GetScopedProviders(string specificationId)
+        {
+            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
+            
+            ContentResult contentResult = (ContentResult)await GetAllScopedProviders(specificationId);
+
+            return JsonConvert.DeserializeObject<IEnumerable<ProviderSummary>>(contentResult.Content);
+        }
+
+        private async Task<IActionResult> GetAllScopedProviders(string specificationId)
+        {
+            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
+
+            bool fileSystemCacheEnabled = _scopedProvidersServiceSettings.IsFileSystemCacheEnabled;
+
+            if (fileSystemCacheEnabled && !_haveCheckedFileSystemCacheFolder)
+            {               
+               _fileSystemCache.EnsureFoldersExist(ScopedProvidersFileSystemCacheKey.Folder);               
+            }
+           
+            string redisCacheKey = $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}-CurrentVersion";
+            string cacheGuid = await _cacheProvider.GetAsync<string>(redisCacheKey);
+           
+            if(cacheGuid.IsNullOrEmpty())
+            {
+                cacheGuid = Guid.NewGuid().ToString();
+                await _cacheProvider.SetAsync(redisCacheKey, cacheGuid, TimeSpan.FromDays(7), true);
+            }
+
+            string fileSystemCachekey = $"scopedproviders-{specificationId}-{cacheGuid}";
+            ScopedProvidersFileSystemCacheKey cacheKey = new ScopedProvidersFileSystemCacheKey(fileSystemCachekey);
+
+
+            if (fileSystemCacheEnabled && _fileSystemCache.Exists(cacheKey))
+            {
+                using (Stream cachedStream = _fileSystemCache.Get(cacheKey))
+                {
+                    return GetActionResultForStream(cachedStream, specificationId);
+                }
+            }
+            
+            IEnumerable<ProviderSummary> providerSummaries = await this.GetScopedProvidersBySpecification(specificationId);
+            if (providerSummaries.IsNullOrEmpty())
+            {
+                return new NoContentResult();
+            }
+            
+            using (MemoryStream stream = new MemoryStream(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(providerSummaries))))
+            { 
+                stream.Position = 0;
+
+                if (fileSystemCacheEnabled)
+                {
+                    _fileSystemCache.Add(cacheKey, stream);
+                }
+
+                return GetActionResultForStream(stream, specificationId);
+            }
+        }
+
+        private IActionResult GetActionResultForStream(Stream stream, string specificationId)
+        {
+            if (stream == null || stream.Length == 0)
+            {               
+                return new PreconditionFailedResult($"Blob for specificationId: {specificationId}  not found");
+            }
+
+            stream.Position = 0;
+
+            using (StreamReader reader = new StreamReader(stream))
+            {
+                string providerVersionString = reader.ReadToEnd();
+
+                if (!string.IsNullOrWhiteSpace(providerVersionString))
+                {
+                    return new ContentResult
+                    {
+                        Content = providerVersionString,
+                        ContentType = "application/json",
+                        StatusCode = (int)HttpStatusCode.OK
+                    };
+                }
+
+                return new NoContentResult();
             }
         }
     }

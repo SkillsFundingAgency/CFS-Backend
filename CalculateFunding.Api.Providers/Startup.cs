@@ -196,6 +196,16 @@ namespace CalculateFunding.Api.Providers
                     return settings;
                 });
 
+            builder
+               .AddSingleton<IScopedProvidersServiceSettings>(ctx =>
+               {
+                   ScopedProvidersServiceSettings settings = new ScopedProvidersServiceSettings();
+
+                   Configuration.Bind("scopedprovidersservicesetting", settings);
+
+                   return settings;
+               });
+
             builder.AddApiKeyMiddlewareSettings((IConfigurationRoot)Configuration);
 
             builder.AddHealthCheckMiddleware();

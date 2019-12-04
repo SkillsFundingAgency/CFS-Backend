@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Common.Caching;
@@ -8,11 +11,14 @@ using CalculateFunding.Models.Providers;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Core.Caching;
+using CalculateFunding.Services.Core.Caching.FileSystem;
 using CalculateFunding.Services.Core.Interfaces.Proxies;
+using CalculateFunding.Services.Providers.Caching;
 using CalculateFunding.Services.Providers.Interfaces;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Newtonsoft.Json;
 using NSubstitute;
 
 namespace CalculateFunding.Services.Providers.UnitTests
@@ -25,8 +31,8 @@ namespace CalculateFunding.Services.Providers.UnitTests
         {
             //Arrange
             string specificationId = Guid.NewGuid().ToString();
-            string providerVersionId = Guid.NewGuid().ToString();
-            string cacheKey = $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}";
+            string providerVersionId = Guid.NewGuid().ToString();           
+            string cacheKey = $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}-CurrentVersion";
 
             Provider provider = CreateProvider();
 
@@ -145,7 +151,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
         }
 
         [TestMethod]
-        public async Task FetchCoreProviderData_WhenInCache_ThenReturnsCacheValue()
+        public async Task FetchCoreProviderData_WhenNotInFileSystemCache_ThenReturnsFromRedisCacheValue()
         {
             // Arrange
             string specificationId = Guid.NewGuid().ToString();
@@ -170,6 +176,23 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 ProviderVersionId = providerVersionId
             };
 
+            IScopedProvidersServiceSettings settings = CreateSettings();
+            settings
+                .IsFileSystemCacheEnabled
+                .Returns(true);
+
+            IFileSystemCache fileSystemCache = CreateFileSystemCache();
+
+            MemoryStream memoryStream = new MemoryStream(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(cachedProviderSummaries as IEnumerable<ProviderSummary>)));
+            // memoryStream.Position = 0;
+
+
+            fileSystemCache.Get(Arg.Any<ScopedProvidersFileSystemCacheKey>())
+                .Returns(memoryStream);
+
+            fileSystemCache.Exists(Arg.Any<ScopedProvidersFileSystemCacheKey>())
+                .Returns(false);
+
             ICacheProvider cacheProvider = CreateCacheProvider();
             cacheProvider
                 .GetAsync<string>(Arg.Is(cacheKeyScopedProviderSummariesCount))
@@ -191,7 +214,11 @@ namespace CalculateFunding.Services.Providers.UnitTests
 
             IProviderVersionService providerVersionService = CreateProviderVersionService();
 
-            IScopedProvidersService providerService = CreateProviderService(cacheProvider: cacheProvider, providerVersionService: providerVersionService, specificationsApiClient: specificationsApiClient);
+            IScopedProvidersService providerService = CreateProviderService(cacheProvider: cacheProvider, 
+                providerVersionService: providerVersionService, 
+                specificationsApiClient: specificationsApiClient,
+                 fileSystemCache: fileSystemCache,
+                settings: settings);
 
             providerVersionService
                 .GetProvidersByVersion(Arg.Is(providerVersionId))
@@ -208,7 +235,106 @@ namespace CalculateFunding.Services.Providers.UnitTests
             OkObjectResult okObjectResult = result as OkObjectResult;
 
             IEnumerable<ProviderSummary> results = okObjectResult.Value as IEnumerable<ProviderSummary>;
-            results.Should().Contain(cachedProviderSummaries);
+            IEnumerable<ProviderSummary> expected = cachedProviderSummaries as IEnumerable<ProviderSummary>;
+            results.Should().Equals(expected);
+        }
+
+        [TestMethod]
+        public async Task FetchCoreProviderData_WhenInFileSystemCache_ThenReturnsFileSystemCacheValue()
+        {
+            // Arrange
+            string specificationId = Guid.NewGuid().ToString();
+            string providerVersionId = Guid.NewGuid().ToString();
+            string cacheKeyScopedProviderSummariesCount = $"{CacheKeys.ScopedProviderSummariesCount}{specificationId}";
+            string cacheKeyAllProviderSummaries = $"{CacheKeys.AllProviderSummaries}{specificationId}";
+
+            Provider provider = CreateProvider();
+
+            ProviderVersion providerVersion = new ProviderVersion
+            {
+                Providers = new List<Provider> { provider }
+            };
+
+            List<ProviderSummary> cachedProviderSummaries = new List<ProviderSummary>
+            {
+                MapProviderToSummary(provider)
+            };
+
+            SpecificationSummary specificationSummary = new SpecificationSummary
+            {
+                ProviderVersionId = providerVersionId
+            };
+
+            IScopedProvidersServiceSettings settings = CreateSettings();
+            settings
+                .IsFileSystemCacheEnabled
+                .Returns(true);
+
+            IFileSystemCache fileSystemCache = CreateFileSystemCache();
+
+            MemoryStream memoryStream = new MemoryStream(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(cachedProviderSummaries)));
+            memoryStream.Position = 0;
+
+            fileSystemCache.Get(Arg.Any<ScopedProvidersFileSystemCacheKey>())
+                .Returns(memoryStream);
+
+            fileSystemCache.Exists(Arg.Any<ScopedProvidersFileSystemCacheKey>())
+                .Returns(true);
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+            cacheProvider
+                .GetAsync<string>(Arg.Is(cacheKeyScopedProviderSummariesCount))
+                .Returns("1");
+
+            cacheProvider
+                .ListRangeAsync<ProviderSummary>(Arg.Is(cacheKeyAllProviderSummaries), Arg.Is(0), Arg.Is(1))
+                .Returns(cachedProviderSummaries);
+
+            cacheProvider
+                .ListLengthAsync<ProviderSummary>(Arg.Is(cacheKeyAllProviderSummaries))
+                .Returns(1);
+
+            ISpecificationsApiClientProxy specificationsApiClient = CreateSpecificationsApiClientProxy();
+            specificationsApiClient
+                .GetAsync<SpecificationSummary>(Arg.Any<string>())
+                .Returns(specificationSummary);
+
+
+            IProviderVersionService providerVersionService = CreateProviderVersionService();
+
+            IScopedProvidersService providerService = CreateProviderService(cacheProvider: cacheProvider, 
+                providerVersionService: providerVersionService, 
+                specificationsApiClient: specificationsApiClient,
+                fileSystemCache: fileSystemCache,
+                settings: settings);
+
+            providerVersionService
+                .GetProvidersByVersion(Arg.Is(providerVersionId))
+                .Returns(providerVersion);
+
+            // Act
+            IActionResult result = await providerService.FetchCoreProviderData(specificationId);
+
+            // Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>();
+
+            OkObjectResult okObjectResult = result as OkObjectResult;
+
+            IEnumerable<ProviderSummary> results = okObjectResult.Value as IEnumerable<ProviderSummary>;
+            IEnumerable<ProviderSummary> expected = cachedProviderSummaries as IEnumerable<ProviderSummary>;
+            results.Should().Equals(expected);
+
+            fileSystemCache
+               .DidNotReceive()
+               .Add(Arg.Any<ScopedProvidersFileSystemCacheKey>(),
+                   Arg.Is(memoryStream),
+                   Arg.Is(CancellationToken.None));
+
+            fileSystemCache
+                .Received(1)
+                .EnsureFoldersExist(ScopedProvidersFileSystemCacheKey.Folder);
         }
 
         [TestMethod]
@@ -295,6 +421,23 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 ProviderVersionId = providerVersionId
             };
 
+            IScopedProvidersServiceSettings settings = CreateSettings();
+            settings
+                .IsFileSystemCacheEnabled
+                .Returns(true);
+
+            IFileSystemCache fileSystemCache = CreateFileSystemCache();
+
+            MemoryStream memoryStream = new MemoryStream(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(cachedProviderSummaries as IEnumerable<ProviderSummary>)));
+            // memoryStream.Position = 0;
+           
+
+            fileSystemCache.Get(Arg.Any<ScopedProvidersFileSystemCacheKey>())
+                .Returns(memoryStream);
+
+            fileSystemCache.Exists(Arg.Any<ScopedProvidersFileSystemCacheKey>())
+                .Returns(false);
+
             ISpecificationsApiClientProxy specificationsApiClient = CreateSpecificationsApiClientProxy();
             specificationsApiClient
                 .GetAsync<SpecificationSummary>(Arg.Any<string>())
@@ -310,7 +453,11 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 .GetProvidersByVersion(Arg.Is(providerVersionId))
                 .Returns(providerVersion);
 
-            IScopedProvidersService providerService = CreateProviderService(cacheProvider: cacheProvider, providerVersionService: providerVersionService, specificationsApiClient: specificationsApiClient);
+            IScopedProvidersService providerService = CreateProviderService(cacheProvider: cacheProvider,
+                providerVersionService: providerVersionService, 
+                specificationsApiClient: specificationsApiClient,
+                fileSystemCache: fileSystemCache,
+                settings: settings);
 
             // Act
             IActionResult result = await providerService.FetchCoreProviderData(specificationId);
@@ -323,16 +470,39 @@ namespace CalculateFunding.Services.Providers.UnitTests
             await cacheProvider
                 .Received(1)
                 .CreateListAsync(Arg.Is<IEnumerable<ProviderSummary>>(l => l.Count() == 1), Arg.Is(cacheKeyAllProviderSummaries));
+
+            OkObjectResult okObjectResult = result as OkObjectResult;
+            IEnumerable<ProviderSummary> results = okObjectResult.Value as IEnumerable<ProviderSummary>;
+            MemoryStream stream = new MemoryStream(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(results)));
+
+
+            fileSystemCache
+              .Received(1)
+              .Add(Arg.Any<ScopedProvidersFileSystemCacheKey>(),
+                   Arg.Any<MemoryStream>(),
+                  Arg.Is(CancellationToken.None));
+
+            fileSystemCache
+                .Received(1)
+                .EnsureFoldersExist(ScopedProvidersFileSystemCacheKey.Folder);
         }
 
-        private IScopedProvidersService CreateProviderService(IProviderVersionService providerVersionService = null, ISpecificationsApiClientProxy specificationsApiClient = null, ICacheProvider cacheProvider = null, IResultsApiClientProxy resultsApiClient = null)
+        private IScopedProvidersService CreateProviderService(IProviderVersionService providerVersionService = null,
+            ISpecificationsApiClientProxy specificationsApiClient = null, 
+            ICacheProvider cacheProvider = null,
+            IFileSystemCache fileSystemCache = null,
+            IScopedProvidersServiceSettings settings = null,
+            IResultsApiClientProxy resultsApiClient = null)
         {
             return new ScopedProvidersService(
                 cacheProvider ?? CreateCacheProvider(),
                 resultsApiClient ?? CreateResultsApiClient(),
                 specificationsApiClient ?? CreateSpecificationsApiClientProxy(),
                 providerVersionService ?? CreateProviderVersionService(),
-                CreateMapper());
+                CreateMapper(),
+                settings ?? CreateSettings(),
+                fileSystemCache ?? CreateFileSystemCache()                
+                );
         }
 
         private IProviderVersionService CreateProviderVersionService()
@@ -432,8 +602,8 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 ProviderSubType = "ProviderSubType",
                 EstablishmentNumber = "EstablishmentNumber",
                 ProviderType = "ProviderType",
-                DateOpened = DateTime.UtcNow,
-                DateClosed = DateTime.UtcNow,
+                DateOpened = DateTime.UtcNow.Date,
+                DateClosed = DateTime.UtcNow.Date,
                 LACode = "LACode",
                 CrmAccountId = "CrmAccountId",
                 LegalName = "LegalName",
@@ -471,6 +641,16 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 LocalGovernmentGroupTypeCode = "LocalGovernmentGroupTypeCode",
                 LocalGovernmentGroupTypeName = "LocalGovernmentGroupTypeName"
             };
+        }
+
+        private IScopedProvidersServiceSettings CreateSettings()
+        {
+            return Substitute.For<IScopedProvidersServiceSettings>();
+        }
+
+        private IFileSystemCache CreateFileSystemCache()
+        {
+            return Substitute.For<IFileSystemCache>();
         }
     }
 }
