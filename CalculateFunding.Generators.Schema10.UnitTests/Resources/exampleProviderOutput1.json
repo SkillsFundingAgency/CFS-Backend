@@ -4,7 +4,7 @@
   "provider": {
     "identifier": "12345678",
     "name": "Example School 1",
-    "searchableName": "ExampleSchool1",
+    "searchableName": "Example_School_1",
     "otherIdentifiers": [
       {
         "type": "URN",

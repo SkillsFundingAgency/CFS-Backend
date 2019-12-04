@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Calcs.Models;
 using CalculateFunding.Common.ApiClient.Providers;
+using CalculateFunding.Common.Helpers;
 using CalculateFunding.Generators.Funding;
 using CalculateFunding.Generators.NavFeed.Options;
 using CalculateFunding.Generators.OrganisationGroup;
@@ -119,7 +120,7 @@ namespace CalculateFunding.Generators.NavFeed.Providers.v1
                 }),
                 OrganisationGroupTypeClassification = "LegalEntity",
                 OrganisationGroupIdentifierValue = targetOrganisationGroup?.Identifiers?.Where(x => x.Type == OrganisationGroupTypeIdentifier.UKPRN).FirstOrDefault()?.Value,
-                OrganisationGroupSearchableName = Helpers.SanitiseName(targetOrganisationGroup?.Name),
+                OrganisationGroupSearchableName = Sanitiser.SanitiseName(targetOrganisationGroup?.Name),
                 FundingLines = new List<FundingLine>
                         {
                             new FundingLine

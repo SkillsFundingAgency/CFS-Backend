@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using CalculateFunding.Common.ApiClient.Calcs.Models;
+using CalculateFunding.Common.Helpers;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models;
@@ -32,7 +33,7 @@ namespace CalculateFunding.Generators.Schema10
                 {
                     Identifier = publishedProviderVersion.ProviderId,
                     publishedProviderVersion.Provider.Name,
-                    SearchableName = System.Text.RegularExpressions.Regex.Replace(publishedProviderVersion.Provider.Name, @"\s+", string.Empty),
+                    SearchableName = Sanitiser.SanitiseName(publishedProviderVersion.Provider.Name),
                     OtherIdentifiers = GetOtherIdentifiers(publishedProviderVersion.Provider),
                     publishedProviderVersion.Provider.ProviderVersionId,
                     publishedProviderVersion.Provider.ProviderType,
