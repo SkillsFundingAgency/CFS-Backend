@@ -30,7 +30,15 @@
 
             public const string ProcessDataset = "dataset-events-datasets";
 
+            public const string ProcessDatasetPoisoned = "dataset-events-datasets/$DeadLetterQueue";
+
+            public const string ProcessDatasetPoisonedLocal = "dataset-events-datasets-poisoned";
+
             public const string ValidateDataset = "dataset-validate";
+
+            public const string ValidateDatasetPoisoned = "dataset-validate/$DeadLetterQueue";
+
+            public const string ValidateDatasetPoisonedLocal = "dataset-validate-poisoned";
 
             public const string CreateDraftCalculation = "calc-events-create-draft";
 

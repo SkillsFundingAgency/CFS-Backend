@@ -28,6 +28,21 @@ namespace CalculateFunding.Functions.DebugQueue
             }
         }
 
+        [FunctionName("on-dataset-event-poisoned")]
+        public static async Task RunPublishProviderResultsFailure([QueueTrigger(ServiceBusConstants.QueueNames.ProcessDatasetPoisonedLocal, Connection = "AzureConnectionString")] string item, ILogger log)
+        {
+            using (IServiceScope scope = Functions.Datasets.Startup.RegisterComponents(new ServiceCollection()).CreateScope())
+            {
+                Message message = Helpers.ConvertToMessage<string>(item);
+
+                OnDatasetEventFailure function = scope.ServiceProvider.GetService<OnDatasetEventFailure>();
+
+                await function.Run(message);
+
+                log.LogInformation($"C# Queue trigger function processed: {item}");
+            }
+        }
+
         [FunctionName("on-dataset-validation-event")]
         public static async Task RunValidateDatasetEvent([QueueTrigger(ServiceBusConstants.QueueNames.ValidateDataset, Connection = "AzureConnectionString")] string item, ILogger log)
         {
@@ -37,6 +52,21 @@ namespace CalculateFunding.Functions.DebugQueue
                 Message message = Helpers.ConvertToMessage<GetDatasetBlobModel>(item);
 
                 OnDatasetValidationEvent function = scope.ServiceProvider.GetService<OnDatasetValidationEvent>();
+
+                await function.Run(message);
+
+                log.LogInformation($"C# Queue trigger function processed: {item}");
+            }
+        }
+
+        [FunctionName("on-dataset-validation-event-poisoned")]
+        public static async Task RunOnValidateDatasetsFailure([QueueTrigger(ServiceBusConstants.QueueNames.ValidateDatasetPoisonedLocal, Connection = "AzureConnectionString")] string item, ILogger log)
+        {
+            using (IServiceScope scope = Functions.Datasets.Startup.RegisterComponents(new ServiceCollection()).CreateScope())
+            {
+                Message message = Helpers.ConvertToMessage<string>(item);
+
+                OnDatasetValidationEventFailure function = scope.ServiceProvider.GetService<OnDatasetValidationEventFailure>();
 
                 await function.Run(message);
 

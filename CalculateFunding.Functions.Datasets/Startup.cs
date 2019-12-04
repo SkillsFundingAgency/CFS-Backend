@@ -66,6 +66,12 @@ namespace CalculateFunding.Functions.Datasets
               .AddSingleton<OnDatasetValidationEvent>();
 
             builder
+                .AddSingleton<OnDatasetEventFailure>();
+
+            builder
+                .AddSingleton<OnDatasetValidationEventFailure>();
+
+            builder
                .AddSingleton<IDefinitionsService, DefinitionsService>();
 
             builder
