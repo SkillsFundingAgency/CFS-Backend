@@ -45,8 +45,7 @@ namespace CalculateFunding.Services.Calcs
         {
             IEnumerable<Calculation> allCalculations = await _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCalculationsBySpecificationId(specificationId));
 
-            bool generateCalculationAggregations = allCalculations.IsNullOrEmpty() ? false :
-                SourceCodeHelpers.HasCalculationAggregateFunctionParameters(allCalculations.Select(m => m.Current.SourceCode));
+            bool generateCalculationAggregations = SourceCodeHelpers.HasCalculationAggregateFunctionParameters(allCalculations.Select(m => m.Current.SourceCode));
 
             JobCreateModel job = new JobCreateModel
             {

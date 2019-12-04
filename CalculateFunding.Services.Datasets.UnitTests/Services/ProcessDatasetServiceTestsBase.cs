@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Providers;
@@ -6,6 +7,7 @@ using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Models.Results;
+using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.Core.Interfaces.Logging;
@@ -20,7 +22,6 @@ namespace CalculateFunding.Services.Datasets.Services
 {
     public abstract class ProcessDatasetServiceTestsBase
     {
-        protected const string DatasetName = "test-dataset";
         protected const string Username = "test-user";
         protected const string UserId = "33d7a71b-f570-4425-801b-250b9129f3d3";
         protected const string DataDefintionId = "45d7a71b-f570-4425-801b-250b9129f124";
@@ -45,7 +46,8 @@ namespace CalculateFunding.Services.Datasets.Services
             IFeatureToggle featureToggle = null,
             IJobsApiClient jobsApiClient = null,
             IMapper mapper = null,
-            IJobManagement jobManagement = null)
+            IJobManagement jobManagement = null,
+            IProviderSourceDatasetVersionKeyProvider versionKeyProvider = null)
         {
 
             return new ProcessDatasetService(
@@ -65,7 +67,18 @@ namespace CalculateFunding.Services.Datasets.Services
                 featureToggle ?? CreateFeatureToggle(),
                 jobsApiClient ?? CreateJobsApiClient(),
                 mapper ?? CreateMapper(),
-                jobManagement ?? CreateJobManagement());
+                jobManagement ?? CreateJobManagement(),
+                versionKeyProvider ?? CreateDatasetVersionKeyProvider());
+        }
+
+        protected static IProviderSourceDatasetVersionKeyProvider CreateDatasetVersionKeyProvider()
+        {
+            IProviderSourceDatasetVersionKeyProvider providerSourceDatasetVersionKeyProvider = Substitute.For<IProviderSourceDatasetVersionKeyProvider>();
+
+            providerSourceDatasetVersionKeyProvider.AddOrUpdateProviderSourceDatasetVersionKey(Arg.Any<string>(), Arg.Any<Guid>())
+                .Returns(Task.CompletedTask);
+            
+            return providerSourceDatasetVersionKeyProvider;
         }
 
         protected static IJobManagement CreateJobManagement()

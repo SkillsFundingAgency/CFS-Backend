@@ -38,18 +38,25 @@ namespace CalculateFunding.Services.Core.Caching.FileSystem
             }
         }
 
-        public void Add(FileSystemCacheKey key, Stream contents, CancellationToken cancellationToken = default)
+        public void Add(FileSystemCacheKey key, Stream contents, CancellationToken cancellationToken = default, bool ensureFolderExists = false)
         {
+            string cachePathForKey = CachePathForKey(key);
+            
             try
             {
                 lock (KeyLockFor(key))
                 {
-                    _fileSystemAccess.Write(CachePathForKey(key), contents, cancellationToken)
+                    if (ensureFolderExists)
+                    {
+                        EnsureFolderExists(Path.GetDirectoryName(cachePathForKey));
+                    }
+                    
+                    _fileSystemAccess.Write(cachePathForKey, contents, cancellationToken)
                         .GetAwaiter()
                         .GetResult();
                 }
             }
-            catch (IOException ioException) when (_fileSystemAccess.Exists(CachePathForKey(key)))
+            catch (IOException ioException) when (_fileSystemAccess.Exists(cachePathForKey))
             {
                 _logger.Warning("Detected file collision for CachePathForKey(key). Swallowing exception");
             }

@@ -17,6 +17,8 @@ using CalculateFunding.Services.CalcEngine.Validators;
 using CalculateFunding.Services.Calcs;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Core.AspNet;
+using CalculateFunding.Services.Core.Caching;
+using CalculateFunding.Services.Core.Caching.FileSystem;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
@@ -61,6 +63,18 @@ namespace CalculateFunding.Functions.CalcEngine
             builder.AddSingleton<ICalculationEngine, CalculationEngine>();
             builder.AddSingleton<IAllocationFactory, AllocationFactory>();
             builder.AddScoped<IJobHelperService, JobHelperService>();
+            builder.AddSingleton<IProviderSourceDatasetVersionKeyProvider, ProviderSourceDatasetVersionKeyProvider>();
+            builder.AddSingleton<IFileSystemAccess, FileSystemAccess>();
+
+            builder.AddSingleton<IFileSystemCacheSettings, FileSystemCacheSettings>(ctx =>
+            {
+                FileSystemCacheSettings settings = new FileSystemCacheSettings();
+
+                config.Bind("FileSystemCacheSettings", settings);
+
+                return settings;
+            });
+            builder.AddSingleton<IFileSystemCache, FileSystemCache>();
 
             builder.AddSingleton<IProviderSourceDatasetsRepository, ProviderSourceDatasetsRepository>((ctx) =>
             {
@@ -70,11 +84,12 @@ namespace CalculateFunding.Functions.CalcEngine
 
                 providerSourceDatasetsCosmosSettings.ContainerName = "providerdatasets";
 
-                CosmosRepository calcsCosmosRepostory = new CosmosRepository(providerSourceDatasetsCosmosSettings);
-
+                CosmosRepository calcsCosmosRepository = new CosmosRepository(providerSourceDatasetsCosmosSettings);
                 EngineSettings engineSettings = ctx.GetService<EngineSettings>();
+                IFileSystemCache fileSystemCache = ctx.GetService<IFileSystemCache>();
+                IProviderSourceDatasetVersionKeyProvider versionKeyProvider = ctx.GetService<IProviderSourceDatasetVersionKeyProvider>();
 
-                return new ProviderSourceDatasetsRepository(calcsCosmosRepostory, engineSettings);
+                return new ProviderSourceDatasetsRepository(calcsCosmosRepository, engineSettings, versionKeyProvider, fileSystemCache);
             });
 
             builder.AddSingleton<IProviderResultCalculationsHashProvider, ProviderResultCalculationsHashProvider>();

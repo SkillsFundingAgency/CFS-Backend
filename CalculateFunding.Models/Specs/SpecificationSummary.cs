@@ -27,5 +27,8 @@ namespace CalculateFunding.Models.Specs
 
         [JsonProperty("templateIds")]
         public IDictionary<string, string> TemplateIds { get; set; } = new Dictionary<string, string>();
+        
+        [JsonProperty("dataDefinitionRelationshipIds")]
+        public IEnumerable<string> DataDefinitionRelationshipIds { get; set; }
     }
 }

@@ -7,7 +7,7 @@ namespace CalculateFunding.Services.Core.Caching.FileSystem
     {
         bool Exists(FileSystemCacheKey key);
 
-        void Add(FileSystemCacheKey key, Stream content, CancellationToken cancellationToken = default);
+        void Add(FileSystemCacheKey key, Stream content, CancellationToken cancellationToken = default, bool ensureFolderExists = false);
 
         Stream Get(FileSystemCacheKey key);
 

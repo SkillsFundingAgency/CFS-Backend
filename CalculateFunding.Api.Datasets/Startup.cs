@@ -14,6 +14,7 @@ using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.AspNet.HealthChecks;
 using CalculateFunding.Services.Core.AzureStorage;
+using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
@@ -193,6 +194,9 @@ namespace CalculateFunding.Api.Datasets
 
             builder
                .AddSingleton<ICalcsRepository, CalcsRepository>();
+
+            builder
+                .AddSingleton<IProviderSourceDatasetVersionKeyProvider, ProviderSourceDatasetVersionKeyProvider>();
 
             builder
                 .AddSingleton<ICancellationTokenProvider, HttpContextCancellationProvider>();

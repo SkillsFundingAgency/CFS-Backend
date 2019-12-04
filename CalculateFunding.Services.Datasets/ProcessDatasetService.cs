@@ -39,6 +39,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.Storage.Blob;
 using Newtonsoft.Json;
+using OfficeOpenXml.FormulaParsing.Excel.Functions.Information;
 using Polly;
 using Serilog;
 using VersionReference = CalculateFunding.Models.VersionReference;
@@ -65,6 +66,7 @@ namespace CalculateFunding.Services.Datasets
         private readonly IJobsApiClient _jobsApiClient;
         private readonly IMapper _mapper;
         private readonly IJobManagement _jobManagement;
+        private readonly IProviderSourceDatasetVersionKeyProvider _datasetVersionKeyProvider;
 
         public ProcessDatasetService(
             IDatasetRepository datasetRepository,
@@ -83,7 +85,8 @@ namespace CalculateFunding.Services.Datasets
             IFeatureToggle featureToggle,
             IJobsApiClient jobsApiClient,
             IMapper mapper,
-            IJobManagement jobManagement)
+            IJobManagement jobManagement, 
+            IProviderSourceDatasetVersionKeyProvider datasetVersionKeyProvider)
         {
             Guard.ArgumentNotNull(datasetRepository, nameof(datasetRepository));
             Guard.ArgumentNotNull(excelDatasetReader, nameof(excelDatasetReader));
@@ -101,6 +104,7 @@ namespace CalculateFunding.Services.Datasets
             Guard.ArgumentNotNull(datasetsResiliencePolicies?.ProviderResultsRepository, nameof(datasetsResiliencePolicies.ProviderResultsRepository));
             Guard.ArgumentNotNull(datasetsResiliencePolicies?.JobsApiClient, nameof(datasetsResiliencePolicies.JobsApiClient));
             Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
+            Guard.ArgumentNotNull(datasetVersionKeyProvider, nameof(datasetVersionKeyProvider));
 
             _datasetRepository = datasetRepository;
             _excelDatasetReader = excelDatasetReader;
@@ -120,6 +124,7 @@ namespace CalculateFunding.Services.Datasets
             _messengerService = messengerService;
             _mapper = mapper;
             _jobManagement = jobManagement;
+            _datasetVersionKeyProvider = datasetVersionKeyProvider;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -223,6 +228,8 @@ namespace CalculateFunding.Services.Datasets
                 _logger.Error(exception, $"Failed to run ProcessDataset with exception: {exception.Message} for relationship ID '{relationshipId}'");
                 throw;
             }
+            
+            await _datasetVersionKeyProvider.AddOrUpdateProviderSourceDatasetVersionKey(relationshipId, Guid.NewGuid());
 
             if (buildProject != null && !buildProject.DatasetRelationships.IsNullOrEmpty() && buildProject.DatasetRelationships.Any(m => m.DefinesScope))
             {
@@ -252,9 +259,8 @@ namespace CalculateFunding.Services.Datasets
 
                     IEnumerable<CalculationResponseModel> allCalculations = await _calcsRepository.GetCurrentCalculationsBySpecificationId(specificationId);
 
-                    bool generateCalculationAggregations = allCalculations.IsNullOrEmpty()
-                        ? false
-                        : SourceCodeHelpers.HasCalculationAggregateFunctionParameters(allCalculations.Select(m => m.SourceCode));
+                    bool generateCalculationAggregations = !allCalculations.IsNullOrEmpty() && 
+                                                           SourceCodeHelpers.HasCalculationAggregateFunctionParameters(allCalculations.Select(m => m.SourceCode));
 
                     await SendInstructAllocationsToJobService($"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}", specificationId, userId, userName, trigger, correlationId, generateCalculationAggregations);
                 }
@@ -267,7 +273,7 @@ namespace CalculateFunding.Services.Datasets
             }
         }
 
-        async public Task<IActionResult> GetDatasetAggregationsBySpecificationId(string specificationId)
+        public async Task<IActionResult> GetDatasetAggregationsBySpecificationId(string specificationId)
         {
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
 

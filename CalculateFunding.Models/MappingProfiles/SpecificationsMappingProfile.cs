@@ -15,7 +15,9 @@ namespace CalculateFunding.Models.MappingProfiles
                 .ForMember(m => m.ApprovalStatus, opt => opt.MapFrom(p => p.Current.PublishStatus))
                 .ForMember(m => m.ProviderVersionId, opt => opt.MapFrom(p => p.Current.ProviderVersionId))
                 .ForMember(m => m.TemplateIds, opt => opt.MapFrom(
-                    p => p.Current.TemplateIds.ToDictionary(_ => _.Key, _ => _.Value)));
+                    p => p.Current.TemplateIds.ToDictionary(_ => _.Key, _ => _.Value)))
+                .ForMember(m => m.DataDefinitionRelationshipIds, opt => opt.MapFrom(
+                    p => p.Current.DataDefinitionRelationshipIds.ToArray()));
         }
     }
 }

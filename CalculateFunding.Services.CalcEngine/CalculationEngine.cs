@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
-using System.Threading.Tasks;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Models.Calcs;
@@ -18,56 +16,20 @@ namespace CalculateFunding.Services.CalcEngine
     public class CalculationEngine : ICalculationEngine
     {
         private readonly IAllocationFactory _allocationFactory;
-        private readonly ICalculationsRepository _calculationsRepository;
         private readonly ILogger _logger;
 
-        public CalculationEngine(IAllocationFactory allocationFactory, ICalculationsRepository calculationsRepository, ILogger logger)
+        public CalculationEngine(IAllocationFactory allocationFactory, ILogger logger)
         {
             Guard.ArgumentNotNull(allocationFactory, nameof(allocationFactory));
-            Guard.ArgumentNotNull(calculationsRepository, nameof(calculationsRepository));
             Guard.ArgumentNotNull(logger, nameof(logger));
 
             _allocationFactory = allocationFactory;
-            _calculationsRepository = calculationsRepository;
             _logger = logger;
         }
 
         public IAllocationModel GenerateAllocationModel(Assembly assembly)
         {
             return _allocationFactory.CreateAllocationModel(assembly);
-        }
-
-        async public Task<IEnumerable<ProviderResult>> GenerateAllocations(BuildProject buildProject, IEnumerable<ProviderSummary> providers, Func<string, string, Task<IEnumerable<ProviderSourceDataset>>> getProviderSourceDatasets)
-        {
-            var assembly = Assembly.Load(buildProject.Build.Assembly);
-
-            var allocationModel = _allocationFactory.CreateAllocationModel(assembly);
-
-            ConcurrentBag<ProviderResult> providerResults = new ConcurrentBag<ProviderResult>();
-
-            IEnumerable<CalculationSummaryModel> calculations = await _calculationsRepository.GetCalculationSummariesForSpecification(buildProject.SpecificationId);
-
-            Parallel.ForEach(providers, new ParallelOptions { MaxDegreeOfParallelism = 5 }, provider =>
-            {
-               var stopwatch = new Stopwatch();
-               stopwatch.Start();
-
-               IEnumerable<ProviderSourceDataset> providerSourceDatasets = getProviderSourceDatasets(provider.Id, buildProject.SpecificationId).Result;
-
-               if (providerSourceDatasets == null)
-               {
-                   providerSourceDatasets = Enumerable.Empty<ProviderSourceDataset>();
-               }
-
-               ProviderResult result = CalculateProviderResults(allocationModel, buildProject, calculations, provider, providerSourceDatasets.ToList());
-
-               providerResults.Add(result);
-
-               stopwatch.Stop();
-               _logger.Debug($"Generated result for {provider.Name} in {stopwatch.ElapsedMilliseconds}ms");
-           });
-
-            return providerResults;
         }
 
         public ProviderResult CalculateProviderResults(IAllocationModel model, BuildProject buildProject, IEnumerable<CalculationSummaryModel> calculations,

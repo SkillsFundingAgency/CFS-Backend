@@ -49,15 +49,16 @@ namespace CalculateFunding.Services.Core.Caching.FileSystem
         }
 
         [TestMethod]
-        public void AddWritesBytesToSuppliedPath()
+        public void AddWritesBytesToSuppliedPathAndEnsuresFolderExists()
         {
             string key = NewRandomString();
             Stream content = new MemoryStream();
             CancellationToken cancellationToken = new CancellationToken();
 
-            WhenTheContentIsAdded(key, content, cancellationToken);
+            WhenTheContentIsAdded(key, content, cancellationToken, ensureFolderExists: true);
 
             ThenTheBytesWereWritten(key, content, cancellationToken);
+            AndFolderWasCreated(Path.GetDirectoryName(CachePathForKey(key)));
         }
         
         [TestMethod]
@@ -218,9 +219,9 @@ namespace CalculateFunding.Services.Core.Caching.FileSystem
             return _cache.Get(new TestCacheKey(key));
         }
 
-        private void WhenTheContentIsAdded(string key, Stream content, CancellationToken cancellationToken)
+        private void WhenTheContentIsAdded(string key, Stream content, CancellationToken cancellationToken, bool ensureFolderExists = false)
         {
-            _cache.Add(new TestCacheKey(key), content, cancellationToken);
+            _cache.Add(new TestCacheKey(key), content, cancellationToken, ensureFolderExists);
         }
 
         private void ThenTheBytesWereWritten(string key, Stream content, CancellationToken cancellationToken)

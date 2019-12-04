@@ -7,13 +7,7 @@ namespace CalculateFunding.Models.Results
     public class ProviderSourceDataset : IIdentifiable
     {
         [JsonProperty("id")]
-        public string Id
-        {
-            get
-            {
-                return $"{SpecificationId}_{DataRelationship?.Id}_{ProviderId}";
-            }
-        }
+        public string Id => $"{SpecificationId}_{DataRelationship?.Id}_{ProviderId}";
 
         [JsonProperty("specificationId")]
         public string SpecificationId { get; set; }
@@ -41,6 +35,5 @@ namespace CalculateFunding.Models.Results
 
         [JsonProperty("current")]
         public ProviderSourceDatasetVersion Current { get; set; }
-
     }
 }

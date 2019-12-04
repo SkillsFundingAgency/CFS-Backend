@@ -176,6 +176,11 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                     },
                     Description = "Specification Description",
                     FundingPeriod = new Reference("FP1", "Funding Period"),
+                    DataDefinitionRelationshipIds = new []
+                    {
+                        "dr1", 
+                        "dr2"
+                    }
                 });
 
             await specificationsRepository

@@ -9,8 +9,9 @@ using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.ApiClient.Specifications;
+using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Caching;
-using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Models.Calcs;
@@ -43,15 +44,16 @@ namespace CalculateFunding.Services.CalcEngine
         private readonly ITelemetry _telemetry;
         private readonly IProviderResultsRepository _providerResultsRepository;
         private readonly ICalculationsRepository _calculationsRepository;
+        private readonly ISpecificationsApiClient _specificationsApiClient;
         private readonly EngineSettings _engineSettings;
         private readonly Policy _cacheProviderPolicy;
         private readonly Policy _messengerServicePolicy;
         private readonly Policy _providerSourceDatasetsRepositoryPolicy;
         private readonly Policy _providerResultsRepositoryPolicy;
         private readonly Policy _calculationsRepositoryPolicy;
+        private readonly Policy _specificationsApiPolicy;
         private readonly IValidator<ICalculatorResiliencePolicies> _calculatorResiliencePoliciesValidator;
         private readonly IDatasetAggregationsRepository _datasetAggregationsRepository;
-        private readonly IFeatureToggle _featureToggle;
         private readonly IJobsApiClient _jobsApiClient;
         private readonly Policy _jobsApiClientPolicy;
 
@@ -68,13 +70,18 @@ namespace CalculateFunding.Services.CalcEngine
             ICalculatorResiliencePolicies resiliencePolicies,
             IValidator<ICalculatorResiliencePolicies> calculatorResiliencePoliciesValidator,
             IDatasetAggregationsRepository datasetAggregationsRepository,
-            IFeatureToggle featureToggle,
-            IJobsApiClient jobsApiClient)
+            IJobsApiClient jobsApiClient, 
+            ISpecificationsApiClient specificationsApiClient)
         {
             _calculatorResiliencePoliciesValidator = calculatorResiliencePoliciesValidator;
 
+            //this should be a component and the calculatorResiliencePoliciesValidator should be one its dependencies
+            
             CalculationEngineServiceValidator.ValidateConstruction(_calculatorResiliencePoliciesValidator,
                 engineSettings, resiliencePolicies, calculationsRepository);
+            
+            Guard.ArgumentNotNull(specificationsApiClient, nameof(specificationsApiClient));
+            Guard.ArgumentNotNull(resiliencePolicies?.SpecificationsApiClient, nameof(resiliencePolicies.SpecificationsApiClient));
 
             _logger = logger;
             _calculationEngine = calculationEngine;
@@ -91,12 +98,13 @@ namespace CalculateFunding.Services.CalcEngine
             _providerResultsRepositoryPolicy = resiliencePolicies.ProviderResultsRepository;
             _calculationsRepositoryPolicy = resiliencePolicies.CalculationsRepository;
             _datasetAggregationsRepository = datasetAggregationsRepository;
-            _featureToggle = featureToggle;
             _jobsApiClient = jobsApiClient;
+            _specificationsApiClient = specificationsApiClient;
+            _specificationsApiPolicy = resiliencePolicies.SpecificationsApiClient;
             _jobsApiClientPolicy = resiliencePolicies.JobsApiClient;
         }
 
-        async public Task<IActionResult> GenerateAllocations(HttpRequest request)
+        public async Task<IActionResult> GenerateAllocations(HttpRequest request)
         {
             string json = GetMessage();
 
@@ -151,15 +159,17 @@ namespace CalculateFunding.Services.CalcEngine
 
             IEnumerable<ProviderSummary> summaries = null;
 
-            _logger.Information($"Generating allocations for specification id {messageProperties.SpecificationId}");
+            string specificationId = messageProperties.SpecificationId;
+            
+            _logger.Information($"Generating allocations for specification id {specificationId}");
 
-            BuildProject buildProject = await GetBuildProject(messageProperties.SpecificationId);
+            BuildProject buildProject = await GetBuildProject(specificationId);
 
-            byte[] assembly = await _calculationsRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetAssemblyBySpecificationId(messageProperties.SpecificationId));
+            byte[] assembly = await _calculationsRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetAssemblyBySpecificationId(specificationId));
 
             if (assembly == null)
             {
-                string error = $"Failed to get assembly for specification Id '{messageProperties.SpecificationId}'";
+                string error = $"Failed to get assembly for specification Id '{specificationId}'";
                 _logger.Error(error);
                 throw new RetriableException(error);
             }
@@ -179,10 +189,16 @@ namespace CalculateFunding.Services.CalcEngine
             int providerBatchSize = _engineSettings.ProviderBatchSize;
 
             Stopwatch calculationsLookupStopwatch = Stopwatch.StartNew();
-            IEnumerable<CalculationSummaryModel> calculations = await _calculationsRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCalculationSummariesForSpecification(messageProperties.SpecificationId));
+            IEnumerable<CalculationSummaryModel> calculations = await _calculationsRepositoryPolicy.ExecuteAsync(() => 
+                _calculationsRepository.GetCalculationSummariesForSpecification(specificationId));
+            ApiResponse<SpecificationSummary> specificationSummary =
+                await _specificationsApiPolicy.ExecuteAsync(() => _specificationsApiClient.GetSpecificationSummaryById(specificationId));
+            
+            IEnumerable<string> dataRelationshipIds = specificationSummary.Content.DataDefinitionRelationshipIds;
+            
             if (calculations == null)
             {
-                _logger.Error($"Calculations lookup API returned null for specification id {messageProperties.SpecificationId}");
+                _logger.Error($"Calculations lookup API returned null for specification id {specificationId}");
 
                 throw new InvalidOperationException("Calculations lookup API returned null");
             }
@@ -200,10 +216,19 @@ namespace CalculateFunding.Services.CalcEngine
                 Stopwatch providerSourceDatasetsStopwatch = new Stopwatch();
 
                 Stopwatch calcTiming = Stopwatch.StartNew();
+                
+                CalculationResultsModel calculationResults = await CalculateResults(summaries, 
+                    calculations, 
+                    aggregations, 
+                    dataRelationshipIds,
+                    buildProject, 
+                    messageProperties, 
+                    providerBatchSize, 
+                    i, 
+                    providerSourceDatasetsStopwatch, 
+                    calculationStopwatch);
 
-                CalculationResultsModel calculationResults = await CalculateResults(summaries, calculations, aggregations, buildProject, messageProperties, providerBatchSize, i, providerSourceDatasetsStopwatch, calculationStopwatch);
-
-                _logger.Information($"Calculating results complete for specification id {messageProperties.SpecificationId}");
+                _logger.Information($"Calculating results complete for specification id {specificationId}");
 
                 long saveCosmosElapsedMs = -1;
                 long saveSearchElapsedMs = -1;
@@ -234,7 +259,7 @@ namespace CalculateFunding.Services.CalcEngine
 
                         if (calculationResults.ResultsContainExceptions)
                         {
-                            _logger.Warning($"Exception(s) executing specification id '{messageProperties.SpecificationId}:  {calculationResults.ExceptionMessages}");
+                            _logger.Warning($"Exception(s) executing specification id '{specificationId}:  {calculationResults.ExceptionMessages}");
                             calculationResultsHaveExceptions = true;
                         }
                     }
@@ -271,7 +296,7 @@ namespace CalculateFunding.Services.CalcEngine
                 _telemetry.TrackEvent("CalculationRunProvidersProcessed",
                     new Dictionary<string, string>()
                     {
-                    { "specificationId" , messageProperties.SpecificationId },
+                    { "specificationId" , specificationId },
                     { "buildProjectId" , buildProject.Id },
                     },
                     metrics
@@ -288,8 +313,16 @@ namespace CalculateFunding.Services.CalcEngine
             }
         }
 
-        private async Task<CalculationResultsModel> CalculateResults(IEnumerable<ProviderSummary> summaries, IEnumerable<CalculationSummaryModel> calculations, IEnumerable<CalculationAggregation> aggregations, BuildProject buildProject,
-            GenerateAllocationMessageProperties messageProperties, int providerBatchSize, int index, Stopwatch providerSourceDatasetsStopwatch, Stopwatch calculationStopwatch)
+        private async Task<CalculationResultsModel> CalculateResults(IEnumerable<ProviderSummary> summaries, 
+            IEnumerable<CalculationSummaryModel> calculations, 
+            IEnumerable<CalculationAggregation> aggregations,
+            IEnumerable<string> dataRelationshipIds,
+            BuildProject buildProject,
+            GenerateAllocationMessageProperties messageProperties, 
+            int providerBatchSize, 
+            int index, 
+            Stopwatch providerSourceDatasetsStopwatch, 
+            Stopwatch calculationStopwatch)
         {
             ConcurrentBag<ProviderResult> providerResults = new ConcurrentBag<ProviderResult>();
 
@@ -301,11 +334,12 @@ namespace CalculateFunding.Services.CalcEngine
 
             _logger.Information($"Fetching provider sources for specification id {messageProperties.SpecificationId}");
 
-            List<ProviderSourceDataset> providerSourceDatasets = new List<ProviderSourceDataset>(await _providerSourceDatasetsRepositoryPolicy.ExecuteAsync(() => _providerSourceDatasetsRepository.GetProviderSourceDatasetsByProviderIdsAndSpecificationId(providerIdList, messageProperties.SpecificationId)));
+            List<ProviderSourceDataset> providerSourceDatasets = new List<ProviderSourceDataset>(await _providerSourceDatasetsRepositoryPolicy.ExecuteAsync(
+                () => _providerSourceDatasetsRepository.GetProviderSourceDatasetsByProviderIdsAndRelationshipIds(providerIdList, dataRelationshipIds)));
 
             providerSourceDatasetsStopwatch.Stop();
 
-            _logger.Information($"Fetched provider sources found for specification id {messageProperties.SpecificationId}");
+            _logger.Information($"Fetched provider sources found for specification id {messageProperties.SpecificationId}"); 
 
             calculationStopwatch.Start();
 

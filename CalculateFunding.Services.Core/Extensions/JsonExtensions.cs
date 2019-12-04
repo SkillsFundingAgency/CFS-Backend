@@ -1,4 +1,6 @@
 using System;
+using System.IO;
+using System.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
@@ -10,6 +12,16 @@ namespace CalculateFunding.Services.Core.Extensions
         public static string Prettify(this string json)
         {
             return JValue.Parse(json).ToString(Formatting.Indented);
+        }
+        
+        public static TPoco AsPoco<TPoco>(this Stream jsonStream, bool useCamelCase = true)
+            where TPoco : class
+        {
+            using (BinaryReader reader = new BinaryReader(jsonStream))
+            {
+                return Encoding.UTF8.GetString(reader.ReadBytes((int) jsonStream.Length))
+                    .AsPoco<TPoco>();
+            }
         }
         
         public static TPoco AsPoco<TPoco>(this string json, bool useCamelCase = true)
@@ -28,17 +40,6 @@ namespace CalculateFunding.Services.Core.Extensions
             where TPoco : class
         {
             return poco.AsJson().AsPoco<TPoco>();
-        }
-
-        public static bool AreEqual<TItem>(this TItem item1, TItem item2)
-            where TItem : class
-        {
-            if (ReferenceEquals(item1, item2)) return true;
-
-            string item1Json = item1.AsJson();
-            string item2Json = item2.AsJson();
-
-            return item1Json == item2Json;
         }
 
         private static JsonSerializerSettings NewJsonSerializerSettings(bool useCamelCase)

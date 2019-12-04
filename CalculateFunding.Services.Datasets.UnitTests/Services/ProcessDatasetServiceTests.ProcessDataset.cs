@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -754,7 +755,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        async public Task ProcessDataset_GivenPayloadAndTableResultsButNoRowsFoundToProcess_DoesNotSaveResults()
+        public async Task ProcessDataset_GivenPayloadAndTableResultsButNoRowsFoundToProcess_DoesNotSaveResults()
         {
             //Arrange
             const string blobPath = "dataset-id/v1/ds.xlsx";
@@ -968,7 +969,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        async public Task ProcessDataset_GivenPayloadAndTableResultsButNoProviderIds_DoesNotSaveResults()
+        public async Task ProcessDataset_GivenPayloadAndTableResultsButNoProviderIds_DoesNotSaveResults()
         {
             //Arrange
             const string blobPath = "dataset-id/v1/ds.xlsx";
@@ -1094,14 +1095,12 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        async public Task ProcessDataset_GivenPayloadAndTableResultsWithProviderIds_SavesDataset()
+        public async Task ProcessDataset_GivenPayloadAndTableResultsWithProviderIds_SavesDataset()
         {
             //Arrange
             const string blobPath = "dataset-id/v1/ds.xlsx";
 
             string dataset_cache_key = $"ds-table-rows:{blobPath}:{DataDefintionId}";
-
-            string dataset_aggregations_cache_key = $"{CacheKeys.DatasetAggregationsForSpecification}{SpecificationId}";
 
             IEnumerable<TableLoadResult> tableLoadResults = new[]
             {
@@ -1172,6 +1171,8 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetAsync<TableLoadResult[]>(Arg.Is(dataset_cache_key))
                 .Returns(tableLoadResults.ToArraySafe());
 
+            IProviderSourceDatasetVersionKeyProvider versionKeyProvider = CreateDatasetVersionKeyProvider();
+
             BuildProject buildProject = new BuildProject
             {
                 Id = BuildProjectId,
@@ -1241,7 +1242,8 @@ namespace CalculateFunding.Services.Datasets.Services
                 cacheProvider: cacheProvider,
                 providersApiClient: providersApiClient,
                 providerResultsRepository: providerResultsRepository,
-                excelDatasetReader: excelDatasetReader);
+                excelDatasetReader: excelDatasetReader, 
+                versionKeyProvider: versionKeyProvider);
 
             // Act
             await service.ProcessDataset(message);
@@ -1258,6 +1260,12 @@ namespace CalculateFunding.Services.Datasets.Services
                              m.First().SpecificationId == SpecificationId &&
                              m.First().ProviderId == "123"
                         ));
+
+            //also invalidates the version key for downstream file system caching
+            await
+                versionKeyProvider
+                    .Received(1)
+                    .AddOrUpdateProviderSourceDatasetVersionKey(relationshipId, Arg.Is<Guid>(_ => _ != Guid.Empty));
         }
 
         [TestMethod]
@@ -1484,7 +1492,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        async public Task ProcessDataset_GivenPayloadAndTableResultsWithProviderIdsAndLaCodesAsIdentifiers_SavesDataset()
+        public async Task ProcessDataset_GivenPayloadAndTableResultsWithProviderIdsAndLaCodesAsIdentifiers_SavesDataset()
         {
             //Arrange
             const string blobPath = "dataset-id/v1/ds.xlsx";
@@ -1656,7 +1664,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        async public Task ProcessDataset_GivenPayloadAndTableResultsWithProviderIdsAndIsAggregatesFeatureToggleEnabledButNoAggregableFields_SavesDataset()
+        public async Task ProcessDataset_GivenPayloadAndTableResultsWithProviderIdsAndIsAggregatesFeatureToggleEnabledButNoAggregableFields_SavesDataset()
         {
             //Arrange
             const string blobPath = "dataset-id/v1/ds.xlsx";
@@ -1835,7 +1843,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        async public Task ProcessDataset_GivenPayloadAndTableResultsWithProviderIdsAndIsAggregatesFeatureToggleEnabledAnHasAggregableField_SavesDataset()
+        public async Task ProcessDataset_GivenPayloadAndTableResultsWithProviderIdsAndIsAggregatesFeatureToggleEnabledAnHasAggregableField_SavesDataset()
         {
             //Arrange
             const string blobPath = "dataset-id/v1/ds.xlsx";
@@ -2018,7 +2026,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        async public Task ProcessDataset_GivenPayloadAndTableResultsWithMultipleRowsWithProviderIdsAndIsAggregatesFeatureToggleEnabledAnHasAggregableField_SavesDataset()
+        public async Task ProcessDataset_GivenPayloadAndTableResultsWithMultipleRowsWithProviderIdsAndIsAggregatesFeatureToggleEnabledAnHasAggregableField_SavesDataset()
         {
             //Arrange
             const string blobPath = "dataset-id/v1/ds.xlsx";
@@ -2217,7 +2225,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        async public Task ProcessDataset_GivenPayloadAndTableResultsWithMultipleProviderIds_DoesNotSaveDataset()
+        public async Task ProcessDataset_GivenPayloadAndTableResultsWithMultipleProviderIds_DoesNotSaveDataset()
         {
             //Arrange
             const string blobPath = "dataset-id/v1/ds.xlsx";
@@ -2377,7 +2385,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        async public Task ProcessDataset_GivenPayloadAndTableResultsWithProviderIdsButNoExistingToCompare_SavesDatasetDoesntCallCreateVersionSavesVersion()
+        public async Task ProcessDataset_GivenPayloadAndTableResultsWithProviderIdsButNoExistingToCompare_SavesDatasetDoesntCallCreateVersionSavesVersion()
         {
             //Arrange
             const string blobPath = "dataset-id/v1/ds.xlsx";
@@ -2564,7 +2572,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        async public Task ProcessDataset_GivenPayloadAndTableResultsWithProviderIdsAndGetsExistingButNoChanges_DoesNotUpdate()
+        public async Task ProcessDataset_GivenPayloadAndTableResultsWithProviderIdsAndGetsExistingButNoChanges_DoesNotUpdate()
         {
             //Arrange
             const string blobPath = "dataset-id/v1/ds.xlsx";
@@ -2753,7 +2761,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        async public Task ProcessDataset_GivenPayloadAndTableResultsWithProviderIdsAndChangesInData_CalsCreateNewVersionAndSaves()
+        public async Task ProcessDataset_GivenPayloadAndTableResultsWithProviderIdsAndChangesInData_CalsCreateNewVersionAndSaves()
         {
             //Arrange
             const string blobPath = "dataset-id/v1/ds.xlsx";
@@ -3734,7 +3742,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
 
         [TestMethod]
-        async public Task ProcessDataset_GivenPayloadAndTableResultsWithProviderIdsAndIsUseFieldDefinitionIdsInSourceDatasetsEnabled_SavesDatasetUsingIds()
+        public async Task ProcessDataset_GivenPayloadAndTableResultsWithProviderIdsAndIsUseFieldDefinitionIdsInSourceDatasetsEnabled_SavesDatasetUsingIds()
         {
             //Arrange
             const string blobPath = "dataset-id/v1/ds.xlsx";

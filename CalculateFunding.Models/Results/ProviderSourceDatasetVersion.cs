@@ -7,16 +7,10 @@ namespace CalculateFunding.Models.Results
     public class ProviderSourceDatasetVersion : VersionedItem
     {
         [JsonProperty("id")]
-        public override string Id
-        {
-            get { return $"{ProviderSourceDatasetId}_version_{Version}"; }
-        }
+        public override string Id => $"{ProviderSourceDatasetId}_version_{Version}";
 
         [JsonProperty("entityId")]
-        public override string EntityId
-        {
-            get { return ProviderSourceDatasetId; }
-        }
+        public override string EntityId => ProviderSourceDatasetId;
 
         [JsonProperty("providerSourceDatasetId")]
         public string ProviderSourceDatasetId { get; set; }

@@ -55,15 +55,7 @@ namespace CalculateFunding.Services.Compiler
 
         public static bool HasCalculationAggregateFunctionParameters(IEnumerable<string> sourceCodes)
         {
-            foreach(string sourceCode in sourceCodes)
-            {
-                if (GetCalculationAggregateFunctionParameters(sourceCode).Any())
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            return sourceCodes?.Any(sourceCode => GetCalculationAggregateFunctionParameters(sourceCode).Any()) == true;
         }
 
         public static IEnumerable<string> GetReferencedCalculations(IEnumerable<string> calculationNames, string sourceCode)

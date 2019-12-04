@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Text;
-using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Results;
+using CalculateFunding.Services.CalcEngine;
 using CalculateFunding.Services.CalcEngine.Interfaces;
+using CalculateFunding.Services.CalcEngine.UnitTests;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
@@ -15,227 +15,13 @@ using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Serilog;
 
-namespace CalculateFunding.Services.CalcEngine.UnitTests
+namespace CalculateFunding.Services.Calculator
 {
     [TestClass]
     public class CalculationEngineTests
     {
         const string ProviderId = "12345";
         const string ProviderName = "Awesome School";
-        const string CalculationId = "a82fc74c-59c5-4df7-a3cd-1fbf492d89bf";
-
-        [TestMethod]
-        public void GenerateAllocations_GivenModelExecuteThrowsException_ThrowsException()
-        {
-            //Arrange
-            BuildProject buildProject = CreateBuildProject();
-            buildProject.Build.Assembly = MockData.GetMockAssembly();
-
-            IEnumerable<ProviderSummary> providers = new[]
-            {
-                new ProviderSummary{ Id = ProviderId, Name = ProviderName }
-            };
-
-            IEnumerable<ProviderSourceDataset> datasets = new[]
-            {
-                new ProviderSourceDataset()
-            };
-
-            Func<string, string, Task<IEnumerable<ProviderSourceDataset>>> func = (s, p) =>
-            {
-                return Task.FromResult(datasets);
-            };
-
-            IEnumerable<CalculationResult> calculationResults = new[]
-            {
-                new CalculationResult
-                {
-                    Calculation = new Reference { Id = CalculationId }
-                }
-            };
-
-            IAllocationModel allocationModel = Substitute.For<IAllocationModel>();
-            allocationModel
-                .When(x => x.Execute(Arg.Any<List<ProviderSourceDataset>>(), Arg.Any<ProviderSummary>()))
-                .Do(x => { throw new Exception("Test exception thrown"); });
-
-            IAllocationFactory allocationFactory = Substitute.For<IAllocationFactory>();
-            allocationFactory
-                .CreateAllocationModel(Arg.Any<Assembly>())
-                .Returns(allocationModel);
-
-            ILogger logger = CreateLogger();
-
-            CalculationEngine calculationEngine = CreateCalculationEngine(allocationFactory, logger: logger);
-
-            //Act
-            Func<Task> test = () => calculationEngine.GenerateAllocations(buildProject, providers, func);
-
-            //Assert
-            test
-                .Should()
-                .ThrowExactly<AggregateException>()
-                .Which
-                .InnerException
-                .Should()
-                .BeOfType<Exception>()
-                .Which
-                .Message
-                .Should()
-                .Be("Test exception thrown");
-        }
-
-        [TestMethod]
-        async public Task GenerateAllocations_GivenBuildProject_Runs()
-        {
-            //Arrange
-            BuildProject buildProject = CreateBuildProject();
-            buildProject.Build.Assembly = MockData.GetMockAssembly();
-
-            IEnumerable<ProviderSummary> providers = new[]
-            {
-                new ProviderSummary{ Id = ProviderId, Name = ProviderName }
-            };
-
-            IEnumerable<ProviderSourceDataset> datasets = new[]
-            {
-                new ProviderSourceDataset()
-            };
-
-            Func<string, string, Task<IEnumerable<ProviderSourceDataset>>> func = (s, p) =>
-            {
-                return Task.FromResult(datasets);
-            };
-
-            IEnumerable<CalculationResult> calculationResults = new[]
-            {
-                new CalculationResult
-                {
-                    Calculation = new Reference { Id = CalculationId },
-                }
-            };
-
-            IAllocationModel allocationModel = Substitute.For<IAllocationModel>();
-            allocationModel
-                .Execute(Arg.Any<List<ProviderSourceDataset>>(), Arg.Any<ProviderSummary>())
-                .Returns(calculationResults);
-
-            IAllocationFactory allocationFactory = Substitute.For<IAllocationFactory>();
-            allocationFactory
-                .CreateAllocationModel(Arg.Any<Assembly>())
-                .Returns(allocationModel);
-
-            ILogger logger = CreateLogger();
-
-            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
-            List<CalculationSummaryModel> calculations = new List<CalculationSummaryModel>()
-            {
-                new CalculationSummaryModel()
-                {
-                    Id = CalculationId,
-                },
-                new CalculationSummaryModel()
-                {
-                    Id = "calc2",
-                },
-                new CalculationSummaryModel()
-                {
-                    Id = "calc3",
-                }
-            };
-
-            calculationsRepository
-                .GetCalculationSummariesForSpecification(Arg.Any<string>())
-                .Returns(calculations);
-
-            CalculationEngine calculationEngine = CreateCalculationEngine(allocationFactory, calculationsRepository, logger: logger);
-
-            //Act
-            IEnumerable<ProviderResult> results = await calculationEngine.GenerateAllocations(buildProject, providers, func);
-
-            //Assert
-            results
-                .Count()
-                .Should()
-                .Be(1);
-
-            //we also need to check we order by calc id as we need a stable sort for the caching hash checks
-            results
-                .First()
-                .CalculationResults
-                .Select(_ => _.Calculation.Id)
-                .Should()
-                .BeEquivalentTo(new[] { CalculationId, "calc2", "calc3" });
-        }
-
-
-        [TestMethod]
-        async public Task GenerateAllocations_GivenBuildProjectWithNoCalculations_Runs()
-        {
-            //Arrange
-            BuildProject buildProject = CreateBuildProject();
-            buildProject.Build.Assembly = MockData.GetMockAssembly();
-
-            IEnumerable<ProviderSummary> providers = new[]
-            {
-                new ProviderSummary{ Id = ProviderId, Name = ProviderName }
-            };
-
-            IEnumerable<ProviderSourceDataset> datasets = new[]
-            {
-                new ProviderSourceDataset()
-            };
-
-            Func<string, string, Task<IEnumerable<ProviderSourceDataset>>> func = (s, p) =>
-            {
-                return Task.FromResult(datasets);
-            };
-
-            IEnumerable<CalculationResult> calculationResults = Enumerable.Empty<CalculationResult>();
-
-            IAllocationModel allocationModel = Substitute.For<IAllocationModel>();
-            allocationModel
-                .Execute(Arg.Any<List<ProviderSourceDataset>>(), Arg.Any<ProviderSummary>())
-                .Returns(calculationResults);
-
-            IAllocationFactory allocationFactory = Substitute.For<IAllocationFactory>();
-            allocationFactory
-                .CreateAllocationModel(Arg.Any<Assembly>())
-                .Returns(allocationModel);
-
-            ILogger logger = CreateLogger();
-
-            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
-            List<CalculationSummaryModel> calculations = new List<CalculationSummaryModel>()
-            {
-            };
-
-            calculationsRepository
-                .GetCalculationSummariesForSpecification(Arg.Any<string>())
-                .Returns(calculations);
-
-            CalculationEngine calculationEngine = CreateCalculationEngine(allocationFactory, calculationsRepository, logger: logger);
-
-            //Act
-            IEnumerable<ProviderResult> results = await calculationEngine.GenerateAllocations(buildProject, providers, func);
-
-            //Assert
-            results
-                .Count()
-                .Should()
-                .Be(1);
-
-            results
-                .First()
-                .CalculationResults
-                .Count
-                .Should()
-                .Be(0);
-
-            logger
-                .Received(1)
-                .Information(Arg.Is("There are no calculations to executed for specification ID {specificationId}"), Arg.Is(buildProject.SpecificationId));
-        }
 
         [TestMethod]
         public void CalculateProviderResult_WhenAllocationModelThrowsException_ShouldThrowException()
@@ -396,7 +182,6 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
         {
             return new CalculationEngine(
                 allocationFactory ?? CreateAllocationFactory(),
-                calculationsRepository ?? CreateCalculationsRepository(),
                 logger ?? CreateLogger()
                 );
         }
@@ -409,16 +194,6 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
                 UKPRN = ProviderId,
                 Id = "KH18778"
             };
-        }
-
-        static IAllocationFactory CreateAllocationFactory(IAllocationModel allocationModel)
-        {
-            IAllocationFactory allocationFactory = Substitute.For<IAllocationFactory>();
-            allocationFactory
-                .CreateAllocationModel(Arg.Any<Assembly>())
-                .Returns(allocationModel);
-
-            return allocationFactory;
         }
 
         static IAllocationFactory CreateAllocationFactory()
