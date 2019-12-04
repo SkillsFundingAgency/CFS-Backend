@@ -59,9 +59,9 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
             {
                 string key = $"{pubProvider.UKPRN}-{fundingPeriodId}-{fundingStreamid}";
                 var searchIndex = _publishedProviderStepContext.SearchRepo.PublishedProviderIndex;
-                searchIndex.TryGetValue(key, out PublishedProviderIndex acutal);
+                searchIndex.TryGetValue(key, out PublishedProviderIndex actual);
 
-                acutal
+                actual
                 .Should()
                 .BeEquivalentTo(pubProvider);
             }

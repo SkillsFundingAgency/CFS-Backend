@@ -1,9 +1,9 @@
-﻿Feature: PublishingDSG
-	In order to publish funding for Dedicated Schools Grant
-	As a funding approvder
-	I want to publish funding for all approved providers within a specification
+﻿Feature: ApproveFundingDsg
+	In order to approve funding for DSG
+	As a funding approver
+	I want to approve funding for all providers within a specification
 
-Scenario Outline: Successful publishing of funding
+Scenario Outline: Successful approve of funding
 	Given a funding configuration exists for funding stream '<FundingStreamId>' in funding period '<FundingPeriodId>'
 		| Field                  | Value |
 		| DefaultTemplateVersion | 1.0   |
@@ -85,7 +85,6 @@ Scenario Outline: Successful publishing of funding
 		| TargetDate        | 2019-12-12 00:00     |
 		| FundingStream     | <FundingStreamId>    |
 		| Created           | 2019-12-11 00:00     |
-	# Maintained schools - PublishedProviders
 	And the following Published Provider has been previously generated for the current specification
 		| Field           | Value             |
 		| ProviderId      | 1000000           |
@@ -96,6 +95,7 @@ Scenario Outline: Successful publishing of funding
 		| TotalFunding    | 12000             |
 		| MajorVersion    | 0                 |
 		| MinorVersion    | 1                 |
+	# Maintained schools - PublishedProviders
 	And the Published Provider has the following funding lines
 		| Name                                                 | FundingLineCode | Value | TemplateLineId | Type        |
 		| Pupil Led Factors                                    | DSG-004         | 640   | 5              | Information |
@@ -115,8 +115,6 @@ Scenario Outline: Successful publishing of funding
 		| High Needs Block before deductions                   | DSG-010         | 1280  | 10             | Information |
 		| Total High Needs Block After Deductions              | DSG-011         | 14720 | 11             | Information |
 		| School Block After recoupment                        | DSG-005         | 640   | 12             | Information |
-		| Provisional Schools Block Funding Excluding Growth   | DSG-020         | 0     | 239            | Information |
-		| LA Protection                                        | DSG-021         | 0     | 240            | Information |
 		| Total DSG before deductions and recoupment           | DSG-001         | 3840  | 2              | Information |
 		| Total DSG after deductions and recoupment            | DSG-002         | 15360 | 3              | Payment     |
 	And the Published Provider has the following distribution period for funding line 'DSG-002'
@@ -182,16 +180,6 @@ Scenario Outline: Successful publishing of funding
 		| 71                    | 320   |
 		| 235                   | 320   |
 		| 236                   | 320   |
-		| 241                   | 320   |
-		| 242                   | 320   |
-		| 243                   | 320   |
-		| 244                   | 320   |
-		| 245                   | 320   |
-		| 246                   | 320   |
-		| 247                   | 320   |
-		| 248                   | 320   |
-		| 249                   | 320   |
-		| 250                   | 320   |
 		| 72                    | 320   |
 		| 73                    | 320   |
 		| 69                    | 320   |
@@ -412,7 +400,7 @@ Scenario Outline: Successful publishing of funding
 		| FundingStreamId | <FundingStreamId> |
 		| FundingPeriodId | <FundingPeriodId> |
 		| TemplateVersion | <TemplateVersion> |
-		| Status          | Approved          |
+		| Status          | Draft             |
 		| TotalFunding    | 12000             |
 		| MajorVersion    | 0                 |
 		| MinorVersion    | 1                 |
@@ -435,8 +423,6 @@ Scenario Outline: Successful publishing of funding
 		| High Needs Block before deductions                   | DSG-010         | 1280  | 10             | Information |
 		| Total High Needs Block After Deductions              | DSG-011         | 14720 | 11             | Information |
 		| School Block After recoupment                        | DSG-005         | 640   | 12             | Information |
-		| Provisional Schools Block Funding Excluding Growth   | DSG-020         | 0     | 239            | Information |
-		| LA Protection                                        | DSG-021         | 0     | 240            | Information |
 		| Total DSG before deductions and recoupment           | DSG-001         | 3840  | 2              | Information |
 		| Total DSG after deductions and recoupment            | DSG-002         | 15360 | 3              | Payment     |
 	And the Published Provider has the following distribution period for funding line 'DSG-002'
@@ -502,16 +488,6 @@ Scenario Outline: Successful publishing of funding
 		| 71                    | 320   |
 		| 235                   | 320   |
 		| 236                   | 320   |
-		| 241                   | 320   |
-		| 242                   | 320   |
-		| 243                   | 320   |
-		| 244                   | 320   |
-		| 245                   | 320   |
-		| 246                   | 320   |
-		| 247                   | 320   |
-		| 248                   | 320   |
-		| 249                   | 320   |
-		| 250                   | 320   |
 		| 72                    | 320   |
 		| 73                    | 320   |
 		| 69                    | 320   |
@@ -832,16 +808,6 @@ Scenario Outline: Successful publishing of funding
 		| Calculation | b4290464-36ed-42ca-9df9-822003200b9d | 71         | Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @Â£10k SEN places deduction September (Year 1) - March (Year 2)             |
 		| Calculation | 8f967c9a-40e2-4842-8c55-969abf5a350f | 235        | Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @Â£10k SEN places deduction April (Year 1) - August (Year 1) Top Up rate    |
 		| Calculation | 6bb71c56-818a-4ab1-b35f-ee497378ae3d | 236        | Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @Â£10k SEN places deduction September (Year 1) - March (Year 2) Top Up rate |
-		| Calculation | 42919210-5ab6-4f98-8cbd-36ea585bfc3e | 241        | Provisional Schools Block Funding Excluding Growth                                                                                                     |
-		| Calculation | 50d71379-e1e6-4f9a-8a82-8d8697049662 | 242        | Current Year School Block Pupil No                                                                                                 |
-		| Calculation | ac233126-aa00-470a-a2db-aed95c7bead5 | 243        | Current Year Local Authority Protection																												   |
-		| Calculation | b7fd2f32-1e43-4b3b-84f9-9754f71a0E9f | 244        | Percentage Change between Current Year and Previous Year per Pupil Funding																			   |
-		| Calculation | b5f7f814-e819-4efb-9c07-e6b973a5dc30 | 245        | Percentage Change between Current Year and Previous Year per Pupil Funding after local authority protection											   |
-		| Calculation | 1d05db55-d225-49a3-9240-fce6e9065de5 | 246        | Current Year Provisional Schools Block Excluding Growth Funding Per Pupil																			   |
-		| Calculation | c36e9b84-8c83-45e6-8ccf-1d06c83d96d1 | 247        | Previous Year Schools Block Excluding Growth Funding Per Pupil                                                                                                     |
-		| Calculation | 1f72e2d2-43fc-45df-b3e2-03a1d5E7d6d7 | 248        | Current Year Provisional Schools Block Funding Excluding Growth - NON CASH                                                                                                     |
-		| Calculation | b2fc456d-7191-4214-9db5-1561cd3f75fa | 249        | Previous Year Schools Block Pupil Numbers                                                                                                     |
-		| Calculation | f8b65554-b578-4041-a9F6-116830cc0a2b | 250        | Previous Year Schools Block Excluding Growth Funding                                                                                                   |
 		| Calculation | bd4b64d4-f61f-4207-a493-73cb8d1e0db8 | 72         | Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @Â£10k SEN places deduction April (Year 1) - August (Year 1) rate           |
 		| Calculation | bd3ef104-827f-42a0-a1c0-365bc5c21156 | 73         | Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @Â£10k SEN places deduction September (Year 1) - March (Year 2) rate        |
 		| Calculation | 2794481e-5514-49fd-bcb7-0a91b0d40647 | 69         | Mainstream Academies (SEN units and Resourced provision) Pre-16 SEN Places @Â£10k SEN places deduction                                                 |
@@ -1007,16 +973,6 @@ Scenario Outline: Successful publishing of funding
 		| b4290464-36ed-42ca-9df9-822003200b9d | 320           |
 		| 8f967c9a-40e2-4842-8c55-969abf5a350f | 320           |
 		| 6bb71c56-818a-4ab1-b35f-ee497378ae3d | 320           |
-		| 42919210-5ab6-4f98-8cbd-36ea585bfc3e | 320           |
-		| 50d71379-e1e6-4f9a-8a82-8d8697049662 | 320           |
-		| ac233126-aa00-470a-a2db-aed95c7bead5 | 320           |
-		| b7fd2f32-1e43-4b3b-84f9-9754f71a0E9f | 320           |
-		| b5f7f814-e819-4efb-9c07-e6b973a5dc30 | 320           |
-		| c36e9b84-8c83-45e6-8ccf-1d06c83d96d1 | 320           | 
-		| 1f72e2d2-43fc-45df-b3e2-03a1d5E7d6d7 | 320		   |                                                                                                                
-		| b2fc456d-7191-4214-9db5-1561cd3f75fa | 320           |                                                                                                              
-		| f8b65554-b578-4041-a9F6-116830cc0a2b | 320           |
-		| 1d05db55-d225-49a3-9240-fce6e9065de5 | 320           |
 		| bd4b64d4-f61f-4207-a493-73cb8d1e0db8 | 320           |
 		| bd3ef104-827f-42a0-a1c0-365bc5c21156 | 320           |
 		| 2794481e-5514-49fd-bcb7-0a91b0d40647 | 320           |
@@ -1127,35 +1083,15 @@ Scenario Outline: Successful publishing of funding
 		| 4afd7426-1787-4b71-a5f7-971db86811be | 320           |
 		| 8fdd4341-88ea-47f2-ba81-511951ca7efd | 320           |
 		| 5cfb28de-88d6-4faa-a936-d81a065fb596 | 320           |
-	When funding is published
-	Then publishing succeeds
-	And the following published funding is produced
-		| Field                            | Value             |
-		| GroupingReason                   | Payment           |
-		| OrganisationGroupTypeCode        | LocalAuthority    |
-		| OrganisationGroupIdentifierValue | 9000000           |
-		| FundingPeriodId                  | <FundingPeriodId> |
-		| FundingStreamId                  | <FundingStreamId> |
-	And the total funding is '24000'
-	And the published funding contains the following published provider ids
-		| FundingIds                                      |
-		| <FundingStreamId>-<FundingPeriodId>-1000000-1_0 |I
-		| <FundingStreamId>-<FundingPeriodId>-1000002-1_0 |I
-	And the published funding contains a distribution period in funding line 'DSG-002' with id of 'FY-1920' has the value of '14000'
-	And the published funding contains a distribution period in funding line 'DSG-002' with id of 'FY-2021' has the value of '10000'
-	And the published funding contains a distribution period in funding line 'DSG-002' with id of 'FY-1920' has the following profiles
-		| DistributionPeriodId | Type          | TypeValue | Year | Occurrence | ProfiledValue |
-		| FY-1920              | CalendarMonth | October   | 1920 | 1          | 14000         |
-	And the published funding contains a distribution period in funding line 'DSG-002' with id of 'FY-2021' has the following profiles
-		| DistributionPeriodId | Type          | TypeValue | Year | Occurrence | ProfiledValue |
-		| FY-2021              | CalendarMonth | April     | 2021 | 1          | 10000         |	
-	And the following job is requested is completed for the current specification
-		| Field                  | Value             |
-		| JobDefinitionId        | PublishFundingJob |
-		| InvokerUserId          | PublishUserId     |
-		| InvokerUserDisplayName | Invoker User      |
-		| ParentJobId            |                   |
-
+	When funding is approved
+	Then approve funding succeeds	
+	And the following published provider ids are upserted
+		| PublishedProviderId                                           | Status  |
+		| publishedprovider-1000000-<FundingPeriodId>-<FundingStreamId> | Approved|
+		| publishedprovider-1000002-<FundingPeriodId>-<FundingStreamId> | Approved|
+	And the following published provider search index items is produced for providerid with '<FundingStreamId>' and '<FundingPeriodId>'
+		| ID                  | ProviderType				| LocalAuthority	 | FundingStatus | ProviderName			   | UKPRN		| FundingValue | SpecificationId   | FundingStreamId   | FundingPeriodId   |
+		| 1000002-FY-2021-DSG | LA maintained schools		| Maintained School 2| Approved      | Maintained School 2	   | 1000002    | 12000        | specForPublishing | <FundingStreamId> | <FundingPeriodId> |
 	Examples:
 		| FundingStreamId | FundingPeriodId | FundingPeriodName      | TemplateVersion | ProviderVersionId |
 		| DSG             | FY-2021         | Financial Year 2020-21 | 1.0             | dsg-providers-1.0 |

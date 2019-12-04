@@ -50,94 +50,400 @@
               "type": "Information",
               "fundingLines": [
                 {
-                  "name": "Pupil Led Factors",
-                  "fundingLineCode": "DSG-004",
+                  "name": "Provisional Schools Block Funding Excluding Growth",
+                  "fundingLineCode": "DSG-020",
                   "value": 0,
-                  "templateLineId": 5,
+                  "templateLineId": 239,
                   "type": "Information",
-                  "fundingLines": [],
-                  "calculations": [
+                  "fundingLines": [
                     {
-                      "name": "Primary pupil sub-total",
-                      "templateCalculationId": 13,
-                      "value": "",
-                      "valueFormat": "Currency",
-                      "type": "Cash",
-                      "formulaText": "",
-                      "aggregationType": "Sum",
+                      "name": "Pupil Led Factors",
+                      "fundingLineCode": "DSG-004",
+                      "value": 0,
+                      "templateLineId": 5,
+                      "type": "Information",
+                      "fundingLines": [],
                       "calculations": [
                         {
-                          "name": "Primary Pupil Number",
-                          "templateCalculationId": 15,
+                          "name": "Primary pupil sub-total",
+                          "templateCalculationId": 13,
                           "value": "",
+                          "valueFormat": "Currency",
+                          "type": "Cash",
                           "formulaText": "",
-                          "type": "PupilNumber",
                           "aggregationType": "Sum",
-                          "valueFormat": "Number",
-                          "calculations": []
+                          "calculations": [
+                            {
+                              "name": "Primary Pupil Number",
+                              "templateCalculationId": 15,
+                              "value": "",
+                              "formulaText": "",
+                              "type": "PupilNumber",
+                              "aggregationType": "Sum",
+                              "valueFormat": "Number",
+                              "calculations": []
+                            },
+                            {
+                              "name": "Primary Unit of Funding",
+                              "templateCalculationId": 16,
+                              "value": "",
+                              "formulaText": "",
+                              "type": "Rate",
+                              "aggregationType": "None",
+                              "valueFormat": "Currency",
+                              "calculations": []
+                            }
+                          ]
                         },
                         {
-                          "name": "Primary Unit of Funding",
-                          "templateCalculationId": 16,
+                          "name": "Secondary pupil sub-total",
+                          "templateCalculationId": 14,
                           "value": "",
-                          "formulaText": "",
-                          "type": "Rate",
-                          "aggregationType": "Average",
                           "valueFormat": "Currency",
-                          "calculations": []
+                          "type": "Cash",
+                          "formulaText": "",
+                          "aggregationType": "Sum",
+                          "calculations": [
+                            {
+                              "name": "Secondary Pupil Number",
+                              "templateCalculationId": 17,
+                              "value": "",
+                              "formulaText": "",
+                              "type": "PupilNumber",
+                              "aggregationType": "Sum",
+                              "valueFormat": "Number",
+                              "calculations": []
+                            },
+                            {
+                              "name": "Secondary Unit of Funding",
+                              "templateCalculationId": 18,
+                              "value": "",
+                              "formulaText": "",
+                              "type": "Rate",
+                              "aggregationType": "None",
+                              "valueFormat": "Currency",
+                              "calculations": []
+                            }
+                          ]
                         }
-                      ]
+                      ],
+                      "distributionPeriods": []
                     },
                     {
-                      "name": "Secondary pupil sub-total",
-                      "templateCalculationId": 14,
-                      "value": "",
-                      "valueFormat": "Currency",
-                      "type": "Cash",
-                      "formulaText": "",
-                      "aggregationType": "Sum",
+                      "name": "Funding Through Premises and Mobility Factors",
+                      "fundingLineCode": "DSG-007",
+                      "value": 0,
+                      "templateLineId": 6,
+                      "type": "Information",
+                      "fundingLines": [],
                       "calculations": [
                         {
-                          "name": "Secondary Pupil Number",
-                          "templateCalculationId": 17,
+                          "name": "Premises and Mobility Factors",
+                          "templateCalculationId": 19,
                           "value": "",
-                          "formulaText": "",
-                          "type": "PupilNumber",
-                          "aggregationType": "Sum",
-                          "valueFormat": "Number",
-                          "calculations": []
-                        },
-                        {
-                          "name": "Secondary Unit of Funding",
-                          "templateCalculationId": 18,
-                          "value": "",
-                          "formulaText": "",
-                          "type": "Rate",
-                          "aggregationType": "Average",
                           "valueFormat": "Currency",
-                          "calculations": []
+                          "type": "Cash",
+                          "formulaText": "",
+                          "aggregationType": "Sum"
                         }
-                      ]
+                      ],
+                      "distributionPeriods": []
+                    }
+                  ],
+                  "calculations": [
+                    {
+                      "name": "Provisional Schools Block Funding Excluding Growth",
+                      "templateCalculationId": 241,
+                      "value": "",
+                      "formulaText": "",
+                      "type": "Number",
+                      "aggregationType": "Sum",
+                      "valueFormat": "Currency",
+                      "calculations": []
                     }
                   ],
                   "distributionPeriods": []
                 },
                 {
-                  "name": "Funding Through Premises and Mobility Factors",
-                  "fundingLineCode": "DSG-007",
+                  "name": "LA Protection",
+                  "fundingLineCode": "DSG-021",
                   "value": 0,
-                  "templateLineId": 6,
+                  "templateLineId": 240,
                   "type": "Information",
                   "fundingLines": [],
                   "calculations": [
                     {
-                      "name": "Premises and Mobility Factors",
-                      "templateCalculationId": 19,
+                      "name": "Current Year Local Authority Protection",
+                      "templateCalculationId": 243,
                       "value": "",
                       "valueFormat": "Currency",
-                      "type": "LumpSum",
+                      "type": "Cash",
                       "formulaText": "",
-                      "aggregationType": "Sum"
+                      "aggregationType": "Sum",
+                      "calculations": [
+                        {
+                          "name": "Current Year Provisional Schools Block Excluding Growth Funding Per Pupil",
+                          "templateCalculationId": 246,
+                          "value": "",
+                          "valueFormat": "Currency",
+                          "type": "Rate",
+                          "formulaText": "",
+                          "aggregationType": "None",
+                          "calculations": [
+                            {
+                              "name": "Current Year School Block Pupil No",
+                              "templateCalculationId": 242,
+                              "value": "",
+                              "valueFormat": "Number",
+                              "type": "PupilNumber",
+                              "formulaText": "",
+                              "aggregationType": "Sum",
+                              "calculations": [
+                                {
+                                  "name": "Primary Pupil Number",
+                                  "templateCalculationId": 15,
+                                  "value": "",
+                                  "formulaText": "",
+                                  "type": "PupilNumber",
+                                  "aggregationType": "Sum",
+                                  "valueFormat": "Number",
+                                  "calculations": []
+                                },
+                                {
+                                  "name": "Secondary Pupil Number",
+                                  "templateCalculationId": 17,
+                                  "value": "",
+                                  "formulaText": "",
+                                  "type": "PupilNumber",
+                                  "aggregationType": "Sum",
+                                  "valueFormat": "Number",
+                                  "calculations": []
+                                }
+                              ]
+                            },
+                            {
+                              "name": "Current Year Provisional Schools Block Funding Excluding Growth - NON CASH",
+                              "templateCalculationId": 248,
+                              "value": "",
+                              "valueFormat": "Currency",
+                              "type": "Number",
+                              "formulaText": "",
+                              "aggregationType": "Sum"
+                            }
+                          ]
+                        },
+                        {
+                          "name": "Previous Year Schools Block Excluding Growth Funding Per Pupil",
+                          "templateCalculationId": 247,
+                          "value": "",
+                          "valueFormat": "Currency",
+                          "type": "Rate",
+                          "formulaText": "",
+                          "aggregationType": "None",
+                          "calculations": [
+                            {
+                              "name": "Previous Year Schools Block Pupil Numbers",
+                              "templateCalculationId": 249,
+                              "value": "",
+                              "valueFormat": "Number",
+                              "type": "PupilNumber",
+                              "formulaText": "",
+                              "aggregationType": "Sum"
+                            },
+                            {
+                              "name": "Previous Year Schools Block Excluding Growth Funding",
+                              "templateCalculationId": 250,
+                              "value": "",
+                              "valueFormat": "Currency",
+                              "type": "Number",
+                              "formulaText": "",
+                              "aggregationType": "Sum"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "name": "Percentage Change between Current Year and Previous Year per Pupil Funding",
+                      "templateCalculationId": 244,
+                      "value": "",
+                      "valueFormat": "Percentage",
+                      "type": "Number",
+                      "formulaText": "",
+                      "aggregationType": "Average",
+                      "calculations": [
+                        {
+                          "name": "Current Year Provisional Schools Block Excluding Growth Funding Per Pupil",
+                          "templateCalculationId": 246,
+                          "value": "",
+                          "valueFormat": "Currency",
+                          "type": "Rate",
+                          "formulaText": "",
+                          "aggregationType": "None",
+                          "calculations": [
+                            {
+                              "name": "Current Year School Block Pupil No",
+                              "templateCalculationId": 242,
+                              "value": "",
+                              "valueFormat": "Number",
+                              "type": "PupilNumber",
+                              "formulaText": "",
+                              "aggregationType": "Sum",
+                              "calculations": [
+                                {
+                                  "name": "Primary Pupil Number",
+                                  "templateCalculationId": 15,
+                                  "value": "",
+                                  "formulaText": "",
+                                  "type": "PupilNumber",
+                                  "aggregationType": "Sum",
+                                  "valueFormat": "Number",
+                                  "calculations": []
+                                },
+                                {
+                                  "name": "Secondary Pupil Number",
+                                  "templateCalculationId": 17,
+                                  "value": "",
+                                  "formulaText": "",
+                                  "type": "PupilNumber",
+                                  "aggregationType": "Sum",
+                                  "valueFormat": "Number",
+                                  "calculations": []
+                                }
+                              ]
+                            },
+                            {
+                              "name": "Current Year Provisional Schools Block Funding Excluding Growth - NON CASH",
+                              "templateCalculationId": 248,
+                              "value": "",
+                              "valueFormat": "Currency",
+                              "type": "Number",
+                              "formulaText": "",
+                              "aggregationType": "Sum"
+                            }
+                          ]
+                        },
+                        {
+                          "name": "Previous Year Schools Block Excluding Growth Funding Per Pupil",
+                          "templateCalculationId": 247,
+                          "value": "",
+                          "valueFormat": "Currency",
+                          "type": "Rate",
+                          "formulaText": "",
+                          "aggregationType": "None",
+                          "calculations": [
+                            {
+                              "name": "Previous Year Schools Block Pupil Numbers",
+                              "templateCalculationId": 249,
+                              "value": "",
+                              "valueFormat": "Number",
+                              "type": "PupilNumber",
+                              "formulaText": "",
+                              "aggregationType": "Sum"
+                            },
+                            {
+                              "name": "Previous Year Schools Block Excluding Growth Funding",
+                              "templateCalculationId": 250,
+                              "value": "",
+                              "valueFormat": "Currency",
+                              "type": "Number",
+                              "formulaText": "",
+                              "aggregationType": "Sum"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "name": "Percentage Change between Current Year and Previous Year per Pupil Funding after local authority protection",
+                      "templateCalculationId": 245,
+                      "value": "",
+                      "valueFormat": "Percentage",
+                      "type": "Number",
+                      "formulaText": "",
+                      "aggregationType": "Average",
+                      "calculations": [
+                        {
+                          "name": "Current Year Provisional Schools Block Excluding Growth Funding Per Pupil",
+                          "templateCalculationId": 246,
+                          "value": "",
+                          "valueFormat": "Currency",
+                          "type": "Rate",
+                          "formulaText": "",
+                          "aggregationType": "None",
+                          "calculations": [
+                            {
+                              "name": "Current Year School Block Pupil No",
+                              "templateCalculationId": 242,
+                              "value": "",
+                              "valueFormat": "Number",
+                              "type": "PupilNumber",
+                              "formulaText": "",
+                              "aggregationType": "Sum",
+                              "calculations": [
+                                {
+                                  "name": "Primary Pupil Number",
+                                  "templateCalculationId": 15,
+                                  "value": "",
+                                  "formulaText": "",
+                                  "type": "PupilNumber",
+                                  "aggregationType": "Sum",
+                                  "valueFormat": "Number",
+                                  "calculations": []
+                                },
+                                {
+                                  "name": "Secondary Pupil Number",
+                                  "templateCalculationId": 17,
+                                  "value": "",
+                                  "formulaText": "",
+                                  "type": "PupilNumber",
+                                  "aggregationType": "Sum",
+                                  "valueFormat": "Number",
+                                  "calculations": []
+                                }
+                              ]
+                            },
+                            {
+                              "name": "Current Year Provisional Schools Block Funding Excluding Growth - NON CASH",
+                              "templateCalculationId": 248,
+                              "value": "",
+                              "valueFormat": "Currency",
+                              "type": "Number",
+                              "formulaText": "",
+                              "aggregationType": "Sum"
+                            }
+                          ]
+                        },
+                        {
+                          "name": "Previous Year Schools Block Excluding Growth Funding Per Pupil",
+                          "templateCalculationId": 247,
+                          "value": "",
+                          "valueFormat": "Currency",
+                          "type": "Rate",
+                          "formulaText": "",
+                          "aggregationType": "None",
+                          "calculations": [
+                            {
+                              "name": "Previous Year Schools Block Pupil Numbers",
+                              "templateCalculationId": 249,
+                              "value": "",
+                              "valueFormat": "Number",
+                              "type": "PupilNumber",
+                              "formulaText": "",
+                              "aggregationType": "Sum"
+                            },
+                            {
+                              "name": "Previous Year Schools Block Excluding Growth Funding",
+                              "templateCalculationId": 250,
+                              "value": "",
+                              "valueFormat": "Currency",
+                              "type": "Number",
+                              "formulaText": "",
+                              "aggregationType": "Sum"
+                            }
+                          ]
+                        }
+                      ]
                     }
                   ],
                   "distributionPeriods": []
@@ -155,7 +461,7 @@
                       "templateCalculationId": 20,
                       "value": "",
                       "valueFormat": "Currency",
-                      "type": "LumpSum",
+                      "type": "Cash",
                       "formulaText": "",
                       "aggregationType": "Sum"
                     }
@@ -196,7 +502,7 @@
                           "value": "",
                           "formulaText": "",
                           "type": "Rate",
-                          "aggregationType": "Average",
+                          "aggregationType": "None",
                           "valueFormat": "Currency",
                           "calculations": []
                         },
@@ -228,7 +534,7 @@
                       "templateCalculationId": 28,
                       "value": "",
                       "formulaText": "",
-                      "type": "LumpSum",
+                      "type": "Cash",
                       "aggregationType": "Sum",
                       "valueFormat": "Currency"
                     }
@@ -271,7 +577,7 @@
                           "valueFormat": "Currency",
                           "type": "Rate",
                           "formulaText": "",
-                          "aggregationType": "Average"
+                          "aggregationType": "None"
                         },
                         {
                           "name": "Total 3 and 4 Year Olds (PTE)",
@@ -320,7 +626,7 @@
                           "valueFormat": "Currency",
                           "type": "Rate",
                           "formulaText": "",
-                          "aggregationType": "Average"
+                          "aggregationType": "None"
                         },
                         {
                           "name": "Total 3 and 4 Year Old for Additional Hours for Working Parents (PTE)",
@@ -369,7 +675,7 @@
                           "valueFormat": "Currency",
                           "type": "Rate",
                           "formulaText": "",
-                          "aggregationType": "Average"
+                          "aggregationType": "None"
                         },
                         {
                           "name": "Total 2 Year Olds (PTE)",
@@ -418,7 +724,7 @@
                           "valueFormat": "Currency",
                           "type": "Rate",
                           "formulaText": "",
-                          "aggregationType": "Average"
+                          "aggregationType": "None"
                         },
                         {
                           "name": "Pupil Premium Pupil Count for 3 to 4 Year Olds (PTE)",
@@ -467,7 +773,7 @@
                           "valueFormat": "Currency",
                           "type": "Rate",
                           "formulaText": "",
-                          "aggregationType": "Average"
+                          "aggregationType": "None"
                         },
                         {
                           "name": "Maintained Nursery Schools Supplement (PTE)",
@@ -527,7 +833,7 @@
                   "templateCalculationId": 29,
                   "value": "",
                   "valueFormat": "Currency",
-                  "type": "LumpSum",
+                  "type": "Cash",
                   "formulaText": "",
                   "aggregationType": "Sum"
                 },
@@ -536,7 +842,7 @@
                   "templateCalculationId": 237,
                   "value": "",
                   "valueFormat": "Currency",
-                  "type": "LumpSum",
+                  "type": "Cash",
                   "formulaText": "",
                   "aggregationType": "Sum"
                 },
@@ -556,7 +862,7 @@
                       "valueFormat": "Currency",
                       "type": "Rate",
                       "formulaText": "",
-                      "aggregationType": "Average"
+                      "aggregationType": "None"
                     },
                     {
                       "name": "Basic Entitlement Per Pupil Number",
@@ -594,7 +900,7 @@
                       "valueFormat": "Currency",
                       "type": "Rate",
                       "formulaText": "",
-                      "aggregationType": "Average"
+                      "aggregationType": "None"
                     }
                   ]
                 },
@@ -670,7 +976,7 @@
                           "value": "",
                           "formulaText": "",
                           "type": "Rate",
-                          "aggregationType": "Average",
+                          "aggregationType": "None",
                           "valueFormat": "Currency",
                           "calculations": []
                         },
@@ -702,7 +1008,7 @@
                       "templateCalculationId": 28,
                       "value": "",
                       "formulaText": "",
-                      "type": "LumpSum",
+                      "type": "Cash",
                       "aggregationType": "Sum",
                       "valueFormat": "Currency"
                     }
@@ -744,7 +1050,7 @@
                           "valueFormat": "Currency",
                           "type": "Rate",
                           "formulaText": "",
-                          "aggregationType": "Average"
+                          "aggregationType": "None"
                         },
                         {
                           "name": "Total 3 and 4 Year Olds (PTE)",
@@ -793,7 +1099,7 @@
                           "valueFormat": "Currency",
                           "type": "Rate",
                           "formulaText": "",
-                          "aggregationType": "Average"
+                          "aggregationType": "None"
                         },
                         {
                           "name": "Total 3 and 4 Year Old for Additional Hours for Working Parents (PTE)",
@@ -842,7 +1148,7 @@
                           "valueFormat": "Currency",
                           "type": "Rate",
                           "formulaText": "",
-                          "aggregationType": "Average"
+                          "aggregationType": "None"
                         },
                         {
                           "name": "Total 2 Year Olds (PTE)",
@@ -891,7 +1197,7 @@
                           "valueFormat": "Currency",
                           "type": "Rate",
                           "formulaText": "",
-                          "aggregationType": "Average"
+                          "aggregationType": "None"
                         },
                         {
                           "name": "Pupil Premium Pupil Count for 3 to 4 Year Olds (PTE)",
@@ -940,7 +1246,7 @@
                           "valueFormat": "Currency",
                           "type": "Rate",
                           "formulaText": "",
-                          "aggregationType": "Average"
+                          "aggregationType": "None"
                         },
                         {
                           "name": "Maintained Nursery Schools Supplement (PTE)",
@@ -1956,7 +2262,6 @@
                                       "formulaText": "",
                                       "aggregationType": "Sum"
                                     },
-
                                     {
                                       "name": "Hospital Academies Funding Total Hospital Education Deduction April (Year 1) - August (Year 1) rate",
                                       "templateCalculationId": 216,

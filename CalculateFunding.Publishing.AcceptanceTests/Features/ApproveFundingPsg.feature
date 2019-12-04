@@ -1,6 +1,6 @@
 ﻿Feature: ApproveFundingPsg
 	In order to approve funding for PE and Sport
-	As a funding approvder
+	As a funding approver
 	I want to approve funding for all providers within a specification
 
 Scenario Outline: Successful approve of funding
