@@ -1148,7 +1148,131 @@ Scenario Outline: Successful publishing of funding
 		| FY-1920              | CalendarMonth | October   | 1920 | 1          | 14000         |
 	And the published funding contains a distribution period in funding line 'DSG-002' with id of 'FY-2021' has the following profiles
 		| DistributionPeriodId | Type          | TypeValue | Year | Occurrence | ProfiledValue |
-		| FY-2021              | CalendarMonth | April     | 2021 | 1          | 10000         |	
+		| FY-2021              | CalendarMonth | April     | 2021 | 1          | 10000         |
+	And  the published funding contains a calculations in published provider with following calculation results
+		| Id				    | Value |		
+		| 238                   | 640   |
+		| 15                    | 640   |
+		| 17                    | 640   |
+		| 13                    | 640   |
+		| 14                    | 640   |
+		| 19                    | 640   |
+		| 20                    | 640   |
+		| 26                    | 640   |
+		| 24                    | 640   |
+		| 28                    | 640   |
+		| 133                   | 320   |
+		| 131                   | 640   |
+		| 138                   | 320   |
+		| 136                   | 640   |
+		| 143                   | 640   |
+		| 141                   | 640   |
+		| 148                   | 640   |
+		| 146                   | 640   |
+		| 153                   | 640   |
+		| 151                   | 640   |
+		| 32                    | 640   |
+		| 34                    | 640   |
+		| 37                    | 640   |
+		| 29                    | 640   |
+		| 237                   | 640   |
+		| 30                    | 640   |
+		| 33                    | 640   |
+		| 36                    | 320   |
+		| 65                    | 640   |
+		| 66                    | 640   |
+		| 64                    | 640   |
+		| 70                    | 640   |
+		| 71                    | 640   |
+		| 69                    | 640   |
+		| 75                    | 640   |
+		| 76                    | 640   |
+		| 74                    | 640   |
+		| 80                    | 640   |
+		| 81                    | 640   |
+		| 79                    | 640   |
+		| 50                    | 640   |
+		| 51                    | 640   |
+		| 52                    | 640   |
+		| 53                    | 640   |
+		| 163                   | 640   |
+		| 164                   | 640   |
+		| 162                   | 640   |
+		| 90                    | 640   |
+		| 91                    | 640   |
+		| 89                    | 640   |
+		| 95                    | 640   |
+		| 96                    | 640   |
+		| 94                    | 640   |
+		| 158                   | 640   |
+		| 175                   | 640   |
+		| 174                   | 640   |
+		| 168                   | 640   |
+		| 169                   | 640   |
+		| 167                   | 640   |
+		| 176                   | 640   |
+		| 177                   | 640   |
+		| 232                   | 640   |
+		| 182                   | 640   |
+		| 183                   | 640   |
+		| 234                   | 640   |
+		| 159                   | 640   |
+		| 161                   | 640   |
+		| 233                   | 640   |
+		| 189                   | 640   |
+		| 190                   | 640   |
+		| 186                   | 640   |
+		| 195                   | 640   |
+		| 196                   | 640   |
+		| 192                   | 640   |
+		| 185                   | 640   |
+		| 191                   | 640   |
+		| 202                   | 640   |
+		| 203                   | 640   |
+		| 199                   | 640   |
+		| 198                   | 640   |
+		| 209                   | 640   |
+		| 210                   | 640   |
+		| 206                   | 640   |
+		| 205                   | 640   |
+		| 214                   | 640   |
+		| 215                   | 640   |
+		| 213                   | 640   |
+		| 223                   | 640   |
+		| 224                   | 640   |
+		| 220                   | 640   |
+		| 212                   | 640   |
+		| 128                   | 640   |
+		| 129                   | 640   |
+		| 227                   | 640   |
+		| 226                   | 640   |
+		| 42                    | 640   |
+		| 156                   | 640   |
+		| 157                   | 640   |
+		| 184                   | 640   |
+		| 197                   | 640   |
+		| 204                   | 640   |
+		| 211                   | 640   |
+		| 218                   | 640   |
+		| 225                   | 640   |
+		| 40                    | 640   |
+		| 41                    | 640   |
+		| 39                    | 640   |
+		| 21                    | 640   |
+		| 22                    | 640   |
+		| 219                   | 640   |
+	And the published funding document produced is saved to blob storage for following file name
+		| PublishedFundingFiles												   |
+		| <FundingStreamId>-<FundingPeriodId>-Information-LocalAuthority-200-1_0.json |
+		| <FundingStreamId>-<FundingPeriodId>-Payment-LocalAuthority-9000000-1_0.json |
+	And the published provider document produced is saved to blob storage for following file name
+		| PublishedProviderFiles							   |
+		| <FundingStreamId>-<FundingPeriodId>-1000000-1_0.json |
+		| <FundingStreamId>-<FundingPeriodId>-1000002-1_0.json |
+	And the following published provider search index items is produced for providerid with '<FundingStreamId>' and '<FundingPeriodId>'
+		| ID                  | ProviderType				| LocalAuthority		| FundingStatus | ProviderName			| UKPRN		 | FundingValue | SpecificationId   | FundingStreamId   | FundingPeriodId   |
+		| 1000000-FY-2021-DSG | LA maintained schools		| Maintained School 1	| Released      | Maintained School 1	| 1000000    | 12000        | specForPublishing | <FundingStreamId> | <FundingPeriodId> |
+		| 1000002-FY-2021-DSG | LA maintained schools		| Maintained School 2	| Released      | Maintained School 2	| 1000002    | 12000        | specForPublishing | <FundingStreamId> | <FundingPeriodId> |
 	And the following job is requested is completed for the current specification
 		| Field                  | Value             |
 		| JobDefinitionId        | PublishFundingJob |

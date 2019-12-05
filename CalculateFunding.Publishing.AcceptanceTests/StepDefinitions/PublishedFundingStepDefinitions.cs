@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Extensions;
 using CalculateFunding.Common.Utility;
@@ -99,6 +100,8 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
                 .BeEquivalentTo(expectedPublishedProviderIds);
         }
 
+
+
         [Then(@"the total funding is '(.*)'")]
         public void ThenTheTotalFundingIs(decimal expectedTotalFunding)
         {
@@ -181,15 +184,19 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
                 .Should()
                 .NotBeNull("Calculations not found");
 
-
             IEnumerable<CalculationResult> calculationResult = table.CreateSet<CalculationResult>();
 
             foreach (var cals in calculationResult)
             {
-                var calValue = calculations.SingleOrDefault(c => c.TemplateCalculationId.ToString() == cals.Id);
+                var calValue = calculations.FirstOrDefault(c => c.TemplateCalculationId.ToString() == cals.Id);
+
                 calValue
                     .Should()
                     .NotBeNull("Calculation value could not be found");
+
+                calValue.Value
+                    .Should()
+                    .Be(cals.Value);
             }
         }
 

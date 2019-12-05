@@ -13,6 +13,10 @@
     <None Remove="Resources\PSG-AY-1920-Payment-AcademyTrust-8000001-1_0.json" />
     <None Remove="Resources\PSG-AY-1920-Payment-LocalAuthority-9000000-1_0.json" />
     <None Remove="Resources\psg1.0.json" />
+    <None Remove="Resources\PublishedFunding\DSG-FY-2021-Information-LocalAuthority-200-1_0.json" />
+    <None Remove="Resources\PublishedFunding\DSG-FY-2021-Payment-LocalAuthority-9000000-1_0.json" />
+    <None Remove="Resources\PublishedProviders\DSG-FY-2021-1000000-1_0.json" />
+    <None Remove="Resources\PublishedProviders\DSG-FY-2021-1000002-1_0.json" />
     <None Remove="Resources\PublishedProviders\PSG-AY-1920-1000000-1_0.json" />
     <None Remove="Resources\PublishedProviders\PSG-AY-1920-1000002-1_0.json" />
     <None Remove="Resources\PublishedProviders\PSG-AY-1920-1000101-1_0.json" />
@@ -27,11 +31,15 @@
 
   <ItemGroup>
     <EmbeddedResource Include="Resources\DSG1.0.json" />
+    <EmbeddedResource Include="Resources\PublishedFunding\DSG-FY-2021-Information-LocalAuthority-200-1_0.json" />
+    <EmbeddedResource Include="Resources\PublishedFunding\DSG-FY-2021-Payment-LocalAuthority-9000000-1_0.json" />
     <EmbeddedResource Include="Resources\PublishedFunding\PSG-AY-1920-Information-Provider-1000201-1_0.json" />
     <EmbeddedResource Include="Resources\PublishedFunding\PSG-AY-1920-Information-Provider-1000202-1_0.json" />
     <EmbeddedResource Include="Resources\PublishedFunding\PSG-AY-1920-Payment-AcademyTrust-8000001-1_0.json" />
     <EmbeddedResource Include="Resources\PublishedFunding\PSG-AY-1920-Payment-LocalAuthority-9000000-1_0.json" />
     <EmbeddedResource Include="Resources\PSG1.0.json" />
+    <EmbeddedResource Include="Resources\PublishedProviders\DSG-FY-2021-1000000-1_0.json" />
+    <EmbeddedResource Include="Resources\PublishedProviders\DSG-FY-2021-1000002-1_0.json" />
     <EmbeddedResource Include="Resources\PublishedProviders\PSG-AY-1920-1000000-1_0.json" />
     <EmbeddedResource Include="Resources\PublishedProviders\PSG-AY-1920-1000002-1_0.json" />
     <EmbeddedResource Include="Resources\PublishedProviders\PSG-AY-1920-1000101-1_0.json" />
@@ -83,6 +91,6 @@
     </SpecFlowFeatureFiles>
   </ItemGroup>
 
-  <ProjectExtensions><VisualStudio><UserProperties /></VisualStudio></ProjectExtensions>
+  <ProjectExtensions><VisualStudio><UserProperties resources_4publishedfunding_4psg-ay-1920-payment-localauthority-9000000-1_30_1json__JsonSchema="" /></VisualStudio></ProjectExtensions>
 
 </Project>

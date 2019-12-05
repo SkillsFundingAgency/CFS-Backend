@@ -37,12 +37,11 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
             for (int i = 0; i < table.Rows.Count; i++)
             {
                 string fileName = table.Rows[i][0];
-                var content = Resources.ResourceManager.GetObject(fileName, Resources.Culture);
                 string expected = GetResourceContent(fileName);
 
-                publishedProviders.TryGetValue(fileName, out string acutal);
+                publishedProviders.TryGetValue(fileName, out string actual);
 
-                acutal.Should()
+                actual.Should()
                         .Equals(expected);
             }
 
