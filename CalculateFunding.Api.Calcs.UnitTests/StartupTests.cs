@@ -45,7 +45,7 @@ namespace CalculateFunding.Api.Calcs.UnitTests
                 { "datasetsClient:ApiKey", "Local" },
                 { "jobsClient:ApiEndpoint", "https://localhost:7010/api/" },
                 { "jobsClient:ApiKey", "Local" },
-                { "CommonStorageSettings:ConnectionString", "StorageConnection" },
+                { "AzureStorageSettings:ConnectionString", "StorageConnection" },
                 { "providersClient:ApiEndpoint", "https://localhost:7002/api" },
                 { "providersClient:ApiKey", "Local" },
             };

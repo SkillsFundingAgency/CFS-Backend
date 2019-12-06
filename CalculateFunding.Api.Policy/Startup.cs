@@ -132,7 +132,7 @@ namespace CalculateFunding.Api.Policy
                 {
                     BlobStorageOptions blobStorageOptions = new BlobStorageOptions();
 
-                    Configuration.Bind("CommonStorageSettings", blobStorageOptions);
+                    Configuration.Bind("AzureStorageSettings", blobStorageOptions);
 
                     blobStorageOptions.ContainerName = "fundingschemas";
 
@@ -144,7 +144,7 @@ namespace CalculateFunding.Api.Policy
                {
                    BlobStorageOptions blobStorageOptions = new BlobStorageOptions();
 
-                   Configuration.Bind("CommonStorageSettings", blobStorageOptions);
+                   Configuration.Bind("AzureStorageSettings", blobStorageOptions);
 
                    blobStorageOptions.ContainerName = "fundingtemplates";
 

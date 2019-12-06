@@ -164,7 +164,7 @@ namespace CalculateFunding.Api.Calcs
             {
                 BlobStorageOptions blobStorageOptions = new BlobStorageOptions();
 
-                Configuration.Bind("CommonStorageSettings", blobStorageOptions);
+                Configuration.Bind("AzureStorageSettings", blobStorageOptions);
 
                 blobStorageOptions.ContainerName = "source";
 

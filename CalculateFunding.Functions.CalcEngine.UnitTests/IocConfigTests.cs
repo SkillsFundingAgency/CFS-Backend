@@ -48,7 +48,7 @@ namespace CalculateFunding.Functions.CalcEngine.UnitTests
                 { "datasetsClient:ApiKey", "Local"},
                 { "jobsClient:ApiEndpoint", "https://localhost:7010/api/"},
                 { "jobsClient:ApiKey", "Local"},
-                { "CommonStorageSettings:ConnectionString", "StorageConnection" }
+                { "AzureStorageSettings:ConnectionString", "StorageConnection" }
             };
 
             return configData;
