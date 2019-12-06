@@ -20,11 +20,13 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
     [Binding]
     public class PublishedFundingStepDefinitions
     {
+        private readonly IPublishFundingStepContext _publishFundingStepContext;
         private readonly IPublishedFundingRepositoryStepContext _publishedFundingRepositoryStepContext;
         private readonly IPublishedFundingResultStepContext _publishedFundingResultStepContext;
         private readonly ICurrentSpecificationStepContext _currentSpecificationStepContext;
 
-        public PublishedFundingStepDefinitions(IPublishedFundingRepositoryStepContext publishedFundingRepositoryStepContext,
+        public PublishedFundingStepDefinitions(IPublishFundingStepContext publishFundingStepContext,
+            IPublishedFundingRepositoryStepContext publishedFundingRepositoryStepContext,
             IPublishedFundingResultStepContext publishedFundingResultStepContext,
             ICurrentSpecificationStepContext currentSpecificationStepContext)
         {
@@ -32,6 +34,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
             Guard.ArgumentNotNull(publishedFundingResultStepContext, nameof(publishedFundingResultStepContext));
             Guard.ArgumentNotNull(currentSpecificationStepContext, nameof(currentSpecificationStepContext));
 
+            _publishFundingStepContext = publishFundingStepContext;
             _publishedFundingRepositoryStepContext = publishedFundingRepositoryStepContext;
             _publishedFundingResultStepContext = publishedFundingResultStepContext;
             _currentSpecificationStepContext = currentSpecificationStepContext;
@@ -98,9 +101,33 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
                 .OrderBy(_ => _.Id)
                 .Should()
                 .BeEquivalentTo(expectedPublishedProviderIds);
+
+
+            publishedProviders
+                .ToList().ForEach(_ =>
+                {
+                    _.Current.Calculations.Select(calc => new CalculationResult
+                    {
+                        Id = _publishFundingStepContext.TemplateMapping.TemplateMappingItems.Where(cm => cm.TemplateId == calc.TemplateCalculationId).FirstOrDefault().CalculationId,
+                        Value = decimal.Parse(calc.Value.ToString())
+                    })
+                    .Should()
+                    .BeEquivalentTo(_publishFundingStepContext.ProviderCalculationResults.ContainsKey(_.Current.ProviderId) ? _publishFundingStepContext.ProviderCalculationResults[_.Current.ProviderId] : _publishFundingStepContext.CalculationResults);
+                });
         }
 
+        [Then(@"the following funding lines are set against provider with id '(.*)'")]
+        public async Task ThenTheFollowingFundingLinesAreSetAgainstProviderWithId(string providerId, Table table)
+        {
+            IEnumerable<PublishedProvider> publishedProviders = await _publishedFundingRepositoryStepContext.Repo
+                .GetLatestPublishedProvidersBySpecification(_currentSpecificationStepContext.SpecificationId);
+            
+            IEnumerable<(string FundingLineCode, decimal? Value)> fundingLines = table.Rows.Select(_ => (_[0], (decimal?)decimal.Parse(_[1])));
 
+            publishedProviders.FirstOrDefault(_ => _.Current.ProviderId == providerId).Current.FundingLines.Select(_ => (_.FundingLineCode, _.Value))
+                .Should()
+                .BeEquivalentTo(fundingLines);
+        }
 
         [Then(@"the total funding is '(.*)'")]
         public void ThenTheTotalFundingIs(decimal expectedTotalFunding)

@@ -35,6 +35,8 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
 
         public IEnumerable<CalculationResult> CalculationResults { get; set; }
 
+        public IDictionary<string, IEnumerable<CalculationResult>> ProviderCalculationResults { get; set; }
+
         public IEnumerable<CalculationMetadata> CalculationMetadata { get; set; }
 
         public TemplateMapping TemplateMapping { get; set; }
@@ -58,6 +60,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
             _loggerStepContext = loggerStepContext;
             _jobManagement = jobManagement;
             TemplateMapping = new TemplateMapping();
+            ProviderCalculationResults = new Dictionary<string, IEnumerable<CalculationResult>>();
             _publishedProviderStepContext = publishedProviderStepContext;
         }
 
@@ -166,7 +169,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
             ProfilingInMemoryClient profilingApiClient = new ProfilingInMemoryClient();
 
             InMemoryAzureBlobClient inMemoryAzureBlobClient = new InMemoryAzureBlobClient();
-            ICalculationResultsRepository calculationResultsRepository = new CalculationInMemoryRepository(CalculationResults);
+            ICalculationResultsRepository calculationResultsRepository = new CalculationInMemoryRepository(CalculationResults, ProviderCalculationResults);
             FundingLineTotalAggregator fundingLineTotalAggregator = new FundingLineTotalAggregator();
             PublishedProviderDataGenerator publishedProviderDataGenerator = new PublishedProviderDataGenerator(fundingLineTotalAggregator, mapper);
             PublishedProviderContentsGeneratorResolver publishedProviderContentsGeneratorResolver = new PublishedProviderContentsGeneratorResolver();
@@ -288,7 +291,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
                 publishedProviderStatusUpdateSettings,
                 new PublishingEngineOptions());
 
-            ICalculationResultsRepository calculationResultsRepository = new CalculationInMemoryRepository(CalculationResults);
+            ICalculationResultsRepository calculationResultsRepository = new CalculationInMemoryRepository(CalculationResults, ProviderCalculationResults);
             FundingLineTotalAggregator fundingLineTotalAggregator = new FundingLineTotalAggregator();
             PublishedProviderDataGenerator publishedProviderDataGenerator = new PublishedProviderDataGenerator(fundingLineTotalAggregator, mapper);
             PublishedProviderContentsGeneratorResolver publishedProviderContentsGeneratorResolver = new PublishedProviderContentsGeneratorResolver();
@@ -444,7 +447,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
             IJobsApiClient jobsApiClient = new JobsInMemoryRepository();
 
             InMemoryAzureBlobClient inMemoryAzureBlobClient = new InMemoryAzureBlobClient();
-            ICalculationResultsRepository calculationResultsRepository = new CalculationInMemoryRepository(CalculationResults);
+            ICalculationResultsRepository calculationResultsRepository = new CalculationInMemoryRepository(CalculationResults, ProviderCalculationResults);
             FundingLineTotalAggregator fundingLineTotalAggregator = new FundingLineTotalAggregator();
             PublishedProviderDataGenerator publishedProviderDataGenerator = new PublishedProviderDataGenerator(fundingLineTotalAggregator, mapper);
             PublishedProviderContentsGeneratorResolver publishedProviderContentsGeneratorResolver = new PublishedProviderContentsGeneratorResolver();

@@ -14,13 +14,15 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
     [Binding]
     public class PublishedFundingRepositoryStepDefinitions
     {
+        private readonly IPublishFundingStepContext _publishFundingStepContext;
         private readonly IPublishedFundingRepositoryStepContext _publishedFundingRepositoryStepContext;
         private readonly ICurrentSpecificationStepContext _currentSpecificationStepContext;
 
-        public PublishedFundingRepositoryStepDefinitions(
+        public PublishedFundingRepositoryStepDefinitions(IPublishFundingStepContext publishFundingStepContext,
             IPublishedFundingRepositoryStepContext publishedFundingRepositoryStepContext,
             ICurrentSpecificationStepContext currentSpecificationStepContext)
         {
+            _publishFundingStepContext = publishFundingStepContext;
             _publishedFundingRepositoryStepContext = publishedFundingRepositoryStepContext;
             _currentSpecificationStepContext = currentSpecificationStepContext;
         }
@@ -129,6 +131,8 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
 
             Console.WriteLine($"Adding a total of {calculations.Count()} calculation for provider {_publishedFundingRepositoryStepContext.CurrentPublishedProvider.Current.ProviderId}");
 
+            _publishFundingStepContext.ProviderCalculationResults.Add(_publishedFundingRepositoryStepContext.CurrentPublishedProvider.Current.ProviderId, calculations.Select(_ => new CalculationResult { Id = _publishFundingStepContext.TemplateMapping.TemplateMappingItems.Where(t => t.TemplateId == _.TemplateCalculationId).FirstOrDefault().CalculationId, Value = _.Value }));
+            
             _publishedFundingRepositoryStepContext
                 .CurrentPublishedProvider
                 .Current

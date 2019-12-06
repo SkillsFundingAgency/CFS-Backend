@@ -17,6 +17,8 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
 
         IEnumerable<CalculationResult> CalculationResults { get; set; }
 
+        IDictionary<string, IEnumerable<CalculationResult>> ProviderCalculationResults { get; set; }
+
         IEnumerable<CalculationMetadata> CalculationMetadata { get; set; }
 
         Task PublishFunding(string specificationId, string jobId, string userId, string userName);

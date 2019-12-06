@@ -1169,7 +1169,7 @@ Scenario Outline: Successful refresh of funding
 	    | Template        | calculation4  | Rate                 | Approved      |
 	    | Template        | calculation5  | Additional Rate      | Approved      |
 	And calculations exists
-		| Value         | CalculationId    |
+		| Value         | Id			   |
 		| 24000         | calculation1	   |
 		| 120			| calculation2	   |
 		| 500			| calculation3	   |
@@ -1188,6 +1188,31 @@ Scenario Outline: Successful refresh of funding
 		| publishedprovider-1000101-<FundingPeriodId>-<FundingStreamId> | Updated |
 		| publishedprovider-1000102-<FundingPeriodId>-<FundingStreamId> | Updated |
 		| publishedprovider-1000103-<FundingPeriodId>-<FundingStreamId> | Draft   |
+	Given the provider with id '9000000' should be a scoped provider in the current specification in provider version '<ProviderVersionId>'
+	And the provider with id '9000002' should be a scoped provider in the current specification in provider version '<ProviderVersionId>'
+	And the provider with id '9000003' should be a scoped provider in the current specification in provider version '<ProviderVersionId>'
+	When funding is refreshed
+	Then refresh succeeds
+	And the following published provider ids are upserted
+		| PublishedProviderId                                           | Status  |
+		| publishedprovider-1000000-<FundingPeriodId>-<FundingStreamId> | Updated |
+		| publishedprovider-1000002-<FundingPeriodId>-<FundingStreamId> | Updated |
+		| publishedprovider-1000003-<FundingPeriodId>-<FundingStreamId> | Draft   |
+		| publishedprovider-1000004-<FundingPeriodId>-<FundingStreamId> | Draft   |
+		| publishedprovider-1000005-<FundingPeriodId>-<FundingStreamId> | Draft   |
+		| publishedprovider-1000009-<FundingPeriodId>-<FundingStreamId> | Draft   |
+		| publishedprovider-1000101-<FundingPeriodId>-<FundingStreamId> | Updated |
+		| publishedprovider-1000102-<FundingPeriodId>-<FundingStreamId> | Updated |
+		| publishedprovider-1000103-<FundingPeriodId>-<FundingStreamId> | Draft   |
+		| publishedprovider-9000000-<FundingPeriodId>-<FundingStreamId> | Draft   |
+		| publishedprovider-9000002-<FundingPeriodId>-<FundingStreamId> | Draft   |
+		| publishedprovider-9000003-<FundingPeriodId>-<FundingStreamId> | Draft   |
+	And the following funding lines are set against provider with id '1000000'
+		| FundingLineCode | Value  |
+		| TotalAllocation | 12000  |
+	And the following funding lines are set against provider with id '9000000'
+		| FundingLineCode | Value  |
+		| TotalAllocation | 24000  |
 
 	Examples:
 		| FundingStreamId | FundingPeriodId | FundingPeriodName     | TemplateVersion | ProviderVersionId |

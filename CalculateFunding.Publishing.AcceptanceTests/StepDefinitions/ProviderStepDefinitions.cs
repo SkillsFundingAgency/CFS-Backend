@@ -45,12 +45,6 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
             _providersStepContext.EmulatedClient.AddProviderToCoreProviderData(providerVersionId, provider);
         }
 
-        [Given(@"the provider with id '(.*)' should be a scoped provider in the current specification")]
-        public void GivenTheProviderWithIdShouldBeAScopedProviderInTheCurrentSpecification(string providerId)
-        {
-
-        }
-
         [Given(@"the provider with id '(.*)' should be a scoped provider in the current specification in provider version '(.*)'")]
         public void GivenTheProviderWithIdShouldBeAScopedProviderInTheCurrentSpecificationInProviderVersion(string providerId, string providerVersionId)
         {

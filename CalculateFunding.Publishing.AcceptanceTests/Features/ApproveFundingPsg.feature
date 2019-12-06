@@ -1511,7 +1511,7 @@ Scenario Outline: Successful approve of funding
 		| Calculation | calculation4 | 5		  | Rate				|
 		| Calculation | calculation5 | 6		  | Additional Rate		|
 	And calculations exists
-		| Value         | CalculationId    |
+		| Value         | Id			   |
 		| 24000         | calculation1	   |
 		| 120			| calculation2	   |
 		| 500			| calculation3	   |
