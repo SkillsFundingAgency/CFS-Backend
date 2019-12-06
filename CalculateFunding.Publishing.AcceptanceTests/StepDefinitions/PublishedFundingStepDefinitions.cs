@@ -124,9 +124,14 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
             
             IEnumerable<(string FundingLineCode, decimal? Value)> fundingLines = table.Rows.Select(_ => (_[0], (decimal?)decimal.Parse(_[1])));
 
-            publishedProviders.FirstOrDefault(_ => _.Current.ProviderId == providerId).Current.FundingLines.Select(_ => (_.FundingLineCode, _.Value))
-                .Should()
-                .BeEquivalentTo(fundingLines);
+            publishedProviders.FirstOrDefault(_ => _.Current.ProviderId == providerId).Current.FundingLines.Select(_ => {
+                _.DistributionPeriods.Sum(dp => dp.Value)
+                    .Should()
+                    .Be(_.Value);
+                return (_.FundingLineCode, _.Value);
+            })
+            .Should()
+            .BeEquivalentTo(fundingLines);
         }
 
         [Then(@"the total funding is '(.*)'")]

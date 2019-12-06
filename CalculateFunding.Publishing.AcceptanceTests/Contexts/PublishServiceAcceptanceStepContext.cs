@@ -19,6 +19,7 @@ using Serilog;
 using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.ApiClient.Calcs;
 using CalculateFunding.Common.ApiClient.Profiling;
+using CalculateFunding.Common.ApiClient.Profiling.Models;
 
 namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
 {
@@ -43,6 +44,12 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
 
         public TemplateMapping TemplateMapping { get; set; }
 
+        public IEnumerable<ProfilingPeriod> ProfilingPeriods { get; set; }
+
+        public IEnumerable<DistributionPeriods> DistributionPeriods { get; set; }
+        
+        public IList<(decimal? Value, string FundingStreamId, string FundingPeriodId, string FundingLineCode, IEnumerable<ProfilingPeriod> ProfilingPeriods, IEnumerable<DistributionPeriods> DistributionPeriods)> FundingValueProfileSplits { get; set; }
+
         public PublishServiceAcceptanceStepContext(IJobStepContext jobStepContext,
             ICurrentSpecificationStepContext currentSpecificationStepContext,
             IPublishedFundingRepositoryStepContext publishedFundingRepositoryStepContext,
@@ -65,6 +72,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
             _jobManagement = jobManagement;
             TemplateMapping = new TemplateMapping();
             ProviderCalculationResults = new Dictionary<string, IEnumerable<CalculationResult>>();
+            FundingValueProfileSplits = new List<(decimal? Value, string FundingStreamId, string FundingPeriodId, string FundingLineCode, IEnumerable<ProfilingPeriod> ProfilingPeriods, IEnumerable<DistributionPeriods> DistributionPeriods)>();
             _publishedProviderStepContext = publishedProviderStepContext;
         }
 
@@ -170,7 +178,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
 
             IJobsApiClient jobsApiClient = new JobsInMemoryRepository();
 
-            ProfilingInMemoryClient profilingApiClient = new ProfilingInMemoryClient();
+            ProfilingInMemoryClient profilingApiClient = new ProfilingInMemoryClient(ProfilingPeriods, DistributionPeriods, FundingValueProfileSplits);
 
             InMemoryAzureBlobClient inMemoryAzureBlobClient = new InMemoryAzureBlobClient();
             ICalculationResultsRepository calculationResultsRepository = new CalculationInMemoryRepository(CalculationResults, ProviderCalculationResults);
@@ -308,7 +316,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
 
             PublishedFundingDataService publishedFundingDataService = new PublishedFundingDataService(_publishedFundingRepositoryStepContext.Repo, specificationInMemoryRepository, resiliencePolicies, new PublishingEngineOptions(_configuration));
 
-            ProfilingInMemoryClient profilingApiClient = new ProfilingInMemoryClient();
+            ProfilingInMemoryClient profilingApiClient = new ProfilingInMemoryClient(ProfilingPeriods, DistributionPeriods, FundingValueProfileSplits);
 
             ProfilingService profilingService = new ProfilingService(logger, profilingApiClient);
 

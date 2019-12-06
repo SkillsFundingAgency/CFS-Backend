@@ -1,4 +1,5 @@
 ﻿using CalculateFunding.Common.ApiClient.Calcs.Models;
+using CalculateFunding.Common.ApiClient.Profiling.Models;
 using CalculateFunding.Models.Publishing;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -20,6 +21,12 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
         IDictionary<string, IEnumerable<CalculationResult>> ProviderCalculationResults { get; set; }
 
         IEnumerable<CalculationMetadata> CalculationMetadata { get; set; }
+
+        IEnumerable<ProfilingPeriod> ProfilingPeriods { get; set; }
+
+        IEnumerable<DistributionPeriods> DistributionPeriods { get; set; }
+
+        IList<(decimal? Value, string FundingStreamId, string FundingPeriodId, string FundingLineCode, IEnumerable<ProfilingPeriod> ProfilingPeriods, IEnumerable<DistributionPeriods> DistributionPeriods)> FundingValueProfileSplits { get; set; }
 
         Task PublishFunding(string specificationId, string jobId, string userId, string userName);
 

@@ -1175,6 +1175,14 @@ Scenario Outline: Successful refresh of funding
 		| 500			| calculation3	   |
 		| 1000			| calculation4	   |
 		| 20			| calculation5	   |
+	And the following distribution periods exist
+		| DistributionPeriodId | Value |
+		| FY-1920              | 14000 |
+		| FY-2021              | 10000 |
+	And the following profiles exist
+		| DistributionPeriodId | Type          | TypeValue | Year | Occurrence | ProfiledValue |
+		| FY-1920              | CalendarMonth | October   | 1920 | 1          | 14000         |
+		| FY-2021              | CalendarMonth | April     | 2021 | 1          | 10000         |
 	When funding is refreshed
 	Then refresh succeeds
 	And the following published provider ids are upserted

@@ -62,6 +62,21 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
             _publishFundingStepContext.CalculationResults = table.CreateSet<CalculationResult>();
         }
 
+        [Given(@"the following distribution periods exist")]
+        public void GivenTheFollowingDistributionPeriodsExist(Table table)
+        {
+            _publishFundingStepContext.DistributionPeriods = table.Rows.Select(_ => new Common.ApiClient.Profiling.Models.DistributionPeriods { DistributionPeriodCode = _[0], Value = decimal.Parse(_[1]) }) ;
+        }
+
+        [Given(@"the following profiles exist")]
+        public void GivenTheFollowingProfilesExist(Table table)
+        {
+            _publishFundingStepContext.DistributionPeriods.ToList().ForEach(_ =>
+            {
+                _publishFundingStepContext.ProfilingPeriods = table.Rows.Where(row => row[0] == _.DistributionPeriodCode).Select(row => new Common.ApiClient.Profiling.Models.ProfilingPeriod { DistributionPeriod = _.DistributionPeriodCode, Type = row[1], Period = row[2], Year = Convert.ToInt16(row[3]), Occurrence = Convert.ToInt16(row[4]), Value = decimal.Parse(row[5]) });
+            });
+        }
+
 
         [When(@"funding is published")]
         public async Task WhenFundingIsPublished()

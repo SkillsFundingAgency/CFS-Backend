@@ -119,12 +119,12 @@ Scenario Outline: Successful refresh of funding
 		| Total DSG after deductions and recoupment            | DSG-002         | 15360 | 3              | Payment     |
 	And the Published Provider has the following distribution period for funding line 'DSG-002'
 		| DistributionPeriodId | Value |
-		| FY-1920              | 7000  |
-		| FY-2021              | 5000  |
+		| FY-1920              | 5000  |
+		| FY-2021              | 10360  |
 	And the Published Providers distribution period has the following profiles for funding line 'DSG-002'
 		| DistributionPeriodId | Type          | TypeValue | Year | Occurrence | ProfiledValue |
-		| FY-1920              | CalendarMonth | October   | 1920 | 1          | 7000          |
-		| FY-2021              | CalendarMonth | April     | 2021 | 1          | 5000          |
+		| FY-1920              | CalendarMonth | October   | 1920 | 1          | 5000          |
+		| FY-2021              | CalendarMonth | April     | 2021 | 1          | 10360          |
 	And the Published Provider contains the following calculation results
 		| TemplateCalculationId | Value |
 		| 238                   | 320   |
@@ -1296,6 +1296,14 @@ Scenario Outline: Successful refresh of funding
 		| 320   | 4afd7426-1787-4b71-a5f7-971db86811be |
 		| 320   | 8fdd4341-88ea-47f2-ba81-511951ca7efd |
 		| 320   | 5cfb28de-88d6-4faa-a936-d81a065fb596 |
+	And the following distribution periods exist
+		| DistributionPeriodId | Value |
+		| FY-1920              | 1200  |
+		| FY-2021              | 2000  |
+	And the following profiles exist
+		| DistributionPeriodId | Type          | TypeValue | Year | Occurrence | ProfiledValue |
+		| FY-1920              | CalendarMonth | October   | 1920 | 1          | 1200          |
+		| FY-2021              | CalendarMonth | April     | 2021 | 1          | 2000          |
 	When funding is refreshed
 	Then refresh succeeds
 	And the following published provider ids are upserted

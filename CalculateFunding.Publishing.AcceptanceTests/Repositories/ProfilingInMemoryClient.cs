@@ -3,6 +3,7 @@ using CalculateFunding.Common.ApiClient.Profiling;
 using CalculateFunding.Common.ApiClient.Profiling.Models;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
@@ -11,19 +12,26 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 {
     public class ProfilingInMemoryClient : IProfilingApiClient
     {
+        public IEnumerable<ProfilingPeriod> ProfilingPeriods { get; set; }
+
+        public IEnumerable<DistributionPeriods> DistributionPeriods { get; set; }
+
+        public IList<(decimal? Value, string FundingStreamId, string FundingPeriodId, string FundingLineCode, IEnumerable<ProfilingPeriod> ProfilingPeriods, IEnumerable<DistributionPeriods> DistributionPeriods)> FundingValueProfileSplits { get; set; }
+
+        public ProfilingInMemoryClient(IEnumerable<ProfilingPeriod> profilingPeriods, IEnumerable<DistributionPeriods> distributionPeriods, IList<(decimal? Value, string FundingStreamId, string FundingPeriodId, string FundingLineCode, IEnumerable<ProfilingPeriod> ProfilingPeriods, IEnumerable<DistributionPeriods> DistributionPeriods)> fundingValueProfileSplits)
+        {
+            ProfilingPeriods = profilingPeriods;
+            DistributionPeriods = distributionPeriods;
+            FundingValueProfileSplits = fundingValueProfileSplits;
+        }
+
         public async Task<ValidatedApiResponse<ProviderProfilingResponseModel>> GetProviderProfilePeriods(ProviderProfilingRequestModel requestModel)
         {
+            (decimal? Value, string FundingStreamId, string FundingPeriodId, string FundingLineCode, IEnumerable<ProfilingPeriod> ProfilingPeriods, IEnumerable<DistributionPeriods> DistributionPeriods) fundingValueProfileSplit = FundingValueProfileSplits.FirstOrDefault(_ => _.Value == requestModel.FundingValue && _.FundingStreamId == requestModel.FundingStreamId && _.FundingPeriodId == requestModel.FundingPeriodId && _.FundingLineCode == requestModel.FundingLineCode);
             return await Task.FromResult(new ValidatedApiResponse<ProviderProfilingResponseModel>(HttpStatusCode.OK, new ProviderProfilingResponseModel()
             {
-                DeliveryProfilePeriods = new List<Common.ApiClient.Profiling.Models.ProfilingPeriod>
-                 {
-                    new Common.ApiClient.Profiling.Models.ProfilingPeriod { Period = "October", Occurrence = 1, Year = 2018, Type = "CalendarMonth", Value = 82190.0M, DistributionPeriod = "2018-2019" },
-                    new Common.ApiClient.Profiling.Models.ProfilingPeriod { Period = "April", Occurrence = 1, Year = 2019, Type = "CalendarMonth", Value = 82190.0M, DistributionPeriod = "2018-2019" }
-                 },
-                DistributionPeriods = new List<Common.ApiClient.Profiling.Models.DistributionPeriods>
-                 {
-                    new Common.ApiClient.Profiling.Models.DistributionPeriods { DistributionPeriodCode = "2018-2019",   Value = 82190.0M }
-                 }
+                DeliveryProfilePeriods = fundingValueProfileSplit.Value.HasValue ? fundingValueProfileSplit.ProfilingPeriods : ProfilingPeriods,
+                DistributionPeriods = fundingValueProfileSplit.Value.HasValue ? fundingValueProfileSplit.DistributionPeriods : DistributionPeriods
             }));
         }
 

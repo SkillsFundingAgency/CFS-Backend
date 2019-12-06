@@ -74,7 +74,6 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
             distributionPeriods.AddRange(table.CreateSet<DistributionPeriod>());
 
             fundingLine.DistributionPeriods = distributionPeriods;
-
         }
 
         [Given(@"the Published Providers distribution period has the following profiles for funding line '(.*)'")]
@@ -118,6 +117,25 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
 
                 distributionPeriod.ProfilePeriods = profilePeriodsForDistributionPeriod;
             }
+
+            _publishFundingStepContext.FundingValueProfileSplits.Add(
+                (fundingLine.Value,
+                _publishedFundingRepositoryStepContext.CurrentPublishedProvider.Current.FundingStreamId, 
+                _publishedFundingRepositoryStepContext.CurrentPublishedProvider.Current.FundingPeriodId, 
+                fundingLine.FundingLineCode, 
+                profilePeriods.Select(_ => 
+                    new Common.ApiClient.Profiling.Models.ProfilingPeriod {
+                        DistributionPeriod = _.DistributionPeriodId,
+                        Occurrence = _.Occurrence,
+                        Type = _.TypeValue,
+                        Value = _.ProfiledValue,
+                        Year = _.Year
+                    }),
+                distributionPeriods.Values.Select(_ => 
+                    new Common.ApiClient.Profiling.Models.DistributionPeriods {
+                        DistributionPeriodCode = _.DistributionPeriodId,
+                        Value = _.Value
+                    })));
         }
 
         [Given(@"the Published Provider contains the following calculation results")]

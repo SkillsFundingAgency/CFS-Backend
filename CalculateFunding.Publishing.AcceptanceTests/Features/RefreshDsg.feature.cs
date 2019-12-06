@@ -490,10 +490,10 @@ this.ScenarioInitialize(scenarioInfo);
                         "Value"});
             table255.AddRow(new string[] {
                         "FY-1920",
-                        "7000"});
+                        "5000"});
             table255.AddRow(new string[] {
                         "FY-2021",
-                        "5000"});
+                        "10360"});
 #line 120
  testRunner.And("the Published Provider has the following distribution period for funding line \'DS" +
                     "G-002\'", ((string)(null)), table255, "And ");
@@ -511,14 +511,14 @@ this.ScenarioInitialize(scenarioInfo);
                         "October",
                         "1920",
                         "1",
-                        "7000"});
+                        "5000"});
             table256.AddRow(new string[] {
                         "FY-2021",
                         "CalendarMonth",
                         "April",
                         "2021",
                         "1",
-                        "5000"});
+                        "10360"});
 #line 124
  testRunner.And("the Published Providers distribution period has the following profiles for fundin" +
                     "g line \'DSG-002\'", ((string)(null)), table256, "And ");
@@ -4920,22 +4920,58 @@ this.ScenarioInitialize(scenarioInfo);
                         "5cfb28de-88d6-4faa-a936-d81a065fb596"});
 #line 1125
  testRunner.And("calculations exists", ((string)(null)), table270, "And ");
-#line 1299
- testRunner.When("funding is refreshed", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
-#line 1300
- testRunner.Then("refresh succeeds", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
             TechTalk.SpecFlow.Table table271 = new TechTalk.SpecFlow.Table(new string[] {
+                        "DistributionPeriodId",
+                        "Value"});
+            table271.AddRow(new string[] {
+                        "FY-1920",
+                        "1200"});
+            table271.AddRow(new string[] {
+                        "FY-2021",
+                        "2000"});
+#line 1299
+ testRunner.And("the following distribution periods exist", ((string)(null)), table271, "And ");
+#line hidden
+            TechTalk.SpecFlow.Table table272 = new TechTalk.SpecFlow.Table(new string[] {
+                        "DistributionPeriodId",
+                        "Type",
+                        "TypeValue",
+                        "Year",
+                        "Occurrence",
+                        "ProfiledValue"});
+            table272.AddRow(new string[] {
+                        "FY-1920",
+                        "CalendarMonth",
+                        "October",
+                        "1920",
+                        "1",
+                        "1200"});
+            table272.AddRow(new string[] {
+                        "FY-2021",
+                        "CalendarMonth",
+                        "April",
+                        "2021",
+                        "1",
+                        "2000"});
+#line 1303
+ testRunner.And("the following profiles exist", ((string)(null)), table272, "And ");
+#line 1307
+ testRunner.When("funding is refreshed", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line 1308
+ testRunner.Then("refresh succeeds", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+            TechTalk.SpecFlow.Table table273 = new TechTalk.SpecFlow.Table(new string[] {
                         "PublishedProviderId",
                         "Status"});
-            table271.AddRow(new string[] {
+            table273.AddRow(new string[] {
                         string.Format("publishedprovider-1000000-{0}-{1}", fundingPeriodId, fundingStreamId),
                         "Updated"});
-            table271.AddRow(new string[] {
+            table273.AddRow(new string[] {
                         string.Format("publishedprovider-1000002-{0}-{1}", fundingPeriodId, fundingStreamId),
                         "Updated"});
-#line 1301
- testRunner.And("the following published provider ids are upserted", ((string)(null)), table271, "And ");
+#line 1309
+ testRunner.And("the following published provider ids are upserted", ((string)(null)), table273, "And ");
 #line hidden
             this.ScenarioCleanup();
         }
