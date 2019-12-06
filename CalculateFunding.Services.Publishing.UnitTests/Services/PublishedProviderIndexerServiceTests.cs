@@ -6,6 +6,7 @@ using CalculateFunding.Models.Publishing;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core;
 using FluentAssertions;
+using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Polly;
@@ -197,12 +198,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 PublishedProviderSearchRepository = Policy.NoOpAsync(),
             };
 
+            IConfiguration configuration = Substitute.For<IConfiguration>();
+
             return new PublishedProviderIndexerService(
                 logger ?? CreateLogger(),
                 searchRepository ?? CreateSearchRepository(),
                 _resiliencePolicies,
-                new PublishingEngineOptions()
-                );
+                new PublishingEngineOptions(configuration));
         }
 
         protected ISearchRepository<PublishedProviderIndex> CreateSearchRepository()

@@ -9,6 +9,7 @@ using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
 using NSubstitute.ExceptionExtensions;
 
 namespace CalculateFunding.Services.Publishing.UnitTests
@@ -34,12 +35,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             _logger = Substitute.For<ILogger>();
             _publishedProviderVersionService = Substitute.For<IPublishedProviderVersionService>();
             _publishedProviderIndexerService = Substitute.For<IPublishedProviderIndexerService>();
+            IConfiguration configuration = Substitute.For<IConfiguration>();
 
             _publishedProviderContentPersistanceService = new PublishedProviderContentPersistanceService(
                 _publishedProviderVersionService,
                 _publishedProviderIndexerService,
                 _logger,
-                new PublishingEngineOptions());
+                new PublishingEngineOptions(configuration));
         }
 
         [TestMethod]

@@ -8,6 +8,7 @@ using CalculateFunding.Generators.OrganisationGroup.Interfaces;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Publishing.Interfaces;
+using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Polly;
@@ -44,6 +45,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private ICalculationResultsService _calculationResultsService;
         private IPublishedProviderVersionService _publishedProviderVersionService;
         private ICalculationsApiClient _calculationsApiClient;
+        private IConfiguration _configuration;
 
         ISearchRepository<PublishedFundingIndex> _publishedFundingSearchRepository;
         private IPublishedProviderIndexerService _publishedProviderIndexerService;
@@ -76,6 +78,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             _calculationResultsService = Substitute.For<ICalculationResultsService>();
             _publishedProviderVersionService = Substitute.For<IPublishedProviderVersionService>();
             _calculationsApiClient = Substitute.For<ICalculationsApiClient>();
+            _configuration = Substitute.For<IConfiguration>();
             _jobManagement = Substitute.For<IJobManagement>();
             _profilingService = Substitute.For<IProfilingService>();
 
@@ -116,7 +119,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 _policiesApiClient,
                 _calculationsApiClient,
                 _logger,
-                new PublishingEngineOptions(),
+                new PublishingEngineOptions(_configuration),
                 _jobManagement);
         }
 

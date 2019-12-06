@@ -59,6 +59,8 @@ namespace CalculateFunding.Api.Publishing
         public void Configure(IApplicationBuilder app,
             IHostingEnvironment env)
         {
+            app.UseAzureAppConfiguration();
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -115,6 +117,9 @@ namespace CalculateFunding.Api.Publishing
 
                 return new PublishedFundingRepository(calcsCosmosRepostory);
             });
+
+            builder
+                .AddSingleton<IPublishingEngineOptions>(_ => new PublishingEngineOptions(Configuration));
 
             builder
                 .AddSingleton<IBlobClient, BlobClient>((ctx) =>

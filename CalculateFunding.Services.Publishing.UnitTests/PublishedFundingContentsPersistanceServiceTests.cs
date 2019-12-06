@@ -6,6 +6,7 @@ using CalculateFunding.Generators.OrganisationGroup.Enums;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
 using FluentAssertions;
+using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 
@@ -27,16 +28,18 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         public void SetUp()
         {
             IPublishedFundingContentsGeneratorResolver publishedFundingContentsGeneratorResolver = Substitute.For<IPublishedFundingContentsGeneratorResolver>();
+            IConfiguration configuration = Substitute.For<IConfiguration>();
             _blobClient = Substitute.For<IBlobClient>();
-
-            _templateMetadataContents = new Common.TemplateMetadata.Models.TemplateMetadataContents { SchemaVersion = _schema };
-
             _publishedFundingContentsGenerator = Substitute.For<IPublishedFundingContentsGenerator>();
+            _templateMetadataContents = new Common.TemplateMetadata.Models.TemplateMetadataContents { SchemaVersion = _schema };
 
             publishedFundingContentsGeneratorResolver.GetService(Arg.Is(_schema))
                 .Returns(_publishedFundingContentsGenerator);
 
-            _publishedFundingContentsPersistanceService = new PublishedFundingContentsPersistanceService(publishedFundingContentsGeneratorResolver, _blobClient, PublishingResilienceTestHelper.GenerateTestPolicies(), new PublishingEngineOptions());
+            _publishedFundingContentsPersistanceService = new PublishedFundingContentsPersistanceService(
+                publishedFundingContentsGeneratorResolver, 
+                _blobClient, PublishingResilienceTestHelper.GenerateTestPolicies(), 
+                new PublishingEngineOptions(configuration));
 
             _publishedFundingPeriod = new PublishedFundingPeriod { Type = PublishedFundingPeriodType.AY, Period = "123" };
         }

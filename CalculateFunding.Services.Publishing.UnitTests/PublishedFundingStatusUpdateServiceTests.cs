@@ -8,6 +8,7 @@ using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Publishing.Interfaces;
 using FluentAssertions;
+using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
@@ -30,18 +31,18 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         public void SetUp()
         {
             ILogger logger = Substitute.For<ILogger>();
+            IConfiguration configuration = Substitute.For<IConfiguration>();
             _publishedFundingRepository = Substitute.For<IPublishedFundingRepository>();
             _publishedFundingVersionRepository = Substitute.For<IVersionRepository<PublishedFundingVersion>>();
-
             _publishedFundingIdGeneratorResolver = Substitute.For<IPublishedFundingIdGeneratorResolver>();
-
             _author = new Reference { Id = "authorId", Name = "author" };
+
             _publishedFundingStatusUpdateService = new PublishedFundingStatusUpdateService(_publishedFundingRepository,
                                                                                            PublishingResilienceTestHelper.GenerateTestPolicies(),
                                                                                            _publishedFundingVersionRepository,
                                                                                            _publishedFundingIdGeneratorResolver,
                                                                                            logger,
-                                                                                           new PublishingEngineOptions());
+                                                                                           new PublishingEngineOptions(configuration));
 
             _publishedFundingPeriod = new PublishedFundingPeriod { Type = PublishedFundingPeriodType.AY, Period = "123" };
         }

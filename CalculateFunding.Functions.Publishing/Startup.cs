@@ -63,6 +63,8 @@ namespace CalculateFunding.Functions.Publishing
         private static IServiceProvider Register(IServiceCollection builder,
             IConfigurationRoot config)
         {
+            builder.AddSingleton<IConfiguration>(ctx => config);
+
             builder.AddSingleton<IPublishedFundingRepository, PublishedFundingRepository>((ctx) =>
             {
                 CosmosDbSettings calssDbSettings = new CosmosDbSettings();
@@ -120,15 +122,7 @@ namespace CalculateFunding.Functions.Publishing
                 );
 
             builder
-                .AddSingleton<IPublishingEngineOptions>(_ =>
-                    {
-                        PublishingEngineOptions settings = new PublishingEngineOptions();
-
-                        config.Bind("publishingengineoptions", settings);
-
-                        return settings;
-                    }
-                );
+                .AddSingleton<IPublishingEngineOptions>(_ => new PublishingEngineOptions(config));
 
             builder
                .AddSingleton<IBlobClient, BlobClient>((ctx) =>

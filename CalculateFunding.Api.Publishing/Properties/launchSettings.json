@@ -4,7 +4,8 @@
     "CalculateFunding.Api.Publishing": {
       "commandName": "Project",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "AzureConfiguration:ConnectionString": "Endpoint=https://ac-t1dv-cfs-v2.azconfig.io;Id=hi37-l9-s0:IsoyE1K8qqGoLqIzFM3+;Secret=m29T+tq2qh684d5mCnScKkb+5d8nHpuB0XzNH/nFS6k="
       },
       "applicationUrl": "https://localhost:7012"
     }

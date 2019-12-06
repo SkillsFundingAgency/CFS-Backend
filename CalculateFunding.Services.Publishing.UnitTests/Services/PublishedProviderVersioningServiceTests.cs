@@ -11,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
 
 namespace CalculateFunding.Services.Publishing.Services.UnitTests
 {
@@ -556,11 +557,13 @@ namespace CalculateFunding.Services.Publishing.Services.UnitTests
          ILogger logger = null,
          IVersionRepository<PublishedProviderVersion> versionRepository = null)
         {
+            IConfiguration configuration = Substitute.For<IConfiguration>();
+
             return new PublishedProviderVersioningService(
                 logger ?? CreateLogger(),
                 versionRepository ?? CreateVersionRepository(),
                 PublishingResilienceTestHelper.GenerateTestPolicies(),
-                new PublishingEngineOptions());
+                new PublishingEngineOptions(configuration));
         }
 
         private static ILogger CreateLogger()

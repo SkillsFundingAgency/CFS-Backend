@@ -7,6 +7,7 @@ using CalculateFunding.Publishing.AcceptanceTests.Repositories;
 using CalculateFunding.Services.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Providers;
+using Microsoft.Extensions.Configuration;
 using Polly;
 using Serilog;
 using TechTalk.SpecFlow;
@@ -27,6 +28,9 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
         [BeforeScenario]
         public void SetupStepContexts()
         {
+            IConfigurationRoot config = new ConfigurationBuilder().Build();
+            _objectContainer.RegisterInstanceAs<IConfiguration>(config);
+
             LoggerConfiguration loggerConfiguration = new LoggerConfiguration();
 
             ILogger logger = loggerConfiguration.CreateLogger();

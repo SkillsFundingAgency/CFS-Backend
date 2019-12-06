@@ -9,6 +9,7 @@ using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
+using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
@@ -287,14 +288,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             IJobTracker jobTracker = null,
             IPublishedFundingRepository publishedFundingRepository = null)
         {
+            IConfiguration configuration = Substitute.For<IConfiguration>();
+
             return new PublishedProviderStatusUpdateService(
                     publishedProviderVersioningService ?? CreateVersioningService(),
                     publishedFundingRepository ?? CreatePublishedFundingRepository(),
                     jobTracker ?? CreateJobTracker(),
                     logger ?? CreateLogger(),
                     new PublishedProviderStatusUpdateSettings(),
-                    new PublishingEngineOptions()
-                );
+                    new PublishingEngineOptions(configuration));
         }
 
 
