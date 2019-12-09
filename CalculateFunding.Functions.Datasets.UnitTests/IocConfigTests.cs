@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using CalculateFunding.Common.ApiClient.Specifications;
+using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.DataImporter;
 using CalculateFunding.Services.Datasets.Interfaces;
 using CalculateFunding.Tests.Common;
@@ -31,6 +32,7 @@ namespace CalculateFunding.Functions.Datasets.UnitTests
                 scope.ServiceProvider.GetService<ISpecificationsApiClient>().Should().NotBeNull(nameof(ISpecificationsApiClient));
                 scope.ServiceProvider.GetService<IExcelDatasetReader>().Should().NotBeNull(nameof(IExcelDatasetReader));
                 scope.ServiceProvider.GetService<ICalcsRepository>().Should().NotBeNull(nameof(ICalcsRepository));
+                scope.ServiceProvider.GetService<IJobHelperService>().Should().NotBeNull(nameof(IJobHelperService));
             }
         }
 

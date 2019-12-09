@@ -1,9 +1,10 @@
-﻿using CalculateFunding.Services.Datasets.Interfaces;
+﻿using CalculateFunding.Services.Core.Interfaces;
+using CalculateFunding.Services.Datasets.Interfaces;
 using Polly;
 
 namespace CalculateFunding.Services.Datasets
 {
-    public class DatasetsResiliencePolicies : IDatasetsResiliencePolicies
+    public class DatasetsResiliencePolicies : IDatasetsResiliencePolicies, IJobHelperResiliencePolicies
     {
         public Policy ProviderRepository { get; set; }
    
