@@ -46,6 +46,7 @@ namespace CalculateFunding.Services.Publishing
         private readonly IPublishProviderExclusionCheck _providerExclusionCheck;
         private readonly IFundingLineValueOverride _fundingLineValueOverride;
         private readonly IJobManagement _jobManagement;
+        private readonly IPublishingFeatureFlag _publishingFeatureFlag;
 
         public RefreshService(IPublishedProviderStatusUpdateService publishedProviderStatusUpdateService,
             IPublishedFundingDataService publishedFundingDataService,
@@ -65,7 +66,8 @@ namespace CalculateFunding.Services.Publishing
             IRefreshPrerequisiteChecker refreshPrerequisiteChecker,
             IPublishProviderExclusionCheck providerExclusionCheck,
             IFundingLineValueOverride fundingLineValueOverride,
-            IJobManagement jobManagement)
+            IJobManagement jobManagement,
+            IPublishingFeatureFlag publishingFeatureFlag)
         {
             Guard.ArgumentNotNull(publishedProviderStatusUpdateService, nameof(publishedProviderStatusUpdateService));
             Guard.ArgumentNotNull(publishedFundingDataService, nameof(publishedFundingDataService));
@@ -84,6 +86,7 @@ namespace CalculateFunding.Services.Publishing
             Guard.ArgumentNotNull(providerExclusionCheck, nameof(providerExclusionCheck));
             Guard.ArgumentNotNull(fundingLineValueOverride, nameof(fundingLineValueOverride));
             Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
+            Guard.ArgumentNotNull(publishingFeatureFlag, nameof(publishingFeatureFlag));
 
             _publishedProviderStatusUpdateService = publishedProviderStatusUpdateService;
             _publishedFundingDataService = publishedFundingDataService;
@@ -107,6 +110,7 @@ namespace CalculateFunding.Services.Publishing
             _calculationsApiClientPolicy = publishingResiliencePolicies.CalculationsApiClient;
             _jobsApiClientPolicy = publishingResiliencePolicies.JobsApiClient;
             _jobManagement = jobManagement;
+            _publishingFeatureFlag = publishingFeatureFlag;
         }
 
         public async Task<IEnumerable<Common.ApiClient.Providers.Models.Provider>> GetProvidersByProviderVersionId(string providerVersionId)

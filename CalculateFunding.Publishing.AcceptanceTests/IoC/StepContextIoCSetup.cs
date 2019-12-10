@@ -8,6 +8,7 @@ using CalculateFunding.Services.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Providers;
 using Microsoft.Extensions.Configuration;
+using Microsoft.FeatureManagement;
 using Polly;
 using Serilog;
 using TechTalk.SpecFlow;
@@ -64,6 +65,12 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
 
             JobsInMemoryRepository jobsInMemoryRepository = new JobsInMemoryRepository();
             _objectContainer.RegisterInstanceAs<IJobsApiClient>(jobsInMemoryRepository);
+
+            InMemoryFeatureManagerSnapshot inMemoryFeatureManagerSnapshot = new InMemoryFeatureManagerSnapshot();
+            _objectContainer.RegisterInstanceAs<IFeatureManagerSnapshot>(inMemoryFeatureManagerSnapshot);
+
+            PublishingFeatureFlag publishingFeatureFlag = new PublishingFeatureFlag(inMemoryFeatureManagerSnapshot);
+            _objectContainer.RegisterInstanceAs<IPublishingFeatureFlag>(publishingFeatureFlag);
 
             JobManagementResiliencePolicies jobManagementResiliencePolicies = new JobManagementResiliencePolicies()
             {

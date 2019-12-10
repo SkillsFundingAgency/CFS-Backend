@@ -37,6 +37,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private IPublishProviderExclusionCheck _publishProviderExclusionCheck;
         private IFundingLineValueOverride _fundingLineValueOverride;
         private IJobManagement _jobManagement;
+        private IPublishingFeatureFlag _publishingFeatureFlag;
 
         [TestInitialize]
         public void SetUp()
@@ -59,6 +60,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             _refreshPrerequisiteChecker = Substitute.For<IRefreshPrerequisiteChecker>();
             _policiesApiClient = Substitute.For<IPoliciesApiClient>();
             _jobManagement = Substitute.For<IJobManagement>();
+            _publishingFeatureFlag = Substitute.For<IPublishingFeatureFlag>();
 
             _refreshService = new RefreshService(Substitute.For<IPublishedProviderStatusUpdateService>(),
                 Substitute.For<IPublishedFundingDataService>(),
@@ -78,7 +80,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 _refreshPrerequisiteChecker,
                 _publishProviderExclusionCheck,
                 _fundingLineValueOverride,
-                _jobManagement);
+                _jobManagement,
+                _publishingFeatureFlag);
         }
 
         [TestMethod]

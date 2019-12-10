@@ -33,6 +33,7 @@ using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Http;
+using Microsoft.FeatureManagement;
 using Polly;
 using Polly.Bulkhead;
 using Serilog;
@@ -64,6 +65,8 @@ namespace CalculateFunding.Functions.Publishing
         private static IServiceProvider Register(IServiceCollection builder,
             IConfigurationRoot config)
         {
+            builder.AddFeatureManagement();
+
             builder.AddSingleton<IConfiguration>(ctx => config);
 
             builder.AddSingleton<IPublishedFundingRepository, PublishedFundingRepository>((ctx) =>
@@ -91,7 +94,8 @@ namespace CalculateFunding.Functions.Publishing
 
             builder.AddSingleton<ISpecificationService, SpecificationService>();
             builder.AddSingleton<IProviderService, ProviderService>();
-            builder.AddSingleton<IRefreshService, RefreshService>();
+            builder.AddScoped<IRefreshService, RefreshService>();
+            builder.AddScoped<IPublishingFeatureFlag, PublishingFeatureFlag>();
             builder.AddSingleton<IApproveService, ApproveService>();
             builder.AddSingleton<IJobTracker, JobTracker>();
             builder.AddSingleton<IPublishService, PublishService>();
@@ -279,7 +283,7 @@ namespace CalculateFunding.Functions.Publishing
 
                        config.Bind("providerProfilingClient", apiOptions);
 
-                       ServiceCollectionExtensions.SetDefaultApiClientConfigurationOptions(c, apiOptions, builder);
+                       Services.Core.Extensions.ServiceCollectionExtensions.SetDefaultApiClientConfigurationOptions(c, apiOptions, builder);
                    })
                    .ConfigurePrimaryHttpMessageHandler(() => new ApiClientHandler())
                    .AddTransientHttpErrorPolicy(c => c.WaitAndRetryAsync(new[] { TimeSpan.FromMilliseconds(500), TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(5) }))
@@ -313,7 +317,7 @@ namespace CalculateFunding.Functions.Publishing
 
                        config.Bind("policiesClient", apiOptions);
 
-                       ServiceCollectionExtensions.SetDefaultApiClientConfigurationOptions(c, apiOptions, builder);
+                       Services.Core.Extensions.ServiceCollectionExtensions.SetDefaultApiClientConfigurationOptions(c, apiOptions, builder);
                    })
                .ConfigurePrimaryHttpMessageHandler(() => new ApiClientHandler())
                .AddTransientHttpErrorPolicy(c => c.WaitAndRetryAsync(new[] { TimeSpan.FromMilliseconds(500), TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(5) }))

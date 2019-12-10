@@ -18,7 +18,6 @@ using Polly;
 using Serilog;
 using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.ApiClient.Calcs;
-using CalculateFunding.Common.ApiClient.Profiling;
 using CalculateFunding.Common.ApiClient.Profiling.Models;
 
 namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
@@ -35,6 +34,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
         private readonly ILoggerStepContext _loggerStepContext;
         private readonly IConfiguration _configuration;
         private readonly IJobManagement _jobManagement;
+        private readonly IPublishingFeatureFlag _publishingFeatureFlag;
 
         public IEnumerable<CalculationResult> CalculationResults { get; set; }
 
@@ -59,7 +59,8 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
             ILoggerStepContext loggerStepContext,
             IConfiguration configuration,
             IJobManagement jobManagement,
-            IPublishedProviderStepContext publishedProviderStepContext)
+            IPublishedProviderStepContext publishedProviderStepContext,
+            IPublishingFeatureFlag publishingFeatureFlag)
         {
             _jobStepContext = jobStepContext;
             _currentSpecificationStepContext = currentSpecificationStepContext;
@@ -74,6 +75,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
             ProviderCalculationResults = new Dictionary<string, IEnumerable<CalculationResult>>();
             FundingValueProfileSplits = new List<(decimal? Value, string FundingStreamId, string FundingPeriodId, string FundingLineCode, IEnumerable<ProfilingPeriod> ProfilingPeriods, IEnumerable<DistributionPeriods> DistributionPeriods)>();
             _publishedProviderStepContext = publishedProviderStepContext;
+            _publishingFeatureFlag = publishingFeatureFlag;
         }
 
         public async Task PublishFunding(string specificationId, string jobId, string userId, string userName)
@@ -330,24 +332,25 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
             Common.ApiClient.Policies.IPoliciesApiClient policiesInMemoryRepository = _policiesStepContext.Client;
 
             RefreshService refreshService = new RefreshService(publishedProviderStatusUpdateService,
-                publishedFundingDataService,
-                resiliencePolicies,
-                specificationInMemoryRepository,
-                _providersStepContext.Service,
-                calculationResultsService,
-                publishedProviderDataGenerator,
-                publishedProviderContentsGeneratorResolver,
-                profilingService,
-                inScopePublishedProviderService,
-                publishedProviderDataPopulator,
-                _jobStepContext.JobsClient,
-                logger,
-                calculationsApiClient,
-                policiesInMemoryRepository,
-                refreshPrerequisiteChecker,
-                providerExclusionCheck,
-                fundingLineValueOverride,
-                _jobManagement);
+                    publishedFundingDataService,
+                    resiliencePolicies,
+                    specificationInMemoryRepository,
+                    _providersStepContext.Service,
+                    calculationResultsService,
+                    publishedProviderDataGenerator,
+                    publishedProviderContentsGeneratorResolver,
+                    profilingService,
+                    inScopePublishedProviderService,
+                    publishedProviderDataPopulator,
+                    _jobStepContext.JobsClient,
+                    logger,
+                    calculationsApiClient,
+                    policiesInMemoryRepository,
+                    refreshPrerequisiteChecker,
+                    providerExclusionCheck,
+                    fundingLineValueOverride,
+                    _jobManagement,
+                    _publishingFeatureFlag);
 
             Message message = new Message();
 

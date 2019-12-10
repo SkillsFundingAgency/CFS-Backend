@@ -26,6 +26,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Polly.Bulkhead;
 using Swashbuckle.AspNetCore.Swagger;
+using Microsoft.FeatureManagement;
 
 namespace CalculateFunding.Api.Publishing
 {
@@ -55,13 +56,15 @@ namespace CalculateFunding.Api.Publishing
                 var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
                 c.IncludeXmlComments(xmlPath);
             });
+
+            services.AddFeatureManagement();
         }
 
         public void Configure(IApplicationBuilder app,
             IHostingEnvironment env)
         {
             app.UseAzureAppConfiguration();
-
+            
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -105,6 +108,8 @@ namespace CalculateFunding.Api.Publishing
             builder.AddSingleton<IPublishedSearchService, PublishedSearchService>()
                     .AddSingleton<IHealthChecker, PublishedSearchService>();
             builder.AddSingleton<IPublishedProviderStatusService, PublishedProviderStatusService>();
+
+            builder.AddScoped<IPublishingFeatureFlag, PublishingFeatureFlag>();
 
             builder.AddSingleton<IPublishedFundingRepository, PublishedFundingRepository>((ctx) =>
             {

@@ -31,7 +31,7 @@ namespace CalculateFunding.Services.Publishing.IoC
         private static void RegisterSpecificationServiceComponents(IServiceCollection serviceCollection, IConfiguration configuration)
         {
             serviceCollection.AddSingleton<IConfiguration>(ctx => configuration);
-            serviceCollection.AddSingleton<ISpecificationPublishingService, SpecificationPublishingService>();
+            serviceCollection.AddScoped<ISpecificationPublishingService, SpecificationPublishingService>();
             serviceCollection.AddSingleton<IProviderFundingPublishingService, ProviderFundingPublishingService>();
             serviceCollection.AddSingleton<IHealthChecker, ProviderFundingPublishingService>();
             serviceCollection.AddSingleton<ISpecificationIdServiceRequestValidator, PublishSpecificationValidator>();

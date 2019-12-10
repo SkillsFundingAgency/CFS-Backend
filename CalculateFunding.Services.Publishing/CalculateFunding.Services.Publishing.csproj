@@ -16,6 +16,7 @@
     <PackageReference Include="CalculateFunding.Common.Storage" Version="1.0.3" />
     <PackageReference Include="CalculateFunding.Generators.Funding" Version="1.0.5" />
     <PackageReference Include="CalculateFunding.Generators.OrganisationGroup" Version="1.0.12" />
+    <PackageReference Include="Microsoft.FeatureManagement" Version="2.0.0-preview-010610001-1263" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CalculateFunding.Models\CalculateFunding.Models.csproj" />

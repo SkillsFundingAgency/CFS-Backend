@@ -52,6 +52,7 @@ namespace CalculateFunding.Services.Core.Extensions
                 configBuilder.AddAzureAppConfiguration(options =>
                 {
                     options.Connect(appConfigConnectionString)
+                        .UseFeatureFlags()
                         .ConfigureRefresh(refresh =>
                         {
                             refresh.Register("publishingengineoptions:GetCalculationResultsConcurrencyCount", refreshAll: true);
