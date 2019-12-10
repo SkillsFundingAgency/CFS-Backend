@@ -127,7 +127,7 @@ namespace CalculateFunding.Migrations.Calculations.Etl.Migrations
             Task<IEnumerable<TemplateMappingItem>> destinationTemplateMappingsQueryTask = GetTemplateMappingItemsInSpecification(destinationSpecification, _destinationClients);
             Task<ApiResponse<IEnumerable<Calculation>>> sourceCalculationsQueryTask = _sourceClients.MakeCalculationsCall(
                 _ => _.GetCalculationsForSpecification(sourceSpecificationId));
-            Task<ApiResponse<IEnumerable<Calculation>>> destinationCalculationsQueryTask = _sourceClients.MakeCalculationsCall(
+            Task<ApiResponse<IEnumerable<Calculation>>> destinationCalculationsQueryTask = _destinationClients.MakeCalculationsCall(
                 _ => _.GetCalculationsForSpecification(destinationSpecificationId));
 
             WriteLine("Fetching template mappings and current calculation versions from source and destination specifications");
@@ -154,6 +154,8 @@ namespace CalculateFunding.Migrations.Calculations.Etl.Migrations
                 _ => _.CalculationType == template).ToDictionary(_ => _.Id, _ => _);
             Dictionary<string, Calculation> destinationTemplateCalculations = destinationCalculationsResponse.Content.Where(
                 _ => _.CalculationType == template).ToDictionary(_ => _.Id, _ => _);
+
+
 
             TemplateMappingItem[] sourceTemplateMappings = sourceTemplateMappingsQueryTask.Result.Where(
                     _ => _.EntityType == TemplateMappingEntityType.Calculation)
@@ -418,12 +420,27 @@ namespace CalculateFunding.Migrations.Calculations.Etl.Migrations
             DataSourceNameAndSchemaComparer comparer = new DataSourceNameAndSchemaComparer();
             if (!sourceResponse.Content.All(_ => destinationResponse.Content.Contains(_, comparer)))
             {
+                WriteDatasetState(sourceResponse.Content, "Source");
+                WriteDatasetState(destinationResponse.Content, "Destination");
+
                 return true;
             }
 
             WriteLine("Checked source and destination data sources are compatible.");
 
             return false;
+        }
+
+        private void WriteDatasetState(IEnumerable<DatasetSpecificationRelationshipViewModel> datasets, string collectionName)
+        {
+            Console.WriteLine($"{collectionName} Datasets");
+
+            foreach (DatasetSpecificationRelationshipViewModel ds in datasets.OrderBy(c => c.Name))
+            {
+                Console.WriteLine($"\"{ds.Name}\" - ({ds.Definition?.Id})");
+            }
+
+            Console.WriteLine();
         }
 
         private class DataSourceNameAndSchemaComparer : IEqualityComparer<DatasetSpecificationRelationshipViewModel>
