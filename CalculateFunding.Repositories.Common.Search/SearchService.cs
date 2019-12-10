@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Models;
 using Microsoft.Azure.Search.Models;
 
@@ -13,17 +14,16 @@ namespace CalculateFunding.Repositories.Common.Search
 
         protected IEnumerable<string> DefaultOrderBy = new[] { "lastUpdatedDate desc" };
 
-        public SearchService(ISearchRepository<T> searchRepository)
+        protected SearchService(ISearchRepository<T> searchRepository)
         {
+            Guard.ArgumentNotNull(searchRepository, nameof(searchRepository));
+            
             _searchRepository = searchRepository;
         }
 
-        protected ISearchRepository<T> SearchRepository
-        {
-            get { return _searchRepository; }
-        }
+        protected ISearchRepository<T> SearchRepository => _searchRepository;
 
-        protected Task<SearchResults<T>> PerformNonfacetSearch(SearchModel searchModel)
+        protected Task<SearchResults<T>> PerformNonFacetSearch(SearchModel searchModel)
         {
             int skip = (searchModel.PageNumber - 1) * searchModel.Top;
 
@@ -55,6 +55,7 @@ namespace CalculateFunding.Repositories.Common.Search
             }
 
             IDictionary<string, string> facetDictionary = BuildFacetDictionary(searchModel, facets);
+            IDictionary<string, string> fullFilterList = BuildFullFilterList(facetDictionary, searchModel.Filters);
 
             IEnumerable<Task<SearchResults<T>>> searchTasks = new Task<SearchResults<T>>[0];
 
@@ -66,15 +67,13 @@ namespace CalculateFunding.Repositories.Common.Search
                     {
                         Task.Run(() =>
                         {
-                            var s = facetDictionary.Where(x => x.Key != filterPair.Key && !string.IsNullOrWhiteSpace(x.Value)).Select(x => x.Value);
-
                             return _searchRepository.Search(searchModel.SearchTerm, new SearchParameters
                             {
                                 Facets = new[]{ filterPair.Key },
                                 SearchMode = (SearchMode)searchModel.SearchMode,
                                 SearchFields = new List<string>{ "name" },
                                 IncludeTotalResultCount = true,
-                                Filter = string.Join(" and ", facetDictionary.Where(x => x.Key != filterPair.Key && !string.IsNullOrWhiteSpace(x.Value)).Select(x => x.Value)),
+                                Filter = string.Join(" and ", fullFilterList.Where(x => x.Key != filterPair.Key && !string.IsNullOrWhiteSpace(x.Value)).Select(x => x.Value)),
                                 QueryType = QueryType.Full
                             });
                         })
@@ -84,10 +83,17 @@ namespace CalculateFunding.Repositories.Common.Search
 
             searchTasks = searchTasks.Concat(new[]
             {
-                BuildItemsSearchTask(facetDictionary, searchModel)
+                BuildItemsSearchTask(fullFilterList, searchModel)
             });
 
             return Task.FromResult(searchTasks);
+        }
+
+        private IDictionary<string, string> BuildFullFilterList(IDictionary<string, string> facetDictionary, IDictionary<string, string[]> searchFilters)
+        {
+            return facetDictionary.Concat(searchFilters.Where(_ => !facetDictionary.ContainsKey(_.Key))
+                    .ToDictionary(_ => _.Key, _ => BuildFilter(_.Key, _.Value)))
+                .ToDictionary(_ => _.Key, _ => _.Value);
         }
 
         IDictionary<string, string> BuildFacetDictionary(SearchModel searchModel, FacetFilterType[] facets)
@@ -116,9 +122,15 @@ namespace CalculateFunding.Repositories.Common.Search
             return facetDictionary;
         }
 
-        Task<SearchResults<T>> BuildItemsSearchTask(IDictionary<string, string> facetDictionary, SearchModel searchModel)
+        private string BuildFilter(string name, string[] values)
+        {
+            return $"({string.Join(" or ", values.Select(value => $"{name} eq '{value}'"))})";
+        }
+
+        private Task<SearchResults<T>> BuildItemsSearchTask(IDictionary<string, string> fullFilterList, SearchModel searchModel)
         {
             int skip = (searchModel.PageNumber - 1) * searchModel.Top;
+            
             return Task.Run(() =>
             {
                 return _searchRepository.Search(searchModel.SearchTerm, new SearchParameters
@@ -128,7 +140,7 @@ namespace CalculateFunding.Repositories.Common.Search
                     SearchMode = (SearchMode)searchModel.SearchMode,
                     SearchFields = new List<string> { "name" },
                     IncludeTotalResultCount = true,
-                    Filter = string.Join(" and ", facetDictionary.Values.Where(x => !string.IsNullOrWhiteSpace(x))),
+                    Filter = string.Join(" and ", fullFilterList.Values.Where(x => !string.IsNullOrWhiteSpace(x))),
                     OrderBy = searchModel.OrderBy.ToList(),
                     QueryType = QueryType.Full
                 });

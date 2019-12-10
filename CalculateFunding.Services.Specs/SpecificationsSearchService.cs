@@ -59,7 +59,7 @@ namespace CalculateFunding.Services.Specs
             {
                 searchModel.OrderBy = DefaultOrderBy;
 
-                SearchResults<SpecificationIndex> searchResults = await PerformNonfacetSearch(searchModel);
+                SearchResults<SpecificationIndex> searchResults = await PerformNonFacetSearch(searchModel);
 
                 SpecificationDatasetRelationshipsSearchResults results = new SpecificationDatasetRelationshipsSearchResults
                 {

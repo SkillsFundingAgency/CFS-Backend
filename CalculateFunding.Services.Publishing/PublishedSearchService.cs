@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Models.HealthCheck;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Repositories.Common.Search;
@@ -19,17 +20,19 @@ namespace CalculateFunding.Services.Publishing
 {
     public class PublishedSearchService : SearchService<PublishedProviderIndex>, IPublishedSearchService, IHealthChecker
     {
-        private readonly ILogger _logger;
-
-        private FacetFilterType[] Facets = {
+        private static readonly FacetFilterType[] Facets = {
             new FacetFilterType("providerType"),
             new FacetFilterType("localAuthority"),
             new FacetFilterType("fundingStatus", true)
         };
 
+        private readonly ILogger _logger;
+
         public PublishedSearchService(ISearchRepository<PublishedProviderIndex> searchRepository, ILogger logger)
             : base(searchRepository)
         {
+            Guard.ArgumentNotNull(logger, nameof(logger));
+            
             _logger = logger;
         }
 
