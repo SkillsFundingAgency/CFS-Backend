@@ -206,10 +206,7 @@ namespace CalculateFunding.Services.Results
 
         private void GivenTheMessageProperties(params (string,string)[] properties)
         {
-            foreach ((string, string) property in properties)
-            {
-                _message.UserProperties.Add(property.Item1, property.Item2);
-            }   
+            _message.AddUserProperties(properties);
         }
     }
 }

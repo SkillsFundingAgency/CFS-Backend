@@ -23,6 +23,12 @@ namespace CalculateFunding.Services.Core.Extensions
                     .AsPoco<TPoco>();
             }
         }
+
+        public static byte[] AsJsonBytes<TPoco>(this TPoco poco, bool useCamelCase = true) 
+            where TPoco : class
+        {
+            return Encoding.UTF8.GetBytes(poco.AsJson());
+        }
         
         public static TPoco AsPoco<TPoco>(this string json, bool useCamelCase = true)
             where TPoco : class
