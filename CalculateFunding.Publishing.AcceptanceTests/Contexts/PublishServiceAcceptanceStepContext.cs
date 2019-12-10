@@ -92,6 +92,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
                 CalculationResultsRepository = Policy.NoOpAsync(),
                 SpecificationsRepositoryPolicy = Policy.NoOpAsync(),
                 PublishedProviderSearchRepository = Policy.NoOpAsync(),
+                PublishedIndexSearchResiliencePolicy = Policy.NoOpAsync(),
             };
 
             IVersionRepository<PublishedFundingVersion> versionRepository = new VersionRepository<PublishedFundingVersion>(_publishedFundingRepositoryStepContext.CosmosRepo);
@@ -248,6 +249,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
                 CalculationResultsRepository = Policy.NoOpAsync(),
                 SpecificationsRepositoryPolicy = Policy.NoOpAsync(),
                 PublishedProviderSearchRepository = Policy.NoOpAsync(),
+                PublishedIndexSearchResiliencePolicy = Policy.NoOpAsync(),
             };
 
             PublishedFundingVersionInMemoryRepository publishedVersionInMemoryRepository = new PublishedFundingVersionInMemoryRepository();

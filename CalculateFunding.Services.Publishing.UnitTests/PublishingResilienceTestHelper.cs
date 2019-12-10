@@ -19,6 +19,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 PublishedFundingRepository = Policy.NoOpAsync(),
                 CalculationResultsRepository = Policy.NoOpAsync(),
                 SpecificationsRepositoryPolicy = Policy.NoOpAsync(),
+                PublishedIndexSearchResiliencePolicy = Policy.NoOpAsync(),
             };
         }
     }

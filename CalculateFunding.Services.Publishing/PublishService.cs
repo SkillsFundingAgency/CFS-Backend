@@ -59,6 +59,7 @@ namespace CalculateFunding.Services.Publishing
         private readonly Policy _policyApiClientPolicy;
         private readonly IPublishingEngineOptions _publishingEngineOptions;
         private readonly IJobManagement _jobManagement;
+        private readonly Policy _publishedIndexSearchResiliencePolicy;
 
         public PublishService(IPublishedFundingStatusUpdateService publishedFundingStatusUpdateService,
             IPublishedFundingDataService publishedFundingDataService,
@@ -111,6 +112,7 @@ namespace CalculateFunding.Services.Publishing
             Guard.ArgumentNotNull(publishingResiliencePolicies.JobsApiClient, nameof(publishingResiliencePolicies.JobsApiClient));
             Guard.ArgumentNotNull(publishingResiliencePolicies.PoliciesApiClient, nameof(publishingResiliencePolicies.PoliciesApiClient));
             Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
+            Guard.ArgumentNotNull(publishingResiliencePolicies.PublishedIndexSearchResiliencePolicy, nameof(publishingResiliencePolicies.PublishedIndexSearchResiliencePolicy));
 
             _publishedFundingStatusUpdateService = publishedFundingStatusUpdateService;
             _publishedFundingDataService = publishedFundingDataService;
@@ -139,6 +141,7 @@ namespace CalculateFunding.Services.Publishing
             _calculationsApiClientPolicy = publishingResiliencePolicies.CalculationsApiClient;
             _policyApiClientPolicy = publishingResiliencePolicies.PoliciesApiClient;
             _jobManagement = jobManagement;
+            _publishedIndexSearchResiliencePolicy = publishingResiliencePolicies.PublishedIndexSearchResiliencePolicy;
         }
 
         public async Task PublishResults(Message message)
@@ -185,7 +188,7 @@ namespace CalculateFunding.Services.Publishing
             }
 
             _logger.Information($"Running search reindexer for published funding");
-            await _publishedFundingSearchRepository.RunIndexer();
+            await _publishedIndexSearchResiliencePolicy.ExecuteAsync(() => _publishedFundingSearchRepository.RunIndexer());           
 
             // Mark job as complete
             _logger.Information($"Marking publish funding job complete");

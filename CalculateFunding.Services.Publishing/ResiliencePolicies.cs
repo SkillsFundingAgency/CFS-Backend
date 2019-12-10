@@ -28,5 +28,7 @@ namespace CalculateFunding.Services.Publishing
 
         public Policy CalculationsApiClient { get; set; }
         public Policy PoliciesApiClient { get; set; }
+
+        public Policy PublishedIndexSearchResiliencePolicy { get; set; }
     }
 }
