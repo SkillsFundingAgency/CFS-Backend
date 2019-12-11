@@ -31,8 +31,8 @@ namespace CalculateFunding.Services.Providers.UnitTests
         {
             //Arrange
             string specificationId = Guid.NewGuid().ToString();
-            string providerVersionId = Guid.NewGuid().ToString();           
-            string cacheKey = $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}-CurrentVersion";
+            string providerVersionId = Guid.NewGuid().ToString();
+            string cacheKeyForList = $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}";
 
             Provider provider = CreateProvider();
 
@@ -130,11 +130,11 @@ namespace CalculateFunding.Services.Providers.UnitTests
                     x.First().CountryName == provider.CountryName &&
                     x.First().LocalGovernmentGroupTypeCode == provider.LocalGovernmentGroupTypeCode &&
                     x.First().LocalGovernmentGroupTypeName == provider.LocalGovernmentGroupTypeName
-                ), Arg.Is(cacheKey));
+                ), Arg.Is(cacheKeyForList));
 
             await cacheProvider
                .Received(1)
-               .SetExpiry<ProviderSummary>(Arg.Is(cacheKey), Arg.Any<DateTime>());
+               .SetExpiry<ProviderSummary>(Arg.Is(cacheKeyForList), Arg.Any<DateTime>());
 
             totalCountResult
                 .Should()
@@ -214,8 +214,8 @@ namespace CalculateFunding.Services.Providers.UnitTests
 
             IProviderVersionService providerVersionService = CreateProviderVersionService();
 
-            IScopedProvidersService providerService = CreateProviderService(cacheProvider: cacheProvider, 
-                providerVersionService: providerVersionService, 
+            IScopedProvidersService providerService = CreateProviderService(cacheProvider: cacheProvider,
+                providerVersionService: providerVersionService,
                 specificationsApiClient: specificationsApiClient,
                  fileSystemCache: fileSystemCache,
                 settings: settings);
@@ -302,8 +302,8 @@ namespace CalculateFunding.Services.Providers.UnitTests
 
             IProviderVersionService providerVersionService = CreateProviderVersionService();
 
-            IScopedProvidersService providerService = CreateProviderService(cacheProvider: cacheProvider, 
-                providerVersionService: providerVersionService, 
+            IScopedProvidersService providerService = CreateProviderService(cacheProvider: cacheProvider,
+                providerVersionService: providerVersionService,
                 specificationsApiClient: specificationsApiClient,
                 fileSystemCache: fileSystemCache,
                 settings: settings);
@@ -430,7 +430,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
 
             MemoryStream memoryStream = new MemoryStream(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(cachedProviderSummaries as IEnumerable<ProviderSummary>)));
             // memoryStream.Position = 0;
-           
+
 
             fileSystemCache.Get(Arg.Any<ScopedProvidersFileSystemCacheKey>())
                 .Returns(memoryStream);
@@ -454,7 +454,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 .Returns(providerVersion);
 
             IScopedProvidersService providerService = CreateProviderService(cacheProvider: cacheProvider,
-                providerVersionService: providerVersionService, 
+                providerVersionService: providerVersionService,
                 specificationsApiClient: specificationsApiClient,
                 fileSystemCache: fileSystemCache,
                 settings: settings);
@@ -488,7 +488,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
         }
 
         private IScopedProvidersService CreateProviderService(IProviderVersionService providerVersionService = null,
-            ISpecificationsApiClientProxy specificationsApiClient = null, 
+            ISpecificationsApiClientProxy specificationsApiClient = null,
             ICacheProvider cacheProvider = null,
             IFileSystemCache fileSystemCache = null,
             IScopedProvidersServiceSettings settings = null,
@@ -501,7 +501,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 providerVersionService ?? CreateProviderVersionService(),
                 CreateMapper(),
                 settings ?? CreateSettings(),
-                fileSystemCache ?? CreateFileSystemCache()                
+                fileSystemCache ?? CreateFileSystemCache()
                 );
         }
 

@@ -185,6 +185,15 @@ namespace CalculateFunding.Services.CalcEngine
             int stop = start + messageProperties.PartitionSize - 1;
 
             summaries = await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.ListRangeAsync<ProviderSummary>(messageProperties.ProviderCacheKey, start, stop));
+            if(summaries == null)
+            {
+                throw new InvalidOperationException("Null provider summaries returned");
+            }
+
+            if (!summaries.Any())
+            {
+                throw new InvalidOperationException("No provider summaries returned to process");
+            }
 
             int providerBatchSize = _engineSettings.ProviderBatchSize;
 
@@ -195,6 +204,10 @@ namespace CalculateFunding.Services.CalcEngine
                 await _specificationsApiPolicy.ExecuteAsync(() => _specificationsApiClient.GetSpecificationSummaryById(specificationId));
             
             IEnumerable<string> dataRelationshipIds = specificationSummary.Content.DataDefinitionRelationshipIds;
+            if(dataRelationshipIds == null)
+            {
+                throw new InvalidOperationException("Data relationship ids returned null");
+            }
             
             if (calculations == null)
             {
