@@ -1,8 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using AutoMapper;
+using CalculateFunding.Common.ApiClient.Calcs;
 using CalculateFunding.Common.ApiClient.Calcs.Models;
 using CalculateFunding.Common.ApiClient.Jobs;
+using CalculateFunding.Common.ApiClient.Policies;
+using CalculateFunding.Common.ApiClient.Profiling.Models;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Generators.OrganisationGroup;
 using CalculateFunding.Generators.OrganisationGroup.Interfaces;
@@ -16,9 +19,6 @@ using Microsoft.Azure.ServiceBus;
 using Microsoft.Extensions.Configuration;
 using Polly;
 using Serilog;
-using CalculateFunding.Common.ApiClient.Policies;
-using CalculateFunding.Common.ApiClient.Calcs;
-using CalculateFunding.Common.ApiClient.Profiling.Models;
 
 namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
 {
@@ -47,7 +47,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
         public IEnumerable<ProfilingPeriod> ProfilingPeriods { get; set; }
 
         public IEnumerable<DistributionPeriods> DistributionPeriods { get; set; }
-        
+
         public IList<(decimal? Value, string FundingStreamId, string FundingPeriodId, string FundingLineCode, IEnumerable<ProfilingPeriod> ProfilingPeriods, IEnumerable<DistributionPeriods> DistributionPeriods)> FundingValueProfileSplits { get; set; }
 
         public PublishServiceAcceptanceStepContext(IJobStepContext jobStepContext,
@@ -110,7 +110,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
                 resiliencePolicies,
                 versionRepository,
                 idGeneratorResolver,
-                logger, 
+                logger,
                 new PublishingEngineOptions(_configuration));
 
             SpecificationInMemoryRepository specificationInMemoryRepository = _currentSpecificationStepContext.Repo;
@@ -168,7 +168,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
                 _publishedFundingRepositoryStepContext.Repo,
                 jobTracker,
                 logger,
-                publishedProviderStatusUpdateSettings, 
+                publishedProviderStatusUpdateSettings,
                 new PublishingEngineOptions(_configuration));
 
             Common.ApiClient.Policies.IPoliciesApiClient policiesInMemoryRepository = _policiesStepContext.Client;
@@ -331,6 +331,9 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
 
             Common.ApiClient.Policies.IPoliciesApiClient policiesInMemoryRepository = _policiesStepContext.Client;
 
+            PublishedProviderIndexerService publishedProviderIndexerService =
+                new PublishedProviderIndexerService(logger, _publishedProviderStepContext.SearchRepo, resiliencePolicies, new PublishingEngineOptions(_configuration));
+
             RefreshService refreshService = new RefreshService(publishedProviderStatusUpdateService,
                     publishedFundingDataService,
                     resiliencePolicies,
@@ -350,7 +353,8 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
                     providerExclusionCheck,
                     fundingLineValueOverride,
                     _jobManagement,
-                    _publishingFeatureFlag);
+                    _publishingFeatureFlag,
+                    publishedProviderIndexerService);
 
             Message message = new Message();
 

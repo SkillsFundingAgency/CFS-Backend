@@ -45,6 +45,7 @@ namespace CalculateFunding.Services.Publishing
         private readonly Policy _calculationsApiClientPolicy;
         private readonly IPublishProviderExclusionCheck _providerExclusionCheck;
         private readonly IFundingLineValueOverride _fundingLineValueOverride;
+        private readonly IPublishedProviderIndexerService _publishedProviderIndexerService;
         private readonly IJobManagement _jobManagement;
         private readonly IPublishingFeatureFlag _publishingFeatureFlag;
 
@@ -67,7 +68,8 @@ namespace CalculateFunding.Services.Publishing
             IPublishProviderExclusionCheck providerExclusionCheck,
             IFundingLineValueOverride fundingLineValueOverride,
             IJobManagement jobManagement,
-            IPublishingFeatureFlag publishingFeatureFlag)
+            IPublishingFeatureFlag publishingFeatureFlag,
+            IPublishedProviderIndexerService publishedProviderIndexerService)
         {
             Guard.ArgumentNotNull(publishedProviderStatusUpdateService, nameof(publishedProviderStatusUpdateService));
             Guard.ArgumentNotNull(publishedFundingDataService, nameof(publishedFundingDataService));
@@ -87,6 +89,7 @@ namespace CalculateFunding.Services.Publishing
             Guard.ArgumentNotNull(fundingLineValueOverride, nameof(fundingLineValueOverride));
             Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
             Guard.ArgumentNotNull(publishingFeatureFlag, nameof(publishingFeatureFlag));
+            Guard.ArgumentNotNull(publishedProviderIndexerService, nameof(publishedProviderIndexerService));
 
             _publishedProviderStatusUpdateService = publishedProviderStatusUpdateService;
             _publishedFundingDataService = publishedFundingDataService;
@@ -105,6 +108,7 @@ namespace CalculateFunding.Services.Publishing
             _refreshPrerequisiteChecker = refreshPrerequisiteChecker;
             _providerExclusionCheck = providerExclusionCheck;
             _fundingLineValueOverride = fundingLineValueOverride;
+            _publishedProviderIndexerService = publishedProviderIndexerService;
 
             _publishingResiliencePolicy = publishingResiliencePolicies.PublishedFundingRepository;
             _calculationsApiClientPolicy = publishingResiliencePolicies.CalculationsApiClient;
@@ -309,7 +313,6 @@ namespace CalculateFunding.Services.Publishing
 
                 _logger.Information($"Updating a total of {publishedProvidersToUpdate.Count} published providers");
 
-
                 if (publishedProvidersToUpdate.Any())
                 {
                     // Save updated PublishedProviders to cosmos and increment version status
@@ -317,12 +320,18 @@ namespace CalculateFunding.Services.Publishing
                     {
                         _logger.Information($"Saving updates to existing published providers. Total={existingPublishedProvidersToUpdate.Count}");
                         await _publishedProviderStatusUpdateService.UpdatePublishedProviderStatus(existingPublishedProvidersToUpdate.Values, author, PublishedProviderStatus.Updated, jobId);
+
+                        _logger.Information($"Indexing existing PublishedProviders");
+                        await _publishedProviderIndexerService.IndexPublishedProviders(existingPublishedProvidersToUpdate.Values.Select(_ => _.Current));
                     }
 
                     if (newProviders.Any())
                     {
                         _logger.Information($"Saving new published providers. Total={newProviders.Count}");
                         await _publishedProviderStatusUpdateService.UpdatePublishedProviderStatus(newProviders.Values, author, PublishedProviderStatus.Draft, jobId);
+
+                        _logger.Information($"Indexing newly added PublishedProviders");
+                        await _publishedProviderIndexerService.IndexPublishedProviders(newProviders.Values.Select(_ => _.Current));
                     }
                 }
             }
