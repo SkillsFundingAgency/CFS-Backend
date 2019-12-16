@@ -1,5 +1,4 @@
-﻿using CalculateFunding.Services.Core.Constants;
-using CalculateFunding.Services.Publishing.Specifications;
+﻿using CalculateFunding.Services.Publishing.Specifications;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.Specifications

@@ -100,6 +100,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
                     _.Properties != null &&
                     _.Properties.ContainsKey("specification-id") &&
                     _.Properties["specification-id"] == specificationId &&
+                    _.Properties["user-id"] == user.Id &&
+                    _.Properties["user-name"] == user.Name &&
                     _.Trigger != null &&
                     _.Trigger.EntityId == specificationId &&
                     _.Trigger.EntityType == nameof(Specification) &&

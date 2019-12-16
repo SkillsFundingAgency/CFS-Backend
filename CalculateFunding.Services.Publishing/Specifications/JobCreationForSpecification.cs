@@ -48,6 +48,8 @@ namespace CalculateFunding.Services.Publishing.Specifications
                 properties ?? new Dictionary<string, string>();
 
             messageProperties.Add("specification-id", specificationId);
+            messageProperties.Add("user-id", user.Id);
+            messageProperties.Add("user-name", user.Name);
 
             try
             {

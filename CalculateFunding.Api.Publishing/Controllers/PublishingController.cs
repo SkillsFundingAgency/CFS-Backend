@@ -113,7 +113,7 @@ namespace CalculateFunding.Api.Publishing.Controllers
 
         [Route("api/publishedprovider/publishedprovider-search")]
         [HttpPost]
-        public async Task<IActionResult> RunSearchPublishedProvider()
+        public async Task<IActionResult> SearchPublishedProvider()
         {
             return await _publishedSearchService.SearchPublishedProviders(ControllerContext.HttpContext.Request);
         }
