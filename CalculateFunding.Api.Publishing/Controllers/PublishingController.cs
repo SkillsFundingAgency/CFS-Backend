@@ -4,6 +4,7 @@ using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -18,13 +19,15 @@ namespace CalculateFunding.Api.Publishing.Controllers
         private readonly IPublishedSearchService _publishedSearchService;
         private readonly IPublishedProviderVersionService _publishedProviderVersionService;
         private readonly IPublishedProviderStatusService _publishedProviderStatusService;
+        private readonly IDeleteSpecifications _deleteSpecifications;
 
         public PublishingController(ISpecificationPublishingService specificationPublishingService,
             IProviderFundingPublishingService providerFundingPublishingService,
             IPublishedProviderFundingService publishedProviderFundingService,
             IPublishedSearchService publishedSearchService,
             IPublishedProviderVersionService publishedProviderVersionService,
-            IPublishedProviderStatusService publishedProviderStatusService)
+            IPublishedProviderStatusService publishedProviderStatusService, 
+            IDeleteSpecifications deleteSpecifications)
         {
             Guard.ArgumentNotNull(specificationPublishingService, nameof(specificationPublishingService));
             Guard.ArgumentNotNull(providerFundingPublishingService, nameof(providerFundingPublishingService));
@@ -32,6 +35,7 @@ namespace CalculateFunding.Api.Publishing.Controllers
             Guard.ArgumentNotNull(publishedSearchService, nameof(publishedSearchService));
             Guard.ArgumentNotNull(publishedProviderVersionService, nameof(publishedProviderVersionService));
             Guard.ArgumentNotNull(publishedProviderStatusService, nameof(publishedProviderStatusService));
+            Guard.ArgumentNotNull(deleteSpecifications, nameof(deleteSpecifications));
 
             _specificationPublishingService = specificationPublishingService;
             _providerFundingPublishingService = providerFundingPublishingService;
@@ -39,6 +43,18 @@ namespace CalculateFunding.Api.Publishing.Controllers
             _publishedSearchService = publishedSearchService;
             _publishedProviderVersionService = publishedProviderVersionService;
             _publishedProviderStatusService = publishedProviderStatusService;
+            _deleteSpecifications = deleteSpecifications;
+        }
+        
+        [HttpDelete("api/specifications/{specificationId}")]
+        [ApiExplorerSettings(IgnoreApi = true)]
+        public async Task<IActionResult> DeleteSpecification([FromRoute] string specificationId)
+        {
+            await _specificationPublishingService.CreateRefreshFundingJob(specificationId,
+                Request.GetUser(),
+                Request.GetCorrelationId());
+
+            return NoContent();
         }
 
         /// <summary>

@@ -15,13 +15,13 @@ namespace CalculateFunding.Services.Publishing.Specifications
 {
     public class ProviderFundingPublishingService : SpecificationPublishingBase, IProviderFundingPublishingService
     {
-        private readonly ICreateJobsForSpecifications<PublishProviderFundingJobDefinition> _jobs;
+        private readonly ICreatePublishProviderFundingJobs _jobs;
         private readonly IPublishedFundingRepository _publishedFundingRepository;
 
         public ProviderFundingPublishingService(ISpecificationIdServiceRequestValidator validator,
             ISpecificationsApiClient specifications,
             IPublishingResiliencePolicies resiliencePolicies,
-            ICreateJobsForSpecifications<PublishProviderFundingJobDefinition> jobs,
+            ICreatePublishProviderFundingJobs jobs,
             IPublishedFundingRepository publishedFundingRepository) : base(validator, specifications,
             resiliencePolicies)
         {

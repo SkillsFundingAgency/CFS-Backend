@@ -12,29 +12,33 @@ using Policy = Polly.Policy;
 
 namespace CalculateFunding.Services.Publishing.Specifications
 {
-    public class JobCreationForSpecification<TJobDefinition> : ICreateJobsForSpecifications<TJobDefinition>
-        where TJobDefinition : IJobDefinition
+    public abstract class JobCreationForSpecification
     {
         private readonly IJobsApiClient _jobs;
         private readonly IPublishingResiliencePolicies _resiliencePolicies;
         private readonly ILogger _logger;
-        private readonly IJobDefinition _jobDefinition;
 
-        public JobCreationForSpecification(IJobsApiClient jobs,
+        protected JobCreationForSpecification(IJobsApiClient jobs,
             IPublishingResiliencePolicies resiliencePolicies,
             ILogger logger,
-            IJobDefinition jobDefinition)
+            string jobDefinitionId,
+            string triggerMessage)
         {
             Guard.ArgumentNotNull(jobs, nameof(jobs));
             Guard.ArgumentNotNull(resiliencePolicies?.JobsApiClient, nameof(resiliencePolicies.JobsApiClient));
             Guard.ArgumentNotNull(logger, nameof(logger));
-            Guard.ArgumentNotNull(jobDefinition, nameof(jobDefinition));
+            Guard.IsNullOrWhiteSpace(jobDefinitionId, nameof(jobDefinitionId));
 
             _jobs = jobs;
             _resiliencePolicies = resiliencePolicies;
             _logger = logger;
-            _jobDefinition = jobDefinition;
+            JobDefinitionId = jobDefinitionId;
+            TriggerMessage = triggerMessage;
         }
+        
+        public string JobDefinitionId { get; }
+                                                     
+        public string TriggerMessage { get; }
 
         private Policy JobsPolicy => _resiliencePolicies.JobsApiClient;
 
@@ -57,7 +61,7 @@ namespace CalculateFunding.Services.Publishing.Specifications
                 {
                     InvokerUserDisplayName = user.Name,
                     InvokerUserId = user.Id,
-                    JobDefinitionId = _jobDefinition.Id,
+                    JobDefinitionId = JobDefinitionId,
                     Properties = messageProperties,
                     MessageBody = messageBody ?? string.Empty,
                     SpecificationId = specificationId,
@@ -65,7 +69,7 @@ namespace CalculateFunding.Services.Publishing.Specifications
                     {
                         EntityId = specificationId,
                         EntityType = nameof(Specification),
-                        Message = _jobDefinition.TriggerMessage
+                        Message = TriggerMessage
                     },
                     CorrelationId = correlationId
                 }));

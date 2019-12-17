@@ -15,7 +15,7 @@ using ApiJob = CalculateFunding.Common.ApiClient.Jobs.Models.Job;
 namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
 {
     [TestClass]
-    public class ProviderFundingPublishingServiceTests : SpecificationPublishingServiceTestsBase<PublishProviderFundingJobDefinition>
+    public class ProviderFundingPublishingServiceTests : SpecificationPublishingServiceTestsBase<ICreatePublishProviderFundingJobs>
     {
         private ProviderFundingPublishingService _service;
         private IPublishedFundingRepository _publishedFundingRepository;

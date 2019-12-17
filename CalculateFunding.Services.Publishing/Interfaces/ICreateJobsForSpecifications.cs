@@ -5,12 +5,16 @@ using CalculateFunding.Common.Models;
 
 namespace CalculateFunding.Services.Publishing.Interfaces
 {
-    public interface ICreateJobsForSpecifications<T>
+    public interface ICreateJobsForSpecifications
     {
         Task<Job> CreateJob(string specificationId,
             Reference user,
             string correlationId,
             Dictionary<string, string> properties = null,
             string messageBody = null);
+        
+        string JobDefinitionId { get; }
+        
+        string TriggerMessage { get; }
     }
 }

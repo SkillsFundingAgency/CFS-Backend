@@ -44,29 +44,12 @@ namespace CalculateFunding.Services.Publishing.IoC
             serviceCollection.AddSingleton<IPublishedFundingDateService, PublishedFundingDateService>();
             serviceCollection.AddSingleton<IPublishedFundingDataService, PublishedFundingDataService>();
             serviceCollection.AddSingleton<IPublishedProviderContentPersistanceService, PublishedProviderContentPersistanceService>();
-            serviceCollection.AddSingleton<ICreateJobsForSpecifications<RefreshFundingJobDefinition>>(ctx =>
-            {
-                return new JobCreationForSpecification<RefreshFundingJobDefinition>(ctx.GetService<IJobsApiClient>(),
-                    ctx.GetService<IPublishingResiliencePolicies>(),
-                    ctx.GetService<ILogger>(),
-                    new RefreshFundingJobDefinition());
-            });
-            serviceCollection.AddSingleton<ICreateJobsForSpecifications<PublishProviderFundingJobDefinition>>(ctx =>
-            {
-                return new JobCreationForSpecification<PublishProviderFundingJobDefinition>(ctx.GetService<IJobsApiClient>(),
-                    ctx.GetService<IPublishingResiliencePolicies>(),
-                    ctx.GetService<ILogger>(),
-                    new PublishProviderFundingJobDefinition());
-            });
-            serviceCollection.AddSingleton<ICreateJobsForSpecifications<ApproveFundingJobDefinition>>(ctx =>
-            {
-                return new JobCreationForSpecification<ApproveFundingJobDefinition>(ctx.GetService<IJobsApiClient>(),
-                    ctx.GetService<IPublishingResiliencePolicies>(),
-                    ctx.GetService<ILogger>(),
-                    new ApproveFundingJobDefinition());
-            });
-
+            serviceCollection.AddSingleton<ICreateRefreshFundingJobs, RefreshFundingJobCreation>();
+            serviceCollection.AddSingleton<ICreateApproveFundingJobs, ApproveFundingJobCreation>();
+            serviceCollection.AddSingleton<ICreatePublishProviderFundingJobs, PublishProviderFundingJobCreation>();
+            serviceCollection.AddSingleton<ICreateDeleteSpecificationJobs, DeleteSpecificationJobCreation>();
             serviceCollection.AddSingleton<IPublishedFundingStatusUpdateService, PublishedFundingStatusUpdateService>();
+            serviceCollection.AddSingleton<IDeleteSpecifications, DeleteSpecificationService>();
 
             PolicySettings policySettings = serviceCollection.GetPolicySettings(configuration);
             OrganisationGroupResiliencePolicies organisationResiliencePolicies = CreateResiliencePolicies(policySettings);

@@ -17,13 +17,13 @@ using NSubstitute;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
 {
-    public abstract class SpecificationPublishingServiceTestsBase<TJobDefinition>
-        where TJobDefinition : IJobDefinition
+    public abstract class SpecificationPublishingServiceTestsBase<TJobCreation>
+        where TJobCreation : class, ICreateJobsForSpecifications
     {
         private ValidationResult _validationResult;
 
         protected ISpecificationsApiClient Specifications { get; private set; }
-        protected ICreateJobsForSpecifications<TJobDefinition> Jobs { get; private set; }
+        protected TJobCreation Jobs { get; private set; }
         protected IActionResult ActionResult { get; set; }
         protected string SpecificationId { get; private set; }
         protected string CorrelationId { get; private set; }
@@ -35,11 +35,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
         public void TestBaseSetUp()
         {
             _validationResult = new ValidationResult();
+            
             SpecificationId = NewRandomString();
             CorrelationId = NewRandomString();
             User = NewUser();
-            Jobs = Substitute.For<ICreateJobsForSpecifications<TJobDefinition>>();
-
+            Jobs = Substitute.For<TJobCreation>();
             Validator = Substitute.For<ISpecificationIdServiceRequestValidator>();
 
             Validator.Validate(SpecificationId)

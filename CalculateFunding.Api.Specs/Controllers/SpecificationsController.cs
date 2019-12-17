@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Specs.Interfaces;
@@ -24,91 +25,91 @@ namespace CalculateFunding.Api.Specs.Controllers
 
         [Route("api/specs/specification-by-id")]
         [HttpGet]
-        public async Task<IActionResult> RunGetSpecificationById()
+        public async Task<IActionResult> GetSpecificationById()
         {
             return await _specService.GetSpecificationById(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/specs/specification-summary-by-id")]
         [HttpGet]
-        public async Task<IActionResult> RunGetSpecificationSummaryById()
+        public async Task<IActionResult> GetSpecificationSummaryById()
         {
             return await _specService.GetSpecificationSummaryById(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/specs/specification-summaries-by-ids")]
         [HttpPost]
-        public async Task<IActionResult> RunGetSpecificationSummariesByIds()
+        public async Task<IActionResult> GetSpecificationSummariesByIds()
         {
             return await _specService.GetSpecificationSummariesByIds(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/specs/specification-summaries")]
         [HttpGet]
-        public async Task<IActionResult> RunGetSpecificationSummaries()
+        public async Task<IActionResult> GetSpecificationSummaries()
         {
             return await _specService.GetSpecificationSummaries(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/specs/specifications")]
         [HttpGet]
-        public async Task<IActionResult> RunGetSpecifications()
+        public async Task<IActionResult> GetSpecifications()
         {
             return await _specService.GetSpecifications(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/specs/specifications-selected-for-funding")]
         [HttpGet]
-        public async Task<IActionResult> RunGetSpecificationsSelectedForFunding()
+        public async Task<IActionResult> GetSpecificationsSelectedForFunding()
         {
             return await _specService.GetSpecificationsSelectedForFunding(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/specs/specifications-selected-for-funding-by-period")]
         [HttpGet]
-        public async Task<IActionResult> RunGetSpecificationsSelectedForFundingByPeriod()
+        public async Task<IActionResult> GetSpecificationsSelectedForFundingByPeriod()
         {
             return await _specService.GetSpecificationsSelectedForFundingByPeriod(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/specs/funding-streams-selected-for-funding-by-specification")]
         [HttpGet]
-        public async Task<IActionResult> RunGetFundingStreamsSelectedForFundingBySpecification()
+        public async Task<IActionResult> GetFundingStreamsSelectedForFundingBySpecification()
         {
             return await _specService.GetFundingStreamsSelectedForFundingBySpecification(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/specs/specifications-by-year")]
         [HttpGet]
-        public async Task<IActionResult> RunSpecificationsByYear()
+        public async Task<IActionResult> SpecificationsByYear()
         {
             return await _specService.GetSpecificationsByFundingPeriodId(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/specs/specification-by-name")]
         [HttpGet]
-        public async Task<IActionResult> RunSpecificationByName()
+        public async Task<IActionResult> SpecificationByName()
         {
             return await _specService.GetSpecificationByName(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/specs/specifications")]
         [HttpPost]
-        public async Task<IActionResult> RunSpecificationsCommands([FromBody]string value)
+        public async Task<IActionResult> SpecificationsCommands([FromBody]string value)
         {
             return await _specService.CreateSpecification(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/specs/specification-edit")]
         [HttpPut]
-        public async Task<IActionResult> RunEditSpecification([FromBody]string value)
+        public async Task<IActionResult> EditSpecification([FromBody]string value)
         {
             return await _specService.EditSpecification(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/specs/specification-edit-status")]
         [HttpPut]
-        public async Task<IActionResult> RunEditSpecificationStatus([FromBody]string value)
+        public async Task<IActionResult> EditSpecificationStatus([FromBody]string value)
         {
             return await _specService.EditSpecificationStatus(ControllerContext.HttpContext.Request);
         }
@@ -122,21 +123,21 @@ namespace CalculateFunding.Api.Specs.Controllers
 
         [Route("api/specs/specifications-dataset-relationships-search")]
         [HttpPost]
-        public async Task<IActionResult> RunSearchSpecificationsDatasetRelationships()
+        public async Task<IActionResult> SearchSpecificationsDatasetRelationships()
         {
             return await _specSearchService.SearchSpecificationDatasetRelationships(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/specs/specifications-search")]
         [HttpPost]
-        public async Task<IActionResult> RunSearchSpecifications()
+        public async Task<IActionResult> SearchSpecifications()
         {
             return await _specSearchService.SearchSpecifications(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/specs/specifications-by-fundingperiod-and-fundingstream")]
         [HttpGet]
-        public async Task<IActionResult> RunGetSpecificationsByFundingPeriodIdAndFundingStreamId()
+        public async Task<IActionResult> GetSpecificationsByFundingPeriodIdAndFundingStreamId()
         {
             return await _specService.GetCurrentSpecificationsByFundingPeriodIdAndFundingStreamId(ControllerContext.HttpContext.Request);
         }
@@ -179,7 +180,7 @@ namespace CalculateFunding.Api.Specs.Controllers
 
         [Route("api/specs/fundingperiods-by-fundingstream-id/{fundingStreamId}")]
         [HttpGet]
-        public async Task<IActionResult> RunGetFundingPeriodsByFundingStreamIds([FromRoute]string fundingStreamId)
+        public async Task<IActionResult> GetFundingPeriodsByFundingStreamIds([FromRoute]string fundingStreamId)
         {
             return await _specService.GetFundingPeriodsByFundingStreamIdsForSelectedSpecifications(fundingStreamId);
         }

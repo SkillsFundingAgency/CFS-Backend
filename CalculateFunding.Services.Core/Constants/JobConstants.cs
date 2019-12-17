@@ -37,6 +37,8 @@
             public const string AssignTemplateCalculationsJob = nameof(AssignTemplateCalculationsJob);
             
             public const string ReIndexPublishedProvidersJob = nameof(ReIndexPublishedProvidersJob);
+
+            public const string DeleteSpecificationJob = nameof(DeleteSpecificationJob);
         }
 
         public static class NotificationChannels

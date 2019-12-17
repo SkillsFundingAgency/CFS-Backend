@@ -16,13 +16,13 @@ using Policy = Polly.Policy;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
 {
-    public abstract class JobCreationForSpecificationTestBase<TJobDefinition> where TJobDefinition : IJobDefinition
+    public abstract class JobCreationForSpecificationTestBase<TJobCreation> 
+        where TJobCreation : ICreateJobsForSpecifications
     {
-        protected IJobsApiClient Jobs { get; private set; }
-        protected ICreateJobsForSpecifications<TJobDefinition> JobCreation { get; private set; }
-        protected IPublishingResiliencePolicies ResiliencePolicies { get; private set; }
-        protected ILogger Logger { get; private set; }
-        protected IJobDefinition JobDefinition { get; set; }
+        protected IJobsApiClient Jobs;
+        protected TJobCreation JobCreation;
+        protected IPublishingResiliencePolicies ResiliencePolicies;
+        protected ILogger Logger;
 
         [TestInitialize]
         public void JobCreationForSpecificationTestBaseSetUp()
@@ -34,8 +34,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
             {
                 JobsApiClient = Policy.NoOpAsync()
             };
-
-            JobCreation = new JobCreationForSpecification<TJobDefinition>(Jobs, ResiliencePolicies, Logger, JobDefinition);
         }
 
         [TestMethod]
@@ -94,7 +92,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
             Jobs.CreateJob(Arg.Is<JobCreateModel>(_ =>
                     _.CorrelationId == correlationId &&
                     _.SpecificationId == specificationId &&
-                    _.JobDefinitionId == JobDefinition.Id &&
+                    _.JobDefinitionId == JobCreation.JobDefinitionId &&
                     _.InvokerUserId == user.Id &&
                     _.InvokerUserDisplayName == user.Name &&
                     _.Properties != null &&
@@ -105,7 +103,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
                     _.Trigger != null &&
                     _.Trigger.EntityId == specificationId &&
                     _.Trigger.EntityType == nameof(Specification) &&
-                    _.Trigger.Message == JobDefinition.TriggerMessage))
+                    _.Trigger.Message == JobCreation.TriggerMessage))
                 .Returns(job);
         }
 

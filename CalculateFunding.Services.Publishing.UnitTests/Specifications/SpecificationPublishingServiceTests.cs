@@ -17,17 +17,17 @@ using ApiSpecificationSummary = CalculateFunding.Common.ApiClient.Specifications
 namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
 {
     [TestClass]
-    public class SpecificationPublishingServiceTests : SpecificationPublishingServiceTestsBase<RefreshFundingJobDefinition>
+    public class SpecificationPublishingServiceTests : SpecificationPublishingServiceTestsBase<ICreateRefreshFundingJobs>
     {
         private SpecificationPublishingService _service;
-        private ICreateJobsForSpecifications<ApproveFundingJobDefinition> _approvalJobs;
+        private ICreateApproveFundingJobs _approvalJobs;
         private ICacheProvider _cacheProvider;
         private ISpecificationFundingStatusService _specificationFundingStatusService;
 
         [TestInitialize]
         public void SetUp()
         {
-            _approvalJobs = Substitute.For<ICreateJobsForSpecifications<ApproveFundingJobDefinition>>();
+            _approvalJobs = Substitute.For<ICreateApproveFundingJobs>();
             _cacheProvider = Substitute.For<ICacheProvider>();
             _specificationFundingStatusService = Substitute.For<ISpecificationFundingStatusService>();
 
@@ -207,14 +207,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
         [TestMethod]
         public async Task CanChooseForFunding_SpecificationSummaryIsNull_ReturnsNotFound()
         {
-            //Arrange
-            GivenTheApiResponseDetailsForTheSuppliedId(null, HttpStatusCode.NotFound);
-
-            //Act
-            IActionResult actionResult = await _service.CanChooseForFunding(SpecificationId);
-
-            //Assert
-            actionResult
+            await WhenCanChooseFundingIsQueried();
+            
+            ActionResult
                 .Should()
                 .BeAssignableTo<NotFoundResult>();
         }
@@ -225,26 +220,33 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
         [DataRow(SpecificationFundingStatus.SharesAlreadyChosenFundingStream)]
         public async Task CanChooseForFunding_SpecificationSummaryStatus_ReturnsOKWithCorrectStatus(SpecificationFundingStatus status)
         {
-            //Arrange
-            ApiSpecificationSummary specificationSummary = new ApiSpecificationSummary();
+            ApiSpecificationSummary specificationSummary = NewApiSpecificationSummary();
 
             GivenTheApiResponseDetailsForTheSuppliedId(specificationSummary, HttpStatusCode.OK);
+            AndTheSpecificationHasTheStatus(specificationSummary, status);
 
-            _specificationFundingStatusService
-                .CheckChooseForFundingStatus(Arg.Is(specificationSummary))
-                .Returns(status);
+            await WhenCanChooseFundingIsQueried();
 
-            //Act
-            IActionResult actionResult = await _service.CanChooseForFunding(SpecificationId);
-
-            //Assert
-            actionResult
+            ActionResult
                 .Should()
                 .BeAssignableTo<OkObjectResult>()
                 .Which
                 .Value
                 .Should()
                 .BeEquivalentTo(new SpecificationCheckChooseForFundingResult { Status = status });
+        }
+
+        private void AndTheSpecificationHasTheStatus(ApiSpecificationSummary specificationSummary,
+            SpecificationFundingStatus status)
+        {
+            _specificationFundingStatusService
+                .CheckChooseForFundingStatus(specificationSummary)
+                .Returns(status);   
+        }
+
+        private async Task WhenCanChooseFundingIsQueried()
+        {
+            ActionResult = await _service.CanChooseForFunding(SpecificationId);
         }
 
         private async Task WhenTheSpecificationIsPublished()

@@ -18,8 +18,8 @@ namespace CalculateFunding.Services.Publishing.Specifications
 {
     public class SpecificationPublishingService : SpecificationPublishingBase, ISpecificationPublishingService, IHealthChecker
     {
-        private readonly ICreateJobsForSpecifications<RefreshFundingJobDefinition> _refreshFundingJobs;
-        private readonly ICreateJobsForSpecifications<ApproveFundingJobDefinition> _approveFundingJobs;
+        private readonly ICreateRefreshFundingJobs _refreshFundingJobs;
+        private readonly ICreateApproveFundingJobs _approveFundingJobs;
         private readonly ICacheProvider _cacheProvider;
         private readonly ISpecificationFundingStatusService _specificationFundingStatusService;
 
@@ -27,8 +27,8 @@ namespace CalculateFunding.Services.Publishing.Specifications
             ISpecificationsApiClient specifications,
             IPublishingResiliencePolicies resiliencePolicies,
             ICacheProvider cacheProvider,
-            ICreateJobsForSpecifications<RefreshFundingJobDefinition> refreshFundingJobs,
-            ICreateJobsForSpecifications<ApproveFundingJobDefinition> approveFundingJobs,
+            ICreateRefreshFundingJobs refreshFundingJobs,
+            ICreateApproveFundingJobs approveFundingJobs,
             ISpecificationFundingStatusService specificationFundingStatusService) : base(validator, specifications, resiliencePolicies)
         {
             Guard.ArgumentNotNull(refreshFundingJobs, nameof(refreshFundingJobs));

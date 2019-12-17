@@ -4,11 +4,14 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
 {
     [TestClass]
-    public class PublishProviderFundingJobCreationTests : JobCreationForSpecificationTestBase<PublishProviderFundingJobDefinition>
+    public class PublishProviderFundingJobCreationTests : JobCreationForSpecificationTestBase<PublishProviderFundingJobCreation>
     {
-        public PublishProviderFundingJobCreationTests()
+        [TestInitialize]
+        public void SetUp()
         {
-            JobDefinition = new PublishProviderFundingJobDefinition();
+            JobCreation = new PublishProviderFundingJobCreation(Jobs,
+                ResiliencePolicies,
+                Logger);
         }
     }
 }
