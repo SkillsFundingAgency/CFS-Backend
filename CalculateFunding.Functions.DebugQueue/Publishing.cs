@@ -59,7 +59,7 @@ namespace CalculateFunding.Functions.DebugQueue
         }
 
         [FunctionName("on-publishing-approve-funding-poisoned")]
-        public static async Task RunApproveFundingFailure([QueueTrigger(ServiceBusConstants.QueueNames.PublishingPublishFundingPoisonedLocal, Connection = "AzureConnectionString")] string item, ILogger log)
+        public static async Task RunApproveFundingFailure([QueueTrigger(ServiceBusConstants.QueueNames.PublishingApproveFundingPoisonedLocal, Connection = "AzureConnectionString")] string item, ILogger log)
         {
             using (IServiceScope scope = Functions.Publishing.Startup.RegisterComponents(new ServiceCollection()).CreateScope())
             {

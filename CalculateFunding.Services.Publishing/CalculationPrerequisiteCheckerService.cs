@@ -49,7 +49,7 @@ namespace CalculateFunding.Services.Publishing
                 return validationErrors;
             }
 
-            validationErrors.AddRange(calculationsResponse?.Content.Where(_ => _.PublishStatus != PublishStatus.Approved)
+            validationErrors.AddRange(calculationsResponse?.Content.Where(_ => _.PublishStatus != PublishStatus.Approved && _.CalculationType == CalculationType.Template)
                 .Select(_ => $"Calculation {_.Name} must be approved but is {_.PublishStatus}"));
 
             foreach (var fundingStream in specification.FundingStreams)

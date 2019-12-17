@@ -72,12 +72,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         [TestMethod]
         public async Task CollectsDetailsOfUnapprovedCalculationsAsValidationErrors()
         {
-            CalculationMetadata calculation1 = NewApiCalculation(_ => _.WithPublishStatus(PublishStatus.Archived));
-            CalculationMetadata calculation2 = NewApiCalculation(_ => _.WithPublishStatus(PublishStatus.Approved));
-            CalculationMetadata calculation3 = NewApiCalculation(_ => _.WithPublishStatus(PublishStatus.Draft));
-            CalculationMetadata calculation4 = NewApiCalculation(_ => _.WithPublishStatus(PublishStatus.Approved));
-            CalculationMetadata calculation5 = NewApiCalculation(_ => _.WithPublishStatus(PublishStatus.Approved));
-            CalculationMetadata calculation6 = NewApiCalculation(_ => _.WithPublishStatus(PublishStatus.Updated));
+            CalculationMetadata calculation1 = NewApiCalculation(_ => _.WithPublishStatus(PublishStatus.Archived).WithCalculationType(CalculationType.Template));
+            CalculationMetadata calculation2 = NewApiCalculation(_ => _.WithPublishStatus(PublishStatus.Approved).WithCalculationType(CalculationType.Template));
+            CalculationMetadata calculation3 = NewApiCalculation(_ => _.WithPublishStatus(PublishStatus.Draft).WithCalculationType(CalculationType.Template));
+            CalculationMetadata calculation4 = NewApiCalculation(_ => _.WithPublishStatus(PublishStatus.Approved).WithCalculationType(CalculationType.Template));
+            CalculationMetadata calculation5 = NewApiCalculation(_ => _.WithPublishStatus(PublishStatus.Approved).WithCalculationType(CalculationType.Template));
+            CalculationMetadata calculation6 = NewApiCalculation(_ => _.WithPublishStatus(PublishStatus.Updated).WithCalculationType(CalculationType.Template));
+            CalculationMetadata calculation7 = NewApiCalculation(_ => _.WithPublishStatus(PublishStatus.Updated));
 
             string specificationId = NewRandomString();
 

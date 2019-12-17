@@ -193,7 +193,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             logger
                 .Received(1)
-                .Warning(Arg.Is($"Attempt to mark specification with id: {SpecificationId} selected when alreday selected"));
+                .Warning(Arg.Is($"Attempt to mark specification with id: {SpecificationId} selected when already selected"));
         }
 
         [TestMethod]

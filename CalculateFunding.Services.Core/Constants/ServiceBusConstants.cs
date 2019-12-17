@@ -16,13 +16,13 @@
 
             public const string CalculationJobInitialiserPoisoned = "calc-events-instruct-generate-allocations/$DeadLetterQueue";
 
-            public const string CalculationJobInitialiserPoisonedLocal = "calc-events-instruct-generate-allocations-poison";
+            public const string CalculationJobInitialiserPoisonedLocal = "calc-events-instruct-generate-allocations-poisoned";
 
             public const string CalcEngineGenerateAllocationResults = "calc-events-generate-allocations-results";
 
             public const string CalcEngineGenerateAllocationResultsPoisoned = "calc-events-generate-allocations-results/$DeadLetterQueue";
 
-            public const string CalcEngineGenerateAllocationResultsPoisonedLocal = "calc-events-generate-allocations-results-poison";
+            public const string CalcEngineGenerateAllocationResultsPoisonedLocal = "calc-events-generate-allocations-results-poisoned";
 
             public const string TestEngineExecuteTests = "test-events-execute-tests";
 
@@ -48,19 +48,19 @@
 
             public const string PublishingApproveFundingPoisoned = "publishing-approvefunding/$DeadLetterQueue";
 
-            public const string PublishingApproveFundingPoisonedLocal = "publishing-approvefunding-poison";
+            public const string PublishingApproveFundingPoisonedLocal = "publishing-approvefunding-poisoned";
 
             public const string PublishingRefreshFunding = "publishing-refreshfunding";
 
             public const string PublishingRefreshFundingPoisoned = "publishing-refreshfunding/$DeadLetterQueue";
 
-            public const string PublishingRefreshFundingPoisonedLocal = "publishing-refreshfunding-poison";
+            public const string PublishingRefreshFundingPoisonedLocal = "publishing-refreshfunding-poisoned";
 
             public const string PublishingPublishFunding = "publishing-publishfunding";
 
             public const string PublishingPublishFundingPoisoned = "publishing-publishfunding/$DeadLetterQueue";
 
-            public const string PublishingPublishFundingPoisonedLocal = "publishing-publishfunding-posion";
+            public const string PublishingPublishFundingPoisonedLocal = "publishing-publishfunding-poisoned";
 
             public const string ReIndexCalculationResultsIndex = "reindex-calculation-results-index";
 
@@ -77,7 +77,7 @@
             
             public const string PublishingReIndexPublishedProvidersPoisoned = "publishing-reindex-published-providers/$DeadLetterQueue";
             
-            public const string PublishingReIndexPublishedProvidersPoisonedLocal = "publishing-reindex-published-providers-poison";
+            public const string PublishingReIndexPublishedProvidersPoisonedLocal = "publishing-reindex-published-providers-poisoned";
         }
 
         public static class TopicNames

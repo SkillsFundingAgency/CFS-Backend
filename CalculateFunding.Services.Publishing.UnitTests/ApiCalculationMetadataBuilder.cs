@@ -8,7 +8,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
     {
         private string _name;
         private PublishStatus? _publishStatus;
-
+        private CalculationType? _calculationType;
         
         
         public ApiCalculationMetadataBuilder WithName(string name)
@@ -24,13 +24,21 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             return this;
         }
-        
+
+        public ApiCalculationMetadataBuilder WithCalculationType(CalculationType calculationType)
+        {
+            _calculationType = calculationType;
+
+            return this;
+        }
+
         public CalculationMetadata Build()
         {
             return new CalculationMetadata
             {
                 Name = _name ?? NewRandomString(),
-                PublishStatus = _publishStatus.GetValueOrDefault(NewRandomEnum<PublishStatus>())
+                PublishStatus = _publishStatus.GetValueOrDefault(NewRandomEnum<PublishStatus>()),
+                CalculationType = _calculationType.GetValueOrDefault(NewRandomEnum<CalculationType>())
             };
         }
     }

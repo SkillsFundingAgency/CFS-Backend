@@ -941,7 +941,7 @@ WHERE   s.documentType = @DocumentType",
             if (specification.IsSelectedForFunding)
             {
                 _logger.Warning(
-                    $"Attempt to mark specification with id: {specificationId} selected when alreday selected");
+                    $"Attempt to mark specification with id: {specificationId} selected when already selected");
 
                 return new NoContentResult();
             }
