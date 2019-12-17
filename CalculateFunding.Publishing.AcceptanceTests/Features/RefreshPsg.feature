@@ -1196,6 +1196,72 @@ Scenario Outline: Successful refresh of funding
 		| publishedprovider-1000101-<FundingPeriodId>-<FundingStreamId> | Updated |
 		| publishedprovider-1000102-<FundingPeriodId>-<FundingStreamId> | Updated |
 		| publishedprovider-1000103-<FundingPeriodId>-<FundingStreamId> | Draft   |
+	# No important change made to the providers in core should result in no changes to the published providers
+	Given the following provider exists within core provider data in provider version '<ProviderVersionId>'
+		| Field                         | Value                    |
+		| ProviderId                    | 9000000                  |
+		| Name                          | Local Authority 1		   |
+		| Authority                     | Local Authority 1        |
+		| CensusWardCode                |                          |
+		| CensusWardName                |                          |
+		| CompaniesHouseNumber          |                          |
+		| CountryCode                   |                          |
+		| CountryName                   |                          |
+		| CrmAccountId                  |                          |
+		| DateClosed                    |                          |
+		| DateOpened                    | 2012-03-15               |
+		| DfeEstablishmentNumber        |                          |
+		| DistrictCode                  |                          |
+		| DistrictName                  |                          |
+		| EstablishmentNumber           |		                   |
+		| GovernmentOfficeRegionCode    |                          |
+		| GovernmentOfficeRegionName    |                          |
+		| GroupIdNumber                 |                          |
+		| LACode                        | 200                      |
+		| LegalName                     |                          |
+		| LocalAuthorityName            | Local Authority 1        |
+		| LowerSuperOutputAreaCode      |                          |
+		| LowerSuperOutputAreaName      |                          |
+		| MiddleSuperOutputAreaCode     |                          |
+		| MiddleSuperOutputAreaName     |                          |
+		| NavVendorNo                   | 1234                     |
+		| ParliamentaryConstituencyCode |                          |
+		| ParliamentaryConstituencyName |                          |
+		| PhaseOfEducation              |                          |
+		| Postcode                      |                          |
+		| ProviderProfileIdType         |                          |
+		| ProviderType                  | Local Authority          |
+		| ProviderSubType               | Local Authority          |
+		| ProviderVersionId             | <ProviderVersionId>      |
+		| ReasonEstablishmentClosed     |                          |
+		| ReasonEstablishmentOpened     |                          |
+		| RscRegionCode                 |                          |
+		| RscRegionName                 |                          |
+		| Status                        |                          |
+		| Successor                     |                          |
+		| Town                          |                          |
+		| TrustCode                     |                          |
+		| TrustName                     |                          |
+		| TrustStatus                   | Not Supported By A Trust |
+		| UKPRN                         | 9000000                  |
+		| UPIN                          |                          |
+		| URN                           |                          |
+		| WardCode                      |                          |
+		| WardName                      |                          |
+	When funding is refreshed
+	Then refresh succeeds
+	And the following published provider ids are upserted
+		| PublishedProviderId                                           | Status  |
+		| publishedprovider-1000000-<FundingPeriodId>-<FundingStreamId> | Updated |
+		| publishedprovider-1000002-<FundingPeriodId>-<FundingStreamId> | Updated |
+		| publishedprovider-1000003-<FundingPeriodId>-<FundingStreamId> | Draft   |
+		| publishedprovider-1000004-<FundingPeriodId>-<FundingStreamId> | Draft   |
+		| publishedprovider-1000005-<FundingPeriodId>-<FundingStreamId> | Draft   |
+		| publishedprovider-1000009-<FundingPeriodId>-<FundingStreamId> | Draft   |
+		| publishedprovider-1000101-<FundingPeriodId>-<FundingStreamId> | Updated |
+		| publishedprovider-1000102-<FundingPeriodId>-<FundingStreamId> | Updated |
+		| publishedprovider-1000103-<FundingPeriodId>-<FundingStreamId> | Draft   |
+	# Add a new provider to the core provider data and then do a refresh
 	Given the provider with id '9000000' should be a scoped provider in the current specification in provider version '<ProviderVersionId>'
 	And the provider with id '9000002' should be a scoped provider in the current specification in provider version '<ProviderVersionId>'
 	And the provider with id '9000003' should be a scoped provider in the current specification in provider version '<ProviderVersionId>'
@@ -1213,6 +1279,80 @@ Scenario Outline: Successful refresh of funding
 		| publishedprovider-1000102-<FundingPeriodId>-<FundingStreamId> | Updated |
 		| publishedprovider-1000103-<FundingPeriodId>-<FundingStreamId> | Draft   |
 		| publishedprovider-9000000-<FundingPeriodId>-<FundingStreamId> | Draft   |
+		| publishedprovider-9000002-<FundingPeriodId>-<FundingStreamId> | Draft   |
+		| publishedprovider-9000003-<FundingPeriodId>-<FundingStreamId> | Draft   |
+	And the following funding lines are set against provider with id '1000000'
+		| FundingLineCode | Value  |
+		| TotalAllocation | 12000  |
+	And the following funding lines are set against provider with id '9000000'
+		| FundingLineCode | Value  |
+		| TotalAllocation | 24000  |
+	# Given provider name updated in core provider data and then do a refresh the 'Total Allocation' does not change
+	Given the following provider exists within core provider data in provider version '<ProviderVersionId>'
+		| Field                         | Value                    |
+		| ProviderId                    | 9000000                  |
+		| Name                          | Local Authority Updated 1|
+		| Authority                     | Local Authority 1        |
+		| CensusWardCode                |                          |
+		| CensusWardName                |                          |
+		| CompaniesHouseNumber          |                          |
+		| CountryCode                   |                          |
+		| CountryName                   |                          |
+		| CrmAccountId                  |                          |
+		| DateClosed                    |                          |
+		| DateOpened                    | 2012-03-15               |
+		| DfeEstablishmentNumber        |                          |
+		| DistrictCode                  |                          |
+		| DistrictName                  |                          |
+		| EstablishmentNumber           |		                   |
+		| GovernmentOfficeRegionCode    |                          |
+		| GovernmentOfficeRegionName    |                          |
+		| GroupIdNumber                 |                          |
+		| LACode                        | 200                      |
+		| LegalName                     |                          |
+		| LocalAuthorityName            | Local Authority 1        |
+		| LowerSuperOutputAreaCode      |                          |
+		| LowerSuperOutputAreaName      |                          |
+		| MiddleSuperOutputAreaCode     |                          |
+		| MiddleSuperOutputAreaName     |                          |
+		| NavVendorNo                   |                          |
+		| ParliamentaryConstituencyCode |                          |
+		| ParliamentaryConstituencyName |                          |
+		| PhaseOfEducation              |                          |
+		| Postcode                      |                          |
+		| ProviderProfileIdType         |                          |
+		| ProviderType                  | Local Authority          |
+		| ProviderSubType               | Local Authority          |
+		| ProviderVersionId             | <ProviderVersionId>      |
+		| ReasonEstablishmentClosed     |                          |
+		| ReasonEstablishmentOpened     |                          |
+		| RscRegionCode                 |                          |
+		| RscRegionName                 |                          |
+		| Status                        |                          |
+		| Successor                     |                          |
+		| Town                          |                          |
+		| TrustCode                     |                          |
+		| TrustName                     |                          |
+		| TrustStatus                   | Not Supported By A Trust |
+		| UKPRN                         | 9000000                  |
+		| UPIN                          |                          |
+		| URN                           |                          |
+		| WardCode                      |                          |
+		| WardName                      |                          |
+	When funding is refreshed
+	Then refresh succeeds
+	And the following published provider ids are upserted
+		| PublishedProviderId                                           | Status  |
+		| publishedprovider-1000000-<FundingPeriodId>-<FundingStreamId> | Updated |
+		| publishedprovider-1000002-<FundingPeriodId>-<FundingStreamId> | Updated |
+		| publishedprovider-1000003-<FundingPeriodId>-<FundingStreamId> | Draft   |
+		| publishedprovider-1000004-<FundingPeriodId>-<FundingStreamId> | Draft   |
+		| publishedprovider-1000005-<FundingPeriodId>-<FundingStreamId> | Draft   |
+		| publishedprovider-1000009-<FundingPeriodId>-<FundingStreamId> | Draft   |
+		| publishedprovider-1000101-<FundingPeriodId>-<FundingStreamId> | Updated |
+		| publishedprovider-1000102-<FundingPeriodId>-<FundingStreamId> | Updated |
+		| publishedprovider-1000103-<FundingPeriodId>-<FundingStreamId> | Draft   |
+		| publishedprovider-9000000-<FundingPeriodId>-<FundingStreamId> | Updated |
 		| publishedprovider-9000002-<FundingPeriodId>-<FundingStreamId> | Draft   |
 		| publishedprovider-9000003-<FundingPeriodId>-<FundingStreamId> | Draft   |
 	And the following funding lines are set against provider with id '1000000'
