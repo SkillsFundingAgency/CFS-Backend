@@ -97,8 +97,8 @@ namespace CalculateFunding.Api.TestRunner
                 .AddSingleton<IScenariosRepository, ScenariosRepository>();
 
             builder
-                .AddSingleton<ITestEngineService, TestEngineService>()
-                .AddSingleton<IHealthChecker, TestEngineService>();
+                .AddScoped<ITestEngineService, TestEngineService>()
+                .AddScoped<IHealthChecker, TestEngineService>();
 
             builder
                 .AddSingleton<ITestEngine, Services.TestRunner.TestEngine>();
@@ -159,8 +159,8 @@ namespace CalculateFunding.Api.TestRunner
                 .AddSingleton(mapperConfig.CreateMapper());
 
             builder
-                .AddSingleton<ITestResultsService, TestResultsService>()
-                .AddSingleton<IHealthChecker, TestResultsService>();
+                .AddScoped<ITestResultsService, TestResultsService>()
+                .AddScoped<IHealthChecker, TestResultsService>();
 
             builder.AddUserProviderFromRequest();
 
