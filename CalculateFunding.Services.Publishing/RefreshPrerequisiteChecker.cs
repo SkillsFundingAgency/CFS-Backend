@@ -66,22 +66,22 @@ namespace CalculateFunding.Services.Publishing
                 }
             }
 
-            List<string> result = new List<string>();
+            List<string> results = new List<string>();
 
-            bool calculationEngineRunning = await _calculationEngineRunningChecker.IsCalculationEngineRunning(specification.Id, new string[] { JobConstants.DefinitionNames.CreateInstructAllocationJob });
+            bool calculationEngineRunning = await _calculationEngineRunningChecker.IsCalculationEngineRunning(specification.Id, new string[] { JobConstants.DefinitionNames.CreateInstructAllocationJob, JobConstants.DefinitionNames.RefreshFundingJob });
             if (calculationEngineRunning)
             {
-                result.Add("Calculation engine is still running");
+                results.Add("Calculation engine is still running");
             }
 
             IEnumerable<string> calculationPrereqValidationErrors = await _calculationApprovalCheckerService.VerifyCalculationPrerequisites(specification);
             if (calculationPrereqValidationErrors.AnyWithNullCheck())
             {
-                result.AddRange(calculationPrereqValidationErrors);
+                results.AddRange(calculationPrereqValidationErrors);
             }
 
-            _logger.Error(string.Join(Environment.NewLine, result));
-            return result;
+            _logger.Error(string.Join(Environment.NewLine, results));
+            return results;
         }
 
     }

@@ -17,6 +17,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
     {
         private PublishPrerequisiteChecker _publishPrerequisiteChecker;
         private ISpecificationFundingStatusService _specificationFundingStatusService;
+        private ICalculationEngineRunningChecker _calculationEngineRunningChecker;
         private SpecificationSummary _specification;
         private PublishedProvider _publishedProvider;
         private PublishedFundingPeriod _publishedFundingPeriod;
@@ -26,8 +27,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         {
             ILogger logger = Substitute.For<ILogger>();
             _specificationFundingStatusService = Substitute.For<ISpecificationFundingStatusService>();
+            _calculationEngineRunningChecker = Substitute.For<ICalculationEngineRunningChecker>();
 
-            _publishPrerequisiteChecker = new PublishPrerequisiteChecker(_specificationFundingStatusService, logger);
+            _publishPrerequisiteChecker = new PublishPrerequisiteChecker(_specificationFundingStatusService, _calculationEngineRunningChecker, logger);
 
             _publishedFundingPeriod = new PublishedFundingPeriod { Type = PublishedFundingPeriodType.AY, Period = "123" };
 

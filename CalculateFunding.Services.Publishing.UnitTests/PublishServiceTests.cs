@@ -1,7 +1,6 @@
 using CalculateFunding.Common.ApiClient.Calcs;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Policies;
-using CalculateFunding.Common.ApiClient.Profiling;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Generators.OrganisationGroup;
 using CalculateFunding.Generators.OrganisationGroup.Interfaces;
@@ -50,7 +49,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         ISearchRepository<PublishedFundingIndex> _publishedFundingSearchRepository;
         private IPublishedProviderIndexerService _publishedProviderIndexerService;
         private IJobManagement _jobManagement;
-        private IProfilingService _profilingService;
 
         [TestInitialize]
         public void SetUp()
@@ -80,7 +78,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             _calculationsApiClient = Substitute.For<ICalculationsApiClient>();
             _configuration = Substitute.For<IConfiguration>();
             _jobManagement = Substitute.For<IJobManagement>();
-            _profilingService = Substitute.For<IProfilingService>();
 
             _resiliencePolicies = new ResiliencePolicies()
             {
@@ -122,7 +119,5 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 new PublishingEngineOptions(_configuration),
                 _jobManagement);
         }
-
-
     }
 }

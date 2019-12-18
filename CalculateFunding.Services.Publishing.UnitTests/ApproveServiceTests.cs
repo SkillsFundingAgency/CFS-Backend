@@ -1,9 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Publishing;
+using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
@@ -19,7 +24,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
     public class ApproveServiceTests
     {
         private const string JobType = "ApproveResults";
-        private IJobTracker _jobTracker;
+        private IJobManagement _jobManagement;
+        private IApprovePrerequisiteChecker _approvePrerequisiteChecker;
         private IApproveService _approveService;
         private IPublishedFundingDataService _publishedFundingDataService;
         private IPublishedProviderStatusUpdateService _publishedProviderStatusUpdateService;
@@ -27,14 +33,17 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private ILogger _logger;
         private Message _message;
         private string _jobId;
+        private JobViewModel _job;
         private string _userId;
         private string _userName;
+        private IEnumerable<string> _validationErrors;
 
 
         [TestInitialize]
         public void SetUp()
         {
-            _jobTracker = Substitute.For<IJobTracker>();
+            _jobManagement = Substitute.For<IJobManagement>();
+            _approvePrerequisiteChecker = Substitute.For<IApprovePrerequisiteChecker>();
             _publishedFundingDataService = Substitute.For<IPublishedFundingDataService>();
             _publishedProviderStatusUpdateService = Substitute.For<IPublishedProviderStatusUpdateService>();
             _publishedProviderIndexerService = Substitute.For<IPublishedProviderIndexerService>();
@@ -47,7 +56,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 {
                     PublishedFundingRepository = Policy.NoOpAsync()
                 },
-                _jobTracker,
+                _approvePrerequisiteChecker,
+                _jobManagement,
                 _logger);
 
             _jobId = NewRandomString();
@@ -86,23 +96,26 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         public async Task ApproveResults_TracksStartAndCompletionOfJobByJobIdInMessageProperties()
         {
             GivenTheMessageHasAJobId();
-            AndTheJobStartWasTrackedSuccessfully();
+            AndRetrieveJobAndCheckCanBeProcessedSuccessfully();
 
             await WhenTheResultsAreApproved();
 
-            ThenTheJobStartWasTracked();
+            ThenRetrieveJobAndCheckCanBeProcessed();
             AndTheJobEndWasTracked();
         }
 
         [TestMethod]
-        public async Task ApproveResults_ExitsEarlyIfUnableToStartTrackingJob()
+        public void ApproveResults_ExitsEarlyIfUnableToStartTrackingJob()
         {
             GivenTheMessageHasAJobId();
+            AndRetrieveJobAndCheckCannotBeProcessedSuccessfully();
 
-            await WhenTheResultsAreApproved();
+            Func<Task> invocation = WhenTheResultsAreApproved;
 
-            ThenTheJobStartWasTracked();
-            AndTheJobEndWasNotTracked();
+            invocation
+                .Should()
+                .Throw<NonRetriableException>()
+                .WithMessage("Job can not be run");
         }
 
         [TestMethod]
@@ -123,7 +136,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             GivenTheMessageHasTheSpecificationId(specificationId);
             AndTheMessageIsOtherwiseValid();
             AndTheSpecificationHasTheHeldUnApprovedPublishedProviders(specificationId, expectedPublishedProviders);
-            AndTheJobStartWasTrackedSuccessfully();
+            AndRetrieveJobAndCheckCanBeProcessedSuccessfully();
 
             await WhenTheResultsAreApproved();
 
@@ -177,31 +190,43 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                     _jobId);
         }
 
-        private void AndTheJobStartWasTrackedSuccessfully()
+        private void AndRetrieveJobAndCheckCanBeProcessedSuccessfully(Action<JobViewModelBuilder> setUp = null)
         {
-            _jobTracker.TryStartTrackingJob(_jobId, JobType)
-                .Returns(true);
+            JobViewModelBuilder jobViewModelBuilder = new JobViewModelBuilder();
+
+            setUp?.Invoke(jobViewModelBuilder);
+
+            _job = jobViewModelBuilder.Build();
+
+            _jobManagement.RetrieveJobAndCheckCanBeProcessed(_jobId)
+                .Returns(_job);
         }
 
-        private void ThenTheJobStartWasTracked()
+        private void AndRetrieveJobAndCheckCannotBeProcessedSuccessfully(Action<JobViewModelBuilder> setUp = null)
         {
-            _jobTracker
+            _jobManagement.RetrieveJobAndCheckCanBeProcessed(_jobId)
+                .Returns(Task.FromException<JobViewModel>(new Exception()));
+        }
+
+        private void ThenRetrieveJobAndCheckCanBeProcessed()
+        {
+            _jobManagement
                 .Received(1)
-                .TryStartTrackingJob(_jobId, JobType);
+                .RetrieveJobAndCheckCanBeProcessed(_jobId);
         }
 
         private void AndTheJobEndWasTracked()
         {
-            _jobTracker
+            _jobManagement
                 .Received(1)
-                .CompleteTrackingJob(_jobId);
+                .UpdateJobStatus(_jobId, 0, 0, true, null);
         }
 
         private void AndTheJobEndWasNotTracked()
         {
-            _jobTracker
+            _jobManagement
                 .Received(0)
-                .CompleteTrackingJob(_jobId);
+                .UpdateJobStatus(_jobId, 0, 0, true, null);
         }
 
         private PublishedProvider NewPublishedProvider()

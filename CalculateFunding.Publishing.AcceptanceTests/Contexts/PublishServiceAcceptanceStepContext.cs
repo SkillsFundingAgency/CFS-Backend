@@ -127,8 +127,10 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
             OrganisationGroupGenerator organisationGroupGenerator = new OrganisationGroupGenerator(organisationGroupTargetProviderLookup);
 
             SpecificationFundingStatusService specificationFundingStatusService = new SpecificationFundingStatusService(logger, specificationInMemoryRepository);
+            
+            CalculationEngineRunningChecker calculationEngineRunningChecker = new CalculationEngineRunningChecker(_jobStepContext.JobsClient, resiliencePolicies);
 
-            PublishPrerequisiteChecker publishPrerequisiteChecker = new PublishPrerequisiteChecker(specificationFundingStatusService, logger);
+            PublishPrerequisiteChecker publishPrerequisiteChecker = new PublishPrerequisiteChecker(specificationFundingStatusService, calculationEngineRunningChecker, logger);
 
             PublishedFundingChangeDetectorService publishedFundingChangeDetectorService = new PublishedFundingChangeDetectorService();
 
@@ -384,6 +386,11 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
                 PublishedProviderSearchRepository = Policy.NoOpAsync(),
             };
 
+            JobManagementResiliencePolicies jobManagementResiliencePolicies = new JobManagementResiliencePolicies()
+            {
+                JobsApiClient = Policy.NoOpAsync()
+            };
+
             IVersionRepository<PublishedFundingVersion> versionRepository = new VersionRepository<PublishedFundingVersion>(_publishedFundingRepositoryStepContext.CosmosRepo);
 
             ILogger logger = _loggerStepContext.Logger;
@@ -414,8 +421,10 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
             OrganisationGroupGenerator organisationGroupGenerator = new OrganisationGroupGenerator(organisationGroupTargetProviderLookup);
 
             SpecificationFundingStatusService specificationFundingStatusService = new SpecificationFundingStatusService(logger, specificationInMemoryRepository);
+            
+            CalculationEngineRunningChecker calculationEngineRunningChecker = new CalculationEngineRunningChecker(_jobStepContext.JobsClient, resiliencePolicies);
 
-            PublishPrerequisiteChecker publishPrerequisiteChecker = new PublishPrerequisiteChecker(specificationFundingStatusService, logger);
+            ApprovePrerequisiteChecker approvePrerequisiteChecker = new ApprovePrerequisiteChecker(calculationEngineRunningChecker, logger);
 
             PublishedFundingChangeDetectorService publishedFundingChangeDetectorService = new PublishedFundingChangeDetectorService();
 
@@ -445,6 +454,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
             IPublishedProviderVersioningService publishedProviderVersioningService = new PublishedProviderVersioningService(logger, publishedProviderVersionInMemoryRepository, resiliencePolicies, new PublishingEngineOptions(_configuration));
 
             IJobTracker jobTracker = new JobTracker(_jobStepContext.JobsClient, resiliencePolicies, logger);
+            IJobManagement jobManagement = new JobManagement(_jobStepContext.JobsClient, logger, jobManagementResiliencePolicies);
             PublishedProviderStatusUpdateSettings publishedProviderStatusUpdateSettings = new PublishedProviderStatusUpdateSettings();
 
             PublishedProviderIndexerService publishedProviderIndexerService =
@@ -487,7 +497,8 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
                 publishedFundingDataService,
                 publishedProviderIndexerService,
                 resiliencePolicies,
-                jobTracker,
+                approvePrerequisiteChecker,
+                jobManagement,
                 logger);
 
             Message message = new Message();

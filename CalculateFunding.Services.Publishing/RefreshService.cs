@@ -156,16 +156,11 @@ namespace CalculateFunding.Services.Publishing
                 throw new NonRetriableException($"Could not find specification with id '{specificationId}'");
             }
 
-            // Check prerequisites for this specification to be chosen/refreshed
-            IEnumerable<string> prereqValidationErrors = await _refreshPrerequisiteChecker.PerformPrerequisiteChecks(specification);
-            if (!prereqValidationErrors.IsNullOrEmpty())
-            {
-                string errorMessage = $"Specification with id: '{specificationId} has prerequisites which aren't complete.";
+            _logger.Information($"Verifying prerequisites for funding refresh");
 
-                await _jobManagement.UpdateJobStatus(jobId, completedSuccessfully: false, outcome: string.Join(", ", prereqValidationErrors));
+            await CheckPrerequisitesForSpecificationToBeRefreshed(specification, jobId);
 
-                throw new NonRetriableException(errorMessage);
-            }
+            _logger.Information($"Prerequisites for refresh passed");
 
             // Get scoped providers for this specification
             IEnumerable<Common.ApiClient.Providers.Models.Provider> scopedProvidersResponse = await _providerService.GetScopedProvidersForSpecification(specification.Id, specification.ProviderVersionId);
@@ -340,6 +335,20 @@ namespace CalculateFunding.Services.Publishing
             // Mark job as complete
             await _jobManagement.UpdateJobStatus(jobId, 0, 0, true, null);
             _logger.Information("Refresh complete");
+        }
+
+        private async Task CheckPrerequisitesForSpecificationToBeRefreshed(SpecificationSummary specification, string jobId)
+        {
+            // Check prerequisites for this specification to be chosen/refreshed
+            IEnumerable<string> prereqValidationErrors = await _refreshPrerequisiteChecker.PerformPrerequisiteChecks(specification);
+            if (!prereqValidationErrors.IsNullOrEmpty())
+            {
+                string errorMessage = $"Specification with id: '{specification.Id} has prerequisites which aren't complete.";
+
+                await _jobManagement.UpdateJobStatus(jobId, completedSuccessfully: false, outcome: string.Join(", ", prereqValidationErrors));
+
+                throw new NonRetriableException(errorMessage);
+            }
         }
     }
 }

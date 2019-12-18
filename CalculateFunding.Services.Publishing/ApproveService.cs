@@ -1,7 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
@@ -15,20 +18,23 @@ namespace CalculateFunding.Services.Publishing
 {
     public class ApproveService : IApproveService
     {
-        private readonly IJobTracker _jobTracker;
+        private readonly IJobManagement _jobManagement;
         private readonly ILogger _logger;
         private readonly IPublishedProviderStatusUpdateService _publishedProviderStatusUpdateService;
         private readonly IPublishedFundingDataService _publishedFundingDataService;
         private readonly IPublishedProviderIndexerService _publishedProviderIndexerService;
+        private readonly IApprovePrerequisiteChecker _approvePrerequisiteChecker;
 
         public ApproveService(IPublishedProviderStatusUpdateService publishedProviderStatusUpdateService,
             IPublishedFundingDataService publishedFundingDataService,
             IPublishedProviderIndexerService publishedProviderIndexerService,
             IPublishingResiliencePolicies publishingResiliencePolicies,
-            IJobTracker jobTracker,
+            IApprovePrerequisiteChecker approvePrerequisiteChecker,
+            IJobManagement jobManagement,
             ILogger logger)
         {
-            Guard.ArgumentNotNull(jobTracker, nameof(jobTracker));
+            Guard.ArgumentNotNull(approvePrerequisiteChecker, nameof(approvePrerequisiteChecker));
+            Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
             Guard.ArgumentNotNull(publishedProviderStatusUpdateService, nameof(publishedProviderStatusUpdateService));
             Guard.ArgumentNotNull(publishedFundingDataService, nameof(publishedFundingDataService));
             Guard.ArgumentNotNull(publishedProviderIndexerService, nameof(publishedProviderIndexerService));
@@ -38,7 +44,8 @@ namespace CalculateFunding.Services.Publishing
             _publishedProviderStatusUpdateService = publishedProviderStatusUpdateService;
             _publishedFundingDataService = publishedFundingDataService;
             _publishedProviderIndexerService = publishedProviderIndexerService;
-            _jobTracker = jobTracker;
+            _approvePrerequisiteChecker = approvePrerequisiteChecker;
+            _jobManagement = jobManagement;
             _logger = logger;
         }
 
@@ -50,14 +57,32 @@ namespace CalculateFunding.Services.Publishing
 
             Guard.IsNullOrWhiteSpace(jobId, nameof(jobId));
 
-            if (!await _jobTracker.TryStartTrackingJob(jobId, "ApproveResults"))
+            JobViewModel currentJob;
+            try
             {
-                return;
+                currentJob = await _jobManagement.RetrieveJobAndCheckCanBeProcessed(jobId);
             }
+            catch (Exception e)
+            {
+                string errorMessage = "Job can not be run";
+                _logger.Error(errorMessage);
+
+                throw new NonRetriableException(errorMessage);
+            }
+
+            // Update job to set status to processing
+            await _jobManagement.UpdateJobStatus(jobId, 0, 0, null, null);
 
             Reference author = message.GetUserDetails();
 
             string specificationId = message.GetUserProperty<string>("specification-id");
+
+            _logger.Information($"Verifying prerequisites for funding approval");
+
+            await CheckPrerequisitesForSpecificationToBeApproved(specificationId, jobId);
+
+            _logger.Information($"Prerequisites for approval passed");
+
             _logger.Information($"Processing approve funding job. JobId='{jobId}'. SpecificationId='{specificationId}'");
 
             _logger.Information("Fetching published providers for approval");
@@ -80,8 +105,23 @@ namespace CalculateFunding.Services.Publishing
             }
 
             _logger.Information($"Completing approve funding job. JobId='{jobId}'");
-            await _jobTracker.CompleteTrackingJob(jobId);
+            await _jobManagement.UpdateJobStatus(jobId, 0, 0, true, null);
             _logger.Information($"Approve funding job complete. JobId='{jobId}'");
+        }
+
+        private async Task CheckPrerequisitesForSpecificationToBeApproved(string specificationId, string jobId)
+        {
+            IEnumerable<string> prereqValidationErrors = await _approvePrerequisiteChecker
+                .PerformPrerequisiteChecks(specificationId);
+
+            if (!prereqValidationErrors.IsNullOrEmpty())
+            {
+                string errorMessage = $"Specification with id: '{specificationId} has prerequisites which aren't complete.";
+
+                await _jobManagement.UpdateJobStatus(jobId, completedSuccessfully: false, outcome: string.Join(", ", prereqValidationErrors));
+
+                throw new NonRetriableException(errorMessage);
+            }
         }
     }
 }
