@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CalculateFunding.Common" Version="1.37.0" />
+    <PackageReference Include="CalculateFunding.Common" Version="1.38.0" />
     <PackageReference Include="Microsoft.Azure.EventHubs" Version="4.1.0" />
   </ItemGroup>
 

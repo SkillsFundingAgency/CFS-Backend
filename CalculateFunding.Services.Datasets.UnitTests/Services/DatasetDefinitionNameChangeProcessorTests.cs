@@ -1,5 +1,4 @@
-﻿using CalculateFunding.Common.FeatureToggles;
-using CalculateFunding.Common.Models;
+﻿using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Datasets.Interfaces;
@@ -10,9 +9,9 @@ using Newtonsoft.Json;
 using NSubstitute;
 using Serilog;
 using System;
-using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+using CalculateFunding.Services.Core.FeatureToggles;
 
 namespace CalculateFunding.Services.Datasets.Services
 {

@@ -7,10 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CalculateFunding.Common.ApiClient.Policies" Version="2.0.13" />
-    <PackageReference Include="CalculateFunding.Common.ApiClient.Providers" Version="1.0.19" />
-    <PackageReference Include="CalculateFunding.Common.ApiClient.Specifications" Version="1.0.22" />
-    <PackageReference Include="CalculateFunding.Common.Storage" Version="1.0.3" />
+    <PackageReference Include="CalculateFunding.Common.ApiClient.Policies" Version="2.0.14" />
+    <PackageReference Include="CalculateFunding.Common.ApiClient.Providers" Version="1.0.20" />
+    <PackageReference Include="CalculateFunding.Common.ApiClient.Specifications" Version="1.0.23" />
+    <PackageReference Include="CalculateFunding.Common.Storage" Version="1.0.4" />
     <PackageReference Include="FluentValidation" Version="8.4.0" />
     <PackageReference Include="Microsoft.Azure.Storage.Blob" Version="11.0.1" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />

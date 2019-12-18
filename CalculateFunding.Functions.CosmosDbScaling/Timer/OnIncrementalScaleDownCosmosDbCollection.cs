@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs;
-using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Services.CosmosDbScaling.Interfaces;
 using CalculateFunding.Common.Utility;
+using CalculateFunding.Services.Core.FeatureToggles;
 using Serilog;
 
 namespace CalculateFunding.Functions.CosmosDbScaling.Timer

@@ -1,17 +1,12 @@
 ﻿using System;
 using System.Threading.Tasks;
-using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Core.Constants;
+using CalculateFunding.Services.Core.FeatureToggles;
 using CalculateFunding.Services.CosmosDbScaling.Interfaces;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using CalculateFunding.Common.FeatureToggles;
-using CalculateFunding.Services.CosmosDbScaling.Interfaces;
 using Serilog;
-using CalculateFunding.Common.Utility;
 
 namespace CalculateFunding.Functions.CosmosDbScaling.ServiceBus
 {

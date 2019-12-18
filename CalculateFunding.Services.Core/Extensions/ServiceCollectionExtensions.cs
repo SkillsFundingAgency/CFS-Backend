@@ -11,7 +11,6 @@ using CalculateFunding.Common.ApiClient.Providers;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.CosmosDb;
-using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Calcs;
@@ -23,6 +22,7 @@ using CalculateFunding.Models.Results.Search;
 using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Services.Core.FeatureToggles;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.Core.Interfaces.Proxies;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
@@ -42,6 +42,7 @@ using Polly;
 using Serilog;
 using Serilog.Core;
 using Serilog.Events;
+using Features = CalculateFunding.Services.Core.FeatureToggles.Features;
 
 namespace CalculateFunding.Services.Core.Extensions
 {

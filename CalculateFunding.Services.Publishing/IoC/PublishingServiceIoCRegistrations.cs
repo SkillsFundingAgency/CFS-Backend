@@ -48,8 +48,10 @@ namespace CalculateFunding.Services.Publishing.IoC
             serviceCollection.AddSingleton<ICreateApproveFundingJobs, ApproveFundingJobCreation>();
             serviceCollection.AddSingleton<ICreatePublishProviderFundingJobs, PublishProviderFundingJobCreation>();
             serviceCollection.AddSingleton<ICreateDeleteSpecificationJobs, DeleteSpecificationJobCreation>();
+            serviceCollection.AddSingleton<ICreateDeletePublishedProvidersJobs, DeletePublishedProvidersJobCreation>();
             serviceCollection.AddSingleton<IPublishedFundingStatusUpdateService, PublishedFundingStatusUpdateService>();
             serviceCollection.AddSingleton<IDeleteSpecifications, DeleteSpecificationService>();
+            serviceCollection.AddSingleton<IDeletePublishedProvidersService, DeletePublishedProvidersService>();
 
             PolicySettings policySettings = serviceCollection.GetPolicySettings(configuration);
             OrganisationGroupResiliencePolicies organisationResiliencePolicies = CreateResiliencePolicies(policySettings);

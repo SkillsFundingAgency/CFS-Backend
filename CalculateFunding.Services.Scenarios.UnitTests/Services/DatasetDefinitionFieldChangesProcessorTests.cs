@@ -1,5 +1,4 @@
-﻿using CalculateFunding.Common.FeatureToggles;
-using CalculateFunding.Models.Datasets;
+﻿using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.Datasets.ViewModels;
 using CalculateFunding.Services.Core;
@@ -15,6 +14,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using CalculateFunding.Services.Core.FeatureToggles;
 
 namespace CalculateFunding.Services.Scenarios.Services
 {

@@ -39,6 +39,8 @@
             public const string ReIndexPublishedProvidersJob = nameof(ReIndexPublishedProvidersJob);
 
             public const string DeleteSpecificationJob = nameof(DeleteSpecificationJob);
+
+            public const string DeletePublishedProvidersJob = nameof(DeletePublishedProvidersJob);
         }
 
         public static class NotificationChannels
@@ -48,7 +50,6 @@
             public const string SpecificationPrefix = "spec";
 
             public const string ParentJobs = "parentjobs";
-
         }
 
         public const string NotificationsHubName = "notifications";

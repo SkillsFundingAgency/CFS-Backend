@@ -1,5 +1,4 @@
-﻿using CalculateFunding.Common.FeatureToggles;
-using CalculateFunding.Common.Models;
+﻿using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Services.Core;
@@ -9,6 +8,7 @@ using Microsoft.Azure.ServiceBus;
 using Serilog;
 using System.Linq;
 using System.Threading.Tasks;
+using CalculateFunding.Services.Core.FeatureToggles;
 
 namespace CalculateFunding.Services.Datasets
 {

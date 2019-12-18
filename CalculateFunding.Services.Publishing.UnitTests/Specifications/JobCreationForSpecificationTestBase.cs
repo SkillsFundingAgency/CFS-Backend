@@ -37,7 +37,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
         }
 
         [TestMethod]
-        public async Task CreatesRefreshFundingJobForSpecificationId()
+        public async Task CreatesDefinedJobForSpecificationId()
         {
             Job expectedJob = NewJob();
             Reference user = NewUser();
