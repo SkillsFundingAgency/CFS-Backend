@@ -17,7 +17,7 @@ namespace CalculateFunding.Services.Publishing.Services.UnitTests
 {
     [TestClass]
     public class PublishedProviderVersioningServiceTests
-    {
+    {   
         [TestMethod]
         public void CreateVersions_GivenNullPublishedProviderCreateVersionRequests_ThrowsArgumentException()
         {
@@ -551,6 +551,143 @@ namespace CalculateFunding.Services.Publishing.Services.UnitTests
             results.First().NewVersion.Status.Should().Be(PublishedProviderStatus.Approved);
             results.First().NewVersion.Author.Id.Should().Be("id1");
             results.First().NewVersion.Author.Name.Should().Be("Joe Bloggs");
+        }
+
+        [TestMethod]
+        public void AssemblePublishedProviderCreateVersionRequests_GivenReleasedPublishedProvidersForUpdateRequest_ReturnsCreateVersionRequestWithVersionUpgrade()
+        {
+            //Arrange
+            const int majorVersion = 1;
+            const int minorVersion = 0;
+
+            IEnumerable<PublishedProvider> publishedProviders = new[]
+            {
+                new PublishedProvider
+                {
+                    Current = new PublishedProviderVersion
+                    {
+                        Status = PublishedProviderStatus.Released,
+                        MajorVersion = majorVersion,
+                        MinorVersion = minorVersion
+                    }
+                }
+            };
+
+            PublishedProviderVersioningService service = CreateVersioningService();
+
+            //Act
+            IEnumerable<PublishedProviderCreateVersionRequest> results = service.AssemblePublishedProviderCreateVersionRequests(
+                publishedProviders, new Reference("id1", "Joe Bloggs"), PublishedProviderStatus.Updated);
+
+            //Assert
+            results
+                .Should()
+                .HaveCount(1);
+
+            results.First().NewVersion.MajorVersion.Should().Be(majorVersion);
+            results.First().NewVersion.MinorVersion.Should().Be(minorVersion + 1);
+        }
+
+        [TestMethod]
+        public void AssemblePublishedProviderCreateVersionRequests_GivenApprovedPublishedProvidersForUpdateRequest_ReturnsCreateVersionRequestWithVersionUpgrade()
+        {
+            //Arrange
+            const int majorVersion = 1;
+            const int minorVersion = 0;
+
+            IEnumerable<PublishedProvider> publishedProviders = new[]
+            {
+                new PublishedProvider
+                {
+                    Current = new PublishedProviderVersion
+                    {
+                        Status = PublishedProviderStatus.Approved,
+                        MajorVersion = majorVersion,
+                        MinorVersion = minorVersion
+                    }
+                }
+            };
+
+            PublishedProviderVersioningService service = CreateVersioningService();
+
+            //Act
+            IEnumerable<PublishedProviderCreateVersionRequest> results = service.AssemblePublishedProviderCreateVersionRequests(
+                publishedProviders, new Reference("id1", "Joe Bloggs"), PublishedProviderStatus.Updated);
+
+            //Assert
+            results
+                .Should()
+                .HaveCount(1);
+
+            results.First().NewVersion.MajorVersion.Should().Be(majorVersion);
+            results.First().NewVersion.MinorVersion.Should().Be(minorVersion + 1);
+        }
+
+        [TestMethod]
+        public void AssemblePublishedProviderCreateVersionRequests_GivenPublishedProvidersForReleaseRequest_ReturnsCreateVersionRequestWithVersionUpgrade()
+        {
+            //Arrange
+            const int majorVersion = 1;
+            const int minorVersion = 0;
+
+            IEnumerable<PublishedProvider> publishedProviders = new[]
+            {
+                new PublishedProvider
+                {
+                    Current = new PublishedProviderVersion
+                    {
+                        MajorVersion = majorVersion,
+                        MinorVersion = minorVersion
+                    }
+                }
+            };
+
+            PublishedProviderVersioningService service = CreateVersioningService();
+
+            //Act
+            IEnumerable<PublishedProviderCreateVersionRequest> results = service.AssemblePublishedProviderCreateVersionRequests(
+                publishedProviders, new Reference("id1", "Joe Bloggs"), PublishedProviderStatus.Released);
+
+            //Assert
+            results
+                .Should()
+                .HaveCount(1);
+
+            results.First().NewVersion.MajorVersion.Should().Be(majorVersion + 1);
+            results.First().NewVersion.MinorVersion.Should().Be(minorVersion);
+        }
+
+        [DataTestMethod]
+        [DataRow(PublishedProviderStatus.Approved, PublishStatus.Approved)]
+        [DataRow(PublishedProviderStatus.Released, PublishStatus.Approved)]
+        [DataRow(PublishedProviderStatus.Updated, PublishStatus.Updated)]
+        [DataRow(PublishedProviderStatus.Draft, PublishStatus.Draft)]
+        public void AssemblePublishedProviderCreateVersionRequests_GivenPublishedProviders_ReturnsCreateVersionRequestWithPublishStatus(
+            PublishedProviderStatus givenPublishedProviderStatus, PublishStatus expectedPublishStatus)
+        {
+            //Arrange
+            IEnumerable<PublishedProvider> publishedProviders = new[]
+            {
+                new PublishedProvider
+                {
+                    Current = new PublishedProviderVersion
+                    {
+                    }
+                }
+            };
+
+            PublishedProviderVersioningService service = CreateVersioningService();
+
+            //Act
+            IEnumerable<PublishedProviderCreateVersionRequest> results = service.AssemblePublishedProviderCreateVersionRequests(
+                publishedProviders, new Reference("id1", "Joe Bloggs"), givenPublishedProviderStatus);
+
+            //Assert
+            results
+                .Should()
+                .HaveCount(1);
+
+            results.First().NewVersion.PublishStatus.Should().Be(expectedPublishStatus);
         }
 
         private static PublishedProviderVersioningService CreateVersioningService(

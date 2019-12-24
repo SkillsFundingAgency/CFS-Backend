@@ -78,7 +78,9 @@ namespace CalculateFunding.Services.Publishing
                 int minorVersion = publishedProvider.Current.MinorVersion;
                 int majorVersion = publishedProvider.Current.MajorVersion;
 
-                if (publishedProvider.Current.PublishStatus == Models.Versioning.PublishStatus.Approved && publishedProviderStatus == PublishedProviderStatus.Updated)
+                if ((publishedProvider.Current.Status == PublishedProviderStatus.Approved
+                    || publishedProvider.Current.Status == PublishedProviderStatus.Released)
+                    && publishedProviderStatus == PublishedProviderStatus.Updated)
                 {
                     Interlocked.Increment(ref minorVersion);
                     newVersion.MinorVersion = minorVersion;
