@@ -417,25 +417,31 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 return validationResult.AsBadRequest();
             }
 
-            CosmosDbScalingCollectionSettings existingDocument = await _cosmosDbScalingConfigRepository.GetCollectionSettingsByRepositoryType(scalingConfigurationUpdate.RepositoryType);
-            if (existingDocument == null)
+            CosmosDbScalingCollectionSettings cosmosDbScalingCollectionSettings = await _cosmosDbScalingConfigRepository.GetCollectionSettingsByRepositoryType(scalingConfigurationUpdate.RepositoryType);
+
+            if (cosmosDbScalingCollectionSettings == null)
             {
-                CosmosDbScalingCollectionSettings cosmosDbScalingCollectionSettings = new CosmosDbScalingCollectionSettings()
+                cosmosDbScalingCollectionSettings = new CosmosDbScalingCollectionSettings()
                 {
                     CosmosCollectionType = scalingConfigurationUpdate.RepositoryType,
                     MaxRequestUnits = scalingConfigurationUpdate.MaxRequestUnits,
                     MinRequestUnits = scalingConfigurationUpdate.BaseRequestUnits,
                 };
+            }
+            else
+            {
+                cosmosDbScalingCollectionSettings.MaxRequestUnits = scalingConfigurationUpdate.MaxRequestUnits;
+                cosmosDbScalingCollectionSettings.MinRequestUnits = scalingConfigurationUpdate.BaseRequestUnits;
+            }
 
-                HttpStatusCode statusCode = await _scalingConfigRepositoryPolicy.ExecuteAsync(
+            HttpStatusCode statusCode = await _scalingConfigRepositoryPolicy.ExecuteAsync(
                         () => _cosmosDbScalingConfigRepository.UpdateCollectionSettings(cosmosDbScalingCollectionSettings));
 
-                if (!statusCode.IsSuccess())
-                {
-                    string errorMessage = $"Failed to Insert or Update Scaling Collection Setting for repository type: '{scalingConfigurationUpdate.RepositoryType}'  with status code: '{statusCode}'";
-                    _logger.Error(errorMessage);
-                    throw new RetriableException(errorMessage);
-                }
+            if (!statusCode.IsSuccess())
+            {
+                string errorMessage = $"Failed to Insert or Update Scaling Collection Setting for repository type: '{scalingConfigurationUpdate.RepositoryType}'  with status code: '{statusCode}'";
+                _logger.Error(errorMessage);
+                throw new RetriableException(errorMessage);
             }
 
             await SaveScalingConfig(scalingConfigurationUpdate);

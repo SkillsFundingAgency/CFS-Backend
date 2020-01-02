@@ -1824,7 +1824,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
             //Assert
             await
               cosmosDbScalingConfigRepository
-              .DidNotReceive()
+              .Received(1)
               .UpdateCollectionSettings(Arg.Is<CosmosDbScalingCollectionSettings>(m =>
                    m.CosmosCollectionType == request.RepositoryType &&
                    m.MaxRequestUnits == request.MaxRequestUnits &&
