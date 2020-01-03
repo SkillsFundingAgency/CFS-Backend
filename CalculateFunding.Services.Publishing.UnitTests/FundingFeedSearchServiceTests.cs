@@ -27,7 +27,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         }
         
         [TestMethod]
-        public async Task SortsByBothStatusUpdateDateAndDocumentIdForAStableSort()
+        public async Task SortsByBothStatusUpdateDateAndDocumentIdForAStableSortWhenPageRefSupplied()
         {
             await _searchService.GetFeedsV3(1, 10);
 
@@ -35,7 +35,19 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .Received(1)
                 .Search(Arg.Is(""),
                     Arg.Is<SearchParameters>(_ =>
+                        _.OrderBy.SequenceEqual(new[] { "statusChangedDate asc", "id asc" })));
+        }
+
+        [TestMethod]
+        public async Task SortsByBothStatusUpdateDateAndDocumentIdForAStableSortWhenPageRefNotSupplied()
+        {
+            await _searchService.GetFeedsV3(null, 10);
+
+            await _searchRepository
+                .Received(1)
+                .Search(Arg.Is(""),
+                    Arg.Is<SearchParameters>(_ =>
                         _.OrderBy.SequenceEqual(new[] { "statusChangedDate desc", "id asc" })));
-        } 
+        }
     }
 }

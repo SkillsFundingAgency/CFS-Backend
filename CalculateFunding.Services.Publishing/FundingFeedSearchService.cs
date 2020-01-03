@@ -66,7 +66,7 @@ namespace CalculateFunding.Services.Publishing
 
             if (pageRef == null)
             {
-                SearchResults<PublishedFundingIndex> countSearchResults = await SearchResults(0, null, filterHelper.BuildAndFilterQuery(), orderBy);
+                SearchResults<PublishedFundingIndex> countSearchResults = await SearchResults(0, null, null, filterHelper.BuildAndFilterQuery(), orderBy);
                 SearchFeedV3<PublishedFundingIndex> searchFeedCountResult = CreateSearchFeedResult(null, top, countSearchResults);
                 pageRef = searchFeedCountResult.Last;
             }
@@ -75,7 +75,7 @@ namespace CalculateFunding.Services.Publishing
 
             string filters = filterHelper.Filters.IsNullOrEmpty() ? "" : filterHelper.BuildAndFilterQuery();
 
-            SearchResults<PublishedFundingIndex> searchResults = await SearchResults(top, skip, filters, orderBy);
+            SearchResults<PublishedFundingIndex> searchResults = await SearchResults(top, skip, pageRef, filters, orderBy);
 
             return CreateSearchFeedResult(pageRef, top, searchResults);
         }
@@ -116,9 +116,11 @@ namespace CalculateFunding.Services.Publishing
             }
         }
 
-        private async Task<SearchResults<PublishedFundingIndex>> SearchResults(int top, int? skip, string filters, params string[] orderBy)
+        private async Task<SearchResults<PublishedFundingIndex>> SearchResults(int top, int? skip, int? pageRef, string filters, params string[] orderBy)
         {
-            SearchResults<PublishedFundingIndex> searchResults =
+            string statusChangedDateOrderByParameter = pageRef == null ? "statusChangedDate desc" : "statusChangedDate asc";
+
+            SearchResults <PublishedFundingIndex> searchResults =
                 await _fundingSearchRepositoryPolicy.ExecuteAsync(
                     () =>
                     {
@@ -129,7 +131,7 @@ namespace CalculateFunding.Services.Publishing
                             SearchMode = Microsoft.Azure.Search.Models.SearchMode.Any,
                             IncludeTotalResultCount = true,
                             Filter = filters,
-                            OrderBy = orderBy?.Any() == false ? new[] { "statusChangedDate desc", "id asc" } : orderBy,
+                            OrderBy = orderBy?.Any() == false ? new[] { statusChangedDateOrderByParameter, "id asc" } : orderBy,
                             QueryType = QueryType.Full
                         });
                     });
