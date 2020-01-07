@@ -32,7 +32,6 @@ namespace CalculateFunding.Services.Jobs
             Guard.ArgumentNotNull(jobNotification, nameof(jobNotification));
             Guard.ArgumentNotNull(jobNotification.Trigger, nameof(jobNotification.Trigger));
 
-            Guard.IsNullOrWhiteSpace(jobNotification.Trigger.EntityId, nameof(jobNotification.Trigger.EntityId));
             Guard.IsNullOrWhiteSpace(jobNotification.JobId, nameof(jobNotification.JobId));
             Guard.IsNullOrWhiteSpace(jobNotification.JobType, nameof(jobNotification.JobType));
 
@@ -40,7 +39,7 @@ namespace CalculateFunding.Services.Jobs
             Dictionary<string, string> properties = new Dictionary<string, string>
             {
                 { "specificationId", jobNotification.SpecificationId },
-                { "entityId", jobNotification.Trigger.EntityId },
+                { "entityId", jobNotification.Trigger?.EntityId ?? "N/A"},
                 { "jobType", jobNotification.JobType },
                 { "jobId", jobNotification.JobId },
                 { "parentJobId", jobNotification.ParentJobId }

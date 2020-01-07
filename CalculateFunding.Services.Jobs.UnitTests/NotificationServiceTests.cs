@@ -55,27 +55,6 @@ namespace CalculateFunding.Services.Jobs.Services
         }
 
         [TestMethod]
-        public void SendNotification_WhenNoTriggerEntityId_ThrowsArgumentException()
-        {
-            // Arrange
-            INotificationService notificationService = CreateNotificationService();
-
-            JobNotification jobNotification = CreateJobNotification();
-            jobNotification.Trigger.EntityId = string.Empty;
-
-            Func<Task> action = async () => await notificationService.SendNotification(jobNotification);
-
-            // Act and Assert
-            action
-                .Should()
-                .Throw<ArgumentException>()
-                .And
-                .ParamName
-                .Should()
-                .Be("EntityId");
-        }
-
-        [TestMethod]
         public void SendNotification_WhenNoJobType_ThrowsArgumentException()
         {
             // Arrange
