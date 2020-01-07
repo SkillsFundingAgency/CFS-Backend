@@ -1,0 +1,152 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Microsoft.DataTransfer.Core</name>
+    </assembly>
+    <members>
+        <member name="T:Microsoft.DataTransfer.Core.CoreServiceImplementation">
+            <summary>
+            Registrar of core data transfer service components implementation.
+            </summary>
+        </member>
+        <member name="M:Microsoft.DataTransfer.Core.CoreServiceImplementation.Load(Autofac.ContainerBuilder)">
+            <summary>
+            Registers components in the container.
+            </summary>
+            <param name="builder">The builder through which components can be registered.</param>
+        </member>
+        <member name="T:Microsoft.DataTransfer.Core.Resources">
+            <summary>
+              A strongly-typed resource class, for looking up localized strings, etc.
+            </summary>
+        </member>
+        <member name="P:Microsoft.DataTransfer.Core.Resources.ResourceManager">
+            <summary>
+              Returns the cached ResourceManager instance used by this class.
+            </summary>
+        </member>
+        <member name="P:Microsoft.DataTransfer.Core.Resources.Culture">
+            <summary>
+              Overrides the current thread's CurrentUICulture property for all
+              resource lookups using this strongly typed resource class.
+            </summary>
+        </member>
+        <member name="P:Microsoft.DataTransfer.Core.Resources.InvalidDataAdapterConfigrationTypeFormat">
+            <summary>
+              Looks up a localized string similar to Data adapter expects configuration of type &apos;{0}&apos;, but &apos;{1}&apos; was provided.
+            </summary>
+        </member>
+        <member name="P:Microsoft.DataTransfer.Core.Resources.InvalidDataAdapterFactoryTypeFormat">
+            <summary>
+              Looks up a localized string similar to Data adapter factory of type &apos;{0}&apos; was expected, but &apos;{1}&apos; was provided.
+            </summary>
+        </member>
+        <member name="P:Microsoft.DataTransfer.Core.Resources.NonGenericDataAdapterFactoryTypeFormat">
+            <summary>
+              Looks up a localized string similar to Non-generic data adapter factory type &apos;{0}&apos; not supported. All factories should be generic by configuration type.
+            </summary>
+        </member>
+        <member name="P:Microsoft.DataTransfer.Core.Resources.UnknownDataSinkFormat">
+            <summary>
+              Looks up a localized string similar to Data sink &apos;{0}&apos; is not known.
+            </summary>
+        </member>
+        <member name="P:Microsoft.DataTransfer.Core.Resources.UnknownDataSourceFormat">
+            <summary>
+              Looks up a localized string similar to Data source &apos;{0}&apos; is not known.
+            </summary>
+        </member>
+        <member name="T:Microsoft.DataTransfer.Core.RemoteLogging.IRemoteLogging">
+            <summary>
+            The interface for remotely logging to Cosmos tables, when it is used as a sink endpoint.
+            This is beneficial to consolidate failure logs when multiple instances of data migration
+            tool are run simultaneously. 
+            </summary>
+        </member>
+        <member name="M:Microsoft.DataTransfer.Core.RemoteLogging.IRemoteLogging.LogFailures(System.String,System.String,System.String,System.String)">
+            <summary>
+            Log failures that occurred during a data migration.
+            </summary>
+            <param name="partitionKey">partition key for the logging table</param>
+            <param name="rowKeys">row key for the logging table</param>
+            <param name="exception">exception details</param>
+            <param name="additionalDetails">any additional details to be logged</param>
+        </member>
+        <member name="M:Microsoft.DataTransfer.Core.RemoteLogging.IRemoteLogging.CreateRemoteLoggingTableIfNotExists(System.Threading.CancellationToken)">
+            <summary>
+            Create a CosmosDB table for failure logs
+            </summary>
+            <param name="cancellation">cancellation token info</param>
+        </member>
+        <member name="T:Microsoft.DataTransfer.Core.RemoteLogging.LoggingTableEntity">
+            <summary>
+            Class to define the schema for Logging data being sent to the table
+            </summary>
+        </member>
+        <member name="P:Microsoft.DataTransfer.Core.RemoteLogging.LoggingTableEntity.FailureException">
+            <summary>
+            Exception details
+            </summary>
+        </member>
+        <member name="P:Microsoft.DataTransfer.Core.RemoteLogging.LoggingTableEntity.FailureMachineName">
+            <summary>
+            Machine name where the failure occurred
+            </summary>
+        </member>
+        <member name="P:Microsoft.DataTransfer.Core.RemoteLogging.LoggingTableEntity.AdditionalDetails">
+            <summary>
+            Any additional details (example: all row keys in a batch operation)
+            </summary>
+        </member>
+        <member name="M:Microsoft.DataTransfer.Core.RemoteLogging.LoggingTableEntity.#ctor(System.String,System.String,System.String,System.String,System.String)">
+            <summary>
+            Initializes a new instance of the LoggingTableEntity class.
+            </summary>
+            <param name="partitionKey">Partition key value</param>
+            <param name="rowKey">Row key value</param>
+            <param name="exception">Exception details</param>
+            <param name="machineName">Machine name where the failure occurred</param>
+            <param name="additionalDetails">Any additional details (example: all row keys in a batch operation)</param>
+        </member>
+        <member name="T:Microsoft.DataTransfer.Core.RemoteLogging.RemoteLogging">
+            <summary>
+            Class to support remote logging in CosmosDB Tables
+            </summary>
+        </member>
+        <member name="M:Microsoft.DataTransfer.Core.RemoteLogging.RemoteLogging.#ctor(Microsoft.Azure.Storage.CloudStorageAccount,Microsoft.Azure.CosmosDB.Table.TableConnectionPolicy)">
+            <summary>
+            Initializes a new instance of the RemoteLogging class.
+            </summary>
+            <param name="storageAccount">storage account object</param>
+            <param name="connectionPolicy">additional connection policies</param>
+        </member>
+        <member name="M:Microsoft.DataTransfer.Core.RemoteLogging.RemoteLogging.CreateRemoteLoggingTableIfNotExists(System.Threading.CancellationToken)">
+            <summary>
+            Create a Table if it does not exist already
+            </summary>
+        </member>
+        <member name="M:Microsoft.DataTransfer.Core.RemoteLogging.RemoteLogging.LogFailures(System.String,System.String,System.String,System.String)">
+            <summary>
+            Log the failures that occurred as a result of using DT. Given this is logging code, it will not throw errors to prevent
+            crashing the application
+            </summary>
+            <param name="partitionKey">partition key for the remote table</param>
+            <param name="rowKeys">rowKey for the remote table</param>
+            <param name="exception">failure details</param>
+            <param name="additionalDetails">any additional details</param>
+        </member>
+        <member name="T:Microsoft.DataTransfer.Core.RemoteLogging.RemoteLoggingClientProvider">
+            <summary>
+            Provides a client for remote logging in the application.
+            </summary>
+        </member>
+        <member name="M:Microsoft.DataTransfer.Core.RemoteLogging.RemoteLoggingClientProvider.CreateRemoteLoggingClient(Microsoft.Azure.Storage.CloudStorageAccount,Microsoft.Azure.CosmosDB.Table.TableConnectionPolicy)">
+            <summary>
+            Create a new remote logger
+            </summary>
+            <param name="account">cloudstorage account details</param>
+            <param name="connectionPolicy">connection policy details</param>
+            <returns></returns>
+        </member>
+    </members>
+</doc>

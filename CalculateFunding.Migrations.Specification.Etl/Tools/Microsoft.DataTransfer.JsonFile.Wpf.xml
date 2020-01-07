@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Microsoft.DataTransfer.JsonFile.Wpf</name>
+    </assembly>
+    <members>
+        <member name="M:Microsoft.DataTransfer.JsonFile.Wpf.Sink.JsonFileSinkAdapterConfigurationPage.InitializeComponent">
+            <summary>
+            InitializeComponent
+            </summary>
+        </member>
+        <member name="T:Microsoft.DataTransfer.JsonFile.Wpf.Sink.JsonFileSinkAdapterConfigurationProvider">
+            <summary>
+            Provides configuration for JSON file data sink.
+            </summary>
+        </member>
+        <member name="M:Microsoft.DataTransfer.JsonFile.Wpf.Sink.JsonFileSinkAdapterConfigurationProvider.#ctor">
+            <summary>
+            Creates a new instance of <see cref="T:Microsoft.DataTransfer.JsonFile.Wpf.Sink.JsonFileSinkAdapterConfigurationProvider" />.
+            </summary>
+        </member>
+        <member name="M:Microsoft.DataTransfer.JsonFile.Wpf.Sink.JsonFileSinkAdapterConfigurationSummaryPage.InitializeComponent">
+            <summary>
+            InitializeComponent
+            </summary>
+        </member>
+        <member name="T:Microsoft.DataTransfer.JsonFile.Wpf.Source.JsonFileSourceAdapterConfigurationProvider">
+            <summary>
+            Provides configuration for JSON files data source.
+            </summary>
+        </member>
+        <member name="M:Microsoft.DataTransfer.JsonFile.Wpf.Source.JsonFileSourceAdapterConfigurationProvider.#ctor">
+            <summary>
+            Creates a new instance of <see cref="T:Microsoft.DataTransfer.JsonFile.Wpf.Source.JsonFileSourceAdapterConfigurationProvider" />.
+            </summary>
+        </member>
+        <member name="M:Microsoft.DataTransfer.JsonFile.Wpf.Source.JsonFileSourceAdapterConfigurationSummaryPage.InitializeComponent">
+            <summary>
+            InitializeComponent
+            </summary>
+        </member>
+        <member name="M:Microsoft.DataTransfer.JsonFile.Wpf.Source.JsonFileSourceAdapterConfigurationPage.InitializeComponent">
+            <summary>
+            InitializeComponent
+            </summary>
+        </member>
+    </members>
+</doc>

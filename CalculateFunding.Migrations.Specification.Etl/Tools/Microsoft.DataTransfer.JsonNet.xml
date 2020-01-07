@@ -1,0 +1,134 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Microsoft.DataTransfer.JsonNet</name>
+    </assembly>
+    <members>
+        <member name="T:Microsoft.DataTransfer.JsonNet.Resources">
+            <summary>
+              A strongly-typed resource class, for looking up localized strings, etc.
+            </summary>
+        </member>
+        <member name="P:Microsoft.DataTransfer.JsonNet.Resources.ResourceManager">
+            <summary>
+              Returns the cached ResourceManager instance used by this class.
+            </summary>
+        </member>
+        <member name="P:Microsoft.DataTransfer.JsonNet.Resources.Culture">
+            <summary>
+              Overrides the current thread's CurrentUICulture property for all
+              resource lookups using this strongly typed resource class.
+            </summary>
+        </member>
+        <member name="P:Microsoft.DataTransfer.JsonNet.Resources.GeometryTypeNotSupportedFormat">
+            <summary>
+              Looks up a localized string similar to Geometry type &quot;{0}&quot; is not supported by GeoJSON serializer.
+            </summary>
+        </member>
+        <member name="T:Microsoft.DataTransfer.JsonNet.Serialization.DataItemJsonConverter">
+            <summary>
+            Converts <see cref="T:Microsoft.DataTransfer.Extensibility.IDataItem" /> to JSON.
+            </summary>
+        </member>
+        <member name="F:Microsoft.DataTransfer.JsonNet.Serialization.DataItemJsonConverter.Instance">
+            <summary>
+            Singleton instance of the converter.
+            </summary>
+        </member>
+        <member name="M:Microsoft.DataTransfer.JsonNet.Serialization.DataItemJsonConverter.CanConvert(System.Type)">
+            <summary>
+            Determines whether this instance can convert the specified object type.
+            </summary>
+            <param name="objectType">Type of the object.</param>
+            <returns>true if this instance can convert the specified object type; otherwise, false.</returns>
+        </member>
+        <member name="M:Microsoft.DataTransfer.JsonNet.Serialization.DataItemJsonConverter.ReadJson(Newtonsoft.Json.JsonReader,System.Type,System.Object,Newtonsoft.Json.JsonSerializer)">
+            <summary>
+            Reads the JSON representation of the object.
+            </summary>
+            <param name="reader">The <see cref="T:Newtonsoft.Json.JsonReader" /> to read from.</param>
+            <param name="objectType">Type of the object.</param>
+            <param name="existingValue">The existing value of object being read.</param>
+            <param name="serializer">The calling serializer.</param>
+            <returns>The object value.</returns>
+        </member>
+        <member name="M:Microsoft.DataTransfer.JsonNet.Serialization.DataItemJsonConverter.WriteJson(Newtonsoft.Json.JsonWriter,System.Object,Newtonsoft.Json.JsonSerializer)">
+            <summary>
+            Writes the JSON representation of the object.
+            </summary>
+            <param name="writer">The <see cref="T:Newtonsoft.Json.JsonWriter"/> to write to.</param>
+            <param name="value">The value.</param>
+            <param name="serializer">The calling serializer.</param>
+        </member>
+        <member name="T:Microsoft.DataTransfer.JsonNet.Serialization.GeoJsonConverter">
+            <summary>
+            Converts <see cref="T:System.Spatial.Geography" /> to GeoJSON.
+            </summary>
+        </member>
+        <member name="F:Microsoft.DataTransfer.JsonNet.Serialization.GeoJsonConverter.Instance">
+            <summary>
+            Singleton instance of the converter.
+            </summary>
+        </member>
+        <member name="M:Microsoft.DataTransfer.JsonNet.Serialization.GeoJsonConverter.CanConvert(System.Type)">
+            <summary>
+            Determines whether this instance can convert the specified object type.
+            </summary>
+            <param name="objectType">Type of the object.</param>
+            <returns>true if this instance can convert the specified object type; otherwise, false.</returns>
+        </member>
+        <member name="M:Microsoft.DataTransfer.JsonNet.Serialization.GeoJsonConverter.ReadJson(Newtonsoft.Json.JsonReader,System.Type,System.Object,Newtonsoft.Json.JsonSerializer)">
+            <summary>
+            Reads the JSON representation of the object.
+            </summary>
+            <param name="reader">The <see cref="T:Newtonsoft.Json.JsonReader" /> to read from.</param>
+            <param name="objectType">Type of the object.</param>
+            <param name="existingValue">The existing value of object being read.</param>
+            <param name="serializer">The calling serializer.</param>
+            <returns>The object value.</returns>
+        </member>
+        <member name="M:Microsoft.DataTransfer.JsonNet.Serialization.GeoJsonConverter.WriteJson(Newtonsoft.Json.JsonWriter,System.Object,Newtonsoft.Json.JsonSerializer)">
+            <summary>
+            Writes the JSON representation of the object.
+            </summary>
+            <param name="writer">The <see cref="T:Newtonsoft.Json.JsonWriter"/> to write to.</param>
+            <param name="value">The value.</param>
+            <param name="serializer">The calling serializer.</param>
+        </member>
+        <member name="T:Microsoft.DataTransfer.JsonNet.Serialization.JObjectDataItem">
+            <summary>
+            Represents <see cref="T:Newtonsoft.Json.Linq.JObject"/> that can be transferred between source and sink.
+            </summary>
+        </member>
+        <member name="M:Microsoft.DataTransfer.JsonNet.Serialization.JObjectDataItem.#ctor(Newtonsoft.Json.Linq.JObject)">
+            <summary>
+            Creates a new intance of <see cref="T:Microsoft.DataTransfer.JsonNet.Serialization.JObjectDataItem"/>.
+            </summary>
+            <param name="data"><see cref="T:Newtonsoft.Json.Linq.JObject"/> that holds the data.</param>
+        </member>
+        <member name="M:Microsoft.DataTransfer.JsonNet.Serialization.JObjectDataItem.GetFieldNames">
+            <summary>
+            Provides collection of field names available in the <see cref="T:Newtonsoft.Json.Linq.JObject"/>.
+            </summary>
+            <returns>Collection of field names.</returns>
+        </member>
+        <member name="M:Microsoft.DataTransfer.JsonNet.Serialization.JObjectDataItem.GetValue(System.String)">
+            <summary>
+            Provides a value of the specified <see cref="T:Newtonsoft.Json.Linq.JObject"/> field.
+            </summary>
+            <param name="fieldName">Name of <see cref="T:Newtonsoft.Json.Linq.JObject"/> field.</param>
+            <returns>Value of the field.</returns>
+        </member>
+        <member name="T:Microsoft.DataTransfer.JsonNet.StrongReference">
+            <summary>
+            Attributes are not treated as a reference, thus all dependants that are using JsonConverter in the attribute
+            should call to this explicitly for the dll to be bin-placed.
+            </summary>
+        </member>
+        <member name="M:Microsoft.DataTransfer.JsonNet.StrongReference.Add">
+            <summary>
+            Adds a strong reference.
+            </summary>
+        </member>
+    </members>
+</doc>
