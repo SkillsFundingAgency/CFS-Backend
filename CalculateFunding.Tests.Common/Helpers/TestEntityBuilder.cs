@@ -8,7 +8,7 @@ namespace CalculateFunding.Tests.Common.Helpers
         
         protected string NewRandomString() => new RandomString();
 
-        protected bool NewRandomFlag() => new RandomNumberBetween(0, 1) == 1;
+        protected bool NewRandomFlag() => new RandomBoolean();
         
         protected TEnum NewRandomEnum<TEnum>() where TEnum : struct => new RandomEnum<TEnum>();
         

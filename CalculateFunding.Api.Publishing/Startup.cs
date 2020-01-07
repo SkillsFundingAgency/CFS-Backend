@@ -4,14 +4,14 @@ using System.Reflection;
 using AutoMapper;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models.HealthCheck;
+using CalculateFunding.Common.Storage;
 using CalculateFunding.Common.WebApi.Extensions;
 using CalculateFunding.Common.WebApi.Middleware;
 using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.AspNet.HealthChecks;
-using CalculateFunding.Services.Core.AzureStorage;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.FeatureToggles;
 using CalculateFunding.Services.Core.Helpers;
-using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Publishing;
 using CalculateFunding.Services.Publishing.Helper;
@@ -27,6 +27,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Polly.Bulkhead;
 using Swashbuckle.AspNetCore.Swagger;
 using Microsoft.FeatureManagement;
+using IBlobClient = CalculateFunding.Common.Storage.IBlobClient;
+using BlobClient = CalculateFunding.Common.Storage.BlobClient;
+using LocalIBlobClient = CalculateFunding.Services.Core.Interfaces.AzureStorage.IBlobClient;
+using LocalBlobClient = CalculateFunding.Services.Core.AzureStorage.BlobClient;
 
 namespace CalculateFunding.Api.Publishing
 {
@@ -130,7 +134,7 @@ namespace CalculateFunding.Api.Publishing
             builder
                 .AddSingleton<IBlobClient, BlobClient>((ctx) =>
                 {
-                    AzureStorageSettings storageSettings = new AzureStorageSettings();
+                    BlobStorageOptions storageSettings = new BlobStorageOptions();
 
                     Configuration.Bind("AzureStorageSettings", storageSettings);
 
@@ -155,6 +159,19 @@ namespace CalculateFunding.Api.Publishing
             builder.AddProvidersInterServiceClient(Configuration);
             builder.AddJobsInterServiceClient(Configuration);
             builder.AddCalculationsInterServiceClient(Configuration);
+            builder.AddFeatureToggling(Configuration);
+            
+            builder
+                .AddSingleton<LocalIBlobClient, LocalBlobClient>((ctx) =>
+                {
+                    AzureStorageSettings storageSettings = new AzureStorageSettings();
+
+                    Configuration.Bind("AzureStorageSettings", storageSettings);
+
+                    storageSettings.ContainerName = "publishedfunding";
+
+                    return new LocalBlobClient(storageSettings);
+                });
 
             MapperConfiguration resultsConfig = new MapperConfiguration(c =>
             {
@@ -179,7 +196,9 @@ namespace CalculateFunding.Api.Publishing
                     PublishedProviderVersionRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
                     BlobClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                     PoliciesApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-                    PublishedIndexSearchResiliencePolicy = PublishedIndexSearchResiliencePolicy.GeneratePublishedIndexSearch(totalNetworkRequestsPolicy)
+                    PublishedIndexSearchResiliencePolicy = PublishedIndexSearchResiliencePolicy.GeneratePublishedIndexSearch(totalNetworkRequestsPolicy),
+                    PublishedProviderSearchRepository = PublishedIndexSearchResiliencePolicy.GeneratePublishedIndexSearch(totalNetworkRequestsPolicy),
+                    SpecificationsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
                 };
             });
         }

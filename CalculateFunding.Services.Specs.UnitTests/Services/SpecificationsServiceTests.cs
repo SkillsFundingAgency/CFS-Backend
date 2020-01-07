@@ -10,6 +10,7 @@ using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Models.Specs.Messages;
 using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Services.Core.FeatureToggles;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Core.Options;
@@ -65,6 +66,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             IResultsRepository resultsRepository = null,
             IVersionRepository<SpecificationVersion> specificationVersionRepository = null,
             IQueueCreateSpecificationJobActions queueCreateSpecificationJobActions = null,
+            IFeatureToggle featureToggle = null,
             ICalculationsApiClient calcsApiClient = null)
         {
             return new SpecificationsService(mapper ?? CreateMapper(),
@@ -81,7 +83,8 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 specificationVersionRepository ?? CreateVersionRepository(),
                 SpecificationsResilienceTestHelper.GenerateTestPolicies(),
                 queueCreateSpecificationJobActions ?? Substitute.For<IQueueCreateSpecificationJobActions>(),
-                calcsApiClient ?? CreateCalcsApiClient());
+                calcsApiClient ?? CreateCalcsApiClient(),
+                featureToggle ?? Substitute.For<IFeatureToggle>());
         }
 
         protected IJobsApiClient CreateJobsApiClient()

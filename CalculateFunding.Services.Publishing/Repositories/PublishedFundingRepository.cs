@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
@@ -182,6 +183,80 @@ namespace CalculateFunding.Services.Publishing.Repositories
             Guard.IsNullOrWhiteSpace(partitionKey, nameof(partitionKey));
 
             return (await _repository.ReadDocumentByIdPartitionedAsync<PublishedFunding>(cosmosId, partitionKey))?.Content;
+        }
+        
+        public async Task DeleteAllPublishedProvidersByFundingStreamAndPeriod(string fundingStreamId, 
+            string fundingPeriodId)
+        {
+            CosmosDbQuery query = new CosmosDbQuery
+            {
+                QueryText = @"SELECT
+                                        c.content.id,
+                                        { 
+                                           'id' : c.content.current.id,
+                                           'providerId' : c.content.current.providerId,
+                                           'fundingStreamId' : c.content.current.fundingStreamId,
+                                           'fundingPeriodId' : c.content.current.fundingPeriodId
+                                        } AS Current
+                               FROM     publishedProvider c
+                               WHERE    c.documentType = 'PublishedProvider'
+                               AND      c.content.current.fundingStreamId = @fundingStreamId
+                               AND      c.content.current.fundingPeriodId = @fundingPeriodId
+                               AND      c.deleted = false",
+                Parameters = new[]
+                {
+                    new CosmosDbQueryParameter("@fundingStreamId", fundingStreamId),
+                    new CosmosDbQueryParameter("@fundingPeriodId", fundingPeriodId)
+                }
+            };
+
+            await _repository.DocumentsBatchProcessingAsync<PublishedProvider>(persistBatchToIndex: async matches =>
+                {
+                    await _repository.BulkDeleteAsync(matches.ToDictionary(_ => _.ParitionKey, _ => _));
+                },
+                cosmosDbQuery: query,
+                itemsPerPage: 50);
+        }
+
+        public async Task DeleteAllPublishedProviderVersionsByFundingStreamAndPeriod(string fundingStreamId, 
+            string fundingPeriodId)
+        {
+            CosmosDbQuery query = new CosmosDbQuery
+            {
+                QueryText = @"SELECT
+                                        c.content.id,
+                                        { 
+                                           'providerType' : c.content.provider.providerType,
+                                           'localAuthorityName' : c.content.provider.localAuthorityName,
+                                           'name' : c.content.provider.name
+                                        } AS Provider,
+                                        c.content.status,
+                                        c.content.totalFunding,
+                                        c.content.specificationId,
+                                        c.content.fundingStreamId,
+                                        c.content.providerId,
+                                        c.content.fundingPeriodId,
+                                        c.content.version,
+                                        c.content.majorVersion,
+                                        c.content.minorVersion
+                               FROM     publishedProviderVersion c
+                               WHERE    c.documentType = 'PublishedProviderVersion'
+                               AND      c.content.fundingStreamId = @fundingStreamId
+                               AND      c.content.fundingPeriodId = @fundingPeriodId
+                               AND      c.deleted = false",
+                Parameters = new[]
+                {
+                    new CosmosDbQueryParameter("@fundingStreamId", fundingStreamId),
+                    new CosmosDbQueryParameter("@fundingPeriodId", fundingPeriodId)
+                }
+            };
+
+            await _repository.DocumentsBatchProcessingAsync<PublishedProviderVersion>(persistBatchToIndex: async matches =>
+                {
+                    await _repository.BulkDeleteAsync(matches.Select(_ => new KeyValuePair<string, PublishedProviderVersion>(_.PartitionKey, _)));
+                },
+                cosmosDbQuery: query,
+                itemsPerPage: 50);
         }
 
         public async Task AllPublishedProviderBatchProcessing(Func<List<PublishedProviderVersion>, Task> persistIndexBatch, int batchSize)

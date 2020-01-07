@@ -78,6 +78,8 @@
             public const string PublishingReIndexPublishedProvidersPoisoned = "publishing-reindex-published-providers/$DeadLetterQueue";
             
             public const string PublishingReIndexPublishedProvidersPoisonedLocal = "publishing-reindex-published-providers-poisoned";
+            
+            public const string DeletePublishedProviders = "publishing-delete-published-providers";
         }
 
         public static class TopicNames

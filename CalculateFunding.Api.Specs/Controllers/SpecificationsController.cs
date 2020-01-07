@@ -155,6 +155,13 @@ namespace CalculateFunding.Api.Specs.Controllers
         {
             return await _specService.SelectSpecificationForFunding(ControllerContext.HttpContext.Request);
         }
+        
+        [HttpPost("api/specs/deselect-for-funding/{specificationId}")]
+        [ApiExplorerSettings(IgnoreApi = true)]
+        public async Task<IActionResult> DeselectSpecificationForFunding([FromRoute] string specificationId)
+        {
+            return await _specService.DeselectSpecificationForFunding(specificationId);
+        }
 
         [Route("api/specs/{specificationId}/templates/{fundingStreamId}/")]
         [HttpPut]

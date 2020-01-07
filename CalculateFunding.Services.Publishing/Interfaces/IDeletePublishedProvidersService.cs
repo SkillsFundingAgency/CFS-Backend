@@ -1,5 +1,5 @@
 using System.Threading.Tasks;
-using CalculateFunding.Common.Models;
+using Microsoft.Azure.ServiceBus;
 
 namespace CalculateFunding.Services.Publishing.Interfaces
 {
@@ -7,7 +7,8 @@ namespace CalculateFunding.Services.Publishing.Interfaces
     {
         Task QueueDeletePublishedProvidersJob(string fundingStreamId,
             string fundingPeriodId,
-            Reference user,
             string correlationId);
+
+        Task DeletePublishedProvidersJob(Message message);
     }
 }

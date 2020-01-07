@@ -1,5 +1,4 @@
-﻿using CalculateFunding.Common.ApiClient.Jobs;
-using CalculateFunding.Common.Models.HealthCheck;
+﻿using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Storage;
 using CalculateFunding.Generators.OrganisationGroup;
 using CalculateFunding.Generators.OrganisationGroup.Interfaces;
@@ -15,7 +14,6 @@ using CalculateFunding.Services.Publishing.Validators;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Polly.Bulkhead;
-using Serilog;
 
 namespace CalculateFunding.Services.Publishing.IoC
 {
@@ -52,6 +50,9 @@ namespace CalculateFunding.Services.Publishing.IoC
             serviceCollection.AddSingleton<IPublishedFundingStatusUpdateService, PublishedFundingStatusUpdateService>();
             serviceCollection.AddSingleton<IDeleteSpecifications, DeleteSpecificationService>();
             serviceCollection.AddSingleton<IDeletePublishedProvidersService, DeletePublishedProvidersService>();
+            serviceCollection.AddSingleton<IDeleteFundingSearchDocumentsService, DeleteFundingSearchDocumentsService>();
+            serviceCollection.AddSingleton<IDeselectSpecificationForFundingService, DeselectSpecificationForFundingService>();
+            serviceCollection.AddSingleton<IDeletePublishedFundingBlobDocumentsService, DeletePublishedFundingBlobDocumentsService>();
 
             PolicySettings policySettings = serviceCollection.GetPolicySettings(configuration);
             OrganisationGroupResiliencePolicies organisationResiliencePolicies = CreateResiliencePolicies(policySettings);

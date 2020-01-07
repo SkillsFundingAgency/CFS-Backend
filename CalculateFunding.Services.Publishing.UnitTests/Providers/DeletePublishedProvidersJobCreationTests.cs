@@ -45,14 +45,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Providers
         public async Task CreatesRefreshFundingJobForSpecificationId()
         {
             Job expectedJob = NewJob();
-            Reference user = NewUser();
             string fundingStreamId = NewRandomString();
             string fundingPeriodId = NewRandomString();
             string correlationId = NewRandomString();
 
-            GivenTheJobCreatedForDetails(fundingPeriodId, fundingStreamId, correlationId, user, expectedJob);
+            GivenTheJobCreatedForDetails(fundingPeriodId, fundingStreamId, correlationId,  expectedJob);
 
-            Job actualJob = await WhenTheSpecificationsJobIsCreated(fundingPeriodId, fundingStreamId, user, correlationId);
+            Job actualJob = await WhenTheSpecificationsJobIsCreated(fundingPeriodId, fundingStreamId, correlationId);
 
             actualJob
                 .Should()
@@ -69,7 +68,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Providers
             Func<Task<Job>> invocation
                 = () => WhenTheSpecificationsJobIsCreated(NewRandomString(),
                     NewRandomString(),
-                    NewUser(),
                     NewRandomString());
 
             invocation
@@ -80,10 +78,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Providers
 
         private async Task<Job> WhenTheSpecificationsJobIsCreated(string fundingPeriodId,
             string fundingStreamId,
-            Reference user,
             string correlationId)
         {
-            return await _jobCreation.CreateJob(fundingStreamId, fundingPeriodId, user, correlationId);
+            return await _jobCreation.CreateJob(fundingStreamId, fundingPeriodId, correlationId);
         }
 
         private void GivenTheCreateJobThrowsException(Exception exception)
@@ -95,22 +92,17 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Providers
         private void GivenTheJobCreatedForDetails(string fundingPeriodId,
             string fundingStreamId,
             string correlationId,
-            Reference user,
             Job job)
         {
             _jobs.CreateJob(Arg.Is<JobCreateModel>(_ =>
                     _.CorrelationId == correlationId &&
                     _.SpecificationId == null &&
                     _.JobDefinitionId == DeletePublishedProvidersJob &&
-                    _.InvokerUserId == user.Id &&
-                    _.InvokerUserDisplayName == user.Name &&
                     _.Properties != null &&
                     _.Properties["funding-stream-id"] == fundingStreamId &&
                     _.Properties["funding-period-id"] == fundingPeriodId &&
-                    _.Properties["user-id"] == user.Id &&
-                    _.Properties["user-name"] == user.Name &&
                     _.Trigger != null &&
-                    _.Trigger.EntityId == null &&
+                    _.Trigger.EntityId == "N/A" &&
                     _.Trigger.EntityType == null &&
                     _.Trigger.Message == $"Requested deletion of published providers for funding stream {fundingStreamId} and funding period {fundingPeriodId}"))
                 .Returns(job);

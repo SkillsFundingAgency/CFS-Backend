@@ -10,6 +10,22 @@ namespace CalculateFunding.Functions.DebugQueue
 {
     public static class Publishing
     {
+        [FunctionName("on-publishing-delete-published-providers")]
+        public static async Task RunDeletePublishedProviders([QueueTrigger(ServiceBusConstants.QueueNames.DeletePublishedProviders, 
+            Connection = "AzureConnectionString")] string item, ILogger log)
+        {
+            using (IServiceScope scope = Functions.Publishing.Startup.RegisterComponents(new ServiceCollection()).CreateScope())
+            {
+                Message message = Helpers.ConvertToMessage<string>(item);
+
+                OnDeletePublishedProviders function = scope.ServiceProvider.GetService<OnDeletePublishedProviders>();
+
+                await function.Run(message);
+
+                log.LogInformation($"C# Queue trigger function processed: {item}");
+            }
+        }
+        
         [FunctionName("on-publishing-reindex-published-providers")]
         public static async Task RunReIndexPublishedProviders([QueueTrigger(ServiceBusConstants.QueueNames.PublishingReIndexPublishedProviders, 
             Connection = "AzureConnectionString")] string item, ILogger log)

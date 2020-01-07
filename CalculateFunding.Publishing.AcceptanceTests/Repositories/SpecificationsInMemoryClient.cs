@@ -46,6 +46,11 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             throw new NotImplementedException();
         }
 
+        public Task<HttpStatusCode> DeselectSpecificationForFunding(string specificationId)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<ApiResponse<SpecificationPublishDateModel>> GetPublishDates(string specificationId)
         {
             ApiResponse<SpecificationPublishDateModel> result;

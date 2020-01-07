@@ -220,5 +220,15 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 
             return Task.FromResult(statuses);
         }
+
+        public Task DeleteAllPublishedProvidersByFundingStreamAndPeriod(string fundingStreamId, string fundingPeriodId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task DeleteAllPublishedProviderVersionsByFundingStreamAndPeriod(string fundingStreamId, string fundingPeriodId)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

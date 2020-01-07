@@ -1,6 +1,5 @@
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
-using CalculateFunding.Common.Models;
 
 namespace CalculateFunding.Services.Publishing.Interfaces
 {
@@ -8,7 +7,6 @@ namespace CalculateFunding.Services.Publishing.Interfaces
     {
         Task<Job> CreateJob(string fundingStreamId,
             string fundingPeriodId,
-            Reference user,
             string correlationId);
     }
 }

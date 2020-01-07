@@ -18,17 +18,17 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             _files = new ConcurrentDictionary<string, string>();
         }
 
-        public Task<bool> BlobExistsAsync(string blobName)
+        public Task<bool> BlobExistsAsync(string blobName, string containerName = null)
         {
             throw new NotImplementedException();
         }
 
-        public Task<bool> DoesBlobExistAsync(string blobName)
+        public Task<bool> DoesBlobExistAsync(string blobName, string containerName = null)
         {
             throw new NotImplementedException();
         }
 
-        public Task<T> DownloadAsync<T>(string blobName)
+        public Task<T> DownloadAsync<T>(string blobName, string containerName = null)
         {
             throw new NotImplementedException();
         }
@@ -38,22 +38,27 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             throw new NotImplementedException();
         }
 
-        public Task<Stream> GetAsync(string blobName)
+        public Task<Stream> GetAsync(string blobName, string containerName = null)
         {
             throw new NotImplementedException();
         }
 
-        public Task<ICloudBlob> GetBlobReferenceFromServerAsync(string blobName)
+        public Task BatchProcessBlobs(Func<IEnumerable<IListBlobItem>, Task> batchProcessor, string containerName = null, int batchSize = 50)
         {
             throw new NotImplementedException();
         }
 
-        public string GetBlobSasUrl(string blobName, DateTimeOffset finish, SharedAccessBlobPermissions permissions)
+        public Task<ICloudBlob> GetBlobReferenceFromServerAsync(string blobName, string containerName = null)
         {
             throw new NotImplementedException();
         }
 
-        public ICloudBlob GetBlockBlobReference(string blobName)
+        public string GetBlobSasUrl(string blobName, DateTimeOffset finish, SharedAccessBlobPermissions permissions, string containerName = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        public ICloudBlob GetBlockBlobReference(string blobName, string containerName = null)
         {
             throw new NotImplementedException();
         }
@@ -68,12 +73,12 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             throw new NotImplementedException();
         }
 
-        public Task<string> UploadFileAsync<T>(string blobName, T contents)
+        public Task<string> UploadFileAsync<T>(string blobName, T content, string containerName = null)
         {
             throw new NotImplementedException();
         }
 
-        public Task<string> UploadFileAsync(string blobName, string fileContents)
+        public Task<string> UploadFileAsync(string blobName, string fileContents, string containerName = null)
         {
             Guard.IsNullOrWhiteSpace(blobName, nameof(blobName));
 

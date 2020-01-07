@@ -17,7 +17,7 @@ namespace CalculateFunding.Services.Publishing.Interfaces
         Policy PublishedFundingBlobRepository { get; set; }
         Policy CalculationsApiClient { get; set; }
         Policy PoliciesApiClient { get; set; }
-
+        Policy SpecificationsApiClient { get; set; }
         Policy PublishedIndexSearchResiliencePolicy { get; set; }
     }
 }

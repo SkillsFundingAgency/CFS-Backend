@@ -2,6 +2,7 @@
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.FeatureToggles;
 using CalculateFunding.Services.Publishing.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,32 +14,40 @@ namespace CalculateFunding.Api.Publishing.Controllers
         private readonly IProviderFundingPublishingService _providerFundingPublishingService;
         private readonly IPublishedProviderVersionService _publishedProviderVersionService;
         private readonly IDeletePublishedProvidersService _deletePublishedProvidersService;
+        private readonly IFeatureToggle _featureToggle;
 
         public PublishedProvidersController(
             IProviderFundingPublishingService providerFundingPublishingService,
             IPublishedProviderVersionService publishedProviderVersionService, 
-            IDeletePublishedProvidersService deletePublishedProvidersService)
+            IDeletePublishedProvidersService deletePublishedProvidersService, 
+            IFeatureToggle featureToggle)
         {
             Guard.ArgumentNotNull(providerFundingPublishingService, nameof(providerFundingPublishingService));
             Guard.ArgumentNotNull(publishedProviderVersionService, nameof(publishedProviderVersionService));
             Guard.ArgumentNotNull(deletePublishedProvidersService, nameof(deletePublishedProvidersService));
+            Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
 
             _providerFundingPublishingService = providerFundingPublishingService;
             _publishedProviderVersionService = publishedProviderVersionService;
             _deletePublishedProvidersService = deletePublishedProvidersService;
+            _featureToggle = featureToggle;
         }
         
-        [HttpDelete("api/publishedproviderversions/{fundingStreamId}/{fundingPeriodId}")]
+        [HttpDelete("api/publishedproviders/{fundingStreamId}/{fundingPeriodId}")]
         [ApiExplorerSettings(IgnoreApi = true)]
         public async Task<IActionResult> DeletePublishedProviders([FromRoute] string fundingStreamId, 
             [FromRoute] string fundingPeriodId)
         {
+            if (_featureToggle.IsDeletePublishedProviderForbidden())
+            {
+                return Forbid();
+            }
+            
             await _deletePublishedProvidersService.QueueDeletePublishedProvidersJob(fundingStreamId,
                 fundingPeriodId,
-                Request.GetUser(),
                 Request.GetCorrelationId());
 
-            return NoContent();
+            return Ok();
         }
 
         [HttpGet("api/publishedproviderversions/{fundingStreamId}/{fundingPeriodId}/{providerId}/{version}")]

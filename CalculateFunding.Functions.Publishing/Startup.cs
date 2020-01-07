@@ -10,15 +10,14 @@ using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Interfaces;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models.HealthCheck;
+using CalculateFunding.Common.Storage;
 using CalculateFunding.Functions.Publishing;
 using CalculateFunding.Functions.Publishing.ServiceBus;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.AspNet;
-using CalculateFunding.Services.Core.AzureStorage;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
-using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Core.Services;
@@ -37,6 +36,8 @@ using Microsoft.FeatureManagement;
 using Polly;
 using Polly.Bulkhead;
 using Serilog;
+using BlobClient = CalculateFunding.Services.Core.AzureStorage.BlobClient;
+using IBlobClient = CalculateFunding.Services.Core.Interfaces.AzureStorage.IBlobClient;
 
 [assembly: FunctionsStartup(typeof(Startup))]
 
@@ -91,6 +92,7 @@ namespace CalculateFunding.Functions.Publishing
             builder.AddSingleton<OnRefreshFundingFailure>();
             builder.AddSingleton<OnApproveFundingFailure>();
             builder.AddSingleton<OnPublishFundingFailure>();
+            builder.AddSingleton<OnDeletePublishedProviders>();
 
             builder.AddSingleton<ISpecificationService, SpecificationService>();
             builder.AddSingleton<IProviderService, ProviderService>();
@@ -128,6 +130,18 @@ namespace CalculateFunding.Functions.Publishing
 
             builder
                 .AddSingleton<IPublishingEngineOptions>(_ => new PublishingEngineOptions(config));
+
+            builder
+                .AddSingleton<Common.Storage.IBlobClient, Common.Storage.BlobClient>((ctx) =>
+                {
+                    BlobStorageOptions storageSettings = new BlobStorageOptions();
+
+                    config.Bind("AzureStorageSettings", storageSettings);
+
+                    storageSettings.ContainerName = "publishedproviderversions";
+
+                    return new Common.Storage.BlobClient(storageSettings);
+                });
 
             builder
                .AddSingleton<IBlobClient, BlobClient>((ctx) =>
@@ -347,7 +361,8 @@ namespace CalculateFunding.Functions.Publishing
                 FundingFeedSearchRepository = Repositories.Common.Search.SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
                 PublishedFundingBlobRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                 PublishedProviderSearchRepository = Repositories.Common.Search.SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
-                PublishedIndexSearchResiliencePolicy = PublishedIndexSearchResiliencePolicy.GeneratePublishedIndexSearch(totalNetworkRequestsPolicy)
+                PublishedIndexSearchResiliencePolicy = PublishedIndexSearchResiliencePolicy.GeneratePublishedIndexSearch(totalNetworkRequestsPolicy),
+                SpecificationsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
             };
 
             return resiliencePolicies;

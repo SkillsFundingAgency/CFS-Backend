@@ -64,7 +64,7 @@ namespace CalculateFunding.Services.Publishing
                 {
                     results.Add(new PublishedProviderIndex
                     {
-                        Id = publishedProviderVersion.Id,
+                        Id = publishedProviderVersion.FundingId,
                         ProviderType = publishedProviderVersion.Provider.ProviderType,
                         LocalAuthority = publishedProviderVersion.Provider.LocalAuthorityName,
                         FundingStatus = publishedProviderVersion.Status.ToString(),

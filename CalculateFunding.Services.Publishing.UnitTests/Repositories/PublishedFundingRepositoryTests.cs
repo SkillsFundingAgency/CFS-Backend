@@ -16,26 +16,22 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
     [TestClass]
     public class PublishedFundingRepositoryTests
     {
-        private List<PublishedProvider> _providers;
-        private List<PublishedFunding> _funding;
         private ICosmosRepository _cosmosRepository;
 
         private PublishedFundingRepository _repository;
+        
+        private string _fundingStreamId;
+        private string _fundingPeriodId;
 
         [TestInitialize]
         public void SetUp()
         {
-            _providers = new List<PublishedProvider>();
-            _funding = new List<PublishedFunding>();
             _cosmosRepository = Substitute.For<ICosmosRepository>();
 
-            _cosmosRepository.Query<PublishedProvider>()
-                .Returns(_providers.AsQueryable());
-
-            _cosmosRepository.Query<PublishedFunding>()
-                .Returns(_funding.AsQueryable());
-
             _repository = new PublishedFundingRepository(_cosmosRepository);
+            
+            _fundingPeriodId = NewRandomString();
+            _fundingStreamId = NewRandomString();
         }
 
         [TestMethod]
@@ -68,93 +64,90 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
         }
 
         [TestMethod]
-        [Ignore("This method isn't being used since the optimisation")]
-        public async Task FetchesPublishedProvidersWithTheSuppliedSpecificationIdAndStatusOfUpdatedOrHeld()
+        public async Task DeleteAllPublishedProvidersByFundingStreamAndPeriodBulkDeletesAllDocumentsWithMatchingFundingPeriodAndStream()
         {
-            string specificationId = new RandomString();
-            string fundingStreamId = new RandomString();
-            string fundingPeriodId = new RandomString();
+            await WhenThePublishedProvidersAreDeleted();
 
-            PublishedProvider firstExpectedPublishedProvider = NewPublishedProvider(_ =>
-                _.WithCurrent(NewPublishedProviderVersion(ppv => ppv.WithSpecificationId(specificationId)
-                    .WithPublishedProviderStatus(PublishedProviderStatus.Draft)
-                    .WithFundingStreamId(fundingStreamId)
-                    .WithFundingPeriodId(fundingPeriodId))));
-            PublishedProvider secondExpectedPublishedProvider = NewPublishedProvider(_ =>
-                _.WithCurrent(NewPublishedProviderVersion(ppv => ppv.WithSpecificationId(specificationId)
-                    .WithPublishedProviderStatus(PublishedProviderStatus.Updated)
-                    .WithFundingStreamId(fundingStreamId)
-                    .WithFundingPeriodId(fundingPeriodId))));
+            const string queryText = @"SELECT
+                                        c.content.id,
+                                        { 
+                                           'id' : c.content.current.id,
+                                           'providerId' : c.content.current.providerId,
+                                           'fundingStreamId' : c.content.current.fundingStreamId,
+                                           'fundingPeriodId' : c.content.current.fundingPeriodId
+                                        } AS Current
+                               FROM     publishedProvider c
+                               WHERE    c.documentType = 'PublishedProvider'
+                               AND      c.content.current.fundingStreamId = @fundingStreamId
+                               AND      c.content.current.fundingPeriodId = @fundingPeriodId
+                               AND      c.deleted = false";
 
-            GivenThePublishedProviders(NewPublishedProvider(),
-                firstExpectedPublishedProvider,
-                NewPublishedProvider(_ => _.WithCurrent(NewPublishedProviderVersion(ppv =>
-                    ppv.WithSpecificationId(specificationId)
-                        .WithPublishedProviderStatus(PublishedProviderStatus.Approved)))),
-                NewPublishedProvider(),
-                secondExpectedPublishedProvider,
-                NewPublishedProvider(_ => _.WithCurrent(NewPublishedProviderVersion(ppv =>
-                    ppv.WithSpecificationId(specificationId)
-                        .WithPublishedProviderStatus(PublishedProviderStatus.Released)))));
+            await _cosmosRepository
+                .Received(1)
+                .DocumentsBatchProcessingAsync(Arg.Any<Func<List<PublishedProvider>, Task>>(),
+                    Arg.Is<CosmosDbQuery>(_ => _.QueryText == queryText &&
+                                               HasParameter(_, "@fundingStreamId", _fundingStreamId) &&
+                                               HasParameter(_, "@fundingPeriodId", _fundingPeriodId)),
+                50);
+        }
+        
+        [TestMethod]
+        public async Task DeleteAllPublishedProviderVersionsByFundingStreamAndPeriodBulkDeletesAllDocumentsWithMatchingFundingPeriodAndStream()
+        {
+            await WhenThePublishedProviderVersionsAreDeleted();
 
-            var matches = await _repository.GetPublishedProviderIdsForApproval(fundingStreamId, fundingPeriodId);
+            const string queryText = @"SELECT
+                                        c.content.id,
+                                        { 
+                                           'providerType' : c.content.provider.providerType,
+                                           'localAuthorityName' : c.content.provider.localAuthorityName,
+                                           'name' : c.content.provider.name
+                                        } AS Provider,
+                                        c.content.status,
+                                        c.content.totalFunding,
+                                        c.content.specificationId,
+                                        c.content.fundingStreamId,
+                                        c.content.providerId,
+                                        c.content.fundingPeriodId,
+                                        c.content.version,
+                                        c.content.majorVersion,
+                                        c.content.minorVersion
+                               FROM     publishedProviderVersion c
+                               WHERE    c.documentType = 'PublishedProviderVersion'
+                               AND      c.content.fundingStreamId = @fundingStreamId
+                               AND      c.content.fundingPeriodId = @fundingPeriodId
+                               AND      c.deleted = false";
 
-            matches
-                .Should()
-                .BeEquivalentTo(firstExpectedPublishedProvider, secondExpectedPublishedProvider);
+            await _cosmosRepository
+                .Received(1)
+                .DocumentsBatchProcessingAsync(Arg.Any<Func<List<PublishedProviderVersion>, Task>>(),
+                    Arg.Is<CosmosDbQuery>(_ => _.QueryText == queryText &&
+                                               HasParameter(_, "@fundingStreamId", _fundingStreamId) &&
+                                               HasParameter(_, "@fundingPeriodId", _fundingPeriodId)),
+                    50);
         }
 
-        private void GivenThePublishedFunding(params PublishedFunding[] publishedFinding)
+        private async Task WhenThePublishedProvidersAreDeleted()
         {
-            _funding.AddRange(publishedFinding);
+            await _repository.DeleteAllPublishedProvidersByFundingStreamAndPeriod(_fundingStreamId, _fundingPeriodId);
         }
-
-        private void GivenThePublishedProviders(params PublishedProvider[] publishedProviders)
+        private async Task WhenThePublishedProviderVersionsAreDeleted()
         {
-            _providers.AddRange(publishedProviders);
+            await _repository.DeleteAllPublishedProviderVersionsByFundingStreamAndPeriod(_fundingStreamId, _fundingPeriodId);
         }
+        
 
-        private PublishedFunding NewPublishedFunding(Action<PublishedFundingBuilder> setUp = null)
+        private bool HasParameter(CosmosDbQuery query, string name, string value)
         {
-            PublishedFundingBuilder builder = new PublishedFundingBuilder();
-
-            setUp?.Invoke(builder);
-
-            return builder.Build();
-        }
-
-        private PublishedFundingVersion NewPublishedFundingVersion(
-            Action<PublishedFundingVersionBuilder> setUp = null)
-        {
-            PublishedFundingVersionBuilder builder = new PublishedFundingVersionBuilder();
-
-            setUp?.Invoke(builder);
-
-            return builder.Build();
-        }
-
-        private PublishedProvider NewPublishedProvider(Action<PublishedProviderBuilder> setUp = null)
-        {
-            PublishedProviderBuilder builder = new PublishedProviderBuilder();
-
-            setUp?.Invoke(builder);
-
-            return builder.Build();
-        }
-
-        private PublishedProviderVersion NewPublishedProviderVersion(
-            Action<PublishedProviderVersionBuilder> setUp = null)
-        {
-            PublishedProviderVersionBuilder builder = new PublishedProviderVersionBuilder();
-
-            setUp?.Invoke(builder);
-
-            return builder.Build();
+            return query.Parameters?.Any(_ => _.Name == name &&
+                                              (string) _.Value == value) == true;
         }
 
         private void GivenTheRepositoryServiceHealth(bool expectedIsOkFlag, string expectedMessage)
         {
             _cosmosRepository.IsHealthOk().Returns((expectedIsOkFlag, expectedMessage));
         }
+
+        private string NewRandomString() => new RandomString();
     }
 }

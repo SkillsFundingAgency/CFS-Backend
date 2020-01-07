@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
-using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Publishing.Interfaces;
@@ -34,27 +33,23 @@ namespace CalculateFunding.Services.Publishing.Providers
         
         public async Task<Job> CreateJob(string fundingStreamId, 
             string fundingPeriodId, 
-            Reference user, 
             string correlationId)
         {
             Dictionary<string, string> messageProperties = new Dictionary<string, string>
             {
                 {"funding-stream-id", fundingStreamId}, 
-                {"funding-period-id", fundingPeriodId}, 
-                {"user-id", user.Id}, 
-                {"user-name", user.Name}
+                {"funding-period-id", fundingPeriodId}
             };
 
             try
             {
                 Job job = await _resiliencePolicy.ExecuteAsync(() => _jobs.CreateJob(new JobCreateModel
                 {
-                    InvokerUserDisplayName = user.Name,
-                    InvokerUserId = user.Id,
                     JobDefinitionId = DeletePublishedProvidersJob,
                     Properties = messageProperties,
                     Trigger = new Trigger
                     {
+                        EntityId = "N/A",
                         Message = $"Requested deletion of published providers for funding stream {fundingStreamId} and funding period {fundingPeriodId}"
                     },
                     CorrelationId = correlationId

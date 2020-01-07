@@ -24,6 +24,7 @@ using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.FeatureToggles;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
@@ -32,6 +33,7 @@ using FluentValidation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
+using Microsoft.Azure.Storage;
 using Microsoft.Extensions.Primitives;
 using Newtonsoft.Json;
 using Serilog;
@@ -58,6 +60,7 @@ namespace CalculateFunding.Services.Specs
         private readonly IQueueCreateSpecificationJobActions _queueCreateSpecificationJobAction;
         private readonly ICalculationsApiClient _calcsApiClient;
         private readonly Polly.Policy _calcsApiClientPolicy;
+        private readonly IFeatureToggle _featureToggle;
 
         public SpecificationsService(
             IMapper mapper,
@@ -74,7 +77,8 @@ namespace CalculateFunding.Services.Specs
             IVersionRepository<SpecificationVersion> specificationVersionRepository,
             ISpecificationsResiliencePolicies resiliencePolicies,
             IQueueCreateSpecificationJobActions queueCreateSpecificationJobAction,
-            ICalculationsApiClient calcsApiClient)
+            ICalculationsApiClient calcsApiClient, 
+            IFeatureToggle featureToggle)
         {
             Guard.ArgumentNotNull(mapper, nameof(mapper));
             Guard.ArgumentNotNull(specificationsRepository, nameof(specificationsRepository));
@@ -93,6 +97,7 @@ namespace CalculateFunding.Services.Specs
             Guard.ArgumentNotNull(resiliencePolicies?.CalcsApiClient, nameof(resiliencePolicies.CalcsApiClient));
             Guard.ArgumentNotNull(queueCreateSpecificationJobAction, nameof(queueCreateSpecificationJobAction));
             Guard.ArgumentNotNull(calcsApiClient, nameof(calcsApiClient));
+            Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
 
             _mapper = mapper;
             _specificationsRepository = specificationsRepository;
@@ -109,6 +114,7 @@ namespace CalculateFunding.Services.Specs
             _specificationVersionRepository = specificationVersionRepository;
             _queueCreateSpecificationJobAction = queueCreateSpecificationJobAction;
             _calcsApiClient = calcsApiClient;
+            _featureToggle = featureToggle;
             _calcsApiClientPolicy = resiliencePolicies.CalcsApiClient;
         }
 
@@ -917,6 +923,42 @@ WHERE   s.documentType = @DocumentType",
             }
         }
 
+        public async Task<IActionResult> DeselectSpecificationForFunding(string specificationId)
+        {
+            if (_featureToggle.IsDeletePublishedProviderForbidden())
+            {
+                return new ForbidResult();
+            }
+            
+            if (specificationId.IsNullOrEmpty())
+            {
+                _logger.Warning("No specification Id was provided to DeselectSpecificationForFunding");
+                
+                return new BadRequestObjectResult("Null or empty specification Id provided");
+            }   
+            
+            Specification specification = await _specificationsRepository.GetSpecificationById(specificationId);
+
+            if (specification == null)
+            {
+                _logger.Warning($"Specification not found for id: {specificationId}");
+
+                return new NotFoundObjectResult($"Specification not found for id: {specificationId}");
+            }
+            
+            if (specification.IsSelectedForFunding)
+            {
+                _logger.Warning(
+                    $"Attempt to deselect specification with id: {specificationId} selected when not yet selected");
+
+                return new NoContentResult();
+            }
+            
+            specification.IsSelectedForFunding = false;
+
+            return await UpdateSpecification(specification, specificationId);
+        }
+
         public async Task<IActionResult> SelectSpecificationForFunding(HttpRequest request)
         {
             request.Query.TryGetValue("specificationId", out StringValues specId);
@@ -953,6 +995,11 @@ WHERE   s.documentType = @DocumentType",
 
             specification.IsSelectedForFunding = true;
 
+            return await UpdateSpecification(specification, specificationId);
+        }
+
+        private async Task<IActionResult> UpdateSpecification(Specification specification, string specificationId)
+        {
             SpecificationIndex specificationIndex = null;
 
             try
@@ -969,7 +1016,7 @@ WHERE   s.documentType = @DocumentType",
 
                 specificationIndex = CreateSpecificationIndex(specification);
 
-                var errors = await _searchRepository.Index(new List<SpecificationIndex> { specificationIndex });
+                var errors = await _searchRepository.Index(new List<SpecificationIndex> {specificationIndex});
 
                 if (errors.Any())
                 {
@@ -990,7 +1037,7 @@ WHERE   s.documentType = @DocumentType",
 
                 await TaskHelper.WhenAllAndThrow(
                     _specificationsRepository.UpdateSpecification(specification),
-                    _searchRepository.Index(new[] { specificationIndex })
+                    _searchRepository.Index(new[] {specificationIndex})
                 );
 
                 await _cacheProvider.RemoveAsync<SpecificationSummary>(
