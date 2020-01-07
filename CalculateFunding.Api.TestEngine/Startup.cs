@@ -4,7 +4,7 @@ using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.WebApi.Extensions;
 using CalculateFunding.Common.WebApi.Middleware;
-using CalculateFunding.Models.MappingProfiles;
+using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.CodeMetadataGenerator;
 using CalculateFunding.Services.CodeMetadataGenerator.Interfaces;
@@ -14,6 +14,7 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.TestEngine.Interfaces;
+using CalculateFunding.Services.TestEngine.MappingProfiles;
 using CalculateFunding.Services.TestRunner;
 using CalculateFunding.Services.TestRunner.Interfaces;
 using CalculateFunding.Services.TestRunner.Repositories;
@@ -151,8 +152,7 @@ namespace CalculateFunding.Api.TestRunner
 
             MapperConfiguration mapperConfig = new MapperConfiguration(c =>
             {
-                c.AddProfile<ResultsMappingProfile>();
-                c.AddProfile<CalculationsMappingProfile>();
+                c.AddProfile<TestEngineMappingProfile>();               
             });
 
             builder
@@ -167,6 +167,8 @@ namespace CalculateFunding.Api.TestRunner
             builder.AddCosmosDb(Configuration);
 
             builder.AddSearch(Configuration);
+            builder
+                .AddSingleton<ISearchRepository<TestScenarioResultIndex>, SearchRepository<TestScenarioResultIndex>>();
 
             builder.AddCalculationsInterServiceClient(Configuration);
             builder.AddSpecificationsInterServiceClient(Configuration);

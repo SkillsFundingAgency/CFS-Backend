@@ -1,5 +1,5 @@
 using CalculateFunding.Common.Models;
-using CalculateFunding.Models.Results;
+using CalculateFunding.Models.Datasets;
 using CalculateFunding.Tests.Common.Helpers;
 
 namespace CalculateFunding.Services.Calculator

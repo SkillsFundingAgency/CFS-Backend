@@ -1,5 +1,7 @@
-﻿using CalculateFunding.Models.Gherkin;
-using CalculateFunding.Models.Results;
+﻿using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Datasets;
+using CalculateFunding.Models.Gherkin;
+using CalculateFunding.Models.ProviderLegacy;
 using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Services.TestRunner.Vocab.Calculation;
 using FluentAssertions;

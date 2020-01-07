@@ -16,6 +16,7 @@ using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Specs.Interfaces;
 using Polly;
 using Serilog;
+using Calculation = CalculateFunding.Common.TemplateMetadata.Models.Calculation;
 
 namespace CalculateFunding.Services.Specs
 {

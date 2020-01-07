@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using CalculateFunding.Models.Results;
+using CalculateFunding.Common.ApiClient.Results;
 using CalculateFunding.Services.Core.Interfaces.Proxies;
 using CalculateFunding.Services.Specs.Interfaces;
 
@@ -12,9 +12,9 @@ namespace CalculateFunding.Services.Specs
     {
         const string resultsForSpecificationUrl = "results/get-specification-provider-results?specificationId={0}&top={1}";
 
-        private readonly IResultsApiClientProxy _apiClientProxy;
+        private readonly IResultsApiClient _apiClientProxy;
 
-        public ResultsRepository(IResultsApiClientProxy apiClientProxy)
+        public ResultsRepository(IResultsApiClient apiClientProxy)
         {
             _apiClientProxy = apiClientProxy;
         }
@@ -23,13 +23,18 @@ namespace CalculateFunding.Services.Specs
         {
             string url = string.Format(resultsForSpecificationUrl, specificationId, 1);
 
-            IEnumerable<ProviderResult> providerResults = await _apiClientProxy.GetAsync<IEnumerable<ProviderResult>>(url);
+            Common.ApiClient.Models.ApiResponse<IEnumerable<Common.ApiClient.Results.Models.ProviderResult>> providerResults = await _apiClientProxy.GetProviderResultsBySpecificationId(specificationId,"1");
             if (providerResults == null)
             {
-                throw new InvalidOperationException("Provider results should not return null, but empty array");
+                throw new InvalidOperationException("Provider results should not return null");
             }
 
-            return providerResults.Any();
+            if (providerResults.Content == null)
+            {
+                throw new InvalidOperationException("Provider results content should not return null");
+            }
+
+            return providerResults.Content.Any();
         }
     }
 }

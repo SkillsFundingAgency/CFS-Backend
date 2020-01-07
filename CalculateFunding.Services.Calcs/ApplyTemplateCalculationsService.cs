@@ -10,7 +10,6 @@ using CalculateFunding.Common.Models;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Calcs;
-using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
@@ -293,7 +292,7 @@ namespace CalculateFunding.Services.Calcs
                 {
                     Message = "Assigned Template Calculations",
                     EntityId = specificationId,
-                    EntityType = nameof(Specification)
+                    EntityType = "Specification"
                 },
                 correlationId);
         }

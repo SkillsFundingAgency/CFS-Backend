@@ -15,7 +15,7 @@ using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.Datasets.ViewModels;
-using CalculateFunding.Models.Specs.Messages;
+using CalculateFunding.Models.Messages;
 using CalculateFunding.Services.CodeGeneration.VisualBasic;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Caching;

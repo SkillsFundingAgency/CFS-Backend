@@ -4,7 +4,7 @@ using System.Dynamic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using CalculateFunding.Models.Results;
+using CalculateFunding.Models.Calcs;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Caching.FileSystem;
 using CalculateFunding.Services.Core.Interfaces;

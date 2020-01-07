@@ -8,7 +8,7 @@ using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
-using CalculateFunding.Models.Results;
+using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.TestRunner.Interfaces;

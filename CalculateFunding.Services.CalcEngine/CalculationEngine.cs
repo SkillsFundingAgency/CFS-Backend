@@ -6,10 +6,11 @@ using System.Reflection;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Models.Calcs;
-using CalculateFunding.Models.Results;
+using CalculateFunding.Models.Datasets;
+using CalculateFunding.Models.ProviderLegacy;
 using CalculateFunding.Services.CalcEngine.Interfaces;
 using Serilog;
-using CalculationResult = CalculateFunding.Models.Results.CalculationResult;
+
 
 namespace CalculateFunding.Services.CalcEngine
 {

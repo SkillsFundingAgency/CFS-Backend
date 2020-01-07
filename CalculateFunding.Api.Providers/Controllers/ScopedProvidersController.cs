@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Utility;
-using CalculateFunding.Models.Results;
+using CalculateFunding.Models.ProviderLegacy;
 using CalculateFunding.Services.Providers.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 

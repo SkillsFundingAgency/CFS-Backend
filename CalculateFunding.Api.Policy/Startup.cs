@@ -17,6 +17,7 @@ using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Policy;
 using CalculateFunding.Services.Policy.Interfaces;
+using CalculateFunding.Services.Policy.MappingProfiles;
 using CalculateFunding.Services.Policy.Validators;
 using CalculateFunding.Services.Providers.Validators;
 using FluentValidation;
@@ -201,7 +202,7 @@ namespace CalculateFunding.Api.Policy
 
             MapperConfiguration fundingConfMappingConfig = new MapperConfiguration(c =>
             {
-                c.AddProfile<Models.MappingProfiles.FundingConfigurationMappingProfile>();
+                c.AddProfile<FundingConfigurationMappingProfile>();
             });
 
             builder

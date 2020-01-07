@@ -5,7 +5,6 @@ using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
-using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Publishing.Interfaces;
 using Serilog;
 using Policy = Polly.Policy;
@@ -68,7 +67,7 @@ namespace CalculateFunding.Services.Publishing.Specifications
                     Trigger = new Trigger
                     {
                         EntityId = specificationId,
-                        EntityType = nameof(Specification),
+                        EntityType = "Specification",
                         Message = TriggerMessage
                     },
                     CorrelationId = correlationId

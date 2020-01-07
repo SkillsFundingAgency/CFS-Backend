@@ -6,7 +6,7 @@ using AutoMapper;
 using CalculateFunding.Common.ApiClient.Calcs;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Models.Calcs;
-using CalculateFunding.Models.MappingProfiles;
+using CalculateFunding.Services.Calcs.MappingProfiles;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;

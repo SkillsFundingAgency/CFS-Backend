@@ -13,13 +13,11 @@ namespace CalculateFunding.Services.Results.Repositories
         private readonly IMapper _mapper;
         private readonly ICalculationsApiClient _calcsApiClient;
 
-        public CalculationsRepository(ICalculationsApiClient calcsApiClient, IMapper mapper)
+        public CalculationsRepository(ICalculationsApiClient calcsApiClient)
         {
-            Guard.ArgumentNotNull(calcsApiClient, nameof(calcsApiClient));
-            Guard.ArgumentNotNull(mapper, nameof(mapper));
+            Guard.ArgumentNotNull(calcsApiClient, nameof(calcsApiClient));           
 
-            _calcsApiClient = calcsApiClient;
-            _mapper = mapper;
+            _calcsApiClient = calcsApiClient;          
         }
 
         public async Task<Calculation> GetCalculationById(string calculationId)

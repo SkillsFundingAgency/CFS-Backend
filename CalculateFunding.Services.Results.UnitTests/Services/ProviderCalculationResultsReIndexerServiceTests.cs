@@ -1,8 +1,7 @@
 ﻿using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.Models;
-using CalculateFunding.Models.Results;
-using CalculateFunding.Models.Results.Search;
+using CalculateFunding.Models.Calcs;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Constants;
@@ -23,6 +22,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using CalculateFunding.Services.Core.FeatureToggles;
 using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
+using CalculateFunding.Models.ProviderLegacy;
 
 namespace CalculateFunding.Services.Results.UnitTests.Services
 {

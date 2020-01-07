@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CalculateFunding.Models\CalculateFunding.Models.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Models.Code\CalculateFunding.Models.Code.csproj" />
   </ItemGroup>
 
 </Project>

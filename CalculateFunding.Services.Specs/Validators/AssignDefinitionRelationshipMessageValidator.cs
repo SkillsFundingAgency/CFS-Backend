@@ -1,4 +1,5 @@
-﻿using CalculateFunding.Models.Specs.Messages;
+﻿
+using CalculateFunding.Models.Messages;
 using FluentValidation;
 
 namespace CalculateFunding.Services.Validators

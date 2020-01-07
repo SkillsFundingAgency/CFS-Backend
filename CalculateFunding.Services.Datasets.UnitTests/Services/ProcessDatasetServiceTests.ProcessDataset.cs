@@ -16,7 +16,6 @@ using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
-using CalculateFunding.Models.Results;
 using CalculateFunding.Services.CodeGeneration.VisualBasic;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Constants;
@@ -38,6 +37,8 @@ using ApiClientProviders = CalculateFunding.Common.ApiClient.Providers;
 using ApiProviderSummary = CalculateFunding.Common.ApiClient.Providers.Models.ProviderSummary;
 using FieldDefinition = CalculateFunding.Models.Datasets.Schema.FieldDefinition;
 using VersionReference = CalculateFunding.Models.VersionReference;
+using AggregatedType = CalculateFunding.Models.Datasets.AggregatedTypes;
+using CalculateFunding.Models.Messages;
 
 namespace CalculateFunding.Services.Datasets.Services
 {

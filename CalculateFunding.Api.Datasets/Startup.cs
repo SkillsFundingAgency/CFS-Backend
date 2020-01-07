@@ -8,8 +8,6 @@ using CalculateFunding.Common.WebApi.Http;
 using CalculateFunding.Common.WebApi.Middleware;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
-using CalculateFunding.Models.MappingProfiles;
-using CalculateFunding.Models.Results;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.AspNet.HealthChecks;
@@ -226,6 +224,12 @@ namespace CalculateFunding.Api.Datasets
             builder.AddCosmosDb(Configuration);
 
             builder.AddSearch(Configuration);
+            builder
+                .AddSingleton<ISearchRepository<DatasetIndex>, SearchRepository<DatasetIndex>>();
+            builder
+                .AddSingleton<ISearchRepository<DatasetDefinitionIndex>, SearchRepository<DatasetDefinitionIndex>>();
+            builder
+                .AddSingleton<ISearchRepository<DatasetVersionIndex>, SearchRepository<DatasetVersionIndex>>();
 
             builder.AddServiceBus(Configuration);
 

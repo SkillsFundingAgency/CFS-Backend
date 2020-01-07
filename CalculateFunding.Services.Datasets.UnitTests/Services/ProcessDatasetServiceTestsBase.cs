@@ -5,7 +5,7 @@ using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Providers;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.JobManagement;
-using CalculateFunding.Models.Results;
+using CalculateFunding.Models.Datasets;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.FeatureToggles;
 using CalculateFunding.Services.Core.Interfaces;

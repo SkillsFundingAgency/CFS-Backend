@@ -4,6 +4,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Api.External.V3.Interfaces;
 using CalculateFunding.Api.External.V3.Services;
+using CalculateFunding.Models.External;
+using CalculateFunding.Models.External.AtomItems;
 using CalculateFunding.Models.External.V3.AtomItems;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Models.Search;
@@ -228,7 +230,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version3
                 .BeOfType<OkObjectResult>();
 
             OkObjectResult contentResult = result as OkObjectResult;
-            AtomFeed<AtomEntry> atomFeed = contentResult.Value as AtomFeed<AtomEntry>;
+            Models.External.V3.AtomItems.AtomFeed<AtomEntry> atomFeed = contentResult.Value as Models.External.V3.AtomItems.AtomFeed<AtomEntry>;
 
             atomFeed
                 .Should()
@@ -310,7 +312,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version3
                 .BeOfType<OkObjectResult>();
 
             OkObjectResult contentResult = result as OkObjectResult;
-            AtomFeed<AtomEntry> atomFeed = contentResult.Value as AtomFeed<AtomEntry>;
+            Models.External.V3.AtomItems.AtomFeed<AtomEntry> atomFeed = contentResult.Value as Models.External.V3.AtomItems.AtomFeed<AtomEntry>;
 
             atomFeed
                 .Should()

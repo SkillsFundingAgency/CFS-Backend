@@ -8,7 +8,17 @@ using CalculateFunding.Common.ApiClient.Calcs.Models;
 using CalculateFunding.Common.ApiClient.Calcs.Models.Code;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Providers.Models;
-using CalculateFunding.Models.Results;
+using CalculateFunding.Models.Calcs;
+using BuildProject = CalculateFunding.Common.ApiClient.Calcs.Models.BuildProject;
+using Calculation = CalculateFunding.Common.ApiClient.Calcs.Models.Calculation;
+using CalculationCreateModel = CalculateFunding.Common.ApiClient.Calcs.Models.CalculationCreateModel;
+using CalculationEditModel = CalculateFunding.Common.ApiClient.Calcs.Models.CalculationEditModel;
+using CalculationMetadata = CalculateFunding.Common.ApiClient.Calcs.Models.CalculationMetadata;
+using CalculationVersion = CalculateFunding.Common.ApiClient.Calcs.Models.CalculationVersion;
+using DatasetRelationshipSummary = CalculateFunding.Common.ApiClient.Calcs.Models.DatasetRelationshipSummary;
+using PreviewRequest = CalculateFunding.Common.ApiClient.Calcs.Models.PreviewRequest;
+using PreviewResponse = CalculateFunding.Common.ApiClient.Calcs.Models.PreviewResponse;
+using TemplateMapping = CalculateFunding.Common.ApiClient.Calcs.Models.TemplateMapping;
 
 namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 {

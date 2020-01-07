@@ -6,6 +6,7 @@ using CalculateFunding.Common.Interfaces;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Functions.Results.ServiceBus;
 using CalculateFunding.Functions.Results.Timer;
+using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.AspNet;
@@ -73,13 +74,7 @@ namespace CalculateFunding.Functions.Results
             builder.AddSingleton<IFileSystemAccess, FileSystemAccess>();
             builder.AddSingleton<IFileSystemCacheSettings, FileSystemCacheSettings>();
 
-            MapperConfiguration resultsConfig = new MapperConfiguration(c =>
-            {
-                c.AddProfile<DatasetsMappingProfile>();
-            });
-
-            builder
-                .AddSingleton(resultsConfig.CreateMapper());
+          
 
             builder.AddCaching(config);
 
@@ -122,6 +117,8 @@ namespace CalculateFunding.Functions.Results
                 });
 
             builder.AddSearch(config);
+            builder
+               .AddSingleton<ISearchRepository<ProviderCalculationResultsIndex>, SearchRepository<ProviderCalculationResultsIndex>>();
 
             builder.AddServiceBus(config);
 

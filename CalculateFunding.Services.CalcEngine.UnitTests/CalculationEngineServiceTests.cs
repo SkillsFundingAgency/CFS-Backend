@@ -9,7 +9,7 @@ using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets;
-using CalculateFunding.Models.Results;
+using CalculateFunding.Models.ProviderLegacy;
 using CalculateFunding.Services.CalcEngine;
 using CalculateFunding.Services.CalcEngine.Interfaces;
 using CalculateFunding.Services.CalcEngine.UnitTests;
@@ -300,10 +300,10 @@ namespace CalculateFunding.Services.Calculator
               .GetAssemblyBySpecificationId(Arg.Is(specificationId))
               .Returns(MockData.GetMockAssembly());
 
-            IEnumerable<DatasetAggregations> datasetAggregations = new[]
+            IEnumerable<DatasetAggregation> datasetAggregations = new[]
             {
-                 new DatasetAggregations(),
-                 new DatasetAggregations()
+                 new DatasetAggregation(),
+                 new DatasetAggregation()
             };
 
             _calculationEngineServiceTestsHelper

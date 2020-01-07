@@ -1,4 +1,5 @@
-using CalculateFunding.Models.Results;
+using CalculateFunding.Models.Calcs;
+
 
 namespace CalculateFunding.Services.CalcEngine.Caching
 {

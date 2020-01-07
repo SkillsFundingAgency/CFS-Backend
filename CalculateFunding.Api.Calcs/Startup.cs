@@ -6,6 +6,7 @@ using CalculateFunding.Common.WebApi.Extensions;
 using CalculateFunding.Common.WebApi.Http;
 using CalculateFunding.Common.WebApi.Middleware;
 using CalculateFunding.Models.Calcs;
+
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Calcs;
 using CalculateFunding.Services.Calcs.CodeGen;
@@ -192,6 +193,12 @@ namespace CalculateFunding.Api.Calcs
             builder.AddCosmosDb(Configuration);
 
             builder.AddSearch(Configuration);
+            builder
+                .AddSingleton<ISearchRepository<CalculationIndex>, SearchRepository<CalculationIndex>>();
+            builder
+                .AddSingleton<ISearchRepository<CalculationProviderResultsIndex>, SearchRepository<CalculationProviderResultsIndex>>();
+            builder
+                .AddSingleton<ISearchRepository<ProviderCalculationResultsIndex>, SearchRepository<ProviderCalculationResultsIndex>>();
 
             builder.AddServiceBus(Configuration);
 

@@ -10,7 +10,7 @@ using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Calcs;
-using CalculateFunding.Models.Results;
+using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;

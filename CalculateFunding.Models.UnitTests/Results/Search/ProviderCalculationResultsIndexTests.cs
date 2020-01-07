@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using CalculateFunding.Models.Results.Search;
+using CalculateFunding.Models.Calcs;
+
 using Microsoft.Azure.Search;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json.Linq;

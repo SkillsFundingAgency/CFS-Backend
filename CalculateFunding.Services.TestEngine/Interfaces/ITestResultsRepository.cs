@@ -2,7 +2,7 @@
 using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
-using CalculateFunding.Models.Results;
+using CalculateFunding.Models.Scenarios;
 
 namespace CalculateFunding.Services.TestRunner.Interfaces
 {

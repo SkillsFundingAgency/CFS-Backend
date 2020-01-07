@@ -13,7 +13,7 @@ using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.Datasets.ViewModels;
-using CalculateFunding.Models.Results;
+using CalculateFunding.Models.ProviderLegacy;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.CodeGeneration.VisualBasic;
 using CalculateFunding.Services.Compiler;

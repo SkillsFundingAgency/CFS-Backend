@@ -5,9 +5,9 @@ using CalculateFunding.Common.TemplateMetadata;
 using CalculateFunding.Common.TemplateMetadata.Schema10;
 using CalculateFunding.Common.WebApi.Extensions;
 using CalculateFunding.Common.WebApi.Middleware;
-using CalculateFunding.Models.MappingProfiles;
+using CalculateFunding.Models.Messages;
 using CalculateFunding.Models.Specs;
-using CalculateFunding.Models.Specs.Messages;
+using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.AspNet.HealthChecks;
 using CalculateFunding.Services.Core.AzureStorage;
@@ -30,6 +30,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Polly.Bulkhead;
 using Serilog;
+
 
 namespace CalculateFunding.Api.Specs
 {
@@ -117,7 +118,7 @@ namespace CalculateFunding.Api.Specs
 
             builder.AddSingleton<ICosmosRepository, CosmosRepository>();
 
-            builder.AddSingleton<IVersionRepository<SpecificationVersion>, VersionRepository<SpecificationVersion>>((ctx) =>
+            builder.AddSingleton<IVersionRepository<Models.Specs.SpecificationVersion>, VersionRepository<Models.Specs.SpecificationVersion>>((ctx) =>
             {
                 CosmosDbSettings specsVersioningDbSettings = new CosmosDbSettings();
 
@@ -127,14 +128,13 @@ namespace CalculateFunding.Api.Specs
 
                 CosmosRepository resultsRepostory = new CosmosRepository(specsVersioningDbSettings);
 
-                return new VersionRepository<SpecificationVersion>(resultsRepostory);
+                return new VersionRepository<Models.Specs.SpecificationVersion>(resultsRepostory);
             });
 
             MapperConfiguration mappingConfig = new MapperConfiguration(
                 c =>
                 {
-                    c.AddProfile<SpecificationsMappingProfile>();
-                    c.AddProfile<PolicyMappingProfile>();
+                    c.AddProfile<SpecificationsMappingProfile>();                  
                 }
             );
 
@@ -149,6 +149,8 @@ namespace CalculateFunding.Api.Specs
             builder.AddServiceBus(Configuration);
 
             builder.AddSearch(Configuration);
+            builder
+             .AddSingleton<ISearchRepository<SpecificationIndex>, SearchRepository<SpecificationIndex>>();
 
             builder.AddCaching(Configuration);
 
@@ -172,7 +174,7 @@ namespace CalculateFunding.Api.Specs
                 {
                     JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                     PoliciesApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-                    CalcsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                    CalcsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)                    
                 };
             });
 

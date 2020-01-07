@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
-using CalculateFunding.Models.Results;
+using CalculateFunding.Models.Datasets;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.TestRunner.Interfaces;
 

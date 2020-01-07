@@ -9,7 +9,7 @@ using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Calcs;
-using CalculateFunding.Models.Results;
+
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Results.Interfaces;
 using Newtonsoft.Json;

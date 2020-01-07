@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
+using CalculateFunding.Models.ProviderLegacy;
 using CalculateFunding.Models.Providers;
 using CalculateFunding.Models.Providers.ViewModels;
 using CalculateFunding.Services.Core.Extensions;

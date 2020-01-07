@@ -1,4 +1,6 @@
 ﻿using CalculateFunding.Common.Models;
+using CalculateFunding.Models.Messages;
+using CalculateFunding.Models.Specs;
 using FluentAssertions;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -9,6 +11,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Text;
 
+
 namespace CalculateFunding.Services.Core.Extensions
 {
     [TestClass]
@@ -18,15 +21,15 @@ namespace CalculateFunding.Services.Core.Extensions
         public void GetMessageBodyStringFromMessage_GivenUnCompressedBody_ReturnsJson()
         {
             //Arrange
-            Models.Specs.SpecificationVersionComparisonModel specificationVersionComparison = new Models.Specs.SpecificationVersionComparisonModel()
+            SpecificationVersionComparisonModel specificationVersionComparison = new SpecificationVersionComparisonModel()
             {
                 Id = "spec-1",
-                Current = new Models.Specs.SpecificationVersion
+                Current = new Models.Messages.SpecificationVersion
                 {
                     FundingPeriod = new Reference { Id = "fp1" },
                     Name = "any-name"
                 },
-                Previous = new Models.Specs.SpecificationVersion
+                Previous = new Models.Messages.SpecificationVersion
                 {
                     FundingPeriod = new Reference { Id = "fp1" }
                 }
@@ -51,15 +54,15 @@ namespace CalculateFunding.Services.Core.Extensions
         public void GetMessageBodyStringFromMessage_GivenCompressedBody_ReturnsJson()
         {
             //Arrange
-            Models.Specs.SpecificationVersionComparisonModel specificationVersionComparison = new Models.Specs.SpecificationVersionComparisonModel()
+            SpecificationVersionComparisonModel specificationVersionComparison = new SpecificationVersionComparisonModel()
             {
                 Id = "spec-1",
-                Current = new Models.Specs.SpecificationVersion
+                Current = new Models.Messages.SpecificationVersion
                 {
                     FundingPeriod = new Reference { Id = "fp1" },
                     Name = "any-name"
                 },
-                Previous = new Models.Specs.SpecificationVersion
+                Previous = new Models.Messages.SpecificationVersion
                 {
                     FundingPeriod = new Reference { Id = "fp1" }
                 }

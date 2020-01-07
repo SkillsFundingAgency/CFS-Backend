@@ -19,7 +19,8 @@
     <PackageReference Include="Microsoft.FeatureManagement" Version="2.0.0-preview-010610001-1263" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\CalculateFunding.Models\CalculateFunding.Models.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Models.External\CalculateFunding.Models.External.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Models.Publishing\CalculateFunding.Models.Publishing.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Core\CalculateFunding.Services.Core.csproj" />
   </ItemGroup>
   <ItemGroup>

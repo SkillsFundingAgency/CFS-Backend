@@ -8,19 +8,12 @@ using CalculateFunding.Common.ApiClient.Calcs;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.ApiClient.Providers;
+using CalculateFunding.Common.ApiClient.Results;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
-using CalculateFunding.Models.Calcs;
-using CalculateFunding.Models.Datasets;
-using CalculateFunding.Models.Datasets.Schema;
-using CalculateFunding.Models.Providers;
-using CalculateFunding.Models.Publishing;
-using CalculateFunding.Models.Results.Search;
-using CalculateFunding.Models.Scenarios;
-using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.FeatureToggles;
 using CalculateFunding.Services.Core.Interfaces.Logging;
@@ -143,20 +136,24 @@ namespace CalculateFunding.Services.Core.Extensions
             return builder;
         }
 
-        [Obsolete]
+       
         public static IServiceCollection AddResultsInterServiceClient(this IServiceCollection builder, IConfiguration config)
         {
+            builder.AddHttpClient(HttpClientKeys.Results,
+               c =>
+               {
+                   ApiOptions apiOptions = new ApiOptions();
+
+                   config.Bind("resultsClient", apiOptions);
+
+                   SetDefaultApiClientConfigurationOptions(c, apiOptions, builder);
+               })
+               .ConfigurePrimaryHttpMessageHandler(() => new ApiClientHandler())
+               .AddTransientHttpErrorPolicy(c => c.WaitAndRetryAsync(retryTimeSpans))
+               .AddTransientHttpErrorPolicy(c => c.CircuitBreakerAsync(numberOfExceptionsBeforeCircuitBreaker, circuitBreakerFailurePeriod));
+
             builder
-                 .AddSingleton<IResultsApiClientProxy, ResultsApiProxy>((ctx) =>
-                 {
-                     ApiOptions apiOptions = new ApiOptions();
-
-                     config.Bind("resultsClient", apiOptions);
-
-                     ILogger logger = ctx.GetService<ILogger>();
-
-                     return new ResultsApiProxy(apiOptions, logger);
-                 });
+                .AddSingleton<IResultsApiClient, ResultsApiClient>();
 
             return builder;
         }
@@ -266,41 +263,6 @@ namespace CalculateFunding.Services.Core.Extensions
             };
 
             builder.AddSingleton<SearchRepositorySettings>(searchSettings);
-
-            builder
-                .AddSingleton<ISearchRepository<CalculationIndex>, SearchRepository<CalculationIndex>>();
-            builder
-               .AddSingleton<ISearchRepository<PublishedProviderIndex>, SearchRepository<PublishedProviderIndex>>();
-
-            builder
-                .AddSingleton<ISearchRepository<PublishedFundingIndex>, SearchRepository<PublishedFundingIndex>>();
-
-            builder
-              .AddSingleton<ISearchRepository<DatasetIndex>, SearchRepository<DatasetIndex>>();
-
-            builder
-              .AddSingleton<ISearchRepository<SpecificationIndex>, SearchRepository<SpecificationIndex>>();
-
-            builder
-               .AddSingleton<ISearchRepository<ScenarioIndex>, SearchRepository<ScenarioIndex>>();
-
-            builder
-              .AddSingleton<ISearchRepository<TestScenarioResultIndex>, SearchRepository<TestScenarioResultIndex>>();
-
-            builder
-              .AddSingleton<ISearchRepository<CalculationProviderResultsIndex>, SearchRepository<CalculationProviderResultsIndex>>();
-
-            builder
-              .AddSingleton<ISearchRepository<DatasetDefinitionIndex>, SearchRepository<DatasetDefinitionIndex>>();
-
-            builder
-             .AddSingleton<ISearchRepository<ProviderCalculationResultsIndex>, SearchRepository<ProviderCalculationResultsIndex>>();
-
-            builder
-                .AddSingleton<ISearchRepository<DatasetVersionIndex>, SearchRepository<DatasetVersionIndex>>();
-
-            builder
-                .AddSingleton<ISearchRepository<ProvidersIndex>, SearchRepository<ProvidersIndex>>();
 
             return builder;
         }

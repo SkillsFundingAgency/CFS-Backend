@@ -4,9 +4,10 @@ using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.TemplateMetadata;
 using CalculateFunding.Common.TemplateMetadata.Schema10;
 using CalculateFunding.Functions.Specs.ServiceBus;
-using CalculateFunding.Models.MappingProfiles;
+
+using CalculateFunding.Models.Messages;
 using CalculateFunding.Models.Specs;
-using CalculateFunding.Models.Specs.Messages;
+using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.AzureStorage;
 using CalculateFunding.Services.Core.Extensions;
@@ -88,7 +89,7 @@ namespace CalculateFunding.Functions.Specs
                     return new BlobClient(storageSettings);
                 });
 
-            builder.AddSingleton<IVersionRepository<SpecificationVersion>, VersionRepository<SpecificationVersion>>((ctx) =>
+            builder.AddSingleton<IVersionRepository<Models.Specs.SpecificationVersion>, VersionRepository<Models.Specs.SpecificationVersion>>((ctx) =>
             {
                 CosmosDbSettings specsVersioningDbSettings = new CosmosDbSettings();
 
@@ -98,7 +99,7 @@ namespace CalculateFunding.Functions.Specs
 
                 CosmosRepository resultsRepostory = new CosmosRepository(specsVersioningDbSettings);
 
-                return new VersionRepository<SpecificationVersion>(resultsRepostory);
+                return new VersionRepository<Models.Specs.SpecificationVersion>(resultsRepostory);
             });
 
             builder.AddSingleton<ISpecificationsResiliencePolicies>((ctx) =>
@@ -114,13 +115,13 @@ namespace CalculateFunding.Functions.Specs
                     PoliciesApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                     JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                     CalcsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
+                  
                 };
             });
 
             MapperConfiguration mappingConfig = new MapperConfiguration(c =>
             {
-                c.AddProfile<SpecificationsMappingProfile>();
-                c.AddProfile<PolicyMappingProfile>();
+                c.AddProfile<SpecificationsMappingProfile>();             
             });
 
             builder.AddSingleton(mappingConfig.CreateMapper());
@@ -137,6 +138,8 @@ namespace CalculateFunding.Functions.Specs
             builder.AddServiceBus(config);
 
             builder.AddSearch(config);
+            builder
+             .AddSingleton<ISearchRepository<SpecificationIndex>, SearchRepository<SpecificationIndex>>();
 
             builder.AddCaching(config);
 

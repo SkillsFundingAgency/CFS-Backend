@@ -4,7 +4,8 @@ using System.Reflection;
 using System.Threading.Tasks;
 using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Models.Calcs;
-using CalculateFunding.Models.Results;
+using CalculateFunding.Models.Datasets;
+using CalculateFunding.Models.ProviderLegacy;
 
 namespace CalculateFunding.Services.CalcEngine.Interfaces
 {

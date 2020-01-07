@@ -20,7 +20,8 @@ using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
-using CalculateFunding.Models.Results;
+using CalculateFunding.Models.Messages;
+using CalculateFunding.Models.ProviderLegacy;
 using CalculateFunding.Services.CodeGeneration.VisualBasic;
 using CalculateFunding.Services.Compiler;
 using CalculateFunding.Services.Core;
@@ -42,6 +43,8 @@ using Newtonsoft.Json;
 using OfficeOpenXml.FormulaParsing.Excel.Functions.Information;
 using Polly;
 using Serilog;
+using AggregatedField = CalculateFunding.Models.Datasets.AggregatedField;
+using AggregatedType = CalculateFunding.Models.Datasets.AggregatedTypes;
 using VersionReference = CalculateFunding.Models.VersionReference;
 
 namespace CalculateFunding.Services.Datasets
@@ -324,21 +327,21 @@ namespace CalculateFunding.Services.Datasets
                             new AggregatedField
                             {
                                 FieldDefinitionName = identifierName,
-                                FieldType = AggregatedType.Sum,
+                                FieldType = AggregatedTypes.Sum,
                                 Value = sum
                             },
 
                             new AggregatedField
                             {
                                 FieldDefinitionName = identifierName,
-                                FieldType = AggregatedType.Average,
+                                FieldType = AggregatedTypes.Average,
                                 Value = average
                             },
 
                             new AggregatedField
                             {
                                 FieldDefinitionName = identifierName,
-                                FieldType = AggregatedType.Min,
+                                FieldType = AggregatedTypes.Min,
                                 Value = min
                             },
 

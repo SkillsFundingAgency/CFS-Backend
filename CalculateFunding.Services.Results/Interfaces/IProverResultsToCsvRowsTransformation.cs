@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Dynamic;
-using CalculateFunding.Models.Results;
+using CalculateFunding.Models.Calcs;
+
 
 namespace CalculateFunding.Services.Results.Interfaces
 {

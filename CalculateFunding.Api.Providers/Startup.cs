@@ -6,6 +6,7 @@ using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.WebApi.Extensions;
 using CalculateFunding.Common.WebApi.Middleware;
+using CalculateFunding.Models.Providers;
 using CalculateFunding.Models.Providers.ViewModels;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.AspNet;
@@ -115,6 +116,8 @@ namespace CalculateFunding.Api.Providers
             builder.AddSingleton<IValidator<ProviderVersionViewModel>, UploadProviderVersionValidator>();
 
             builder.AddSearch(this.Configuration);
+            builder
+              .AddSingleton<ISearchRepository<ProvidersIndex>, SearchRepository<ProvidersIndex>>();
 
             builder
                 .AddSingleton<IBlobClient, BlobClient>((ctx) =>
@@ -152,8 +155,8 @@ namespace CalculateFunding.Api.Providers
             builder
                 .AddSingleton(providerVersionsConfig.CreateMapper());
 
-            builder.AddApplicationInsightsTelemetry();
             builder.AddResultsInterServiceClient(Configuration);
+            builder.AddApplicationInsightsTelemetry();            
             builder.AddSpecificationsInterServiceClient(Configuration);
             builder.AddApplicationInsightsForApiApp(Configuration, "CalculateFunding.Api.Providers");
             builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Api.Providers");
@@ -213,7 +216,7 @@ namespace CalculateFunding.Api.Providers
             ServiceProvider = builder.BuildServiceProvider();
 
             builder.AddSearch(Configuration);
-
+           
 
         }
     }

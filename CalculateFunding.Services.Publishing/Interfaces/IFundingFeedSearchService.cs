@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using CalculateFunding.Models.External;
 using CalculateFunding.Models.Publishing;
-using CalculateFunding.Models.Results.Search;
 using CalculateFunding.Models.Search;
 
 namespace CalculateFunding.Services.Publising.Interfaces

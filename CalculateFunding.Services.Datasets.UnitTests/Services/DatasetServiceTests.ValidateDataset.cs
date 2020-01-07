@@ -404,7 +404,7 @@ namespace CalculateFunding.Services.Datasets.Services
             // Assert     
             mapper
                 .Received(1)
-                .Map<Models.Results.ProviderSummary>(Arg.Any<Common.ApiClient.Providers.Models.Provider>());
+                .Map<Models.ProviderLegacy.ProviderSummary>(Arg.Any<Common.ApiClient.Providers.Models.Provider>());
 
             await cacheProvider
                 .Received(1)

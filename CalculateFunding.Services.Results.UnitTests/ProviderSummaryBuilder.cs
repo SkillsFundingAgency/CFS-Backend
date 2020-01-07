@@ -1,4 +1,5 @@
-using CalculateFunding.Models.Results;
+using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.ProviderLegacy;
 using CalculateFunding.Tests.Common.Helpers;
 
 namespace CalculateFunding.Services.Results

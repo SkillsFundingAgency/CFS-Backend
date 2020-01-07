@@ -1,4 +1,4 @@
-﻿using CalculateFunding.Models.Results;
+﻿using CalculateFunding.Models.Datasets;
 using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;

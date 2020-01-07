@@ -1,7 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
+using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Gherkin;
-using CalculateFunding.Models.Results;
+
 
 namespace CalculateFunding.Services.TestRunner.Vocab.Calculation
 {

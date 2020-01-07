@@ -4,7 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Models;
-using CalculateFunding.Models.Results.Search;
+using CalculateFunding.Models.Calcs;
+
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.FeatureToggles;
 using CalculateFunding.Services.Results.Interfaces;

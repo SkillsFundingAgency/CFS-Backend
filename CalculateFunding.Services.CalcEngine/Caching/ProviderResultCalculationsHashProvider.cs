@@ -4,7 +4,8 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Utility;
-using CalculateFunding.Models.Results;
+using CalculateFunding.Models.Calcs;
+
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
 

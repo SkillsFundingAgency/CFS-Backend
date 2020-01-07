@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Api.External.V3.Interfaces;
 using CalculateFunding.Api.External.V3.Services;
+using CalculateFunding.Models.External;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Models.Search;
 using CalculateFunding.Services.Core.Caching.FileSystem;

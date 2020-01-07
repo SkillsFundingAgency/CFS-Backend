@@ -1,6 +1,7 @@
-﻿using CalculateFunding.Models.Datasets;
+﻿using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
-using CalculateFunding.Models.Results;
+using CalculateFunding.Models.ProviderLegacy;
 using OfficeOpenXml;
 using System;
 using System.Collections.Generic;

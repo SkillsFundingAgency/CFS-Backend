@@ -1,4 +1,4 @@
-﻿using CalculateFunding.Models.Datasets;
+﻿using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Services.CalcEngine.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.Proxies;
 using System;
@@ -16,14 +16,14 @@ namespace CalculateFunding.Services.CalcEngine
             _datasetsApiClientProxy = datasetsApiClientProxy;
         }
 
-        public Task<IEnumerable<DatasetAggregations>> GetDatasetAggregationsForSpecificationId(string specificationId)
+        public Task<IEnumerable<DatasetAggregation>> GetDatasetAggregationsForSpecificationId(string specificationId)
         {
             if (string.IsNullOrWhiteSpace(specificationId))
                 throw new ArgumentNullException(nameof(specificationId));
 
             string url = $"datasets/{specificationId}/datasetAggregations";
 
-            return _datasetsApiClientProxy.GetAsync<IEnumerable<DatasetAggregations>>(url);
+            return _datasetsApiClientProxy.GetAsync<IEnumerable<DatasetAggregation>>(url);
         }
     }
 }

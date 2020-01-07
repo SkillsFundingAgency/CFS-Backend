@@ -4,8 +4,8 @@ using CalculateFunding.Common.ApiClient;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Interfaces;
 using CalculateFunding.Functions.Scenarios.ServiceBus;
-using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Models.Scenarios;
+using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
@@ -54,10 +54,7 @@ namespace CalculateFunding.Functions.Scenarios
             builder.AddSingleton<IScenariosService, ScenariosService>();
             builder.AddSingleton<IScenariosSearchService, ScenariosSearchService>();
             builder
-                .AddSingleton<IValidator<CreateNewTestScenarioVersion>, CreateNewTestScenarioVersionValidator>();
-
-            builder
-               .AddSingleton<IBuildProjectRepository, BuildProjectRepository>();
+                .AddSingleton<IValidator<CreateNewTestScenarioVersion>, CreateNewTestScenarioVersionValidator>();           
 
             builder
               .AddSingleton<ICalcsRepository, CalcsRepository>();
@@ -84,13 +81,6 @@ namespace CalculateFunding.Functions.Scenarios
                 return new VersionRepository<TestScenarioVersion>(resultsRepostory);
             });
 
-            MapperConfiguration calculationsConfig = new MapperConfiguration(c =>
-            {
-                c.AddProfile<CalculationsMappingProfile>();
-            });
-
-            builder
-                .AddSingleton(calculationsConfig.CreateMapper());
 
             builder.AddCalculationsInterServiceClient(config);
             builder.AddSpecificationsInterServiceClient(config);
@@ -108,6 +98,11 @@ namespace CalculateFunding.Functions.Scenarios
             builder.AddJobsInterServiceClient(config);
 
             builder.AddSearch(config);
+            builder
+              .AddSingleton<ISearchRepository<ScenarioIndex>, SearchRepository<ScenarioIndex>>();
+
+            builder
+             .AddSingleton<ISearchRepository<TestScenarioResultIndex>, SearchRepository<TestScenarioResultIndex>>();
 
             builder.AddServiceBus(config);
 

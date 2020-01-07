@@ -1,6 +1,5 @@
 ﻿using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Gherkin;
-using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Common.Caching;
@@ -19,6 +18,8 @@ using CalculateFunding.Services.CodeMetadataGenerator.Interfaces;
 using CalculateFunding.Services.TestEngine.Interfaces;
 using Serilog;
 using CalculateFunding.Models.Code;
+using CalculateFunding.Models.Datasets;
+using CalculateFunding.Models.ProviderLegacy;
 
 namespace CalculateFunding.Services.TestRunner.UnitTests
 {

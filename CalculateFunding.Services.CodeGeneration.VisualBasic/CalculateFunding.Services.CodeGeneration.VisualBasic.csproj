@@ -50,7 +50,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CalculateFunding.Models\CalculateFunding.Models.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Models.Calcs\CalculateFunding.Models.Calcs.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Models.Datasets\CalculateFunding.Models.Datasets.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.CodeGeneration\CalculateFunding.Services.CodeGeneration.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Core\CalculateFunding.Services.Core.csproj" />
   </ItemGroup>

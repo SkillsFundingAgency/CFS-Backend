@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.Models;
-using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Specifications;
 using CalculateFunding.Tests.Common.Helpers;
@@ -102,7 +101,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
                     _.Properties["user-name"] == user.Name &&
                     _.Trigger != null &&
                     _.Trigger.EntityId == specificationId &&
-                    _.Trigger.EntityType == nameof(Specification) &&
+                    _.Trigger.EntityType == "Specification" &&
                     _.Trigger.Message == JobCreation.TriggerMessage))
                 .Returns(job);
         }

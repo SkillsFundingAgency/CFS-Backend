@@ -8,7 +8,7 @@ using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Calcs;
-using CalculateFunding.Models.Exceptions;
+using CalculateFunding.Models.Messages;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Calcs.Interfaces;
@@ -49,10 +49,10 @@ namespace CalculateFunding.Services.Calcs.Services
         public async Task UpdateCalculationsForSpecification_GivenModelHasNoChanges_LogsAndReturns()
         {
             //Arrange
-            Models.Specs.SpecificationVersionComparisonModel specificationVersionComparison = new Models.Specs.SpecificationVersionComparisonModel()
+           SpecificationVersionComparisonModel specificationVersionComparison = new SpecificationVersionComparisonModel()
             {
-                Current = new Models.Specs.SpecificationVersion { FundingPeriod = new Reference { Id = "fp1" } },
-                Previous = new Models.Specs.SpecificationVersion { FundingPeriod = new Reference { Id = "fp1" } }
+                Current = new SpecificationVersion { FundingPeriod = new Reference { Id = "fp1" } },
+                Previous = new SpecificationVersion { FundingPeriod = new Reference { Id = "fp1" } }
             };
 
             string json = JsonConvert.SerializeObject(specificationVersionComparison);
@@ -78,11 +78,11 @@ namespace CalculateFunding.Services.Calcs.Services
             //Arrange
             const string specificationId = "spec-id";
 
-            Models.Specs.SpecificationVersionComparisonModel specificationVersionComparison = new Models.Specs.SpecificationVersionComparisonModel()
+           SpecificationVersionComparisonModel specificationVersionComparison = new SpecificationVersionComparisonModel()
             {
                 Id = specificationId,
-                Current = new Models.Specs.SpecificationVersion { FundingPeriod = new Reference { Id = "fp2" } },
-                Previous = new Models.Specs.SpecificationVersion { FundingPeriod = new Reference { Id = "fp1" } }
+                Current = new SpecificationVersion { FundingPeriod = new Reference { Id = "fp2" } },
+                Previous = new SpecificationVersion { FundingPeriod = new Reference { Id = "fp1" } }
             };
 
             string json = JsonConvert.SerializeObject(specificationVersionComparison);
@@ -115,15 +115,15 @@ namespace CalculateFunding.Services.Calcs.Services
             // Arrange
             const string specificationId = "spec-id";
 
-            Models.Specs.SpecificationVersionComparisonModel specificationVersionComparison = new Models.Specs.SpecificationVersionComparisonModel()
+            SpecificationVersionComparisonModel specificationVersionComparison = new SpecificationVersionComparisonModel()
             {
                 Id = specificationId,
-                Current = new Models.Specs.SpecificationVersion
+                Current = new SpecificationVersion
                 {
                     FundingPeriod = new Reference { Id = "fp1" },
                     Name = "any-name"
                 },
-                Previous = new Models.Specs.SpecificationVersion
+                Previous = new SpecificationVersion
                 {
                     FundingPeriod = new Reference { Id = "fp1" }
                 }
@@ -203,7 +203,7 @@ namespace CalculateFunding.Services.Calcs.Services
                              m.JobDefinitionId == JobConstants.DefinitionNames.CreateInstructAllocationJob &&
                              m.Properties["specification-id"] == specificationId &&
                              m.Trigger.EntityId == specificationId &&
-                             m.Trigger.EntityType == nameof(Models.Specs.Specification) &&
+                             m.Trigger.EntityType == "Specification" &&
                              m.Trigger.Message == $"Updating calculations for specification: '{specificationId}'"
                          ));
 
@@ -218,15 +218,15 @@ namespace CalculateFunding.Services.Calcs.Services
             // Arrange
             const string specificationId = "spec-id";
 
-            Models.Specs.SpecificationVersionComparisonModel specificationVersionComparison = new Models.Specs.SpecificationVersionComparisonModel()
+            SpecificationVersionComparisonModel specificationVersionComparison = new SpecificationVersionComparisonModel()
             {
                 Id = specificationId,
-                Current = new Models.Specs.SpecificationVersion
+                Current = new SpecificationVersion
                 {
                     FundingPeriod = new Reference { Id = "fp1" },
                     Name = "any-name"
                 },
-                Previous = new Models.Specs.SpecificationVersion
+                Previous = new SpecificationVersion
                 {
                     FundingPeriod = new Reference { Id = "fp1" }
                 }
@@ -314,7 +314,7 @@ namespace CalculateFunding.Services.Calcs.Services
                              m.JobDefinitionId == JobConstants.DefinitionNames.CreateInstructAllocationJob &&
                              m.Properties["specification-id"] == specificationId &&
                              m.Trigger.EntityId == specificationId &&
-                             m.Trigger.EntityType == nameof(Models.Specs.Specification) &&
+                             m.Trigger.EntityType == "Specification" &&
                              m.Trigger.Message == $"Updating calculations for specification: '{specificationId}'"
                          ));
 
@@ -329,15 +329,15 @@ namespace CalculateFunding.Services.Calcs.Services
             // Arrange
             const string specificationId = "spec-id";
 
-            Models.Specs.SpecificationVersionComparisonModel specificationVersionComparison = new Models.Specs.SpecificationVersionComparisonModel()
+            SpecificationVersionComparisonModel specificationVersionComparison = new SpecificationVersionComparisonModel()
             {
                 Id = specificationId,
-                Current = new Models.Specs.SpecificationVersion
+                Current = new SpecificationVersion
                 {
                     FundingPeriod = new Reference { Id = "fp1" },
                     Name = "any-name"
                 },
-                Previous = new Models.Specs.SpecificationVersion
+                Previous = new SpecificationVersion
                 {
                     FundingPeriod = new Reference { Id = "fp1" }
                 }
@@ -417,7 +417,7 @@ namespace CalculateFunding.Services.Calcs.Services
                              m.JobDefinitionId == JobConstants.DefinitionNames.CreateInstructGenerateAggregationsAllocationJob &&
                              m.Properties["specification-id"] == specificationId &&
                              m.Trigger.EntityId == specificationId &&
-                             m.Trigger.EntityType == nameof(Models.Specs.Specification) &&
+                             m.Trigger.EntityType == "Specification" &&
                              m.Trigger.Message == $"Updating calculations for specification: '{specificationId}'"
                          ));
 

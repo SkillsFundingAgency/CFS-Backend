@@ -6,8 +6,7 @@ using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Interfaces;
 using CalculateFunding.Common.Storage;
 using CalculateFunding.Functions.CalcEngine.ServiceBus;
-using CalculateFunding.Models.MappingProfiles;
-using CalculateFunding.Models.Results.Search;
+using CalculateFunding.Models.Calcs;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.CalcEngine;
 using CalculateFunding.Services.CalcEngine.Caching;
@@ -15,6 +14,7 @@ using CalculateFunding.Services.CalcEngine.Interfaces;
 using CalculateFunding.Services.CalcEngine.Validators;
 using CalculateFunding.Services.Calcs;
 using CalculateFunding.Services.Calcs.Interfaces;
+using CalculateFunding.Services.Calcs.MappingProfiles;
 using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Caching.FileSystem;
@@ -185,6 +185,10 @@ namespace CalculateFunding.Functions.CalcEngine
             builder.AddTelemetry();
 
             builder.AddSearch(config);
+            builder
+                .AddSingleton<ISearchRepository<CalculationProviderResultsIndex>, SearchRepository<CalculationProviderResultsIndex>>();
+            builder
+               .AddSingleton<ISearchRepository<ProviderCalculationResultsIndex>, SearchRepository<ProviderCalculationResultsIndex>>();
 
             builder.AddFeatureToggling(config);
 

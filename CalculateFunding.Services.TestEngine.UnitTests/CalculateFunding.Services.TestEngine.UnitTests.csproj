@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CalculateFunding.Common.Models" Version="1.0.5" />
+    <PackageReference Include="CalculateFunding.Common.Models" Version="1.0.6" />
     <PackageReference Include="FluentAssertions" Version="5.9.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.3.0" />
     <PackageReference Include="MSTest.TestAdapter" Version="2.0.0" />
@@ -18,6 +18,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\CalculateFunding.Services.Results\CalculateFunding.Services.Results.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Services.Specs\CalculateFunding.Services.Specs.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.TestEngine\CalculateFunding.Services.TestEngine.csproj" />
   </ItemGroup>
 

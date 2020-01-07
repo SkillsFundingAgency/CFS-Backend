@@ -6,7 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
-using CalculateFunding.Models.Results;
+using CalculateFunding.Models.Datasets;
 using CalculateFunding.Services.CalcEngine;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Caching.FileSystem;

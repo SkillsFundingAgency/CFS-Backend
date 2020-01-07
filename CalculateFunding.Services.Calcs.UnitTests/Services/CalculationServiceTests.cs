@@ -133,8 +133,7 @@ namespace CalculateFunding.Services.Calcs.Services
         private static IMapper CreateMapper()
         {
             MapperConfiguration resultsConfig = new MapperConfiguration(c =>
-            {
-                // c.AddProfile<PolicyMappingProfile>();
+            {               
             });
 
             return resultsConfig.CreateMapper();

@@ -13,14 +13,14 @@ using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets.ViewModels;
-using CalculateFunding.Models.Exceptions;
 using CalculateFunding.Models.Gherkin;
+using CalculateFunding.Models.Messages;
 using CalculateFunding.Models.Scenarios;
-using CalculateFunding.Models.Specs;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.CodeGeneration.VisualBasic;
 using CalculateFunding.Services.Compiler;
+using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
@@ -45,7 +45,6 @@ namespace CalculateFunding.Services.Scenarios
         private readonly IValidator<CreateNewTestScenarioVersion> _createNewTestScenarioVersionValidator;
         private readonly ISearchRepository<ScenarioIndex> _searchRepository;
         private readonly ICacheProvider _cacheProvider;
-        private readonly IBuildProjectRepository _buildProjectRepository;
         private readonly IVersionRepository<TestScenarioVersion> _versionRepository;
         private readonly IJobsApiClient _jobsApiClient;
         private readonly ICalcsRepository _calcsRepository;
@@ -60,8 +59,7 @@ namespace CalculateFunding.Services.Scenarios
             ISpecificationsApiClient specificationsApiClient,
             IValidator<CreateNewTestScenarioVersion> createNewTestScenarioVersionValidator,
             ISearchRepository<ScenarioIndex> searchRepository,
-            ICacheProvider cacheProvider,
-            IBuildProjectRepository buildProjectRepository,
+            ICacheProvider cacheProvider,         
             IVersionRepository<TestScenarioVersion> versionRepository,
             IJobsApiClient jobsApiClient,
             ICalcsRepository calcsRepository,
@@ -72,8 +70,7 @@ namespace CalculateFunding.Services.Scenarios
             Guard.ArgumentNotNull(specificationsApiClient, nameof(specificationsApiClient));
             Guard.ArgumentNotNull(createNewTestScenarioVersionValidator, nameof(createNewTestScenarioVersionValidator));
             Guard.ArgumentNotNull(searchRepository, nameof(searchRepository));
-            Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
-            Guard.ArgumentNotNull(buildProjectRepository, nameof(buildProjectRepository));
+            Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));        
             Guard.ArgumentNotNull(versionRepository, nameof(versionRepository));
             Guard.ArgumentNotNull(jobsApiClient, nameof(jobsApiClient));
             Guard.ArgumentNotNull(calcsRepository, nameof(calcsRepository));
@@ -87,8 +84,7 @@ namespace CalculateFunding.Services.Scenarios
             _specificationsApiClient = specificationsApiClient;
             _createNewTestScenarioVersionValidator = createNewTestScenarioVersionValidator;
             _searchRepository = searchRepository;
-            _cacheProvider = cacheProvider;
-            _buildProjectRepository = buildProjectRepository;
+            _cacheProvider = cacheProvider;          
             _cacheProvider = cacheProvider;
             _versionRepository = versionRepository;
             _jobsApiClient = jobsApiClient;
@@ -333,7 +329,7 @@ namespace CalculateFunding.Services.Scenarios
             {
                 _logger.Error("A null specificationVersionComparison was provided to UpdateScenarioForSpecification");
 
-                throw new InvalidModelException(nameof(Models.Specs.SpecificationVersionComparisonModel), new[] { "Null or invalid model provided" });
+                throw new InvalidModelException(nameof(SpecificationVersionComparisonModel), new[] { "Null or invalid model provided" });
             }
 
             if (specificationVersionComparison.HasNoChanges && !specificationVersionComparison.HasNameChange)

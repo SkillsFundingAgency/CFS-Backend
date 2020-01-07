@@ -5,6 +5,7 @@ using CalculateFunding.Common.Interfaces;
 using CalculateFunding.Common.Storage;
 using CalculateFunding.Functions.Calcs.ServiceBus;
 using CalculateFunding.Models.Calcs;
+
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Calcs;
 using CalculateFunding.Services.Calcs.CodeGen;
@@ -137,6 +138,12 @@ namespace CalculateFunding.Functions.Calcs
             builder.AddFeatureToggling(config);
 
             builder.AddSearch(config);
+            builder
+                .AddSingleton<ISearchRepository<CalculationIndex>, SearchRepository<CalculationIndex>>();
+            builder
+                .AddSingleton<ISearchRepository<CalculationProviderResultsIndex>, SearchRepository<CalculationProviderResultsIndex>>();
+            builder
+                .AddSingleton<ISearchRepository<ProviderCalculationResultsIndex>, SearchRepository<ProviderCalculationResultsIndex>>();
 
             builder.AddServiceBus(config);
 

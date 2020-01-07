@@ -12,16 +12,14 @@ namespace CalculateFunding.Services.Scenarios
 {
     public class CalcsRepository : ICalcsRepository
     {
-        private readonly IMapper _mapper;
+        
         private readonly ICalculationsApiClient _apiClient;
 
-        public CalcsRepository(ICalculationsApiClient apiClient, IMapper mapper)
+        public CalcsRepository(ICalculationsApiClient apiClient)
         {
-            Guard.ArgumentNotNull(apiClient, nameof(apiClient));
-            Guard.ArgumentNotNull(mapper, nameof(mapper));
+            Guard.ArgumentNotNull(apiClient, nameof(apiClient));           
 
-            _apiClient = apiClient;
-            _mapper = mapper;
+            _apiClient = apiClient;          
         }
 
         public async Task<IEnumerable<Calculation>> GetCurrentCalculationsBySpecificationId(string specificationId)

@@ -6,9 +6,9 @@ using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.TemplateMetadata;
-using CalculateFunding.Models.MappingProfiles;
+
+using CalculateFunding.Models.Messages;
 using CalculateFunding.Models.Specs;
-using CalculateFunding.Models.Specs.Messages;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.FeatureToggles;
 using CalculateFunding.Services.Core.Interfaces;
@@ -22,6 +22,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
+
 
 namespace CalculateFunding.Services.Specs.UnitTests.Services
 {
@@ -50,7 +51,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         private readonly ISearchRepository<SpecificationIndex> _searchRepository;
         private readonly ICacheProvider _cacheProvider;
         private readonly IMessengerService _messengerService;
-        private readonly IVersionRepository<SpecificationVersion> _versionRepository;
+        private readonly IVersionRepository<Models.Specs.SpecificationVersion> _versionRepository;
 
         private SpecificationsService CreateService(
             IMapper mapper = null,
@@ -64,7 +65,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             ICacheProvider cacheProvider = null,
             IValidator<SpecificationEditModel> specificationEditModelValidator = null,
             IResultsRepository resultsRepository = null,
-            IVersionRepository<SpecificationVersion> specificationVersionRepository = null,
+            IVersionRepository<Models.Specs.SpecificationVersion> specificationVersionRepository = null,
             IQueueCreateSpecificationJobActions queueCreateSpecificationJobActions = null,
             IFeatureToggle featureToggle = null,
             ICalculationsApiClient calcsApiClient = null)
@@ -92,9 +93,9 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             return Substitute.For<IJobsApiClient>();
         }
 
-        protected IVersionRepository<SpecificationVersion> CreateVersionRepository()
+        protected IVersionRepository<Models.Specs.SpecificationVersion> CreateVersionRepository()
         {
-            return Substitute.For<IVersionRepository<SpecificationVersion>>();
+            return Substitute.For<IVersionRepository<Models.Specs.SpecificationVersion>>();
         }
 
         protected IResultsRepository CreateResultsRepository()
@@ -117,8 +118,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             MapperConfiguration mappingConfiguration = new MapperConfiguration(
                 c =>
                 {
-                    c.AddProfile<SpecificationsMappingProfile>();
-                    c.AddProfile<PolicyMappingProfile>();
+                    c.AddProfile<SpecificationsMappingProfile>();                  
                 }
             );
             IMapper mapper = mappingConfiguration.CreateMapper();
@@ -165,9 +165,9 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             return Substitute.For<ITemplateMetadataGenerator>();
         }
 
-        protected IVersionRepository<SpecificationVersion> CreateSpecificationVersionRepository()
+        protected IVersionRepository<Models.Specs.SpecificationVersion> CreateSpecificationVersionRepository()
         {
-            return Substitute.For<IVersionRepository<SpecificationVersion>>();
+            return Substitute.For<IVersionRepository<Models.Specs.SpecificationVersion>>();
         }
 
         protected IValidator<SpecificationCreateModel> CreateSpecificationValidator(ValidationResult validationResult = null)
@@ -224,7 +224,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             {
                 Id = SpecificationId,
                 Name = "Spec Name",
-                Current = new SpecificationVersion()
+                Current = new Models.Specs.SpecificationVersion()
                 {
                     Name = "Spec name",
                     FundingStreams = new List<Reference>()

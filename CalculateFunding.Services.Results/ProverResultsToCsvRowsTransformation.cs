@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
 using CalculateFunding.Models.Calcs;
-using CalculateFunding.Models.Results;
+using CalculateFunding.Models.ProviderLegacy;
 using CalculateFunding.Services.Results.Interfaces;
 
 namespace CalculateFunding.Services.Results

@@ -13,11 +13,12 @@ using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets.ViewModels;
-using CalculateFunding.Models.Exceptions;
 using CalculateFunding.Models.Gherkin;
+using CalculateFunding.Models.Messages;
 using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
@@ -1303,8 +1304,8 @@ namespace CalculateFunding.Services.Scenarios.Services
             //Arrange
             SpecificationVersionComparisonModel specificationVersionComparison = new SpecificationVersionComparisonModel
             {
-                Current = new SpecificationVersion { FundingPeriod = new Reference { Id = "fp1" } },
-                Previous = new SpecificationVersion { FundingPeriod = new Reference { Id = "fp1" } }
+                Current = new Models.Messages.SpecificationVersion { FundingPeriod = new Reference { Id = "fp1" } },
+                Previous = new Models.Messages.SpecificationVersion { FundingPeriod = new Reference { Id = "fp1" } }
             };
 
             string json = JsonConvert.SerializeObject(specificationVersionComparison);
@@ -1331,8 +1332,8 @@ namespace CalculateFunding.Services.Scenarios.Services
             SpecificationVersionComparisonModel specificationVersionComparison = new SpecificationVersionComparisonModel
             {
                 Id = specificationId,
-                Current = new SpecificationVersion { FundingPeriod = new Reference { Id = "fp2" } },
-                Previous = new SpecificationVersion { FundingPeriod = new Reference { Id = "fp1" } }
+                Current = new Models.Messages.SpecificationVersion { FundingPeriod = new Reference { Id = "fp2" } },
+                Previous = new Models.Messages.SpecificationVersion { FundingPeriod = new Reference { Id = "fp1" } }
             };
 
             string json = JsonConvert.SerializeObject(specificationVersionComparison);
@@ -1364,13 +1365,13 @@ namespace CalculateFunding.Services.Scenarios.Services
             SpecificationVersionComparisonModel specificationVersionComparison = new SpecificationVersionComparisonModel()
             {
                 Id = specificationId,
-                Current = new SpecificationVersion
+                Current = new Models.Messages.SpecificationVersion
                 {
                     FundingPeriod = new Reference { Id = "fp2" },
                     Name = "any-name",
                     FundingStreams = new[] { new Reference { Id = "fs1" } }
                 },
-                Previous = new SpecificationVersion { FundingPeriod = new Reference { Id = "fp1" } }
+                Previous = new Models.Messages.SpecificationVersion { FundingPeriod = new Reference { Id = "fp1" } }
             };
 
             string json = JsonConvert.SerializeObject(specificationVersionComparison);
@@ -2232,8 +2233,7 @@ namespace CalculateFunding.Services.Scenarios.Services
             ISpecificationsApiClient specificationsApiClient = null,
             IValidator<CreateNewTestScenarioVersion> createNewTestScenarioVersionValidator = null,
             ISearchRepository<ScenarioIndex> searchRepository = null,
-            ICacheProvider cacheProvider = null,
-            IBuildProjectRepository buildProjectRepository = null,
+            ICacheProvider cacheProvider = null,          
             IVersionRepository<TestScenarioVersion> versionRepository = null,
             IJobsApiClient jobsApiClient = null,
             ICalcsRepository calcsRepository = null,
@@ -2245,8 +2245,7 @@ namespace CalculateFunding.Services.Scenarios.Services
                 specificationsApiClient ?? CreateSpecificationsApiClient(),
                 createNewTestScenarioVersionValidator ?? CreateValidator(),
                 searchRepository ?? CreateSearchRepository(),
-                cacheProvider ?? CreateCacheProvider(),
-                buildProjectRepository ?? CreateBuildProjectRepository(),
+                cacheProvider ?? CreateCacheProvider(),             
                 versionRepository ?? CreateVersionRepository(),
                 jobsApiClient ?? CreateJobsApiClient(),
                 calcsRepository ?? CreateCalcsRepository(),
@@ -2271,12 +2270,7 @@ namespace CalculateFunding.Services.Scenarios.Services
         static IScenariosRepository CreateScenariosRepository()
         {
             return Substitute.For<IScenariosRepository>();
-        }
-
-        static IBuildProjectRepository CreateBuildProjectRepository()
-        {
-            return Substitute.For<IBuildProjectRepository>();
-        }
+        }       
 
         static ISpecificationsApiClient CreateSpecificationsApiClient()
         {

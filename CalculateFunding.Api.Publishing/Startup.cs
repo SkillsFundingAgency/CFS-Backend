@@ -7,10 +7,11 @@ using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Storage;
 using CalculateFunding.Common.WebApi.Extensions;
 using CalculateFunding.Common.WebApi.Middleware;
+using CalculateFunding.Models.Publishing;
+using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.AspNet.HealthChecks;
 using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Services.Core.FeatureToggles;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Publishing;
@@ -24,13 +25,13 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.FeatureManagement;
 using Polly.Bulkhead;
 using Swashbuckle.AspNetCore.Swagger;
-using Microsoft.FeatureManagement;
-using IBlobClient = CalculateFunding.Common.Storage.IBlobClient;
 using BlobClient = CalculateFunding.Common.Storage.BlobClient;
-using LocalIBlobClient = CalculateFunding.Services.Core.Interfaces.AzureStorage.IBlobClient;
+using IBlobClient = CalculateFunding.Common.Storage.IBlobClient;
 using LocalBlobClient = CalculateFunding.Services.Core.AzureStorage.BlobClient;
+using LocalIBlobClient = CalculateFunding.Services.Core.Interfaces.AzureStorage.IBlobClient;
 
 namespace CalculateFunding.Api.Publishing
 {
@@ -68,7 +69,7 @@ namespace CalculateFunding.Api.Publishing
             IHostingEnvironment env)
         {
             app.UseAzureAppConfiguration();
-            
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -145,6 +146,11 @@ namespace CalculateFunding.Api.Publishing
 
             builder.AddCaching(Configuration);
             builder.AddSearch(Configuration);
+            builder
+               .AddSingleton<ISearchRepository<PublishedProviderIndex>, SearchRepository<PublishedProviderIndex>>();
+            builder
+                .AddSingleton<ISearchRepository<PublishedFundingIndex>, SearchRepository<PublishedFundingIndex>>();
+
             builder.AddApplicationInsightsTelemetry();
             builder.AddApplicationInsightsForApiApp(Configuration, "CalculateFunding.Api.Publishing");
             builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Api.Publishing");
@@ -160,7 +166,7 @@ namespace CalculateFunding.Api.Publishing
             builder.AddJobsInterServiceClient(Configuration);
             builder.AddCalculationsInterServiceClient(Configuration);
             builder.AddFeatureToggling(Configuration);
-            
+
             builder
                 .AddSingleton<LocalIBlobClient, LocalBlobClient>((ctx) =>
                 {

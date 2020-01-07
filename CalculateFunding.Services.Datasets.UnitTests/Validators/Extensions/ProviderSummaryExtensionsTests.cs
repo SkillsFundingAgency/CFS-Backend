@@ -1,6 +1,7 @@
 ﻿using System;
+using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets.Schema;
-using CalculateFunding.Models.Results;
+using CalculateFunding.Models.ProviderLegacy;
 using CalculateFunding.Services.DataImporter.Validators.Extension;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;

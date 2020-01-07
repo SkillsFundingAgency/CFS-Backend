@@ -4,7 +4,6 @@ using CalculateFunding.Migrations.Specification.Etl.Migrations;
 using CalculateFunding.Migrations.Specifications.Etl.Migrations;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Publishing;
-using CalculateFunding.Models.Results.Search;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Search;
 using CommandLine;

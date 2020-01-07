@@ -16,7 +16,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CalculateFunding.Models\CalculateFunding.Models.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Models.Calcs\CalculateFunding.Models.Calcs.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Models.Datasets\CalculateFunding.Models.Datasets.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Models.External\CalculateFunding.Models.External.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Models.Providers\CalculateFunding.Models.Providers.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Models.Publishing\CalculateFunding.Models.Publishing.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Models.Scenarios\CalculateFunding.Models.Scenarios.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Models.Specs\CalculateFunding.Models.Specs.csproj" />
   </ItemGroup>
 
 </Project>

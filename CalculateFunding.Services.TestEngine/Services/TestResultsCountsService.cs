@@ -7,7 +7,7 @@ using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Aggregations;
-using CalculateFunding.Models.Results;
+
 using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Repositories.Common.Search.Results;

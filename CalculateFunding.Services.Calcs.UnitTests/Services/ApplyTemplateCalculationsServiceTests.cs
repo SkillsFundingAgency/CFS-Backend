@@ -11,7 +11,7 @@ using CalculateFunding.Common.Models;
 using CalculateFunding.Common.TemplateMetadata.Enums;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Models.Calcs;
-using CalculateFunding.Models.Specs;
+
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Tests.Common.Helpers;
@@ -639,7 +639,7 @@ namespace CalculateFunding.Services.Calcs.Services
                     _userName,
                     Arg.Is<Trigger>(_ => _.Message == "Assigned Template Calculations" &&
                                          _.EntityId == _specificationId &&
-                                         _.EntityType == nameof(Specification))
+                                         _.EntityType == "Specification")
                     , _correlationId);
         }
     }

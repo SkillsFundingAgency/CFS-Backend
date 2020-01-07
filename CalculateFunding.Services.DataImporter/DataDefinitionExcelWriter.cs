@@ -1,5 +1,5 @@
-﻿using CalculateFunding.Models.Datasets.Schema;
-using CalculateFunding.Models.ExcelDataModels;
+﻿using CalculateFunding.Models.Datasets;
+using CalculateFunding.Models.Datasets.Schema;
 using OfficeOpenXml;
 using System;
 using System.Collections.Generic;

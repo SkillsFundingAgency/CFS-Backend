@@ -2,8 +2,9 @@
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets.Schema;
-using CalculateFunding.Models.Results;
+using CalculateFunding.Models.ProviderLegacy;
 using CalculateFunding.Services.DataImporter;
 using CalculateFunding.Services.DataImporter.Validators;
 using CalculateFunding.Services.DataImporter.Validators.Extension;

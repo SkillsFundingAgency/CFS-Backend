@@ -1,6 +1,5 @@
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Calcs;
-using CalculateFunding.Models.Results;
 using CalculateFunding.Tests.Common.Helpers;
 
 namespace CalculateFunding.Services.Results

@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
-using CalculateFunding.Models.Exceptions;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Models.Users;
 using CalculateFunding.Services.Core.Caching;
@@ -16,6 +15,9 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using NSubstitute;
 using Serilog;
+using CalculateFunding.Services.Core;
+using CalculateFunding.Models.Messages;
+
 
 namespace CalculateFunding.Services.Users
 {
@@ -27,7 +29,7 @@ namespace CalculateFunding.Services.Users
             // Arrange
             SpecificationVersionComparisonModel comparisonModel = new SpecificationVersionComparisonModel()
             {
-                Current = new SpecificationVersion()
+                Current = new Models.Messages.SpecificationVersion()
                 {
                     SpecificationId = SpecificationId,
                     FundingStreams = new List<Reference>()
@@ -36,7 +38,7 @@ namespace CalculateFunding.Services.Users
                         new Reference("fs2", "Funding Stream 2"),
                     }
                 },
-                Previous = new SpecificationVersion()
+                Previous = new Models.Messages.SpecificationVersion()
                 {
                     SpecificationId = SpecificationId,
                     FundingStreams = new List<Reference>()
@@ -150,7 +152,7 @@ namespace CalculateFunding.Services.Users
             // Arrange
             SpecificationVersionComparisonModel comparisonModel = new SpecificationVersionComparisonModel()
             {
-                Current = new SpecificationVersion()
+                Current = new Models.Messages.SpecificationVersion()
                 {
                     SpecificationId = SpecificationId,
                     FundingStreams = new List<Reference>()
@@ -158,7 +160,7 @@ namespace CalculateFunding.Services.Users
                         new Reference("fs1", "Funding Stream 1"),
                     }
                 },
-                Previous = new SpecificationVersion()
+                Previous = new Models.Messages.SpecificationVersion()
                 {
                     SpecificationId = SpecificationId,
                     FundingStreams = new List<Reference>()
@@ -273,7 +275,7 @@ namespace CalculateFunding.Services.Users
             // Arrange
             SpecificationVersionComparisonModel comparisonModel = new SpecificationVersionComparisonModel()
             {
-                Current = new SpecificationVersion()
+                Current = new Models.Messages.SpecificationVersion()
                 {
                     SpecificationId = SpecificationId,
                     FundingStreams = new List<Reference>()
@@ -282,7 +284,7 @@ namespace CalculateFunding.Services.Users
                         new Reference("fs2", "Funding Stream 2"),
                     }
                 },
-                Previous = new SpecificationVersion()
+                Previous = new Models.Messages.SpecificationVersion()
                 {
                     SpecificationId = SpecificationId,
                     FundingStreams = new List<Reference>()
@@ -401,7 +403,7 @@ namespace CalculateFunding.Services.Users
             // Arrange
             SpecificationVersionComparisonModel comparisonModel = new SpecificationVersionComparisonModel()
             {
-                Current = new SpecificationVersion()
+                Current = new Models.Messages.SpecificationVersion()
                 {
                     SpecificationId = SpecificationId,
                     FundingStreams = new List<Reference>()
@@ -410,7 +412,7 @@ namespace CalculateFunding.Services.Users
                         new Reference("fs2", "Funding Stream 2"),
                     }
                 },
-                Previous = new SpecificationVersion()
+                Previous = new Models.Messages.SpecificationVersion()
                 {
                     SpecificationId = SpecificationId,
                     FundingStreams = new List<Reference>()
@@ -487,7 +489,7 @@ namespace CalculateFunding.Services.Users
             // Arrange
             SpecificationVersionComparisonModel comparisonModel = new SpecificationVersionComparisonModel()
             {
-                Current = new SpecificationVersion()
+                Current = new Models.Messages.SpecificationVersion()
                 {
                     SpecificationId = SpecificationId,
                     FundingStreams = new List<Reference>()
@@ -495,7 +497,7 @@ namespace CalculateFunding.Services.Users
                         new Reference("fs1", "Funding Stream 1"),
                     }
                 },
-                Previous = new SpecificationVersion()
+                Previous = new Models.Messages.SpecificationVersion()
                 {
                     SpecificationId = SpecificationId,
                     FundingStreams = new List<Reference>()
@@ -619,8 +621,8 @@ namespace CalculateFunding.Services.Users
 
             string json = JsonConvert.SerializeObject(new SpecificationVersionComparisonModel()
             {
-                Current = new SpecificationVersion(),
-                Previous = new SpecificationVersion(),
+                Current = new Models.Messages.SpecificationVersion(),
+                Previous = new Models.Messages.SpecificationVersion(),
             });
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));

@@ -18,12 +18,18 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CalculateFunding.Models\CalculateFunding.Models.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Models.Calcs\CalculateFunding.Models.Calcs.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Models.Datasets\CalculateFunding.Models.Datasets.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Models.Messages\CalculateFunding.Models.Messages.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.CodeGeneration.VisualBasic\CalculateFunding.Services.CodeGeneration.VisualBasic.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.CodeGeneration\CalculateFunding.Services.CodeGeneration.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.CodeMetadataGenerator\CalculateFunding.Services.CodeMetadataGenerator.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Compiler\CalculateFunding.Services.Compiler.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Core\CalculateFunding.Services.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="MappingProfiles\" />
   </ItemGroup>
 
 </Project>

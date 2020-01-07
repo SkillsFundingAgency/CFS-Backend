@@ -18,8 +18,7 @@ using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Code;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.ViewModels;
-using CalculateFunding.Models.Exceptions;
-using CalculateFunding.Models.Specs;
+using CalculateFunding.Models.Messages;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Calcs.Interfaces;
@@ -420,7 +419,7 @@ namespace CalculateFunding.Services.Calcs
         {
             SpecificationVersionComparisonModel specificationVersionComparison = message.GetPayloadAsInstanceOf<SpecificationVersionComparisonModel>();
 
-            SpecificationVersion specificationVersion = specificationVersionComparison.Current;
+            Models.Messages.SpecificationVersion specificationVersion = specificationVersionComparison.Current;
 
             if (specificationVersionComparison == null || specificationVersion == null)
             {
@@ -470,7 +469,7 @@ namespace CalculateFunding.Services.Calcs
             Trigger trigger = new Trigger
             {
                 EntityId = specificationId,
-                EntityType = nameof(Specification),
+                EntityType = "Specification",
                 Message = $"Updating calculations for specification: '{specificationId}'"
             };
 

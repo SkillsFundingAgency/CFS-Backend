@@ -7,6 +7,7 @@ using CalculateFunding.Api.External.V3.Services;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Storage;
 using CalculateFunding.Common.WebApi.Extensions;
+using CalculateFunding.Models.Publishing;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.AspNet.HealthChecks;
@@ -194,6 +195,8 @@ namespace CalculateFunding.Api.External
                 .AddSingleton<IHealthChecker, FundingFeedSearchService>();
 
             builder.AddSearch(Configuration);
+            builder
+               .AddSingleton<ISearchRepository<PublishedFundingIndex>, SearchRepository<PublishedFundingIndex>>();
 
             builder.AddApplicationInsightsTelemetry();
             builder.AddApplicationInsightsForApiApp(Configuration, "CalculateFunding.Api.External");

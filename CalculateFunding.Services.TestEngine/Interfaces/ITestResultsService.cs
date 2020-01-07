@@ -1,4 +1,5 @@
-﻿using CalculateFunding.Models.Results;
+﻿using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Scenarios;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;

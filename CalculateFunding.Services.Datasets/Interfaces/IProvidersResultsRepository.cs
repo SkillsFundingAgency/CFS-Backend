@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using CalculateFunding.Models.Results;
+using CalculateFunding.Models.Datasets;
+
 
 namespace CalculateFunding.Services.Datasets.Interfaces
 {

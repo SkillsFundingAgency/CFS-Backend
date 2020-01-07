@@ -4,7 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Models;
-using CalculateFunding.Models.Results.Search;
+
+using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.TestRunner.Interfaces;
 using CalculateFunding.Services.TestRunner.Services;

@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using CalculateFunding.Models.Results;
+
 using Microsoft.AspNetCore.Mvc;
 
 namespace CalculateFunding.Services.Providers.Interfaces

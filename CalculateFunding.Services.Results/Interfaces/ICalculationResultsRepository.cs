@@ -4,7 +4,7 @@ using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Calcs;
-using CalculateFunding.Models.Results;
+
 
 namespace CalculateFunding.Services.Results.Interfaces
 {

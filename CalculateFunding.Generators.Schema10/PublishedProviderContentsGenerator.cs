@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using CalculateFunding.Common.ApiClient.Calcs.Models;
 using CalculateFunding.Common.Helpers;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models;

@@ -6,6 +6,8 @@ using CalculateFunding.Functions.Results.ServiceBus;
 using CalculateFunding.Functions.TestEngine.ServiceBus;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Jobs;
+using CalculateFunding.Models.Messages;
+using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
@@ -22,7 +24,7 @@ namespace CalculateFunding.Functions.DebugQueue
         [FunctionName("on-provider-sourcedataset-cleanup")]
         public static async Task RunOnProviderSourceDatasetCleanup([QueueTrigger(ServiceBusConstants.TopicNames.ProviderSourceDatasetCleanup, Connection = "AzureConnectionString")] string item, ILogger logger)
         {
-            Message message = Helpers.ConvertToMessage<Models.Results.SpecificationProviders>(item);
+            Message message = Helpers.ConvertToMessage<SpecificationProviders>(item);
 
             using (IServiceScope scope = Functions.Results.Startup.RegisterComponents(new ServiceCollection()).CreateScope())
             {

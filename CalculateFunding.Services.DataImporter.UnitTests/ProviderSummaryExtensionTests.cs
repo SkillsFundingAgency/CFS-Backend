@@ -1,5 +1,4 @@
 ﻿using CalculateFunding.Models.Datasets.Schema;
-using CalculateFunding.Models.Results;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using CalculateFunding.Services.DataImporter.Validators.Extension;
 using System;
@@ -7,6 +6,8 @@ using System.Collections.Generic;
 using System.Text;
 using FluentAssertions;
 using System.Threading.Tasks;
+using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.ProviderLegacy;
 
 namespace CalculateFunding.Services.Scenarios
 {

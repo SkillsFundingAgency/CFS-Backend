@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using CalculateFunding.Models;
-using CalculateFunding.Models.Results;
+using CalculateFunding.Models.Datasets;
 using CalculateFunding.Tests.Common.Helpers;
 
 namespace CalculateFunding.Services.Datasets.Services

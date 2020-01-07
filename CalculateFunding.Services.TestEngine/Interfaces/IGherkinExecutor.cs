@@ -1,5 +1,5 @@
 ﻿using CalculateFunding.Models.Calcs;
-using CalculateFunding.Models.Results;
+using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Scenarios;
 using System.Collections.Generic;
 using System.Threading.Tasks;

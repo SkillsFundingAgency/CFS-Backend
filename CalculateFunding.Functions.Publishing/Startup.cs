@@ -14,6 +14,7 @@ using CalculateFunding.Common.Storage;
 using CalculateFunding.Functions.Publishing;
 using CalculateFunding.Functions.Publishing.ServiceBus;
 using CalculateFunding.Models.Publishing;
+using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
@@ -86,6 +87,11 @@ namespace CalculateFunding.Functions.Publishing
             builder.AddSingleton<ICosmosRepository, CosmosRepository>();
             builder.AddCaching(config);
             builder.AddSearch(config);
+            builder
+              .AddSingleton<ISearchRepository<PublishedProviderIndex>, SearchRepository<PublishedProviderIndex>>();
+            builder
+                .AddSingleton<ISearchRepository<PublishedFundingIndex>, SearchRepository<PublishedFundingIndex>>();
+
             builder.AddSingleton<OnRefreshFunding>();
             builder.AddSingleton<OnApproveFunding>();
             builder.AddSingleton<OnPublishFunding>();

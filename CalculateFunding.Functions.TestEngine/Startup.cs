@@ -3,7 +3,7 @@ using AutoMapper;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Functions.TestEngine.ServiceBus;
-using CalculateFunding.Models.MappingProfiles;
+using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.CodeMetadataGenerator;
 using CalculateFunding.Services.CodeMetadataGenerator.Interfaces;
@@ -13,6 +13,7 @@ using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Logging;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.TestEngine.Interfaces;
+using CalculateFunding.Services.TestEngine.MappingProfiles;
 using CalculateFunding.Services.TestRunner;
 using CalculateFunding.Services.TestRunner.Interfaces;
 using CalculateFunding.Services.TestRunner.Repositories;
@@ -134,8 +135,7 @@ namespace CalculateFunding.Functions.TestEngine
 
             MapperConfiguration resultsMappingConfiguration = new MapperConfiguration(c =>
             {
-                c.AddProfile<ResultsMappingProfile>();
-                c.AddProfile<CalculationsMappingProfile>();
+                c.AddProfile<TestEngineMappingProfile>();               
             });
 
             builder
@@ -153,6 +153,8 @@ namespace CalculateFunding.Functions.TestEngine
             }
 
             builder.AddSearch(config);
+            builder
+                .AddSingleton<ISearchRepository<TestScenarioResultIndex>, SearchRepository<TestScenarioResultIndex>>();
 
             builder.AddSpecificationsInterServiceClient(config);
             builder.AddScenariosInterServiceClient(config);

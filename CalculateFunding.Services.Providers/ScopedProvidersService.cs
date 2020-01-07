@@ -6,17 +6,19 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
+using CalculateFunding.Common.ApiClient.Results;
+using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Caching;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
-using CalculateFunding.Models;
+using CalculateFunding.Models.ProviderLegacy;
 using CalculateFunding.Models.Providers;
-using CalculateFunding.Models.Results;
-using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Caching.FileSystem;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces.Proxies;
+using CalculateFunding.Services.Core.Proxies;
 using CalculateFunding.Services.Providers.Caching;
 using CalculateFunding.Services.Providers.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -31,7 +33,7 @@ namespace CalculateFunding.Services.Providers
         private const string getScopedProviderIdsUrl = "results/get-scoped-providerids?specificationId=";
 
         private readonly ICacheProvider _cacheProvider;
-        private readonly IResultsApiClientProxy _resultsApiClient;
+        private readonly IResultsApiClient _resultsApiClient;
         private readonly ISpecificationsApiClientProxy _specificationsApiClient;
         private readonly IProviderVersionService _providerVersionService;
         private readonly IMapper _mapper;
@@ -41,7 +43,7 @@ namespace CalculateFunding.Services.Providers
 
 
         public ScopedProvidersService(ICacheProvider cacheProvider,
-            IResultsApiClientProxy resultsApiClient,
+            IResultsApiClient resultsApiClient,
             ISpecificationsApiClientProxy specificationsApiClient,
             IProviderVersionService providerVersionService,
             IMapper mapper,
@@ -168,16 +170,18 @@ namespace CalculateFunding.Services.Providers
             return new OkObjectResult(providerIds);
         }
 
-        private Task<IEnumerable<string>> GetScopedProviderIdsBySpecification(string specificationId)
+        private async Task<IEnumerable<string>> GetScopedProviderIdsBySpecification(string specificationId)
         {
             if (string.IsNullOrWhiteSpace(specificationId))
             {
                 throw new ArgumentNullException(nameof(specificationId));
             }
 
-            string url = $"{getScopedProviderIdsUrl}{specificationId}";
+            Common.ApiClient.Models.ApiResponse<IEnumerable<string>> scopedProviders =
+                    await _resultsApiClient.GetScopedProviderIdsBySpecificationId(specificationId);
 
-            return _resultsApiClient.GetAsync<IEnumerable<string>>(url);
+            return scopedProviders.Content;
+
         }
 
         private async Task<IEnumerable<ProviderSummary>> GetScopedProvidersBySpecification(string specificationId)

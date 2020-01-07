@@ -7,12 +7,15 @@ using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Common.ApiClient.Providers;
 using CalculateFunding.Common.Models;
-using CalculateFunding.Models.Exceptions;
+using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.MappingProfiles;
-using CalculateFunding.Models.Results;
-using CalculateFunding.Models.Results.Search;
+using CalculateFunding.Models.Messages;
+using CalculateFunding.Models.ProviderLegacy;
+using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Interfaces.Logging;
+using CalculateFunding.Services.TestEngine.MappingProfiles;
 using CalculateFunding.Services.TestRunner.Interfaces;
 using CalculateFunding.Services.TestRunner.Services;
 using FluentAssertions;
@@ -22,6 +25,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using NSubstitute;
 using Serilog;
+using TestResult = CalculateFunding.Models.Scenarios.TestResult;
 
 namespace CalculateFunding.Services.TestRunner.UnitTests
 {
@@ -145,7 +149,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
                     c.First().ProviderName == testScenarioResult.Provider.Name &&
                     c.First().SpecificationId == testScenarioResult.Specification.Id &&
                     c.First().SpecificationName == testScenarioResult.Specification.Name &&
-                    c.First().TestResult == Enum.GetName(typeof(Models.Results.TestResult), testScenarioResult.TestResult) &&
+                    c.First().TestResult == Enum.GetName(typeof(TestResult), testScenarioResult.TestResult) &&
                     c.First().TestScenarioId == testScenarioResult.TestScenario.Id &&
                     c.First().TestScenarioName == testScenarioResult.TestScenario.Name &&
                     c.First().LastUpdatedDate > DateTimeOffset.Now.AddDays(-1) &&
@@ -260,11 +264,11 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
             //Arrange
             const string specificationId = "spec-id";
 
-            Models.Specs.SpecificationVersionComparisonModel specificationVersionComparison = new Models.Specs.SpecificationVersionComparisonModel()
+            SpecificationVersionComparisonModel specificationVersionComparison = new SpecificationVersionComparisonModel()
             {
                 Id = specificationId,
-                Current = new Models.Specs.SpecificationVersion { Name = "any name" },
-                Previous = new Models.Specs.SpecificationVersion { Name = "any name" }
+                Current = new SpecificationVersion { Name = "any name" },
+                Previous = new SpecificationVersion { Name = "any name" }
             };
 
             string json = JsonConvert.SerializeObject(specificationVersionComparison);
@@ -290,11 +294,11 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
             //Arrange
             const string specificationId = "spec-id";
 
-            Models.Specs.SpecificationVersionComparisonModel specificationVersionComparison = new Models.Specs.SpecificationVersionComparisonModel()
+            SpecificationVersionComparisonModel specificationVersionComparison = new SpecificationVersionComparisonModel()
             {
                 Id = specificationId,
-                Current = new Models.Specs.SpecificationVersion { Name = "new name" },
-                Previous = new Models.Specs.SpecificationVersion { Name = "any name" }
+                Current = new SpecificationVersion { Name = "new name" },
+                Previous = new SpecificationVersion { Name = "any name" }
             };
 
             string json = JsonConvert.SerializeObject(specificationVersionComparison);
@@ -372,12 +376,12 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
             //Arrange
             const string specificationId = "spec-id";
 
-            Models.Specs.SpecificationVersionComparisonModel specificationVersionComparison = new Models.Specs.SpecificationVersionComparisonModel()
+            SpecificationVersionComparisonModel specificationVersionComparison = new SpecificationVersionComparisonModel()
             {
                 Id = specificationId,
-                Current = new Models.Specs.SpecificationVersion { Name = "new name" },
-                Previous = new Models.Specs.SpecificationVersion { Name = "any name" }
-            };
+                Current = new SpecificationVersion { Name = "new name" },
+                Previous = new SpecificationVersion { Name = "any name" }
+            }; 
 
             string json = JsonConvert.SerializeObject(specificationVersionComparison);
 
@@ -478,7 +482,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
         {
             MapperConfiguration config = new MapperConfiguration(c =>
             {
-                c.AddProfile<ResultsMappingProfile>();
+                c.AddProfile<TestEngineMappingProfile>();
             });
 
             return new Mapper(config);
@@ -505,7 +509,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
             {
                 Provider = new Reference("ProviderId", "Provider Name"),
                 Specification = new Reference("SpecificationId", "Specification Name"),
-                TestResult = Models.Results.TestResult.Passed,
+                TestResult = TestResult.Passed,
                 TestScenario = new Reference("TestScenarioId", "Test Scenario Name")
             };
         }

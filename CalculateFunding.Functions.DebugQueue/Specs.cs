@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 using CalculateFunding.Functions.Specs.ServiceBus;
-using CalculateFunding.Models.Specs.Messages;
+using CalculateFunding.Models.Messages;
 using CalculateFunding.Services.Core.Constants;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;

@@ -14,13 +14,12 @@ using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
-using CalculateFunding.Models.Exceptions;
-using CalculateFunding.Models.Policy;
-using CalculateFunding.Models.Results;
+using CalculateFunding.Models.Messages;
+using CalculateFunding.Models.ProviderLegacy;
 using CalculateFunding.Models.Specs;
-using CalculateFunding.Models.Specs.Messages;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
@@ -40,6 +39,7 @@ using Serilog;
 using PolicyModels = CalculateFunding.Common.ApiClient.Policies.Models;
 using PublishStatus = CalculateFunding.Models.Versioning.PublishStatus;
 
+
 namespace CalculateFunding.Services.Specs
 {
     public class SpecificationsService : ISpecificationsService, IHealthChecker
@@ -56,7 +56,7 @@ namespace CalculateFunding.Services.Specs
         private readonly IValidator<SpecificationEditModel> _specificationEditModelValidator;
         private readonly ICacheProvider _cacheProvider;
         private readonly IResultsRepository _resultsRepository;
-        private readonly IVersionRepository<SpecificationVersion> _specificationVersionRepository;
+        private readonly IVersionRepository<Models.Specs.SpecificationVersion> _specificationVersionRepository;
         private readonly IQueueCreateSpecificationJobActions _queueCreateSpecificationJobAction;
         private readonly ICalculationsApiClient _calcsApiClient;
         private readonly Polly.Policy _calcsApiClientPolicy;
@@ -74,7 +74,7 @@ namespace CalculateFunding.Services.Specs
             ICacheProvider cacheProvider,
             IValidator<SpecificationEditModel> specificationEditModelValidator,
             IResultsRepository resultsRepository,
-            IVersionRepository<SpecificationVersion> specificationVersionRepository,
+            IVersionRepository<Models.Specs.SpecificationVersion> specificationVersionRepository,
             ISpecificationsResiliencePolicies resiliencePolicies,
             IQueueCreateSpecificationJobActions queueCreateSpecificationJobAction,
             ICalculationsApiClient calcsApiClient, 
@@ -408,9 +408,9 @@ namespace CalculateFunding.Services.Specs
                 return new BadRequestObjectResult("Null or empty specification id was provided");
             }
 
-            IEnumerable<FundingStream> fundingStreams = (
+            IEnumerable<Reference> fundingStreams = (
                     await _specificationsRepository.GetSpecificationsByQuery(c => c.Content.IsSelectedForFunding && c.Id == specificationId)
-                    ).Select(s => _mapper.Map<FundingStream>(s));
+                    ).Select(s => _mapper.Map<Reference>(s));
 
             return new OkObjectResult(fundingStreams);
         }
@@ -473,7 +473,7 @@ namespace CalculateFunding.Services.Specs
                 Id = Guid.NewGuid().ToString(),
             };
 
-            SpecificationVersion specificationVersion = new SpecificationVersion
+            Models.Specs.SpecificationVersion specificationVersion = new Models.Specs.SpecificationVersion
             {
                 Name = createModel.Name,
                 ProviderVersionId = createModel.ProviderVersionId,
@@ -487,12 +487,12 @@ namespace CalculateFunding.Services.Specs
             };
 
             List<Reference> fundingStreams = new List<Reference>();
-            List<FundingStream> fundingStreamObjects = new List<FundingStream>();
+            List<Reference> fundingStreamObjects = new List<Reference>();
 
             foreach (string fundingStreamId in createModel.FundingStreamIds)
             {
                 Common.ApiClient.Models.ApiResponse<PolicyModels.FundingStream> fundingStreamResponse = await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingStreamById(fundingStreamId));
-                FundingStream fundingStream = _mapper.Map<FundingStream>(fundingStreamResponse?.Content);
+                Reference fundingStream = _mapper.Map<Reference>(fundingStreamResponse?.Content);
                 if (fundingStream == null)
                 {
                     return new PreconditionFailedResult($"Unable to find funding stream with ID '{fundingStreamId}'.");
@@ -609,9 +609,9 @@ namespace CalculateFunding.Services.Specs
 
             Reference user = request.GetUser();
 
-            SpecificationVersion previousSpecificationVersion = specification.Current;
+            Models.Specs.SpecificationVersion previousSpecificationVersion = specification.Current;
 
-            SpecificationVersion specificationVersion = specification.Current.Clone() as SpecificationVersion;
+            Models.Specs.SpecificationVersion specificationVersion = specification.Current.Clone() as Models.Specs.SpecificationVersion;
 
             specificationVersion.ProviderVersionId = editModel.ProviderVersionId;
             specificationVersion.Name = editModel.Name;
@@ -731,9 +731,9 @@ namespace CalculateFunding.Services.Specs
 
             Reference user = request.GetUser();
 
-            SpecificationVersion previousSpecificationVersion = specification.Current;
+            Models.Specs.SpecificationVersion previousSpecificationVersion = specification.Current;
 
-            SpecificationVersion specificationVersion = specification.Current.Clone() as SpecificationVersion;
+            Models.Specs.SpecificationVersion specificationVersion = specification.Current.Clone() as Models.Specs.SpecificationVersion;
 
             HttpStatusCode statusCode;
 
@@ -770,7 +770,7 @@ namespace CalculateFunding.Services.Specs
             return new OkObjectResult(result);
         }
 
-        private async Task SendSpecificationComparisonModelMessageToTopic(string specificationId, string topicName, SpecificationVersion current, SpecificationVersion previous, HttpRequest request)
+        private async Task SendSpecificationComparisonModelMessageToTopic(string specificationId, string topicName, Models.Specs.SpecificationVersion current, Models.Specs.SpecificationVersion previous, HttpRequest request)
         {
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
             Guard.ArgumentNotNull(current, nameof(current));
@@ -779,11 +779,14 @@ namespace CalculateFunding.Services.Specs
 
             IDictionary<string, string> properties = CreateMessageProperties(request);
 
+            Models.Messages.SpecificationVersion currentSpecVersion = _mapper.Map<Models.Messages.SpecificationVersion>(current);
+            Models.Messages.SpecificationVersion previousSpecVersion = _mapper.Map<Models.Messages.SpecificationVersion>(previous);
+
             SpecificationVersionComparisonModel comparisonModel = new SpecificationVersionComparisonModel
             {
                 Id = specificationId,
-                Current = current,
-                Previous = previous
+                Current = currentSpecVersion,
+                Previous = previousSpecVersion
             };
 
             await _messengerService.SendToTopic(topicName, comparisonModel, properties, true);
@@ -818,9 +821,9 @@ namespace CalculateFunding.Services.Specs
                     throw new InvalidModelException(relationshipMessage.GetType().ToString(), new[] { $"Specification could not be found for id {specificationId}" });
                 }
 
-                SpecificationVersion previousSpecificationVersion = specification.Current;
+                Models.Specs.SpecificationVersion previousSpecificationVersion = specification.Current;
 
-                SpecificationVersion specificationVersion = specification.Current.Clone() as SpecificationVersion;
+                Models.Specs.SpecificationVersion specificationVersion = specification.Current.Clone() as Models.Specs.SpecificationVersion;
 
                 if (specificationVersion.DataDefinitionRelationshipIds.IsNullOrEmpty())
                 {
@@ -1112,8 +1115,8 @@ WHERE   s.documentType = @DocumentType",
                 return new PreconditionFailedResult(message);
             }
 
-            SpecificationVersion currentSpecificationVersion = specification.Current;
-            SpecificationVersion newSpecificationVersion = specification.Current.Clone() as SpecificationVersion;
+            Models.Specs.SpecificationVersion currentSpecificationVersion = specification.Current;
+            Models.Specs.SpecificationVersion newSpecificationVersion = specification.Current.Clone() as Models.Specs.SpecificationVersion;
 
             newSpecificationVersion.AddOrUpdateTemplateId(fundingStreamId, templateVersion);
             HttpStatusCode updateSpecificationResult = await UpdateSpecification(specification, newSpecificationVersion, currentSpecificationVersion);
@@ -1121,7 +1124,7 @@ WHERE   s.documentType = @DocumentType",
             return new OkObjectResult(updateSpecificationResult);
         }
 
-        private async Task<HttpStatusCode> UpdateSpecification(Specification specification, SpecificationVersion specificationVersion, SpecificationVersion previousVersion)
+        private async Task<HttpStatusCode> UpdateSpecification(Specification specification, Models.Specs.SpecificationVersion specificationVersion, Models.Specs.SpecificationVersion previousVersion)
         {
             specificationVersion = await _specificationVersionRepository.CreateVersion(specificationVersion, previousVersion);
 
@@ -1139,7 +1142,7 @@ WHERE   s.documentType = @DocumentType",
             return result;
         }
 
-        private async Task<HttpStatusCode> PublishSpecification(Specification specification, SpecificationVersion specificationVersion, SpecificationVersion previousVersion)
+        private async Task<HttpStatusCode> PublishSpecification(Specification specification, Models.Specs.SpecificationVersion specificationVersion, Models.Specs.SpecificationVersion previousVersion)
         {
             specificationVersion = await _specificationVersionRepository.CreateVersion(specificationVersion, previousVersion);
 
@@ -1184,7 +1187,7 @@ WHERE   s.documentType = @DocumentType",
 
         private SpecificationIndex CreateSpecificationIndex(Specification specification)
         {
-            SpecificationVersion specificationVersion = specification.Current.Clone() as SpecificationVersion;
+            Models.Specs.SpecificationVersion specificationVersion = specification.Current.Clone() as Models.Specs.SpecificationVersion;
 
             return new SpecificationIndex
             {
@@ -1215,7 +1218,7 @@ WHERE   s.documentType = @DocumentType",
                 return new PreconditionFailedResult(message);
             }
 
-            SpecificationVersion specificationVersion = specification.Current;
+            Models.Specs.SpecificationVersion specificationVersion = specification.Current;
 
             if (specificationVersion == null)
             {
@@ -1249,8 +1252,8 @@ WHERE   s.documentType = @DocumentType",
                 return new PreconditionFailedResult(message);
             }
 
-            SpecificationVersion currentSpecificationVersion = specification.Current;
-            SpecificationVersion newSpecificationVersion = specification.Current.Clone() as SpecificationVersion;
+            Models.Specs.SpecificationVersion currentSpecificationVersion = specification.Current;
+            Models.Specs.SpecificationVersion newSpecificationVersion = specification.Current.Clone() as Models.Specs.SpecificationVersion;
 
             newSpecificationVersion.Version++;
             newSpecificationVersion.ExternalPublicationDate = specificationPublishDateModel.ExternalPublicationDate;

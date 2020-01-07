@@ -5,8 +5,6 @@ using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Functions.Datasets.ServiceBus;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
-using CalculateFunding.Models.MappingProfiles;
-using CalculateFunding.Models.Results;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.AzureStorage;
@@ -211,6 +209,12 @@ namespace CalculateFunding.Functions.Datasets
             }
 
             builder.AddSearch(config);
+            builder
+                .AddSingleton<ISearchRepository<DatasetIndex>, SearchRepository<DatasetIndex>>();
+            builder
+                .AddSingleton<ISearchRepository<DatasetDefinitionIndex>, SearchRepository<DatasetDefinitionIndex>>();
+            builder
+                .AddSingleton<ISearchRepository<DatasetVersionIndex>, SearchRepository<DatasetVersionIndex>>();
 
             builder.AddServiceBus(config);
 

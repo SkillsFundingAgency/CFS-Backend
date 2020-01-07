@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
+using CalculateFunding.Models.External;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Models.Search;
 using CalculateFunding.Repositories.Common.Search;

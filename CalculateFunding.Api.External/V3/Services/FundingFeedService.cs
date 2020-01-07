@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using CalculateFunding.Api.External.V3.Interfaces;
 using CalculateFunding.Common.Utility;
+using CalculateFunding.Models.External;
 using CalculateFunding.Models.External.V3.AtomItems;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Models.Search;

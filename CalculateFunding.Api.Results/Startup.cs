@@ -5,6 +5,7 @@ using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.WebApi.Extensions;
 using CalculateFunding.Common.WebApi.Middleware;
+using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.AspNet;
@@ -83,14 +84,7 @@ namespace CalculateFunding.Api.Results
             builder
                 .AddSingleton<IProviderCalculationResultsSearchService, ProviderCalculationResultsSearchService>()
                 .AddSingleton<IHealthChecker, ProviderCalculationResultsSearchService>();
-
-            MapperConfiguration resultsConfig = new MapperConfiguration(c =>
-            {
-                c.AddProfile<DatasetsMappingProfile>();
-            });
-
-            builder
-                .AddSingleton(resultsConfig.CreateMapper());
+           
 
             builder.AddSingleton<ICalculationResultsRepository, CalculationResultsRepository>((ctx) =>
                            {
@@ -138,6 +132,8 @@ namespace CalculateFunding.Api.Results
             builder.AddUserProviderFromRequest();
 
             builder.AddSearch(Configuration);
+            builder
+                .AddSingleton<ISearchRepository<ProviderCalculationResultsIndex>, SearchRepository<ProviderCalculationResultsIndex>>();
 
             builder.AddServiceBus(Configuration);
 

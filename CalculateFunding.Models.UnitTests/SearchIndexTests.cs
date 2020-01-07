@@ -4,6 +4,10 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using CalculateFunding.Models.Datasets.Schema;
+using CalculateFunding.Models.Providers;
+using CalculateFunding.Models.Publishing;
+using CalculateFunding.Models.Specs;
 using CalculateFunding.Models.UnitTests.SearchIndexModels;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
@@ -76,6 +80,11 @@ namespace CalculateFunding.Models.UnitTests
         {
             // Arrange
             IList<string> ErrorLog = new List<string>();
+            DatasetDefinitionIndex datasetDefinitionIndex = new DatasetDefinitionIndex();
+            ProvidersIndex providersIndex = new ProvidersIndex();
+            PublishedFundingIndex publishedfundingindex = new PublishedFundingIndex();
+            PublishedProviderIndex publishedProviderIndex = new PublishedProviderIndex();
+            SpecificationIndex specificationindex = new SpecificationIndex();
 
             IEnumerable<Type> searchIndexTypes = GetTypesWithSearchIndexAttribute();
 
@@ -163,6 +172,11 @@ namespace CalculateFunding.Models.UnitTests
         {
             //Arrange
             IList<string> ErrorLog = new List<string>();
+            DatasetDefinitionIndex datasetDefinitionIndex = new DatasetDefinitionIndex();
+            ProvidersIndex providersIndex = new ProvidersIndex();
+            PublishedFundingIndex publishedfundingindex = new PublishedFundingIndex();
+            PublishedProviderIndex publishedProviderIndex = new PublishedProviderIndex();
+            SpecificationIndex specificationindex = new SpecificationIndex();
 
             IEnumerable<Type> searchIndexTypes = GetTypesWithSearchIndexAttribute();
 
@@ -292,19 +306,19 @@ namespace CalculateFunding.Models.UnitTests
                     $"Index {indexName}: {searchIndexField.Name} Json attributes ({attributes}) are true but should be false");
             }
         }
+            
 
         private static IEnumerable<Type> GetTypesWithSearchIndexAttribute()
         {
-            Assembly modelsAssembly = AppDomain
-                .CurrentDomain
-                .GetAssemblies()
-                .SingleOrDefault(assembly => assembly.GetName().Name == "CalculateFunding.Models");
-
-            foreach (Type type in modelsAssembly.GetTypes())
+            foreach (var assemblyName in Assembly.GetExecutingAssembly().GetReferencedAssemblies())
             {
-                if (type.GetCustomAttributes(typeof(SearchIndexAttribute), true).Length > 0)
+                Assembly modelsAssembly = Assembly.Load(assemblyName);
+                foreach (Type type in modelsAssembly.GetTypes())
                 {
-                    yield return type;
+                    if (type.GetCustomAttributes(typeof(SearchIndexAttribute), true).Length > 0)
+                    {
+                        yield return type;
+                    }
                 }
             }
         }

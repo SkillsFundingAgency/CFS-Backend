@@ -2,14 +2,19 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using AutoMapper;
+using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.ApiClient.Results;
+using CalculateFunding.Common.ApiClient.Specifications;
+using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Caching;
+using CalculateFunding.Models.ProviderLegacy;
 using CalculateFunding.Models.Providers;
-using CalculateFunding.Models.Results;
-using CalculateFunding.Models.Specs;
+
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Caching.FileSystem;
 using CalculateFunding.Services.Core.Interfaces.Proxies;
@@ -20,6 +25,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using NSubstitute;
+using TrustStatus = CalculateFunding.Models.ProviderLegacy.TrustStatus;
 
 namespace CalculateFunding.Services.Providers.UnitTests
 {
@@ -57,10 +63,12 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 .GetProvidersByVersion(Arg.Is(providerVersionId))
                 .Returns(providerVersion);
 
-            IResultsApiClientProxy resultsApiClient = CreateResultsApiClient();
+            IResultsApiClient resultsApiClient = CreateResultsApiClient();
+            ApiResponse<IEnumerable<string>> scopedProviderResponse = new ApiResponse<IEnumerable<string>>(HttpStatusCode.OK, new List<string> { { "1234" } });
+
             resultsApiClient
-                .GetAsync<IEnumerable<string>>(Arg.Any<string>())
-                .Returns(new List<string> { { "1234" } });
+                .GetScopedProviderIdsBySpecificationId(Arg.Any<string>())
+                .Returns(scopedProviderResponse);
 
             ICacheProvider cacheProvider = CreateCacheProvider();
 
@@ -102,7 +110,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
                     x.First().ReasonEstablishmentClosed == provider.ReasonEstablishmentClosed &&
                     x.First().ReasonEstablishmentOpened == provider.ReasonEstablishmentOpened &&
                     x.First().Successor == provider.Successor &&
-                    x.First().TrustStatus == provider.TrustStatus &&
+                    x.First().TrustStatus == (TrustStatus)provider.TrustStatus &&
                     x.First().TrustName == provider.TrustName &&
                     x.First().TrustCode == provider.TrustCode &&
                     x.First().Town == provider.Town &&
@@ -492,7 +500,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
             ICacheProvider cacheProvider = null,
             IFileSystemCache fileSystemCache = null,
             IScopedProvidersServiceSettings settings = null,
-            IResultsApiClientProxy resultsApiClient = null)
+            IResultsApiClient resultsApiClient = null)
         {
             return new ScopedProvidersService(
                 cacheProvider ?? CreateCacheProvider(),
@@ -520,9 +528,14 @@ namespace CalculateFunding.Services.Providers.UnitTests
             return Substitute.For<ICacheProvider>();
         }
 
-        private IResultsApiClientProxy CreateResultsApiClient()
+        private IResultsApiClient CreateResultsApiClient()
         {
-            return Substitute.For<IResultsApiClientProxy>();
+            return Substitute.For<IResultsApiClient>();
+        }
+
+        static ISpecificationsApiClient CreateSpecificationsApiClient()
+        {
+            return Substitute.For<ISpecificationsApiClient>();
         }
 
         private IMapper CreateMapper()
@@ -557,7 +570,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 ReasonEstablishmentClosed = provider.ReasonEstablishmentClosed,
                 ReasonEstablishmentOpened = provider.ReasonEstablishmentOpened,
                 Successor = provider.Successor,
-                TrustStatus = provider.TrustStatus,
+                TrustStatus = (TrustStatus)provider.TrustStatus,
                 TrustName = provider.TrustName,
                 TrustCode = provider.TrustCode,
                 Town = provider.Town,
@@ -614,7 +627,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 ReasonEstablishmentClosed = "ReasonEstablishmentClosed",
                 ReasonEstablishmentOpened = "ReasonEstablishmentOpened",
                 Successor = "Successor",
-                TrustStatus = Models.Providers.TrustStatus.NotApplicable,
+                TrustStatus = TrustStatus.NotApplicable,
                 TrustName = "TrustName",
                 TrustCode = "TrustCode",
                 LocalAuthorityName = "LocalAuthorityName",

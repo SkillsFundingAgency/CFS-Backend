@@ -1,5 +1,7 @@
 ﻿using CalculateFunding.Models.Aggregations;
-using CalculateFunding.Models.Results;
+using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Datasets;
+using CalculateFunding.Models.ProviderLegacy;
 using System.Collections.Generic;
 
 namespace CalculateFunding.Services.CalcEngine.Interfaces

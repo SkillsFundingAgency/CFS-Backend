@@ -7,7 +7,8 @@ using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.Models;
-using CalculateFunding.Models.Results;
+using CalculateFunding.Models.Messages;
+using CalculateFunding.Models.ProviderLegacy;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Caching;
@@ -24,6 +25,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using NSubstitute;
 using PolicyModels = CalculateFunding.Common.ApiClient.Policies.Models;
+
 
 namespace CalculateFunding.Services.Specs.UnitTests.Services
 {
@@ -211,7 +213,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             {
                 Id = existingFundingStreams.First().Id
             };
-            SpecificationVersion newSpecVersion = _specification.Current.Clone() as SpecificationVersion;
+            Models.Specs.SpecificationVersion newSpecVersion = _specification.Current.Clone() as Models.Specs.SpecificationVersion;
             newSpecVersion.Name = specificationEditModel.Name;
             newSpecVersion.FundingPeriod.Id = specificationEditModel.FundingPeriodId;
             newSpecVersion.FundingStreams = new[] { new Reference { Id = "fs11" } };
@@ -251,7 +253,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         }
 
         private SpecificationsService CreateSpecificationsService(PolicyModels.FundingStream fundingStream,
-            SpecificationEditModel specificationEditModel, SpecificationVersion newSpecVersion)
+            SpecificationEditModel specificationEditModel, Models.Specs.SpecificationVersion newSpecVersion)
         {
             ApiResponse<PolicyModels.FundingStream> fundingStreamResponse =
                 new ApiResponse<PolicyModels.FundingStream>(HttpStatusCode.OK, fundingStream);
@@ -266,7 +268,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .UpdateSpecification(Arg.Any<Specification>())
                 .Returns(HttpStatusCode.OK);
             _versionRepository
-                .CreateVersion(Arg.Any<SpecificationVersion>(), Arg.Any<SpecificationVersion>())
+                .CreateVersion(Arg.Any<Models.Specs.SpecificationVersion>(), Arg.Any<Models.Specs.SpecificationVersion>())
                 .Returns(newSpecVersion);
             SpecificationsService service = CreateService(
                 mapper: _mapper, logs: _logger, specificationsRepository: _specificationsRepository,
@@ -292,12 +294,12 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             {
                 Id = existingFundingStreams.First().Id
             };
-            SpecificationVersion newSpecVersion = _specification.Current.Clone() as SpecificationVersion;
+            Models.Specs.SpecificationVersion newSpecVersion = _specification.Current.Clone() as Models.Specs.SpecificationVersion;
             newSpecVersion.Name = specificationEditModel.Name.Trim();
             newSpecVersion.FundingPeriod.Id = specificationEditModel.FundingPeriodId;
             newSpecVersion.FundingStreams = new[] { new Reference { Id = "fs11" } };
             _versionRepository
-                .CreateVersion(Arg.Any<SpecificationVersion>(), Arg.Any<SpecificationVersion>())
+                .CreateVersion(Arg.Any<Models.Specs.SpecificationVersion>(), Arg.Any<Models.Specs.SpecificationVersion>())
                 .Returns(newSpecVersion);
             var service = CreateSpecificationsService(fundingStream, specificationEditModel, newSpecVersion);
 
@@ -347,12 +349,12 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             {
                 Id = existingFundingStreams.First().Id
             };
-            SpecificationVersion newSpecVersion = _specification.Current.Clone() as SpecificationVersion;
+            Models.Specs.SpecificationVersion newSpecVersion = _specification.Current.Clone() as Models.Specs.SpecificationVersion;
             newSpecVersion.Name = specificationEditModel.Name;
             newSpecVersion.FundingPeriod.Id = specificationEditModel.FundingPeriodId;
             newSpecVersion.FundingStreams = new[] { new Reference { Id = "fs11" } };
             _versionRepository
-                .CreateVersion(Arg.Any<SpecificationVersion>(), Arg.Any<SpecificationVersion>())
+                .CreateVersion(Arg.Any<Models.Specs.SpecificationVersion>(), Arg.Any<Models.Specs.SpecificationVersion>())
                 .Returns(newSpecVersion);
             var service = CreateSpecificationsService(fundingStream, specificationEditModel, newSpecVersion);
 
@@ -402,9 +404,9 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             {
                 Id = existingFundingStreams.First().Id
             };
-            SpecificationVersion newSpecVersion = _specification.Current.Clone() as SpecificationVersion;
+            Models.Specs.SpecificationVersion newSpecVersion = _specification.Current.Clone() as Models.Specs.SpecificationVersion;
             _versionRepository
-                .CreateVersion(Arg.Any<SpecificationVersion>(), Arg.Any<SpecificationVersion>())
+                .CreateVersion(Arg.Any<Models.Specs.SpecificationVersion>(), Arg.Any<Models.Specs.SpecificationVersion>())
                 .Returns(newSpecVersion);
             var service = CreateSpecificationsService(fundingStream, specificationEditModel, newSpecVersion);
 
@@ -445,9 +447,9 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             {
                 Id = existingFundingStreams.First().Id
             };
-            SpecificationVersion newSpecVersion = _specification.Current.Clone() as SpecificationVersion;
+            Models.Specs.SpecificationVersion newSpecVersion = _specification.Current.Clone() as Models.Specs.SpecificationVersion;
             _versionRepository
-                .CreateVersion(Arg.Any<SpecificationVersion>(), Arg.Any<SpecificationVersion>())
+                .CreateVersion(Arg.Any<Models.Specs.SpecificationVersion>(), Arg.Any<Models.Specs.SpecificationVersion>())
                 .Returns(newSpecVersion);
             var service = CreateSpecificationsService(fundingStream, specificationEditModel, newSpecVersion);
 
@@ -488,7 +490,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             {
                 Id = existingFundingStreams.First().Id
             };
-            SpecificationVersion newSpecVersion = _specification.Current.Clone() as SpecificationVersion;
+            Models.Specs.SpecificationVersion newSpecVersion = _specification.Current.Clone() as Models.Specs.SpecificationVersion;
             newSpecVersion.Name = specificationEditModel.Name;
             newSpecVersion.FundingPeriod.Id = specificationEditModel.FundingPeriodId;
             newSpecVersion.FundingStreams = new[] { new Reference { Id = "fs11" } };

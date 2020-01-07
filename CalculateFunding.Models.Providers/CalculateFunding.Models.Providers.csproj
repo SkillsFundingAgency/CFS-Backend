@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CalculateFunding.Common.Models" Version="1.0.6" />
+    <PackageReference Include="Microsoft.Azure.Search" Version="10.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CalculateFunding.Models.ProviderLegacy\CalculateFunding.Models.ProviderLegacy.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Models.Search\CalculateFunding.Models.Search.csproj" />
+  </ItemGroup>
+
+</Project>

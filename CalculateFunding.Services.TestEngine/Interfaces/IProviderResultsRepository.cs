@@ -1,4 +1,4 @@
-﻿using CalculateFunding.Models.Results;
+﻿using CalculateFunding.Models.Calcs;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.TestRunner.Interfaces

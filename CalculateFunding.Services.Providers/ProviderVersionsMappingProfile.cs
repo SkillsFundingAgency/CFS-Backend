@@ -1,7 +1,8 @@
 ﻿using AutoMapper;
+using CalculateFunding.Models.ProviderLegacy;
 using CalculateFunding.Models.Providers;
 using CalculateFunding.Models.Providers.ViewModels;
-using CalculateFunding.Models.Results;
+
 using CommonModels = CalculateFunding.Common.ApiClient.Providers.Models;
 
 namespace CalculateFunding.Services.Providers

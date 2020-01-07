@@ -5,10 +5,10 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
-using CalculateFunding.Models.Exceptions;
+using CalculateFunding.Models.Messages;
 using CalculateFunding.Models.Specs;
-using CalculateFunding.Models.Specs.Messages;
 using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Specs.Interfaces;
 using FluentAssertions;
@@ -19,6 +19,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using NSubstitute;
 using Serilog;
+
 
 namespace CalculateFunding.Services.Specs.UnitTests.Services
 {
@@ -112,7 +113,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             Specification specification = new Specification()
             {
-                Current = new SpecificationVersion(),
+                Current = new Models.Specs.SpecificationVersion(),
             };
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
@@ -154,7 +155,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             {
                 Id = SpecificationId,
                 Name = SpecificationName,
-                Current = new SpecificationVersion()
+                Current = new Models.Specs.SpecificationVersion()
                 {
                     FundingStreams = new List<Reference>() { new Reference("fs-id", "fs-name") },
                     FundingPeriod = new Reference("18/19", "2018/19"),
@@ -177,11 +178,11 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .Index(Arg.Any<List<SpecificationIndex>>())
                 .Returns(errors);
 
-            SpecificationVersion newSpecVersion = specification.Current.Clone() as SpecificationVersion;
+            Models.Specs.SpecificationVersion newSpecVersion = specification.Current.Clone() as Models.Specs.SpecificationVersion;
 
-            IVersionRepository<SpecificationVersion> versionRepository = CreateVersionRepository();
+            IVersionRepository<Models.Specs.SpecificationVersion> versionRepository = CreateVersionRepository();
             versionRepository
-                .CreateVersion(Arg.Any<SpecificationVersion>(), Arg.Any<SpecificationVersion>())
+                .CreateVersion(Arg.Any<Models.Specs.SpecificationVersion>(), Arg.Any<Models.Specs.SpecificationVersion>())
                 .Returns(newSpecVersion);
 
 
@@ -210,7 +211,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             {
                 Id = SpecificationId,
                 Name = SpecificationName,
-                Current = new SpecificationVersion()
+                Current = new Models.Specs.SpecificationVersion()
                 {
                     FundingStreams = new List<Reference>() { new Reference("fs-id", "fs-name") },
                     FundingPeriod = new Reference("18/19", "2018/19"),
@@ -235,11 +236,11 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             ILogger logger = CreateLogger();
 
-            SpecificationVersion newSpecVersion = specification.Current.Clone() as SpecificationVersion;
+            Models.Specs.SpecificationVersion newSpecVersion = specification.Current.Clone() as Models.Specs.SpecificationVersion;
 
-            IVersionRepository<SpecificationVersion> versionRepository = CreateVersionRepository();
+            IVersionRepository<Models.Specs.SpecificationVersion> versionRepository = CreateVersionRepository();
             versionRepository
-                .CreateVersion(Arg.Any<SpecificationVersion>(), Arg.Any<SpecificationVersion>())
+                .CreateVersion(Arg.Any<Models.Specs.SpecificationVersion>(), Arg.Any<Models.Specs.SpecificationVersion>())
                 .Returns(newSpecVersion);
 
             SpecificationsService service = CreateService(specificationsRepository: specificationsRepository,

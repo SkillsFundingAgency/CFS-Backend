@@ -1,8 +1,9 @@
 using CalculateFunding.Common.Models;
-using CalculateFunding.Models.Results;
+using CalculateFunding.Models.Scenarios;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using TestResult = CalculateFunding.Models.Results.TestResult;
+using TestResult = CalculateFunding.Models.Scenarios.TestResult;
+
 
 namespace CalculateFunding.Models.UnitTests
 {

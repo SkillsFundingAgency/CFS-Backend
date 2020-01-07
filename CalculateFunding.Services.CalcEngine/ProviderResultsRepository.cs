@@ -6,10 +6,12 @@ using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models;
-using CalculateFunding.Models.Results;
-using CalculateFunding.Models.Results.Search;
+using CalculateFunding.Models.Calcs;
+
+
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.CalcEngine.Caching;
 using CalculateFunding.Services.CalcEngine.Interfaces;

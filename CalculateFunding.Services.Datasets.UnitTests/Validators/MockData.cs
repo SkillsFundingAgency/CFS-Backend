@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using CalculateFunding.Models.Results;
+using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.ProviderLegacy;
 
 namespace CalculateFunding.Services.Datasets.Validators
 {

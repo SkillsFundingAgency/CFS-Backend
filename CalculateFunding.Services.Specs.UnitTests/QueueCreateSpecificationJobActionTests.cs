@@ -16,6 +16,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Polly;
 using Serilog;
+using Calculation = CalculateFunding.Common.TemplateMetadata.Models.Calculation;
 
 namespace CalculateFunding.Services.Specs.UnitTests
 {

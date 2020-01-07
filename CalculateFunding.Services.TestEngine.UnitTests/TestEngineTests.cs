@@ -3,7 +3,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Calcs;
-using CalculateFunding.Models.Results;
+using CalculateFunding.Models.Datasets;
+using CalculateFunding.Models.ProviderLegacy;
 using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.TestRunner.Interfaces;
@@ -12,6 +13,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
 using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
+using TestResult = CalculateFunding.Models.Scenarios.TestResult;
 
 namespace CalculateFunding.Services.TestRunner.UnitTests
 {
@@ -149,7 +151,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
                 .First()
                 .TestResult
                 .Should()
-                .Be(Models.Results.TestResult.Ignored);
+                .Be(TestResult.Ignored);
         }
 
 

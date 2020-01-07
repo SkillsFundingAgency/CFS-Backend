@@ -5,7 +5,7 @@ using System.Globalization;
 using System.Linq;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Calcs;
-using CalculateFunding.Models.Results;
+using CalculateFunding.Models.ProviderLegacy;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 

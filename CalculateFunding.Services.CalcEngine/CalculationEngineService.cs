@@ -15,7 +15,8 @@ using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Models.Calcs;
-using CalculateFunding.Models.Results;
+using CalculateFunding.Models.Datasets;
+using CalculateFunding.Models.ProviderLegacy;
 using CalculateFunding.Services.CalcEngine.Interfaces;
 using CalculateFunding.Services.CodeGeneration.VisualBasic;
 using CalculateFunding.Services.Core;
@@ -31,6 +32,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
 using Polly;
 using Serilog;
+using AggregatedType = CalculateFunding.Models.Aggregations.AggregatedType;
 
 namespace CalculateFunding.Services.CalcEngine
 {

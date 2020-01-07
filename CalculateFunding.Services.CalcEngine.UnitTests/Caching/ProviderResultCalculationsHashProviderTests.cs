@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Caching;
-using CalculateFunding.Models.Results;
+using CalculateFunding.Models.Calcs;
 using CalculateFunding.Services.CalcEngine.Caching;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;

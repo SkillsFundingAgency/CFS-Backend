@@ -10,8 +10,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CalculateFunding.Models\CalculateFunding.Models.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Models.Jobs\CalculateFunding.Models.Jobs.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Core\CalculateFunding.Services.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="MappingProfiles\" />
   </ItemGroup>
 
 </Project>

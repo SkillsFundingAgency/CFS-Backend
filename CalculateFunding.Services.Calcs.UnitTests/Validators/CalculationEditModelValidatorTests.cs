@@ -4,13 +4,14 @@ using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Calcs;
-using CalculateFunding.Models.Specs;
+
 using CalculateFunding.Services.Calcs.Interfaces;
 using FluentAssertions;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using Calculation = CalculateFunding.Models.Calcs.Calculation;
 
 namespace CalculateFunding.Services.Calcs.Validators
 {

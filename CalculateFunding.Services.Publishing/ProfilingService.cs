@@ -8,7 +8,6 @@ using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Profiling;
 using CalculateFunding.Common.ApiClient.Profiling.Models;
 using CalculateFunding.Common.Utility;
-using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Publishing.Interfaces;

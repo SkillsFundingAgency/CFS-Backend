@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using CalculateFunding.Models.External;
 using CalculateFunding.Models.Search;
 using CalculateFunding.Tests.Common.Helpers;
 
