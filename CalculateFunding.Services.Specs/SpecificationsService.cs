@@ -949,7 +949,7 @@ WHERE   s.documentType = @DocumentType",
                 return new NotFoundObjectResult($"Specification not found for id: {specificationId}");
             }
             
-            if (specification.IsSelectedForFunding)
+            if (specification.IsSelectedForFunding == false)
             {
                 _logger.Warning(
                     $"Attempt to deselect specification with id: {specificationId} selected when not yet selected");
