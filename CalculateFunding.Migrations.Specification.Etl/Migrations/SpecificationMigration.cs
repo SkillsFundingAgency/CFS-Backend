@@ -50,9 +50,7 @@ namespace CalculateFunding.Migrations.Specifications.Etl.Migrations
         {
                 if (await PreRequisites(specificationId))
                 {
-                    
-                    // copy blob objects across
-                    /*foreach (Container container in _sourceContainers)
+                    foreach (Container container in _sourceContainers)
                     {
                         int? currentThroughPut = null;
 
@@ -81,7 +79,7 @@ namespace CalculateFunding.Migrations.Specifications.Etl.Migrations
                                 await _destinationDb.SetThroughPut(currentThroughPut.Value, container.Name, true);
                             }
                         }
-                    }*/
+                    }
 
                     // carry out post migration here
                     if (!await PostMigration(specificationId))
