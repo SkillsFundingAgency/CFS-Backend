@@ -108,5 +108,17 @@ namespace CalculateFunding.Services.Specs
                 .Where(c => c.Id == specificationId)
                 .FirstOrDefault();
         }
+
+        public async Task<IEnumerable<string>> GetDistinctFundingStreamsForSpecifications()
+        {
+            CosmosDbQuery cosmosDbQuery = new CosmosDbQuery
+            {
+                QueryText = @"SELECT DISTINCT value fs.id
+                                 FROM specifications.content.current r
+                                JOIN fs IN r.fundingStreams"
+            };
+
+            return await _repository.RawQuery<string>(cosmosDbQuery, 1);
+        }
     }
 }

@@ -30,5 +30,7 @@ namespace CalculateFunding.Services.Specs.Interfaces
         Task<IEnumerable<T>> GetSpecificationsByRawQuery<T>(CosmosDbQuery cosmosDbQuery);
 
         Task<IEnumerable<Specification>> GetApprovedOrUpdatedSpecificationsByFundingPeriodAndFundingStream(string fundingPeriodId, string fundingStreamId);
+
+        Task<IEnumerable<string>> GetDistinctFundingStreamsForSpecifications();
     }
 }

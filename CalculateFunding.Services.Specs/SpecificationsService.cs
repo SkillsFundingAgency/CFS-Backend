@@ -1317,5 +1317,13 @@ WHERE   s.documentType = @DocumentType",
 
             return new OkObjectResult(filteredFundingPeriodsByIdAndPeriod);
         }
+
+        public async Task<IActionResult> GetDistinctFundingStreamsForSpecifications()
+        {
+            IEnumerable<string> fundingStreamIds =
+               await _specificationsRepository.GetDistinctFundingStreamsForSpecifications();
+
+            return new OkObjectResult(fundingStreamIds);
+        }
     }
 }

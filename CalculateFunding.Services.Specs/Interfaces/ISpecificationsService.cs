@@ -50,5 +50,7 @@ namespace CalculateFunding.Services.Specs.Interfaces
         Task<IActionResult> GetFundingStreamIdsForSelectedFundingSpecifications();
         Task<IActionResult> GetFundingPeriodsByFundingStreamIdsForSelectedSpecifications(string fundingStreamId);
         Task<IActionResult> DeselectSpecificationForFunding(string specificationId);
+
+        Task<IActionResult> GetDistinctFundingStreamsForSpecifications();
     }
 }
