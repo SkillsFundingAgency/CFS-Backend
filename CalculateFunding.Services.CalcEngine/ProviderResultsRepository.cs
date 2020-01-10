@@ -8,10 +8,7 @@ using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
-using CalculateFunding.Models;
 using CalculateFunding.Models.Calcs;
-
-
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.CalcEngine.Caching;
 using CalculateFunding.Services.CalcEngine.Interfaces;
@@ -28,7 +25,6 @@ namespace CalculateFunding.Services.CalcEngine
     public class ProviderResultsRepository : IProviderResultsRepository
     {
         private readonly ICosmosRepository _cosmosRepository;
-        private readonly ISearchRepository<CalculationProviderResultsIndex> _searchRepository;
         private readonly ISpecificationsApiClient _specificationsApiClient;
         private readonly ILogger _logger;
         private readonly ISearchRepository<ProviderCalculationResultsIndex> _providerCalculationResultsSearchRepository;
@@ -39,7 +35,6 @@ namespace CalculateFunding.Services.CalcEngine
 
         public ProviderResultsRepository(
             ICosmosRepository cosmosRepository,
-            ISearchRepository<CalculationProviderResultsIndex> searchRepository,
             ISpecificationsApiClient specificationsApiClient,
             ILogger logger,
             ISearchRepository<ProviderCalculationResultsIndex> providerCalculationResultsSearchRepository,
@@ -49,7 +44,6 @@ namespace CalculateFunding.Services.CalcEngine
             ICalculatorResiliencePolicies calculatorResiliencePolicies)
         {
             Guard.ArgumentNotNull(cosmosRepository, nameof(cosmosRepository));
-            Guard.ArgumentNotNull(searchRepository, nameof(searchRepository));
             Guard.ArgumentNotNull(specificationsApiClient, nameof(specificationsApiClient));
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(providerCalculationResultsSearchRepository, nameof(providerCalculationResultsSearchRepository));
@@ -60,7 +54,6 @@ namespace CalculateFunding.Services.CalcEngine
             Guard.ArgumentNotNull(calculatorResiliencePolicies?.SpecificationsApiClient, nameof(calculatorResiliencePolicies.SpecificationsApiClient));
 
             _cosmosRepository = cosmosRepository;
-            _searchRepository = searchRepository;
             _specificationsApiClient = specificationsApiClient;
             _logger = logger;
             _providerCalculationResultsSearchRepository = providerCalculationResultsSearchRepository;
@@ -144,70 +137,6 @@ namespace CalculateFunding.Services.CalcEngine
 
         private async Task<long> UpdateSearch(IEnumerable<ProviderResult> providerResults, IDictionary<string, SpecModel.SpecificationSummary> specifications)
         {
-            if (_featureToggle.IsNewProviderCalculationResultsIndexEnabled())
-            {
-                return await UpdateCalculationProviderResultsIndex(providerResults, specifications);
-            }
-
-            IList<CalculationProviderResultsIndex> results = new List<CalculationProviderResultsIndex>();
-
-            foreach (ProviderResult providerResult in providerResults)
-            {
-                if (!providerResult.CalculationResults.IsNullOrEmpty())
-                {
-                    foreach (CalculationResult calculationResult in providerResult.CalculationResults.Where(m => m.Calculation != null))
-                    {
-                        SpecModel.SpecificationSummary specification = specifications[providerResult.SpecificationId];
-
-                        results.Add(new CalculationProviderResultsIndex
-                        {
-                            SpecificationId = providerResult.SpecificationId,
-                            SpecificationName = specification?.Name,
-                            CalculationName = calculationResult.Calculation.Name,
-                            CalculationId = calculationResult.Calculation.Id,
-                            CalculationType = calculationResult.CalculationType.ToString(),
-                            ProviderId = providerResult.Provider?.Id,
-                            ProviderName = providerResult.Provider?.Name,
-                            ProviderType = providerResult.Provider?.ProviderType,
-                            ProviderSubType = providerResult.Provider?.ProviderSubType,
-                            LocalAuthority = providerResult.Provider?.Authority,
-                            LastUpdatedDate = DateTimeOffset.Now,
-                            UKPRN = providerResult.Provider?.UKPRN,
-                            URN = providerResult.Provider?.URN,
-                            UPIN = providerResult.Provider?.UPIN,
-                            EstablishmentNumber = providerResult.Provider?.EstablishmentNumber,
-                            OpenDate = providerResult.Provider?.DateOpened,
-                            CalculationResult = calculationResult.Value.HasValue ? Convert.ToDouble(calculationResult.Value) : default(double?),
-                            IsExcluded = !calculationResult.Value.HasValue
-                        });
-                    }
-                }
-            }
-
-            Stopwatch stopwatch = Stopwatch.StartNew();
-
-            foreach (IEnumerable<CalculationProviderResultsIndex> resultsBatch in results.ToBatches(_engineSettings.CalculationResultSearchIndexBatchSize))
-            {
-                if (resultsBatch.AnyWithNullCheck())
-                {
-                    IEnumerable<IndexError> indexErrors = await _searchRepository.Index(resultsBatch);
-                    if (!indexErrors.IsNullOrEmpty())
-                    {
-                        _logger.Error($"Failed to index provider results with the following errors: {string.Join(";", indexErrors.Select(m => m.ErrorMessage))}");
-
-                        // Throw exception so Service Bus message can be requeued and calc results can have a chance to get saved again
-                        throw new FailedToIndexSearchException(indexErrors);
-                    }
-                }
-            }
-
-            stopwatch.Stop();
-
-            return stopwatch.ElapsedMilliseconds;
-        }
-
-        private async Task<long> UpdateCalculationProviderResultsIndex(IEnumerable<ProviderResult> providerResults, IDictionary<string, SpecModel.SpecificationSummary> specifications)
-        {
             Stopwatch assembleStopwatch = Stopwatch.StartNew();
 
             List<ProviderCalculationResultsIndex> results = new List<ProviderCalculationResultsIndex>();
@@ -275,7 +204,6 @@ namespace CalculateFunding.Services.CalcEngine
             }
 
             stopwatch.Stop();
-
             return stopwatch.ElapsedMilliseconds;
         }
     }

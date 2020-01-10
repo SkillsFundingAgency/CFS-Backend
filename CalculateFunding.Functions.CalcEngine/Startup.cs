@@ -104,8 +104,6 @@ namespace CalculateFunding.Functions.CalcEngine
 
                 CosmosRepository calcsCosmosRepostory = new CosmosRepository(calcResultsDbSettings);
 
-                ISearchRepository<CalculationProviderResultsIndex> calculationProviderResultsSearchRepository = ctx.GetService<ISearchRepository<CalculationProviderResultsIndex>>();
-
                 ISearchRepository<ProviderCalculationResultsIndex> providerCalculationResultsSearchRepository = ctx.GetService<ISearchRepository<ProviderCalculationResultsIndex>>();
 
                 ISpecificationsApiClient specificationsApiClient = ctx.GetService<ISpecificationsApiClient>();
@@ -122,7 +120,6 @@ namespace CalculateFunding.Functions.CalcEngine
 
                 return new ProviderResultsRepository(
                     calcsCosmosRepostory,
-                    calculationProviderResultsSearchRepository,
                     specificationsApiClient,
                     logger,
                     providerCalculationResultsSearchRepository,
@@ -185,8 +182,6 @@ namespace CalculateFunding.Functions.CalcEngine
             builder.AddTelemetry();
 
             builder.AddSearch(config);
-            builder
-                .AddSingleton<ISearchRepository<CalculationProviderResultsIndex>, SearchRepository<CalculationProviderResultsIndex>>();
             builder
                .AddSingleton<ISearchRepository<ProviderCalculationResultsIndex>, SearchRepository<ProviderCalculationResultsIndex>>();
 
