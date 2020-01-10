@@ -484,6 +484,17 @@ namespace CalculateFunding.Services.Datasets
                     return;
                 }
 
+                IEnumerable<Dataset> datasets = _datasetRepository.GetDatasetsByQuery(m => m.Content.Name.ToLower() == blob.Metadata["name"].ToLower()).Result;
+                if (datasets != null && datasets.Any())
+                {
+                    _logger.Error($"Dataset {blob.Metadata["name"]} needs to be a unique name");
+
+                    await SetValidationStatus(operationId, DatasetValidationStatus.FailedValidation, $"Dataset {blob.Metadata["name"]} needs to be a unique name");
+                    await _jobManagement.UpdateJobStatus(jobId, 100, false, "Failed validation - dataset name needs to be unique");
+
+                    return;
+                }
+
                 try
                 {
                     await SetValidationStatus(operationId, DatasetValidationStatus.ValidatingExcelWorkbook);

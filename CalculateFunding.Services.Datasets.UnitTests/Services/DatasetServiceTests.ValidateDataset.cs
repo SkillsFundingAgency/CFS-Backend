@@ -2432,6 +2432,104 @@ namespace CalculateFunding.Services.Datasets.Services
                      ));
         }
 
+
+        [TestMethod]
+        public async Task OnValidateDataset_WhenBlobReturnsDuplicateDatasetName_ThenErrorLogged()
+        {
+            // Arrange
+            const string operationId = "operationId";
+
+            GetDatasetBlobModel model = new GetDatasetBlobModel()
+            {
+                Filename = "filename.xlsx",
+                Version = 1,
+                DatasetId = "dsid",
+                DefinitionId = "defId",
+            };
+
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+
+            Message message = new Message(byteArray);
+            message.UserProperties.Add("jobId", "job1");
+            message.UserProperties.Add("operation-id", operationId);
+
+            ILogger logger = CreateLogger();
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+
+            IValidator<GetDatasetBlobModel> validator = CreateGetDatasetBlobModelValidator();
+
+            List<ValidationFailure> validationFailures = new List<ValidationFailure>();
+
+            ValidationResult validationResult = new ValidationResult(validationFailures);
+
+            validator
+                .ValidateAsync(Arg.Any<GetDatasetBlobModel>())
+                .Returns(validationResult);
+
+            ICloudBlob cloubBlob = Substitute.For<ICloudBlob>();
+            cloubBlob
+                .Name
+                .Returns("dsid/v1/filename.xlsx");
+
+            cloubBlob
+                .Metadata["name"]
+                .Returns("dataset");
+
+            MemoryStream memoryStream = new MemoryStream(new byte[1]);
+
+            IBlobClient blobClient = CreateBlobClient();
+            blobClient
+                .GetBlobReferenceFromServerAsync(Arg.Any<string>())
+                .Returns(cloubBlob);
+
+            blobClient
+                .DownloadToStreamAsync(Arg.Is(cloubBlob))
+                .Returns(memoryStream);
+
+            IEnumerable<Dataset> datasets = new Dataset[] { new Dataset { Name = "dataset" } };
+
+            IDatasetRepository datasetsRepository = CreateDatasetsRepository();
+            datasetsRepository
+                 .GetDatasetsByQuery(Arg.Any<Expression<Func<DocumentEntity<Dataset>, bool>>>())
+                 .Returns(datasets);
+
+            DatasetService service = CreateDatasetService(
+                logger: logger,
+                datasetRepository: datasetsRepository,
+                cacheProvider: cacheProvider,
+                getDatasetBlobModelValidator: validator,
+                blobClient: blobClient);
+
+            // Act
+            await service.ValidateDataset(message);
+
+            // Assert
+            logger
+                .Received(1)
+                .Error(Arg.Is("Dataset dataset needs to be a unique name"));
+
+            await cacheProvider
+                .Received(1)
+                .SetAsync<DatasetValidationStatusModel>(
+                Arg.Is<string>(a => a.StartsWith(CacheKeys.DatasetValidationStatus)),
+                Arg.Is<DatasetValidationStatusModel>(s =>
+                    s.CurrentOperation == DatasetValidationStatus.Processing &&
+                    s.OperationId == operationId
+                    ));
+
+            await cacheProvider
+                 .Received(1)
+                 .SetAsync<DatasetValidationStatusModel>(
+                 Arg.Is<string>(a => a.StartsWith(CacheKeys.DatasetValidationStatus)),
+                 Arg.Is<DatasetValidationStatusModel>(s =>
+                     s.CurrentOperation == DatasetValidationStatus.FailedValidation &&
+                     s.ErrorMessage == "Dataset dataset needs to be a unique name" &&
+                     s.OperationId == operationId
+                     ));
+        }
+
         [TestMethod]
         public async Task OnValidateDataset_WhenExcelValidationErrorsReturned_ThenErrorLogged()
         {
