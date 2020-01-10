@@ -3,6 +3,7 @@ using CalculateFunding.Common.Utility;
 using CalculateFunding.Migrations.Specification.Etl.Extensions;
 using CalculateFunding.Migrations.Specification.Etl.Migrations;
 using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Search;
@@ -98,57 +99,9 @@ namespace CalculateFunding.Migrations.Specifications.Etl.Migrations
         {
             try
             {
-                IEnumerable<Task> allContainerBlobs = _blobs.Select(async (_) =>
-                {
-                    switch (_.sourceContainer.Name)
-                    {
-                        case "source":
-                            {
-                                Console.WriteLine($"Copying source blobs from source:{_.sourceContainer.AccountName} to destination:{_.destinationContainer.AccountName}");
-                                StorageCredentials destStorageCredentials = new StorageCredentials(_.destinationContainer.AccountName, _.destinationContainer.AccountKey);
-                                CloudStorageAccount destStorageAccount = new CloudStorageAccount(destStorageCredentials, "core.windows.net", true);
-                                CloudBlobClient destBlobClient = destStorageAccount.CreateCloudBlobClient();
-                                CloudBlobContainer destContainer = destBlobClient.GetContainerReference(_.destinationContainer.Name);
+                string datasetBlobName = null;
 
-                                StorageCredentials sourceStorageCredentials = new StorageCredentials(_.sourceContainer.AccountName, _.sourceContainer.AccountKey);
-                                CloudStorageAccount sourceStorageAccount = new CloudStorageAccount(sourceStorageCredentials, "core.windows.net", true);
-                                CloudBlobClient sourceBlobClient = sourceStorageAccount.CreateCloudBlobClient();
-                                CloudBlobContainer sourceContainer = sourceBlobClient.GetContainerReference(_.sourceContainer.Name);
-
-                                IEnumerable<Task> containerBlobs = _.sourceContainer.Blobs.ToList().Select(async (blob) =>
-                                {
-                                    CloudBlockBlob sourceBlob = sourceContainer.GetBlockBlobReference(blob);
-                                    if (sourceBlob.Exists())
-                                    {
-                                        CloudBlockBlob destBlob = destContainer.GetBlockBlobReference(blob);
-
-                                        var policy = new SharedAccessBlobPolicy
-                                        {
-                                            Permissions = SharedAccessBlobPermissions.Read,
-                                            SharedAccessStartTime = DateTime.UtcNow.AddMinutes(-15),
-                                            SharedAccessExpiryTime = DateTime.UtcNow.AddDays(7)
-                                        };
-
-                                        // Get SAS of that policy.
-                                        var sourceBlobToken = sourceBlob.GetSharedAccessSignature(policy);
-
-                                        // Make a full uri with the sas for the blob.
-                                        var sourceBlobSAS = string.Format("{0}{1}", sourceBlob.Uri, sourceBlobToken);
-
-                                        await destBlob.StartCopyAsync(new Uri(sourceBlobSAS));
-                                    }
-                                });
-
-                                await Task.WhenAll(containerBlobs.ToArraySafe());
-
-                                break;
-                            }
-                    }
-                });
-
-                await Task.WhenAll(allContainerBlobs);
-
-                IEnumerable<Task<bool>> prereqs = _sourceContainers.Where(_ => _.HasPreReqs == true).ToList().Select(async (_) =>
+                IEnumerable<Task<bool>> cosmosPreReqs = _sourceContainers.Where(_ => _.HasPreReqs == true).ToList().Select(async (_) =>
                 {
                     switch (_.Name)
                     {
@@ -228,6 +181,20 @@ namespace CalculateFunding.Migrations.Specifications.Etl.Migrations
                                     item = await _sourceDb.GetDocument(new CosmosDbQuery
                                     {
                                         QueryText = @"SELECT * FROM c
+                                        WHERE c.documentType = 'Dataset'
+                                        AND c.id = @datasetId",
+                                        Parameters = new[]
+                                        {
+                                        new CosmosDbQueryParameter("@datasetId", datasetVersionId)
+                                        }
+                                    },
+                                    _.Name);
+
+                                    datasetBlobName = item.content.current.BlobName;
+
+                                    item = await _sourceDb.GetDocument(new CosmosDbQuery
+                                    {
+                                        QueryText = @"SELECT * FROM c
                                         WHERE c.documentType = 'DatasetDefinition'
                                         AND c.id = @datasetDefinitionId",
                                         Parameters = new[]
@@ -250,7 +217,99 @@ namespace CalculateFunding.Migrations.Specifications.Etl.Migrations
                     return true;
                 });
 
-                return (await Task.WhenAll(prereqs.ToArraySafe())).All(_ => _ == true);
+                bool cosmosPreReqsResult = (await Task.WhenAll(cosmosPreReqs.ToArraySafe())).All(_ => _ == true);
+
+                IEnumerable<Task<bool>> containerPreReqs = _blobs.Select(async (_) =>
+                {
+                    switch (_.sourceContainer.Name)
+                    {
+                        case "source":
+                            {
+                                Console.WriteLine($"Copying source blobs from source:{_.sourceContainer.AccountName} to destination:{_.destinationContainer.AccountName}");
+                                StorageCredentials destStorageCredentials = new StorageCredentials(_.destinationContainer.AccountName, _.destinationContainer.AccountKey);
+                                CloudStorageAccount destStorageAccount = new CloudStorageAccount(destStorageCredentials, "core.windows.net", true);
+                                CloudBlobClient destBlobClient = destStorageAccount.CreateCloudBlobClient();
+                                CloudBlobContainer destContainer = destBlobClient.GetContainerReference(_.destinationContainer.Name);
+
+                                StorageCredentials sourceStorageCredentials = new StorageCredentials(_.sourceContainer.AccountName, _.sourceContainer.AccountKey);
+                                CloudStorageAccount sourceStorageAccount = new CloudStorageAccount(sourceStorageCredentials, "core.windows.net", true);
+                                CloudBlobClient sourceBlobClient = sourceStorageAccount.CreateCloudBlobClient();
+                                CloudBlobContainer sourceContainer = sourceBlobClient.GetContainerReference(_.sourceContainer.Name);
+
+                                IEnumerable<Task> containerBlobs = _.sourceContainer.Blobs.ToList().Select(async (blob) =>
+                                {
+                                    CloudBlockBlob sourceBlob = sourceContainer.GetBlockBlobReference(blob);
+                                    if (sourceBlob.Exists())
+                                    {
+                                        CloudBlockBlob destBlob = destContainer.GetBlockBlobReference(blob);
+
+                                        var policy = new SharedAccessBlobPolicy
+                                        {
+                                            Permissions = SharedAccessBlobPermissions.Read,
+                                            SharedAccessStartTime = DateTime.UtcNow.AddMinutes(-15),
+                                            SharedAccessExpiryTime = DateTime.UtcNow.AddDays(7)
+                                        };
+
+                                        // Get SAS of that policy.
+                                        var sourceBlobToken = sourceBlob.GetSharedAccessSignature(policy);
+
+                                        // Make a full uri with the sas for the blob.
+                                        var sourceBlobSAS = string.Format("{0}{1}", sourceBlob.Uri, sourceBlobToken);
+
+                                        await destBlob.StartCopyAsync(new Uri(sourceBlobSAS));
+                                    }
+                                });
+
+                                await Task.WhenAll(containerBlobs.ToArraySafe());
+
+                                break;
+                            }
+                        case "datasets":
+                            {
+                                if(datasetBlobName != null)
+                                {
+                                    Console.WriteLine($"Copying source blobs from source:{_.sourceContainer.AccountName} to destination:{_.destinationContainer.AccountName}");
+                                    StorageCredentials destStorageCredentials = new StorageCredentials(_.destinationContainer.AccountName, _.destinationContainer.AccountKey);
+                                    CloudStorageAccount destStorageAccount = new CloudStorageAccount(destStorageCredentials, "core.windows.net", true);
+                                    CloudBlobClient destBlobClient = destStorageAccount.CreateCloudBlobClient();
+                                    CloudBlobContainer destContainer = destBlobClient.GetContainerReference(_.destinationContainer.Name);
+
+                                    StorageCredentials sourceStorageCredentials = new StorageCredentials(_.sourceContainer.AccountName, _.sourceContainer.AccountKey);
+                                    CloudStorageAccount sourceStorageAccount = new CloudStorageAccount(sourceStorageCredentials, "core.windows.net", true);
+                                    CloudBlobClient sourceBlobClient = sourceStorageAccount.CreateCloudBlobClient();
+                                    CloudBlobContainer sourceContainer = sourceBlobClient.GetContainerReference(_.sourceContainer.Name);
+
+                                    CloudBlockBlob sourceBlob = sourceContainer.GetBlockBlobReference(datasetBlobName);
+                                    if (sourceBlob.Exists())
+                                    {
+                                        CloudBlockBlob destBlob = destContainer.GetBlockBlobReference(datasetBlobName);
+
+                                        var policy = new SharedAccessBlobPolicy
+                                        {
+                                            Permissions = SharedAccessBlobPermissions.Read,
+                                            SharedAccessStartTime = DateTime.UtcNow.AddMinutes(-15),
+                                            SharedAccessExpiryTime = DateTime.UtcNow.AddDays(7)
+                                        };
+
+                                        // Get SAS of that policy.
+                                        var sourceBlobToken = sourceBlob.GetSharedAccessSignature(policy);
+
+                                        // Make a full uri with the sas for the blob.
+                                        var sourceBlobSAS = string.Format("{0}{1}", sourceBlob.Uri, sourceBlobToken);
+
+                                        await destBlob.StartCopyAsync(new Uri(sourceBlobSAS));
+                                    }
+                                }
+                                break;
+                            }
+                    }
+
+                    return true;
+                });
+
+                bool containerPreReqsResult = (await Task.WhenAll(containerPreReqs)).All(_ => _ == true);
+
+                return containerPreReqsResult && cosmosPreReqsResult;
             }
             catch (Exception ex)
             {
@@ -394,6 +453,18 @@ namespace CalculateFunding.Migrations.Specifications.Etl.Migrations
                                     return false;
                                 }
 
+                                dynamic relationship = await _sourceDb.GetDocument(new CosmosDbQuery
+                                {
+                                    QueryText = @"SELECT * FROM c
+                                        WHERE c.documentType = 'DefinitionSpecificationRelationship'
+                                        AND c.content.Specification.id = @specificationId",
+                                    Parameters = new[]
+                                         {
+                                    new CosmosDbQueryParameter("@specificationId", specificationId)
+                                    }
+                                },
+                                "datasets");
+
                                 SearchRepository<SpecificationIndex> searchRepository = new SearchRepository<SpecificationIndex>(searchRepositorySettings);
 
                                 SpecificationIndex spec = new SpecificationIndex
@@ -409,7 +480,101 @@ namespace CalculateFunding.Migrations.Specifications.Etl.Migrations
                                     Status = item.content.current.publishStatus
                                 };
 
+                                if (relationship != null)
+                                {
+                                    spec.DataDefinitionRelationshipIds = new string[] { relationship.id };
+                                }
+
                                 await searchRepository.Index(new[] { spec });
+
+                                break;
+                            }
+                        case "datasets":
+                            {
+                                Console.WriteLine($"Started re-indexing : {_.Name}");
+
+                                dynamic item = await _sourceDb.GetDocument(new CosmosDbQuery
+                                {
+                                    QueryText = @"SELECT * FROM c
+                                        WHERE c.documentType = 'DefinitionSpecificationRelationship'
+                                        AND c.content.Specification.id = @specificationId",
+                                    Parameters = new[]
+                                         {
+                                    new CosmosDbQueryParameter("@specificationId", specificationId)
+                                    }
+                                },
+                                _.Name);
+
+                                if (item == null)
+                                {
+                                    // no definitions
+                                    return true;
+                                }
+                                else
+                                {
+                                    string datasetVersionId = item.content.DatasetVersion.Id;
+                                    string datasetDefinitionId = item.content.DatasetDefinition.id;
+                                    _.Query = string.Join(" ", _.Query, $"OR c.id = '{datasetVersionId}'");
+
+                                    item = await _sourceDb.GetDocument(new CosmosDbQuery
+                                    {
+                                        QueryText = @"SELECT * FROM c
+                                        WHERE c.documentType = 'Dataset'
+                                        AND c.id = @datasetId",
+                                        Parameters = new[]
+                                        {
+                                        new CosmosDbQueryParameter("@datasetId", datasetVersionId)
+                                        }
+                                    },
+                                    _.Name);
+
+                                    if (item == null)
+                                    {
+                                        return false;
+                                    }
+
+                                    SearchRepository<DatasetIndex> searchRepository = new SearchRepository<DatasetIndex>(searchRepositorySettings);
+
+                                    DatasetIndex datasetIndex = new DatasetIndex
+                                    {
+                                        DefinitionId = item.content.Definition.id,
+                                        DefinitionName = item.content.Definition.name,
+                                        Id = item.content.id,
+                                        LastUpdatedDate = !string.IsNullOrWhiteSpace(Convert.ToString(item.updatedAt)) ?  DateTimeOffset.Parse(Convert.ToString(item.updatedAt)) : null,
+                                        Name = item.content.name,
+                                        Status = item.content.current.publishStatus,
+                                        Description = item.content.description,
+                                        Version = item.content.current.version,
+                                        ChangeNote = item.content.current.comment,
+                                        LastUpdatedByName = item.content.current.author?.name,
+                                        LastUpdatedById = item.content.current.author?.id
+                                    };
+
+                                    await searchRepository.Index(new DatasetIndex[] { datasetIndex});
+
+                                    SearchRepository<DatasetVersionIndex> searchVersionRepository = new SearchRepository<DatasetVersionIndex>(searchRepositorySettings);
+
+                                    Console.WriteLine("Started re-indexing : Dataset versions");
+
+                                    IEnumerable<DatasetVersionIndex> datasetVersions = ((IEnumerable<dynamic>)item.content.history).Select(datasetVersion =>
+                                    {
+                                        return new DatasetVersionIndex
+                                        {
+                                            Id = $"{item.id}-{datasetVersion.version}",
+                                            DatasetId = item.id,
+                                            Name = item.content.name,
+                                            Version = datasetVersion.version,
+                                            BlobName = datasetVersion.BlobName,
+                                            ChangeNote = datasetVersion.Comment,
+                                            DefinitionName = item.content.Definition.name,
+                                            Description = item.content.description,
+                                            LastUpdatedDate = !string.IsNullOrWhiteSpace(Convert.ToString(datasetVersion.date)) ? DateTimeOffset.Parse(Convert.ToString(datasetVersion.date)) : null,
+                                            LastUpdatedByName = datasetVersion.author.name
+                                        };
+                                    });
+
+                                    await searchVersionRepository.Index(datasetVersions);
+                                }
 
                                 break;
                             }

@@ -45,7 +45,7 @@ namespace CalculateFunding.Migrations.Specifications.Etl
 
             containers.Add(new Container { Name = "publishedfunding", Query = "SELECT * FROM c WHERE c.content.current.specificationId = '{0}'", MaxThroughPut = options.MaxThroughPut, PartitionKey = "/content/partitionKey", HasPost = true });
             containers.Add(new Container { Name = "specs", Query = "SELECT * FROM c WHERE c.content.current.specificationId = '{0}' OR c.content.specificationId = '{0}'", HasPreReqs = true, MaxThroughPut = options.MaxThroughPut, HasPost = true });
-            containers.Add(new Container { Name = "datasets", Query = "SELECT * FROM c WHERE c.content.Specification.id = '{0}'", HasPreReqs = true, MaxThroughPut = options.MaxThroughPut });
+            containers.Add(new Container { Name = "datasets", Query = "SELECT * FROM c WHERE c.content.Specification.id = '{0}'", HasPreReqs = true, MaxThroughPut = options.MaxThroughPut, HasPost = true });
             containers.Add(new Container { Name = "calculationresults", Query = "SELECT * FROM c WHERE c.content.specificationId = '{0}'", MaxThroughPut = options.MaxThroughPut, PartitionKey = "/content/provider/id", HasPost = true });
             containers.Add(new Container { Name = "calcs", Query = "SELECT * FROM c WHERE c.content.specificationId = '{0}'", MaxThroughPut = options.MaxThroughPut, HasPost = true });
             containers.Add(new Container { Name = "providerdatasets", Query = "SELECT * FROM c WHERE c.content.specificationId = '{0}'", MaxThroughPut = options.MaxThroughPut, PartitionKey = "/content/providerId" });
@@ -53,6 +53,7 @@ namespace CalculateFunding.Migrations.Specifications.Etl
             List<(BlobContainer sourceContainer, BlobContainer destinationContainer)> blobs = new List<(BlobContainer sourceContainer, BlobContainer destinationContainer)>();
 
             blobs.Add((new BlobContainer { Name = "source", AccountName = options.SourceStorageAccountName, AccountKey = options.SourceStorageAccountKey, Blobs = new string[] { $"{options.SourceSpecificationId}/{options.SourceSpecificationId}-preview.zip", $"{options.SourceSpecificationId}/{options.SourceSpecificationId}-release.zip", $"{options.SourceSpecificationId}/implementation.dll" } }, new BlobContainer { Name = "source", AccountName = options.TargetStorageAccountName, AccountKey = options.TargetStorageAccountKey }));
+            blobs.Add((new BlobContainer { Name = "datasets", AccountName = options.SourceStorageAccountName, AccountKey = options.SourceStorageAccountKey}, new BlobContainer { Name = "datasets", AccountName = options.TargetStorageAccountName, AccountKey = options.TargetStorageAccountKey }));
 
             SpecificationMigration specificationMigration = new SpecificationMigration(
                     sourceCosmosDb,

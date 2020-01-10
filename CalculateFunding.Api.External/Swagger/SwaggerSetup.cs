@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using CalculateFunding.Api.External.Swagger.Helpers.Readers;
 using Microsoft.AspNetCore.Builder;
@@ -69,10 +70,6 @@ namespace CalculateFunding.Api.External.Swagger
                 var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
                 var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
                 c.IncludeXmlComments(xmlPath);
-
-                var modelsFilePath = Path.Combine(PlatformServices.Default.Application.ApplicationBasePath,
-                    "CalculateFunding.Models.xml");
-                c.IncludeXmlComments(modelsFilePath);
             });
         }
 
