@@ -679,6 +679,71 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 .BeOfType<InternalServerErrorResult>();
         }
 
+        [TestMethod]
+        public async Task GetFacetValues_WhenFacetNotProvided_NotFoundResultReturned()
+        {
+            // Arrange
+            IProviderVersionSearchService providerService = CreateProviderVersionSearchService();
+
+            // Act
+            IActionResult notFoundRequest = await providerService.GetFacetValues(string.Empty);
+
+            // Assert
+            notFoundRequest
+                .Should()
+                .BeOfType<NotFoundResult>();
+        }
+
+        [TestMethod]
+        public async Task GetFacetValues_WhenValidFacetProvided_FacetDistinctValuesReturned()
+        {
+            // Arrange
+
+            string authorityFacet = "authority";
+            
+            string facetValue1 = "Kent";
+            string facetValue2 = "Essex";
+
+            SearchResults<ProvidersIndex> searchResults = new SearchResults<ProvidersIndex>
+            {
+                Facets = new List<Facet>
+                {
+                    new Facet
+                    {
+                        Name = authorityFacet,
+                        FacetValues = new List<FacetValue>
+                        {
+                            new FacetValue { Name = facetValue1 },
+                            new FacetValue { Name = facetValue2 }
+                        }
+                    }
+                }
+            };
+
+            ISearchRepository<ProvidersIndex> searchRepository = CreateSearchRepository();
+            searchRepository
+                .Search(string.Empty, Arg.Any<SearchParameters>())
+                .Returns(searchResults);
+
+            IProviderVersionSearchService providerService = CreateProviderVersionSearchService(searchRepository: searchRepository);
+
+            // Act
+            IActionResult okObjectRequest = await providerService.GetFacetValues(authorityFacet);
+
+            // Assert
+            okObjectRequest
+                .Should()
+                .BeOfType<OkObjectResult>();
+
+            await searchRepository
+                .Received(1)
+                .Search(string.Empty, Arg.Is<SearchParameters>(x => x.Top == 0 && x.Facets.Count == 1 && x.Facets.First().Contains(authorityFacet)));
+
+            ((okObjectRequest as OkObjectResult).Value as IEnumerable<string>)
+                .Should()
+                .HaveCount(2);
+        }
+
         private ICacheProvider CreateCacheProvider()
         {
             return Substitute.For<ICacheProvider>();

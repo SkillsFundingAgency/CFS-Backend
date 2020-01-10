@@ -204,6 +204,30 @@ namespace CalculateFunding.Services.Providers
             }
         }
 
+        public async Task<IActionResult> GetFacetValues(string facetName)
+        {
+            if (!Facets.Any(x=>x.Name == facetName))
+            {
+                return new NotFoundResult();
+            }
+
+            SearchResults<ProvidersIndex> searchResults = await Task.Run(() =>
+            {
+                return _searchRepository.Search(string.Empty, new SearchParameters
+                {
+                    Facets = new[] { $"{facetName},count:1000" },
+                    Top = 0
+                });
+            });
+
+            IEnumerable<string> distinctFacetValues = searchResults.Facets
+                .SingleOrDefault(x => x.Name == facetName)
+                .FacetValues
+                .Select(x => x.Name);
+
+            return new OkObjectResult(distinctFacetValues);
+        }
+
         private async Task<ProviderVersionSearchResults> SearchProviderVersionSearchResults(SearchModel searchModel)
         {
             IEnumerable<Task<SearchResults<ProvidersIndex>>> searchTasks = BuildSearchTasks(searchModel);
