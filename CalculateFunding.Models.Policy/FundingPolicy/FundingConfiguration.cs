@@ -23,5 +23,8 @@ namespace CalculateFunding.Models.FundingPolicy
         
         [JsonProperty("defaultTemplateVersion")]
         public string DefaultTemplateVersion { get; set; }
+        
+        [JsonProperty("variations")]
+        public IEnumerable<VariationType> Variations { get; set; }
     }
 }
