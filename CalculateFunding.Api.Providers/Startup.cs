@@ -1,6 +1,4 @@
 ﻿using System;
-using System.IO;
-using System.Reflection;
 using AutoMapper;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models.HealthCheck;
@@ -28,7 +26,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
 using Polly.Bulkhead;
-using Swashbuckle.AspNetCore.Swagger;
 
 namespace CalculateFunding.Api.Providers
 {
@@ -73,10 +70,6 @@ namespace CalculateFunding.Api.Providers
             {
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
-
-                app.MapWhen(
-                    context => !context.Request.Path.Value.StartsWith("/swagger"),
-                    appBuilder => appBuilder.UseMiddleware<ApiKeyMiddleware>());
             }
 
             app.UseHttpsRedirection();
@@ -84,6 +77,10 @@ namespace CalculateFunding.Api.Providers
             app.UseHealthCheckMiddleware();
 
             app.UseMvc();
+
+            app.MapWhen(
+                    context => !context.Request.Path.Value.StartsWith("/swagger"),
+                    appBuilder => appBuilder.UseMiddleware<ApiKeyMiddleware>());
 
             app.UseSwagger();
 
@@ -156,7 +153,7 @@ namespace CalculateFunding.Api.Providers
                 .AddSingleton(providerVersionsConfig.CreateMapper());
 
             builder.AddResultsInterServiceClient(Configuration);
-            builder.AddApplicationInsightsTelemetry();            
+            builder.AddApplicationInsightsTelemetry();
             builder.AddSpecificationsInterServiceClient(Configuration);
             builder.AddApplicationInsightsForApiApp(Configuration, "CalculateFunding.Api.Providers");
             builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Api.Providers");
@@ -216,7 +213,7 @@ namespace CalculateFunding.Api.Providers
             ServiceProvider = builder.BuildServiceProvider();
 
             builder.AddSearch(Configuration);
-           
+
 
         }
     }
