@@ -1,6 +1,3 @@
-using System;
-using System.IO;
-using System.Reflection;
 using AutoMapper;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models.HealthCheck;
@@ -28,7 +25,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.FeatureManagement;
 using Microsoft.OpenApi.Models;
 using Polly.Bulkhead;
-using Swashbuckle.AspNetCore.Swagger;
 using BlobClient = CalculateFunding.Common.Storage.BlobClient;
 using IBlobClient = CalculateFunding.Common.Storage.IBlobClient;
 using LocalBlobClient = CalculateFunding.Services.Core.AzureStorage.BlobClient;
@@ -80,11 +76,6 @@ namespace CalculateFunding.Api.Publishing
                 app.UseHsts();
 
                 app.UseMiddleware<LoggedInUserMiddleware>();
-
-                app.MapWhen(
-                    context => !context.Request.Path.Value.StartsWith("/swagger"),
-                    appBuilder => appBuilder.UseMiddleware<ApiKeyMiddleware>());
-
             }
 
             app.UseHttpsRedirection();
@@ -92,7 +83,11 @@ namespace CalculateFunding.Api.Publishing
             app.UseMvc();
 
             app.UseHealthCheckMiddleware();
-            
+
+            app.MapWhen(
+                    context => !context.Request.Path.Value.StartsWith("/swagger"),
+                    appBuilder => appBuilder.UseMiddleware<ApiKeyMiddleware>());
+
             app.UseSwagger();
 
             app.UseSwaggerUI(c =>

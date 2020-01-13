@@ -1,6 +1,3 @@
-using System;
-using System.IO;
-using System.Reflection;
 using AutoMapper;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models.HealthCheck;
@@ -21,7 +18,6 @@ using CalculateFunding.Services.Policy.MappingProfiles;
 using CalculateFunding.Services.Policy.Validators;
 using CalculateFunding.Services.Providers.Validators;
 using FluentValidation;
-using Microsoft.ApplicationInsights.AspNetCore.Extensions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -30,7 +26,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
 using Polly.Bulkhead;
 using Serilog;
-using Swashbuckle.AspNetCore.Swagger;
 using TemplateMetadataSchema10 = CalculateFunding.Common.TemplateMetadata.Schema10;
 
 namespace CalculateFunding.Api.Policy
@@ -74,10 +69,6 @@ namespace CalculateFunding.Api.Policy
             {
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
-
-                app.MapWhen(
-                    context => !context.Request.Path.Value.StartsWith("/swagger"),
-                    appBuilder => appBuilder.UseMiddleware<ApiKeyMiddleware>());
             }
 
             app.UseHttpsRedirection();
@@ -87,7 +78,10 @@ namespace CalculateFunding.Api.Policy
             app.UseMvc();
 
             app.UseHealthCheckMiddleware();
-           
+
+            app.MapWhen(
+                    context => !context.Request.Path.Value.StartsWith("/swagger"),
+                    appBuilder => appBuilder.UseMiddleware<ApiKeyMiddleware>());
 
             app.UseSwagger();
 
@@ -215,7 +209,7 @@ namespace CalculateFunding.Api.Policy
             builder.AddApplicationInsightsForApiApp(Configuration, "CalculateFunding.Api.Policy");
             builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Api.Policy");
             builder.AddLogging("CalculateFunding.Api.Policy");
-            builder.AddTelemetry();            
+            builder.AddTelemetry();
 
             builder.AddApiKeyMiddlewareSettings((IConfigurationRoot)Configuration);
 
