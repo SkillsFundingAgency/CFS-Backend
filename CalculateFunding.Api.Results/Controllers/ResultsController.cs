@@ -1,9 +1,12 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Results.Models;
 using CalculateFunding.Common.Utility;
-using CalculateFunding.Models.Calcs;
 using CalculateFunding.Services.Core.FeatureToggles;
 using CalculateFunding.Services.Results.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using CalculationType = CalculateFunding.Models.Calcs.CalculationType;
+using ProviderResult = CalculateFunding.Models.Calcs.ProviderResult;
 
 namespace CalculateFunding.Api.Results.Controllers
 {
@@ -33,6 +36,7 @@ namespace CalculateFunding.Api.Results.Controllers
 
         [Route("api/results/get-provider-specs")]
         [HttpGet]
+        [Produces(typeof(IEnumerable<string>))]
         public async Task<IActionResult> RunGetProviderSpecifications()
         {
             return await _resultsService.GetProviderSpecifications(ControllerContext.HttpContext.Request);
@@ -40,6 +44,7 @@ namespace CalculateFunding.Api.Results.Controllers
 
         [Route("api/results/get-provider-results")]
         [HttpGet]
+        [Produces(typeof(ProviderResult))]
         public async Task<IActionResult> RunGetProviderResults()
         {
             return await _resultsService.GetProviderResults(ControllerContext.HttpContext.Request);
@@ -47,20 +52,23 @@ namespace CalculateFunding.Api.Results.Controllers
 
         [Route("api/results/specifications/{specificationId}/provider-result-by-calculationtype/{providerId}/template")]
         [HttpGet]
-        public async Task<IActionResult> RunProviderResultsByCalculationTypeTemplate(string providerId, string specificationId)
+        [Produces(typeof(ProviderResult))]
+        public async Task<IActionResult> RunProviderResultsByCalculationTypeTemplate([FromRoute] string providerId, [FromRoute] string specificationId)
         {
             return await _resultsService.GetProviderResultByCalculationType(providerId, specificationId, CalculationType.Template);
         }
 
         [Route("api/results/specifications/{specificationId}/provider-result-by-calculationtype/{providerId}/additional")]
         [HttpGet]
-        public async Task<IActionResult> RunProviderResultsByCalculationTypeAdditional(string providerId, string specificationId)
+        [Produces(typeof(ProviderResult))]
+        public async Task<IActionResult> RunProviderResultsByCalculationTypeAdditional([FromRoute] string providerId,[FromRoute]  string specificationId)
         {
             return await _resultsService.GetProviderResultByCalculationType(providerId, specificationId, CalculationType.Additional);
         }
 
         [Route("api/results/get-provider-source-datasets")]
         [HttpGet]
+        [Produces(typeof(IEnumerable<ProviderSourceDataset>))]
         public async Task<IActionResult> RunGetProviderSourceDatasetsByProviderIdAndSpecificationId()
         {
             return await _resultsService.GetProviderSourceDatasetsByProviderIdAndSpecificationId(ControllerContext.HttpContext.Request);
@@ -75,6 +83,7 @@ namespace CalculateFunding.Api.Results.Controllers
 
         [Route("api/results/calculation-provider-results-search")]
         [HttpPost]
+        [Produces(typeof(CalculationProviderResultSearchResults))]
         public async Task<IActionResult> RunCalculationProviderResultsSearch()
         {
             return await _providerCalculationResultsSearchService.SearchCalculationProviderResults(ControllerContext.HttpContext.Request);
@@ -82,6 +91,7 @@ namespace CalculateFunding.Api.Results.Controllers
 
         [Route("api/results/get-scoped-providerids")]
         [HttpGet]
+        [Produces(typeof(IEnumerable<string>))]
         public async Task<IActionResult> RunGetScopedProviderIds()
         {
             return await _resultsService.GetScopedProviderIdsBySpecificationId(ControllerContext.HttpContext.Request);
@@ -89,6 +99,7 @@ namespace CalculateFunding.Api.Results.Controllers
 
         [Route("api/results/get-calculation-result-totals-for-specifications")]
         [HttpPost]
+        [Produces(typeof(IEnumerable<FundingCalculationResultsTotals>))]
         public async Task<IActionResult> RunGetFundingCalculationResultsForSpecifications()
         {
             return await _resultsService.GetFundingCalculationResultsForSpecifications(ControllerContext.HttpContext.Request);
@@ -96,6 +107,7 @@ namespace CalculateFunding.Api.Results.Controllers
 
         [Route("api/results/get-specification-provider-results")]
         [HttpGet]
+        [Produces(typeof(IEnumerable<ProviderResult>))]
         public async Task<IActionResult> RunGetProviderResultsBySpecificationId()
         {
             return await _resultsService.GetProviderResultsBySpecificationId(ControllerContext.HttpContext.Request);
@@ -103,6 +115,7 @@ namespace CalculateFunding.Api.Results.Controllers
 
         [Route("api/results/hasCalculationResults/{calculationId}")]
         [HttpGet]
+        [Produces(typeof(bool))]
         public async Task<IActionResult> HasCalculationResults(string calculationId)
         {
             return await _resultsService.HasCalculationResults(calculationId);

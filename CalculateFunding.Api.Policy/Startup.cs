@@ -27,6 +27,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.OpenApi.Models;
 using Polly.Bulkhead;
 using Serilog;
 using Swashbuckle.AspNetCore.Swagger;
@@ -50,15 +51,15 @@ namespace CalculateFunding.Api.Policy
 
             RegisterComponents(services);
 
-            // Register the Swagger generator, defining 1 or more Swagger documents
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new Info { Title = "Funding Service Policy API", Version = "v1" });
-
-                // Set the comments path for the Swagger JSON and UI.
-                var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-                var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-                c.IncludeXmlComments(xmlPath);
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Policy Microservice API", Version = "v1" });
+                c.AddSecurityDefinition("API Key", new OpenApiSecurityScheme()
+                {
+                    Type = SecuritySchemeType.ApiKey,
+                    Name = "Ocp-Apim-Subscription-Key",
+                    In = ParameterLocation.Header,
+                });
             });
         }
 
@@ -74,19 +75,10 @@ namespace CalculateFunding.Api.Policy
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
 
-                app.UseMiddleware<ApiKeyMiddleware>();
+                app.MapWhen(
+                    context => !context.Request.Path.Value.StartsWith("/swagger"),
+                    appBuilder => appBuilder.UseMiddleware<ApiKeyMiddleware>());
             }
-
-            // Enable middleware to serve generated Swagger as a JSON endpoint.
-            app.UseSwagger();
-
-            // Enable middleware to serve swagger-ui (HTML, JS, CSS, etc.), 
-            // specifying the Swagger JSON endpoint.
-            app.UseSwaggerUI(c =>
-            {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Policy API V1");
-                c.RoutePrefix = string.Empty;
-            });
 
             app.UseHttpsRedirection();
 
@@ -95,6 +87,15 @@ namespace CalculateFunding.Api.Policy
             app.UseMvc();
 
             app.UseHealthCheckMiddleware();
+           
+
+            app.UseSwagger();
+
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Policy Microservice API");
+                c.DocumentTitle = "Policy Microservice - Swagger";
+            });
         }
 
         public void RegisterComponents(IServiceCollection builder)

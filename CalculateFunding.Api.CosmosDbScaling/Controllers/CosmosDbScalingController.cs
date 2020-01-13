@@ -21,6 +21,7 @@ namespace CalculateFunding.Api.CosmosDbScaling.Controllers
 
         [Route("api/cosmosdbscaling/scalingconfig")]
         [HttpPost]
+        [Produces(typeof(ScalingConfigurationUpdateModel))]
         public async Task<IActionResult> RunSaveConfiguration([FromBody]ScalingConfigurationUpdateModel scalingConfigurationUpdate)
         {
             return await _cosmosDbScalingService.SaveConfiguration(scalingConfigurationUpdate);

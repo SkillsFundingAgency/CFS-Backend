@@ -23,6 +23,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.OpenApi.Models;
 using Polly.Bulkhead;
 
 namespace CalculateFunding.Api.Results
@@ -44,6 +45,17 @@ namespace CalculateFunding.Api.Results
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
 
             RegisterComponents(services);
+
+            services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Results Microservice API", Version = "v1" });
+                c.AddSecurityDefinition("API Key", new OpenApiSecurityScheme()
+                {
+                    Type = SecuritySchemeType.ApiKey,
+                    Name = "Ocp-Apim-Subscription-Key",
+                    In = ParameterLocation.Header,
+                });
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -61,11 +73,22 @@ namespace CalculateFunding.Api.Results
             app.UseHttpsRedirection();
 
             app.UseMiddleware<LoggedInUserMiddleware>();
-            app.UseMiddleware<ApiKeyMiddleware>();
 
             app.UseMvc();
 
             app.UseHealthCheckMiddleware();
+            
+            app.MapWhen(
+                context => !context.Request.Path.Value.StartsWith("/swagger"),
+                appBuilder => appBuilder.UseMiddleware<ApiKeyMiddleware>());
+
+            app.UseSwagger();
+
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Results Microservice API");
+                c.DocumentTitle = "Results Microservice - Swagger";
+            });
         }
 
         public void RegisterComponents(IServiceCollection builder)
