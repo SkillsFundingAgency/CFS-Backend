@@ -92,7 +92,6 @@ namespace CalculateFunding.Migrations.Specifications.Etl.Migrations
                 {
                     Console.Write("Pre-requisites failure.");
                 }
-            
         }
 
         private async Task<bool> PreRequisites(string specificationId)
@@ -607,8 +606,14 @@ namespace CalculateFunding.Migrations.Specifications.Etl.Migrations
                                             await _destinationDb.SetThroughPut(currentThroughPut.Value, _.Name, true);
                                         }
                                     }
+
+                                    SearchRepository<PublishedProviderIndex> publishProviderRepository = new SearchRepository<PublishedProviderIndex>(searchRepositorySettings);
+
+                                    SearchResults<PublishedProviderIndex> results =  await publishProviderRepository.Search("", new Microsoft.Azure.Search.Models.SearchParameters { Filter = $"specificationId eq '{deleteSpecificationId}'" }, allResults: true);
+                                    
+                                    IEnumerable<IndexError> errors = await publishProviderRepository.Remove(results.Results.Select(providerResult => providerResult.Result));
                                 }
-                                
+
                                 IEnumerable<dynamic> items = await _destinationDb.GetDocuments(new CosmosDbQuery
                                 {
                                     QueryText = string.Format(_.Query, specificationId)
