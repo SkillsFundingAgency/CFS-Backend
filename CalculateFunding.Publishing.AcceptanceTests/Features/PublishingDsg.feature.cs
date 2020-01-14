@@ -4504,6 +4504,18 @@ this.ScenarioInitialize(scenarioInfo);
 #line 1276
  testRunner.And("the following job is requested is completed for the current specification", ((string)(null)), table148, "And ");
 #line hidden
+            TechTalk.SpecFlow.Table table149 = new TechTalk.SpecFlow.Table(new string[] {
+                        "PublishedProviderId",
+                        "Status"});
+            table149.AddRow(new string[] {
+                        string.Format("publishedprovider-1000000-{0}-{1}", fundingPeriodId, fundingStreamId),
+                        "Released"});
+            table149.AddRow(new string[] {
+                        string.Format("publishedprovider-1000002-{0}-{1}", fundingPeriodId, fundingStreamId),
+                        "Released"});
+#line 1282
+ testRunner.And("the following released published provider ids are upserted", ((string)(null)), table149, "And ");
+#line hidden
             this.ScenarioCleanup();
         }
         

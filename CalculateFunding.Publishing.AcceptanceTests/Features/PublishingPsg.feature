@@ -1555,6 +1555,14 @@ Scenario Outline: Successful publishing of funding
 		| InvokerUserId          | PublishUserId     |
 		| InvokerUserDisplayName | Invoker User      |
 		| ParentJobId            |                   |
+	And the following released published provider ids are upserted
+		| PublishedProviderId                                           | Status  |
+		| publishedprovider-1000000-<FundingPeriodId>-<FundingStreamId> | Released|	
+		| publishedprovider-1000002-<FundingPeriodId>-<FundingStreamId> | Released|	
+		| publishedprovider-1000101-<FundingPeriodId>-<FundingStreamId> | Released|	
+		| publishedprovider-1000102-<FundingPeriodId>-<FundingStreamId> | Released|	
+		| publishedprovider-1000201-<FundingPeriodId>-<FundingStreamId> | Released|
+		| publishedprovider-1000202-<FundingPeriodId>-<FundingStreamId> | Released|
 	Examples:
 		| FundingStreamId | FundingPeriodId | FundingPeriodName     | TemplateVersion | ProviderVersionId |
 		| PSG             | AY-1920         | Academic Year 2019-20 | 1.0             | psg-providers-1.0 |

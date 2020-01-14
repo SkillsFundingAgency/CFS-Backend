@@ -1279,6 +1279,10 @@ Scenario Outline: Successful publishing of funding
 		| InvokerUserId          | PublishUserId     |
 		| InvokerUserDisplayName | Invoker User      |
 		| ParentJobId            |                   |
+	And the following released published provider ids are upserted
+		| PublishedProviderId                                           | Status  |
+		| publishedprovider-1000000-<FundingPeriodId>-<FundingStreamId> | Released|	
+		| publishedprovider-1000002-<FundingPeriodId>-<FundingStreamId> | Released|	
 
 	Examples:
 		| FundingStreamId | FundingPeriodId | FundingPeriodName      | TemplateVersion | ProviderVersionId |

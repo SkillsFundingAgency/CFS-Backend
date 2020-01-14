@@ -102,6 +102,13 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
                 .Should()
                 .BeEquivalentTo(expectedPublishedProviderIds);
 
+            publishedProviders
+                .Where(_ => _.Current.Status == PublishedProviderStatus.Approved || _.Current.Status == PublishedProviderStatus.Updated || _.Current.Status == PublishedProviderStatus.Draft)
+                .Select(_ => (_.Released))                
+                .First()
+                .Should()
+                .BeNull();
+
 
             publishedProviders
                 .ToList().ForEach(_ =>
@@ -115,6 +122,35 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
                     .BeEquivalentTo(_publishFundingStepContext.ProviderCalculationResults.ContainsKey(_.Current.ProviderId) ? _publishFundingStepContext.ProviderCalculationResults[_.Current.ProviderId] : _publishFundingStepContext.CalculationResults);
                 });
         }
+
+        [Then(@"the following released published provider ids are upserted")]
+        public async Task ThenTheFollowingReleasedPublishedProviderIdsAreUpserted(Table table)
+        {
+            IEnumerable<PublishedProvider> publishedProviders = await _publishedFundingRepositoryStepContext.Repo
+                 .GetLatestPublishedProvidersBySpecification(_currentSpecificationStepContext.SpecificationId);
+
+            List<(string, PublishedProviderStatus)> expectedPublishedProviderIds = new List<(string, PublishedProviderStatus)>();
+
+            for (int i = 0; i < table.Rows.Count; i++)
+            {
+                expectedPublishedProviderIds.Add((table.Rows[i][0], table.Rows[i][1].AsEnum<PublishedProviderStatus>()));
+            }
+
+            publishedProviders
+                .Select(_ => (_.Id, _.Current.Status))
+                .OrderBy(_ => _.Id)
+                .Should()
+                .BeEquivalentTo(expectedPublishedProviderIds);           
+
+            publishedProviders
+                .Where(_ => _.Current.Status == PublishedProviderStatus.Released)
+                .Select(_ => (_.Released))
+                .First()
+                .Should()
+                .NotBeNull();
+        
+        }
+
 
         [Then(@"the following funding lines are set against provider with id '(.*)'")]
         public async Task ThenTheFollowingFundingLinesAreSetAgainstProviderWithId(string providerId, Table table)

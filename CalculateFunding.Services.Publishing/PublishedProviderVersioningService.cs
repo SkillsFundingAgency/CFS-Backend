@@ -90,6 +90,8 @@ namespace CalculateFunding.Services.Publishing
                     Interlocked.Increment(ref majorVersion);
                     newVersion.MajorVersion = majorVersion;
                     newVersion.MinorVersion = 0;
+
+                    publishedProvider.Released = newVersion;
                 }
 
                 switch (publishedProviderStatus)

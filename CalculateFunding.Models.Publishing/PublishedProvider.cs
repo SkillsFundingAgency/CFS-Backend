@@ -21,6 +21,9 @@ namespace CalculateFunding.Models.Publishing
         [JsonProperty("current")]
         public PublishedProviderVersion Current { get; set; }
 
+        [JsonProperty("released")]
+        public PublishedProviderVersion Released { get; set; }
+
         /// <summary>
         /// Cosmos partition to store this document in. The cosmos collection uses /content/partitionKey as partition key
         /// </summary>
