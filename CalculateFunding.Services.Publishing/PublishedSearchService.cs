@@ -8,10 +8,12 @@ using CalculateFunding.Models.Publishing;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Repositories.Common.Search.Results;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Filtering;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Publishing.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.Search.Models;
 using Newtonsoft.Json;
 using Serilog;
 
@@ -34,6 +36,36 @@ namespace CalculateFunding.Services.Publishing
             Guard.ArgumentNotNull(logger, nameof(logger));
             
             _logger = logger;
+        }
+
+        public async Task<IActionResult> SearchPublishedProviderLocalAuthorities(
+            string searchText,
+            string fundingStreamId,
+            string fundingPeriodId)
+        {
+            string facetName = "localAuthority";
+
+            FilterHelper filterHelper = new FilterHelper();
+            AddFiltersForNotification(fundingStreamId, fundingPeriodId, filterHelper);
+
+            SearchResults<PublishedProviderIndex> searchResults = await Task.Run(() =>
+            {
+                return SearchRepository.Search(string.Empty, new SearchParameters
+                {
+                    Facets = new[] { $"{facetName},count:1000" },
+                    Top = 0,
+                    Filter = filterHelper.BuildAndFilterQuery()
+                });
+            });
+
+            IEnumerable<string> distinctFacetValues = searchResults
+                .Facets
+                .SingleOrDefault(x => x.Name == facetName)
+                .FacetValues
+                .Where(x => x.Name?.Split().Any(s=> s.ToLowerInvariant().StartsWith(searchText.ToLowerInvariant())) == true)
+                .Select(x => x.Name);
+
+            return new OkObjectResult(distinctFacetValues);
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -127,6 +159,19 @@ namespace CalculateFunding.Services.Publishing
             }
 
             return searchModel;
+        }
+
+        private static void AddFiltersForNotification(string fundingStreamId, string fundingPeriodId, FilterHelper filterHelper)
+        {
+            if (!fundingStreamId.IsNullOrEmpty())
+            {
+                filterHelper.Filters.Add(new Filter("fundingStreamId", new[] { fundingStreamId }, false, "eq"));
+            }
+
+            if (!fundingPeriodId.IsNullOrEmpty())
+            {
+                filterHelper.Filters.Add(new Filter("fundingPeriodId", new[] { fundingPeriodId }, false, "eq"));
+            }
         }
     }
 }

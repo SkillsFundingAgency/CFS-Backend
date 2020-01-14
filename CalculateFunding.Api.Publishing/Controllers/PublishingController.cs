@@ -155,6 +155,13 @@ namespace CalculateFunding.Api.Publishing.Controllers
                 .GetProviderStatusCounts(specificationId);
         }
 
+        [HttpPost("api/publishedproviders/{fundingStreamId}/{fundingPeriodId}/localauthorities")]
+        [ProducesResponseType(200, Type = typeof(IEnumerable<string>))]
+        public async Task<IActionResult> SearchPublishedProviderLocalAuthorities([FromBody] string searchText, [FromRoute] string fundingStreamId, [FromRoute] string fundingPeriodId)
+        {
+            return await _publishedSearchService.SearchPublishedProviderLocalAuthorities(searchText, fundingStreamId, fundingPeriodId);
+        }
+
         private Reference GetUser()
         {
             return Request.GetUser();

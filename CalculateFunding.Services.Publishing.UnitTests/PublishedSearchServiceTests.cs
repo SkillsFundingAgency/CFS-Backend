@@ -126,7 +126,71 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             await ThenTheRowsWereSkippedDuringSearch(expectedRowsSkipped, 1, searchModel.SearchTerm);
         }
-        
+
+        [TestMethod]
+        public async Task GetsPublishedProviderLocalAuthorities()
+        {
+            string fundingStreamId = "fundingStreamId1";
+            string fundingPeriodId = "fundingPeriodId1";
+            string searchText = "Der";
+
+            string matchingFacetName = "Derby";
+            string unmatchingFacetName = "Kent";
+            string matchingTwoWordFacetName = "North Derby";
+
+            SearchResults<PublishedProviderIndex> searchResults = new SearchResults<PublishedProviderIndex>
+            {
+                Facets = new List<Facet>
+                {
+                    new Facet
+                    {
+                        Name = "localAuthority",
+                        FacetValues = new List<FacetValue>
+                        { 
+                            new FacetValue
+                            {
+                                Name = matchingFacetName
+                            },
+                            new FacetValue
+                            {
+                                Name = unmatchingFacetName
+                            },
+                            new FacetValue
+                            {
+                                Name = matchingTwoWordFacetName
+                            },
+                        } 
+                    }
+                }
+            };
+
+            GivenSearchResultsForLocalAuthority(searchText, searchResults);
+
+            OkObjectResult result = await WhenSearchLocalAuthorityIsMade(searchText, fundingStreamId, fundingPeriodId) as OkObjectResult;
+
+            result
+                .Should()
+                .NotBeNull();
+
+            await ThenFacetValuesWasSearched(searchText, fundingStreamId, fundingPeriodId);
+
+            IEnumerable<string> publishedProviderLocalAuthorities = result.Value as IEnumerable<string>;
+
+            publishedProviderLocalAuthorities
+                .Should()
+                .HaveCount(2);
+
+            publishedProviderLocalAuthorities
+                .First()
+                .Should()
+                .BeEquivalentTo(matchingFacetName);
+
+            publishedProviderLocalAuthorities
+                .Last()
+                .Should()
+                .BeEquivalentTo(matchingTwoWordFacetName);
+        }
+
         private SearchModel NewSearchModel(Action<SearchModelBuilder> setUp = null)
         {
             SearchModelBuilder searchModelBuilder = new SearchModelBuilder();
@@ -146,6 +210,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private async Task<IActionResult> WhenTheSearchIsMade()
         {
             return await _service.SearchPublishedProviders(_request);
+        }
+
+        private async Task<IActionResult> WhenSearchLocalAuthorityIsMade(string searchText, string fundingStreamId = null, string fundingPeriodId = null)
+        {
+            return await _service.SearchPublishedProviderLocalAuthorities(searchText, fundingStreamId, fundingPeriodId);
         }
 
         private void ThenTheErrorWasLogged(string error)
@@ -213,6 +282,23 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         {
             _searchRepository.Search(Arg.Is(search.SearchTerm), Arg.Any<SearchParameters>())
                 .Returns(results);
+        }
+
+        private void GivenSearchResultsForLocalAuthority(string searchText, SearchResults<PublishedProviderIndex> results)
+        {
+            _searchRepository.Search(Arg.Any<string>(), Arg.Any<SearchParameters>())
+                .Returns(results);
+        }
+
+        private async Task ThenFacetValuesWasSearched(string searchText, string fundingStreamId, string fundingPeriodId)
+        {
+            await _searchRepository
+                    .Received(1)
+                    .Search(string.Empty,
+                        Arg.Is<SearchParameters>(_ => 
+                        _.Top == 0 && 
+                        _.Filter == $"(fundingStreamId eq '{fundingStreamId}') and (fundingPeriodId eq '{fundingPeriodId}')" &&
+                        _.Facets.First().StartsWith("localAuthority")));
         }
     }
 }
