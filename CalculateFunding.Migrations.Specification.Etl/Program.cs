@@ -43,7 +43,7 @@ namespace CalculateFunding.Migrations.Specifications.Etl
 
             List<Container> containers = new List<Container>();
 
-            containers.Add(new Container { Name = "publishedfunding", Query = "SELECT * FROM c WHERE c.content.current.specificationId = '{0}'", MaxThroughPut = options.MaxThroughPut, PartitionKey = "/content/partitionKey", HasPost = true });
+            containers.Add(new Container { Name = "publishedfunding", Query = "SELECT * FROM c WHERE c.content.current.specificationId = '{0}' OR c.content.specificationId = '{0}'", MaxThroughPut = options.MaxThroughPut, PartitionKey = "/content/partitionKey", HasPost = true });
             containers.Add(new Container { Name = "specs", Query = "SELECT * FROM c WHERE c.content.current.specificationId = '{0}' OR c.content.specificationId = '{0}'", HasPreReqs = true, MaxThroughPut = options.MaxThroughPut, HasPost = true });
             containers.Add(new Container { Name = "datasets", Query = "SELECT * FROM c WHERE c.content.Specification.id = '{0}'", HasPreReqs = true, MaxThroughPut = options.MaxThroughPut, HasPost = true });
             containers.Add(new Container { Name = "calculationresults", Query = "SELECT * FROM c WHERE c.content.specificationId = '{0}'", MaxThroughPut = options.MaxThroughPut, PartitionKey = "/content/provider/id", HasPost = true });
@@ -67,7 +67,7 @@ namespace CalculateFunding.Migrations.Specifications.Etl
                                         AND c.id = @specificationId"
                 );
 
-            await specificationMigration.Run(options.SourceSpecificationId);
+            await specificationMigration.Run(options.SourceSpecificationId, options.UnpublishSpecificationId);
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
 using System;
 using System.Collections.Generic;
@@ -49,6 +50,16 @@ namespace CalculateFunding.Migrations.Specification.Etl.Migrations
                  .DynamicQuery(cosmosDbQuery);
 
             return queryResults;
+        }
+
+        internal async Task DeleteDocuments<T>(IEnumerable<KeyValuePair<string, T>> documents, string containerName) where T:IIdentifiable
+        {
+            _cosmosDbSettings.ContainerName = containerName;
+
+            ICosmosRepository cosmosRepository = new CosmosRepository(_cosmosDbSettings);
+
+            await cosmosRepository
+                 .BulkDeleteAsync(documents, degreeOfParallelism:15, hardDelete:true);
         }
 
         internal async Task<int?> SetThroughPut(int requestUnits, string containerName, bool force = false)

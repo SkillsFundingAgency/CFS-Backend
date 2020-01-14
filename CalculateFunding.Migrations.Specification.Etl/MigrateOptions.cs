@@ -19,6 +19,9 @@ namespace CalculateFunding.Migrations.Specifications.Etl
         [Option("src-spec-id", Required = true, HelpText = "Set the source specification id")]
         public string SourceSpecificationId { get; set; }
 
+        [Option("unpublish-spec-id", Required = false, HelpText = "Set the specification id to un-publish")]
+        public string UnpublishSpecificationId { get; set; }
+
         [Option("src-account-endpoint", Required = true, HelpText = "Set the source account endpoint")]
         public string SourceAccountEndpoint { get; set; }
         

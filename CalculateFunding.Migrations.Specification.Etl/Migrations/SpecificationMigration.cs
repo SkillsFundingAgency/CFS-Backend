@@ -47,7 +47,7 @@ namespace CalculateFunding.Migrations.Specifications.Etl.Migrations
             _specificationQuery = specificationQuery;
         }
 
-        public async Task Run(string specificationId)
+        public async Task Run(string specificationId, string deleteSpecificationId = null)
         {
                 if (await PreRequisites(specificationId))
                 {
@@ -62,7 +62,7 @@ namespace CalculateFunding.Migrations.Specifications.Etl.Migrations
                             container.Query = string.Format(container.Query, specificationId);
                             Console.WriteLine($"Started migrating specification '{specificationId}' documents from '{container.Name}' cosmos container");
                             string filename = @".\Tools\dt.exe";
-                            string arguments = $"/ErrorLog:\"{container.Name}-errors.csv\" /OverwriteErrorLog:true /s:DocumentDB /s.ConnectionString:\"{_sourceDb.ConnectionString}\" /s.Collection:{container.Name} /s.Query:\"{container.Query}\" /t:DocumentDB /t.ConnectionString:\"{_destinationDb.ConnectionString}\" /t.Collection:{container.Name} /t.CollectionThroughput:{container.MaxThroughPut}" + (container.PartitionKey != null ? $" /t.PartitionKey:\"{container.PartitionKey}\"" : string.Empty);
+                            string arguments = $"/ErrorLog:\"{container.Name}-errors.csv\" /OverwriteErrorLog:true /s:DocumentDB /s.ConnectionString:\"{_sourceDb.ConnectionString}\" /s.Collection:{container.Name} /s.Query:\"{container.Query} order by c._ts desc\" /t:DocumentDB /t.ConnectionString:\"{_destinationDb.ConnectionString}\" /t.Collection:{container.Name} /t.CollectionThroughput:{container.MaxThroughPut}" + (container.PartitionKey != null ? $" /t.PartitionKey:\"{container.PartitionKey}\"" : string.Empty);
                             Console.WriteLine(filename + " " + arguments);
                             var proc = new Process();
                             proc.StartInfo.FileName = filename;
@@ -83,7 +83,7 @@ namespace CalculateFunding.Migrations.Specifications.Etl.Migrations
                     }
 
                     // carry out post migration here
-                    if (!await PostMigration(specificationId))
+                    if (!await PostMigration(specificationId, deleteSpecificationId))
                     {
                         Console.Write("Post migration steps failure.");
                     }
@@ -318,7 +318,7 @@ namespace CalculateFunding.Migrations.Specifications.Etl.Migrations
             }
         }
 
-        private async Task<bool> PostMigration(string specificationId)
+        private async Task<bool> PostMigration(string specificationId, string deleteSpecificationId = null)
         {
             SearchRepositorySettings searchRepositorySettings = new SearchRepositorySettings { SearchServiceName = _search.SearchServiceName, SearchKey = _search.SearchKey };
 
@@ -419,7 +419,7 @@ namespace CalculateFunding.Migrations.Specifications.Etl.Migrations
                                         ProviderType = providerResult.content.provider?.providerType,
                                         ProviderSubType = providerResult.content.provider?.providerSubType,
                                         LocalAuthority = providerResult.content.provider?.Authority,
-                                        LastUpdatedDate = providerResult.content.createdAt,
+                                        LastUpdatedDate = !string.IsNullOrWhiteSpace(Convert.ToString(providerResult.content.createdAt)) ? DateTimeOffset.Parse(Convert.ToString(providerResult.content.createdAt)) : DateTime.Now,
                                         UKPRN = providerResult.content.provider?.ukPrn,
                                         URN = providerResult.content.provider?.urn,
                                         UPIN = providerResult.content.provider?.upin,
@@ -582,6 +582,33 @@ namespace CalculateFunding.Migrations.Specifications.Etl.Migrations
                             {
                                 Console.WriteLine($"Started re-indexing : published provider results");
 
+                                if (!string.IsNullOrWhiteSpace(deleteSpecificationId))
+                                {
+                                    int? currentThroughPut = null;
+
+                                    try
+                                    {
+                                        currentThroughPut = await _destinationDb.SetThroughPut(150000, _.Name);
+                                        IEnumerable<dynamic> deleteitems = await _destinationDb.GetDocuments(new CosmosDbQuery
+                                        {
+                                            QueryText = string.Format(_.Query, deleteSpecificationId)
+                                        },
+                                        _.Name);
+
+                                        await _destinationDb.DeleteDocuments(deleteitems.Where(document => document.documentType == "PublishedProvider").Select(document => new KeyValuePair<string, PublishedProvider>(Convert.ToString(document.content.partitionKey), new PublishedProvider { Current = new PublishedProviderVersion { ProviderId = document.content.current.providerId, FundingPeriodId = document.content.current.fundingPeriodId, FundingStreamId = document.content.current.fundingStreamId } })), _.Name);
+                                        await _destinationDb.DeleteDocuments(deleteitems.Where(document => document.documentType == "PublishedProviderVersion").Select(document => new KeyValuePair<string, PublishedProviderVersion>(Convert.ToString(document.content.partitionKey), new PublishedProviderVersion { ProviderId = document.content.provider.providerId, FundingPeriodId = document.content.fundingPeriodId, FundingStreamId = document.content.fundingStreamId, Version = document.content.version })), _.Name);
+                                        await _destinationDb.DeleteDocuments(deleteitems.Where(document => document.documentType == "PublishedFunding").Select(document => new KeyValuePair<string, PublishedFunding>(Convert.ToString(document.content.partitionKey), new PublishedFunding { Current = new PublishedFundingVersion { FundingStreamId = document.comtent.current.fundingStreamId, FundingPeriod = new PublishedFundingPeriod { Period = document.content.current.fundingPeriod.id }, GroupingReason = document.comtent.current.GroupingReason, OrganisationGroupTypeCode = document.current.organisationGroupTypeCode, OrganisationGroupIdentifierValue = document.content.current.organisationGroupIdentifierValue } })), _.Name);
+
+                                    }
+                                    finally
+                                    {
+                                        if (currentThroughPut.HasValue)
+                                        {
+                                            await _destinationDb.SetThroughPut(currentThroughPut.Value, _.Name, true);
+                                        }
+                                    }
+                                }
+                                
                                 IEnumerable<dynamic> items = await _destinationDb.GetDocuments(new CosmosDbQuery
                                 {
                                     QueryText = string.Format(_.Query, specificationId)
