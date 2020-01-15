@@ -317,22 +317,11 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Returns(new ApiResponse<BuildProject>(HttpStatusCode.OK, new BuildProject { 
                     Build = new Build { 
                         Assembly = new byte[] { },
-                        CompilerMessages = new List<CompilerMessage>(0), 
-                        SourceFiles = new List<SourceFile>(0),
+                        CompilerMessages = new List<CompilerMessage> { new CompilerMessage() },
+                        SourceFiles = new List<SourceFile> { new SourceFile() },
                         Success = true 
                     }, 
-                    DatasetRelationships = new List<DatasetRelationshipSummary>(new DatasetRelationshipSummary[] { 
-                        new DatasetRelationshipSummary {
-                            DatasetDefinition = new Common.ApiClient.Calcs.Models.Schema.DatasetDefinition(),
-                            DataGranularity = Common.ApiClient.Calcs.Models.Schema.DataGranularity.SingleRowPerProvider,
-                            DatasetDefinitionId = "DatasetDefinitionId",
-                            DatasetId = "DatasetId",
-                            DefinesScope = true,
-                            Id = "Id",
-                            Name = "Name",
-                            Relationship = new Reference ("ownerId","name")
-                        }
-                    }), 
+                    DatasetRelationships = new List<DatasetRelationshipSummary>(1), 
                     SpecificationId = "SpecificationId", 
                     Id = "Id", 
                     Name = "Name"
