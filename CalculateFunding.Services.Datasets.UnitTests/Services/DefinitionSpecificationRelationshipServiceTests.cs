@@ -321,7 +321,18 @@ namespace CalculateFunding.Services.Datasets.Services
                         SourceFiles = new List<SourceFile>(0),
                         Success = true 
                     }, 
-                    DatasetRelationships = new List<DatasetRelationshipSummary>(1), 
+                    DatasetRelationships = new List<DatasetRelationshipSummary>(new DatasetRelationshipSummary[] { 
+                        new DatasetRelationshipSummary {
+                            DatasetDefinition = new Common.ApiClient.Calcs.Models.Schema.DatasetDefinition(),
+                            DataGranularity = Common.ApiClient.Calcs.Models.Schema.DataGranularity.SingleRowPerProvider,
+                            DatasetDefinitionId = "DatasetDefinitionId",
+                            DatasetId = "DatasetId",
+                            DefinesScope = true,
+                            Id = "Id",
+                            Name = "Name",
+                            Relationship = new Reference ("ownerId","name")
+                        }
+                    }), 
                     SpecificationId = "SpecificationId", 
                     Id = "Id", 
                     Name = "Name"
