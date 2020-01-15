@@ -314,7 +314,18 @@ namespace CalculateFunding.Services.Datasets.Services
             ICalculationsApiClient calcsClient = Substitute.For<ICalculationsApiClient>();
             calcsClient
                 .UpdateBuildProjectRelationships(Arg.Is(specificationId), Arg.Any<DatasetRelationshipSummary>())
-                .Returns(new ApiResponse<BuildProject>(HttpStatusCode.OK, new BuildProject()));
+                .Returns(new ApiResponse<BuildProject>(HttpStatusCode.OK, new BuildProject { 
+                    Build = new Build { 
+                        Assembly = new byte[] { },
+                        CompilerMessages = new List<CompilerMessage>(0), 
+                        SourceFiles = new List<SourceFile>(0),
+                        Success = true 
+                    }, 
+                    DatasetRelationships = new List<DatasetRelationshipSummary>(1), 
+                    SpecificationId = "SpecificationId", 
+                    Id = "Id", 
+                    Name = "Name"
+                }));
 
             ICalcsRepository calcsRepository = new CalcsRepository(calcsClient, CreateMapper());
 
