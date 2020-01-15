@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
+using CalculateFunding.Services.Publishing.Models;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
 {

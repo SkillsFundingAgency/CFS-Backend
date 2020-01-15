@@ -82,7 +82,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 providerVersions.Add(new PublishedProviderVersion
                 {
                     Provider = GetProvider(i),
-                    Calculations = JsonConvert.DeserializeObject<IEnumerable<Models.Publishing.FundingCalculation>>(GetResourceString($"CalculateFunding.Services.Publishing.UnitTests.Resources.exampleProvider{i}Calculations.json")),
+                    Calculations = JsonConvert.DeserializeObject<IEnumerable<FundingCalculation>>(GetResourceString($"CalculateFunding.Services.Publishing.UnitTests.Resources.exampleProvider{i}Calculations.json")),
                     FundingLines = new FundingLine[] { NewFundingLine(fl => fl.WithTemplateLineId(1).WithValue(0)) },
                     ProviderId = "1234" + i,
                     FundingStreamId = "PSG",

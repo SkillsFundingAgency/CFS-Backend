@@ -21,6 +21,7 @@ using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Interfaces;
+using CalculateFunding.Services.Publishing.Models;
 using Microsoft.Azure.ServiceBus;
 using Polly;
 using Serilog;

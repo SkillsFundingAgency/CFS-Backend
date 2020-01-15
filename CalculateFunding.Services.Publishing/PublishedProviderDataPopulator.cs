@@ -1,7 +1,9 @@
-﻿using AutoMapper;
+﻿using System.Linq;
+using AutoMapper;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
+using CalculateFunding.Services.Publishing.Models;
 using Newtonsoft.Json;
 
 namespace CalculateFunding.Services.Publishing
@@ -25,11 +27,13 @@ namespace CalculateFunding.Services.Publishing
         /// <param name="generatedProviderResult">Funding lines and profiling information, calculations, reference data</param>
         /// <param name="provider">Core provider information</param>
         /// <param name="templateVersion">The template version used for the specification and provider</param>
+        /// <param name="variationForProvider"></param>
         /// <returns>True when the PublishedProviderVersion has been updated, false if not</returns>
         public bool UpdatePublishedProvider(PublishedProviderVersion publishedProviderVersion,
             GeneratedProviderResult generatedProviderResult,
             Common.ApiClient.Providers.Models.Provider provider,
-            string templateVersion)
+            string templateVersion,
+            ProviderVariationResult variationForProvider)
         {
             Guard.ArgumentNotNull(publishedProviderVersion, nameof(publishedProviderVersion));
             Guard.ArgumentNotNull(generatedProviderResult, nameof(generatedProviderResult));
@@ -55,6 +59,8 @@ namespace CalculateFunding.Services.Publishing
             publishedProviderVersion.TotalFunding = generatedProviderResult.TotalFunding;
 
             publishedProviderVersion.Provider = mappedProvider;
+
+            publishedProviderVersion.VariationReasons = variationForProvider?.VariationReasons?.ToArray();
 
             return hasChanges;
         }

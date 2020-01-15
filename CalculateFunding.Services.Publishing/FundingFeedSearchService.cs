@@ -11,7 +11,6 @@ using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Filtering;
 using CalculateFunding.Services.Publishing.Interfaces;
-using CalculateFunding.Services.Publising.Interfaces;
 using Microsoft.Azure.Search.Models;
 
 namespace CalculateFunding.Services.Publishing

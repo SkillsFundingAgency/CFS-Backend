@@ -8,6 +8,8 @@ using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
 using GeneratorModels = CalculateFunding.Generators.Funding.Models;
+using OrganisationGroupingReason = CalculateFunding.Models.Publishing.OrganisationGroupingReason;
+using FundingLine = CalculateFunding.Models.Publishing.FundingLine;
 
 namespace CalculateFunding.Services.Publishing
 {
@@ -54,11 +56,11 @@ namespace CalculateFunding.Services.Publishing
                     // Get funding lines
                     IEnumerable<GeneratorModels.FundingLine> fundingLines = fundingValue.FundingLines?.Flatten(_ => _.FundingLines).DistinctBy(_ => _.TemplateLineId) ?? new GeneratorModels.FundingLine[0];
 
-                    generatedProviderResult.FundingLines = _mapper.Map<IEnumerable<Models.Publishing.FundingLine>>(fundingLines);
+                    generatedProviderResult.FundingLines = _mapper.Map<IEnumerable<FundingLine>>(fundingLines);
 
                     // Set total funding
                     generatedProviderResult.TotalFunding = generatedProviderResult.FundingLines
-                        .Where(f => f.Type == Models.Publishing.OrganisationGroupingReason.Payment)
+                        .Where(f => f.Type == OrganisationGroupingReason.Payment)
                         .Sum(p => p.Value);
 
                     // Get calculations

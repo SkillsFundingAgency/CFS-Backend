@@ -51,7 +51,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             _publishedFundingVersion = NewPublishedFundingVersion(version => version.WithFundingId("funding1")
             .WithFundingPeriod(_publishedFundingPeriod)
             .WithFundingStreamId(_fundingStream)
-            .WithGroupReason(Models.Publishing.GroupingReason.Payment)
+            .WithGroupReason(CalculateFunding.Models.Publishing.GroupingReason.Payment)
             .WithOrganisationGroupTypeClassification(OrganisationGroupTypeClassification.LegalEntity)
             .WithOrganisationGroupTypeIdentifier(OrganisationGroupTypeIdentifier.AcademyTrustCode)
             .WithOrganisationGroupTypeCode(OrganisationGroupTypeCode.AcademyTrust)
@@ -73,7 +73,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             _publishedFundingVersion = NewPublishedFundingVersion(version => version.WithFundingId("funding1")
             .WithFundingPeriod(_publishedFundingPeriod)
             .WithFundingStreamId(_fundingStream)
-            .WithGroupReason(Models.Publishing.GroupingReason.Payment)
+            .WithGroupReason(CalculateFunding.Models.Publishing.GroupingReason.Payment)
             .WithOrganisationGroupTypeClassification(OrganisationGroupTypeClassification.LegalEntity)
             .WithOrganisationGroupTypeIdentifier(OrganisationGroupTypeIdentifier.AcademyTrustCode)
             .WithOrganisationGroupTypeCode(OrganisationGroupTypeCode.AcademyTrust)
@@ -96,7 +96,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
         private async Task ThenFileIsUploaded()
         {
-            string blobName = $"{_fundingStream}-{_publishedFundingPeriod.Id}-{Models.Publishing.GroupingReason.Payment.ToString()}-{OrganisationGroupTypeCode.AcademyTrust}-{_publishedFundingVersion.OrganisationGroupIdentifierValue}-{1}_{0}.json";
+            string blobName = $"{_fundingStream}-{_publishedFundingPeriod.Id}-{GroupingReason.Payment.ToString()}-{OrganisationGroupTypeCode.AcademyTrust}-{_publishedFundingVersion.OrganisationGroupIdentifierValue}-{1}_{0}.json";
 
             await _blobClient
                 .Received(1)

@@ -19,7 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="CalculateFunding.Common" Version="1.38.0" />
+    <PackageReference Include="CalculateFunding.Common" Version="1.39.0" />
     <PackageReference Include="CalculateFunding.Generators.OrganisationGroup" Version="1.0.15" />
     <PackageReference Include="CommandLineParser" Version="2.6.0" />
     <PackageReference Include="CsvHelper" Version="12.1.2" />

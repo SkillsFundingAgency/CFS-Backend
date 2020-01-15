@@ -8,6 +8,7 @@ using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
+using CalculateFunding.Services.Publishing.Models;
 
 namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 {

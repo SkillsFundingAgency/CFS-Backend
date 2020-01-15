@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using CalculateFunding.Models.Publishing;
+using CalculateFunding.Services.Publishing.Models;
 
 namespace CalculateFunding.Services.Publishing.Interfaces
 {

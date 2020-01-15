@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Http;
+using System;
 
 namespace CalculateFunding.Tests.Common.Helpers
 {
@@ -15,5 +15,7 @@ namespace CalculateFunding.Tests.Common.Helpers
         protected int NewRandomNumberBetween(int min, int max) => new RandomNumberBetween(min, max);
         
         protected uint NewRandomUint() => (uint)NewRandomNumberBetween(0, int.MaxValue);
+        
+        protected DateTimeOffset NewRandomDateTime() => new RandomDateTime();
     }
 }

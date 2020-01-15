@@ -11,7 +11,7 @@ using CalculateFunding.Models.External.V3.AtomItems;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Models.Search;
 using CalculateFunding.Services.Core.Helpers;
-using CalculateFunding.Services.Publising.Interfaces;
+using CalculateFunding.Services.Publishing.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;

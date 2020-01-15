@@ -7,94 +7,94 @@ namespace CalculateFunding.Models.Publishing
     [JsonConverter(typeof(StringEnumConverter))]
     public enum VariationReason
     {
-        [EnumMember(Value = "AuthorityFieldUpdated")]
+        [EnumMember(Value = nameof(AuthorityFieldUpdated))]
         AuthorityFieldUpdated,
 
-        [EnumMember(Value = "EstablishmentNumberFieldUpdated")]
+        [EnumMember(Value = nameof(EstablishmentNumberFieldUpdated))]
         EstablishmentNumberFieldUpdated,
 
-        [EnumMember(Value = "DfeEstablishmentNumberFieldUpdated")]
+        [EnumMember(Value = nameof(DfeEstablishmentNumberFieldUpdated))]
         DfeEstablishmentNumberFieldUpdated,
 
-        [EnumMember(Value = "NameFieldUpdated")]
+        [EnumMember(Value = nameof(NameFieldUpdated))]
         NameFieldUpdated,
 
-        [EnumMember(Value = "LACodeFieldUpdated")]
+        [EnumMember(Value = nameof(LACodeFieldUpdated))]
         LACodeFieldUpdated,
 
-        [EnumMember(Value = "LegalNameFieldUpdated")]
+        [EnumMember(Value = nameof(LegalNameFieldUpdated))]
         LegalNameFieldUpdated,
 
-        [EnumMember(Value = "TrustCodeFieldUpdated")]
+        [EnumMember(Value = nameof(TrustCodeFieldUpdated))]
         TrustCodeFieldUpdated,
 
-        [EnumMember(Value = "FundingUpdated")]
+        [EnumMember(Value = nameof(FundingUpdated))]
         FundingUpdated,
 
-        [EnumMember(Value = "ProfilingUpdated")]
+        [EnumMember(Value = nameof(ProfilingUpdated))]
         ProfilingUpdated,
 
-        [EnumMember(Value = "URNFieldUpdated")]
+        [EnumMember(Value = nameof(URNFieldUpdated))]
         URNFieldUpdated,
 
-        [EnumMember(Value = "CompaniesHouseNumberFieldUpdated")]
+        [EnumMember(Value = nameof(CompaniesHouseNumberFieldUpdated))]
         CompaniesHouseNumberFieldUpdated,
 
-        [EnumMember(Value = "GroupIDFieldUpdated")]
+        [EnumMember(Value = nameof(GroupIDFieldUpdated))]
         GroupIDFieldUpdated,
 
-        [EnumMember(Value = "RSCRegionCodeFieldUpdated")]
+        [EnumMember(Value = nameof(RSCRegionCodeFieldUpdated))]
         RSCRegionCodeFieldUpdated,
 
-        [EnumMember(Value = "RSCRegionNameFieldUpdated")]
+        [EnumMember(Value = nameof(RSCRegionNameFieldUpdated))]
         RSCRegionNameFieldUpdated,
 
-        [EnumMember(Value = "GovernmentOfficeRegionCodeFieldUpdated")]
+        [EnumMember(Value = nameof(GovernmentOfficeRegionCodeFieldUpdated))]
         GovernmentOfficeRegionCodeFieldUpdated,
 
-        [EnumMember(Value = "GovernmentOfficeRegionNameFieldUpdated")]
+        [EnumMember(Value = nameof(GovernmentOfficeRegionNameFieldUpdated))]
         GovernmentOfficeRegionNameFieldUpdated,
 
-        [EnumMember(Value = "DistrictCodeFieldUpdated")]
+        [EnumMember(Value = nameof(DistrictCodeFieldUpdated))]
         DistrictCodeFieldUpdated,
 
-        [EnumMember(Value = "DistrictNameFieldUpdated")]
+        [EnumMember(Value = nameof(DistrictNameFieldUpdated))]
         DistrictNameFieldUpdated,
 
-        [EnumMember(Value = "WardCodeFieldUpdated")]
+        [EnumMember(Value = nameof(WardCodeFieldUpdated))]
         WardCodeFieldUpdated,
 
-        [EnumMember(Value = "WardNameFieldUpdated")]
+        [EnumMember(Value = nameof(WardNameFieldUpdated))]
         WardNameFieldUpdated,
 
-        [EnumMember(Value = "CensusWardCodeFieldUpdated")]
+        [EnumMember(Value = nameof(CensusWardCodeFieldUpdated))]
         CensusWardCodeFieldUpdated,
 
-        [EnumMember(Value = "CensusWardNameFieldUpdated")]
+        [EnumMember(Value = nameof(CensusWardNameFieldUpdated))]
         CensusWardNameFieldUpdated,
 
-        [EnumMember(Value = "MiddleSuperOutputAreaCodeFieldUpdated")]
+        [EnumMember(Value = nameof(MiddleSuperOutputAreaCodeFieldUpdated))]
         MiddleSuperOutputAreaCodeFieldUpdated,
 
-        [EnumMember(Value = "MiddleSuperOutputAreaNameFieldUpdated")]
+        [EnumMember(Value = nameof(MiddleSuperOutputAreaNameFieldUpdated))]
         MiddleSuperOutputAreaNameFieldUpdated,
 
-        [EnumMember(Value = "LowerSuperOutputAreaCodeFieldUpdated")]
+        [EnumMember(Value = nameof(LowerSuperOutputAreaCodeFieldUpdated))]
         LowerSuperOutputAreaCodeFieldUpdated,
 
-        [EnumMember(Value = "LowerSuperOutputAreaNameFieldUpdated")]
+        [EnumMember(Value = nameof(LowerSuperOutputAreaNameFieldUpdated))]
         LowerSuperOutputAreaNameFieldUpdated,
 
-        [EnumMember(Value = "ParliamentaryConstituencyCodeFieldUpdated")]
+        [EnumMember(Value = nameof(ParliamentaryConstituencyCodeFieldUpdated))]
         ParliamentaryConstituencyCodeFieldUpdated,
 
-        [EnumMember(Value = "ParliamentaryConstituencyNameFieldUpdated")]
+        [EnumMember(Value = nameof(ParliamentaryConstituencyNameFieldUpdated))]
         ParliamentaryConstituencyNameFieldUpdated,
 
-        [EnumMember(Value = "CountryCodeFieldUpdated")]
+        [EnumMember(Value = nameof(CountryCodeFieldUpdated))]
         CountryCodeFieldUpdated,
 
-        [EnumMember(Value = "CountryNameFieldUpdated")]
-        CountryNameFieldUpdated,
+        [EnumMember(Value = nameof(CountryNameFieldUpdated))]
+        CountryNameFieldUpdated
     }
 }

@@ -2,9 +2,8 @@
 using System.Threading.Tasks;
 using CalculateFunding.Models.External;
 using CalculateFunding.Models.Publishing;
-using CalculateFunding.Models.Search;
 
-namespace CalculateFunding.Services.Publising.Interfaces
+namespace CalculateFunding.Services.Publishing.Interfaces
 {
     public interface IFundingFeedSearchService
     {

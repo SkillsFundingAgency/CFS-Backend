@@ -11,6 +11,7 @@ using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Publishing.Interfaces;
+using CalculateFunding.Services.Publishing.Models;
 
 namespace CalculateFunding.Services.Publishing.Repositories
 {

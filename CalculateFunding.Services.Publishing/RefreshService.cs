@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Calcs;
-using CalculateFunding.Common.ApiClient.Jobs;
-using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
@@ -16,6 +14,7 @@ using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Interfaces;
+using CalculateFunding.Services.Publishing.Models;
 using Microsoft.Azure.ServiceBus;
 using Polly;
 using Serilog;
@@ -35,17 +34,17 @@ namespace CalculateFunding.Services.Publishing
         private readonly IInScopePublishedProviderService _inScopePublishedProviderService;
         private readonly IPublishedProviderDataPopulator _publishedProviderDataPopulator;
         private readonly IProfilingService _profilingService;
-        private readonly IJobsApiClient _jobsApiClient;
         private readonly ILogger _logger;
         private readonly ICalculationsApiClient _calculationsApiClient;
         private readonly IPoliciesApiClient _policiesApiClient;
         private readonly IRefreshPrerequisiteChecker _refreshPrerequisiteChecker;
         private readonly Policy _publishingResiliencePolicy;
-        private readonly Policy _jobsApiClientPolicy;
         private readonly Policy _calculationsApiClientPolicy;
         private readonly IPublishProviderExclusionCheck _providerExclusionCheck;
         private readonly IFundingLineValueOverride _fundingLineValueOverride;
         private readonly IPublishedProviderIndexerService _publishedProviderIndexerService;
+        private readonly IDetectProviderVariations _detectProviderVariations;
+        private readonly IApplyProviderVariations _applyProviderVariations;
         private readonly IJobManagement _jobManagement;
         private readonly IPublishingFeatureFlag _publishingFeatureFlag;
 
@@ -60,7 +59,6 @@ namespace CalculateFunding.Services.Publishing
             IProfilingService profilingService,
             IInScopePublishedProviderService inScopePublishedProviderService,
             IPublishedProviderDataPopulator publishedProviderDataPopulator,
-            IJobsApiClient jobsApiClient,
             ILogger logger,
             ICalculationsApiClient calculationsApiClient,
             IPoliciesApiClient policiesApiClient,
@@ -69,7 +67,9 @@ namespace CalculateFunding.Services.Publishing
             IFundingLineValueOverride fundingLineValueOverride,
             IJobManagement jobManagement,
             IPublishingFeatureFlag publishingFeatureFlag,
-            IPublishedProviderIndexerService publishedProviderIndexerService)
+            IPublishedProviderIndexerService publishedProviderIndexerService,
+            IDetectProviderVariations detectProviderVariations,
+            IApplyProviderVariations applyProviderVariations)
         {
             Guard.ArgumentNotNull(publishedProviderStatusUpdateService, nameof(publishedProviderStatusUpdateService));
             Guard.ArgumentNotNull(publishedFundingDataService, nameof(publishedFundingDataService));
@@ -82,7 +82,6 @@ namespace CalculateFunding.Services.Publishing
             Guard.ArgumentNotNull(inScopePublishedProviderService, nameof(inScopePublishedProviderService));
             Guard.ArgumentNotNull(publishedProviderDataPopulator, nameof(publishedProviderDataPopulator));
             Guard.ArgumentNotNull(profilingService, nameof(profilingService));
-            Guard.ArgumentNotNull(jobsApiClient, nameof(jobsApiClient));
             Guard.ArgumentNotNull(policiesApiClient, nameof(policiesApiClient));
             Guard.ArgumentNotNull(calculationsApiClient, nameof(calculationsApiClient));
             Guard.ArgumentNotNull(providerExclusionCheck, nameof(providerExclusionCheck));
@@ -90,6 +89,8 @@ namespace CalculateFunding.Services.Publishing
             Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
             Guard.ArgumentNotNull(publishingFeatureFlag, nameof(publishingFeatureFlag));
             Guard.ArgumentNotNull(publishedProviderIndexerService, nameof(publishedProviderIndexerService));
+            Guard.ArgumentNotNull(detectProviderVariations, nameof(detectProviderVariations));
+            Guard.ArgumentNotNull(applyProviderVariations, nameof(applyProviderVariations));
 
             _publishedProviderStatusUpdateService = publishedProviderStatusUpdateService;
             _publishedFundingDataService = publishedFundingDataService;
@@ -101,30 +102,19 @@ namespace CalculateFunding.Services.Publishing
             _inScopePublishedProviderService = inScopePublishedProviderService;
             _publishedProviderDataPopulator = publishedProviderDataPopulator;
             _profilingService = profilingService;
-            _jobsApiClient = jobsApiClient;
             _logger = logger;
             _calculationsApiClient = calculationsApiClient;
             _policiesApiClient = policiesApiClient;
             _refreshPrerequisiteChecker = refreshPrerequisiteChecker;
             _providerExclusionCheck = providerExclusionCheck;
             _fundingLineValueOverride = fundingLineValueOverride;
+            _detectProviderVariations = detectProviderVariations;
             _publishedProviderIndexerService = publishedProviderIndexerService;
 
             _publishingResiliencePolicy = publishingResiliencePolicies.PublishedFundingRepository;
             _calculationsApiClientPolicy = publishingResiliencePolicies.CalculationsApiClient;
-            _jobsApiClientPolicy = publishingResiliencePolicies.JobsApiClient;
             _jobManagement = jobManagement;
             _publishingFeatureFlag = publishingFeatureFlag;
-        }
-
-        public async Task<IEnumerable<Common.ApiClient.Providers.Models.Provider>> GetProvidersByProviderVersionId(string providerVersionId)
-        {
-            return await _providerService.GetProvidersByProviderVersionsId(providerVersionId);
-        }
-
-        public async Task<SpecificationSummary> GetSpecificationSummaryById(string specificationId)
-        {
-            return await _specificationService.GetSpecificationSummaryById(specificationId);
         }
 
         public async Task RefreshResults(Message message)
@@ -136,10 +126,9 @@ namespace CalculateFunding.Services.Publishing
             string specificationId = message.UserProperties["specification-id"] as string;
             string jobId = message.UserProperties["jobId"]?.ToString();
 
-            JobViewModel currentJob;
             try
             {
-                currentJob = await _jobManagement.RetrieveJobAndCheckCanBeProcessed(jobId);
+                await _jobManagement.RetrieveJobAndCheckCanBeProcessed(jobId);
             }
             catch (Exception e)
             {
@@ -211,6 +200,13 @@ namespace CalculateFunding.Services.Publishing
                     }
                 }
 
+                ApiResponse<Common.ApiClient.Policies.Models.FundingConfig.FundingConfiguration> fundingConfigurationRequest = await _policiesApiClient.GetFundingConfiguration(fundingStream.Id, specification.FundingPeriod.Id);
+                if (fundingConfigurationRequest == null || fundingConfigurationRequest.StatusCode != System.Net.HttpStatusCode.OK || fundingConfigurationRequest.Content == null)
+                {
+                    throw new InvalidOperationException("Unable to lookup funding configuration");
+                }
+                Common.ApiClient.Policies.Models.FundingConfig.FundingConfiguration fundingConfiguration = fundingConfigurationRequest.Content;
+
                 // Create PublishedProvider for providers which don't already have a record (eg ProviderID-FundingStreamId-FundingPeriodId)
                 Dictionary<string, PublishedProvider> newProviders = _inScopePublishedProviderService.GenerateMissingProviders(scopedProviders.Values, specification, fundingStream, publishedProviders, templateMetadataContents);
                 publishedProviders.AddRange(newProviders);
@@ -262,6 +258,10 @@ namespace CalculateFunding.Services.Publishing
 
                 _logger.Information("Finished profiling providers for refresh");
 
+                bool shouldRunVariations = await _publishingFeatureFlag.IsVariationsEnabled() && 
+                                           existingPublishedProviders.AnyWithNullCheck() && 
+                                           fundingConfiguration.Variations.AnyWithNullCheck();
+
                 // Set generated data on the Published provider
                 foreach (KeyValuePair<string, PublishedProvider> publishedProvider in publishedProviders)
                 {
@@ -290,28 +290,99 @@ namespace CalculateFunding.Services.Publishing
                         }
                     }
 
+                    ProviderVariationContext variationContext = null;
+
+                    if (shouldRunVariations && existingPublishedProviders.Contains(publishedProvider.Value))
+                    {
+                        variationContext = await _detectProviderVariations.CreateRequiredVariationChanges(publishedProvider.Value,
+                            generatedProviderResult, 
+                            scopedProviders[providerId], 
+                            fundingConfigurationRequest.Content.Variations);
+                        
+                        if (variationContext.Result.HasProviderBeenVaried)
+                        {
+                            _applyProviderVariations.AddVariationContext(variationContext);
+                        }
+                    }
+
                     bool publishedProviderUpdated = _publishedProviderDataPopulator.UpdatePublishedProvider(publishedProviderVersion,
                         generatedProviderResult,
                         scopedProviders[providerId],
-                        specification.TemplateIds[fundingStream.Id]);
+                        specification.TemplateIds[fundingStream.Id],
+                        variationContext?.Result);
 
-                    if (publishedProviderUpdated)
+                    if (!publishedProviderUpdated)
                     {
-                        if (!newProviders.Contains(publishedProvider))
-                        {
-                            existingPublishedProvidersToUpdate.Add(publishedProvider.Key, publishedProvider.Value);
-                        }
+                        continue;
+                    }
+                    
+                    if (!newProviders.Contains(publishedProvider))
+                    {
+                        existingPublishedProvidersToUpdate.Add(publishedProvider.Key, publishedProvider.Value);
+                    }
 
-                        publishedProvidersToUpdate.Add(publishedProvider.Key, publishedProvider.Value);
+                    publishedProvidersToUpdate.Add(publishedProvider.Key, publishedProvider.Value);
+                }
+
+                if (shouldRunVariations)
+                {
+                    // Check for any errors and fail refresh job if any found
+                    if (_applyProviderVariations.HasErrors)
+                    {
+                        foreach (string errorMessage in _applyProviderVariations.ErrorMessages)
+                        {
+                            _logger.Error(errorMessage);
+                            
+                            await _jobManagement.UpdateJobStatus(jobId, 0, 0, false, "Refresh job failed with variations errors.");
+                            
+                            return;
+                        }
+                    }
+                    
+                    
+                    //Notes Dan left behind
+                    // Apply the changes to allocation amounts and profile periods (eg get the updated information set in the variation context (a+b=c)
+
+                    // Create a new service for generating brand new providers which are from a result of variations
+                    // TODO: Create PublishedProviders for ones generated from variations (eg generated successors)
+                    // Use _publishedProviderDataGenerator  and _inScopePublishedProviderService in a new service to generate
+                    // Add returned providers to publishedProvidersToUpdate
+                    
+                    
+                    //Ant's notes for variation strategy dev
+                    //Basic sequence for variations support 
+                    //Each funding configuration will have a list of variation strategies to be applied
+                    //Variations is run in two stages
+                    //stage 1: variations are detected by locating the strategies in the funding configuration and running them in the order they're configured 
+                    //    each strategy will be responsible for detecting a particular variation and creating and queuing an implementation of IVariationChange to be run later
+                    //stage 2: each of the variation changes is run in the order they were queued (FIFO) to action the variation (will differ depending in which variation etc.)
+                    //    the changed or new publishedproviders are added to the changes to be saved already 
+                    // refresh continues as before
+                    //
+                    // so to implement a variationstrategy you need to implement the change detection and then create a new IVariationChange (or use an existing one)
+                    // which can either amend funding on existing providers else create new ones
+                    // new IVariationStrategy implementations need to be registered in IOC (as the servicelocator resolves all registered) and have a Name value which keys
+                    // into the configured strategies in a funding configuration
+                    
+                    await _applyProviderVariations.ApplyProviderVariations();
+
+                    foreach (PublishedProvider publishedProvider in _applyProviderVariations.ProvidersToUpdate)
+                    {
+                        publishedProvidersToUpdate[publishedProvider.Id] = publishedProvider;
+                    }
+
+                    foreach (PublishedProvider publishedProvider in _applyProviderVariations.NewProvidersToAdd)
+                    {
+                        newProviders[publishedProvider.Id] = publishedProvider;
                     }
                 }
 
                 _logger.Information($"Updating a total of {publishedProvidersToUpdate.Count} published providers");
 
-                if (publishedProvidersToUpdate.Any())
+                if (publishedProvidersToUpdate.Count > 0)
                 {
                     // Save updated PublishedProviders to cosmos and increment version status
-                    if (existingPublishedProvidersToUpdate.Any())
+                    if (existingPublishedProvidersToUpdate.Count > 0)
                     {
                         _logger.Information($"Saving updates to existing published providers. Total={existingPublishedProvidersToUpdate.Count}");
                         await _publishedProviderStatusUpdateService.UpdatePublishedProviderStatus(existingPublishedProvidersToUpdate.Values, author, PublishedProviderStatus.Updated, jobId);
@@ -320,7 +391,7 @@ namespace CalculateFunding.Services.Publishing
                         await _publishedProviderIndexerService.IndexPublishedProviders(existingPublishedProvidersToUpdate.Values.Select(_ => _.Current));
                     }
 
-                    if (newProviders.Any())
+                    if (newProviders.Count > 0)
                     {
                         _logger.Information($"Saving new published providers. Total={newProviders.Count}");
                         await _publishedProviderStatusUpdateService.UpdatePublishedProviderStatus(newProviders.Values, author, PublishedProviderStatus.Draft, jobId);
@@ -340,12 +411,13 @@ namespace CalculateFunding.Services.Publishing
         private async Task CheckPrerequisitesForSpecificationToBeRefreshed(SpecificationSummary specification, string jobId)
         {
             // Check prerequisites for this specification to be chosen/refreshed
-            IEnumerable<string> prereqValidationErrors = await _refreshPrerequisiteChecker.PerformPrerequisiteChecks(specification);
-            if (!prereqValidationErrors.IsNullOrEmpty())
+            IEnumerable<string> preReqValidationErrors = await _refreshPrerequisiteChecker.PerformPrerequisiteChecks(specification);
+            
+            if (!preReqValidationErrors.IsNullOrEmpty())
             {
                 string errorMessage = $"Specification with id: '{specification.Id} has prerequisites which aren't complete.";
 
-                await _jobManagement.UpdateJobStatus(jobId, completedSuccessfully: false, outcome: string.Join(", ", prereqValidationErrors));
+                await _jobManagement.UpdateJobStatus(jobId, completedSuccessfully: false, outcome: string.Join(", ", preReqValidationErrors));
 
                 throw new NonRetriableException(errorMessage);
             }

@@ -7,6 +7,7 @@ using CalculateFunding.Publishing.AcceptanceTests.Repositories;
 using CalculateFunding.Services.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Providers;
+using CalculateFunding.Services.Publishing.Variations;
 using Microsoft.Extensions.Configuration;
 using Microsoft.FeatureManagement;
 using Polly;
@@ -163,6 +164,16 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
                 SearchRepo = publishedProviderInMemorySearchRepository,
             };
             _objectContainer.RegisterInstanceAs<IPublishedProviderStepContext>(publishedProviderStepContext);
+
+            IVariationStrategyServiceLocator variationStrategyResolver = new VariationStrategyServiceLocator(new IVariationStrategy[0]);
+
+            IDetectProviderVariations detectProviderVariations = new ProviderVariationsDetection(variationStrategyResolver);
+
+            IVariationServiceStepContext variationServiceStepContext = new VariationServiceStepContext();
+
+            variationServiceStepContext.Service = detectProviderVariations;
+
+            _objectContainer.RegisterInstanceAs<IVariationServiceStepContext>(variationServiceStepContext);
         }
     }
 }

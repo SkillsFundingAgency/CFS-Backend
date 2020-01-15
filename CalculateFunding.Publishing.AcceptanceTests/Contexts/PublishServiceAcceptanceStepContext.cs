@@ -15,6 +15,7 @@ using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Services.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
+using CalculateFunding.Services.Publishing.Variations;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Extensions.Configuration;
 using Polly;
@@ -30,6 +31,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
         private readonly IPoliciesStepContext _policiesStepContext;
         private readonly IProvidersStepContext _providersStepContext;
         private readonly IPublishedProviderStepContext _publishedProviderStepContext;
+        private readonly IVariationServiceStepContext _variationServiceStepContext;
         private readonly IPublishingDatesStepContext _publishingDatesStepContext;
         private readonly ILoggerStepContext _loggerStepContext;
         private readonly IConfiguration _configuration;
@@ -60,7 +62,8 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
             IConfiguration configuration,
             IJobManagement jobManagement,
             IPublishedProviderStepContext publishedProviderStepContext,
-            IPublishingFeatureFlag publishingFeatureFlag)
+            IPublishingFeatureFlag publishingFeatureFlag,
+            IVariationServiceStepContext variationServiceStepContext)
         {
             _jobStepContext = jobStepContext;
             _currentSpecificationStepContext = currentSpecificationStepContext;
@@ -76,6 +79,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
             FundingValueProfileSplits = new List<(decimal? Value, string FundingStreamId, string FundingPeriodId, string FundingLineCode, IEnumerable<ProfilingPeriod> ProfilingPeriods, IEnumerable<DistributionPeriods> DistributionPeriods)>();
             _publishedProviderStepContext = publishedProviderStepContext;
             _publishingFeatureFlag = publishingFeatureFlag;
+            _variationServiceStepContext = variationServiceStepContext;
         }
 
         public async Task PublishFunding(string specificationId, string jobId, string userId, string userName)
@@ -127,7 +131,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
             OrganisationGroupGenerator organisationGroupGenerator = new OrganisationGroupGenerator(organisationGroupTargetProviderLookup);
 
             SpecificationFundingStatusService specificationFundingStatusService = new SpecificationFundingStatusService(logger, specificationInMemoryRepository);
-            
+
             CalculationEngineRunningChecker calculationEngineRunningChecker = new CalculationEngineRunningChecker(_jobStepContext.JobsClient, resiliencePolicies);
 
             PublishPrerequisiteChecker publishPrerequisiteChecker = new PublishPrerequisiteChecker(specificationFundingStatusService, calculationEngineRunningChecker, logger);
@@ -347,7 +351,6 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
                     profilingService,
                     inScopePublishedProviderService,
                     publishedProviderDataPopulator,
-                    _jobStepContext.JobsClient,
                     logger,
                     calculationsApiClient,
                     policiesInMemoryRepository,
@@ -356,7 +359,9 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
                     fundingLineValueOverride,
                     _jobManagement,
                     _publishingFeatureFlag,
-                    publishedProviderIndexerService);
+                    publishedProviderIndexerService,
+                    _variationServiceStepContext.Service,
+                    new ProviderVariationsApplication());
 
             Message message = new Message();
 
@@ -421,7 +426,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
             OrganisationGroupGenerator organisationGroupGenerator = new OrganisationGroupGenerator(organisationGroupTargetProviderLookup);
 
             SpecificationFundingStatusService specificationFundingStatusService = new SpecificationFundingStatusService(logger, specificationInMemoryRepository);
-            
+
             CalculationEngineRunningChecker calculationEngineRunningChecker = new CalculationEngineRunningChecker(_jobStepContext.JobsClient, resiliencePolicies);
 
             ApprovePrerequisiteChecker approvePrerequisiteChecker = new ApprovePrerequisiteChecker(calculationEngineRunningChecker, logger);

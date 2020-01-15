@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using AutoMapper;
 using CalculateFunding.Models.Publishing;
+using CalculateFunding.Services.Publishing.Models;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -11,28 +12,74 @@ using DistributionPeriod = CalculateFunding.Models.Publishing.DistributionPeriod
 using FundingLine = CalculateFunding.Models.Publishing.FundingLine;
 using ProfilePeriod = CalculateFunding.Models.Publishing.ProfilePeriod;
 using Provider = CalculateFunding.Models.Publishing.Provider;
+using ApiProvider = CalculateFunding.Common.ApiClient.Providers.Models.Provider;
 
 namespace CalculateFunding.Services.Publishing.UnitTests
 {
     [TestClass]
     public class PublishedProviderDataPopulatorTests
     {
+        //Apart from CopiesVariationReasonsWhenPopulatingPublishedProviderVersion
+        //I don't see any tests here that actually check the internal side effects of this method (of which there are many)
+        //it's only ever testing the output - it's not really providing much assurance currently.
+
+        private PublishedProviderVersion _publishedProviderVersion;
+        private PublishedProviderVersion _publishedProviderVersionForMapping;
+        private GeneratedProviderResult _generatedProviderResult;
+        private ApiProvider _provider;
+        private ProviderVariationResult _providerVariationResult;
+
+        private IMapper _mapper;
+        private PublishedProviderDataPopulator _publishedProviderDataPopulator;
+        private string _templateVersion;
+
+        [TestInitialize]
+        public void SetUp()
+        {
+            _templateVersion = NewRandomString();
+            _publishedProviderVersion = CreateProviderVersion(_templateVersion);
+            _generatedProviderResult = CreateGeneratedProviderResult();
+            _provider = CreateProvider();
+            _publishedProviderVersionForMapping = (PublishedProviderVersion)_publishedProviderVersion.Clone();
+
+            _mapper = CreateMapper();
+            _mapper
+                .Map<Provider>(_provider)
+                .Returns(_publishedProviderVersionForMapping.Provider);
+
+            _providerVariationResult = NewProviderVariationResult();
+            
+            _publishedProviderDataPopulator = new PublishedProviderDataPopulator(_mapper);
+        }
+
+        [TestMethod]
+        public void CopiesVariationReasonsWhenPopulatingPublishedProviderVersion()
+        {
+            VariationReason[] expectedVariationReasons = new[]
+            {
+                NewRandomVariationReason(), 
+                NewRandomVariationReason(), 
+                NewRandomVariationReason()
+            };
+            
+            _providerVariationResult.VariationReasons = expectedVariationReasons;
+
+            WhenThePublishedProviderIsUpdated();
+
+            _publishedProviderVersion.VariationReasons
+                .Should()
+                .BeEquivalentTo(expectedVariationReasons);
+        }
+
+        private VariationReason NewRandomVariationReason() => new RandomEnum<VariationReason>();
+
         [TestMethod]
         public void UpdatePublishedProvider_GivenTemplateVersionChange_ReturnsTrue()
         {
-            PublishedProviderVersion publishedProviderVersion = CreateProviderVersion();
-            GeneratedProviderResult generatedProviderResult = CreateGeneratedProviderResult();
-            Common.ApiClient.Providers.Models.Provider provider = CreateProvider();
-
-            IMapper mapper = CreateMapper();
-            mapper
-                .Map<Provider>(provider)
-                .Returns(publishedProviderVersion.Provider);
-
-            PublishedProviderDataPopulator publishedProviderDataPopulator = new PublishedProviderDataPopulator(mapper);
-
-            bool result = publishedProviderDataPopulator.UpdatePublishedProvider(publishedProviderVersion, generatedProviderResult, provider, NewRandomString());
-
+            _publishedProviderVersion.TemplateVersion = NewRandomString();
+            
+            bool result = WhenThePublishedProviderIsUpdated();
+            
             result
                 .Should()
                 .BeTrue();
@@ -41,20 +88,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         [TestMethod]
         public void UpdatePublishedProvider_GivenNoChanges_ReturnsFalse()
         {
-            string templateVersion = NewRandomString();
-
-            PublishedProviderVersion publishedProviderVersion = CreateProviderVersion(templateVersion);
-            GeneratedProviderResult generatedProviderResult = CreateGeneratedProviderResult();
-            Common.ApiClient.Providers.Models.Provider provider = CreateProvider();
-
-            IMapper mapper = CreateMapper();
-            mapper
-                .Map<Provider>(provider)
-                .Returns(publishedProviderVersion.Provider);
-
-            PublishedProviderDataPopulator publishedProviderDataPopulator = new PublishedProviderDataPopulator(mapper);
-
-            bool result = publishedProviderDataPopulator.UpdatePublishedProvider(publishedProviderVersion, generatedProviderResult, provider, templateVersion);
+            bool result = WhenThePublishedProviderIsUpdated();
 
             result
                 .Should()
@@ -64,25 +98,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         [TestMethod]
         public void UpdatePublishedProvider_GivenChangedProvider_ReturnsTrue()
         {
-            string templateVersion = NewRandomString();
+            _publishedProviderVersionForMapping.Provider.Name = "NewName";
 
-            PublishedProviderVersion publishedProviderVersion = CreateProviderVersion(templateVersion);
-
-            PublishedProviderVersion publishedProviderVersionForMapping = publishedProviderVersion.Clone() as PublishedProviderVersion;
-            publishedProviderVersionForMapping.Provider.Name = "NewName";
-
-            GeneratedProviderResult generatedProviderResult = CreateGeneratedProviderResult();
-
-            Common.ApiClient.Providers.Models.Provider provider = CreateProvider();
-
-            IMapper mapper = CreateMapper();
-            mapper
-                .Map<Provider>(provider)
-                .Returns(publishedProviderVersionForMapping.Provider);
-
-            PublishedProviderDataPopulator publishedProviderDataPopulator = new PublishedProviderDataPopulator(mapper);
-
-            bool result = publishedProviderDataPopulator.UpdatePublishedProvider(publishedProviderVersion, generatedProviderResult, provider, templateVersion);
+            bool result = WhenThePublishedProviderIsUpdated();
 
             result
                 .Should()
@@ -92,23 +110,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         [TestMethod]
         public void UpdatePublishedProvider_GivenFundingLineChanges_ReturnsFalse()
         {
-            string templateVersion = NewRandomString();
+            _generatedProviderResult.FundingLines.First().Name = "New Name";
 
-            PublishedProviderVersion publishedProviderVersion = CreateProviderVersion(templateVersion);
-
-            GeneratedProviderResult generatedProviderResult = CreateGeneratedProviderResult();
-            generatedProviderResult.FundingLines.First().Name = "New Name";
-
-            Common.ApiClient.Providers.Models.Provider provider = CreateProvider();
-
-            IMapper mapper = CreateMapper();
-            mapper
-                .Map<Provider>(provider)
-                .Returns(publishedProviderVersion.Provider);
-
-            PublishedProviderDataPopulator publishedProviderDataPopulator = new PublishedProviderDataPopulator(mapper);
-
-            bool result = publishedProviderDataPopulator.UpdatePublishedProvider(publishedProviderVersion, generatedProviderResult, provider, templateVersion);
+            bool result = WhenThePublishedProviderIsUpdated();
+            
+            //NB - test title says should return false but assertion is returns true
 
             result
                 .Should()
@@ -118,23 +124,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         [TestMethod]
         public void UpdatePublishedProvider_GivenCalculationChanges_ReturnsFalse()
         {
-            string templateVersion = NewRandomString();
+            _generatedProviderResult.Calculations.First().Value = 56;
 
-            PublishedProviderVersion publishedProviderVersion = CreateProviderVersion(templateVersion);
-
-            GeneratedProviderResult generatedProviderResult = CreateGeneratedProviderResult();
-            generatedProviderResult.Calculations.First().Value = 56;
-
-            Common.ApiClient.Providers.Models.Provider provider = CreateProvider();
-
-            IMapper mapper = CreateMapper();
-            mapper
-                .Map<Provider>(provider)
-                .Returns(publishedProviderVersion.Provider);
-
-            PublishedProviderDataPopulator publishedProviderDataPopulator = new PublishedProviderDataPopulator(mapper);
-
-            bool result = publishedProviderDataPopulator.UpdatePublishedProvider(publishedProviderVersion, generatedProviderResult, provider, templateVersion);
+            bool result = WhenThePublishedProviderIsUpdated();
 
             //NB - test title says should return false but assertion is returns true
 
@@ -146,29 +138,33 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         [TestMethod]
         public void UpdatePublishedProvider_GivenReferenceDataChanges_ReturnsFalse()
         {
-            string templateVersion = NewRandomString();
+            _generatedProviderResult.ReferenceData.First().Value = 56;
 
-            PublishedProviderVersion publishedProviderVersion = CreateProviderVersion(templateVersion);
-
-            GeneratedProviderResult generatedProviderResult = CreateGeneratedProviderResult();
-            generatedProviderResult.ReferenceData.First().Value = 56;
-
-            Common.ApiClient.Providers.Models.Provider provider = CreateProvider();
-
-            IMapper mapper = CreateMapper();
-            mapper
-                .Map<Provider>(provider)
-                .Returns(publishedProviderVersion.Provider);
-
-            PublishedProviderDataPopulator publishedProviderDataPopulator = new PublishedProviderDataPopulator(mapper);
-
-            bool result = publishedProviderDataPopulator.UpdatePublishedProvider(publishedProviderVersion, generatedProviderResult, provider, templateVersion);
+            bool result = WhenThePublishedProviderIsUpdated();
 
             //NB - test title says should return false but assertion is returns true
 
             result
                 .Should()
                 .BeTrue();
+        }
+
+        private bool WhenThePublishedProviderIsUpdated()
+        {
+            return _publishedProviderDataPopulator.UpdatePublishedProvider(_publishedProviderVersion, 
+                _generatedProviderResult, 
+                _provider, 
+                _templateVersion,
+                _providerVariationResult);
+        }
+
+        private ProviderVariationResult NewProviderVariationResult(Action<ProviderVariationResultBuilder> setUp = null)
+        {
+            ProviderVariationResultBuilder providerVariationResultBuilder = new ProviderVariationResultBuilder();
+
+            setUp?.Invoke(providerVariationResultBuilder);
+            
+            return providerVariationResultBuilder.Build();
         }
 
         private static string NewRandomString() => new RandomString();

@@ -9,6 +9,7 @@ using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Publishing;
+using CalculateFunding.Models.Versioning;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
@@ -98,15 +99,15 @@ namespace CalculateFunding.Services.Publishing
                 {
                     case PublishedProviderStatus.Approved:
                     case PublishedProviderStatus.Released:
-                        newVersion.PublishStatus = Models.Versioning.PublishStatus.Approved;
+                        newVersion.PublishStatus = PublishStatus.Approved;
                         break;
 
                     case PublishedProviderStatus.Updated:
-                        newVersion.PublishStatus = Models.Versioning.PublishStatus.Updated;
+                        newVersion.PublishStatus = PublishStatus.Updated;
                         break;
 
                     default:
-                        newVersion.PublishStatus = Models.Versioning.PublishStatus.Draft;
+                        newVersion.PublishStatus = PublishStatus.Draft;
                         break;
                 }
 

@@ -4,6 +4,7 @@ using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Models.Publishing;
+using CalculateFunding.Services.Publishing.Models;
 
 namespace CalculateFunding.Services.Publishing.Interfaces
 {

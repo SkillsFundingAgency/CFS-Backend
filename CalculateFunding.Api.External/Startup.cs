@@ -17,7 +17,6 @@ using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
-using CalculateFunding.Services.Publising.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;

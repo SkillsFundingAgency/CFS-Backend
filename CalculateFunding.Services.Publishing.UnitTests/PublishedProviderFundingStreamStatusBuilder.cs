@@ -1,4 +1,5 @@
 ﻿using CalculateFunding.Models.Publishing;
+using CalculateFunding.Services.Publishing.Models;
 using CalculateFunding.Tests.Common.Helpers;
 
 namespace CalculateFunding.Services.Publishing.UnitTests

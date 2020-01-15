@@ -9,6 +9,7 @@ using CalculateFunding.Generators.OrganisationGroup.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Interfaces;
+using CalculateFunding.Services.Publishing.Models;
 using PublishingModels = CalculateFunding.Models.Publishing;
 
 namespace CalculateFunding.Services.Publishing

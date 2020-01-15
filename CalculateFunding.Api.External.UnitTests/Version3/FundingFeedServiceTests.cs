@@ -9,7 +9,7 @@ using CalculateFunding.Models.External.AtomItems;
 using CalculateFunding.Models.External.V3.AtomItems;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Models.Search;
-using CalculateFunding.Services.Publising.Interfaces;
+using CalculateFunding.Services.Publishing.Interfaces;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Internal;

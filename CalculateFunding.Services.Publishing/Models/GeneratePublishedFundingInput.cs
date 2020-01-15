@@ -3,8 +3,9 @@ using CalculateFunding.Common.ApiClient.Policies.Models;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Generators.OrganisationGroup.Models;
+using CalculateFunding.Models.Publishing;
 
-namespace CalculateFunding.Models.Publishing
+namespace CalculateFunding.Services.Publishing.Models
 {
     public class GeneratePublishedFundingInput
     {

@@ -8,7 +8,7 @@ using CalculateFunding.Models.External;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Models.Search;
 using CalculateFunding.Services.Core.Caching.FileSystem;
-using CalculateFunding.Services.Publising.Interfaces;
+using CalculateFunding.Services.Publishing.Interfaces;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using StackExchange.Redis;

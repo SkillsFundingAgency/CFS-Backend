@@ -9,7 +9,7 @@ using CalculateFunding.Models.Publishing;
 using CalculateFunding.Models.Search;
 using CalculateFunding.Services.Core.Caching.FileSystem;
 using CalculateFunding.Services.Core.Helpers;
-using CalculateFunding.Services.Publising.Interfaces;
+using CalculateFunding.Services.Publishing.Interfaces;
 
 namespace CalculateFunding.Api.External.V3.Services
 {

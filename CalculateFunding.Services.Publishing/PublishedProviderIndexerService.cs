@@ -5,7 +5,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
-using CalculateFunding.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core;
@@ -26,7 +25,7 @@ namespace CalculateFunding.Services.Publishing
         public PublishedProviderIndexerService(
             ILogger logger,
             ISearchRepository<PublishedProviderIndex> searchRepository,
-            IPublishingResiliencePolicies publishingResiliencePolicies, 
+            IPublishingResiliencePolicies publishingResiliencePolicies,
             IPublishingEngineOptions publishingEngineOptions)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));

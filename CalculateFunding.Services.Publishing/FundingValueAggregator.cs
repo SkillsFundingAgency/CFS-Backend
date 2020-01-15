@@ -2,13 +2,16 @@
 using System.Linq;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Models.Publishing;
+using DistributionPeriod = CalculateFunding.Models.Publishing.DistributionPeriod;
+using FundingLine = CalculateFunding.Models.Publishing.FundingLine;
+using ProfilePeriod = CalculateFunding.Models.Publishing.ProfilePeriod;
 
 namespace CalculateFunding.Services.Publishing
 {
     public class FundingValueAggregator
     {
         private Dictionary<uint, (decimal, int)> aggregatedCalculations;
-        private Dictionary<uint, (decimal?, IEnumerable<Models.Publishing.DistributionPeriod>)> aggregatedFundingLines;
+        private Dictionary<uint, (decimal?, IEnumerable<DistributionPeriod>)> aggregatedFundingLines;
         private Dictionary<string, decimal> aggregatedDistributionPeriods;
         private Dictionary<string, decimal> aggregatedProfilePeriods;
 
@@ -19,7 +22,7 @@ namespace CalculateFunding.Services.Publishing
         public IEnumerable<AggregateFundingLine> GetTotals(TemplateMetadataContents templateMetadataContent, IEnumerable<PublishedProviderVersion> publishedProviders)
         {
             aggregatedCalculations = new Dictionary<uint, (decimal, int)>();
-            aggregatedFundingLines = new Dictionary<uint, (decimal?, IEnumerable<Models.Publishing.DistributionPeriod>)>();
+            aggregatedFundingLines = new Dictionary<uint, (decimal?, IEnumerable<DistributionPeriod>)>();
             aggregatedDistributionPeriods = new Dictionary<string, decimal>();
             aggregatedProfilePeriods = new Dictionary<string, decimal>();
 
@@ -53,7 +56,7 @@ namespace CalculateFunding.Services.Publishing
             }
         }
 
-        public void GetFundingLine(Dictionary<uint, decimal?> fundingLines, Models.Publishing.FundingLine fundingLine)
+        public void GetFundingLine(Dictionary<uint, decimal?> fundingLines, FundingLine fundingLine)
         {
             // if the calculation for the current provider has not been added to the aggregated total then add it only once.
             if (fundingLines.TryAdd(fundingLine.TemplateLineId, fundingLine.Value))
@@ -64,9 +67,9 @@ namespace CalculateFunding.Services.Publishing
             }
         }
 
-        public void AggregateFundingLine(uint key, decimal? value, IEnumerable<Models.Publishing.DistributionPeriod> distributionPeriods)
+        public void AggregateFundingLine(uint key, decimal? value, IEnumerable<DistributionPeriod> distributionPeriods)
         {
-            if (aggregatedFundingLines.TryGetValue(key, out (decimal? Total, IEnumerable<Models.Publishing.DistributionPeriod> DistributionPeriods) aggregate))
+            if (aggregatedFundingLines.TryGetValue(key, out (decimal? Total, IEnumerable<DistributionPeriod> DistributionPeriods) aggregate))
             {
                 aggregate = (aggregate.Total + value, aggregate.DistributionPeriods);
                 // aggregate the value
@@ -78,7 +81,7 @@ namespace CalculateFunding.Services.Publishing
             }
         }
 
-        public void AggregateDistributionPeriod(Models.Publishing.DistributionPeriod distributionPeriod)
+        public void AggregateDistributionPeriod(DistributionPeriod distributionPeriod)
         {
             if (aggregatedDistributionPeriods.TryGetValue(distributionPeriod.DistributionPeriodId, out decimal total))
             {
@@ -93,7 +96,7 @@ namespace CalculateFunding.Services.Publishing
             distributionPeriod.ProfilePeriods?.Where(_ => _ != null).ToList().ForEach(_ => AggregateProfilePeriod(_));
         }
 
-        public void AggregateProfilePeriod(Models.Publishing.ProfilePeriod profilePeriod)
+        public void AggregateProfilePeriod(ProfilePeriod profilePeriod)
         {
             string uniqueProfilePeriodKey = $"{profilePeriod.DistributionPeriodId}-{profilePeriod.TypeValue}-{profilePeriod.Year}-{profilePeriod.Occurrence}";
             if (aggregatedProfilePeriods.TryGetValue(uniqueProfilePeriodKey, out decimal total))
@@ -173,7 +176,7 @@ namespace CalculateFunding.Services.Publishing
 
         public AggregateFundingLine GetAggregateFundingLine(Common.TemplateMetadata.Models.FundingLine fundingLine)
         {
-            if (aggregatedFundingLines.TryGetValue(fundingLine.TemplateLineId, out (decimal? Total, IEnumerable<Models.Publishing.DistributionPeriod> DistributionPeriods) aggregate))
+            if (aggregatedFundingLines.TryGetValue(fundingLine.TemplateLineId, out (decimal? Total, IEnumerable<DistributionPeriod> DistributionPeriods) aggregate))
             {
                 return new AggregateFundingLine
                 {
@@ -191,11 +194,11 @@ namespace CalculateFunding.Services.Publishing
             }
         }
 
-        public Models.Publishing.DistributionPeriod GetAggregatePeriods(Models.Publishing.DistributionPeriod distributionPeriod)
+        public DistributionPeriod GetAggregatePeriods(DistributionPeriod distributionPeriod)
         {
             if (distributionPeriod != null && aggregatedDistributionPeriods.TryGetValue(distributionPeriod.DistributionPeriodId, out decimal total))
             {
-                Models.Publishing.DistributionPeriod localDistributionPeriod = distributionPeriod.Clone();
+                DistributionPeriod localDistributionPeriod = distributionPeriod.Clone();
 
                 localDistributionPeriod.Value = total;
                 localDistributionPeriod.ProfilePeriods?.ToList().ForEach(x => SetAggregateProfilePeriods(x));
@@ -207,7 +210,7 @@ namespace CalculateFunding.Services.Publishing
             }
         }
 
-        public void SetAggregateProfilePeriods(Models.Publishing.ProfilePeriod profilePeriod)
+        public void SetAggregateProfilePeriods(ProfilePeriod profilePeriod)
         {
             string uniqueProfilePeriodKey = $"{profilePeriod.DistributionPeriodId}-{profilePeriod.TypeValue}-{profilePeriod.Year}-{profilePeriod.Occurrence}";
 

@@ -1,4 +1,4 @@
-﻿namespace CalculateFunding.Models.Publishing
+﻿namespace CalculateFunding.Services.Publishing.Models
 {
     public class PublishedProviderFundingStreamStatus
     {

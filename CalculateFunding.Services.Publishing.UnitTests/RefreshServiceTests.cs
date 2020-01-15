@@ -1,14 +1,7 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Calcs;
-using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Policies;
-using CalculateFunding.Common.ApiClient.Providers.Models;
-using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Services.Publishing.Interfaces;
-using CalculateFunding.Tests.Common.Helpers;
-using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
@@ -18,6 +11,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
     [TestClass]
     public class RefreshServiceTests
     {
+        //add some tests maybe??
+        
         private ISpecificationService _specificationService;
         private IProviderService _providerService;
         private IRefreshService _refreshService;
@@ -25,7 +20,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private ICalculationResultsService _calculationResultsService;
         private IPublishedProviderDataGenerator _fundingLineGenerator;
         private IPublishedProviderContentsGeneratorResolver _publishedProviderContentsGeneratorResolver;
-        private IJobsApiClient _jobsApiClient;
         private IProfilingService _profilingService;
         private IInScopePublishedProviderService _inScopePublishedProviderService;
         private IPublishedProviderDataPopulator _publishedProviderDataPopulator;
@@ -37,8 +31,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private IPublishProviderExclusionCheck _publishProviderExclusionCheck;
         private IFundingLineValueOverride _fundingLineValueOverride;
         private IJobManagement _jobManagement;
+        private IDetectProviderVariations _detectProviderVariations;
         private IPublishingFeatureFlag _publishingFeatureFlag;
         private IPublishedProviderIndexerService _publishedProviderIndexerService;
+        private IApplyProviderVariations _applyProviderVariations;
 
         [TestInitialize]
         public void SetUp()
@@ -50,7 +46,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             _publishedProviderContentsGeneratorResolver = Substitute.For<IPublishedProviderContentsGeneratorResolver>();
             _inScopePublishedProviderService = Substitute.For<IInScopePublishedProviderService>();
             _publishedProviderDataPopulator = Substitute.For<IPublishedProviderDataPopulator>();
-            _jobsApiClient = Substitute.For<IJobsApiClient>();
             _calculationsApiClient = Substitute.For<ICalculationsApiClient>();
             _publishProviderExclusionCheck = Substitute.For<IPublishProviderExclusionCheck>();
             _fundingLineValueOverride = Substitute.For<IFundingLineValueOverride>();
@@ -63,6 +58,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             _jobManagement = Substitute.For<IJobManagement>();
             _publishingFeatureFlag = Substitute.For<IPublishingFeatureFlag>();
             _publishedProviderIndexerService = Substitute.For<IPublishedProviderIndexerService>();
+            _detectProviderVariations = Substitute.For<IDetectProviderVariations>();
+            _applyProviderVariations = Substitute.For<IApplyProviderVariations>();
 
             _refreshService = new RefreshService(Substitute.For<IPublishedProviderStatusUpdateService>(),
                 Substitute.For<IPublishedFundingDataService>(),
@@ -75,7 +72,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 _profilingService,
                 _inScopePublishedProviderService,
                 _publishedProviderDataPopulator,
-                _jobsApiClient,
                 _logger,
                 _calculationsApiClient,
                 _policiesApiClient,
@@ -84,54 +80,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 _fundingLineValueOverride,
                 _jobManagement,
                 _publishingFeatureFlag,
-                _publishedProviderIndexerService);
-        }
-
-        [TestMethod]
-        public async Task ProvidersQueryMethodDelegatesToProviderService()
-        {
-            string providerVersionId = NewRandomString();
-            IEnumerable<Provider> expectedProviders = new Provider[0];
-
-            GivenTheProvidersForProviderVersionId(providerVersionId, expectedProviders);
-
-            IEnumerable<Provider> response = await _refreshService.GetProvidersByProviderVersionId(providerVersionId);
-
-            response
-                .Should()
-                .BeSameAs(expectedProviders);
-        }
-
-        [TestMethod]
-        public async Task SpecificationQueryMethodDelegatesToSpecificationService()
-        {
-            string specificationId = NewRandomString();
-            SpecificationSummary expectedSpecificationSummary = new SpecificationSummary();
-
-            GivenTheSpecificationSummaryForId(specificationId, expectedSpecificationSummary);
-
-            SpecificationSummary response = await _refreshService.GetSpecificationSummaryById(specificationId);
-
-            response
-                .Should()
-                .BeSameAs(expectedSpecificationSummary);
-        }
-
-        private void GivenTheSpecificationSummaryForId(string specificationId, SpecificationSummary specificationSummary)
-        {
-            _specificationService.GetSpecificationSummaryById(specificationId)
-                .Returns(specificationSummary);
-        }
-
-        private void GivenTheProvidersForProviderVersionId(string providerVersionId, IEnumerable<Provider> providers)
-        {
-            _providerService.GetProvidersByProviderVersionsId(providerVersionId)
-                .Returns(providers);
-        }
-
-        private string NewRandomString()
-        {
-            return new RandomString();
+                _publishedProviderIndexerService,
+                _detectProviderVariations,
+                _applyProviderVariations);
         }
     }
 }
