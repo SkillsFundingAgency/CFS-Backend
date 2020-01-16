@@ -146,13 +146,16 @@ namespace CalculateFunding.Api.Publishing.Controllers
         /// Get count of published provider by state
         /// </summary>
         /// <param name="specificationId"></param>
+        /// <param name="providerType"></param>
+        /// <param name="localAuthority"></param>
+        /// <param name="status"></param>
         /// <returns></returns>
         [HttpGet("api/specifications/{specificationId}/publishedproviders/publishingstatus")]
         [ProducesResponseType(200, Type = typeof(IEnumerable<ProviderFundingStreamStatusResponse>))]
-        public async Task<IActionResult> GetProviderStatusCounts([FromRoute] string specificationId)
+        public async Task<IActionResult> GetProviderStatusCounts([FromRoute] string specificationId, [FromQuery] string providerType, [FromQuery] string localAuthority, [FromQuery] string status)
         {
             return await _publishedProviderStatusService
-                .GetProviderStatusCounts(specificationId);
+                .GetProviderStatusCounts(specificationId, providerType, localAuthority, status);
         }
 
         [HttpPost("api/publishedproviders/{fundingStreamId}/{fundingPeriodId}/localauthorities")]

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models;
@@ -286,22 +287,42 @@ namespace CalculateFunding.Services.Publishing.Repositories
                 itemsPerPage: batchSize);
         }
 
-        public async Task<IEnumerable<PublishedProviderFundingStreamStatus>> GetPublishedProviderStatusCounts(string specificationId)
+        public async Task<IEnumerable<PublishedProviderFundingStreamStatus>> GetPublishedProviderStatusCounts(string specificationId, string providerType, string localAuthority, string status)
         {
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
 
             List<PublishedProviderFundingStreamStatus> results = new List<PublishedProviderFundingStreamStatus>();
 
+            StringBuilder additionalFilter = new StringBuilder();
+            
+            List<CosmosDbQueryParameter> cosmosDbQueryParameters = new List<CosmosDbQueryParameter>();
+            cosmosDbQueryParameters.Add(new CosmosDbQueryParameter("@specificationId", specificationId));
+
+            if (!string.IsNullOrWhiteSpace(providerType))
+            {
+                additionalFilter.Append($" and f.content.current.provider.providerType = @providerType ");
+                cosmosDbQueryParameters.Add(new CosmosDbQueryParameter("@providerType", providerType));
+            }
+
+            if (!string.IsNullOrWhiteSpace(localAuthority))
+            {
+                additionalFilter.Append($" and f.content.current.provider.localAuthorityName = @localAuthorityName ");
+                cosmosDbQueryParameters.Add(new CosmosDbQueryParameter("@localAuthorityName", localAuthority));
+            }
+
+            if (!string.IsNullOrWhiteSpace(status))
+            {
+                additionalFilter.Append($" and f.content.current.status = @status ");
+                cosmosDbQueryParameters.Add(new CosmosDbQueryParameter("@status", status));
+            }
+
             CosmosDbQuery query = new CosmosDbQuery
             {
-                QueryText = @"SELECT COUNT(1) AS count, f.content.current.fundingStreamId, f.content.current.status, SUM(f.content.current.totalFunding) AS totalFundingSum
+                QueryText = $@"SELECT COUNT(1) AS count, f.content.current.fundingStreamId, f.content.current.status, SUM(f.content.current.totalFunding) AS totalFundingSum
                                 FROM f
-                                where f.documentType = 'PublishedProvider' and f.content.current.specificationId = @specificationId and f.deleted = false
+                                where f.documentType = 'PublishedProvider' and f.content.current.specificationId = @specificationId and f.deleted = false {additionalFilter.ToString()}
                                 GROUP BY f.content.current.fundingStreamId, f.content.current.status",
-                Parameters = new[]
-                {
-                    new CosmosDbQueryParameter("@specificationId", specificationId)
-                }
+                Parameters = cosmosDbQueryParameters
             };
 
             IEnumerable<dynamic> queryResults = await _repository

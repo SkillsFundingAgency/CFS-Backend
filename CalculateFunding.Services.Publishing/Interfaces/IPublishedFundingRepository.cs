@@ -31,7 +31,7 @@ namespace CalculateFunding.Services.Publishing.Interfaces
 
         Task AllPublishedProviderBatchProcessing(Func<List<PublishedProviderVersion>, Task> persistIndexBatch, int batchSize);
 
-        Task<IEnumerable<PublishedProviderFundingStreamStatus>> GetPublishedProviderStatusCounts(string specificationId);
+        Task<IEnumerable<PublishedProviderFundingStreamStatus>> GetPublishedProviderStatusCounts(string specificationId, string providerType, string localAuthority, string status);
 
         Task DeleteAllPublishedProvidersByFundingStreamAndPeriod(string fundingStreamId, 
             string fundingPeriodId);
