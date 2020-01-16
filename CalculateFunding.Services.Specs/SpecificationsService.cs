@@ -1345,7 +1345,7 @@ WHERE   s.documentType = @DocumentType",
 
             if (!updateSpecificationResult.IsSuccess())
             {
-                string message = $"Failed to update specification for id: {specificationId} with ProfileVariationPointers {profileVariationPointers?.Select(_ => _.AsJson())}";
+                string message = $"Failed to update specification for id: {specificationId} with ProfileVariationPointers {profileVariationPointers?.AsJson()}";
                 _logger.Error(message);
 
                 return new InternalServerErrorResult(message);
