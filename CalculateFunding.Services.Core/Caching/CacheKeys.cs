@@ -10,6 +10,8 @@
 
         public const string ScopedProviderSummariesPrefix = "scoped-provider-summaries:";
 
+        public const string ScopedProviderSummariesFilesystemKeyPrefix = "scoped-provider-summaries-filesystemkey:";
+
         public const string FundingPeriods = "funding-periods";
 
         public const string FundingConfig = "funding-config:";
@@ -30,8 +32,6 @@
 
         public static string CurrentCalculation { get; set; } = "calculation-current:";
         public static string CalculationsForSpecification { get; set; } = "calculations-for-specification:";
-
-        public static string AllProviderSummaries { get; set; } = "all-provider-summaries:";
 
         public static string ScopedProviderSummariesCount { get; set; } = "scoped-provider-summaries-count:";
 
