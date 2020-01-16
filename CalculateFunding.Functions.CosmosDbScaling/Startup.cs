@@ -253,8 +253,6 @@ namespace CalculateFunding.Functions.CosmosDbScaling
 
             builder.AddTelemetry();
 
-            builder.AddFeatureToggling(config);
-
             builder.AddSingleton<ICosmosDbScalingResiliencePolicies>(m =>
             {
                 PolicySettings policySettings = builder.GetPolicySettings(config);

@@ -150,6 +150,11 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             return Task.FromResult(result);
         }
 
+        public Task<ApiResponse<JobDefinition>> GetJobDefinition(string jobDefinitionId)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<ApiResponse<IEnumerable<JobDefinition>>> GetJobDefinitions()
         {
             throw new NotImplementedException();
@@ -164,11 +169,11 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         {
             var result = _jobLogs.Values;
             List<JobLog> job = null;
-            foreach(var item in result)
+            foreach (var item in result)
             {
                 job = item;
             }
-            
+
             return Task.FromResult(job);
         }
 

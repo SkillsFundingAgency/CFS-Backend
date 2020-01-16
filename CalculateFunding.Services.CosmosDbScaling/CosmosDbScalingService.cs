@@ -15,7 +15,6 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.CosmosDbScaling.Interfaces;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.EventHubs;
 using Microsoft.Azure.ServiceBus;
 using Polly;

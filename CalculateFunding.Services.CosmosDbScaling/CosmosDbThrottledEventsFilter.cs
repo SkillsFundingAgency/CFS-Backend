@@ -13,13 +13,24 @@ namespace CalculateFunding.Services.CosmosDbScaling
         {
             Guard.ArgumentNotNull(events, nameof(events));
 
-            HashSet<string> collections = new HashSet<string>();
+            // This method gets called many times, but most times there isn't a message which matches, so don't allocate here unless it is required
+            HashSet<string> collections = null;
 
             foreach (EventData eventData in events)
             {
-                if (eventData.Properties.TryGetValue("statusCode", out object statusCode)
-                    && Convert.ToInt32(statusCode) == (int) HttpStatusCode.TooManyRequests)
+                if (eventData.Properties.Count == 0)
                 {
+                    continue;
+                }
+
+                if (eventData.Properties.TryGetValue("statusCode", out object statusCode)
+                    && Convert.ToInt32(statusCode) == (int)HttpStatusCode.TooManyRequests)
+                {
+                    if (collections == null)
+                    {
+                        collections = new HashSet<string>();
+                    }
+
                     collections.Add(eventData.Properties["collection"].ToString());
                 }
             }

@@ -1,12 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Text;
 using FluentAssertions;
 using Microsoft.Azure.EventHubs;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Newtonsoft.Json;
 
 namespace CalculateFunding.Services.CosmosDbScaling
 {
@@ -34,9 +32,9 @@ namespace CalculateFunding.Services.CosmosDbScaling
             //Assert
             collections
                 .Should()
-                .BeEmpty();
+                .BeNullOrEmpty();
         }
-        
+
         [TestMethod]
         public void GetUniqueCosmosDBContainerNamesFromEventData_GivenEventsWhereStatusCodeDoesNotExist_ReturnsEmptyCollections()
         {
@@ -60,7 +58,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
             //Assert
             collections
                 .Should()
-                .BeEmpty();
+                .BeNullOrEmpty();
         }
 
         [TestMethod]
