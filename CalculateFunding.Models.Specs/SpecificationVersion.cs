@@ -35,9 +35,6 @@ namespace CalculateFunding.Models.Specs
         [JsonProperty("dataDefinitionRelationshipIds")]
         public IEnumerable<string> DataDefinitionRelationshipIds { get; set; }
 
-		[JsonProperty("variationDate")]
-		public DateTimeOffset? VariationDate { get; set; }
-        
         [JsonProperty("templateId")]
         public string TemplateId { get; set; }
 
@@ -49,6 +46,9 @@ namespace CalculateFunding.Models.Specs
 
         [JsonProperty("earliestPaymentAvailableDate")]
         public DateTimeOffset? EarliestPaymentAvailableDate { get; set; }
+
+        [JsonProperty("profileVariationPointers")]
+        public IEnumerable<ProfileVariationPointer> ProfileVariationPointers { get; set; }
 
         public void AddOrUpdateTemplateId(string fundingStreamId,
             string templateId)

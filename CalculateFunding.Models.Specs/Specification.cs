@@ -1,5 +1,4 @@
-﻿using System;
-using CalculateFunding.Common.Models;
+﻿using CalculateFunding.Common.Models;
 using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Specs
@@ -11,8 +10,5 @@ namespace CalculateFunding.Models.Specs
 
         [JsonProperty("current")]
         public SpecificationVersion Current { get; set; }
-
-        [JsonProperty("variationDate")]
-        public DateTimeOffset? VariationDate { get; set; }
     }
 }

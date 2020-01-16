@@ -241,5 +241,227 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .NotBeNull()
                 .Equals(DateTimeOffset.Now.Date);
         }
+
+        [TestMethod]
+        public void SetProfileVariationPointers_SpecificationIsNull_ReturnsBadRequestObjectResult()
+        {
+            //Arrange
+            ILogger logger = CreateLogger();
+            string specificationId = null;
+
+            SpecificationsService service = CreateService(logs: logger);
+
+            // Act
+            Func<Task<IActionResult>> func = () => service.SetProfileVariationPointers(specificationId, null);
+
+            //Assert
+            func
+                .Should()
+                .ThrowExactly<ArgumentNullException>();
+        }
+
+
+        [TestMethod]
+        public async Task SetProfileVariationPointers_SpecDoesNotExistsInSystem_Returns412WithErrorMessage()
+        {
+            //Arrange
+            ILogger logger = CreateLogger();
+            string specificationId = "test";
+            DateTimeOffset externalPublishDate = DateTimeOffset.Now.Date;
+            DateTimeOffset earliestPaymentAvailableDate = DateTimeOffset.Now.Date;
+
+            IEnumerable<SpecificationProfileVariationPointerModel> specificationProfileVariationPointerModels = new SpecificationProfileVariationPointerModel[]
+            {
+                new SpecificationProfileVariationPointerModel
+                {
+                    FundingLineId = "FundingLineId",
+                    FundingStreamId = "FundingStreamId",
+                    Occurrence = 1,
+                    PeriodType = "PeriodType",
+                    TypeValue = "TypeValue",
+                    Year = 2019
+                }
+            };
+
+            string expectedErrorMessage = $"No specification ID {specificationId} were returned from the repository, result came back null";
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetSpecificationById(specificationId)
+                .Returns<Specification>(x => null);
+
+            SpecificationsService service = CreateService(logs: logger, specificationsRepository: specificationsRepository);
+
+            // Act
+            IActionResult result = await service.SetProfileVariationPointers(specificationId, specificationProfileVariationPointerModels);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<PreconditionFailedResult>()
+                .Which
+                .Value
+                .Should()
+                .Be(expectedErrorMessage);
+
+            logger
+                .Received(1)
+                .Error(Arg.Is(expectedErrorMessage));
+        }
+
+        [TestMethod]
+        public async Task SetProfileVariationPointers_UpdateSpecFails_Returns412WithErrorMessage()
+        {
+            //Arrange
+            ILogger logger = CreateLogger();
+            string specificationId = "test";
+            DateTimeOffset externalPublishDate = DateTimeOffset.Now.Date;
+            DateTimeOffset earliestPaymentAvailableDate = DateTimeOffset.Now.Date;
+
+            Specification specification = new Specification
+            {
+                Current = new SpecificationVersion
+                {
+                    ExternalPublicationDate = DateTimeOffset.Now.Date,
+                    EarliestPaymentAvailableDate = DateTimeOffset.Now.Date
+                }
+            };
+
+            IEnumerable<SpecificationProfileVariationPointerModel> specificationProfileVariationPointerModels = new SpecificationProfileVariationPointerModel[]
+            {
+                new SpecificationProfileVariationPointerModel
+                {
+                    FundingLineId = "FundingLineId",
+                    FundingStreamId = "FundingStreamId",
+                    Occurrence = 1,
+                    PeriodType = "PeriodType",
+                    TypeValue = "TypeValue",
+                    Year = 2019
+                }
+            };
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();
+            IVersionRepository<SpecificationVersion> specificationVersionRepository = CreateSpecificationVersionRepository();
+
+            specificationsRepository
+                .GetSpecificationById(specificationId)
+                .Returns(specification);
+
+            SpecificationVersion clonedSpecificationVersion = null;
+
+            specificationVersionRepository.CreateVersion(Arg.Any<SpecificationVersion>(), Arg.Any<SpecificationVersion>())
+                .Returns(_ => (SpecificationVersion)_[0])
+                .AndDoes(_ => clonedSpecificationVersion = _.ArgAt<SpecificationVersion>(0));
+
+            specificationsRepository
+                .UpdateSpecification(Arg.Any<Specification>())
+                .Returns(HttpStatusCode.BadRequest);
+
+            SpecificationsService service = CreateService(
+                logs: logger,
+                specificationsRepository: specificationsRepository,
+                specificationVersionRepository: specificationVersionRepository,
+                policiesApiClient: policiesApiClient);
+
+            // Act
+            IActionResult result = await service.SetProfileVariationPointers(specificationId, specificationProfileVariationPointerModels);
+
+            //Assert
+            result
+               .Should()
+               .BeOfType<InternalServerErrorResult>()
+               .Which
+               .Value
+               .Should()
+               .Be($"Failed to update specification for id: {specificationId} with ProfileVariationPointers {specificationProfileVariationPointerModels?.Select(_ => _.AsJson())}");
+        }
+
+        [TestMethod]
+        public async Task SetProfileVariationPointers_ValidParametersPassed_ReturnsOKAndSetsSetProfileVariationPointersOnSpec()
+        {
+            //Arrange
+            ILogger logger = CreateLogger();
+            string specificationId = "test";
+            DateTimeOffset externalPublishDate = DateTimeOffset.Now.Date;
+            DateTimeOffset earliestPaymentAvailableDate = DateTimeOffset.Now.Date;
+
+            Specification specification = new Specification
+            {
+                Current = new SpecificationVersion
+                {
+                    ExternalPublicationDate = DateTimeOffset.Now.Date,
+                    EarliestPaymentAvailableDate = DateTimeOffset.Now.Date
+                }
+            };
+
+            IEnumerable<SpecificationProfileVariationPointerModel> specificationProfileVariationPointerModels = new SpecificationProfileVariationPointerModel[]
+            {
+                new SpecificationProfileVariationPointerModel
+                {
+                    FundingLineId = "FundingLineId",
+                    FundingStreamId = "FundingStreamId",
+                    Occurrence = 1,
+                    PeriodType = "PeriodType",
+                    TypeValue = "TypeValue",
+                    Year = 2019
+                }
+            };
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();
+            IVersionRepository<SpecificationVersion> specificationVersionRepository = CreateSpecificationVersionRepository();
+
+            specificationsRepository
+                .GetSpecificationById(specificationId)
+                .Returns(specification);
+
+            SpecificationVersion clonedSpecificationVersion = null;
+
+            specificationVersionRepository.CreateVersion(Arg.Any<SpecificationVersion>(), Arg.Any<SpecificationVersion>())
+                .Returns(_ => (SpecificationVersion)_[0])
+                .AndDoes(_ => clonedSpecificationVersion = _.ArgAt<SpecificationVersion>(0));
+
+            specificationsRepository
+                .UpdateSpecification(Arg.Any<Specification>())
+                .Returns(HttpStatusCode.OK);
+
+            SpecificationsService service = CreateService(
+                logs: logger,
+                specificationsRepository: specificationsRepository,
+                specificationVersionRepository: specificationVersionRepository,
+                policiesApiClient: policiesApiClient);
+
+            // Act
+            IActionResult result = await service.SetProfileVariationPointers(specificationId, specificationProfileVariationPointerModels);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>()
+                .Which
+                .Value
+                .Should()
+                .Be(HttpStatusCode.OK);
+
+            specificationsRepository
+                .Received(1);
+
+            var profileVariationPointers = clonedSpecificationVersion?
+                .ProfileVariationPointers;
+
+            profileVariationPointers
+                .Should()
+                .NotBeNull()
+                .Equals(new ProfileVariationPointer[]{ new ProfileVariationPointer
+                {
+                    FundingLineId = "FundingLineId",
+                    FundingStreamId = "FundingStreamId",
+                    Occurrence = 1,
+                    PeriodType = "PeriodType",
+                    TypeValue = "TypeValue",
+                    Year = 2019
+                } });
+        }
     }
 }

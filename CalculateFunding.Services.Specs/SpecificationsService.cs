@@ -77,7 +77,7 @@ namespace CalculateFunding.Services.Specs
             IVersionRepository<Models.Specs.SpecificationVersion> specificationVersionRepository,
             ISpecificationsResiliencePolicies resiliencePolicies,
             IQueueCreateSpecificationJobActions queueCreateSpecificationJobAction,
-            ICalculationsApiClient calcsApiClient, 
+            ICalculationsApiClient calcsApiClient,
             IFeatureToggle featureToggle)
         {
             Guard.ArgumentNotNull(mapper, nameof(mapper));
@@ -932,14 +932,14 @@ WHERE   s.documentType = @DocumentType",
             {
                 return new ForbidResult();
             }
-            
+
             if (specificationId.IsNullOrEmpty())
             {
                 _logger.Warning("No specification Id was provided to DeselectSpecificationForFunding");
-                
+
                 return new BadRequestObjectResult("Null or empty specification Id provided");
-            }   
-            
+            }
+
             Specification specification = await _specificationsRepository.GetSpecificationById(specificationId);
 
             if (specification == null)
@@ -948,7 +948,7 @@ WHERE   s.documentType = @DocumentType",
 
                 return new NotFoundObjectResult($"Specification not found for id: {specificationId}");
             }
-            
+
             if (specification.IsSelectedForFunding == false)
             {
                 _logger.Warning(
@@ -956,7 +956,7 @@ WHERE   s.documentType = @DocumentType",
 
                 return new NoContentResult();
             }
-            
+
             specification.IsSelectedForFunding = false;
 
             return await UpdateSpecification(specification, specificationId);
@@ -1019,7 +1019,7 @@ WHERE   s.documentType = @DocumentType",
 
                 specificationIndex = CreateSpecificationIndex(specification);
 
-                var errors = await _searchRepository.Index(new List<SpecificationIndex> {specificationIndex});
+                var errors = await _searchRepository.Index(new List<SpecificationIndex> { specificationIndex });
 
                 if (errors.Any())
                 {
@@ -1040,7 +1040,7 @@ WHERE   s.documentType = @DocumentType",
 
                 await TaskHelper.WhenAllAndThrow(
                     _specificationsRepository.UpdateSpecification(specification),
-                    _searchRepository.Index(new[] {specificationIndex})
+                    _searchRepository.Index(new[] { specificationIndex })
                 );
 
                 await _cacheProvider.RemoveAsync<SpecificationSummary>(
@@ -1234,14 +1234,45 @@ WHERE   s.documentType = @DocumentType",
             });
         }
 
+        public async Task<IActionResult> GetProfileVariationPointers(string specificationId)
+        {
+            Guard.ArgumentNotNull(specificationId, nameof(specificationId));
+
+            Specification specification = await _specificationsRepository.GetSpecificationById(specificationId);
+
+            if (specification == null)
+            {
+                string message = $"No specification ID {specificationId} were returned from the repository, result came back null";
+                _logger.Error(message);
+                return new PreconditionFailedResult(message);
+            }
+
+            Models.Specs.SpecificationVersion specificationVersion = specification.Current;
+
+            if (specificationVersion == null)
+            {
+                string message = $"Specification ID {specificationId} does not contains current for given specification";
+                _logger.Error(message);
+                return new PreconditionFailedResult(message);
+            }
+
+            return new OkObjectResult(specificationVersion.ProfileVariationPointers?.Select(_ => new SpecificationProfileVariationPointerModel
+            {
+                FundingLineId = _.FundingLineId,
+                FundingStreamId = _.FundingStreamId,
+                Occurrence = _.Occurrence,
+                PeriodType = _.PeriodType,
+                TypeValue = _.TypeValue,
+                Year = _.Year
+            }));
+        }
+
         public async Task<IActionResult> SetPublishDates(string specificationId,
             SpecificationPublishDateModel specificationPublishDateModel
             )
         {
             Guard.ArgumentNotNull(specificationId, nameof(specificationId));
             Guard.ArgumentNotNull(specificationPublishDateModel, nameof(specificationPublishDateModel));
-
-
 
             Specification specification = await _specificationsRepository.GetSpecificationById(specificationId);
 
@@ -1271,6 +1302,62 @@ WHERE   s.documentType = @DocumentType",
             }
 
             return new OkObjectResult(updateSpecificationResult);
+        }
+
+        public async Task<IActionResult> SetProfileVariationPointers(string specificationId,
+            IEnumerable<SpecificationProfileVariationPointerModel> specificationProfileVariationPointerModels,
+            bool merge = false)
+        {
+            Guard.ArgumentNotNull(specificationId, nameof(specificationId));
+            Guard.ArgumentNotNull(specificationProfileVariationPointerModels, nameof(specificationProfileVariationPointerModels));
+
+            Specification specification = await _specificationsRepository.GetSpecificationById(specificationId);
+
+            if (specification == null)
+            {
+                string message = $"No specification ID {specificationId} were returned from the repository, result came back null";
+                _logger.Error(message);
+                return new PreconditionFailedResult(message);
+            }
+
+            Models.Specs.SpecificationVersion currentSpecificationVersion = specification.Current;
+            Models.Specs.SpecificationVersion newSpecificationVersion = specification.Current.Clone() as Models.Specs.SpecificationVersion;
+
+            IEnumerable<ProfileVariationPointer> profileVariationPointers = specificationProfileVariationPointerModels.Select(_ => new ProfileVariationPointer
+            {
+                FundingLineId = _.FundingLineId,
+                FundingStreamId = _.FundingStreamId,
+                Occurrence = _.Occurrence,
+                PeriodType = _.PeriodType,
+                TypeValue = _.TypeValue,
+                Year = _.Year
+            });
+
+            if (merge && !newSpecificationVersion.ProfileVariationPointers.IsNullOrEmpty())
+            {
+                profileVariationPointers = newSpecificationVersion.ProfileVariationPointers.Concat(profileVariationPointers.Where(_ => !newSpecificationVersion.ProfileVariationPointers.Any(pvp => pvp.FundingLineId == _.FundingLineId && pvp.FundingStreamId == _.FundingStreamId)));
+            }
+
+            newSpecificationVersion.Version++;
+            newSpecificationVersion.ProfileVariationPointers = profileVariationPointers;
+
+            HttpStatusCode updateSpecificationResult = await UpdateSpecification(specification, newSpecificationVersion, currentSpecificationVersion);
+
+            if (!updateSpecificationResult.IsSuccess())
+            {
+                string message = $"Failed to update specification for id: {specificationId} with ProfileVariationPointers {profileVariationPointers?.Select(_ => _.AsJson())}";
+                _logger.Error(message);
+
+                return new InternalServerErrorResult(message);
+            }
+
+            return new OkObjectResult(updateSpecificationResult);
+        }
+
+        public async Task<IActionResult> SetProfileVariationPointer(string specificationId,
+            SpecificationProfileVariationPointerModel specificationProfileVariationPointerModel)
+        {
+            return await SetProfileVariationPointers(specificationId, new SpecificationProfileVariationPointerModel[] { specificationProfileVariationPointerModel }, true);
         }
 
         public async Task<IActionResult> GetFundingStreamIdsForSelectedFundingSpecifications()

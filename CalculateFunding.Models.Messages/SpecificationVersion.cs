@@ -7,8 +7,7 @@ using Newtonsoft.Json;
 namespace CalculateFunding.Models.Messages
 {
     public class SpecificationVersion
-    {       
-
+    {     
         [JsonProperty("name")]
         public string Name { get; set; }
 
@@ -29,9 +28,6 @@ namespace CalculateFunding.Models.Messages
 
         [JsonProperty("dataDefinitionRelationshipIds")]
         public IEnumerable<string> DataDefinitionRelationshipIds { get; set; }
-
-        [JsonProperty("variationDate")]
-        public DateTimeOffset? VariationDate { get; set; }
 
         [JsonProperty("templateId")]
         public string TemplateId { get; set; }

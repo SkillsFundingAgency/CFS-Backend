@@ -202,6 +202,14 @@ namespace CalculateFunding.Api.Specs.Controllers
             return await _specService.GetPublishDates(specificationId);
         }
 
+        [Route("/api/specs/{specificationId}/profilevariationpointers")]
+        [HttpGet]
+        [Produces(typeof(IEnumerable<SpecificationProfileVariationPointerModel>))]
+        public async Task<IActionResult> GetProfileVariationPointers([FromRoute]string specificationId)
+        {
+            return await _specService.GetProfileVariationPointers(specificationId);
+        }
+
         [Route("/api/specs/{specificationId}/publishdates")]
         [HttpPut]
         [Produces(typeof(HttpStatusCode))]
@@ -209,6 +217,24 @@ namespace CalculateFunding.Api.Specs.Controllers
            [FromBody]SpecificationPublishDateModel specificationPublishDateModel)
         {
             return await _specService.SetPublishDates(specificationId, specificationPublishDateModel);
+        }
+
+        [Route("/api/specs/{specificationId}/profilevariationpointers")]
+        [HttpPut]
+        [Produces(typeof(HttpStatusCode))]
+        public async Task<IActionResult> SetProfileVariationPointers([FromRoute]string specificationId,
+           [FromBody]IEnumerable<SpecificationProfileVariationPointerModel> specificationProfileVariationPointerModels)
+        {
+            return await _specService.SetProfileVariationPointers(specificationId, specificationProfileVariationPointerModels);
+        }
+
+        [Route("/api/specs/{specificationId}/profilevariationpointer")]
+        [HttpPut]
+        [Produces(typeof(HttpStatusCode))]
+        public async Task<IActionResult> SetProfileVariationPointer([FromRoute]string specificationId,
+           [FromBody]SpecificationProfileVariationPointerModel specificationProfileVariationPointerModel)
+        {
+            return await _specService.SetProfileVariationPointer(specificationId, specificationProfileVariationPointerModel);
         }
 
         [Route("api/specs/fundingperiods-by-fundingstream-id/{fundingStreamId}")]

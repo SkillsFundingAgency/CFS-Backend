@@ -315,7 +315,6 @@ namespace CalculateFunding.Services.Providers
 
             ScopedProvidersFileSystemCacheKey cacheKey = new ScopedProvidersFileSystemCacheKey(specificationId, cacheGuid);
 
-
             if (fileSystemCacheEnabled && _fileSystemCache.Exists(cacheKey))
             {
                 using (Stream cachedStream = _fileSystemCache.Get(cacheKey))

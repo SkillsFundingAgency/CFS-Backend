@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using CalculateFunding.Models.Specs;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -46,7 +47,14 @@ namespace CalculateFunding.Services.Specs.Interfaces
 
         Task<IActionResult> GetPublishDates(string specificationId);
 
+        Task<IActionResult> GetProfileVariationPointers(string specificationId);
+
         Task<IActionResult> SetPublishDates(string specificationId, SpecificationPublishDateModel specificationPublishDateModel);
+
+        Task<IActionResult> SetProfileVariationPointers(string specificationId, IEnumerable<SpecificationProfileVariationPointerModel> specificationProfileVariationPointerModels, bool merge = false);
+
+        Task<IActionResult> SetProfileVariationPointer(string specificationId, SpecificationProfileVariationPointerModel specificationProfileVariationPointerModel);
+
         Task<IActionResult> GetFundingStreamIdsForSelectedFundingSpecifications();
         Task<IActionResult> GetFundingPeriodsByFundingStreamIdsForSelectedSpecifications(string fundingStreamId);
         Task<IActionResult> DeselectSpecificationForFunding(string specificationId);
