@@ -9,6 +9,8 @@ using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Providers;
+using CalculateFunding.Common.ApiClient.Specifications;
+using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
@@ -16,6 +18,7 @@ using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
+using CalculateFunding.Models.Messages;
 using CalculateFunding.Services.CodeGeneration.VisualBasic;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Constants;
@@ -25,20 +28,21 @@ using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.DataImporter;
+using CalculateFunding.Services.Datasets.Builders;
 using CalculateFunding.Services.Datasets.Interfaces;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.Azure.ServiceBus;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.Azure.Storage.Blob;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
-using ApiClientProviders = CalculateFunding.Common.ApiClient.Providers;
+using AggregatedType = CalculateFunding.Models.Datasets.AggregatedTypes;
 using ApiProviderSummary = CalculateFunding.Common.ApiClient.Providers.Models.ProviderSummary;
+using ApiProviderVersion = CalculateFunding.Common.ApiClient.Providers.Models.ProviderVersion;
+using ApiProvider = CalculateFunding.Common.ApiClient.Providers.Models.Provider;
 using FieldDefinition = CalculateFunding.Models.Datasets.Schema.FieldDefinition;
 using VersionReference = CalculateFunding.Models.VersionReference;
-using AggregatedType = CalculateFunding.Models.Datasets.AggregatedTypes;
-using CalculateFunding.Models.Messages;
 
 namespace CalculateFunding.Services.Datasets.Services
 {
@@ -54,6 +58,7 @@ namespace CalculateFunding.Services.Datasets.Services
         private IProvidersResultsRepository _providerResultsRepository;
         private IProviderSourceDatasetVersionKeyProvider _versionKeyProvider;
         private IProvidersApiClient _providersApiClient;
+        private ISpecificationsApiClient _specificationsApiClient;
         private IMessengerService _messengerService;
         private IDatasetsAggregationsRepository _datasetsAggregationsRepository;
         private IVersionRepository<ProviderSourceDatasetVersion> _versionRepository;
@@ -61,12 +66,12 @@ namespace CalculateFunding.Services.Datasets.Services
         private IJobsApiClient _jobsApiClient;
         private IJobManagement _jobManagement;
         private ILogger _logger;
-        
+
         private Message _message;
-      
+
         private string _datasetCacheKey = $"ds-table-rows:{ProcessDatasetService.GetBlobNameCacheKey(BlobPath)}:{DataDefintionId}";
         private string _datasetAggregationsCacheKey = $"{CacheKeys.DatasetAggregationsForSpecification}{SpecificationId}";
-        
+
         private string _relationshipId;
         private string _relationshipName;
         private string _upin;
@@ -91,6 +96,7 @@ namespace CalculateFunding.Services.Datasets.Services
             _providerResultsRepository = CreateProviderResultsRepository();
             _versionKeyProvider = CreateDatasetVersionKeyProvider();
             _providersApiClient = CreateProvidersApiClient();
+            _specificationsApiClient = CreateSpecificationsApiClient();
             _messengerService = CreateMessengerService();
             _featureToggle = CreateFeatureToggle();
             _datasetsAggregationsRepository = CreateDatasetsAggregationsRepository();
@@ -98,8 +104,8 @@ namespace CalculateFunding.Services.Datasets.Services
             _jobsApiClient = CreateJobsApiClient();
             _jobManagement = CreateJobManagement();
             _logger = CreateLogger();
-            
-            _service = CreateProcessDatasetService(datasetRepository: _datasetRepository, 
+
+            _service = CreateProcessDatasetService(datasetRepository: _datasetRepository,
                 calcsRepository: _calculationsRepository,
                 blobClient: _blobClient,
                 cacheProvider: _cacheProvider,
@@ -107,6 +113,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 providerResultsRepository: _providerResultsRepository,
                 versionKeyProvider: _versionKeyProvider,
                 providersApiClient: _providersApiClient,
+                specificationsApiClient: _specificationsApiClient,
                 messengerService: _messengerService,
                 featureToggle: _featureToggle,
                 datasetsAggregationsRepository: _datasetsAggregationsRepository,
@@ -114,7 +121,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 jobsApiClient: _jobsApiClient,
                 jobManagement: _jobManagement,
                 logger: _logger);
-            
+
             _message = new Message();
             _relationshipId = NewRandomString();
             _relationshipName = NewRandomString();
@@ -123,12 +130,12 @@ namespace CalculateFunding.Services.Datasets.Services
             _laCode = NewRandomString();
             _jobId = NewRandomString();
         }
-        
+
         [TestMethod]
         public void ProcessDataset_GivenNullMessage_ThrowsArgumentNullException()
         {
             _message = null;
-            
+
             Func<Task> invocation = WhenTheProcessDatasetMessageIsProcessed;
 
             invocation
@@ -187,6 +194,10 @@ namespace CalculateFunding.Services.Datasets.Services
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
                 .WithDefinition(NewReference(rf => rf.WithId(DataDefintionId)))
                 .WithHistory(NewDatasetVersion())));
+            AndTheSpecification(SpecificationId, NewSpecification(_ =>
+            _.WithId(SpecificationId)
+            .WithProviderVersionId(ProviderVersionId)
+            ));
             AndTheRelationship(_relationshipId, NewRelationship(_ => _.WithDatasetDefinition(NewReference())
                 .WithDatasetVersion(NewRelationshipVersion())));
 
@@ -203,6 +214,10 @@ namespace CalculateFunding.Services.Datasets.Services
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
                 .WithDefinition(NewReference(rf => rf.WithId(DataDefintionId)))
                 .WithHistory(NewDatasetVersion())));
+            AndTheSpecification(SpecificationId, NewSpecification(_ =>
+            _.WithId(SpecificationId)
+            .WithProviderVersionId(ProviderVersionId)
+            ));
             AndTheRelationship(_relationshipId, NewRelationship(_ => _.WithDatasetDefinition(NewReference())
                 .WithDatasetVersion(NewRelationshipVersion())));
             AndTheDatasetDefinitions(NewDatasetDefinition());
@@ -220,6 +235,10 @@ namespace CalculateFunding.Services.Datasets.Services
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
                 .WithDefinition(NewReference(rf => rf.WithId(DataDefintionId)))
                 .WithHistory(NewDatasetVersion())));
+            AndTheSpecification(SpecificationId, NewSpecification(_ =>
+            _.WithId(SpecificationId)
+            .WithProviderVersionId(ProviderVersionId)
+            ));
             AndTheRelationship(_relationshipId, NewRelationship(_ => _.WithDatasetDefinition(NewReference())
                 .WithDatasetVersion(NewRelationshipVersion())));
             AndTheDatasetDefinitions(NewDatasetDefinition());
@@ -239,13 +258,17 @@ namespace CalculateFunding.Services.Datasets.Services
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
                 .WithDefinition(NewReference(rf => rf.WithId(DataDefintionId)))
                 .WithHistory(NewDatasetVersion())));
+            AndTheSpecification(SpecificationId, NewSpecification(_ =>
+            _.WithId(SpecificationId)
+            .WithProviderVersionId(ProviderVersionId)
+            ));
             AndTheRelationship(_relationshipId, NewRelationship(_ => _.WithDatasetDefinition(NewReference())
                 .WithDatasetVersion(NewRelationshipVersion())));
             AndTheDatasetDefinitions(NewDatasetDefinition());
             AndTheBuildProject(SpecificationId, NewBuildProject());
 
             ICloudBlob cloudBlob = NewCloudBlob();
-            
+
             AndTheCloudBlob(BlobPath, cloudBlob);
             AndTheCloudStream(cloudBlob, NewStream());
 
@@ -262,13 +285,17 @@ namespace CalculateFunding.Services.Datasets.Services
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
                 .WithDefinition(NewReference(rf => rf.WithId(DataDefintionId)))
                 .WithHistory(NewDatasetVersion())));
+            AndTheSpecification(SpecificationId, NewSpecification(_ =>
+            _.WithId(SpecificationId)
+            .WithProviderVersionId(ProviderVersionId)
+            ));
             AndTheRelationship(_relationshipId, NewRelationship(_ => _.WithDatasetDefinition(NewReference())
                 .WithDatasetVersion(NewRelationshipVersion())));
             AndTheDatasetDefinitions(NewDatasetDefinition());
             AndTheBuildProject(SpecificationId, NewBuildProject());
 
             ICloudBlob cloudBlob = NewCloudBlob();
-            
+
             AndTheCloudBlob(BlobPath, cloudBlob);
             AndTheCloudStream(cloudBlob, NewStream(new byte[100]));
 
@@ -285,26 +312,30 @@ namespace CalculateFunding.Services.Datasets.Services
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
                 .WithDefinition(NewReference(rf => rf.WithId(DataDefintionId)))
                 .WithHistory(NewDatasetVersion())));
+            AndTheSpecification(SpecificationId, NewSpecification(_ =>
+            _.WithId(SpecificationId)
+            .WithProviderVersionId(ProviderVersionId)
+            ));
             AndTheRelationship(_relationshipId, NewRelationship(_ => _.WithDatasetDefinition(NewReference())
                 .WithDatasetVersion(NewRelationshipVersion())));
-            
+
             DatasetDefinition datasetDefinition = NewDatasetDefinition();
-            
+
             AndTheDatasetDefinitions(datasetDefinition);
             AndTheBuildProject(SpecificationId, NewBuildProject());
 
             ICloudBlob cloudBlob = NewCloudBlob();
-            
+
             AndTheCloudBlob(BlobPath, cloudBlob);
-            
+
             Stream tableStream = NewStream(new byte[1]);
-            
+
             AndTheCloudStream(cloudBlob, tableStream);
             AndTheCachedTableLoadResults(_datasetCacheKey, NewTableLoadResult());
             AndTheTableLoadResultsFromExcel(tableStream, datasetDefinition, NewTableLoadResult());
-            
+
             await WhenTheProcessDatasetMessageIsProcessed();
-            
+
             ThenTheErrorWasLogged($"No dataset relationships found for build project with id : '{BuildProjectId}' for specification '{SpecificationId}'");
         }
 
@@ -316,27 +347,31 @@ namespace CalculateFunding.Services.Datasets.Services
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
                 .WithDefinition(NewReference(rf => rf.WithId(DataDefintionId)))
                 .WithHistory(NewDatasetVersion())));
+            AndTheSpecification(SpecificationId, NewSpecification(_ =>
+            _.WithId(SpecificationId)
+            .WithProviderVersionId(ProviderVersionId)
+            ));
             AndTheRelationship(_relationshipId, NewRelationship(_ => _.WithDatasetDefinition(NewReference(
                     rf => rf.WithId(DataDefintionId)))
                 .WithDatasetVersion(NewRelationshipVersion())));
-            
+
             DatasetDefinition datasetDefinition = NewDatasetDefinition();
-            
+
             AndTheDatasetDefinitions(datasetDefinition);
             AndTheBuildProject(SpecificationId, NewBuildProject(_ => _.WithRelationships(NewRelationshipSummary())));
 
             ICloudBlob cloudBlob = NewCloudBlob();
-            
+
             AndTheCloudBlob(BlobPath, cloudBlob);
-            
+
             Stream tableStream = NewStream(new byte[1]);
-            
+
             AndTheCloudStream(cloudBlob, tableStream);
             AndTheCachedTableLoadResults(_datasetCacheKey, NewTableLoadResult());
             AndTheTableLoadResultsFromExcel(tableStream, datasetDefinition, NewTableLoadResult());
-            
+
             await WhenTheProcessDatasetMessageIsProcessed();
-            
+
             ThenTheErrorWasLogged(
                 $"No dataset relationship found for build project with id : {BuildProjectId} with data definition id {DataDefintionId} and relationshipId '{_relationshipId}'");
             await AndNoResultsWereSaved();
@@ -353,26 +388,26 @@ namespace CalculateFunding.Services.Datasets.Services
             AndTheRelationship(_relationshipId, NewRelationship(_ => _.WithDatasetDefinition(NewReference(
                     rf => rf.WithId(DataDefintionId)))
                 .WithDatasetVersion(NewRelationshipVersion())));
-            
+
             DatasetDefinition datasetDefinition = NewDatasetDefinition();
-            
+
             AndTheDatasetDefinitions(datasetDefinition);
             AndTheBuildProject(SpecificationId, NewBuildProject(_ => _.WithRelationships(NewRelationshipSummary())));
 
             ICloudBlob cloudBlob = NewCloudBlob();
-            
+
             AndTheCloudBlob(BlobPath, cloudBlob);
-            
+
             Stream tableStream = NewStream(new byte[1]);
-            
+
             AndTheCloudStream(cloudBlob, tableStream);
-            
+
             TableLoadResult tableLoadResult = NewTableLoadResult(_ => _.WithRows(NewRowLoadResult(
                 row => row.WithFields((Upin, _upin)))));
-            
+
             AndTheCachedTableLoadResults(_datasetCacheKey, tableLoadResult);
             AndTheTableLoadResultsFromExcel(tableStream, datasetDefinition, tableLoadResult);
-            
+
             await WhenTheProcessDatasetMessageIsProcessed();
 
             await ThenNoResultsWereSaved();
@@ -389,28 +424,28 @@ namespace CalculateFunding.Services.Datasets.Services
             AndTheRelationship(_relationshipId, NewRelationship(_ => _.WithDatasetDefinition(NewReference(
                     rf => rf.WithId(DataDefintionId)))
                 .WithDatasetVersion(NewRelationshipVersion())));
-            
-            DatasetDefinition datasetDefinition = NewDatasetDefinition(_ => _.WithTableDefinitions(NewTableDefinition(tb => 
+
+            DatasetDefinition datasetDefinition = NewDatasetDefinition(_ => _.WithTableDefinitions(NewTableDefinition(tb =>
                 tb.WithFieldDefinitions(NewFieldDefinition(fld => fld.WithName(Upin)
                     .WithIdentifierFieldType(IdentifierFieldType.UPIN))))));
-            
+
             AndTheDatasetDefinitions(datasetDefinition);
             AndTheBuildProject(SpecificationId, NewBuildProject(_ => _.WithRelationships(NewRelationshipSummary())));
 
             ICloudBlob cloudBlob = NewCloudBlob();
-            
+
             AndTheCloudBlob(BlobPath, cloudBlob);
-            
+
             Stream tableStream = NewStream(new byte[1]);
-            
+
             AndTheCloudStream(cloudBlob, tableStream);
-            
+
             TableLoadResult tableLoadResult = NewTableLoadResult(_ => _.WithRows(NewRowLoadResult(
                 row => row.WithFields((Upin, _upin)))));
-            
+
             AndTheCachedTableLoadResults(_datasetCacheKey, tableLoadResult);
             AndTheTableLoadResultsFromExcel(tableStream, datasetDefinition, tableLoadResult);
-            
+
             await WhenTheProcessDatasetMessageIsProcessed();
 
             await ThenNoResultsWereSaved();
@@ -424,36 +459,41 @@ namespace CalculateFunding.Services.Datasets.Services
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
                 .WithDefinition(NewReference(rf => rf.WithId(DataDefintionId)))
                 .WithHistory(NewDatasetVersion())));
+            AndTheSpecification(SpecificationId, NewSpecification(_ =>
+            _.WithId(SpecificationId)
+            .WithProviderVersionId(ProviderVersionId)
+            ));
             AndTheRelationship(_relationshipId, NewRelationship(_ => _.WithDatasetDefinition(NewReference(
                     rf => rf.WithId(DataDefintionId)))
                 .WithDatasetVersion(NewRelationshipVersion())));
-            
-            DatasetDefinition datasetDefinition = NewDatasetDefinition(_ => _.WithTableDefinitions(NewTableDefinition(tb => 
+
+            DatasetDefinition datasetDefinition = NewDatasetDefinition(_ => _.WithTableDefinitions(NewTableDefinition(tb =>
                 tb.WithFieldDefinitions(NewFieldDefinition(fld => fld.WithName(Upin)
                     .WithIdentifierFieldType(IdentifierFieldType.UPIN))))));
-            
+
             AndTheDatasetDefinitions(datasetDefinition);
             AndTheBuildProject(SpecificationId, NewBuildProject(_ => _.WithRelationships(NewRelationshipSummary(summary =>
                 summary.WithRelationship(NewReference(rf => rf.WithId(_relationshipId)
                     .WithName(_relationshipName)))
                     .WithDatasetDefinition(NewDatasetDefinition())))));
-            
+
             ICloudBlob cloudBlob = NewCloudBlob();
-            
+
             AndTheCloudBlob(BlobPath, cloudBlob);
-            
+
             Stream tableStream = NewStream(new byte[1]);
-            
+
             AndTheCloudStream(cloudBlob, tableStream);
-            
+
             TableLoadResult tableLoadResult = NewTableLoadResult(_ => _.WithRows(NewRowLoadResult(
                 row => row.WithFields((Upin, _upin)))));
-            
+
             AndTheCachedTableLoadResults(_datasetCacheKey, tableLoadResult);
             AndTheTableLoadResultsFromExcel(tableStream, datasetDefinition, tableLoadResult);
             AndTheCoreProviderData(NewApiProviderSummary(_ => _.WithId(_providerId)
                 .WithUPIN(_upin)));
-            
+            AndTheCoreProviderVersion(NewApiProviderVersion(_ => _.WithProviders(new ApiProvider[] { new ApiProvider { ProviderId = _providerId, UPIN = _upin } })));
+
             await WhenTheProcessDatasetMessageIsProcessed();
 
             await ThenTheProviderSourceDatasetWasUpdated();
@@ -468,48 +508,53 @@ namespace CalculateFunding.Services.Datasets.Services
         public async Task ProcessDataset_GivenPayloadAndTableResultsWithProviderIdsWithProviderMissing_SavesDataset(bool cleanup, int operations)
         {
             string newProviderId = NewRandomString();
-            
+
             GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"),
                 ("user-id", UserId), ("user-name", Username));
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
                 .WithDefinition(NewReference(rf => rf.WithId(DataDefintionId)))
                 .WithHistory(NewDatasetVersion())));
+            AndTheSpecification(SpecificationId, NewSpecification(_ =>
+            _.WithId(SpecificationId)
+            .WithProviderVersionId(ProviderVersionId)
+            ));
             AndTheRelationship(_relationshipId, NewRelationship(_ => _.WithDatasetDefinition(NewReference(
                     rf => rf.WithId(DataDefintionId)))
                 .WithDatasetVersion(NewRelationshipVersion())));
-            
-            DatasetDefinition datasetDefinition = NewDatasetDefinition(_ => _.WithTableDefinitions(NewTableDefinition(tb => 
+
+            DatasetDefinition datasetDefinition = NewDatasetDefinition(_ => _.WithTableDefinitions(NewTableDefinition(tb =>
                 tb.WithFieldDefinitions(NewFieldDefinition(fld => fld.WithName(Upin)
                     .WithIdentifierFieldType(IdentifierFieldType.UPIN))))));
-            
+
             AndTheDatasetDefinitions(datasetDefinition);
             AndTheBuildProject(SpecificationId, NewBuildProject(_ => _.WithRelationships(NewRelationshipSummary(summary =>
                 summary.WithRelationship(NewReference(rf => rf.WithId(_relationshipId)
                     .WithName(_relationshipName)))
                     .WithDatasetDefinition(NewDatasetDefinition())))));
-            
+
             ICloudBlob cloudBlob = NewCloudBlob();
-            
+
             AndTheCloudBlob(BlobPath, cloudBlob);
-            
+
             Stream tableStream = NewStream(new byte[1]);
-            
+
             AndTheCloudStream(cloudBlob, tableStream);
-            
+
             TableLoadResult tableLoadResult = NewTableLoadResult(_ => _.WithRows(NewRowLoadResult(
                 row => row.WithFields((Upin, _upin)))));
-            
+
             AndTheCachedTableLoadResults(_datasetCacheKey, tableLoadResult);
             AndTheTableLoadResultsFromExcel(tableStream, datasetDefinition, tableLoadResult);
             AndTheCoreProviderData(NewApiProviderSummary(_ => _.WithId(newProviderId)
                 .WithUPIN(_upin)));
-            AndTheExistingProviderDatasets(NewProviderSourceDataset(_ => _.WithCurrent(NewProviderSourceDatasetVersion(ver => 
+            AndTheCoreProviderVersion(NewApiProviderVersion(_ => _.WithProviders(new ApiProvider[] { new ApiProvider { ProviderId = newProviderId, UPIN = _upin } })));
+            AndTheExistingProviderDatasets(NewProviderSourceDataset(_ => _.WithCurrent(NewProviderSourceDatasetVersion(ver =>
                 ver.WithRows((Upin, _upin))
                     .WithDataset(NewVersionReference(ds => ds.WithId(DatasetId)
                         .WithName("ds-1")
                         .WithVersion(1)))))));
             AndIsUseFieldDefinitionIdsInSourceDatasetsEnabledIs(cleanup);
-            
+
             await WhenTheProcessDatasetMessageIsProcessed();
 
             await ThenTheProviderSourceDatasetWasUpdated(newProviderId);
@@ -525,39 +570,44 @@ namespace CalculateFunding.Services.Datasets.Services
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
                 .WithDefinition(NewReference(rf => rf.WithId(DataDefintionId)))
                 .WithHistory(NewDatasetVersion())));
+            AndTheSpecification(SpecificationId, NewSpecification(_ =>
+            _.WithId(SpecificationId)
+            .WithProviderVersionId(ProviderVersionId)
+            ));
             AndTheRelationship(_relationshipId, NewRelationship(_ => _.WithDatasetDefinition(NewReference(
                     rf => rf.WithId(DataDefintionId)))
                 .WithDatasetVersion(NewRelationshipVersion())));
-            
-            DatasetDefinition datasetDefinition = NewDatasetDefinition(_ => _.WithTableDefinitions(NewTableDefinition(tb => 
+
+            DatasetDefinition datasetDefinition = NewDatasetDefinition(_ => _.WithTableDefinitions(NewTableDefinition(tb =>
                 tb.WithFieldDefinitions(NewFieldDefinition(fld => fld.WithName(Upin)
                     .WithIdentifierFieldType(IdentifierFieldType.UPIN)),
                     NewFieldDefinition(fld => fld.WithName(LaCode)
                         .WithIdentifierFieldType(IdentifierFieldType.LACode))))));
-            
+
             AndTheDatasetDefinitions(datasetDefinition);
             AndTheBuildProject(SpecificationId, NewBuildProject(_ => _.WithRelationships(NewRelationshipSummary(summary =>
                 summary.WithRelationship(NewReference(rf => rf.WithId(_relationshipId)
                     .WithName(_relationshipName)))
                     .WithDatasetDefinition(NewDatasetDefinition())))));
-            
+
             ICloudBlob cloudBlob = NewCloudBlob();
-            
+
             AndTheCloudBlob(BlobPath, cloudBlob);
-            
+
             Stream tableStream = NewStream(new byte[1]);
-            
+
             AndTheCloudStream(cloudBlob, tableStream);
-            
+
             TableLoadResult tableLoadResult = NewTableLoadResult(_ => _.WithRows(NewRowLoadResult(
                 row => row.WithFields((Upin, _upin), (LaCode, _laCode)))));
-            
+
             AndTheCachedTableLoadResults(_datasetCacheKey, tableLoadResult);
             AndTheTableLoadResultsFromExcel(tableStream, datasetDefinition, tableLoadResult);
             AndTheCoreProviderData(NewApiProviderSummary(_ => _.WithId(_providerId)
                 .WithUPIN(_upin)
                 .WithLACode(_laCode)));
-            
+            AndTheCoreProviderVersion(NewApiProviderVersion(_ => _.WithProviders(new ApiProvider[] { new ApiProvider { ProviderId = _providerId, UPIN = _upin } })));
+
             await WhenTheProcessDatasetMessageIsProcessed();
 
             await ThenTheProviderSourceDatasetWasUpdated(extraConstraints: ds => ds.Current.Rows[0][LaCode].ToString() == _laCode);
@@ -568,17 +618,21 @@ namespace CalculateFunding.Services.Datasets.Services
         {
             string aggregateFieldName = NewRandomString();
             decimal aggregateFieldValue = new RandomNumberBetween(1, 3000);
-            
+
             GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"),
                 ("user-id", UserId), ("user-name", Username));
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
                 .WithDefinition(NewReference(rf => rf.WithId(DataDefintionId)))
                 .WithHistory(NewDatasetVersion())));
+            AndTheSpecification(SpecificationId, NewSpecification(_ =>
+            _.WithId(SpecificationId)
+            .WithProviderVersionId(ProviderVersionId)
+            ));
             AndTheRelationship(_relationshipId, NewRelationship(_ => _.WithDatasetDefinition(NewReference(
                     rf => rf.WithId(DataDefintionId)))
                 .WithDatasetVersion(NewRelationshipVersion())));
-            
-            DatasetDefinition datasetDefinition = NewDatasetDefinition(_ => _.WithTableDefinitions(NewTableDefinition(tb => 
+
+            DatasetDefinition datasetDefinition = NewDatasetDefinition(_ => _.WithTableDefinitions(NewTableDefinition(tb =>
                 tb.WithFieldDefinitions(NewFieldDefinition(fld => fld.WithName(Upin)
                     .WithIdentifierFieldType(IdentifierFieldType.UPIN)),
                     NewFieldDefinition(fld => fld.WithName(aggregateFieldName)
@@ -586,29 +640,30 @@ namespace CalculateFunding.Services.Datasets.Services
                         .WithIdentifierFieldType(IdentifierFieldType.None)
                         .WithFieldType(FieldType.Decimal)
                     )))));
-            
+
             AndTheDatasetDefinitions(datasetDefinition);
             AndTheBuildProject(SpecificationId, NewBuildProject(_ => _.WithRelationships(NewRelationshipSummary(summary =>
                 summary.WithRelationship(NewReference(rf => rf.WithId(_relationshipId)
                     .WithName(_relationshipName)))
                     .WithDatasetDefinition(NewDatasetDefinition())))));
-            
+
             ICloudBlob cloudBlob = NewCloudBlob();
-            
+
             AndTheCloudBlob(BlobPath, cloudBlob);
-            
+
             Stream tableStream = NewStream(new byte[1]);
-            
+
             AndTheCloudStream(cloudBlob, tableStream);
-            
+
             TableLoadResult tableLoadResult = NewTableLoadResult(_ => _.WithRows(NewRowLoadResult(
                 row => row.WithFields((Upin, _upin), (aggregateFieldName, aggregateFieldValue)))));
-            
+
             AndTheCachedTableLoadResults(_datasetCacheKey, tableLoadResult);
             AndTheTableLoadResultsFromExcel(tableStream, datasetDefinition, tableLoadResult);
             AndTheCoreProviderData(NewApiProviderSummary(_ => _.WithId(_providerId)
                 .WithUPIN(_upin)));
-            
+            AndTheCoreProviderVersion(NewApiProviderVersion(_ => _.WithProviders(new ApiProvider[] { new ApiProvider { ProviderId = _providerId, UPIN = _upin } })));
+
             await WhenTheProcessDatasetMessageIsProcessed();
 
             string cleanRelationshipName = GenerateIdentifier(_relationshipName);
@@ -642,11 +697,15 @@ namespace CalculateFunding.Services.Datasets.Services
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
                 .WithDefinition(NewReference(rf => rf.WithId(DataDefintionId)))
                 .WithHistory(NewDatasetVersion())));
+            AndTheSpecification(SpecificationId, NewSpecification(_ =>
+            _.WithId(SpecificationId)
+            .WithProviderVersionId(ProviderVersionId)
+            ));
             AndTheRelationship(_relationshipId, NewRelationship(_ => _.WithDatasetDefinition(NewReference(
                     rf => rf.WithId(DataDefintionId)))
                 .WithDatasetVersion(NewRelationshipVersion())));
-            
-            DatasetDefinition datasetDefinition = NewDatasetDefinition(_ => _.WithTableDefinitions(NewTableDefinition(tb => 
+
+            DatasetDefinition datasetDefinition = NewDatasetDefinition(_ => _.WithTableDefinitions(NewTableDefinition(tb =>
                 tb.WithFieldDefinitions(NewFieldDefinition(fld => fld.WithName(Upin)
                     .WithIdentifierFieldType(IdentifierFieldType.UPIN)),
                     NewFieldDefinition(fld => fld.WithName(aggregateFieldName)
@@ -654,33 +713,34 @@ namespace CalculateFunding.Services.Datasets.Services
                         .WithIdentifierFieldType(IdentifierFieldType.None)
                         .WithFieldType(FieldType.Decimal)
                     )))));
-            
+
             AndTheDatasetDefinitions(datasetDefinition);
             AndTheBuildProject(SpecificationId, NewBuildProject(_ => _.WithRelationships(NewRelationshipSummary(summary =>
                 summary.WithRelationship(NewReference(rf => rf.WithId(_relationshipId)
                     .WithName(_relationshipName)))
                     .WithDatasetDefinition(NewDatasetDefinition())))));
-            
+
             ICloudBlob cloudBlob = NewCloudBlob();
-            
+
             AndTheCloudBlob(BlobPath, cloudBlob);
-            
+
             Stream tableStream = NewStream(new byte[1]);
-            
+
             AndTheCloudStream(cloudBlob, tableStream);
-            
+
             TableLoadResult tableLoadResult = NewTableLoadResult(_ => _.WithRows(NewRowLoadResult(
                 row => row.WithFields((Upin, _upin), (aggregateFieldName, 3000M))),
                 NewRowLoadResult(row => row.WithFields((Upin, NewRandomString()), (aggregateFieldName, 120))),
                 NewRowLoadResult(row => row.WithFields((Upin, NewRandomString()), (aggregateFieldName, 10))),
                 NewRowLoadResult(row => row.WithFields((Upin, NewRandomString()), (aggregateFieldName, 567)))
                 ));
-            
+
             AndTheCachedTableLoadResults(_datasetCacheKey, tableLoadResult);
             AndTheTableLoadResultsFromExcel(tableStream, datasetDefinition, tableLoadResult);
             AndTheCoreProviderData(NewApiProviderSummary(_ => _.WithId(_providerId)
                 .WithUPIN(_upin)));
-            
+            AndTheCoreProviderVersion(NewApiProviderVersion(_ => _.WithProviders(new ApiProvider[] { new ApiProvider { ProviderId = _providerId, UPIN = _upin } })));
+
             await WhenTheProcessDatasetMessageIsProcessed();
 
             string cleanRelationshipName = GenerateIdentifier(_relationshipName);
@@ -689,16 +749,16 @@ namespace CalculateFunding.Services.Datasets.Services
             await ThenTheDatasetAggregationsWereSaved(
                 extraConstraints: agg =>
                     agg.Fields.Count() == 4 &&
-                    agg.Fields.ElementAt(0).Value == (decimal) 3697 &&
+                    agg.Fields.ElementAt(0).Value == (decimal)3697 &&
                     agg.Fields.ElementAt(0).FieldType == AggregatedType.Sum &&
                     agg.Fields.ElementAt(0).FieldReference == $"Datasets.{cleanRelationshipName}.{cleanFieldName}_Sum" &&
                     agg.Fields.ElementAt(1).Value == (decimal)924.25 &&
                     agg.Fields.ElementAt(1).FieldType == AggregatedType.Average &&
                     agg.Fields.ElementAt(1).FieldReference == $"Datasets.{cleanRelationshipName}.{cleanFieldName}_Average" &&
-                    agg.Fields.ElementAt(2).Value == (decimal) 10 &&
+                    agg.Fields.ElementAt(2).Value == (decimal)10 &&
                     agg.Fields.ElementAt(2).FieldType == AggregatedType.Min &&
                     agg.Fields.ElementAt(2).FieldReference == $"Datasets.{cleanRelationshipName}.{cleanFieldName}_Min" &&
-                    agg.Fields.ElementAt(3).Value == (decimal) 3000 &&
+                    agg.Fields.ElementAt(3).Value == (decimal)3000 &&
                     agg.Fields.ElementAt(3).FieldType == AggregatedType.Max &&
                     agg.Fields.ElementAt(3).FieldReference == $"Datasets.{cleanRelationshipName}.{cleanFieldName}_Max");
             await AndTheCachedAggregationsWereInvalidated();
@@ -708,45 +768,51 @@ namespace CalculateFunding.Services.Datasets.Services
         public async Task ProcessDataset_GivenPayloadAndTableResultsWithMultipleProviderIds_SavesDatasetForEachProvider()
         {
             string secondProviderUpin = NewRandomString();
-            
-             GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"),
-                ("user-id", UserId), ("user-name", Username));
+
+            GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"),
+               ("user-id", UserId), ("user-name", Username));
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
                 .WithDefinition(NewReference(rf => rf.WithId(DataDefintionId)))
                 .WithHistory(NewDatasetVersion())));
+            AndTheSpecification(SpecificationId, NewSpecification(_ =>
+            _.WithId(SpecificationId)
+            .WithProviderVersionId(ProviderVersionId)
+            ));
             AndTheRelationship(_relationshipId, NewRelationship(_ => _.WithDatasetDefinition(NewReference(
                     rf => rf.WithId(DataDefintionId)))
                 .WithDatasetVersion(NewRelationshipVersion())));
-            
-            DatasetDefinition datasetDefinition = NewDatasetDefinition(_ => _.WithTableDefinitions(NewTableDefinition(tb => 
+
+            DatasetDefinition datasetDefinition = NewDatasetDefinition(_ => _.WithTableDefinitions(NewTableDefinition(tb =>
                 tb.WithFieldDefinitions(NewFieldDefinition(fld => fld.WithName(Upin)
                     .WithIdentifierFieldType(IdentifierFieldType.UPIN))))));
-            
+
             AndTheDatasetDefinitions(datasetDefinition);
             AndTheBuildProject(SpecificationId, NewBuildProject(_ => _.WithRelationships(NewRelationshipSummary(summary =>
                 summary.WithRelationship(NewReference(rf => rf.WithId(_relationshipId)
                     .WithName(_relationshipName)))
                     .WithDatasetDefinition(NewDatasetDefinition())))));
-            
+
             ICloudBlob cloudBlob = NewCloudBlob();
-            
+
             AndTheCloudBlob(BlobPath, cloudBlob);
-            
+
             Stream tableStream = NewStream(new byte[1]);
-            
+
             AndTheCloudStream(cloudBlob, tableStream);
-            
+
             TableLoadResult tableLoadResult = NewTableLoadResult(_ => _.WithRows(NewRowLoadResult(
                 row => row.WithFields((Upin, _upin))),
                 NewRowLoadResult(row => row.WithFields((Upin, secondProviderUpin)))));
-            
+
             AndTheCachedTableLoadResults(_datasetCacheKey, tableLoadResult);
             AndTheTableLoadResultsFromExcel(tableStream, datasetDefinition, tableLoadResult);
+            string secondProviderId = NewRandomString();
             AndTheCoreProviderData(NewApiProviderSummary(_ => _.WithId(_providerId)
                 .WithUPIN(_upin)),
-                NewApiProviderSummary(_ => _.WithId(NewRandomString())
+                NewApiProviderSummary(_ => _.WithId(secondProviderId)
                     .WithUPIN(secondProviderUpin)));
-            
+            AndTheCoreProviderVersion(NewApiProviderVersion(_ => _.WithProviders(new ApiProvider[] { new ApiProvider { ProviderId = _providerId, UPIN = _upin }, new ApiProvider { ProviderId = secondProviderId, UPIN = secondProviderUpin } })));
+
             await WhenTheProcessDatasetMessageIsProcessed();
 
             await ThenXProviderSourceDatasetsWereUpdate(2);
@@ -760,39 +826,44 @@ namespace CalculateFunding.Services.Datasets.Services
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
                 .WithDefinition(NewReference(rf => rf.WithId(DataDefintionId)))
                 .WithHistory(NewDatasetVersion())));
+            AndTheSpecification(SpecificationId, NewSpecification(_ =>
+            _.WithId(SpecificationId)
+            .WithProviderVersionId(ProviderVersionId)
+            ));
             AndTheRelationship(_relationshipId, NewRelationship(_ => _.WithDatasetDefinition(NewReference(
                     rf => rf.WithId(DataDefintionId)))
                 .WithDatasetVersion(NewRelationshipVersion())));
-            
-            DatasetDefinition datasetDefinition = NewDatasetDefinition(_ => _.WithTableDefinitions(NewTableDefinition(tb => 
+
+            DatasetDefinition datasetDefinition = NewDatasetDefinition(_ => _.WithTableDefinitions(NewTableDefinition(tb =>
                 tb.WithFieldDefinitions(NewFieldDefinition(fld => fld.WithName(Upin)
                     .WithIdentifierFieldType(IdentifierFieldType.UPIN))))));
-            
+
             AndTheDatasetDefinitions(datasetDefinition);
             AndTheBuildProject(SpecificationId, NewBuildProject(_ => _.WithRelationships(NewRelationshipSummary(summary =>
                 summary.WithRelationship(NewReference(rf => rf.WithId(_relationshipId)
                     .WithName(_relationshipName)))
                     .WithDatasetDefinition(NewDatasetDefinition())))));
-            
+
             ICloudBlob cloudBlob = NewCloudBlob();
-            
+
             AndTheCloudBlob(BlobPath, cloudBlob);
-            
+
             Stream tableStream = NewStream(new byte[1]);
-            
+
             AndTheCloudStream(cloudBlob, tableStream);
-            
+
             TableLoadResult tableLoadResult = NewTableLoadResult(_ => _.WithRows(NewRowLoadResult(
                 row => row.WithFields((Upin, _upin)))));
-            
+
             AndTheCachedTableLoadResults(_datasetCacheKey, tableLoadResult);
             AndTheTableLoadResultsFromExcel(tableStream, datasetDefinition, tableLoadResult);
             AndTheCoreProviderData(NewApiProviderSummary(_ => _.WithId(_providerId)
                 .WithUPIN(_upin)));
+            AndTheCoreProviderVersion(NewApiProviderVersion(_ => _.WithProviders(new ApiProvider[] { new ApiProvider { ProviderId = _providerId, UPIN = _upin } })));
 
             AndTheJob(NewJob(_ => _.WithId(_jobId)
                 .WithDefinitionId(CreateInstructAllocationJob)), CreateInstructAllocationJob);
-            
+
             await WhenTheProcessDatasetMessageIsProcessed();
 
             await ThenTheProviderSourceDatasetWasUpdated();
@@ -811,38 +882,38 @@ namespace CalculateFunding.Services.Datasets.Services
             AndTheRelationship(_relationshipId, NewRelationship(_ => _.WithDatasetDefinition(NewReference(
                     rf => rf.WithId(DataDefintionId)))
                 .WithDatasetVersion(NewRelationshipVersion())));
-            
-            DatasetDefinition datasetDefinition = NewDatasetDefinition(_ => _.WithTableDefinitions(NewTableDefinition(tb => 
+
+            DatasetDefinition datasetDefinition = NewDatasetDefinition(_ => _.WithTableDefinitions(NewTableDefinition(tb =>
                 tb.WithFieldDefinitions(NewFieldDefinition(fld => fld.WithName(Upin)
                     .WithIdentifierFieldType(IdentifierFieldType.UPIN))))));
-            
+
             AndTheDatasetDefinitions(datasetDefinition);
             AndTheBuildProject(SpecificationId, NewBuildProject(_ => _.WithRelationships(NewRelationshipSummary(summary =>
                 summary.WithRelationship(NewReference(rf => rf.WithId(_relationshipId)
                     .WithName(_relationshipName)))
                     .WithDatasetDefinition(NewDatasetDefinition())))));
-            
+
             ICloudBlob cloudBlob = NewCloudBlob();
-            
+
             AndTheCloudBlob(BlobPath, cloudBlob);
-            
+
             Stream tableStream = NewStream(new byte[1]);
-            
+
             AndTheCloudStream(cloudBlob, tableStream);
-            
+
             TableLoadResult tableLoadResult = NewTableLoadResult(_ => _.WithRows(NewRowLoadResult(
                 row => row.WithFields((Upin, _upin)))));
-            
+
             AndTheCachedTableLoadResults(_datasetCacheKey, tableLoadResult);
             AndTheTableLoadResultsFromExcel(tableStream, datasetDefinition, tableLoadResult);
             AndTheCoreProviderData(NewApiProviderSummary(_ => _.WithId(_providerId)
                 .WithUPIN(_upin)));
-            AndTheExistingProviderDatasets(NewProviderSourceDataset(_ => _.WithCurrent(NewProviderSourceDatasetVersion(ver => 
+            AndTheExistingProviderDatasets(NewProviderSourceDataset(_ => _.WithCurrent(NewProviderSourceDatasetVersion(ver =>
                 ver.WithRows((Upin, _upin))
                     .WithDataset(NewVersionReference(ds => ds.WithId(DatasetId)
                         .WithName("ds-1")
                         .WithVersion(1)))))));
-            
+
             await WhenTheProcessDatasetMessageIsProcessed();
 
             await ThenNoResultsWereSaved();
@@ -858,54 +929,59 @@ namespace CalculateFunding.Services.Datasets.Services
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
                 .WithDefinition(NewReference(rf => rf.WithId(DataDefintionId)))
                 .WithHistory(NewDatasetVersion())));
+            AndTheSpecification(SpecificationId, NewSpecification(_ =>
+            _.WithId(SpecificationId)
+            .WithProviderVersionId(ProviderVersionId)
+            ));
             AndTheRelationship(_relationshipId, NewRelationship(_ => _.WithDatasetDefinition(NewReference(
                     rf => rf.WithId(DataDefintionId)))
                 .WithDatasetVersion(NewRelationshipVersion())));
-            
-            DatasetDefinition datasetDefinition = NewDatasetDefinition(_ => _.WithTableDefinitions(NewTableDefinition(tb => 
+
+            DatasetDefinition datasetDefinition = NewDatasetDefinition(_ => _.WithTableDefinitions(NewTableDefinition(tb =>
                 tb.WithFieldDefinitions(NewFieldDefinition(fld => fld.WithName(Upin)
                     .WithIdentifierFieldType(IdentifierFieldType.UPIN))))));
-            
+
             AndTheDatasetDefinitions(datasetDefinition);
             AndTheBuildProject(SpecificationId, NewBuildProject(_ => _.WithRelationships(NewRelationshipSummary(summary =>
                 summary.WithRelationship(NewReference(rf => rf.WithId(_relationshipId)
                     .WithName(_relationshipName)))
                     .WithDatasetDefinition(NewDatasetDefinition())))));
-            
+
             ICloudBlob cloudBlob = NewCloudBlob();
-            
+
             AndTheCloudBlob(BlobPath, cloudBlob);
-            
+
             Stream tableStream = NewStream(new byte[1]);
-            
+
             AndTheCloudStream(cloudBlob, tableStream);
-            
+
             TableLoadResult tableLoadResult = NewTableLoadResult(_ => _.WithRows(NewRowLoadResult(
                 row => row.WithFields((Upin, _upin)))));
-            
+
             AndTheCachedTableLoadResults(_datasetCacheKey, tableLoadResult);
             AndTheTableLoadResultsFromExcel(tableStream, datasetDefinition, tableLoadResult);
             AndTheCoreProviderData(NewApiProviderSummary(_ => _.WithId(_providerId)
                 .WithUPIN(_upin)));
-            
-            ProviderSourceDatasetVersion currentVersion = NewProviderSourceDatasetVersion(ver => 
+            AndTheCoreProviderVersion(NewApiProviderVersion(_ => _.WithProviders(new ApiProvider[] { new ApiProvider { ProviderId = _providerId, UPIN = _upin } })));
+
+            ProviderSourceDatasetVersion currentVersion = NewProviderSourceDatasetVersion(ver =>
                 ver.WithProviderId(_providerId)
                     .WithRows((Upin, NewRandomString()))
                     .WithDataset(NewVersionReference(ds => ds.WithId(DatasetId)
                         .WithName("ds-1")
                         .WithVersion(1))));
-            
+
             AndTheExistingProviderDatasets(NewProviderSourceDataset(_ => _.WithCurrent(currentVersion)));
-            
-            ProviderSourceDatasetVersion newVersion = NewProviderSourceDatasetVersion(ver => 
+
+            ProviderSourceDatasetVersion newVersion = NewProviderSourceDatasetVersion(ver =>
                 ver.WithProviderId(_providerId)
                     .WithRows((Upin, NewRandomString()))
                     .WithDataset(NewVersionReference(ds => ds.WithId(DatasetId)
                         .WithName("ds-1")
                         .WithVersion(2))));
-            
+
             AndTheNewProviderDatasetVersion(currentVersion, newVersion);
-            
+
             await WhenTheProcessDatasetMessageIsProcessed();
 
             await ThenTheNewVersionWasSaved(newVersion);
@@ -920,14 +996,18 @@ namespace CalculateFunding.Services.Datasets.Services
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
                 .WithDefinition(NewReference(rf => rf.WithId(DataDefintionId)))
                 .WithHistory(NewDatasetVersion())));
+            AndTheSpecification(SpecificationId, NewSpecification(_ =>
+            _.WithId(SpecificationId)
+            .WithProviderVersionId(ProviderVersionId)
+            ));
             AndTheRelationship(_relationshipId, NewRelationship(_ => _.WithDatasetDefinition(NewReference(
                     rf => rf.WithId(DataDefintionId)))
                 .WithDatasetVersion(NewRelationshipVersion())));
-            
-            DatasetDefinition datasetDefinition = NewDatasetDefinition(_ => _.WithTableDefinitions(NewTableDefinition(tb => 
+
+            DatasetDefinition datasetDefinition = NewDatasetDefinition(_ => _.WithTableDefinitions(NewTableDefinition(tb =>
                 tb.WithFieldDefinitions(NewFieldDefinition(fld => fld.WithName(Upin)
                     .WithIdentifierFieldType(IdentifierFieldType.UPIN))))));
-            
+
             AndTheDatasetDefinitions(datasetDefinition);
             AndTheBuildProject(SpecificationId, NewBuildProject(_ => _.WithRelationships(NewRelationshipSummary(summary =>
                 summary.WithDefinesScope(true)
@@ -935,25 +1015,25 @@ namespace CalculateFunding.Services.Datasets.Services
                     .WithName(_relationshipName)))
                     .WithDatasetDefinition(NewDatasetDefinition())))));
             AndTheCompileResponse(HttpStatusCode.NoContent);
-            
+
             ICloudBlob cloudBlob = NewCloudBlob();
-            
+
             AndTheCloudBlob(BlobPath, cloudBlob);
-            
+
             Stream tableStream = NewStream(new byte[1]);
-            
+
             AndTheCloudStream(cloudBlob, tableStream);
-            
+
             TableLoadResult tableLoadResult = NewTableLoadResult(_ => _.WithRows(NewRowLoadResult(
                 row => row.WithFields((Upin, _upin)))));
-            
+
             AndTheCachedTableLoadResults(_datasetCacheKey, tableLoadResult);
             AndTheTableLoadResultsFromExcel(tableStream, datasetDefinition, tableLoadResult);
             AndTheCoreProviderData(NewApiProviderSummary(_ => _.WithId(_providerId)
                 .WithUPIN(_upin)));
             AndTheJob(NewJob(_ => _.WithId(_jobId)
                 .WithDefinitionId(CreateInstructAllocationJob)), CreateInstructAllocationJob);
-            
+
             await WhenTheProcessDatasetMessageIsProcessed();
 
             await ThenTheAllocationJobWasCreated(CreateInstructAllocationJob);
@@ -968,14 +1048,18 @@ namespace CalculateFunding.Services.Datasets.Services
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
                 .WithDefinition(NewReference(rf => rf.WithId(DataDefintionId)))
                 .WithHistory(NewDatasetVersion())));
+            AndTheSpecification(SpecificationId, NewSpecification(_ =>
+            _.WithId(SpecificationId)
+            .WithProviderVersionId(ProviderVersionId)
+            ));
             AndTheRelationship(_relationshipId, NewRelationship(_ => _.WithDatasetDefinition(NewReference(
                     rf => rf.WithId(DataDefintionId)))
                 .WithDatasetVersion(NewRelationshipVersion())));
-            
-            DatasetDefinition datasetDefinition = NewDatasetDefinition(_ => _.WithTableDefinitions(NewTableDefinition(tb => 
+
+            DatasetDefinition datasetDefinition = NewDatasetDefinition(_ => _.WithTableDefinitions(NewTableDefinition(tb =>
                 tb.WithFieldDefinitions(NewFieldDefinition(fld => fld.WithName(Upin)
                     .WithIdentifierFieldType(IdentifierFieldType.UPIN))))));
-            
+
             AndTheDatasetDefinitions(datasetDefinition);
             AndTheBuildProject(SpecificationId, NewBuildProject(_ => _.WithRelationships(NewRelationshipSummary(summary =>
                 summary.WithDefinesScope(true)
@@ -984,25 +1068,26 @@ namespace CalculateFunding.Services.Datasets.Services
                     .WithDatasetDefinition(NewDatasetDefinition())))));
             AndTheCompileResponse(HttpStatusCode.NoContent);
             AndTheCalculations(NewCalculation(_ => _.WithSourceCode("return Sum(Calc1)")));
-            
+
             ICloudBlob cloudBlob = NewCloudBlob();
-            
+
             AndTheCloudBlob(BlobPath, cloudBlob);
-            
+
             Stream tableStream = NewStream(new byte[1]);
-            
+
             AndTheCloudStream(cloudBlob, tableStream);
-            
+
             TableLoadResult tableLoadResult = NewTableLoadResult(_ => _.WithRows(NewRowLoadResult(
                 row => row.WithFields((Upin, _upin)))));
-            
+
             AndTheCachedTableLoadResults(_datasetCacheKey, tableLoadResult);
             AndTheTableLoadResultsFromExcel(tableStream, datasetDefinition, tableLoadResult);
             AndTheCoreProviderData(NewApiProviderSummary(_ => _.WithId(_providerId)
                 .WithUPIN(_upin)));
+            AndTheCoreProviderVersion(NewApiProviderVersion(_ => _.WithProviders(new ApiProvider[] { new ApiProvider { ProviderId = _providerId, UPIN = _upin } })));
             AndTheJob(NewJob(_ => _.WithId(_jobId)
                 .WithDefinitionId(CreateInstructGenerateAggregationsAllocationJob)), CreateInstructGenerateAggregationsAllocationJob);
-            
+
             await WhenTheProcessDatasetMessageIsProcessed();
 
             await ThenTheAllocationJobWasCreated(CreateInstructGenerateAggregationsAllocationJob);
@@ -1017,14 +1102,18 @@ namespace CalculateFunding.Services.Datasets.Services
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
                 .WithDefinition(NewReference(rf => rf.WithId(DataDefintionId)))
                 .WithHistory(NewDatasetVersion())));
+            AndTheSpecification(SpecificationId, NewSpecification(_ =>
+            _.WithId(SpecificationId)
+            .WithProviderVersionId(ProviderVersionId)
+            ));
             AndTheRelationship(_relationshipId, NewRelationship(_ => _.WithDatasetDefinition(NewReference(
                     rf => rf.WithId(DataDefintionId)))
                 .WithDatasetVersion(NewRelationshipVersion())));
-            
-            DatasetDefinition datasetDefinition = NewDatasetDefinition(_ => _.WithTableDefinitions(NewTableDefinition(tb => 
+
+            DatasetDefinition datasetDefinition = NewDatasetDefinition(_ => _.WithTableDefinitions(NewTableDefinition(tb =>
                 tb.WithFieldDefinitions(NewFieldDefinition(fld => fld.WithName(Upin)
                     .WithIdentifierFieldType(IdentifierFieldType.UPIN))))));
-            
+
             AndTheDatasetDefinitions(datasetDefinition);
             AndTheBuildProject(SpecificationId, NewBuildProject(_ => _.WithRelationships(NewRelationshipSummary(summary =>
                 summary.WithDefinesScope(true)
@@ -1032,18 +1121,18 @@ namespace CalculateFunding.Services.Datasets.Services
                     .WithName(_relationshipName)))
                     .WithDatasetDefinition(NewDatasetDefinition())))));
             AndTheCompileResponse(HttpStatusCode.NoContent);
-            
+
             ICloudBlob cloudBlob = NewCloudBlob();
-            
+
             AndTheCloudBlob(BlobPath, cloudBlob);
-            
+
             Stream tableStream = NewStream(new byte[1]);
-            
+
             AndTheCloudStream(cloudBlob, tableStream);
-            
+
             TableLoadResult tableLoadResult = NewTableLoadResult(_ => _.WithRows(NewRowLoadResult(
                 row => row.WithFields((Upin, _upin)))));
-            
+
             AndTheCachedTableLoadResults(_datasetCacheKey, tableLoadResult);
             AndTheTableLoadResultsFromExcel(tableStream, datasetDefinition, tableLoadResult);
             AndTheCoreProviderData(NewApiProviderSummary(_ => _.WithId(_providerId)
@@ -1057,7 +1146,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Message
                 .Should()
                 .Be($"Failed to create job of type '{CreateInstructAllocationJob}' on specification '{SpecificationId}'");
-            
+
             AndTheErrorWasLogged($"Failed to create job of type '{CreateInstructAllocationJob}' on specification '{SpecificationId}'");
         }
 
@@ -1065,20 +1154,24 @@ namespace CalculateFunding.Services.Datasets.Services
         public async Task ProcessDataset_GivenRunningAsAJob_ThenUpdateJobStatus()
         {
             string invokedByJobId = "job1";
-            
+
             GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", invokedByJobId),
                 ("user-id", UserId), ("user-name", Username));
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
                 .WithDefinition(NewReference(rf => rf.WithId(DataDefintionId)))
                 .WithHistory(NewDatasetVersion())));
+            AndTheSpecification(SpecificationId, NewSpecification(_ =>
+            _.WithId(SpecificationId)
+            .WithProviderVersionId(ProviderVersionId)
+            ));
             AndTheRelationship(_relationshipId, NewRelationship(_ => _.WithDatasetDefinition(NewReference(
                     rf => rf.WithId(DataDefintionId)))
                 .WithDatasetVersion(NewRelationshipVersion())));
-            
-            DatasetDefinition datasetDefinition = NewDatasetDefinition(_ => _.WithTableDefinitions(NewTableDefinition(tb => 
+
+            DatasetDefinition datasetDefinition = NewDatasetDefinition(_ => _.WithTableDefinitions(NewTableDefinition(tb =>
                 tb.WithFieldDefinitions(NewFieldDefinition(fld => fld.WithName(Upin)
                     .WithIdentifierFieldType(IdentifierFieldType.UPIN))))));
-            
+
             AndTheDatasetDefinitions(datasetDefinition);
             AndTheBuildProject(SpecificationId, NewBuildProject(_ => _.WithRelationships(NewRelationshipSummary(summary =>
                 summary.WithDefinesScope(true)
@@ -1087,25 +1180,25 @@ namespace CalculateFunding.Services.Datasets.Services
                     .WithDatasetDefinition(NewDatasetDefinition())))));
             AndTheCompileResponse(HttpStatusCode.NoContent);
             AndTheCalculations(NewCalculation(_ => _.WithSourceCode("return Sum(Calc1)")));
-            
+
             ICloudBlob cloudBlob = NewCloudBlob();
-            
+
             AndTheCloudBlob(BlobPath, cloudBlob);
-            
+
             Stream tableStream = NewStream(new byte[1]);
-            
+
             AndTheCloudStream(cloudBlob, tableStream);
-            
+
             TableLoadResult tableLoadResult = NewTableLoadResult(_ => _.WithRows(NewRowLoadResult(
                 row => row.WithFields((Upin, _upin)))));
-            
+
             AndTheCachedTableLoadResults(_datasetCacheKey, tableLoadResult);
             AndTheTableLoadResultsFromExcel(tableStream, datasetDefinition, tableLoadResult);
             AndTheCoreProviderData(NewApiProviderSummary(_ => _.WithId(_providerId)
                 .WithUPIN(_upin)));
             AndTheJob(NewJob(_ => _.WithId(_jobId)
                 .WithDefinitionId(CreateInstructGenerateAggregationsAllocationJob)), CreateInstructGenerateAggregationsAllocationJob);
-            
+
             await WhenTheProcessDatasetMessageIsProcessed();
 
             await _jobManagement
@@ -1120,14 +1213,14 @@ namespace CalculateFunding.Services.Datasets.Services
         private CalculationResponseModel NewCalculation(Action<CalculationResponseBuilder> setUp = null)
         {
             CalculationResponseBuilder calculationResponseBuilder = new CalculationResponseBuilder();
-            
+
             setUp?.Invoke(calculationResponseBuilder);
 
             return calculationResponseBuilder.Build();
         }
-        
+
         private string NewRandomString() => new RandomString();
-        
+
         private async Task WhenTheProcessDatasetMessageIsProcessed()
         {
             await _service.ProcessDataset(_message);
@@ -1168,7 +1261,7 @@ namespace CalculateFunding.Services.Datasets.Services
         private TableLoadResult NewTableLoadResult(Action<TableLoadResultBuilder> setUp = null)
         {
             TableLoadResultBuilder loadResultBuilder = new TableLoadResultBuilder();
-            
+
             setUp?.Invoke(loadResultBuilder);
 
             return loadResultBuilder.Build();
@@ -1179,14 +1272,14 @@ namespace CalculateFunding.Services.Datasets.Services
             DatasetBuilder datasetBuilder = new DatasetBuilder();
 
             setUp?.Invoke(datasetBuilder);
-            
+
             return datasetBuilder.Build();
         }
 
         public DatasetRelationshipSummary NewRelationshipSummary(Action<DataRelationshipSummaryBuilder> setUp = null)
         {
             DataRelationshipSummaryBuilder relationshipSummaryBuilder = new DataRelationshipSummaryBuilder();
-            
+
             setUp?.Invoke(relationshipSummaryBuilder);
 
             return relationshipSummaryBuilder.Build();
@@ -1195,7 +1288,16 @@ namespace CalculateFunding.Services.Datasets.Services
         private DefinitionSpecificationRelationship NewRelationship(Action<DefinitionSpecificationRelationshipBuilder> setUp = null)
         {
             DefinitionSpecificationRelationshipBuilder relationshipBuilder = new DefinitionSpecificationRelationshipBuilder();
-            
+
+            setUp?.Invoke(relationshipBuilder);
+
+            return relationshipBuilder.Build();
+        }
+
+        private SpecificationSummary NewSpecification(Action<SpecificationSummaryBuilder> setUp = null)
+        {
+            SpecificationSummaryBuilder relationshipBuilder = new SpecificationSummaryBuilder();
+
             setUp?.Invoke(relationshipBuilder);
 
             return relationshipBuilder.Build();
@@ -1205,7 +1307,7 @@ namespace CalculateFunding.Services.Datasets.Services
         {
             DatasetRelationshipVersionBuilder relationshipVersionBuilder = new DatasetRelationshipVersionBuilder()
                 .WithVersion(1);
-            
+
             setUp?.Invoke(relationshipVersionBuilder);
 
             return relationshipVersionBuilder.Build();
@@ -1216,7 +1318,7 @@ namespace CalculateFunding.Services.Datasets.Services
             DatasetVersionBuilder datasetVersionBuilder = new DatasetVersionBuilder()
                 .WithBlobName(BlobPath)
                 .WithVersion(1);
-            
+
             setUp?.Invoke(datasetVersionBuilder);
 
             return datasetVersionBuilder.Build();
@@ -1227,7 +1329,7 @@ namespace CalculateFunding.Services.Datasets.Services
             ReferenceBuilder referenceBuilder = new ReferenceBuilder();
 
             setUp?.Invoke(referenceBuilder);
-            
+
             return referenceBuilder.Build();
         }
 
@@ -1237,15 +1339,15 @@ namespace CalculateFunding.Services.Datasets.Services
                 .WithId(BuildProjectId);
 
             setUp?.Invoke(projectBuilder);
-            
+
             return projectBuilder.Build();
         }
-    
+
         private DatasetDefinition NewDatasetDefinition(Action<DatasetDefinitionBuilder> setUp = null)
         {
             DatasetDefinitionBuilder definitionBuilder = new DatasetDefinitionBuilder()
                 .WithId(DataDefintionId);
-            
+
             setUp?.Invoke(definitionBuilder);
 
             return definitionBuilder.Build();
@@ -1256,6 +1358,13 @@ namespace CalculateFunding.Services.Datasets.Services
             _datasetRepository
                 .GetDefinitionSpecificationRelationshipById(id)
                 .Returns(relationship);
+        }
+
+        private void AndTheSpecification(string id, Common.ApiClient.Specifications.Models.SpecificationSummary specificationSummary)
+        {
+            _specificationsApiClient
+                .GetSpecificationSummaryById(id)
+                .Returns(new ApiResponse<Common.ApiClient.Specifications.Models.SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
         }
 
         private void AndTheDatasetDefinitions(params DatasetDefinition[] datasetDefinitions)
@@ -1282,7 +1391,7 @@ namespace CalculateFunding.Services.Datasets.Services
         private ICloudBlob NewCloudBlob(Action<ICloudBlob> setUp = null)
         {
             ICloudBlob cloudBlob = Substitute.For<ICloudBlob>();
-            
+
             setUp?.Invoke(cloudBlob);
 
             return cloudBlob;
@@ -1291,7 +1400,7 @@ namespace CalculateFunding.Services.Datasets.Services
         private RowLoadResult NewRowLoadResult(Action<RowLoadResultBuilder> setUp = null)
         {
             RowLoadResultBuilder loadResultBuilder = new RowLoadResultBuilder();
-            
+
             setUp?.Invoke(loadResultBuilder);
 
             return loadResultBuilder.Build();
@@ -1300,7 +1409,7 @@ namespace CalculateFunding.Services.Datasets.Services
         private TableDefinition NewTableDefinition(Action<TableDefinitionBuilder> setUp = null)
         {
             TableDefinitionBuilder definitionBuilder = new TableDefinitionBuilder();
-            
+
             setUp?.Invoke(definitionBuilder);
 
             return definitionBuilder.Build();
@@ -1309,7 +1418,7 @@ namespace CalculateFunding.Services.Datasets.Services
         private FieldDefinition NewFieldDefinition(Action<FieldDefinitionBuilder> setUp = null)
         {
             FieldDefinitionBuilder definitionBuilder = new FieldDefinitionBuilder();
-            
+
             setUp?.Invoke(definitionBuilder);
 
             return definitionBuilder.Build();
@@ -1325,8 +1434,17 @@ namespace CalculateFunding.Services.Datasets.Services
             ApiProviderSummaryBuilder providerSummaryBuilder = new ApiProviderSummaryBuilder();
 
             setUp?.Invoke(providerSummaryBuilder);
-            
+
             return providerSummaryBuilder.Build();
+        }
+
+        private ApiProviderVersion NewApiProviderVersion(Action<ApiProviderVersionBuilder> setUp = null)
+        {
+            ApiProviderVersionBuilder providerVersionBuilder = new ApiProviderVersionBuilder();
+
+            setUp?.Invoke(providerVersionBuilder);
+
+            return providerVersionBuilder.Build();
         }
 
         private ProviderSourceDatasetVersion NewProviderSourceDatasetVersion(Action<ProviderSourceDatasetVersionBuilder> setUp = null)
@@ -1334,7 +1452,7 @@ namespace CalculateFunding.Services.Datasets.Services
             ProviderSourceDatasetVersionBuilder sourceDatasetVersionBuilder = new ProviderSourceDatasetVersionBuilder();
 
             setUp?.Invoke(sourceDatasetVersionBuilder);
-            
+
             return sourceDatasetVersionBuilder.Build();
         }
 
@@ -1346,7 +1464,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .WithDataDefinitionId(DataDefintionId);
 
             setUp?.Invoke(sourceDatasetBuilder);
-            
+
             return sourceDatasetBuilder.Build();
         }
 
@@ -1355,19 +1473,19 @@ namespace CalculateFunding.Services.Datasets.Services
             VersionReferenceBuilder referenceBuilder = new VersionReferenceBuilder();
 
             setUp?.Invoke(referenceBuilder);
-            
+
             return referenceBuilder.Build();
         }
 
         private Job NewJob(Action<ApiJobBuilder> setUp = null)
         {
             ApiJobBuilder jobBuilder = new ApiJobBuilder();
-            
+
             setUp?.Invoke(jobBuilder);
 
             return jobBuilder.Build();
         }
-        
+
         private void ThenTheErrorWasLogged(string errorMessage)
         {
             _logger
@@ -1410,6 +1528,13 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Returns(new ApiResponse<IEnumerable<ApiProviderSummary>>(HttpStatusCode.OK, providerSummaries));
         }
 
+        private void AndTheCoreProviderVersion(ApiProviderVersion providerVersion)
+        {
+            _providersApiClient
+                .GetProvidersByVersion(SpecificationId)
+                .Returns(new ApiResponse<ApiProviderVersion>(HttpStatusCode.OK, providerVersion));
+        }
+
         private void AndTheExistingProviderDatasets(params ProviderSourceDataset[] providerSourceDatasets)
         {
             _providerResultsRepository
@@ -1441,15 +1566,15 @@ namespace CalculateFunding.Services.Datasets.Services
             await
                 _providerResultsRepository
                     .Received(1)
-                    .UpdateCurrentProviderSourceDatasets(Arg.Is<IEnumerable<ProviderSourceDataset>>(_ => 
+                    .UpdateCurrentProviderSourceDatasets(Arg.Is<IEnumerable<ProviderSourceDataset>>(_ =>
                         _.Count() == expectedCount));
         }
 
         private void AndTheNewProviderDatasetVersion(ProviderSourceDatasetVersion existingVersion, ProviderSourceDatasetVersion newVersion)
         {
             _versionRepository
-                .CreateVersion(Arg.Any<ProviderSourceDatasetVersion>(), 
-                    Arg.Is(existingVersion), 
+                .CreateVersion(Arg.Any<ProviderSourceDatasetVersion>(),
+                    Arg.Is(existingVersion),
                     Arg.Is(_providerId))
                 .Returns(newVersion);
         }
@@ -1523,10 +1648,10 @@ namespace CalculateFunding.Services.Datasets.Services
             await
                 _cacheProvider
                     .Received(1)
-                    .RemoveAsync<List<CalculationAggregation>>(Arg.Is(_datasetAggregationsCacheKey));  
+                    .RemoveAsync<List<CalculationAggregation>>(Arg.Is(_datasetAggregationsCacheKey));
         }
 
-        private async Task ThenTheDatasetAggregationsWereSaved(string expectedRelationshipId = null, 
+        private async Task ThenTheDatasetAggregationsWereSaved(string expectedRelationshipId = null,
             Func<DatasetAggregations, bool> extraConstraints = null)
         {
             await
@@ -1552,7 +1677,7 @@ namespace CalculateFunding.Services.Datasets.Services
             await
                 _versionRepository
                     .DidNotReceive()
-                    .CreateVersion(Arg.Any<ProviderSourceDatasetVersion>(), Arg.Any<ProviderSourceDatasetVersion>());   
+                    .CreateVersion(Arg.Any<ProviderSourceDatasetVersion>(), Arg.Any<ProviderSourceDatasetVersion>());
         }
 
         private async Task AndTheDatasetVersionWasSaved(int version = 1)
@@ -1569,7 +1694,7 @@ namespace CalculateFunding.Services.Datasets.Services
                         ver.First().Id == $"{SpecificationId}_{_relationshipId}_{_providerId}_version_{version}" &&
                         ver.First().Rows.Count() == 1 &&
                         ver.First().Version == 1
-                    ));   
+                    ));
         }
 
         private void AndNoLoggingStartingWith(string startsWith)
@@ -1605,7 +1730,7 @@ namespace CalculateFunding.Services.Datasets.Services
         private async Task ThenTheAllocationJobWasCreated(string definitionId, string expectedRelationshipId = null)
         {
             expectedRelationshipId = (expectedRelationshipId ?? _relationshipId);
-            
+
             await
                 _jobsApiClient
                     .Received(1)
@@ -1621,7 +1746,7 @@ namespace CalculateFunding.Services.Datasets.Services
                             job.Trigger.Message == $"Processed dataset relationship: '{expectedRelationshipId}' for specification: '{SpecificationId}'"
                     ));
         }
-        
+
         private string GenerateIdentifier(string rawValue)
         {
             return DatasetTypeGenerator.GenerateIdentifier(rawValue);

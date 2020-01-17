@@ -11,6 +11,8 @@ using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Providers;
+using CalculateFunding.Common.ApiClient.Specifications;
+using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
@@ -40,7 +42,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.Storage.Blob;
 using Newtonsoft.Json;
-using OfficeOpenXml.FormulaParsing.Excel.Functions.Information;
 using Polly;
 using Serilog;
 using AggregatedField = CalculateFunding.Models.Datasets.AggregatedField;
@@ -59,6 +60,7 @@ namespace CalculateFunding.Services.Datasets
         private readonly IMessengerService _messengerService;
         private readonly IProvidersResultsRepository _providersResultsRepository;
         private readonly IProvidersApiClient _providersApiClient;
+        private readonly ISpecificationsApiClient _specsApiClient;
         private readonly IVersionRepository<ProviderSourceDatasetVersion> _sourceDatasetsVersionRepository;
         private readonly ILogger _logger;
         private readonly ITelemetry _telemetry;
@@ -80,6 +82,7 @@ namespace CalculateFunding.Services.Datasets
             IMessengerService messengerService,
             IProvidersResultsRepository providersResultsRepository,
             IProvidersApiClient providersApiClient,
+            ISpecificationsApiClient specificationsApiClient,
             IVersionRepository<ProviderSourceDatasetVersion> sourceDatasetsVersionRepository,
             ILogger logger,
             ITelemetry telemetry,
@@ -88,7 +91,7 @@ namespace CalculateFunding.Services.Datasets
             IFeatureToggle featureToggle,
             IJobsApiClient jobsApiClient,
             IMapper mapper,
-            IJobManagement jobManagement, 
+            IJobManagement jobManagement,
             IProviderSourceDatasetVersionKeyProvider datasetVersionKeyProvider)
         {
             Guard.ArgumentNotNull(datasetRepository, nameof(datasetRepository));
@@ -98,6 +101,7 @@ namespace CalculateFunding.Services.Datasets
             Guard.ArgumentNotNull(calcsRepository, nameof(calcsRepository));
             Guard.ArgumentNotNull(providersResultsRepository, nameof(providersResultsRepository));
             Guard.ArgumentNotNull(providersApiClient, nameof(providersApiClient));
+            Guard.ArgumentNotNull(specificationsApiClient, nameof(specificationsApiClient));
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(telemetry, nameof(telemetry));
             Guard.ArgumentNotNull(datasetsAggregationsRepository, nameof(datasetsAggregationsRepository));
@@ -116,6 +120,7 @@ namespace CalculateFunding.Services.Datasets
             _blobClient = blobClient;
             _providersResultsRepository = providersResultsRepository;
             _providersApiClient = providersApiClient;
+            _specsApiClient = specificationsApiClient;
             _sourceDatasetsVersionRepository = sourceDatasetsVersionRepository;
             _logger = logger;
             _telemetry = telemetry;
@@ -200,6 +205,23 @@ namespace CalculateFunding.Services.Datasets
                 return;
             }
 
+            ApiResponse<SpecificationSummary> specificationSummaryResponse = await _specsApiClient.GetSpecificationSummaryById(specificationId);
+            if (specificationSummaryResponse == null)
+            {
+                _logger.Error("Specification summary response was null");
+                await _jobManagement.UpdateJobStatus(jobId, 100, false, "Specification summary response was null");
+                return;
+            }
+
+            if (specificationSummaryResponse.StatusCode != HttpStatusCode.OK)
+            {
+                _logger.Error($"Specification summary returned invalid status code of '{specificationSummaryResponse.StatusCode}'");
+                await _jobManagement.UpdateJobStatus(jobId, 100, false, $"Specification summary returned invalid status code of '{specificationSummaryResponse.StatusCode}'");
+                return;
+            }
+
+            SpecificationSummary specification = specificationSummaryResponse.Content;
+
             DefinitionSpecificationRelationship relationship = await _datasetRepository.GetDefinitionSpecificationRelationshipById(relationshipId);
             if (relationship == null)
             {
@@ -214,7 +236,7 @@ namespace CalculateFunding.Services.Datasets
 
             try
             {
-                buildProject = await ProcessDataset(dataset, specificationId, relationshipId, relationship.DatasetVersion.Version, user);
+                buildProject = await ProcessDataset(dataset, specification, relationshipId, relationship.DatasetVersion.Version, user);
 
                 await _jobManagement.UpdateJobStatus(jobId, 100, true, "Processed Dataset");
             }
@@ -231,7 +253,7 @@ namespace CalculateFunding.Services.Datasets
                 _logger.Error(exception, $"Failed to run ProcessDataset with exception: {exception.Message} for relationship ID '{relationshipId}'");
                 throw;
             }
-            
+
             await _datasetVersionKeyProvider.AddOrUpdateProviderSourceDatasetVersionKey(relationshipId, Guid.NewGuid());
 
             if (buildProject != null && !buildProject.DatasetRelationships.IsNullOrEmpty() && buildProject.DatasetRelationships.Any(m => m.DefinesScope))
@@ -262,7 +284,7 @@ namespace CalculateFunding.Services.Datasets
 
                     IEnumerable<CalculationResponseModel> allCalculations = await _calcsRepository.GetCurrentCalculationsBySpecificationId(specificationId);
 
-                    bool generateCalculationAggregations = !allCalculations.IsNullOrEmpty() && 
+                    bool generateCalculationAggregations = !allCalculations.IsNullOrEmpty() &&
                                                            SourceCodeHelpers.HasCalculationAggregateFunctionParameters(allCalculations.Select(m => m.SourceCode));
 
                     await SendInstructAllocationsToJobService($"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}", specificationId, userId, userName, trigger, correlationId, generateCalculationAggregations);
@@ -362,7 +384,7 @@ namespace CalculateFunding.Services.Datasets
             return datasetAggregations;
         }
 
-        private async Task<BuildProject> ProcessDataset(Dataset dataset, string specificationId, string relationshipId, int version, Reference user)
+        private async Task<BuildProject> ProcessDataset(Dataset dataset, SpecificationSummary specification, string relationshipId, int version, Reference user)
         {
             string dataDefinitionId = dataset.Definition.Id;
 
@@ -385,13 +407,13 @@ namespace CalculateFunding.Services.Datasets
                 throw new NonRetriableException($"Unable to find a data definition for id: {dataDefinitionId}, for blob: {fullBlobName}");
             }
 
-            BuildProject buildProject = await _calcsRepository.GetBuildProjectBySpecificationId(specificationId);
+            BuildProject buildProject = await _calcsRepository.GetBuildProjectBySpecificationId(specification.Id);
 
             if (buildProject == null)
             {
-                _logger.Error($"Unable to find a build project for specification id: {specificationId}");
+                _logger.Error($"Unable to find a build project for specification id: {specification.Id}");
 
-                throw new NonRetriableException($"Unable to find a build project for id: {specificationId}");
+                throw new NonRetriableException($"Unable to find a build project for id: {specification.Id}");
             }
 
             TableLoadResult loadResult = await GetTableResult(fullBlobName, datasetDefinition);
@@ -403,7 +425,7 @@ namespace CalculateFunding.Services.Datasets
                 throw new NonRetriableException($"Failed to load table result");
             }
 
-            await PersistDataset(loadResult, dataset, datasetDefinition, buildProject, specificationId, relationshipId, version, user);
+            await PersistDataset(loadResult, dataset, datasetDefinition, buildProject, specification, relationshipId, version, user);
 
             return buildProject;
         }
@@ -441,7 +463,7 @@ namespace CalculateFunding.Services.Datasets
             return tableLoadResults.FirstOrDefault();
         }
 
-        private async Task PersistDataset(TableLoadResult loadResult, Dataset dataset, DatasetDefinition datasetDefinition, BuildProject buildProject, string specificationId, string relationshipId, int version, Reference user)
+        private async Task PersistDataset(TableLoadResult loadResult, Dataset dataset, DatasetDefinition datasetDefinition, BuildProject buildProject, SpecificationSummary specification, string relationshipId, int version, Reference user)
         {
             Guard.IsNullOrWhiteSpace(relationshipId, nameof(relationshipId));
 
@@ -449,7 +471,7 @@ namespace CalculateFunding.Services.Datasets
 
             if (buildProject.DatasetRelationships == null)
             {
-                _logger.Error($"No dataset relationships found for build project with id : '{buildProject.Id}' for specification '{specificationId}'");
+                _logger.Error($"No dataset relationships found for build project with id : '{buildProject.Id}' for specification '{specification.Id}'");
                 return;
             }
 
@@ -464,7 +486,7 @@ namespace CalculateFunding.Services.Datasets
             ConcurrentDictionary<string, ProviderSourceDataset> existingCurrent = new ConcurrentDictionary<string, ProviderSourceDataset>();
 
             IEnumerable<ProviderSourceDataset> existingCurrentDatasets = await _providerResultsRepositoryPolicy.ExecuteAsync(() =>
-                _providersResultsRepository.GetCurrentProviderSourceDatasets(specificationId, relationshipId));
+                _providersResultsRepository.GetCurrentProviderSourceDatasets(specification.Id, relationshipId));
 
             if (existingCurrentDatasets.AnyWithNullCheck())
             {
@@ -478,14 +500,15 @@ namespace CalculateFunding.Services.Datasets
 
             ConcurrentDictionary<string, ProviderSourceDataset> updateCurrentDatasets = new ConcurrentDictionary<string, ProviderSourceDataset>();
 
-            ApiResponse<IEnumerable<Common.ApiClient.Providers.Models.ProviderSummary>> providerApiSummaries = await _providersApiClient.FetchCoreProviderData(specificationId);
+            ApiResponse<Common.ApiClient.Providers.Models.ProviderVersion> providerApiSummaries = await _providersApiClient.GetProvidersByVersion(specification.ProviderVersionId);
 
             if (providerApiSummaries?.Content == null)
             {
                 return;
             }
 
-            IEnumerable<ProviderSummary> providerSummaries = _mapper.Map<IEnumerable<ProviderSummary>>(providerApiSummaries.Content);
+
+            IEnumerable<ProviderSummary> providerSummaries = _mapper.Map<IEnumerable<ProviderSummary>>(providerApiSummaries.Content.Providers);
 
             Parallel.ForEach(loadResult.Rows, (RowLoadResult row) =>
             {
@@ -493,12 +516,18 @@ namespace CalculateFunding.Services.Datasets
 
                 foreach (string providerId in allProviderIds)
                 {
+                    if (string.IsNullOrWhiteSpace(providerId))
+                    {
+                        _logger.Warning("Empty provider ID (missing provider) for dataset mapping row with identifier {}");
+                        continue;
+                    }
+
                     if (!resultsByProviderId.TryGetValue(providerId, out ProviderSourceDataset sourceDataset))
                     {
                         sourceDataset = new ProviderSourceDataset
                         {
                             DataGranularity = relationshipSummary.DataGranularity,
-                            SpecificationId = specificationId,
+                            SpecificationId = specification.Id,
                             DefinesScope = relationshipSummary.DefinesScope,
                             DataRelationship = new Reference(relationshipSummary.Relationship.Id, relationshipSummary.Relationship.Name),
                             DatasetRelationshipSummary = new Reference(relationshipSummary.Id, relationshipSummary.Name),
@@ -627,7 +656,7 @@ namespace CalculateFunding.Services.Datasets
 
                 foreach (IEnumerable<ProviderSourceDataset> providerSourceDataSets in existingCurrent.Values.Partition<ProviderSourceDataset>(1000))
                 {
-                    await SendProviderSourceDatasetCleanupMessageToTopic(specificationId, ServiceBusConstants.TopicNames.ProviderSourceDatasetCleanup, providerSourceDataSets);
+                    await SendProviderSourceDatasetCleanupMessageToTopic(specification.Id, ServiceBusConstants.TopicNames.ProviderSourceDatasetCleanup, providerSourceDataSets);
                 }
             }
 
@@ -639,17 +668,17 @@ namespace CalculateFunding.Services.Datasets
 
             Reference relationshipReference = new Reference(relationshipSummary.Relationship.Id, relationshipSummary.Relationship.Name);
 
-            DatasetAggregations datasetAggregations = GenerateAggregations(datasetDefinition, loadResult, specificationId, relationshipReference);
+            DatasetAggregations datasetAggregations = GenerateAggregations(datasetDefinition, loadResult, specification.Id, relationshipReference);
 
             if (!datasetAggregations.Fields.IsNullOrEmpty())
             {
                 await _datasetsAggregationsRepository.CreateDatasetAggregations(datasetAggregations);
             }
 
-            await _cacheProvider.RemoveAsync<List<CalculationAggregation>>($"{CacheKeys.DatasetAggregationsForSpecification}{specificationId}");
+            await _cacheProvider.RemoveAsync<List<CalculationAggregation>>($"{CacheKeys.DatasetAggregationsForSpecification}{specification.Id}");
 
 
-            await PopulateProviderSummariesForSpecification(specificationId, providerSummaries);
+            await PopulateProviderSummariesForSpecification(specification.Id, providerSummaries);
         }
 
         private static IEnumerable<string> GetProviderIdsForIdentifier(DatasetDefinition datasetDefinition, RowLoadResult row, IEnumerable<ProviderSummary> providerSummaries)

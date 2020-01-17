@@ -10,7 +10,7 @@ namespace CalculateFunding.Services.Datasets.MappingProfiles
             CreateMap<Common.ApiClient.Providers.Models.ProviderSummary, ProviderSummary>();
             CreateMap<ProviderSummary, Common.ApiClient.Providers.Models.ProviderSummary>();
             CreateMap<Common.ApiClient.Providers.Models.Provider, ProviderSummary>()
-                .ForMember(c => c.Id, opt => opt.Ignore());
+                .ForMember(c => c.Id, opt => opt.MapFrom(f => f.ProviderId));
 
             CreateMap<Common.ApiClient.Providers.Models.TrustStatus, TrustStatus>();
         }

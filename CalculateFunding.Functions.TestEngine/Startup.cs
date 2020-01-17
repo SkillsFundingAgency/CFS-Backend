@@ -133,13 +133,13 @@ namespace CalculateFunding.Functions.TestEngine
 
             builder.AddSingleton<ITestResultsCountsService, TestResultsCountsService>();
 
-            MapperConfiguration resultsMappingConfiguration = new MapperConfiguration(c =>
+            MapperConfiguration mappingConfiguration = new MapperConfiguration(c =>
             {
-                c.AddProfile<TestEngineMappingProfile>();               
+                c.AddProfile<TestEngineMappingProfile>();
             });
 
             builder
-                .AddSingleton(resultsMappingConfiguration.CreateMapper());
+                .AddSingleton(mappingConfiguration.CreateMapper());
 
             builder.AddScoped<ITestResultsService, TestResultsService>();
 

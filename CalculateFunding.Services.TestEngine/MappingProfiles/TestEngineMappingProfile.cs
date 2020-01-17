@@ -1,16 +1,15 @@
 ﻿using System;
 using AutoMapper;
 using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.Scenarios;
 
 namespace CalculateFunding.Services.TestEngine.MappingProfiles
-{   
+{
     public class TestEngineMappingProfile : Profile
     {
         public TestEngineMappingProfile()
         {
-          
-            CreateMap<Common.ApiClient.Calcs.Models.BuildProject, BuildProject>();            
             CreateMap<TestScenarioResult, TestScenarioResultIndex>()
                 .ForMember(m => m.Id, opt => opt.Ignore())
                 .ForMember(m => m.SpecificationId, opt => opt.MapFrom(s => s.Specification.Id))
@@ -32,6 +31,20 @@ namespace CalculateFunding.Services.TestEngine.MappingProfiles
                 .ForMember(m => m.URN, opt => opt.Ignore())
                 .ForMember(m => m.EstablishmentNumber, opt => opt.Ignore())
                 .ForMember(m => m.OpenDate, opt => opt.Ignore());
+
+            CreateMap<Common.ApiClient.Calcs.Models.BuildProject, BuildProject>();
+            CreateMap<Common.ApiClient.Calcs.Models.Build, Build>();
+            CreateMap<Common.ApiClient.Calcs.Models.SourceFile, SourceFile>();
+            CreateMap<Common.ApiClient.Calcs.Models.CompilerMessage, CompilerMessage>();
+            CreateMap<Common.ApiClient.Calcs.Models.Severity, Severity>();
+            CreateMap<Common.ApiClient.Calcs.Models.SourceLocation, SourceLocation>();
+            CreateMap<Common.ApiClient.Calcs.Models.DatasetRelationshipSummary, DatasetRelationshipSummary>();
+            CreateMap<Common.ApiClient.Calcs.Models.Schema.DataGranularity, DataGranularity>();
+            CreateMap<Common.ApiClient.Calcs.Models.Schema.DatasetDefinition, DatasetDefinition>();
+            CreateMap<Common.ApiClient.Calcs.Models.Schema.TableDefinition, TableDefinition>();
+            CreateMap<Common.ApiClient.Calcs.Models.Schema.FieldDefinition, FieldDefinition>();
+            CreateMap<Common.ApiClient.Calcs.Models.Schema.FieldType, FieldType>();
+            CreateMap<Common.ApiClient.Calcs.Models.Schema.IdentifierFieldType, IdentifierFieldType>();
         }
     }
 }

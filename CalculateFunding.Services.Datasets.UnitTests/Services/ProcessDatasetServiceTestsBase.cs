@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Providers;
+using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Models.Datasets;
@@ -26,6 +27,7 @@ namespace CalculateFunding.Services.Datasets.Services
         protected const string UserId = "33d7a71b-f570-4425-801b-250b9129f3d3";
         protected const string DataDefintionId = "45d7a71b-f570-4425-801b-250b9129f124";
         protected const string SpecificationId = "d557a71b-f570-4425-801b-250b9129f111";
+        protected const string ProviderVersionId = "d557a71b-f570-4425-801b-250b9129f111";
         protected const string BuildProjectId = "d557a71b-f570-4425-801b-250b9129f111";
         protected const string DatasetId = "e557a71b-f570-4436-801b-250b9129f999";
 
@@ -38,6 +40,7 @@ namespace CalculateFunding.Services.Datasets.Services
             ICacheProvider cacheProvider = null,
             ICalcsRepository calcsRepository = null,
             IProvidersApiClient providersApiClient = null,
+            ISpecificationsApiClient specificationsApiClient = null,
             IProvidersResultsRepository providerResultsRepository = null,
             ITelemetry telemetry = null,
             IDatasetsResiliencePolicies datasetsResiliencePolicies = null,
@@ -59,6 +62,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 messengerService ?? CreateMessengerService(),
                 providerResultsRepository ?? CreateProviderResultsRepository(),
                 providersApiClient ?? CreateProvidersApiClient(),
+                specificationsApiClient ?? CreateSpecificationsApiClient(),
                 versionRepository ?? CreateVersionRepository(),
                 logger ?? CreateLogger(),
                 telemetry ?? CreateTelemetry(),
@@ -77,7 +81,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             providerSourceDatasetVersionKeyProvider.AddOrUpdateProviderSourceDatasetVersionKey(Arg.Any<string>(), Arg.Any<Guid>())
                 .Returns(Task.CompletedTask);
-            
+
             return providerSourceDatasetVersionKeyProvider;
         }
 
@@ -89,13 +93,19 @@ namespace CalculateFunding.Services.Datasets.Services
         protected static IFeatureToggle CreateFeatureToggle()
         {
             IFeatureToggle featureToggle = Substitute.For<IFeatureToggle>();
-          
+
             return featureToggle;
         }
 
         protected static IJobsApiClient CreateJobsApiClient()
         {
             return Substitute.For<IJobsApiClient>();
+        }
+
+
+        protected static ISpecificationsApiClient CreateSpecificationsApiClient()
+        {
+            return Substitute.For<ISpecificationsApiClient>();
         }
 
         protected static IDatasetsAggregationsRepository CreateDatasetsAggregationsRepository()
