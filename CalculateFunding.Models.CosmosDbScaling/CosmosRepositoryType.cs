@@ -13,11 +13,8 @@ namespace CalculateFunding.Models.CosmosDbScaling
         [Description("providerdatasets")]
         ProviderSourceDatasets,
 
-        [Description("publishedprovideresults")]
-        PublishedProviderResults,
-
-        [Description("publishedfundingresults")]
-        PublishedFundingResults,
+        [Description("publishedfunding")]
+        PublishedFunding,
 
         [Description("calcs")]
         Calculations,

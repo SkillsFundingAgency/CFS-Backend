@@ -1,8 +1,5 @@
 ﻿using System;
 using CalculateFunding.Common.CosmosDb;
-using CalculateFunding.Functions.CosmosDbScaling.EventHubs;
-using CalculateFunding.Functions.CosmosDbScaling.ServiceBus;
-using CalculateFunding.Functions.CosmosDbScaling.Timer;
 using CalculateFunding.Models.CosmosDbScaling;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
@@ -42,14 +39,6 @@ namespace CalculateFunding.Functions.CosmosDbScaling
 
         private static IServiceProvider Register(IServiceCollection builder, IConfigurationRoot config)
         {
-            builder.AddSingleton<OnCosmosDbDiagnosticsReceived>();
-
-            builder.AddSingleton<OnScaleUpCosmosDbCollection>();
-
-            builder.AddSingleton<OnIncrementalScaleDownCosmosDbCollection>();
-
-            builder.AddSingleton<OnScaleDownCosmosDbCollection>();
-
             builder.AddSingleton<ICosmosDbScalingRepositoryProvider, CosmosDbScalingRepositoryProvider>();
 
             builder.AddSingleton<ICosmosDbScalingService, CosmosDbScalingService>();
@@ -85,7 +74,7 @@ namespace CalculateFunding.Functions.CosmosDbScaling
                 return new ProviderSourceDatasetsScalingRepository(cosmosRepository);
             });
 
-            builder.AddSingleton<PublishedFundingResultsScalingRepository>((ctx) =>
+            builder.AddSingleton<PublishedFundingScalingRepository>((ctx) =>
             {
                 CosmosDbSettings cosmosDbSettings = new CosmosDbSettings();
 
@@ -95,7 +84,7 @@ namespace CalculateFunding.Functions.CosmosDbScaling
 
                 CosmosRepository cosmosRepository = new CosmosRepository(cosmosDbSettings);
 
-                return new PublishedFundingResultsScalingRepository(cosmosRepository);
+                return new PublishedFundingScalingRepository(cosmosRepository);
             });
 
             builder.AddSingleton<CalculationsScalingRepository>((ctx) =>
@@ -213,19 +202,6 @@ namespace CalculateFunding.Functions.CosmosDbScaling
                 CosmosRepository cosmosRepository = new CosmosRepository(cosmosDbSettings);
 
                 return new UsersScalingRepository(cosmosRepository);
-            });
-
-            builder.AddSingleton<PublishedProviderResultsScalingRepository>((ctx) =>
-            {
-                CosmosDbSettings cosmosDbSettings = new CosmosDbSettings();
-
-                config.Bind("CosmosDbSettings", cosmosDbSettings);
-
-                cosmosDbSettings.ContainerName = "publishedproviderresults";
-
-                CosmosRepository cosmosRepository = new CosmosRepository(cosmosDbSettings);
-
-                return new PublishedProviderResultsScalingRepository(cosmosRepository);
             });
 
             builder.AddSingleton<ICosmosDbScalingConfigRepository>((ctx) =>

@@ -1213,7 +1213,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
             settings1.CurrentRequestUnits = settings1.MinRequestUnits;
             CosmosDbScalingCollectionSettings settings2 = CreateCollectionSettings(CosmosCollectionType.ProviderSourceDatasets);
             settings2.CurrentRequestUnits = settings2.MinRequestUnits;
-            CosmosDbScalingCollectionSettings settings3 = CreateCollectionSettings(CosmosCollectionType.PublishedProviderResults);
+            CosmosDbScalingCollectionSettings settings3 = CreateCollectionSettings(CosmosCollectionType.PublishedFunding);
             settings3.CurrentRequestUnits = settings3.MinRequestUnits;
 
             ICosmosDbScalingConfigRepository cosmosDbScalingConfigRepository = CreateCosmosDbScalingConfigRepository();
@@ -1287,7 +1287,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
             CosmosDbScalingCollectionSettings settings2 = CreateCollectionSettings(CosmosCollectionType.ProviderSourceDatasets);
             settings2.CurrentRequestUnits = settings2.MinRequestUnits;
 
-            CosmosDbScalingCollectionSettings settings3 = CreateCollectionSettings(CosmosCollectionType.PublishedProviderResults);
+            CosmosDbScalingCollectionSettings settings3 = CreateCollectionSettings(CosmosCollectionType.PublishedFunding);
             settings3.CurrentRequestUnits = settings3.MinRequestUnits;
 
             ICosmosDbScalingConfigRepository cosmosDbScalingConfigRepository = CreateCosmosDbScalingConfigRepository();
@@ -2027,7 +2027,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 },
                 new CosmosDbScalingConfig
                 {
-                    RepositoryType = CosmosCollectionType.PublishedProviderResults,
+                    RepositoryType = CosmosCollectionType.PublishedFunding,
                     Id = "1",
                     JobRequestUnitConfigs = new[]
                     {

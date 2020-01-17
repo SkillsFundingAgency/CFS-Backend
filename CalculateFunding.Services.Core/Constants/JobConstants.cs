@@ -12,21 +12,11 @@
 
             public const string CreateInstructGenerateAggregationsAllocationJob = "CreateInstructGenerateAggregationsAllocationJob";
 
-            public const string CreateAllocationLineResultStatusUpdateJob = "CreateAllocationLineResultStatusUpdateJob";
-
-            public const string CreateInstructAllocationLineResultStatusUpdateJob = "CreateInstructAllocationLineResultStatusUpdateJob";
-
             public const string ValidateDatasetJob = "ValidateDatasetJob";
 
             public const string MapDatasetJob = "MapDatasetJob";
 
-            public const string PublishProviderResultsJob = "PublishProviderResultsJob";
-
-            public const string FetchProviderProfileJob = "FetchProviderProfileJob";
-
             public const string RefreshFundingJob = "RefreshFundingJob";
-
-            public const string PublishFundingJob = "PublishFundingJob";
 
             public const string PublishProviderFundingJob = "PublishProviderFundingJob";
 
@@ -35,7 +25,7 @@
             public const string CreateSpecificationJob = nameof(CreateSpecificationJob);
 
             public const string AssignTemplateCalculationsJob = nameof(AssignTemplateCalculationsJob);
-            
+
             public const string ReIndexPublishedProvidersJob = nameof(ReIndexPublishedProvidersJob);
 
             public const string DeleteSpecificationJob = nameof(DeleteSpecificationJob);

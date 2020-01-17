@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Utility;
-using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Publishing.Interfaces;
 using Serilog;
@@ -30,8 +27,8 @@ namespace CalculateFunding.Services.Publishing
         public async Task<IEnumerable<string>> PerformPrerequisiteChecks(string specificationId)
         {
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
-            
-            bool calculationEngineRunning = await _calculationEngineRunningChecker.IsCalculationEngineRunning(specificationId, new string[] { JobConstants.DefinitionNames.ApproveFunding });
+
+            bool calculationEngineRunning = await _calculationEngineRunningChecker.IsCalculationEngineRunning(specificationId, new string[] { JobConstants.DefinitionNames.RefreshFundingJob, JobConstants.DefinitionNames.PublishProviderFundingJob });
             List<string> results = new List<string>();
 
             if (calculationEngineRunning)

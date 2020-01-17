@@ -48,7 +48,7 @@ namespace CalculateFunding.Services.Publishing
 
             List<string> results = new List<string>();
 
-            bool calculationEngineRunning = await _calculationEngineRunningChecker.IsCalculationEngineRunning(specification.Id, new string[] { JobConstants.DefinitionNames.RefreshFundingJob });
+            bool calculationEngineRunning = await _calculationEngineRunningChecker.IsCalculationEngineRunning(specification.Id, new string[] { JobConstants.DefinitionNames.RefreshFundingJob, JobConstants.DefinitionNames.ApproveFunding });
             if (calculationEngineRunning)
             {
                 results.Add("Calculation engine is still running");

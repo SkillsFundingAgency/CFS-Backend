@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
@@ -7,7 +8,6 @@ using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Publishing.Interfaces;
 using Serilog;
-using System;
 
 namespace CalculateFunding.Services.Publishing
 {
@@ -68,7 +68,7 @@ namespace CalculateFunding.Services.Publishing
 
             List<string> results = new List<string>();
 
-            bool calculationEngineRunning = await _calculationEngineRunningChecker.IsCalculationEngineRunning(specification.Id, new string[] { JobConstants.DefinitionNames.CreateInstructAllocationJob, JobConstants.DefinitionNames.RefreshFundingJob });
+            bool calculationEngineRunning = await _calculationEngineRunningChecker.IsCalculationEngineRunning(specification.Id, new string[] { JobConstants.DefinitionNames.CreateInstructAllocationJob, JobConstants.DefinitionNames.ApproveFunding, JobConstants.DefinitionNames.PublishProviderFundingJob });
             if (calculationEngineRunning)
             {
                 results.Add("Calculation engine is still running");

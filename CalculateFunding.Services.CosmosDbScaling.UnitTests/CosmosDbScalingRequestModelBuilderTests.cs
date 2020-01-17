@@ -1,10 +1,10 @@
-﻿using CalculateFunding.Common.ApiClient.Jobs.Models;
+﻿using System;
+using System.Linq;
+using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Models.CosmosDbScaling;
 using CalculateFunding.Services.Core.Constants;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
-using System.Linq;
 
 namespace CalculateFunding.Services.CosmosDbScaling
 {
@@ -42,8 +42,8 @@ namespace CalculateFunding.Services.CosmosDbScaling
             new CosmosCollectionType[] { CosmosCollectionType.ProviderSourceDatasets })]
         [DataRow(JobConstants.DefinitionNames.MapDatasetJob,
             new CosmosCollectionType[] { CosmosCollectionType.ProviderSourceDatasets })]
-        [DataRow(JobConstants.DefinitionNames.PublishProviderResultsJob,
-            new CosmosCollectionType[] { CosmosCollectionType.CalculationProviderResults, CosmosCollectionType.PublishedProviderResults })]
+        [DataRow(JobConstants.DefinitionNames.PublishProviderFundingJob,
+            new CosmosCollectionType[] { CosmosCollectionType.PublishedFunding, CosmosCollectionType.CalculationProviderResults })]
         public void BuildRequestModel_GivenJobWithDefinitions_EnsuresCorrectRepositoryTypes(string jobDefinitionId,
             CosmosCollectionType[] cosmosRepositoryTypes)
         {

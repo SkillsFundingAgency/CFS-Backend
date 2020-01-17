@@ -1,7 +1,7 @@
-﻿using CalculateFunding.Services.CosmosDbScaling.Interfaces;
-using System;
-using Microsoft.Extensions.DependencyInjection;
+﻿using System;
 using CalculateFunding.Models.CosmosDbScaling;
+using CalculateFunding.Services.CosmosDbScaling.Interfaces;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace CalculateFunding.Services.CosmosDbScaling.Repositories
 {
@@ -24,11 +24,8 @@ namespace CalculateFunding.Services.CosmosDbScaling.Repositories
                 case CosmosCollectionType.ProviderSourceDatasets:
                     return _serviceProvider.GetService<ProviderSourceDatasetsScalingRepository>();
 
-                case CosmosCollectionType.PublishedProviderResults:
-                    return _serviceProvider.GetService<PublishedProviderResultsScalingRepository>();
-
-                case CosmosCollectionType.PublishedFundingResults:
-                    return _serviceProvider.GetService<PublishedFundingResultsScalingRepository>();
+                case CosmosCollectionType.PublishedFunding:
+                    return _serviceProvider.GetService<PublishedFundingScalingRepository>();
 
                 case CosmosCollectionType.Calculations:
                     return _serviceProvider.GetService<CalculationsScalingRepository>();
@@ -40,7 +37,7 @@ namespace CalculateFunding.Services.CosmosDbScaling.Repositories
                     return _serviceProvider.GetService<DatasetAggregationsScalingRepository>();
 
                 case CosmosCollectionType.Datasets:
-                    return _serviceProvider.GetService<DatasetsScalingRepository >();
+                    return _serviceProvider.GetService<DatasetsScalingRepository>();
 
                 case CosmosCollectionType.Profiling:
                     return _serviceProvider.GetService<ProfilingScalingRepository>();

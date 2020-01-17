@@ -1,12 +1,12 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
-using Microsoft.Extensions.DependencyInjection;
-using NSubstitute;
-using CalculateFunding.Services.CosmosDbScaling.Repositories;
+﻿using System;
 using CalculateFunding.Common.CosmosDb;
-using FluentAssertions;
 using CalculateFunding.Models.CosmosDbScaling;
 using CalculateFunding.Services.CosmosDbScaling.Interfaces;
+using CalculateFunding.Services.CosmosDbScaling.Repositories;
+using FluentAssertions;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NSubstitute;
 
 namespace CalculateFunding.Services.CosmosDbScaling
 {
@@ -16,8 +16,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
         [TestMethod]
         [DataRow(CosmosCollectionType.CalculationProviderResults, nameof(CalculationProviderResultsScalingRepository))]
         [DataRow(CosmosCollectionType.ProviderSourceDatasets, nameof(ProviderSourceDatasetsScalingRepository))]
-        [DataRow(CosmosCollectionType.PublishedProviderResults, nameof(PublishedProviderResultsScalingRepository))]
-        [DataRow(CosmosCollectionType.PublishedFundingResults, nameof(PublishedFundingResultsScalingRepository))]
+        [DataRow(CosmosCollectionType.PublishedFunding, nameof(PublishedFundingScalingRepository))]
         [DataRow(CosmosCollectionType.Calculations, nameof(CalculationsScalingRepository))]
         [DataRow(CosmosCollectionType.Jobs, nameof(JobsScalingRepository))]
         [DataRow(CosmosCollectionType.DatasetAggregations, nameof(DatasetAggregationsScalingRepository))]
@@ -86,12 +85,8 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 .Returns(new ProviderSourceDatasetsScalingRepository(cosmosRepository));
 
             serviceProvider
-                .GetService<PublishedProviderResultsScalingRepository>()
-                .Returns(new PublishedProviderResultsScalingRepository(cosmosRepository));
-
-            serviceProvider
-                .GetService<PublishedFundingResultsScalingRepository>()
-                .Returns(new PublishedFundingResultsScalingRepository(cosmosRepository));
+                .GetService<PublishedFundingScalingRepository>()
+                .Returns(new PublishedFundingScalingRepository(cosmosRepository));
 
             serviceProvider
                 .GetService<CalculationsScalingRepository>()
