@@ -13,6 +13,7 @@ using FundingLine = CalculateFunding.Models.Publishing.FundingLine;
 using ProfilePeriod = CalculateFunding.Models.Publishing.ProfilePeriod;
 using Provider = CalculateFunding.Models.Publishing.Provider;
 using ApiProvider = CalculateFunding.Common.ApiClient.Providers.Models.Provider;
+using Serilog;
 
 namespace CalculateFunding.Services.Publishing.UnitTests
 {
@@ -30,6 +31,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private ProviderVariationResult _providerVariationResult;
 
         private IMapper _mapper;
+        private ILogger _logger;
         private PublishedProviderDataPopulator _publishedProviderDataPopulator;
         private string _templateVersion;
 
@@ -47,9 +49,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .Map<Provider>(_provider)
                 .Returns(_publishedProviderVersionForMapping.Provider);
 
+            _logger = CreateLogger();
+
             _providerVariationResult = NewProviderVariationResult();
             
-            _publishedProviderDataPopulator = new PublishedProviderDataPopulator(_mapper);
+            _publishedProviderDataPopulator = new PublishedProviderDataPopulator(_mapper, _logger);
         }
 
         [TestMethod]
@@ -76,18 +80,26 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         [TestMethod]
         public void UpdatePublishedProvider_GivenTemplateVersionChange_ReturnsTrue()
         {
-            _publishedProviderVersion.TemplateVersion = NewRandomString();
-            
+            string initialTemplateVersion = _publishedProviderVersion.TemplateVersion.ToString();
+            string newTemplateVersion = NewRandomString();
+            _publishedProviderVersion.TemplateVersion = newTemplateVersion;
+
             bool result = WhenThePublishedProviderIsUpdated();
             
             result
                 .Should()
                 .BeTrue();
+
+            _logger
+                .Received(1)
+                .Information($"changes for new published provider version : [\"TemplateVersion: {newTemplateVersion} != {initialTemplateVersion}\"]");
         }
 
         [TestMethod]
         public void UpdatePublishedProvider_GivenNoChanges_ReturnsFalse()
         {
+            _publishedProviderVersionForMapping.Provider.ProviderVersionId = "1";
+            
             bool result = WhenThePublishedProviderIsUpdated();
 
             result
@@ -98,13 +110,19 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         [TestMethod]
         public void UpdatePublishedProvider_GivenChangedProvider_ReturnsTrue()
         {
-            _publishedProviderVersionForMapping.Provider.Name = "NewName";
+            string initialProviderName = _publishedProviderVersionForMapping.Provider.Name;
+            string newProviderName = "NewName";
+            _publishedProviderVersionForMapping.Provider.Name = newProviderName;
 
             bool result = WhenThePublishedProviderIsUpdated();
 
             result
                 .Should()
                 .BeTrue();
+            
+            _logger
+                 .Received(1)
+                 .Information($"changes for new published provider version : [\"Provider: Name: {initialProviderName} != {newProviderName}\"]");
         }
 
         [TestMethod]
@@ -119,6 +137,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             result
                 .Should()
                 .BeTrue();
+
+            _logger
+                 .Received(1)
+                 .Information($"changes for new published provider version : [\"FundingLine:{_generatedProviderResult.FundingLines.First().FundingLineCode}\"]");
         }
 
         [TestMethod]
@@ -133,6 +155,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             result
                 .Should()
                 .BeTrue();
+
+            _logger
+                 .Received(1)
+                 .Information($"changes for new published provider version : [\"Calculation:{_generatedProviderResult.Calculations.First().TemplateCalculationId}\"]");
         }
 
         [TestMethod]
@@ -147,6 +173,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             result
                 .Should()
                 .BeTrue();
+
+            _logger
+                 .Received(1)
+                 .Information($"changes for new published provider version : [\"ReferenceData:{_generatedProviderResult.ReferenceData.First().TemplateReferenceId}\"]");
         }
 
         private bool WhenThePublishedProviderIsUpdated()
@@ -174,6 +204,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             return Substitute.For<IMapper>();
         }
 
+        private static ILogger CreateLogger()
+        {
+            return Substitute.For<ILogger>();
+        }
         private static IEnumerable<FundingLine> CreateFundingLines()
         {
             return new[]

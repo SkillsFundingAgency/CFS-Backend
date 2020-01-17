@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Publishing
@@ -186,5 +189,50 @@ namespace CalculateFunding.Models.Publishing
 
         [JsonProperty("localGovernmentGroupTypeName")]
         public string LocalGovernmentGroupTypeName { get; set; }
+
+        public IDictionary<string, string> Variances => _variances;
+
+        private readonly IDictionary<string, string> _variances;
+
+        public Provider()
+        {
+            _variances = new Dictionary<string, string>();
+        }
+
+        public virtual bool Equals(Provider provider)
+        {
+            PropertyInfo[] props = GetType().GetProperties();
+            foreach (PropertyInfo prop in props.Where(_ => _.Name != "ProviderVersionId" && _.Name != "Variances"))
+            {
+                var propA = prop.GetValue(this);
+                var propB = prop.GetValue(provider);
+                if (propA != null)
+                {
+                    if (propB != null)
+                    {
+                        if (!propB.Equals(propA))
+                        {
+                            _variances.Add(prop.Name, $"{propA} != {propB}");
+                            return false;
+                        }
+                    }
+                    else
+                    {
+                        _variances.Add(prop.Name, "compare to empty");
+                        return false;
+                    }
+                }
+                else
+                {
+                    if (propB != null)
+                    {
+                        _variances.Add(prop.Name, "compare from empty");
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
     }
 }

@@ -330,7 +330,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
 
             ProfilingService profilingService = new ProfilingService(logger, profilingApiClient);
 
-            PublishedProviderDataPopulator publishedProviderDataPopulator = new PublishedProviderDataPopulator(mapper);
+            PublishedProviderDataPopulator publishedProviderDataPopulator = new PublishedProviderDataPopulator(mapper, logger);
 
             InScopePublishedProviderService inScopePublishedProviderService = new InScopePublishedProviderService(mapper, logger);
             FundingLineValueOverride fundingLineValueOverride = new FundingLineValueOverride();

@@ -2,21 +2,26 @@
 using AutoMapper;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
+using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
 using Newtonsoft.Json;
+using Serilog;
 
 namespace CalculateFunding.Services.Publishing
 {
     public class PublishedProviderDataPopulator : IPublishedProviderDataPopulator
     {
         private readonly IMapper _providerMapper;
+        private readonly ILogger _logger;
 
-        public PublishedProviderDataPopulator(IMapper providerMapper)
+        public PublishedProviderDataPopulator(IMapper providerMapper, ILogger logger)
         {
             Guard.ArgumentNotNull(providerMapper, nameof(providerMapper));
+            Guard.ArgumentNotNull(logger, nameof(logger));
 
             _providerMapper = providerMapper;
+            _logger = logger;
         }
 
         /// <summary>
@@ -41,12 +46,12 @@ namespace CalculateFunding.Services.Publishing
 
             Provider mappedProvider = _providerMapper.Map<Provider>(provider);
 
-            bool hasChanges = !(JsonConvert.SerializeObject(publishedProviderVersion.FundingLines) == JsonConvert.SerializeObject(generatedProviderResult.FundingLines)
-                && JsonConvert.SerializeObject(publishedProviderVersion.Calculations) == JsonConvert.SerializeObject(generatedProviderResult.Calculations)
-                && JsonConvert.SerializeObject(publishedProviderVersion.ReferenceData) == JsonConvert.SerializeObject(generatedProviderResult.ReferenceData)
-                && publishedProviderVersion.TemplateVersion == templateVersion
-                && publishedProviderVersion.TotalFunding == generatedProviderResult.TotalFunding
-                && JsonConvert.SerializeObject(publishedProviderVersion.Provider) == JsonConvert.SerializeObject(mappedProvider));
+            bool hasChanges = !publishedProviderVersion.Equals(generatedProviderResult, templateVersion, mappedProvider);
+
+            if (hasChanges)
+            {
+                _logger.Information($"changes for new published provider version : {publishedProviderVersion.Variances.AsJson()}");
+            }
 
             publishedProviderVersion.FundingLines = generatedProviderResult.FundingLines;
 
