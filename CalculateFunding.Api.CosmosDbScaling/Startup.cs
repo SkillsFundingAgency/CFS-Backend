@@ -64,8 +64,6 @@ namespace CalculateFunding.API.CosmosDbScaling
                 app.UseHsts();
             }
 
-            app.UseMiddleware<ApiKeyMiddleware>();
-
             app.UseHttpsRedirection();
 
             app.UseMiddleware<LoggedInUserMiddleware>();
