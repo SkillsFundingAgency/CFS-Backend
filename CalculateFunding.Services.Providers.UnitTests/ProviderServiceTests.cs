@@ -161,7 +161,6 @@ namespace CalculateFunding.Services.Providers.UnitTests
         }
 
         [TestMethod]
-        [Ignore("Test needs fixing after refactor")]
         public async Task FetchCoreProviderData_WhenNotInFileSystemCache_ThenReturnsFromRedisCacheValue()
         {
             // Arrange
@@ -243,17 +242,16 @@ namespace CalculateFunding.Services.Providers.UnitTests
             // Assert
             result
                 .Should()
-                .BeOfType<OkObjectResult>();
+                .BeOfType<ContentResult>();
 
-            OkObjectResult okObjectResult = result as OkObjectResult;
+            ContentResult contentResult = result as ContentResult;
 
-            IEnumerable<ProviderSummary> results = okObjectResult.Value as IEnumerable<ProviderSummary>;
+            IEnumerable<ProviderSummary> results = JsonConvert.DeserializeObject<IEnumerable<ProviderSummary>>(contentResult.Content);
             IEnumerable<ProviderSummary> expected = cachedProviderSummaries as IEnumerable<ProviderSummary>;
             results.Should().Equals(expected);
         }
 
         [TestMethod]
-        [Ignore("Test needs fixing after refactor")]
         public async Task FetchCoreProviderData_WhenInFileSystemCache_ThenReturnsFileSystemCacheValue()
         {
             // Arrange
@@ -333,11 +331,11 @@ namespace CalculateFunding.Services.Providers.UnitTests
             // Assert
             result
                 .Should()
-                .BeOfType<OkObjectResult>();
+                .BeOfType<ContentResult>();
 
-            OkObjectResult okObjectResult = result as OkObjectResult;
+            ContentResult contentResult = result as ContentResult;
 
-            IEnumerable<ProviderSummary> results = okObjectResult.Value as IEnumerable<ProviderSummary>;
+            IEnumerable<ProviderSummary> results = JsonConvert.DeserializeObject<IEnumerable<ProviderSummary>>(contentResult.Content);
             IEnumerable<ProviderSummary> expected = cachedProviderSummaries as IEnumerable<ProviderSummary>;
             results.Should().Equals(expected);
 
@@ -353,7 +351,6 @@ namespace CalculateFunding.Services.Providers.UnitTests
         }
 
         [TestMethod]
-        [Ignore("Test needs fixing after refactor")]
         public async Task FetchCoreProviderData_WhenNotInCache_ThenReturnsProviderVersion()
         {
             // Arrange
@@ -365,7 +362,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
             ICacheProvider cacheProvider = CreateCacheProvider();
             cacheProvider
                 .GetAsync<string>(Arg.Is(cacheKeyScopedProviderSummariesCount))
-                .Returns("0");
+                .Returns("1");
 
             Provider provider = CreateProvider();
 
@@ -386,9 +383,14 @@ namespace CalculateFunding.Services.Providers.UnitTests
                .GetSpecificationSummaryById(Arg.Any<string>())
                .Returns(new ApiResponse<SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
 
+            IResultsApiClient resultsApiClient = CreateResultsApiClient();
+            resultsApiClient
+                .GetScopedProviderIdsBySpecificationId(Arg.Is(specificationId))
+                .Returns(new ApiResponse<IEnumerable<string>>(HttpStatusCode.OK, new string[] { provider.ProviderId }));
+
             IProviderVersionService providerVersionService = CreateProviderVersionService();
 
-            IScopedProvidersService providerService = CreateProviderService(cacheProvider: cacheProvider, specificationsApiClient: specificationsApiClient, providerVersionService: providerVersionService);
+            IScopedProvidersService providerService = CreateProviderService(cacheProvider: cacheProvider, specificationsApiClient: specificationsApiClient, providerVersionService: providerVersionService, resultsApiClient: resultsApiClient);
 
             providerVersionService
                 .GetProvidersByVersion(Arg.Is(providerVersionId))
@@ -400,11 +402,11 @@ namespace CalculateFunding.Services.Providers.UnitTests
             // Assert
             result
                 .Should()
-                .BeOfType<OkObjectResult>();
+                .BeOfType<ContentResult>();
 
-            OkObjectResult okObjectResult = result as OkObjectResult;
+            ContentResult contentResult = result as ContentResult;
 
-            IEnumerable<ProviderSummary> results = okObjectResult.Value as IEnumerable<ProviderSummary>;
+            IEnumerable<ProviderSummary> results = JsonConvert.DeserializeObject<IEnumerable<ProviderSummary>>(contentResult.Content);
 
             results
                .Should()
@@ -414,7 +416,6 @@ namespace CalculateFunding.Services.Providers.UnitTests
         }
 
         [TestMethod]
-        [Ignore("Test needs fixing after refactoring of scoped providers")]
         public async Task FetchCoreProviderData_WhenNotInCache_ThenAddsToCache()
         {
             // Arrange
@@ -450,22 +451,20 @@ namespace CalculateFunding.Services.Providers.UnitTests
             MemoryStream memoryStream = new MemoryStream(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(cachedProviderSummaries as IEnumerable<ProviderSummary>)));
             // memoryStream.Position = 0;
 
-
-            fileSystemCache.Get(Arg.Any<ScopedProvidersFileSystemCacheKey>())
-                .Returns(memoryStream);
-
-            fileSystemCache.Exists(Arg.Any<ScopedProvidersFileSystemCacheKey>())
-                .Returns(false);
-
-            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();          
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
             specificationsApiClient
                .GetSpecificationSummaryById(Arg.Any<string>())
                .Returns(new ApiResponse<SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
 
+            IResultsApiClient resultsApiClient = CreateResultsApiClient();
+            resultsApiClient
+                .GetScopedProviderIdsBySpecificationId(Arg.Is(specificationId))
+                .Returns(new ApiResponse<IEnumerable<string>>(HttpStatusCode.OK, new string[] { provider.ProviderId }));
+
             ICacheProvider cacheProvider = CreateCacheProvider();
             cacheProvider
                 .GetAsync<string>(Arg.Is(cacheKeyScopedProviderSummariesCount))
-                .Returns("0");
+                .Returns("1");
 
             IProviderVersionService providerVersionService = CreateProviderVersionService();
             providerVersionService
@@ -475,6 +474,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
             IScopedProvidersService providerService = CreateProviderService(cacheProvider: cacheProvider,
                 providerVersionService: providerVersionService,
                 specificationsApiClient: specificationsApiClient,
+                resultsApiClient: resultsApiClient,
                 fileSystemCache: fileSystemCache,
                 settings: settings);
 
@@ -482,8 +482,8 @@ namespace CalculateFunding.Services.Providers.UnitTests
             IActionResult result = await providerService.FetchCoreProviderData(specificationId);
 
             // Assert
-            OkObjectResult okObjectResult = result as OkObjectResult;
-            IEnumerable<ProviderSummary> results = okObjectResult.Value as IEnumerable<ProviderSummary>;
+            ContentResult contentResult = result as ContentResult;
+            IEnumerable<ProviderSummary> results = JsonConvert.DeserializeObject<IEnumerable<ProviderSummary>>(contentResult.Content);
             MemoryStream stream = new MemoryStream(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(results)));
 
 
@@ -519,11 +519,6 @@ namespace CalculateFunding.Services.Providers.UnitTests
         private IProviderVersionService CreateProviderVersionService()
         {
             return Substitute.For<IProviderVersionService>();
-        }
-
-        private ISpecificationsApiClientProxy CreateSpecificationsApiClientProxy()
-        {
-            return Substitute.For<ISpecificationsApiClientProxy>();
         }
 
         private ICacheProvider CreateCacheProvider()
