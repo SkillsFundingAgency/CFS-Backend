@@ -154,11 +154,11 @@ namespace CalculateFunding.Api.Publishing
             builder.AddPolicySettings(Configuration);
             builder.AddHttpContextAccessor();
             builder.AddHealthCheckMiddleware();
-            builder.AddPublishingServices(Configuration);
-            builder.AddSpecificationsInterServiceClient(Configuration);
-            builder.AddProvidersInterServiceClient(Configuration);
-            builder.AddJobsInterServiceClient(Configuration);
-            builder.AddCalculationsInterServiceClient(Configuration);
+            builder.AddPublishingServices(Configuration);          
+            Common.Config.ApiClient.Specifications.ServiceCollectionExtensions.AddSpecificationsInterServiceClient(builder, Configuration);
+            Common.Config.ApiClient.Providers.ServiceCollectionExtensions.AddProvidersInterServiceClient(builder, Configuration);
+            Common.Config.ApiClient.Calcs.ServiceCollectionExtensions.AddCalculationsInterServiceClient(builder, Configuration);
+            Common.Config.ApiClient.Jobs.ServiceCollectionExtensions.AddJobsInterServiceClient(builder, Configuration);
             builder.AddFeatureToggling(Configuration);
 
             builder

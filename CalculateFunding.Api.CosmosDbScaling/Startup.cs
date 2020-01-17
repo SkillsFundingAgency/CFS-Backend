@@ -115,8 +115,8 @@ namespace CalculateFunding.API.CosmosDbScaling
             builder.AddCosmosDb(Configuration);
             builder.AddServiceBus(Configuration);
             builder.AddSearch(Configuration);
-            builder.AddCaching(Configuration);
-            builder.AddJobsInterServiceClient(Configuration);
+            builder.AddCaching(Configuration);          
+            Common.Config.ApiClient.Jobs.ServiceCollectionExtensions.AddJobsInterServiceClient(builder, Configuration);
             builder.AddPolicySettings(Configuration);
             builder.AddSingleton<ICosmosDbScalingResiliencePolicies>(m =>
             {

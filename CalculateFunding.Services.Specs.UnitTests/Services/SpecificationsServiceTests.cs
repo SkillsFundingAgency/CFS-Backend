@@ -145,11 +145,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             return Substitute.For<IPoliciesApiClient>();
         }
 
-        protected ICalculationsRepository CreateCalculationsRepository()
-        {
-            return Substitute.For<ICalculationsRepository>();
-        }
-
         protected static ILogger CreateLogger()
         {
             return Substitute.For<ILogger>();

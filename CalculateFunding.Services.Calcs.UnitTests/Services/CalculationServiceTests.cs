@@ -144,11 +144,6 @@ namespace CalculateFunding.Services.Calcs.Services
             return Substitute.For<ISearchRepository<CalculationIndex>>();
         }
 
-        private static ISpecificationRepository CreateSpecificationRepository()
-        {
-            return Substitute.For<ISpecificationRepository>();
-        }
-
         private static IPoliciesApiClient CreatePoliciesApiClient()
         {
             return Substitute.For<IPoliciesApiClient>();

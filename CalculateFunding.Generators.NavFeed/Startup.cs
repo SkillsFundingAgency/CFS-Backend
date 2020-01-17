@@ -32,7 +32,8 @@ namespace CalculateFunding.Generators.NavFeed
             builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Generators.NavFeed");
             builder.AddLogging("CalculateFunding.Generators.NavFeed");
 
-            builder.AddProvidersInterServiceClient(Configuration);
+            //builder.AddProvidersInterServiceClient(Configuration);
+            Common.Config.ApiClient.Providers.ServiceCollectionExtensions.AddProvidersInterServiceClient(builder, Configuration);
 
             builder.AddPolicySettings(Configuration);
             builder.AddSingleton<IOrganisationGroupResiliencePolicies>((ctx) =>

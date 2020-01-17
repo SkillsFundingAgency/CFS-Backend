@@ -37,8 +37,7 @@ namespace CalculateFunding.Services.Calcs
     {
         private readonly ILogger _logger;
         private readonly ITelemetry _telemetry;
-        private readonly IProvidersApiClient _providersApiClient;
-        private readonly ISpecificationRepository _specificationsRepository;
+        private readonly IProvidersApiClient _providersApiClient;     
         private readonly ICacheProvider _cacheProvider;
         private readonly ICalculationsRepository _calculationsRepository;
         private readonly IFeatureToggle _featureToggle;
@@ -55,8 +54,7 @@ namespace CalculateFunding.Services.Calcs
         public BuildProjectsService(
             ILogger logger,
             ITelemetry telemetry,
-            IProvidersApiClient providersApiClient,
-            ISpecificationRepository specificationsRepository,
+            IProvidersApiClient providersApiClient,         
             ICacheProvider cacheProvider,
             ICalculationsRepository calculationsRepository,
             IFeatureToggle featureToggle,
@@ -69,8 +67,7 @@ namespace CalculateFunding.Services.Calcs
             ICalculationEngineRunningChecker calculationEngineRunningChecker)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
-            Guard.ArgumentNotNull(telemetry, nameof(telemetry));
-            Guard.ArgumentNotNull(specificationsRepository, nameof(specificationsRepository));
+            Guard.ArgumentNotNull(telemetry, nameof(telemetry));           
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
             Guard.ArgumentNotNull(calculationsRepository, nameof(calculationsRepository));
             Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
@@ -88,8 +85,7 @@ namespace CalculateFunding.Services.Calcs
 
             _logger = logger;
             _telemetry = telemetry;
-            _providersApiClient = providersApiClient;
-            _specificationsRepository = specificationsRepository;
+            _providersApiClient = providersApiClient;          
             _cacheProvider = cacheProvider;
             _calculationsRepository = calculationsRepository;
             _featureToggle = featureToggle;
@@ -247,8 +243,6 @@ namespace CalculateFunding.Services.Calcs
                 }
                 allJobProperties.Add(jobProperties);
             }
-
-            await _specificationsRepository.UpdateCalculationLastUpdatedDate(specificationId);
 
             try
             {

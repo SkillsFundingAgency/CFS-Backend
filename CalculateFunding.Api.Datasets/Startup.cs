@@ -240,10 +240,10 @@ namespace CalculateFunding.Api.Datasets
 
             builder.AddUserProviderFromRequest();
 
-            builder.AddCalculationsInterServiceClient(Configuration);
-            builder.AddResultsInterServiceClient(Configuration);
-            builder.AddJobsInterServiceClient(Configuration);
-            builder.AddProvidersInterServiceClient(Configuration);
+           
+            Common.Config.ApiClient.Calcs.ServiceCollectionExtensions.AddCalculationsInterServiceClient(builder, Configuration);           
+            Common.Config.ApiClient.Jobs.ServiceCollectionExtensions.AddJobsInterServiceClient(builder, Configuration);
+            Common.Config.ApiClient.Providers.ServiceCollectionExtensions.AddProvidersInterServiceClient(builder, Configuration);
 
             builder.AddCosmosDb(Configuration);
 
@@ -291,7 +291,8 @@ namespace CalculateFunding.Api.Datasets
             });
 
             builder.AddTransient<IValidator<DatasetUploadValidationModel>, DatasetItemValidator>();
-            builder.AddSpecificationsInterServiceClient(Configuration);
+            //builder.AddSpecificationsInterServiceClient(Configuration);
+            Common.Config.ApiClient.Specifications.ServiceCollectionExtensions.AddSpecificationsInterServiceClient(builder, Configuration);
 
             builder.AddHealthCheckMiddleware();
         }

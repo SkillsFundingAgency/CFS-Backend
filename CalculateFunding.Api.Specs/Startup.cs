@@ -112,8 +112,7 @@ namespace CalculateFunding.Api.Specs
             builder
                 .AddSingleton<ISpecificationsSearchService, SpecificationsSearchService>()
                 .AddSingleton<IHealthChecker, SpecificationsSearchService>();
-            builder.AddSingleton<IResultsRepository, ResultsRepository>();
-            builder.AddSingleton<ICalculationsRepository, CalculationsRepository>();
+            builder.AddSingleton<IResultsRepository, ResultsRepository>();        
 
             builder.AddSingleton<ITemplateMetadataResolver>((ctx) =>
             {
@@ -176,11 +175,11 @@ namespace CalculateFunding.Api.Specs
 
             builder.AddCaching(Configuration);
 
-            builder.AddResultsInterServiceClient(Configuration);
-            builder.AddJobsInterServiceClient(Configuration);
-            builder.AddCalculationsInterServiceClient(Configuration);
-            builder.AddProvidersInterServiceClient(Configuration);
-            builder.AddPoliciesInterServiceClient(Configuration);
+            Common.Config.ApiClient.Results.ServiceCollectionExtensions.AddResultsInterServiceClient(builder, Configuration);
+            Common.Config.ApiClient.Jobs.ServiceCollectionExtensions.AddJobsInterServiceClient(builder, Configuration);
+            Common.Config.ApiClient.Calcs.ServiceCollectionExtensions.AddCalculationsInterServiceClient(builder, Configuration);           
+            Common.Config.ApiClient.Providers.ServiceCollectionExtensions.AddProvidersInterServiceClient(builder, Configuration);           
+            Common.Config.ApiClient.Policies.ServiceCollectionExtensions.AddPoliciesInterServiceClient(builder, Configuration);
 
             builder.AddPolicySettings(Configuration);
 

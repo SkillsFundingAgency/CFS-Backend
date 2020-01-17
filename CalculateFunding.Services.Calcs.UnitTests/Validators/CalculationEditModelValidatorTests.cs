@@ -257,11 +257,6 @@ namespace CalculateFunding.Services.Calcs.Validators
             return previewService;
         }
 
-        private static ISpecificationRepository CreateSpecificationRepository()
-        {
-            return Substitute.For<ISpecificationRepository>();
-        }
-
         private static CalculationEditModel CreateModel()
         {
             return new CalculationEditModel

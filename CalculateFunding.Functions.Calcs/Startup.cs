@@ -84,8 +84,7 @@ namespace CalculateFunding.Functions.Calcs
                 .AddSingleton<VisualBasicCompiler>()
                 .AddSingleton<VisualBasicSourceFileGenerator>();
             builder.AddSingleton<ISourceFileGeneratorProvider, SourceFileGeneratorProvider>();
-            builder.AddSingleton<IValidator<PreviewRequest>, PreviewRequestModelValidator>();
-            builder.AddSingleton<ISpecificationRepository, SpecificationRepository>();
+            builder.AddSingleton<IValidator<PreviewRequest>, PreviewRequestModelValidator>();           
             builder.AddScoped<IBuildProjectsService, BuildProjectsService>();
             builder.AddSingleton<IBuildProjectsRepository, BuildProjectsRepository>();
             builder.AddSingleton<ICodeMetadataGeneratorService, ReflectionCodeMetadataGenerator>();
@@ -144,13 +143,12 @@ namespace CalculateFunding.Functions.Calcs
                 .AddSingleton<ISearchRepository<ProviderCalculationResultsIndex>, SearchRepository<ProviderCalculationResultsIndex>>();
 
             builder.AddServiceBus(config);
-
-            builder.AddResultsInterServiceClient(config);
-            builder.AddProvidersInterServiceClient(config);
-            builder.AddSpecificationsInterServiceClient(config);
-            builder.AddDatasetsInterServiceClient(config);
-            builder.AddJobsInterServiceClient(config);
-            builder.AddPoliciesInterServiceClient(config);
+           
+            Common.Config.ApiClient.Providers.ServiceCollectionExtensions.AddProvidersInterServiceClient(builder, config);           
+            Common.Config.ApiClient.Specifications.ServiceCollectionExtensions.AddSpecificationsInterServiceClient(builder, config);
+            builder.AddDatasetsInterServiceClient(config);         
+            Common.Config.ApiClient.Jobs.ServiceCollectionExtensions.AddJobsInterServiceClient(builder, config);          
+            Common.Config.ApiClient.Policies.ServiceCollectionExtensions.AddPoliciesInterServiceClient(builder, config);
 
             builder.AddCaching(config);
 

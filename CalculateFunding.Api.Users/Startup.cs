@@ -166,8 +166,8 @@ namespace CalculateFunding.Api.Users
             builder.AddHttpContextAccessor();
 
             builder.AddHealthCheckMiddleware();
-
-            builder.AddSpecificationsInterServiceClient(Configuration);
+           
+            Common.Config.ApiClient.Specifications.ServiceCollectionExtensions.AddSpecificationsInterServiceClient(builder, Configuration);
         }
 
     }

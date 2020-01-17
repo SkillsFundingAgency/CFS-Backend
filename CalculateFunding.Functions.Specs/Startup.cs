@@ -61,8 +61,7 @@ namespace CalculateFunding.Functions.Specs
             builder.AddSingleton<IValidator<SpecificationEditModel>, SpecificationEditModelValidator>();
             builder.AddSingleton<IValidator<AssignDefinitionRelationshipMessage>, AssignDefinitionRelationshipMessageValidator>();
             builder.AddSingleton<ISpecificationsSearchService, SpecificationsSearchService>();
-            builder.AddSingleton<IResultsRepository, ResultsRepository>();
-            builder.AddSingleton<ICalculationsRepository, CalculationsRepository>();
+            builder.AddSingleton<IResultsRepository, ResultsRepository>();            
 
             builder.AddSingleton<ICosmosRepository, CosmosRepository>();
 
@@ -143,12 +142,12 @@ namespace CalculateFunding.Functions.Specs
 
             builder.AddCaching(config);
 
-            builder.AddResultsInterServiceClient(config);
-            builder.AddCalculationsInterServiceClient(config);
-            builder.AddProvidersInterServiceClient(config);
-            builder.AddPoliciesInterServiceClient(config);
-            builder.AddJobsInterServiceClient(config);
-            builder.AddCalculationsInterServiceClient(config);
+         
+            Common.Config.ApiClient.Results.ServiceCollectionExtensions.AddResultsInterServiceClient(builder, config);
+            Common.Config.ApiClient.Providers.ServiceCollectionExtensions.AddProvidersInterServiceClient(builder, config);         
+            Common.Config.ApiClient.Policies.ServiceCollectionExtensions.AddPoliciesInterServiceClient(builder, config);                 
+            Common.Config.ApiClient.Jobs.ServiceCollectionExtensions.AddJobsInterServiceClient(builder, config);
+            Common.Config.ApiClient.Calcs.ServiceCollectionExtensions.AddCalculationsInterServiceClient(builder, config);
 
             builder.AddPolicySettings(config);
 

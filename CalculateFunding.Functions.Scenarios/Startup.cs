@@ -80,10 +80,9 @@ namespace CalculateFunding.Functions.Scenarios
 
                 return new VersionRepository<TestScenarioVersion>(resultsRepostory);
             });
-
-
-            builder.AddCalculationsInterServiceClient(config);
-            builder.AddSpecificationsInterServiceClient(config);
+                                  
+            Common.Config.ApiClient.Calcs.ServiceCollectionExtensions.AddCalculationsInterServiceClient(builder, config);           
+            Common.Config.ApiClient.Specifications.ServiceCollectionExtensions.AddSpecificationsInterServiceClient(builder, config);
             builder.AddDatasetsInterServiceClient(config);
 
             if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
@@ -95,7 +94,8 @@ namespace CalculateFunding.Functions.Scenarios
                 builder.AddCosmosDb(config);
             }
 
-            builder.AddJobsInterServiceClient(config);
+            //builder.AddJobsInterServiceClient(config);
+            Common.Config.ApiClient.Jobs.ServiceCollectionExtensions.AddJobsInterServiceClient(builder, config);
 
             builder.AddSearch(config);
             builder

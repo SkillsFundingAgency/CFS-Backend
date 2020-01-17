@@ -53,10 +53,12 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 ProviderVersionId = providerVersionId
             };
 
-            ISpecificationsApiClientProxy specificationsApiClientProxy = CreateSpecificationsApiClientProxy();
+            ISpecificationsApiClient specificationsApiClientProxy = CreateSpecificationsApiClient();
+         
+
             specificationsApiClientProxy
-                .GetAsync<SpecificationSummary>(Arg.Any<string>())
-                .Returns(specificationSummary);
+                .GetSpecificationSummaryById(Arg.Any<string>())
+                .Returns(new ApiResponse<SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
 
             IProviderVersionService providerVersionService = CreateProviderVersionService();
             providerVersionService
@@ -79,7 +81,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
 
             await specificationsApiClientProxy
                 .Received(1)
-                .GetAsync<SpecificationSummary>(Arg.Any<string>());
+                .GetSpecificationSummaryById(Arg.Any<string>());
 
             await providerVersionService
                 .Received(1)
@@ -215,10 +217,12 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 .ListLengthAsync<ProviderSummary>(Arg.Is(cacheKeyScopedProviderSummaries))
                 .Returns(1);
 
-            ISpecificationsApiClientProxy specificationsApiClient = CreateSpecificationsApiClientProxy();
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+        
+
             specificationsApiClient
-                .GetAsync<SpecificationSummary>(Arg.Any<string>())
-                .Returns(specificationSummary);
+               .GetSpecificationSummaryById(Arg.Any<string>())
+               .Returns(new ApiResponse<SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
 
 
             IProviderVersionService providerVersionService = CreateProviderVersionService();
@@ -304,10 +308,11 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 .ListLengthAsync<ProviderSummary>(Arg.Is(cacheKeyScopedProviderSummaries))
                 .Returns(1);
 
-            ISpecificationsApiClientProxy specificationsApiClient = CreateSpecificationsApiClientProxy();
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+          
             specificationsApiClient
-                .GetAsync<SpecificationSummary>(Arg.Any<string>())
-                .Returns(specificationSummary);
+               .GetSpecificationSummaryById(Arg.Any<string>())
+               .Returns(new ApiResponse<SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
 
 
             IProviderVersionService providerVersionService = CreateProviderVersionService();
@@ -374,10 +379,12 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 ProviderVersionId = providerVersionId
             };
 
-            ISpecificationsApiClientProxy specificationsApiClient = CreateSpecificationsApiClientProxy();
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+        
+
             specificationsApiClient
-                .GetAsync<SpecificationSummary>(Arg.Any<string>())
-                .Returns(specificationSummary);
+               .GetSpecificationSummaryById(Arg.Any<string>())
+               .Returns(new ApiResponse<SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
 
             IProviderVersionService providerVersionService = CreateProviderVersionService();
 
@@ -450,10 +457,10 @@ namespace CalculateFunding.Services.Providers.UnitTests
             fileSystemCache.Exists(Arg.Any<ScopedProvidersFileSystemCacheKey>())
                 .Returns(false);
 
-            ISpecificationsApiClientProxy specificationsApiClient = CreateSpecificationsApiClientProxy();
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();          
             specificationsApiClient
-                .GetAsync<SpecificationSummary>(Arg.Any<string>())
-                .Returns(specificationSummary);
+               .GetSpecificationSummaryById(Arg.Any<string>())
+               .Returns(new ApiResponse<SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
 
             ICacheProvider cacheProvider = CreateCacheProvider();
             cacheProvider
@@ -492,7 +499,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
         }
 
         private IScopedProvidersService CreateProviderService(IProviderVersionService providerVersionService = null,
-            ISpecificationsApiClientProxy specificationsApiClient = null,
+            ISpecificationsApiClient specificationsApiClient = null,
             ICacheProvider cacheProvider = null,
             IFileSystemCache fileSystemCache = null,
             IScopedProvidersServiceSettings settings = null,
@@ -501,7 +508,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
             return new ScopedProvidersService(
                 cacheProvider ?? CreateCacheProvider(),
                 resultsApiClient ?? CreateResultsApiClient(),
-                specificationsApiClient ?? CreateSpecificationsApiClientProxy(),
+                specificationsApiClient ?? CreateSpecificationsApiClient(),
                 providerVersionService ?? CreateProviderVersionService(),
                 CreateMapper(),
                 settings ?? CreateSettings(),

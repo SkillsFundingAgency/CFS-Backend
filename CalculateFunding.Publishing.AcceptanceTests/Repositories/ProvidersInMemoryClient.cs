@@ -24,6 +24,10 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             throw new NotImplementedException();
         }
 
+        public async Task<ApiResponse<IEnumerable<string>>> GetProviderNames()
+        {
+            throw new NotImplementedException();
+        }
 
         public Task<ApiResponse<IEnumerable<ProviderSummary>>> FetchCoreProviderData(string specificationId)
         {

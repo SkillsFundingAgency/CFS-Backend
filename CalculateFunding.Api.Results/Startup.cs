@@ -167,9 +167,9 @@ namespace CalculateFunding.Api.Results
             builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Api.Results");
             builder.AddLogging("CalculateFunding.Api.Results");
             builder.AddTelemetry();
-
-            builder.AddSpecificationsInterServiceClient(Configuration);
-            builder.AddCalculationsInterServiceClient(Configuration);
+          
+            Common.Config.ApiClient.Specifications.ServiceCollectionExtensions.AddSpecificationsInterServiceClient(builder, Configuration);
+            Common.Config.ApiClient.Calcs.ServiceCollectionExtensions.AddCalculationsInterServiceClient(builder, Configuration);
 
             builder.AddPolicySettings(Configuration);
 

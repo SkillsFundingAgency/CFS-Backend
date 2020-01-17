@@ -15,4 +15,8 @@
   <ItemGroup>
     <Folder Include="MappingProfiles\" />
   </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Specifications" Version="1.0.1" />
+  </ItemGroup>
 </Project>

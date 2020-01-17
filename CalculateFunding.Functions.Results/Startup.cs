@@ -128,12 +128,11 @@ namespace CalculateFunding.Functions.Results
             builder.AddApplicationInsightsTelemetryClient(config, "CalculateFunding.Functions.Results");
             builder.AddLogging("CalculateFunding.Functions.Results");
             builder.AddTelemetry();
-
-            builder.AddCalculationsInterServiceClient(config);
-            builder.AddSpecificationsInterServiceClient(config);
-            builder.AddJobsInterServiceClient(config);
-            builder.AddProvidersInterServiceClient(config);
-            builder.AddPoliciesInterServiceClient(config);
+          
+            Common.Config.ApiClient.Calcs.ServiceCollectionExtensions.AddCalculationsInterServiceClient(builder, config);            
+            Common.Config.ApiClient.Specifications.ServiceCollectionExtensions.AddSpecificationsInterServiceClient(builder, config);
+            Common.Config.ApiClient.Jobs.ServiceCollectionExtensions.AddJobsInterServiceClient(builder, config);           
+            Common.Config.ApiClient.Providers.ServiceCollectionExtensions.AddProvidersInterServiceClient(builder, config);          
 
             builder.AddFeatureToggling(config);
 

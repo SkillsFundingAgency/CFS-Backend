@@ -802,82 +802,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 providersApiClient
                     .DidNotReceive()
                     .PopulateProviderSummariesForSpecification(Arg.Is(specificationId));
-        }
-
-        [TestMethod]
-        public async Task UpdateAllocations_GivenBuildProject_CallsUpdateCalculationLastupdatedDate()
-        {
-            //Arrange
-            string specificationId = "test-spec1";
-
-            string cacheKey = $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}";
-
-            BuildProject buildProject = new BuildProject
-            {
-                SpecificationId = specificationId,
-                Id = Guid.NewGuid().ToString(),
-                Name = specificationId
-            };
-
-            Message message = new Message(Encoding.UTF8.GetBytes(""));
-            message.UserProperties.Add("jobId", "job-id-1");
-            message.UserProperties.Add("specification-id", specificationId);
-
-            IProvidersApiClient providersApiClient = CreateProvidersApiClient();
-            providersApiClient
-                .GetScopedProviderIds(Arg.Is(specificationId))
-                .Returns(new ApiResponse<IEnumerable<string>>(HttpStatusCode.OK, Enumerable.Empty<string>()));
-
-            providersApiClient
-                .PopulateProviderSummariesForSpecification(Arg.Is(specificationId))
-                .Returns(new ApiResponse<int?>(HttpStatusCode.OK, 0));
-
-            ICacheProvider cacheProvider = CreateCacheProvider();
-            cacheProvider
-                .KeyExists<ProviderSummary>(Arg.Is(cacheKey))
-                .Returns(true);
-
-            cacheProvider
-                .ListLengthAsync<ProviderSummary>(Arg.Is(cacheKey))
-                .Returns(10000);
-            ILogger logger = CreateLogger();
-
-            ISpecificationRepository specificationRepository = CreateSpecificationRepository();
-
-            string parentJobId = "job-id-1";
-
-            JobViewModel parentJob = new JobViewModel
-            {
-                Id = parentJobId,
-                InvokerUserDisplayName = "Username",
-                InvokerUserId = "UserId",
-                SpecificationId = specificationId,
-                CorrelationId = "correlation-id-1",
-                JobDefinitionId = JobConstants.DefinitionNames.CreateInstructGenerateAggregationsAllocationJob
-            };
-
-            ApiResponse<JobViewModel> jobViewModelResponse = new ApiResponse<JobViewModel>(HttpStatusCode.OK, parentJob);
-
-            IJobsApiClient jobsApiClient = CreateJobsApiClient();
-            jobsApiClient
-                .GetJobById(Arg.Is(parentJobId))
-                .Returns(jobViewModelResponse);
-
-            BuildProjectsService buildProjectsService = CreateBuildProjectsService(jobsApiClient: jobsApiClient,
-                logger: logger,
-                cacheProvider: cacheProvider,
-                specificationsRepository: specificationRepository,
-                providersApiClient: providersApiClient);
-
-            //Act
-            await buildProjectsService.UpdateAllocations(message);
-
-            //Assert
-            await
-                specificationRepository
-                    .Received(1)
-                    .UpdateCalculationLastUpdatedDate(Arg.Is(specificationId));
-        }
+        }        
 
         [TestMethod]
         public async Task UpdateAllocations_GivenBuildProjectAndListLengthOfTenThousandProviders_CreatesTenJobs()
@@ -2253,22 +2178,10 @@ namespace CalculateFunding.Services.Calcs.Services
             return jobs;
         }
 
-        //private BuildProjectsService CreateBuildProjectsServiceWithRealCompiler(IBuildProjectsRepository buildProjectsRepository, ICalculationsRepository calculationsRepository)
-        //{
-        //    ILogger logger = CreateLogger();
-        //    ISourceFileGeneratorProvider sourceFileGeneratorProvider = CreateSourceFileGeneratorProvider();
-        //    sourceFileGeneratorProvider.CreateSourceFileGenerator(Arg.Is(TargetLanguage.VisualBasic)).Returns(new VisualBasicSourceFileGenerator(logger));
-        //    VisualBasicCompiler vbCompiler = new VisualBasicCompiler(logger);
-        //    CompilerFactory compilerFactory = new CompilerFactory(null, vbCompiler);
-
-        //    return CreateBuildProjectsService(buildProjectsRepository: buildProjectsRepository, sourceFileGeneratorProvider: sourceFileGeneratorProvider, calculationsRepository: calculationsRepository, logger: logger, compilerFactory: compilerFactory);
-        //}
-
         private static BuildProjectsService CreateBuildProjectsService(
             ILogger logger = null,
             ITelemetry telemetry = null,
-            IProvidersApiClient providersApiClient = null,
-            ISpecificationRepository specificationsRepository = null,
+            IProvidersApiClient providersApiClient = null,         
             ICacheProvider cacheProvider = null,
             ICalculationsRepository calculationsRepository = null,
             IFeatureToggle featureToggle = null,
@@ -2282,8 +2195,7 @@ namespace CalculateFunding.Services.Calcs.Services
             return new BuildProjectsService(
                 logger ?? CreateLogger(),
                 telemetry ?? CreateTelemetry(),
-                providersApiClient ?? CreateProvidersApiClient(),
-                specificationsRepository ?? CreateSpecificationRepository(),
+                providersApiClient ?? CreateProvidersApiClient(),              
                 cacheProvider ?? CreateCacheProvider(),
                 calculationsRepository ?? CreateCalculationsRepository(),
                 featureToggle ?? CreateFeatureToggle(),
@@ -2351,11 +2263,6 @@ namespace CalculateFunding.Services.Calcs.Services
         private static ICacheProvider CreateCacheProvider()
         {
             return Substitute.For<ICacheProvider>();
-        }
-
-        private static ISpecificationRepository CreateSpecificationRepository()
-        {
-            return Substitute.For<ISpecificationRepository>();
         }
 
         private static ICalculationsRepository CreateCalculationsRepository()

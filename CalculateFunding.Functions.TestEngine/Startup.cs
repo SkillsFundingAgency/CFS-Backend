@@ -155,12 +155,11 @@ namespace CalculateFunding.Functions.TestEngine
             builder.AddSearch(config);
             builder
                 .AddSingleton<ISearchRepository<TestScenarioResultIndex>, SearchRepository<TestScenarioResultIndex>>();
-
-            builder.AddSpecificationsInterServiceClient(config);
-            builder.AddScenariosInterServiceClient(config);
-            builder.AddCalculationsInterServiceClient(config);
-            builder.AddResultsInterServiceClient(config);
-            builder.AddProvidersInterServiceClient(config);
+                       
+            Common.Config.ApiClient.Specifications.ServiceCollectionExtensions.AddSpecificationsInterServiceClient(builder, config);
+            builder.AddScenariosInterServiceClient(config);      
+            Common.Config.ApiClient.Calcs.ServiceCollectionExtensions.AddCalculationsInterServiceClient(builder, config);
+            Common.Config.ApiClient.Providers.ServiceCollectionExtensions.AddProvidersInterServiceClient(builder, config);
 
             builder.AddCaching(config);
 

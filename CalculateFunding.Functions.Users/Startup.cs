@@ -114,8 +114,8 @@ namespace CalculateFunding.Functions.Users
             builder.AddLogging("CalculateFunding.Functions.Users");
 
             builder.AddTelemetry();
-
-            builder.AddSpecificationsInterServiceClient(config);
+            
+            Common.Config.ApiClient.Specifications.ServiceCollectionExtensions.AddSpecificationsInterServiceClient(builder, config);
 
             return builder.BuildServiceProvider();
         }

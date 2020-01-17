@@ -218,8 +218,8 @@ namespace CalculateFunding.Functions.CosmosDbScaling
             });
 
             builder.AddCaching(config);
-
-            builder.AddJobsInterServiceClient(config);
+           
+            Common.Config.ApiClient.Jobs.ServiceCollectionExtensions.AddJobsInterServiceClient(builder, config);
 
             builder.AddServiceBus(config);
 

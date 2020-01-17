@@ -160,10 +160,11 @@ namespace CalculateFunding.Functions.CalcEngine
             builder
                 .AddSingleton(calculationsConfig.CreateMapper());
 
-            builder.AddCalculationsInterServiceClient(config);
-            builder.AddSpecificationsInterServiceClient(config);
-
-            builder.AddJobsInterServiceClient(config);
+           
+            Common.Config.ApiClient.Calcs.ServiceCollectionExtensions.AddCalculationsInterServiceClient(builder, config);          
+            Common.Config.ApiClient.Specifications.ServiceCollectionExtensions.AddSpecificationsInterServiceClient(builder, config);
+          
+            Common.Config.ApiClient.Jobs.ServiceCollectionExtensions.AddJobsInterServiceClient(builder, config);
 
             builder.AddDatasetsInterServiceClient(config);
 

@@ -193,11 +193,11 @@ namespace CalculateFunding.Functions.Datasets
                 return new DatasetsAggregationsRepository(aggsCosmosRepostory);
             });
 
-            builder.AddCalculationsInterServiceClient(config);
-            builder.AddResultsInterServiceClient(config);
-            builder.AddSpecificationsInterServiceClient(config);
-            builder.AddJobsInterServiceClient(config);
-            builder.AddProvidersInterServiceClient(config);
+           
+            Common.Config.ApiClient.Calcs.ServiceCollectionExtensions.AddCalculationsInterServiceClient(builder, config);            
+            Common.Config.ApiClient.Specifications.ServiceCollectionExtensions.AddSpecificationsInterServiceClient(builder, config);         
+            Common.Config.ApiClient.Jobs.ServiceCollectionExtensions.AddJobsInterServiceClient(builder, config);           
+            Common.Config.ApiClient.Providers.ServiceCollectionExtensions.AddProvidersInterServiceClient(builder, config);
 
             if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
             {

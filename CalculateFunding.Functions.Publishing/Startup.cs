@@ -270,8 +270,7 @@ namespace CalculateFunding.Functions.Publishing
 
             builder.AddSingleton<IJobHelperService, JobHelperService>();
 
-            builder.AddApplicationInsightsForFunctionApps(config, "CalculateFunding.Functions.Publishing");
-            // builder.AddApplicationInsightsTelemetryClient(config, "CalculateFunding.Functions.Publishing");
+            builder.AddApplicationInsightsForFunctionApps(config, "CalculateFunding.Functions.Publishing");          
 
             builder.AddLogging("CalculateFunding.Functions.Publishing", config);
 
@@ -300,10 +299,14 @@ namespace CalculateFunding.Functions.Publishing
             // Fix recommended by Microsoft for issues with disposed scopes when running in functions in the cloud
             builder.Configure<HttpClientFactoryOptions>(options => options.SuppressHandlerScope = true);
 
-            builder.AddSpecificationsInterServiceClient(config);
-            builder.AddProvidersInterServiceClient(config);
-            builder.AddJobsInterServiceClient(config);
-            builder.AddCalculationsInterServiceClient(config);
+            //builder.AddSpecificationsInterServiceClient(config);
+            //builder.AddProvidersInterServiceClient(config);
+            Common.Config.ApiClient.Specifications.ServiceCollectionExtensions.AddSpecificationsInterServiceClient(builder, config);
+            Common.Config.ApiClient.Providers.ServiceCollectionExtensions.AddProvidersInterServiceClient(builder, config);
+            //builder.AddJobsInterServiceClient(config);
+            //builder.AddCalculationsInterServiceClient(config);
+            Common.Config.ApiClient.Jobs.ServiceCollectionExtensions.AddJobsInterServiceClient(builder, config);
+            Common.Config.ApiClient.Calcs.ServiceCollectionExtensions.AddCalculationsInterServiceClient(builder, config);
 
             builder.AddHttpClient(HttpClientKeys.Profiling,
                    c =>

@@ -135,10 +135,7 @@ namespace CalculateFunding.Api.Calcs
               .AddSingleton<ISourceFileGeneratorProvider, SourceFileGeneratorProvider>();
 
             builder
-               .AddSingleton<IValidator<PreviewRequest>, PreviewRequestModelValidator>();
-
-            builder
-               .AddSingleton<ISpecificationRepository, SpecificationRepository>();
+               .AddSingleton<IValidator<PreviewRequest>, PreviewRequestModelValidator>();         
 
             builder
                 .AddScoped<IBuildProjectsService, BuildProjectsService>()
@@ -200,12 +197,12 @@ namespace CalculateFunding.Api.Calcs
 
             builder.AddServiceBus(Configuration);
 
-            builder.AddResultsInterServiceClient(Configuration);
-            builder.AddProvidersInterServiceClient(Configuration);
-            builder.AddSpecificationsInterServiceClient(Configuration);
-            builder.AddDatasetsInterServiceClient(Configuration);
-            builder.AddJobsInterServiceClient(Configuration);
-            builder.AddPoliciesInterServiceClient(Configuration);
+        
+            Common.Config.ApiClient.Providers.ServiceCollectionExtensions.AddProvidersInterServiceClient(builder, Configuration);            
+            Common.Config.ApiClient.Specifications.ServiceCollectionExtensions.AddSpecificationsInterServiceClient(builder, Configuration);
+            builder.AddDatasetsInterServiceClient(Configuration);           
+            Common.Config.ApiClient.Jobs.ServiceCollectionExtensions.AddJobsInterServiceClient(builder, Configuration);            
+            Common.Config.ApiClient.Policies.ServiceCollectionExtensions.AddPoliciesInterServiceClient(builder, Configuration);
 
             builder.AddCaching(Configuration);
 

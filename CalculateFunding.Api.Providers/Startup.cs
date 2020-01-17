@@ -152,9 +152,10 @@ namespace CalculateFunding.Api.Providers
             builder
                 .AddSingleton(providerVersionsConfig.CreateMapper());
 
-            builder.AddResultsInterServiceClient(Configuration);
-            builder.AddApplicationInsightsTelemetry();
-            builder.AddSpecificationsInterServiceClient(Configuration);
+           
+            Common.Config.ApiClient.Results.ServiceCollectionExtensions.AddResultsInterServiceClient(builder, Configuration);
+            builder.AddApplicationInsightsTelemetry();            
+            Common.Config.ApiClient.Specifications.ServiceCollectionExtensions.AddSpecificationsInterServiceClient(builder, Configuration);
             builder.AddApplicationInsightsForApiApp(Configuration, "CalculateFunding.Api.Providers");
             builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Api.Providers");
             builder.AddLogging("CalculateFunding.Api.Providers");

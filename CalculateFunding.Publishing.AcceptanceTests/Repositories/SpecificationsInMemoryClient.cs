@@ -138,5 +138,25 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         {
             throw new NotImplementedException();
         }
+
+        public Task<ApiResponse<IEnumerable<string>>> GetDistinctFundingStreamsForSpecifications()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ApiResponse<bool>> DeleteSpecificationById(string specificationName)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ApiResponse<bool>> PermanentDeleteSpecificationById(string specificationName)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ApiResponse<IEnumerable<ProfileVariationPointer>>> GetProfileVariationPointers(string specificationId)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

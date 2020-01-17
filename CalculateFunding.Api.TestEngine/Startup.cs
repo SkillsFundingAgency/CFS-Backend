@@ -192,11 +192,11 @@ namespace CalculateFunding.Api.TestRunner
             builder
                 .AddSingleton<ISearchRepository<TestScenarioResultIndex>, SearchRepository<TestScenarioResultIndex>>();
 
-            builder.AddCalculationsInterServiceClient(Configuration);
-            builder.AddSpecificationsInterServiceClient(Configuration);
-            builder.AddScenariosInterServiceClient(Configuration);
-            builder.AddResultsInterServiceClient(Configuration);
-            builder.AddProvidersInterServiceClient(Configuration);
+            
+            Common.Config.ApiClient.Calcs.ServiceCollectionExtensions.AddCalculationsInterServiceClient(builder, Configuration);           
+            Common.Config.ApiClient.Specifications.ServiceCollectionExtensions.AddSpecificationsInterServiceClient(builder, Configuration);
+            builder.AddScenariosInterServiceClient(Configuration);          
+            Common.Config.ApiClient.Providers.ServiceCollectionExtensions.AddProvidersInterServiceClient(builder, Configuration);
 
             builder.AddCaching(Configuration);
 

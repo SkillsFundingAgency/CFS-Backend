@@ -7,9 +7,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CalculateFunding.Common.ApiClient.Policies" Version="2.0.16" />
-    <PackageReference Include="CalculateFunding.Common.ApiClient.Providers" Version="1.0.20" />
-    <PackageReference Include="CalculateFunding.Common.ApiClient.Specifications" Version="1.0.23" />
+
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Calcs" Version="1.0.0" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Jobs" Version="1.0.0" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Policies" Version="1.0.0" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Providers" Version="1.0.0" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Specifications" Version="1.0.1" />
+
     <PackageReference Include="CalculateFunding.Common.Storage" Version="1.0.5" />
     <PackageReference Include="FluentValidation" Version="8.4.0" />
     <PackageReference Include="Microsoft.Azure.Storage.Blob" Version="11.0.1" />

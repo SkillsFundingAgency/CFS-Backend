@@ -135,10 +135,11 @@ namespace CalculateFunding.Api.Scenarios
 
             builder.AddUserProviderFromRequest();
 
-            builder.AddCalculationsInterServiceClient(Configuration);
-            builder.AddSpecificationsInterServiceClient(Configuration);
-            builder.AddDatasetsInterServiceClient(Configuration);
-            builder.AddJobsInterServiceClient(Configuration);
+          
+            Common.Config.ApiClient.Calcs.ServiceCollectionExtensions.AddCalculationsInterServiceClient(builder, Configuration);          
+            Common.Config.ApiClient.Specifications.ServiceCollectionExtensions.AddSpecificationsInterServiceClient(builder, Configuration);
+            builder.AddDatasetsInterServiceClient(Configuration);          
+            Common.Config.ApiClient.Jobs.ServiceCollectionExtensions.AddJobsInterServiceClient(builder, Configuration);
 
             builder.AddCosmosDb(Configuration);
 

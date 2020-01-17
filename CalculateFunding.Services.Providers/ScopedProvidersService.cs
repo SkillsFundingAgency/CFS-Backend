@@ -6,7 +6,9 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
+using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Results;
+using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Models;
@@ -33,7 +35,7 @@ namespace CalculateFunding.Services.Providers
 
         private readonly ICacheProvider _cacheProvider;
         private readonly IResultsApiClient _resultsApiClient;
-        private readonly ISpecificationsApiClientProxy _specificationsApiClient;
+        private readonly ISpecificationsApiClient _specificationsApiClient;
         private readonly IProviderVersionService _providerVersionService;
         private readonly IMapper _mapper;
         private readonly IScopedProvidersServiceSettings _scopedProvidersServiceSettings;
@@ -43,7 +45,7 @@ namespace CalculateFunding.Services.Providers
 
         public ScopedProvidersService(ICacheProvider cacheProvider,
             IResultsApiClient resultsApiClient,
-            ISpecificationsApiClientProxy specificationsApiClient,
+            ISpecificationsApiClient specificationsApiClient,
             IProviderVersionService providerVersionService,
             IMapper mapper,
             IScopedProvidersServiceSettings scopedProvidersServiceSettings,
@@ -176,6 +178,11 @@ namespace CalculateFunding.Services.Providers
             string scopedProviderSummariesCountCacheKey = $"{CacheKeys.ScopedProviderSummariesCount}{specificationId}";
             string currentProviderCount = await _cacheProvider.GetAsync<string>(scopedProviderSummariesCountCacheKey);
 
+
+            //ApiResponse<SpecificationSummary> spec =
+            //    await  _specificationsApiClient.GetSpecificationSummaryById(specificationId);
+
+
             string cacheKeyScopedListCacheKey = $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}";
             long scopedProviderRedisListCount = await _cacheProvider.ListLengthAsync<ProviderSummary>(cacheKeyScopedListCacheKey);
 
@@ -183,14 +190,16 @@ namespace CalculateFunding.Services.Providers
             {
                 string url = string.Format(getSpecificationSummary, specificationId);
 
-                SpecificationSummary spec = await _specificationsApiClient.GetAsync<SpecificationSummary>(url);
+               ApiResponse<SpecificationSummary> spec =
+                await  _specificationsApiClient.GetSpecificationSummaryById(specificationId);
 
-                if (string.IsNullOrWhiteSpace(spec?.ProviderVersionId))
+
+                if (string.IsNullOrWhiteSpace(spec?.Content.ProviderVersionId))
                 {
                     return null;
                 }
 
-                ProviderVersion providerVersion = await _providerVersionService.GetProvidersByVersion(spec.ProviderVersionId);
+                ProviderVersion providerVersion = await _providerVersionService.GetProvidersByVersion(spec.Content.ProviderVersionId);
 
                 if (providerVersion == null)
                 {
