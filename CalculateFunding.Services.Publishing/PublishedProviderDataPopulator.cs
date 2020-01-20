@@ -3,6 +3,7 @@ using AutoMapper;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Publishing.Comparers;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
 using Newtonsoft.Json;
@@ -46,11 +47,19 @@ namespace CalculateFunding.Services.Publishing
 
             Provider mappedProvider = _providerMapper.Map<Provider>(provider);
 
-            bool equal = publishedProviderVersion.Equals(generatedProviderResult, templateVersion, mappedProvider);
+            PublishedProviderVersionComparer publishedProviderVersionComparer = new PublishedProviderVersionComparer();
+
+            bool equal = publishedProviderVersionComparer.Equals(publishedProviderVersion, new PublishedProviderVersion{
+                FundingLines = generatedProviderResult.FundingLines, 
+                Calculations = generatedProviderResult.Calculations,
+                ReferenceData = generatedProviderResult.ReferenceData,
+                TemplateVersion = templateVersion, 
+                Provider = mappedProvider
+            });
 
             if (!equal)
             {
-                _logger.Information($"changes for new published provider version : {publishedProviderVersion.Id} : {publishedProviderVersion.Variances.AsJson()}");
+                _logger.Information($"changes for new published provider version : {publishedProviderVersion.Id} : {publishedProviderVersionComparer.Variances.AsJson()}");
             }
 
             publishedProviderVersion.FundingLines = generatedProviderResult.FundingLines;

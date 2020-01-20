@@ -11,7 +11,6 @@
   <ItemGroup>
     <ProjectReference Include="..\CalculateFunding.Models.Search\CalculateFunding.Models.Search.csproj" />
     <ProjectReference Include="..\CalculateFunding.Models.Versioning\CalculateFunding.Models.Versioning.csproj" />
-    <ProjectReference Include="..\CalculateFunding.Services.Core\CalculateFunding.Services.Core.csproj" />
   </ItemGroup>
 
 </Project>
