@@ -92,7 +92,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             _logger
                 .Received(1)
-                .Information($"changes for new published provider version : [\"TemplateVersion: {newTemplateVersion} != {initialTemplateVersion}\"]");
+                .Information($"changes for new published provider version : {_publishedProviderVersion.Id} : [\"TemplateVersion: {newTemplateVersion} != {initialTemplateVersion}\"]");
         }
 
         [TestMethod]
@@ -122,7 +122,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             
             _logger
                  .Received(1)
-                 .Information($"changes for new published provider version : [\"Provider: Name: {initialProviderName} != {newProviderName}\"]");
+                 .Information($"changes for new published provider version : {_publishedProviderVersion.Id} : [\"Provider: Name: {initialProviderName} != {newProviderName}\"]");
         }
 
         [TestMethod]
@@ -140,7 +140,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             _logger
                  .Received(1)
-                 .Information($"changes for new published provider version : [\"FundingLine:{_generatedProviderResult.FundingLines.First().FundingLineCode}\"]");
+                 .Information($"changes for new published provider version : {_publishedProviderVersion.Id} : [\"FundingLine:{_generatedProviderResult.FundingLines.First().FundingLineCode}\"]");
         }
 
         [TestMethod]
@@ -158,7 +158,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             _logger
                  .Received(1)
-                 .Information($"changes for new published provider version : [\"Calculation:{_generatedProviderResult.Calculations.First().TemplateCalculationId}\"]");
+                 .Information($"changes for new published provider version : {_publishedProviderVersion.Id} : [\"Calculation:{_generatedProviderResult.Calculations.First().TemplateCalculationId}\"]");
         }
 
         [TestMethod]
@@ -176,7 +176,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             _logger
                  .Received(1)
-                 .Information($"changes for new published provider version : [\"ReferenceData:{_generatedProviderResult.ReferenceData.First().TemplateReferenceId}\"]");
+                 .Information($"changes for new published provider version : {_publishedProviderVersion.Id} : [\"ReferenceData:{_generatedProviderResult.ReferenceData.First().TemplateReferenceId}\"]");
         }
 
         private bool WhenThePublishedProviderIsUpdated()

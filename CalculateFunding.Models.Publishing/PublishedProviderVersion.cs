@@ -152,7 +152,7 @@ namespace CalculateFunding.Models.Publishing
 
         public virtual bool Equals(GeneratedProviderResult providerResult, string template, Provider provider)
         {
-            (bool nochange, FundingLine fundingLine) hasFundingLineChanges = CompareEnumerable(FundingLines, providerResult.FundingLines, (x, y) => {
+            (bool equal, FundingLine fundingLine) hasFundingLineChanges = CompareEnumerable(FundingLines, providerResult.FundingLines, (x, y) => {
                 if (x.TemplateLineId == y.TemplateLineId && x.FundingLineCode == y.FundingLineCode && x.Name == y.Name && x.Type == y.Type && x.Value == y.Value)
                 {
                     (bool nochange, DistributionPeriod distributionPeriod) hasDistributionPeriodChanges = CompareEnumerable(x.DistributionPeriods, y.DistributionPeriods, (xdp, ydp) => {
@@ -189,23 +189,23 @@ namespace CalculateFunding.Models.Publishing
                 return true;
             });
 
-            if (!hasFundingLineChanges.nochange)
+            if (!hasFundingLineChanges.equal)
             {
                 _variances.Add($"FundingLine:{hasFundingLineChanges.fundingLine?.FundingLineCode}");
                 return false;
             }
 
-            (bool nochange, FundingCalculation calculation) hasCalcChanges = CompareEnumerable(Calculations, providerResult.Calculations, (x, y) => x.TemplateCalculationId == y.TemplateCalculationId && x.Value.ToString() == y.Value.ToString());
+            (bool equal, FundingCalculation calculation) hasCalcChanges = CompareEnumerable(Calculations, providerResult.Calculations, (x, y) => x.TemplateCalculationId == y.TemplateCalculationId && x.Value.ToString() == y.Value.ToString());
 
-            if (!hasCalcChanges.nochange)
+            if (!hasCalcChanges.equal)
             {
                 _variances.Add($"Calculation:{hasCalcChanges.calculation?.TemplateCalculationId}");
                 return false;
             }
 
-            (bool nochange, FundingReferenceData reference) hasReferenceChanges = CompareEnumerable(ReferenceData, providerResult.ReferenceData, (x, y) => x.TemplateReferenceId == y.TemplateReferenceId && x.Value.Equals(y.Value));
+            (bool equal, FundingReferenceData reference) hasReferenceChanges = CompareEnumerable(ReferenceData, providerResult.ReferenceData, (x, y) => x.TemplateReferenceId == y.TemplateReferenceId && x.Value.Equals(y.Value));
 
-            if (!hasReferenceChanges.nochange)
+            if (!hasReferenceChanges.equal)
             {
                 _variances.Add($"ReferenceData:{hasReferenceChanges.reference?.TemplateReferenceId}");
                 return false;

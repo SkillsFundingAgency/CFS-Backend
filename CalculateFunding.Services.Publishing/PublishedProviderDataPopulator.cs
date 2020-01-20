@@ -46,11 +46,11 @@ namespace CalculateFunding.Services.Publishing
 
             Provider mappedProvider = _providerMapper.Map<Provider>(provider);
 
-            bool hasChanges = !publishedProviderVersion.Equals(generatedProviderResult, templateVersion, mappedProvider);
+            bool equal = publishedProviderVersion.Equals(generatedProviderResult, templateVersion, mappedProvider);
 
-            if (hasChanges)
+            if (!equal)
             {
-                _logger.Information($"changes for new published provider version : {publishedProviderVersion.Variances.AsJson()}");
+                _logger.Information($"changes for new published provider version : {publishedProviderVersion.Id} : {publishedProviderVersion.Variances.AsJson()}");
             }
 
             publishedProviderVersion.FundingLines = generatedProviderResult.FundingLines;
@@ -67,7 +67,7 @@ namespace CalculateFunding.Services.Publishing
 
             publishedProviderVersion.VariationReasons = variationForProvider?.VariationReasons?.ToArray();
 
-            return hasChanges;
+            return !equal;
         }
     }
 }
