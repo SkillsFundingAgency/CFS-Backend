@@ -39,7 +39,8 @@ namespace CalculateFunding.Services.Publishing
             GeneratedProviderResult generatedProviderResult,
             Common.ApiClient.Providers.Models.Provider provider,
             string templateVersion,
-            ProviderVariationResult variationForProvider)
+            ProviderVariationResult variationForProvider,
+            bool isNewProvider)
         {
             Guard.ArgumentNotNull(publishedProviderVersion, nameof(publishedProviderVersion));
             Guard.ArgumentNotNull(generatedProviderResult, nameof(generatedProviderResult));
@@ -49,17 +50,24 @@ namespace CalculateFunding.Services.Publishing
 
             PublishedProviderVersionComparer publishedProviderVersionComparer = new PublishedProviderVersionComparer();
 
-            bool equal = publishedProviderVersionComparer.Equals(publishedProviderVersion, new PublishedProviderVersion{
-                FundingLines = generatedProviderResult.FundingLines, 
-                Calculations = generatedProviderResult.Calculations,
-                ReferenceData = generatedProviderResult.ReferenceData,
-                TemplateVersion = templateVersion, 
-                Provider = mappedProvider
-            });
+            // if this is a new provider then it will always need to be updated
+            bool equal = !isNewProvider;
 
-            if (!equal)
+            if (equal)
             {
-                _logger.Information($"changes for new published provider version : {publishedProviderVersion.Id} : {publishedProviderVersionComparer.Variances.AsJson()}");
+                equal = publishedProviderVersionComparer.Equals(publishedProviderVersion, new PublishedProviderVersion
+                {
+                    FundingLines = generatedProviderResult.FundingLines,
+                    Calculations = generatedProviderResult.Calculations,
+                    ReferenceData = generatedProviderResult.ReferenceData,
+                    TemplateVersion = templateVersion,
+                    Provider = mappedProvider
+                });
+
+                if (!equal)
+                {
+                    _logger.Information($"changes for new published provider version : {publishedProviderVersion.Id} : {publishedProviderVersionComparer.Variances.AsJson()}");
+                }
             }
 
             publishedProviderVersion.FundingLines = generatedProviderResult.FundingLines;

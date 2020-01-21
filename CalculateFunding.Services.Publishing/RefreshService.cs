@@ -309,7 +309,8 @@ namespace CalculateFunding.Services.Publishing
                         generatedProviderResult,
                         scopedProviders[providerId],
                         specification.TemplateIds[fundingStream.Id],
-                        variationContext?.Result);
+                        variationContext?.Result,
+                        newProviders.ContainsKey(publishedProvider.Key));
 
                     if (!publishedProviderUpdated)
                     {

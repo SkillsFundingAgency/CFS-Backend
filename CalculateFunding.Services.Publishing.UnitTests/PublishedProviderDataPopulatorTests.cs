@@ -185,7 +185,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 _generatedProviderResult, 
                 _provider, 
                 _templateVersion,
-                _providerVariationResult);
+                _providerVariationResult,
+                false);
         }
 
         private ProviderVariationResult NewProviderVariationResult(Action<ProviderVariationResultBuilder> setUp = null)
