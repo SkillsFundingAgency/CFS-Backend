@@ -8,6 +8,7 @@ using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Providers;
 using CalculateFunding.Common.Caching;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Calcs;
@@ -37,7 +38,7 @@ namespace CalculateFunding.Services.Calcs
     {
         private readonly ILogger _logger;
         private readonly ITelemetry _telemetry;
-        private readonly IProvidersApiClient _providersApiClient;     
+        private readonly IProvidersApiClient _providersApiClient;
         private readonly ICacheProvider _cacheProvider;
         private readonly ICalculationsRepository _calculationsRepository;
         private readonly IFeatureToggle _featureToggle;
@@ -46,6 +47,7 @@ namespace CalculateFunding.Services.Calcs
         private readonly EngineSettings _engineSettings;
         private readonly ISourceCodeService _sourceCodeService;
         private readonly IDatasetRepository _datasetRepository;
+        private readonly IJobManagement _jobManagement;
         private readonly Polly.Policy _datasetRepositoryPolicy;
         private readonly IBuildProjectsRepository _buildProjectsRepository;
         private readonly Polly.Policy _buildProjectsRepositoryPolicy;
@@ -54,7 +56,7 @@ namespace CalculateFunding.Services.Calcs
         public BuildProjectsService(
             ILogger logger,
             ITelemetry telemetry,
-            IProvidersApiClient providersApiClient,         
+            IProvidersApiClient providersApiClient,
             ICacheProvider cacheProvider,
             ICalculationsRepository calculationsRepository,
             IFeatureToggle featureToggle,
@@ -64,10 +66,11 @@ namespace CalculateFunding.Services.Calcs
             ISourceCodeService sourceCodeService,
             IDatasetRepository datasetRepository,
             IBuildProjectsRepository buildProjectsRepository,
-            ICalculationEngineRunningChecker calculationEngineRunningChecker)
+            ICalculationEngineRunningChecker calculationEngineRunningChecker,
+            IJobManagement jobManagement)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
-            Guard.ArgumentNotNull(telemetry, nameof(telemetry));           
+            Guard.ArgumentNotNull(telemetry, nameof(telemetry));
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
             Guard.ArgumentNotNull(calculationsRepository, nameof(calculationsRepository));
             Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
@@ -79,13 +82,14 @@ namespace CalculateFunding.Services.Calcs
             Guard.ArgumentNotNull(buildProjectsRepository, nameof(buildProjectsRepository));
             Guard.ArgumentNotNull(providersApiClient, nameof(providersApiClient));
             Guard.ArgumentNotNull(calculationEngineRunningChecker, nameof(calculationEngineRunningChecker));
+            Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
             Guard.ArgumentNotNull(resiliencePolicies?.DatasetsRepository, nameof(resiliencePolicies.DatasetsRepository));
             Guard.ArgumentNotNull(resiliencePolicies?.JobsApiClient, nameof(resiliencePolicies.JobsApiClient));
             Guard.ArgumentNotNull(resiliencePolicies?.BuildProjectRepositoryPolicy, nameof(resiliencePolicies.BuildProjectRepositoryPolicy));
 
             _logger = logger;
             _telemetry = telemetry;
-            _providersApiClient = providersApiClient;          
+            _providersApiClient = providersApiClient;
             _cacheProvider = cacheProvider;
             _calculationsRepository = calculationsRepository;
             _featureToggle = featureToggle;
@@ -94,6 +98,7 @@ namespace CalculateFunding.Services.Calcs
             _engineSettings = engineSettings;
             _sourceCodeService = sourceCodeService;
             _datasetRepository = datasetRepository;
+            _jobManagement = jobManagement;
             _datasetRepositoryPolicy = resiliencePolicies.DatasetsRepository;
             _buildProjectsRepository = buildProjectsRepository;
             _buildProjectsRepositoryPolicy = resiliencePolicies.BuildProjectRepositoryPolicy;
@@ -274,11 +279,21 @@ namespace CalculateFunding.Services.Calcs
                     _logger.Information($"{newJobsCount} child jobs were created for parent id: '{job.Id}'");
                 }
             }
+            catch (RefreshJobRunningException ex)
+            {
+                await _jobManagement.UpdateJobStatus(jobId, new JobLogUpdateModel()
+                {
+                    CompletedSuccessfully = false,
+                    Outcome = ex.Message,
+                });
+
+                throw new NonRetriableException(ex.Message, ex);
+            }
             catch (Exception ex)
             {
-                _logger.Error(ex.Message);
+                _logger.Error(ex, $"Failed to create child jobs for parent job: '{job.Id}'");
 
-                throw new Exception($"Failed to create child jobs for parent job: '{job.Id}'");
+                throw;
             }
         }
 
@@ -492,7 +507,7 @@ namespace CalculateFunding.Services.Calcs
 
             if (calculationEngineRunning)
             {
-                throw new Exception($"Can not create job for specification: {parentJob.SpecificationId} as there is an existing Refresh Funding Job running for it. Please wait for that job to finish.");
+                throw new RefreshJobRunningException($"Can not create job for specification: {parentJob.SpecificationId} as there is an existing Refresh Funding Job running for it. Please wait for that job to finish.");
             }
 
             HashSet<string> calculationsToAggregate = new HashSet<string>();

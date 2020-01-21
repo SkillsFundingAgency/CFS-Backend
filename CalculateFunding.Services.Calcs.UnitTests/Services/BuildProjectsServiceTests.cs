@@ -9,6 +9,7 @@ using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Providers;
 using CalculateFunding.Common.Caching;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.Datasets.ViewModels;
@@ -16,6 +17,7 @@ using CalculateFunding.Models.ProviderLegacy;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Calcs.Interfaces.CodeGen;
 using CalculateFunding.Services.Compiler.Interfaces;
+using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
@@ -802,7 +804,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 providersApiClient
                     .DidNotReceive()
                     .PopulateProviderSummariesForSpecification(Arg.Is(specificationId));
-        }        
+        }
 
         [TestMethod]
         public async Task UpdateAllocations_GivenBuildProjectAndListLengthOfTenThousandProviders_CreatesTenJobs()
@@ -1230,7 +1232,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Which
                 .Message
                 .Should()
-                .Be($"Failed to create child jobs for parent job: '{parentJobId}'");
+                .Be($"Only 5 child jobs from 10 were created with parent id: 'job-id-1'");
 
 
             await
@@ -1249,7 +1251,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             logger
                 .Received(1)
-                .Error($"Only 5 child jobs from 10 were created with parent id: '{parentJob.Id}'");
+                .Error(Arg.Any<Exception>(), $"Failed to create child jobs for parent job: '{parentJob.Id}'");
 
             await
                 jobsApiClient
@@ -2037,10 +2039,13 @@ namespace CalculateFunding.Services.Calcs.Services
                 .IsCalculationEngineRunning(specificationId, Arg.Any<IEnumerable<string>>())
                 .Returns(true);
 
+            IJobManagement jobManagement = CreateJobManagement();
+
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(
                 logger: logger, cacheProvider: cacheProvider,
                 jobsApiClient: jobsApiClient, engineSettings: engineSettings, providersApiClient: providersApiClient,
-                calculationEngineRunningChecker: calculationEngineRunningChecker);
+                calculationEngineRunningChecker: calculationEngineRunningChecker,
+                jobManagement: jobManagement);
 
             //Act
             Func<Task> test = async () => await buildProjectsService.UpdateAllocations(message);
@@ -2048,7 +2053,13 @@ namespace CalculateFunding.Services.Calcs.Services
             //Assert
 
             test
-                .Should().ThrowExactly<Exception>();
+                .Should()
+                .ThrowExactly<NonRetriableException>()
+                .WithMessage("Can not create job for specification: test-spec1 as there is an existing Refresh Funding Job running for it. Please wait for that job to finish.");
+
+            await jobManagement
+                    .Received(1)
+                    .UpdateJobStatus(Arg.Is(parentJobId), Arg.Is<JobLogUpdateModel>(c => c.CompletedSuccessfully == false));
         }
 
         [TestMethod]
@@ -2181,7 +2192,7 @@ namespace CalculateFunding.Services.Calcs.Services
         private static BuildProjectsService CreateBuildProjectsService(
             ILogger logger = null,
             ITelemetry telemetry = null,
-            IProvidersApiClient providersApiClient = null,         
+            IProvidersApiClient providersApiClient = null,
             ICacheProvider cacheProvider = null,
             ICalculationsRepository calculationsRepository = null,
             IFeatureToggle featureToggle = null,
@@ -2190,12 +2201,13 @@ namespace CalculateFunding.Services.Calcs.Services
             ISourceCodeService sourceCodeService = null,
             IDatasetRepository datasetRepository = null,
             IBuildProjectsRepository buildProjectsRepository = null,
-            ICalculationEngineRunningChecker calculationEngineRunningChecker = null)
+            ICalculationEngineRunningChecker calculationEngineRunningChecker = null,
+            IJobManagement jobManagement = null)
         {
             return new BuildProjectsService(
                 logger ?? CreateLogger(),
                 telemetry ?? CreateTelemetry(),
-                providersApiClient ?? CreateProvidersApiClient(),              
+                providersApiClient ?? CreateProvidersApiClient(),
                 cacheProvider ?? CreateCacheProvider(),
                 calculationsRepository ?? CreateCalculationsRepository(),
                 featureToggle ?? CreateFeatureToggle(),
@@ -2205,12 +2217,18 @@ namespace CalculateFunding.Services.Calcs.Services
                 sourceCodeService ?? CreateSourceCodeService(),
                 datasetRepository ?? CreateDatasetRepository(),
                 buildProjectsRepository ?? CreateBuildProjectRepository(),
-                calculationEngineRunningChecker ?? CreateCalculationEngineRunningChecker());
+                calculationEngineRunningChecker ?? CreateCalculationEngineRunningChecker(),
+                jobManagement ?? CreateJobManagement());
         }
 
         private static ISourceCodeService CreateSourceCodeService()
         {
             return Substitute.For<ISourceCodeService>();
+        }
+
+        private static IJobManagement CreateJobManagement()
+        {
+            return Substitute.For<IJobManagement>();
         }
 
         private static EngineSettings CreateEngineSettings(int maxPartitionSize = 1000)

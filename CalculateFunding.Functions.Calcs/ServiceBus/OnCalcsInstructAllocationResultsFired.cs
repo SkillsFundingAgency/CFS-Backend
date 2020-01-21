@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Calcs.Interfaces;
+using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Constants;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
@@ -34,9 +35,13 @@ namespace CalculateFunding.Functions.Calcs.ServiceBus
             {
                 await _buildProjectsService.UpdateAllocations(message);
             }
+            catch (NonRetriableException ex)
+            {
+                _logger.Error(ex, $"An error occurred processing message in queue, non retry: {ServiceBusConstants.QueueNames.CalculationJobInitialiser}");
+            }
             catch (Exception exception)
             {
-                _logger.Error(exception, $"An error occurred getting message from queue: {ServiceBusConstants.QueueNames.CalculationJobInitialiser}");
+                _logger.Error(exception, $"An error occurred processing message in queue: {ServiceBusConstants.QueueNames.CalculationJobInitialiser}");
                 throw;
             }
         }

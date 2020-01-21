@@ -1,5 +1,6 @@
 ﻿using System;
 using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Functions.CosmosDbScaling.ServiceBus;
 using CalculateFunding.Models.CosmosDbScaling;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
@@ -39,6 +40,12 @@ namespace CalculateFunding.Functions.CosmosDbScaling
 
         private static IServiceProvider Register(IServiceCollection builder, IConfigurationRoot config)
         {
+#if DEBUG
+            // Added for DebugQueue
+            builder.AddSingleton<OnScaleUpCosmosDbCollection>();
+#endif
+
+
             builder.AddSingleton<ICosmosDbScalingRepositoryProvider, CosmosDbScalingRepositoryProvider>();
 
             builder.AddSingleton<ICosmosDbScalingService, CosmosDbScalingService>();
@@ -218,7 +225,7 @@ namespace CalculateFunding.Functions.CosmosDbScaling
             });
 
             builder.AddCaching(config);
-           
+
             Common.Config.ApiClient.Jobs.ServiceCollectionExtensions.AddJobsInterServiceClient(builder, config);
 
             builder.AddServiceBus(config);

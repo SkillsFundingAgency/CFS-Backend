@@ -1,5 +1,6 @@
 ﻿using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Interfaces;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Storage;
 using CalculateFunding.Common.WebApi.Extensions;
@@ -33,6 +34,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
+using Polly;
 using Polly.Bulkhead;
 
 namespace CalculateFunding.Api.Calcs
@@ -135,7 +137,7 @@ namespace CalculateFunding.Api.Calcs
               .AddSingleton<ISourceFileGeneratorProvider, SourceFileGeneratorProvider>();
 
             builder
-               .AddSingleton<IValidator<PreviewRequest>, PreviewRequestModelValidator>();         
+               .AddSingleton<IValidator<PreviewRequest>, PreviewRequestModelValidator>();
 
             builder
                 .AddScoped<IBuildProjectsService, BuildProjectsService>()
@@ -197,11 +199,12 @@ namespace CalculateFunding.Api.Calcs
 
             builder.AddServiceBus(Configuration);
 
-        
-            Common.Config.ApiClient.Providers.ServiceCollectionExtensions.AddProvidersInterServiceClient(builder, Configuration);            
+            builder.AddScoped<IJobManagement, JobManagement>();
+
+            Common.Config.ApiClient.Providers.ServiceCollectionExtensions.AddProvidersInterServiceClient(builder, Configuration);
             Common.Config.ApiClient.Specifications.ServiceCollectionExtensions.AddSpecificationsInterServiceClient(builder, Configuration);
-            builder.AddDatasetsInterServiceClient(Configuration);           
-            Common.Config.ApiClient.Jobs.ServiceCollectionExtensions.AddJobsInterServiceClient(builder, Configuration);            
+            builder.AddDatasetsInterServiceClient(Configuration);
+            Common.Config.ApiClient.Jobs.ServiceCollectionExtensions.AddJobsInterServiceClient(builder, Configuration);
             Common.Config.ApiClient.Policies.ServiceCollectionExtensions.AddPoliciesInterServiceClient(builder, Configuration);
 
             builder.AddCaching(Configuration);
@@ -216,29 +219,20 @@ namespace CalculateFunding.Api.Calcs
 
             builder.AddFeatureToggling(Configuration);
 
-            builder.AddPolicySettings(Configuration);
+            PolicySettings policySettings = builder.GetPolicySettings(Configuration);
+            BulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
 
-            builder.AddSingleton<ICalcsResiliencePolicies>((ctx) =>
+            ResiliencePolicies resiliencePolicies = CreateResiliencePolicies(totalNetworkRequestsPolicy);
+
+            builder.AddSingleton<ICalcsResiliencePolicies>(resiliencePolicies);
+            builder.AddSingleton<IJobHelperResiliencePolicies>(resiliencePolicies);
+            builder.AddSingleton<IJobManagementResiliencePolicies>((ctx) =>
             {
-                PolicySettings policySettings = ctx.GetService<PolicySettings>();
-
-                BulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
-
-                return new ResiliencePolicies
+                return new JobManagementResiliencePolicies()
                 {
-                    CalculationsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
-                    CalculationsSearchRepository = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
-                    CacheProviderPolicy = ResiliencePolicyHelpers.GenerateRedisPolicy(totalNetworkRequestsPolicy),
-                    CalculationsVersionsRepositoryPolicy = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
-                    SpecificationsRepositoryPolicy = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-                    BuildProjectRepositoryPolicy = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
-                    MessagePolicy = ResiliencePolicyHelpers.GenerateMessagingPolicy(totalNetworkRequestsPolicy),
-                    JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-                    SourceFilesRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-                    DatasetsRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-                    PoliciesApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-                    SpecificationsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                    JobsApiClient = resiliencePolicies.JobsApiClient,
                 };
+
             });
 
             builder.AddApiKeyMiddlewareSettings((IConfigurationRoot)Configuration);
@@ -258,5 +252,27 @@ namespace CalculateFunding.Api.Calcs
                 });
             });
         }
+
+        private static ResiliencePolicies CreateResiliencePolicies(Policy totalNetworkRequestsPolicy)
+        {
+            return new ResiliencePolicies
+            {
+
+                CalculationsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
+                CalculationsSearchRepository = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
+                CacheProviderPolicy = ResiliencePolicyHelpers.GenerateRedisPolicy(totalNetworkRequestsPolicy),
+                CalculationsVersionsRepositoryPolicy = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
+                SpecificationsRepositoryPolicy = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                BuildProjectRepositoryPolicy = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
+                MessagePolicy = ResiliencePolicyHelpers.GenerateMessagingPolicy(totalNetworkRequestsPolicy),
+                JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                SourceFilesRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                DatasetsRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                PoliciesApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                SpecificationsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+            };
+        }
+
+
     }
 }

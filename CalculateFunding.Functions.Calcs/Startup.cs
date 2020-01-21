@@ -2,6 +2,7 @@
 using CalculateFunding.Common.ApiClient;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Interfaces;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Storage;
 using CalculateFunding.Functions.Calcs.ServiceBus;
 using CalculateFunding.Models.Calcs;
@@ -29,6 +30,7 @@ using FluentValidation;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Polly;
 using Polly.Bulkhead;
 
 [assembly: FunctionsStartup(typeof(CalculateFunding.Functions.Calcs.Startup))]
@@ -84,13 +86,15 @@ namespace CalculateFunding.Functions.Calcs
                 .AddSingleton<VisualBasicCompiler>()
                 .AddSingleton<VisualBasicSourceFileGenerator>();
             builder.AddSingleton<ISourceFileGeneratorProvider, SourceFileGeneratorProvider>();
-            builder.AddSingleton<IValidator<PreviewRequest>, PreviewRequestModelValidator>();           
+            builder.AddSingleton<IValidator<PreviewRequest>, PreviewRequestModelValidator>();
             builder.AddScoped<IBuildProjectsService, BuildProjectsService>();
             builder.AddSingleton<IBuildProjectsRepository, BuildProjectsRepository>();
             builder.AddSingleton<ICodeMetadataGeneratorService, ReflectionCodeMetadataGenerator>();
             builder.AddSingleton<ICancellationTokenProvider, InactiveCancellationTokenProvider>();
             builder.AddSingleton<ISourceCodeService, SourceCodeService>();
             builder.AddScoped<IJobHelperService, JobHelperService>();
+            builder.AddScoped<IJobManagement, JobManagement>();
+
             builder
                .AddScoped<IDatasetDefinitionFieldChangesProcessor, DatasetDefinitionFieldChangesProcessor>();
 
@@ -143,11 +147,11 @@ namespace CalculateFunding.Functions.Calcs
                 .AddSingleton<ISearchRepository<ProviderCalculationResultsIndex>, SearchRepository<ProviderCalculationResultsIndex>>();
 
             builder.AddServiceBus(config);
-           
-            Common.Config.ApiClient.Providers.ServiceCollectionExtensions.AddProvidersInterServiceClient(builder, config);           
+
+            Common.Config.ApiClient.Providers.ServiceCollectionExtensions.AddProvidersInterServiceClient(builder, config);
             Common.Config.ApiClient.Specifications.ServiceCollectionExtensions.AddSpecificationsInterServiceClient(builder, config);
-            builder.AddDatasetsInterServiceClient(config);         
-            Common.Config.ApiClient.Jobs.ServiceCollectionExtensions.AddJobsInterServiceClient(builder, config);          
+            builder.AddDatasetsInterServiceClient(config);
+            Common.Config.ApiClient.Jobs.ServiceCollectionExtensions.AddJobsInterServiceClient(builder, config);
             Common.Config.ApiClient.Policies.ServiceCollectionExtensions.AddPoliciesInterServiceClient(builder, config);
 
             builder.AddCaching(config);
@@ -160,17 +164,26 @@ namespace CalculateFunding.Functions.Calcs
             builder.AddTelemetry();
 
             PolicySettings policySettings = builder.GetPolicySettings(config);
-            ResiliencePolicies resiliencePolicies = CreateResiliencePolicies(policySettings);
+            BulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
+
+            ResiliencePolicies resiliencePolicies = CreateResiliencePolicies(totalNetworkRequestsPolicy);
+
             builder.AddSingleton<ICalcsResiliencePolicies>(resiliencePolicies);
             builder.AddSingleton<IJobHelperResiliencePolicies>(resiliencePolicies);
+            builder.AddSingleton<IJobManagementResiliencePolicies>((ctx) =>
+            {
+                return new JobManagementResiliencePolicies()
+                {
+                    JobsApiClient = resiliencePolicies.JobsApiClient,
+                };
+
+            });
 
             return builder.BuildServiceProvider();
         }
 
-        private static ResiliencePolicies CreateResiliencePolicies(PolicySettings policySettings)
+        private static ResiliencePolicies CreateResiliencePolicies(Policy totalNetworkRequestsPolicy)
         {
-            BulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
-
             return new ResiliencePolicies
             {
                 CalculationsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),

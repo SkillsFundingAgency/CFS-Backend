@@ -21,9 +21,9 @@ namespace CalculateFunding.Services.Publishing.Variations
             _variationStrategyServiceLocator = variationStrategyServiceLocator;
         }
 
-        public async Task<ProviderVariationContext> CreateRequiredVariationChanges(PublishedProvider existingPublishedProvider, 
-            GeneratedProviderResult generatedProviderResult, 
-            ApiProvider provider, 
+        public async Task<ProviderVariationContext> CreateRequiredVariationChanges(PublishedProvider existingPublishedProvider,
+            GeneratedProviderResult generatedProviderResult,
+            ApiProvider provider,
            IEnumerable<FundingVariation> variations)
         {
             ProviderVariationContext providerVariationContext = new ProviderVariationContext
