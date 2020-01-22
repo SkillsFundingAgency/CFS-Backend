@@ -35,7 +35,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .Received(1)
                 .Search(Arg.Is(""),
                     Arg.Is<SearchParameters>(_ =>
-                        _.OrderBy.SequenceEqual(new[] { "statusChangedDate asc", "id asc" })));
+                        _.OrderBy.SequenceEqual(new[] { "statusChangedDate", "id" })),
+                    Arg.Is(true));
         }
 
         [TestMethod]
@@ -44,10 +45,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             await _searchService.GetFeedsV3(null, 10);
 
             await _searchRepository
-                .Received(1)
+                .Received(2)
                 .Search(Arg.Is(""),
                     Arg.Is<SearchParameters>(_ =>
-                        _.OrderBy.SequenceEqual(new[] { "statusChangedDate desc", "id asc" })));
+                        _.OrderBy.SequenceEqual(new[] { "statusChangedDate", "id" })),
+                    Arg.Is(true));
         }
     }
 }

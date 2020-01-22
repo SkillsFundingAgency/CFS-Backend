@@ -189,7 +189,7 @@ namespace CalculateFunding.Services.Publishing
             }
 
             _logger.Information($"Running search reindexer for published funding");
-            await _publishedIndexSearchResiliencePolicy.ExecuteAsync(() => _publishedFundingSearchRepository.RunIndexer());           
+            await _publishedIndexSearchResiliencePolicy.ExecuteAsync(() => _publishedFundingSearchRepository.RunIndexer());
 
             // Mark job as complete
             _logger.Information($"Marking publish funding job complete");
@@ -247,13 +247,16 @@ namespace CalculateFunding.Services.Publishing
 
             _logger.Information($"Fetched {publishedFunding.Count()} existing published funding items");
 
-            List<PublishedProvider> publishedProviders = publishedProvidersForFundingStream.Where(p => p.Current.FundingStreamId == fundingStream.Id).ToList();
+            Dictionary<string, PublishedProvider> publishedProviders = new Dictionary<string, PublishedProvider>(
+                publishedProvidersForFundingStream
+                .Where(p => p.Current.FundingStreamId == fundingStream.Id)
+                .Select(c => new KeyValuePair<string, PublishedProvider>(c.Current.ProviderId, c)));
 
             TemplateMetadataContents templateMetadataContents = await ReadTemplateMetadataContents(fundingStream, specification);
 
             FundingConfiguration fundingConfiguration = await ReadFundingConfiguration(fundingStream, specification);
 
-            Dictionary<string, Provider> scopedProviders = await ReadScopedProviders(specificationId, specification, publishedProviders);
+            Dictionary<string, Provider> scopedProviders = await ReadScopedProviders(specificationId, specification, publishedProviders.Values);
 
             TemplateMapping templateMapping = await GetTemplateMapping(fundingStream, specificationId);
 
@@ -278,7 +281,7 @@ namespace CalculateFunding.Services.Publishing
             {
                 OrganisationGroupsToSave = organisationGroupsToSave,
                 TemplateMetadataContents = templateMetadataContents,
-                PublishedProviders = publishedProviders,
+                PublishedProviders = publishedProviders.Values,
                 TemplateVersion = specification.TemplateIds[fundingStream.Id],
                 FundingStream = fundingStream,
                 FundingPeriod = fundingPeriod,
@@ -286,7 +289,7 @@ namespace CalculateFunding.Services.Publishing
                 SpecificationId = specification.Id,
             };
 
-            List<PublishedProvider> publishedProvidersToSaveAsReleased = await SavePublishedProvidersAsPublishedReleased(jobId, author, publishedProviders);
+            List<PublishedProvider> publishedProvidersToSaveAsReleased = await SavePublishedProvidersAsPublishedReleased(jobId, author, publishedProviders.Values);
 
             if (!publishedProvidersToSaveAsReleased.IsNullOrEmpty())
             {
@@ -321,9 +324,9 @@ namespace CalculateFunding.Services.Publishing
             }
         }
 
-        private async Task<List<PublishedProvider>> SavePublishedProvidersAsPublishedReleased(string jobId, Reference author, List<PublishedProvider> publishedProviders)
+        private async Task<List<PublishedProvider>> SavePublishedProvidersAsPublishedReleased(string jobId, Reference author, IEnumerable<PublishedProvider> publishedProviders)
         {
-            List<PublishedProvider> publishedProvidersToSaveAsReleased = 
+            List<PublishedProvider> publishedProvidersToSaveAsReleased =
                 new List<PublishedProvider>(publishedProviders.Where(p => p.Current.Status != PublishedProviderStatus.Released));
 
             _logger.Information($"Saving published providers. Total = '{publishedProvidersToSaveAsReleased.Count()}'");
@@ -349,9 +352,9 @@ namespace CalculateFunding.Services.Publishing
             return calculationMappingResult.Content;
         }
 
-        private async Task<Dictionary<string, Provider>> ReadScopedProviders(string specificationId, 
-            SpecificationSummary specification, 
-            List<PublishedProvider> publishedProviders)
+        private async Task<Dictionary<string, Provider>> ReadScopedProviders(string specificationId,
+            SpecificationSummary specification,
+            IEnumerable<PublishedProvider> publishedProviders)
         {
             IEnumerable<Provider> scopedProvidersUnfiltered =
                 await _providerService.GetScopedProvidersForSpecification(specificationId, specification.ProviderVersionId);
@@ -374,7 +377,7 @@ namespace CalculateFunding.Services.Publishing
         private async Task<FundingConfiguration> ReadFundingConfiguration(Reference fundingStream, SpecificationSummary specification)
         {
             // Look up the funding configuration to determine which groups to publish
-            ApiResponse<FundingConfiguration> fundingConfigurationResponse = await _policyApiClientPolicy.ExecuteAsync(() => 
+            ApiResponse<FundingConfiguration> fundingConfigurationResponse = await _policyApiClientPolicy.ExecuteAsync(() =>
                 _policiesApiClient.GetFundingConfiguration(fundingStream.Id, specification.FundingPeriod.Id));
 
             if (fundingConfigurationResponse.StatusCode != System.Net.HttpStatusCode.OK)
@@ -387,7 +390,7 @@ namespace CalculateFunding.Services.Publishing
 
         private async Task<TemplateMetadataContents> ReadTemplateMetadataContents(Reference fundingStream, SpecificationSummary specification)
         {
-            ApiResponse<TemplateMetadataContents> templateMetadataContentsResponse = 
+            ApiResponse<TemplateMetadataContents> templateMetadataContentsResponse =
                 await _policiesApiClient.GetFundingTemplateContents(fundingStream.Id, specification.TemplateIds[fundingStream.Id]);
 
             if (templateMetadataContentsResponse?.Content == null)

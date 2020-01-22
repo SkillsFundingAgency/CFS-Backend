@@ -6,7 +6,7 @@
 
   <ItemGroup>
     <PackageReference Include="CalculateFunding.Common.Models" Version="1.0.5" />
-    <PackageReference Include="Microsoft.Azure.Search" Version="10.0.0" />
+    <PackageReference Include="Microsoft.Azure.Search" Version="10.1.0" />
   </ItemGroup>
 
   <ItemGroup>

@@ -298,7 +298,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
             if (cosmosDbScalingJobConfig == null)
             {
-                string errorMessage = $"A job config does not exist for job definition id {jobDefinitionId}";
+                string errorMessage = $"A job config does not exist for job definition id {jobDefinitionId} and repo type {cosmosDbScalingConfig.RepositoryType}";
 
                 _logger.Error(errorMessage);
                 throw new NonRetriableException(errorMessage);

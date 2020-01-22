@@ -66,7 +66,7 @@ namespace CalculateFunding.Services.Publishing
 
             if (pageRef == null)
             {
-                SearchResults<PublishedFundingIndex> countSearchResults = await SearchResults(0, null, null, filterHelper.BuildAndFilterQuery(), orderBy);
+                SearchResults<PublishedFundingIndex> countSearchResults = await SearchResults(0, null, filterHelper.BuildAndFilterQuery(), orderBy);
                 SearchFeedV3<PublishedFundingIndex> searchFeedCountResult = CreateSearchFeedResult(null, top, countSearchResults);
                 pageRef = searchFeedCountResult.Last;
             }
@@ -75,7 +75,7 @@ namespace CalculateFunding.Services.Publishing
 
             string filters = filterHelper.Filters.IsNullOrEmpty() ? "" : filterHelper.BuildAndFilterQuery();
 
-            SearchResults<PublishedFundingIndex> searchResults = await SearchResults(top, skip, pageRef, filters, orderBy);
+            SearchResults<PublishedFundingIndex> searchResults = await SearchResults(top, skip, filters, orderBy);
 
             return CreateSearchFeedResult(pageRef, top, searchResults);
         }
@@ -116,9 +116,9 @@ namespace CalculateFunding.Services.Publishing
             }
         }
 
-        private async Task<SearchResults<PublishedFundingIndex>> SearchResults(int top, int? skip, int? pageRef, string filters, params string[] orderBy)
+        private async Task<SearchResults<PublishedFundingIndex>> SearchResults(int top, int? skip, string filters, params string[] orderBy)
         {
-            string statusChangedDateOrderByParameter = pageRef == null ? "statusChangedDate desc" : "statusChangedDate asc";
+            string statusChangedDateOrderByParameter = "statusChangedDate";
 
             SearchResults <PublishedFundingIndex> searchResults =
                 await _fundingSearchRepositoryPolicy.ExecuteAsync(
@@ -126,15 +126,26 @@ namespace CalculateFunding.Services.Publishing
                     {
                         return _fundingSearchRepository.Search("", new SearchParameters
                         {
-                            Skip = skip,
-                            Top = top,
+                            Top = skip.HasValue ? (int?)null : top,
                             SearchMode = Microsoft.Azure.Search.Models.SearchMode.Any,
                             IncludeTotalResultCount = true,
                             Filter = filters,
-                            OrderBy = orderBy?.Any() == false ? new[] { statusChangedDateOrderByParameter, "id asc" } : orderBy,
+                            OrderBy = !orderBy.AnyWithNullCheck() ? new[] { statusChangedDateOrderByParameter, "id" } : orderBy,
                             QueryType = QueryType.Full
-                        });
+                        },
+                        true);
                     });
+
+            if(skip.HasValue)
+            {
+                searchResults?.Results?.RemoveRange(0, skip.Value);
+                searchResults?.Results?.Reverse();
+                if (searchResults != null && !searchResults.Results.IsNullOrEmpty() && searchResults.Results.Count > top)
+                {
+                    searchResults.Results = searchResults.Results.Take(top).ToList();
+                }
+            }
+
             return searchResults;
         }
     }

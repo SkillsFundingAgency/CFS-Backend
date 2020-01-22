@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
-using CalculateFunding.Models;
 using Microsoft.Azure.Search;
 using Microsoft.Azure.Search.Models;
 
@@ -115,7 +113,7 @@ namespace CalculateFunding.Repositories.Common.Search
 
         public async Task<SearchResults<T>> Search(string searchText, SearchParameters searchParameters = null, bool allResults = false)
         {
-            var client = await GetOrCreateIndex();
+            ISearchIndexClient client = await GetOrCreateIndex();
 
             try
             {

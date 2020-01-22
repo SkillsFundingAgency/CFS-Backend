@@ -64,7 +64,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             IEnumerable<(PublishedFunding, OrganisationGroupResult)> results = _prerequisites.GenerateOrganisationGroupsToSave(new OrganisationGroupResult[] { organisationGroupResult1, organisationGroupResult2 },
                 new PublishedFunding[] { publishedFunding1, publishedFunding2 },
-                new PublishedProvider[] { PublishedProvider1, PublishedProvider2, PublishedProvider3 }
+                new Dictionary<string, PublishedProvider>(new KeyValuePair<string, PublishedProvider>[] { 
+                    new KeyValuePair<string, PublishedProvider>(PublishedProvider1.Current.ProviderId, PublishedProvider1), 
+                    new KeyValuePair<string, PublishedProvider>(PublishedProvider2.Current.ProviderId, PublishedProvider2), 
+                    new KeyValuePair<string, PublishedProvider>(PublishedProvider3.Current.ProviderId, PublishedProvider3) } )
             );
 
             results.Count()
@@ -129,7 +132,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             // Act
             IEnumerable<(PublishedFunding PublishedFunding, OrganisationGroupResult OrganisationGroupResult)> results = _prerequisites.GenerateOrganisationGroupsToSave(new OrganisationGroupResult[] { organisationGroupResult1, organisationGroupResult2, organisationGroupResult3 },
                 new PublishedFunding[] { publishedFunding1, publishedFunding2, publishedFunding3 },
-                new PublishedProvider[] { PublishedProvider1, PublishedProvider2, PublishedProvider3 }
+                new Dictionary<string, PublishedProvider>(new KeyValuePair<string, PublishedProvider>[] { 
+                    new KeyValuePair<string, PublishedProvider>(PublishedProvider1.Current.ProviderId, PublishedProvider1), 
+                    new KeyValuePair<string, PublishedProvider>(PublishedProvider2.Current.ProviderId, PublishedProvider2), 
+                    new KeyValuePair<string, PublishedProvider>(PublishedProvider3.Current.ProviderId, PublishedProvider3) } )
             );
 
             // Assert
@@ -208,7 +214,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             // Act
             IEnumerable<(PublishedFunding PublishedFunding, OrganisationGroupResult OrganisationGroupResult)> results = _prerequisites.GenerateOrganisationGroupsToSave(new OrganisationGroupResult[] { organisationGroupResult1, organisationGroupResult2, organisationGroupResult3 },
                 new PublishedFunding[] { publishedFunding1, publishedFunding2, publishedFunding3 },
-                new PublishedProvider[] { PublishedProvider1, PublishedProvider2, PublishedProvider3, PublishedProvider4 }
+                new Dictionary<string, PublishedProvider>(new KeyValuePair<string, PublishedProvider>[] {
+                    new KeyValuePair<string, PublishedProvider>(PublishedProvider1.Current.ProviderId, PublishedProvider1),
+                    new KeyValuePair<string, PublishedProvider>(PublishedProvider2.Current.ProviderId, PublishedProvider2),
+                    new KeyValuePair<string, PublishedProvider>(PublishedProvider3.Current.ProviderId, PublishedProvider3),
+                    new KeyValuePair<string, PublishedProvider>(PublishedProvider4.Current.ProviderId, PublishedProvider4) })
             );
 
             // Assert
@@ -279,7 +289,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             // Act
             IEnumerable<(PublishedFunding, OrganisationGroupResult)> results = _prerequisites.GenerateOrganisationGroupsToSave(new OrganisationGroupResult[] { organisationGroupResult1, organisationGroupResult2, organisationGroupResult3 },
                 new PublishedFunding[] { publishedFunding1, publishedFunding2 },
-                new PublishedProvider[] { PublishedProvider1, PublishedProvider2, PublishedProvider3, PublishedProvider4 }
+                new Dictionary<string, PublishedProvider>(new KeyValuePair<string, PublishedProvider>[] {
+                    new KeyValuePair<string, PublishedProvider>(PublishedProvider1.Current.ProviderId, PublishedProvider1),
+                    new KeyValuePair<string, PublishedProvider>(PublishedProvider2.Current.ProviderId, PublishedProvider2),
+                    new KeyValuePair<string, PublishedProvider>(PublishedProvider3.Current.ProviderId, PublishedProvider3),
+                    new KeyValuePair<string, PublishedProvider>(PublishedProvider4.Current.ProviderId, PublishedProvider4) })
             );
 
             // Assert
