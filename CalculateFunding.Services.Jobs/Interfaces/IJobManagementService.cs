@@ -22,5 +22,7 @@ namespace CalculateFunding.Services.Jobs.Interfaces
         Task ProcessJobNotification(Message message);
 
         Task CheckAndProcessTimedOutJobs();
+
+        Task<IActionResult> DeleteJobs(Message message);
     }
 }

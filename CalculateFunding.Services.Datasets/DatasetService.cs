@@ -8,19 +8,19 @@ using System.Threading.Tasks;
 using System.Web;
 using AutoMapper;
 using CalculateFunding.Common.ApiClient.Jobs;
-using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Providers;
+using CalculateFunding.Common.ApiClient.Specifications;
+using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
-using CalculateFunding.Models;
-using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.Datasets.ViewModels;
+using CalculateFunding.Models.Messages;
 using CalculateFunding.Models.ProviderLegacy;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core;
@@ -30,10 +30,12 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.DataImporter.Validators.Models;
 using CalculateFunding.Services.Datasets.Interfaces;
+using CalculateFunding.Services.Results.Interfaces;
 using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.Search.Models;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.Storage.Blob;
 using Microsoft.Extensions.Primitives;
@@ -42,6 +44,8 @@ using OfficeOpenXml;
 using Polly;
 using Serilog;
 using ApiClientProviders = CalculateFunding.Common.ApiClient.Providers;
+using JobCreateModel = CalculateFunding.Common.ApiClient.Jobs.Models.JobCreateModel;
+using Trigger = CalculateFunding.Common.ApiClient.Jobs.Models.Trigger;
 
 namespace CalculateFunding.Services.Datasets
 {
@@ -65,6 +69,8 @@ namespace CalculateFunding.Services.Datasets
         private readonly IJobsApiClient _jobsApiClient;
         private readonly Policy _providersApiClientPolicy;
         private readonly IJobManagement _jobManagement;
+        private readonly IProviderSourceDatasetRepository _providerSourceDatasetRepository;
+        private readonly ISpecificationsApiClient _specificationsApiClient;
 
         public DatasetService(
             IBlobClient blobClient,
@@ -83,7 +89,9 @@ namespace CalculateFunding.Services.Datasets
             IJobsApiClient jobsApiClient,
             ISearchRepository<DatasetVersionIndex> datasetVersionIndexRepository,
             IProvidersApiClient providersApiClient,
-            IJobManagement jobManagement)
+            IJobManagement jobManagement,
+            IProviderSourceDatasetRepository providerSourceDatasetRepository,
+            ISpecificationsApiClient specificationsApiClient)
         {
             Guard.ArgumentNotNull(blobClient, nameof(blobClient));
             Guard.ArgumentNotNull(logger, nameof(logger));
@@ -103,6 +111,7 @@ namespace CalculateFunding.Services.Datasets
             Guard.ArgumentNotNull(datasetsResiliencePolicies?.JobsApiClient, nameof(datasetsResiliencePolicies.JobsApiClient));
             Guard.ArgumentNotNull(datasetsResiliencePolicies?.ProvidersApiClient, nameof(datasetsResiliencePolicies.ProvidersApiClient));
             Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
+            Guard.ArgumentNotNull(providerSourceDatasetRepository, nameof(providerSourceDatasetRepository));
 
             _blobClient = blobClient;
             _logger = logger;
@@ -122,6 +131,9 @@ namespace CalculateFunding.Services.Datasets
             _jobsApiClientPolicy = datasetsResiliencePolicies.JobsApiClient;
             _providersApiClientPolicy = datasetsResiliencePolicies.ProvidersApiClient;
             _jobManagement = jobManagement;
+            _providerSourceDatasetRepository = providerSourceDatasetRepository;
+            _specificationsApiClient = specificationsApiClient;
+            
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -950,6 +962,51 @@ namespace CalculateFunding.Services.Datasets
 
                 throw new RetriableException($"Failed to save dataset to search for definition id: {datsetDefinitionReference.Id} in search with errors: {errors}");
             }
+        }
+
+        public async Task<IActionResult> DeleteDatasets(Message message)
+        {
+            string specificationId = message.UserProperties["specification-id"].ToString();
+            if (string.IsNullOrEmpty(specificationId))
+                return new BadRequestObjectResult("Null or empty specification Id provided for deleting datasets");
+
+            string deletionTypeProperty = message.UserProperties["deletion-type"].ToString();
+            if (string.IsNullOrEmpty(deletionTypeProperty))
+                return new BadRequestObjectResult("Null or empty deletion type provided for deleting datasets");
+
+            DeletionType deletionType = deletionTypeProperty.ToDeletionType();
+
+            SpecificationSummary specificationSummary;
+            ApiResponse<SpecificationSummary> specificationSummaryApiResponse = 
+	            await _specificationsApiClient.GetSpecificationSummaryById(specificationId);
+
+            if (specificationSummaryApiResponse.StatusCode == HttpStatusCode.OK)
+            {
+                specificationSummary = specificationSummaryApiResponse.Content;
+            }
+            else
+            {
+                if (specificationSummaryApiResponse.StatusCode == HttpStatusCode.BadRequest)
+                {
+                    return new BadRequestResult();
+                }
+
+                return new InternalServerErrorResult(
+	                $"There was an issue with retrieving specification '{specificationId}'");
+            }
+
+            foreach (var id in specificationSummary.DataDefinitionRelationshipIds)
+            {
+                await _providerSourceDatasetRepository.DeleteProviderSourceDatasetVersion(id, deletionType);
+
+                await _providerSourceDatasetRepository.DeleteProviderSourceDataset(id, deletionType);
+            }
+
+            await _datasetRepository.DeleteDefinitionSpecificationRelationshipBySpecificationId(specificationId, deletionType);
+   
+            await _datasetRepository.DeleteDatasetsBySpecificationId(specificationId, deletionType);
+
+            return new OkResult();
         }
 
         private async Task<Dataset> SaveNewDatasetAndVersion(ICloudBlob blob, DatasetDefinition datasetDefinition, int rowCount)

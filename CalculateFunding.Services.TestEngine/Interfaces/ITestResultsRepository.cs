@@ -2,6 +2,7 @@
 using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
+using CalculateFunding.Models.Messages;
 using CalculateFunding.Models.Scenarios;
 
 namespace CalculateFunding.Services.TestRunner.Interfaces
@@ -21,5 +22,7 @@ namespace CalculateFunding.Services.TestRunner.Interfaces
         Task<SpecificationTestScenarioResultCounts> GetSpecificationCounts(string specificationId);
 
         Task<ScenarioResultCounts> GetProvideCountForSpecification(string providerId, string specificationId);
+
+        Task DeleteTestResultsBySpecificationId(string specificationId, DeletionType deletionType);
     }
 }

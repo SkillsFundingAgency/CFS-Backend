@@ -5,6 +5,8 @@ using CalculateFunding.Common.ApiClient.Providers;
 using CalculateFunding.Services.Specs.Interfaces;
 using CalculateFunding.Tests.Common;
 using FluentAssertions;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Hosting.Internal;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -18,10 +20,12 @@ namespace CalculateFunding.Functions.Specs.UnitTests
         public void ConfigureServices_RegisterDependenciesCorrectly()
         {
             // Arrange
+            var serviceCollection = new ServiceCollection();
+            serviceCollection.AddSingleton<IHostingEnvironment>(new HostingEnvironment());
             IConfigurationRoot configuration = CreateTestConfiguration();
 
             // Act
-            using (IServiceScope scope = Startup.RegisterComponents(new ServiceCollection(), configuration).CreateScope())
+            using (IServiceScope scope = Startup.RegisterComponents(serviceCollection, configuration).CreateScope())
             {
                 // Assert
                 scope.ServiceProvider.GetService<ISpecificationsRepository>().Should().NotBeNull(nameof(ISpecificationsRepository));

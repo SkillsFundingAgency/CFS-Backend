@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Models.Jobs;
+using CalculateFunding.Models.Messages;
 
 namespace CalculateFunding.Services.Jobs.Interfaces
 {
@@ -29,5 +29,7 @@ namespace CalculateFunding.Services.Jobs.Interfaces
         Task<Job> GetLatestJobBySpecificationId(string specificationId, IEnumerable<string> jobDefinitionIds = null);
 
         Task<IEnumerable<Job>> GetRunningJobsWithinTimeFrame(string dateTimeFrom, string dateTimeTo);
+
+        Task DeleteJobsBySpecificationId(string specificationId, DeletionType deletionType);
     }
 }

@@ -3,10 +3,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Net;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
+using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.ApiClient.Specifications;
+using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.ViewModels;
@@ -15,6 +19,7 @@ using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.Datasets.Interfaces;
+using CalculateFunding.Services.Results.Interfaces;
 using FluentAssertions;
 using FluentValidation;
 using FluentValidation.Results;
@@ -30,6 +35,7 @@ using NSubstitute;
 using Serilog;
 using BadRequestObjectResult = Microsoft.AspNetCore.Mvc.BadRequestObjectResult;
 using ValidationResult = FluentValidation.Results.ValidationResult;
+using CalculateFunding.Models.Messages;
 
 namespace CalculateFunding.Services.Datasets.Services
 {
@@ -1623,6 +1629,44 @@ namespace CalculateFunding.Services.Datasets.Services
             logger
                 .Received(1)
                 .Error(Arg.Is($"Failed to save dataset to search for definition id: {definitionId} in search with errors: Error in dataset ID for search"));
+        }
+
+        [TestMethod]
+        [DataRow("SpecId1", DeletionType.SoftDelete)]
+        [DataRow("SpecId1", DeletionType.PermanentDelete)]
+        public async Task DeleteDatasets_Deletes_Dependencies_Using_Correct_SpecificationId_And_DeletionType(string specificationId, DeletionType deletionType)
+        {
+            const string dataDefinitionRelationshipId = "22";
+            Message message = new Message
+            {
+                UserProperties =
+                {
+                    new KeyValuePair<string, object>("specification-id", specificationId),
+                    new KeyValuePair<string, object>("deletion-type", (int)deletionType)
+                }
+            };
+            var specificationSummary = new SpecificationSummary
+            {
+                DataDefinitionRelationshipIds = new[] {dataDefinitionRelationshipId}
+            };
+            ISpecificationsApiClient specificationsApiClient = Substitute.For<ISpecificationsApiClient>();
+            var apiResponseWithSpecSummary = new ApiResponse<SpecificationSummary>(HttpStatusCode.OK, specificationSummary);
+            specificationsApiClient.GetSpecificationSummaryById(specificationId).Returns(apiResponseWithSpecSummary);
+            IProviderSourceDatasetRepository providerSourceDatasetRepository = Substitute.For<IProviderSourceDatasetRepository>();
+            IDatasetRepository datasetRepository = Substitute.For<IDatasetRepository>();
+
+            DatasetService service = CreateDatasetService(
+                providerSourceDatasetRepository: providerSourceDatasetRepository, 
+                datasetRepository:datasetRepository,
+                specificationsApiClient:specificationsApiClient);
+
+            IActionResult result = await service.DeleteDatasets(message);
+
+            await providerSourceDatasetRepository.Received(1).DeleteProviderSourceDataset(dataDefinitionRelationshipId, deletionType); 
+            await providerSourceDatasetRepository.Received(1).DeleteProviderSourceDatasetVersion(dataDefinitionRelationshipId, deletionType);
+            await datasetRepository.Received(1).DeleteDefinitionSpecificationRelationshipBySpecificationId(specificationId, deletionType);
+            await datasetRepository.Received(1).DeleteDatasetsBySpecificationId(specificationId, deletionType);
+            result.Should().BeOfType<OkResult>();
         }
     }
 }

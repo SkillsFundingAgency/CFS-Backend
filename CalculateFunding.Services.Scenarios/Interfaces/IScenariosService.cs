@@ -22,5 +22,7 @@ namespace CalculateFunding.Services.Scenarios.Interfaces
         Task UpdateScenarioForCalculation(Message message);
 
         Task ResetScenarioForFieldDefinitionChanges(IEnumerable<DatasetSpecificationRelationshipViewModel> relationships, string specificationId, IEnumerable<string> currentFieldDefinitionNames);
+
+        Task<IActionResult> DeleteTests(Message message);
     }
 }

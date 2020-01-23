@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
+using CalculateFunding.Models.Messages;
 
 namespace CalculateFunding.Services.Datasets.Interfaces
 {
@@ -46,5 +47,9 @@ namespace CalculateFunding.Services.Datasets.Interfaces
         Task<IEnumerable<string>> GetDistinctRelationshipSpecificationIdsForDatasetDefinitionId(string datasetDefinitionId);
 
         Task UpdateDefinitionSpecificationRelationships(IEnumerable<DefinitionSpecificationRelationship> relationships);
+
+        Task DeleteDatasetsBySpecificationId(string specificationId, DeletionType deletionType);
+
+        Task DeleteDefinitionSpecificationRelationshipBySpecificationId(string specificationId, DeletionType deletionType);
     }
 }

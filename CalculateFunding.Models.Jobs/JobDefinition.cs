@@ -100,5 +100,11 @@ namespace CalculateFunding.Models.Jobs
         /// </summary>
         [JsonProperty("sessionMessageProperty")]
         public string SessionMessageProperty { get; set; }
+
+        /// <summary>
+        /// List of jobs required to be completed before completing the parent job
+        /// </summary>
+        [JsonProperty("preCompletionJobs")]
+        public IEnumerable<string> PreCompletionJobs { get; set; }
     }
 }

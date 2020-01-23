@@ -8,6 +8,7 @@ using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
+using CalculateFunding.Models.Messages;
 using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Options;
@@ -197,6 +198,26 @@ namespace CalculateFunding.Services.TestRunner.Repositories
                 Failed = failedTask.Result,
                 Ignored = ignoredTask.Result,
             };
+        }
+
+        public async Task DeleteTestResultsBySpecificationId(string specificationId, DeletionType deletionType)
+        {
+            IEnumerable<TestScenarioResult> testResults = await GetTestResultsBySpecificationId(specificationId);
+
+            List<TestScenarioResult> testResultList = testResults.ToList();
+
+            if (!testResultList.Any())
+                return;
+
+            if (deletionType == DeletionType.SoftDelete)
+                await _cosmosRepository.BulkDeleteAsync(testResultList.ToDictionary(c => c.Id), hardDelete:false);
+            if (deletionType == DeletionType.PermanentDelete)
+                await _cosmosRepository.BulkDeleteAsync(testResultList.ToDictionary(c => c.Id), hardDelete:true);
+        }
+
+        private async Task<IEnumerable<TestScenarioResult>> GetTestResultsBySpecificationId(string specificationId)
+        {
+            return await _cosmosRepository.Query<TestScenarioResult>(x => x.Content.Specification.Id == specificationId);
         }
     }
 }

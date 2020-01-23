@@ -57,8 +57,10 @@ namespace CalculateFunding.Services.Specs.Interfaces
 
         Task<IActionResult> GetFundingStreamIdsForSelectedFundingSpecifications();
         Task<IActionResult> GetFundingPeriodsByFundingStreamIdsForSelectedSpecifications(string fundingStreamId);
+        Task<IActionResult> SoftDeleteSpecificationById(HttpRequest request);
+        Task<IActionResult> PermanentDeleteSpecificationById(HttpRequest request);
+        Task<IActionResult> DeleteSpecification(Message message);
         Task<IActionResult> DeselectSpecificationForFunding(string specificationId);
-
         Task<IActionResult> GetDistinctFundingStreamsForSpecifications();
     }
 }

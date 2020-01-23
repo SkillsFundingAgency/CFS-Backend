@@ -8,7 +8,6 @@ using AutoMapper;
 using CalculateFunding.Common.ApiClient.Providers;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Calcs;
-using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Models.Messages;
 using CalculateFunding.Models.ProviderLegacy;
 using CalculateFunding.Models.Scenarios;
@@ -19,6 +18,7 @@ using CalculateFunding.Services.TestEngine.MappingProfiles;
 using CalculateFunding.Services.TestRunner.Interfaces;
 using CalculateFunding.Services.TestRunner.Services;
 using FluentAssertions;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Search.Models;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -446,6 +446,28 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
             logger
                 .Received(1)
                 .Error($"The following errors occcurred while updating test results for specification id: {specificationId}, an error");
+        }
+
+        [TestMethod]
+        [DataRow("SpecId1", DeletionType.SoftDelete)]
+        [DataRow("SpecId1", DeletionType.PermanentDelete)]
+        public async Task DeleteTestResults_Deletes_Dependencies_Using_Correct_SpecificationId_And_DeletionType(string specificationId, DeletionType deletionType)
+        {
+            Message message = new Message
+            {
+                UserProperties =
+                {
+                    new KeyValuePair<string, object>("specification-id", specificationId),
+                    new KeyValuePair<string, object>("deletion-type", (int)deletionType)
+                }
+            };
+            ITestResultsRepository testResultsRepository = CreateTestResultsRepository();
+            TestResultsService service = CreateTestResultsService(testResultsRepository:testResultsRepository);
+
+            IActionResult actionResult = await service.DeleteTestResults(message);
+
+            await testResultsRepository.Received(1).DeleteTestResultsBySpecificationId(specificationId, deletionType);
+            actionResult.Should().BeOfType<OkResult>();
         }
 
         private TestResultsService CreateTestResultsService(

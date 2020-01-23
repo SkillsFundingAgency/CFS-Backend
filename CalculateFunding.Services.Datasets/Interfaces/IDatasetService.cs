@@ -36,5 +36,7 @@ namespace CalculateFunding.Services.Datasets.Interfaces
         Task<IActionResult> GetValidateDatasetStatus(HttpRequest httpRequest);
 
         Task UpdateDatasetAndVersionDefinitionName(Reference datsetDefinitionReference);
+
+        Task<IActionResult> DeleteDatasets(Message message);
     }
 }

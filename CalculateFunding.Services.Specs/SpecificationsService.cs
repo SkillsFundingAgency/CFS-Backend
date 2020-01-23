@@ -29,10 +29,10 @@ using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Specs.Interfaces;
 using FluentValidation;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
-using Microsoft.Azure.Storage;
 using Microsoft.Extensions.Primitives;
 using Newtonsoft.Json;
 using Serilog;
@@ -58,7 +58,9 @@ namespace CalculateFunding.Services.Specs
         private readonly IResultsRepository _resultsRepository;
         private readonly IVersionRepository<Models.Specs.SpecificationVersion> _specificationVersionRepository;
         private readonly IQueueCreateSpecificationJobActions _queueCreateSpecificationJobAction;
+        private readonly IQueueDeleteSpecificationJobActions _queueDeleteSpecificationJobAction;
         private readonly ICalculationsApiClient _calcsApiClient;
+        private readonly IHostingEnvironment _hostingEnvironment;
         private readonly Polly.Policy _calcsApiClientPolicy;
         private readonly IFeatureToggle _featureToggle;
 
@@ -77,7 +79,9 @@ namespace CalculateFunding.Services.Specs
             IVersionRepository<Models.Specs.SpecificationVersion> specificationVersionRepository,
             ISpecificationsResiliencePolicies resiliencePolicies,
             IQueueCreateSpecificationJobActions queueCreateSpecificationJobAction,
+            IQueueDeleteSpecificationJobActions queueDeleteSpecificationJobAction,
             ICalculationsApiClient calcsApiClient,
+            IHostingEnvironment hostingEnvironment,
             IFeatureToggle featureToggle)
         {
             Guard.ArgumentNotNull(mapper, nameof(mapper));
@@ -87,7 +91,8 @@ namespace CalculateFunding.Services.Specs
             Guard.ArgumentNotNull(specificationCreateModelValidator, nameof(specificationCreateModelValidator));
             Guard.ArgumentNotNull(messengerService, nameof(messengerService));
             Guard.ArgumentNotNull(searchRepository, nameof(searchRepository));
-            Guard.ArgumentNotNull(assignDefinitionRelationshipMessageValidator, nameof(assignDefinitionRelationshipMessageValidator));
+            Guard.ArgumentNotNull(assignDefinitionRelationshipMessageValidator,
+                nameof(assignDefinitionRelationshipMessageValidator));
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
             Guard.ArgumentNotNull(specificationEditModelValidator, nameof(specificationEditModelValidator));
             Guard.ArgumentNotNull(resultsRepository, nameof(resultsRepository));
@@ -96,7 +101,9 @@ namespace CalculateFunding.Services.Specs
             Guard.ArgumentNotNull(resiliencePolicies?.JobsApiClient, nameof(resiliencePolicies.JobsApiClient));
             Guard.ArgumentNotNull(resiliencePolicies?.CalcsApiClient, nameof(resiliencePolicies.CalcsApiClient));
             Guard.ArgumentNotNull(queueCreateSpecificationJobAction, nameof(queueCreateSpecificationJobAction));
+            Guard.ArgumentNotNull(queueDeleteSpecificationJobAction, nameof(queueDeleteSpecificationJobAction));
             Guard.ArgumentNotNull(calcsApiClient, nameof(calcsApiClient));
+            Guard.ArgumentNotNull(hostingEnvironment, nameof(hostingEnvironment));
             Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
 
             _mapper = mapper;
@@ -113,14 +120,16 @@ namespace CalculateFunding.Services.Specs
             _resultsRepository = resultsRepository;
             _specificationVersionRepository = specificationVersionRepository;
             _queueCreateSpecificationJobAction = queueCreateSpecificationJobAction;
+            _queueDeleteSpecificationJobAction = queueDeleteSpecificationJobAction;
             _calcsApiClient = calcsApiClient;
+            _hostingEnvironment = hostingEnvironment;
             _featureToggle = featureToggle;
             _calcsApiClientPolicy = resiliencePolicies.CalcsApiClient;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
         {
-            ServiceHealth specRepoHealth = await ((IHealthChecker)_specificationsRepository).IsHealthOk();
+            ServiceHealth specRepoHealth = await ((IHealthChecker) _specificationsRepository).IsHealthOk();
             string queueName = ServiceBusConstants.QueueNames.CalculationJobInitialiser;
             (bool Ok, string Message) messengerServiceHealth = await _messengerService.IsHealthOk(queueName);
             (bool Ok, string Message) searchRepoHealth = await _searchRepository.IsHealthOk();
@@ -131,9 +140,22 @@ namespace CalculateFunding.Services.Specs
                 Name = nameof(SpecificationsService)
             };
             health.Dependencies.AddRange(specRepoHealth.Dependencies);
-            health.Dependencies.Add(new DependencyHealth { HealthOk = messengerServiceHealth.Ok, DependencyName = $"{_messengerService.GetType().GetFriendlyName()} for queue: {queueName}", Message = messengerServiceHealth.Message });
-            health.Dependencies.Add(new DependencyHealth { HealthOk = searchRepoHealth.Ok, DependencyName = _searchRepository.GetType().GetFriendlyName(), Message = searchRepoHealth.Message });
-            health.Dependencies.Add(new DependencyHealth { HealthOk = cacheHealth.Ok, DependencyName = _cacheProvider.GetType().GetFriendlyName(), Message = cacheHealth.Message });
+            health.Dependencies.Add(new DependencyHealth
+            {
+                HealthOk = messengerServiceHealth.Ok,
+                DependencyName = $"{_messengerService.GetType().GetFriendlyName()} for queue: {queueName}",
+                Message = messengerServiceHealth.Message
+            });
+            health.Dependencies.Add(new DependencyHealth
+            {
+                HealthOk = searchRepoHealth.Ok, DependencyName = _searchRepository.GetType().GetFriendlyName(),
+                Message = searchRepoHealth.Message
+            });
+            health.Dependencies.Add(new DependencyHealth
+            {
+                HealthOk = cacheHealth.Ok, DependencyName = _cacheProvider.GetType().GetFriendlyName(),
+                Message = cacheHealth.Message
+            });
 
             return health;
         }
@@ -228,7 +250,8 @@ namespace CalculateFunding.Services.Specs
 
             if (specificationIds.Any())
             {
-                IEnumerable<Specification> specifications = await _specificationsRepository.GetSpecificationsByQuery(c => specificationIds.Contains(c.Id));
+                IEnumerable<Specification> specifications =
+                    await _specificationsRepository.GetSpecificationsByQuery(c => specificationIds.Contains(c.Id));
 
                 foreach (Specification specification in specifications)
                 {
@@ -250,7 +273,8 @@ namespace CalculateFunding.Services.Specs
                 return new NotFoundResult();
             }
 
-            List<SpecificationSummary> result = await _cacheProvider.GetAsync<List<SpecificationSummary>>(CacheKeys.SpecificationSummaries);
+            List<SpecificationSummary> result =
+                await _cacheProvider.GetAsync<List<SpecificationSummary>>(CacheKeys.SpecificationSummaries);
             if (result.IsNullOrEmpty())
             {
                 result = new List<SpecificationSummary>();
@@ -287,7 +311,9 @@ namespace CalculateFunding.Services.Specs
             List<SpecificationSummary> result = await _cacheProvider.GetAsync<List<SpecificationSummary>>(cacheKey);
             if (result.IsNullOrEmpty())
             {
-                IEnumerable<Specification> specifications = await _specificationsRepository.GetSpecificationsByQuery(m => m.Content.Current.FundingPeriod.Id == fundingPeriodId);
+                IEnumerable<Specification> specifications =
+                    await _specificationsRepository.GetSpecificationsByQuery(m =>
+                        m.Content.Current.FundingPeriod.Id == fundingPeriodId);
 
                 result = new List<SpecificationSummary>();
 
@@ -308,7 +334,8 @@ namespace CalculateFunding.Services.Specs
             return new OkObjectResult(result);
         }
 
-        public async Task<IActionResult> GetCurrentSpecificationsByFundingPeriodIdAndFundingStreamId(HttpRequest request)
+        public async Task<IActionResult> GetCurrentSpecificationsByFundingPeriodIdAndFundingStreamId(
+            HttpRequest request)
         {
             request.Query.TryGetValue("fundingPeriodId", out StringValues yearId);
 
@@ -316,7 +343,8 @@ namespace CalculateFunding.Services.Specs
 
             if (string.IsNullOrWhiteSpace(fundingPeriodId))
             {
-                _logger.Error("No funding period Id was provided to GetSpecificationsByFundingPeriodIdAndFundingPeriodId");
+                _logger.Error(
+                    "No funding period Id was provided to GetSpecificationsByFundingPeriodIdAndFundingPeriodId");
 
                 return new BadRequestObjectResult("Null or empty fundingPeriodId provided");
             }
@@ -327,12 +355,15 @@ namespace CalculateFunding.Services.Specs
 
             if (string.IsNullOrWhiteSpace(fundingStreamId))
             {
-                _logger.Error("No funding stream Id was provided to GetSpecificationsByFundingPeriodIdAndFundingPeriodId");
+                _logger.Error(
+                    "No funding stream Id was provided to GetSpecificationsByFundingPeriodIdAndFundingPeriodId");
 
                 return new BadRequestObjectResult("Null or empty fundingstreamId provided");
             }
 
-            IEnumerable<Specification> specifications = await _specificationsRepository.GetApprovedOrUpdatedSpecificationsByFundingPeriodAndFundingStream(fundingPeriodId, fundingStreamId);
+            IEnumerable<Specification> specifications =
+                await _specificationsRepository.GetApprovedOrUpdatedSpecificationsByFundingPeriodAndFundingStream(
+                    fundingPeriodId, fundingStreamId);
 
             ConcurrentBag<SpecificationSummary> mappedSpecifications = new ConcurrentBag<SpecificationSummary>();
 
@@ -381,8 +412,9 @@ namespace CalculateFunding.Services.Specs
             }
 
             IEnumerable<SpecificationSummary> specifications = (
-                    await _specificationsRepository.GetSpecificationsByQuery(c => c.Content.IsSelectedForFunding && c.Content.Current.FundingPeriod.Id == fundingPeriodId)
-                    ).Select(s => _mapper.Map<SpecificationSummary>(s));
+                await _specificationsRepository.GetSpecificationsByQuery(c =>
+                    c.Content.IsSelectedForFunding && c.Content.Current.FundingPeriod.Id == fundingPeriodId)
+            ).Select(s => _mapper.Map<SpecificationSummary>(s));
 
 
             if (!specifications.Any())
@@ -409,8 +441,9 @@ namespace CalculateFunding.Services.Specs
             }
 
             IEnumerable<Reference> fundingStreams = (
-                    await _specificationsRepository.GetSpecificationsByQuery(c => c.Content.IsSelectedForFunding && c.Id == specificationId)
-                    ).Select(s => _mapper.Map<Reference>(s));
+                await _specificationsRepository.GetSpecificationsByQuery(c =>
+                    c.Content.IsSelectedForFunding && c.Id == specificationId)
+            ).Select(s => _mapper.Map<Reference>(s));
 
             return new OkObjectResult(fundingStreams);
         }
@@ -428,7 +461,9 @@ namespace CalculateFunding.Services.Specs
                 return new BadRequestObjectResult("Null or empty specification name provided");
             }
 
-            IEnumerable<Specification> specifications = await _specificationsRepository.GetSpecificationsByQuery(m => m.Content.Name.ToLower() == specificationName.ToLower());
+            IEnumerable<Specification> specifications =
+                await _specificationsRepository.GetSpecificationsByQuery(m =>
+                    m.Content.Name.ToLower() == specificationName.ToLower());
 
             if (!specifications.Any())
             {
@@ -455,14 +490,17 @@ namespace CalculateFunding.Services.Specs
 
             createModel.Name = createModel.Name?.Trim();
 
-            BadRequestObjectResult validationResult = (await _specificationCreateModelvalidator.ValidateAsync(createModel)).PopulateModelState();
+            BadRequestObjectResult validationResult =
+                (await _specificationCreateModelvalidator.ValidateAsync(createModel)).PopulateModelState();
 
             if (validationResult != null)
             {
                 return validationResult;
             }
 
-            ApiResponse<PolicyModels.FundingPeriod> fundingPeriodResponse = await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingPeriodById(createModel.FundingPeriodId));
+            ApiResponse<PolicyModels.FundingPeriod> fundingPeriodResponse =
+                await _policiesApiClientPolicy.ExecuteAsync(() =>
+                    _policiesApiClient.GetFundingPeriodById(createModel.FundingPeriodId));
             PolicyModels.FundingPeriod content = fundingPeriodResponse.Content;
 
             Reference user = request.GetUser();
@@ -491,7 +529,9 @@ namespace CalculateFunding.Services.Specs
 
             foreach (string fundingStreamId in createModel.FundingStreamIds)
             {
-                Common.ApiClient.Models.ApiResponse<PolicyModels.FundingStream> fundingStreamResponse = await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingStreamById(fundingStreamId));
+                Common.ApiClient.Models.ApiResponse<PolicyModels.FundingStream> fundingStreamResponse =
+                    await _policiesApiClientPolicy.ExecuteAsync(() =>
+                        _policiesApiClient.GetFundingStreamById(fundingStreamId));
                 Reference fundingStream = _mapper.Map<Reference>(fundingStreamResponse?.Content);
                 if (fundingStream == null)
                 {
@@ -515,11 +555,15 @@ namespace CalculateFunding.Services.Specs
 
             foreach (string fundingStreamId in specification.Current.FundingStreams.Select(m => m.Id))
             {
-                ApiResponse<FundingConfiguration> fundingConfigResponse = await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingConfiguration(fundingStreamId, specification.Current.FundingPeriod.Id));
+                ApiResponse<FundingConfiguration> fundingConfigResponse =
+                    await _policiesApiClientPolicy.ExecuteAsync(() =>
+                        _policiesApiClient.GetFundingConfiguration(fundingStreamId,
+                            specification.Current.FundingPeriod.Id));
 
                 if (!fundingConfigResponse.StatusCode.IsSuccess())
                 {
-                    return new InternalServerErrorResult($"No funding configuration returned for funding stream id '{fundingStreamId}' and funding period id '{specification.Current.FundingPeriod.Id}'");
+                    return new InternalServerErrorResult(
+                        $"No funding configuration returned for funding stream id '{fundingStreamId}' and funding period id '{specification.Current.FundingPeriod.Id}'");
                 }
 
                 if (fundingConfigResponse.Content != null)
@@ -528,7 +572,8 @@ namespace CalculateFunding.Services.Specs
                 }
             }
 
-            DocumentEntity<Specification> repositoryCreateResult = await _specificationsRepository.CreateSpecification(specification);
+            DocumentEntity<Specification> repositoryCreateResult =
+                await _specificationsRepository.CreateSpecification(specification);
 
             if (repositoryCreateResult == null)
             {
@@ -541,12 +586,12 @@ namespace CalculateFunding.Services.Specs
                 {
                     Id = specification.Id,
                     Name = specification.Name,
-                    FundingStreamIds = specificationVersion.FundingStreams.Select(s=>s.Id).ToArray(),
-                    FundingStreamNames = specificationVersion.FundingStreams.Select(s=>s.Name).ToArray(),
+                    FundingStreamIds = specificationVersion.FundingStreams.Select(s => s.Id).ToArray(),
+                    FundingStreamNames = specificationVersion.FundingStreams.Select(s => s.Name).ToArray(),
                     FundingPeriodId = specificationVersion.FundingPeriod.Id,
                     FundingPeriodName = specificationVersion.FundingPeriod.Name,
                     LastUpdatedDate = repositoryCreateResult.CreatedAt,
-                    Description= specificationVersion.Description,
+                    Description = specificationVersion.Description,
                     Status = Enum.GetName(typeof(PublishStatus), specificationVersion.PublishStatus),
                 }
             });
@@ -563,7 +608,9 @@ namespace CalculateFunding.Services.Specs
             {
                 if (fundingConfigs.ContainsKey(fundingStreamId))
                 {
-                    await _calcsApiClientPolicy.ExecuteAsync(() => _calcsApiClient.AssociateTemplateIdWithSpecification(specification.Id, fundingConfigs[fundingStreamId].DefaultTemplateVersion, fundingStreamId));
+                    await _calcsApiClientPolicy.ExecuteAsync(() =>
+                        _calcsApiClient.AssociateTemplateIdWithSpecification(specification.Id,
+                            fundingConfigs[fundingStreamId].DefaultTemplateVersion, fundingStreamId));
                 }
             }
 
@@ -583,6 +630,7 @@ namespace CalculateFunding.Services.Specs
                 _logger.Error("No specification Id was provided to EditSpecification");
                 return new BadRequestObjectResult("Null or empty specification Id provided");
             }
+
             string json = await request.GetRawBodyStringAsync();
             SpecificationEditModel editModel = JsonConvert.DeserializeObject<SpecificationEditModel>(json);
             if (editModel == null)
@@ -594,7 +642,8 @@ namespace CalculateFunding.Services.Specs
             editModel.Name = editModel.Name?.Trim();
             editModel.SpecificationId = specificationId;
 
-            BadRequestObjectResult validationResult = (await _specificationEditModelValidator.ValidateAsync(editModel)).PopulateModelState();
+            BadRequestObjectResult validationResult =
+                (await _specificationEditModelValidator.ValidateAsync(editModel)).PopulateModelState();
             if (validationResult != null)
             {
                 return validationResult;
@@ -611,7 +660,8 @@ namespace CalculateFunding.Services.Specs
 
             Models.Specs.SpecificationVersion previousSpecificationVersion = specification.Current;
 
-            Models.Specs.SpecificationVersion specificationVersion = specification.Current.Clone() as Models.Specs.SpecificationVersion;
+            Models.Specs.SpecificationVersion specificationVersion =
+                specification.Current.Clone() as Models.Specs.SpecificationVersion;
 
             specificationVersion.ProviderVersionId = editModel.ProviderVersionId;
             specificationVersion.Name = editModel.Name;
@@ -625,12 +675,14 @@ namespace CalculateFunding.Services.Specs
 
             if (editModel.FundingPeriodId != specificationVersion.FundingPeriod.Id)
             {
-                ApiResponse<PolicyModels.FundingPeriod> fundingPeriodResponse = await _policiesApiClientPolicy.ExecuteAsync(() =>
-                    _policiesApiClient.GetFundingPeriodById(editModel.FundingPeriodId));
+                ApiResponse<PolicyModels.FundingPeriod> fundingPeriodResponse =
+                    await _policiesApiClientPolicy.ExecuteAsync(() =>
+                        _policiesApiClient.GetFundingPeriodById(editModel.FundingPeriodId));
                 PolicyModels.FundingPeriod content = fundingPeriodResponse?.Content;
                 if (content == null)
                 {
-                    return new PreconditionFailedResult($"Unable to find funding period with ID '{editModel.FundingPeriodId}'.");
+                    return new PreconditionFailedResult(
+                        $"Unable to find funding period with ID '{editModel.FundingPeriodId}'.");
                 }
 
                 PolicyModels.FundingPeriod fundingPeriod = new PolicyModels.FundingPeriod
@@ -641,25 +693,30 @@ namespace CalculateFunding.Services.Specs
                     EndDate = content.EndDate
                 };
 
-                specificationVersion.FundingPeriod = new Reference { Id = fundingPeriod.Id, Name = fundingPeriod.Name };
+                specificationVersion.FundingPeriod = new Reference {Id = fundingPeriod.Id, Name = fundingPeriod.Name};
             }
 
-            HttpStatusCode statusCode = await UpdateSpecification(specification, specificationVersion, previousSpecificationVersion);
+            HttpStatusCode statusCode =
+                await UpdateSpecification(specification, specificationVersion, previousSpecificationVersion);
             if (!statusCode.IsSuccess())
             {
-                return new StatusCodeResult((int)statusCode);
+                return new StatusCodeResult((int) statusCode);
             }
 
             await TaskHelper.WhenAllAndThrow(ReindexSpecification(specification),
                 ClearSpecificationCacheItems(specificationVersion.FundingPeriod.Id),
-                _cacheProvider.RemoveAsync<List<ProviderSummary>>($"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}"));
+                _cacheProvider.RemoveAsync<List<ProviderSummary>>(
+                    $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}"));
 
             if (previousFundingPeriodId != specificationVersion.FundingPeriod.Id)
             {
-                await _cacheProvider.RemoveAsync<List<SpecificationSummary>>($"{CacheKeys.SpecificationSummariesByFundingPeriodId}{previousFundingPeriodId}");
+                await _cacheProvider.RemoveAsync<List<SpecificationSummary>>(
+                    $"{CacheKeys.SpecificationSummariesByFundingPeriodId}{previousFundingPeriodId}");
             }
 
-            await SendSpecificationComparisonModelMessageToTopic(specificationId, ServiceBusConstants.TopicNames.EditSpecification, specification.Current, previousSpecificationVersion, request);
+            await SendSpecificationComparisonModelMessageToTopic(specificationId,
+                ServiceBusConstants.TopicNames.EditSpecification, specification.Current, previousSpecificationVersion,
+                request);
 
             return new OkObjectResult(specification);
         }
@@ -674,7 +731,8 @@ namespace CalculateFunding.Services.Specs
             List<IndexError> specificationIndexingErrorsAsList = specificationIndexingErrors.ToList();
             if (!specificationIndexingErrorsAsList.IsNullOrEmpty())
             {
-                string specificationIndexingErrorsConcatted = string.Join(". ", specificationIndexingErrorsAsList.Select(e => e.ErrorMessage));
+                string specificationIndexingErrorsConcatted =
+                    string.Join(". ", specificationIndexingErrorsAsList.Select(e => e.ErrorMessage));
                 string formattedErrorMessage =
                     $"Could not index specification {specification.Current.Id} because: {specificationIndexingErrorsConcatted}";
                 _logger.Error(formattedErrorMessage);
@@ -691,6 +749,7 @@ namespace CalculateFunding.Services.Specs
                 _logger.Error("No specification Id was provided to EditSpecification");
                 return new BadRequestObjectResult("Null or empty specification Id provided");
             }
+
             string json = await request.GetRawBodyStringAsync();
 
             EditStatusModel editStatusModel = null;
@@ -724,7 +783,9 @@ namespace CalculateFunding.Services.Specs
                 return new OkObjectResult(specification);
             }
 
-            if ((specification.Current.PublishStatus == PublishStatus.Approved || specification.Current.PublishStatus == PublishStatus.Updated) && editStatusModel.PublishStatus == PublishStatus.Draft)
+            if ((specification.Current.PublishStatus == PublishStatus.Approved ||
+                 specification.Current.PublishStatus == PublishStatus.Updated) &&
+                editStatusModel.PublishStatus == PublishStatus.Draft)
             {
                 return new BadRequestObjectResult("Publish status can't be changed to Draft from Updated or Approved");
             }
@@ -733,7 +794,8 @@ namespace CalculateFunding.Services.Specs
 
             Models.Specs.SpecificationVersion previousSpecificationVersion = specification.Current;
 
-            Models.Specs.SpecificationVersion specificationVersion = specification.Current.Clone() as Models.Specs.SpecificationVersion;
+            Models.Specs.SpecificationVersion specificationVersion =
+                specification.Current.Clone() as Models.Specs.SpecificationVersion;
 
             HttpStatusCode statusCode;
 
@@ -741,26 +803,29 @@ namespace CalculateFunding.Services.Specs
             {
                 specificationVersion.PublishStatus = PublishStatus.Approved;
 
-                statusCode = await PublishSpecification(specification, specificationVersion, previousSpecificationVersion);
+                statusCode =
+                    await PublishSpecification(specification, specificationVersion, previousSpecificationVersion);
             }
             else
             {
                 specificationVersion.PublishStatus = editStatusModel.PublishStatus;
 
-                statusCode = await UpdateSpecification(specification, specificationVersion, previousSpecificationVersion);
+                statusCode =
+                    await UpdateSpecification(specification, specificationVersion, previousSpecificationVersion);
             }
 
             if (!statusCode.IsSuccess())
             {
-                return new StatusCodeResult((int)statusCode);
+                return new StatusCodeResult((int) statusCode);
             }
 
             await ReindexSpecification(specification);
 
             await TaskHelper.WhenAllAndThrow(
-                 ClearSpecificationCacheItems(specificationVersion.FundingPeriod.Id),
-                _cacheProvider.RemoveAsync<SpecificationSummary>($"{CacheKeys.SpecificationSummaryById}{specification.Id}")
-                );
+                ClearSpecificationCacheItems(specificationVersion.FundingPeriod.Id),
+                _cacheProvider.RemoveAsync<SpecificationSummary>(
+                    $"{CacheKeys.SpecificationSummaryById}{specification.Id}")
+            );
 
             PublishStatusResultModel result = new PublishStatusResultModel()
             {
@@ -770,7 +835,8 @@ namespace CalculateFunding.Services.Specs
             return new OkObjectResult(result);
         }
 
-        private async Task SendSpecificationComparisonModelMessageToTopic(string specificationId, string topicName, Models.Specs.SpecificationVersion current, Models.Specs.SpecificationVersion previous, HttpRequest request)
+        private async Task SendSpecificationComparisonModelMessageToTopic(string specificationId, string topicName,
+            Models.Specs.SpecificationVersion current, Models.Specs.SpecificationVersion previous, HttpRequest request)
         {
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
             Guard.ArgumentNotNull(current, nameof(current));
@@ -779,8 +845,10 @@ namespace CalculateFunding.Services.Specs
 
             IDictionary<string, string> properties = CreateMessageProperties(request);
 
-            Models.Messages.SpecificationVersion currentSpecVersion = _mapper.Map<Models.Messages.SpecificationVersion>(current);
-            Models.Messages.SpecificationVersion previousSpecVersion = _mapper.Map<Models.Messages.SpecificationVersion>(previous);
+            Models.Messages.SpecificationVersion currentSpecVersion =
+                _mapper.Map<Models.Messages.SpecificationVersion>(current);
+            Models.Messages.SpecificationVersion previousSpecVersion =
+                _mapper.Map<Models.Messages.SpecificationVersion>(previous);
 
             SpecificationVersionComparisonModel comparisonModel = new SpecificationVersionComparisonModel
             {
@@ -794,7 +862,8 @@ namespace CalculateFunding.Services.Specs
 
         public async Task AssignDataDefinitionRelationship(Message message)
         {
-            AssignDefinitionRelationshipMessage relationshipMessage = message.GetPayloadAsInstanceOf<AssignDefinitionRelationshipMessage>();
+            AssignDefinitionRelationshipMessage relationshipMessage =
+                message.GetPayloadAsInstanceOf<AssignDefinitionRelationshipMessage>();
 
             if (relationshipMessage == null)
             {
@@ -804,11 +873,13 @@ namespace CalculateFunding.Services.Specs
             }
             else
             {
-                FluentValidation.Results.ValidationResult validationResult = await _assignDefinitionRelationshipMessageValidator.ValidateAsync(relationshipMessage);
+                FluentValidation.Results.ValidationResult validationResult =
+                    await _assignDefinitionRelationshipMessageValidator.ValidateAsync(relationshipMessage);
 
                 if (!validationResult.IsValid)
                 {
-                    throw new InvalidModelException(GetType().ToString(), validationResult.Errors.Select(m => m.ErrorMessage).ToArraySafe());
+                    throw new InvalidModelException(GetType().ToString(),
+                        validationResult.Errors.Select(m => m.ErrorMessage).ToArraySafe());
                 }
 
                 string specificationId = relationshipMessage.SpecificationId;
@@ -818,12 +889,14 @@ namespace CalculateFunding.Services.Specs
                 Specification specification = await _specificationsRepository.GetSpecificationById(specificationId);
                 if (specification == null)
                 {
-                    throw new InvalidModelException(relationshipMessage.GetType().ToString(), new[] { $"Specification could not be found for id {specificationId}" });
+                    throw new InvalidModelException(relationshipMessage.GetType().ToString(),
+                        new[] {$"Specification could not be found for id {specificationId}"});
                 }
 
                 Models.Specs.SpecificationVersion previousSpecificationVersion = specification.Current;
 
-                Models.Specs.SpecificationVersion specificationVersion = specification.Current.Clone() as Models.Specs.SpecificationVersion;
+                Models.Specs.SpecificationVersion specificationVersion =
+                    specification.Current.Clone() as Models.Specs.SpecificationVersion;
 
                 if (specificationVersion.DataDefinitionRelationshipIds.IsNullOrEmpty())
                 {
@@ -832,30 +905,37 @@ namespace CalculateFunding.Services.Specs
 
                 if (!specificationVersion.DataDefinitionRelationshipIds.Contains(relationshipId))
                 {
-                    specificationVersion.DataDefinitionRelationshipIds = specificationVersion.DataDefinitionRelationshipIds.Concat(new[] { relationshipId });
+                    specificationVersion.DataDefinitionRelationshipIds =
+                        specificationVersion.DataDefinitionRelationshipIds.Concat(new[] {relationshipId});
                 }
 
-                HttpStatusCode status = await UpdateSpecification(specification, specificationVersion, previousSpecificationVersion);
+                HttpStatusCode status =
+                    await UpdateSpecification(specification, specificationVersion, previousSpecificationVersion);
 
                 if (!status.IsSuccess())
                 {
-                    _logger.Error($"Failed to update specification for id: {specificationId} with dataset definition relationship id {relationshipId}");
+                    _logger.Error(
+                        $"Failed to update specification for id: {specificationId} with dataset definition relationship id {relationshipId}");
 
-                    throw new Exception($"Failed to update specification for id: {specificationId} with dataset definition relationship id {relationshipId}");
+                    throw new Exception(
+                        $"Failed to update specification for id: {specificationId} with dataset definition relationship id {relationshipId}");
                 }
 
                 SpecificationIndex specIndex = CreateSpecificationIndex(specification);
 
-                IEnumerable<IndexError> errors = await _searchRepository.Index(new List<SpecificationIndex> { specIndex });
+                IEnumerable<IndexError> errors =
+                    await _searchRepository.Index(new List<SpecificationIndex> {specIndex});
 
                 if (errors.Any())
                 {
-                    _logger.Error($"failed to index search with the following errors: {string.Join(";", errors.Select(m => m.ErrorMessage))}");
+                    _logger.Error(
+                        $"failed to index search with the following errors: {string.Join(";", errors.Select(m => m.ErrorMessage))}");
 
                     throw new FailedToIndexSearchException(errors);
                 }
 
-                _logger.Information($"Successfully assigned relationship id: {relationshipId} to specification with id: {specificationId}");
+                _logger.Information(
+                    $"Successfully assigned relationship id: {relationshipId} to specification with id: {specificationId}");
             }
         }
 
@@ -885,7 +965,9 @@ WHERE   s.documentType = @DocumentType",
                     }
                 };
 
-                IEnumerable<SpecificationSearchModel> specifications = (await _specificationsRepository.GetSpecificationsByRawQuery<SpecificationSearchModel>(cosmosDbQuery)).ToArraySafe();
+                IEnumerable<SpecificationSearchModel> specifications =
+                    (await _specificationsRepository.GetSpecificationsByRawQuery<SpecificationSearchModel>(
+                        cosmosDbQuery)).ToArraySafe();
 
                 List<SpecificationIndex> specDocuments = new List<SpecificationIndex>();
 
@@ -1055,7 +1137,7 @@ WHERE   s.documentType = @DocumentType",
         }
 
         private async Task<bool> SharesFundingStreamWithAnyOtherSpecificationSelectedForFundingInTheSamePeriod(
-                Specification specification)
+            Specification specification)
         {
             string fundingPeriodId = specification.Current?.FundingPeriod?.Id;
 
@@ -1067,7 +1149,8 @@ WHERE   s.documentType = @DocumentType",
 
             if (specificationsInFundingPeriod == null)
             {
-                _logger.Warning($"Specifications selected for publishing in funding period {fundingPeriodId} returned null");
+                _logger.Warning(
+                    $"Specifications selected for publishing in funding period {fundingPeriodId} returned null");
 
                 return false;
             }
@@ -1084,7 +1167,8 @@ WHERE   s.documentType = @DocumentType",
                 fundingStreams.Intersect(_.Current?.FundingStreams?.Select(fs => fs.Id)).Any());
         }
 
-        public async Task<IActionResult> SetAssignedTemplateVersion(string specificationId, string fundingStreamId, string templateVersion)
+        public async Task<IActionResult> SetAssignedTemplateVersion(string specificationId, string fundingStreamId,
+            string templateVersion)
         {
             Guard.ArgumentNotNull(specificationId, nameof(specificationId));
             Guard.ArgumentNotNull(fundingStreamId, nameof(fundingStreamId));
@@ -1093,40 +1177,49 @@ WHERE   s.documentType = @DocumentType",
             Specification specification = await _specificationsRepository.GetSpecificationById(specificationId);
             if (specification == null)
             {
-                string message = $"No specification ID {specificationId} were returned from the repository, result came back null";
+                string message =
+                    $"No specification ID {specificationId} were returned from the repository, result came back null";
                 _logger.Error(message);
                 return new PreconditionFailedResult(message);
             }
 
-            bool specificationContainsGivenFundingStream = specification.Current.FundingStreams.Any(x => x.Id == fundingStreamId);
+            bool specificationContainsGivenFundingStream =
+                specification.Current.FundingStreams.Any(x => x.Id == fundingStreamId);
             if (!specificationContainsGivenFundingStream)
             {
-                string message = $"Specification ID {specificationId} does not contains given funding stream with ID {fundingStreamId}";
+                string message =
+                    $"Specification ID {specificationId} does not contains given funding stream with ID {fundingStreamId}";
                 _logger.Error(message);
                 return new PreconditionFailedResult(message);
             }
 
             ApiResponse<PolicyModels.FundingTemplateContents> fundingTemplateContents =
-                await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingTemplate(fundingStreamId, templateVersion));
+                await _policiesApiClientPolicy.ExecuteAsync(() =>
+                    _policiesApiClient.GetFundingTemplate(fundingStreamId, templateVersion));
             if (fundingTemplateContents.StatusCode != HttpStatusCode.OK)
             {
-                string message = $"Retrieve funding template with fundingStreamId: {fundingStreamId} and templateId: {templateVersion} did not return OK.";
+                string message =
+                    $"Retrieve funding template with fundingStreamId: {fundingStreamId} and templateId: {templateVersion} did not return OK.";
                 _logger.Error(message);
                 return new PreconditionFailedResult(message);
             }
 
             Models.Specs.SpecificationVersion currentSpecificationVersion = specification.Current;
-            Models.Specs.SpecificationVersion newSpecificationVersion = specification.Current.Clone() as Models.Specs.SpecificationVersion;
+            Models.Specs.SpecificationVersion newSpecificationVersion =
+                specification.Current.Clone() as Models.Specs.SpecificationVersion;
 
             newSpecificationVersion.AddOrUpdateTemplateId(fundingStreamId, templateVersion);
-            HttpStatusCode updateSpecificationResult = await UpdateSpecification(specification, newSpecificationVersion, currentSpecificationVersion);
+            HttpStatusCode updateSpecificationResult =
+                await UpdateSpecification(specification, newSpecificationVersion, currentSpecificationVersion);
 
             return new OkObjectResult(updateSpecificationResult);
         }
 
-        private async Task<HttpStatusCode> UpdateSpecification(Specification specification, Models.Specs.SpecificationVersion specificationVersion, Models.Specs.SpecificationVersion previousVersion)
+        private async Task<HttpStatusCode> UpdateSpecification(Specification specification,
+            Models.Specs.SpecificationVersion specificationVersion, Models.Specs.SpecificationVersion previousVersion)
         {
-            specificationVersion = await _specificationVersionRepository.CreateVersion(specificationVersion, previousVersion);
+            specificationVersion =
+                await _specificationVersionRepository.CreateVersion(specificationVersion, previousVersion);
 
             specification.Current = specificationVersion;
 
@@ -1136,15 +1229,18 @@ WHERE   s.documentType = @DocumentType",
             {
                 await _specificationVersionRepository.SaveVersion(specificationVersion);
 
-                await _cacheProvider.RemoveAsync<SpecificationSummary>($"{CacheKeys.SpecificationSummaryById}{specification.Id}");
+                await _cacheProvider.RemoveAsync<SpecificationSummary>(
+                    $"{CacheKeys.SpecificationSummaryById}{specification.Id}");
             }
 
             return result;
         }
 
-        private async Task<HttpStatusCode> PublishSpecification(Specification specification, Models.Specs.SpecificationVersion specificationVersion, Models.Specs.SpecificationVersion previousVersion)
+        private async Task<HttpStatusCode> PublishSpecification(Specification specification,
+            Models.Specs.SpecificationVersion specificationVersion, Models.Specs.SpecificationVersion previousVersion)
         {
-            specificationVersion = await _specificationVersionRepository.CreateVersion(specificationVersion, previousVersion);
+            specificationVersion =
+                await _specificationVersionRepository.CreateVersion(specificationVersion, previousVersion);
 
             specification.Current = specificationVersion;
 
@@ -1153,7 +1249,8 @@ WHERE   s.documentType = @DocumentType",
             {
                 await _specificationVersionRepository.SaveVersion(specificationVersion);
 
-                await _cacheProvider.RemoveAsync<SpecificationSummary>($"{CacheKeys.SpecificationSummaryById}{specification.Id}");
+                await _cacheProvider.RemoveAsync<SpecificationSummary>(
+                    $"{CacheKeys.SpecificationSummaryById}{specification.Id}");
             }
 
             return result;
@@ -1163,7 +1260,8 @@ WHERE   s.documentType = @DocumentType",
         {
             await TaskHelper.WhenAllAndThrow(
                 _cacheProvider.RemoveAsync<List<SpecificationSummary>>(CacheKeys.SpecificationSummaries),
-                _cacheProvider.RemoveAsync<List<SpecificationSummary>>($"{CacheKeys.SpecificationSummariesByFundingPeriodId}{fundingPeriodId}")
+                _cacheProvider.RemoveAsync<List<SpecificationSummary>>(
+                    $"{CacheKeys.SpecificationSummariesByFundingPeriodId}{fundingPeriodId}")
             );
         }
 
@@ -1173,7 +1271,7 @@ WHERE   s.documentType = @DocumentType",
 
             IDictionary<string, string> properties = new Dictionary<string, string>
             {
-                { "sfa-correlationId", request.GetCorrelationId() }
+                {"sfa-correlationId", request.GetCorrelationId()}
             };
 
             if (user != null)
@@ -1187,7 +1285,8 @@ WHERE   s.documentType = @DocumentType",
 
         private SpecificationIndex CreateSpecificationIndex(Specification specification)
         {
-            Models.Specs.SpecificationVersion specificationVersion = specification.Current.Clone() as Models.Specs.SpecificationVersion;
+            Models.Specs.SpecificationVersion specificationVersion =
+                specification.Current.Clone() as Models.Specs.SpecificationVersion;
 
             return new SpecificationIndex
             {
@@ -1213,7 +1312,8 @@ WHERE   s.documentType = @DocumentType",
 
             if (specification == null)
             {
-                string message = $"No specification ID {specificationId} were returned from the repository, result came back null";
+                string message =
+                    $"No specification ID {specificationId} were returned from the repository, result came back null";
                 _logger.Error(message);
                 return new PreconditionFailedResult(message);
             }
@@ -1222,7 +1322,8 @@ WHERE   s.documentType = @DocumentType",
 
             if (specificationVersion == null)
             {
-                string message = $"Specification ID {specificationId} does not contains current for given specification";
+                string message =
+                    $"Specification ID {specificationId} does not contains current for given specification";
                 _logger.Error(message);
                 return new PreconditionFailedResult(message);
             }
@@ -1269,7 +1370,7 @@ WHERE   s.documentType = @DocumentType",
 
         public async Task<IActionResult> SetPublishDates(string specificationId,
             SpecificationPublishDateModel specificationPublishDateModel
-            )
+        )
         {
             Guard.ArgumentNotNull(specificationId, nameof(specificationId));
             Guard.ArgumentNotNull(specificationPublishDateModel, nameof(specificationPublishDateModel));
@@ -1278,23 +1379,28 @@ WHERE   s.documentType = @DocumentType",
 
             if (specification == null)
             {
-                string message = $"No specification ID {specificationId} were returned from the repository, result came back null";
+                string message =
+                    $"No specification ID {specificationId} were returned from the repository, result came back null";
                 _logger.Error(message);
                 return new PreconditionFailedResult(message);
             }
 
             Models.Specs.SpecificationVersion currentSpecificationVersion = specification.Current;
-            Models.Specs.SpecificationVersion newSpecificationVersion = specification.Current.Clone() as Models.Specs.SpecificationVersion;
+            Models.Specs.SpecificationVersion newSpecificationVersion =
+                specification.Current.Clone() as Models.Specs.SpecificationVersion;
 
             newSpecificationVersion.Version++;
             newSpecificationVersion.ExternalPublicationDate = specificationPublishDateModel.ExternalPublicationDate;
-            newSpecificationVersion.EarliestPaymentAvailableDate = specificationPublishDateModel.EarliestPaymentAvailableDate;
+            newSpecificationVersion.EarliestPaymentAvailableDate =
+                specificationPublishDateModel.EarliestPaymentAvailableDate;
 
-            HttpStatusCode updateSpecificationResult = await UpdateSpecification(specification, newSpecificationVersion, currentSpecificationVersion);
+            HttpStatusCode updateSpecificationResult =
+                await UpdateSpecification(specification, newSpecificationVersion, currentSpecificationVersion);
 
             if (!updateSpecificationResult.IsSuccess())
             {
-                string message = $"Failed to update specification for id: {specificationId} with ExternalPublishDate {specificationPublishDateModel.ExternalPublicationDate} " +
+                string message =
+                    $"Failed to update specification for id: {specificationId} with ExternalPublishDate {specificationPublishDateModel.ExternalPublicationDate} " +
                     $"and EarliestPaymentAvailableDate {specificationPublishDateModel.EarliestPaymentAvailableDate}";
                 _logger.Error(message);
 
@@ -1374,13 +1480,16 @@ WHERE   s.documentType = @DocumentType",
             return new OkObjectResult(fundingStreamIds);
         }
 
-        public async Task<IActionResult> GetFundingPeriodsByFundingStreamIdsForSelectedSpecifications(string fundingStreamId)
+        public async Task<IActionResult> GetFundingPeriodsByFundingStreamIdsForSelectedSpecifications(
+            string fundingStreamId)
         {
             Guard.IsNullOrWhiteSpace(fundingStreamId, nameof(fundingStreamId));
 
             // Get Specification which are selected for funding, and filter by FundingStreamId
             IEnumerable<Specification> specificationsByQuery =
-                await _specificationsRepository.GetSpecificationsByQuery(c => c.Content.IsSelectedForFunding && c.Content.Current.FundingStreams.Any(f => f.Id == fundingStreamId));
+                await _specificationsRepository.GetSpecificationsByQuery(c =>
+                    c.Content.IsSelectedForFunding &&
+                    c.Content.Current.FundingStreams.Any(f => f.Id == fundingStreamId));
 
             IEnumerable<string> specificationsFundingPeriodIds = specificationsByQuery
                 .Select(specificationSummary => specificationSummary.Current.FundingPeriod.Id)
@@ -1405,10 +1514,80 @@ WHERE   s.documentType = @DocumentType",
             return new OkObjectResult(filteredFundingPeriodsByIdAndPeriod);
         }
 
+        public async Task<IActionResult> SoftDeleteSpecificationById(HttpRequest request)
+        {
+            request.Query.TryGetValue("specificationId", out StringValues specId);
+
+            string specificationId = specId.FirstOrDefault();
+
+            if (string.IsNullOrWhiteSpace(specificationId))
+            {
+                _logger.Error("No specification id was provided to soft delete specification");
+
+                return new BadRequestObjectResult("Null or empty specification id provided");
+            }
+
+            Reference user = request.GetUser();
+
+            await _queueDeleteSpecificationJobAction.Run(specificationId, user, request.GetCorrelationId(),
+                DeletionType.SoftDelete);
+
+            return new OkObjectResult(true);
+        }
+
+        public async Task<IActionResult> PermanentDeleteSpecificationById(HttpRequest request)
+        {
+            if (!_hostingEnvironment.IsDevelopment())
+            {
+                return new BadRequestObjectResult("Requested endpoint cannot be executed in the current environment");
+            }
+
+            request.Query.TryGetValue("specificationId", out StringValues specId);
+
+            string specificationId = specId.FirstOrDefault();
+
+            if (string.IsNullOrWhiteSpace(specificationId))
+            {
+                _logger.Error("No specification id was provided to soft delete specification");
+
+                return new BadRequestObjectResult("Null or empty specification id provided");
+            }
+
+            Reference user = request.GetUser();
+
+            await _queueDeleteSpecificationJobAction.Run(specificationId, user, request.GetCorrelationId(),
+                DeletionType.PermanentDelete);
+
+            return new OkObjectResult(true);
+        }
+
+        public async Task<IActionResult> DeleteSpecification(Message message)
+        {
+            string specificationId = message.UserProperties["specification-id"].ToString();
+            if (string.IsNullOrEmpty(specificationId))
+                return new BadRequestObjectResult("Null or empty specification Id provided");
+
+            string deletionTypeProperty = message.UserProperties["deletion-type"].ToString();
+            if (string.IsNullOrEmpty(deletionTypeProperty))
+                return new BadRequestObjectResult("Null or empty deletion type provided");
+
+            var deletionType = deletionTypeProperty.ToDeletionType();
+
+            if (!_hostingEnvironment.IsDevelopment() && deletionType == DeletionType.PermanentDelete)
+            {
+                return new BadRequestObjectResult(
+                    $"Requested permanent deletion for specification {specificationId} cannot be executed in the current environment");
+            }
+
+            await _specificationsRepository.DeleteSpecifications(specificationId, deletionType);
+
+            return new OkResult();
+        }
+
         public async Task<IActionResult> GetDistinctFundingStreamsForSpecifications()
         {
             IEnumerable<string> fundingStreamIds =
-               await _specificationsRepository.GetDistinctFundingStreamsForSpecifications();
+                await _specificationsRepository.GetDistinctFundingStreamsForSpecifications();
 
             return new OkObjectResult(fundingStreamIds);
         }

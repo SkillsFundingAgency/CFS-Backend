@@ -7,9 +7,9 @@ using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Jobs;
+using CalculateFunding.Models.Messages;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Jobs.Interfaces;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Trigger = CalculateFunding.Models.Jobs.Trigger;
 
@@ -268,6 +268,26 @@ namespace CalculateFunding.Services.Jobs.Repositories
             }
 
             return jobs;
+        }
+
+        public async Task DeleteJobsBySpecificationId(string specificationId, DeletionType deletionType)
+        {
+            IEnumerable<Job> jobs = await GetJobsBySpecificationId(specificationId);
+
+            List<Job> jobsList = jobs.ToList();
+
+            if (!jobsList.Any())
+                return;
+
+            if (deletionType == DeletionType.SoftDelete)
+                await _cosmosRepository.BulkDeleteAsync(jobsList.ToDictionary(c => c.Id), hardDelete:false);
+            if (deletionType == DeletionType.PermanentDelete)
+                await _cosmosRepository.BulkDeleteAsync(jobsList.ToDictionary(c => c.Id), hardDelete:true);
+        }
+
+        private async Task<IEnumerable<Job>> GetJobsBySpecificationId(string specificationId)
+        {
+            return await _cosmosRepository.Query<Job>(x => x.Content.SpecificationId == specificationId);
         }
     }
 }

@@ -4,9 +4,9 @@ using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Models.Datasets;
+using CalculateFunding.Models.Messages;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Results.Interfaces;
-using Microsoft.Azure.Documents;
 
 namespace CalculateFunding.Services.Results.Repositories
 {
@@ -75,6 +75,38 @@ namespace CalculateFunding.Services.Results.Repositories
             IEnumerable<string> providerIds = providerSourceDatasets.Select(m => (string)m.providerId).Distinct();
 
             return providerIds;
+        }
+
+        public async Task DeleteProviderSourceDataset(string providerSourceDatasetId, DeletionType deletionType)
+        {
+            IEnumerable<ProviderSourceDataset> providerSourceDatasets = 
+                await _cosmosRepository.Query<ProviderSourceDataset>(m => m.Id == providerSourceDatasetId);
+
+            List<ProviderSourceDataset> providerSourceDatasetList = providerSourceDatasets.ToList();
+
+            if (!providerSourceDatasetList.Any())
+                return;
+
+            if (deletionType == DeletionType.SoftDelete)
+                await _cosmosRepository.BulkDeleteAsync(providerSourceDatasetList.ToDictionary(c => c.ProviderId), hardDelete:false);
+            if (deletionType == DeletionType.PermanentDelete)
+                await _cosmosRepository.BulkDeleteAsync(providerSourceDatasetList.ToDictionary(c => c.ProviderId), hardDelete:true);
+        }
+
+        public async Task DeleteProviderSourceDatasetVersion(string providerSourceDatasetId, DeletionType deletionType)
+        {
+            IEnumerable<ProviderSourceDatasetVersion> providerSourceDatasets = 
+                await _cosmosRepository.Query<ProviderSourceDatasetVersion>(m => m.Id == providerSourceDatasetId);
+
+            List<ProviderSourceDatasetVersion> providerSourceDatasetList = providerSourceDatasets.ToList();
+
+            if (!providerSourceDatasetList.Any())
+                return;
+
+            if (deletionType == DeletionType.SoftDelete)
+                await _cosmosRepository.BulkDeleteAsync(providerSourceDatasetList.ToDictionary(c => c.ProviderId), hardDelete:false);
+            if (deletionType == DeletionType.PermanentDelete)
+                await _cosmosRepository.BulkDeleteAsync(providerSourceDatasetList.ToDictionary(c => c.ProviderId), hardDelete:true);
         }
     }
 }

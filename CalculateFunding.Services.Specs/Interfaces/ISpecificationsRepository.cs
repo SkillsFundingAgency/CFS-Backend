@@ -5,6 +5,7 @@ using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models;
+using CalculateFunding.Models.Messages;
 using CalculateFunding.Models.Specs;
 
 namespace CalculateFunding.Services.Specs.Interfaces
@@ -31,6 +32,7 @@ namespace CalculateFunding.Services.Specs.Interfaces
 
         Task<IEnumerable<Specification>> GetApprovedOrUpdatedSpecificationsByFundingPeriodAndFundingStream(string fundingPeriodId, string fundingStreamId);
 
+        Task DeleteSpecifications(string specificationId, DeletionType deletionType);
         Task<IEnumerable<string>> GetDistinctFundingStreamsForSpecifications();
     }
 }

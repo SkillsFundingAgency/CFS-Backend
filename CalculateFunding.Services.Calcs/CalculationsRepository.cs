@@ -9,6 +9,7 @@ using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Messages;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Core.Helpers;
 using Newtonsoft.Json;
@@ -92,6 +93,35 @@ namespace CalculateFunding.Services.Calcs
             await _cosmosRepository.BulkUpsertAsync(calculations.ToList());
         }
 
+        public async Task DeleteCalculationsBySpecificationId(string specificationId, DeletionType deletionType)
+        {
+            IEnumerable<Calculation> calculations = await GetCalculationsBySpecificationId(specificationId);
+
+            List<Calculation> existingCalculations = calculations.ToList();
+
+            if (existingCalculations.Any())
+                return;
+
+            if (deletionType == DeletionType.SoftDelete)
+                await _cosmosRepository.BulkDeleteAsync(existingCalculations.ToDictionary(c => c.Id), hardDelete:false);
+            if (deletionType == DeletionType.PermanentDelete)
+                await _cosmosRepository.BulkDeleteAsync(existingCalculations.ToDictionary(c => c.Id), hardDelete:true);
+        }
+        
+        public async Task DeleteCalculationResultsBySpecificationId(string specificationId, DeletionType deletionType)
+        {
+            IEnumerable<ProviderResult> calculationResults = await GetCalculationResultsBySpecificationId(specificationId);
+
+            List<ProviderResult> calculationResultList = calculationResults.ToList();
+
+            if (!calculationResultList.Any())
+                return;
+
+            if (deletionType == DeletionType.SoftDelete)
+                await _cosmosRepository.BulkDeleteAsync(calculationResultList.ToDictionary(c => c.Id), hardDelete:false);
+            if (deletionType == DeletionType.PermanentDelete)
+                await _cosmosRepository.BulkDeleteAsync(calculationResultList.ToDictionary(c => c.Id), hardDelete:true);
+        }
         public async Task<StatusCounts> GetStatusCounts(string specificationId)
         {
             StatusCounts statusCounts = new StatusCounts();
@@ -204,6 +234,12 @@ namespace CalculateFunding.Services.Calcs
 
             IEnumerable<int> result = await _cosmosRepository.RawQuery<int>(cosmosDbQuery, 1);
             return result;
+        }
+
+        private async Task<IEnumerable<ProviderResult>> GetCalculationResultsBySpecificationId(string specificationId)
+        {
+
+            return await _cosmosRepository.Query<ProviderResult>(x => x.Content.SpecificationId == specificationId);
         }
     }
 }

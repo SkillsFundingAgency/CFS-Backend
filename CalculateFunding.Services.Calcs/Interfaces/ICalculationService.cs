@@ -49,5 +49,9 @@ namespace CalculateFunding.Services.Calcs.Interfaces
         Task<IActionResult> GetMappedCalculationsOfSpecificationTemplate(string specificationId, string fundingStreamId);
 
         Task<IActionResult> CheckHasAllApprovedTemplateCalculationsForSpecificationId(string specificationId);
+
+        Task<IActionResult> DeleteCalculations(Message message);
+
+        Task<IActionResult> DeleteCalculationResults(Message message);
     }
 }

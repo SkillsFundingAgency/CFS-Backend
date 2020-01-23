@@ -2,6 +2,7 @@
 using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
+using CalculateFunding.Models.Messages;
 using CalculateFunding.Models.Scenarios;
 
 namespace CalculateFunding.Services.Scenarios.Interfaces
@@ -19,5 +20,7 @@ namespace CalculateFunding.Services.Scenarios.Interfaces
         Task<CurrentTestScenario> GetCurrentTestScenarioById(string testScenarioId);
 
         Task SaveTestScenarios(IEnumerable<TestScenario> testScenarios);
+
+        Task DeleteTestsBySpecificationId(string specificationId, DeletionType deletionType);
     }
 }

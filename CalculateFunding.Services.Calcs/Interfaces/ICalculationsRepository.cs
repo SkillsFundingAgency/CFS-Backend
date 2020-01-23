@@ -3,6 +3,7 @@ using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Messages;
 
 namespace CalculateFunding.Services.Calcs.Interfaces
 {
@@ -19,6 +20,10 @@ namespace CalculateFunding.Services.Calcs.Interfaces
         Task<IEnumerable<Calculation>> GetAllCalculations();
 
         Task UpdateCalculations(IEnumerable<Calculation> calculations);
+
+        Task DeleteCalculationsBySpecificationId(string specificationId, DeletionType deletionType);
+
+        Task DeleteCalculationResultsBySpecificationId(string specificationId, DeletionType deletionType);
 
         Task<StatusCounts> GetStatusCounts(string specificationId);
 

@@ -1,7 +1,7 @@
-﻿using System;
-using AutoMapper;
+﻿using AutoMapper;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Providers;
+using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Models.Datasets;
@@ -12,6 +12,7 @@ using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.DataImporter;
 using CalculateFunding.Services.DataImporter.Validators.Models;
 using CalculateFunding.Services.Datasets.Interfaces;
+using CalculateFunding.Services.Results.Interfaces;
 using CalculateFunding.Services.Datasets.MappingProfiles;
 using FluentValidation;
 using FluentValidation.Results;
@@ -49,7 +50,9 @@ namespace CalculateFunding.Services.Datasets.Services
             IValidator<DatasetUploadValidationModel> datasetUploadValidator = null,
             IJobsApiClient jobsApiClient = null,
             IProvidersApiClient providersApiClient = null,
-            IJobManagement jobManagement = null)
+            IJobManagement jobManagement = null,
+            IProviderSourceDatasetRepository providerSourceDatasetRepository = null,
+            ISpecificationsApiClient specificationsApiClient = null)
         {
             return new DatasetService(
                 blobClient ?? CreateBlobClient(),
@@ -68,7 +71,19 @@ namespace CalculateFunding.Services.Datasets.Services
                 jobsApiClient ?? CreateJobsApiClient(),
                 datasetVersionIndex ?? CreateDatasetVersionRepository(),
                 providersApiClient ?? CreateProvidersApiClient(),
-                jobManagement ?? CreateJobManagement());
+                jobManagement ?? CreateJobManagement(),
+                providerSourceDatasetRepository ?? CreateProviderSourceDatasetRepository(),
+                specificationsApiClient ?? CreateSpecificationsApiClient());
+        }
+
+        private ISpecificationsApiClient CreateSpecificationsApiClient()
+        {
+            return Substitute.For<ISpecificationsApiClient>();
+        }
+
+        private IProviderSourceDatasetRepository CreateProviderSourceDatasetRepository()
+        {
+            return Substitute.For<IProviderSourceDatasetRepository>();
         }
 
         protected IJobManagement CreateJobManagement()

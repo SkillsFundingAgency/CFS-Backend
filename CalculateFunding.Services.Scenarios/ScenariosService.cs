@@ -5,7 +5,6 @@ using System.Net;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs;
-using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Models;
@@ -34,6 +33,7 @@ using Microsoft.Azure.ServiceBus;
 using Newtonsoft.Json;
 using Serilog;
 using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
+using JobsModels = CalculateFunding.Common.ApiClient.Jobs.Models;
 
 namespace CalculateFunding.Services.Scenarios
 {
@@ -231,7 +231,7 @@ namespace CalculateFunding.Services.Scenarios
 
                 try
                 {
-                    Trigger trigger = new Trigger
+                    JobsModels.Trigger trigger = new JobsModels.Trigger
                     {
                         EntityId = testScenario.Id,
                         EntityType = nameof(TestScenario),
@@ -240,7 +240,7 @@ namespace CalculateFunding.Services.Scenarios
 
                     bool generateCalculationAggregations = SourceCodeHelpers.HasCalculationAggregateFunctionParameters(calculations.Select(m => m.SourceCode));
 
-                    Job job = await SendInstructAllocationsToJobService(specification.Id, user, trigger, correlationId, generateCalculationAggregations);
+                    JobsModels.Job job = await SendInstructAllocationsToJobService(specification.Id, user, trigger, correlationId, generateCalculationAggregations);
 
                     _logger.Information($"New job of type '{job.JobDefinitionId}' created with id: '{job.Id}'");
                 }
@@ -494,6 +494,21 @@ namespace CalculateFunding.Services.Scenarios
             }
         }
 
+        public async Task<IActionResult> DeleteTests(Message message)
+        {
+            string specificationId = message.UserProperties["specification-id"].ToString();
+            if (string.IsNullOrEmpty(specificationId))
+                return new BadRequestObjectResult("Null or empty specification Id provided for deleting test results");
+
+            string deletionTypeProperty = message.UserProperties["deletion-type"].ToString();
+            if (string.IsNullOrEmpty(deletionTypeProperty))
+                return new BadRequestObjectResult("Null or empty deletion type provided for deleting test results");
+
+            await  _scenariosRepository.DeleteTestsBySpecificationId(specificationId, deletionTypeProperty.ToDeletionType());
+
+            return new OkResult();
+        }
+
         private async Task SaveVersion(TestScenario testScenario, string gherkin)
         {
             TestScenarioVersion testScenarioVersion = testScenario.Current.Clone() as TestScenarioVersion;
@@ -510,9 +525,9 @@ namespace CalculateFunding.Services.Scenarios
             await _cacheProvider.RemoveAsync<GherkinParseResult>($"{CacheKeys.GherkinParseResult}{testScenario.Id}");
         }
 
-        private async Task<Job> SendInstructAllocationsToJobService(string specificationId, Reference user, Trigger trigger, string correlationId, bool generateAggregations = false)
+        private async Task<JobsModels.Job> SendInstructAllocationsToJobService(string specificationId, Reference user, JobsModels.Trigger trigger, string correlationId, bool generateAggregations = false)
         {
-            JobCreateModel job = new JobCreateModel
+            JobsModels.JobCreateModel job = new JobsModels.JobCreateModel
             {
                 InvokerUserDisplayName = user.Name,
                 InvokerUserId = user.Id,

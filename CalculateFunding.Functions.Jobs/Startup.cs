@@ -48,6 +48,9 @@ namespace CalculateFunding.Functions.Jobs
               .AddSingleton<OnCheckForJobTimeout>();
 
             builder
+              .AddSingleton<OnDeleteJobs>();
+
+            builder
                 .AddSingleton<IJobManagementService, JobManagementService>();
 
             builder.

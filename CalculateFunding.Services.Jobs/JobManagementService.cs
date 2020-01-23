@@ -8,6 +8,8 @@ using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Jobs;
+using CalculateFunding.Models.Messages;
+using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
@@ -17,6 +19,7 @@ using FluentValidation.Results;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
+using Polly;
 using Serilog;
 
 namespace CalculateFunding.Services.Jobs
@@ -26,9 +29,9 @@ namespace CalculateFunding.Services.Jobs
         private readonly IJobRepository _jobRepository;
         private readonly INotificationService _notificationService;
         private readonly IJobDefinitionsService _jobDefinitionsService;
-        private readonly Polly.Policy _jobsRepositoryPolicy;
-        private readonly Polly.Policy _jobDefinitionsRepositoryPolicy;
-        private readonly Polly.Policy _messengerServicePolicy;
+        private readonly Policy _jobsRepositoryPolicy;
+        private readonly Policy _jobDefinitionsRepositoryPolicy;
+        private readonly Policy _messengerServicePolicy;
         private readonly ILogger _logger;
         private readonly IValidator<CreateJobValidationModel> _createJobValidator;
         private readonly IMessengerService _messengerService;
@@ -68,7 +71,7 @@ namespace CalculateFunding.Services.Jobs
         {
             ServiceHealth jobsRepoHealth = await ((IHealthChecker)_jobRepository).IsHealthOk();
 
-            ServiceHealth health = new ServiceHealth()
+            ServiceHealth health = new ServiceHealth
             {
                 Name = nameof(JobManagementService)
             };
@@ -378,7 +381,7 @@ namespace CalculateFunding.Services.Jobs
                 {
                     IEnumerable<Job> childJobs = await _jobsRepositoryPolicy.ExecuteAsync(() => _jobRepository.GetChildJobsForParent(job.ParentJobId));
 
-                    if (!childJobs.IsNullOrEmpty() && childJobs.All(j => j.RunningStatus == RunningStatus.Completed))
+                    if (CompletedAll(childJobs))
                     {
                         await semaphoreSlim.WaitAsync();
 
@@ -386,18 +389,13 @@ namespace CalculateFunding.Services.Jobs
                         {
                             Job parentJob = await _jobsRepositoryPolicy.ExecuteAsync(() => _jobRepository.GetJobById(job.ParentJobId));
 
-                            if (parentJob.RunningStatus != RunningStatus.Completed)
+                            var preCompletionJobs = await CompletePreCompletionJobs(parentJob, childJobs, job, jobId);
+
+                            if (CompletedAll(preCompletionJobs))
                             {
-                                parentJob.Completed = DateTimeOffset.UtcNow;
-                                parentJob.RunningStatus = RunningStatus.Completed;
-                                parentJob.CompletionStatus = DetermineCompletionStatus(childJobs);
-                                parentJob.Outcome = "All child jobs completed";
-
-                                await _jobsRepositoryPolicy.ExecuteAsync(() => _jobRepository.UpdateJob(parentJob));
-                                _logger.Information("Parent Job {ParentJobId} of Completed Job {JobId} has been completed because all child jobs are now complete", job.ParentJobId, jobId);
-
-                                await _notificationService.SendNotification(CreateJobNotificationFromJob(parentJob));
+                                await CompleteParentJob(parentJob, childJobs, job, jobId);
                             }
+
                         }
                         finally
                         {
@@ -413,6 +411,52 @@ namespace CalculateFunding.Services.Jobs
                 {
                     _logger.Information("Completed Job {JobId} has no parent", jobId);
                 }
+            }
+        }
+
+        private async Task<IEnumerable<Job>> CompletePreCompletionJobs(Job parentJob, IEnumerable<Job> childJobs, Job job, string jobId)
+        {
+            var jobDefinitions = await _jobDefinitionsService.GetAllJobDefinitions();
+
+            var jobDefinition = jobDefinitions.FirstOrDefault(j => j.Id == parentJob.JobDefinitionId);
+
+            if (jobDefinition != null && jobDefinition.PreCompletionJobs.Any())
+            {
+                parentJob.RunningStatus = RunningStatus.Completing;
+
+                List<Job> preCompletionJobs = new List<Job>();
+
+                foreach (var preCompletionJobId in jobDefinition.PreCompletionJobs)
+                {
+                    preCompletionJobs.Add(
+                        await _jobsRepositoryPolicy.ExecuteAsync(() => _jobRepository.GetJobById(preCompletionJobId)));
+                }
+
+                return preCompletionJobs;
+            }
+
+            return null;
+        }
+
+        private static bool CompletedAll(IEnumerable<Job> jobs) =>
+            jobs.IsNullOrEmpty() || jobs.Any() && jobs.All(j => j.RunningStatus == RunningStatus.Completed);
+        
+
+        private async Task CompleteParentJob(Job parentJob, IEnumerable<Job> childJobs, Job job, string jobId)
+        {
+            if (parentJob.RunningStatus != RunningStatus.Completed)
+            {
+                parentJob.Completed = DateTimeOffset.UtcNow;
+                parentJob.RunningStatus = RunningStatus.Completed;
+                parentJob.CompletionStatus = DetermineCompletionStatus(childJobs);
+                parentJob.Outcome = "All child jobs completed";
+
+                await _jobsRepositoryPolicy.ExecuteAsync(() => _jobRepository.UpdateJob(parentJob));
+                _logger.Information(
+                    "Parent Job {ParentJobId} of Completed Job {JobId} has been completed because all child jobs are now complete",
+                    job.ParentJobId, jobId);
+
+                await _notificationService.SendNotification(CreateJobNotificationFromJob(parentJob));
             }
         }
 
@@ -446,8 +490,6 @@ namespace CalculateFunding.Services.Jobs
                 if (jobDefinition == null)
                 {
                     _logger.Error($"Failed to find job definition : '{job.JobDefinitionId}' for job id: '{job.Id}'");
-
-                    continue;
                 }
                 else
                 {
@@ -464,6 +506,21 @@ namespace CalculateFunding.Services.Jobs
                 }
             }
 
+        }
+
+        public async Task<IActionResult> DeleteJobs(Message message)
+        {
+            string specificationId = message.UserProperties["specification-id"].ToString();
+            if (string.IsNullOrEmpty(specificationId))
+                return new BadRequestObjectResult("Null or empty specification Id provided for deleting calculation results");
+
+            string deletionTypeProperty = message.UserProperties["deletion-type"].ToString();
+            if (string.IsNullOrEmpty(deletionTypeProperty))
+                return new BadRequestObjectResult("Null or empty deletion type provided for deleting calculation results");
+
+            await _jobRepository.DeleteJobsBySpecificationId(specificationId, deletionTypeProperty.ToDeletionType());
+
+            return new OkResult();
         }
 
         private async Task TimeoutJob(Job runningJob)
@@ -493,31 +550,33 @@ namespace CalculateFunding.Services.Jobs
                 // There are still some jobs in progress so there is no completion status
                 return null;
             }
-            else if (jobs.Any(j => j.CompletionStatus == CompletionStatus.TimedOut))
+
+            if (jobs.Any(j => j.CompletionStatus == CompletionStatus.TimedOut))
             {
                 // At least one job timed out so that is the overall completion status for the group of jobs
                 return CompletionStatus.TimedOut;
             }
-            else if (jobs.Any(j => j.CompletionStatus == CompletionStatus.Cancelled))
+
+            if (jobs.Any(j => j.CompletionStatus == CompletionStatus.Cancelled))
             {
                 // At least one job was cancelled so that is the overall completion status for the group of jobs
                 return CompletionStatus.Cancelled;
             }
-            else if (jobs.Any(j => j.CompletionStatus == CompletionStatus.Superseded))
+
+            if (jobs.Any(j => j.CompletionStatus == CompletionStatus.Superseded))
             {
                 // At least one job was superseded so that is the overall completion status for the group of jobs
                 return CompletionStatus.Superseded;
             }
-            else if (jobs.Any(j => j.CompletionStatus == CompletionStatus.Failed))
+
+            if (jobs.Any(j => j.CompletionStatus == CompletionStatus.Failed))
             {
                 // At least one job failed so that is the overall completion status for the group of jobs
                 return CompletionStatus.Failed;
             }
-            else
-            {
-                // Got to here so that must mean all jobs succeeded
-                return CompletionStatus.Succeeded;
-            }
+
+            // Got to here so that must mean all jobs succeeded
+            return CompletionStatus.Succeeded;
         }
 
         private JobNotification CreateJobNotificationFromJob(Job job)
@@ -565,7 +624,7 @@ namespace CalculateFunding.Services.Jobs
 
         private async Task<Job> CreateJob(JobCreateModel job)
         {
-            Job newJob = new Job()
+            Job newJob = new Job
             {
                 JobDefinitionId = job.JobDefinitionId,
                 InvokerUserId = job.InvokerUserId,
@@ -576,7 +635,7 @@ namespace CalculateFunding.Services.Jobs
                 ParentJobId = job.ParentJobId,
                 CorrelationId = job.CorrelationId,
                 Properties = job.Properties,
-                MessageBody = job.MessageBody,
+                MessageBody = job.MessageBody
             };
 
             Job newJobResult = null;

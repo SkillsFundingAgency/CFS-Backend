@@ -14,7 +14,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Jobs;
+using CalculateFunding.Common.ApiClient.Specifications;
+using CalculateFunding.Common.Caching;
+using CalculateFunding.Models.Scenarios;
+using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.FeatureToggles;
+using CalculateFunding.Services.Core.Interfaces;
+using FluentValidation;
+using Microsoft.AspNetCore.Mvc;
+using Polly;
+using IScenariosRepository = CalculateFunding.Services.Scenarios.Interfaces.IScenariosRepository;
+using CalculateFunding.Models.Messages;
 
 namespace CalculateFunding.Services.Scenarios.Services
 {
@@ -369,6 +380,44 @@ namespace CalculateFunding.Services.Scenarios.Services
                         m.Count() == 2 && 
                         m.ElementAt(0) == "test field 1" && 
                         m.ElementAt(1) == "test field 2"));
+        }
+
+        [TestMethod]
+        [DataRow("SpecId1", DeletionType.SoftDelete)]
+        [DataRow("SpecId1", DeletionType.PermanentDelete)]
+        public async Task DeleteTestResults_Deletes_Dependencies_Using_Correct_SpecificationId_And_DeletionType(string specificationId, DeletionType deletionType)
+        {
+            Message message = new Message
+            {
+                UserProperties =
+                {
+                    new KeyValuePair<string, object>("specification-id", specificationId),
+                    new KeyValuePair<string, object>("deletion-type", (int)deletionType)
+                }
+            };
+            IScenariosRepository testsRepository = Substitute.For<IScenariosRepository>();
+            var scenariosResiliencePolicies = Substitute.For<IScenariosResiliencePolicies>();
+            scenariosResiliencePolicies.JobsApiClient = Policy.NoOp();
+            scenariosResiliencePolicies.CalcsRepository = Policy.NoOp();
+            scenariosResiliencePolicies.ScenariosRepository = Policy.NoOp();
+            scenariosResiliencePolicies.SpecificationsApiClient = Policy.NoOp();
+            ScenariosService service = new ScenariosService(
+                Substitute.For<ILogger>(),
+                testsRepository,
+                Substitute.For<ISpecificationsApiClient>(),
+                Substitute.For<IValidator<CreateNewTestScenarioVersion>>(),
+                Substitute.For<ISearchRepository<ScenarioIndex>>(),
+                Substitute.For<ICacheProvider>(),
+                Substitute.For<IVersionRepository<TestScenarioVersion>>(),
+                Substitute.For<IJobsApiClient>(),
+                Substitute.For<ICalcsRepository>(),
+                scenariosResiliencePolicies
+            );
+
+            IActionResult actionResult = await service.DeleteTests(message);
+
+            await testsRepository.Received(1).DeleteTestsBySpecificationId(specificationId, deletionType);
+            actionResult.Should().BeOfType<OkResult>();
         }
 
         private static DatasetDefinitionFieldChangesProcessor CreateProcessor(

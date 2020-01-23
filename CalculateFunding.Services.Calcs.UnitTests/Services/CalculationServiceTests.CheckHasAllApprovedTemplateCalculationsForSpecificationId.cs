@@ -1,8 +1,11 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using CalculateFunding.Models;
+using CalculateFunding.Models.Messages;
 using CalculateFunding.Services.Calcs.Interfaces;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.ServiceBus;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 
@@ -33,6 +36,50 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Value
                 .Should()
                 .Be(expected);
+        }
+
+        [TestMethod]
+        [DataRow("SpecId1", DeletionType.SoftDelete)]
+        [DataRow("SpecId1", DeletionType.PermanentDelete)]
+        public async Task DeleteCalculations_Deletes_Dependencies_Using_Correct_SpecificationId_And_DeletionType(string specificationId, DeletionType deletionType)
+        {
+            Message message = new Message
+            {
+                UserProperties =
+                {
+                    new KeyValuePair<string, object>("specification-id", specificationId),
+                    new KeyValuePair<string, object>("deletion-type", (int)deletionType)
+                }
+            };
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            CalculationService calculationService = CreateCalculationService(calculationsRepository: calculationsRepository);
+
+            IActionResult actionResult = await calculationService.DeleteCalculations(message);
+
+            await calculationsRepository.Received(1).DeleteCalculationsBySpecificationId(specificationId, deletionType);
+            actionResult.Should().BeOfType<OkResult>();
+        }
+
+        [TestMethod]
+        [DataRow("SpecId1", DeletionType.SoftDelete)]
+        [DataRow("SpecId1", DeletionType.PermanentDelete)]
+        public async Task DeleteCalculationResults_Deletes_Dependencies_Using_Correct_SpecificationId_And_DeletionType(string specificationId, DeletionType deletionType)
+        {
+            Message message = new Message
+            {
+                UserProperties =
+                {
+                    new KeyValuePair<string, object>("specification-id", specificationId),
+                    new KeyValuePair<string, object>("deletion-type", (int)deletionType)
+                }
+            };
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            CalculationService calculationService = CreateCalculationService(calculationsRepository: calculationsRepository);
+
+            IActionResult actionResult = await calculationService.DeleteCalculationResults(message);
+
+            await calculationsRepository.Received(1).DeleteCalculationResultsBySpecificationId(specificationId, deletionType);
+            actionResult.Should().BeOfType<OkResult>();
         }
     }
 }

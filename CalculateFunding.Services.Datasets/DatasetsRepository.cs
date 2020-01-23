@@ -10,6 +10,7 @@ using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
+using CalculateFunding.Models.Messages;
 using CalculateFunding.Services.Datasets.Interfaces;
 
 namespace CalculateFunding.Services.Datasets
@@ -160,6 +161,37 @@ namespace CalculateFunding.Services.Datasets
             }
 
             return specificationIds;
+        }
+
+        public async Task DeleteDatasetsBySpecificationId(string specificationId, DeletionType deletionType)
+        {
+            IEnumerable<Dataset> datasets = await GetDatasetsByQuery(d => d.Id == specificationId);
+
+            List<Dataset> datasetList = datasets.ToList();
+
+            if (!datasetList.Any())
+                return;
+
+            if (deletionType == DeletionType.SoftDelete)
+                await _cosmosRepository.BulkDeleteAsync(datasets.ToDictionary(c => c.Id), hardDelete:false);
+            if (deletionType == DeletionType.PermanentDelete)
+                await _cosmosRepository.BulkDeleteAsync(datasets.ToDictionary(c => c.Id), hardDelete:true);
+        }
+
+        public async Task DeleteDefinitionSpecificationRelationshipBySpecificationId(string specificationId, DeletionType deletionType)
+        {
+            IEnumerable<DefinitionSpecificationRelationship> relationships =
+                 await GetDefinitionSpecificationRelationshipsByQuery(r => r.Content.Specification.Id == specificationId);
+
+            List<DefinitionSpecificationRelationship> definitionSpecificationRelationshipList = relationships.ToList();
+
+            if (!definitionSpecificationRelationshipList.Any())
+                return;
+
+            if (deletionType == DeletionType.SoftDelete)
+                await _cosmosRepository.BulkDeleteAsync(definitionSpecificationRelationshipList.ToDictionary(c => c.Id), hardDelete:false);
+            if (deletionType == DeletionType.PermanentDelete)
+                await _cosmosRepository.BulkDeleteAsync(definitionSpecificationRelationshipList.ToDictionary(c => c.Id), hardDelete:true);
         }
     }
 }

@@ -78,6 +78,20 @@
             public const string PublishingReIndexPublishedProvidersPoisoned = "publishing-reindex-published-providers/$DeadLetterQueue";
             
             public const string PublishingReIndexPublishedProvidersPoisonedLocal = "publishing-reindex-published-providers-poisoned";
+
+            public const string DeleteCalculations = "calculations-delete";
+
+            public const string DeleteCalculationResults = "calculation-results-delete";
+
+            public const string DeleteDatasets = "datasets-delete";
+
+            public const string DeleteTestResults = "test-results-delete";
+
+            public const string DeleteTests = "tests-delete";
+
+            public const string DeleteJobs = "jobs-delete";
+
+            public const string DeleteSpecifications = "specifications-delete";
             
             public const string DeletePublishedProviders = "publishing-delete-published-providers";
         }

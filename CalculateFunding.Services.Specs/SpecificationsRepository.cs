@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
+using CalculateFunding.Models.Messages;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Services.Core.Extensions;
@@ -107,6 +108,18 @@ namespace CalculateFunding.Services.Specs
                 .QueryDocuments<Specification>())
                 .Where(c => c.Id == specificationId)
                 .FirstOrDefault();
+        }
+
+        public async Task DeleteSpecifications(string specificationId, DeletionType deletionType)
+        {
+            if (deletionType == DeletionType.SoftDelete)
+            {
+                await _repository.DeleteAsync<Specification>(specificationId, null, hardDelete: false);
+            }
+            else if (deletionType == DeletionType.PermanentDelete)
+            {
+                await _repository.DeleteAsync<Specification>(specificationId, null, hardDelete: true);
+            }
         }
 
         public async Task<IEnumerable<string>> GetDistinctFundingStreamsForSpecifications()

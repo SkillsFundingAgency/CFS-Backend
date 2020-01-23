@@ -6,6 +6,7 @@ using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
+using CalculateFunding.Models.Messages;
 using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Scenarios.Interfaces;
@@ -86,6 +87,28 @@ namespace CalculateFunding.Services.Scenarios
         public Task SaveTestScenarios(IEnumerable<TestScenario> testScenarios)
         {
             return _cosmosRepository.BulkCreateAsync<TestScenario>(testScenarios.ToList());
+        }
+
+        public async Task DeleteTestsBySpecificationId(string specificationId, DeletionType deletionType)
+        {
+            IEnumerable<TestScenario> testResults = await GetTestsBySpecificationId(specificationId);
+
+            IEnumerable<TestScenario> tests = await GetTestsBySpecificationId(specificationId);
+
+            List<TestScenario> allTests = tests.ToList();
+
+            if (!allTests.Any())
+                return;
+
+            if (deletionType == DeletionType.SoftDelete)
+                await _cosmosRepository.BulkDeleteAsync(allTests.ToDictionary(c => c.Id), hardDelete: false);
+            if (deletionType == DeletionType.PermanentDelete)
+                await _cosmosRepository.BulkDeleteAsync(allTests.ToDictionary(c => c.Id), hardDelete: true);
+        }
+
+        private async Task<IEnumerable<TestScenario>> GetTestsBySpecificationId(string specificationId)
+        {
+            return await _cosmosRepository.Query<TestScenario>(x => x.Content.SpecificationId == specificationId);
         }
     }
 }

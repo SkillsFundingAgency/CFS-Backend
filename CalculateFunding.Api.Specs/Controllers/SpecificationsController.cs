@@ -245,6 +245,20 @@ namespace CalculateFunding.Api.Specs.Controllers
             return await _specService.GetFundingPeriodsByFundingStreamIdsForSelectedSpecifications(fundingStreamId);
         }
 
+        [Route("api/specs/{specificationId}")]
+        [HttpDelete]
+        public async Task<IActionResult> SoftDeleteSpecificationById()
+        {
+            return await _specService.SoftDeleteSpecificationById(ControllerContext.HttpContext.Request);
+        }
+
+        [Route("api/specs/{specificationId}/permanent")]
+        [HttpDelete]
+        public async Task<IActionResult> PermanentDeleteSpecificationById()
+        {
+            return await _specService.PermanentDeleteSpecificationById(ControllerContext.HttpContext.Request);
+        }
+
         [Route("api/specs/fundingstream-id-for-specifications")]
         [HttpGet]
         [Produces(typeof(IEnumerable<string>))]

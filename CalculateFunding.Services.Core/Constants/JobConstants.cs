@@ -29,6 +29,12 @@
             public const string ReIndexPublishedProvidersJob = nameof(ReIndexPublishedProvidersJob);
 
             public const string DeleteSpecificationJob = nameof(DeleteSpecificationJob);
+            public const string DeleteCalculationResultsJob = nameof(DeleteCalculationResultsJob);
+            public const string DeleteCalculationsJob = nameof(DeleteCalculationsJob);
+            public const string DeleteDatasetsJob = nameof(DeleteDatasetsJob);
+            public const string DeleteJobsJob = nameof(DeleteJobsJob);
+            public const string DeleteTestResultsJob = nameof(DeleteTestResultsJob);
+            public const string DeleteTestsJob = nameof(DeleteTestsJob);
 
             public const string DeletePublishedProvidersJob = nameof(DeletePublishedProvidersJob);
         }

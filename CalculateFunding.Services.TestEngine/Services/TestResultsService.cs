@@ -277,6 +277,21 @@ namespace CalculateFunding.Services.TestRunner.Services
             }
         }
 
+        public async Task<IActionResult> DeleteTestResults(Message message)
+        {
+            string specificationId = message.UserProperties["specification-id"].ToString();
+            if (string.IsNullOrEmpty(specificationId))
+                return new BadRequestObjectResult("Null or empty specification Id provided for deleting test results");
+
+            string deletionTypeProperty = message.UserProperties["deletion-type"].ToString();
+            if (string.IsNullOrEmpty(deletionTypeProperty))
+                return new BadRequestObjectResult("Null or empty deletion type provided for deleting test results");
+
+            await  _testResultsRepository.DeleteTestResultsBySpecificationId(specificationId, deletionTypeProperty.ToDeletionType());
+
+            return new OkResult();
+        }
+
         public async Task CleanupTestResultsForSpecificationProviders(Message message)
         {
             string specificationId = message.UserProperties["specificationId"].ToString();

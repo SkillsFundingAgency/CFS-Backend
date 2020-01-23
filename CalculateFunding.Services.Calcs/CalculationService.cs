@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.ApiClient.Specifications;
@@ -39,7 +38,9 @@ using Newtonsoft.Json;
 using Serilog;
 using Calculation = CalculateFunding.Models.Calcs.Calculation;
 using CalculationResponseModel = CalculateFunding.Models.Calcs.CalculationResponseModel;
+using Job = CalculateFunding.Common.ApiClient.Jobs.Models.Job;
 using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
+using Trigger = CalculateFunding.Common.ApiClient.Jobs.Models.Trigger;
 
 namespace CalculateFunding.Services.Calcs
 {
@@ -362,35 +363,6 @@ namespace CalculateFunding.Services.Calcs
             return new OkObjectResult(calculations);
         }
 
-        private async Task<IActionResult> GetCalculationsForSpecification(string specificationId)
-        {
-            if (string.IsNullOrWhiteSpace(specificationId))
-            {
-                _logger.Warning("No specificationId was provided to GetCalculationSummariesForSpecification");
-
-                return new BadRequestObjectResult("Null or empty specificationId provided");
-            }
-
-            string cacheKey = $"{CacheKeys.CalculationsForSpecification}{specificationId}";
-
-            IEnumerable<Calculation> calculations = await _cachePolicy.ExecuteAsync(() => _cacheProvider.GetAsync<List<Calculation>>(cacheKey));
-            if (calculations == null)
-            {
-                calculations = await _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCalculationsBySpecificationId(specificationId));
-
-                if (calculations == null)
-                {
-                    _logger.Warning($"Calculations from repository returned null for specification ID of '{specificationId}'");
-
-                    return new InternalServerErrorResult("Calculations from repository returned null");
-                }
-
-                await _cachePolicy.ExecuteAsync(() => _cacheProvider.SetAsync(cacheKey, calculations, TimeSpan.FromDays(7), true));
-            }
-
-            return new OkObjectResult(calculations);
-        }
-
         public async Task<IActionResult> CreateAdditionalCalculation(string specificationId, CalculationCreateModel model, Reference author, string correlationId)
         {
             CreateCalculationResponse createCalculationResponse = await _createCalculationService.CreateCalculation(specificationId,
@@ -495,38 +467,6 @@ namespace CalculateFunding.Services.Calcs
             return await UpdateCalculationCodeOnCalculationChange(oldCalcSourceCodeName, newCalcSourceCodeName, comparison.SpecificationId, user);
         }
 
-        private async Task<IEnumerable<Calculation>> UpdateCalculationCodeOnCalculationChange(string oldCalcSourceCodeName, string newCalcSourceCodeName, string specificationId, Reference user)
-        {
-            List<Calculation> updatedCalculations = new List<Calculation>();
-
-            if (oldCalcSourceCodeName != newCalcSourceCodeName)
-            {
-                IEnumerable<Calculation> calculations = await _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCalculationsBySpecificationId(specificationId));
-
-                foreach (Calculation calculation in calculations)
-                {
-                    string sourceCode = calculation.Current.SourceCode;
-                    CalculationNamespace calcNamespace = calculation.Current.Namespace;
-
-                    string result = _calculationCodeReferenceUpdate.ReplaceSourceCodeReferences(calculation,
-                        oldCalcSourceCodeName,
-                        newCalcSourceCodeName);
-
-                    if (result != sourceCode)
-                    {
-                        CalculationVersion calculationVersion = calculation.Current.Clone() as CalculationVersion;
-                        calculationVersion.SourceCode = result;
-
-                        UpdateCalculationResult updateCalculationResult = await UpdateCalculation(calculation, calculationVersion, user, updateBuildProject: false);
-
-                        updatedCalculations.Add(updateCalculationResult.Calculation);
-                    }
-                }
-            }
-
-            return updatedCalculations;
-        }
-
         public async Task<IActionResult> EditCalculation(string specificationId, string calculationId, CalculationEditModel calculationEditModel, Reference author, string correlationId, bool setAdditional = false, bool skipInstruct = false)
         {
             Guard.ArgumentNotNull(calculationEditModel, nameof(calculationEditModel));
@@ -606,53 +546,6 @@ namespace CalculateFunding.Services.Calcs
             {
                 return new InternalServerErrorResult(ex.Message);
             }
-        }
-
-        private async Task<UpdateCalculationResult> UpdateCalculation(Calculation calculation, CalculationVersion calculationVersion, Reference user, bool updateBuildProject = true)
-        {
-            Guard.ArgumentNotNull(calculation, nameof(calculation));
-            Guard.ArgumentNotNull(calculationVersion, nameof(calculationVersion));
-            Guard.ArgumentNotNull(user, nameof(user));
-
-            if (calculation.Current == null)
-            {
-                _logger.Warning($"Current for {calculation.Id} was null and needed recreating.");
-                calculation.Current = calculationVersion;
-            }
-
-            CalculationVersion previousCalculationVersion = calculation.Current;
-
-            calculationVersion.Author = user;
-
-            HttpStatusCode statusCode = await UpdateCalculation(calculation, calculationVersion, previousCalculationVersion);
-
-            if (statusCode != HttpStatusCode.OK)
-            {
-                throw new InvalidOperationException($"Update calculation returned status code '{statusCode}' instead of OK");
-            }
-
-            BuildProject buildProject = null;
-
-            if (updateBuildProject)
-            {
-                buildProject = await UpdateBuildProject(calculation.SpecificationId);
-            }
-
-            SpecModel.SpecificationSummary specificationSummary = (await _specificationsApiClientPolicy.ExecuteAsync(() => _specificationsApiClient.GetSpecificationSummaryById(calculation.SpecificationId))).Content;
-
-            string fundingStreamName = specificationSummary.FundingStreams.FirstOrDefault(_ => _.Id == calculation.FundingStreamId)?.Name;
-
-            await UpdateSearch(calculation, specificationSummary.Name, fundingStreamName);
-
-            CalculationResponseModel currentVersion = calculation.ToResponseModel();
-            await UpdateCalculationInCache(calculation, currentVersion);
-
-            return new UpdateCalculationResult()
-            {
-                BuildProject = buildProject,
-                Calculation = calculation,
-                CurrentVersion = currentVersion,
-            };
         }
 
         public async Task<IActionResult> UpdateCalculationStatus(string calculationId, EditStatusModel editStatusModel)
@@ -892,36 +785,6 @@ namespace CalculateFunding.Services.Calcs
             return new OkObjectResult(calculation.ToResponseModel());
         }
 
-        private async Task UpdateSearch(Calculation calculation, string specificationName, string fundingStreamName)
-        {
-            await _searchRepository.Index(new List<CalculationIndex>
-            {
-                CreateCalculationIndexItem(calculation, specificationName, fundingStreamName)
-            });
-        }
-
-        private CalculationIndex CreateCalculationIndexItem(Calculation calculation,
-            string specificationName,
-            string fundingStreamName)
-        {
-            return new CalculationIndex
-            {
-                Id = calculation.Id,
-                SpecificationId = calculation.SpecificationId,
-                SpecificationName = specificationName,
-                Name = calculation.Current.Name,
-                ValueType = calculation.Current.ValueType.ToString(),
-                FundingStreamId = calculation.FundingStreamId ?? "N/A",
-                FundingStreamName = fundingStreamName ?? "N/A",
-                Namespace = calculation.Current.Namespace.ToString(),
-                CalculationType = calculation.Current.CalculationType.ToString(),
-                Description = calculation.Current.Description,
-                WasTemplateCalculation = calculation.Current.WasTemplateCalculation,
-                Status = calculation.Current.PublishStatus.ToString(),
-                LastUpdatedDate = DateTimeOffset.Now
-            };
-        }
-
         public async Task<IActionResult> IsCalculationNameValid(string specificationId, string calculationName, string existingCalculationId)
         {
             bool? isNameInUseCheckResult = await _calculationNameInUseCheck.IsCalculationNameInUse(specificationId, calculationName, existingCalculationId);
@@ -977,82 +840,6 @@ namespace CalculateFunding.Services.Calcs
             }
 
             await _sourceCodeService.DeleteAssembly(specificationId);
-        }
-
-        private async Task<BuildProject> UpdateBuildProject(string specificationId)
-        {
-            Task<IEnumerable<Calculation>> calculationsRequest = _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCalculationsBySpecificationId(specificationId));
-            Task<BuildProject> buildProjectRequest = _buildProjectsService.GetBuildProjectForSpecificationId(specificationId);
-
-            await TaskHelper.WhenAllAndThrow(calculationsRequest, buildProjectRequest);
-
-            List<Calculation> calculations = new List<Calculation>(calculationsRequest.Result);
-            BuildProject buildProject = buildProjectRequest.Result;
-
-            return await UpdateBuildProject(specificationId, calculations, buildProject);
-        }
-
-        private async Task<BuildProject> UpdateBuildProject(string specificationId, IEnumerable<Calculation> calculations, BuildProject buildProject = null)
-        {
-            if (buildProject == null)
-            {
-                buildProject = await _buildProjectsService.GetBuildProjectForSpecificationId(specificationId);
-            }
-
-            CompilerOptions compilerOptions = await _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCompilerOptions(specificationId));
-
-            if (compilerOptions == null)
-            {
-                compilerOptions = new CompilerOptions();
-            }
-
-            //forcing off for calc runs only
-            compilerOptions.OptionStrictEnabled = false;
-
-            buildProject.Build = _sourceCodeService.Compile(buildProject, calculations, compilerOptions);
-
-            await _sourceCodeService.SaveSourceFiles(buildProject.Build.SourceFiles, specificationId, SourceCodeType.Release);
-
-            await _sourceCodeService.SaveAssembly(buildProject);
-
-            if (!_featureToggle.IsDynamicBuildProjectEnabled())
-            {
-                await _buildProjectRepositoryPolicy.ExecuteAsync(() => _buildProjectsRepository.UpdateBuildProject(buildProject));
-            }
-
-            return buildProject;
-        }
-
-        private async Task<Job> SendInstructAllocationsToJobService(string specificationId, string userId, string userName, Trigger trigger, string correlationId)
-        {
-            return await _instructionAllocationJobCreation.SendInstructAllocationsToJobService(specificationId, userId, userName, trigger, correlationId);
-        }
-
-        private async Task UpdateCalculationInCache(Calculation calculation, CalculationResponseModel currentVersion)
-        {
-            // Invalidate cached calculations for this specification
-            await _cachePolicy.ExecuteAsync(() => _cacheProvider.KeyDeleteAsync<List<CalculationSummaryModel>>($"{CacheKeys.CalculationsSummariesForSpecification}{calculation.SpecificationId}"));
-            await _cachePolicy.ExecuteAsync(() => _cacheProvider.KeyDeleteAsync<List<CalculationResponseModel>>($"{CacheKeys.CurrentCalculationsForSpecification}{calculation.SpecificationId}"));
-            await _cachePolicy.ExecuteAsync(() => _cacheProvider.KeyDeleteAsync<List<CalculationResponseModel>>($"{CacheKeys.CalculationsMetadataForSpecification}{calculation.SpecificationId}"));
-
-
-            // Set current version in cache
-            await _cachePolicy.ExecuteAsync(() => _cacheProvider.SetAsync($"{CacheKeys.CurrentCalculation}{calculation.Id}", currentVersion, TimeSpan.FromDays(7), true));
-        }
-
-        private async Task<HttpStatusCode> UpdateCalculation(Calculation calculation, CalculationVersion calculationVersion, CalculationVersion previousVersion)
-        {
-            calculationVersion = await _calculationVersionsRepositoryPolicy.ExecuteAsync(() => _calculationVersionRepository.CreateVersion(calculationVersion, previousVersion));
-
-            calculation.Current = calculationVersion;
-
-            HttpStatusCode result = await _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.UpdateCalculation(calculation));
-            if (result == HttpStatusCode.OK)
-            {
-                await _calculationVersionsRepositoryPolicy.ExecuteAsync(() => _calculationVersionRepository.SaveVersion(calculationVersion));
-            }
-
-            return result;
         }
 
         public async Task<IActionResult> AssociateTemplateIdWithSpecification(string specificationId, string templateVersion, string fundingStreamId)
@@ -1157,6 +944,277 @@ namespace CalculateFunding.Services.Calcs
             };
 
             return new OkObjectResult(booleanResponseModel);
+        }
+
+        public async Task<IActionResult> GetMappedCalculationsOfSpecificationTemplate(string specificationId, string fundingStreamId)
+        {
+            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
+            Guard.IsNullOrWhiteSpace(fundingStreamId, nameof(fundingStreamId));
+
+            string cacheKey = $"{CacheKeys.TemplateMapping}{specificationId}-{fundingStreamId}";
+            TemplateMapping templateMapping = await _cachePolicy.ExecuteAsync(() => _cacheProvider.GetAsync<TemplateMapping>(cacheKey));
+
+            if (templateMapping == null)
+            {
+                templateMapping = await _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetTemplateMapping(specificationId, fundingStreamId));
+                if (templateMapping?.TemplateMappingItems == null)
+                {
+                    string message = $"A template mapping was not found for specification id {specificationId} and funding stream Id {fundingStreamId}";
+                    _logger.Information(message);
+
+                    return new NotFoundObjectResult(message);
+                }
+
+                await _cachePolicy.ExecuteAsync(() => _cacheProvider.SetAsync(cacheKey, templateMapping, TimeSpan.FromDays(7), true));
+            }
+
+            TemplateMappingSummary result = templateMapping.ToSummaryResponseModel();
+
+            return new OkObjectResult(result);
+        }
+
+        public async Task<IActionResult> DeleteCalculations(Message message)
+        {
+            string specificationId = message.UserProperties["specification-id"].ToString();
+            if (string.IsNullOrEmpty(specificationId))
+                return new BadRequestObjectResult("Null or empty specification Id provided for deleting calculations");
+
+            string deletionTypeProperty = message.UserProperties["deletion-type"].ToString();
+            if (string.IsNullOrEmpty(deletionTypeProperty))
+                return new BadRequestObjectResult("Null or empty deletion type provided for deleting calculations");
+
+            await _calculationsRepository.DeleteCalculationsBySpecificationId(specificationId, deletionTypeProperty.ToDeletionType());
+
+            return new OkResult();
+        }
+
+        public async Task<IActionResult> DeleteCalculationResults(Message message)
+        {
+            string specificationId = message.UserProperties["specification-id"].ToString();
+            if (string.IsNullOrEmpty(specificationId))
+                return new BadRequestObjectResult("Null or empty specification Id provided for deleting calculation results");
+
+            string deletionTypeProperty = message.UserProperties["deletion-type"].ToString();
+            if (string.IsNullOrEmpty(deletionTypeProperty))
+                return new BadRequestObjectResult("Null or empty deletion type provided for deleting calculation results");
+
+            await _calculationsRepository.DeleteCalculationResultsBySpecificationId(specificationId, deletionTypeProperty.ToDeletionType());
+
+            return new OkResult();
+        }
+
+        private async Task<IActionResult> GetCalculationsForSpecification(string specificationId)
+        {
+            if (string.IsNullOrWhiteSpace(specificationId))
+            {
+                _logger.Warning("No specificationId was provided to GetCalculationSummariesForSpecification");
+
+                return new BadRequestObjectResult("Null or empty specificationId provided");
+            }
+
+            string cacheKey = $"{CacheKeys.CalculationsForSpecification}{specificationId}";
+
+            IEnumerable<Calculation> calculations = await _cachePolicy.ExecuteAsync(() => _cacheProvider.GetAsync<List<Calculation>>(cacheKey));
+            if (calculations == null)
+            {
+                calculations = await _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCalculationsBySpecificationId(specificationId));
+
+                if (calculations == null)
+                {
+                    _logger.Warning($"Calculations from repository returned null for specification ID of '{specificationId}'");
+
+                    return new InternalServerErrorResult("Calculations from repository returned null");
+                }
+
+                await _cachePolicy.ExecuteAsync(() => _cacheProvider.SetAsync(cacheKey, calculations, TimeSpan.FromDays(7), true));
+            }
+
+            return new OkObjectResult(calculations);
+        }
+
+        private async Task UpdateSearch(Calculation calculation, string specificationName, string fundingStreamName)
+        {
+            await _searchRepository.Index(new List<CalculationIndex>
+            {
+                CreateCalculationIndexItem(calculation, specificationName, fundingStreamName)
+            });
+        }
+
+        private CalculationIndex CreateCalculationIndexItem(Calculation calculation,
+            string specificationName,
+            string fundingStreamName)
+        {
+            return new CalculationIndex
+            {
+                Id = calculation.Id,
+                SpecificationId = calculation.SpecificationId,
+                SpecificationName = specificationName,
+                Name = calculation.Current.Name,
+                ValueType = calculation.Current.ValueType.ToString(),
+                FundingStreamId = calculation.FundingStreamId ?? "N/A",
+                FundingStreamName = fundingStreamName ?? "N/A",
+                Namespace = calculation.Current.Namespace.ToString(),
+                CalculationType = calculation.Current.CalculationType.ToString(),
+                Description = calculation.Current.Description,
+                WasTemplateCalculation = calculation.Current.WasTemplateCalculation,
+                Status = calculation.Current.PublishStatus.ToString(),
+                LastUpdatedDate = DateTimeOffset.Now
+            };
+        }
+
+        private async Task<IEnumerable<Calculation>> UpdateCalculationCodeOnCalculationChange(string oldCalcSourceCodeName, string newCalcSourceCodeName, string specificationId, Reference user)
+        {
+            List<Calculation> updatedCalculations = new List<Calculation>();
+
+            if (oldCalcSourceCodeName != newCalcSourceCodeName)
+            {
+                IEnumerable<Calculation> calculations = await _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCalculationsBySpecificationId(specificationId));
+
+                foreach (Calculation calculation in calculations)
+                {
+                    string sourceCode = calculation.Current.SourceCode;
+                    CalculationNamespace calcNamespace = calculation.Current.Namespace;
+
+                    string result = _calculationCodeReferenceUpdate.ReplaceSourceCodeReferences(calculation,
+                        oldCalcSourceCodeName,
+                        newCalcSourceCodeName);
+
+                    if (result != sourceCode)
+                    {
+                        CalculationVersion calculationVersion = calculation.Current.Clone() as CalculationVersion;
+                        calculationVersion.SourceCode = result;
+
+                        UpdateCalculationResult updateCalculationResult = await UpdateCalculation(calculation, calculationVersion, user, updateBuildProject: false);
+
+                        updatedCalculations.Add(updateCalculationResult.Calculation);
+                    }
+                }
+            }
+
+            return updatedCalculations;
+        }
+
+        private async Task<UpdateCalculationResult> UpdateCalculation(Calculation calculation, CalculationVersion calculationVersion, Reference user, bool updateBuildProject = true)
+        {
+            Guard.ArgumentNotNull(calculation, nameof(calculation));
+            Guard.ArgumentNotNull(calculationVersion, nameof(calculationVersion));
+            Guard.ArgumentNotNull(user, nameof(user));
+
+            if (calculation.Current == null)
+            {
+                _logger.Warning($"Current for {calculation.Id} was null and needed recreating.");
+                calculation.Current = calculationVersion;
+            }
+
+            CalculationVersion previousCalculationVersion = calculation.Current;
+
+            calculationVersion.Author = user;
+
+            HttpStatusCode statusCode = await UpdateCalculation(calculation, calculationVersion, previousCalculationVersion);
+
+            if (statusCode != HttpStatusCode.OK)
+            {
+                throw new InvalidOperationException($"Update calculation returned status code '{statusCode}' instead of OK");
+            }
+
+            BuildProject buildProject = null;
+
+            if (updateBuildProject)
+            {
+                buildProject = await UpdateBuildProject(calculation.SpecificationId);
+            }
+
+            SpecModel.SpecificationSummary specificationSummary = (await _specificationsApiClientPolicy.ExecuteAsync(() => _specificationsApiClient.GetSpecificationSummaryById(calculation.SpecificationId))).Content;
+
+            string fundingStreamName = specificationSummary.FundingStreams.FirstOrDefault(_ => _.Id == calculation.FundingStreamId)?.Name;
+
+            await UpdateSearch(calculation, specificationSummary.Name, fundingStreamName);
+
+            CalculationResponseModel currentVersion = calculation.ToResponseModel();
+            await UpdateCalculationInCache(calculation, currentVersion);
+
+            return new UpdateCalculationResult()
+            {
+                BuildProject = buildProject,
+                Calculation = calculation,
+                CurrentVersion = currentVersion,
+            };
+        }
+
+        private async Task<BuildProject> UpdateBuildProject(string specificationId)
+        {
+            Task<IEnumerable<Calculation>> calculationsRequest = _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCalculationsBySpecificationId(specificationId));
+            Task<BuildProject> buildProjectRequest = _buildProjectsService.GetBuildProjectForSpecificationId(specificationId);
+
+            await TaskHelper.WhenAllAndThrow(calculationsRequest, buildProjectRequest);
+
+            List<Calculation> calculations = new List<Calculation>(calculationsRequest.Result);
+            BuildProject buildProject = buildProjectRequest.Result;
+
+            return await UpdateBuildProject(specificationId, calculations, buildProject);
+        }
+
+        private async Task<BuildProject> UpdateBuildProject(string specificationId, IEnumerable<Calculation> calculations, BuildProject buildProject = null)
+        {
+            if (buildProject == null)
+            {
+                buildProject = await _buildProjectsService.GetBuildProjectForSpecificationId(specificationId);
+            }
+
+            CompilerOptions compilerOptions = await _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCompilerOptions(specificationId));
+
+            if (compilerOptions == null)
+            {
+                compilerOptions = new CompilerOptions();
+            }
+
+            //forcing off for calc runs only
+            compilerOptions.OptionStrictEnabled = false;
+
+            buildProject.Build = _sourceCodeService.Compile(buildProject, calculations, compilerOptions);
+
+            await _sourceCodeService.SaveSourceFiles(buildProject.Build.SourceFiles, specificationId, SourceCodeType.Release);
+
+            await _sourceCodeService.SaveAssembly(buildProject);
+
+            if (!_featureToggle.IsDynamicBuildProjectEnabled())
+            {
+                await _buildProjectRepositoryPolicy.ExecuteAsync(() => _buildProjectsRepository.UpdateBuildProject(buildProject));
+            }
+
+            return buildProject;
+        }
+
+        private async Task<Job> SendInstructAllocationsToJobService(string specificationId, string userId, string userName, Trigger trigger, string correlationId)
+        {
+            return await _instructionAllocationJobCreation.SendInstructAllocationsToJobService(specificationId, userId, userName, trigger, correlationId);
+        }
+
+        private async Task UpdateCalculationInCache(Calculation calculation, CalculationResponseModel currentVersion)
+        {
+            // Invalidate cached calculations for this specification
+            await _cachePolicy.ExecuteAsync(() => _cacheProvider.KeyDeleteAsync<List<CalculationSummaryModel>>($"{CacheKeys.CalculationsSummariesForSpecification}{calculation.SpecificationId}"));
+            await _cachePolicy.ExecuteAsync(() => _cacheProvider.KeyDeleteAsync<List<CalculationResponseModel>>($"{CacheKeys.CurrentCalculationsForSpecification}{calculation.SpecificationId}"));
+            await _cachePolicy.ExecuteAsync(() => _cacheProvider.KeyDeleteAsync<List<CalculationResponseModel>>($"{CacheKeys.CalculationsMetadataForSpecification}{calculation.SpecificationId}"));
+
+
+            // Set current version in cache
+            await _cachePolicy.ExecuteAsync(() => _cacheProvider.SetAsync($"{CacheKeys.CurrentCalculation}{calculation.Id}", currentVersion, TimeSpan.FromDays(7), true));
+        }
+
+        private async Task<HttpStatusCode> UpdateCalculation(Calculation calculation, CalculationVersion calculationVersion, CalculationVersion previousVersion)
+        {
+            calculationVersion = await _calculationVersionsRepositoryPolicy.ExecuteAsync(() => _calculationVersionRepository.CreateVersion(calculationVersion, previousVersion));
+
+            calculation.Current = calculationVersion;
+
+            HttpStatusCode result = await _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.UpdateCalculation(calculation));
+            if (result == HttpStatusCode.OK)
+            {
+                await _calculationVersionsRepositoryPolicy.ExecuteAsync(() => _calculationVersionRepository.SaveVersion(calculationVersion));
+            }
+
+            return result;
         }
 
         private bool ProcessTemplateMappingChanges(TemplateMapping templateMapping, TemplateMetadataContents fundingTemplateContents)
@@ -1266,33 +1324,6 @@ namespace CalculateFunding.Services.Calcs
             }
 
             return madeChanges;
-        }
-
-        public async Task<IActionResult> GetMappedCalculationsOfSpecificationTemplate(string specificationId, string fundingStreamId)
-        {
-            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
-            Guard.IsNullOrWhiteSpace(fundingStreamId, nameof(fundingStreamId));
-
-            string cacheKey = $"{CacheKeys.TemplateMapping}{specificationId}-{fundingStreamId}";
-            TemplateMapping templateMapping = await _cachePolicy.ExecuteAsync(() => _cacheProvider.GetAsync<TemplateMapping>(cacheKey));
-
-            if (templateMapping == null)
-            {
-                templateMapping = await _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetTemplateMapping(specificationId, fundingStreamId));
-                if (templateMapping?.TemplateMappingItems == null)
-                {
-                    string message = $"A template mapping was not found for specification id {specificationId} and funding stream Id {fundingStreamId}";
-                    _logger.Information(message);
-
-                    return new NotFoundObjectResult(message);
-                }
-
-                await _cachePolicy.ExecuteAsync(() => _cacheProvider.SetAsync(cacheKey, templateMapping, TimeSpan.FromDays(7), true));
-            }
-
-            TemplateMappingSummary result = templateMapping.ToSummaryResponseModel();
-
-            return new OkObjectResult(result);
         }
     }
 }

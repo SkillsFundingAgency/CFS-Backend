@@ -18,6 +18,7 @@ using CalculateFunding.Services.Specs.Interfaces;
 using CalculateFunding.Services.Specs.MappingProfiles;
 using FluentValidation;
 using FluentValidation.Results;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
@@ -67,6 +68,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             IResultsRepository resultsRepository = null,
             IVersionRepository<Models.Specs.SpecificationVersion> specificationVersionRepository = null,
             IQueueCreateSpecificationJobActions queueCreateSpecificationJobActions = null,
+            IQueueDeleteSpecificationJobActions queueDeleteSpecificationJobActions = null,
             IFeatureToggle featureToggle = null,
             ICalculationsApiClient calcsApiClient = null)
         {
@@ -84,7 +86,9 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 specificationVersionRepository ?? CreateVersionRepository(),
                 SpecificationsResilienceTestHelper.GenerateTestPolicies(),
                 queueCreateSpecificationJobActions ?? Substitute.For<IQueueCreateSpecificationJobActions>(),
+                queueDeleteSpecificationJobActions ?? Substitute.For<IQueueDeleteSpecificationJobActions>(),
                 calcsApiClient ?? CreateCalcsApiClient(),
+                Substitute.For<IHostingEnvironment>(),
                 featureToggle ?? Substitute.For<IFeatureToggle>());
         }
 
