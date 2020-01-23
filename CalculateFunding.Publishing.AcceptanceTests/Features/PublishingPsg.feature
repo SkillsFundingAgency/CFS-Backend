@@ -21,8 +21,8 @@ Scenario Outline: Successful publishing of funding
 		| LA maintained schools | Voluntary aided school      |
 		| LA maintained schools | Voluntary controlled school |
 		| Special schools       | Community special school    |
-		| Special schools       | Foundation special school   |		
-	And the funding configuration is available in the policies repository	
+		| Special schools       | Foundation special school   |
+	And the funding configuration is available in the policies repository
 	And the funding configuration has the following organisation group
 		| Field                     | Value        |
 		| GroupTypeIdentifier       | UKPRN        |
@@ -460,7 +460,7 @@ Scenario Outline: Successful publishing of funding
 	And the Published Provider has the following provider information
 		| Field                         | Value                         |
 		| ProviderId                    | 1000201                       |
-		| Name                          | Non-Maintained School 1		|
+		| Name                          | Non-Maintained School 1       |
 		| Authority                     | Local Authority 1             |
 		| CensusWardCode                |                               |
 		| CensusWardName                |                               |
@@ -540,7 +540,7 @@ Scenario Outline: Successful publishing of funding
 	And the Published Provider has the following provider information
 		| Field                         | Value                         |
 		| ProviderId                    | 1000202                       |
-		| Name                          | Non-Maintained School 1		|
+		| Name                          | Non-Maintained School 1       |
 		| Authority                     | Local Authority 1             |
 		| CensusWardCode                |                               |
 		| CensusWardName                |                               |
@@ -1061,10 +1061,10 @@ Scenario Outline: Successful publishing of funding
 	And the provider with id '1000103' should be a scoped provider in the current specification in provider version '<ProviderVersionId>'
 	# Non-Maintained schools in Core Provider Data
 	And the following provider exists within core provider data in provider version '<ProviderVersionId>'
-		| Field                         | Value							|
+		| Field                         | Value                         |
 		| Field                         | Value                         |
 		| ProviderId                    | 1000201                       |
-		| Name                          | Non-Maintained School 1		|
+		| Name                          | Non-Maintained School 1       |
 		| Authority                     | Local Authority 1             |
 		| CensusWardCode                |                               |
 		| CensusWardName                |                               |
@@ -1114,10 +1114,10 @@ Scenario Outline: Successful publishing of funding
 		| WardName                      |                               |
 	And the provider with id '1000201' should be a scoped provider in the current specification in provider version '<ProviderVersionId>'
 	And the following provider exists within core provider data in provider version '<ProviderVersionId>'
-		| Field                         | Value							|
+		| Field                         | Value                         |
 		| Field                         | Value                         |
 		| ProviderId                    | 1000202                       |
-		| Name                          | Non-Maintained School 1		|
+		| Name                          | Non-Maintained School 1       |
 		| Authority                     | Local Authority 1             |
 		| CensusWardCode                |                               |
 		| CensusWardName                |                               |
@@ -1354,8 +1354,8 @@ Scenario Outline: Successful publishing of funding
 		| PhaseOfEducation              |                          |
 		| Postcode                      |                          |
 		| ProviderProfileIdType         |                          |
-		| ProviderType                  | Multi-academy trust      |
-		| ProviderSubType               | Multi-academy trust      |
+		| ProviderType                  | Academy trust            |
+		| ProviderSubType               | Academy trust            |
 		| ProviderVersionId             | <ProviderVersionId>      |
 		| ReasonEstablishmentClosed     |                          |
 		| ReasonEstablishmentOpened     |                          |
@@ -1424,20 +1424,19 @@ Scenario Outline: Successful publishing of funding
 		| WardCode                      |                          |
 		| WardName                      |                          |
 	And template mapping exists
-		| EntityType  | CalculationId | TemplateId | Name				|
-		| Calculation | calculation1 | 2		  | Total Allocation	|
-		| Calculation | calculation2 | 3		  | Eligible Pupils		|
-		| Calculation | calculation3 | 4	      | Pupil rate threshold|
-		| Calculation | calculation4 | 5		  | Rate				|
-		| Calculation | calculation5 | 6		  | Additional Rate		|
+		| EntityType  | CalculationId | TemplateId | Name                 |
+		| Calculation | calculation1  | 2          | Total Allocation     |
+		| Calculation | calculation2  | 3          | Eligible Pupils      |
+		| Calculation | calculation3  | 4          | Pupil rate threshold |
+		| Calculation | calculation4  | 5          | Rate                 |
+		| Calculation | calculation5  | 6          | Additional Rate      |
 	And calculations exists
-		| Value         | Id			   |
-		| 24000         | calculation1	   |
-		| 120			| calculation2	   |
-		| 500			| calculation3	   |
-		| 1000			| calculation4	   |
-		| 20			| calculation5	   |
-
+		| Value | Id           |
+		| 24000 | calculation1 |
+		| 120   | calculation2 |
+		| 500   | calculation3 |
+		| 1000  | calculation4 |
+		| 20    | calculation5 |
 	When funding is published
 	Then publishing succeeds
 	And the following published funding is produced
@@ -1446,7 +1445,7 @@ Scenario Outline: Successful publishing of funding
 		| OrganisationGroupTypeCode        | LocalAuthority    |
 		| OrganisationGroupIdentifierValue | 9000000           |
 		| FundingPeriodId                  | <FundingPeriodId> |
-		| FundingStreamId                  | <FundingStreamId> |	
+		| FundingStreamId                  | <FundingStreamId> |
 	And the total funding is '36000'
 	And the published funding contains the following published provider ids
 		| FundingIds                                      |
@@ -1459,7 +1458,7 @@ Scenario Outline: Successful publishing of funding
 		| FY-1920              | CalendarMonth | October   | 1920 | 1          | 21000         |
 	And the published funding contains a distribution period in funding line 'TotalAllocation' with id of 'FY-2021' has the following profiles
 		| DistributionPeriodId | Type          | TypeValue | Year | Occurrence | ProfiledValue |
-		| FY-2021              | CalendarMonth | April     | 2021 | 1          | 15000         |	
+		| FY-2021              | CalendarMonth | April     | 2021 | 1          | 15000         |
 	And the following published funding is produced
 		| Field                            | Value             |
 		| GroupingReason                   | Payment           |
@@ -1483,14 +1482,14 @@ Scenario Outline: Successful publishing of funding
 	And the following published funding is produced
 		| Field                            | Value             |
 		| GroupingReason                   | Information       |
-		| OrganisationGroupTypeCode        | Provider		   |
+		| OrganisationGroupTypeCode        | Provider          |
 		| OrganisationGroupIdentifierValue | 1000201           |
 		| FundingPeriodId                  | <FundingPeriodId> |
-		| FundingStreamId                  | <FundingStreamId> |	
+		| FundingStreamId                  | <FundingStreamId> |
 	And the total funding is '44000'
 	And the published funding contains the following published provider ids
 		| FundingIds                                      |
-		| <FundingStreamId>-<FundingPeriodId>-1000201-1_0 |	
+		| <FundingStreamId>-<FundingPeriodId>-1000201-1_0 |
 	And the published funding contains a distribution period in funding line 'TotalAllocation' with id of 'FY-1920' has the value of '24000'
 	And the published funding contains a distribution period in funding line 'TotalAllocation' with id of 'FY-2021' has the value of '20000'
 	And the published funding contains a distribution period in funding line 'TotalAllocation' with id of 'FY-1920' has the following profiles
@@ -1500,21 +1499,21 @@ Scenario Outline: Successful publishing of funding
 		| DistributionPeriodId | Type          | TypeValue | Year | Occurrence | ProfiledValue |
 		| FY-2021              | CalendarMonth | April     | 2021 | 1          | 20000         |
 	And  the published funding contains a calculations in published provider with following calculation results
-		| Id				   | Value         |		
-		| 3					   | 120		   |		
-		| 5					   | 1000		   |
-		| 6					   | 20			   |
+		| Id | Value |
+		| 3  | 120   |
+		| 5  | 1000  |
+		| 6  | 20    |
 	And the following published funding is produced
 		| Field                            | Value             |
 		| GroupingReason                   | Information       |
-		| OrganisationGroupTypeCode        | Provider		   |
+		| OrganisationGroupTypeCode        | Provider          |
 		| OrganisationGroupIdentifierValue | 1000202           |
 		| FundingPeriodId                  | <FundingPeriodId> |
-		| FundingStreamId                  | <FundingStreamId> |	
+		| FundingStreamId                  | <FundingStreamId> |
 	And the total funding is '44000'
 	And the published funding contains the following published provider ids
 		| FundingIds                                      |
-		| <FundingStreamId>-<FundingPeriodId>-1000202-1_0 |	
+		| <FundingStreamId>-<FundingPeriodId>-1000202-1_0 |
 	And the published funding contains a distribution period in funding line 'TotalAllocation' with id of 'FY-1920' has the value of '24000'
 	And the published funding contains a distribution period in funding line 'TotalAllocation' with id of 'FY-2021' has the value of '20000'
 	And the published funding contains a distribution period in funding line 'TotalAllocation' with id of 'FY-1920' has the following profiles
@@ -1524,18 +1523,18 @@ Scenario Outline: Successful publishing of funding
 		| DistributionPeriodId | Type          | TypeValue | Year | Occurrence | ProfiledValue |
 		| FY-2021              | CalendarMonth | April     | 2021 | 1          | 20000         |
 	And  the published funding contains a calculations in published provider with following calculation results
-		| Id				   | Value         |		
-		| 3					   | 120		   |		
-		| 5					   | 1000		   |
-		| 6					   | 20			   |	
+		| Id | Value |
+		| 3  | 120   |
+		| 5  | 1000  |
+		| 6  | 20    |
 	And the published funding document produced is saved to blob storage for following file name
-		| PublishedFundingFiles												   |
-		| <FundingStreamId>-<FundingPeriodId>-Information-Provider-1000201-1_0.json |
-		| <FundingStreamId>-<FundingPeriodId>-Information-Provider-1000202-1_0.json |
-		| <FundingStreamId>-<FundingPeriodId>-Payment-AcademyTrust-8000001-1_0.json |
+		| PublishedFundingFiles                                                       |
+		| <FundingStreamId>-<FundingPeriodId>-Information-Provider-1000201-1_0.json   |
+		| <FundingStreamId>-<FundingPeriodId>-Information-Provider-1000202-1_0.json   |
+		| <FundingStreamId>-<FundingPeriodId>-Payment-AcademyTrust-8000001-1_0.json   |
 		| <FundingStreamId>-<FundingPeriodId>-Payment-LocalAuthority-9000000-1_0.json |
 	And the published provider document produced is saved to blob storage for following file name
-		| PublishedProviderFiles							   |
+		| PublishedProviderFiles                               |
 		| <FundingStreamId>-<FundingPeriodId>-1000000-1_0.json |
 		| <FundingStreamId>-<FundingPeriodId>-1000002-1_0.json |
 		| <FundingStreamId>-<FundingPeriodId>-1000101-1_0.json |
@@ -1543,12 +1542,12 @@ Scenario Outline: Successful publishing of funding
 		| <FundingStreamId>-<FundingPeriodId>-1000201-1_0.json |
 		| <FundingStreamId>-<FundingPeriodId>-1000202-1_0.json |
 	And the following published provider search index items is produced for providerid with '<FundingStreamId>' and '<FundingPeriodId>'
-		| ID                  | ProviderType				| LocalAuthority	 | FundingStatus | ProviderName			   | UKPRN		| FundingValue | SpecificationId   | FundingStreamId   | FundingPeriodId   |
-		| 1000102-AY-1920-PSG | Academies					| Local Authority 1  | Released      | Academy 2			   | 1000102    | 24000        | specForPublishing | <FundingStreamId> | <FundingPeriodId> |
-		| 1000201-AY-1920-PSG | Special schools				| Local Authority 1  | Released      | Non-Maintained School 1 | 1000201    | 44000        | specForPublishing | <FundingStreamId> | <FundingPeriodId> |
-		| 1000101-AY-1920-PSG | Academies					| Local Authority 1  | Released      | Academy 1			   | 1000101    | 24000        | specForPublishing | <FundingStreamId> | <FundingPeriodId> |
-		| 1000002-AY-1920-PSG | LA maintained schools		| Local Authority 1  | Released      | Maintained School 2	   | 1000002    | 24000        | specForPublishing | <FundingStreamId> | <FundingPeriodId> |
-		| 1000202-AY-1920-PSG | Special schools				| Local Authority 1  | Released      | Non-Maintained School 1 | 1000202    | 44000        | specForPublishing | <FundingStreamId> | <FundingPeriodId> |
+		| ID                  | ProviderType          | LocalAuthority    | FundingStatus | ProviderName            | UKPRN   | FundingValue | SpecificationId   | FundingStreamId   | FundingPeriodId   |
+		| 1000102-AY-1920-PSG | Academies             | Local Authority 1 | Released      | Academy 2               | 1000102 | 24000        | specForPublishing | <FundingStreamId> | <FundingPeriodId> |
+		| 1000201-AY-1920-PSG | Special schools       | Local Authority 1 | Released      | Non-Maintained School 1 | 1000201 | 44000        | specForPublishing | <FundingStreamId> | <FundingPeriodId> |
+		| 1000101-AY-1920-PSG | Academies             | Local Authority 1 | Released      | Academy 1               | 1000101 | 24000        | specForPublishing | <FundingStreamId> | <FundingPeriodId> |
+		| 1000002-AY-1920-PSG | LA maintained schools | Local Authority 1 | Released      | Maintained School 2     | 1000002 | 24000        | specForPublishing | <FundingStreamId> | <FundingPeriodId> |
+		| 1000202-AY-1920-PSG | Special schools       | Local Authority 1 | Released      | Non-Maintained School 1 | 1000202 | 44000        | specForPublishing | <FundingStreamId> | <FundingPeriodId> |
 	And the following job is requested is completed for the current specification
 		| Field                  | Value             |
 		| JobDefinitionId        | PublishFundingJob |
@@ -1556,13 +1555,14 @@ Scenario Outline: Successful publishing of funding
 		| InvokerUserDisplayName | Invoker User      |
 		| ParentJobId            |                   |
 	And the following released published provider ids are upserted
-		| PublishedProviderId                                           | Status  |
-		| publishedprovider-1000000-<FundingPeriodId>-<FundingStreamId> | Released|	
-		| publishedprovider-1000002-<FundingPeriodId>-<FundingStreamId> | Released|	
-		| publishedprovider-1000101-<FundingPeriodId>-<FundingStreamId> | Released|	
-		| publishedprovider-1000102-<FundingPeriodId>-<FundingStreamId> | Released|	
-		| publishedprovider-1000201-<FundingPeriodId>-<FundingStreamId> | Released|
-		| publishedprovider-1000202-<FundingPeriodId>-<FundingStreamId> | Released|
+		| PublishedProviderId                                           | Status   |
+		| publishedprovider-1000000-<FundingPeriodId>-<FundingStreamId> | Released |
+		| publishedprovider-1000002-<FundingPeriodId>-<FundingStreamId> | Released |
+		| publishedprovider-1000101-<FundingPeriodId>-<FundingStreamId> | Released |
+		| publishedprovider-1000102-<FundingPeriodId>-<FundingStreamId> | Released |
+		| publishedprovider-1000201-<FundingPeriodId>-<FundingStreamId> | Released |
+		| publishedprovider-1000202-<FundingPeriodId>-<FundingStreamId> | Released |
+
 	Examples:
 		| FundingStreamId | FundingPeriodId | FundingPeriodName     | TemplateVersion | ProviderVersionId |
 		| PSG             | AY-1920         | Academic Year 2019-20 | 1.0             | psg-providers-1.0 |
