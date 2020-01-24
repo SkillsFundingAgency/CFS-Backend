@@ -420,7 +420,7 @@ namespace CalculateFunding.Services.Jobs
 
             var jobDefinition = jobDefinitions.FirstOrDefault(j => j.Id == parentJob.JobDefinitionId);
 
-            if (jobDefinition != null && jobDefinition.PreCompletionJobs.Any())
+            if (jobDefinition != null && jobDefinition.PreCompletionJobs.AnyWithNullCheck())
             {
                 parentJob.RunningStatus = RunningStatus.Completing;
 

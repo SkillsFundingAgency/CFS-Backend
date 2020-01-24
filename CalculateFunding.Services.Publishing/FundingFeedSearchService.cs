@@ -48,8 +48,7 @@ namespace CalculateFunding.Services.Publishing
             int top,
             IEnumerable<string> fundingStreamIds = null,
             IEnumerable<string> fundingPeriodIds = null,
-            IEnumerable<string> groupingReasons = null,
-            params string[] orderBy)
+            IEnumerable<string> groupingReasons = null)
         {
             if (pageRef < 1)
             {
@@ -63,19 +62,21 @@ namespace CalculateFunding.Services.Publishing
 
             FilterHelper filterHelper = new FilterHelper();
             AddFiltersForNotification(fundingStreamIds, fundingPeriodIds, groupingReasons, filterHelper);
+            bool reverseOrder = false;
 
             if (pageRef == null)
             {
-                SearchResults<PublishedFundingIndex> countSearchResults = await SearchResults(0, null, filterHelper.BuildAndFilterQuery(), orderBy);
+                SearchResults<PublishedFundingIndex> countSearchResults = await SearchResults(0, null, filterHelper.BuildAndFilterQuery());
                 SearchFeedV3<PublishedFundingIndex> searchFeedCountResult = CreateSearchFeedResult(null, top, countSearchResults);
                 pageRef = searchFeedCountResult.Last;
+                reverseOrder = true;
             }
 
             int skip = (pageRef.Value - 1) * top;
 
             string filters = filterHelper.Filters.IsNullOrEmpty() ? "" : filterHelper.BuildAndFilterQuery();
 
-            SearchResults<PublishedFundingIndex> searchResults = await SearchResults(top, skip, filters, orderBy);
+            SearchResults<PublishedFundingIndex> searchResults = await SearchResults(top, skip, filters, reverseOrder);
 
             return CreateSearchFeedResult(pageRef, top, searchResults);
         }
@@ -116,10 +117,8 @@ namespace CalculateFunding.Services.Publishing
             }
         }
 
-        private async Task<SearchResults<PublishedFundingIndex>> SearchResults(int top, int? skip, string filters, params string[] orderBy)
+        private async Task<SearchResults<PublishedFundingIndex>> SearchResults(int top, int? skip, string filters, bool reverse = false)
         {
-            string statusChangedDateOrderByParameter = "statusChangedDate";
-
             SearchResults <PublishedFundingIndex> searchResults =
                 await _fundingSearchRepositoryPolicy.ExecuteAsync(
                     () =>
@@ -130,7 +129,7 @@ namespace CalculateFunding.Services.Publishing
                             SearchMode = Microsoft.Azure.Search.Models.SearchMode.Any,
                             IncludeTotalResultCount = true,
                             Filter = filters,
-                            OrderBy = !orderBy.AnyWithNullCheck() ? new[] { statusChangedDateOrderByParameter, "id" } : orderBy,
+                            OrderBy = new[] { "statusChangedDate", "id" },
                             QueryType = QueryType.Full
                         },
                         true);
@@ -139,7 +138,12 @@ namespace CalculateFunding.Services.Publishing
             if(skip.HasValue)
             {
                 searchResults?.Results?.RemoveRange(0, skip.Value);
-                searchResults?.Results?.Reverse();
+
+                if (reverse)
+                {
+                    searchResults?.Results?.Reverse();
+                }
+
                 if (searchResults != null && !searchResults.Results.IsNullOrEmpty() && searchResults.Results.Count > top)
                 {
                     searchResults.Results = searchResults.Results.Take(top).ToList();

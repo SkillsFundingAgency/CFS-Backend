@@ -86,8 +86,7 @@ namespace CalculateFunding.Api.External.V3.Services
                 SearchFeedV3<PublishedFundingIndex> resultsPage = await _searchService.GetFeedsV3(pageNumber.Value, _settings.PageSize, 
                     null, 
                     null, 
-                    null,
-                    "statusChangedDate desc", "id asc");
+                    null);
 
                 List<Task> cacheDocumentTasks = new List<Task>();
                 SemaphoreSlim cacheThrottle = new SemaphoreSlim(10, 10);

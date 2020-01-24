@@ -7,6 +7,7 @@ using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Serilog;
 
 namespace CalculateFunding.Functions.CalcEngine.UnitTests
 {
@@ -29,6 +30,7 @@ namespace CalculateFunding.Functions.CalcEngine.UnitTests
                 scope.ServiceProvider.GetService<ICalculationEngine>().Should().NotBeNull(nameof(ICalculationEngine));
                 scope.ServiceProvider.GetService<IAllocationFactory>().Should().NotBeNull(nameof(IAllocationFactory));
                 scope.ServiceProvider.GetService<IJobHelperService>().Should().NotBeNull(nameof(IJobHelperService));
+                scope.ServiceProvider.GetService<ILogger>().Should().NotBeNull(nameof(ILogger));
             }
         }
 

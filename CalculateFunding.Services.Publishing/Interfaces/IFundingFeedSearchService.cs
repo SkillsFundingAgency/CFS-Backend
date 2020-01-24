@@ -11,7 +11,6 @@ namespace CalculateFunding.Services.Publishing.Interfaces
             int top, 
             IEnumerable<string> fundingStreamIds = null, 
             IEnumerable<string> fundingPeriodIds = null, 
-            IEnumerable<string> groupingReasons = null,
-            params string[] orderBy);
+            IEnumerable<string> groupingReasons = null);
     }
 }

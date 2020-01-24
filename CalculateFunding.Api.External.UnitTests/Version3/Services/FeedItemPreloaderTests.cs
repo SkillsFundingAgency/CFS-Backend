@@ -167,8 +167,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version3.Services
                     Arg.Any<int>(),
                     Arg.Any<IEnumerable<string>>(),
                     Arg.Any<IEnumerable<string>>(),
-                    Arg.Any<IEnumerable<string>>(),
-                    Arg.Any<string[]>())
+                    Arg.Any<IEnumerable<string>>())
                 .GetAwaiter()
                 .GetResult();
 
@@ -196,8 +195,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version3.Services
         {
             _searchService.GetFeedsV3(page,
                     pageSize,
-                    null, null, null,
-                    "statusChangedDate desc", "id asc")
+                    null, null, null)
                 .Returns(result);
         }
 
