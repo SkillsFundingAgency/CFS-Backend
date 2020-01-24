@@ -9,7 +9,6 @@ using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Jobs;
 using CalculateFunding.Models.Messages;
-using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
@@ -416,9 +415,9 @@ namespace CalculateFunding.Services.Jobs
 
         private async Task<IEnumerable<Job>> CompletePreCompletionJobs(Job parentJob, IEnumerable<Job> childJobs, Job job, string jobId)
         {
-            var jobDefinitions = await _jobDefinitionsService.GetAllJobDefinitions();
+            IEnumerable<JobDefinition> jobDefinitions = await _jobDefinitionsService.GetAllJobDefinitions();
 
-            var jobDefinition = jobDefinitions.FirstOrDefault(j => j.Id == parentJob.JobDefinitionId);
+            JobDefinition jobDefinition = jobDefinitions.FirstOrDefault(j => j.Id == parentJob.JobDefinitionId);
 
             if (jobDefinition != null && jobDefinition.PreCompletionJobs.AnyWithNullCheck())
             {
@@ -440,7 +439,7 @@ namespace CalculateFunding.Services.Jobs
 
         private static bool CompletedAll(IEnumerable<Job> jobs) =>
             jobs.IsNullOrEmpty() || jobs.Any() && jobs.All(j => j.RunningStatus == RunningStatus.Completed);
-        
+
 
         private async Task CompleteParentJob(Job parentJob, IEnumerable<Job> childJobs, Job job, string jobId)
         {
@@ -680,10 +679,10 @@ namespace CalculateFunding.Services.Jobs
         private async Task QueueNewJob(Job job, JobDefinition jobDefinition)
         {
             string queueOrTopic = !string.IsNullOrWhiteSpace(jobDefinition.MessageBusQueue) ? jobDefinition.MessageBusQueue : jobDefinition.MessageBusTopic;
-            
+
             //support parent jobs with no queue / consumers
             if (queueOrTopic.IsNullOrWhitespace()) return;
-            
+
             string data = !string.IsNullOrWhiteSpace(job.MessageBody) ? job.MessageBody : null;
             IDictionary<string, string> messageProperties = job.Properties;
 

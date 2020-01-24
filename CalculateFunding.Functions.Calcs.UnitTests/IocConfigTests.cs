@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Services.Calcs;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Calcs.Interfaces.CodeGen;
@@ -31,7 +32,7 @@ namespace CalculateFunding.Functions.Calcs.UnitTests
                 scope.ServiceProvider.GetService<ICalculationsSearchService>().Should().NotBeNull(nameof(ICalculationsSearchService));
                 scope.ServiceProvider.GetService<IPreviewService>().Should().NotBeNull(nameof(IPreviewService));
                 scope.ServiceProvider.GetService<ICompilerFactory>().Should().NotBeNull(nameof(ICompilerFactory));
-                scope.ServiceProvider.GetService<ISourceFileGeneratorProvider>().Should().NotBeNull(nameof(ISourceFileGeneratorProvider));              
+                scope.ServiceProvider.GetService<ISourceFileGeneratorProvider>().Should().NotBeNull(nameof(ISourceFileGeneratorProvider));
                 scope.ServiceProvider.GetService<IBuildProjectsService>().Should().NotBeNull(nameof(IBuildProjectsService));
                 scope.ServiceProvider.GetService<IJobHelperService>().Should().NotBeNull(nameof(IJobHelperService));
                 scope.ServiceProvider.GetService<ICalculationCodeReferenceUpdate>().Should().NotBeNull(nameof(ICalculationCodeReferenceUpdate));
@@ -41,6 +42,7 @@ namespace CalculateFunding.Functions.Calcs.UnitTests
                 scope.ServiceProvider.GetService<ILogger>().Should().NotBeNull(nameof(ILogger));
                 scope.ServiceProvider.GetService<IInstructionAllocationJobCreation>().Should().NotBeNull(nameof(IInstructionAllocationJobCreation));
                 scope.ServiceProvider.GetService<ICalcsResiliencePolicies>().Should().NotBeNull(nameof(ICalcsResiliencePolicies));
+                scope.ServiceProvider.GetService<IJobManagement>().Should().NotBeNull(nameof(IJobManagement));
             }
         }
 

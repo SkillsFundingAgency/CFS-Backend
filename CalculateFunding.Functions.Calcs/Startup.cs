@@ -1,5 +1,9 @@
 ﻿using System;
 using CalculateFunding.Common.ApiClient;
+using CalculateFunding.Common.Config.ApiClient.Jobs;
+using CalculateFunding.Common.Config.ApiClient.Policies;
+using CalculateFunding.Common.Config.ApiClient.Providers;
+using CalculateFunding.Common.Config.ApiClient.Specifications;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Interfaces;
 using CalculateFunding.Common.JobManagement;
@@ -58,13 +62,15 @@ namespace CalculateFunding.Functions.Calcs
 
         private static IServiceProvider Register(IServiceCollection builder, IConfigurationRoot config)
         {
-            builder.AddSingleton<CalcsAddRelationshipToBuildProject>();
-            builder.AddSingleton<OnCalcsInstructAllocationResultsFailure>();
-            builder.AddSingleton<OnCalcsInstructAllocationResults>();
-            builder.AddSingleton<OnCalculationAggregationsJobCompleted>();
-            builder.AddSingleton<OnDataDefinitionChanges>();
-            builder.AddSingleton<OnApplyTemplateCalculations>();
-            builder.AddSingleton<OnApplyTemplateCalculationsFailure>();
+            // These registrations of the functions themselves are just for the DebugQueue. Ideally we don't want these registered in production
+            builder.AddScoped<CalcsAddRelationshipToBuildProject>();
+            builder.AddScoped<OnCalcsInstructAllocationResultsFailure>();
+            builder.AddScoped<OnCalcsInstructAllocationResults>();
+            builder.AddScoped<OnCalculationAggregationsJobCompleted>();
+            builder.AddScoped<OnDataDefinitionChanges>();
+            builder.AddScoped<OnApplyTemplateCalculations>();
+            builder.AddScoped<OnApplyTemplateCalculationsFailure>();
+
             builder.AddScoped<IApplyTemplateCalculationsService, ApplyTemplateCalculationsService>();
             builder.AddSingleton<ICalculationsRepository, CalculationsRepository>();
             builder.AddSingleton<ITemplateContentsCalculationQuery, TemplateContentsCalculationQuery>();
@@ -148,11 +154,11 @@ namespace CalculateFunding.Functions.Calcs
 
             builder.AddServiceBus(config);
 
-            Common.Config.ApiClient.Providers.ServiceCollectionExtensions.AddProvidersInterServiceClient(builder, config);
-            Common.Config.ApiClient.Specifications.ServiceCollectionExtensions.AddSpecificationsInterServiceClient(builder, config);
+            builder.AddProvidersInterServiceClient(config);
+            builder.AddSpecificationsInterServiceClient(config);
             builder.AddDatasetsInterServiceClient(config);
-            Common.Config.ApiClient.Jobs.ServiceCollectionExtensions.AddJobsInterServiceClient(builder, config);
-            Common.Config.ApiClient.Policies.ServiceCollectionExtensions.AddPoliciesInterServiceClient(builder, config);
+            builder.AddJobsInterServiceClient(config);
+            builder.AddPoliciesInterServiceClient(config);
 
             builder.AddCaching(config);
 
