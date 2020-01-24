@@ -28,7 +28,7 @@ namespace CalculateFunding.Functions.Calcs.ServiceBus
         [FunctionName("on-delete-calculations")]
         public async Task Run([ServiceBusTrigger(
             ServiceBusConstants.QueueNames.DeleteCalculations,
-            Connection = ServiceBusConstants.ConnectionStringConfigurationKey, IsSessionsEnabled = true)] Message message)
+            Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
         {
             try
             {
