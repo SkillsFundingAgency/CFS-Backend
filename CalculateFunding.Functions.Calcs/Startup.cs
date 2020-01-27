@@ -63,13 +63,16 @@ namespace CalculateFunding.Functions.Calcs
         private static IServiceProvider Register(IServiceCollection builder, IConfigurationRoot config)
         {
             // These registrations of the functions themselves are just for the DebugQueue. Ideally we don't want these registered in production
-            builder.AddScoped<CalcsAddRelationshipToBuildProject>();
-            builder.AddScoped<OnCalcsInstructAllocationResultsFailure>();
-            builder.AddScoped<OnCalcsInstructAllocationResults>();
-            builder.AddScoped<OnCalculationAggregationsJobCompleted>();
-            builder.AddScoped<OnDataDefinitionChanges>();
-            builder.AddScoped<OnApplyTemplateCalculations>();
-            builder.AddScoped<OnApplyTemplateCalculationsFailure>();
+            if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
+            {
+                builder.AddScoped<CalcsAddRelationshipToBuildProject>();
+                builder.AddScoped<OnCalcsInstructAllocationResultsFailure>();
+                builder.AddScoped<OnCalcsInstructAllocationResults>();
+                builder.AddScoped<OnCalculationAggregationsJobCompleted>();
+                builder.AddScoped<OnDataDefinitionChanges>();
+                builder.AddScoped<OnApplyTemplateCalculations>();
+                builder.AddScoped<OnApplyTemplateCalculationsFailure>();
+            }
 
             builder.AddScoped<IApplyTemplateCalculationsService, ApplyTemplateCalculationsService>();
             builder.AddSingleton<ICalculationsRepository, CalculationsRepository>();

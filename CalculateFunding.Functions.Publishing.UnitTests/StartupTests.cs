@@ -22,9 +22,6 @@ namespace CalculateFunding.Functions.Publishing.UnitTests
             using (IServiceScope scope = Startup.RegisterComponents(new ServiceCollection(), configuration).CreateScope())
             {
                 // Assert
-                scope.ServiceProvider.GetService<OnPublishFunding>().Should().NotBeNull(nameof(OnPublishFunding));
-                scope.ServiceProvider.GetService<OnApproveFunding>().Should().NotBeNull(nameof(OnApproveFunding));
-                scope.ServiceProvider.GetService<OnRefreshFunding>().Should().NotBeNull(nameof(OnRefreshFunding));
                 scope.ServiceProvider.GetService<IPublishService>().Should().NotBeNull(nameof(IPublishService));
                 scope.ServiceProvider.GetService<IApproveService>().Should().NotBeNull(nameof(IApproveService));
                 scope.ServiceProvider.GetService<IRefreshService>().Should().NotBeNull(nameof(IRefreshService));

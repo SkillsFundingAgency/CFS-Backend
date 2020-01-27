@@ -40,10 +40,11 @@ namespace CalculateFunding.Functions.CosmosDbScaling
 
         private static IServiceProvider Register(IServiceCollection builder, IConfigurationRoot config)
         {
-#if DEBUG
-            // Added for DebugQueue
-            builder.AddSingleton<OnScaleUpCosmosDbCollection>();
-#endif
+            // These registrations of the functions themselves are just for the DebugQueue. Ideally we don't want these registered in production
+            if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
+            {
+                builder.AddScoped<OnScaleUpCosmosDbCollection>();
+            }
 
 
             builder.AddSingleton<ICosmosDbScalingRepositoryProvider, CosmosDbScalingRepositoryProvider>();

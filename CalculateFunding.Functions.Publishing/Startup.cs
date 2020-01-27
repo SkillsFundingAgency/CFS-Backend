@@ -97,13 +97,17 @@ namespace CalculateFunding.Functions.Publishing
             builder
                 .AddSingleton<ISearchRepository<PublishedFundingIndex>, SearchRepository<PublishedFundingIndex>>();
 
-            builder.AddSingleton<OnRefreshFunding>();
-            builder.AddSingleton<OnApproveFunding>();
-            builder.AddSingleton<OnPublishFunding>();
-            builder.AddScoped<OnRefreshFundingFailure>();
-            builder.AddSingleton<OnApproveFundingFailure>();
-            builder.AddSingleton<OnPublishFundingFailure>();
-            builder.AddSingleton<OnDeletePublishedProviders>();
+            // These registrations of the functions themselves are just for the DebugQueue. Ideally we don't want these registered in production
+            if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
+            {
+                builder.AddScoped<OnRefreshFunding>();
+                builder.AddScoped<OnApproveFunding>();
+                builder.AddScoped<OnPublishFunding>();
+                builder.AddScoped<OnRefreshFundingFailure>();
+                builder.AddScoped<OnApproveFundingFailure>();
+                builder.AddScoped<OnPublishFundingFailure>();
+                builder.AddScoped<OnDeletePublishedProviders>();
+            }
 
             builder.AddSingleton<ISpecificationService, SpecificationService>();
             builder.AddSingleton<IProviderService, ProviderService>();

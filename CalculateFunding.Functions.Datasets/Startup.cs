@@ -58,20 +58,15 @@ namespace CalculateFunding.Functions.Datasets
 
         private static IServiceProvider Register(IServiceCollection builder, IConfigurationRoot config)
         {
-            builder
-              .AddSingleton<OnDataDefinitionChanges>();
-
-            builder
-              .AddSingleton<OnDatasetEvent>();
-
-            builder
-              .AddSingleton<OnDatasetValidationEvent>();
-
-            builder
-                .AddSingleton<OnDatasetEventFailure>();
-
-            builder
-                .AddSingleton<OnDatasetValidationEventFailure>();
+            // These registrations of the functions themselves are just for the DebugQueue. Ideally we don't want these registered in production
+            if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
+            {
+                builder.AddScoped<OnDataDefinitionChanges>();
+                builder.AddScoped<OnDatasetEvent>();
+                builder.AddScoped<OnDatasetValidationEvent>();
+                builder.AddScoped<OnDatasetEventFailure>();
+                builder.AddScoped<OnDatasetValidationEventFailure>();
+            }
 
             builder
                .AddSingleton<IDefinitionsService, DefinitionsService>();

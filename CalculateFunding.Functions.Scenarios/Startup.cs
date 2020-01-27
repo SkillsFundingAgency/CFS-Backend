@@ -48,9 +48,14 @@ namespace CalculateFunding.Functions.Scenarios
 
         private static IServiceProvider Register(IServiceCollection builder, IConfigurationRoot config)
         {
-            builder.AddSingleton<OnDataDefinitionChanges>();
-            builder.AddSingleton<OnEditCaluclationEvent>();
-            builder.AddSingleton<OnEditSpecificationEvent>();
+            // These registrations of the functions themselves are just for the DebugQueue. Ideally we don't want these registered in production
+            if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
+            {
+                builder.AddScoped<OnDataDefinitionChanges>();
+                builder.AddScoped<OnEditCaluclationEvent>();
+                builder.AddScoped<OnEditSpecificationEvent>();
+            }
+
             builder.AddSingleton<IScenariosRepository, ScenariosRepository>();
             builder.AddSingleton<IScenariosService, ScenariosService>();
             builder.AddSingleton<IScenariosSearchService, ScenariosSearchService>();

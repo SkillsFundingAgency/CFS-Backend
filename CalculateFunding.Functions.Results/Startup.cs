@@ -53,12 +53,15 @@ namespace CalculateFunding.Functions.Results
 
         private static IServiceProvider Register(IServiceCollection builder, IConfigurationRoot config)
         {
-            builder.AddSingleton<OnProviderResultsSpecificationCleanup>();
-            builder.AddSingleton<OnReIndexCalculationResults>();
-            builder.AddSingleton<OnProviderResultsSpecificationCleanup>();
-            builder.AddSingleton<OnReIndexCalculationResults>();
-            builder.AddSingleton<OnCalculationResultsCsvGeneration>();
-            builder.AddSingleton<OnCalculationResultsCsvGenerationTimer>();
+            // These registrations of the functions themselves are just for the DebugQueue. Ideally we don't want these registered in production
+            if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
+            {
+                builder.AddScoped<OnProviderResultsSpecificationCleanup>();
+                builder.AddScoped<OnReIndexCalculationResults>();
+                builder.AddScoped<OnCalculationResultsCsvGeneration>();
+                builder.AddScoped<OnCalculationResultsCsvGenerationTimer>();
+            }
+
             builder.AddSingleton<ICalculationResultsRepository, CalculationResultsRepository>();
             builder.AddSingleton<IResultsService, ResultsService>();
             builder.AddSingleton<IJobManagement, JobManagement>();

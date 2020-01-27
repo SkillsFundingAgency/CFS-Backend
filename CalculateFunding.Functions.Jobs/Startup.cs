@@ -41,14 +41,13 @@ namespace CalculateFunding.Functions.Jobs
 
         private static IServiceProvider Register(IServiceCollection builder, IConfigurationRoot config)
         {
-            builder
-               .AddSingleton<OnJobNotification>();
-
-            builder
-              .AddSingleton<OnCheckForJobTimeout>();
-
-            builder
-              .AddSingleton<OnDeleteJobs>();
+            // These registrations of the functions themselves are just for the DebugQueue. Ideally we don't want these registered in production
+            if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
+            {
+                builder.AddScoped<OnJobNotification>();
+                builder.AddScoped<OnCheckForJobTimeout>();
+                builder.AddScoped<OnDeleteJobs>();
+            }
 
             builder
                 .AddSingleton<IJobManagementService, JobManagementService>();

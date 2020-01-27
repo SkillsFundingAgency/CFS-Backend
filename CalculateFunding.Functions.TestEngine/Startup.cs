@@ -49,14 +49,13 @@ namespace CalculateFunding.Functions.TestEngine
 
         private static IServiceProvider Register(IServiceCollection builder, IConfigurationRoot config)
         {
-            builder
-              .AddSingleton<OnTestSpecificationProviderResultsCleanup>();
-
-            builder
-              .AddSingleton<OnEditSpecificationEvent>();
-
-            builder
-              .AddSingleton<OnTestExecution>();
+            // These registrations of the functions themselves are just for the DebugQueue. Ideally we don't want these registered in production
+            if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
+            {
+                builder.AddScoped<OnTestSpecificationProviderResultsCleanup>();
+                builder.AddScoped<OnEditSpecificationEvent>();
+                builder.AddScoped<OnTestExecution>();
+            }
 
             builder
                .AddSingleton<IBuildProjectRepository, BuildProjectRepository>();

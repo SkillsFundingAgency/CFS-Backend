@@ -55,8 +55,13 @@ namespace CalculateFunding.Functions.CalcEngine
 
         private static IServiceProvider Register(IServiceCollection builder, IConfigurationRoot config)
         {
-            builder.AddSingleton<OnCalcsGenerateAllocationResults>();
-            builder.AddSingleton<OnCalculationGenerateFailure>();
+            // These registrations of the functions themselves are just for the DebugQueue. Ideally we don't want these registered in production
+            if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
+            {
+                builder.AddScoped<OnCalcsGenerateAllocationResults>();
+                builder.AddScoped<OnCalculationGenerateFailure>();
+            }
+
             builder.AddScoped<ICalculationEngineService, CalculationEngineService>();
             builder.AddSingleton<ICalculationEngine, CalculationEngine>();
             builder.AddSingleton<IAllocationFactory, AllocationFactory>();
