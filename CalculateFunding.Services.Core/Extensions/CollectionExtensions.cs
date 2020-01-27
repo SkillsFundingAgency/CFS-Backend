@@ -1,4 +1,5 @@
-﻿using CalculateFunding.Common.Utility;
+﻿using System;
+using CalculateFunding.Common.Utility;
 using System.Collections.Generic;
 
 namespace CalculateFunding.Services.Core.Extensions
@@ -15,5 +16,23 @@ namespace CalculateFunding.Services.Core.Extensions
                 parent.Add(item);
             }
         }
+
+        public static int IndexOf<T>(this IEnumerable<T> collection, Func<T, bool> predicate)
+        {
+            int index = 0;
+
+            foreach (T item in collection)
+            {
+                if (predicate(item))
+                {
+                    return index;
+                }
+
+                index++;
+            }
+
+            return -1;
+        }
     }
+    
 }

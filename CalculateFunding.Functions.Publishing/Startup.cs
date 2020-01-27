@@ -34,6 +34,8 @@ using CalculateFunding.Services.Publishing.Providers;
 using CalculateFunding.Services.Publishing.Repositories;
 using CalculateFunding.Services.Publishing.Specifications;
 using CalculateFunding.Services.Publishing.Variations;
+using CalculateFunding.Services.Publishing.Variations.Changes;
+using CalculateFunding.Services.Publishing.Variations.Strategies;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;

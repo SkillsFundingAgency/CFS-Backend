@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Specifications;
+using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
 using CalculateFunding.Services.Publishing.Variations;
 using FluentAssertions;
@@ -21,7 +23,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
             //forward to each of the queued changes and then add them
             //as constructor deps
             
-            _variationsApplication = new ProviderVariationsApplication();
+            _variationsApplication = new ProviderVariationsApplication(Substitute.For<IPublishingResiliencePolicies>(),
+                Substitute.For<ISpecificationsApiClient>());
         }
 
         [TestMethod]

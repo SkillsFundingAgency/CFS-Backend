@@ -14,6 +14,6 @@ namespace CalculateFunding.Services.Publishing.Interfaces
         /// <param name="provider">Core provider information</param>
         /// <param name="templateVersion">The template version used for the specification and provider</param>
         /// <returns>True when the PublishedProviderVersion has been updated, false if not</returns>
-        bool UpdatePublishedProvider(PublishedProviderVersion publishedProviderVersion, GeneratedProviderResult generatedProviderResult, Common.ApiClient.Providers.Models.Provider provider, string templateVersion, ProviderVariationResult variationForProvider, bool isNewProvider);
+        bool UpdatePublishedProvider(PublishedProviderVersion publishedProviderVersion, GeneratedProviderResult generatedProviderResult, Common.ApiClient.Providers.Models.Provider provider, string templateVersion, bool isNewProvider);
     }
 }

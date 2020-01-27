@@ -1,6 +1,7 @@
 using System;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Variations;
+using CalculateFunding.Services.Publishing.Variations.Changes;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;

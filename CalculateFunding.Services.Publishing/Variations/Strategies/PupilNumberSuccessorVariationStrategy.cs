@@ -2,7 +2,7 @@
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
 
-namespace CalculateFunding.Services.Publishing.Variations
+namespace CalculateFunding.Services.Publishing.Variations.Strategies
 {
     public class PupilNumberSuccessorVariationStrategy : IVariationStrategy
     {
@@ -12,7 +12,7 @@ namespace CalculateFunding.Services.Publishing.Variations
 
         public Task DetermineVariations(ProviderVariationContext providerVariationContext)
         {
-            if (providerVariationContext.PriorState.Provider.Status != Closed
+            if (providerVariationContext.ReleasedState.Provider.Status != Closed
                 && providerVariationContext.UpdatedProvider.Status == Closed
                 && string.IsNullOrWhiteSpace(providerVariationContext.UpdatedProvider.Successor))
             {

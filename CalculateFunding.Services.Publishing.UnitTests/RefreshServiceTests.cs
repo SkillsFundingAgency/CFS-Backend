@@ -68,7 +68,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 _providerService,
                 _calculationResultsService,
                 _fundingLineGenerator,
-                _publishedProviderContentsGeneratorResolver,
                 _profilingService,
                 _inScopePublishedProviderService,
                 _publishedProviderDataPopulator,

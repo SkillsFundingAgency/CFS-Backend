@@ -8,7 +8,7 @@ using CalculateFunding.Services.Publishing.Models;
 using ApiProvider = CalculateFunding.Common.ApiClient.Providers.Models.Provider;
 using PublishingProvider = CalculateFunding.Models.Publishing.Provider;
 
-namespace CalculateFunding.Services.Publishing.Variations
+namespace CalculateFunding.Services.Publishing.Variations.Strategies
 {
     /// <summary>
     /// Detects changes in provider metadata between the current saved and the current state of the provider.
@@ -38,7 +38,7 @@ namespace CalculateFunding.Services.Publishing.Variations
 
             public void Run(ProviderVariationContext providerVariationContext)
             {
-                string priorValue = (string)_priorStateAccessor.GetValue(providerVariationContext.PriorState.Provider);
+                string priorValue = (string)_priorStateAccessor.GetValue(providerVariationContext.ReleasedState.Provider);
                 string currentValue = (string)_updatedStateAccessor.GetValue(providerVariationContext.UpdatedProvider);
 
                 if (priorValue != currentValue)
@@ -63,7 +63,7 @@ namespace CalculateFunding.Services.Publishing.Variations
 
         public Task DetermineVariations(ProviderVariationContext providerVariationContext)
         {
-            if (providerVariationContext.PriorState == null || providerVariationContext.UpdatedProvider == null)
+            if (providerVariationContext.ReleasedState == null || providerVariationContext.UpdatedProvider == null)
             {
                 return Task.CompletedTask;
             }

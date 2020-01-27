@@ -8,6 +8,7 @@ using CalculateFunding.Services.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Providers;
 using CalculateFunding.Services.Publishing.Variations;
+using CalculateFunding.Services.Publishing.Variations.Changes;
 using Microsoft.Extensions.Configuration;
 using Microsoft.FeatureManagement;
 using Polly;

@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Models;
@@ -12,9 +11,17 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
     public class ProviderVariationContextBuilder : TestEntityBuilder
     {
         private Provider _currentState;
-        private PublishedProviderVersion _priorState;
+        private PublishedProvider _publishedProvider;
         private ProviderVariationResult _result;
+        private GeneratedProviderResult _generatedProviderResult;
         private IEnumerable<string> _errors;
+
+        public ProviderVariationContextBuilder WithGeneratedProviderResult(GeneratedProviderResult generatedProviderResult)
+        {
+            _generatedProviderResult = generatedProviderResult;
+
+            return this;
+        }
 
         public ProviderVariationContextBuilder WithErrors(params string[] errors)
         {
@@ -30,16 +37,16 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
             return this;
         }
 
-        public ProviderVariationContextBuilder WithCurrentState(Provider provider)
+        public ProviderVariationContextBuilder WithPublishedProvider(PublishedProvider publishedProvider)
         {
-            _currentState = provider;
+            _publishedProvider = publishedProvider;
 
             return this;
         }
 
-        public ProviderVariationContextBuilder WithPriorState(PublishedProviderVersion publishedProviderVersion)
+        public ProviderVariationContextBuilder WithCurrentState(Provider provider)
         {
-            _priorState = publishedProviderVersion;
+            _currentState = provider;
 
             return this;
         }
@@ -49,8 +56,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
             ProviderVariationContext providerVariationContext = new ProviderVariationContext
             {
                 UpdatedProvider = _currentState,
-                PriorState = _priorState,
+                PublishedProvider =_publishedProvider,
                 Result = _result ?? new ProviderVariationResult(),
+                GeneratedProvider = _generatedProviderResult
             };
 
             if (_errors?.Any() == true)

@@ -10,6 +10,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private uint? _templateLineId;
         private decimal _value;
         private IEnumerable<DistributionPeriod> _distributionPeriods;
+        private string _fundingLineCode;
+
+        public FundingLineBuilder WithFundingLineCode(string fundingLineCode)
+        {
+            _fundingLineCode = fundingLineCode;
+
+            return this;
+        }
 
         public FundingLineBuilder WithValue(decimal value)
         {
@@ -32,7 +40,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             return this;
         }
 
-        public FundingLineBuilder WithDistributionPeriods(IEnumerable<DistributionPeriod> distributionPeriods)
+        public FundingLineBuilder WithDistributionPeriods(params DistributionPeriod[] distributionPeriods)
         {
             _distributionPeriods = distributionPeriods;
 
@@ -44,6 +52,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             return new FundingLine
             {
                 TemplateLineId = _templateLineId.GetValueOrDefault((uint)NewRandomNumberBetween(1, int.MaxValue)),
+                FundingLineCode = _fundingLineCode ?? NewRandomString(),
                 Type = _organisationGroupingReason.GetValueOrDefault(NewRandomEnum<OrganisationGroupingReason>()),
                 Value = _value,
                 DistributionPeriods = _distributionPeriods

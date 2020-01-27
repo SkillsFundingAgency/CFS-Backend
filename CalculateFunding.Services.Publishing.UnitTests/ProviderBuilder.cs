@@ -6,6 +6,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests
     public class ProviderBuilder : TestEntityBuilder
     {
         private string _providerId;
+        private string _status;
+
+        public ProviderBuilder WithStatus(string status)
+        {
+            _status = status;
+
+            return this;
+        }
 
         public ProviderBuilder WithProviderId(string providerId)
         {
@@ -22,7 +30,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 Authority = NewRandomString(),
                 Name = NewRandomString(),
                 Postcode = NewRandomString(),
-                Status = NewRandomString(),
+                Status = _status ?? NewRandomString(),
                 Successor = NewRandomString(),
                 Town = NewRandomString(),
                 CountryCode = NewRandomString(),

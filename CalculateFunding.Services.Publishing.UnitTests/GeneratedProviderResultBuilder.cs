@@ -9,6 +9,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private IEnumerable<FundingLine> _fundingLines;
         private IEnumerable<FundingCalculation> _fundingCalculations;
         private Provider _provider;
+        private decimal? _totalFunding;
+
+        public GeneratedProviderResultBuilder WithTotalFunding(decimal totalFunding)
+        {
+            _totalFunding = totalFunding;
+
+            return this;
+        }
 
         public GeneratedProviderResultBuilder WithProvider(Provider provider)
         {
@@ -37,7 +45,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             {
                 Provider = _provider,
                 Calculations = _fundingCalculations,
-                FundingLines = _fundingLines
+                FundingLines = _fundingLines,
+                TotalFunding = _totalFunding
             };
         }
     }

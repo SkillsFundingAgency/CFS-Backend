@@ -55,9 +55,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
                 .BeSameAs(generatedProviderResult);
 
             providerVariationContext
-                .PriorState
+                .ReleasedState
                 .Should()
-                .BeSameAs(existingPublishedProvider.Current);
+                .BeSameAs(existingPublishedProvider.Released);
 
             providerVariationContext
                 .UpdatedProvider
@@ -72,7 +72,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
                     _variationStrategy.DetermineVariations(Arg.Is<ProviderVariationContext>(
                         ctx => ctx.Result != null &&
                                ReferenceEquals(ctx.GeneratedProvider, generatedProviderResult) &&
-                               ReferenceEquals(ctx.PriorState, existingPublishedProvider.Current) &&
+                               ReferenceEquals(ctx.ReleasedState, existingPublishedProvider.Released) &&
                                ctx.ProviderId == existingPublishedProvider.Current.ProviderId &&
                                ReferenceEquals(ctx.UpdatedProvider, updatedProvider)));
                 }   

@@ -39,12 +39,12 @@ namespace CalculateFunding.Services.Publishing
             GeneratedProviderResult generatedProviderResult,
             Common.ApiClient.Providers.Models.Provider provider,
             string templateVersion,
-            ProviderVariationResult variationForProvider,
             bool isNewProvider)
         {
             Guard.ArgumentNotNull(publishedProviderVersion, nameof(publishedProviderVersion));
             Guard.ArgumentNotNull(generatedProviderResult, nameof(generatedProviderResult));
             Guard.ArgumentNotNull(provider, nameof(provider));
+            Guard.IsNullOrWhiteSpace(templateVersion, nameof(templateVersion));
 
             Provider mappedProvider = _providerMapper.Map<Provider>(provider);
 
@@ -81,8 +81,6 @@ namespace CalculateFunding.Services.Publishing
             publishedProviderVersion.TotalFunding = generatedProviderResult.TotalFunding;
 
             publishedProviderVersion.Provider = mappedProvider;
-
-            publishedProviderVersion.VariationReasons = variationForProvider?.VariationReasons?.ToArray();
 
             return !equal;
         }

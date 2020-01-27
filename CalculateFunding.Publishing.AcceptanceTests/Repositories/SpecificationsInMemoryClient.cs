@@ -51,6 +51,26 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             throw new NotImplementedException();
         }
 
+        public Task<ApiResponse<IEnumerable<string>>> GetDistinctFundingStreamsForSpecifications()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ApiResponse<bool>> DeleteSpecificationById(string specificationName)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ApiResponse<bool>> PermanentDeleteSpecificationById(string specificationName)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ApiResponse<IEnumerable<ProfileVariationPointer>>> GetProfileVariationPointers(string specificationId)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<ApiResponse<SpecificationPublishDateModel>> GetPublishDates(string specificationId)
         {
             ApiResponse<SpecificationPublishDateModel> result;
@@ -135,26 +155,6 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         }
 
         public Task<ApiResponse<IEnumerable<string>>> GetFundingStreamIdsForSelectedFundingSpecification()
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<ApiResponse<IEnumerable<string>>> GetDistinctFundingStreamsForSpecifications()
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<ApiResponse<bool>> DeleteSpecificationById(string specificationName)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<ApiResponse<bool>> PermanentDeleteSpecificationById(string specificationName)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<ApiResponse<IEnumerable<ProfileVariationPointer>>> GetProfileVariationPointers(string specificationId)
         {
             throw new NotImplementedException();
         }

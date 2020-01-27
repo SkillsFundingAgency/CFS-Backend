@@ -5,14 +5,14 @@ using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Providers.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Models;
-using CalculateFunding.Services.Publishing.Variations;
+using CalculateFunding.Services.Publishing.Variations.Strategies;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using ApiProvider = CalculateFunding.Common.ApiClient.Providers.Models.Provider;
 using PublishingProvider = CalculateFunding.Models.Publishing.Provider;
 
-namespace CalculateFunding.Services.Publishing.UnitTests.Variations
+namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
 {
     [TestClass]
     public class ProviderMetadataVariationStrategyTests
@@ -109,10 +109,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
         {
             PublishingProvider priorState = NewProvider();
             
-            return new object [] { NewProviderVariationContext(_ => _.WithPriorState(
-                        NewPublishedProviderVersion(ppv => ppv.WithProvider(priorState)))
+            return new object [] { NewProviderVariationContext(_ => _.WithPublishedProvider(NewPublishedProvider(pp => 
+                    pp.WithReleased(NewPublishedProviderVersion(ppv => ppv.WithProvider(priorState)))))
                     .WithCurrentState(ApiProviderCopy(priorState, differences))),
-               variationReasons};    
+                variationReasons};    
         }
         
         private static string NewRandomString() => new RandomString();
@@ -121,6 +121,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
         {
             return new ProviderBuilder()
                 .Build();
+        }
+        
+        private static PublishedProvider NewPublishedProvider(Action<PublishedProviderBuilder> setUp = null)
+        {
+            PublishedProviderBuilder publishedProviderBuilder = new PublishedProviderBuilder();
+
+            setUp?.Invoke(publishedProviderBuilder);
+            
+            return publishedProviderBuilder.Build();
         }
 
         private static ApiProvider ApiProviderCopy(PublishingProvider provider, Action<ApiProvider> differences = null)

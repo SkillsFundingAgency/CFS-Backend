@@ -347,7 +347,6 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
                     _providersStepContext.Service,
                     calculationResultsService,
                     publishedProviderDataGenerator,
-                    publishedProviderContentsGeneratorResolver,
                     profilingService,
                     inScopePublishedProviderService,
                     publishedProviderDataPopulator,
@@ -361,7 +360,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
                     _publishingFeatureFlag,
                     publishedProviderIndexerService,
                     _variationServiceStepContext.Service,
-                    new ProviderVariationsApplication());
+                    new ProviderVariationsApplication(resiliencePolicies, new SpecificationsInMemoryClient()));
 
             Message message = new Message();
 

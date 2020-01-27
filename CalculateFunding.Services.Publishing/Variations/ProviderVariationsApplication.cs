@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Specifications;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
@@ -12,15 +14,25 @@ namespace CalculateFunding.Services.Publishing.Variations
     /// </summary>
     public class ProviderVariationsApplication : IApplyProviderVariations
     {
-        private readonly ICollection<PublishedProvider> _providersToUpdate = new List<PublishedProvider>();
-        private readonly ICollection<PublishedProvider> _newProvidersToAdd = new List<PublishedProvider>();
+        private readonly ICollection<PublishedProvider> _providersToUpdate = new HashSet<PublishedProvider>();
+        private readonly ICollection<PublishedProvider> _newProvidersToAdd = new HashSet<PublishedProvider>();
         private readonly ICollection<ProviderVariationContext> _variationContexts = new List<ProviderVariationContext>();
         
         //TODO; figure out which components are needed to successfully apply queue variations and then
         //add them as constructor dependencies to this component and then also as Get accessors on the interface IApplyProviderVariations
-        public ProviderVariationsApplication()
+        public ProviderVariationsApplication(IPublishingResiliencePolicies resiliencePolicies,
+            ISpecificationsApiClient specificationsApiClient)
         {
+            Guard.ArgumentNotNull(resiliencePolicies, nameof(resiliencePolicies));
+            Guard.ArgumentNotNull(specificationsApiClient, nameof(specificationsApiClient));
+
+            SpecificationsApiClient = specificationsApiClient;
+            ResiliencePolicies = resiliencePolicies;
         }
+
+        public IPublishingResiliencePolicies ResiliencePolicies { get; }
+        
+        public ISpecificationsApiClient SpecificationsApiClient { get; }
 
         public void AddVariationContext(ProviderVariationContext variationContext)
         {
@@ -45,7 +57,7 @@ namespace CalculateFunding.Services.Publishing.Variations
         
         public IEnumerable<PublishedProvider> NewProvidersToAdd => _newProvidersToAdd;
 
-        public void AddProviderToUpdate(PublishedProvider publishedProvider)
+        public void AddPublishedProviderToUpdate(PublishedProvider publishedProvider)
         {
             _providersToUpdate.Add(publishedProvider);
         }

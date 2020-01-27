@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Tests.Common.Helpers;
+using Microsoft.Azure.Search.Models;
 
 namespace CalculateFunding.Services.Publishing.UnitTests
 {
@@ -17,7 +18,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private int _minorVersion;
         private IEnumerable<FundingLine> _fundingLines;
         private IEnumerable<FundingCalculation> _calculations;
+        private decimal? _totalFunding;
 
+        public PublishedProviderVersionBuilder WithTotalFunding(decimal totalFunding)
+        {
+            _totalFunding = totalFunding;
+
+            return this;
+        }
 
         public PublishedProviderVersionBuilder WithProvider(Provider provider)
         {
@@ -111,7 +119,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 Status = _status.GetValueOrDefault(NewRandomEnum<PublishedProviderStatus>()),
                 FundingLines = _fundingLines,
                 Calculations = _calculations,
-                Provider = _provider
+                Provider = _provider,
+                TotalFunding = _totalFunding
             };
         }
     }

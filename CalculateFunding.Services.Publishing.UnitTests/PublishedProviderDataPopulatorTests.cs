@@ -57,27 +57,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         }
 
         [TestMethod]
-        public void CopiesVariationReasonsWhenPopulatingPublishedProviderVersion()
-        {
-            VariationReason[] expectedVariationReasons = new[]
-            {
-                NewRandomVariationReason(), 
-                NewRandomVariationReason(), 
-                NewRandomVariationReason()
-            };
-            
-            _providerVariationResult.VariationReasons = expectedVariationReasons;
-
-            WhenThePublishedProviderIsUpdated();
-
-            _publishedProviderVersion.VariationReasons
-                .Should()
-                .BeEquivalentTo(expectedVariationReasons);
-        }
-
-        private VariationReason NewRandomVariationReason() => new RandomEnum<VariationReason>();
-
-        [TestMethod]
         public void UpdatePublishedProvider_GivenTemplateVersionChange_ReturnsTrue()
         {
             string initialTemplateVersion = _publishedProviderVersion.TemplateVersion.ToString();
@@ -185,7 +164,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 _generatedProviderResult, 
                 _provider, 
                 _templateVersion,
-                _providerVariationResult,
                 false);
         }
 

@@ -9,7 +9,7 @@ namespace CalculateFunding.Tests.Common.Helpers
 
         public RandomDateTime()
         {
-            _value = DateTime.UtcNow.AddDays(-new RandomNumberBetween(1, 10)).AddHours(new RandomNumberBetween(0, 23));
+            _value = DateTime.UtcNow.AddDays(-new RandomNumberBetween(1, 10)).AddHours(new RandomNumberBetween(0, 23)).AddMonths(new RandomNumberBetween(0, 12));
         }
         
         private RandomDateTime(DateTime value)

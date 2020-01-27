@@ -9,8 +9,16 @@ namespace CalculateFunding.Services.Publishing.UnitTests
     {
         private string _providerId;
         private string _status;
+        private string _successor;
         private PublishingProvider _copyFrom;
 
+        public ApiProviderBuilder WithSuccessor(string successor)
+        {
+            _successor = successor;
+
+            return this;
+        }
+        
         public ApiProviderBuilder WithPropertiesFrom(PublishingProvider provider)
         {
             _copyFrom = provider;
@@ -83,7 +91,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 Authority = NewRandomString(),
                 Name = NewRandomString(),
                 Postcode = NewRandomString(),
-                Successor = NewRandomString(),
+                Successor = _successor,
                 Town = NewRandomString(),
                 CountryCode = NewRandomString(),
                 CountryName = NewRandomString(),

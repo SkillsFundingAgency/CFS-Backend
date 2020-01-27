@@ -30,7 +30,6 @@ namespace CalculateFunding.Services.Publishing
         private readonly IProviderService _providerService;
         private readonly ICalculationResultsService _calculationResultsService;
         private readonly IPublishedProviderDataGenerator _publishedProviderDataGenerator;
-        private readonly IPublishedProviderContentsGeneratorResolver _publishedProviderContentsGeneratorResolver;
         private readonly IInScopePublishedProviderService _inScopePublishedProviderService;
         private readonly IPublishedProviderDataPopulator _publishedProviderDataPopulator;
         private readonly IProfilingService _profilingService;
@@ -55,7 +54,6 @@ namespace CalculateFunding.Services.Publishing
             IProviderService providerService,
             ICalculationResultsService calculationResultsService,
             IPublishedProviderDataGenerator publishedProviderDataGenerator,
-            IPublishedProviderContentsGeneratorResolver publishedProviderContentsGeneratorResolver,
             IProfilingService profilingService,
             IInScopePublishedProviderService inScopePublishedProviderService,
             IPublishedProviderDataPopulator publishedProviderDataPopulator,
@@ -78,7 +76,6 @@ namespace CalculateFunding.Services.Publishing
             Guard.ArgumentNotNull(providerService, nameof(providerService));
             Guard.ArgumentNotNull(calculationResultsService, nameof(calculationResultsService));
             Guard.ArgumentNotNull(publishedProviderDataGenerator, nameof(publishedProviderDataGenerator));
-            Guard.ArgumentNotNull(publishedProviderContentsGeneratorResolver, nameof(publishedProviderContentsGeneratorResolver));
             Guard.ArgumentNotNull(inScopePublishedProviderService, nameof(inScopePublishedProviderService));
             Guard.ArgumentNotNull(publishedProviderDataPopulator, nameof(publishedProviderDataPopulator));
             Guard.ArgumentNotNull(profilingService, nameof(profilingService));
@@ -98,7 +95,6 @@ namespace CalculateFunding.Services.Publishing
             _providerService = providerService;
             _calculationResultsService = calculationResultsService;
             _publishedProviderDataGenerator = publishedProviderDataGenerator;
-            _publishedProviderContentsGeneratorResolver = publishedProviderContentsGeneratorResolver;
             _inScopePublishedProviderService = inScopePublishedProviderService;
             _publishedProviderDataPopulator = publishedProviderDataPopulator;
             _profilingService = profilingService;
@@ -290,27 +286,28 @@ namespace CalculateFunding.Services.Publishing
                         }
                     }
 
-                    ProviderVariationContext variationContext = null;
-
-                    if (shouldRunVariations && existingPublishedProviders.Contains(publishedProvider.Value))
+                    bool publishedProviderUpdated = _publishedProviderDataPopulator.UpdatePublishedProvider(publishedProviderVersion,
+                        generatedProviderResult,
+                        scopedProviders[providerId],
+                        specification.TemplateIds[fundingStream.Id],
+                        newProviders.ContainsKey(publishedProvider.Key));
+                    
+                    //if its not in the existing published providers (according to Dans notes)
+                    //we create a new published provider - which we already have in this method so I surely just grab it from the
+                    //the list of new newProviders
+                    if (publishedProviderUpdated &&
+                        shouldRunVariations)
                     {
-                        variationContext = await _detectProviderVariations.CreateRequiredVariationChanges(publishedProvider.Value,
+                        ProviderVariationContext variationContext = await _detectProviderVariations.CreateRequiredVariationChanges(publishedProvider.Value,
                             generatedProviderResult, 
                             scopedProviders[providerId], 
                             fundingConfigurationRequest.Content.Variations);
-                        
+
                         if (variationContext.Result.HasProviderBeenVaried)
                         {
                             _applyProviderVariations.AddVariationContext(variationContext);
                         }
                     }
-
-                    bool publishedProviderUpdated = _publishedProviderDataPopulator.UpdatePublishedProvider(publishedProviderVersion,
-                        generatedProviderResult,
-                        scopedProviders[providerId],
-                        specification.TemplateIds[fundingStream.Id],
-                        variationContext?.Result,
-                        newProviders.ContainsKey(publishedProvider.Key));
 
                     if (!publishedProviderUpdated)
                     {
@@ -332,6 +329,8 @@ namespace CalculateFunding.Services.Publishing
                     {
                         foreach (string errorMessage in _applyProviderVariations.ErrorMessages)
                         {
+                            //TODO; change this error logging to be short summary and then send full error logs to blob storage
+                            
                             _logger.Error(errorMessage);
                             
                             await _jobManagement.UpdateJobStatus(jobId, 0, 0, false, "Refresh job failed with variations errors.");

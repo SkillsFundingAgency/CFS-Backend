@@ -6,6 +6,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
     public class PublishedProviderBuilder : TestEntityBuilder
     {
         private PublishedProviderVersion _current;
+        private PublishedProviderVersion _released;
+        private bool _noCurrent;
 
         public PublishedProviderBuilder WithCurrent(PublishedProviderVersion current)
         {
@@ -14,12 +16,27 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             return this;
         }
 
+        public PublishedProviderBuilder WithReleased(PublishedProviderVersion released)
+        {
+            _released = released;
+
+            return this;
+        }
+
+        public PublishedProviderBuilder WithNoCurrent()
+        {
+            _noCurrent = true;
+
+            return this;
+        }
+
         public PublishedProvider Build()
         {
             return new PublishedProvider
             {
-                Current = _current ?? new PublishedProviderVersionBuilder()
-                              .Build()
+                Released =  _released,
+                Current = _current ?? (_noCurrent ? null : new PublishedProviderVersionBuilder()
+                              .Build())
             };
         }
     }

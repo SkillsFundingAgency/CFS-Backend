@@ -17,5 +17,7 @@ namespace CalculateFunding.Tests.Common.Helpers
         protected uint NewRandomUint() => (uint)NewRandomNumberBetween(0, int.MaxValue);
         
         protected DateTimeOffset NewRandomDateTime() => new RandomDateTime();
+
+        protected string NewRandomMonth() => NewRandomDateTime().ToString("MMMM");
     }
 }

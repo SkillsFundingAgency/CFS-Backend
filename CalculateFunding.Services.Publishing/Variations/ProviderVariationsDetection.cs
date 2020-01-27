@@ -26,10 +26,14 @@ namespace CalculateFunding.Services.Publishing.Variations
             ApiProvider provider,
            IEnumerable<FundingVariation> variations)
         {
+            Guard.ArgumentNotNull(existingPublishedProvider, nameof(existingPublishedProvider));
+            Guard.ArgumentNotNull(generatedProviderResult, nameof(generatedProviderResult));
+            Guard.ArgumentNotNull(provider, nameof(provider));
+            Guard.ArgumentNotNull(variations, nameof(variations));
+            
             ProviderVariationContext providerVariationContext = new ProviderVariationContext
             {
-                PriorState = existingPublishedProvider.Current,
-                ProviderId = existingPublishedProvider.Current.ProviderId,
+                PublishedProvider = existingPublishedProvider,
                 Result = new ProviderVariationResult(),
                 UpdatedProvider = provider,
                 GeneratedProvider = generatedProviderResult
