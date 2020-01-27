@@ -1,10 +1,10 @@
-﻿using CalculateFunding.Functions.CosmosDbScaling.Timer;
+﻿using System.Threading.Tasks;
+using CalculateFunding.Functions.CosmosDbScaling.Timer;
 using CalculateFunding.Services.Core.Constants;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Timers;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Functions.DebugQueue
 {

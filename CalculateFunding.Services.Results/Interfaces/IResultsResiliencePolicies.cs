@@ -1,4 +1,4 @@
-﻿using CalculateFunding.Services.Core.Interfaces;
+﻿using CalculateFunding.Services.DeadletterProcessor;
 using Polly;
 
 namespace CalculateFunding.Services.Results.Interfaces
@@ -28,7 +28,7 @@ namespace CalculateFunding.Services.Results.Interfaces
         Policy ProviderVersionsSearchRepository { get; set; }
 
         Policy PoliciesApiClient { get; set; }
-        
+
         Policy BlobClient { get; set; }
     }
 }

@@ -3,9 +3,13 @@ using System.Net.Http;
 using AutoMapper;
 using CalculateFunding.Common.ApiClient;
 using CalculateFunding.Common.ApiClient.Bearer;
-using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.ApiClient.Profiling;
 using CalculateFunding.Common.Caching;
+using CalculateFunding.Common.Config.ApiClient.Calcs;
+using CalculateFunding.Common.Config.ApiClient.Jobs;
+using CalculateFunding.Common.Config.ApiClient.Policies;
+using CalculateFunding.Common.Config.ApiClient.Providers;
+using CalculateFunding.Common.Config.ApiClient.Specifications;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Interfaces;
 using CalculateFunding.Common.JobManagement;
@@ -19,9 +23,9 @@ using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
-using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Core.Services;
+using CalculateFunding.Services.DeadletterProcessor;
 using CalculateFunding.Services.Publishing;
 using CalculateFunding.Services.Publishing.Helper;
 using CalculateFunding.Services.Publishing.Interfaces;
@@ -270,7 +274,7 @@ namespace CalculateFunding.Functions.Publishing
 
             builder.AddSingleton<IJobHelperService, JobHelperService>();
 
-            builder.AddApplicationInsightsForFunctionApps(config, "CalculateFunding.Functions.Publishing");          
+            builder.AddApplicationInsightsForFunctionApps(config, "CalculateFunding.Functions.Publishing");
 
             builder.AddLogging("CalculateFunding.Functions.Publishing", config);
 
@@ -299,14 +303,13 @@ namespace CalculateFunding.Functions.Publishing
             // Fix recommended by Microsoft for issues with disposed scopes when running in functions in the cloud
             builder.Configure<HttpClientFactoryOptions>(options => options.SuppressHandlerScope = true);
 
-            //builder.AddSpecificationsInterServiceClient(config);
-            //builder.AddProvidersInterServiceClient(config);
-            Common.Config.ApiClient.Specifications.ServiceCollectionExtensions.AddSpecificationsInterServiceClient(builder, config);
-            Common.Config.ApiClient.Providers.ServiceCollectionExtensions.AddProvidersInterServiceClient(builder, config);
-            //builder.AddJobsInterServiceClient(config);
-            //builder.AddCalculationsInterServiceClient(config);
-            Common.Config.ApiClient.Jobs.ServiceCollectionExtensions.AddJobsInterServiceClient(builder, config);
-            Common.Config.ApiClient.Calcs.ServiceCollectionExtensions.AddCalculationsInterServiceClient(builder, config);
+
+            builder.AddSpecificationsInterServiceClient(config);
+            builder.AddProvidersInterServiceClient(config);
+
+            builder.AddJobsInterServiceClient(config);
+            builder.AddCalculationsInterServiceClient(config);
+            builder.AddPoliciesInterServiceClient(config);
 
             builder.AddHttpClient(HttpClientKeys.Profiling,
                    c =>
@@ -341,22 +344,6 @@ namespace CalculateFunding.Functions.Publishing
 
                 return new ProfilingApiClient(httpClientFactory, HttpClientKeys.Profiling, logger, bearerTokenProvider, cancellationTokenProvider);
             });
-
-            builder.AddHttpClient(HttpClientKeys.Policies,
-                   c =>
-                   {
-                       ApiOptions apiOptions = new ApiOptions();
-
-                       config.Bind("policiesClient", apiOptions);
-
-                       Services.Core.Extensions.ServiceCollectionExtensions.SetDefaultApiClientConfigurationOptions(c, apiOptions, builder);
-                   })
-               .ConfigurePrimaryHttpMessageHandler(() => new ApiClientHandler())
-               .AddTransientHttpErrorPolicy(c => c.WaitAndRetryAsync(new[] { TimeSpan.FromMilliseconds(500), TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(5) }))
-               .AddTransientHttpErrorPolicy(c => c.CircuitBreakerAsync(100, TimeSpan.FromSeconds(30)));
-
-            builder
-                .AddSingleton<IPoliciesApiClient, PoliciesApiClient>();
 
             return builder.BuildServiceProvider();
         }

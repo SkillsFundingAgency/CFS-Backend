@@ -1,5 +1,5 @@
-﻿using CalculateFunding.Services.Core.Interfaces;
-using CalculateFunding.Services.Datasets.Interfaces;
+﻿using CalculateFunding.Services.Datasets.Interfaces;
+using CalculateFunding.Services.DeadletterProcessor;
 using Polly;
 
 namespace CalculateFunding.Services.Datasets
@@ -7,7 +7,7 @@ namespace CalculateFunding.Services.Datasets
     public class DatasetsResiliencePolicies : IDatasetsResiliencePolicies, IJobHelperResiliencePolicies
     {
         public Policy ProviderRepository { get; set; }
-   
+
         public Policy ProviderResultsRepository { get; set; }
 
         public Policy DatasetRepository { get; set; }

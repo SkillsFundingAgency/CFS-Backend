@@ -18,7 +18,6 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
-using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Services.DataImporter;
@@ -28,6 +27,7 @@ using CalculateFunding.Services.Datasets;
 using CalculateFunding.Services.Datasets.Interfaces;
 using CalculateFunding.Services.Datasets.MappingProfiles;
 using CalculateFunding.Services.Datasets.Validators;
+using CalculateFunding.Services.DeadletterProcessor;
 using CalculateFunding.Services.Results.Interfaces;
 using CalculateFunding.Services.Results.Repositories;
 using FluentValidation;
@@ -38,7 +38,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
 using OfficeOpenXml;
-using Polly;
 using Polly.Bulkhead;
 
 namespace CalculateFunding.Api.Datasets
@@ -118,8 +117,8 @@ namespace CalculateFunding.Api.Datasets
             builder
                 .AddSingleton<IProvidersApiClient, ProvidersApiClient>();
 
-            builder.AddSingleton<IProviderSourceDatasetRepository, ProviderSourceDatasetRepository>(ctx => 
-                new ProviderSourceDatasetRepository(CreateCosmosDbSettings("providersourcedatasets")));
+            builder.AddSingleton<IProviderSourceDatasetRepository, ProviderSourceDatasetRepository>(ctx =>
+                new ProviderSourceDatasetRepository(CreateCosmosDbSettings("providerdatasets")));
 
             builder
                 .AddSingleton<IDatasetService, DatasetService>()
@@ -171,14 +170,14 @@ namespace CalculateFunding.Api.Datasets
                     return new BlobClient(storageSettings);
                 });
 
-            builder.AddSingleton<IProvidersResultsRepository, ProvidersResultsRepository>(ctx => 
+            builder.AddSingleton<IProvidersResultsRepository, ProvidersResultsRepository>(ctx =>
                 new ProvidersResultsRepository(CreateCosmosDbSettings("providerdatasets")));
 
-            builder.AddSingleton<IDatasetsAggregationsRepository, DatasetsAggregationsRepository>(ctx => 
+            builder.AddSingleton<IDatasetsAggregationsRepository, DatasetsAggregationsRepository>(ctx =>
                 new DatasetsAggregationsRepository(CreateCosmosDbSettings("datasetaggregations")));
 
-            builder.AddSingleton<IVersionRepository<ProviderSourceDatasetVersion>, VersionRepository<ProviderSourceDatasetVersion>>(ctx => 
-                new VersionRepository<ProviderSourceDatasetVersion>(CreateCosmosDbSettings("providersources")));
+            builder.AddSingleton<IVersionRepository<ProviderSourceDatasetVersion>, VersionRepository<ProviderSourceDatasetVersion>>(ctx =>
+                new VersionRepository<ProviderSourceDatasetVersion>(CreateCosmosDbSettings("providerdatasets")));
 
             builder.AddSingleton<IDatasetRepository, DataSetsRepository>();
 
@@ -216,8 +215,8 @@ namespace CalculateFunding.Api.Datasets
 
             builder.AddUserProviderFromRequest();
 
-           
-            Common.Config.ApiClient.Calcs.ServiceCollectionExtensions.AddCalculationsInterServiceClient(builder, Configuration);           
+
+            Common.Config.ApiClient.Calcs.ServiceCollectionExtensions.AddCalculationsInterServiceClient(builder, Configuration);
             Common.Config.ApiClient.Jobs.ServiceCollectionExtensions.AddJobsInterServiceClient(builder, Configuration);
             Common.Config.ApiClient.Providers.ServiceCollectionExtensions.AddProvidersInterServiceClient(builder, Configuration);
 
@@ -275,8 +274,8 @@ namespace CalculateFunding.Api.Datasets
 
         private CosmosRepository CreateCosmosDbSettings(string containerName)
         {
-            CosmosDbSettings dbSettings = 
-                new CosmosDbSettings {ContainerName = containerName};
+            CosmosDbSettings dbSettings =
+                new CosmosDbSettings { ContainerName = containerName };
 
             Configuration.Bind("CosmosDbSettings", dbSettings);
 

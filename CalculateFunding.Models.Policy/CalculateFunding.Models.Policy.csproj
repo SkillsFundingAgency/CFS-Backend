@@ -6,7 +6,7 @@
 
   <ItemGroup>
     <PackageReference Include="CalculateFunding.Common.Models" Version="1.0.6" />
-    <PackageReference Include="CalculateFunding.Common.TemplateMetadata" Version="1.0.8" />
+    <PackageReference Include="CalculateFunding.Common.TemplateMetadata" Version="1.0.9" />
   </ItemGroup>
 
 </Project>

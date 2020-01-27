@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.Azure.ServiceBus;
 
-namespace CalculateFunding.Services.Core.Interfaces.Services
+namespace CalculateFunding.Services.DeadletterProcessor
 {
     public interface IJobHelperService
     {

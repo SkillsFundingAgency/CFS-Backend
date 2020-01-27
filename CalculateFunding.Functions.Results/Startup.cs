@@ -1,5 +1,4 @@
 ﻿using System;
-using AutoMapper;
 using CalculateFunding.Common.ApiClient;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Interfaces;
@@ -7,7 +6,6 @@ using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Functions.Results.ServiceBus;
 using CalculateFunding.Functions.Results.Timer;
 using CalculateFunding.Models.Calcs;
-using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.Caching.FileSystem;
@@ -15,9 +13,8 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
-using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Core.Options;
-using CalculateFunding.Services.Core.Services;
+using CalculateFunding.Services.DeadletterProcessor;
 using CalculateFunding.Services.Results;
 using CalculateFunding.Services.Results.Interfaces;
 using CalculateFunding.Services.Results.Repositories;
@@ -74,7 +71,7 @@ namespace CalculateFunding.Functions.Results
             builder.AddSingleton<IFileSystemAccess, FileSystemAccess>();
             builder.AddSingleton<IFileSystemCacheSettings, FileSystemCacheSettings>();
 
-          
+
 
             builder.AddCaching(config);
 
@@ -128,11 +125,11 @@ namespace CalculateFunding.Functions.Results
             builder.AddApplicationInsightsTelemetryClient(config, "CalculateFunding.Functions.Results");
             builder.AddLogging("CalculateFunding.Functions.Results");
             builder.AddTelemetry();
-          
-            Common.Config.ApiClient.Calcs.ServiceCollectionExtensions.AddCalculationsInterServiceClient(builder, config);            
+
+            Common.Config.ApiClient.Calcs.ServiceCollectionExtensions.AddCalculationsInterServiceClient(builder, config);
             Common.Config.ApiClient.Specifications.ServiceCollectionExtensions.AddSpecificationsInterServiceClient(builder, config);
-            Common.Config.ApiClient.Jobs.ServiceCollectionExtensions.AddJobsInterServiceClient(builder, config);           
-            Common.Config.ApiClient.Providers.ServiceCollectionExtensions.AddProvidersInterServiceClient(builder, config);          
+            Common.Config.ApiClient.Jobs.ServiceCollectionExtensions.AddJobsInterServiceClient(builder, config);
+            Common.Config.ApiClient.Providers.ServiceCollectionExtensions.AddProvidersInterServiceClient(builder, config);
 
             builder.AddFeatureToggling(config);
 

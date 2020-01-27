@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Services.CalcEngine.Interfaces;
-using CalculateFunding.Services.Core.Interfaces.Services;
+using CalculateFunding.Services.DeadletterProcessor;
 using CalculateFunding.Tests.Common;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;

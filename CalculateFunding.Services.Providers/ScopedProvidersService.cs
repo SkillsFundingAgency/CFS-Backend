@@ -19,7 +19,6 @@ using CalculateFunding.Models.Providers;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Caching.FileSystem;
 using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Services.Core.Interfaces.Proxies;
 using CalculateFunding.Services.Providers.Caching;
 using CalculateFunding.Services.Providers.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -58,7 +57,6 @@ namespace CalculateFunding.Services.Providers
             Guard.ArgumentNotNull(mapper, nameof(mapper));
             Guard.ArgumentNotNull(scopedProvidersServiceSettings, nameof(scopedProvidersServiceSettings));
             Guard.ArgumentNotNull(fileSystemCache, nameof(fileSystemCache));
-
 
             _cacheProvider = cacheProvider;
             _resultsApiClient = resultsApiClient;
@@ -190,8 +188,8 @@ namespace CalculateFunding.Services.Providers
             {
                 string url = string.Format(getSpecificationSummary, specificationId);
 
-               ApiResponse<SpecificationSummary> spec =
-                await  _specificationsApiClient.GetSpecificationSummaryById(specificationId);
+                ApiResponse<SpecificationSummary> spec =
+                 await _specificationsApiClient.GetSpecificationSummaryById(specificationId);
 
 
                 if (string.IsNullOrWhiteSpace(spec?.Content.ProviderVersionId))

@@ -4,7 +4,7 @@ using CalculateFunding.Services.Calcs;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Calcs.Interfaces.CodeGen;
 using CalculateFunding.Services.Compiler.Interfaces;
-using CalculateFunding.Services.Core.Interfaces.Services;
+using CalculateFunding.Services.DeadletterProcessor;
 using CalculateFunding.Tests.Common;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;

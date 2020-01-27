@@ -22,6 +22,7 @@
     <ProjectReference Include="..\CalculateFunding.Models.Scenarios\CalculateFunding.Models.Scenarios.csproj" />
     <ProjectReference Include="..\CalculateFunding.Repositories.Common.Search\CalculateFunding.Repositories.Common.Search.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Core\CalculateFunding.Services.Core.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Services.DeadletterProcessor\CalculateFunding.Services.DeadletterProcessor.csproj" />
   </ItemGroup>
 
   <ItemGroup>

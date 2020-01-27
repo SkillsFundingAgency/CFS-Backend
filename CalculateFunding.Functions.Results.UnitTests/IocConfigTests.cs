@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using CalculateFunding.Services.Core.Interfaces.Services;
+using CalculateFunding.Services.DeadletterProcessor;
 using CalculateFunding.Services.Results.Interfaces;
 using CalculateFunding.Tests.Common;
 using FluentAssertions;

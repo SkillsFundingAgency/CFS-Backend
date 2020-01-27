@@ -14,7 +14,6 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
-using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Services.DataImporter;
@@ -24,6 +23,7 @@ using CalculateFunding.Services.Datasets;
 using CalculateFunding.Services.Datasets.Interfaces;
 using CalculateFunding.Services.Datasets.MappingProfiles;
 using CalculateFunding.Services.Datasets.Validators;
+using CalculateFunding.Services.DeadletterProcessor;
 using CalculateFunding.Services.Results.Interfaces;
 using CalculateFunding.Services.Results.Repositories;
 using FluentValidation;
@@ -31,7 +31,6 @@ using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using OfficeOpenXml;
-using Polly;
 using Polly.Bulkhead;
 
 [assembly: FunctionsStartup(typeof(CalculateFunding.Functions.Datasets.Startup))]
@@ -80,8 +79,8 @@ namespace CalculateFunding.Functions.Datasets
             builder
                 .AddSingleton<IProvidersApiClient, ProvidersApiClient>();
 
-            builder.AddSingleton<IProviderSourceDatasetRepository, ProviderSourceDatasetRepository>(ctx => 
-                new ProviderSourceDatasetRepository(CreateCosmosDbSettings(config, "providersourcedatasets")));
+            builder.AddSingleton<IProviderSourceDatasetRepository, ProviderSourceDatasetRepository>(ctx =>
+                new ProviderSourceDatasetRepository(CreateCosmosDbSettings(config, "providerdatasets")));
 
             builder
                 .AddScoped<IDatasetService, DatasetService>();
@@ -135,7 +134,7 @@ namespace CalculateFunding.Functions.Datasets
                 });
 
 
-            builder.AddSingleton<IProvidersResultsRepository, ProvidersResultsRepository>(ctx => 
+            builder.AddSingleton<IProvidersResultsRepository, ProvidersResultsRepository>(ctx =>
                 new ProvidersResultsRepository(CreateCosmosDbSettings(config, "providerdatasets")));
 
             builder.AddSingleton<IDatasetRepository, DataSetsRepository>();
@@ -167,16 +166,16 @@ namespace CalculateFunding.Functions.Datasets
             builder
                 .AddSingleton(dataSetsConfig.CreateMapper());
 
-            builder.AddSingleton<IVersionRepository<ProviderSourceDatasetVersion>, VersionRepository<ProviderSourceDatasetVersion>>(ctx => 
-                new VersionRepository<ProviderSourceDatasetVersion>(CreateCosmosDbSettings(config, "providersources")));
+            builder.AddSingleton<IVersionRepository<ProviderSourceDatasetVersion>, VersionRepository<ProviderSourceDatasetVersion>>(ctx =>
+                new VersionRepository<ProviderSourceDatasetVersion>(CreateCosmosDbSettings(config, "providerdatasets")));
 
-            builder.AddSingleton<IDatasetsAggregationsRepository, DatasetsAggregationsRepository>(ctx => 
+            builder.AddSingleton<IDatasetsAggregationsRepository, DatasetsAggregationsRepository>(ctx =>
                 new DatasetsAggregationsRepository(CreateCosmosDbSettings(config, "datasetaggregations")));
 
-           
-            Common.Config.ApiClient.Calcs.ServiceCollectionExtensions.AddCalculationsInterServiceClient(builder, config);            
-            Common.Config.ApiClient.Specifications.ServiceCollectionExtensions.AddSpecificationsInterServiceClient(builder, config);         
-            Common.Config.ApiClient.Jobs.ServiceCollectionExtensions.AddJobsInterServiceClient(builder, config);           
+
+            Common.Config.ApiClient.Calcs.ServiceCollectionExtensions.AddCalculationsInterServiceClient(builder, config);
+            Common.Config.ApiClient.Specifications.ServiceCollectionExtensions.AddSpecificationsInterServiceClient(builder, config);
+            Common.Config.ApiClient.Jobs.ServiceCollectionExtensions.AddJobsInterServiceClient(builder, config);
             Common.Config.ApiClient.Providers.ServiceCollectionExtensions.AddProvidersInterServiceClient(builder, config);
 
             if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
@@ -208,7 +207,7 @@ namespace CalculateFunding.Functions.Datasets
             builder.AddFeatureToggling(config);
 
             PolicySettings policySettings = builder.GetPolicySettings(config);
-            
+
             DatasetsResiliencePolicies resiliencePolicies = CreateResiliencePolicies(policySettings);
 
             builder.AddSingleton<IJobHelperResiliencePolicies>(resiliencePolicies);
@@ -231,8 +230,8 @@ namespace CalculateFunding.Functions.Datasets
 
         private static CosmosRepository CreateCosmosDbSettings(IConfigurationRoot config, string containerName)
         {
-            CosmosDbSettings dbSettings = 
-                new CosmosDbSettings {ContainerName = containerName};
+            CosmosDbSettings dbSettings =
+                new CosmosDbSettings { ContainerName = containerName };
 
             config.Bind("CosmosDbSettings", dbSettings);
 

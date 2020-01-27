@@ -1,4 +1,4 @@
-﻿namespace CalculateFunding.Services.Core.Interfaces
+﻿namespace CalculateFunding.Services.DeadletterProcessor
 {
     public interface IJobHelperResiliencePolicies
     {

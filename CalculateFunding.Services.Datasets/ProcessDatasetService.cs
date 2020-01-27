@@ -66,6 +66,7 @@ namespace CalculateFunding.Services.Datasets
         private readonly ITelemetry _telemetry;
         private readonly Policy _providerResultsRepositoryPolicy;
         private readonly IDatasetsAggregationsRepository _datasetsAggregationsRepository;
+        private readonly Policy _providersApiClientPolicy;
         private readonly IFeatureToggle _featureToggle;
         private readonly Policy _jobsApiClientPolicy;
         private readonly IJobsApiClient _jobsApiClient;
@@ -110,6 +111,7 @@ namespace CalculateFunding.Services.Datasets
             Guard.ArgumentNotNull(mapper, nameof(mapper));
             Guard.ArgumentNotNull(datasetsResiliencePolicies?.ProviderResultsRepository, nameof(datasetsResiliencePolicies.ProviderResultsRepository));
             Guard.ArgumentNotNull(datasetsResiliencePolicies?.JobsApiClient, nameof(datasetsResiliencePolicies.JobsApiClient));
+            Guard.ArgumentNotNull(datasetsResiliencePolicies?.ProvidersApiClient, nameof(datasetsResiliencePolicies.ProvidersApiClient));
             Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
             Guard.ArgumentNotNull(datasetVersionKeyProvider, nameof(datasetVersionKeyProvider));
 
@@ -126,6 +128,7 @@ namespace CalculateFunding.Services.Datasets
             _telemetry = telemetry;
             _providerResultsRepositoryPolicy = datasetsResiliencePolicies.ProviderResultsRepository;
             _datasetsAggregationsRepository = datasetsAggregationsRepository;
+            _providersApiClientPolicy = datasetsResiliencePolicies.ProvidersApiClient;
             _featureToggle = featureToggle;
             _jobsApiClient = jobsApiClient;
             _jobsApiClientPolicy = datasetsResiliencePolicies.JobsApiClient;
@@ -500,13 +503,13 @@ namespace CalculateFunding.Services.Datasets
 
             ConcurrentDictionary<string, ProviderSourceDataset> updateCurrentDatasets = new ConcurrentDictionary<string, ProviderSourceDataset>();
 
-            ApiResponse<Common.ApiClient.Providers.Models.ProviderVersion> providerApiSummaries = await _providersApiClient.GetProvidersByVersion(specification.ProviderVersionId);
+            ApiResponse<Common.ApiClient.Providers.Models.ProviderVersion> providerApiSummaries = await _providersApiClientPolicy.ExecuteAsync(() =>
+                _providersApiClient.GetProvidersByVersion(specification.ProviderVersionId));
 
             if (providerApiSummaries?.Content == null)
             {
                 return;
             }
-
 
             IEnumerable<ProviderSummary> providerSummaries = _mapper.Map<IEnumerable<ProviderSummary>>(providerApiSummaries.Content.Providers);
 
@@ -608,7 +611,9 @@ namespace CalculateFunding.Services.Datasets
 
                                 if (existingDatasetJson != latestDatasetJson)
                                 {
-                                    newVersion = await _sourceDatasetsVersionRepository.CreateVersion(newVersion, existingCurrent[providerId].Current, providerId);
+                                    newVersion = await _providerResultsRepositoryPolicy.ExecuteAsync(() =>
+                                            _sourceDatasetsVersionRepository.CreateVersion(newVersion, existingCurrent[providerId].Current, providerId));
+
                                     newVersion.Author = user;
                                     newVersion.Rows = sourceDataset.Current.Rows;
 
@@ -663,7 +668,9 @@ namespace CalculateFunding.Services.Datasets
             if (historyToSave.Any())
             {
                 _logger.Information($"Saving {historyToSave.Count()} items to history");
-                await _sourceDatasetsVersionRepository.SaveVersions(historyToSave);
+
+                await _providerResultsRepositoryPolicy.ExecuteAsync(() =>
+                        _sourceDatasetsVersionRepository.SaveVersions(historyToSave));
             }
 
             Reference relationshipReference = new Reference(relationshipSummary.Relationship.Id, relationshipSummary.Relationship.Name);
@@ -676,7 +683,6 @@ namespace CalculateFunding.Services.Datasets
             }
 
             await _cacheProvider.RemoveAsync<List<CalculationAggregation>>($"{CacheKeys.DatasetAggregationsForSpecification}{specification.Id}");
-
 
             await PopulateProviderSummariesForSpecification(specification.Id, providerSummaries);
         }

@@ -5,7 +5,11 @@
     <LangVersion>7.1</LangVersion>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="CalculateFunding.Common.ApiClient.Profiling" Version="1.0.10" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Policies" Version="1.0.0" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Calcs" Version="1.0.0" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Jobs" Version="1.0.0" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Providers" Version="1.0.0" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Specifications" Version="1.0.1" />
     <PackageReference Include="Microsoft.Azure.Functions.Extensions" Version="1.0.0" />
     <PackageReference Include="Microsoft.Azure.WebJobs.ServiceBus" Version="3.0.0-beta8" />
     <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.ServiceBus" Version="3.1.0" />
@@ -16,6 +20,7 @@
   <ItemGroup>
     <ProjectReference Include="..\CalculateFunding.Generators.Schema10\CalculateFunding.Generators.Schema10.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Core.AspNet\CalculateFunding.Services.Core.AspNet.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Services.DeadletterProcessor\CalculateFunding.Services.DeadletterProcessor.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Publishing\CalculateFunding.Services.Publishing.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Core\CalculateFunding.Services.Core.csproj" />
   </ItemGroup>

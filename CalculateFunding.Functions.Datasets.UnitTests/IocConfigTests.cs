@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using CalculateFunding.Common.ApiClient.Specifications;
-using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.DataImporter;
 using CalculateFunding.Services.Datasets.Interfaces;
+using CalculateFunding.Services.DeadletterProcessor;
 using CalculateFunding.Tests.Common;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;

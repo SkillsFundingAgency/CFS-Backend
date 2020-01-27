@@ -1,4 +1,8 @@
-﻿using CalculateFunding.Common.CosmosDb;
+﻿using CalculateFunding.Common.Config.ApiClient.Jobs;
+using CalculateFunding.Common.Config.ApiClient.Policies;
+using CalculateFunding.Common.Config.ApiClient.Providers;
+using CalculateFunding.Common.Config.ApiClient.Specifications;
+using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Interfaces;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models.HealthCheck;
@@ -27,6 +31,7 @@ using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Core.Services;
+using CalculateFunding.Services.DeadletterProcessor;
 using FluentValidation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -201,11 +206,11 @@ namespace CalculateFunding.Api.Calcs
 
             builder.AddScoped<IJobManagement, JobManagement>();
 
-            Common.Config.ApiClient.Providers.ServiceCollectionExtensions.AddProvidersInterServiceClient(builder, Configuration);
-            Common.Config.ApiClient.Specifications.ServiceCollectionExtensions.AddSpecificationsInterServiceClient(builder, Configuration);
+            builder.AddProvidersInterServiceClient(Configuration);
+            builder.AddSpecificationsInterServiceClient(Configuration);
             builder.AddDatasetsInterServiceClient(Configuration);
-            Common.Config.ApiClient.Jobs.ServiceCollectionExtensions.AddJobsInterServiceClient(builder, Configuration);
-            Common.Config.ApiClient.Policies.ServiceCollectionExtensions.AddPoliciesInterServiceClient(builder, Configuration);
+            builder.AddJobsInterServiceClient(Configuration);
+            builder.AddPoliciesInterServiceClient(Configuration);
 
             builder.AddCaching(Configuration);
 

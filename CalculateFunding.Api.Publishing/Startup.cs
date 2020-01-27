@@ -1,4 +1,8 @@
 using AutoMapper;
+using CalculateFunding.Common.Config.ApiClient.Calcs;
+using CalculateFunding.Common.Config.ApiClient.Jobs;
+using CalculateFunding.Common.Config.ApiClient.Providers;
+using CalculateFunding.Common.Config.ApiClient.Specifications;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Storage;
@@ -154,11 +158,11 @@ namespace CalculateFunding.Api.Publishing
             builder.AddPolicySettings(Configuration);
             builder.AddHttpContextAccessor();
             builder.AddHealthCheckMiddleware();
-            builder.AddPublishingServices(Configuration);          
-            Common.Config.ApiClient.Specifications.ServiceCollectionExtensions.AddSpecificationsInterServiceClient(builder, Configuration);
-            Common.Config.ApiClient.Providers.ServiceCollectionExtensions.AddProvidersInterServiceClient(builder, Configuration);
-            Common.Config.ApiClient.Calcs.ServiceCollectionExtensions.AddCalculationsInterServiceClient(builder, Configuration);
-            Common.Config.ApiClient.Jobs.ServiceCollectionExtensions.AddJobsInterServiceClient(builder, Configuration);
+            builder.AddPublishingServices(Configuration);
+            builder.AddSpecificationsInterServiceClient(Configuration);
+            builder.AddProvidersInterServiceClient(Configuration);
+            builder.AddCalculationsInterServiceClient(Configuration);
+            builder.AddJobsInterServiceClient(Configuration);
             builder.AddFeatureToggling(Configuration);
 
             builder

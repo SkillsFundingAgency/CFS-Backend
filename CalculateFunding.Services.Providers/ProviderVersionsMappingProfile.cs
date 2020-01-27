@@ -1,9 +1,6 @@
 ﻿using AutoMapper;
-using CalculateFunding.Models.ProviderLegacy;
 using CalculateFunding.Models.Providers;
 using CalculateFunding.Models.Providers.ViewModels;
-
-using CommonModels = CalculateFunding.Common.ApiClient.Providers.Models;
 
 namespace CalculateFunding.Services.Providers
 {
@@ -30,8 +27,6 @@ namespace CalculateFunding.Services.Providers
                 .ForMember(c => c.ProviderVersionId, opt => opt.MapFrom(c => c.ProviderVersionId))
                 .ForMember(c => c.Providers, opt => opt.MapFrom(c => c.Providers))
                 .ForMember(c => c.Id, opt => opt.MapFrom(s => MASTER_KEY));
-
-            CreateMap<ProviderSummary, CommonModels.ProviderSummary>();
 
             CreateMap<ProviderVersionMetadata, ProviderVersionMetadataDto>();
         }

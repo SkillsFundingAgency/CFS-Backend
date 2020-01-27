@@ -1,4 +1,5 @@
-﻿using CalculateFunding.Generators.OrganisationGroup.Interfaces;
+﻿using CalculateFunding.Common.Config.ApiClient.Providers;
+using CalculateFunding.Generators.OrganisationGroup.Interfaces;
 using CalculateFunding.Generators.Schema10;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
@@ -32,8 +33,7 @@ namespace CalculateFunding.Generators.NavFeed
             builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Generators.NavFeed");
             builder.AddLogging("CalculateFunding.Generators.NavFeed");
 
-            //builder.AddProvidersInterServiceClient(Configuration);
-            Common.Config.ApiClient.Providers.ServiceCollectionExtensions.AddProvidersInterServiceClient(builder, Configuration);
+            builder.AddProvidersInterServiceClient(Configuration);
 
             builder.AddPolicySettings(Configuration);
             builder.AddSingleton<IOrganisationGroupResiliencePolicies>((ctx) =>

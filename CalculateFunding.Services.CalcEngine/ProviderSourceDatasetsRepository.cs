@@ -74,7 +74,7 @@ namespace CalculateFunding.Services.CalcEngine
                     }
 
                     await throttler.WaitAsync();
-                    
+
                     allTasks.Add(
                         Task.Run(async () =>
                         {
@@ -150,10 +150,16 @@ namespace CalculateFunding.Services.CalcEngine
 
             using (Stream providerSourceDatasetStream = _fileSystemCache.Get(fileSystemCacheKey))
             {
-                datasets.Add(providerSourceDatasetStream.AsPoco<ProviderSourceDataset>());
-            }
+                ProviderSourceDataset providerSourceDataset = providerSourceDatasetStream.AsPoco<ProviderSourceDataset>();
 
-            return true;
+                if (providerSourceDataset == null)
+                {
+                    return false;
+                }
+
+                datasets.Add(providerSourceDataset);
+                return true;
+            }
         }
     }
 }

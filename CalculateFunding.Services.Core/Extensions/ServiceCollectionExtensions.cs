@@ -3,7 +3,6 @@ using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Security.Claims;
-using CalculateFunding.Common.ApiClient;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models;
@@ -25,7 +24,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Polly;
 using Serilog;
 using Serilog.Core;
 using Serilog.Events;
@@ -93,7 +91,7 @@ namespace CalculateFunding.Services.Core.Extensions
 
             return builder;
         }
-        
+
         public static IServiceCollection AddFeatureToggling(this IServiceCollection builder, IConfiguration config)
         {
             builder
@@ -146,12 +144,12 @@ namespace CalculateFunding.Services.Core.Extensions
         }
 
         public static IServiceCollection AddLogging(this IServiceCollection builder, string serviceName, IConfigurationRoot config = null)
-        {     
+        {
             builder.AddSingleton<ILogger>((ctx) =>
             {
                 //TelemetryClient client = ctx.GetService<TelemetryClient>();            
 
-                LoggerConfiguration loggerConfiguration = GetLoggerConfiguration(serviceName);                
+                LoggerConfiguration loggerConfiguration = GetLoggerConfiguration(serviceName);
 
                 if (config != null && !string.IsNullOrWhiteSpace(config.GetValue<string>("FileLoggingPath")))
                 {
@@ -202,7 +200,7 @@ namespace CalculateFunding.Services.Core.Extensions
             }
 
             TelemetryConfiguration appInsightsTelemetryConfiguration = TelemetryConfiguration.Active;
-            appInsightsTelemetryConfiguration.InstrumentationKey = appInsightsKey;           
+            appInsightsTelemetryConfiguration.InstrumentationKey = appInsightsKey;
 
             if (channelType == TelemetryChannelType.Sync)
             {
@@ -222,7 +220,7 @@ namespace CalculateFunding.Services.Core.Extensions
             builder.AddSingleton(telemetryClient);
 
             return builder;
-        }       
+        }
 
         public static IServiceScope CreateHttpScope(this IServiceProvider serviceProvider, HttpRequest request)
         {
@@ -256,8 +254,6 @@ namespace CalculateFunding.Services.Core.Extensions
 
         public static LoggerConfiguration GetLoggerConfiguration(string serviceName)
         {
-            
-            // Guard.ArgumentNotNull(telemetryClient, nameof(telemetryClient));
             Guard.IsNullOrWhiteSpace(serviceName, nameof(serviceName));
 
             return new LoggerConfiguration()
@@ -266,7 +262,7 @@ namespace CalculateFunding.Services.Core.Extensions
                 new ServiceNameLogEnricher(serviceName)
             })
             .Enrich.FromLogContext()
-            .WriteTo.ApplicationInsights(TelemetryConfiguration.Active, TelemetryConverter.Traces);      
+            .WriteTo.ApplicationInsights(TelemetryConfiguration.Active, TelemetryConverter.Traces);
         }
 
         public static IServiceCollection AddCaching(this IServiceCollection builder, IConfiguration config)
@@ -374,7 +370,7 @@ namespace CalculateFunding.Services.Core.Extensions
             IServiceProvider serviceProvider = services.BuildServiceProvider();
 
             httpClient.BaseAddress = new Uri(baseAddress, UriKind.Absolute);
-            httpClient.DefaultRequestHeaders?.Add(ApiClientHeaders.ApiKey, options.ApiKey);
+            httpClient.DefaultRequestHeaders?.Add("Ocp-Apim-Subscription-Key", options.ApiKey);
 
             httpClient.DefaultRequestHeaders?.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             httpClient.DefaultRequestHeaders?.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));

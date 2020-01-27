@@ -72,16 +72,16 @@ namespace CalculateFunding.Services.CalcEngine
             ICalculatorResiliencePolicies resiliencePolicies,
             IValidator<ICalculatorResiliencePolicies> calculatorResiliencePoliciesValidator,
             IDatasetAggregationsRepository datasetAggregationsRepository,
-            IJobsApiClient jobsApiClient, 
+            IJobsApiClient jobsApiClient,
             ISpecificationsApiClient specificationsApiClient)
         {
             _calculatorResiliencePoliciesValidator = calculatorResiliencePoliciesValidator;
 
             //this should be a component and the calculatorResiliencePoliciesValidator should be one its dependencies
-            
+
             CalculationEngineServiceValidator.ValidateConstruction(_calculatorResiliencePoliciesValidator,
                 engineSettings, resiliencePolicies, calculationsRepository);
-            
+
             Guard.ArgumentNotNull(specificationsApiClient, nameof(specificationsApiClient));
             Guard.ArgumentNotNull(resiliencePolicies?.SpecificationsApiClient, nameof(resiliencePolicies.SpecificationsApiClient));
 
@@ -162,7 +162,7 @@ namespace CalculateFunding.Services.CalcEngine
             IEnumerable<ProviderSummary> summaries = null;
 
             string specificationId = messageProperties.SpecificationId;
-            
+
             _logger.Information($"Generating allocations for specification id {specificationId}");
 
             BuildProject buildProject = await GetBuildProject(specificationId);
@@ -187,7 +187,7 @@ namespace CalculateFunding.Services.CalcEngine
             int stop = start + messageProperties.PartitionSize - 1;
 
             summaries = await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.ListRangeAsync<ProviderSummary>(messageProperties.ProviderCacheKey, start, stop));
-            if(summaries == null)
+            if (summaries == null)
             {
                 throw new InvalidOperationException("Null provider summaries returned");
             }
@@ -200,17 +200,17 @@ namespace CalculateFunding.Services.CalcEngine
             int providerBatchSize = _engineSettings.ProviderBatchSize;
 
             Stopwatch calculationsLookupStopwatch = Stopwatch.StartNew();
-            IEnumerable<CalculationSummaryModel> calculations = await _calculationsRepositoryPolicy.ExecuteAsync(() => 
+            IEnumerable<CalculationSummaryModel> calculations = await _calculationsRepositoryPolicy.ExecuteAsync(() =>
                 _calculationsRepository.GetCalculationSummariesForSpecification(specificationId));
             ApiResponse<SpecificationSummary> specificationSummary =
                 await _specificationsApiPolicy.ExecuteAsync(() => _specificationsApiClient.GetSpecificationSummaryById(specificationId));
-            
+
             IEnumerable<string> dataRelationshipIds = specificationSummary.Content.DataDefinitionRelationshipIds;
-            if(dataRelationshipIds == null)
+            if (dataRelationshipIds == null)
             {
                 throw new InvalidOperationException("Data relationship ids returned null");
             }
-            
+
             if (calculations == null)
             {
                 _logger.Error($"Calculations lookup API returned null for specification id {specificationId}");
@@ -231,16 +231,16 @@ namespace CalculateFunding.Services.CalcEngine
                 Stopwatch providerSourceDatasetsStopwatch = new Stopwatch();
 
                 Stopwatch calcTiming = Stopwatch.StartNew();
-                
-                CalculationResultsModel calculationResults = await CalculateResults(summaries, 
-                    calculations, 
-                    aggregations, 
+
+                CalculationResultsModel calculationResults = await CalculateResults(summaries,
+                    calculations,
+                    aggregations,
                     dataRelationshipIds,
-                    buildProject, 
-                    messageProperties, 
-                    providerBatchSize, 
-                    i, 
-                    providerSourceDatasetsStopwatch, 
+                    buildProject,
+                    messageProperties,
+                    providerBatchSize,
+                    i,
+                    providerSourceDatasetsStopwatch,
                     calculationStopwatch);
 
                 _logger.Information($"Calculating results complete for specification id {specificationId}");
@@ -260,15 +260,15 @@ namespace CalculateFunding.Services.CalcEngine
                     }
                     else
                     {
-                        (long saveCosmosElapsedMs, long saveSearchElapsedMs, long saveRedisElapsedMs, long saveQueueElapsedMs, int savedProviders) processResultsMetrics = 
+                        (long saveCosmosElapsedMs, long saveSearchElapsedMs, long saveRedisElapsedMs, long saveQueueElapsedMs, int savedProviders) processResultsMetrics =
                             await ProcessProviderResults(calculationResults.ProviderResults, messageProperties, message);
-                        
+
                         saveCosmosElapsedMs = processResultsMetrics.saveCosmosElapsedMs;
                         saveSearchElapsedMs = processResultsMetrics.saveSearchElapsedMs;
                         saveRedisElapsedMs = processResultsMetrics.saveRedisElapsedMs;
                         saveQueueElapsedMs = processResultsMetrics.saveQueueElapsedMs;
                         savedProviders = processResultsMetrics.savedProviders;
-                        
+
                         totalProviderResults += calculationResults.ProviderResults.Count();
                         percentageProvidersSaved = savedProviders / totalProviderResults * 100;
 
@@ -328,18 +328,20 @@ namespace CalculateFunding.Services.CalcEngine
             }
         }
 
-        private async Task<CalculationResultsModel> CalculateResults(IEnumerable<ProviderSummary> summaries, 
-            IEnumerable<CalculationSummaryModel> calculations, 
+        private async Task<CalculationResultsModel> CalculateResults(IEnumerable<ProviderSummary> summaries,
+            IEnumerable<CalculationSummaryModel> calculations,
             IEnumerable<CalculationAggregation> aggregations,
             IEnumerable<string> dataRelationshipIds,
             BuildProject buildProject,
-            GenerateAllocationMessageProperties messageProperties, 
-            int providerBatchSize, 
-            int index, 
-            Stopwatch providerSourceDatasetsStopwatch, 
+            GenerateAllocationMessageProperties messageProperties,
+            int providerBatchSize,
+            int index,
+            Stopwatch providerSourceDatasetsStopwatch,
             Stopwatch calculationStopwatch)
         {
             ConcurrentBag<ProviderResult> providerResults = new ConcurrentBag<ProviderResult>();
+
+            Guard.ArgumentNotNull(summaries, nameof(summaries));
 
             IEnumerable<ProviderSummary> partitionedSummaries = summaries.Skip(index).Take(providerBatchSize);
 
@@ -354,7 +356,7 @@ namespace CalculateFunding.Services.CalcEngine
 
             providerSourceDatasetsStopwatch.Stop();
 
-            _logger.Information($"Fetched provider sources found for specification id {messageProperties.SpecificationId}"); 
+            _logger.Information($"Fetched provider sources found for specification id {messageProperties.SpecificationId}");
 
             calculationStopwatch.Start();
 
@@ -364,9 +366,19 @@ namespace CalculateFunding.Services.CalcEngine
 
             Parallel.ForEach(partitionedSummaries, new ParallelOptions { MaxDegreeOfParallelism = _engineSettings.CalculateProviderResultsDegreeOfParallelism }, provider =>
             {
+                if (provider == null)
+                {
+                    throw new Exception("Provider summary is null");
+                }
+
                 IAllocationModel allocationModel = _calculationEngine.GenerateAllocationModel(assembly);
 
                 IEnumerable<ProviderSourceDataset> providerDatasets = providerSourceDatasets.Where(m => m.ProviderId == provider.Id);
+
+                if (providerDatasets == null)
+                {
+                    throw new Exception($"Provider source dataset for {provider.Id} was null.");
+                }
 
                 ProviderResult result = _calculationEngine.CalculateProviderResults(allocationModel, buildProject, calculations, provider, providerDatasets, aggregations);
 
@@ -374,7 +386,7 @@ namespace CalculateFunding.Services.CalcEngine
                 {
                     throw new InvalidOperationException("Null result from Calc Engine CalculateProviderResults");
                 }
-                
+
                 providerResults.Add(result);
             });
 
@@ -616,7 +628,7 @@ namespace CalculateFunding.Services.CalcEngine
 
             foreach (ProviderResult providerResult in providerResults)
             {
-                IEnumerable<CalculationResult> calculationResultsForAggregation = providerResult.CalculationResults.Where(m => 
+                IEnumerable<CalculationResult> calculationResultsForAggregation = providerResult.CalculationResults.Where(m =>
                     calculationsToAggregate.Contains(VisualBasicTypeGenerator.GenerateIdentifier(m.Calculation.Name), StringComparer.InvariantCultureIgnoreCase));
 
                 foreach (CalculationResult calculationResult in calculationResultsForAggregation)
@@ -636,7 +648,7 @@ namespace CalculateFunding.Services.CalcEngine
 
         private async Task<(long saveCosmosElapsedMs, long saveToSearchElapsedMs, long saveRedisElapsedMs, long saveQueueElapsedMs, int savedProviders)> ProcessProviderResults(
             IEnumerable<ProviderResult> providerResults,
-            GenerateAllocationMessageProperties messageProperties, 
+            GenerateAllocationMessageProperties messageProperties,
             Message message)
         {
             (long saveToCosmosElapsedMs, long saveToSearchElapsedMs, int savedProviders) saveProviderResultsTimings = (-1, -1, -1);
@@ -644,10 +656,10 @@ namespace CalculateFunding.Services.CalcEngine
             if (!message.UserProperties.ContainsKey("ignore-save-provider-results"))
             {
                 _logger.Information($"Saving results for specification id {messageProperties.SpecificationId}");
-                
-                saveProviderResultsTimings = await _providerResultsRepositoryPolicy.ExecuteAsync(() => _providerResultsRepository.SaveProviderResults(providerResults, 
-                    messageProperties.PartitionIndex, 
-                    messageProperties.PartitionSize, 
+
+                saveProviderResultsTimings = await _providerResultsRepositoryPolicy.ExecuteAsync(() => _providerResultsRepository.SaveProviderResults(providerResults,
+                    messageProperties.PartitionIndex,
+                    messageProperties.PartitionSize,
                     _engineSettings.SaveProviderDegreeOfParallelism));
 
                 _logger.Information($"Saving results completeed for specification id {messageProperties.SpecificationId}");
@@ -678,10 +690,10 @@ namespace CalculateFunding.Services.CalcEngine
 
             _logger.Information($"Message sent for test exceution for specification id {messageProperties.SpecificationId}");
 
-            return (saveProviderResultsTimings.saveToCosmosElapsedMs, 
-                saveProviderResultsTimings.saveToSearchElapsedMs, 
-                saveRedisStopwatch.ElapsedMilliseconds, 
-                saveQueueStopwatch.ElapsedMilliseconds, 
+            return (saveProviderResultsTimings.saveToCosmosElapsedMs,
+                saveProviderResultsTimings.saveToSearchElapsedMs,
+                saveRedisStopwatch.ElapsedMilliseconds,
+                saveQueueStopwatch.ElapsedMilliseconds,
                 saveProviderResultsTimings.savedProviders);
         }
 

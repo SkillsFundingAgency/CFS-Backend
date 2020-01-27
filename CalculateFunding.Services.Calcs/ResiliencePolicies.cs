@@ -1,5 +1,5 @@
 ﻿using CalculateFunding.Services.Calcs.Interfaces;
-using CalculateFunding.Services.Core.Interfaces;
+using CalculateFunding.Services.DeadletterProcessor;
 using Polly;
 
 namespace CalculateFunding.Services.Calcs
@@ -27,6 +27,7 @@ namespace CalculateFunding.Services.Calcs
         public Policy DatasetsRepository { get; set; }
 
         public Policy PoliciesApiClient { get; set; }
+
         public Policy SpecificationsApiClient { get; set; }
     }
 }

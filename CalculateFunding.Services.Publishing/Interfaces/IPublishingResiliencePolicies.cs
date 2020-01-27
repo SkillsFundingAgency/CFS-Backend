@@ -1,4 +1,4 @@
-﻿using CalculateFunding.Services.Core.Interfaces;
+﻿using CalculateFunding.Services.DeadletterProcessor;
 using Polly;
 
 namespace CalculateFunding.Services.Publishing.Interfaces

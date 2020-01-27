@@ -3,12 +3,10 @@ using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.Utility;
-using CalculateFunding.Services.Core.Interfaces;
-using CalculateFunding.Services.Core.Interfaces.Services;
 using Microsoft.Azure.ServiceBus;
 using Serilog;
 
-namespace CalculateFunding.Services.Core.Services
+namespace CalculateFunding.Services.DeadletterProcessor
 {
     public class JobHelperService : IJobHelperService
     {
