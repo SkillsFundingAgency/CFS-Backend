@@ -28,8 +28,7 @@ namespace CalculateFunding.Functions.Publishing.ServiceBus
         [FunctionName("on-publishing-reindex-published-providers")]
         public async Task Run([ServiceBusTrigger(
                 ServiceBusConstants.QueueNames.PublishingReIndexPublishedProviders,
-                Connection = ServiceBusConstants.ConnectionStringConfigurationKey,
-                IsSessionsEnabled = true)]
+                Connection = ServiceBusConstants.ConnectionStringConfigurationKey)]
             Message message)
         {
             try
