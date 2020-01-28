@@ -78,10 +78,9 @@ namespace CalculateFunding.Services.Jobs
             return health;
         }
 
-        public async Task<IActionResult> CreateJobs(IEnumerable<JobCreateModel> jobs, HttpRequest request)
+        public async Task<IActionResult> CreateJobs(IEnumerable<JobCreateModel> jobs, Reference user)
         {
             Guard.ArgumentNotNull(jobs, nameof(jobs));
-            Guard.ArgumentNotNull(request, nameof(request));
 
             if (!jobs.Any())
             {
@@ -101,8 +100,6 @@ namespace CalculateFunding.Services.Jobs
             }
 
             IList<ValidationResult> validationResults = new List<ValidationResult>();
-
-            Reference user = request?.GetUser();
 
             //ensure all jobs in batch have the correct job definition
             foreach (JobCreateModel jobCreateModel in jobs)
@@ -301,24 +298,10 @@ namespace CalculateFunding.Services.Jobs
         /// </summary>
         /// <param name="jobId">Job ID</param>
         /// <returns></returns>
-        public async Task CancelJob(string jobId)
+        public async Task<IActionResult> CancelJob(string jobId)
         {
             // Set running status to Cancelled and CompletionStatus to Fail
 
-            // Send notification after status logged
-            await _notificationService.SendNotification(new JobNotification());
-
-            throw new NotImplementedException();
-        }
-
-        /// <summary>
-        /// Cancel job based on user input - may not be needed for first phase
-        /// </summary>
-        /// <param name="jobId">Job ID</param>
-        /// <param name="request"></param>
-        /// <returns></returns>
-        public async Task<IActionResult> CancelJob(string jobId, HttpRequest request)
-        {
             // Send notification after status logged
             await _notificationService.SendNotification(new JobNotification());
 

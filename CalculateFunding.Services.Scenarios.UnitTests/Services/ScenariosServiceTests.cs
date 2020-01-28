@@ -56,14 +56,12 @@ namespace CalculateFunding.Services.Scenarios.Services
         async public Task SaveVersion_GivenNullScenarioVersion_ReturnsBadRequestObject()
         {
             //Arrange
-            HttpRequest request = Substitute.For<HttpRequest>();
-
             ILogger logger = CreateLogger();
 
             ScenariosService service = CreateScenariosService(logger: logger);
 
             //Act
-            IActionResult result = await service.SaveVersion(request);
+            IActionResult result = await service.SaveVersion(null, null, null);
 
             //Assert
             result
@@ -81,15 +79,7 @@ namespace CalculateFunding.Services.Scenarios.Services
         {
             //Arrange
             CreateNewTestScenarioVersion model = new CreateNewTestScenarioVersion();
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
+            
             ILogger logger = CreateLogger();
 
             ValidationResult validationResult = new ValidationResult(new[]{
@@ -101,7 +91,7 @@ namespace CalculateFunding.Services.Scenarios.Services
             ScenariosService service = CreateScenariosService(logger: logger, createNewTestScenarioVersionValidator: validator);
 
             //Act
-            IActionResult result = await service.SaveVersion(request);
+            IActionResult result = await service.SaveVersion(model, null, null);
 
             //Assert
             result
@@ -116,15 +106,6 @@ namespace CalculateFunding.Services.Scenarios.Services
             //Arrange
             CreateNewTestScenarioVersion model = CreateModel();
 
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
             ILogger logger = CreateLogger();
 
             ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
@@ -136,7 +117,7 @@ namespace CalculateFunding.Services.Scenarios.Services
             ScenariosService service = CreateScenariosService(logger: logger, specificationsApiClient: specificationsApiClient);
 
             //Act
-            IActionResult result = await service.SaveVersion(request);
+            IActionResult result = await service.SaveVersion(model, null, null);
 
             //Assert
             result
@@ -161,15 +142,6 @@ namespace CalculateFunding.Services.Scenarios.Services
         {
             //Arrange
             CreateNewTestScenarioVersion model = CreateModel();
-
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
 
             ILogger logger = CreateLogger();
 
@@ -199,7 +171,7 @@ namespace CalculateFunding.Services.Scenarios.Services
                 scenariosRepository: scenariosRepository);
 
             //Act
-            IActionResult result = await service.SaveVersion(request);
+            IActionResult result = await service.SaveVersion(model, null, null);
 
             //Assert
             result
@@ -223,15 +195,6 @@ namespace CalculateFunding.Services.Scenarios.Services
         {
             // Arrange
             CreateNewTestScenarioVersion model = CreateModel();
-
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
 
             ILogger logger = CreateLogger();
 
@@ -266,7 +229,7 @@ namespace CalculateFunding.Services.Scenarios.Services
                 .Returns(new CurrentTestScenario());
 
             // Act
-            IActionResult result = await service.SaveVersion(request);
+            IActionResult result = await service.SaveVersion(model, null, null);
 
             // Assert
             result
@@ -307,15 +270,6 @@ namespace CalculateFunding.Services.Scenarios.Services
             //Arrange
             CreateNewTestScenarioVersion model = CreateModel();
             model.Id = scenarioId;
-
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
 
             ILogger logger = CreateLogger();
 
@@ -372,7 +326,7 @@ namespace CalculateFunding.Services.Scenarios.Services
                 versionRepository: versionRepository);
 
             //Act
-            IActionResult result = await service.SaveVersion(request);
+            IActionResult result = await service.SaveVersion(model, null, null);
 
             //Assert
             result
@@ -406,15 +360,6 @@ namespace CalculateFunding.Services.Scenarios.Services
             //Arrange
             CreateNewTestScenarioVersion model = CreateModel();
             model.Id = scenarioId;
-
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
 
             ILogger logger = CreateLogger();
 
@@ -466,7 +411,7 @@ namespace CalculateFunding.Services.Scenarios.Services
                 specificationsApiClient: specificationsApiClient);
 
             //Act
-            IActionResult result = await service.SaveVersion(request);
+            IActionResult result = await service.SaveVersion(model, null, null);
 
             //Assert
             result
@@ -481,15 +426,6 @@ namespace CalculateFunding.Services.Scenarios.Services
             CreateNewTestScenarioVersion model = CreateModel();
             model.Id = scenarioId;
             model.Scenario = "updated gherkin";
-
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
 
             ILogger logger = CreateLogger();
 
@@ -547,7 +483,7 @@ namespace CalculateFunding.Services.Scenarios.Services
                 versionRepository: versionRepository);
 
             //Act
-            IActionResult result = await service.SaveVersion(request);
+            IActionResult result = await service.SaveVersion(model, null, null);
 
             //Assert
             result
@@ -571,15 +507,6 @@ namespace CalculateFunding.Services.Scenarios.Services
             CreateNewTestScenarioVersion model = CreateModel();
             model.Id = scenarioId;
             model.Description = "updated description";
-
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
 
             ILogger logger = CreateLogger();
 
@@ -636,7 +563,7 @@ namespace CalculateFunding.Services.Scenarios.Services
                 specificationsApiClient: specificationsApiClient, versionRepository: versionRepository);
 
             //Act
-            IActionResult result = await service.SaveVersion(request);
+            IActionResult result = await service.SaveVersion(model, null, null);
 
             //Assert
             result
@@ -659,15 +586,6 @@ namespace CalculateFunding.Services.Scenarios.Services
             //Arrange
             CreateNewTestScenarioVersion model = CreateModel();
             model.Id = scenarioId;
-
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
 
             ILogger logger = CreateLogger();
 
@@ -733,7 +651,7 @@ namespace CalculateFunding.Services.Scenarios.Services
                 jobsApiClient: jobsApiClient);
 
             //Act
-            IActionResult result = await service.SaveVersion(request);
+            IActionResult result = await service.SaveVersion(model, null, null);
 
             //Assert
             result
@@ -756,15 +674,6 @@ namespace CalculateFunding.Services.Scenarios.Services
             //Arrange
             CreateNewTestScenarioVersion model = CreateModel();
             model.Id = scenarioId;
-
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
 
             ILogger logger = CreateLogger();
 
@@ -841,7 +750,7 @@ namespace CalculateFunding.Services.Scenarios.Services
                 jobsApiClient: jobsApiClient);
 
             //Act
-            IActionResult result = await service.SaveVersion(request);
+            IActionResult result = await service.SaveVersion(model, null, null);
 
             //Assert
             result
@@ -863,15 +772,6 @@ namespace CalculateFunding.Services.Scenarios.Services
             //Arrange
             CreateNewTestScenarioVersion model = CreateModel();
             model.Id = scenarioId;
-
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
 
             ILogger logger = CreateLogger();
 
@@ -954,7 +854,7 @@ namespace CalculateFunding.Services.Scenarios.Services
                 jobsApiClient: jobsApiClient);
 
             //Act
-            IActionResult result = await service.SaveVersion(request);
+            IActionResult result = await service.SaveVersion(model, null, "corr-2");
 
             //Assert
             result
@@ -985,15 +885,6 @@ namespace CalculateFunding.Services.Scenarios.Services
             //Arrange
             CreateNewTestScenarioVersion model = CreateModel();
             model.Id = scenarioId;
-
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
 
             ILogger logger = CreateLogger();
 
@@ -1076,7 +967,7 @@ namespace CalculateFunding.Services.Scenarios.Services
                 jobsApiClient: jobsApiClient);
 
             //Act
-            IActionResult result = await service.SaveVersion(request);
+            IActionResult result = await service.SaveVersion(model, null, "corr-1");
 
             //Assert
             result
@@ -1105,14 +996,12 @@ namespace CalculateFunding.Services.Scenarios.Services
         public async Task GetTestScenarioById_GivenNoScenarioId_ReturnsBadRequest()
         {
             //Arrange
-            HttpRequest request = Substitute.For<HttpRequest>();
-
             ILogger logger = CreateLogger();
 
             ScenariosService service = CreateScenariosService(logger: logger);
 
             //Act
-            IActionResult result = await service.GetTestScenarioById(request);
+            IActionResult result = await service.GetTestScenarioById(null);
 
             //Assert
             result
@@ -1128,17 +1017,6 @@ namespace CalculateFunding.Services.Scenarios.Services
         public async Task GetTestScenarioById_GivenScenarioIdButNoScenarioWasFound_ReturnsNotFound()
         {
             //Arrange
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "scenarioId", new StringValues(scenarioId) }
-
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-
             ILogger logger = CreateLogger();
 
             IScenariosRepository scenariosRepository = CreateScenariosRepository();
@@ -1149,7 +1027,7 @@ namespace CalculateFunding.Services.Scenarios.Services
             ScenariosService service = CreateScenariosService(logger, scenariosRepository);
 
             //Act
-            IActionResult result = await service.GetTestScenarioById(request);
+            IActionResult result = await service.GetTestScenarioById(scenarioId);
 
             //Assert
             result
@@ -1161,17 +1039,6 @@ namespace CalculateFunding.Services.Scenarios.Services
         public async Task GetTestScenarioById_GivenScenarioIdAndScenarioWasFound_ReturnsOKResult()
         {
             //Arrange
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "scenarioId", new StringValues(scenarioId) }
-
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-
             ILogger logger = CreateLogger();
 
             IScenariosRepository scenariosRepository = CreateScenariosRepository();
@@ -1182,7 +1049,7 @@ namespace CalculateFunding.Services.Scenarios.Services
             ScenariosService service = CreateScenariosService(logger, scenariosRepository);
 
             //Act
-            IActionResult result = await service.GetTestScenarioById(request);
+            IActionResult result = await service.GetTestScenarioById(scenarioId);
 
             //Assert
             result
@@ -1194,14 +1061,12 @@ namespace CalculateFunding.Services.Scenarios.Services
         public async Task GetCurrentTestScenarioById_GivenNoScenarioId_ReturnsBadRequest()
         {
             //Arrange
-            HttpRequest request = Substitute.For<HttpRequest>();
-
             ILogger logger = CreateLogger();
 
             ScenariosService service = CreateScenariosService(logger: logger);
 
             //Act
-            IActionResult result = await service.GetCurrentTestScenarioById(request);
+            IActionResult result = await service.GetCurrentTestScenarioById(null);
 
             //Assert
             result
@@ -1217,16 +1082,6 @@ namespace CalculateFunding.Services.Scenarios.Services
         public async Task GetCurrentTestScenarioById_GivenScenarioIdButNoScenarioWasFound_ReturnsNotFound()
         {
             //Arrange
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "scenarioId", new StringValues(scenarioId) }
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-
             ILogger logger = CreateLogger();
 
             IScenariosRepository scenariosRepository = CreateScenariosRepository();
@@ -1237,7 +1092,7 @@ namespace CalculateFunding.Services.Scenarios.Services
             ScenariosService service = CreateScenariosService(logger, scenariosRepository);
 
             //Act
-            IActionResult result = await service.GetCurrentTestScenarioById(request);
+            IActionResult result = await service.GetCurrentTestScenarioById(scenarioId);
 
             //Assert
             result
@@ -1249,16 +1104,6 @@ namespace CalculateFunding.Services.Scenarios.Services
         public async Task GetCurrentTestScenarioById_GivenScenarioIdAndScenarioWasFound_ReturnsOKResult()
         {
             //Arrange
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "scenarioId", new StringValues(scenarioId) }
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-
             ILogger logger = CreateLogger();
 
             IScenariosRepository scenariosRepository = CreateScenariosRepository();
@@ -1269,7 +1114,7 @@ namespace CalculateFunding.Services.Scenarios.Services
             ScenariosService service = CreateScenariosService(logger, scenariosRepository);
 
             //Act
-            IActionResult result = await service.GetCurrentTestScenarioById(request);
+            IActionResult result = await service.GetCurrentTestScenarioById(scenarioId);
 
             //Assert
             result

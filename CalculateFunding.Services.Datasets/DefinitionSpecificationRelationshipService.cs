@@ -104,12 +104,8 @@ namespace CalculateFunding.Services.Datasets
             return health;
         }
 
-        public async Task<IActionResult> CreateRelationship(HttpRequest request)
+        public async Task<IActionResult> CreateRelationship(CreateDefinitionSpecificationRelationshipModel model, Reference author, string correlationId)
         {
-            string json = await request.GetRawBodyStringAsync();
-
-            CreateDefinitionSpecificationRelationshipModel model = JsonConvert.DeserializeObject<CreateDefinitionSpecificationRelationshipModel>(json);
-
             if (model == null)
             {
                 _logger.Error("Null CreateDefinitionSpecificationRelationshipModel was provided to CreateRelationship");
@@ -163,7 +159,7 @@ namespace CalculateFunding.Services.Datasets
                 return new StatusCodeResult((int)statusCode);
             }
 
-            IDictionary<string, string> properties = request.BuildMessageProperties();
+            IDictionary<string, string> properties = MessageExtensions.BuildMessageProperties(correlationId, author);
 
             await _messengerService.SendToQueue(ServiceBusConstants.QueueNames.AddDefinitionRelationshipToSpecification,
                 new AssignDefinitionRelationshipMessage
@@ -192,12 +188,8 @@ namespace CalculateFunding.Services.Datasets
             return new OkObjectResult(relationship);
         }
 
-        public async Task<IActionResult> GetRelationshipsBySpecificationId(HttpRequest request)
+        public async Task<IActionResult> GetRelationshipsBySpecificationId(string specificationId)
         {
-            request.Query.TryGetValue("specificationId", out Microsoft.Extensions.Primitives.StringValues specId);
-
-            string specificationId = specId.FirstOrDefault();
-
             if (string.IsNullOrWhiteSpace(specificationId))
             {
                 _logger.Error("No specification id was provided to GetRelationshipsBySpecificationId");
@@ -239,12 +231,8 @@ namespace CalculateFunding.Services.Datasets
             return new OkObjectResult(tasks.Select(m => m.Result));
         }
 
-        public async Task<IActionResult> GetDataSourcesByRelationshipId(HttpRequest request)
+        public async Task<IActionResult> GetDataSourcesByRelationshipId(string relationshipId)
         {
-            request.Query.TryGetValue("relationshipId", out Microsoft.Extensions.Primitives.StringValues relId);
-
-            string relationshipId = relId.FirstOrDefault();
-
             if (string.IsNullOrWhiteSpace(relationshipId))
             {
                 _logger.Error("The relationshipId id was not provided to GetDataSourcesByRelationshipId");
@@ -293,12 +281,8 @@ namespace CalculateFunding.Services.Datasets
             return new OkObjectResult(selectDatasourceModel);
         }
 
-        public async Task<IActionResult> AssignDatasourceVersionToRelationship(HttpRequest request)
+        public async Task<IActionResult> AssignDatasourceVersionToRelationship(AssignDatasourceModel model, Reference user, string correlationId)
         {
-            string json = await request.GetRawBodyStringAsync();
-
-            AssignDatasourceModel model = JsonConvert.DeserializeObject<AssignDatasourceModel>(json);
-
             if (model == null)
             {
                 _logger.Error("Null AssignDatasourceModel was provided to AssignDatasourceVersionToRelationship");
@@ -336,8 +320,6 @@ namespace CalculateFunding.Services.Datasets
                 return new StatusCodeResult((int)statusCode);
             }
 
-            Reference user = request.GetUser();
-
             Trigger trigger = new Trigger
             {
                 EntityId = dataset.Id,
@@ -345,20 +327,18 @@ namespace CalculateFunding.Services.Datasets
                 Message = $"Mapping dataset: '{dataset.Id}'"
             };
 
-            string correlationId = request.GetCorrelationId();
-            
             JobCreateModel job = new JobCreateModel
             {
-                InvokerUserDisplayName = user.Name,
-                InvokerUserId = user.Id,
+                InvokerUserDisplayName = user?.Name,
+                InvokerUserId = user?.Id,
                 JobDefinitionId = JobConstants.DefinitionNames.MapDatasetJob,
                 MessageBody = JsonConvert.SerializeObject(dataset),
                 Properties = new Dictionary<string, string>
                     {
                         { "specification-id", relationship.Specification.Id },
                         { "relationship-id", relationship.Id },
-                        { "user-id", user.Id},
-                        { "user-name", user.Name},
+                        { "user-id", user?.Id},
+                        { "user-name", user?.Name},
                     },
                 SpecificationId = relationship.Specification.Id,
                 Trigger = trigger,
@@ -370,12 +350,8 @@ namespace CalculateFunding.Services.Datasets
             return new NoContentResult();
         }
 
-        public async Task<IActionResult> GetRelationshipBySpecificationIdAndName(HttpRequest request)
+        public async Task<IActionResult> GetRelationshipBySpecificationIdAndName(string specificationId, string name)
         {
-            request.Query.TryGetValue("specificationId", out Microsoft.Extensions.Primitives.StringValues specId);
-
-            string specificationId = specId.FirstOrDefault();
-
             if (string.IsNullOrWhiteSpace(specificationId))
             {
                 _logger.Error("The specification id was not provided to GetRelationshipsBySpecificationIdAndName");
@@ -383,11 +359,7 @@ namespace CalculateFunding.Services.Datasets
                 return new BadRequestObjectResult("No specification id was provided to GetRelationshipsBySpecificationIdAndName");
             }
 
-            request.Query.TryGetValue("name", out Microsoft.Extensions.Primitives.StringValues name);
-
-            string relationshipName = name.FirstOrDefault();
-
-            if (string.IsNullOrWhiteSpace(relationshipName))
+            if (string.IsNullOrWhiteSpace(name))
             {
                 _logger.Error("The name was not provided to GetRelationshipsBySpecificationIdAndName");
 
@@ -404,12 +376,8 @@ namespace CalculateFunding.Services.Datasets
             return new NotFoundResult();
         }
 
-        public async Task<IActionResult> GetCurrentRelationshipsBySpecificationId(HttpRequest request)
+        public async Task<IActionResult> GetCurrentRelationshipsBySpecificationId(string specificationId)
         {
-            request.Query.TryGetValue("specificationId", out Microsoft.Extensions.Primitives.StringValues specId);
-
-            string specificationId = specId.FirstOrDefault();
-
             if (string.IsNullOrWhiteSpace(specificationId))
             {
                 _logger.Error($"No specification id was provided to GetCurrentRelationshipsBySpecificationId");

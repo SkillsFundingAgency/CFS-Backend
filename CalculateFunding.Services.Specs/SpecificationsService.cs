@@ -160,7 +160,7 @@ namespace CalculateFunding.Services.Specs
             return health;
         }
 
-        public async Task<IActionResult> GetSpecifications(HttpRequest request)
+        public async Task<IActionResult> GetSpecifications()
         {
             IEnumerable<Specification> specifications = await _specificationsRepository.GetSpecifications();
 
@@ -174,12 +174,8 @@ namespace CalculateFunding.Services.Specs
             return new OkObjectResult(specifications);
         }
 
-        public async Task<IActionResult> GetSpecificationById(HttpRequest request)
+        public async Task<IActionResult> GetSpecificationById(string specificationId)
         {
-            request.Query.TryGetValue("specificationId", out StringValues specId);
-
-            string specificationId = specId.FirstOrDefault();
-
             if (string.IsNullOrWhiteSpace(specificationId))
             {
                 _logger.Error("No specification Id was provided to GetSpecificationById");
@@ -199,12 +195,8 @@ namespace CalculateFunding.Services.Specs
             return new OkObjectResult(specification);
         }
 
-        public async Task<IActionResult> GetSpecificationSummaryById(HttpRequest request)
+        public async Task<IActionResult> GetSpecificationSummaryById(string specificationId)
         {
-            request.Query.TryGetValue("specificationId", out StringValues specId);
-
-            string specificationId = specId.FirstOrDefault();
-
             if (string.IsNullOrWhiteSpace(specificationId))
             {
                 _logger.Error("No specification Id was provided to GetSpecificationSummaryById");
@@ -234,35 +226,28 @@ namespace CalculateFunding.Services.Specs
             return new OkObjectResult(summary);
         }
 
-        public async Task<IActionResult> GetSpecificationSummariesByIds(HttpRequest request)
+        public async Task<IActionResult> GetSpecificationSummariesByIds(string[] specificationIds)
         {
-            string json = await request.GetRawBodyStringAsync();
+            List<SpecificationSummary> result = new List<SpecificationSummary>();
 
-            if (string.IsNullOrWhiteSpace(json))
+            if (specificationIds?.Any() == false)
             {
                 _logger.Warning("No specification ids was provided to GetSpecificationSummariesByIds");
                 return new BadRequestObjectResult("Null or empty specification ids provided");
             }
 
-            string[] specificationIds = JsonConvert.DeserializeObject<IEnumerable<string>>(json).ToArray();
+            IEnumerable<Specification> specifications =
+                await _specificationsRepository.GetSpecificationsByQuery(c => specificationIds.Contains(c.Id));
 
-            List<SpecificationSummary> result = new List<SpecificationSummary>();
-
-            if (specificationIds.Any())
+            foreach (Specification specification in specifications)
             {
-                IEnumerable<Specification> specifications =
-                    await _specificationsRepository.GetSpecificationsByQuery(c => specificationIds.Contains(c.Id));
-
-                foreach (Specification specification in specifications)
-                {
-                    result.Add(_mapper.Map<SpecificationSummary>(specification));
-                }
+                result.Add(_mapper.Map<SpecificationSummary>(specification));
             }
 
             return new OkObjectResult(result);
         }
 
-        public async Task<IActionResult> GetSpecificationSummaries(HttpRequest request)
+        public async Task<IActionResult> GetSpecificationSummaries()
         {
             IEnumerable<Specification> specifications = await _specificationsRepository.GetSpecifications();
 
@@ -293,12 +278,8 @@ namespace CalculateFunding.Services.Specs
             return new OkObjectResult(result);
         }
 
-        public async Task<IActionResult> GetSpecificationsByFundingPeriodId(HttpRequest request)
+        public async Task<IActionResult> GetSpecificationsByFundingPeriodId(string fundingPeriodId)
         {
-            request.Query.TryGetValue("fundingPeriodId", out StringValues yearId);
-
-            string fundingPeriodId = yearId.FirstOrDefault();
-
             if (string.IsNullOrWhiteSpace(fundingPeriodId))
             {
                 _logger.Error("No funding period Id was provided to GetSpecificationByFundingPeriodId");
@@ -334,13 +315,8 @@ namespace CalculateFunding.Services.Specs
             return new OkObjectResult(result);
         }
 
-        public async Task<IActionResult> GetCurrentSpecificationsByFundingPeriodIdAndFundingStreamId(
-            HttpRequest request)
+        public async Task<IActionResult> GetCurrentSpecificationsByFundingPeriodIdAndFundingStreamId(string fundingPeriodId, string fundingStreamId)
         {
-            request.Query.TryGetValue("fundingPeriodId", out StringValues yearId);
-
-            string fundingPeriodId = yearId.FirstOrDefault();
-
             if (string.IsNullOrWhiteSpace(fundingPeriodId))
             {
                 _logger.Error(
@@ -348,10 +324,6 @@ namespace CalculateFunding.Services.Specs
 
                 return new BadRequestObjectResult("Null or empty fundingPeriodId provided");
             }
-
-            request.Query.TryGetValue("fundingStreamId", out StringValues fundingStream);
-
-            string fundingStreamId = fundingStream.FirstOrDefault();
 
             if (string.IsNullOrWhiteSpace(fundingStreamId))
             {
@@ -389,7 +361,7 @@ namespace CalculateFunding.Services.Specs
             return new OkObjectResult(mappedSpecifications);
         }
 
-        public async Task<IActionResult> GetSpecificationsSelectedForFunding(HttpRequest request)
+        public async Task<IActionResult> GetSpecificationsSelectedForFunding()
         {
             IEnumerable<SpecificationSummary> specifications =
                 (await _specificationsRepository.GetSpecificationsByQuery(c => c.Content.IsSelectedForFunding))
@@ -398,12 +370,8 @@ namespace CalculateFunding.Services.Specs
             return new OkObjectResult(specifications);
         }
 
-        public async Task<IActionResult> GetSpecificationsSelectedForFundingByPeriod(HttpRequest request)
+        public async Task<IActionResult> GetSpecificationsSelectedForFundingByPeriod(string fundingPeriodId)
         {
-            request.Query.TryGetValue("fundingPeriodId", out StringValues yearId);
-
-            string fundingPeriodId = yearId.FirstOrDefault();
-
             if (string.IsNullOrWhiteSpace(fundingPeriodId))
             {
                 _logger.Error("No funding period was provided to GetSpecificationsSelectedForFundingPeriod");
@@ -427,12 +395,8 @@ namespace CalculateFunding.Services.Specs
             return new OkObjectResult(specifications);
         }
 
-        public async Task<IActionResult> GetFundingStreamsSelectedForFundingBySpecification(HttpRequest request)
+        public async Task<IActionResult> GetFundingStreamsSelectedForFundingBySpecification(string specificationId)
         {
-            request.Query.TryGetValue("specificationId", out StringValues specId);
-
-            string specificationId = specId.FirstOrDefault();
-
             if (string.IsNullOrWhiteSpace(specificationId))
             {
                 _logger.Error("No specification id was provided to GetFundingStreamsSelectedForFundingBySpecification");
@@ -448,13 +412,9 @@ namespace CalculateFunding.Services.Specs
             return new OkObjectResult(fundingStreams);
         }
 
-        public async Task<IActionResult> GetSpecificationByName(HttpRequest request)
+        public async Task<IActionResult> GetSpecificationByName(string specificationName)
         {
-            request.Query.TryGetValue("specificationName", out StringValues specName);
-
-            string specificationName = specName.FirstOrDefault();
-
-            if (string.IsNullOrWhiteSpace(specName))
+            if (string.IsNullOrWhiteSpace(specificationName))
             {
                 _logger.Error("No specification name was provided to GetSpecificationByName");
 
@@ -477,12 +437,8 @@ namespace CalculateFunding.Services.Specs
             return new OkObjectResult(specifications.FirstOrDefault());
         }
 
-        public async Task<IActionResult> CreateSpecification(HttpRequest request)
+        public async Task<IActionResult> CreateSpecification(SpecificationCreateModel createModel, Reference user, string correlationId)
         {
-            string json = await request.GetRawBodyStringAsync();
-
-            SpecificationCreateModel createModel = JsonConvert.DeserializeObject<SpecificationCreateModel>(json);
-
             if (createModel == null)
             {
                 return new BadRequestObjectResult("Null policy create model provided");
@@ -502,8 +458,6 @@ namespace CalculateFunding.Services.Specs
                 await _policiesApiClientPolicy.ExecuteAsync(() =>
                     _policiesApiClient.GetFundingPeriodById(createModel.FundingPeriodId));
             PolicyModels.FundingPeriod content = fundingPeriodResponse.Content;
-
-            Reference user = request.GetUser();
 
             Specification specification = new Specification()
             {
@@ -614,25 +568,21 @@ namespace CalculateFunding.Services.Specs
                 }
             }
 
-            await _queueCreateSpecificationJobAction.Run(specificationVersion, user, request.GetCorrelationId());
+            await _queueCreateSpecificationJobAction.Run(specificationVersion, user, correlationId);
 
             SpecificationSummary specificationSummary = _mapper.Map<SpecificationSummary>(specification);
 
             return new OkObjectResult(specificationSummary);
         }
 
-        public async Task<IActionResult> EditSpecification(HttpRequest request)
+        public async Task<IActionResult> EditSpecification(string specificationId, SpecificationEditModel editModel, Reference user, string correlationId)
         {
-            request.Query.TryGetValue("specificationId", out StringValues specId);
-            string specificationId = specId.FirstOrDefault();
             if (string.IsNullOrWhiteSpace(specificationId))
             {
                 _logger.Error("No specification Id was provided to EditSpecification");
                 return new BadRequestObjectResult("Null or empty specification Id provided");
             }
 
-            string json = await request.GetRawBodyStringAsync();
-            SpecificationEditModel editModel = JsonConvert.DeserializeObject<SpecificationEditModel>(json);
             if (editModel == null)
             {
                 _logger.Error("No edit modeld was provided to EditSpecification");
@@ -655,8 +605,6 @@ namespace CalculateFunding.Services.Specs
                 _logger.Warning($"Failed to find specification for id: {specificationId}");
                 return new NotFoundObjectResult("Specification not found");
             }
-
-            Reference user = request.GetUser();
 
             Models.Specs.SpecificationVersion previousSpecificationVersion = specification.Current;
 
@@ -716,7 +664,7 @@ namespace CalculateFunding.Services.Specs
 
             await SendSpecificationComparisonModelMessageToTopic(specificationId,
                 ServiceBusConstants.TopicNames.EditSpecification, specification.Current, previousSpecificationVersion,
-                request);
+                user, correlationId);
 
             return new OkObjectResult(specification);
         }
@@ -740,24 +688,16 @@ namespace CalculateFunding.Services.Specs
             }
         }
 
-        public async Task<IActionResult> EditSpecificationStatus(HttpRequest request)
+        public async Task<IActionResult> EditSpecificationStatus(string specificationId, EditStatusModel editStatusModel, Reference user)
         {
-            request.Query.TryGetValue("specificationId", out StringValues specId);
-            string specificationId = specId.FirstOrDefault();
             if (string.IsNullOrWhiteSpace(specificationId))
             {
                 _logger.Error("No specification Id was provided to EditSpecification");
                 return new BadRequestObjectResult("Null or empty specification Id provided");
             }
 
-            string json = await request.GetRawBodyStringAsync();
-
-            EditStatusModel editStatusModel = null;
-
             try
             {
-                editStatusModel = JsonConvert.DeserializeObject<EditStatusModel>(json);
-
                 if (editStatusModel == null)
                 {
                     _logger.Error("A null status model was provided");
@@ -789,8 +729,6 @@ namespace CalculateFunding.Services.Specs
             {
                 return new BadRequestObjectResult("Publish status can't be changed to Draft from Updated or Approved");
             }
-
-            Reference user = request.GetUser();
 
             Models.Specs.SpecificationVersion previousSpecificationVersion = specification.Current;
 
@@ -836,14 +774,13 @@ namespace CalculateFunding.Services.Specs
         }
 
         private async Task SendSpecificationComparisonModelMessageToTopic(string specificationId, string topicName,
-            Models.Specs.SpecificationVersion current, Models.Specs.SpecificationVersion previous, HttpRequest request)
+            Models.Specs.SpecificationVersion current, Models.Specs.SpecificationVersion previous, Reference user, string correlationId)
         {
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
             Guard.ArgumentNotNull(current, nameof(current));
             Guard.ArgumentNotNull(previous, nameof(previous));
-            Guard.ArgumentNotNull(request, nameof(request));
 
-            IDictionary<string, string> properties = CreateMessageProperties(request);
+            IDictionary<string, string> properties = MessageExtensions.BuildMessageProperties(correlationId, user);
 
             Models.Messages.SpecificationVersion currentSpecVersion =
                 _mapper.Map<Models.Messages.SpecificationVersion>(current);
@@ -1044,12 +981,8 @@ WHERE   s.documentType = @DocumentType",
             return await UpdateSpecification(specification, specificationId);
         }
 
-        public async Task<IActionResult> SelectSpecificationForFunding(HttpRequest request)
+        public async Task<IActionResult> SelectSpecificationForFunding(string specificationId)
         {
-            request.Query.TryGetValue("specificationId", out StringValues specId);
-
-            var specificationId = specId.FirstOrDefault();
-
             if (string.IsNullOrWhiteSpace(specificationId))
             {
                 _logger.Warning("No specification Id was provided to SelectSpecificationForFunding");
@@ -1514,12 +1447,8 @@ WHERE   s.documentType = @DocumentType",
             return new OkObjectResult(filteredFundingPeriodsByIdAndPeriod);
         }
 
-        public async Task<IActionResult> SoftDeleteSpecificationById(HttpRequest request)
+        public async Task<IActionResult> SoftDeleteSpecificationById(string specificationId, Reference user, string correlationId)
         {
-            request.Query.TryGetValue("specificationId", out StringValues specId);
-
-            string specificationId = specId.FirstOrDefault();
-
             if (string.IsNullOrWhiteSpace(specificationId))
             {
                 _logger.Error("No specification id was provided to soft delete specification");
@@ -1527,25 +1456,19 @@ WHERE   s.documentType = @DocumentType",
                 return new BadRequestObjectResult("Null or empty specification id provided");
             }
 
-            Reference user = request.GetUser();
-
-            await _queueDeleteSpecificationJobAction.Run(specificationId, user, request.GetCorrelationId(),
+            await _queueDeleteSpecificationJobAction.Run(specificationId, user, correlationId,
                 DeletionType.SoftDelete);
 
             return new OkObjectResult(true);
         }
 
-        public async Task<IActionResult> PermanentDeleteSpecificationById(HttpRequest request)
+        public async Task<IActionResult> PermanentDeleteSpecificationById(string specificationId, Reference user, string correlationId)
         {
             if (!_hostingEnvironment.IsDevelopment())
             {
                 return new BadRequestObjectResult("Requested endpoint cannot be executed in the current environment");
             }
 
-            request.Query.TryGetValue("specificationId", out StringValues specId);
-
-            string specificationId = specId.FirstOrDefault();
-
             if (string.IsNullOrWhiteSpace(specificationId))
             {
                 _logger.Error("No specification id was provided to soft delete specification");
@@ -1553,9 +1476,7 @@ WHERE   s.documentType = @DocumentType",
                 return new BadRequestObjectResult("Null or empty specification id provided");
             }
 
-            Reference user = request.GetUser();
-
-            await _queueDeleteSpecificationJobAction.Run(specificationId, user, request.GetCorrelationId(),
+            await _queueDeleteSpecificationJobAction.Run(specificationId, user, correlationId,
                 DeletionType.PermanentDelete);
 
             return new OkObjectResult(true);

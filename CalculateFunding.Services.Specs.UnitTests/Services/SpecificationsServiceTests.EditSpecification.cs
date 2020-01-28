@@ -45,8 +45,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
         public SpecificationsServiceTests()
         {
-            _request.Query.Returns(_queryStringValues);
-            _request.HttpContext.Returns(_context);
             _specificationsRepository = CreateSpecificationsRepository();
             _specification = CreateSpecification();
             _policiesApiClient = CreatePoliciesApiClient();
@@ -63,9 +61,8 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         public async Task EditSpecification_GivenNoSpecificationIdWasProvided_ReturnsBadRequest()
         {
             SpecificationsService service = CreateService(logs: _logger);
-            _request.Query.Returns(new QueryCollection());
 
-            IActionResult result = await service.EditSpecification(_request);
+            IActionResult result = await service.EditSpecification(null, null, null, null);
 
             result.Should().BeOfType<BadRequestObjectResult>();
             _logger.Received(1)
@@ -75,10 +72,9 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         [TestMethod]
         public async Task EditSpecification_GivenNullEditModeldWasProvided_ReturnsBadRequest()
         {
-            _request.Query.Returns(_queryStringValues);
             SpecificationsService service = CreateService(logs: _logger);
 
-            IActionResult result = await service.EditSpecification(_request);
+            IActionResult result = await service.EditSpecification(SpecificationId, null, null, null);
 
             result.Should().BeOfType<BadRequestObjectResult>();
             _logger.Received(1)
@@ -96,10 +92,9 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             IValidator<SpecificationEditModel> validator = CreateEditSpecificationValidator(validationResult);
             SpecificationsService specificationsService = CreateService(specificationEditModelValidator: validator);
             SpecificationEditModel specificationEditModel = new SpecificationEditModel();
-            _request.Body.Returns(CreateMemoryStreamForModel(specificationEditModel));
 
             // Act
-            IActionResult result = await specificationsService.EditSpecification(_request);
+            IActionResult result = await specificationsService.EditSpecification(SpecificationId, specificationEditModel, null, null);
 
             // Assert
             result
@@ -115,13 +110,12 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         {
             //Arrange
             SpecificationEditModel specificationEditModel = new SpecificationEditModel();
-            _request.Body.Returns(CreateMemoryStreamForModel(specificationEditModel));
             _specificationsRepository.GetSpecificationById(Arg.Is(SpecificationId))
                 .Returns((Specification)null);
             SpecificationsService service = CreateService(logs: _logger, specificationsRepository: _specificationsRepository);
 
             //Act
-            IActionResult result = await service.EditSpecification(_request);
+            IActionResult result = await service.EditSpecification(SpecificationId, specificationEditModel, null, null);
 
             //Assert
             result
@@ -141,13 +135,12 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             {
                 FundingPeriodId = "fp10"
             };
-            _request.Body.Returns(CreateMemoryStreamForModel(specificationEditModel));
             _specificationsRepository.GetSpecificationById(Arg.Is(SpecificationId))
                 .Returns(_specification);
             SpecificationsService service = CreateService(logs: _logger, specificationsRepository: _specificationsRepository);
 
             //Act
-            IActionResult result = await service.EditSpecification(_request);
+            IActionResult result = await service.EditSpecification(SpecificationId, specificationEditModel, null, null);
 
             //Assert
             result
@@ -171,7 +164,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             };
             ApiResponse<PolicyModels.FundingStream> fundingStreamResponse =
                 new ApiResponse<PolicyModels.FundingStream>(HttpStatusCode.OK, fundingStream);
-            _request.Body.Returns(CreateMemoryStreamForModel(specificationEditModel));
             _specificationsRepository
                 .GetSpecificationById(Arg.Is(SpecificationId))
                 .Returns(_specification);
@@ -187,7 +179,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             SpecificationsService service = CreateService(mapper: _mapper, logs: _logger, specificationsRepository: _specificationsRepository, policiesApiClient: _policiesApiClient);
 
             //Act
-            IActionResult result = await service.EditSpecification(_request);
+            IActionResult result = await service.EditSpecification(SpecificationId, specificationEditModel, null, null);
 
             //Assert
             result
@@ -218,10 +210,10 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             newSpecVersion.FundingPeriod.Id = specificationEditModel.FundingPeriodId;
             newSpecVersion.FundingStreams = new[] { new Reference { Id = "fs11" } };
 
-            var service = CreateSpecificationsService(fundingStream, specificationEditModel, newSpecVersion);
+            var service = CreateSpecificationsService(fundingStream, newSpecVersion);
 
             //Act
-            IActionResult result = await service.EditSpecification(_request);
+            IActionResult result = await service.EditSpecification(SpecificationId, specificationEditModel, null, null);
 
             //Arrange
             await
@@ -252,12 +244,8 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                .SaveVersion(Arg.Is(newSpecVersion));
         }
 
-        private SpecificationsService CreateSpecificationsService(PolicyModels.FundingStream fundingStream,
-            SpecificationEditModel specificationEditModel, Models.Specs.SpecificationVersion newSpecVersion)
+        private SpecificationsService CreateSpecificationsService(PolicyModels.FundingStream fundingStream, Models.Specs.SpecificationVersion newSpecVersion)
         {
-            ApiResponse<PolicyModels.FundingStream> fundingStreamResponse =
-                new ApiResponse<PolicyModels.FundingStream>(HttpStatusCode.OK, fundingStream);
-            _request.Body.Returns(CreateMemoryStreamForModel(specificationEditModel));
             _specificationsRepository
                 .GetSpecificationById(Arg.Is(SpecificationId))
                 .Returns(_specification);
@@ -301,10 +289,10 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             _versionRepository
                 .CreateVersion(Arg.Any<Models.Specs.SpecificationVersion>(), Arg.Any<Models.Specs.SpecificationVersion>())
                 .Returns(newSpecVersion);
-            var service = CreateSpecificationsService(fundingStream, specificationEditModel, newSpecVersion);
+            var service = CreateSpecificationsService(fundingStream, newSpecVersion);
 
             //Act
-            IActionResult result = await service.EditSpecification(_request);
+            IActionResult result = await service.EditSpecification(SpecificationId, specificationEditModel, null, null);
 
             //Assert
             await
@@ -356,10 +344,10 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             _versionRepository
                 .CreateVersion(Arg.Any<Models.Specs.SpecificationVersion>(), Arg.Any<Models.Specs.SpecificationVersion>())
                 .Returns(newSpecVersion);
-            var service = CreateSpecificationsService(fundingStream, specificationEditModel, newSpecVersion);
+            var service = CreateSpecificationsService(fundingStream, newSpecVersion);
 
             //Act
-            IActionResult result = await service.EditSpecification(_request);
+            IActionResult result = await service.EditSpecification(SpecificationId, specificationEditModel, null, null);
 
             //Assert
             await
@@ -408,10 +396,10 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             _versionRepository
                 .CreateVersion(Arg.Any<Models.Specs.SpecificationVersion>(), Arg.Any<Models.Specs.SpecificationVersion>())
                 .Returns(newSpecVersion);
-            var service = CreateSpecificationsService(fundingStream, specificationEditModel, newSpecVersion);
+            var service = CreateSpecificationsService(fundingStream, newSpecVersion);
 
             //Act
-            IActionResult result = await service.EditSpecification(_request);
+            IActionResult result = await service.EditSpecification(SpecificationId, specificationEditModel, null, null);
 
             //Assert
             await
@@ -451,10 +439,10 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             _versionRepository
                 .CreateVersion(Arg.Any<Models.Specs.SpecificationVersion>(), Arg.Any<Models.Specs.SpecificationVersion>())
                 .Returns(newSpecVersion);
-            var service = CreateSpecificationsService(fundingStream, specificationEditModel, newSpecVersion);
+            var service = CreateSpecificationsService(fundingStream, newSpecVersion);
 
             //Act
-            IActionResult result = await service.EditSpecification(_request);
+            IActionResult result = await service.EditSpecification(SpecificationId, specificationEditModel, null, null);
 
             //Assert
             await
@@ -497,10 +485,10 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             _searchRepository
                 .Index(Arg.Any<IEnumerable<SpecificationIndex>>())
                 .Returns(new[] { new IndexError() { ErrorMessage = errorMessage } });
-            var service = CreateSpecificationsService(fundingStream, specificationEditModel, newSpecVersion);
+            var service = CreateSpecificationsService(fundingStream, newSpecVersion);
 
             //Act
-            Func<Task<IActionResult>> editSpecification = async () => await service.EditSpecification(_request);
+            Func<Task<IActionResult>> editSpecification = async () => await service.EditSpecification(SpecificationId, specificationEditModel, null, null);
 
             //Assert
             editSpecification

@@ -61,12 +61,8 @@ namespace CalculateFunding.Services.Datasets
             return health;
         }
 
-        async public Task<IActionResult> SearchDatasets(HttpRequest request)
+        async public Task<IActionResult> SearchDatasets(SearchModel searchModel)
         {
-            string json = await request.GetRawBodyStringAsync();
-
-            SearchModel searchModel = JsonConvert.DeserializeObject<SearchModel>(json);
-
             if (searchModel == null || searchModel.PageNumber < 1 || searchModel.Top < 1)
             {
                 _logger.Error("A null or invalid search model was provided for searching datasets");
@@ -96,12 +92,8 @@ namespace CalculateFunding.Services.Datasets
             }
         }
 
-        async public Task<IActionResult> SearchDatasetVersion(HttpRequest request)
+        async public Task<IActionResult> SearchDatasetVersion(SearchModel searchModel)
         {
-            string json = await request.GetRawBodyStringAsync();
-
-            SearchModel searchModel = JsonConvert.DeserializeObject<SearchModel>(json);
-
             if (searchModel == null || searchModel.PageNumber < 1 || searchModel.Top < 1)
             {
                 _logger.Error("A null or invalid search model was provided for searching datasets");

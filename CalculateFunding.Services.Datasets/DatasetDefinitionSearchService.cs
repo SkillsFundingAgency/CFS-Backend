@@ -38,12 +38,8 @@ namespace CalculateFunding.Services.Datasets
             _searchRepository = searchRepository;
         }
 
-        async public Task<IActionResult> SearchDatasetDefinitions(HttpRequest request)
+        async public Task<IActionResult> SearchDatasetDefinitions(SearchModel searchModel)
         {
-            string json = await request.GetRawBodyStringAsync();
-
-            SearchModel searchModel = JsonConvert.DeserializeObject<SearchModel>(json);
-
             if (searchModel == null || searchModel.PageNumber < 1 || searchModel.Top < 1)
             {
                 _logger.Error("A null or invalid search model was provided for searching datasets");

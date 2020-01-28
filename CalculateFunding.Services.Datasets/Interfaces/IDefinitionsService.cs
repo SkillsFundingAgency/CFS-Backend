@@ -1,6 +1,7 @@
-﻿using CalculateFunding.Models.Datasets.Schema;
+﻿using CalculateFunding.Common.Models;
+using CalculateFunding.Models.Datasets;
+using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Repositories.Common.Search;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -9,16 +10,16 @@ namespace CalculateFunding.Services.Datasets.Interfaces
 {
     public interface IDefinitionsService
     {
-        Task<IActionResult> SaveDefinition(HttpRequest request);
+        Task<IActionResult> SaveDefinition(string yaml, string yamlFilename, Reference user, string correlationId);
 
-        Task<IActionResult> GetDatasetDefinitions(HttpRequest request);
+        Task<IActionResult> GetDatasetDefinitions();
 
-        Task<IActionResult> GetDatasetDefinitionById(HttpRequest request);
+        Task<IActionResult> GetDatasetDefinitionById(string datasetDefinitionId);
 
-        Task<IActionResult> GetDatasetDefinitionsByIds(HttpRequest request);
+        Task<IActionResult> GetDatasetDefinitionsByIds(IEnumerable<string> definitionIds);
 
         Task<IEnumerable<IndexError>> IndexDatasetDefinition(DatasetDefinition definition);
 
-        Task<IActionResult> GetDatasetSchemaSasUrl(HttpRequest request);
+        Task<IActionResult> GetDatasetSchemaSasUrl(DatasetSchemaSasUrlRequestModel datasetSchemaSasUrlRequestModel);
     }
 }

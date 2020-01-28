@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using CalculateFunding.Models.Policy;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 
@@ -10,6 +11,6 @@ namespace CalculateFunding.Services.Policy.Interfaces
 
         Task<IActionResult> GetFundingPeriodById(string fundingPeriodId);
 
-        Task<IActionResult> SaveFundingPeriods(HttpRequest request);
+        Task<IActionResult> SaveFundingPeriods(FundingPeriodsJsonModel fundingPeriodsJsonModel);
     }
 }

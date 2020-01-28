@@ -9,7 +9,7 @@ namespace CalculateFunding.Api.External.V3.Controllers
     [Authorize(Roles = Constants.ExecuteApiRole)]
     [ApiVersion("3.0")]
     [Route("api/v{version:apiVersion}/funding/provider")]
-    public class ProviderFundingVersionController : Controller
+    public class ProviderFundingVersionController : ControllerBase
     {
         private readonly IProviderFundingVersionService _providerFundingVersionService;
 

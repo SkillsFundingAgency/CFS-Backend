@@ -21,7 +21,7 @@ namespace CalculateFunding.Services.Users
             FundingStreamPermissionService service = CreateService();
 
             // Act
-            IActionResult result = await service.GetFundingStreamPermissionsForUser(userId, null);
+            IActionResult result = await service.GetFundingStreamPermissionsForUser(userId);
 
             // Assert
             result
@@ -48,7 +48,7 @@ namespace CalculateFunding.Services.Users
             FundingStreamPermissionService service = CreateService(userRepository);
 
             // Act
-            IActionResult result = await service.GetFundingStreamPermissionsForUser(UserId, null);
+            IActionResult result = await service.GetFundingStreamPermissionsForUser(UserId);
 
             // Assert
             result
@@ -105,7 +105,7 @@ namespace CalculateFunding.Services.Users
             FundingStreamPermissionService service = CreateService(userRepository);
 
             // Act
-            IActionResult result = await service.GetFundingStreamPermissionsForUser(UserId, null);
+            IActionResult result = await service.GetFundingStreamPermissionsForUser(UserId);
 
             // Assert
             result

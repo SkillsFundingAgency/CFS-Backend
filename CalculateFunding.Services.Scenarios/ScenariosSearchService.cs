@@ -67,12 +67,8 @@ namespace CalculateFunding.Services.Scenarios
             return health;
         }
 
-        async public Task<IActionResult> SearchScenarios(HttpRequest request)
+        async public Task<IActionResult> SearchScenarios(SearchModel searchModel)
         {
-            string json = await request.GetRawBodyStringAsync();
-
-            SearchModel searchModel = JsonConvert.DeserializeObject<SearchModel>(json);
-
             if (searchModel == null || searchModel.PageNumber < 1 || searchModel.Top < 1)
             {
                 _logger.Error("A null or invalid search model was provided for searching scenarios");
@@ -109,7 +105,7 @@ namespace CalculateFunding.Services.Scenarios
             }
         }
 
-        public async Task<IActionResult> ReIndex(HttpRequest request)
+        public async Task<IActionResult> ReIndex()
         {
             IEnumerable<DocumentEntity<TestScenario>> testScenarios = await _scenariosRepository.GetAllTestScenarios();
             List<ScenarioIndex> testScenarioIndexes = new List<ScenarioIndex>();

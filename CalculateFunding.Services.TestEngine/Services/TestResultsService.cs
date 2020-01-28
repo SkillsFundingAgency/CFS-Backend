@@ -155,7 +155,7 @@ namespace CalculateFunding.Services.TestRunner.Services
             return HttpStatusCode.InternalServerError;
         }
 
-        public async Task<IActionResult> ReIndex(HttpRequest request)
+        public async Task<IActionResult> ReIndex()
         {
             IEnumerable<DocumentEntity<TestScenarioResult>> testScenarioResults = await _testResultsRepository.GetAllTestResults();
 

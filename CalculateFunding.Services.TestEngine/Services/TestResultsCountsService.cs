@@ -51,12 +51,8 @@ namespace CalculateFunding.Services.TestRunner.Services
             return health;
         }
 
-        public async Task<IActionResult> GetResultCounts(HttpRequest request)
+        public async Task<IActionResult> GetResultCounts(TestScenariosResultsCountsRequestModel requestModel)
         {
-            string json = await request.GetRawBodyStringAsync();
-
-            TestScenariosResultsCountsRequestModel requestModel = JsonConvert.DeserializeObject<TestScenariosResultsCountsRequestModel>(json);
-
             if (requestModel == null || requestModel.TestScenarioIds.IsNullOrEmpty())
             {
                 _logger.Error("Null or empty test scenario ids provided");
@@ -77,7 +73,7 @@ namespace CalculateFunding.Services.TestRunner.Services
                     Filters = new Dictionary<string, string[]> { { "testScenarioId", new[] { testScenarioId } } }
                 };
 
-                TestScenarioSearchResults result = _testResultsService.SearchTestScenarioResults(searchModel).Result;
+                TestScenarioSearchResults result = _testResultsService.SearchTestScenarioResultsInternal(searchModel).Result;
 
                 if (result != null && !result.Results.IsNullOrEmpty())
                 {
@@ -105,12 +101,8 @@ namespace CalculateFunding.Services.TestRunner.Services
             return new OkObjectResult(resultCounts);
         }
 
-        public async Task<IActionResult> GetTestScenarioCountsForProvider(HttpRequest request)
+        public async Task<IActionResult> GetTestScenarioCountsForProvider(string providerId)
         {
-            request.Query.TryGetValue("providerId", out var providerIdParse);
-
-            var providerId = providerIdParse.FirstOrDefault();
-
             if (string.IsNullOrWhiteSpace(providerId))
             {
                 _logger.Error($"No providerId was provided to {nameof(GetTestScenarioCountsForProvider)}");
@@ -123,22 +115,14 @@ namespace CalculateFunding.Services.TestRunner.Services
             return new OkObjectResult(result);
         }
 
-        public async Task<IActionResult> GetTestScenarioCountsForProviderForSpecification(HttpRequest request)
+        public async Task<IActionResult> GetTestScenarioCountsForProviderForSpecification(string providerId, string specificationId)
         {
-            request.Query.TryGetValue("providerId", out var providerIdParse);
-
-            string providerId = providerIdParse.FirstOrDefault();
-
             if (string.IsNullOrWhiteSpace(providerId))
             {
                 _logger.Error($"No providerId was provided to {nameof(GetTestScenarioCountsForProviderForSpecification)}");
 
                 return new BadRequestObjectResult("Null or empty providerId provided");
             }
-
-            request.Query.TryGetValue("specificationId", out var specificationIdParse);
-
-            string specificationId = specificationIdParse.FirstOrDefault();
 
             if (string.IsNullOrWhiteSpace(specificationId))
             {
@@ -152,12 +136,8 @@ namespace CalculateFunding.Services.TestRunner.Services
             return new OkObjectResult(result);
         }
 
-        public async Task<IActionResult> GetTestScenarioCountsForSpecifications(HttpRequest request)
+        public async Task<IActionResult> GetTestScenarioCountsForSpecifications(SpecificationListModel specifications)
         {
-            string json = await request.GetRawBodyStringAsync();
-
-            SpecificationListModel specifications = JsonConvert.DeserializeObject<SpecificationListModel>(json);
-
             if (specifications == null)
             {
                 _logger.Error("Null specification model provided");

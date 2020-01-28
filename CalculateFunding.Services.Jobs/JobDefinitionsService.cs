@@ -56,12 +56,8 @@ namespace CalculateFunding.Services.Jobs
             return health;
         }
 
-        public async Task<IActionResult> SaveDefinition(HttpRequest request)
+        public async Task<IActionResult> SaveDefinition(string json, string jsonFilename)
         {
-            string json = await request.GetRawBodyStringAsync();
-
-            string jsonFilename = request.GetJsonFileNameFromRequest();
-
             if (string.IsNullOrEmpty(json))
             {
                 _logger.Error($"Null or empty json provided for file: {jsonFilename}");

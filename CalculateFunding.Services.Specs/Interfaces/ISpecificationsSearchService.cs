@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using CalculateFunding.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 
@@ -6,8 +7,8 @@ namespace CalculateFunding.Services.Specs.Interfaces
 {
     public interface ISpecificationsSearchService
     {
-        Task<IActionResult> SearchSpecificationDatasetRelationships(HttpRequest request);
+        Task<IActionResult> SearchSpecificationDatasetRelationships(SearchModel searchModel);
 
-        Task<IActionResult> SearchSpecifications(HttpRequest request);
+        Task<IActionResult> SearchSpecifications(SearchModel searchModel);
     }
 }

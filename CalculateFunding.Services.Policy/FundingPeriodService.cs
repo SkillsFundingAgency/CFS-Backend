@@ -108,22 +108,16 @@ namespace CalculateFunding.Services.Policy
             return new OkObjectResult(fundingPeriods);
         }
 
-        public async Task<IActionResult> SaveFundingPeriods(HttpRequest request)
+        public async Task<IActionResult> SaveFundingPeriods(FundingPeriodsJsonModel fundingPeriodsJsonModel)
         {
-            string json = await request.GetRawBodyStringAsync();
-
-            if (string.IsNullOrEmpty(json))
+            if (fundingPeriodsJsonModel == null)
             {
                 _logger.Error($"Null or empty json provided for file");
                 return new BadRequestObjectResult($"Invalid json was provided for file");
             }
 
-            FundingPeriodsJsonModel fundingPeriodsJsonModel = null;
-
             try
             {               
-                fundingPeriodsJsonModel = JsonConvert.DeserializeObject<FundingPeriodsJsonModel>(json);
-
                 BadRequestObjectResult validationResult = (await _fundingPeriodJsonModelValidator.ValidateAsync(fundingPeriodsJsonModel)).PopulateModelState();
 
                 if (validationResult != null)

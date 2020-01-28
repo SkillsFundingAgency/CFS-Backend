@@ -1,13 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Jobs;
+using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Jobs.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CalculateFunding.Api.Jobs.Controllers
 {
-    public class JobsController : Controller
+    public class JobsController : ControllerBase
     {
         private readonly IJobService _jobService;
         private readonly IJobManagementService _jobManagementService;
@@ -34,7 +36,7 @@ namespace CalculateFunding.Api.Jobs.Controllers
         [ProducesResponseType(200, Type = typeof(JobSummary))]
         public async Task<IActionResult> UpdateJob(string jobId, JobUpdateModel jobUpdate)
         {
-            return await _jobService.UpdateJob(jobId, jobUpdate, ControllerContext.HttpContext.Request);
+            return await _jobService.UpdateJob(jobId, jobUpdate);
         }
 
         [HttpPost]
@@ -42,7 +44,9 @@ namespace CalculateFunding.Api.Jobs.Controllers
         [ProducesResponseType(200, Type = typeof(IEnumerable<JobSummary>))]
         public async Task<IActionResult> CreateJobs([FromBody]IEnumerable<JobCreateModel> jobs)
         {
-            return await _jobManagementService.CreateJobs(jobs, ControllerContext.HttpContext.Request);
+            Reference user = ControllerContext.HttpContext.Request.GetUserOrDefault();
+
+            return await _jobManagementService.CreateJobs(jobs, user);
         }
 
         [HttpGet]
@@ -66,7 +70,10 @@ namespace CalculateFunding.Api.Jobs.Controllers
         [ProducesResponseType(204)]
         public async Task<IActionResult> SaveJobDefinition()
         {
-            return await _jobDefinitionsService.SaveDefinition(ControllerContext.HttpContext.Request);
+            string json = await ControllerContext.HttpContext.Request.GetRawBodyStringAsync();
+            string jsonFilename = ControllerContext.HttpContext.Request.GetJsonFileNameFromRequest();
+
+            return await _jobDefinitionsService.SaveDefinition(json, jsonFilename);
         }
 
         [HttpGet]
@@ -118,7 +125,7 @@ namespace CalculateFunding.Api.Jobs.Controllers
         [ProducesResponseType(202)]
         public async Task<IActionResult> CancelJob(string jobId)
         {
-            return await _jobManagementService.CancelJob(jobId, ControllerContext.HttpContext.Request);
+            return await _jobManagementService.CancelJob(jobId);
         }
 
         [HttpGet]

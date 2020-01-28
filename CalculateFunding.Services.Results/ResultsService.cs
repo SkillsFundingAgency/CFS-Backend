@@ -97,11 +97,8 @@ namespace CalculateFunding.Services.Results
             return health;
         }
 
-        public async Task<IActionResult> GetProviderResults(HttpRequest request)
+        public async Task<IActionResult> GetProviderResults(string providerId, string specificationId)
         {
-            string providerId = request.GetParameter("providerId");
-            string specificationId = request.GetParameter("specificationId");
-
             if (string.IsNullOrWhiteSpace(providerId))
             {
                 _logger.Error("No provider Id was provided to GetProviderResults");
@@ -157,17 +154,13 @@ namespace CalculateFunding.Services.Results
         }
 
         #region "GetProviderResultsBySpecificationId"
-        public async Task<IActionResult> GetProviderResultsBySpecificationId(HttpRequest request)
+        public async Task<IActionResult> GetProviderResultsBySpecificationId(string specificationId, string top)
         {
-            string specificationId = request.GetParameter("specificationId");
-
             if (string.IsNullOrWhiteSpace(specificationId))
             {
                 _logger.Error("No specification Id was provided to GetProviderResults");
                 return new BadRequestObjectResult("Null or empty specification Id provided");
             }
-
-            string top = request.GetParameter("top");
 
             return new OkObjectResult(await ProviderResultsBySpecificationId(specificationId, top));
         }
@@ -203,26 +196,17 @@ namespace CalculateFunding.Services.Results
         /// <summary>
         /// Returns distinct specificationIds where there are results for this provider
         /// </summary>
-        public async Task<IActionResult> GetProviderSpecifications(HttpRequest request)
-        {
-            string providerId = request.GetParameter("providerId");
-            if (string.IsNullOrWhiteSpace(providerId))
-            {
-                _logger.Error("No provider Id was provided to GetProviderSpecifications");
-                return new BadRequestObjectResult("Null or empty provider Id provided");
-            }
-
-            return await GetProviderSpecifications(providerId);
-        }
-
-        /// <summary>
-        /// Returns distinct specificationIds where there are results for this provider
-        /// </summary>
         /// <param name="providerId"></param>
         /// <returns></returns>
         public async Task<IActionResult> GetProviderSpecifications(string providerId)
         {
             List<string> result = new List<string>();
+
+            if (string.IsNullOrWhiteSpace(providerId))
+            {
+                _logger.Error("No provider Id was provided to GetProviderSpecifications");
+                return new BadRequestObjectResult("Null or empty provider Id provided");
+            }
 
             IEnumerable<ProviderResult> providerResults = (await _resultsRepositoryPolicy.ExecuteAsync(() => _resultsRepository.GetSpecificationResults(providerId))).ToList();
 
@@ -244,10 +228,8 @@ namespace CalculateFunding.Services.Results
         }
         #endregion
 
-        public async Task<IActionResult> GetFundingCalculationResultsForSpecifications(HttpRequest request)
+        public async Task<IActionResult> GetFundingCalculationResultsForSpecifications(SpecificationListModel specifications)
         {
-            SpecificationListModel specifications = await request.ReadBodyJson<SpecificationListModel>();
-
             if (specifications == null)
             {
                 _logger.Error("Null specification model provided");
@@ -293,17 +275,13 @@ namespace CalculateFunding.Services.Results
             return new OkObjectResult(totalsModels);
         }
 
-        public async Task<IActionResult> GetProviderSourceDatasetsByProviderIdAndSpecificationId(HttpRequest request)
+        public async Task<IActionResult> GetProviderSourceDatasetsByProviderIdAndSpecificationId(string specificationId, string providerId)
         {
-            string specificationId = request.GetParameter("specificationId");
-
             if (string.IsNullOrWhiteSpace(specificationId))
             {
                 _logger.Error("No specification Id was provided to GetProviderResultsBySpecificationId");
                 return new BadRequestObjectResult("Null or empty specification Id provided");
             }
-
-            string providerId = request.GetParameter("providerId");
 
             if (string.IsNullOrWhiteSpace(providerId))
             {
@@ -316,10 +294,8 @@ namespace CalculateFunding.Services.Results
             return new OkObjectResult(providerResults);
         }
 
-        public async Task<IActionResult> GetScopedProviderIdsBySpecificationId(HttpRequest request)
+        public async Task<IActionResult> GetScopedProviderIdsBySpecificationId(string specificationId)
         {
-            string specificationId = request.GetParameter("specificationId");
-
             if (string.IsNullOrWhiteSpace(specificationId))
             {
                 _logger.Error("No specification Id was provided to GetProviderResultsBySpecificationId");

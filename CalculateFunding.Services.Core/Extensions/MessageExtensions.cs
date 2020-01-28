@@ -49,6 +49,11 @@ namespace CalculateFunding.Services.Core.Extensions
                 : correlationId;
         }
 
+        public static IDictionary<string, string> BuildMessageProperties(string correlationId, Reference user)
+        {
+            return MessagePropertiesInternal(correlationId, user);
+        }
+
         private static IDictionary<string, string> MessagePropertiesInternal(string correlationId, Reference user)
         {
             IDictionary<string, string> properties = new Dictionary<string, string>

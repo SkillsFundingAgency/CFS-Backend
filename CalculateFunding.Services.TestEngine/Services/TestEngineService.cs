@@ -264,12 +264,8 @@ namespace CalculateFunding.Services.TestRunner.Services
             );
         }
 
-        public async Task<IActionResult> RunTests(HttpRequest request)
+        public async Task<IActionResult> RunTests(TestExecutionModel testExecutionModel)
         {
-            string json = await request.GetRawBodyStringAsync();
-
-            TestExecutionModel testExecutionModel = JsonConvert.DeserializeObject<TestExecutionModel>(json);
-
             BuildProject buildProject = testExecutionModel.BuildProject;
 
             if (buildProject == null)

@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Net;
-using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Models.Users;
 using CalculateFunding.Services.Core.Extensions;
@@ -16,7 +14,6 @@ using Microsoft.AspNetCore.Http.Internal;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Newtonsoft.Json;
 using NSubstitute;
 using Serilog;
 
@@ -34,14 +31,12 @@ namespace CalculateFunding.Services.Users
         public async Task GetUserByUserId_GivenUserIdNotProvided_ReturnsBadRequest()
         {
             //Arrange
-            HttpRequest request = Substitute.For<HttpRequest>();
-
             ILogger logger = CreateLogger();
 
             UserService userService = CreateUserService(logger: logger);
 
             //Act
-            IActionResult result = await userService.GetUserByUserId(request);
+            IActionResult result = await userService.GetUserByUserId(null);
 
             //Assert
             result
@@ -61,16 +56,6 @@ namespace CalculateFunding.Services.Users
         public async Task GetUserByUserId_GivenUserIdButNotFound_ReturnsNotFound()
         {
             //Arrange
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "userId", new StringValues(UserId) },
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-
             ILogger logger = CreateLogger();
 
             ICacheProvider cacheProvider = CreateCacheProvider();
@@ -86,7 +71,7 @@ namespace CalculateFunding.Services.Users
             UserService userService = CreateUserService(userRepository, logger, cacheProvider);
 
             //Act
-            IActionResult result = await userService.GetUserByUserId(request);
+            IActionResult result = await userService.GetUserByUserId(UserId);
 
             //Assert
             result
@@ -106,17 +91,7 @@ namespace CalculateFunding.Services.Users
             {
                 Username = UserId
             };
-
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "userId", new StringValues(UserId) },
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-
+            
             ILogger logger = CreateLogger();
 
             ICacheProvider cacheProvider = CreateCacheProvider();
@@ -129,7 +104,7 @@ namespace CalculateFunding.Services.Users
             UserService userService = CreateUserService(userRepository, logger, cacheProvider);
 
             //Act
-            IActionResult result = await userService.GetUserByUserId(request);
+            IActionResult result = await userService.GetUserByUserId(UserId);
 
             //Assert
             result
@@ -151,16 +126,6 @@ namespace CalculateFunding.Services.Users
                 UserId = UserId
             };
 
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "userId", new StringValues(UserId) },
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-
             ILogger logger = CreateLogger();
 
             ICacheProvider cacheProvider = CreateCacheProvider();
@@ -176,7 +141,7 @@ namespace CalculateFunding.Services.Users
             UserService userService = CreateUserService(userRepository, logger, cacheProvider);
 
             //Act
-            IActionResult result = await userService.GetUserByUserId(request);
+            IActionResult result = await userService.GetUserByUserId(UserId);
 
             //Assert
             result
@@ -193,14 +158,12 @@ namespace CalculateFunding.Services.Users
         public async Task ConfirmSkills_GivenUserIdNotProvided_ReturnsBadRequestObject()
         {
             //Arrange
-            HttpRequest request = Substitute.For<HttpRequest>();
-
             ILogger logger = CreateLogger();
 
             UserService userService = CreateUserService(logger: logger);
 
             //Act
-            IActionResult result = await userService.ConfirmSkills(request);
+            IActionResult result = await userService.ConfirmSkills(null, null);
 
             //Assert
             result
@@ -220,30 +183,11 @@ namespace CalculateFunding.Services.Users
         public async Task ConfirmSkills_GivenUserIdButNotFound_CreatesUserReturnsOkWithUser()
         {
             //Arrange
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "userId", new StringValues(UserId) },
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-
             UserCreateModel userCreateModel = new UserCreateModel()
             {
                 Name = Name,
                 Username = Username
             };
-
-            string json = JsonConvert.SerializeObject(userCreateModel);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-
-            request
-                .Body
-                .Returns(stream);
 
             ILogger logger = CreateLogger();
 
@@ -270,7 +214,7 @@ namespace CalculateFunding.Services.Users
             UserService userService = CreateUserService(userRepository, logger, cacheProvider, validator);
 
             //Act
-            IActionResult result = await userService.ConfirmSkills(request);
+            IActionResult result = await userService.ConfirmSkills(UserId, userCreateModel);
 
             //Assert
             result
@@ -294,29 +238,11 @@ namespace CalculateFunding.Services.Users
                 UserId = UserId,
             };
 
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "userId", new StringValues(UserId) },
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-
             UserCreateModel userCreateModel = new UserCreateModel()
             {
                 Name = Name,
                 Username = Username
             };
-
-            string json = JsonConvert.SerializeObject(userCreateModel);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            request
-                .Body
-                .Returns(stream);
 
             ILogger logger = CreateLogger();
 
@@ -336,7 +262,7 @@ namespace CalculateFunding.Services.Users
             UserService userService = CreateUserService(userRepository, logger, cacheProvider, validator);
 
             //Act
-            IActionResult result = await userService.ConfirmSkills(request);
+            IActionResult result = await userService.ConfirmSkills(UserId, userCreateModel);
 
             //Assert
             result
@@ -365,30 +291,11 @@ namespace CalculateFunding.Services.Users
                 UserId = UserId,
             };
 
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "userId", new StringValues(UserId) },
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-
             UserCreateModel userCreateModel = new UserCreateModel()
             {
                 Name = Name,
                 Username = Username
             };
-
-            string json = JsonConvert.SerializeObject(userCreateModel);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-
-            request
-                .Body
-                .Returns(stream);
 
             ILogger logger = CreateLogger();
 
@@ -411,7 +318,7 @@ namespace CalculateFunding.Services.Users
             UserService userService = CreateUserService(userRepository, logger, cacheProvider, validator);
 
             //Act
-            IActionResult result = await userService.ConfirmSkills(request);
+            IActionResult result = await userService.ConfirmSkills(UserId, userCreateModel);
 
             //Assert
             result
@@ -439,31 +346,12 @@ namespace CalculateFunding.Services.Users
                 UserId = UserId,
             };
 
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "userId", new StringValues(UserId) },
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-
             UserCreateModel userCreateModel = new UserCreateModel()
             {
                 Name = Name,
                 Username = Username
             };
-
-            string json = JsonConvert.SerializeObject(userCreateModel);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-
-            request
-                .Body
-                .Returns(stream);
-
+            
             ILogger logger = CreateLogger();
 
             ICacheProvider cacheProvider = CreateCacheProvider();
@@ -484,7 +372,7 @@ namespace CalculateFunding.Services.Users
             UserService userService = CreateUserService(userRepository, logger, cacheProvider, validator);
 
             //Act
-            IActionResult result = await userService.ConfirmSkills(request);
+            IActionResult result = await userService.ConfirmSkills(UserId, userCreateModel);
 
             //Assert
             result
@@ -516,30 +404,11 @@ namespace CalculateFunding.Services.Users
                 HasConfirmedSkills = false
             };
 
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "userId", new StringValues(UserId) },
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-
             UserCreateModel userCreateModel = new UserCreateModel()
             {
                 Name = Name,
                 Username = Username
             };
-
-            string json = JsonConvert.SerializeObject(userCreateModel);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-
-            request
-                .Body
-                .Returns(stream);
 
             ILogger logger = CreateLogger();
 
@@ -565,7 +434,7 @@ namespace CalculateFunding.Services.Users
             UserService userService = CreateUserService(userRepository, logger, cacheProvider, validator);
 
             //Act
-            IActionResult result = await userService.ConfirmSkills(request);
+            IActionResult result = await userService.ConfirmSkills(UserId, userCreateModel);
 
             //Assert
             result
@@ -593,30 +462,11 @@ namespace CalculateFunding.Services.Users
                 UserId = UserId,
             };
 
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "userId", new StringValues(UserId) },
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-
             UserCreateModel userCreateModel = new UserCreateModel()
             {
                 Name = Name,
                 Username = Username
             };
-
-            string json = JsonConvert.SerializeObject(userCreateModel);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-
-            request
-                .Body
-                .Returns(stream);
 
             ILogger logger = CreateLogger();
 
@@ -642,7 +492,7 @@ namespace CalculateFunding.Services.Users
             UserService userService = CreateUserService(userRepository, logger, cacheProvider, validator);
 
             //Act
-            IActionResult result = await userService.ConfirmSkills(request);
+            IActionResult result = await userService.ConfirmSkills(UserId, userCreateModel);
 
             //Assert
             result

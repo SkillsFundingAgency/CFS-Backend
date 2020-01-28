@@ -62,29 +62,8 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 FundingStreamIds = new List<string>() { fundingStreamId },
             };
 
-            string json = JsonConvert.SerializeObject(specificationCreateModel);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            ClaimsPrincipal principle = new ClaimsPrincipal(new[]
-            {
-                new ClaimsIdentity(new []{ new Claim(ClaimTypes.Sid, UserId), new Claim(ClaimTypes.Name, Username) })
-            });
-
-            HttpContext context = Substitute.For<HttpContext>();
-            context
-                .User
-                .Returns(principle);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
-            request
-                .HttpContext
-                .Returns(context);
-
+            Reference user = new Reference(UserId, Username);
+            
             specificationsRepository
                 .GetSpecificationByQuery(Arg.Any<Expression<Func<DocumentEntity<Specification>, bool>>>())
                 .Returns((Specification)null);
@@ -155,7 +134,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .Returns(createdSpecification);
 
             // Act
-            IActionResult result = await specificationsService.CreateSpecification(request);
+            IActionResult result = await specificationsService.CreateSpecification(specificationCreateModel, user, null);
 
             // Assert
             result
@@ -208,8 +187,8 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                              m.Name == "Specification Name" &&
                              m.Version == 1
                     ),
-                    Arg.Is<Reference>(user => user.Id == UserId &&
-                                              user.Name == Username),
+                    Arg.Is<Reference>(author => author.Id == UserId &&
+                                              author.Name == Username),
                     Arg.Any<string>());
         }
 
@@ -244,28 +223,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 FundingStreamIds = new List<string>() { fundingStreamId },
             };
 
-            string json = JsonConvert.SerializeObject(specificationCreateModel);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            ClaimsPrincipal principle = new ClaimsPrincipal(new[]
-            {
-                new ClaimsIdentity(new []{ new Claim(ClaimTypes.Sid, UserId), new Claim(ClaimTypes.Name, Username) })
-            });
-
-            HttpContext context = Substitute.For<HttpContext>();
-            context
-                .User
-                .Returns(principle);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
-            request
-                .HttpContext
-                .Returns(context);
+            Reference user = new Reference(UserId, Username);
 
             specificationsRepository
                 .GetSpecificationByQuery(Arg.Any<Expression<Func<DocumentEntity<Specification>, bool>>>())
@@ -337,7 +295,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .Returns(createdSpecification);
 
             // Act
-            IActionResult result = await specificationsService.CreateSpecification(request);
+            IActionResult result = await specificationsService.CreateSpecification(specificationCreateModel, user, null);
 
             // Assert
             result
@@ -390,8 +348,8 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                              m.Name == "Specification Name" &&
                              m.Version == 1
                     ),
-                    Arg.Is<Reference>(user => user.Id == UserId &&
-                                              user.Name == Username),
+                    Arg.Is<Reference>(author => author.Id == UserId &&
+                                              author.Name == Username),
                     Arg.Any<string>());
         }
 
@@ -425,28 +383,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 FundingStreamIds = new List<string>() { fundingStreamId, fundingStreamNotFoundId, },
             };
 
-            string json = JsonConvert.SerializeObject(specificationCreateModel);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            ClaimsPrincipal principle = new ClaimsPrincipal(new[]
-            {
-                new ClaimsIdentity(new []{ new Claim(ClaimTypes.Sid, UserId), new Claim(ClaimTypes.Name, Username) })
-            });
-
-            HttpContext context = Substitute.For<HttpContext>();
-            context
-                .User
-                .Returns(principle);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
-            request
-                .HttpContext
-                .Returns(context);
+            Reference user = new Reference(UserId, Username);
 
             specificationsRepository
                 .GetSpecificationByQuery(Arg.Any<Expression<Func<DocumentEntity<Specification>, bool>>>())
@@ -481,7 +418,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .Returns(new ApiResponse<PolicyModels.FundingStream>(HttpStatusCode.OK, null));
 
             // Act
-            IActionResult result = await specificationsService.CreateSpecification(request);
+            IActionResult result = await specificationsService.CreateSpecification(specificationCreateModel, user, null);
 
             // Assert
             result
@@ -520,23 +457,8 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 FundingStreamIds = new List<string>() { },
             };
 
-            string json = JsonConvert.SerializeObject(specificationCreateModel);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpContext context = Substitute.For<HttpContext>();
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
-            request
-                .HttpContext
-                .Returns(context);
-
             // Act
-            IActionResult result = await specificationsService.CreateSpecification(request);
+            IActionResult result = await specificationsService.CreateSpecification(specificationCreateModel, null, null);
 
             // Assert
             result

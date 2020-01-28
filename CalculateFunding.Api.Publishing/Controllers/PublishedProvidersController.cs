@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace CalculateFunding.Api.Publishing.Controllers
 {
     [ApiController]
-    public class PublishedProvidersController : Controller
+    public class PublishedProvidersController : ControllerBase
     {
         private readonly IProviderFundingPublishingService _providerFundingPublishingService;
         private readonly IPublishedProviderVersionService _publishedProviderVersionService;
@@ -35,6 +35,7 @@ namespace CalculateFunding.Api.Publishing.Controllers
         
         [HttpDelete("api/publishedproviders/{fundingStreamId}/{fundingPeriodId}")]
         [ApiExplorerSettings(IgnoreApi = true)]
+        [ProducesResponseType(200)]
         public async Task<IActionResult> DeletePublishedProviders([FromRoute] string fundingStreamId, 
             [FromRoute] string fundingPeriodId)
         {

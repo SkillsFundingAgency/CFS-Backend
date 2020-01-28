@@ -157,12 +157,8 @@ namespace CalculateFunding.Services.Datasets
             return health;
         }
 
-        public async Task<IActionResult> CreateNewDataset(HttpRequest request)
+        public async Task<IActionResult> CreateNewDataset(CreateNewDatasetModel model, Reference author)
         {
-            string json = await request.GetRawBodyStringAsync();
-
-            CreateNewDatasetModel model = JsonConvert.DeserializeObject<CreateNewDatasetModel>(json);
-
             if (model == null)
             {
                 _logger.Error("Null model name was provided to CreateNewDataset");
@@ -188,18 +184,14 @@ namespace CalculateFunding.Services.Datasets
 
             responseModel.DatasetId = datasetId;
             responseModel.BlobUrl = blobUrl;
-            responseModel.Author = request.GetUserOrDefault();
+            responseModel.Author = author;
             responseModel.DefinitionId = model.DefinitionId;
 
             return new OkObjectResult(responseModel);
         }
 
-        public async Task<IActionResult> DatasetVersionUpdate(HttpRequest request)
+        public async Task<IActionResult> DatasetVersionUpdate(DatasetVersionUpdateModel model, Reference author)
         {
-            string json = await request.GetRawBodyStringAsync();
-
-            DatasetVersionUpdateModel model = JsonConvert.DeserializeObject<DatasetVersionUpdateModel>(json);
-
             if (model == null)
             {
                 _logger.Warning($"Null model was provided to {nameof(DatasetVersionUpdate)}");
@@ -233,7 +225,7 @@ namespace CalculateFunding.Services.Datasets
 
             responseModel.DatasetId = dataset.Id;
             responseModel.BlobUrl = blobUrl;
-            responseModel.Author = request.GetUserOrDefault();
+            responseModel.Author = author;
             responseModel.DefinitionId = dataset.Definition.Id;
             responseModel.Name = dataset.Name;
             responseModel.Description = dataset.Description;
@@ -269,37 +261,29 @@ namespace CalculateFunding.Services.Datasets
             return new OkObjectResult(datasets.FirstOrDefault());
         }
 
-        public async Task<IActionResult> GetDatasetsByDefinitionId(HttpRequest request)
+        public async Task<IActionResult> GetDatasetsByDefinitionId(string definitionId)
         {
-            request.Query.TryGetValue("definitionId", out Microsoft.Extensions.Primitives.StringValues definitionId);
-
-            string datasetDefinitionId = definitionId.FirstOrDefault();
-
-            if (string.IsNullOrWhiteSpace(datasetDefinitionId))
+            if (string.IsNullOrWhiteSpace(definitionId))
             {
                 _logger.Error($"No {nameof(definitionId)} was provided to {nameof(GetDatasetsByDefinitionId)}");
 
                 return new BadRequestObjectResult($"Null or empty {nameof(definitionId)} provided");
             }
 
-            IEnumerable<Dataset> datasets = await _datasetRepository.GetDatasetsByQuery(m => m.Content.Definition.Id == datasetDefinitionId.ToLower());
+            IEnumerable<Dataset> datasets = await _datasetRepository.GetDatasetsByQuery(m => m.Content.Definition.Id == definitionId.ToLower());
 
             IEnumerable<DatasetViewModel> result = datasets?.Select(_mapper.Map<DatasetViewModel>).ToArraySafe();
 
             return new OkObjectResult(result ?? Enumerable.Empty<DatasetViewModel>());
         }
 
-        public async Task<IActionResult> GetValidateDatasetStatus(HttpRequest request)
+        public async Task<IActionResult> GetValidateDatasetStatus(string operationId)
         {
-            request.Query.TryGetValue("operationId", out Microsoft.Extensions.Primitives.StringValues operationIdParse);
-
-            string operationId = operationIdParse.FirstOrDefault();
-
             if (string.IsNullOrWhiteSpace(operationId))
             {
-                _logger.Error($"No {nameof(operationIdParse)} was provided to {nameof(GetValidateDatasetStatus)}");
+                _logger.Error($"No {nameof(operationId)} was provided to {nameof(GetValidateDatasetStatus)}");
 
-                return new BadRequestObjectResult($"Null or empty {nameof(operationIdParse)} provided");
+                return new BadRequestObjectResult($"Null or empty {nameof(operationId)} provided");
             }
 
             DatasetValidationStatusModel status = await _cacheProvider.GetAsync<DatasetValidationStatusModel>($"{CacheKeys.DatasetValidationStatus}:{operationId}");
@@ -311,11 +295,8 @@ namespace CalculateFunding.Services.Datasets
             return new OkObjectResult(status);
         }
 
-        public async Task<IActionResult> ValidateDataset(HttpRequest request)
+        public async Task<IActionResult> ValidateDataset(GetDatasetBlobModel model, Reference author, string correlationId)
         {
-            string json = await request.GetRawBodyStringAsync();
-
-            GetDatasetBlobModel model = JsonConvert.DeserializeObject<GetDatasetBlobModel>(json);
             if (model == null)
             {
                 _logger.Error("Null model name was provided to ValidateDataset");
@@ -384,11 +365,17 @@ namespace CalculateFunding.Services.Datasets
             }
             else
             {
-                user = request.GetUserOrDefault();
+                user = author;
             }
 
-            model.LastUpdatedById = user.Id;
-            model.LastUpdatedByName = user.Name;
+            if (blob.Metadata.ContainsKey("authorId") && blob.Metadata.ContainsKey("authorName"))
+            {
+                user.Id = blob.Metadata["authorId"];
+                user.Name = blob.Metadata["authorName"];
+            }
+
+            model.LastUpdatedById = user?.Id;
+            model.LastUpdatedByName = user?.Name;
 
             Trigger trigger = new Trigger
             {
@@ -397,12 +384,10 @@ namespace CalculateFunding.Services.Datasets
                 Message = $"Validating dataset: '{model.DatasetId}' against definition: '{datasetDefinition.Name}'"
             };
 
-            string correlationId = request.GetCorrelationId();
-
             JobCreateModel job = new JobCreateModel
             {
-                InvokerUserDisplayName = user.Name,
-                InvokerUserId = user.Id,
+                InvokerUserDisplayName = user?.Name,
+                InvokerUserId = user?.Id,
                 JobDefinitionId = JobConstants.DefinitionNames.ValidateDatasetJob,
                 MessageBody = JsonConvert.SerializeObject(model),
                 Properties = new Dictionary<string, string>
@@ -676,19 +661,8 @@ namespace CalculateFunding.Services.Datasets
             return new OkResult();
         }
 
-        public async Task<IActionResult> DownloadDatasetFile(HttpRequest request)
+        public async Task<IActionResult> DownloadDatasetFile(string currentDatasetId, string datasetVersionStr)
         {
-            request.Query.TryGetValue("datasetId", out StringValues datasetId);
-            request.Query.TryGetValue("datasetVersion", out StringValues datasetVersionStringValue);
-
-            string currentDatasetId = datasetId.FirstOrDefault();
-            string datasetVersionStr = null;
-
-            if (datasetVersionStringValue.Count != 0)
-            {
-                datasetVersionStr = datasetVersionStringValue.First();
-            }
-
             int datasetVersion = -1;
 
             if (!string.IsNullOrWhiteSpace(datasetVersionStr))
@@ -746,7 +720,7 @@ namespace CalculateFunding.Services.Datasets
             return new OkObjectResult(downloadModel);
         }
 
-        public async Task<IActionResult> Reindex(HttpRequest request)
+        public async Task<IActionResult> Reindex()
         {
             IEnumerable<DocumentEntity<Dataset>> datasets = await _datasetRepository.GetDatasets();
             int searchBatchSize = 100;
@@ -794,7 +768,7 @@ namespace CalculateFunding.Services.Datasets
             return new OkObjectResult($"Indexed total of {totalInserts} Datasets");
         }
 
-        public async Task<IActionResult> ReindexDatasetVersions(HttpRequest request)
+        public async Task<IActionResult> ReindexDatasetVersions()
         {
             IEnumerable<DocumentEntity<Dataset>> datasets = await _datasetRepository.GetDatasets();
             int searchBatchSize = 100;
@@ -843,12 +817,8 @@ namespace CalculateFunding.Services.Datasets
             return new OkObjectResult($"Indexed total of {totalInserts} Dataset versions");
         }
 
-        public async Task<IActionResult> RegenerateProviderSourceDatasets(HttpRequest request)
+        public async Task<IActionResult> RegenerateProviderSourceDatasets(string specificationId, Reference user, string correlationId)
         {
-            request.Query.TryGetValue("specificationId", out Microsoft.Extensions.Primitives.StringValues specificationIdValues);
-
-            string specificationId = specificationIdValues.FirstOrDefault();
-
             IEnumerable<DefinitionSpecificationRelationship> relationships;
 
             if (string.IsNullOrWhiteSpace(specificationId))
@@ -875,8 +845,6 @@ namespace CalculateFunding.Services.Datasets
                     datasets.Add(relationship.DatasetVersion.Id, dataset);
                 }
 
-                Reference user = request.GetUser();
-
                 Trigger trigger = new Trigger
                 {
                     EntityId = dataset.Id,
@@ -884,12 +852,10 @@ namespace CalculateFunding.Services.Datasets
                     Message = $"Mapping dataset: '{dataset.Id}'"
                 };
 
-                string correlationId = request.GetCorrelationId();
-
                 JobCreateModel job = new JobCreateModel
                 {
-                    InvokerUserDisplayName = user.Name,
-                    InvokerUserId = user.Id,
+                    InvokerUserDisplayName = user?.Name,
+                    InvokerUserId = user?.Id,
                     JobDefinitionId = JobConstants.DefinitionNames.MapDatasetJob,
                     MessageBody = JsonConvert.SerializeObject(dataset),
                     Properties = new Dictionary<string, string>
@@ -1260,12 +1226,8 @@ namespace CalculateFunding.Services.Datasets
             return (validationFailures, rowCount);
         }
 
-        public async Task<IActionResult> GetCurrentDatasetVersionByDatasetId(HttpRequest request)
+        public async Task<IActionResult> GetCurrentDatasetVersionByDatasetId(string datasetId)
         {
-            request.Query.TryGetValue("datasetId", out Microsoft.Extensions.Primitives.StringValues datasetIdParse);
-
-            string datasetId = datasetIdParse.FirstOrDefault();
-
             if (string.IsNullOrWhiteSpace(datasetId))
             {
                 _logger.Warning($"No {nameof(datasetId)} was provided to {nameof(GetCurrentDatasetVersionByDatasetId)}");

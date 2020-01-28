@@ -30,7 +30,7 @@ namespace CalculateFunding.Services.Users
 
 
             // Act
-            IActionResult result = await service.GetEffectivePermissionsForUser(null, SpecificationId, null);
+            IActionResult result = await service.GetEffectivePermissionsForUser(null, SpecificationId);
 
             // Assert
             result
@@ -50,7 +50,7 @@ namespace CalculateFunding.Services.Users
 
 
             // Act
-            IActionResult result = await service.GetEffectivePermissionsForUser(UserId, null, null);
+            IActionResult result = await service.GetEffectivePermissionsForUser(UserId, null);
 
             // Assert
             result
@@ -84,7 +84,7 @@ namespace CalculateFunding.Services.Users
 
 
             // Act
-            IActionResult result = await service.GetEffectivePermissionsForUser(UserId, SpecificationId, null);
+            IActionResult result = await service.GetEffectivePermissionsForUser(UserId, SpecificationId);
 
             // Assert
             result
@@ -149,7 +149,7 @@ namespace CalculateFunding.Services.Users
 
 
             // Act
-            IActionResult result = await service.GetEffectivePermissionsForUser(UserId, SpecificationId, null);
+            IActionResult result = await service.GetEffectivePermissionsForUser(UserId, SpecificationId);
 
             // Assert
             result
@@ -231,7 +231,7 @@ namespace CalculateFunding.Services.Users
 
 
             // Act
-            IActionResult result = await service.GetEffectivePermissionsForUser(UserId, SpecificationId, null);
+            IActionResult result = await service.GetEffectivePermissionsForUser(UserId, SpecificationId);
 
             // Assert
             result
@@ -349,7 +349,7 @@ namespace CalculateFunding.Services.Users
 
 
             // Act
-            IActionResult result = await service.GetEffectivePermissionsForUser(UserId, SpecificationId, null);
+            IActionResult result = await service.GetEffectivePermissionsForUser(UserId, SpecificationId);
 
             // Assert
             result
@@ -485,7 +485,7 @@ namespace CalculateFunding.Services.Users
 
 
             // Act
-            IActionResult result = await service.GetEffectivePermissionsForUser(UserId, SpecificationId, null);
+            IActionResult result = await service.GetEffectivePermissionsForUser(UserId, SpecificationId);
 
             // Assert
             result
@@ -573,7 +573,7 @@ namespace CalculateFunding.Services.Users
 
 
             // Act
-            IActionResult result = await service.GetEffectivePermissionsForUser(UserId, SpecificationId, null);
+            IActionResult result = await service.GetEffectivePermissionsForUser(UserId, SpecificationId);
 
             // Assert
             result
@@ -700,7 +700,7 @@ namespace CalculateFunding.Services.Users
 
 
             // Act
-            IActionResult result = await service.GetEffectivePermissionsForUser(UserId, SpecificationId, null);
+            IActionResult result = await service.GetEffectivePermissionsForUser(UserId, SpecificationId);
 
             // Assert
             result
@@ -795,7 +795,7 @@ namespace CalculateFunding.Services.Users
 
 
             // Act
-            IActionResult result = await service.GetEffectivePermissionsForUser(UserId, SpecificationId, null);
+            IActionResult result = await service.GetEffectivePermissionsForUser(UserId, SpecificationId);
 
             // Assert
             result

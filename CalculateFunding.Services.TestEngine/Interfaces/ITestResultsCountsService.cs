@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using CalculateFunding.Models.Aggregations;
+using CalculateFunding.Models.Scenarios;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 
@@ -6,12 +8,12 @@ namespace CalculateFunding.Services.TestRunner.Interfaces
 {
     public interface ITestResultsCountsService
     {
-        Task<IActionResult> GetResultCounts(HttpRequest request);
+        Task<IActionResult> GetResultCounts(TestScenariosResultsCountsRequestModel testScenariosResultsCountsRequestModel);
 
-        Task<IActionResult> GetTestScenarioCountsForProvider(HttpRequest request);
+        Task<IActionResult> GetTestScenarioCountsForProvider(string providerId);
 
-        Task<IActionResult> GetTestScenarioCountsForSpecifications(HttpRequest request);
+        Task<IActionResult> GetTestScenarioCountsForSpecifications(SpecificationListModel specificationListModel);
 
-        Task<IActionResult> GetTestScenarioCountsForProviderForSpecification(HttpRequest request);
+        Task<IActionResult> GetTestScenarioCountsForProviderForSpecification(string providerId, string specificationId);
     }
 }

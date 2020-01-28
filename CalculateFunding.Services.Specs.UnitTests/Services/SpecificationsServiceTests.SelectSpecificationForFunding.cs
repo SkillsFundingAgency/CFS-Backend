@@ -25,13 +25,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         [TestMethod]
         public async Task SelectSpecificationForFunding_GivenNoFundingPeriodOnSpecification_ThrowsException()
         {
-            HttpRequest request = Substitute.For<HttpRequest>();
-
-            request.Query = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "specificationId", new StringValues(SpecificationId) }
-            });
-
             ILogger logger = CreateLogger();
             Specification specification = CreateSpecification();
             specification.Current.FundingPeriod = null;
@@ -43,7 +36,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             SpecificationsService service = CreateService(logs: logger, specificationsRepository: specificationsRepository);
 
-            Func<Task<IActionResult>> invocation = () => service.SelectSpecificationForFunding(request);
+            Func<Task<IActionResult>> invocation = () => service.SelectSpecificationForFunding(SpecificationId);
 
             invocation
                 .Should()
@@ -53,13 +46,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         [TestMethod]
         public async Task SelectSpecificationForFunding_GivenNoFundingStreamAlreadySelectedInPeriod_ReturnsConflict()
         {
-            HttpRequest request = Substitute.For<HttpRequest>();
-
-            request.Query = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "specificationId", new StringValues(SpecificationId) }
-            });
-
             Specification specification = CreateSpecification();
             Specification specificationWithFundingStreamClash = CreateSpecification();
 
@@ -80,7 +66,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             IActionResult result = await CreateService(
                 logs: CreateLogger(),
                 specificationsRepository: specificationsRepository)
-                .SelectSpecificationForFunding(request);
+                .SelectSpecificationForFunding(SpecificationId);
 
             result
                 .Should()
@@ -91,14 +77,12 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         public async Task SelectSpecificationForFunding_GivenNoSpecificationId_ReturnsBadRequestObject()
         {
             //Arrange
-            HttpRequest request = Substitute.For<HttpRequest>();
-
             ILogger logger = CreateLogger();
 
             SpecificationsService service = CreateService(logs: logger);
 
             //Act
-            IActionResult result = await service.SelectSpecificationForFunding(request);
+            IActionResult result = await service.SelectSpecificationForFunding(null);
 
             //Assert
             result
@@ -118,17 +102,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         public async Task SelectSpecificationForFunding_GivenSpecificationCouldNotBeFound_ReturnsNotFoundObjectResult()
         {
             //Arrange
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "specificationId", new StringValues(SpecificationId) }
-
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-
             ILogger logger = CreateLogger();
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
@@ -139,7 +112,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             SpecificationsService service = CreateService(logs: logger, specificationsRepository: specificationsRepository);
 
             //Act
-            IActionResult result = await service.SelectSpecificationForFunding(request);
+            IActionResult result = await service.SelectSpecificationForFunding(SpecificationId);
 
             //Assert
             result
@@ -159,17 +132,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         public async Task SelectSpecificationForFunding_GivenSpecificationFoundButAlreadySelected_ReturnsNoContentResult()
         {
             //Arrange
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "specificationId", new StringValues(SpecificationId) }
-
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-
             Specification specification = CreateSpecification();
             specification.IsSelectedForFunding = true;
 
@@ -184,7 +146,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             SpecificationsService service = CreateService(logs: logger, specificationsRepository: specificationsRepository);
 
             //Act
-            IActionResult result = await service.SelectSpecificationForFunding(request);
+            IActionResult result = await service.SelectSpecificationForFunding(SpecificationId);
 
             //Assert
             result
@@ -200,17 +162,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         public async Task SelectSpecificationForFunding_GivenSpecificationButUpdatingCosmosReturnsBadRequest_ReturnsInternalServerError()
         {
             //Arrange
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "specificationId", new StringValues(SpecificationId) }
-
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-
             Specification specification = CreateSpecification();
 
             ILogger logger = CreateLogger();
@@ -227,7 +178,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             SpecificationsService service = CreateService(logs: logger, specificationsRepository: specificationsRepository);
 
             //Act
-            IActionResult result = await service.SelectSpecificationForFunding(request);
+            IActionResult result = await service.SelectSpecificationForFunding(SpecificationId);
 
             //Assert
             result
@@ -247,17 +198,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         public async Task SelectSpecificationForFunding_GivenSpecificationButUpdatingSearchFails_ReturnsInternalServerError()
         {
             // Arrange
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "specificationId", new StringValues(SpecificationId) }
-
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-
             Specification specification = CreateSpecification();
 
             ILogger logger = CreateLogger();
@@ -290,7 +230,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 cacheProvider: cacheProvider);
 
             // Act
-            IActionResult result = await service.SelectSpecificationForFunding(request);
+            IActionResult result = await service.SelectSpecificationForFunding(SpecificationId);
 
             // Assert
             result
@@ -318,17 +258,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         public async Task SelectSpecificationForFunding_GivenValidSpecification_ReturnsNoContentResult()
         {
             // Arrange
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "specificationId", new StringValues(SpecificationId) }
-
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-
             Specification specification = CreateSpecification();
 
             ILogger logger = CreateLogger();
@@ -350,7 +279,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 cacheProvider: cacheProvider);
 
             // Act
-            IActionResult result = await service.SelectSpecificationForFunding(request);
+            IActionResult result = await service.SelectSpecificationForFunding(SpecificationId);
 
             // Assert
             result

@@ -11,7 +11,7 @@ namespace CalculateFunding.Api.External.V3.Controllers
     [Authorize(Roles = Constants.ExecuteApiRole)]
     [ApiVersion("3.0")]
     [Route("api/v{version:apiVersion}/funding/notifications")]
-    public class FundingFeedController : Controller
+    public class FundingFeedController : ControllerBase
     {
         private readonly IFundingFeedService _fundingFeedsService;
 

@@ -39,12 +39,8 @@ namespace CalculateFunding.Services.TestRunner.Services
             _buildProjectRepositoryPolicy = resiliencePolicies.BuildProjectRepository;
         }
 
-        public async Task<IActionResult> ValidateGherkin(HttpRequest request)
+        public async Task<IActionResult> ValidateGherkin(ValidateGherkinRequestModel model)
         {
-            string json = await request.GetRawBodyStringAsync();
-
-            ValidateGherkinRequestModel model = JsonConvert.DeserializeObject<ValidateGherkinRequestModel>(json);
-
             if (model == null)
             {
                 _logger.Error("Null model was provided to ValidateGherkin");

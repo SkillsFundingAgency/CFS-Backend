@@ -195,7 +195,7 @@ namespace CalculateFunding.Services.Jobs
             return new OkObjectResult(jobs.Select(_mapper.Map<JobSummary>));
          }
 
-        public Task<IActionResult> UpdateJob(string jobId, JobUpdateModel jobUpdate, HttpRequest request)
+        public Task<IActionResult> UpdateJob(string jobId, JobUpdateModel jobUpdate)
         {
             throw new System.NotImplementedException();
         }

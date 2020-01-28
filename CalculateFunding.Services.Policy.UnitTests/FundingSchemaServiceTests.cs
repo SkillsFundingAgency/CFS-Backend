@@ -27,18 +27,10 @@ namespace CalculateFunding.Services.Policy.UnitTests
         public async Task SaveFundingSchema_WhenEmptySchemaProvided_ReturnsBadRequest(string schema)
         {
             //Arrange
-            byte[] byteArray = Encoding.UTF8.GetBytes(schema);
-
-            MemoryStream stream = new MemoryStream(byteArray);
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
             FundingSchemaService fundingSchemaService = CreateFundingSchemaService();
 
             //Act
-            IActionResult result = await fundingSchemaService.SaveFundingSchema(createdAtActionName, createdAtControllerName, request);
+            IActionResult result = await fundingSchemaService.SaveFundingSchema(createdAtActionName, createdAtControllerName, schema);
 
             //Assert
             result
@@ -54,20 +46,13 @@ namespace CalculateFunding.Services.Policy.UnitTests
         public async Task SaveFundingSchema_WhenInvalidSchemaProvided_ReturnsBadRequest()
         {
             //Arrange
-            byte[] byteArray = Encoding.UTF8.GetBytes("Blah Blah");
-
-            MemoryStream stream = new MemoryStream(byteArray);
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
 
             ILogger logger = CreateLogger();
 
             FundingSchemaService fundingSchemaService = CreateFundingSchemaService(logger);
 
             //Act
-            IActionResult result = await fundingSchemaService.SaveFundingSchema(createdAtActionName, createdAtControllerName, request);
+            IActionResult result = await fundingSchemaService.SaveFundingSchema(createdAtActionName, createdAtControllerName, "Blah Blah");
 
             //Assert
             result
@@ -88,19 +73,12 @@ namespace CalculateFunding.Services.Policy.UnitTests
         [DataRow("CalculateFunding.Services.Policy.Resources.LogicalModelInvalidVersion.json")]
         public async Task SaveFundingSchema_WhenNoVersionIsSet_ReturnsBadRequest(string resourcePath)
         {
-            //arrange 
-            byte[] byteArray = CreateSchemaFile(resourcePath);
-
-            MemoryStream stream = new MemoryStream(byteArray);
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
+            //arrange
             FundingSchemaService fundingSchemaService = CreateFundingSchemaService();
 
             //Act
-            IActionResult result = await fundingSchemaService.SaveFundingSchema(createdAtActionName, createdAtControllerName, request);
+            IActionResult result = await fundingSchemaService.SaveFundingSchema(
+                createdAtActionName, createdAtControllerName, CreateSchemaFile(resourcePath));
 
             //Assert
             result
@@ -120,13 +98,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
 
             string blobName = $"{fundingSchemaFolder}/{version}.json";
 
-            byte[] byteArray = CreateSchemaFile("CalculateFunding.Services.Policy.Resources.LogicalModel.json");
-
-            MemoryStream stream = new MemoryStream(byteArray);
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
+            string json = CreateSchemaFile("CalculateFunding.Services.Policy.Resources.LogicalModel.json");
 
             IFundingSchemaRepository fundingSchemaRepository = CreateFundingSchemaRepository();
 
@@ -139,7 +111,8 @@ namespace CalculateFunding.Services.Policy.UnitTests
             FundingSchemaService fundingSchemaService = CreateFundingSchemaService(logger, fundingSchemaRepository: fundingSchemaRepository);
 
             //Act
-            IActionResult result = await fundingSchemaService.SaveFundingSchema(createdAtActionName, createdAtControllerName, request);
+            IActionResult result = await fundingSchemaService.SaveFundingSchema(
+                createdAtActionName, createdAtControllerName, json);
 
             //Assert
             result
@@ -159,17 +132,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
         public async Task SaveFundingSchema_WhenSavingIsSuccessful_ReturnsCreatedAtResult()
         {
             //arrange 
-            const string version = "1.0";
-
-            string blobName = $"{fundingSchemaFolder}/{version}.json";
-
-            byte[] byteArray = CreateSchemaFile("CalculateFunding.Services.Policy.Resources.LogicalModel.json");
-
-            MemoryStream stream = new MemoryStream(byteArray);
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
+            string json = CreateSchemaFile("CalculateFunding.Services.Policy.Resources.LogicalModel.json");
 
             IFundingSchemaRepository fundingSchemaRepository = CreateFundingSchemaRepository();
 
@@ -178,7 +141,8 @@ namespace CalculateFunding.Services.Policy.UnitTests
             FundingSchemaService fundingSchemaService = CreateFundingSchemaService(logger, fundingSchemaRepository: fundingSchemaRepository);
 
             //Act
-            IActionResult result = await fundingSchemaService.SaveFundingSchema(createdAtActionName, createdAtControllerName, request);
+            IActionResult result = await fundingSchemaService.SaveFundingSchema(
+                createdAtActionName, createdAtControllerName, json);
 
             //Assert
             result
@@ -378,13 +342,16 @@ namespace CalculateFunding.Services.Policy.UnitTests
                 .Be(schema);
         }
 
-        private static byte[] CreateSchemaFile(string resourceName)
+        private static string CreateSchemaFile(string resourceName)
         {
             Assembly assembly = Assembly.GetExecutingAssembly();
 
             using (Stream stream = assembly.GetManifestResourceStream(resourceName))
             {
-                return stream.ReadAllBytes();
+                using (var reader = new StreamReader(stream))
+                {
+                    return reader.ReadToEnd();
+                }
             }
         }
 

@@ -81,12 +81,12 @@ namespace CalculateFunding.Services.Publishing
             return health;
         }
 
-        public async Task<IActionResult> SearchPublishedProviders(HttpRequest request)
+        public async Task<IActionResult> SearchPublishedProviders(SearchModel searchModel)
         {
-            SearchModel searchModel = await GetSearchModelFromRequest(request);
-
-            if (searchModel == null)
+            if (searchModel == null || searchModel.PageNumber < 1 || searchModel.Top < 1)
             {
+                _logger.Error("A null or invalid search model was provided for searching published providers");
+
                 return new BadRequestObjectResult("An invalid search model was provided");
             }
 
@@ -143,22 +143,6 @@ namespace CalculateFunding.Services.Publishing
 
                 return new InternalServerErrorResult($"Failed to query search, with exception: {exception.Message}");
             }
-        }
-
-        async Task<SearchModel> GetSearchModelFromRequest(HttpRequest request)
-        {
-            string json = await request.GetRawBodyStringAsync();
-
-            SearchModel searchModel = JsonConvert.DeserializeObject<SearchModel>(json);
-
-            if (searchModel == null || searchModel.PageNumber < 1 || searchModel.Top < 1)
-            {
-                _logger.Error("A null or invalid search model was provided for searching published providers");
-
-                return null;
-            }
-
-            return searchModel;
         }
 
         private static void AddFiltersForNotification(string fundingStreamId, string fundingPeriodId, FilterHelper filterHelper)

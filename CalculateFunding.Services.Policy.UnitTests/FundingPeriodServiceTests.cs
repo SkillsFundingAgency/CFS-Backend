@@ -241,20 +241,12 @@ namespace CalculateFunding.Services.Policy.UnitTests
         public async Task SaveFundingPeriod_GivenNoJsonWasProvided_ReturnsBadRequest()
         {
             //Arrange
-            IHeaderDictionary headerDictionary = new HeaderDictionary();
-           
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Headers
-                .Returns(headerDictionary);
-
             ILogger logger = CreateLogger();
 
             FundingPeriodService fundingPeriodService = CreateFundingPeriodService(logger: logger);
 
             //Act
-            IActionResult result = await fundingPeriodService.SaveFundingPeriods(request);
+            IActionResult result = await fundingPeriodService.SaveFundingPeriods(null);
 
             //Assert
             result
@@ -267,113 +259,22 @@ namespace CalculateFunding.Services.Policy.UnitTests
         }
 
         [TestMethod]
-        public async Task SaveFundingPeriod_GivenJsonWasProvidedButIsInvalid_ReturnsBadRequest()
-        {
-            //Arrange
-            string json = "invalid json";
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            IHeaderDictionary headerDictionary = new HeaderDictionary();           
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Headers
-                .Returns(headerDictionary);
-
-            request
-                .Body
-                .Returns(stream);
-
-            ILogger logger = CreateLogger();
-
-            FundingPeriodService fundingPeriodService = CreateFundingPeriodService(logger: logger);
-
-            //Act
-            IActionResult result = await fundingPeriodService.SaveFundingPeriods(request);
-
-            //Assert
-            result
-                .Should()
-                .BeOfType<BadRequestObjectResult>();
-
-            logger
-                .Received(1)
-                .Error(Arg.Any<Exception>(), Arg.Is($"Invalid json was provided for file"));
-        }
-
-        [TestMethod]
-        public async Task SaveFundingPeriod_GivenWellFormedJsonWasProvidedButFailsCustomValidation_ReturnsBadRequest()
-        {
-            //Arrange
-            string json = NewRandomString();  //CreateRawFundingPeriods();            
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            IHeaderDictionary headerDictionary = new HeaderDictionary();
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Headers
-                .Returns(headerDictionary);
-
-            request
-                .Body
-                .Returns(stream);
-
-            ILogger logger = CreateLogger();         
-            IValidator<FundingPeriodsJsonModel> fundingPeriodValidator = CreateFundingPeriodValidator();
-            fundingPeriodValidator.Validate(Arg.Any<FundingPeriod>())
-                .Returns(new ValidationResult(new[] { new ValidationFailure("anything", "anything") }));
-
-            FundingPeriodService fundingPeriodService = CreateFundingPeriodService(logger: logger, fundingPeriodValidator: fundingPeriodValidator);
-
-            //Act
-            IActionResult result = await fundingPeriodService.SaveFundingPeriods(request);
-
-            //Assert
-            result
-                .Should()
-                .BeOfType<BadRequestObjectResult>();
-
-            logger
-                .Received(1)
-                .Error(Arg.Any<Exception>(), Arg.Is($"Invalid json was provided for file"));
-        }
-
-        [TestMethod]
         public async Task SaveFundingPeriod_GivenValidJsonButFailedToSaveToDatabase_ReturnsStatusCode()
         {
             //Arrange
-            string yaml = CreateRawJsonFundingPeriod();
-            byte[] byteArray = Encoding.UTF8.GetBytes(yaml);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            IHeaderDictionary headerDictionary = new HeaderDictionary();
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Headers
-                .Returns(headerDictionary);
-
-            request
-                .Body
-                .Returns(stream);
-
             ILogger logger = CreateLogger();
-
 
             IPolicyRepository policyRepository = CreatePolicyRepository();
             policyRepository
                 .When(x => x.SaveFundingPeriods(Arg.Any<FundingPeriod[]>()))
                 .Do(x => { throw new Exception(); });
 
-
             FundingPeriodService fundingPeriodService = CreateFundingPeriodService(logger: logger, policyRepository: policyRepository);
 
             string errorMessage = $"Exception occurred writing json file to cosmos db";
 
             //Act
-            IActionResult result = await fundingPeriodService.SaveFundingPeriods(request);
+            IActionResult result = await fundingPeriodService.SaveFundingPeriods(CreateFundingPeriodsJsonModel());
 
             //Assert
             result
@@ -393,21 +294,6 @@ namespace CalculateFunding.Services.Policy.UnitTests
         public async Task SaveFundingStream_GivenValidYamlAndSaveWasSuccesful_ReturnsOK()
         {
             //Arrange
-            string yaml = CreateRawJsonFundingPeriod();
-            byte[] byteArray = Encoding.UTF8.GetBytes(yaml);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            IHeaderDictionary headerDictionary = new HeaderDictionary();
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Headers
-                .Returns(headerDictionary);
-
-            request
-                .Body
-                .Returns(stream);
-
             ILogger logger = CreateLogger();
 
             IPolicyRepository policyRepository = CreatePolicyRepository();
@@ -417,7 +303,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
             FundingPeriodService fundingPeriodService = CreateFundingPeriodService(logger: logger, policyRepository: policyRepository, cacheProvider: cacheProvider);
 
             //Act
-            IActionResult result = await fundingPeriodService.SaveFundingPeriods(request);
+            IActionResult result = await fundingPeriodService.SaveFundingPeriods(CreateFundingPeriodsJsonModel());
 
             //Assert
             result
@@ -486,7 +372,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
             return Substitute.For<ICacheProvider>();
         }
 
-        private string CreateRawJsonFundingPeriod()
+        private FundingPeriodsJsonModel CreateFundingPeriodsJsonModel()
         {
             List<FundingPeriod> periods = new List<FundingPeriod>
             {
@@ -519,11 +405,15 @@ namespace CalculateFunding.Services.Policy.UnitTests
                      EndDate = DateTimeOffset.Now.Date
                 }
             };
-            FundingPeriodsJsonModel input = new FundingPeriodsJsonModel();
-            input.FundingPeriods = periods.ToArray();
 
-            return JsonConvert.SerializeObject(input);
+            return new FundingPeriodsJsonModel { FundingPeriods = periods.ToArray() };
         }
+
+        private string CreateRawJsonFundingPeriod()
+        {
+            return JsonConvert.SerializeObject(CreateFundingPeriodsJsonModel());
+        }
+
         private string CreateRawFundingPeriods()
         {
             StringBuilder yaml = new StringBuilder();

@@ -42,8 +42,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         const string UserId = "33d7a71b-f570-4425-801b-250b9129f3d3";
         const string SfaCorrelationId = "c625c3f9-6ce8-4f1f-a3a3-4611f1dc3881";
         const string RelationshipId = "cca8ccb3-eb8e-4658-8b3f-f1e4c3a8f419";
-        readonly HttpContext _context = Substitute.For<HttpContext>();
-        readonly HttpRequest _request = Substitute.For<HttpRequest>();
         private readonly Specification _specification;
         private readonly ILogger _logger = CreateLogger();
         private readonly ISpecificationsRepository _specificationsRepository;

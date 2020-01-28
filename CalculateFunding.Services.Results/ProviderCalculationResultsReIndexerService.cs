@@ -14,7 +14,6 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.FeatureToggles;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Results.Interfaces;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
 using Serilog;
@@ -66,11 +65,9 @@ namespace CalculateFunding.Services.Results
             _messengerService = messengerService;
         }
 
-        public async Task<IActionResult> ReIndexCalculationResults(HttpRequest httpRequest)
+        public async Task<IActionResult> ReIndexCalculationResults(string correlationId, Reference user)
         {
-            Guard.ArgumentNotNull(httpRequest, nameof(httpRequest));
-
-            IDictionary<string, string> properties = httpRequest.BuildMessageProperties();
+            IDictionary<string, string> properties = MessageExtensions.BuildMessageProperties(correlationId, user);
 
             await _messengerService.SendToQueue(ServiceBusConstants.QueueNames.ReIndexCalculationResultsIndex, "", properties);
 

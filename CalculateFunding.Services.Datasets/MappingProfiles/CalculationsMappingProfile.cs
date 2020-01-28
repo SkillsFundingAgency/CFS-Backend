@@ -12,6 +12,8 @@ namespace CalculateFunding.Services.Datasets.MappingProfiles
         {
             CreateMap<DatasetRelationshipSummary, Common.ApiClient.Calcs.Models.DatasetRelationshipSummary>();
             CreateMap<DatasetDefinition, Common.ApiClient.Calcs.Models.Schema.DatasetDefinition>();
+            CreateMap<TableDefinition, Common.ApiClient.Calcs.Models.Schema.TableDefinition>();
+            CreateMap<FieldDefinition, Common.ApiClient.Calcs.Models.Schema.FieldDefinition>();
             CreateMap<Common.ApiClient.Calcs.Models.CompilerMessage, CompilerMessage>();
             CreateMap<Common.ApiClient.Calcs.Models.SourceFile, SourceFile>();
             CreateMap<Common.ApiClient.Calcs.Models.SourceLocation, SourceLocation>();

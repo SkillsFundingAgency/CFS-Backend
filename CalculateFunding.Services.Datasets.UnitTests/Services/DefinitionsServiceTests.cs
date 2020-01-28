@@ -15,12 +15,9 @@ using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.DataImporter;
 using CalculateFunding.Services.Datasets.Interfaces;
 using FluentAssertions;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Primitives;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.Azure.Storage.Blob;
-using Newtonsoft.Json;
 using NSubstitute;
 using Serilog;
 
@@ -35,14 +32,12 @@ namespace CalculateFunding.Services.Datasets.Services
         async public Task SaveDefinition_GivenNoYamlWasProvidedWithNoFileName_ReturnsBadRequest()
         {
             //Arrange
-            HttpRequest request = Substitute.For<HttpRequest>();
-
             ILogger logger = CreateLogger();
 
             DefinitionsService service = CreateDefinitionsService(logger);
 
             //Act
-            IActionResult result = await service.SaveDefinition(request);
+            IActionResult result = await service.SaveDefinition(null, null, null, null);
 
             //Assert
             result
@@ -58,21 +53,12 @@ namespace CalculateFunding.Services.Datasets.Services
         async public Task SaveDefinition_GivenNoYamlWasProvidedButFileNameWas_ReturnsBadRequest()
         {
             //Arrange
-            IHeaderDictionary headerDictionary = new HeaderDictionary();
-            headerDictionary
-                .Add("yaml-file", new StringValues(yamlFile));
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Headers
-                .Returns(headerDictionary);
-
             ILogger logger = CreateLogger();
 
             DefinitionsService service = CreateDefinitionsService(logger);
 
             //Act
-            IActionResult result = await service.SaveDefinition(request);
+            IActionResult result = await service.SaveDefinition(null, yamlFile, null, null);
 
             //Assert
             result
@@ -89,28 +75,13 @@ namespace CalculateFunding.Services.Datasets.Services
         {
             //Arrange
             string yaml = "invalid yaml";
-            byte[] byteArray = Encoding.UTF8.GetBytes(yaml);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            IHeaderDictionary headerDictionary = new HeaderDictionary();
-            headerDictionary
-                .Add("yaml-file", new StringValues(yamlFile));
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Headers
-                .Returns(headerDictionary);
-
-            request
-                .Body
-                .Returns(stream);
-
+            
             ILogger logger = CreateLogger();
 
             DefinitionsService service = CreateDefinitionsService(logger);
 
             //Act
-            IActionResult result = await service.SaveDefinition(request);
+            IActionResult result = await service.SaveDefinition(yaml, yamlFile, null, null);
 
             //Assert
             result
@@ -129,22 +100,7 @@ namespace CalculateFunding.Services.Datasets.Services
             IEnumerable<string> specificationIds = new[] { "spec-1" };
             string definitionId = "9183";
             string yaml = CreateRawDefinition();
-            byte[] byteArray = Encoding.UTF8.GetBytes(yaml);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            IHeaderDictionary headerDictionary = new HeaderDictionary();
-            headerDictionary
-                .Add("yaml-file", new StringValues(yamlFile));
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Headers
-                .Returns(headerDictionary);
-
-            request
-                .Body
-                .Returns(stream);
-
+            
             ILogger logger = CreateLogger();
 
             IDatasetRepository datasetRepository = CreateDataSetsRepository();
@@ -176,7 +132,7 @@ namespace CalculateFunding.Services.Datasets.Services
             DefinitionsService service = CreateDefinitionsService(logger, definitionChangesDetectionService: definitionChangesDetectionService, datasetsRepository: datasetRepository);
 
             //Act
-            IActionResult result = await service.SaveDefinition(request);
+            IActionResult result = await service.SaveDefinition(yaml, yamlFile, null, null);
 
             //Assert
             result
@@ -195,22 +151,7 @@ namespace CalculateFunding.Services.Datasets.Services
             IEnumerable<string> specificationIds = new[] { "spec-1" };
             string definitionId = "9183";
             string yaml = CreateRawDefinition();
-            byte[] byteArray = Encoding.UTF8.GetBytes(yaml);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            IHeaderDictionary headerDictionary = new HeaderDictionary();
-            headerDictionary
-                .Add("yaml-file", new StringValues(yamlFile));
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Headers
-                .Returns(headerDictionary);
-
-            request
-                .Body
-                .Returns(stream);
-
+            
             ILogger logger = CreateLogger();
 
             IDatasetRepository datasetRepository = CreateDataSetsRepository();
@@ -242,7 +183,7 @@ namespace CalculateFunding.Services.Datasets.Services
             DefinitionsService service = CreateDefinitionsService(logger, definitionChangesDetectionService: definitionChangesDetectionService, datasetsRepository: datasetRepository);
 
             //Act
-            IActionResult result = await service.SaveDefinition(request);
+            IActionResult result = await service.SaveDefinition(yaml, yamlFile, null, null);
 
             //Assert
             result
@@ -259,22 +200,7 @@ namespace CalculateFunding.Services.Datasets.Services
         {
             //Arrange
             string yaml = CreateRawDefinition();
-            byte[] byteArray = Encoding.UTF8.GetBytes(yaml);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            IHeaderDictionary headerDictionary = new HeaderDictionary();
-            headerDictionary
-                .Add("yaml-file", new StringValues(yamlFile));
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Headers
-                .Returns(headerDictionary);
-
-            request
-                .Body
-                .Returns(stream);
-
+            
             ILogger logger = CreateLogger();
 
             HttpStatusCode failedCode = HttpStatusCode.BadGateway;
@@ -294,7 +220,7 @@ namespace CalculateFunding.Services.Datasets.Services
             DefinitionsService service = CreateDefinitionsService(logger, dataSetsRepository, definitionChangesDetectionService: definitionChangesDetectionService);
 
             //Act
-            IActionResult result = await service.SaveDefinition(request);
+            IActionResult result = await service.SaveDefinition(yaml, yamlFile, null, null);
 
             //Assert
             result
@@ -317,22 +243,7 @@ namespace CalculateFunding.Services.Datasets.Services
         {
             //Arrange
             string yaml = CreateRawDefinition();
-            byte[] byteArray = Encoding.UTF8.GetBytes(yaml);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            IHeaderDictionary headerDictionary = new HeaderDictionary();
-            headerDictionary
-                .Add("yaml-file", new StringValues(yamlFile));
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Headers
-                .Returns(headerDictionary);
-
-            request
-                .Body
-                .Returns(stream);
-
+            
             ILogger logger = CreateLogger();
 
             IDatasetRepository dataSetsRepository = CreateDataSetsRepository();
@@ -350,7 +261,7 @@ namespace CalculateFunding.Services.Datasets.Services
             DefinitionsService service = CreateDefinitionsService(logger, dataSetsRepository, definitionChangesDetectionService: definitionChangesDetectionService);
 
             //Act
-            IActionResult result = await service.SaveDefinition(request);
+            IActionResult result = await service.SaveDefinition(yaml, yamlFile, null, null);
 
             //Assert
             result
@@ -372,22 +283,6 @@ namespace CalculateFunding.Services.Datasets.Services
             //Arrange
             string yaml = CreateRawDefinition();
             string definitionId = "9183";
-
-            byte[] byteArray = Encoding.UTF8.GetBytes(yaml);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            IHeaderDictionary headerDictionary = new HeaderDictionary();
-            headerDictionary
-                .Add("yaml-file", new StringValues(yamlFile));
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Headers
-                .Returns(headerDictionary);
-
-            request
-                .Body
-                .Returns(stream);
 
             ILogger logger = CreateLogger();
 
@@ -420,7 +315,7 @@ namespace CalculateFunding.Services.Datasets.Services
             DefinitionsService service = CreateDefinitionsService(logger, datasetsRepository, searchRepository, excelWriter: excelWriter, definitionChangesDetectionService: definitionChangesDetectionService);
 
             //Act
-            IActionResult result = await service.SaveDefinition(request);
+            IActionResult result = await service.SaveDefinition(yaml, yamlFile, null, null);
 
             //Assert
             result
@@ -442,22 +337,6 @@ namespace CalculateFunding.Services.Datasets.Services
             //Arrange
             string yaml = CreateRawDefinition();
             string definitionId = "9183";
-
-            byte[] byteArray = Encoding.UTF8.GetBytes(yaml);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            IHeaderDictionary headerDictionary = new HeaderDictionary();
-            headerDictionary
-                .Add("yaml-file", new StringValues(yamlFile));
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Headers
-                .Returns(headerDictionary);
-
-            request
-                .Body
-                .Returns(stream);
 
             ILogger logger = CreateLogger();
 
@@ -501,7 +380,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 excelWriter: excelWriter, blobClient: blobClient, definitionChangesDetectionService: definitionChangesDetectionService);
 
             //Act
-            IActionResult result = await service.SaveDefinition(request);
+            IActionResult result = await service.SaveDefinition(yaml, yamlFile, null, null);
 
             //Assert
             result
@@ -519,22 +398,6 @@ namespace CalculateFunding.Services.Datasets.Services
             //Arrange
             string yaml = CreateRawDefinition();
             string definitionId = "9183";
-
-            byte[] byteArray = Encoding.UTF8.GetBytes(yaml);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            IHeaderDictionary headerDictionary = new HeaderDictionary();
-            headerDictionary
-                .Add("yaml-file", new StringValues(yamlFile));
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Headers
-                .Returns(headerDictionary);
-
-            request
-                .Body
-                .Returns(stream);
 
             ILogger logger = CreateLogger();
 
@@ -575,7 +438,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 excelWriter: excelWriter, blobClient: blobClient, definitionChangesDetectionService: definitionChangesDetectionService);
 
             //Act
-            IActionResult result = await service.SaveDefinition(request);
+            IActionResult result = await service.SaveDefinition(yaml, yamlFile, null, null);
 
             //Assert
             result
@@ -615,22 +478,6 @@ namespace CalculateFunding.Services.Datasets.Services
             //Arrange
             string yaml = CreateRawDefinition();
             string definitionId = "9183";
-
-            byte[] byteArray = Encoding.UTF8.GetBytes(yaml);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            IHeaderDictionary headerDictionary = new HeaderDictionary();
-            headerDictionary
-                .Add("yaml-file", new StringValues(yamlFile));
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Headers
-                .Returns(headerDictionary);
-
-            request
-                .Body
-                .Returns(stream);
 
             ILogger logger = CreateLogger();
 
@@ -681,7 +528,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 excelWriter: excelWriter, blobClient: blobClient, definitionChangesDetectionService: definitionChangesDetectionService);
 
             //Act
-            IActionResult result = await service.SaveDefinition(request);
+            IActionResult result = await service.SaveDefinition(yaml, yamlFile, null, null);
 
             //Assert
             result
@@ -721,22 +568,6 @@ namespace CalculateFunding.Services.Datasets.Services
             //Arrange
             string yaml = CreateRawDefinition();
             string definitionId = "9183";
-
-            byte[] byteArray = Encoding.UTF8.GetBytes(yaml);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            IHeaderDictionary headerDictionary = new HeaderDictionary();
-            headerDictionary
-                .Add("yaml-file", new StringValues(yamlFile));
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Headers
-                .Returns(headerDictionary);
-
-            request
-                .Body
-                .Returns(stream);
 
             ILogger logger = CreateLogger();
 
@@ -786,7 +617,7 @@ namespace CalculateFunding.Services.Datasets.Services
             DefinitionsService service = CreateDefinitionsService(logger, datasetsRepository, searchRepository, excelWriter: excelWriter, blobClient: blobClient, definitionChangesDetectionService: definitionChangesDetectionService);
 
             //Act
-            IActionResult result = await service.SaveDefinition(request);
+            IActionResult result = await service.SaveDefinition(yaml, yamlFile, null, null);
 
             //Assert
             result
@@ -820,22 +651,6 @@ namespace CalculateFunding.Services.Datasets.Services
             //Arrange
             string yaml = CreateRawDefinition();
             string definitionId = "9183";
-
-            byte[] byteArray = Encoding.UTF8.GetBytes(yaml);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            IHeaderDictionary headerDictionary = new HeaderDictionary();
-            headerDictionary
-                .Add("yaml-file", new StringValues(yamlFile));
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Headers
-                .Returns(headerDictionary);
-
-            request
-                .Body
-                .Returns(stream);
 
             ILogger logger = CreateLogger();
 
@@ -889,7 +704,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 messengerService: messengerService);
 
             //Act
-            IActionResult result = await service.SaveDefinition(request);
+            IActionResult result = await service.SaveDefinition(yaml, yamlFile, null, null);
 
             //Assert
             result
@@ -911,22 +726,6 @@ namespace CalculateFunding.Services.Datasets.Services
             //Arrange
             string yaml = CreateRawDefinition();
             string definitionId = "9183";
-
-            byte[] byteArray = Encoding.UTF8.GetBytes(yaml);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            IHeaderDictionary headerDictionary = new HeaderDictionary();
-            headerDictionary
-                .Add("yaml-file", new StringValues(yamlFile));
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Headers
-                .Returns(headerDictionary);
-
-            request
-                .Body
-                .Returns(stream);
 
             ILogger logger = CreateLogger();
 
@@ -978,7 +777,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 messengerService: messengerService);
 
             //Act
-            IActionResult result = await service.SaveDefinition(request);
+            IActionResult result = await service.SaveDefinition(yaml, yamlFile, null, null);
 
             //Assert
             result
@@ -998,8 +797,6 @@ namespace CalculateFunding.Services.Datasets.Services
         async public Task GetDatasetDefinitions_GivenDefinitionsRequestedButContainsNoResults_ReturnsEmptyArray()
         {
             //Arrange
-            HttpRequest request = Substitute.For<HttpRequest>();
-
             IEnumerable<DatasetDefinition> definitions = new DatasetDefinition[0];
 
             IDatasetRepository repository = CreateDataSetsRepository();
@@ -1010,7 +807,7 @@ namespace CalculateFunding.Services.Datasets.Services
             DefinitionsService service = CreateDefinitionsService(datasetsRepository: repository);
 
             //Act
-            IActionResult result = await service.GetDatasetDefinitions(request);
+            IActionResult result = await service.GetDatasetDefinitions();
 
             //Assert
             result
@@ -1031,8 +828,6 @@ namespace CalculateFunding.Services.Datasets.Services
         async public Task GetDatasetDefinitions_GivenDefinitionsRequestedButContainsResults_ReturnsArray()
         {
             //Arrange
-            HttpRequest request = Substitute.For<HttpRequest>();
-
             IEnumerable<DatasetDefinition> definitions = new[]
             {
                 new DatasetDefinition(), new DatasetDefinition()
@@ -1046,7 +841,7 @@ namespace CalculateFunding.Services.Datasets.Services
             DefinitionsService service = CreateDefinitionsService(datasetsRepository: repository);
 
             //Act
-            IActionResult result = await service.GetDatasetDefinitions(request);
+            IActionResult result = await service.GetDatasetDefinitions();
 
             //Assert
             result
@@ -1067,14 +862,12 @@ namespace CalculateFunding.Services.Datasets.Services
         public async Task GetDatasetSchemaSasUrl_GivenNullRequestModel_ReturnsBadRequest()
         {
             //Arrange
-            HttpRequest request = Substitute.For<HttpRequest>();
-
             ILogger logger = CreateLogger();
 
             DefinitionsService definitionsService = CreateDefinitionsService(logger);
 
             //Act
-            IActionResult result = await definitionsService.GetDatasetSchemaSasUrl(request);
+            IActionResult result = await definitionsService.GetDatasetSchemaSasUrl(null);
 
             //Assert
             result
@@ -1095,21 +888,13 @@ namespace CalculateFunding.Services.Datasets.Services
         {
             //Arrange
             DatasetSchemaSasUrlRequestModel model = new DatasetSchemaSasUrlRequestModel();
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
 
             ILogger logger = CreateLogger();
 
             DefinitionsService definitionsService = CreateDefinitionsService(logger);
 
             //Act
-            IActionResult result = await definitionsService.GetDatasetSchemaSasUrl(request);
+            IActionResult result = await definitionsService.GetDatasetSchemaSasUrl(model);
 
             //Assert
             result
@@ -1134,15 +919,6 @@ namespace CalculateFunding.Services.Datasets.Services
                 DatasetDefinitionId = "12345"
             };
 
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
             IBlobClient blobClient = CreateBlobClient();
 
             DatasetDefinition datasetDefinition = new DatasetDefinition()
@@ -1161,7 +937,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 blobClient: blobClient);
 
             // Act
-            IActionResult result = await definitionsService.GetDatasetSchemaSasUrl(request);
+            IActionResult result = await definitionsService.GetDatasetSchemaSasUrl(model);
 
             // Assert
             result
@@ -1184,15 +960,6 @@ namespace CalculateFunding.Services.Datasets.Services
                 DatasetDefinitionId = "12345"
             };
 
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
             IBlobClient blobClient = CreateBlobClient();
             blobClient
                 .GetBlobSasUrl(Arg.Any<string>(), Arg.Any<DateTimeOffset>(), Arg.Any<SharedAccessBlobPermissions>())
@@ -1214,7 +981,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 blobClient: blobClient);
 
             //Act
-            IActionResult result = await definitionsService.GetDatasetSchemaSasUrl(request);
+            IActionResult result = await definitionsService.GetDatasetSchemaSasUrl(model);
 
             //Assert
             result

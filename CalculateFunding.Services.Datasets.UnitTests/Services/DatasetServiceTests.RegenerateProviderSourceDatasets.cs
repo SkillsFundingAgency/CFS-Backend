@@ -22,14 +22,6 @@ namespace CalculateFunding.Services.Datasets.Services
         public async Task RegenerateProviderSourceDatasets_GivenSpecificationId_ThenCallJobServiceToProcess()
         {
             // Arrange
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "specificationId", new StringValues(SpecificationId) },
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request.Query.Returns(queryStringValues);
-
             IDatasetRepository datasetRepository = CreateDatasetsRepository();
             datasetRepository
                 .GetDefinitionSpecificationRelationshipsByQuery(Arg.Any<Expression<Func<DocumentEntity<DefinitionSpecificationRelationship>, bool>>>())
@@ -52,7 +44,7 @@ namespace CalculateFunding.Services.Datasets.Services
             DatasetService service = CreateDatasetService(datasetRepository: datasetRepository, jobsApiClient: jobsApiClient);
 
             // Act
-            await service.RegenerateProviderSourceDatasets(request);
+            await service.RegenerateProviderSourceDatasets(SpecificationId, null, null);
 
             // Assert
             await jobsApiClient

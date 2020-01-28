@@ -112,12 +112,8 @@ namespace CalculateFunding.Services.Scenarios
             return health;
         }
 
-        public async Task<IActionResult> SaveVersion(HttpRequest request)
+        public async Task<IActionResult> SaveVersion(CreateNewTestScenarioVersion scenarioVersion, Reference user, string correlationId)
         {
-            string json = await request.GetRawBodyStringAsync();
-
-            CreateNewTestScenarioVersion scenarioVersion = JsonConvert.DeserializeObject<CreateNewTestScenarioVersion>(json);
-
             if (scenarioVersion == null)
             {
                 _logger.Error("A null scenario version was provided");
@@ -151,8 +147,6 @@ namespace CalculateFunding.Services.Scenarios
             }
 
             SpecModel.SpecificationSummary specification = specificationApiResponse.Content;
-
-            Reference user = request.GetUserOrDefault();
 
             if (testScenario == null)
             {
@@ -227,8 +221,6 @@ namespace CalculateFunding.Services.Scenarios
             }
             else
             {
-                string correlationId = request.GetCorrelationId();
-
                 try
                 {
                     JobsModels.Trigger trigger = new JobsModels.Trigger
@@ -257,12 +249,8 @@ namespace CalculateFunding.Services.Scenarios
             return new OkObjectResult(testScenarioResult);
         }
 
-        public async Task<IActionResult> GetTestScenariosBySpecificationId(HttpRequest request)
+        public async Task<IActionResult> GetTestScenariosBySpecificationId(string specificationId)
         {
-            request.Query.TryGetValue("specificationId", out Microsoft.Extensions.Primitives.StringValues specId);
-
-            string specificationId = specId.FirstOrDefault();
-
             if (string.IsNullOrWhiteSpace(specificationId))
             {
                 _logger.Error("No specification Id was provided to GetTestScenariusBySpecificationId");
@@ -275,12 +263,8 @@ namespace CalculateFunding.Services.Scenarios
             return new OkObjectResult(testScenarios.IsNullOrEmpty() ? Enumerable.Empty<TestScenario>() : testScenarios);
         }
 
-        public async Task<IActionResult> GetTestScenarioById(HttpRequest request)
+        public async Task<IActionResult> GetTestScenarioById(string scenarioId)
         {
-            request.Query.TryGetValue("scenarioId", out Microsoft.Extensions.Primitives.StringValues testId);
-
-            string scenarioId = testId.FirstOrDefault();
-
             if (string.IsNullOrWhiteSpace(scenarioId))
             {
                 _logger.Error("No scenario Id was provided to GetTestScenariosById");
@@ -298,12 +282,8 @@ namespace CalculateFunding.Services.Scenarios
             return new OkObjectResult(testScenario);
         }
 
-        public async Task<IActionResult> GetCurrentTestScenarioById(HttpRequest request)
+        public async Task<IActionResult> GetCurrentTestScenarioById(string scenarioId)
         {
-            request.Query.TryGetValue("scenarioId", out Microsoft.Extensions.Primitives.StringValues testId);
-
-            string scenarioId = testId.FirstOrDefault();
-
             if (string.IsNullOrWhiteSpace(scenarioId))
             {
                 _logger.Error("No scenario Id was provided to GetCurrentTestScenarioById");
@@ -529,8 +509,8 @@ namespace CalculateFunding.Services.Scenarios
         {
             JobsModels.JobCreateModel job = new JobsModels.JobCreateModel
             {
-                InvokerUserDisplayName = user.Name,
-                InvokerUserId = user.Id,
+                InvokerUserDisplayName = user?.Name,
+                InvokerUserId = user?.Id,
                 JobDefinitionId = generateAggregations ? JobConstants.DefinitionNames.CreateInstructGenerateAggregationsAllocationJob : JobConstants.DefinitionNames.CreateInstructAllocationJob,
                 SpecificationId = specificationId,
                 Properties = new Dictionary<string, string>

@@ -17,10 +17,8 @@ using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Users.Interfaces;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
-using Newtonsoft.Json;
 using Serilog;
 using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
 
@@ -87,7 +85,7 @@ namespace CalculateFunding.Services.Users
             return health;
         }
 
-        public async Task<IActionResult> GetFundingStreamPermissionsForUser(string userId, HttpRequest request)
+        public async Task<IActionResult> GetFundingStreamPermissionsForUser(string userId)
         {
             if (string.IsNullOrWhiteSpace(userId))
             {
@@ -109,7 +107,7 @@ namespace CalculateFunding.Services.Users
             return new OkObjectResult(results);
         }
 
-        public async Task<IActionResult> UpdatePermissionForUser(string userId, string fundingStreamId, HttpRequest request)
+        public async Task<IActionResult> UpdatePermissionForUser(string userId, string fundingStreamId, FundingStreamPermissionUpdateModel updateModel, Reference author)
         {
             if (string.IsNullOrWhiteSpace(userId))
             {
@@ -121,17 +119,11 @@ namespace CalculateFunding.Services.Users
                 return new BadRequestObjectResult($"{nameof(fundingStreamId)} is empty or null");
             }
 
-            Guard.ArgumentNotNull(request, nameof(request));
-
             User user = await _userRepositoryPolicy.ExecuteAsync(() => _userRepository.GetUserById(userId));
             if (user == null)
             {
                 return new PreconditionFailedResult("userId not found");
             }
-
-            string json = await request.GetRawBodyStringAsync();
-
-            FundingStreamPermissionUpdateModel updateModel = JsonConvert.DeserializeObject<FundingStreamPermissionUpdateModel>(json);
 
             FundingStreamPermission existingPermissions = await _userRepositoryPolicy.ExecuteAsync(() => _userRepository.GetFundingStreamPermission(userId, fundingStreamId));
 
@@ -146,8 +138,6 @@ namespace CalculateFunding.Services.Users
                 {
                     return new InternalServerErrorResult($"Saving funding stream permission to repository returned '{saveResult}'");
                 }
-
-                Reference author = request.GetUserOrDefault();
 
                 FundingStreamPermissionVersion version = new FundingStreamPermissionVersion()
                 {
@@ -222,7 +212,7 @@ namespace CalculateFunding.Services.Users
             }
         }
 
-        public async Task<IActionResult> GetEffectivePermissionsForUser(string userId, string specificationId, HttpRequest request)
+        public async Task<IActionResult> GetEffectivePermissionsForUser(string userId, string specificationId)
         {
             if (string.IsNullOrWhiteSpace(userId))
             {

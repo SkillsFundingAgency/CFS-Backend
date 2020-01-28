@@ -85,13 +85,10 @@ namespace CalculateFunding.Services.Policy
             }
         }
 
-        public async Task<IActionResult> SaveFundingSchema(string actionName, string controllerName, HttpRequest request)
+        public async Task<IActionResult> SaveFundingSchema(string actionName, string controllerName, string schema)
         {
             Guard.IsNullOrWhiteSpace(actionName, nameof(actionName));
             Guard.IsNullOrWhiteSpace(controllerName, nameof(controllerName));
-            Guard.ArgumentNotNull(request, nameof(request));
-
-            string schema = await request.GetRawBodyStringAsync();
 
             //wont be null because of the above line
             if (schema.Trim() == string.Empty)

@@ -35,15 +35,6 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
                 Top = 50,
             };
 
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
             ILogger logger = CreateLogger();
 
             ISearchRepository<TestScenarioResultIndex> searchRepository = CreateSearchRepository();
@@ -56,7 +47,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
             TestResultsSearchService service = CreateTestResultsSearchService(logger: logger, serachRepository: searchRepository);
 
             //Act
-            IActionResult result = await service.SearchTestScenarioResults(request);
+            IActionResult result = await service.SearchTestScenarioResults(model);
 
             //Assert
             logger
@@ -73,8 +64,6 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
         public async Task SearchTestScenarioResults_GivenNullSearchModel_LogsAndCreatesDefaultSearcModel()
         {
             //Arrange
-            HttpRequest request = Substitute.For<HttpRequest>();
-
             ILogger logger = CreateLogger();
 
             ISearchRepository<TestScenarioResultIndex> searchRepository = CreateSearchRepository();
@@ -82,7 +71,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
             TestResultsSearchService service = CreateTestResultsSearchService(logger: logger, serachRepository: searchRepository);
 
             //Act
-            IActionResult result = await service.SearchTestScenarioResults(request);
+            IActionResult result = await service.SearchTestScenarioResults(null);
 
             //Assert
             logger
@@ -99,15 +88,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
         {
             //Arrange
             SearchModel model = new SearchModel();
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
+            
             ILogger logger = CreateLogger();
 
             ISearchRepository<TestScenarioResultIndex> searchRepository = CreateSearchRepository();
@@ -115,7 +96,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
             TestResultsSearchService service = CreateTestResultsSearchService(logger: logger, serachRepository: searchRepository);
 
             //Act
-            IActionResult result = await service.SearchTestScenarioResults(request);
+            IActionResult result = await service.SearchTestScenarioResults(model);
 
             //Assert
             logger
@@ -137,15 +118,6 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
                 Top = 0
             };
 
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
             ILogger logger = CreateLogger();
 
             ISearchRepository<TestScenarioResultIndex> searchRepository = CreateSearchRepository();
@@ -153,7 +125,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
             TestResultsSearchService service = CreateTestResultsSearchService(logger: logger, serachRepository: searchRepository);
 
             //Act
-            IActionResult result = await service.SearchTestScenarioResults(request);
+            IActionResult result = await service.SearchTestScenarioResults(model);
 
             //Assert
             logger
@@ -176,15 +148,6 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
                 IncludeFacets = true
             };
 
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
             SearchResults<TestScenarioResultIndex> searchResults = new SearchResults<TestScenarioResultIndex>();
 
             ILogger logger = CreateLogger();
@@ -197,7 +160,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
             TestResultsSearchService service = CreateTestResultsSearchService(logger: logger, serachRepository: searchRepository);
 
             //Act
-            IActionResult result = await service.SearchTestScenarioResults(request);
+            IActionResult result = await service.SearchTestScenarioResults(model);
 
             //Assert
             result
@@ -222,15 +185,6 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
                 Filters = null,
             };
 
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
             SearchResults<TestScenarioResultIndex> searchResults = new SearchResults<TestScenarioResultIndex>();
 
             ILogger logger = CreateLogger();
@@ -243,7 +197,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
             TestResultsSearchService service = CreateTestResultsSearchService(logger: logger, serachRepository: searchRepository);
 
             //Act
-            IActionResult result = await service.SearchTestScenarioResults(request);
+            IActionResult result = await service.SearchTestScenarioResults(model);
 
             //Assert
             result
@@ -273,15 +227,6 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
                 SearchTerm = "testTerm",
             };
 
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
             SearchResults<TestScenarioResultIndex> searchResults = new SearchResults<TestScenarioResultIndex>();
 
             ILogger logger = CreateLogger();
@@ -294,7 +239,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
             TestResultsSearchService service = CreateTestResultsSearchService(logger: logger, serachRepository: searchRepository);
 
             //Act
-            IActionResult result = await service.SearchTestScenarioResults(request);
+            IActionResult result = await service.SearchTestScenarioResults(model);
 
             //Assert
             result
@@ -326,15 +271,6 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
                 SearchTerm = "testTerm",
             };
 
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
             SearchResults<TestScenarioResultIndex> searchResults = new SearchResults<TestScenarioResultIndex>();
 
             ILogger logger = CreateLogger();
@@ -347,7 +283,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
             TestResultsSearchService service = CreateTestResultsSearchService(logger: logger, serachRepository: searchRepository);
 
             //Act
-            IActionResult result = await service.SearchTestScenarioResults(request);
+            IActionResult result = await service.SearchTestScenarioResults(model);
 
             //Assert
             result
@@ -380,15 +316,6 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
                 SearchFields = new[] { "test" }
             };
 
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
             SearchResults<TestScenarioResultIndex> searchResults = new SearchResults<TestScenarioResultIndex>();
 
             ILogger logger = CreateLogger();
@@ -401,7 +328,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
             TestResultsSearchService service = CreateTestResultsSearchService(logger: logger, serachRepository: searchRepository);
 
             //Act
-            IActionResult result = await service.SearchTestScenarioResults(request);
+            IActionResult result = await service.SearchTestScenarioResults(model);
 
             //Assert
             result
@@ -433,15 +360,6 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
                 SearchTerm = "testTerm",
             };
 
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
             SearchResults<TestScenarioResultIndex> searchResults = new SearchResults<TestScenarioResultIndex>();
 
             ILogger logger = CreateLogger();
@@ -454,7 +372,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
             TestResultsSearchService service = CreateTestResultsSearchService(logger: logger, serachRepository: searchRepository);
 
             //Act
-            IActionResult result = await service.SearchTestScenarioResults(request);
+            IActionResult result = await service.SearchTestScenarioResults(model);
 
             //Assert
             result
@@ -486,15 +404,6 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
                 SearchTerm = "testTerm",
             };
 
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
             SearchResults<TestScenarioResultIndex> searchResults = new SearchResults<TestScenarioResultIndex>();
 
             ILogger logger = CreateLogger();
@@ -507,7 +416,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
             TestResultsSearchService service = CreateTestResultsSearchService(logger: logger, serachRepository: searchRepository);
 
             //Act
-            IActionResult result = await service.SearchTestScenarioResults(request);
+            IActionResult result = await service.SearchTestScenarioResults(model);
 
             //Assert
             result
@@ -533,15 +442,6 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
                 Top = 50
             };
 
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
             SearchResults<TestScenarioResultIndex> searchResults = new SearchResults<TestScenarioResultIndex>();
 
             ILogger logger = CreateLogger();
@@ -554,7 +454,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
             TestResultsSearchService service = CreateTestResultsSearchService(logger: logger, serachRepository: searchRepository);
 
             //Act
-            IActionResult result = await service.SearchTestScenarioResults(request);
+            IActionResult result = await service.SearchTestScenarioResults(model);
 
             //Assert
             result
@@ -579,15 +479,6 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
                 Top = 50
             };
 
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
             SearchResults<TestScenarioResultIndex> searchResults = new SearchResults<TestScenarioResultIndex>();
 
             ILogger logger = CreateLogger();
@@ -600,7 +491,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
             TestResultsSearchService service = CreateTestResultsSearchService(logger: logger, serachRepository: searchRepository);
 
             //Act
-            IActionResult result = await service.SearchTestScenarioResults(request);
+            IActionResult result = await service.SearchTestScenarioResults(model);
 
             //Assert
             result
@@ -625,15 +516,6 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
                 Top = 50
             };
 
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
             SearchResults<TestScenarioResultIndex> searchResults = new SearchResults<TestScenarioResultIndex>();
 
             ILogger logger = CreateLogger();
@@ -646,7 +528,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
             TestResultsSearchService service = CreateTestResultsSearchService(logger: logger, serachRepository: searchRepository);
 
             //Act
-            IActionResult result = await service.SearchTestScenarioResults(request);
+            IActionResult result = await service.SearchTestScenarioResults(model);
 
             //Assert
             result
@@ -670,15 +552,6 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
                 IncludeFacets = true
             };
 
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
             SearchResults<TestScenarioResultIndex> searchResults = new SearchResults<TestScenarioResultIndex>
             {
                 Facets = new List<Facet>
@@ -700,7 +573,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
             TestResultsSearchService service = CreateTestResultsSearchService(logger: logger, serachRepository: searchRepository);
 
             //Act
-            IActionResult result = await service.SearchTestScenarioResults(request);
+            IActionResult result = await service.SearchTestScenarioResults(model);
 
             //Assert
             result

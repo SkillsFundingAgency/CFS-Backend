@@ -45,9 +45,9 @@ namespace CalculateFunding.Api.Policy.Controllers
         /// </summary>
         [HttpPost("api/fundingstreams")]
         [Produces(typeof(FundingStream))]
-        public async Task<IActionResult> SaveFundingStream()
+        public async Task<IActionResult> SaveFundingStream([FromBody] FundingStreamSaveModel fundingStreamSaveModel)
         {
-            return await _fundingStreamService.SaveFundingStream(ControllerContext.HttpContext.Request);
+            return await _fundingStreamService.SaveFundingStream(fundingStreamSaveModel);
         }
     }
 }

@@ -156,14 +156,12 @@ namespace CalculateFunding.Services.Datasets.Services
         public async Task CreateNewDataset_GivenNullModel_ReturnsBadRequest()
         {
             //Arrange
-            HttpRequest request = Substitute.For<HttpRequest>();
-
             ILogger logger = CreateLogger();
 
             DatasetService service = CreateDatasetService(logger: logger);
 
             // Act
-            IActionResult result = await service.CreateNewDataset(request);
+            IActionResult result = await service.CreateNewDataset(null, null);
 
             // Assert
             result
@@ -180,15 +178,7 @@ namespace CalculateFunding.Services.Datasets.Services
         {
             //Arrange
             CreateNewDatasetModel model = new CreateNewDatasetModel();
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
+            
             ILogger logger = CreateLogger();
 
             ValidationResult validationResult = new ValidationResult(new[]{
@@ -201,7 +191,7 @@ namespace CalculateFunding.Services.Datasets.Services
             DatasetService service = CreateDatasetService(logger: logger, createNewDatasetModelValidator: validator);
 
             // Act
-            IActionResult result = await service.CreateNewDataset(request);
+            IActionResult result = await service.CreateNewDataset(model, null);
 
             // Assert
             result
@@ -224,27 +214,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 Filename = "test.xlsx"
             };
 
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            ClaimsPrincipal principle = new ClaimsPrincipal(new[]
-            {
-                new ClaimsIdentity(new []{ new Claim(ClaimTypes.Sid, UserId), new Claim(ClaimTypes.Name, Username) })
-            });
-
-            HttpContext context = Substitute.For<HttpContext>();
-            context
-                .User
-                .Returns(principle);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-            request
-                .HttpContext
-                .Returns(context);
+            Reference reference = new Reference(UserId, Username);
 
             ILogger logger = CreateLogger();
 
@@ -261,7 +231,7 @@ namespace CalculateFunding.Services.Datasets.Services
             DatasetService service = CreateDatasetService(logger: logger, blobClient: blobClient, mapper: mapper);
 
             // Act
-            IActionResult result = await service.CreateNewDataset(request);
+            IActionResult result = await service.CreateNewDataset(model, reference);
 
             // Assert
             result
@@ -295,14 +265,12 @@ namespace CalculateFunding.Services.Datasets.Services
         async public Task GetDatasetsByDefinitionId_WhenNoDefinitionIdIsProvided_ReturnsBadRequest()
         {
             //Arrange
-            HttpRequest request = Substitute.For<HttpRequest>();
-
             ILogger logger = CreateLogger();
 
             DatasetService service = CreateDatasetService(logger: logger);
 
             // Act
-            IActionResult result = await service.GetDatasetsByDefinitionId(request);
+            IActionResult result = await service.GetDatasetsByDefinitionId(null);
 
             // Assert
             result
@@ -318,19 +286,6 @@ namespace CalculateFunding.Services.Datasets.Services
         async public Task GetDatasetsByDefinitionId_WhenNullDatasetsReturned_ReturnsOKResult()
         {
             // Arrange
-            IEnumerable<Dataset> datasets = Enumerable.Empty<Dataset>();
-
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "definitionId", new StringValues(DataDefintionId) }
-
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-
             IDatasetRepository datasetRepository = CreateDatasetsRepository();
             datasetRepository
                 .GetDatasetsByQuery(Arg.Any<Expression<Func<DocumentEntity<Dataset>, bool>>>())
@@ -339,7 +294,7 @@ namespace CalculateFunding.Services.Datasets.Services
             DatasetService service = CreateDatasetService(datasetRepository: datasetRepository);
 
             // Act
-            IActionResult result = await service.GetDatasetsByDefinitionId(request);
+            IActionResult result = await service.GetDatasetsByDefinitionId(DataDefintionId);
 
             // Assert
             result
@@ -365,17 +320,6 @@ namespace CalculateFunding.Services.Datasets.Services
                 new Dataset()
             };
 
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "definitionId", new StringValues(DataDefintionId) }
-
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-
             IDatasetRepository datasetRepository = CreateDatasetsRepository();
             datasetRepository
                 .GetDatasetsByQuery(Arg.Any<Expression<Func<DocumentEntity<Dataset>, bool>>>())
@@ -391,7 +335,7 @@ namespace CalculateFunding.Services.Datasets.Services
             DatasetService service = CreateDatasetService(datasetRepository: datasetRepository, mapper: mapper);
 
             // Act
-            IActionResult result = await service.GetDatasetsByDefinitionId(request);
+            IActionResult result = await service.GetDatasetsByDefinitionId(DataDefintionId);
 
             // Assert
             result
@@ -418,14 +362,12 @@ namespace CalculateFunding.Services.Datasets.Services
         public async Task DownloadDatasetFile_GivenNoDatasetIdProvided_ReturnsBadRequest()
         {
             //Arrange
-            HttpRequest request = Substitute.For<HttpRequest>();
-
             ILogger logger = CreateLogger();
 
             DatasetService service = CreateDatasetService(logger: logger);
 
             // Act
-            IActionResult result = await service.DownloadDatasetFile(request);
+            IActionResult result = await service.DownloadDatasetFile(null, null);
 
             // Assert
             result
@@ -441,22 +383,12 @@ namespace CalculateFunding.Services.Datasets.Services
         public async Task DownloadDatasetFile_GivenDatasetCouldNotBeFound_ReturnsPreConditionFailed()
         {
             //Arrange
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "datasetId", new StringValues(DatasetId) }
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-
             ILogger logger = CreateLogger();
 
             DatasetService service = CreateDatasetService(logger: logger);
 
             // Act
-            IActionResult result = await service.DownloadDatasetFile(request);
+            IActionResult result = await service.DownloadDatasetFile(DatasetId, null);
 
             // Assert
             result
@@ -479,16 +411,6 @@ namespace CalculateFunding.Services.Datasets.Services
         public async Task DownloadDatasetFile_GivenDatasetCurrentBlobNameDoesnotExist_ReturnsPreConditionFailed()
         {
             //Arrange
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "datasetId", new StringValues(DatasetId) }
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-
 	        Dataset dataset = new Dataset()
 	        {
 		        History = new List<DatasetVersion>()
@@ -510,7 +432,7 @@ namespace CalculateFunding.Services.Datasets.Services
             DatasetService service = CreateDatasetService(logger: logger, datasetRepository: datasetRepository);
 
             // Act
-            IActionResult result = await service.DownloadDatasetFile(request);
+            IActionResult result = await service.DownloadDatasetFile(DatasetId, null);
 
             // Assert
             result
@@ -534,16 +456,6 @@ namespace CalculateFunding.Services.Datasets.Services
         {
             //Arrange
             const string blobName = "blob-name.xlsx";
-
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "datasetId", new StringValues(DatasetId) }
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
 
             Dataset dataset = new Dataset
             {
@@ -575,7 +487,7 @@ namespace CalculateFunding.Services.Datasets.Services
             DatasetService service = CreateDatasetService(logger: logger, datasetRepository: datasetRepository, blobClient: blobClient);
 
             // Act
-            IActionResult result = await service.DownloadDatasetFile(request);
+            IActionResult result = await service.DownloadDatasetFile(DatasetId, null);
 
             // Assert
             result
@@ -593,16 +505,6 @@ namespace CalculateFunding.Services.Datasets.Services
             //Arrange
             const string blobUrl = "http://this-is-a-bloburl?this=is-a-token";
             const string blobName = "blob-name.xlsx";
-
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "datasetId", new StringValues(DatasetId) }
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
 
             Dataset dataset = new Dataset
             {
@@ -640,7 +542,7 @@ namespace CalculateFunding.Services.Datasets.Services
             DatasetService service = CreateDatasetService(logger: logger, datasetRepository: datasetRepository, blobClient: blobClient);
 
             // Act
-            IActionResult result = await service.DownloadDatasetFile(request);
+            IActionResult result = await service.DownloadDatasetFile(DatasetId, null);
 
             // Assert
             result
@@ -660,17 +562,6 @@ namespace CalculateFunding.Services.Datasets.Services
 			const string blobUrl = "http://this-is-a-bloburl?this=is-a-token";
 			const string blobName = "blob-name.xlsx";
 			const int versionSpecified = 2;
-
-			IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-			{
-				{ "datasetId", new StringValues(DatasetId) },
-				{ "datasetVersion", new StringValues(versionSpecified.ToString()) }
-			});
-
-			HttpRequest request = Substitute.For<HttpRequest>();
-			request
-				.Query
-				.Returns(queryStringValues);
 
 			Dataset dataset = new Dataset
 			{
@@ -714,7 +605,7 @@ namespace CalculateFunding.Services.Datasets.Services
 			DatasetService service = CreateDatasetService(logger: logger, datasetRepository: datasetRepository, blobClient: blobClient);
 
 			// Act
-			IActionResult result = await service.DownloadDatasetFile(request);
+			IActionResult result = await service.DownloadDatasetFile(DatasetId, versionSpecified.ToString());
 
 			// Assert
 			result
@@ -734,17 +625,6 @@ namespace CalculateFunding.Services.Datasets.Services
 			const string blobUrl = "http://this-is-a-bloburl?this=is-a-token";
 			const string blobName = "blob-name.xlsx";
 			const int versionSpecified = 2;
-
-			IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-			{
-				{ "datasetId", new StringValues(DatasetId) },
-				{ "datasetVersion", new StringValues(versionSpecified.ToString()) }
-			});
-
-			HttpRequest request = Substitute.For<HttpRequest>();
-			request
-				.Query
-				.Returns(queryStringValues);
 
 			Dataset dataset = new Dataset
 			{
@@ -788,7 +668,7 @@ namespace CalculateFunding.Services.Datasets.Services
 			DatasetService service = CreateDatasetService(logger: logger, datasetRepository: datasetRepository, blobClient: blobClient);
 
 			// Act
-			IActionResult result = await service.DownloadDatasetFile(request);
+			IActionResult result = await service.DownloadDatasetFile(DatasetId, versionSpecified.ToString());
 
 			// Assert
 			result
@@ -804,23 +684,13 @@ namespace CalculateFunding.Services.Datasets.Services
 	    public async Task DownloadDatasetFile_GivenAnInvalidVersionWasProvided_ReturnsBadRequest()
 	    {
 		    //Arrange
-		    IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-		    {
-			    { "datasetId", new StringValues(DatasetId) },
-			    { "datasetVersion", new StringValues("one") }
-		    });
-
-		    HttpRequest request = Substitute.For<HttpRequest>();
-		    request
-			    .Query
-			    .Returns(queryStringValues);
 
 			ILogger logger = CreateLogger();
 
 		    DatasetService service = CreateDatasetService(logger: logger);
 
 		    // Act
-		    IActionResult result = await service.DownloadDatasetFile(request);
+		    IActionResult result = await service.DownloadDatasetFile(DatasetId, "one");
 
 		    // Assert
 		    result
@@ -923,24 +793,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 Filename = "ds.xlsx",
             };
 
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
-            List<Claim> claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.Sid, authorId),
-                new Claim(ClaimTypes.Name, authorName)
-            };
-
-            request
-                .HttpContext.User.Claims
-                .Returns(claims.AsEnumerable());
+            Reference author = new Reference(authorId, authorName);
 
             DatasetVersion existingDatasetVersion = new DatasetVersion()
             {
@@ -971,7 +824,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
 
             // Act
-            IActionResult result = await datasetService.DatasetVersionUpdate(request);
+            IActionResult result = await datasetService.DatasetVersionUpdate(model, author);
 
             // Assert
             result
@@ -1020,17 +873,8 @@ namespace CalculateFunding.Services.Datasets.Services
                 Filename = "ds.xlsx",
             };
 
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
             // Act
-            IActionResult result = await datasetService.DatasetVersionUpdate(request);
+            IActionResult result = await datasetService.DatasetVersionUpdate(model, null);
 
             // Assert
             result
@@ -1048,17 +892,8 @@ namespace CalculateFunding.Services.Datasets.Services
 
             DatasetVersionUpdateModel model = null;
 
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
             // Act
-            IActionResult result = await datasetService.DatasetVersionUpdate(request);
+            IActionResult result = await datasetService.DatasetVersionUpdate(model, null);
 
             // Assert
             result
@@ -1087,21 +922,13 @@ namespace CalculateFunding.Services.Datasets.Services
                 DatasetId = "dsnotfound",
                 Filename = "ds.xlsx",
             };
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
 
             datasetRepository
                .GetDatasetByDatasetId(Arg.Any<string>())
                .Returns((Dataset)null);
 
             // Act
-            IActionResult result = await datasetService.DatasetVersionUpdate(request);
+            IActionResult result = await datasetService.DatasetVersionUpdate(model, null);
 
             // Assert
             result
@@ -1129,17 +956,6 @@ namespace CalculateFunding.Services.Datasets.Services
                 );
 
             const string datasetId = "ds1";
-
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "datasetId", new StringValues(datasetId) }
-
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
 
             DatasetVersion datasetVersion = new DatasetVersion()
             {
@@ -1172,7 +988,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Returns(documentEntity);
 
             // Act
-            IActionResult result = await datasetService.GetCurrentDatasetVersionByDatasetId(request);
+            IActionResult result = await datasetService.GetCurrentDatasetVersionByDatasetId(datasetId);
 
             // Assert
             result
@@ -1208,17 +1024,6 @@ namespace CalculateFunding.Services.Datasets.Services
                 );
 
             const string datasetId = "ds1";
-
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "datasetId", new StringValues(datasetId) }
-
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
 
             DatasetVersion datasetVersion1 = new DatasetVersion()
             {
@@ -1261,7 +1066,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Returns(documentEntity);
 
             // Act
-            IActionResult result = await datasetService.GetCurrentDatasetVersionByDatasetId(request);
+            IActionResult result = await datasetService.GetCurrentDatasetVersionByDatasetId(datasetId);
 
             // Assert
             result
@@ -1300,19 +1105,8 @@ namespace CalculateFunding.Services.Datasets.Services
 
             const string datasetId = "";
 
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "datasetId", new StringValues(datasetId) }
-
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-
             // Act
-            IActionResult result = await datasetService.GetCurrentDatasetVersionByDatasetId(request);
+            IActionResult result = await datasetService.GetCurrentDatasetVersionByDatasetId(datasetId);
 
             // Assert
             result
@@ -1343,23 +1137,12 @@ namespace CalculateFunding.Services.Datasets.Services
 
             const string datasetId = "notfound";
 
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "datasetId", new StringValues(datasetId) }
-
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-
             datasetRepository
                 .GetDatasetDocumentByDatasetId(Arg.Is(datasetId))
                 .Returns((DocumentEntity<Dataset>)null);
 
             // Act
-            IActionResult result = await datasetService.GetCurrentDatasetVersionByDatasetId(request);
+            IActionResult result = await datasetService.GetCurrentDatasetVersionByDatasetId(datasetId);
 
             // Assert
             result
@@ -1390,23 +1173,12 @@ namespace CalculateFunding.Services.Datasets.Services
 
             const string datasetId = "notfound";
 
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "datasetId", new StringValues(datasetId) }
-
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-
             datasetRepository
                 .GetDatasetDocumentByDatasetId(Arg.Is(datasetId))
                 .Returns(new DocumentEntity<Dataset>(null));
 
             // Act
-            IActionResult result = await datasetService.GetCurrentDatasetVersionByDatasetId(request);
+            IActionResult result = await datasetService.GetCurrentDatasetVersionByDatasetId(datasetId);
 
             // Assert
             result
@@ -1437,23 +1209,12 @@ namespace CalculateFunding.Services.Datasets.Services
 
             const string datasetId = "notfound";
 
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "datasetId", new StringValues(datasetId) }
-
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-
             datasetRepository
                 .GetDatasetDocumentByDatasetId(Arg.Is(datasetId))
                 .Returns(new DocumentEntity<Dataset>(new Dataset()));
 
             // Act
-            IActionResult result = await datasetService.GetCurrentDatasetVersionByDatasetId(request);
+            IActionResult result = await datasetService.GetCurrentDatasetVersionByDatasetId(datasetId);
 
             // Assert
             result

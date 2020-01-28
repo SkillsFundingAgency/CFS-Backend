@@ -31,21 +31,13 @@ namespace CalculateFunding.Services.Jobs.Services
         public async Task SaveDefinition_GivenEmptyJson_ReturnsBadRequest()
         {
             //Arrange
-            IHeaderDictionary headerDictionary = new HeaderDictionary();
-            headerDictionary
-                .Add("json-file", new StringValues(jsonFile));
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Headers
-                .Returns(headerDictionary);
 
             ILogger logger = CreateLogger();
 
             JobDefinitionsService jobDefinitionsService = CreateJobDefinitionService(logger: logger);
 
             //Act
-            IActionResult result = await jobDefinitionsService.SaveDefinition(request);
+            IActionResult result = await jobDefinitionsService.SaveDefinition(null, jsonFile);
 
             //Assert
             result
@@ -66,28 +58,13 @@ namespace CalculateFunding.Services.Jobs.Services
         {
             //Arrange
             string yaml = "invalid json";
-            byte[] byteArray = Encoding.UTF8.GetBytes(yaml);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            IHeaderDictionary headerDictionary = new HeaderDictionary();
-            headerDictionary
-                .Add("json-file", new StringValues(jsonFile));
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Headers
-                .Returns(headerDictionary);
-
-            request
-                .Body
-                .Returns(stream);
 
             ILogger logger = CreateLogger();
 
             JobDefinitionsService jobDefinitionsService = CreateJobDefinitionService(logger: logger);
 
             //Act
-            IActionResult result = await jobDefinitionsService.SaveDefinition(request);
+            IActionResult result = await jobDefinitionsService.SaveDefinition(yaml, jsonFile);
 
             //Assert
             result
@@ -109,22 +86,6 @@ namespace CalculateFunding.Services.Jobs.Services
             //Arrange
             string yaml = JsonConvert.SerializeObject(new JobDefinition());
 
-            byte[] byteArray = Encoding.UTF8.GetBytes(yaml);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            IHeaderDictionary headerDictionary = new HeaderDictionary();
-            headerDictionary
-                .Add("json-file", new StringValues(jsonFile));
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Headers
-                .Returns(headerDictionary);
-
-            request
-                .Body
-                .Returns(stream);
-
             ILogger logger = CreateLogger();
 
             IJobDefinitionsRepository jobDefinitionsRepository = CreateJobDefinitionsRepository();
@@ -135,7 +96,7 @@ namespace CalculateFunding.Services.Jobs.Services
             JobDefinitionsService jobDefinitionsService = CreateJobDefinitionService(logger: logger, jobDefinitionsRepository: jobDefinitionsRepository);
 
             //Act
-            IActionResult result = await jobDefinitionsService.SaveDefinition(request);
+            IActionResult result = await jobDefinitionsService.SaveDefinition(yaml, jsonFile);
 
             //Assert
             result
@@ -157,22 +118,6 @@ namespace CalculateFunding.Services.Jobs.Services
             //Arrange
             string yaml = JsonConvert.SerializeObject(new JobDefinition());
 
-            byte[] byteArray = Encoding.UTF8.GetBytes(yaml);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            IHeaderDictionary headerDictionary = new HeaderDictionary();
-            headerDictionary
-                .Add("json-file", new StringValues(jsonFile));
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Headers
-                .Returns(headerDictionary);
-
-            request
-                .Body
-                .Returns(stream);
-
             ILogger logger = CreateLogger();
 
             IJobDefinitionsRepository jobDefinitionsRepository = CreateJobDefinitionsRepository();
@@ -184,7 +129,7 @@ namespace CalculateFunding.Services.Jobs.Services
             JobDefinitionsService jobDefinitionsService = CreateJobDefinitionService(logger: logger, jobDefinitionsRepository: jobDefinitionsRepository);
 
             //Act
-            IActionResult result = await jobDefinitionsService.SaveDefinition(request);
+            IActionResult result = await jobDefinitionsService.SaveDefinition(yaml, jsonFile);
 
             //Assert
             result
@@ -206,22 +151,6 @@ namespace CalculateFunding.Services.Jobs.Services
             //Arrange
             string yaml = JsonConvert.SerializeObject(new JobDefinition());
 
-            byte[] byteArray = Encoding.UTF8.GetBytes(yaml);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            IHeaderDictionary headerDictionary = new HeaderDictionary();
-            headerDictionary
-                .Add("json-file", new StringValues(jsonFile));
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Headers
-                .Returns(headerDictionary);
-
-            request
-                .Body
-                .Returns(stream);
-
             ILogger logger = CreateLogger();
 
             IJobDefinitionsRepository jobDefinitionsRepository = CreateJobDefinitionsRepository();
@@ -234,7 +163,7 @@ namespace CalculateFunding.Services.Jobs.Services
             JobDefinitionsService jobDefinitionsService = CreateJobDefinitionService(logger: logger, jobDefinitionsRepository: jobDefinitionsRepository, cacheProvider: cacheProvider);
 
             //Act
-            IActionResult result = await jobDefinitionsService.SaveDefinition(request);
+            IActionResult result = await jobDefinitionsService.SaveDefinition(yaml, jsonFile);
 
             //Assert
             result
@@ -274,7 +203,7 @@ namespace CalculateFunding.Services.Jobs.Services
                 .Should()
                 .Be(1);
 
-            jobDefinitionsRepository
+            await jobDefinitionsRepository
                 .DidNotReceive()
                     .GetJobDefinitions();
         }

@@ -23,14 +23,12 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         public async Task GetSpecificationsSelectedForFundingByPeriod_GivenSpecificationIdDoesNotExist_ReturnsBadRequest()
         {
             // Arrange
-            HttpRequest request = Substitute.For<HttpRequest>();
-
             ILogger logger = CreateLogger();
 
             SpecificationsService service = CreateService(logs: logger);
 
             // Act
-            IActionResult result = await service.GetSpecificationsSelectedForFundingByPeriod(request);
+            IActionResult result = await service.GetSpecificationsSelectedForFundingByPeriod(null);
 
             //Assert
             result
@@ -53,17 +51,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             Specification spec1 = new Specification { Id = "spec1", IsSelectedForFunding = true, Current = sv1 };
             Specification spec2 = new Specification { Id = "spec2", IsSelectedForFunding = true, Current = sv2 };
 
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "fundingPeriodId", new StringValues(FundingPeriodId) }
-
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-
             ILogger logger = CreateLogger();
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
@@ -74,7 +61,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             SpecificationsService service = CreateService(specificationsRepository: specificationsRepository, logs: logger);
 
             //Act
-            IActionResult result = await service.GetSpecificationsSelectedForFundingByPeriod(request);
+            IActionResult result = await service.GetSpecificationsSelectedForFundingByPeriod(FundingPeriodId);
 
             //Assert
             result
@@ -97,17 +84,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             Specification spec1 = new Specification { Id = "spec1", IsSelectedForFunding = true, Current = sv1 };
             Specification spec2 = new Specification { Id = "spec2", IsSelectedForFunding = true, Current = sv2 };
 
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "fundingPeriodId", new StringValues(FundingPeriodId) }
-
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-
             ILogger logger = CreateLogger();
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
@@ -118,7 +94,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             SpecificationsService service = CreateService(specificationsRepository: specificationsRepository, logs: logger);
 
             //Act
-            IActionResult result = await service.GetSpecificationsSelectedForFundingByPeriod(request);
+            IActionResult result = await service.GetSpecificationsSelectedForFundingByPeriod(FundingPeriodId);
 
             //Assert
             result

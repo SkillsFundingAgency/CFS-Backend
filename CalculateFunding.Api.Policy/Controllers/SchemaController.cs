@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Utility;
+using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Policy.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -47,10 +48,12 @@ namespace CalculateFunding.Api.Policy.Controllers
                 controllerName = (string)this.ControllerContext.RouteData.Values["controller"];
             }
 
+            string schema = await ControllerContext.HttpContext.Request.GetRawBodyStringAsync();
+
             return await _fundingSchemaService.SaveFundingSchema(
                 nameof(GetFundingSchemaByVersion),
-                controllerName, 
-                ControllerContext.HttpContext.Request);
+                controllerName,
+                schema);
         }
     }
 }

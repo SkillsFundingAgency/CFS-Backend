@@ -73,13 +73,10 @@ namespace CalculateFunding.Services.Policy
             return health;
         }
 
-        public async Task<IActionResult> SaveFundingTemplate(string actionName, string controllerName, HttpRequest request)
+        public async Task<IActionResult> SaveFundingTemplate(string actionName, string controllerName, string template)
         {
             Guard.IsNullOrWhiteSpace(actionName, nameof(actionName));
             Guard.IsNullOrWhiteSpace(controllerName, nameof(controllerName));
-            Guard.ArgumentNotNull(request, nameof(request));
-
-            string template = await request.GetRawBodyStringAsync();
 
             //Already checked for null above when getting body
             if (template.Trim() == string.Empty)

@@ -16,7 +16,7 @@ namespace CalculateFunding.Services.Jobs.Interfaces
 
         Task<IActionResult> GetJobLogs(string jobId);
 
-        Task<IActionResult> UpdateJob(string jobId, JobUpdateModel jobUpdate, HttpRequest request);
+        Task<IActionResult> UpdateJob(string jobId, JobUpdateModel jobUpdate);
 
         Task<IActionResult> GetCreatedJobsWithinTimeFrame(DateTimeOffset dateTimeFrom, DateTimeOffset dateTimeTo);
     }

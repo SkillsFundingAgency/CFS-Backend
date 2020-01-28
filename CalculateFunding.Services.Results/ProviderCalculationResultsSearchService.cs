@@ -72,12 +72,8 @@ namespace CalculateFunding.Services.Results
             return health;
         }
 
-        async public Task<IActionResult> SearchCalculationProviderResults(HttpRequest request)
+        async public Task<IActionResult> SearchCalculationProviderResults(SearchModel searchModel)
         {
-            string json = await request.GetRawBodyStringAsync();
-
-            SearchModel searchModel = JsonConvert.DeserializeObject<SearchModel>(json);
-
             if (searchModel == null || searchModel.PageNumber < 1 || searchModel.Top < 1)
             {
                 _logger.Error("A null or invalid search model was provided for searching calculation provider results");
@@ -87,7 +83,7 @@ namespace CalculateFunding.Services.Results
 
             try
             {
-                CalculationProviderResultSearchResults results = await SearchCalculationProviderResults(searchModel);
+                CalculationProviderResultSearchResults results = await SearchCalculationProviderResultsInternal(searchModel);
                 return new OkObjectResult(results);
             }
             catch (FailedToQuerySearchException exception)
@@ -98,7 +94,7 @@ namespace CalculateFunding.Services.Results
             }
         }
 
-        public async Task<CalculationProviderResultSearchResults> SearchCalculationProviderResults(SearchModel searchModel)
+        private async Task<CalculationProviderResultSearchResults> SearchCalculationProviderResultsInternal(SearchModel searchModel)
         {
             string calculationId = (searchModel.Filters != null &&
                                         searchModel.Filters.ContainsKey("calculationId") &&

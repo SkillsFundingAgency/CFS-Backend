@@ -14,7 +14,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace CalculateFunding.Api.Calcs.Controllers
 {
-    public class CalculationsController : Controller
+    public class CalculationsController : ControllerBase
     {
         private readonly ICalculationService _calcsService;
         private readonly IPreviewService _previewService;
@@ -87,6 +87,7 @@ namespace CalculateFunding.Api.Calcs.Controllers
 
         [Route("api/calcs/specifications/{specificationId}/calculations/{calculationId}/{skipInstruct}")]
         [HttpPut]
+        [Produces(typeof(CalculationResponseModel))]
         public Task<IActionResult> EditCalculation([FromRoute]string specificationId, [FromRoute]string calculationId, [FromRoute]bool skipInstruct, [FromBody]CalculationEditModel model)
         {
             HttpRequest httpRequest = ControllerContext.HttpContext.Request;

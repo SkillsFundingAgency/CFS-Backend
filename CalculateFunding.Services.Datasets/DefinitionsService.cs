@@ -6,6 +6,7 @@ using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Datasets;
@@ -17,7 +18,6 @@ using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.DataImporter;
 using CalculateFunding.Services.Datasets.Interfaces;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Storage.Blob;
 using Newtonsoft.Json;
@@ -89,16 +89,14 @@ namespace CalculateFunding.Services.Datasets
             return health;
         }
 
-        async public Task<IActionResult> SaveDefinition(HttpRequest request)
+        async public Task<IActionResult> SaveDefinition(string yaml, string yamlFilename, Reference user, string correlationId)
         {
-            string yaml = await request.GetRawBodyStringAsync();
-
-            string yamlFilename = request.GetYamlFileNameFromRequest();
-
             if (string.IsNullOrEmpty(yaml))
             {
-                _logger.Error($"Null or empty yaml provided for file: {yamlFilename}");
-                return new BadRequestObjectResult($"Invalid yaml was provided for file: {yamlFilename}");
+                string fileName = !string.IsNullOrEmpty(yamlFilename) ? yamlFilename : "File name not provided";
+
+                _logger.Error($"Null or empty yaml provided for file: {fileName}");
+                return new BadRequestObjectResult($"Invalid yaml was provided for file: {fileName}");
             }
 
             var deserializer = new DeserializerBuilder()
@@ -186,7 +184,7 @@ namespace CalculateFunding.Services.Datasets
 
             if (existingDefinition != null && datasetDefinitionChanges.HasChanges)
             {
-                IDictionary<string, string> properties = request.BuildMessageProperties();
+                IDictionary<string, string> properties = MessageExtensions.BuildMessageProperties(correlationId, user);
 
                 await _messengerService.SendToTopic(ServiceBusConstants.TopicNames.DataDefinitionChanges, datasetDefinitionChanges, properties);
             }
@@ -249,19 +247,15 @@ namespace CalculateFunding.Services.Datasets
             return Enumerable.Empty<IndexError>();
         }
 
-        async public Task<IActionResult> GetDatasetDefinitions(HttpRequest request)
+        async public Task<IActionResult> GetDatasetDefinitions()
         {
             IEnumerable<DatasetDefinition> definitions = await _datasetsRepositoryPolicy.ExecuteAsync(() => _datasetsRepository.GetDatasetDefinitions());
 
             return new OkObjectResult(definitions);
         }
 
-        public async Task<IActionResult> GetDatasetDefinitionById(HttpRequest request)
+        public async Task<IActionResult> GetDatasetDefinitionById(string datasetDefinitionId)
         {
-            request.Query.TryGetValue("datasetDefinitionId", out var requestDatasetDefinitionId);
-
-            var datasetDefinitionId = requestDatasetDefinitionId.FirstOrDefault();
-
             if (string.IsNullOrWhiteSpace(datasetDefinitionId))
             {
                 _logger.Error("No datasetDefinitionId was provided to GetDatasetDefinitionById");
@@ -278,11 +272,8 @@ namespace CalculateFunding.Services.Datasets
             return new OkObjectResult(defintion);
         }
 
-        public async Task<IActionResult> GetDatasetDefinitionsByIds(HttpRequest request)
+        public async Task<IActionResult> GetDatasetDefinitionsByIds(IEnumerable<string> definitionIds)
         {
-            string json = await request.GetRawBodyStringAsync();
-
-            IEnumerable<string> definitionIds = JsonConvert.DeserializeObject<IEnumerable<string>>(json);
             if (!definitionIds.Any())
             {
                 _logger.Error($"No Dataset Definition Ids were provided to lookup");
@@ -314,12 +305,8 @@ namespace CalculateFunding.Services.Datasets
             }
         }
 
-        public async Task<IActionResult> GetDatasetSchemaSasUrl(HttpRequest request)
+        public async Task<IActionResult> GetDatasetSchemaSasUrl(DatasetSchemaSasUrlRequestModel requestModel)
         {
-            string json = await request.GetRawBodyStringAsync();
-
-            DatasetSchemaSasUrlRequestModel requestModel = JsonConvert.DeserializeObject<DatasetSchemaSasUrlRequestModel>(json);
-
             if (requestModel == null)
             {
                 _logger.Warning("No dataset schema request model was provided");

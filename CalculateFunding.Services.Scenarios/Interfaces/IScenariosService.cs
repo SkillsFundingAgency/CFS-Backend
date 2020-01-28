@@ -1,4 +1,6 @@
-﻿using CalculateFunding.Models.Datasets.ViewModels;
+﻿using CalculateFunding.Common.Models;
+using CalculateFunding.Models.Datasets.ViewModels;
+using CalculateFunding.Models.Scenarios;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
@@ -9,13 +11,13 @@ namespace CalculateFunding.Services.Scenarios.Interfaces
 {
     public interface IScenariosService
     {
-        Task<IActionResult> SaveVersion(HttpRequest request);
+        Task<IActionResult> SaveVersion(CreateNewTestScenarioVersion createNewTestScenarioVersion, Reference user, string correlationId);
 
-        Task<IActionResult> GetTestScenariosBySpecificationId(HttpRequest request);
+        Task<IActionResult> GetTestScenariosBySpecificationId(string specificationId);
 
-        Task<IActionResult> GetTestScenarioById(HttpRequest request);
+        Task<IActionResult> GetTestScenarioById(string scenarioId);
 
-        Task<IActionResult> GetCurrentTestScenarioById(HttpRequest request);
+        Task<IActionResult> GetCurrentTestScenarioById(string scenarioId);
 
         Task UpdateScenarioForSpecification(Message message);
 

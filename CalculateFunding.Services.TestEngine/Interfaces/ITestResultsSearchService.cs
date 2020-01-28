@@ -8,8 +8,8 @@ namespace CalculateFunding.Services.TestRunner.Interfaces
 {
     public interface ITestResultsSearchService
     {
-        Task<IActionResult> SearchTestScenarioResults(HttpRequest request);
+        Task<IActionResult> SearchTestScenarioResults(SearchModel searchModel);
 
-        Task<TestScenarioSearchResults> SearchTestScenarioResults(SearchModel searchModel);
+        Task<TestScenarioSearchResults> SearchTestScenarioResultsInternal(SearchModel searchModel);
     }
 }

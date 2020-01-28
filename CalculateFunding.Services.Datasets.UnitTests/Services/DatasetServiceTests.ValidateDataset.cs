@@ -50,14 +50,12 @@ namespace CalculateFunding.Services.Datasets.Services
         public async Task ValidateDataset_GivenNullModel_ReturnsBadRequest()
         {
             //Arrange
-            HttpRequest request = Substitute.For<HttpRequest>();
-
             ILogger logger = CreateLogger();
 
             DatasetService service = CreateDatasetService(logger: logger);
 
             // Act
-            IActionResult result = await service.ValidateDataset(request);
+            IActionResult result = await service.ValidateDataset(null, null, null);
 
             // Assert
             result
@@ -74,14 +72,6 @@ namespace CalculateFunding.Services.Datasets.Services
         {
             //Arrange
             GetDatasetBlobModel model = new GetDatasetBlobModel();
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
 
             ILogger logger = CreateLogger();
 
@@ -95,7 +85,7 @@ namespace CalculateFunding.Services.Datasets.Services
             DatasetService service = CreateDatasetService(logger: logger, getDatasetBlobModelValidator: validator);
 
             // Act
-            IActionResult result = await service.ValidateDataset(request);
+            IActionResult result = await service.ValidateDataset(model, null, null);
 
             // Assert
             result
@@ -109,8 +99,6 @@ namespace CalculateFunding.Services.Datasets.Services
             //Arrange
             GetDatasetBlobModel getDatasetBlobModel = NewGetDatasetBlobModel();
 
-            HttpRequest request = GetValidateDatasetRequest(getDatasetBlobModel);
-
             string blobPath = $"{getDatasetBlobModel.DatasetId}/v{getDatasetBlobModel.Version}/{getDatasetBlobModel.Filename}";
 
             ILogger logger = CreateLogger();
@@ -123,7 +111,7 @@ namespace CalculateFunding.Services.Datasets.Services
             DatasetService service = CreateDatasetService(logger: logger, blobClient: blobClient);
 
             // Act
-            IActionResult result = await service.ValidateDataset(request);
+            IActionResult result = await service.ValidateDataset(getDatasetBlobModel, null, null);
 
             // Assert
             result
@@ -144,8 +132,6 @@ namespace CalculateFunding.Services.Datasets.Services
         {
             //Arrange
             GetDatasetBlobModel getDatasetBlobModel = NewGetDatasetBlobModel();
-
-            HttpRequest request = GetValidateDatasetRequest(getDatasetBlobModel);
 
             string blobPath = $"{getDatasetBlobModel.DatasetId}/v{getDatasetBlobModel.Version}/{getDatasetBlobModel.Filename}";
 
@@ -192,7 +178,7 @@ namespace CalculateFunding.Services.Datasets.Services
             DatasetService service = CreateDatasetService(logger: logger, blobClient: blobClient, datasetRepository: datasetRepository);
 
             // Act
-            IActionResult result = await service.ValidateDataset(request);
+            IActionResult result = await service.ValidateDataset(getDatasetBlobModel, null, null);
 
             // Assert
             result
@@ -213,8 +199,6 @@ namespace CalculateFunding.Services.Datasets.Services
         {
             // Arrange
             GetDatasetBlobModel getDatasetBlobModel = NewGetDatasetBlobModel();
-
-            HttpRequest request = GetValidateDatasetRequest(getDatasetBlobModel);
 
             string blobPath = $"{getDatasetBlobModel.DatasetId}/v{getDatasetBlobModel.Version}/{getDatasetBlobModel.Filename}";
 
@@ -250,7 +234,7 @@ namespace CalculateFunding.Services.Datasets.Services
             DatasetService service = CreateDatasetService(logger: logger, blobClient: blobClient, datasetRepository: datasetRepository);
 
             // Act
-            IActionResult result = await service.ValidateDataset(request);
+            IActionResult result = await service.ValidateDataset(getDatasetBlobModel, null, null);
 
             // Assert
             result
@@ -471,8 +455,6 @@ namespace CalculateFunding.Services.Datasets.Services
 
             string blobPath = $"{model.DatasetId}/v{model.Version}/{model.Filename}";
 
-            HttpRequest request = GetValidateDatasetRequest(model);
-
             ILogger logger = CreateLogger();
 
             IDictionary<string, string> metaData = new Dictionary<string, string>
@@ -519,7 +501,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 jobsApiClient: jobsApiClient);
 
             // Act
-            IActionResult result = await service.ValidateDataset(request);
+            IActionResult result = await service.ValidateDataset(model, null, null);
 
             // Assert
             result
@@ -552,8 +534,6 @@ namespace CalculateFunding.Services.Datasets.Services
             GetDatasetBlobModel model = NewGetDatasetBlobModel(_ => _.WithDefinitionId(DataDefintionId));
 
             string blobPath = $"{model.DatasetId}/v{model.Version}/{model.Filename}";
-
-            HttpRequest request = GetValidateDatasetRequest(model);
 
             ILogger logger = CreateLogger();
 
@@ -603,7 +583,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 jobsApiClient: jobsApiClient);
 
             // Act
-            IActionResult result = await service.ValidateDataset(request);
+            IActionResult result = await service.ValidateDataset(model, null, null);
 
             // Assert
             result
@@ -2721,20 +2701,6 @@ namespace CalculateFunding.Services.Datasets.Services
             message.UserProperties.Add("operation-id", operationId);
 
             return message;
-        }
-
-        private HttpRequest GetValidateDatasetRequest(GetDatasetBlobModel model)
-        {
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
-            return request;
         }
 
     }

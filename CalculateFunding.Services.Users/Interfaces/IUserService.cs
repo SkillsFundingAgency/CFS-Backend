@@ -1,13 +1,13 @@
 ﻿using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
+using CalculateFunding.Models.Users;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CalculateFunding.Services.Users.Interfaces
 {
     public interface IUserService
     {
-        Task<IActionResult> GetUserByUserId(HttpRequest request);
+        Task<IActionResult> GetUserByUserId(string userId);
 
-        Task<IActionResult> ConfirmSkills(HttpRequest request);
+        Task<IActionResult> ConfirmSkills(string userId, UserCreateModel userCreateModel);
     }
 }

@@ -2,16 +2,17 @@
 using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
+using CalculateFunding.Models;
 using CalculateFunding.Models.Publishing;
+using CalculateFunding.Repositories.Common.Search.Results;
 using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Services.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CalculateFunding.Api.Publishing.Controllers
 {
     [ApiController]
-    public class PublishingController : Controller
+    public class PublishingController : ControllerBase
     {
         private readonly ISpecificationPublishingService _specificationPublishingService;
         private readonly IProviderFundingPublishingService _providerFundingPublishingService;
@@ -48,6 +49,7 @@ namespace CalculateFunding.Api.Publishing.Controllers
         
         [HttpDelete("api/specifications/{specificationId}")]
         [ApiExplorerSettings(IgnoreApi = true)]
+        [ProducesResponseType(204)]
         public async Task<IActionResult> DeleteSpecification([FromRoute] string specificationId)
         {
             await _specificationPublishingService.CreateRefreshFundingJob(specificationId,
@@ -114,7 +116,6 @@ namespace CalculateFunding.Api.Publishing.Controllers
                 .GetLatestPublishedProvidersForSpecificationId(specificationId);
         }
 
-
         /// <summary>
         /// Check can choose specification for funding
         /// </summary>
@@ -129,9 +130,10 @@ namespace CalculateFunding.Api.Publishing.Controllers
 
         [Route("api/publishedprovider/publishedprovider-search")]
         [HttpPost]
-        public async Task<IActionResult> SearchPublishedProvider()
+        [ProducesResponseType(200, Type = typeof(PublishedSearchResults))]
+        public async Task<IActionResult> SearchPublishedProvider([FromBody] SearchModel searchModel)
         {
-            return await _publishedSearchService.SearchPublishedProviders(ControllerContext.HttpContext.Request);
+            return await _publishedSearchService.SearchPublishedProviders(searchModel);
         }
 
         [HttpGet("api/publishedprovider/reindex")]

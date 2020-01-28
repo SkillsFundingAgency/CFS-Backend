@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Specs;
+using CalculateFunding.Models.Versioning;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
@@ -9,39 +11,39 @@ namespace CalculateFunding.Services.Specs.Interfaces
 {
     public interface ISpecificationsService
     {
-        Task<IActionResult> CreateSpecification(HttpRequest request);
+        Task<IActionResult> CreateSpecification(SpecificationCreateModel specificationCreateModel, Reference user, string correlationId);
 
-        Task<IActionResult> GetSpecifications(HttpRequest request);
+        Task<IActionResult> GetSpecifications();
 
-        Task<IActionResult> GetSpecificationsSelectedForFunding(HttpRequest request);
+        Task<IActionResult> GetSpecificationsSelectedForFunding();
 
-        Task<IActionResult> GetSpecificationsSelectedForFundingByPeriod(HttpRequest request);
+        Task<IActionResult> GetSpecificationsSelectedForFundingByPeriod(string fundingPeriodId);
 
-        Task<IActionResult> GetFundingStreamsSelectedForFundingBySpecification(HttpRequest request);
+        Task<IActionResult> GetFundingStreamsSelectedForFundingBySpecification(string specificationId);
 
-        Task<IActionResult> GetSpecificationSummaries(HttpRequest request);
+        Task<IActionResult> GetSpecificationSummaries();
 
-        Task<IActionResult> GetSpecificationById(HttpRequest request);
+        Task<IActionResult> GetSpecificationById(string specificationId);
 
-        Task<IActionResult> GetSpecificationsByFundingPeriodId(HttpRequest request);
+        Task<IActionResult> GetSpecificationsByFundingPeriodId(string fundingPeriodId);
 
-        Task<IActionResult> GetSpecificationByName(HttpRequest request);
+        Task<IActionResult> GetSpecificationByName(string specificationName);
 
-        Task<IActionResult> GetSpecificationSummaryById(HttpRequest request);
+        Task<IActionResult> GetSpecificationSummaryById(string specificationId);
 
-        Task<IActionResult> GetSpecificationSummariesByIds(HttpRequest request);
+        Task<IActionResult> GetSpecificationSummariesByIds(string[] specificationIds);
 
         Task AssignDataDefinitionRelationship(Message message);
 
         Task<IActionResult> ReIndex();
 
-        Task<IActionResult> EditSpecification(HttpRequest request);
+        Task<IActionResult> EditSpecification(string specificationId, SpecificationEditModel specificationEditModel, Reference user, string correlationId);
 
-        Task<IActionResult> EditSpecificationStatus(HttpRequest request);
+        Task<IActionResult> EditSpecificationStatus(string specificationId, EditStatusModel specificationEditModel, Reference user);
 
-        Task<IActionResult> GetCurrentSpecificationsByFundingPeriodIdAndFundingStreamId(HttpRequest request);
+        Task<IActionResult> GetCurrentSpecificationsByFundingPeriodIdAndFundingStreamId(string fundingPeriodId, string fundingStreamId);
 
-        Task<IActionResult> SelectSpecificationForFunding(HttpRequest request);
+        Task<IActionResult> SelectSpecificationForFunding(string specificationId);
 
         Task<IActionResult> SetAssignedTemplateVersion(string specificationId, string fundingStreamId, string templateVersion);
 
@@ -57,8 +59,8 @@ namespace CalculateFunding.Services.Specs.Interfaces
 
         Task<IActionResult> GetFundingStreamIdsForSelectedFundingSpecifications();
         Task<IActionResult> GetFundingPeriodsByFundingStreamIdsForSelectedSpecifications(string fundingStreamId);
-        Task<IActionResult> SoftDeleteSpecificationById(HttpRequest request);
-        Task<IActionResult> PermanentDeleteSpecificationById(HttpRequest request);
+        Task<IActionResult> SoftDeleteSpecificationById(string specificationId, Reference user, string correlationId);
+        Task<IActionResult> PermanentDeleteSpecificationById(string specificationId, Reference user, string correlationId);
         Task<IActionResult> DeleteSpecification(Message message);
         Task<IActionResult> DeselectSpecificationForFunding(string specificationId);
         Task<IActionResult> GetDistinctFundingStreamsForSpecifications();

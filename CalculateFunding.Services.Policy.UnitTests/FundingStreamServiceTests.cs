@@ -242,19 +242,12 @@ namespace CalculateFunding.Services.Policy.UnitTests
         async public Task SaveFundingStream_GivenNoJsonWasProvidedButFileNameWas_ReturnsBadRequest()
         {
             //Arrange
-            IHeaderDictionary headerDictionary = new HeaderDictionary();           
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Headers
-                .Returns(headerDictionary);
-
             ILogger logger = CreateLogger();
 
             FundingStreamService fundingStreamsService = CreateFundingStreamService(logger: logger);
 
             //Act
-            IActionResult result = await fundingStreamsService.SaveFundingStream(request);
+            IActionResult result = await fundingStreamsService.SaveFundingStream(null);
 
             //Assert
             result
@@ -267,60 +260,9 @@ namespace CalculateFunding.Services.Policy.UnitTests
         }
 
         [TestMethod]
-        async public Task SaveFundingStream_GivenNoJsonWasProvidedButIsInvalid_ReturnsBadRequest()
-        {
-            //Arrange
-            string yaml = "invalid json";
-            byte[] byteArray = Encoding.UTF8.GetBytes(yaml);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            IHeaderDictionary headerDictionary = new HeaderDictionary();            
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Headers
-                .Returns(headerDictionary);
-
-            request
-                .Body
-                .Returns(stream);
-
-            ILogger logger = CreateLogger();
-
-            FundingStreamService fundingStreamsService = CreateFundingStreamService(logger: logger);
-
-            //Act
-            IActionResult result = await fundingStreamsService.SaveFundingStream(request);
-
-            //Assert
-            result
-                .Should()
-                .BeOfType<BadRequestObjectResult>();
-
-            logger
-                .Received(1)
-                .Error(Arg.Any<Exception>(), Arg.Is($"Invalid json was provided for file"));
-        }
-
-        [TestMethod]
         async public Task SaveFundingStream_GivenValidJsonButFailedToSaveToDatabase_ReturnsStatusCode()
         {
             //Arrange
-            string json = CreateRawJsonFundingStream();
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            IHeaderDictionary headerDictionary = new HeaderDictionary();
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Headers
-                .Returns(headerDictionary);
-
-            request
-                .Body
-                .Returns(stream);
-
             ILogger logger = CreateLogger();
 
             HttpStatusCode failedCode = HttpStatusCode.BadGateway;
@@ -333,7 +275,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
             FundingStreamService fundingStreamsService = CreateFundingStreamService(logger: logger, policyRepository: policyRepository);
 
             //Act
-            IActionResult result = await fundingStreamsService.SaveFundingStream(request);
+            IActionResult result = await fundingStreamsService.SaveFundingStream(CreateFundingStreamSaveModel());
 
             //Assert
             result
@@ -355,21 +297,6 @@ namespace CalculateFunding.Services.Policy.UnitTests
         async public Task SaveFundingStream_GivenValidJsonButSavingToDatabaseThrowsException_ReturnsInternalServerError()
         {
             //Arrange
-            string json = CreateRawJsonFundingStream();
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            IHeaderDictionary headerDictionary = new HeaderDictionary();
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Headers
-                .Returns(headerDictionary);
-
-            request
-                .Body
-                .Returns(stream);
-
             ILogger logger = CreateLogger();
 
             IPolicyRepository policyRepository = CreatePolicyRepository();
@@ -382,7 +309,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
             string expectedErrorMessage = $"Exception occurred writing to json file to cosmos db";
 
             //Act
-            IActionResult result = await fundingStreamsService.SaveFundingStream(request);
+            IActionResult result = await fundingStreamsService.SaveFundingStream(CreateFundingStreamSaveModel());
 
             //Assert
             result
@@ -402,21 +329,6 @@ namespace CalculateFunding.Services.Policy.UnitTests
         async public Task SaveFundingStream_GivenValidJsonAndSaveWasSuccesful_ReturnsOK()
         {
             //Arrange
-            string json = CreateRawJsonFundingStream();
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            IHeaderDictionary headerDictionary = new HeaderDictionary();
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Headers
-                .Returns(headerDictionary);
-
-            request
-                .Body
-                .Returns(stream);
-
             ILogger logger = CreateLogger();
 
             HttpStatusCode statusCode = HttpStatusCode.Created;
@@ -429,7 +341,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
             FundingStreamService fundingStreamsService = CreateFundingStreamService(logger: logger, policyRepository: policyRepository);
 
             //Act
-            IActionResult result = await fundingStreamsService.SaveFundingStream(request);
+            IActionResult result = await fundingStreamsService.SaveFundingStream(CreateFundingStreamSaveModel());
 
             //Assert
             result
@@ -498,14 +410,12 @@ namespace CalculateFunding.Services.Policy.UnitTests
             return yaml.ToString();
         }
 
-        private static string CreateRawJsonFundingStream()
+        private static FundingStreamSaveModel CreateFundingStreamSaveModel()
         {
-            FundingStream fundingStream = new FundingStream();
-            fundingStream.Id = "YPLRE";
-            fundingStream.Name = "School Budget Share";
-            fundingStream.ShortName = "SBS";
+            FundingStreamSaveModel fundingStreamSaveModel = new FundingStreamSaveModel();
+            fundingStreamSaveModel.Name = "School Budget Share";
 
-            return JsonConvert.SerializeObject(fundingStream);
+            return fundingStreamSaveModel;
         }
     }
 }

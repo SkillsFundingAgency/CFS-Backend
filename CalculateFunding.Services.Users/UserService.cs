@@ -11,7 +11,6 @@ using CalculateFunding.Services.Users.Interfaces;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
 using Serilog;
 
 namespace CalculateFunding.Services.Users
@@ -55,12 +54,8 @@ namespace CalculateFunding.Services.Users
             return health;
         }
 
-        public async Task<IActionResult> GetUserByUserId(HttpRequest request)
+        public async Task<IActionResult> GetUserByUserId(string id)
         {
-            request.Query.TryGetValue("userId", out var username);
-
-            string id = username.FirstOrDefault();
-
             if (string.IsNullOrWhiteSpace(id))
             {
                 _logger.Error($"No userId was provided to {nameof(GetUserByUserId)}");
@@ -68,24 +63,20 @@ namespace CalculateFunding.Services.Users
                 return new BadRequestObjectResult("Null or empty userId provided");
             }
 
-            User user = await GetUserByUserId(id);
+            User user = await GetUserByUserIdInternal(id);
 
             if (user == null)
             {
                 return new NotFoundResult();
             }
 
-            await _cacheProvider.SetAsync($"{CacheKeys.UserById}:{username}", user);
+            await _cacheProvider.SetAsync($"{CacheKeys.UserById}:{id}", user);
 
             return new OkObjectResult(user);
         }
 
-        public async Task<IActionResult> ConfirmSkills(HttpRequest request)
+        public async Task<IActionResult> ConfirmSkills(string id, UserCreateModel userCreateModel)
         {
-            request.Query.TryGetValue("userId", out var userId);
-
-            string id = userId.FirstOrDefault();
-
             if (string.IsNullOrWhiteSpace(id))
             {
                 _logger.Error("No userId was provided to ConfirmSkills");
@@ -93,16 +84,13 @@ namespace CalculateFunding.Services.Users
                 return new BadRequestObjectResult("Null or empty userId provided");
             }
 
-            string json = await request.GetRawBodyStringAsync();
-
-            UserCreateModel userCreateModel = JsonConvert.DeserializeObject<UserCreateModel>(json);
             var validationResult = (await _userCreateModelValidator.ValidateAsync(userCreateModel)).PopulateModelState();
             if (validationResult != null)
             {
                 return validationResult;
             }
 
-            User user = await GetUserByUserId(id);
+            User user = await GetUserByUserIdInternal(id);
 
             if (user == null)
             {
@@ -132,13 +120,13 @@ namespace CalculateFunding.Services.Users
                 return new InternalServerErrorResult("Failed to confirm skills");
             }
 
-            await _cacheProvider.SetAsync($"{CacheKeys.UserById}:{userId}", user);
+            await _cacheProvider.SetAsync($"{CacheKeys.UserById}:{id}", user);
 
 
             return new OkObjectResult(user);
         }
 
-        async Task<User> GetUserByUserId(string userId)
+        private async Task<User> GetUserByUserIdInternal(string userId)
         {
             string cacheKey = $"{CacheKeys.UserById}:{userId}";
 

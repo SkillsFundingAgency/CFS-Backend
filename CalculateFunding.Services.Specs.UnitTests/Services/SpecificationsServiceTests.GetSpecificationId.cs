@@ -19,14 +19,12 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         public async Task GetSpecificationById_GivenSpecificationIdDoesNotExist_ReturnsBadRequest()
         {
             //Arrange
-            HttpRequest request = Substitute.For<HttpRequest>();
-
             ILogger logger = CreateLogger();
 
             SpecificationsService service = CreateService(logs: logger);
 
             //Act
-            IActionResult result = await service.GetSpecificationById(request);
+            IActionResult result = await service.GetSpecificationById(null);
 
             //Assert
             result
@@ -42,17 +40,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         public async Task GetSpecificationById_GivenSpecificationWasNotFound_ReturnsNotFound()
         {
             //Arrange
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "specificationId", new StringValues(SpecificationId) }
-
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-
             ILogger logger = CreateLogger();
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
@@ -63,7 +50,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             SpecificationsService service = CreateService(specificationsRepository: specificationsRepository, logs: logger);
 
             //Act
-            IActionResult result = await service.GetSpecificationById(request);
+            IActionResult result = await service.GetSpecificationById(SpecificationId);
 
             //Assert
             result
@@ -81,17 +68,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             //Arrange
             Specification specification = new Specification();
 
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "specificationId", new StringValues(SpecificationId) }
-
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-
             ILogger logger = CreateLogger();
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
@@ -102,7 +78,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             SpecificationsService service = CreateService(specificationsRepository: specificationsRepository, logs: logger);
 
             //Act
-            IActionResult result = await service.GetSpecificationById(request);
+            IActionResult result = await service.GetSpecificationById(SpecificationId);
 
             //Assert
             result

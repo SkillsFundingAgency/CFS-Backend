@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using CalculateFunding.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 
@@ -6,6 +7,6 @@ namespace CalculateFunding.Services.Results.Interfaces
 {
     public interface IProviderCalculationResultsSearchService
     {
-        Task<IActionResult> SearchCalculationProviderResults(HttpRequest request);
+        Task<IActionResult> SearchCalculationProviderResults(SearchModel searchModel);
     }
 }

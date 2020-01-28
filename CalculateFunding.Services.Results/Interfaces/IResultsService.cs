@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Models.Calcs;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -8,21 +9,21 @@ namespace CalculateFunding.Services.Results.Interfaces
 {
     public interface IResultsService
     {
-	    Task<IActionResult> GetProviderResults(HttpRequest request);
+	    Task<IActionResult> GetProviderResults(string providerId, string specificationId);
 
         Task<IActionResult> GetProviderResultByCalculationType(string providerId, string specificationId, CalculationType calculationType);
 
-        Task<IActionResult> GetProviderSpecifications(HttpRequest request);
+        Task<IActionResult> GetProviderSpecifications(string providerId);
 
-        Task<IActionResult> GetProviderResultsBySpecificationId(HttpRequest request);
+        Task<IActionResult> GetProviderResultsBySpecificationId(string specificationId, string top);
 
-        Task<IActionResult> GetProviderSourceDatasetsByProviderIdAndSpecificationId(HttpRequest request);
+        Task<IActionResult> GetProviderSourceDatasetsByProviderIdAndSpecificationId(string specificationId, string providerId);
 
         Task<IActionResult> ReIndexCalculationProviderResults();
 
-        Task<IActionResult> GetScopedProviderIdsBySpecificationId(HttpRequest request);
+        Task<IActionResult> GetScopedProviderIdsBySpecificationId(string specificationId);
 
-        Task<IActionResult> GetFundingCalculationResultsForSpecifications(HttpRequest request);
+        Task<IActionResult> GetFundingCalculationResultsForSpecifications(SpecificationListModel specificationListModel);
 
         Task CleanupProviderResultsForSpecification(Message message);
 

@@ -107,25 +107,16 @@ namespace CalculateFunding.Services.Policy
             return new OkObjectResult(fundingStream);
         }
 
-        public async Task<IActionResult> SaveFundingStream(HttpRequest request)
+        public async Task<IActionResult> SaveFundingStream(FundingStreamSaveModel fundingStreamSaveModel)
         {
-            Guard.ArgumentNotNull(request, nameof(request));
-
-            string json = await request.GetRawBodyStringAsync();           
-
-            if (string.IsNullOrEmpty(json))
+            if (fundingStreamSaveModel == null)
             {
                 _logger.Error($"Null or empty json provided for file");
                 return new BadRequestObjectResult($"Invalid json was provided for file");
             }
 
-            //FundingStream fundingStream = null;
-            FundingStreamSaveModel fundingStreamSaveModel = null;
-
             try
             {
-                fundingStreamSaveModel = JsonConvert.DeserializeObject<FundingStreamSaveModel>(json);
-
                 BadRequestObjectResult validationResult = (await _fundingStreamSaveModelValidator.ValidateAsync(fundingStreamSaveModel)).PopulateModelState();
 
                 if (validationResult != null)

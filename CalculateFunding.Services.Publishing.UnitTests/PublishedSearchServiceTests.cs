@@ -1,16 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Repositories.Common.Search.Results;
-using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Search.Models;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -22,7 +19,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
     [TestClass]
     public class PublishedSearchServiceTests
     {
-        private HttpRequest _request;
+        private SearchModel _searchModel;
         private ILogger _logger;
         private ISearchRepository<PublishedProviderIndex> _searchRepository;
 
@@ -31,7 +28,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         [TestInitialize]
         public void SetUp()
         {
-            _request = Substitute.For<HttpRequest>();
+            _searchModel = null;
             _logger = Substitute.For<ILogger>();
             _searchRepository = Substitute.For<ISearchRepository<PublishedProviderIndex>>();
 
@@ -202,14 +199,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
         private void GivenTheSearchModel(SearchModel searchModel)
         {
-            _request
-                .Body
-                .Returns(new MemoryStream(searchModel.AsJsonBytes()));
+            _searchModel = searchModel;
         }
 
         private async Task<IActionResult> WhenTheSearchIsMade()
         {
-            return await _service.SearchPublishedProviders(_request);
+            return await _service.SearchPublishedProviders(_searchModel);
         }
 
         private async Task<IActionResult> WhenSearchLocalAuthorityIsMade(string searchText, string fundingStreamId = null, string fundingPeriodId = null)

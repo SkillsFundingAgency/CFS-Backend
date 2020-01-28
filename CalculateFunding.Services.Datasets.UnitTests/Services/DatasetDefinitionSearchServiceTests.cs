@@ -33,15 +33,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 Top = 50,
             };
 
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
             ILogger logger = CreateLogger();
 
             ISearchRepository<DatasetDefinitionIndex> searchRepository = CreateSearchRepository();
@@ -54,7 +45,7 @@ namespace CalculateFunding.Services.Calcs.Services
             DatasetDefinitionSearchService service = CreateDatasetSearchService(logger: logger, searchRepository: searchRepository);
 
             //Act
-            IActionResult result = await service.SearchDatasetDefinitions(request);
+            IActionResult result = await service.SearchDatasetDefinitions(model);
 
             //Assert
             logger
@@ -71,8 +62,6 @@ namespace CalculateFunding.Services.Calcs.Services
         public async Task SearchDatasetDefinition_GivenNullSearchModel_LogsAndCreatesDefaultSearchModel()
         {
             //Arrange
-            HttpRequest request = Substitute.For<HttpRequest>();
-
             ILogger logger = CreateLogger();
 
             ISearchRepository<DatasetDefinitionIndex> searchRepository = CreateSearchRepository();
@@ -80,7 +69,7 @@ namespace CalculateFunding.Services.Calcs.Services
             DatasetDefinitionSearchService service = CreateDatasetSearchService(logger: logger, searchRepository: searchRepository);
 
             //Act
-            IActionResult result = await service.SearchDatasetDefinitions(request);
+            IActionResult result = await service.SearchDatasetDefinitions(null);
 
             //Assert
             logger
@@ -97,14 +86,6 @@ namespace CalculateFunding.Services.Calcs.Services
         {
             //Arrange
             SearchModel model = new SearchModel();
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
 
             ILogger logger = CreateLogger();
 
@@ -113,7 +94,7 @@ namespace CalculateFunding.Services.Calcs.Services
             DatasetDefinitionSearchService service = CreateDatasetSearchService(logger: logger, searchRepository: searchRepository);
 
             //Act
-            IActionResult result = await service.SearchDatasetDefinitions(request);
+            IActionResult result = await service.SearchDatasetDefinitions(model);
 
             //Assert
             logger
@@ -135,15 +116,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 Top = 0
             };
 
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
             ILogger logger = CreateLogger();
 
             ISearchRepository<DatasetDefinitionIndex> searchRepository = CreateSearchRepository();
@@ -151,7 +123,7 @@ namespace CalculateFunding.Services.Calcs.Services
             DatasetDefinitionSearchService service = CreateDatasetSearchService(logger: logger, searchRepository: searchRepository);
 
             //Act
-            IActionResult result = await service.SearchDatasetDefinitions(request);
+            IActionResult result = await service.SearchDatasetDefinitions(model);
 
             //Assert
             logger
@@ -174,15 +146,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 IncludeFacets = true
             };
 
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
             SearchResults<DatasetDefinitionIndex> searchResults = new SearchResults<DatasetDefinitionIndex>();
 
             ILogger logger = CreateLogger();
@@ -195,7 +158,7 @@ namespace CalculateFunding.Services.Calcs.Services
             DatasetDefinitionSearchService service = CreateDatasetSearchService(logger: logger, searchRepository: searchRepository);
 
             //Act
-            IActionResult result = await service.SearchDatasetDefinitions(request);
+            IActionResult result = await service.SearchDatasetDefinitions(model);
 
             //Assert
             result
@@ -221,15 +184,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 Filters = null,
             };
 
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
             SearchResults<DatasetDefinitionIndex> searchResults = new SearchResults<DatasetDefinitionIndex>();
 
             ILogger logger = CreateLogger();
@@ -242,7 +196,7 @@ namespace CalculateFunding.Services.Calcs.Services
             DatasetDefinitionSearchService service = CreateDatasetSearchService(logger: logger, searchRepository: searchRepository);
 
             //Act
-            IActionResult result = await service.SearchDatasetDefinitions(request);
+            IActionResult result = await service.SearchDatasetDefinitions(model);
 
             //Assert
             result
@@ -272,15 +226,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 SearchTerm = "testTerm",
             };
 
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
             SearchResults<DatasetDefinitionIndex> searchResults = new SearchResults<DatasetDefinitionIndex>();
 
             ILogger logger = CreateLogger();
@@ -293,7 +238,7 @@ namespace CalculateFunding.Services.Calcs.Services
             DatasetDefinitionSearchService service = CreateDatasetSearchService(logger: logger, searchRepository: searchRepository);
 
             //Act
-            IActionResult result = await service.SearchDatasetDefinitions(request);
+            IActionResult result = await service.SearchDatasetDefinitions(model);
 
             //Assert
             result
@@ -325,15 +270,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 SearchTerm = "testTerm",
             };
 
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
             SearchResults<DatasetDefinitionIndex> searchResults = new SearchResults<DatasetDefinitionIndex>();
 
             ILogger logger = CreateLogger();
@@ -346,7 +282,7 @@ namespace CalculateFunding.Services.Calcs.Services
             DatasetDefinitionSearchService service = CreateDatasetSearchService(logger: logger, searchRepository: searchRepository);
 
             //Act
-            IActionResult result = await service.SearchDatasetDefinitions(request);
+            IActionResult result = await service.SearchDatasetDefinitions(model);
 
             //Assert
             result
@@ -378,15 +314,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 SearchTerm = "testTerm",
             };
 
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
             SearchResults<DatasetDefinitionIndex> searchResults = new SearchResults<DatasetDefinitionIndex>();
 
             ILogger logger = CreateLogger();
@@ -399,7 +326,7 @@ namespace CalculateFunding.Services.Calcs.Services
             DatasetDefinitionSearchService service = CreateDatasetSearchService(logger: logger, searchRepository: searchRepository);
 
             //Act
-            IActionResult result = await service.SearchDatasetDefinitions(request);
+            IActionResult result = await service.SearchDatasetDefinitions(model);
 
             //Assert
             result
@@ -431,15 +358,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 SearchTerm = "testTerm",
             };
 
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
             SearchResults<DatasetDefinitionIndex> searchResults = new SearchResults<DatasetDefinitionIndex>();
 
             ILogger logger = CreateLogger();
@@ -452,7 +370,7 @@ namespace CalculateFunding.Services.Calcs.Services
             DatasetDefinitionSearchService service = CreateDatasetSearchService(logger: logger, searchRepository: searchRepository);
 
             //Act
-            IActionResult result = await service.SearchDatasetDefinitions(request);
+            IActionResult result = await service.SearchDatasetDefinitions(model);
 
             //Assert
             result
@@ -484,15 +402,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 SearchTerm = "testTerm",
             };
 
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
             SearchResults<DatasetDefinitionIndex> searchResults = new SearchResults<DatasetDefinitionIndex>();
 
             ILogger logger = CreateLogger();
@@ -505,7 +414,7 @@ namespace CalculateFunding.Services.Calcs.Services
             DatasetDefinitionSearchService service = CreateDatasetSearchService(logger: logger, searchRepository: searchRepository);
 
             //Act
-            IActionResult result = await service.SearchDatasetDefinitions(request);
+            IActionResult result = await service.SearchDatasetDefinitions(model);
 
             //Assert
             result
@@ -531,15 +440,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 Top = 50
             };
 
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
             SearchResults<DatasetDefinitionIndex> searchResults = new SearchResults<DatasetDefinitionIndex>();
 
             ILogger logger = CreateLogger();
@@ -552,7 +452,7 @@ namespace CalculateFunding.Services.Calcs.Services
             DatasetDefinitionSearchService service = CreateDatasetSearchService(logger: logger, searchRepository: searchRepository);
 
             //Act
-            IActionResult result = await service.SearchDatasetDefinitions(request);
+            IActionResult result = await service.SearchDatasetDefinitions(model);
 
             //Assert
             result
@@ -577,15 +477,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 Top = 50
             };
 
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
             SearchResults<DatasetDefinitionIndex> searchResults = new SearchResults<DatasetDefinitionIndex>();
 
             ILogger logger = CreateLogger();
@@ -598,7 +489,7 @@ namespace CalculateFunding.Services.Calcs.Services
             DatasetDefinitionSearchService service = CreateDatasetSearchService(logger: logger, searchRepository: searchRepository);
 
             //Act
-            IActionResult result = await service.SearchDatasetDefinitions(request);
+            IActionResult result = await service.SearchDatasetDefinitions(model);
 
             //Assert
             result
@@ -623,15 +514,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 Top = 50
             };
 
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
             SearchResults<DatasetDefinitionIndex> searchResults = new SearchResults<DatasetDefinitionIndex>();
 
             ILogger logger = CreateLogger();
@@ -644,7 +526,7 @@ namespace CalculateFunding.Services.Calcs.Services
             DatasetDefinitionSearchService service = CreateDatasetSearchService(logger: logger, searchRepository: searchRepository);
 
             //Act
-            IActionResult result = await service.SearchDatasetDefinitions(request);
+            IActionResult result = await service.SearchDatasetDefinitions(model);
 
             //Assert
             result
@@ -668,15 +550,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 IncludeFacets = true
             };
 
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
             SearchResults<DatasetDefinitionIndex> searchResults = new SearchResults<DatasetDefinitionIndex>
             {
                 Facets = new List<Facet>
@@ -698,7 +571,7 @@ namespace CalculateFunding.Services.Calcs.Services
             DatasetDefinitionSearchService service = CreateDatasetSearchService(logger: logger, searchRepository: searchRepository);
 
             //Act
-            IActionResult result = await service.SearchDatasetDefinitions(request);
+            IActionResult result = await service.SearchDatasetDefinitions(model);
 
             //Assert
             result

@@ -26,17 +26,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             //Arrange
             IEnumerable<Specification> specs = Enumerable.Empty<Specification>();
 
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "fundingPeriodId", new StringValues(FundingPeriodId) }
-
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-
             ILogger logger = CreateLogger();
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
@@ -47,7 +36,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             SpecificationsService service = CreateService(specificationsRepository: specificationsRepository, logs: logger);
 
             //Act
-            IActionResult result = await service.GetSpecificationsByFundingPeriodId(request);
+            IActionResult result = await service.GetSpecificationsByFundingPeriodId(FundingPeriodId);
 
             //Assert
             result
@@ -72,17 +61,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 new Specification()
             };
 
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "fundingPeriodId", new StringValues(FundingPeriodId) }
-
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-
             ILogger logger = CreateLogger();
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
@@ -93,7 +71,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             SpecificationsService service = CreateService(specificationsRepository: specificationsRepository, logs: logger);
 
             //Act
-            IActionResult result = await service.GetSpecificationsByFundingPeriodId(request);
+            IActionResult result = await service.GetSpecificationsByFundingPeriodId(FundingPeriodId);
 
             //Assert
             result
@@ -116,14 +94,12 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         public async Task GetSpecificationByFundingPeriodId_GivenAcademicYearIdDoesNotExist_ReturnsBadRequest()
         {
             //Arrange
-            HttpRequest request = Substitute.For<HttpRequest>();
-
             ILogger logger = CreateLogger();
 
             SpecificationsService service = CreateService(logs: logger);
 
             //Act
-            IActionResult result = await service.GetSpecificationsByFundingPeriodId(request);
+            IActionResult result = await service.GetSpecificationsByFundingPeriodId(null);
 
             //Assert
             result

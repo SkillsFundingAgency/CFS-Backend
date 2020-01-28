@@ -48,14 +48,12 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
         public async Task GetProviderResults_GivenNullOrEmptyProviderId_ReturnsBadRequest()
         {
             //Arrange
-            HttpRequest request = Substitute.For<HttpRequest>();
-
             ILogger logger = CreateLogger();
 
             ResultsService service = CreateResultsService(logger: logger);
 
             //Act
-            IActionResult result = await service.GetProviderResults(request);
+            IActionResult result = await service.GetProviderResults(null, null);
 
             //Assert
             result
@@ -71,23 +69,12 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
         public async Task GetProviderResults_GivenNullOrEmptySpecificationId_ReturnsBadRequest()
         {
             //Arrange
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "providerId", new StringValues(providerId) }
-
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-
             ILogger logger = CreateLogger();
 
             ResultsService service = CreateResultsService(logger: logger);
 
             //Act
-            IActionResult result = await service.GetProviderResults(request);
+            IActionResult result = await service.GetProviderResults(providerId, null);
 
             //Assert
             result
@@ -103,17 +90,6 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
         public async Task GetProviderResults_GivenNullProviderResultReturned_ReturnsNotFoundResult()
         {
             //Arrange
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "providerId", new StringValues(providerId) },
-                { "specificationId", new StringValues(specificationId) }
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-
             ILogger logger = CreateLogger();
 
             ICalculationResultsRepository resultsRepository = CreateResultsRepository();
@@ -124,7 +100,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             ResultsService service = CreateResultsService(logger, resultsRepository);
 
             //Act
-            IActionResult result = await service.GetProviderResults(request);
+            IActionResult result = await service.GetProviderResults(providerId, specificationId);
 
             //Assert
             result
@@ -140,17 +116,6 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
         public async Task GetProviderResults_GivenProviderResultReturned_ReturnsOK()
         {
             //Arrange
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "providerId", new StringValues(providerId) },
-                { "specificationId", new StringValues(specificationId) }
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-
             ILogger logger = CreateLogger();
 
             ProviderResult providerResult = new ProviderResult();
@@ -163,7 +128,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             ResultsService service = CreateResultsService(logger, resultsRepository);
 
             //Act
-            IActionResult result = await service.GetProviderResults(request);
+            IActionResult result = await service.GetProviderResults(providerId, specificationId);
 
             //Assert
             result
@@ -175,14 +140,12 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
         public async Task GetProviderSpecifications_GivenNullOrEmptyProviderId_ReturnsBadRequest()
         {
             //Arrange
-            HttpRequest request = Substitute.For<HttpRequest>();
-
             ILogger logger = CreateLogger();
 
             ResultsService service = CreateResultsService(logger: logger);
 
             //Act
-            IActionResult result = await service.GetProviderSpecifications(request);
+            IActionResult result = await service.GetProviderSpecifications(null);
 
             //Assert
             result
@@ -292,16 +255,6 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
         public async Task GetProviderSpecifications_GivenEmptyProviderResultsReturned_ReturnsOKWithEmptyCollection()
         {
             //Arrange
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "providerId", new StringValues(providerId) }
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-
             ILogger logger = CreateLogger();
 
             IEnumerable<ProviderResult> providerResults = Enumerable.Empty<ProviderResult>();
@@ -314,7 +267,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             ResultsService service = CreateResultsService(logger, resultsRepository);
 
             //Act
-            IActionResult result = await service.GetProviderSpecifications(request);
+            IActionResult result = await service.GetProviderSpecifications(providerId);
 
             //Assert
             result
@@ -337,16 +290,6 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
         public async Task GetProviderSpecifications_GivenProviderResultsReturned_ReturnsOK()
         {
             //Arrange
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "providerId", new StringValues(providerId) }
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-
             ILogger logger = CreateLogger();
 
             IEnumerable<ProviderResult> providerResults = new[]
@@ -365,7 +308,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             ResultsService service = CreateResultsService(logger, resultsRepository);
 
             //Act
-            IActionResult result = await service.GetProviderSpecifications(request);
+            IActionResult result = await service.GetProviderSpecifications(providerId);
 
             //Assert
             result
@@ -384,16 +327,6 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
         public async Task GetProviderSpecifications_GivenProviderResultsWithDuplicateSummariesReturned_ReturnsOK()
         {
             //Arrange
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "providerId", new StringValues(providerId) }
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-
             ILogger logger = CreateLogger();
 
             IEnumerable<ProviderResult> providerResults = new[]
@@ -420,7 +353,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             ResultsService service = CreateResultsService(logger, resultsRepository);
 
             //Act
-            IActionResult result = await service.GetProviderSpecifications(request);
+            IActionResult result = await service.GetProviderSpecifications(providerId);
 
             //Assert
             result
@@ -439,14 +372,12 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
         public async Task GetProviderResultsBySpecificationId_GivenNoSpecificationIsProvided_ReturnsBadRequest()
         {
             //Arrange
-            HttpRequest request = Substitute.For<HttpRequest>();
-
             ILogger logger = CreateLogger();
 
             ResultsService service = CreateResultsService(logger);
 
             //Act
-            IActionResult result = await service.GetProviderResultsBySpecificationId(request);
+            IActionResult result = await service.GetProviderResultsBySpecificationId(null, null);
 
             //Assert
             result
@@ -458,16 +389,6 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
         public async Task GetProviderResultsBySpecificationId_GivenSpecificationIsProvided_ReturnsResults()
         {
             //Arrange
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "specificationId", new StringValues(specificationId) }
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-
             ILogger logger = CreateLogger();
 
             IEnumerable<ProviderResult> providerResults = new[]
@@ -484,7 +405,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             ResultsService service = CreateResultsService(logger, resultsRepository: resultsRepository);
 
             //Act
-            IActionResult result = await service.GetProviderResultsBySpecificationId(request);
+            IActionResult result = await service.GetProviderResultsBySpecificationId(specificationId, null);
 
             //Assert
             result
@@ -505,17 +426,6 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
         public async Task GetProviderResultsBySpecificationId_GivenSpecificationIsProvidedAndTopIsProvided_ReturnsResults()
         {
             //Arrange
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "specificationId", new StringValues(specificationId) },
-                { "top", new StringValues("1") }
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-
             ILogger logger = CreateLogger();
 
             IEnumerable<ProviderResult> providerResults = new[]
@@ -532,7 +442,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             ResultsService service = CreateResultsService(logger, resultsRepository: resultsRepository);
 
             //Act
-            IActionResult result = await service.GetProviderResultsBySpecificationId(request);
+            IActionResult result = await service.GetProviderResultsBySpecificationId(specificationId, "1");
 
             //Assert
             result
@@ -553,14 +463,12 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
         public async Task GetProviderSourceDatasetsByProviderIdAndSpecificationId_GivenNullOrEmptySpecificationId_ReturnsBadRequest()
         {
             //Arrange
-            HttpRequest request = Substitute.For<HttpRequest>();
-
             ILogger logger = CreateLogger();
 
             ResultsService service = CreateResultsService(logger);
 
             //Act
-            IActionResult result = await service.GetProviderSourceDatasetsByProviderIdAndSpecificationId(request);
+            IActionResult result = await service.GetProviderSourceDatasetsByProviderIdAndSpecificationId(null, null);
 
             //Assert
             result
@@ -576,22 +484,12 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
         public async Task GetProviderSourceDatasetsByProviderIdAndSpecificationId_GivenNullOrEmptyProviderId_ReturnsBadRequest()
         {
             //Arrange
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "specificationId", new StringValues(specificationId) }
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-
             ILogger logger = CreateLogger();
 
             ResultsService service = CreateResultsService(logger);
 
             //Act
-            IActionResult result = await service.GetProviderSourceDatasetsByProviderIdAndSpecificationId(request);
+            IActionResult result = await service.GetProviderSourceDatasetsByProviderIdAndSpecificationId(specificationId, null);
 
             //Assert
             result
@@ -607,17 +505,6 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
         public async Task GetProviderSourceDatasetsByProviderIdAndSpecificationId_GivenResultsReturned_ReturnsOKResult()
         {
             //Arrange
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "specificationId", new StringValues(specificationId) },
-                { "providerId", new StringValues(providerId) }
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-
             ILogger logger = CreateLogger();
 
             IEnumerable<ProviderSourceDataset> providerSources = new[] { new ProviderSourceDataset(), new ProviderSourceDataset() };
@@ -630,7 +517,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             ResultsService service = CreateResultsService(logger, providerSourceDatasetRepository: providerSourceDatasetRepository);
 
             //Act
-            IActionResult result = await service.GetProviderSourceDatasetsByProviderIdAndSpecificationId(request);
+            IActionResult result = await service.GetProviderSourceDatasetsByProviderIdAndSpecificationId(specificationId, providerId);
 
             //Assert
             result

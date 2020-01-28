@@ -6,7 +6,7 @@ namespace CalculateFunding.Services.Policy.Interfaces
 {
     public interface IFundingSchemaService
     {
-        Task<IActionResult> SaveFundingSchema(string actionName, string controllerName, HttpRequest request);
+        Task<IActionResult> SaveFundingSchema(string actionName, string controllerName, string schema);
 
         Task<IActionResult> GetFundingSchemaByVersion(string version);
     }

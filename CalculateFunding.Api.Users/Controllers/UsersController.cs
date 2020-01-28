@@ -1,13 +1,15 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Users;
+using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Users.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CalculateFunding.Api.Users.Controllers
 {
-    public class UsersController : Controller
+    public class UsersController : ControllerBase
     {
         private readonly IUserService _userService;
         private readonly IFundingStreamPermissionService _fundingStreamPermissionService;
@@ -24,17 +26,17 @@ namespace CalculateFunding.Api.Users.Controllers
         [Route("api/users/confirm-skills")]
         [HttpPost]
         [Produces(typeof(User))]
-        public async Task<IActionResult> RunConfirmSkills()
+        public async Task<IActionResult> RunConfirmSkills([FromQuery] string userId, [FromBody] UserCreateModel userCreateModel)
         {
-            return await _userService.ConfirmSkills(ControllerContext.HttpContext.Request);
+            return await _userService.ConfirmSkills(userId, userCreateModel);
         }
 
         [Route("api/users/get-user-by-userid")]
         [HttpGet]
         [Produces(typeof(User))]
-        public async Task<IActionResult> RunGetUserByUserId()
+        public async Task<IActionResult> RunGetUserByUserId([FromQuery] string userId)
         {
-            return await _userService.GetUserByUserId(ControllerContext.HttpContext.Request);
+            return await _userService.GetUserByUserId(userId);
         }
 
         [Route("api/users/{userId}/permissions")]
@@ -42,15 +44,17 @@ namespace CalculateFunding.Api.Users.Controllers
         [Produces(typeof(IEnumerable<FundingStreamPermissionCurrent>))]
         public async Task<IActionResult> RunGetFundingStreamPermissionsForUser([FromRoute]string userId)
         {
-            return await _fundingStreamPermissionService.GetFundingStreamPermissionsForUser(userId, ControllerContext.HttpContext.Request);
+            return await _fundingStreamPermissionService.GetFundingStreamPermissionsForUser(userId);
         }
 
         [Route("api/users/{userId}/permissions/{fundingStreamId}")]
         [HttpPut]
         [Produces(typeof(FundingStreamPermissionCurrent))]
-        public async Task<IActionResult> RunUpdatePermissionForUser([FromRoute]string userId, [FromRoute]string fundingStreamId)
+        public async Task<IActionResult> RunUpdatePermissionForUser([FromRoute]string userId, [FromRoute]string fundingStreamId, [FromBody] FundingStreamPermissionUpdateModel fundingStreamPermissionUpdateModel)
         {
-            return await _fundingStreamPermissionService.UpdatePermissionForUser(userId, fundingStreamId, ControllerContext.HttpContext.Request);
+            Reference user = ControllerContext.HttpContext.Request.GetUser();
+
+            return await _fundingStreamPermissionService.UpdatePermissionForUser(userId, fundingStreamId, fundingStreamPermissionUpdateModel, user);
         }
 
         [Route("api/users/{userid}/effectivepermissions/{specificationId}")]
@@ -58,7 +62,7 @@ namespace CalculateFunding.Api.Users.Controllers
         [Produces(typeof(EffectiveSpecificationPermission))]
         public async Task<IActionResult> RunGetEffectivePermissionsForUser([FromRoute]string userId, [FromRoute]string specificationId)
         {
-            return await _fundingStreamPermissionService.GetEffectivePermissionsForUser(userId, specificationId, ControllerContext.HttpContext.Request);
+            return await _fundingStreamPermissionService.GetEffectivePermissionsForUser(userId, specificationId);
         }
     }
 }

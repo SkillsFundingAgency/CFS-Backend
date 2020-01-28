@@ -66,12 +66,8 @@ namespace CalculateFunding.Services.TestRunner.Services
             return health;
         }
 
-        async public Task<IActionResult> SearchTestScenarioResults(HttpRequest request)
+        async public Task<IActionResult> SearchTestScenarioResults(SearchModel searchModel)
         {
-            string json = await request.GetRawBodyStringAsync();
-
-            SearchModel searchModel = JsonConvert.DeserializeObject<SearchModel>(json);
-
             if (searchModel == null || searchModel.PageNumber < 1 || searchModel.Top < 1)
             {
                 _logger.Error("A null or invalid search model was provided for searching calculations");
@@ -81,7 +77,7 @@ namespace CalculateFunding.Services.TestRunner.Services
 
             try
             {
-                TestScenarioSearchResults results = await SearchTestScenarioResults(searchModel);
+                TestScenarioSearchResults results = await SearchTestScenarioResultsInternal(searchModel);
 
                 return new OkObjectResult(results);
             }
@@ -93,7 +89,7 @@ namespace CalculateFunding.Services.TestRunner.Services
             }
         }
 
-        public async Task<TestScenarioSearchResults> SearchTestScenarioResults(SearchModel searchModel)
+        public async Task<TestScenarioSearchResults> SearchTestScenarioResultsInternal(SearchModel searchModel)
         {
             IEnumerable<Task<SearchResults<TestScenarioResultIndex>>> searchTasks = BuildSearchTasks(searchModel);
 

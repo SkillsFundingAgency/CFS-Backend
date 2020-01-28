@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Jobs;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
@@ -27,14 +28,12 @@ namespace CalculateFunding.Services.Jobs.Services
             //Arrange
             IEnumerable<JobCreateModel> jobs = Enumerable.Empty<JobCreateModel>();
 
-            HttpRequest request = Substitute.For<HttpRequest>();
-
             ILogger logger = CreateLogger();
 
             JobManagementService jobManagementService = CreateJobManagementService(logger: logger);
 
             //Act
-            IActionResult actionResult = await jobManagementService.CreateJobs(jobs, request);
+            IActionResult actionResult = await jobManagementService.CreateJobs(jobs, null);
 
             //Assert
             actionResult
@@ -63,8 +62,6 @@ namespace CalculateFunding.Services.Jobs.Services
                 }
             };
 
-            HttpRequest request = Substitute.For<HttpRequest>();
-
             IJobDefinitionsService jobDefinitionsService = CreateJobDefinitionsService();
             jobDefinitionsService
                 .GetAllJobDefinitions()
@@ -75,7 +72,7 @@ namespace CalculateFunding.Services.Jobs.Services
             JobManagementService jobManagementService = CreateJobManagementService(jobDefinitionsService: jobDefinitionsService, logger: logger);
 
             //Act
-            IActionResult actionResult = await jobManagementService.CreateJobs(jobs, request);
+            IActionResult actionResult = await jobManagementService.CreateJobs(jobs, null);
 
             //Assert
             actionResult
@@ -112,8 +109,6 @@ namespace CalculateFunding.Services.Jobs.Services
                 }
             };
 
-            HttpRequest request = Substitute.For<HttpRequest>();
-
             IJobDefinitionsService jobDefinitionsService = CreateJobDefinitionsService();
             jobDefinitionsService
                 .GetAllJobDefinitions()
@@ -124,7 +119,7 @@ namespace CalculateFunding.Services.Jobs.Services
             JobManagementService jobManagementService = CreateJobManagementService(jobDefinitionsService: jobDefinitionsService, logger: logger);
 
             //Act
-            IActionResult actionResult = await jobManagementService.CreateJobs(jobs, request);
+            IActionResult actionResult = await jobManagementService.CreateJobs(jobs, null);
 
             //Assert
             actionResult
@@ -166,17 +161,7 @@ namespace CalculateFunding.Services.Jobs.Services
                 }
             };
 
-            HttpRequest request = Substitute.For<HttpRequest>();
-
-            List<Claim> claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.Sid, "authorId"),
-                new Claim(ClaimTypes.Name, "authorname")
-            };
-
-            request
-                .HttpContext.User.Claims
-                .Returns(claims.AsEnumerable());
+            Reference user = new Reference("authorId", "authorname");
 
             IJobDefinitionsService jobDefinitionsService = CreateJobDefinitionsService();
             jobDefinitionsService
@@ -188,7 +173,7 @@ namespace CalculateFunding.Services.Jobs.Services
             JobManagementService jobManagementService = CreateJobManagementService(jobDefinitionsService: jobDefinitionsService, jobRepository: jobRepository);
 
             //Act
-            IActionResult actionResult = await jobManagementService.CreateJobs(jobs, request);
+            IActionResult actionResult = await jobManagementService.CreateJobs(jobs, user);
 
             //Assert
             await
@@ -225,8 +210,6 @@ namespace CalculateFunding.Services.Jobs.Services
                 }
             };
 
-            HttpRequest request = Substitute.For<HttpRequest>();
-
             IJobDefinitionsService jobDefinitionsService = CreateJobDefinitionsService();
             jobDefinitionsService
                 .GetAllJobDefinitions()
@@ -242,7 +225,7 @@ namespace CalculateFunding.Services.Jobs.Services
             JobManagementService jobManagementService = CreateJobManagementService(jobDefinitionsService: jobDefinitionsService, jobRepository: jobRepository, logger: logger);
 
             //Act
-            IActionResult actionResult = await jobManagementService.CreateJobs(jobs, request);
+            IActionResult actionResult = await jobManagementService.CreateJobs(jobs, null);
 
             //Assert
             actionResult
@@ -286,8 +269,6 @@ namespace CalculateFunding.Services.Jobs.Services
                 }
             };
 
-            HttpRequest request = Substitute.For<HttpRequest>();
-
             IJobDefinitionsService jobDefinitionsService = CreateJobDefinitionsService();
             jobDefinitionsService
                 .GetAllJobDefinitions()
@@ -303,7 +284,7 @@ namespace CalculateFunding.Services.Jobs.Services
             JobManagementService jobManagementService = CreateJobManagementService(jobDefinitionsService: jobDefinitionsService, jobRepository: jobRepository, logger: logger);
 
             //Act
-            IActionResult actionResult = await jobManagementService.CreateJobs(jobs, request);
+            IActionResult actionResult = await jobManagementService.CreateJobs(jobs, null);
 
             //Assert
             actionResult
@@ -352,8 +333,6 @@ namespace CalculateFunding.Services.Jobs.Services
                 JobDefinitionId = jobDefinitionId
             };
 
-            HttpRequest request = Substitute.For<HttpRequest>();
-
             IJobDefinitionsService jobDefinitionsService = CreateJobDefinitionsService();
             jobDefinitionsService
                 .GetAllJobDefinitions()
@@ -369,7 +348,7 @@ namespace CalculateFunding.Services.Jobs.Services
             JobManagementService jobManagementService = CreateJobManagementService(jobDefinitionsService: jobDefinitionsService, jobRepository: jobRepository, logger: logger);
 
             //Act
-            IActionResult actionResult = await jobManagementService.CreateJobs(jobs, request);
+            IActionResult actionResult = await jobManagementService.CreateJobs(jobs, null);
 
             //Assert
             actionResult
@@ -416,8 +395,6 @@ namespace CalculateFunding.Services.Jobs.Services
                 JobDefinitionId = jobDefinitionId
             };
 
-            HttpRequest request = Substitute.For<HttpRequest>();
-
             IJobDefinitionsService jobDefinitionsService = CreateJobDefinitionsService();
             jobDefinitionsService
                 .GetAllJobDefinitions()
@@ -437,7 +414,7 @@ namespace CalculateFunding.Services.Jobs.Services
             JobManagementService jobManagementService = CreateJobManagementService(jobDefinitionsService: jobDefinitionsService, jobRepository: jobRepository, logger: logger);
 
             //Act
-            IActionResult actionResult = await jobManagementService.CreateJobs(jobs, request);
+            IActionResult actionResult = await jobManagementService.CreateJobs(jobs, null);
 
             //Assert
             actionResult
@@ -497,8 +474,6 @@ namespace CalculateFunding.Services.Jobs.Services
                 new Job { Id = "current-job-2" }
             };
 
-            HttpRequest request = Substitute.For<HttpRequest>();
-
             IJobDefinitionsService jobDefinitionsService = CreateJobDefinitionsService();
             jobDefinitionsService
                 .GetAllJobDefinitions()
@@ -526,7 +501,7 @@ namespace CalculateFunding.Services.Jobs.Services
                 logger: logger, notificationService: notificationService);
 
             //Act
-            IActionResult actionResult = await jobManagementService.CreateJobs(jobs, request);
+            IActionResult actionResult = await jobManagementService.CreateJobs(jobs, null);
 
             //Assert
             actionResult
@@ -647,8 +622,6 @@ namespace CalculateFunding.Services.Jobs.Services
                 },
             };
 
-            HttpRequest request = Substitute.For<HttpRequest>();
-
             IJobDefinitionsService jobDefinitionsService = CreateJobDefinitionsService();
             jobDefinitionsService
                 .GetAllJobDefinitions()
@@ -676,7 +649,7 @@ namespace CalculateFunding.Services.Jobs.Services
                 logger: logger, notificationService: notificationService);
 
             //Act
-            IActionResult actionResult = await jobManagementService.CreateJobs(jobs, request);
+            IActionResult actionResult = await jobManagementService.CreateJobs(jobs, null);
 
             //Assert
             actionResult
@@ -828,8 +801,6 @@ namespace CalculateFunding.Services.Jobs.Services
                 },
             };
 
-            HttpRequest request = Substitute.For<HttpRequest>();
-
             IJobDefinitionsService jobDefinitionsService = CreateJobDefinitionsService();
             jobDefinitionsService
                 .GetAllJobDefinitions()
@@ -857,7 +828,7 @@ namespace CalculateFunding.Services.Jobs.Services
                 logger: logger, notificationService: notificationService);
 
             //Act
-            IActionResult actionResult = await jobManagementService.CreateJobs(jobs, request);
+            IActionResult actionResult = await jobManagementService.CreateJobs(jobs, null);
 
             //Assert
             actionResult
@@ -953,8 +924,6 @@ namespace CalculateFunding.Services.Jobs.Services
                 JobDefinitionId = jobDefinitionId
             };
 
-            HttpRequest request = Substitute.For<HttpRequest>();
-
             IJobDefinitionsService jobDefinitionsService = CreateJobDefinitionsService();
             jobDefinitionsService
                 .GetAllJobDefinitions()
@@ -977,7 +946,7 @@ namespace CalculateFunding.Services.Jobs.Services
                 jobRepository: jobRepository, logger: logger, notificationService: notificationService);
 
             //Act
-            IActionResult actionResult = await jobManagementService.CreateJobs(jobs, request);
+            IActionResult actionResult = await jobManagementService.CreateJobs(jobs, null);
 
             //Assert
             actionResult
@@ -1077,8 +1046,6 @@ namespace CalculateFunding.Services.Jobs.Services
                 }
             };
 
-            HttpRequest request = Substitute.For<HttpRequest>();
-
             IJobDefinitionsService jobDefinitionsService = CreateJobDefinitionsService();
             jobDefinitionsService
                 .GetAllJobDefinitions()
@@ -1105,7 +1072,7 @@ namespace CalculateFunding.Services.Jobs.Services
                 jobRepository: jobRepository, logger: logger, notificationService: notificationService);
 
             //Act
-            IActionResult actionResult = await jobManagementService.CreateJobs(jobs, request);
+            IActionResult actionResult = await jobManagementService.CreateJobs(jobs, null);
 
             //Assert
             actionResult
@@ -1165,8 +1132,6 @@ namespace CalculateFunding.Services.Jobs.Services
 
             IValidator<CreateJobValidationModel> validator = CreateNewCreateJobValidator(validationResult);
 
-            HttpRequest request = Substitute.For<HttpRequest>();
-
             IJobDefinitionsService jobDefinitionsService = CreateJobDefinitionsService();
             jobDefinitionsService
                 .GetAllJobDefinitions()
@@ -1180,7 +1145,7 @@ namespace CalculateFunding.Services.Jobs.Services
                 logger: logger, notificationService: notificationService, createJobValidator: validator);
 
             //Act
-            IActionResult actionResult = await jobManagementService.CreateJobs(jobs, request);
+            IActionResult actionResult = await jobManagementService.CreateJobs(jobs, null);
 
             //Assert
             actionResult
@@ -1284,8 +1249,6 @@ namespace CalculateFunding.Services.Jobs.Services
                 },
             };
 
-            HttpRequest request = Substitute.For<HttpRequest>();
-
             IJobDefinitionsService jobDefinitionsService = CreateJobDefinitionsService();
             jobDefinitionsService
                 .GetAllJobDefinitions()
@@ -1313,7 +1276,7 @@ namespace CalculateFunding.Services.Jobs.Services
                 logger: logger, messengerService: messengerService);
 
             //Act
-            IActionResult actionResult = await jobManagementService.CreateJobs(jobs, request);
+            IActionResult actionResult = await jobManagementService.CreateJobs(jobs, null);
 
             //Assert
             actionResult
@@ -1390,8 +1353,6 @@ namespace CalculateFunding.Services.Jobs.Services
                 MessageBody = "a message"
             };
 
-            HttpRequest request = Substitute.For<HttpRequest>();
-
             IJobDefinitionsService jobDefinitionsService = CreateJobDefinitionsService();
             jobDefinitionsService
                 .GetAllJobDefinitions()
@@ -1411,7 +1372,7 @@ namespace CalculateFunding.Services.Jobs.Services
                 logger: logger, messengerService: messengerService);
 
             //Act
-            IActionResult actionResult = await jobManagementService.CreateJobs(jobs, request);
+            IActionResult actionResult = await jobManagementService.CreateJobs(jobs, null);
 
             //Assert
             actionResult
@@ -1529,8 +1490,6 @@ namespace CalculateFunding.Services.Jobs.Services
                 },
             };
 
-            HttpRequest request = Substitute.For<HttpRequest>();
-
             IJobDefinitionsService jobDefinitionsService = CreateJobDefinitionsService();
             jobDefinitionsService
                 .GetAllJobDefinitions()
@@ -1558,7 +1517,7 @@ namespace CalculateFunding.Services.Jobs.Services
                 logger: logger, messengerService: messengerService);
 
             //Act
-            IActionResult actionResult = await jobManagementService.CreateJobs(jobs, request);
+            IActionResult actionResult = await jobManagementService.CreateJobs(jobs, null);
 
             //Assert
             actionResult
@@ -1639,8 +1598,6 @@ namespace CalculateFunding.Services.Jobs.Services
                 MessageBody = "a message"
             };
 
-            HttpRequest request = Substitute.For<HttpRequest>();
-
             IJobDefinitionsService jobDefinitionsService = CreateJobDefinitionsService();
             jobDefinitionsService
                 .GetAllJobDefinitions()
@@ -1666,7 +1623,7 @@ namespace CalculateFunding.Services.Jobs.Services
                 logger: logger, messengerService: messengerService);
 
             //Act
-            Func<Task> test = async () => await jobManagementService.CreateJobs(jobs, request);
+            Func<Task> test = async () => await jobManagementService.CreateJobs(jobs, null);
 
             //Assert
             test
@@ -1765,8 +1722,6 @@ namespace CalculateFunding.Services.Jobs.Services
                 },
             };
 
-            HttpRequest request = Substitute.For<HttpRequest>();
-
             IJobDefinitionsService jobDefinitionsService = CreateJobDefinitionsService();
             jobDefinitionsService
                 .GetAllJobDefinitions()
@@ -1794,7 +1749,7 @@ namespace CalculateFunding.Services.Jobs.Services
                 logger: logger, messengerService: messengerService);
 
             //Act
-            IActionResult actionResult = await jobManagementService.CreateJobs(jobs, request);
+            IActionResult actionResult = await jobManagementService.CreateJobs(jobs, null);
 
             //Assert
             actionResult
@@ -1895,8 +1850,6 @@ namespace CalculateFunding.Services.Jobs.Services
                 },
             };
 
-            HttpRequest request = Substitute.For<HttpRequest>();
-
             IJobDefinitionsService jobDefinitionsService = CreateJobDefinitionsService();
             jobDefinitionsService
                 .GetAllJobDefinitions()
@@ -1928,7 +1881,7 @@ namespace CalculateFunding.Services.Jobs.Services
                 logger: logger, messengerService: messengerService);
 
             //Act
-            IActionResult actionResult = await jobManagementService.CreateJobs(jobs, request);
+            IActionResult actionResult = await jobManagementService.CreateJobs(jobs, null);
 
             //Assert
             actionResult

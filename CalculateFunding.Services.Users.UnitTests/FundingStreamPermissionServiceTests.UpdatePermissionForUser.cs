@@ -26,7 +26,7 @@ namespace CalculateFunding.Services.Users
             FundingStreamPermissionService service = CreateService();
 
             // Act
-            IActionResult result = await service.UpdatePermissionForUser(null, FundingStreamId, null);
+            IActionResult result = await service.UpdatePermissionForUser(null, FundingStreamId, null, null);
 
             // Assert
             result
@@ -46,7 +46,7 @@ namespace CalculateFunding.Services.Users
             string fundingStreamId = null;
 
             // Act
-            IActionResult result = await service.UpdatePermissionForUser(UserId, fundingStreamId, null);
+            IActionResult result = await service.UpdatePermissionForUser(UserId, fundingStreamId, null, null);
 
             // Assert
             result
@@ -72,7 +72,7 @@ namespace CalculateFunding.Services.Users
             FundingStreamPermissionService service = CreateService(userRepository);
 
             // Act
-            IActionResult result = await service.UpdatePermissionForUser(UserId, FundingStreamId, Substitute.For<HttpRequest>());
+            IActionResult result = await service.UpdatePermissionForUser(UserId, FundingStreamId, null, null);
 
             // Assert
             result
@@ -120,16 +120,7 @@ namespace CalculateFunding.Services.Users
                 CanMapDatasets = false,
                 CanReleaseFunding = false,
             };
-
-            string json = JsonConvert.SerializeObject(updateModel);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
+            
             IVersionRepository<FundingStreamPermissionVersion> versionRepository = CreateFundingStreamPermissionRepository();
 
             versionRepository
@@ -142,7 +133,7 @@ namespace CalculateFunding.Services.Users
                 fundingStreamPermissionVersionRepository: versionRepository);
 
             // Act
-            IActionResult result = await service.UpdatePermissionForUser(UserId, FundingStreamId, request);
+            IActionResult result = await service.UpdatePermissionForUser(UserId, FundingStreamId, updateModel, null);
 
             // Assert
             result
@@ -242,15 +233,6 @@ namespace CalculateFunding.Services.Users
                 CanReleaseFunding = false,
             };
 
-            string json = JsonConvert.SerializeObject(updateModel);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
             IVersionRepository<FundingStreamPermissionVersion> versionRepository = CreateFundingStreamPermissionRepository();
 
             versionRepository
@@ -263,7 +245,7 @@ namespace CalculateFunding.Services.Users
                 fundingStreamPermissionVersionRepository: versionRepository);
 
             // Act
-            IActionResult result = await service.UpdatePermissionForUser(UserId, FundingStreamId, request);
+            IActionResult result = await service.UpdatePermissionForUser(UserId, FundingStreamId, updateModel, null);
 
             // Assert
             result
@@ -360,17 +342,7 @@ namespace CalculateFunding.Services.Users
                 CanReleaseFunding = false,
             };
 
-            string json = JsonConvert.SerializeObject(updateModel);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
             IVersionRepository<FundingStreamPermissionVersion> versionRepository = CreateFundingStreamPermissionRepository();
-
 
             FundingStreamPermissionService service = CreateService(
                 userRepository,
@@ -378,7 +350,7 @@ namespace CalculateFunding.Services.Users
                 cacheProvider: cacheProvider);
 
             // Act
-            IActionResult result = await service.UpdatePermissionForUser(UserId, FundingStreamId, request);
+            IActionResult result = await service.UpdatePermissionForUser(UserId, FundingStreamId, updateModel, null);
 
             // Assert
             result
@@ -465,19 +437,10 @@ namespace CalculateFunding.Services.Users
                 CanReleaseFunding = false,
             };
 
-            string json = JsonConvert.SerializeObject(updateModel);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
             FundingStreamPermissionService service = CreateService(userRepository, cacheProvider: cacheProvider);
 
             // Act
-            IActionResult result = await service.UpdatePermissionForUser(UserId, FundingStreamId, request);
+            IActionResult result = await service.UpdatePermissionForUser(UserId, FundingStreamId, updateModel, null);
 
             // Assert
             result

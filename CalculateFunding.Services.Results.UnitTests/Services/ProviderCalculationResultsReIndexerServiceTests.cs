@@ -192,27 +192,14 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
         public async Task ReIndexCalculationResults_GivenRequest_AddsServiceBusMessage()
         {
             //Arrange
-            ClaimsPrincipal principle = new ClaimsPrincipal(new[]
-           {
-                new ClaimsIdentity(new []{ new Claim(ClaimTypes.Sid, "123"), new Claim(ClaimTypes.Name, "Joe Bloggs") })
-            });
-
-            HttpContext context = Substitute.For<HttpContext>();
-            context
-                .User
-                .Returns(principle);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .HttpContext
-                .Returns(context);
+            Reference user = new Reference("123", "Joe Bloggs");
 
             IMessengerService messengerService = CreateMessengerService();
 
             ProviderCalculationResultsReIndexerService service = CreateService(messengerService: messengerService);
 
             //Act
-            IActionResult actionResult = await service.ReIndexCalculationResults(request);
+            IActionResult actionResult = await service.ReIndexCalculationResults(null, user);
 
             //Assert
             actionResult

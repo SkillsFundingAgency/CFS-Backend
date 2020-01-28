@@ -39,15 +39,15 @@ namespace CalculateFunding.Api.Policy.Controllers
             return await _fundingPeriodService.GetFundingPeriodById(fundingPeriodId);
         }
 
-        /// <summary>
+        /// <summary> 
         /// Saves (creates or updates) a Funding Period
         /// </summary>
         /// <returns>Saved Funding Period</returns>
         [HttpPost("api/fundingperiods")]
         [Produces(typeof(FundingPeriod))]
-        public async Task<IActionResult> SaveFundingPeriods()
+        public async Task<IActionResult> SaveFundingPeriods([FromBody] FundingPeriodsJsonModel fundingPeriodsJsonModel)
         {
-            return await _fundingPeriodService.SaveFundingPeriods(ControllerContext.HttpContext.Request);
+            return await _fundingPeriodService.SaveFundingPeriods(fundingPeriodsJsonModel);
         }
     }
 }

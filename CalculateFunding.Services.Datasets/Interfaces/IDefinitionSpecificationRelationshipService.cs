@@ -1,24 +1,24 @@
 ﻿using CalculateFunding.Common.Models;
+using CalculateFunding.Models.Datasets;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.ServiceBus;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Datasets.Interfaces
 {
     public interface IDefinitionSpecificationRelationshipService
     {
-        Task<IActionResult> CreateRelationship(HttpRequest request);
+        Task<IActionResult> CreateRelationship(CreateDefinitionSpecificationRelationshipModel createDefinitionSpecificationRelationshipModel, Reference user, string correlationId);
 
-        Task<IActionResult> GetRelationshipsBySpecificationId(HttpRequest request);
+        Task<IActionResult> GetRelationshipsBySpecificationId(string specificationId);
 
-        Task<IActionResult> GetRelationshipBySpecificationIdAndName(HttpRequest request);
+        Task<IActionResult> GetRelationshipBySpecificationIdAndName(string specificationId, string name);
 
-        Task<IActionResult> GetCurrentRelationshipsBySpecificationId(HttpRequest request);
+        Task<IActionResult> GetCurrentRelationshipsBySpecificationId(string specificationId);
 
-        Task<IActionResult> GetDataSourcesByRelationshipId(HttpRequest request);
+        Task<IActionResult> GetDataSourcesByRelationshipId(string relationshipId);
 
-        Task<IActionResult> AssignDatasourceVersionToRelationship(HttpRequest request);
+        Task<IActionResult> AssignDatasourceVersionToRelationship(AssignDatasourceModel assignDatasourceModel, Reference user, string correlationId);
 
         Task<IActionResult> GetCurrentDatasetRelationshipFieldsBySpecificationId(string specificationId);
 

@@ -46,12 +46,12 @@ namespace CalculateFunding.Services.Specs
             return health;
         }
 
-        async public Task<IActionResult> SearchSpecificationDatasetRelationships(HttpRequest request)
+        async public Task<IActionResult> SearchSpecificationDatasetRelationships(SearchModel searchModel)
         {
-            SearchModel searchModel = await GetSearchModelFromRequest(request);
-
-            if (searchModel == null )
+            if (searchModel == null || searchModel.PageNumber < 1 || searchModel.Top < 1)
             {
+                _logger.Error("A null or invalid search model was provided for searching specifications");
+
                 return new BadRequestObjectResult("An invalid search model was provided");
             }
 
@@ -83,9 +83,14 @@ namespace CalculateFunding.Services.Specs
             }
         }
 
-        async public Task<IActionResult> SearchSpecifications(HttpRequest request)
+        async public Task<IActionResult> SearchSpecifications(SearchModel searchModel)
         {
-            SearchModel searchModel = await GetSearchModelFromRequest(request);
+            if (searchModel == null || searchModel.PageNumber < 1 || searchModel.Top < 1)
+            {
+                _logger.Error("A null or invalid search model was provided for searching specifications");
+
+                return new BadRequestObjectResult("An invalid search model was provided");
+            }
 
             if (searchModel == null)
             {

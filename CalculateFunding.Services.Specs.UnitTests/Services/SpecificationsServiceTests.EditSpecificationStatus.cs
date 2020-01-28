@@ -28,14 +28,12 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         public async Task EditSpecificationStatus_GivenNoSpecificationIdWasProvided_ReturnsBadRequest()
         {
             //Arrange
-            HttpRequest request = Substitute.For<HttpRequest>();
-
             ILogger logger = CreateLogger();
 
             SpecificationsService service = CreateService(logs: logger);
 
             //Act
-            IActionResult result = await service.EditSpecificationStatus(request);
+            IActionResult result = await service.EditSpecificationStatus(null, null, null);
 
             //Arrange
             result
@@ -51,22 +49,12 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         public async Task EditSpecificationStatus_GivenNullEditModeldWasProvided_ReturnsBadRequest()
         {
             //Arrange
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "specificationId", new StringValues(SpecificationId) },
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-
             ILogger logger = CreateLogger();
 
             SpecificationsService service = CreateService(logs: logger);
 
             //Act
-            IActionResult result = await service.EditSpecificationStatus(request);
+            IActionResult result = await service.EditSpecificationStatus(SpecificationId, null, null);
 
             //Arrange
             result
@@ -83,59 +71,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         }
 
         [TestMethod]
-        public async Task EditSpecificationStatus_GivenAnInvalidStatus_ReturnsBadRequest()
-        {
-            //Arrange
-
-            string json = @"{
-	                            ""publishStatus"" : ""whatever""
-                            }";
-
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpContext context = Substitute.For<HttpContext>();
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "specificationId", new StringValues(SpecificationId) },
-            });
-
-            request
-                .Query
-                .Returns(queryStringValues);
-            request
-                .Body
-                .Returns(stream);
-
-            request
-                .HttpContext
-                .Returns(context);
-
-            ILogger logger = CreateLogger();
-
-            SpecificationsService service = CreateService(logs: logger);
-
-            //Act
-            IActionResult result = await service.EditSpecificationStatus(request);
-
-            //Arrange
-            result
-                .Should()
-                .BeOfType<BadRequestObjectResult>()
-                .Which
-                .Value
-                .Should()
-                .Be("An invalid status was provided");
-
-            logger
-                .Received(1)
-                .Error(Arg.Any<JsonSerializationException>(), Arg.Is($"An invalid status was provided for specification: {SpecificationId}"));
-        }
-
-        [TestMethod]
         public async Task EditSpecificationStatus_GivenSpecificationWasNotFound_ReturnsNotFoundResult()
         {
             //Arrange
@@ -143,30 +78,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             {
                 PublishStatus = PublishStatus.Approved
             };
-
-            string json = JsonConvert.SerializeObject(specificationEditStatusModel);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpContext context = Substitute.For<HttpContext>();
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "specificationId", new StringValues(SpecificationId) },
-            });
-
-            request
-                .Query
-                .Returns(queryStringValues);
-            request
-                .Body
-                .Returns(stream);
-
-            request
-                .HttpContext
-                .Returns(context);
 
             ILogger logger = CreateLogger();
 
@@ -178,7 +89,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             SpecificationsService service = CreateService(logs: logger, specificationsRepository: specificationsRepository);
 
             //Act
-            IActionResult result = await service.EditSpecificationStatus(request);
+            IActionResult result = await service.EditSpecificationStatus(SpecificationId, specificationEditStatusModel, null);
 
             //Arrange
             result
@@ -203,30 +114,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 PublishStatus = PublishStatus.Approved
             };
 
-            string json = JsonConvert.SerializeObject(specificationEditStatusModel);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpContext context = Substitute.For<HttpContext>();
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "specificationId", new StringValues(SpecificationId) },
-            });
-
-            request
-                .Query
-                .Returns(queryStringValues);
-            request
-                .Body
-                .Returns(stream);
-
-            request
-                .HttpContext
-                .Returns(context);
-
             ILogger logger = CreateLogger();
 
             Specification specification = CreateSpecification();
@@ -240,7 +127,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             SpecificationsService service = CreateService(logs: logger, specificationsRepository: specificationsRepository);
 
             //Act
-            IActionResult result = await service.EditSpecificationStatus(request);
+            IActionResult result = await service.EditSpecificationStatus(SpecificationId, specificationEditStatusModel, null);
 
             //Arrange
             result
@@ -266,30 +153,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 PublishStatus = PublishStatus.Approved
             };
 
-            string json = JsonConvert.SerializeObject(specificationEditStatusModel);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpContext context = Substitute.For<HttpContext>();
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "specificationId", new StringValues(SpecificationId) },
-            });
-
-            request
-                .Query
-                .Returns(queryStringValues);
-            request
-                .Body
-                .Returns(stream);
-
-            request
-                .HttpContext
-                .Returns(context);
-
             ILogger logger = CreateLogger();
 
             Specification specification = CreateSpecification();
@@ -308,7 +171,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 logs: logger, specificationsRepository: specificationsRepository);
 
             //Act
-            IActionResult result = await service.EditSpecificationStatus(request);
+            IActionResult result = await service.EditSpecificationStatus(SpecificationId, specificationEditStatusModel, null);
 
             //Arrange
             result
@@ -328,30 +191,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             {
                 PublishStatus = PublishStatus.Approved
             };
-
-            string json = JsonConvert.SerializeObject(specificationEditStatusModel);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpContext context = Substitute.For<HttpContext>();
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "specificationId", new StringValues(SpecificationId) },
-            });
-
-            request
-                .Query
-                .Returns(queryStringValues);
-            request
-                .Body
-                .Returns(stream);
-
-            request
-                .HttpContext
-                .Returns(context);
 
             ILogger logger = CreateLogger();
 
@@ -381,7 +220,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 logs: logger, specificationsRepository: specificationsRepository, searchRepository: searchRepository, specificationVersionRepository: versionRepository);
 
             //Act
-            IActionResult result = await service.EditSpecificationStatus(request);
+            IActionResult result = await service.EditSpecificationStatus(SpecificationId, specificationEditStatusModel, null);
 
             //Arrange
             result
@@ -422,30 +261,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 PublishStatus = PublishStatus.Draft
             };
 
-            string json = JsonConvert.SerializeObject(specificationEditStatusModel);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpContext context = Substitute.For<HttpContext>();
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "specificationId", new StringValues(SpecificationId) },
-            });
-
-            request
-                .Query
-                .Returns(queryStringValues);
-            request
-                .Body
-                .Returns(stream);
-
-            request
-                .HttpContext
-                .Returns(context);
-
             ILogger logger = CreateLogger();
 
             Specification specification = CreateSpecification();
@@ -467,7 +282,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 logs: logger, specificationsRepository: specificationsRepository, searchRepository: searchRepository);
 
             // Act
-            IActionResult result = await service.EditSpecificationStatus(request);
+            IActionResult result = await service.EditSpecificationStatus(SpecificationId, specificationEditStatusModel, null);
 
             // Arrange
             result
@@ -498,30 +313,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             {
                 PublishStatus = PublishStatus.Updated
             };
-
-            string json = JsonConvert.SerializeObject(specificationEditStatusModel);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpContext context = Substitute.For<HttpContext>();
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "specificationId", new StringValues(SpecificationId) },
-            });
-
-            request
-                .Query
-                .Returns(queryStringValues);
-            request
-                .Body
-                .Returns(stream);
-
-            request
-                .HttpContext
-                .Returns(context);
 
             ILogger logger = CreateLogger();
 
@@ -555,7 +346,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 logs: logger, specificationsRepository: specificationsRepository, searchRepository: searchRepository, specificationVersionRepository: versionRepository);
 
             //Act
-            IActionResult result = await service.EditSpecificationStatus(request);
+            IActionResult result = await service.EditSpecificationStatus(SpecificationId, specificationEditStatusModel, null);
 
             //Arrange
             result
@@ -598,30 +389,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 PublishStatus = PublishStatus.Approved
             };
 
-            string json = JsonConvert.SerializeObject(specificationEditStatusModel);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpContext context = Substitute.For<HttpContext>();
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "specificationId", new StringValues(SpecificationId) },
-            });
-
-            request
-                .Query
-                .Returns(queryStringValues);
-            request
-                .Body
-                .Returns(stream);
-
-            request
-                .HttpContext
-                .Returns(context);
-
             ILogger logger = CreateLogger();
 
             Specification specification = CreateSpecification();
@@ -653,7 +420,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 logs: logger, specificationsRepository: specificationsRepository, searchRepository: searchRepository, specificationVersionRepository: versionRepository);
 
             // Act
-            Func<Task<IActionResult>> editSpecificationStatus = async () => await service.EditSpecificationStatus(request);
+            Func<Task<IActionResult>> editSpecificationStatus = async () => await service.EditSpecificationStatus(SpecificationId, specificationEditStatusModel, null);
 
             // Assert
             editSpecificationStatus

@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
+using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.ViewModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -9,31 +10,31 @@ namespace CalculateFunding.Services.Datasets.Interfaces
 {
     public interface IDatasetService
     {
-        Task<IActionResult> CreateNewDataset(HttpRequest request);
+        Task<IActionResult> CreateNewDataset(CreateNewDatasetModel model, Reference author);
 
-        Task<IActionResult> DatasetVersionUpdate(HttpRequest request);
+        Task<IActionResult> DatasetVersionUpdate(DatasetVersionUpdateModel model, Reference author);
 
         Task<IActionResult> GetDatasetByName(HttpRequest request);
 
-        Task<IActionResult> GetCurrentDatasetVersionByDatasetId(HttpRequest request);
+        Task<IActionResult> GetCurrentDatasetVersionByDatasetId(string datasetId);
 
-        Task<IActionResult> ValidateDataset(HttpRequest request);
+        Task<IActionResult> ValidateDataset(GetDatasetBlobModel getDatasetBlobModel, Reference user, string correlationId);
 
         Task ValidateDataset(Message message);
 
-        Task<IActionResult> GetDatasetsByDefinitionId(HttpRequest request);
+        Task<IActionResult> GetDatasetsByDefinitionId(string definitionId);
 
-        Task<IActionResult> DownloadDatasetFile(HttpRequest request);
+        Task<IActionResult> DownloadDatasetFile(string datasetId, string datasetVersion);
 
         Task<IActionResult> UploadDatasetFile(string filename, DatasetMetadataViewModel datasetMetadataViewModel);
 
-        Task<IActionResult> Reindex(HttpRequest request);
+        Task<IActionResult> Reindex();
 
-	    Task<IActionResult> ReindexDatasetVersions(HttpRequest request);
+	    Task<IActionResult> ReindexDatasetVersions();
 
-        Task<IActionResult> RegenerateProviderSourceDatasets(HttpRequest httpRequest);
+        Task<IActionResult> RegenerateProviderSourceDatasets(string specificationId, Reference user, string correlationId);
 
-        Task<IActionResult> GetValidateDatasetStatus(HttpRequest httpRequest);
+        Task<IActionResult> GetValidateDatasetStatus(string operationId);
 
         Task UpdateDatasetAndVersionDefinitionName(Reference datsetDefinitionReference);
 

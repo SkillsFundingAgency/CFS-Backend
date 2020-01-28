@@ -1,17 +1,19 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Calcs.Models.Schema;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.ViewModels;
 using CalculateFunding.Repositories.Common.Search.Results;
+using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Datasets.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CalculateFunding.Api.Datasets.Controllers
 {
-    public class DatasetsController : Controller
+    public class DatasetsController : ControllerBase
     {
         private readonly IDefinitionsService _definitionService;
         private readonly IDatasetService _datasetService;
@@ -48,9 +50,16 @@ namespace CalculateFunding.Api.Datasets.Controllers
         /// </remarks>
         [Route("api/datasets/data-definitions")]
         [HttpPost]
-        public Task<IActionResult> DataDefinitionSave()
+        [ProducesResponseType(200)]
+        public async Task<IActionResult> DataDefinitionSave()
         {
-            return _definitionService.SaveDefinition(ControllerContext.HttpContext.Request);
+            string yaml = await ControllerContext.HttpContext.Request.GetRawBodyStringAsync();
+            string yamlFilename = ControllerContext.HttpContext.Request.GetYamlFileNameFromRequest();
+
+            Reference user = ControllerContext.HttpContext.Request.GetUserOrDefault();
+            string correlationId = ControllerContext.HttpContext.Request.GetCorrelationId();
+            
+            return await _definitionService.SaveDefinition(yaml, yamlFilename, user, correlationId);
         }
 
         [Route("api/datasets/get-data-definitions")]
@@ -58,137 +67,151 @@ namespace CalculateFunding.Api.Datasets.Controllers
         [Produces(typeof(IEnumerable<DatasetDefinition>))]
         public Task<IActionResult> GetDatasetDefinitions()
         {
-            return _definitionService.GetDatasetDefinitions(ControllerContext.HttpContext.Request);
+            return _definitionService.GetDatasetDefinitions();
         }
 
         [Route("api/datasets/get-dataset-definition-by-id")]
         [HttpGet]
         [Produces(typeof(DatasetDefinition))]
-        public Task<IActionResult> GetDatasetDefinitionById()
+        public Task<IActionResult> GetDatasetDefinitionById([FromQuery] string datasetDefinitionId)
         {
-            return _definitionService.GetDatasetDefinitionById(ControllerContext.HttpContext.Request);
+            return _definitionService.GetDatasetDefinitionById(datasetDefinitionId);
         }
 
         [Route("api/datasets/get-dataset-definitions-by-ids")]
         [HttpGet]
         [Produces(typeof(IEnumerable<DatasetDefinition>))]
-        public Task<IActionResult> GetDatasetDefinitionsById()
+        public Task<IActionResult> GetDatasetDefinitionsById([FromBody] IEnumerable<string> definitionIds)
         {
-            return _definitionService.GetDatasetDefinitionsByIds(ControllerContext.HttpContext.Request);
+            return _definitionService.GetDatasetDefinitionsByIds(definitionIds);
         }
 
         [Route("api/datasets/create-new-dataset")]
         [HttpPost]
         [Produces(typeof(NewDatasetVersionResponseModel))]
-        public Task<IActionResult> CreateDataset()
+        public Task<IActionResult> CreateDataset([FromBody] CreateNewDatasetModel createNewDatasetModel)
         {
-            return _datasetService.CreateNewDataset(ControllerContext.HttpContext.Request);
+            Reference user = ControllerContext.HttpContext.Request.GetUserOrDefault();
+            return _datasetService.CreateNewDataset(createNewDatasetModel, user);
         }
 
         [Route("api/datasets/dataset-version-update")]
         [HttpPost]
         [Produces(typeof(NewDatasetVersionResponseModel))]
-        public Task<IActionResult> DatasetVersionUpdate()
+        public Task<IActionResult> DatasetVersionUpdate([FromBody] DatasetVersionUpdateModel datasetVersionUpdateModel)
         {
-            return _datasetService.DatasetVersionUpdate(ControllerContext.HttpContext.Request);
+            Reference user = ControllerContext.HttpContext.Request.GetUserOrDefault();
+            return _datasetService.DatasetVersionUpdate(datasetVersionUpdateModel, user);
         }
 
         [Route("api/datasets/datasets-search")]
         [HttpPost]
         [Produces(typeof(DatasetSearchResults))]
-        public Task<IActionResult> DatasetsSearch()
+        public Task<IActionResult> DatasetsSearch([FromBody] SearchModel searchModel)
         {
-            return _datasetSearchService.SearchDatasets(ControllerContext.HttpContext.Request);
+            return _datasetSearchService.SearchDatasets(searchModel);
         }
 
         [Route("api/datasets/datasets-version-search")]
         [HttpPost]
         [Produces(typeof(DatasetVersionSearchResults))]
-        public Task<IActionResult> DatasetsVersionSearch()
+        public Task<IActionResult> DatasetsVersionSearch([FromBody] SearchModel searchModel)
         {
-            return _datasetSearchService.SearchDatasetVersion(ControllerContext.HttpContext.Request);
+            return _datasetSearchService.SearchDatasetVersion(searchModel);
         }
 
         [Route("api/datasets/dataset-definitions-search")]
         [HttpPost]
         [Produces(typeof(DatasetDefinitionSearchResults))]
-        public Task<IActionResult> DatasetDefinitionsSearch()
+        public Task<IActionResult> DatasetDefinitionsSearch([FromBody] SearchModel searchModel)
         {
-            return _datasetDefinitionSearchService.SearchDatasetDefinitions(ControllerContext.HttpContext.Request);
+            return _datasetDefinitionSearchService.SearchDatasetDefinitions(searchModel);
         }
 
         [Route("api/datasets/validate-dataset")]
         [HttpPost]
         [Produces(typeof(DatasetValidationStatusModel))]
-        public Task<IActionResult> ValidateDataset()
+        public Task<IActionResult> ValidateDataset([FromBody] GetDatasetBlobModel getDatasetBlobModel)
         {
-            return _datasetService.ValidateDataset(ControllerContext.HttpContext.Request);
+            Reference user = ControllerContext.HttpContext.Request.GetUserOrDefault();
+            string correlationId = ControllerContext.HttpContext.Request.GetCorrelationId();
+
+            return _datasetService.ValidateDataset(getDatasetBlobModel, user, correlationId);
         }
 
         [Route("api/datasets/create-definitionspecification-relationship")]
         [HttpPost]
         [Produces(typeof(DefinitionSpecificationRelationship))]
-        public Task<IActionResult> CreateDefinitionSpecificationRelationship()
+        public Task<IActionResult> CreateDefinitionSpecificationRelationship([FromBody] CreateDefinitionSpecificationRelationshipModel createDefinitionSpecificationRelationshipModel)
         {
-            return _definitionSpecificationRelationshipService.CreateRelationship(ControllerContext.HttpContext.Request);
+            Reference user = ControllerContext.HttpContext.Request.GetUserOrDefault();
+            string correlationId = ControllerContext.HttpContext.Request.GetCorrelationId();
+
+            return _definitionSpecificationRelationshipService.CreateRelationship(createDefinitionSpecificationRelationshipModel, user, correlationId);
         }
 
         [Route("api/datasets/get-definitions-relationships")]
         [HttpGet]
         [Produces(typeof(IEnumerable<DatasetSpecificationRelationshipViewModel>))]
-        public Task<IActionResult> GetDefinitionRelationships()
+        public Task<IActionResult> GetDefinitionRelationships([FromQuery] string specificationId)
         {
-            return _definitionSpecificationRelationshipService.GetRelationshipsBySpecificationId(ControllerContext.HttpContext.Request);
+            return _definitionSpecificationRelationshipService.GetRelationshipsBySpecificationId(specificationId);
         }
 
         [Route("api/datasets/get-definition-relationship-by-specificationid-name")]
         [HttpGet]
         [Produces(typeof(DefinitionSpecificationRelationship))]
-        public Task<IActionResult> GetDefinitionRelationshipBySpecificationIdAndName()
+        public Task<IActionResult> GetDefinitionRelationshipBySpecificationIdAndName([FromQuery] string specificationId, [FromQuery] string name)
         {
-            return _definitionSpecificationRelationshipService.GetRelationshipBySpecificationIdAndName(ControllerContext.HttpContext.Request);
+            return _definitionSpecificationRelationshipService.GetRelationshipBySpecificationIdAndName(specificationId, name);
         }
 
         [Route("api/datasets/get-datasets-by-definitionid")]
         [HttpGet]
         [Produces(typeof(IEnumerable<DatasetViewModel>))]
-        public Task<IActionResult> GetDatasetsByDefinitionId()
+        public Task<IActionResult> GetDatasetsByDefinitionId([FromQuery] string definitionId)
         {
-            return _datasetService.GetDatasetsByDefinitionId(ControllerContext.HttpContext.Request);
+            return _datasetService.GetDatasetsByDefinitionId(definitionId);
         }
 
         [Route("api/datasets/get-relationships-by-specificationId")]
         [HttpGet]
         [Produces(typeof(IEnumerable<DatasetSpecificationRelationshipViewModel>))]
-        public Task<IActionResult> GetRealtionshipsBySpecificationId()
+        public Task<IActionResult> GetRealtionshipsBySpecificationId([FromQuery] string specificationId)
         {
-            return _definitionSpecificationRelationshipService.GetCurrentRelationshipsBySpecificationId(ControllerContext.HttpContext.Request);
+            return _definitionSpecificationRelationshipService.GetCurrentRelationshipsBySpecificationId(specificationId);
         }
 
         [Route("api/datasets/get-datasources-by-relationshipid")]
         [HttpGet]
         [Produces(typeof(SelectDatasourceModel))]
-        public Task<IActionResult> GetDataSourcesByRelationshipId()
+        public Task<IActionResult> GetDataSourcesByRelationshipId([FromQuery] string relationshipId)
         {
-            return _definitionSpecificationRelationshipService.GetDataSourcesByRelationshipId(ControllerContext.HttpContext.Request);
+            return _definitionSpecificationRelationshipService.GetDataSourcesByRelationshipId(relationshipId);
         }
 
         [Route("api/datasets/assign-datasource-to-relationship")]
         [HttpPost]
-        public Task<IActionResult> AssignDatasourceVersionToRelationship()
+        [ProducesResponseType(204)]
+        public Task<IActionResult> AssignDatasourceVersionToRelationship([FromBody] AssignDatasourceModel assignDatasourceModel)
         {
-            return _definitionSpecificationRelationshipService.AssignDatasourceVersionToRelationship(ControllerContext.HttpContext.Request);
+            Reference user = ControllerContext.HttpContext.Request.GetUserOrDefault();
+            string correlationId = ControllerContext.HttpContext.Request.GetCorrelationId();
+
+            return _definitionSpecificationRelationshipService.AssignDatasourceVersionToRelationship(assignDatasourceModel, user, correlationId);
         }
 
         [Route("api/datasets/download-dataset-file")]
         [HttpGet]
         [Produces(typeof(DatasetDownloadModel))]
-        public Task<IActionResult> DownloadDatasetFile()
-        {return _datasetService.DownloadDatasetFile(ControllerContext.HttpContext.Request);
+        public Task<IActionResult> DownloadDatasetFile([FromQuery] string datasetId, [FromQuery] string datasetVersion)
+        {
+            return _datasetService.DownloadDatasetFile(datasetId, datasetVersion);
         }
 
         [HttpPost("api/datasets/upload-dataset-file/{filename}")]
-        [DisableRequestSizeLimitAttribute()]
+        [DisableRequestSizeLimit]
+        [ProducesResponseType(200)]
         public async Task<IActionResult> UploadDatasetFile([FromRoute]string filename, [FromBody]DatasetMetadataViewModel datasetMetadataViewModel)
         {
             return await _datasetService.UploadDatasetFile(filename, datasetMetadataViewModel);
@@ -196,48 +219,53 @@ namespace CalculateFunding.Api.Datasets.Controllers
 
         [Route("api/datasets/reindex")]
         [HttpGet]
+        [Produces(typeof(string))]
         public Task<IActionResult> ReindexDatasets()
         {
-            return _datasetService.Reindex(ControllerContext.HttpContext.Request);
+            return _datasetService.Reindex();
         }
 
         [Route("api/datasetsversions/reindex")]
         [HttpGet]
+        [Produces(typeof(string))]
         public Task<IActionResult> ReindexDatasetsVersions()
         {
-            return _datasetService.ReindexDatasetVersions(ControllerContext.HttpContext.Request);
+            return _datasetService.ReindexDatasetVersions();
         }
 
         [Route("api/datasets/get-currentdatasetversion-by-datasetid")]
         [HttpGet]
         [Produces(typeof(DatasetVersionResponseViewModel))]
-        public Task<IActionResult> GetCurrentDatasetVersionByDatasetId()
+        public Task<IActionResult> GetCurrentDatasetVersionByDatasetId([FromQuery] string datasetId)
         {
-            return _datasetService.GetCurrentDatasetVersionByDatasetId(ControllerContext.HttpContext.Request);
+            return _datasetService.GetCurrentDatasetVersionByDatasetId(datasetId);
         }
 
         [Route("api/datasets/get-schema-download-url")]
         [HttpPost]
         [Produces(typeof(DatasetSchemaSasUrlResponseModel))]
-        public Task<IActionResult> GetDatasetSchemaSasUrl()
+        public Task<IActionResult> GetDatasetSchemaSasUrl([FromBody] DatasetSchemaSasUrlRequestModel datasetSchemaSasUrlRequestModel)
         {
-            return _definitionService.GetDatasetSchemaSasUrl(ControllerContext.HttpContext.Request);
+            return _definitionService.GetDatasetSchemaSasUrl(datasetSchemaSasUrlRequestModel);
         }
 
         [Route("api/datasets/regenerate-providersourcedatasets")]
         [HttpPost]
         [Produces(typeof(IEnumerable<DefinitionSpecificationRelationship>))]
-        public Task<IActionResult> RegenerateProviderSourceDatasets()
+        public Task<IActionResult> RegenerateProviderSourceDatasets([FromQuery] string specificationId)
         {
-            return _datasetService.RegenerateProviderSourceDatasets(ControllerContext.HttpContext.Request);
+            Reference user = ControllerContext.HttpContext.Request.GetUserOrDefault();
+            string correlationId = ControllerContext.HttpContext.Request.GetCorrelationId();
+
+            return _datasetService.RegenerateProviderSourceDatasets(specificationId, user, correlationId);
         }
 
         [Route("api/datasets/get-dataset-validate-status")]
         [HttpGet]
         [Produces(typeof(DatasetValidationStatusModel))]
-        public Task<IActionResult> GetValidateDatasetStatus()
+        public Task<IActionResult> GetValidateDatasetStatus([FromQuery] string operationId)
         {
-            return _datasetService.GetValidateDatasetStatus(ControllerContext.HttpContext.Request);
+            return _datasetService.GetValidateDatasetStatus(operationId);
         }
 
         [Route("api/datasets/{specificationId}/datasetAggregations")]

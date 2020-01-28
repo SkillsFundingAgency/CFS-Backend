@@ -45,14 +45,12 @@ namespace CalculateFunding.Services.Datasets.Services
         public async Task CreateRelationship_GivenNullModelProvided_ReturnesBadRequest()
         {
             //Arrange
-            HttpRequest request = Substitute.For<HttpRequest>();
-
             ILogger logger = CreateLogger();
 
             DefinitionSpecificationRelationshipService service = CreateService(logger: logger);
 
             //Act
-            IActionResult result = await service.CreateRelationship(request);
+            IActionResult result = await service.CreateRelationship(null, null, null);
 
             //Assert
             result
@@ -69,14 +67,6 @@ namespace CalculateFunding.Services.Datasets.Services
         {
             //Arrange
             CreateDefinitionSpecificationRelationshipModel model = new CreateDefinitionSpecificationRelationshipModel();
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
 
             ILogger logger = CreateLogger();
 
@@ -89,7 +79,7 @@ namespace CalculateFunding.Services.Datasets.Services
             DefinitionSpecificationRelationshipService service = CreateService(logger: logger, relationshipModelValidator: validator);
 
             //Act
-            IActionResult result = await service.CreateRelationship(request);
+            IActionResult result = await service.CreateRelationship(model, null, null);
 
             //Assert
             result
@@ -108,15 +98,6 @@ namespace CalculateFunding.Services.Datasets.Services
                 DatasetDefinitionId = datasetDefinitionId
             };
 
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
             ILogger logger = CreateLogger();
 
             IDatasetRepository datasetRepository = CreateDatasetRepository();
@@ -127,7 +108,7 @@ namespace CalculateFunding.Services.Datasets.Services
             DefinitionSpecificationRelationshipService service = CreateService(logger: logger, datasetRepository: datasetRepository);
 
             //Act
-            IActionResult result = await service.CreateRelationship(request);
+            IActionResult result = await service.CreateRelationship(model, null, null);
 
             //Assert
             result
@@ -161,15 +142,6 @@ namespace CalculateFunding.Services.Datasets.Services
                 SpecificationId = specificationId
             };
 
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
             ILogger logger = CreateLogger();
 
             IDatasetRepository datasetRepository = CreateDatasetRepository();
@@ -186,7 +158,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 datasetRepository: datasetRepository, specificationsApiClient: specificationsApiClient);
 
             //Act
-            IActionResult result = await service.CreateRelationship(request);
+            IActionResult result = await service.CreateRelationship(model, null, null);
 
             //Assert
             result
@@ -222,15 +194,6 @@ namespace CalculateFunding.Services.Datasets.Services
                 SpecificationId = specificationId
             };
 
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
             ILogger logger = CreateLogger();
 
             IDatasetRepository datasetRepository = CreateDatasetRepository();
@@ -251,7 +214,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 datasetRepository: datasetRepository, specificationsApiClient: specificationsApiClient);
 
             //Act
-            IActionResult result = await service.CreateRelationship(request);
+            IActionResult result = await service.CreateRelationship(model, null, null);
 
             //Assert
             result
@@ -295,15 +258,6 @@ namespace CalculateFunding.Services.Datasets.Services
                 Description = "test description"
             };
 
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
             ILogger logger = CreateLogger();
 
             IDatasetRepository datasetRepository = CreateDatasetRepository();
@@ -344,7 +298,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 datasetRepository: datasetRepository, specificationsApiClient: specificationsApiClient, cacheProvider: cacheProvider, calcsRepository: calcsRepository);
 
             //Act
-            IActionResult result = await service.CreateRelationship(request);
+            IActionResult result = await service.CreateRelationship(model, null, null);
 
             //Assert
             result
@@ -371,14 +325,12 @@ namespace CalculateFunding.Services.Datasets.Services
         public async Task GetRelationshipsBySpecificationId_GivenSpecificationIdDoesNotExist_ReturnsBadRequest()
         {
             //Arrange
-            HttpRequest request = Substitute.For<HttpRequest>();
-
             ILogger logger = CreateLogger();
 
             DefinitionSpecificationRelationshipService service = CreateService(logger: logger);
 
             //Act
-            IActionResult result = await service.GetRelationshipsBySpecificationId(request);
+            IActionResult result = await service.GetRelationshipsBySpecificationId(null);
 
             //Assert
             result
@@ -396,22 +348,12 @@ namespace CalculateFunding.Services.Datasets.Services
             //Arrange
             string specificationId = Guid.NewGuid().ToString();
 
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "specificationId", new StringValues(specificationId) }
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-
             ILogger logger = CreateLogger();
 
             DefinitionSpecificationRelationshipService service = CreateService(logger: logger);
 
             //Act
-            IActionResult result = await service.GetRelationshipsBySpecificationId(request);
+            IActionResult result = await service.GetRelationshipsBySpecificationId(specificationId);
 
             //Assert
             result
@@ -434,16 +376,6 @@ namespace CalculateFunding.Services.Datasets.Services
             //Arrange
             string specificationId = Guid.NewGuid().ToString();
 
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "specificationId", new StringValues(specificationId) }
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-
             ILogger logger = CreateLogger();
 
             IEnumerable<DefinitionSpecificationRelationship> relationships = new[]
@@ -461,7 +393,7 @@ namespace CalculateFunding.Services.Datasets.Services
             DefinitionSpecificationRelationshipService service = CreateService(logger: logger, datasetRepository: datasetRepository);
 
             //Act
-            IActionResult result = await service.GetRelationshipsBySpecificationId(request);
+            IActionResult result = await service.GetRelationshipsBySpecificationId(specificationId);
 
             //Assert
             result
@@ -482,14 +414,12 @@ namespace CalculateFunding.Services.Datasets.Services
         public async Task GetRelationshipBySpecificationIdAndName_GivenSpecificationIdDoesNotExist_ReturnsBadRequest()
         {
             //Arrange
-            HttpRequest request = Substitute.For<HttpRequest>();
-
             ILogger logger = CreateLogger();
 
             DefinitionSpecificationRelationshipService service = CreateService(logger: logger);
 
             //Act
-            IActionResult result = await service.GetRelationshipBySpecificationIdAndName(request);
+            IActionResult result = await service.GetRelationshipBySpecificationIdAndName(null, null);
 
             //Assert
             result
@@ -507,22 +437,12 @@ namespace CalculateFunding.Services.Datasets.Services
             //Arrange
             string specificationId = Guid.NewGuid().ToString();
 
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "specificationId", new StringValues(specificationId) }
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-
             ILogger logger = CreateLogger();
 
             DefinitionSpecificationRelationshipService service = CreateService(logger: logger);
 
             //Act
-            IActionResult result = await service.GetRelationshipBySpecificationIdAndName(request);
+            IActionResult result = await service.GetRelationshipBySpecificationIdAndName(specificationId, null);
 
             //Assert
             result
@@ -541,23 +461,12 @@ namespace CalculateFunding.Services.Datasets.Services
             string specificationId = Guid.NewGuid().ToString();
             string name = "test name";
 
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "specificationId", new StringValues(specificationId) },
-                { "name", new StringValues(name) }
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-
             ILogger logger = CreateLogger();
 
             DefinitionSpecificationRelationshipService service = CreateService(logger: logger);
 
             //Act
-            IActionResult result = await service.GetRelationshipBySpecificationIdAndName(request);
+            IActionResult result = await service.GetRelationshipBySpecificationIdAndName(specificationId, name);
 
             //Assert
             result
@@ -574,17 +483,6 @@ namespace CalculateFunding.Services.Datasets.Services
 
             DefinitionSpecificationRelationship relationship = new DefinitionSpecificationRelationship();
 
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "specificationId", new StringValues(specificationId) },
-                { "name", new StringValues(name) }
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-
             ILogger logger = CreateLogger();
 
             IDatasetRepository datasetRepository = CreateDatasetRepository();
@@ -595,7 +493,7 @@ namespace CalculateFunding.Services.Datasets.Services
             DefinitionSpecificationRelationshipService service = CreateService(logger: logger, datasetRepository: datasetRepository);
 
             //Act
-            IActionResult result = await service.GetRelationshipBySpecificationIdAndName(request);
+            IActionResult result = await service.GetRelationshipBySpecificationIdAndName(specificationId, name);
 
             //Assert
             result
@@ -606,14 +504,12 @@ namespace CalculateFunding.Services.Datasets.Services
         [TestMethod]
         public async Task GetRelationshipsBySpecificationId_GivenNullSpecificationId_ReturnsBadRequest()
         {
-            HttpRequest request = Substitute.For<HttpRequest>();
-
             ILogger logger = CreateLogger();
 
             DefinitionSpecificationRelationshipService service = CreateService(logger: logger);
 
             //Act
-            IActionResult result = await service.GetCurrentRelationshipsBySpecificationId(request);
+            IActionResult result = await service.GetCurrentRelationshipsBySpecificationId(null);
 
             //Assert
             result
@@ -630,16 +526,6 @@ namespace CalculateFunding.Services.Datasets.Services
         {
             string specificationId = Guid.NewGuid().ToString();
 
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "specificationId", new StringValues(specificationId) }
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-
             ILogger logger = CreateLogger();
 
             ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
@@ -651,7 +537,7 @@ namespace CalculateFunding.Services.Datasets.Services
             DefinitionSpecificationRelationshipService service = CreateService(logger: logger, specificationsApiClient: specificationsApiClient);
 
             //Act
-            IActionResult result = await service.GetCurrentRelationshipsBySpecificationId(request);
+            IActionResult result = await service.GetCurrentRelationshipsBySpecificationId(specificationId);
 
             //Assert
             result
@@ -674,16 +560,6 @@ namespace CalculateFunding.Services.Datasets.Services
         {
             string specificationId = Guid.NewGuid().ToString();
 
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "specificationId", new StringValues(specificationId) }
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-
             ILogger logger = CreateLogger();
 
             SpecModel.SpecificationSummary specification = new SpecModel.SpecificationSummary();
@@ -704,7 +580,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 specificationsApiClient: specificationsApiClient, datasetRepository: datasetRepository);
 
             //Act
-            IActionResult result = await service.GetCurrentRelationshipsBySpecificationId(request);
+            IActionResult result = await service.GetCurrentRelationshipsBySpecificationId(specificationId);
 
             //Assert
             result
@@ -731,16 +607,6 @@ namespace CalculateFunding.Services.Datasets.Services
             string specificationId = Guid.NewGuid().ToString();
             string relationshipId = Guid.NewGuid().ToString();
             const string relationshipName = "rel name";
-
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "specificationId", new StringValues(specificationId) }
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
 
             ILogger logger = CreateLogger();
 
@@ -769,7 +635,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 specificationsApiClient: specificationsApiClient, datasetRepository: datasetRepository);
 
             //Act
-            IActionResult result = await service.GetCurrentRelationshipsBySpecificationId(request);
+            IActionResult result = await service.GetCurrentRelationshipsBySpecificationId(specificationId);
 
             //Assert
             result
@@ -802,16 +668,6 @@ namespace CalculateFunding.Services.Datasets.Services
             string relationshipId = Guid.NewGuid().ToString();
             string definitionId = Guid.NewGuid().ToString();
             const string relationshipName = "rel name";
-
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "specificationId", new StringValues(specificationId) }
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
 
             ILogger logger = CreateLogger();
 
@@ -852,7 +708,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 specificationsApiClient: specificationsApiClient, datasetRepository: datasetRepository);
 
             //Act
-            IActionResult result = await service.GetCurrentRelationshipsBySpecificationId(request);
+            IActionResult result = await service.GetCurrentRelationshipsBySpecificationId(specificationId);
 
             //Assert
             result
@@ -913,16 +769,6 @@ namespace CalculateFunding.Services.Datasets.Services
             string datasetId = Guid.NewGuid().ToString();
             const string relationshipName = "rel name";
 
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "specificationId", new StringValues(specificationId) }
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-
             ILogger logger = CreateLogger();
 
             SpecModel.SpecificationSummary specification = new SpecModel.SpecificationSummary();
@@ -967,7 +813,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 specificationsApiClient: specificationsApiClient, datasetRepository: datasetRepository);
 
             //Act
-            IActionResult result = await service.GetCurrentRelationshipsBySpecificationId(request);
+            IActionResult result = await service.GetCurrentRelationshipsBySpecificationId(specificationId);
 
             //Assert
             result
@@ -1033,16 +879,6 @@ namespace CalculateFunding.Services.Datasets.Services
             const string relationshipName = "rel name";
             const string relationshipDescription = "dataset description";
 
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "specificationId", new StringValues(specificationId) }
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-
             ILogger logger = CreateLogger();
 
             SpecModel.SpecificationSummary specification = new SpecModel.SpecificationSummary();
@@ -1096,7 +932,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 specificationsApiClient: specificationsApiClient, datasetRepository: datasetRepository);
 
             //Act
-            IActionResult result = await service.GetCurrentRelationshipsBySpecificationId(request);
+            IActionResult result = await service.GetCurrentRelationshipsBySpecificationId(specificationId);
 
             //Assert
             result
@@ -1347,14 +1183,12 @@ namespace CalculateFunding.Services.Datasets.Services
         public async Task GetDataSourcesByRelationshipId_GivenNullRelationshipIdProvided_ReturnesBadRequest()
         {
             //Arrange
-            HttpRequest request = Substitute.For<HttpRequest>();
-
             ILogger logger = CreateLogger();
 
             DefinitionSpecificationRelationshipService service = CreateService(logger: logger);
 
             //Act
-            IActionResult result = await service.GetDataSourcesByRelationshipId(request);
+            IActionResult result = await service.GetDataSourcesByRelationshipId(null);
 
             //Assert
             result
@@ -1371,16 +1205,6 @@ namespace CalculateFunding.Services.Datasets.Services
         {
             string relationshipId = Guid.NewGuid().ToString();
 
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "relationshipId", new StringValues(relationshipId) }
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-
             ILogger logger = CreateLogger();
 
             IDatasetRepository datasetRepository = CreateDatasetRepository();
@@ -1391,7 +1215,7 @@ namespace CalculateFunding.Services.Datasets.Services
             DefinitionSpecificationRelationshipService service = CreateService(logger: logger, datasetRepository: datasetRepository);
 
             //Act
-            IActionResult result = await service.GetDataSourcesByRelationshipId(request);
+            IActionResult result = await service.GetDataSourcesByRelationshipId(relationshipId);
 
             //Assert
             result
@@ -1409,16 +1233,6 @@ namespace CalculateFunding.Services.Datasets.Services
         public async Task GetDataSourcesByRelationshipId_GivenRelationshipFoundButNoDatasets_ReturnsOKResult()
         {
             string relationshipId = Guid.NewGuid().ToString();
-
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "relationshipId", new StringValues(relationshipId) }
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
 
             ILogger logger = CreateLogger();
 
@@ -1438,7 +1252,7 @@ namespace CalculateFunding.Services.Datasets.Services
             DefinitionSpecificationRelationshipService service = CreateService(logger: logger, datasetRepository: datasetRepository);
 
             //Act
-            IActionResult result = await service.GetDataSourcesByRelationshipId(request);
+            IActionResult result = await service.GetDataSourcesByRelationshipId(relationshipId);
 
             //Assert
             result
@@ -1450,16 +1264,6 @@ namespace CalculateFunding.Services.Datasets.Services
         public async Task GetDataSourcesByRelationshipId_GivenRelationshipFoundAndDatasetsFound_ReturnsOKResult()
         {
             string relationshipId = Guid.NewGuid().ToString();
-
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "relationshipId", new StringValues(relationshipId) }
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
 
             ILogger logger = CreateLogger();
 
@@ -1499,7 +1303,7 @@ namespace CalculateFunding.Services.Datasets.Services
             DefinitionSpecificationRelationshipService service = CreateService(logger: logger, datasetRepository: datasetRepository);
 
             //Act
-            IActionResult result = await service.GetDataSourcesByRelationshipId(request);
+            IActionResult result = await service.GetDataSourcesByRelationshipId(relationshipId);
 
             //Assert
             result
@@ -1537,14 +1341,12 @@ namespace CalculateFunding.Services.Datasets.Services
         public async Task AssignDatasourceVersionToRelationship_GivenNullModelProvided_ReturnesBadRequest()
         {
             //Arrange
-            HttpRequest request = Substitute.For<HttpRequest>();
-
             ILogger logger = CreateLogger();
 
             DefinitionSpecificationRelationshipService service = CreateService(logger: logger);
 
             //Act
-            IActionResult result = await service.AssignDatasourceVersionToRelationship(request);
+            IActionResult result = await service.AssignDatasourceVersionToRelationship(null, null, null);
 
             //Assert
             result
@@ -1567,15 +1369,6 @@ namespace CalculateFunding.Services.Datasets.Services
                 DatasetId = datasetId
             };
 
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
             ILogger logger = CreateLogger();
 
             IDatasetRepository datasetRepository = CreateDatasetRepository();
@@ -1586,7 +1379,7 @@ namespace CalculateFunding.Services.Datasets.Services
             DefinitionSpecificationRelationshipService service = CreateService(logger: logger, datasetRepository: datasetRepository);
 
             //Act
-            IActionResult result = await service.AssignDatasourceVersionToRelationship(request);
+            IActionResult result = await service.AssignDatasourceVersionToRelationship(model, null, null);
 
             //Assert
             result
@@ -1617,15 +1410,6 @@ namespace CalculateFunding.Services.Datasets.Services
                 RelationshipId = relationshipId
             };
 
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
             ILogger logger = CreateLogger();
 
             Dataset dataset = new Dataset();
@@ -1641,7 +1425,7 @@ namespace CalculateFunding.Services.Datasets.Services
             DefinitionSpecificationRelationshipService service = CreateService(logger: logger, datasetRepository: datasetRepository);
 
             //Act
-            IActionResult result = await service.AssignDatasourceVersionToRelationship(request);
+            IActionResult result = await service.AssignDatasourceVersionToRelationship(model, null, null);
 
             //Assert
             result
@@ -1673,15 +1457,6 @@ namespace CalculateFunding.Services.Datasets.Services
                 Version = 1
             };
 
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
             ILogger logger = CreateLogger();
 
             Dataset dataset = new Dataset();
@@ -1701,7 +1476,7 @@ namespace CalculateFunding.Services.Datasets.Services
             DefinitionSpecificationRelationshipService service = CreateService(logger: logger, datasetRepository: datasetRepository);
 
             //Act
-            IActionResult result = await service.AssignDatasourceVersionToRelationship(request);
+            IActionResult result = await service.AssignDatasourceVersionToRelationship(model, null, null);
 
             //Assert
             result
@@ -1733,15 +1508,6 @@ namespace CalculateFunding.Services.Datasets.Services
                 Version = 1
             };
 
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
             ILogger logger = CreateLogger();
 
             Dataset dataset = new Dataset();
@@ -1764,7 +1530,7 @@ namespace CalculateFunding.Services.Datasets.Services
             DefinitionSpecificationRelationshipService service = CreateService(logger: logger, datasetRepository: datasetRepository);
 
             //Act
-            IActionResult result = await service.AssignDatasourceVersionToRelationship(request);
+            IActionResult result = await service.AssignDatasourceVersionToRelationship(model, null, null);
 
             //Assert
             result
@@ -1786,29 +1552,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 Version = 1
             };
 
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
-            DefaultHttpContext defaultHttpContext = new DefaultHttpContext
-            {
-                User = new ClaimsPrincipal(new[]
-                {
-                    new ClaimsIdentity(new[]
-                    {
-                        new Claim(ClaimTypes.Sid, "user-id-1"),
-                        new Claim(ClaimTypes.Name, "user-name-1")
-                    })
-                })
-            };
-
-            request.HttpContext
-                .Returns(defaultHttpContext);
+            Reference user = new Reference("user-id-1", "user-name-1");
 
             ILogger logger = CreateLogger();
 
@@ -1836,7 +1580,7 @@ namespace CalculateFunding.Services.Datasets.Services
             DefinitionSpecificationRelationshipService service = CreateService(logger: logger, datasetRepository: datasetRepository, jobsApiClient: jobsApiClient, messengerService: messengerService);
 
             //Act
-            IActionResult result = await service.AssignDatasourceVersionToRelationship(request);
+            IActionResult result = await service.AssignDatasourceVersionToRelationship(model, user, null);
 
             //Assert
             result

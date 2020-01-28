@@ -28,14 +28,12 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
         public async Task GetResultCounts_GivenNullModel_ReturnsBadRequest()
         {
             //Arrange
-            HttpRequest httpRequest = Substitute.For<HttpRequest>();
-
             ILogger logger = CreateLogger();
 
             TestResultsCountsService service = CreateResultCountsService(logger: logger);
 
             //Act
-            IActionResult result = await service.GetResultCounts(httpRequest);
+            IActionResult result = await service.GetResultCounts(null);
 
             //Assert
             result
@@ -52,21 +50,13 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
         {
             //Arrange
             TestScenariosResultsCountsRequestModel model = new TestScenariosResultsCountsRequestModel();
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest httpRequest = Substitute.For<HttpRequest>();
-            httpRequest
-                .Body
-                .Returns(stream);
-
+            
             ILogger logger = CreateLogger();
 
             TestResultsCountsService service = CreateResultCountsService(logger: logger);
 
             //Act
-            IActionResult result = await service.GetResultCounts(httpRequest);
+            IActionResult result = await service.GetResultCounts(model);
 
             //Assert
             result
@@ -87,21 +77,12 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
                 TestScenarioIds = Enumerable.Empty<string>()
             };
 
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest httpRequest = Substitute.For<HttpRequest>();
-            httpRequest
-                .Body
-                .Returns(stream);
-
             ILogger logger = CreateLogger();
 
             TestResultsCountsService service = CreateResultCountsService(logger: logger);
 
             //Act
-            IActionResult result = await service.GetResultCounts(httpRequest);
+            IActionResult result = await service.GetResultCounts(model);
 
             //Assert
             result
@@ -122,26 +103,17 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
                 TestScenarioIds = new[] { "1", "2" }
             };
 
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest httpRequest = Substitute.For<HttpRequest>();
-            httpRequest
-                .Body
-                .Returns(stream);
-
             ILogger logger = CreateLogger();
 
             ITestResultsSearchService searchService = CreateTestResultsSearchService();
             searchService
-                .SearchTestScenarioResults(Arg.Any<SearchModel>())
+                .SearchTestScenarioResultsInternal(Arg.Any<SearchModel>())
                 .Returns((TestScenarioSearchResults)null);
 
             TestResultsCountsService service = CreateResultCountsService(searchService, logger: logger);
 
             //Act
-            IActionResult result = await service.GetResultCounts(httpRequest);
+            IActionResult result = await service.GetResultCounts(model);
 
             //Assert
             result
@@ -167,15 +139,6 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
                 TestScenarioIds = new[] { "1", "2" }
             };
 
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest httpRequest = Substitute.For<HttpRequest>();
-            httpRequest
-                .Body
-                .Returns(stream);
-
             ILogger logger = CreateLogger();
 
             TestScenarioSearchResults testScenarioSearchResults1 = new TestScenarioSearchResults();
@@ -183,13 +146,13 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
 
             ITestResultsSearchService searchService = CreateTestResultsSearchService();
             searchService
-                .SearchTestScenarioResults(Arg.Any<SearchModel>())
+                .SearchTestScenarioResultsInternal(Arg.Any<SearchModel>())
                 .Returns(testScenarioSearchResults1, testScenarioSearchResults2);
 
             TestResultsCountsService service = CreateResultCountsService(searchService, logger: logger);
 
             //Act
-            IActionResult result = await service.GetResultCounts(httpRequest);
+            IActionResult result = await service.GetResultCounts(model);
 
             //Assert
             result
@@ -215,15 +178,6 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
                 TestScenarioIds = new[] { "1", "2" }
             };
 
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest httpRequest = Substitute.For<HttpRequest>();
-            httpRequest
-                .Body
-                .Returns(stream);
-
             ILogger logger = CreateLogger();
 
             TestScenarioSearchResults testScenarioSearchResults1 = new TestScenarioSearchResults();
@@ -245,13 +199,13 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
 
             ITestResultsSearchService searchService = CreateTestResultsSearchService();
             searchService
-                .SearchTestScenarioResults(Arg.Any<SearchModel>())
+                .SearchTestScenarioResultsInternal(Arg.Any<SearchModel>())
                 .Returns(testScenarioSearchResults1, testScenarioSearchResults2);
 
             TestResultsCountsService service = CreateResultCountsService(searchService, logger: logger);
 
             //Act
-            IActionResult result = await service.GetResultCounts(httpRequest);
+            IActionResult result = await service.GetResultCounts(model);
 
             //Assert
             result
@@ -276,15 +230,6 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
             {
                 TestScenarioIds = new[] { "1", "2" }
             };
-
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest httpRequest = Substitute.For<HttpRequest>();
-            httpRequest
-                .Body
-                .Returns(stream);
 
             ILogger logger = CreateLogger();
 
@@ -311,13 +256,13 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
 
             ITestResultsSearchService searchService = CreateTestResultsSearchService();
             searchService
-                .SearchTestScenarioResults(Arg.Any<SearchModel>())
+                .SearchTestScenarioResultsInternal(Arg.Any<SearchModel>())
                 .Returns(testScenarioSearchResults);
 
             TestResultsCountsService service = CreateResultCountsService(searchService, logger: logger);
 
             // Act
-            IActionResult result = await service.GetResultCounts(httpRequest);
+            IActionResult result = await service.GetResultCounts(model);
 
             // Assert
             result
@@ -341,15 +286,6 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
                 TestScenarioIds = new[] { "1" }
             };
 
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest httpRequest = Substitute.For<HttpRequest>();
-            httpRequest
-                .Body
-                .Returns(stream);
-
             ILogger logger = CreateLogger();
 
             TestScenarioSearchResults testScenarioSearchResults1 = new TestScenarioSearchResults
@@ -370,13 +306,13 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
 
             ITestResultsSearchService searchService = CreateTestResultsSearchService();
             searchService
-                .SearchTestScenarioResults(Arg.Any<SearchModel>())
+                .SearchTestScenarioResultsInternal(Arg.Any<SearchModel>())
                 .Returns(testScenarioSearchResults1);
 
             TestResultsCountsService service = CreateResultCountsService(searchService, logger: logger);
 
             //Act
-            IActionResult result = await service.GetResultCounts(httpRequest);
+            IActionResult result = await service.GetResultCounts(model);
 
             //Assert
             result
@@ -420,15 +356,6 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
                 TestScenarioIds = new[] { "1" }
             };
 
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest httpRequest = Substitute.For<HttpRequest>();
-            httpRequest
-                .Body
-                .Returns(stream);
-
             ILogger logger = CreateLogger();
 
             TestScenarioSearchResults testScenarioSearchResults1 = new TestScenarioSearchResults
@@ -453,13 +380,13 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
 
             ITestResultsSearchService searchService = CreateTestResultsSearchService();
             searchService
-                .SearchTestScenarioResults(Arg.Any<SearchModel>())
+                .SearchTestScenarioResultsInternal(Arg.Any<SearchModel>())
                 .Returns(testScenarioSearchResults1);
 
             TestResultsCountsService service = CreateResultCountsService(searchService, logger: logger);
 
             //Act
-            IActionResult result = await service.GetResultCounts(httpRequest);
+            IActionResult result = await service.GetResultCounts(model);
 
             //Assert
             result

@@ -26,14 +26,12 @@ namespace CalculateFunding.Services.Scenarios.Services
         public async Task SearchSpecifications_GivenNullSearchModel_ReturnsBadRequest()
         {
             //Arrange
-            HttpRequest request = Substitute.For<HttpRequest>();
-
             ILogger logger = CreateLogger();
 
             ScenariosSearchService service = CreateSearchService(logger: logger);
 
             //Act
-            IActionResult result = await service.SearchScenarios(request);
+            IActionResult result = await service.SearchScenarios(null);
 
             //Assert
             logger
@@ -54,21 +52,12 @@ namespace CalculateFunding.Services.Scenarios.Services
                 PageNumber = 0,
                 Top = 1
             };
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
             ILogger logger = CreateLogger();
 
             ScenariosSearchService service = CreateSearchService(logger: logger);
 
             //Act
-            IActionResult result = await service.SearchScenarios(request);
+            IActionResult result = await service.SearchScenarios(model);
 
             //Assert
             logger
@@ -89,21 +78,12 @@ namespace CalculateFunding.Services.Scenarios.Services
                 PageNumber = 1,
                 Top = 0
             };
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
             ILogger logger = CreateLogger();
 
             ScenariosSearchService service = CreateSearchService(logger: logger);
 
             //Act
-            IActionResult result = await service.SearchScenarios(request);
+            IActionResult result = await service.SearchScenarios(model);
 
             //Assert
             logger
@@ -120,15 +100,7 @@ namespace CalculateFunding.Services.Scenarios.Services
         {
             //Arrange
             SearchModel model = CreateSearchModel();
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
+            
             ISearchRepository<ScenarioIndex> searchRepository = CreateSearchRepository();
             searchRepository
                 .When(x => x.Search(Arg.Any<string>(), Arg.Any<SearchParameters>()))
@@ -139,7 +111,7 @@ namespace CalculateFunding.Services.Scenarios.Services
             ScenariosSearchService service = CreateSearchService(searchRepository, logger: logger);
 
             //Act
-            IActionResult result = await service.SearchScenarios(request);
+            IActionResult result = await service.SearchScenarios(model);
 
             //Assert
             StatusCodeResult statusCodeResult = result
@@ -158,15 +130,7 @@ namespace CalculateFunding.Services.Scenarios.Services
         {
             //Arrange
             SearchModel model = CreateSearchModel();
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
+            
             SearchResults<ScenarioIndex> searchResults = new SearchResults<ScenarioIndex>
             {
                 TotalCount = 1
@@ -182,7 +146,7 @@ namespace CalculateFunding.Services.Scenarios.Services
             ScenariosSearchService service = CreateSearchService(searchRepository, logger: logger);
 
             //Act
-            IActionResult result = await service.SearchScenarios(request);
+            IActionResult result = await service.SearchScenarios(model);
 
             //Assert
             result
@@ -195,15 +159,7 @@ namespace CalculateFunding.Services.Scenarios.Services
         {
             //Arrange
             SearchModel model = CreateSearchModel();
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
+            
             SearchResults<ScenarioIndex> searchResults = new SearchResults<ScenarioIndex>
             {
                 TotalCount = 1,
@@ -229,7 +185,7 @@ namespace CalculateFunding.Services.Scenarios.Services
             ScenariosSearchService service = CreateSearchService(searchRepository, logger: logger);
 
             //Act
-            IActionResult result = await service.SearchScenarios(request);
+            IActionResult result = await service.SearchScenarios(model);
 
             //Assert
             result
