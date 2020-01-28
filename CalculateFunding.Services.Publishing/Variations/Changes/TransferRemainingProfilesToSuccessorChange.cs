@@ -7,33 +7,32 @@ using CalculateFunding.Services.Publishing.Models;
 
 namespace CalculateFunding.Services.Publishing.Variations.Changes
 {
-    public class ZeroRemainingProfilesChange : ProfileVariationPointerChange
+    public class TransferRemainingProfilesToSuccessorChange : ProfileVariationPointerChange
     {
-        public ZeroRemainingProfilesChange(ProviderVariationContext variationContext)
-            : base(variationContext , "zero profiles")
+        public TransferRemainingProfilesToSuccessorChange(ProviderVariationContext variationContext) 
+            : base(variationContext, "transfer remaining profiles")
         {
         }
-
+        
         protected override void MakeAdjustmentsFromProfileVariationPointer(ProfileVariationPointer variationPointer)
         {
-            ZeroProfilesFromVariationPoint(variationPointer);
-        }
-
-        private void ZeroProfilesFromVariationPoint(ProfileVariationPointer variationPointer)
-        {
-            FundingLine fundingLine = RefreshState.FundingLines?
+            FundingLine closedFundingLine = RefreshState.FundingLines?
+                .SingleOrDefault(_ => _.FundingLineCode == variationPointer.FundingLineId);
+            FundingLine successorFundingLine = SuccessorRefreshState?.FundingLines?
                 .SingleOrDefault(_ => _.FundingLineCode == variationPointer.FundingLineId);
 
-            if (fundingLine == null)
+            if (closedFundingLine == null || successorFundingLine == null)
             {
                 throw new ArgumentOutOfRangeException(nameof(variationPointer),
                     $"Did not locate a funding line for variation pointer with fundingLineId {variationPointer.FundingLineId}");
             }
 
-            ProfilePeriod[] orderedProfilePeriods = new YearMonthOrderedProfilePeriods(fundingLine)
+            ProfilePeriod[] orderedClosedProfilePeriods = new YearMonthOrderedProfilePeriods(closedFundingLine)
+                .ToArray();
+            ProfilePeriod[] orderedSuccessorProfilePeriods = new YearMonthOrderedProfilePeriods(successorFundingLine)
                 .ToArray();
 
-            int variationPointerIndex = orderedProfilePeriods.IndexOf(_ => _.Occurrence == variationPointer.Occurrence &&
+            int variationPointerIndex = orderedClosedProfilePeriods.IndexOf(_ => _.Occurrence == variationPointer.Occurrence &&
                                                                            _.Year == variationPointer.Year &&
                                                                            _.TypeValue == variationPointer.TypeValue);
 
@@ -43,9 +42,11 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
                     $"Did not locate profile period corresponding to variation pointer for funding line id {variationPointer.FundingLineId}");
             }
 
-            for (int profilePeriod = variationPointerIndex; profilePeriod < orderedProfilePeriods.Length; profilePeriod++)
+            for (int profilePeriod = variationPointerIndex; profilePeriod < orderedClosedProfilePeriods.Length; profilePeriod++)
             {
-                orderedProfilePeriods[profilePeriod].ProfiledValue = 0;
+                ProfilePeriod successorProfilePeriod = orderedSuccessorProfilePeriods[profilePeriod];
+                
+                successorProfilePeriod.ProfiledValue =  successorProfilePeriod.ProfiledValue + orderedClosedProfilePeriods[profilePeriod].ProfiledValue;
             }
         }
     }

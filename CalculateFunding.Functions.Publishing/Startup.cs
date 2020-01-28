@@ -35,6 +35,7 @@ using CalculateFunding.Services.Publishing.Repositories;
 using CalculateFunding.Services.Publishing.Specifications;
 using CalculateFunding.Services.Publishing.Variations;
 using CalculateFunding.Services.Publishing.Variations.Changes;
+using CalculateFunding.Services.Publishing.Variations.Errors;
 using CalculateFunding.Services.Publishing.Variations.Strategies;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
@@ -114,6 +115,7 @@ namespace CalculateFunding.Functions.Publishing
             builder.AddSingleton<ISpecificationService, SpecificationService>();
             builder.AddSingleton<IProviderService, ProviderService>();
             builder.AddScoped<IRefreshService, RefreshService>();
+            builder.AddTransient<IRecordVariationErrors, VariationErrorRecorder>();
             builder.AddTransient<IApplyProviderVariations, ProviderVariationsApplication>();
             builder.AddTransient<IDetectProviderVariations, ProviderVariationsDetection>();
             builder.AddTransient<IVariationStrategyServiceLocator, VariationStrategyServiceLocator>();

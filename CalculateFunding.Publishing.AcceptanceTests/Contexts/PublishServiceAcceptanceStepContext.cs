@@ -16,6 +16,7 @@ using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Services.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Variations;
+using CalculateFunding.Services.Publishing.Variations.Errors;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Extensions.Configuration;
 using Polly;
@@ -360,7 +361,8 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
                     _publishingFeatureFlag,
                     publishedProviderIndexerService,
                     _variationServiceStepContext.Service,
-                    new ProviderVariationsApplication(resiliencePolicies, new SpecificationsInMemoryClient()));
+                    new ProviderVariationsApplication(resiliencePolicies, new SpecificationsInMemoryClient()),
+                    new VariationErrorRecorder(resiliencePolicies, new InMemoryBlobClient()));
 
             Message message = new Message();
 

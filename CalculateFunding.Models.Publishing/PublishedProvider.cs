@@ -1,4 +1,7 @@
-﻿using CalculateFunding.Common.Models;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using CalculateFunding.Common.Models;
 using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Publishing
@@ -33,6 +36,17 @@ namespace CalculateFunding.Models.Publishing
         public static string GeneratePartitionKey(string fundingStreamId, string fundingPeriodId, string providerId)
         {
             return $"publishedprovider-{providerId}-{fundingPeriodId}-{fundingStreamId}";
+        }
+
+        public bool HasPredecessor(string providerId)
+        {
+            return Current?.Predecessors?.Count(_ => _?.ToLower()?.Trim() == providerId?.ToLower()?.Trim()) >= 1;
+        }
+
+        public void AddPredecessor(string providerId)
+        {
+            Current.Predecessors = Current.Predecessors ?? new List<string>();
+            Current.Predecessors.Add(providerId);
         }
     }
 }

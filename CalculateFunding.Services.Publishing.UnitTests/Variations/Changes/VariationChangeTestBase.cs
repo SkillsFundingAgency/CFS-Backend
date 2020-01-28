@@ -53,6 +53,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
         {
             GivenTheFundingLines(fundingLines);
         }
+
+        protected void AndTheSuccessorFundingLines(params FundingLine[] fundingLines)
+        {
+            GivenTheSuccessorFundingLines(fundingLines);
+        }
         
         protected void GivenTheFundingLines(params FundingLine[] fundingLines)
         {

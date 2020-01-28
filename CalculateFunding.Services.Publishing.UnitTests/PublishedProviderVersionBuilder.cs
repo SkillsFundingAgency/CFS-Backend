@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Tests.Common.Helpers;
 using Microsoft.Azure.Search.Models;
@@ -19,7 +20,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private IEnumerable<FundingLine> _fundingLines;
         private IEnumerable<FundingCalculation> _calculations;
         private decimal? _totalFunding;
+        private IEnumerable<string> _predecessors;
 
+        public PublishedProviderVersionBuilder WithPredecessors(params string[] predecessors)
+        {
+            _predecessors = predecessors;
+
+            return this;
+        }
+        
         public PublishedProviderVersionBuilder WithTotalFunding(decimal totalFunding)
         {
             _totalFunding = totalFunding;
@@ -120,7 +129,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 FundingLines = _fundingLines,
                 Calculations = _calculations,
                 Provider = _provider,
-                TotalFunding = _totalFunding
+                TotalFunding = _totalFunding,
+                Predecessors = _predecessors?.ToList()
             };
         }
     }

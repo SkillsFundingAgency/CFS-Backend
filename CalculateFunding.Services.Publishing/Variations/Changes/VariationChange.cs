@@ -1,10 +1,8 @@
-using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
-using Polly;
 
 namespace CalculateFunding.Services.Publishing.Variations.Changes
 {
@@ -20,6 +18,8 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
         public ProviderVariationContext VariationContext { get; }
 
         protected PublishedProviderVersion RefreshState => VariationContext.RefreshState;
+
+        protected PublishedProviderVersion SuccessorRefreshState => VariationContext.SuccessorRefreshState;
 
         protected string ProviderId => VariationContext.ProviderId;
         

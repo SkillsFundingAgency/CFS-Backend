@@ -58,7 +58,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
 
             return profilePeriodBuilder.Build();
         }
-        
+
         protected ProviderVariationContext NewVariationContext(Action<ProviderVariationContextBuilder> setUp = null)
         {
             decimal totalFunding = new RandomNumberBetween(100, 100000);
@@ -66,7 +66,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
             ProviderVariationContextBuilder variationContextBuilder = new ProviderVariationContextBuilder()
                 .WithPublishedProvider(NewPublishedProvider(_ => _.WithReleased(NewPublishedProviderVersion(ppv =>
                     ppv.WithTotalFunding(totalFunding)))))
-                .WithCurrentState(NewApiProvider(_ => _.WithStatus(ClosureVariationStrategy.Closed)))
+                .WithCurrentState(NewApiProvider(_ => _.WithStatus(ClosureVariation.Closed)))
                 .WithGeneratedProviderResult(NewGeneratedProviderResult(_ => _.WithTotalFunding(totalFunding)));
 
             setUp?.Invoke(variationContextBuilder);
@@ -163,6 +163,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
                 .Count(_ => _.Contains(error))
                 .Should()
                 .Be(1);
+        }
+
+        protected void GivenTheSuccessorFundingLines(params FundingLine[] fundingLines)
+        {
+            VariationContext.SuccessorRefreshState.FundingLines = fundingLines;
         }
     }
 }

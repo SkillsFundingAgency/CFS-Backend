@@ -46,6 +46,7 @@ namespace CalculateFunding.Services.Publishing
         private readonly IApplyProviderVariations _applyProviderVariations;
         private readonly IJobManagement _jobManagement;
         private readonly IPublishingFeatureFlag _publishingFeatureFlag;
+        private readonly IRecordVariationErrors _recordVariationErrors;
 
         public RefreshService(IPublishedProviderStatusUpdateService publishedProviderStatusUpdateService,
             IPublishedFundingDataService publishedFundingDataService,
@@ -67,7 +68,8 @@ namespace CalculateFunding.Services.Publishing
             IPublishingFeatureFlag publishingFeatureFlag,
             IPublishedProviderIndexerService publishedProviderIndexerService,
             IDetectProviderVariations detectProviderVariations,
-            IApplyProviderVariations applyProviderVariations)
+            IApplyProviderVariations applyProviderVariations, 
+            IRecordVariationErrors recordVariationErrors)
         {
             Guard.ArgumentNotNull(publishedProviderStatusUpdateService, nameof(publishedProviderStatusUpdateService));
             Guard.ArgumentNotNull(publishedFundingDataService, nameof(publishedFundingDataService));
@@ -88,6 +90,7 @@ namespace CalculateFunding.Services.Publishing
             Guard.ArgumentNotNull(publishedProviderIndexerService, nameof(publishedProviderIndexerService));
             Guard.ArgumentNotNull(detectProviderVariations, nameof(detectProviderVariations));
             Guard.ArgumentNotNull(applyProviderVariations, nameof(applyProviderVariations));
+            Guard.ArgumentNotNull(recordVariationErrors, nameof(recordVariationErrors));
 
             _publishedProviderStatusUpdateService = publishedProviderStatusUpdateService;
             _publishedFundingDataService = publishedFundingDataService;
@@ -105,6 +108,7 @@ namespace CalculateFunding.Services.Publishing
             _providerExclusionCheck = providerExclusionCheck;
             _fundingLineValueOverride = fundingLineValueOverride;
             _detectProviderVariations = detectProviderVariations;
+            _recordVariationErrors = recordVariationErrors;
             _publishedProviderIndexerService = publishedProviderIndexerService;
 
             _publishingResiliencePolicy = publishingResiliencePolicies.PublishedFundingRepository;
@@ -258,6 +262,9 @@ namespace CalculateFunding.Services.Publishing
                                            existingPublishedProviders.AnyWithNullCheck() && 
                                            fundingConfiguration.Variations.AnyWithNullCheck();
 
+                Dictionary<string, PublishedProvider> allPublishedProviderDeepCopies = publishedProviders
+                    .ToDictionary(_ => _.Key, _ => _.Value.DeepCopy());
+
                 // Set generated data on the Published provider
                 foreach (KeyValuePair<string, PublishedProvider> publishedProvider in publishedProviders)
                 {
@@ -298,10 +305,19 @@ namespace CalculateFunding.Services.Publishing
                     if (publishedProviderUpdated &&
                         shouldRunVariations)
                     {
+                        //if we changed the published provider we need to make a new deep copy in the all list
+                        //so that the variation changes have access to the latest
+                        //funding numbers from the calc run (as they may differ) e.g. for merging we need
+                        //to take funding that we zeroed in closed providers profile periods and use that in 
+                        //new provider.
+                        allPublishedProviderDeepCopies[publishedProvider.Key] = publishedProvider.Value.DeepCopy();
+                        
                         ProviderVariationContext variationContext = await _detectProviderVariations.CreateRequiredVariationChanges(publishedProvider.Value,
                             generatedProviderResult, 
                             scopedProviders[providerId], 
-                            fundingConfigurationRequest.Content.Variations);
+                            fundingConfigurationRequest.Content.Variations, 
+                            allPublishedProviderDeepCopies,
+                            publishedProviders);
 
                         if (variationContext.Result.HasProviderBeenVaried)
                         {
@@ -324,47 +340,18 @@ namespace CalculateFunding.Services.Publishing
 
                 if (shouldRunVariations)
                 {
-                    // Check for any errors and fail refresh job if any found
+                    await _applyProviderVariations.ApplyProviderVariations();
+                    
                     if (_applyProviderVariations.HasErrors)
                     {
-                        foreach (string errorMessage in _applyProviderVariations.ErrorMessages)
-                        {
-                            //TODO; change this error logging to be short summary and then send full error logs to blob storage
+                        await _recordVariationErrors.RecordVariationErrors(_applyProviderVariations.ErrorMessages, specificationId);
                             
-                            _logger.Error(errorMessage);
-                            
-                            await _jobManagement.UpdateJobStatus(jobId, 0, 0, false, "Refresh job failed with variations errors.");
-                            
-                            return;
-                        }
+                        _logger.Error("Unable to complete refresh funding job. Encountered variation errors");
+                        
+                        await _jobManagement.UpdateJobStatus(jobId, 0, 0, false, "Refresh job failed with variations errors.");
+                        
+                        return;
                     }
-                    
-                    
-                    //Notes Dan left behind
-                    // Apply the changes to allocation amounts and profile periods (eg get the updated information set in the variation context (a+b=c)
-
-                    // Create a new service for generating brand new providers which are from a result of variations
-                    // TODO: Create PublishedProviders for ones generated from variations (eg generated successors)
-                    // Use _publishedProviderDataGenerator  and _inScopePublishedProviderService in a new service to generate
-                    // Add returned providers to publishedProvidersToUpdate
-                    
-                    
-                    //Ant's notes for variation strategy dev
-                    //Basic sequence for variations support 
-                    //Each funding configuration will have a list of variation strategies to be applied
-                    //Variations is run in two stages
-                    //stage 1: variations are detected by locating the strategies in the funding configuration and running them in the order they're configured 
-                    //    each strategy will be responsible for detecting a particular variation and creating and queuing an implementation of IVariationChange to be run later
-                    //stage 2: each of the variation changes is run in the order they were queued (FIFO) to action the variation (will differ depending in which variation etc.)
-                    //    the changed or new publishedproviders are added to the changes to be saved already 
-                    // refresh continues as before
-                    //
-                    // so to implement a variationstrategy you need to implement the change detection and then create a new IVariationChange (or use an existing one)
-                    // which can either amend funding on existing providers else create new ones
-                    // new IVariationStrategy implementations need to be registered in IOC (as the servicelocator resolves all registered) and have a Name value which keys
-                    // into the configured strategies in a funding configuration
-                    
-                    await _applyProviderVariations.ApplyProviderVariations();
 
                     foreach (PublishedProvider publishedProvider in _applyProviderVariations.ProvidersToUpdate)
                     {

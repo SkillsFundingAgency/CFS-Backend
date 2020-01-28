@@ -24,19 +24,25 @@ namespace CalculateFunding.Services.Publishing.Variations
         public async Task<ProviderVariationContext> CreateRequiredVariationChanges(PublishedProvider existingPublishedProvider,
             GeneratedProviderResult generatedProviderResult,
             ApiProvider provider,
-           IEnumerable<FundingVariation> variations)
+            IEnumerable<FundingVariation> variations,
+            IDictionary<string, PublishedProvider> allPublishedProviderSnapShots,
+            IDictionary<string, PublishedProvider> allPublishedProviderRefreshStates)
         {
             Guard.ArgumentNotNull(existingPublishedProvider, nameof(existingPublishedProvider));
             Guard.ArgumentNotNull(generatedProviderResult, nameof(generatedProviderResult));
             Guard.ArgumentNotNull(provider, nameof(provider));
             Guard.ArgumentNotNull(variations, nameof(variations));
+            Guard.ArgumentNotNull(allPublishedProviderRefreshStates, nameof(allPublishedProviderRefreshStates));
+            Guard.ArgumentNotNull(allPublishedProviderSnapShots, nameof(allPublishedProviderSnapShots));
             
             ProviderVariationContext providerVariationContext = new ProviderVariationContext
             {
                 PublishedProvider = existingPublishedProvider,
                 Result = new ProviderVariationResult(),
                 UpdatedProvider = provider,
-                GeneratedProvider = generatedProviderResult
+                GeneratedProvider = generatedProviderResult,
+                AllPublishedProviderSnapShots = allPublishedProviderSnapShots,
+                AllPublishedProvidersRefreshStates = allPublishedProviderRefreshStates
             };
 
             foreach (string variationStrategyName in variations.OrderBy(_ => _.Order).Select(_ => _.Name))

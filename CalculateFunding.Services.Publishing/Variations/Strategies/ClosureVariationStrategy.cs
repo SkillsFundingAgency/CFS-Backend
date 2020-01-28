@@ -7,17 +7,15 @@ using CalculateFunding.Services.Publishing.Variations.Changes;
 
 namespace CalculateFunding.Services.Publishing.Variations.Strategies
 {
-    public class ClosureVariationStrategy : IVariationStrategy
+    public class ClosureVariationStrategy : ClosureVariation, IVariationStrategy
     {
-        public const string Closed = "Closed";
-        
         public string Name => "Closure";
 
         public Task DetermineVariations(ProviderVariationContext providerVariationContext)
         {
             Guard.ArgumentNotNull(providerVariationContext, nameof(providerVariationContext));
             
-            if (providerVariationContext.ReleasedState.Provider.Status == Closed || 
+            if (providerVariationContext.ReleasedState?.Provider.Status == Closed || 
                 providerVariationContext.UpdatedProvider.Status != Closed ||
                 !providerVariationContext.UpdatedProvider.Successor.IsNullOrWhitespace())
             {
@@ -31,6 +29,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
                 return Task.CompletedTask;
             }
 
+            
             providerVariationContext.QueueVariationChange(new ZeroRemainingProfilesChange(providerVariationContext));
             providerVariationContext.QueueVariationChange(new ReAdjustFundingValuesForProfileValuesChange(providerVariationContext));
 

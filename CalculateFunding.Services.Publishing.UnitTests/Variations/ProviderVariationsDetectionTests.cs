@@ -43,11 +43,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
             PublishedProvider existingPublishedProvider = NewPublishedProvider();
             GeneratedProviderResult generatedProviderResult = NewGeneratedProviderResult();
             ApiProvider updatedProvider = NewApiProvider();
+            IDictionary<string, PublishedProvider> allPublishedProviderSnapShots = new Dictionary<string, PublishedProvider>();
+            IDictionary<string, PublishedProvider> allPublishedProviderRefreshStates = new Dictionary<string, PublishedProvider>();
 
             ProviderVariationContext providerVariationContext = await _factory.CreateRequiredVariationChanges(existingPublishedProvider,
                 generatedProviderResult,
                 updatedProvider,
-                fundingVariations);
+                fundingVariations, 
+                allPublishedProviderSnapShots,
+                allPublishedProviderRefreshStates);
 
             providerVariationContext
                 .GeneratedProvider
@@ -74,7 +78,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
                                ReferenceEquals(ctx.GeneratedProvider, generatedProviderResult) &&
                                ReferenceEquals(ctx.ReleasedState, existingPublishedProvider.Released) &&
                                ctx.ProviderId == existingPublishedProvider.Current.ProviderId &&
-                               ReferenceEquals(ctx.UpdatedProvider, updatedProvider)));
+                               ReferenceEquals(ctx.UpdatedProvider, updatedProvider) &&
+                               ReferenceEquals(ctx.AllPublishedProviderSnapShots, allPublishedProviderSnapShots) &&
+                               ReferenceEquals(ctx.AllPublishedProvidersRefreshStates, allPublishedProviderRefreshStates)));
                 }   
             });
         }

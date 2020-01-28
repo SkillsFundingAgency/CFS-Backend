@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -30,6 +31,11 @@ namespace System
         public static bool IsNotNullOrWhitespace(this string text)
         {
             return !text.IsNullOrWhitespace();
+        }
+
+        public static string Join(this IEnumerable<string> strings, string separator)
+        {
+            return string.Join(separator, strings);
         }
 
         public static bool IsNullOrWhitespace(this string text)

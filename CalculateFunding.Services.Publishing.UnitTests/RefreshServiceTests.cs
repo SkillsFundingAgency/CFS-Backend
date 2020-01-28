@@ -81,7 +81,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 _publishingFeatureFlag,
                 _publishedProviderIndexerService,
                 _detectProviderVariations,
-                _applyProviderVariations);
+                _applyProviderVariations,
+                Substitute.For<IRecordVariationErrors>());
         }
     }
 }

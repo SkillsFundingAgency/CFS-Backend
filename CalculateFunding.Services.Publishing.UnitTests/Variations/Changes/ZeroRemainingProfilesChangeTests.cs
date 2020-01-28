@@ -7,16 +7,13 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
 {
     [TestClass]
-    public class ZeroRemainingProfilesChangeTests : VariationChangeTestBase
+    public class ZeroRemainingProfilesChangeTests : ZeroRemainingProfilesChangeTestBase
     {
-        private ZeroRemainingProfilesChange _change;
-
         [TestInitialize]
         public void SetUp()
         {
-            _change = new ZeroRemainingProfilesChange(VariationContext);
+            Change = new ZeroRemainingProfilesChange(VariationContext);
         }
-
         [TestMethod]
         public async Task RecordsErrorIfNoVariationPointersForSpecificationId()
         {
@@ -25,33 +22,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
             ThenTheErrorWasRecorded($"Unable to zero profiles for provider id {VariationContext.ProviderId}");
             AndNoVariationChangesWereQueued();
         }
-
-        [TestMethod]
-        public async Task RecordsErrorIfNoMatchingFundingLineForAVariationPointer()
-        {
-            string fundingLineId = NewRandomString();
-            
-            GivenTheVariationPointersForTheSpecification(NewVariationPointer(_ => _.WithFundingLineId(fundingLineId)));
-
-            await WhenTheChangeIsApplied();
-            
-            ThenTheErrorWasRecorded($"Did not locate a funding line for variation pointer with fundingLineId {fundingLineId}");
-            AndNoVariationChangesWereQueued();
-        }
         
-        [TestMethod]
-        public async Task RecordsErrorIfNoMatchingProfilePeriodForAVariationPointer()
-        {
-            string fundingLineId = NewRandomString();
-            
-            GivenTheVariationPointersForTheSpecification(NewVariationPointer(_ => _.WithFundingLineId(fundingLineId)));
-            AndTheFundingLines(NewFundingLine(_ => _.WithFundingLineCode(fundingLineId)));
-
-            await WhenTheChangeIsApplied();
-            
-            ThenTheErrorWasRecorded($"Did not locate profile period corresponding to variation pointer for funding line id {fundingLineId}");
-            AndNoVariationChangesWereQueued();
-        }
 
         [TestMethod]
         public async Task ZerosProfilesAfterProfileVariationPointersInSpecificationOnEachMatchingFundingLine()
@@ -72,6 +43,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
                     .WithTypeValue(typeValue)));
 
             decimal periodOneAmount = 293487M;
+            
             ProfilePeriod periodOne = NewProfilePeriod(0, 2020, "January", periodOneAmount);
             ProfilePeriod periodTwo = NewProfilePeriod(1, 2020, "January", 2973864M);
             ProfilePeriod periodThree = NewProfilePeriod(0, 2020, "February", 123764M);
@@ -81,6 +53,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
             AndTheFundingLines(NewFundingLine(_ => _.WithFundingLineCode(fundingLineOneId)
                 .WithDistributionPeriods(NewDistributionPeriod(dp => dp.WithProfilePeriods(periodOne, periodTwo, periodThree)),
                     NewDistributionPeriod(dp => dp.WithProfilePeriods(periodFour, periodFive)))));
+            
+           
             
             await WhenTheChangeIsApplied();
             
@@ -99,17 +73,18 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
             }
         }
 
-        private void AndTheProfilePeriodAmountShouldBe(ProfilePeriod profilePeriod, decimal expectedAmount)
+        [TestMethod]
+        public async Task RecordsErrorIfNoMatchingProfilePeriodForAVariationPointer()
         {
-            profilePeriod
-                .ProfiledValue
-                .Should()
-                .Be(expectedAmount);
-        }
+            string fundingLineId = NewRandomString();
+            
+            GivenTheVariationPointersForTheSpecification(NewVariationPointer(_ => _.WithFundingLineId(fundingLineId)));
+            AndTheFundingLines(NewFundingLine(_ => _.WithFundingLineCode(fundingLineId)));
 
-        private async Task WhenTheChangeIsApplied()
-        {
-            await _change.Apply(VariationsApplication);
+            await WhenTheChangeIsApplied();
+            
+            ThenTheErrorWasRecorded($"Did not locate profile period corresponding to variation pointer for funding line id {fundingLineId}");
+            AndNoVariationChangesWereQueued();
         }
     }
 }

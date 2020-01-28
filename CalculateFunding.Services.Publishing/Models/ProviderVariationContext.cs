@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Interfaces;
-using Microsoft.Azure.Amqp.Framing;
 using ApiProvider = CalculateFunding.Common.ApiClient.Providers.Models.Provider;
 using PublishingProvider = CalculateFunding.Models.Publishing.Provider;
 
@@ -33,6 +32,9 @@ namespace CalculateFunding.Services.Publishing.Models
         /// </summary>
         public PublishedProviderVersion RefreshState => PublishedProvider?.Current;
 
+
+        public PublishedProviderVersion SuccessorRefreshState { get; set; }
+
         /// <summary>
         /// The variation detection should compare the updated provider with the last published details
         /// here using the latest released publishedproviderversion
@@ -40,6 +42,21 @@ namespace CalculateFunding.Services.Publishing.Models
         public PublishedProviderVersion ReleasedState => PublishedProvider?.Released;
         
         public PublishedProvider PublishedProvider { get; set; }
+        
+        /// <summary>
+        /// We take a snapshot of the published providers post any changes from the refresh run
+        /// so should be used as a readonly reference when running variations
+        /// </summary>
+        public IDictionary<string, PublishedProvider> AllPublishedProviderSnapShots { get; set; }
+        
+        /// <summary>
+        /// Some variations require alterations to other providers. The instances set as the RefreshState
+        /// on the variation context come from this master list and its these instances that should be updated
+        /// in any queued changes (e.g. for a merge - we close one provider which is the RefreshState on the context
+        /// but then we also then have to transfer the money we zero off out remaining profiles onto our successor
+        /// provider - you would locate the refresh state instance of the successor provider from this lookup
+        /// </summary>
+        public IDictionary<string, PublishedProvider> AllPublishedProvidersRefreshStates { get; set; }
 
         public ICollection<string> ErrorMessages { get; } = new List<string>();
 
@@ -50,6 +67,23 @@ namespace CalculateFunding.Services.Publishing.Models
         public void RecordErrors(params string[] errors)
         {
             ErrorMessages.AddRange(errors);
+        }
+
+        public PublishedProvider GetOtherPublishedProviderSnapShot(string providerId)
+        {
+            return GetOtherPublishedProvider(AllPublishedProviderSnapShots, providerId);
+        }
+
+        public PublishedProvider GetOtherPublishedProviderRefreshState(string providerId)
+        {
+            return GetOtherPublishedProvider(AllPublishedProvidersRefreshStates, providerId);
+        }
+
+        private PublishedProvider GetOtherPublishedProvider(IDictionary<string, PublishedProvider> lookup, string key)
+        {
+            return lookup.TryGetValue(key, out PublishedProvider publishedProvider)
+                ? publishedProvider
+                : null;         
         }
 
         public void QueueVariationChange(IVariationChange variationChange)

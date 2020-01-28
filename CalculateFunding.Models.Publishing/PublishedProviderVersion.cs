@@ -113,8 +113,9 @@ namespace CalculateFunding.Models.Publishing
         /// Provider IDs of Predecessor providers
         /// </summary>
         [JsonProperty("predecessors")]
-        public IEnumerable<string> Predecessors { get; set; }
+        public ICollection<string> Predecessors { get; set; }
 
+        /// <summary>
         /// <summary>
         /// Variation reasons
         /// </summary>
