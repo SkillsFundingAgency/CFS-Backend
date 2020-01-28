@@ -25,7 +25,7 @@ namespace CalculateFunding.Services.Publishing
         private static readonly FacetFilterType[] Facets = {
             new FacetFilterType("providerType"),
             new FacetFilterType("localAuthority"),
-            new FacetFilterType("fundingStatus", true)
+            new FacetFilterType("fundingStatus")
         };
 
         private readonly ILogger _logger;
