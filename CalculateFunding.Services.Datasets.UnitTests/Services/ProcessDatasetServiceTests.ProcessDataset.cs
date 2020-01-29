@@ -38,9 +38,9 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
 using AggregatedType = CalculateFunding.Models.Datasets.AggregatedTypes;
+using ApiProvider = CalculateFunding.Common.ApiClient.Providers.Models.Provider;
 using ApiProviderSummary = CalculateFunding.Common.ApiClient.Providers.Models.ProviderSummary;
 using ApiProviderVersion = CalculateFunding.Common.ApiClient.Providers.Models.ProviderVersion;
-using ApiProvider = CalculateFunding.Common.ApiClient.Providers.Models.Provider;
 using FieldDefinition = CalculateFunding.Models.Datasets.Schema.FieldDefinition;
 using VersionReference = CalculateFunding.Models.VersionReference;
 
@@ -500,6 +500,7 @@ namespace CalculateFunding.Services.Datasets.Services
             await AndTheProviderDatasetVersionKeyWasInvalidated();
             await AndNoAggregationsWereCreated();
             await AndTheCachedAggregationsWereInvalidated();
+            await AndTheScopedProvidersWereUpdated();
         }
 
         [TestMethod]
@@ -560,6 +561,7 @@ namespace CalculateFunding.Services.Datasets.Services
             await ThenTheProviderSourceDatasetWasUpdated(newProviderId);
             await AndTheProviderSourceDatasetWasDeleted(_providerId, operations);
             await AndTheCleanUpDatasetTopicWasNotified(operations);
+            await AndTheScopedProvidersWereUpdated();
         }
 
         [TestMethod]
@@ -611,6 +613,8 @@ namespace CalculateFunding.Services.Datasets.Services
             await WhenTheProcessDatasetMessageIsProcessed();
 
             await ThenTheProviderSourceDatasetWasUpdated(extraConstraints: ds => ds.Current.Rows[0][LaCode].ToString() == _laCode);
+
+            await AndTheScopedProvidersWereUpdated();
         }
 
         [TestMethod]
@@ -869,6 +873,8 @@ namespace CalculateFunding.Services.Datasets.Services
             await ThenTheProviderSourceDatasetWasUpdated();
             await AndNoDatasetVersionsWereCreated();
             await AndTheDatasetVersionWasSaved(version: 1);
+
+            await AndTheScopedProvidersWereUpdated();
         }
 
         [TestMethod]
@@ -1588,6 +1594,13 @@ namespace CalculateFunding.Services.Datasets.Services
                     .Received(times)
                     .UpdateCurrentProviderSourceDatasets(Arg.Is<IEnumerable<ProviderSourceDataset>>(
                         _ => FirstProviderSourceDatasetMatches(_, expectedProviderId, extraConstraints)));
+        }
+
+        private async Task AndTheScopedProvidersWereUpdated()
+        {
+            await _providersApiClient
+                .Received(1)
+                .PopulateProviderSummariesForSpecification(SpecificationId);
         }
 
         private async Task AndTheProviderSourceDatasetWasDeleted(string expectedProviderId = null,

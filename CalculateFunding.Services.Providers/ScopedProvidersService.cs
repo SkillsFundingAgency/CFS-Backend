@@ -176,11 +176,6 @@ namespace CalculateFunding.Services.Providers
             string scopedProviderSummariesCountCacheKey = $"{CacheKeys.ScopedProviderSummariesCount}{specificationId}";
             string currentProviderCount = await _cacheProvider.GetAsync<string>(scopedProviderSummariesCountCacheKey);
 
-
-            //ApiResponse<SpecificationSummary> spec =
-            //    await  _specificationsApiClient.GetSpecificationSummaryById(specificationId);
-
-
             string cacheKeyScopedListCacheKey = $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}";
             long scopedProviderRedisListCount = await _cacheProvider.ListLengthAsync<ProviderSummary>(cacheKeyScopedListCacheKey);
 

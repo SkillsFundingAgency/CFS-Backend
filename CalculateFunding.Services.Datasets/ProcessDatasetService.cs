@@ -684,7 +684,7 @@ namespace CalculateFunding.Services.Datasets
 
             await _cacheProvider.RemoveAsync<List<CalculationAggregation>>($"{CacheKeys.DatasetAggregationsForSpecification}{specification.Id}");
 
-            await PopulateProviderSummariesForSpecification(specification.Id, providerSummaries);
+            await _providersApiClientPolicy.ExecuteAsync(() => _providersApiClient.PopulateProviderSummariesForSpecification(specification.Id));
         }
 
         private static IEnumerable<string> GetProviderIdsForIdentifier(DatasetDefinition datasetDefinition, RowLoadResult row, IEnumerable<ProviderSummary> providerSummaries)
@@ -716,33 +716,6 @@ namespace CalculateFunding.Services.Datasets
             }
 
             return new string[0];
-        }
-
-        async Task PopulateProviderSummariesForSpecification(string specificationId, IEnumerable<ProviderSummary> allCachedProviders)
-        {
-            string cacheKey = $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}";
-
-            ApiResponse<IEnumerable<string>> providerIdsAll = await _providersApiClient.GetScopedProviderIds(specificationId);
-
-            if (providerIdsAll?.Content == null || providerIdsAll.Content.IsNullOrEmpty())
-            {
-                return;
-            }
-
-            IList<ProviderSummary> providerSummaries = new List<ProviderSummary>();
-
-            foreach (string providerId in providerIdsAll.Content)
-            {
-                ProviderSummary cachedProvider = allCachedProviders.FirstOrDefault(m => m.Id == providerId);
-
-                if (cachedProvider != null)
-                {
-                    providerSummaries.Add(cachedProvider);
-                }
-            }
-
-            await _cacheProvider.KeyDeleteAsync<ProviderSummary>(cacheKey);
-            await _cacheProvider.CreateListAsync<ProviderSummary>(providerSummaries, cacheKey);
         }
 
         /// <summary>
