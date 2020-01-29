@@ -106,9 +106,9 @@ namespace CalculateFunding.Services.Datasets.Services
             return Substitute.For<ITelemetry>();
         }
 
-        protected IProvidersResultsRepository CreateProviderResultsRepository()
+        protected IProviderSourceDatasetsRepository CreateProviderResultsRepository()
         {
-            return Substitute.For<IProvidersResultsRepository>();
+            return Substitute.For<IProviderSourceDatasetsRepository>();
         }
 
         protected IExcelDatasetReader CreateExcelDatasetReader()

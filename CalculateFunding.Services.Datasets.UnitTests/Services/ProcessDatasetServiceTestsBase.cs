@@ -41,7 +41,7 @@ namespace CalculateFunding.Services.Datasets.Services
             ICalcsRepository calcsRepository = null,
             IProvidersApiClient providersApiClient = null,
             ISpecificationsApiClient specificationsApiClient = null,
-            IProvidersResultsRepository providerResultsRepository = null,
+            IProviderSourceDatasetsRepository providerResultsRepository = null,
             ITelemetry telemetry = null,
             IDatasetsResiliencePolicies datasetsResiliencePolicies = null,
             IVersionRepository<ProviderSourceDatasetVersion> versionRepository = null,
@@ -133,9 +133,9 @@ namespace CalculateFunding.Services.Datasets.Services
             return Substitute.For<IProvidersApiClient>();
         }
 
-        protected static IProvidersResultsRepository CreateProviderResultsRepository()
+        protected static IProviderSourceDatasetsRepository CreateProviderResultsRepository()
         {
-            return Substitute.For<IProvidersResultsRepository>();
+            return Substitute.For<IProviderSourceDatasetsRepository>();
         }
 
         protected static IExcelDatasetReader CreateExcelDatasetReader()

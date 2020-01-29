@@ -5,7 +5,7 @@ using CalculateFunding.Models.Datasets;
 
 namespace CalculateFunding.Services.Datasets.Interfaces
 {
-    public interface IProvidersResultsRepository
+    public interface IProviderSourceDatasetsRepository
     {
         Task DeleteCurrentProviderSourceDatasets(IEnumerable<ProviderSourceDataset> providerSourceDatasets);
 

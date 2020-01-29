@@ -55,7 +55,7 @@ namespace CalculateFunding.Services.Datasets.Services
         private IBlobClient _blobClient;
         private ICacheProvider _cacheProvider;
         private IExcelDatasetReader _excelDatasetReader;
-        private IProvidersResultsRepository _providerResultsRepository;
+        private IProviderSourceDatasetsRepository _providerResultsRepository;
         private IProviderSourceDatasetVersionKeyProvider _versionKeyProvider;
         private IProvidersApiClient _providersApiClient;
         private ISpecificationsApiClient _specificationsApiClient;

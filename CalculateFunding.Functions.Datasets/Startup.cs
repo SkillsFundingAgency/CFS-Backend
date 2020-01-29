@@ -129,10 +129,13 @@ namespace CalculateFunding.Functions.Datasets
                 });
 
 
-            builder.AddSingleton<IProvidersResultsRepository, ProvidersResultsRepository>(ctx =>
-                new ProvidersResultsRepository(CreateCosmosDbSettings(config, "providerdatasets")));
+            builder.AddSingleton<IProviderSourceDatasetsRepository, ProviderSourceDatasetsRepository>(ctx =>
+                new ProviderSourceDatasetsRepository(CreateCosmosDbSettings(config, "providerdatasets")));
 
-            builder.AddSingleton<IDatasetRepository, DataSetsRepository>();
+            builder.AddSingleton<IDatasetRepository, DataSetsRepository>(ctx =>
+            {
+                return new DataSetsRepository(CreateCosmosDbSettings(config, "datasets"));
+            });
 
             builder.AddSingleton<IDatasetSearchService, DatasetSearchService>();
 
@@ -172,15 +175,6 @@ namespace CalculateFunding.Functions.Datasets
             Common.Config.ApiClient.Specifications.ServiceCollectionExtensions.AddSpecificationsInterServiceClient(builder, config);
             Common.Config.ApiClient.Jobs.ServiceCollectionExtensions.AddJobsInterServiceClient(builder, config);
             Common.Config.ApiClient.Providers.ServiceCollectionExtensions.AddProvidersInterServiceClient(builder, config);
-
-            if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
-            {
-                builder.AddCosmosDb(config, "datasets");
-            }
-            else
-            {
-                builder.AddCosmosDb(config);
-            }
 
             builder.AddSearch(config);
             builder
@@ -225,10 +219,11 @@ namespace CalculateFunding.Functions.Datasets
 
         private static CosmosRepository CreateCosmosDbSettings(IConfigurationRoot config, string containerName)
         {
-            CosmosDbSettings dbSettings =
-                new CosmosDbSettings { ContainerName = containerName };
+            CosmosDbSettings dbSettings = new CosmosDbSettings();
 
             config.Bind("CosmosDbSettings", dbSettings);
+
+            dbSettings.ContainerName = containerName;
 
             return new CosmosRepository(dbSettings);
         }

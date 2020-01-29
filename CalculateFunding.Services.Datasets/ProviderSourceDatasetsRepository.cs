@@ -11,11 +11,11 @@ using CalculateFunding.Services.Datasets.Interfaces;
 
 namespace CalculateFunding.Services.Datasets
 {
-    public class ProvidersResultsRepository : IProvidersResultsRepository, IHealthChecker
+    public class ProviderSourceDatasetsRepository : IProviderSourceDatasetsRepository, IHealthChecker
     {
         private readonly CosmosRepository _cosmosRepository;
 
-        public ProvidersResultsRepository(CosmosRepository cosmosRepository)
+        public ProviderSourceDatasetsRepository(CosmosRepository cosmosRepository)
         {
             _cosmosRepository = cosmosRepository;
         }
@@ -26,7 +26,7 @@ namespace CalculateFunding.Services.Datasets
 
             ServiceHealth health = new ServiceHealth()
             {
-                Name = nameof(ProvidersResultsRepository)
+                Name = nameof(ProviderSourceDatasetsRepository)
             };
             health.Dependencies.Add(new DependencyHealth { HealthOk = cosmosRepoHealth.Ok, DependencyName = _cosmosRepository.GetType().GetFriendlyName(), Message = cosmosRepoHealth.Message });
 

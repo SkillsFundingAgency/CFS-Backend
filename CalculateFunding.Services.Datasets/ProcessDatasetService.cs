@@ -58,7 +58,7 @@ namespace CalculateFunding.Services.Datasets
         private readonly ICalcsRepository _calcsRepository;
         private readonly IBlobClient _blobClient;
         private readonly IMessengerService _messengerService;
-        private readonly IProvidersResultsRepository _providersResultsRepository;
+        private readonly IProviderSourceDatasetsRepository _providersResultsRepository;
         private readonly IProvidersApiClient _providersApiClient;
         private readonly ISpecificationsApiClient _specsApiClient;
         private readonly IVersionRepository<ProviderSourceDatasetVersion> _sourceDatasetsVersionRepository;
@@ -81,7 +81,7 @@ namespace CalculateFunding.Services.Datasets
             ICalcsRepository calcsRepository,
             IBlobClient blobClient,
             IMessengerService messengerService,
-            IProvidersResultsRepository providersResultsRepository,
+            IProviderSourceDatasetsRepository providersResultsRepository,
             IProvidersApiClient providersApiClient,
             ISpecificationsApiClient specificationsApiClient,
             IVersionRepository<ProviderSourceDatasetVersion> sourceDatasetsVersionRepository,

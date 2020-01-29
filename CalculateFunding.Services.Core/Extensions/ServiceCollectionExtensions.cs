@@ -37,6 +37,7 @@ namespace CalculateFunding.Services.Core.Extensions
         private static readonly int numberOfExceptionsBeforeCircuitBreaker = 100;
         private static TimeSpan circuitBreakerFailurePeriod = TimeSpan.FromMinutes(1);
 
+        [Obsolete("Change to register per repository, instead of per microservice")]
         public static IServiceCollection AddCosmosDb(this IServiceCollection builder, IConfiguration config, string collectionNameOverride = null)
         {
             CosmosDbSettings cosmosDbSettings = new CosmosDbSettings();
