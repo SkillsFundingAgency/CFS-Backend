@@ -16,6 +16,7 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
 using Microsoft.Azure.ServiceBus;
+using Newtonsoft.Json;
 using Polly;
 using Serilog;
 using FundingLine = CalculateFunding.Common.TemplateMetadata.Models.FundingLine;
@@ -262,8 +263,14 @@ namespace CalculateFunding.Services.Publishing
                                            existingPublishedProviders.AnyWithNullCheck() && 
                                            fundingConfiguration.Variations.AnyWithNullCheck();
 
-                Dictionary<string, PublishedProvider> allPublishedProviderDeepCopies = publishedProviders
-                    .ToDictionary(_ => _.Key, _ => _.Value.DeepCopy());
+                Dictionary<string, PublishedProvider> allPublishedProviderDeepCopies = null;
+
+                _logger.Information($"Variations enabled = {shouldRunVariations}");
+
+                if (shouldRunVariations)
+                {
+                    allPublishedProviderDeepCopies = publishedProviders.DeepCopy();
+                }
 
                 // Set generated data on the Published provider
                 foreach (KeyValuePair<string, PublishedProvider> publishedProvider in publishedProviders)
