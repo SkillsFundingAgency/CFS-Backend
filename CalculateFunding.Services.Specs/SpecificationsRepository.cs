@@ -126,12 +126,13 @@ namespace CalculateFunding.Services.Specs
         {
             CosmosDbQuery cosmosDbQuery = new CosmosDbQuery
             {
-                QueryText = @"SELECT DISTINCT value fs.id
-                                 FROM specifications.content.current r
-                                JOIN fs IN r.fundingStreams"
+                QueryText = @" SELECT Distinct value c.id
+                                FROM specifications f 
+                                JOIN c IN f.content.current.fundingStreams 
+                                WHERE f.documentType = 'Specification' and f.deleted = false"
             };
 
-            return await _repository.RawQuery<string>(cosmosDbQuery, 1);
+            return await _repository.RawQuery<string>(cosmosDbQuery);
         }
     }
 }
