@@ -11,7 +11,7 @@ using Newtonsoft.Json;
 
 namespace CalculateFunding.Repositories.Common.Search
 {
-    public class SearchInitializer
+    public class SearchInitializer : ISearchInitializer
     {
         private readonly ISearchServiceClient _searchServiceClient;
         private static readonly Dictionary<Type, DataType> TypeMapping = new Dictionary<Type, DataType> {

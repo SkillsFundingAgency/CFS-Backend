@@ -50,7 +50,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             throw new NotImplementedException();
         }
 
-        public Task<PublishedFundingIndex> SearchById(string id, SearchParameters searchParameters = null, string IdFieldOverride = "")
+        public Task<PublishedFundingIndex> SearchById(string id, string IdFieldOverride = "")
         {
             throw new NotImplementedException();
         }

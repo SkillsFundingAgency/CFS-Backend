@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
 using Microsoft.Azure.Search;
 using Microsoft.Azure.Search.Models;
+using Microsoft.Rest.Azure;
 
 namespace CalculateFunding.Repositories.Common.Search
 {
@@ -23,16 +24,17 @@ namespace CalculateFunding.Repositories.Common.Search
 
         private static readonly SearchParameters DefaultParameters = new SearchParameters { IncludeTotalResultCount = true };
         private readonly SearchRepositorySettings _settings;
-        private readonly SearchServiceClient _searchServiceClient;
+        private readonly ISearchServiceClient _searchServiceClient;
         private readonly string _indexName;
-        private readonly SearchInitializer _searchInitializer;
+        private readonly ISearchInitializer _searchInitializer;
 
-        public SearchRepository(SearchRepositorySettings settings)
+        public SearchRepository(SearchRepositorySettings settings, ISearchInitializer searchInitializer = null, ISearchServiceClient searchServiceClient = null, ISearchIndexClient searchIndexClient = null)
         {
             _indexName = typeof(T).Name.ToLowerInvariant();
             _settings = settings ?? throw new ArgumentNullException(nameof(settings));
-            _searchInitializer = new SearchInitializer(_settings.SearchServiceName, _settings.SearchKey, null);
-            _searchServiceClient = new SearchServiceClient(_settings.SearchServiceName, new SearchCredentials(_settings.SearchKey));
+            _searchInitializer = searchInitializer ?? new SearchInitializer(_settings.SearchServiceName, _settings.SearchKey, null);
+            _searchServiceClient = searchServiceClient ?? new SearchServiceClient(_settings.SearchServiceName, new SearchCredentials(_settings.SearchKey));
+            _searchIndexClient = searchIndexClient;
         }
 
         public static string ParseSearchText(string searchText)
@@ -166,30 +168,30 @@ namespace CalculateFunding.Repositories.Common.Search
             }
         }
 
-        public async Task<T> SearchById(string id, SearchParameters searchParameters = null, string IdFieldOverride = "")
+        public async Task<T> SearchById(string id, string IdFieldOverride = "")
         {
             var client = await GetOrCreateIndex();
 
             string idField = string.IsNullOrWhiteSpace(IdFieldOverride) ? "id" : IdFieldOverride;
 
-            searchParameters = new SearchParameters
+            SearchParameters searchParameters = new SearchParameters
             {
-                SearchFields = new List<string> { idField },
+                Filter = $"{idField} eq '{id}'",
                 Top = 1
             };
 
             try
             {
-                var azureSearchResult = await client.Documents.SearchAsync<T>(id, searchParameters ?? DefaultParameters);
+                AzureOperationResponse<DocumentSearchResult<T>> azureSearchResult = await client.Documents.SearchWithHttpMessagesAsync<T>(string.Empty, searchParameters);
 
-                if (azureSearchResult == null || azureSearchResult.Results == null)
+                if (azureSearchResult?.Body?.Results == null)
                 {
                     return null;
                 }
 
                 var response = new SearchResults<T>
                 {
-                    Results = azureSearchResult.Results.Select(x => new SearchResult<T>
+                    Results = azureSearchResult.Body.Results.Select(x => new SearchResult<T>
                     {
                         HitHighLights = x.Highlights,
                         Result = x.Document,
