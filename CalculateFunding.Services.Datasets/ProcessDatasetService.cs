@@ -684,6 +684,9 @@ namespace CalculateFunding.Services.Datasets
 
             await _cacheProvider.RemoveAsync<List<CalculationAggregation>>($"{CacheKeys.DatasetAggregationsForSpecification}{specification.Id}");
 
+            // need to remove all calculation result batches so that all calcs are created on calc run
+            await _cacheProvider.RemoveByPatternAsync($"{CacheKeys.CalculationResults}{specification.Id}");
+
             await _providersApiClientPolicy.ExecuteAsync(() => _providersApiClient.PopulateProviderSummariesForSpecification(specification.Id));
         }
 

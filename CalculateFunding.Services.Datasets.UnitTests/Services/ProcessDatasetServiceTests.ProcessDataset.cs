@@ -71,6 +71,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
         private string _datasetCacheKey = $"ds-table-rows:{ProcessDatasetService.GetBlobNameCacheKey(BlobPath)}:{DataDefintionId}";
         private string _datasetAggregationsCacheKey = $"{CacheKeys.DatasetAggregationsForSpecification}{SpecificationId}";
+        private string _calculationResultsCacheKey = $"{CacheKeys.CalculationResults}{SpecificationId}";
 
         private string _relationshipId;
         private string _relationshipName;
@@ -500,6 +501,7 @@ namespace CalculateFunding.Services.Datasets.Services
             await AndTheProviderDatasetVersionKeyWasInvalidated();
             await AndNoAggregationsWereCreated();
             await AndTheCachedAggregationsWereInvalidated();
+            await AndTheCachedCalculationResultsWereInvalidated();
             await AndTheScopedProvidersWereUpdated();
         }
 
@@ -689,6 +691,7 @@ namespace CalculateFunding.Services.Datasets.Services
                     agg.Fields.ElementAt(3).FieldType == AggregatedType.Max &&
                     agg.Fields.ElementAt(3).FieldReference == $"Datasets.{cleanRelationshipName}.{cleanFieldName}_Max");
             await AndTheCachedAggregationsWereInvalidated();
+            await AndTheCachedCalculationResultsWereInvalidated();
         }
 
         [TestMethod]
@@ -766,6 +769,7 @@ namespace CalculateFunding.Services.Datasets.Services
                     agg.Fields.ElementAt(3).FieldType == AggregatedType.Max &&
                     agg.Fields.ElementAt(3).FieldReference == $"Datasets.{cleanRelationshipName}.{cleanFieldName}_Max");
             await AndTheCachedAggregationsWereInvalidated();
+            await AndTheCachedCalculationResultsWereInvalidated();
         }
 
         [TestMethod]
@@ -1662,6 +1666,14 @@ namespace CalculateFunding.Services.Datasets.Services
                 _cacheProvider
                     .Received(1)
                     .RemoveAsync<List<CalculationAggregation>>(Arg.Is(_datasetAggregationsCacheKey));
+        }
+
+        private async Task AndTheCachedCalculationResultsWereInvalidated()
+        {
+            await
+                _cacheProvider
+                    .Received(1)
+                    .RemoveByPatternAsync(Arg.Is(_calculationResultsCacheKey));
         }
 
         private async Task ThenTheDatasetAggregationsWereSaved(string expectedRelationshipId = null,
