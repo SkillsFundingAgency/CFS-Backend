@@ -134,7 +134,31 @@ namespace CalculateFunding.Models.Publishing
         /// </summary>
         [JsonProperty("correlationId")]
         public string CorrelationId { get; set; }
+        
+        /// <summary>
+        /// Collection of any over payments keyed by funding line for the funding period
+        /// this published provider version is in
+        /// </summary>
+        [JsonProperty("fundingLineOverPayments")]
+        public IDictionary<string, decimal> FundingLineOverPayments { get; set; }
 
+        public void AddFundingLineOverPayment(string fundingLineId, decimal overpayment)
+        {
+            if (string.IsNullOrWhiteSpace(fundingLineId))
+            {
+                throw new ArgumentOutOfRangeException(nameof(fundingLineId), fundingLineId, "Funding Line Id cannot be missing");
+            }
+            
+            if (overpayment <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(overpayment), overpayment, "Over payments must be greater than zero");
+            }
+
+            FundingLineOverPayments = FundingLineOverPayments ?? new Dictionary<string, decimal>();
+
+            FundingLineOverPayments[fundingLineId] = overpayment;
+        }
+        
         public override VersionedItem Clone()
         {
             // Serialise to perform a deep copy

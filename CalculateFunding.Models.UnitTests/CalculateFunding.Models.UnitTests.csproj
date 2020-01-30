@@ -23,6 +23,7 @@
     <ProjectReference Include="..\CalculateFunding.Models.Publishing\CalculateFunding.Models.Publishing.csproj" />
     <ProjectReference Include="..\CalculateFunding.Models.Scenarios\CalculateFunding.Models.Scenarios.csproj" />
     <ProjectReference Include="..\CalculateFunding.Models.Specs\CalculateFunding.Models.Specs.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Services.Core.UnitTests\CalculateFunding.Services.Core.UnitTests.csproj" />
   </ItemGroup>
 
 </Project>
