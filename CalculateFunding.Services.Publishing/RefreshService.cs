@@ -15,8 +15,8 @@ using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
+using CalculateFunding.Services.Publishing.Variations;
 using Microsoft.Azure.ServiceBus;
-using Newtonsoft.Json;
 using Polly;
 using Serilog;
 using FundingLine = CalculateFunding.Common.TemplateMetadata.Models.FundingLine;
@@ -263,15 +263,16 @@ namespace CalculateFunding.Services.Publishing
                                            existingPublishedProviders.AnyWithNullCheck() && 
                                            fundingConfiguration.Variations.AnyWithNullCheck();
 
-                Dictionary<string, PublishedProvider> allPublishedProviderDeepCopies = null;
+                Dictionary<string, PublishedProviderSnapShots> allPublishedProviderDeepCopies = null;
 
                 _logger.Information($"Variations enabled = {shouldRunVariations}");
 
                 if (shouldRunVariations)
                 {
-                    allPublishedProviderDeepCopies = publishedProviders.DeepCopy();
+                    allPublishedProviderDeepCopies = publishedProviders
+                        .ToDictionary(_ => _.Key, _ => new PublishedProviderSnapShots(_.Value));
                 }
-
+                
                 // Set generated data on the Published provider
                 foreach (KeyValuePair<string, PublishedProvider> publishedProvider in publishedProviders)
                 {
@@ -316,8 +317,8 @@ namespace CalculateFunding.Services.Publishing
                         //so that the variation changes have access to the latest
                         //funding numbers from the calc run (as they may differ) e.g. for merging we need
                         //to take funding that we zeroed in closed providers profile periods and use that in 
-                        //new provider.
-                        allPublishedProviderDeepCopies[publishedProvider.Key] = publishedProvider.Value.DeepCopy();
+                        //a new provider. 
+                        allPublishedProviderDeepCopies[publishedProvider.Key].AddRefreshedSnapshot(publishedProvider.Value);
                         
                         ProviderVariationContext variationContext = await _detectProviderVariations.CreateRequiredVariationChanges(publishedProvider.Value,
                             generatedProviderResult, 

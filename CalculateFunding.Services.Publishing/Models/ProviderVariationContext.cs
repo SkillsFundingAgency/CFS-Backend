@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Interfaces;
+using CalculateFunding.Services.Publishing.Variations;
 using ApiProvider = CalculateFunding.Common.ApiClient.Providers.Models.Provider;
 using PublishingProvider = CalculateFunding.Models.Publishing.Provider;
 
@@ -40,6 +41,13 @@ namespace CalculateFunding.Services.Publishing.Models
         /// here using the latest released publishedproviderversion
         /// </summary>
         public PublishedProviderVersion ReleasedState => PublishedProvider?.Released;
+
+        /// <summary>
+        /// The publisher provider version to use as the comparison for previous state
+        /// this is the current released version if there is one else the current version
+        /// on the published provider being varied
+        /// </summary>
+        public PublishedProviderVersion PriorState => ReleasedState ?? RefreshState;
         
         public PublishedProvider PublishedProvider { get; set; }
         
@@ -47,7 +55,7 @@ namespace CalculateFunding.Services.Publishing.Models
         /// We take a snapshot of the published providers post any changes from the refresh run
         /// so should be used as a readonly reference when running variations
         /// </summary>
-        public IDictionary<string, PublishedProvider> AllPublishedProviderSnapShots { get; set; }
+        public IDictionary<string, PublishedProviderSnapShots> AllPublishedProviderSnapShots { get; set; }
         
         /// <summary>
         /// Some variations require alterations to other providers. The instances set as the RefreshState
@@ -68,20 +76,34 @@ namespace CalculateFunding.Services.Publishing.Models
         {
             ErrorMessages.AddRange(errors);
         }
-
-        public PublishedProvider GetOtherPublishedProviderSnapShot(string providerId)
+        
+        /// <summary>
+        /// Get a readonly snapshot of the prior state (before this refresh run) of the published provider
+        /// </summary>
+        public PublishedProvider GetPublishedProviderOriginalSnapShot(string providerId)
         {
-            return GetOtherPublishedProvider(AllPublishedProviderSnapShots, providerId);
+            return AllPublishedProviderSnapShots.TryGetValue(providerId, out PublishedProviderSnapShots publishedProvider)
+                ? publishedProvider.Original
+                : null;       
         }
 
-        public PublishedProvider GetOtherPublishedProviderRefreshState(string providerId)
+        /// <summary>
+        /// Get a readonly snapshot of the published provider with the latest funding lines
+        /// from the refresh run but that will not be altered during variations
+        /// </summary>
+        public PublishedProvider GetPublishedProviderRefreshedSnapShot(string providerId)
         {
-            return GetOtherPublishedProvider(AllPublishedProvidersRefreshStates, providerId);
+            return AllPublishedProviderSnapShots.TryGetValue(providerId, out PublishedProviderSnapShots publishedProvider)
+                ? publishedProvider.LatestSnapshot
+                : null;       
         }
 
-        private PublishedProvider GetOtherPublishedProvider(IDictionary<string, PublishedProvider> lookup, string key)
+        /// <summary>
+        /// Get the instance of the published provider that is being updated during refresh
+        /// </summary>
+        public PublishedProvider GetPublishedProviderRefreshState(string providerId)
         {
-            return lookup.TryGetValue(key, out PublishedProvider publishedProvider)
+            return AllPublishedProvidersRefreshStates.TryGetValue(providerId, out PublishedProvider publishedProvider)
                 ? publishedProvider
                 : null;         
         }

@@ -17,7 +17,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
 
             VariationContext.SuccessorRefreshState = VariationContext.RefreshState.DeepCopy();
 
-            VariationContext.UpdatedProvider.Status = ClosureVariation.Closed;
+            VariationContext.UpdatedProvider.Status = Variation.Closed;
         }
 
         [TestMethod]

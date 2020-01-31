@@ -7,7 +7,7 @@ using CalculateFunding.Services.Publishing.Variations.Changes;
 
 namespace CalculateFunding.Services.Publishing.Variations.Strategies
 {
-    public class ClosureVariationStrategy : ClosureVariation, IVariationStrategy
+    public class ClosureVariationStrategy : Variation, IVariationStrategy
     {
         public string Name => "Closure";
 
@@ -15,7 +15,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
         {
             Guard.ArgumentNotNull(providerVariationContext, nameof(providerVariationContext));
             
-            if (providerVariationContext.ReleasedState?.Provider.Status == Closed || 
+            if (providerVariationContext.PriorState.Provider.Status == Closed || 
                 providerVariationContext.UpdatedProvider.Status != Closed ||
                 !providerVariationContext.UpdatedProvider.Successor.IsNullOrWhitespace())
             {

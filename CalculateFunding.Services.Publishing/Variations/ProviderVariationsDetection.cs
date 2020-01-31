@@ -25,7 +25,7 @@ namespace CalculateFunding.Services.Publishing.Variations
             GeneratedProviderResult generatedProviderResult,
             ApiProvider provider,
             IEnumerable<FundingVariation> variations,
-            IDictionary<string, PublishedProvider> allPublishedProviderSnapShots,
+            IDictionary<string, PublishedProviderSnapShots> allPublishedProviderSnapShots,
             IDictionary<string, PublishedProvider> allPublishedProviderRefreshStates)
         {
             Guard.ArgumentNotNull(existingPublishedProvider, nameof(existingPublishedProvider));

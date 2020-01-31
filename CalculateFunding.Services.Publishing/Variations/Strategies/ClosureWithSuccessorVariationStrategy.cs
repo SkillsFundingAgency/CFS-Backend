@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
@@ -8,17 +9,19 @@ using ApiProvider = CalculateFunding.Common.ApiClient.Providers.Models.Provider;
 
 namespace CalculateFunding.Services.Publishing.Variations.Strategies
 {
-    public class ClosureWithSuccessorVariationStrategy : ClosureVariation, IVariationStrategy
+    public class ClosureWithSuccessorVariationStrategy : Variation, IVariationStrategy
     {
         public string Name => "ClosureWithSuccessor";
 
         public Task DetermineVariations(ProviderVariationContext providerVariationContext)
         {
+            Guard.ArgumentNotNull(providerVariationContext, nameof(providerVariationContext));
+            
             ApiProvider updatedProvider = providerVariationContext.UpdatedProvider;
 
             string successorId = updatedProvider.Successor;
             
-            if (providerVariationContext.ReleasedState.Provider.Status == Closed || 
+            if (providerVariationContext.PriorState.Provider.Status == Closed || 
                 updatedProvider.Status != Closed ||
                 successorId.IsNullOrWhitespace())
             {
@@ -32,7 +35,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
                 return Task.CompletedTask;
             }
 
-            PublishedProvider successorProvider = providerVariationContext.GetOtherPublishedProviderRefreshState(successorId);
+            PublishedProvider successorProvider = providerVariationContext.GetPublishedProviderRefreshState(successorId);
 
             if (successorProvider == null)
             {

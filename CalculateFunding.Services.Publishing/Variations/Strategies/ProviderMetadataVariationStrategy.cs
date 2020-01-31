@@ -38,7 +38,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
 
             public void Run(ProviderVariationContext providerVariationContext)
             {
-                string priorValue = (string)_priorStateAccessor.GetValue(providerVariationContext.ReleasedState.Provider);
+                string priorValue = (string)_priorStateAccessor.GetValue(providerVariationContext.PriorState.Provider);
                 string currentValue = (string)_updatedStateAccessor.GetValue(providerVariationContext.UpdatedProvider);
 
                 if (priorValue != currentValue)
@@ -63,7 +63,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
 
         public Task DetermineVariations(ProviderVariationContext providerVariationContext)
         {
-            if (providerVariationContext.ReleasedState == null || providerVariationContext.UpdatedProvider == null)
+            if (providerVariationContext.PriorState == null || providerVariationContext.UpdatedProvider == null)
             {
                 return Task.CompletedTask;
             }

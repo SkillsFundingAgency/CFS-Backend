@@ -66,7 +66,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
             ProviderVariationContextBuilder variationContextBuilder = new ProviderVariationContextBuilder()
                 .WithPublishedProvider(NewPublishedProvider(_ => _.WithReleased(NewPublishedProviderVersion(ppv =>
                     ppv.WithTotalFunding(totalFunding)))))
-                .WithCurrentState(NewApiProvider(_ => _.WithStatus(ClosureVariation.Closed)))
+                .WithCurrentState(NewApiProvider(_ => _.WithStatus(Variation.Closed)))
                 .WithGeneratedProviderResult(NewGeneratedProviderResult(_ => _.WithTotalFunding(totalFunding)));
 
             setUp?.Invoke(variationContextBuilder);

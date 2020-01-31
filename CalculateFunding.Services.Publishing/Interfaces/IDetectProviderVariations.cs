@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Models;
+using CalculateFunding.Services.Publishing.Variations;
 using Provider = CalculateFunding.Common.ApiClient.Providers.Models.Provider;
 
 namespace CalculateFunding.Services.Publishing.Interfaces
@@ -13,7 +14,7 @@ namespace CalculateFunding.Services.Publishing.Interfaces
             GeneratedProviderResult generatedProviderResult,
             Provider provider,
             IEnumerable<FundingVariation> variations,
-            IDictionary<string, PublishedProvider> allPublishedProviderSnapShots,
+            IDictionary<string, PublishedProviderSnapShots> allPublishedProviderSnapShots,
             IDictionary<string, PublishedProvider> allPublishedProviderRefreshStates);
     }
 }

@@ -43,7 +43,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
             PublishedProvider existingPublishedProvider = NewPublishedProvider();
             GeneratedProviderResult generatedProviderResult = NewGeneratedProviderResult();
             ApiProvider updatedProvider = NewApiProvider();
-            IDictionary<string, PublishedProvider> allPublishedProviderSnapShots = new Dictionary<string, PublishedProvider>();
+            IDictionary<string, PublishedProviderSnapShots> allPublishedProviderSnapShots = new Dictionary<string, PublishedProviderSnapShots>();
             IDictionary<string, PublishedProvider> allPublishedProviderRefreshStates = new Dictionary<string, PublishedProvider>();
 
             ProviderVariationContext providerVariationContext = await _factory.CreateRequiredVariationChanges(existingPublishedProvider,

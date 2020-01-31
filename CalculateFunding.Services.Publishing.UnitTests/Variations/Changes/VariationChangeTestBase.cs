@@ -6,6 +6,7 @@ using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
+using CalculateFunding.Services.Publishing.Models;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Polly;
@@ -38,6 +39,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
             SpecificationsApiClient
                 .GetProfileVariationPointers(VariationContext.RefreshState.SpecificationId)
                 .Returns(new ApiResponse<IEnumerable<ProfileVariationPointer>>(HttpStatusCode.OK, variationPointers));
+        }
+
+        protected void AndTheVariationPointersForTheSpecification(params ProfileVariationPointer[] variationPointers)
+        {
+            GivenTheVariationPointersForTheSpecification(variationPointers);
         }
 
         protected ProfileVariationPointer NewVariationPointer(Action<ProfileVariationPointerBuilder> setUp = null)

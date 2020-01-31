@@ -32,16 +32,8 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
 
             ProfilePeriod[] orderedProfilePeriods = new YearMonthOrderedProfilePeriods(fundingLine)
                 .ToArray();
-
-            int variationPointerIndex = orderedProfilePeriods.IndexOf(_ => _.Occurrence == variationPointer.Occurrence &&
-                                                                           _.Year == variationPointer.Year &&
-                                                                           _.TypeValue == variationPointer.TypeValue);
-
-            if (variationPointerIndex == -1)
-            {
-                throw new ArgumentOutOfRangeException(nameof(variationPointer),
-                    $"Did not locate profile period corresponding to variation pointer for funding line id {variationPointer.FundingLineId}");
-            }
+            
+            int variationPointerIndex = GetProfilePeriodIndexForVariationPoint(variationPointer, orderedProfilePeriods);
 
             for (int profilePeriod = variationPointerIndex; profilePeriod < orderedProfilePeriods.Length; profilePeriod++)
             {
