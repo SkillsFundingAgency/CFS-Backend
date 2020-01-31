@@ -110,6 +110,7 @@ namespace CalculateFunding.Functions.Publishing
                 builder.AddScoped<OnApproveFundingFailure>();
                 builder.AddScoped<OnPublishFundingFailure>();
                 builder.AddScoped<OnDeletePublishedProviders>();
+                builder.AddScoped<OnReIndexPublishedProviders>();
             }
 
             builder.AddSingleton<ISpecificationService, SpecificationService>();
@@ -281,6 +282,8 @@ namespace CalculateFunding.Functions.Publishing
             });
 
             builder.AddSingleton<IJobHelperService, JobHelperService>();
+
+            builder.AddSingleton<IPublishedProviderReIndexerService, PublishedProviderReIndexerService>();
 
             builder.AddApplicationInsightsForFunctionApps(config, "CalculateFunding.Functions.Publishing");
 
