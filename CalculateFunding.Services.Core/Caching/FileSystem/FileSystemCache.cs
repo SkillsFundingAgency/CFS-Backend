@@ -1,18 +1,23 @@
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using CalculateFunding.Common.Utility;
 using Serilog;
+using Polly;
 // ReSharper disable InconsistentlySynchronizedField
 
 namespace CalculateFunding.Services.Core.Caching.FileSystem
 {
     public class FileSystemCache : IFileSystemCache
     {
+        private static readonly object EvictionLock = new object();
+        
         private readonly ILogger _logger;
         private readonly IFileSystemAccess _fileSystemAccess;
         private readonly IFileSystemCacheSettings _settings;
+        private volatile bool _evictionInProgress;
 
         private static readonly ConcurrentDictionary<string, object> KeyLocks
             = new ConcurrentDictionary<string, object>();
@@ -28,6 +33,64 @@ namespace CalculateFunding.Services.Core.Caching.FileSystem
             _settings = settings;
             _fileSystemAccess = fileSystemAccess;
             _logger = logger;
+        }
+
+        public void Evict(DateTimeOffset before)
+        {
+            lock (EvictionLock)
+            {
+                if (_evictionInProgress)
+                {
+                    throw new InvalidOperationException("Eviction already in progress.");
+                }
+
+                try
+                {
+                    _evictionInProgress = true;
+
+                    DeleteAllFilesCachedBefore(before);
+                }
+                catch (Exception exception)
+                {
+                    string message = $"Unable to evict all files older than {before} under {_settings.Path}.";
+
+                    _logger.Error(exception, message);   
+                }
+                finally
+                {
+                    _evictionInProgress = false;
+                }
+            }
+        }
+
+        private void DeleteAllFilesCachedBefore(DateTimeOffset before)
+        {
+            IEnumerable<string> filesToEvict = _fileSystemAccess.GetAllFiles(_settings.Path, 
+                file => file.CreationTimeUtc < before);
+
+            foreach (string file in filesToEvict)
+            {
+                try
+                {
+                    DeleteFile(file);
+                }
+                catch (Exception exception)
+                {
+                    string message = $"Unable to evict {file} from file system cache";
+
+                    _logger.Error(exception, message);
+
+                    throw new Exception(message, exception);   
+                }
+            }
+        }
+
+        private void DeleteFile(string filePath)
+        {
+            Policy.Handle<IOException>()
+                .Or<UnauthorizedAccessException>()
+                .WaitAndRetry(5, count => TimeSpan.FromMilliseconds(count * 100))
+                .Execute(() => _fileSystemAccess.Delete(filePath));
         }
 
         public bool Exists(FileSystemCacheKey key)
@@ -110,9 +173,25 @@ namespace CalculateFunding.Services.Core.Caching.FileSystem
 
         private string CachePathForKey(FileSystemCacheKey key)
         {
-            return Path.Combine(_settings.Path, key.Path);
+            var cachePath = key.Path;
+
+            var fileName = Path.GetFileName(cachePath);
+            var folder = Path.GetDirectoryName(cachePath);
+
+            return Path.Combine(_settings.Path, folder, $"{_settings.Prefix}_{fileName}");
         }
 
-        private object KeyLockFor(FileSystemCacheKey key) => KeyLocks.GetOrAdd(key.Key, new object());
+        private object KeyLockFor(FileSystemCacheKey key)
+        {
+            if (!_evictionInProgress)
+            {
+                return KeyLocks.GetOrAdd(key.Key, new object());
+            }
+            
+            lock (EvictionLock)
+            {
+                return KeyLocks.GetOrAdd(key.Key, new object());
+            }
+        }
     }
 }

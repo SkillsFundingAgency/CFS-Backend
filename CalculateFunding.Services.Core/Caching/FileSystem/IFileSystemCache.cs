@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Threading;
 
@@ -12,5 +13,10 @@ namespace CalculateFunding.Services.Core.Caching.FileSystem
         Stream Get(FileSystemCacheKey key);
 
         void EnsureFoldersExist(params string[] folders);
+        
+        /// <summary>
+        /// Evict all files cached before the supplied date time offset
+        /// </summary>
+        void Evict(DateTimeOffset before);
     }
 }

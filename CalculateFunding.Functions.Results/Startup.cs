@@ -62,6 +62,7 @@ namespace CalculateFunding.Functions.Results
                 builder.AddScoped<OnCalculationResultsCsvGenerationTimer>();
             }
 
+            builder.AddSingleton<IConfiguration>(config);
             builder.AddSingleton<ICalculationResultsRepository, CalculationResultsRepository>();
             builder.AddSingleton<IResultsService, ResultsService>();
             builder.AddSingleton<IJobManagement, JobManagement>();

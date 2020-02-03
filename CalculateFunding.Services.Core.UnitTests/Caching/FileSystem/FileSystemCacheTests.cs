@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using CalculateFunding.Tests.Common.Helpers;
@@ -17,8 +18,11 @@ namespace CalculateFunding.Services.Core.Caching.FileSystem
         private IFileSystemCacheSettings _systemCacheSettings;
 
         private string _root;
+        private string _prefix;
 
         private FileSystemCache _cache;
+        
+        private ICollection<TempFile> _tempFiles;
 
         [TestInitialize]
         public void SetUp()
@@ -27,11 +31,25 @@ namespace CalculateFunding.Services.Core.Caching.FileSystem
             _fileSystemAccess = Substitute.For<IFileSystemAccess>();
 
             _root = NewRandomString();
+            _prefix = NewRandomString();
+            
             _systemCacheSettings.Path.Returns(_root);
+            _systemCacheSettings.Prefix.Returns(_prefix);
 
             _cache = new FileSystemCache(_systemCacheSettings,
                 _fileSystemAccess,
                 Substitute.For<ILogger>());
+            
+            _tempFiles = new List<TempFile>();
+        }
+        
+        [TestCleanup]
+        public void TearDown()
+        {
+            foreach (TempFile tempFile in _tempFiles)
+            {
+                tempFile.Dispose();
+            }
         }
 
         [TestMethod]
@@ -164,6 +182,71 @@ namespace CalculateFunding.Services.Core.Caching.FileSystem
             AndFolderWasCreated(Path.Combine(_root, FundingFileSystemCacheKey.Folder));
         }
 
+        [TestMethod]
+        public void EvictDeletesAllCachedFilesCreatedBeforeSuppliedDateTimeOffset()
+        {
+            string expectedEvictedFileOne = NewRandomString();
+            string expectedEvictedFileTwo = NewRandomString();
+            string expectedEvictedFileThree = NewRandomString();
+            string expectedEvictedFileFour = NewRandomString();
+            
+            DateTimeOffset evictBefore = new RandomDateTime();
+            
+            GivenTheMatchingFileCreatesBefore(evictBefore, 
+                expectedEvictedFileOne, 
+                expectedEvictedFileTwo, 
+                expectedEvictedFileThree, 
+                expectedEvictedFileFour);
+            
+            WhenTheFilesAreEvicted(evictBefore);
+            
+            ThenTheFilesWereDeleted(expectedEvictedFileOne, 
+                expectedEvictedFileTwo, 
+                expectedEvictedFileThree, 
+                expectedEvictedFileFour);
+        }
+
+        private void ThenTheFilesWereDeleted(params string[] deletedFiles)
+        {
+            foreach (string deletedFile in deletedFiles)
+            {
+                _fileSystemAccess
+                    .Received(1)
+                    .Delete(deletedFile);
+            }
+        }
+
+        private void WhenTheFilesAreEvicted(DateTimeOffset before)
+        {
+            _cache.Evict(before);
+        }
+
+        private void GivenTheMatchingFileCreatesBefore(DateTimeOffset before, params string[] files)
+        {
+            FileInfo failsPredicateAfterBeforeDate = CreateTempFile();
+            FileInfo failsPredicateOnBeforeDate = CreateTempFile();
+            FileInfo passesPredicateBeforeDate = CreateTempFile();
+            
+            File.SetCreationTimeUtc(failsPredicateAfterBeforeDate.FullName, before.DateTime.AddMilliseconds(1));
+            File.SetCreationTimeUtc(failsPredicateOnBeforeDate.FullName, before.DateTime);
+            File.SetCreationTimeUtc(passesPredicateBeforeDate.FullName, before.DateTime.AddMilliseconds(-1));
+
+            _fileSystemAccess.GetAllFiles(Arg.Is(_root), Arg.Is<Func<FileInfo, bool>>(predicate =>
+                    !predicate(failsPredicateAfterBeforeDate) &&
+                    !predicate(failsPredicateOnBeforeDate) &&
+                    predicate(passesPredicateBeforeDate)))
+                .Returns(files);
+        }
+
+        private FileInfo CreateTempFile()
+        {
+            TempFile tempFile = new TempFile(NewRandomString(), NewRandomString());
+            
+            _tempFiles.Add(tempFile);
+
+            return tempFile.FileInfo;
+        }
+
         private void GivenTheFolderExists(string path)
         {
             _fileSystemAccess.FolderExists(path)
@@ -233,12 +316,12 @@ namespace CalculateFunding.Services.Core.Caching.FileSystem
 
         private string CachePathForKey(string key)
         {
-            return Path.Combine(_root, new TestCacheKey(key).Path);
+            return Path.Combine(_root, $"{_prefix}_{new TestCacheKey(key).Path}");
         }
 
         private void GivenTheExistsFlagForPath(string path, bool flag)
         {
-            _fileSystemAccess.Exists(Path.Combine(_root, path))
+            _fileSystemAccess.Exists(FullPathFor(path))
                 .Returns(flag);
         }
         
@@ -260,5 +343,7 @@ namespace CalculateFunding.Services.Core.Caching.FileSystem
 
             public override string Path => Key;
         }
+
+        private string FullPathFor(string path) => Path.Combine(_root, $"{_prefix}_{path}");
     }
 }

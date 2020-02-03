@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,12 +18,14 @@ namespace CalculateFunding.Services.Core.Caching.FileSystem
         private ICollection<string> _createdFiles;
 
         private FileSystemAccess _fileSystemAccess;
+        private string _currentDirectory;
 
         [TestInitialize]
         public void SetUp()
         {
             _files = new List<TempFile>();
             _createdFiles = new List<string>();
+            _currentDirectory = Directory.GetCurrentDirectory();
 
             _fileSystemAccess = new FileSystemAccess();
         }
@@ -33,9 +34,12 @@ namespace CalculateFunding.Services.Core.Caching.FileSystem
         public void TearDown()
         {
             foreach (TempFile tempFile in _files)
+            {
                 tempFile.Dispose();
+            }
 
             foreach (string createdFile in _createdFiles)
+            {
                 try
                 {
                     File.Delete(createdFile);
@@ -43,6 +47,7 @@ namespace CalculateFunding.Services.Core.Caching.FileSystem
                 catch
                 {
                 }
+            }
         }
         [TestMethod]
         public void DeleteRemovesTheFileAtTheSuppliedPath()
@@ -144,6 +149,33 @@ namespace CalculateFunding.Services.Core.Caching.FileSystem
                 .Should()
                 .BeFalse();
         }
+        
+        [TestMethod]
+        public void ListsAllFilesMatchingPredicateUnderSuppliedFolder()
+        {
+            string pathSegment = NewRandomString();
+            
+            string fileNameOne = NewRandomTxtFilePath(pathSegment);
+            string fileNameTwo = NewRandomTxtFilePath();
+            string fileNameThree = NewRandomTxtFilePath(pathSegment);
+            
+            GivenTheFile(fileNameOne);
+            AndTheFile(fileNameTwo);
+            AndTheFile(fileNameThree);
+            
+            IEnumerable<string> allFiles = _fileSystemAccess.GetAllFiles(_currentDirectory, 
+                file => file.FullName.Contains(pathSegment));
+
+            allFiles
+                .Should()
+                .NotBeNull();
+
+            allFiles
+                .Should()
+                .BeEquivalentTo(FullPathFor(fileNameOne), FullPathFor(fileNameThree));
+        }
+
+        private string FullPathFor(string fileName) => Path.Combine(_currentDirectory, fileName);
 
         private async Task WhenTheStreamIsWritten(string path, string text)
         {
@@ -164,9 +196,14 @@ namespace CalculateFunding.Services.Core.Caching.FileSystem
             _fileSystemAccess.Delete(path);
         }
 
-        private void GivenTheFile(string path, string contents)
+        private void GivenTheFile(string path, string contents = null)
         {
-            _files.Add(new TempFile(path, contents));
+            _files.Add(new TempFile(path, contents ?? NewRandomString()));
+        }
+
+        private void AndTheFile(string path, string contents = null)
+        {
+            GivenTheFile(path, contents);
         }
 
         private void ThenTheFileShouldNotExist(string path)
@@ -200,35 +237,9 @@ namespace CalculateFunding.Services.Core.Caching.FileSystem
             return new RandomString();
         }
 
-        private static string NewRandomTxtFilePath()
+        private static string NewRandomTxtFilePath(string pathSegment = null)
         {
-            return $"{NewRandomString()}.txt";
-        }
-
-        private class TempFile : IDisposable
-        {
-            private readonly string _path;
-
-            public TempFile(string path, string contents)
-            {
-                _path = path;
-
-                File.WriteAllText(path, contents);
-            }
-
-            public void Dispose()
-            {
-                if (!File.Exists(_path)) return;
-
-                try
-                {
-                    File.Delete(_path);
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e);
-                }
-            }
+            return $"{NewRandomString()}{pathSegment}.txt";
         }
 
         private byte[] GetBytes(string text)

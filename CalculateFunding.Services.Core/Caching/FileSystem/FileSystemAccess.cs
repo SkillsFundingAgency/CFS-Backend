@@ -1,4 +1,7 @@
+using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -33,6 +36,16 @@ namespace CalculateFunding.Services.Core.Caching.FileSystem
                 await writer.WriteAsync(content);
                 await writer.FlushAsync();
             }
+        }
+
+        public IEnumerable<string> GetAllFiles(string rootFolder, 
+            Func<FileInfo, bool> predicate)
+        {
+            return new DirectoryInfo(rootFolder)
+                .GetFiles("*", SearchOption.AllDirectories)
+                .Where(predicate)
+                .Select(_ => _.FullName)
+                .ToArray();
         }
 
         public async Task Write(string path,

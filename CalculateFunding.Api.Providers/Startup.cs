@@ -43,6 +43,8 @@ namespace CalculateFunding.Api.Providers
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddSingleton(Configuration);
+            
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
 
             RegisterComponents(services);
@@ -178,14 +180,7 @@ namespace CalculateFunding.Api.Providers
             builder
                 .AddSingleton<IFileSystemCache, FileSystemCache>()
                 .AddSingleton<IFileSystemAccess, FileSystemAccess>()
-                .AddSingleton<IFileSystemCacheSettings>(ctx =>
-                {
-                    FileSystemCacheSettings settings = new FileSystemCacheSettings();
-
-                    Configuration.Bind("filesystemcachesettings", settings);
-
-                    return settings;
-                });
+                .AddSingleton<IFileSystemCacheSettings, FileSystemCacheSettings>();
 
             builder
                 .AddSingleton<IProviderVersionServiceSettings>(ctx =>

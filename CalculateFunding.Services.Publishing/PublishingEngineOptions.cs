@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Publishing.Interfaces;
 using Microsoft.Extensions.Configuration;
@@ -7,78 +8,42 @@ namespace CalculateFunding.Services.Publishing
     public class PublishingEngineOptions : IPublishingEngineOptions
     {
         private const int DefaultConcurrencyCount = 15;
+        
         private readonly IConfiguration _configuration;
 
         public PublishingEngineOptions(IConfiguration configuration)
         {
             Guard.ArgumentNotNull(configuration, nameof(configuration));
+            
             _configuration = configuration;
         }
 
-        public int GetCalculationResultsConcurrencyCount =>
-            int.TryParse(_configuration["publishingengineoptions:GetCalculationResultsConcurrencyCount"],
-                out var intValue)
-                ? intValue
-                : DefaultConcurrencyCount;
+        public int GetCalculationResultsConcurrencyCount => GetPublishEngineOptionsConfigurationValue();
 
-        public int SavePublishedProviderContentsConcurrencyCount =>
-            int.TryParse(_configuration["publishingengineoptions:SavePublishedProviderContentsConcurrencyCount"],
-                out var intValue)
-                ? intValue
-                : DefaultConcurrencyCount;
+        public int SavePublishedProviderContentsConcurrencyCount => GetPublishEngineOptionsConfigurationValue();
 
-        public int SavePublishedFundingContentsConcurrencyCount =>
-            int.TryParse(_configuration["publishingengineoptions:SavePublishedFundingContentsConcurrencyCount"],
-                out var intValue)
-                ? intValue
-                : DefaultConcurrencyCount;
+        public int SavePublishedFundingContentsConcurrencyCount => GetPublishEngineOptionsConfigurationValue();
 
-        public int GetPublishedProvidersForApprovalConcurrencyCount =>
-            int.TryParse(_configuration["publishingengineoptions:GetPublishedProvidersForApprovalConcurrencyCount"],
-                out var intValue)
-                ? intValue
-                : DefaultConcurrencyCount;
+        public int GetPublishedProvidersForApprovalConcurrencyCount => GetPublishEngineOptionsConfigurationValue();
 
-        public int GetCurrentPublishedFundingConcurrencyCount =>
-            int.TryParse(_configuration["publishingengineoptions:GetCurrentPublishedFundingConcurrencyCount"],
-                out var intValue)
-                ? intValue
-                : DefaultConcurrencyCount;
+        public int GetCurrentPublishedFundingConcurrencyCount => GetPublishEngineOptionsConfigurationValue();
 
-        public int GetCurrentPublishedProvidersConcurrencyCount =>
-            int.TryParse(_configuration["publishingengineoptions:GetCurrentPublishedProvidersConcurrencyCount"],
-                out var intValue)
-                ? intValue
-                : DefaultConcurrencyCount;
+        public int GetCurrentPublishedProvidersConcurrencyCount => GetPublishEngineOptionsConfigurationValue();
 
-        public int UpdatePublishedFundingStatusConcurrencyCount =>
-            int.TryParse(_configuration["publishingengineoptions:UpdatePublishedFundingStatusConcurrencyCount"],
-                out var intValue)
-                ? intValue
-                : DefaultConcurrencyCount;
+        public int UpdatePublishedFundingStatusConcurrencyCount => GetPublishEngineOptionsConfigurationValue();
 
-        public int IndexPublishedProvidersConcurrencyCount =>
-            int.TryParse(_configuration["publishingengineoptions:IndexPublishedProvidersConcurrencyCount"],
-                out var intValue)
-                ? intValue
-                : 3;
+        public int IndexPublishedProvidersConcurrencyCount => GetPublishEngineOptionsConfigurationValue();
 
-        public int CreateLatestPublishedProviderVersionsConcurrencyCount =>
-            int.TryParse(_configuration["publishingengineoptions:CreateLatestPublishedProviderVersionsConcurrencyCount"],
-                out var intValue)
-                ? intValue
-                : DefaultConcurrencyCount;
+        public int CreateLatestPublishedProviderVersionsConcurrencyCount => GetPublishEngineOptionsConfigurationValue();
+        
+        public int PublishedProviderCreateVersionsConcurrencyCount => GetPublishEngineOptionsConfigurationValue();
 
-        public int PublishedProviderCreateVersionsConcurrencyCount =>
-            int.TryParse(_configuration["publishingengineoptions:PublishedProviderCreateVersionsConcurrencyCount"],
-                out var intValue)
-                ? intValue
-                : DefaultConcurrencyCount;
+        public int PublishedProviderSaveVersionsConcurrencyCount => GetPublishEngineOptionsConfigurationValue();
 
-        public int PublishedProviderSaveVersionsConcurrencyCount =>
-            int.TryParse(_configuration["publishingengineoptions:PublishedProviderSaveVersionsConcurrencyCount"],
-                out var intValue)
-                ? intValue
-                : DefaultConcurrencyCount;
+        // ReSharper disable once StringLiteralTypo
+        private int GetPublishEngineOptionsConfigurationValue([CallerMemberName] string key = null) => int.TryParse(_configuration[$"publishingengineoptions:{key}"],
+            out var intValue)
+            ? intValue
+            : DefaultConcurrencyCount;
     }
 }

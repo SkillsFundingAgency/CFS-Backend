@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,5 +29,8 @@ namespace CalculateFunding.Services.Core.Caching.FileSystem
         Task Append(string path,
             string content,
             CancellationToken cancellationToken = default);
+
+        IEnumerable<string> GetAllFiles(string rootFolder, 
+            Func<FileInfo, bool> predicate);
     }
 }

@@ -46,6 +46,9 @@ namespace CalculateFunding.Api.External
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddSingleton(Configuration);
+            services.AddCaching(Configuration);
+            
             IConfigurationSection azureADConfig = Configuration.GetSection("AzureAD");
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
@@ -142,14 +145,7 @@ namespace CalculateFunding.Api.External
             builder
                 .AddSingleton<IFileSystemCache, FileSystemCache>()
                 .AddSingleton<IFileSystemAccess, FileSystemAccess>()
-                .AddSingleton<IFileSystemCacheSettings>(ctx =>
-                {
-                    FileSystemCacheSettings settings = new FileSystemCacheSettings();
-
-                    Configuration.Bind("filesystemcachesettings", settings);
-
-                    return settings;
-                });
+                .AddSingleton<IFileSystemCacheSettings, FileSystemCacheSettings>();
 
             builder.AddSingleton<IFeedItemPreloader, FeedItemPreLoader>()
                 .AddSingleton<IFeedItemPreloaderSettings>(ctx =>

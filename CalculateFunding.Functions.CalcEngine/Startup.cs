@@ -55,6 +55,9 @@ namespace CalculateFunding.Functions.CalcEngine
 
         private static IServiceProvider Register(IServiceCollection builder, IConfigurationRoot config)
         {
+            builder.AddSingleton<IConfiguration>(config);
+            builder.AddCaching(config);
+            
             // These registrations of the functions themselves are just for the DebugQueue. Ideally we don't want these registered in production
             if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
             {
@@ -69,14 +72,7 @@ namespace CalculateFunding.Functions.CalcEngine
             builder.AddSingleton<IProviderSourceDatasetVersionKeyProvider, ProviderSourceDatasetVersionKeyProvider>();
             builder.AddSingleton<IFileSystemAccess, FileSystemAccess>();
 
-            builder.AddSingleton<IFileSystemCacheSettings, FileSystemCacheSettings>(ctx =>
-            {
-                FileSystemCacheSettings settings = new FileSystemCacheSettings();
-
-                config.Bind("FileSystemCacheSettings", settings);
-
-                return settings;
-            });
+            builder.AddSingleton<IFileSystemCacheSettings, FileSystemCacheSettings>();
             builder.AddSingleton<IFileSystemCache, FileSystemCache>();
 
             builder.AddSingleton<IProviderSourceDatasetsRepository, ProviderSourceDatasetsRepository>((ctx) =>

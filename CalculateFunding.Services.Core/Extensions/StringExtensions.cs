@@ -6,6 +6,8 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
+using CalculateFunding.Common.Extensions;
+using CalculateFunding.Services.Core;
 
 namespace System
 {
@@ -134,6 +136,11 @@ namespace System
         public static byte[] AsUTF8Bytes(this string text)
         {
             return Encoding.UTF8.GetBytes(text ?? string.Empty);
+        }
+
+        public static string ToCamelCase(this string identifier)
+        {
+            return string.IsNullOrWhiteSpace(identifier) ? null : $"{char.ToLower(identifier[0])}{identifier.Substring(1)}";
         }
     }
 }

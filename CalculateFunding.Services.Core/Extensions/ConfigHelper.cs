@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using System;
 using System.IO;
+using CalculateFunding.Services.Core.Caching.FileSystem;
 using Microsoft.Extensions.Configuration.AzureAppConfiguration;
 
 namespace CalculateFunding.Services.Core.Extensions
@@ -55,8 +56,9 @@ namespace CalculateFunding.Services.Core.Extensions
                         .UseFeatureFlags()
                         .ConfigureRefresh(refresh =>
                         {
-                            refresh.Register("publishingengineoptions:GetCalculationResultsConcurrencyCount", refreshAll: true);
-                            refresh.SetCacheExpiration(TimeSpan.FromSeconds(1));
+                            refresh.Register("publishingengineoptions:GetCalculationResultsConcurrencyCount", refreshAll: true)
+                                .Register($"{FileSystemCacheSettings.SectionName}:{nameof(IFileSystemCacheSettings.Prefix)}", true)
+                                .SetCacheExpiration(TimeSpan.FromSeconds(1));
                         });
                 });
             }
