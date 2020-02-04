@@ -296,7 +296,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Migrations
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Services.DeadletterProcessor", "CalculateFunding.Services.DeadletterProcessor\CalculateFunding.Services.DeadletterProcessor.csproj", "{C9F827D9-F186-47C8-B8C4-87EE4F97E8C8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalculateFunding.Services.DeadletterProcessor.UnitTests", "CalculateFunding.Services.DeadletterProcessor.UnitTests\CalculateFunding.Services.DeadletterProcessor.UnitTests.csproj", "{8E2F8FC6-C787-4B40-846F-4EFB08540C40}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Services.DeadletterProcessor.UnitTests", "CalculateFunding.Services.DeadletterProcessor.UnitTests\CalculateFunding.Services.DeadletterProcessor.UnitTests.csproj", "{8E2F8FC6-C787-4B40-846F-4EFB08540C40}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
