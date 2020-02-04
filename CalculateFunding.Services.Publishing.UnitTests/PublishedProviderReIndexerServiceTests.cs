@@ -47,7 +47,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             await _publishedFundingRepository
                 .Received(1)
-                .AllPublishedProviderBatchProcessing(Arg.Any<Func<List<PublishedProviderVersion>, Task>>(), Arg.Is(1000));
+                .AllPublishedProviderBatchProcessing(Arg.Any<Func<List<PublishedProvider>, Task>>(), Arg.Is(1000));
         }
     }
 }

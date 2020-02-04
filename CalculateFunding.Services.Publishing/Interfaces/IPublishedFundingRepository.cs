@@ -29,7 +29,7 @@ namespace CalculateFunding.Services.Publishing.Interfaces
 
         Task<PublishedFunding> GetPublishedFundingById(string cosmosId, string partitionKey);
 
-        Task AllPublishedProviderBatchProcessing(Func<List<PublishedProviderVersion>, Task> persistIndexBatch, int batchSize);
+        Task AllPublishedProviderBatchProcessing(Func<List<PublishedProvider>, Task> persistIndexBatch, int batchSize);
 
         Task<IEnumerable<PublishedProviderFundingStreamStatus>> GetPublishedProviderStatusCounts(string specificationId, string providerType, string localAuthority, string status);
 

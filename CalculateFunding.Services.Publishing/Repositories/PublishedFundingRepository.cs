@@ -261,24 +261,30 @@ namespace CalculateFunding.Services.Publishing.Repositories
                 itemsPerPage: 50);
         }
 
-        public async Task AllPublishedProviderBatchProcessing(Func<List<PublishedProviderVersion>, Task> persistIndexBatch, int batchSize)
+        public async Task AllPublishedProviderBatchProcessing(Func<List<PublishedProvider>, Task> persistIndexBatch, int batchSize)
         {
             CosmosDbQuery query = new CosmosDbQuery
             {
                 QueryText = @"SELECT
                                         c.content.id,
                                         { 
-                                           'providerType' : c.content.provider.providerType,
-                                           'localAuthorityName' : c.content.provider.localAuthorityName,
-                                           'name' : c.content.provider.name
-                                        } AS Provider,
-                                        c.content.status,
-                                        c.content.totalFunding,
-                                        c.content.specificationId,
-                                        c.content.fundingStreamId,
-                                        c.content.fundingPeriodId
+                                           'id' : c.content.current.id,
+                                           'providerId' : c.content.current.providerId,
+                                           'fundingStreamId' : c.content.current.fundingStreamId,
+                                           'fundingPeriodId' : c.content.current.fundingPeriodId,
+                                           'specificationId' : c.content.current.specificationId,
+                                           'status'          : c.content.current.status,
+                                           'totalFunding'    : c.content.current.totalFunding,
+                                           'version'         : c.content.current.version,
+                                           'provider'        : { 
+                                               'providerType' : c.content.current.provider.providerType,
+                                               'localAuthorityName' : c.content.current.provider.localAuthorityName,
+                                               'name' : c.content.current.provider.name,
+                                               'ukprn' : c.content.current.provider.ukprn
+                                            }
+                                        } AS Current
                                FROM     publishedProviders c
-                               WHERE    c.documentType = 'PublishedProviderVersion' 
+                               WHERE    c.documentType = 'PublishedProvider' 
                                AND      c.deleted = false"
             };
 

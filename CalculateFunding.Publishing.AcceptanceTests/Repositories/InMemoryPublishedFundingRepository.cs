@@ -105,7 +105,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             return Task.FromResult(HttpStatusCode.OK);
         }
 
-        public Task AllPublishedProviderBatchProcessing(Func<List<PublishedProviderVersion>, Task> persistIndexBatch, int batchSize)
+        public Task AllPublishedProviderBatchProcessing(Func<List<PublishedProvider>, Task> persistIndexBatch, int batchSize)
         {
             throw new NotImplementedException();
         }

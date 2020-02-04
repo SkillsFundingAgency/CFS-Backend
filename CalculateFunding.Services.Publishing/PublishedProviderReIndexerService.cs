@@ -60,20 +60,20 @@ namespace CalculateFunding.Services.Publishing
             {
                 IList<PublishedProviderIndex> results = new List<PublishedProviderIndex>();
 
-                foreach (PublishedProviderVersion publishedProviderVersion in providerVersions)
+                foreach (PublishedProvider publishedProvider in providerVersions)
                 {
                     results.Add(new PublishedProviderIndex
                     {
-                        Id = publishedProviderVersion.FundingId,
-                        ProviderType = publishedProviderVersion.Provider.ProviderType,
-                        LocalAuthority = publishedProviderVersion.Provider.LocalAuthorityName,
-                        FundingStatus = publishedProviderVersion.Status.ToString(),
-                        ProviderName = publishedProviderVersion.Provider.Name,
-                        UKPRN = publishedProviderVersion.Provider.UKPRN,
-                        FundingValue = Convert.ToDouble(publishedProviderVersion.TotalFunding),
-                        SpecificationId = publishedProviderVersion.SpecificationId,
-                        FundingStreamId = publishedProviderVersion.FundingStreamId,
-                        FundingPeriodId = publishedProviderVersion.FundingPeriodId
+                        Id = publishedProvider.Current.FundingId,
+                        ProviderType = publishedProvider.Current.Provider.ProviderType,
+                        LocalAuthority = publishedProvider.Current.Provider.LocalAuthorityName,
+                        FundingStatus = publishedProvider.Current.Status.ToString(),
+                        ProviderName = publishedProvider.Current.Provider.Name,
+                        UKPRN = publishedProvider.Current.Provider.UKPRN,
+                        FundingValue = Convert.ToDouble(publishedProvider.Current.TotalFunding),
+                        SpecificationId = publishedProvider.Current.SpecificationId,
+                        FundingStreamId = publishedProvider.Current.FundingStreamId,
+                        FundingPeriodId = publishedProvider.Current.FundingPeriodId
                     });
                 }
                 
