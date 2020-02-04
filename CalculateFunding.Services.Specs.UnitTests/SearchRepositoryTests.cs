@@ -384,11 +384,11 @@ namespace CalculateFunding.Services.Specs.UnitTests
                 new Microsoft.Azure.Search.Models.SearchResult<SpecificationIndex>(specificationIndexSearchResult, 1, null)
             };
 
-            AzureOperationResponse<DocumentSearchResult<SpecificationIndex>> documentSearchResult =
-                new AzureOperationResponse<DocumentSearchResult<SpecificationIndex>> { Body = new DocumentSearchResult<SpecificationIndex>(results, null, null, null, null) };
+            AzureOperationResponse<SpecificationIndex> getResult =
+                new AzureOperationResponse<SpecificationIndex> { Body = specificationIndexSearchResult };
 
             IDocumentsOperations documentsOperations = Substitute.For<IDocumentsOperations>();
-            documentsOperations.SearchWithHttpMessagesAsync<SpecificationIndex>(Arg.Any<string>(), Arg.Any<SearchParameters>()).Returns(Task.FromResult(documentSearchResult));
+            documentsOperations.GetWithHttpMessagesAsync<SpecificationIndex>(Arg.Any<string>(), Arg.Any<IEnumerable<string>>()).Returns(Task.FromResult(getResult));
 
             ISearchServiceClient searchServiceClient = Substitute.For<ISearchServiceClient>();
             searchIndexClient.Documents.Returns(documentsOperations);

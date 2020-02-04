@@ -7,6 +7,8 @@ using CalculateFunding.Common.Models;
 using Microsoft.Azure.Search;
 using Microsoft.Azure.Search.Models;
 using Microsoft.Rest.Azure;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 
 namespace CalculateFunding.Repositories.Common.Search
 {
@@ -182,29 +184,30 @@ namespace CalculateFunding.Repositories.Common.Search
 
             try
             {
-                AzureOperationResponse<DocumentSearchResult<T>> azureSearchResult = await client.Documents.SearchWithHttpMessagesAsync<T>(string.Empty, searchParameters);
+                IEnumerable<string> retrievableFieldNames = GetRetrievableFields();
 
-                if (azureSearchResult?.Body?.Results == null)
-                {
-                    return null;
-                }
+                AzureOperationResponse<T> azureSearchResult = await client.Documents.GetWithHttpMessagesAsync<T>(id, retrievableFieldNames);
 
-                var response = new SearchResults<T>
-                {
-                    Results = azureSearchResult.Body.Results.Select(x => new SearchResult<T>
-                    {
-                        HitHighLights = x.Highlights,
-                        Result = x.Document,
-                        Score = x.Score
-                    }).ToList()
-                };
-                return response.Results.FirstOrDefault()?.Result;
+                return azureSearchResult?.Body;
             }
             catch (Exception ex)
             {
                 throw new FailedToQuerySearchException("Failed to query search", ex);
             }
+        }
 
+        private static IEnumerable<string> GetRetrievableFields()
+        {
+            return typeof(T)
+                .GetProperties()
+                .Where(
+                    p =>
+                        p.GetCustomAttributes(typeof(IsRetrievableAttribute), true)
+                        .Where(ca => ((IsRetrievableAttribute)ca).IsRetrievable)
+                        .Any()
+                    )
+                .Select(x=>(x.GetCustomAttributes(typeof(JsonPropertyAttribute), true).First() as JsonPropertyAttribute)?.PropertyName)
+                .ToList();
         }
 
         private async Task<IEnumerable<IndexError>> Index(IEnumerable<T> documents, Func<T, IndexAction<T>> action)
