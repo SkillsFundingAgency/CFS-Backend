@@ -118,14 +118,14 @@ namespace CalculateFunding.Services.Core.Extensions
             return builder;
         }
 
-        public static IServiceCollection AddServiceBus(this IServiceCollection builder, IConfiguration config)
+        public static IServiceCollection AddServiceBus(this IServiceCollection builder, IConfiguration config, string serviceName = null)
         {
             if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
             {
                 builder
-                .AddSingleton<IMessengerService, QueueMessengerService>((ctx) =>
+                    .AddSingleton<IMessengerService, QueueMessengerService>((ctx) =>
                 {
-                    return new QueueMessengerService("UseDevelopmentStorage=true");
+                    return new QueueMessengerService("UseDevelopmentStorage=true", serviceName);
                 });
             }
             else
@@ -138,7 +138,10 @@ namespace CalculateFunding.Services.Core.Extensions
                 builder.AddSingleton(serviceBusSettings);
 
                 builder
-                    .AddSingleton<IMessengerService, MessengerService>();
+                    .AddSingleton<IMessengerService, MessengerService>((ctx) =>
+                    {
+                        return new MessengerService(serviceBusSettings, serviceName);
+                    });
             }
 
             return builder;

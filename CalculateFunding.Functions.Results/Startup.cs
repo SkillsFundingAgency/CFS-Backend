@@ -121,7 +121,7 @@ namespace CalculateFunding.Functions.Results
             builder
                .AddSingleton<ISearchRepository<ProviderCalculationResultsIndex>, SearchRepository<ProviderCalculationResultsIndex>>();
 
-            builder.AddServiceBus(config);
+            builder.AddServiceBus(config, "results");
 
             builder.AddCaching(config);
 

@@ -184,7 +184,7 @@ namespace CalculateFunding.Functions.Datasets
             builder
                 .AddSingleton<ISearchRepository<DatasetVersionIndex>, SearchRepository<DatasetVersionIndex>>();
 
-            builder.AddServiceBus(config);
+            builder.AddServiceBus(config, "datasets");
 
             builder.AddCaching(config);
 

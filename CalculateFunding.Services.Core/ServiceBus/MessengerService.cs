@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
@@ -17,10 +20,14 @@ namespace CalculateFunding.Services.Core.ServiceBus
         private static readonly ConcurrentDictionary<string, QueueClient> _queueClients = new ConcurrentDictionary<string, QueueClient>();
         private static readonly ConcurrentDictionary<string, TopicClient> _topicClients = new ConcurrentDictionary<string, TopicClient>();
         private readonly string _connectionString;
+        private readonly string _serviceName;
 
-        public MessengerService(ServiceBusSettings settings)
+        public string ServiceName { get; }
+
+        public MessengerService(ServiceBusSettings settings, string serviceName = null)
         {
             _connectionString = settings.ConnectionString;
+            ServiceName = serviceName;
         }
 
         public async Task<(bool Ok, string Message)> IsHealthOk(string queueName)
@@ -37,6 +44,47 @@ namespace CalculateFunding.Services.Core.ServiceBus
             {
                 return (false, ex.Message);
             }
+        }
+
+        public async Task<IEnumerable<T>> ReceiveMessages<T>(string entityPath, TimeSpan timeout) where T : class
+        {
+            List<T> messages = new List<T>();
+            CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
+            MessageReceiver receiver = new MessageReceiver(_connectionString, entityPath);
+
+            _ = Task.Run(() =>
+            {
+                Thread.Sleep(timeout);
+                cancellationTokenSource.Cancel();
+            });
+
+            while (true)
+            {
+                Message message = await receiver.ReceiveAsync(TimeSpan.FromSeconds(5));
+                
+                if (message != null)
+                {
+                    await receiver.CompleteAsync(message.SystemProperties.LockToken);
+                    string json = null;
+
+                    using (MemoryStream inputStream = new MemoryStream(message.Body))
+                    {
+                        using (StreamReader streamReader = new StreamReader(inputStream))
+                        {
+                            json = streamReader.ReadToEnd();
+                        }
+                    }
+
+                    messages.Add(JsonConvert.DeserializeObject<T>(json));
+                }
+
+                if (cancellationTokenSource.Token.IsCancellationRequested)
+                    break;
+            }
+
+            await receiver.CloseAsync();
+
+            return messages;
         }
 
         private QueueClient GetQueueClient(string queueName)

@@ -155,7 +155,7 @@ namespace CalculateFunding.Functions.Calcs
             builder
                 .AddSingleton<ISearchRepository<ProviderCalculationResultsIndex>, SearchRepository<ProviderCalculationResultsIndex>>();
 
-            builder.AddServiceBus(config);
+            builder.AddServiceBus(config, "calcs");
 
             builder.AddProvidersInterServiceClient(config);
             builder.AddSpecificationsInterServiceClient(config);

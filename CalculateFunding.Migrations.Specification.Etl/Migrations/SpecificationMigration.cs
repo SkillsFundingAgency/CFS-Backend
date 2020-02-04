@@ -1,12 +1,12 @@
 ﻿using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Utility;
-using CalculateFunding.Migrations.Specification.Etl.Extensions;
 using CalculateFunding.Migrations.Specification.Etl.Migrations;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Service.Core.Extensions;
 using Microsoft.Azure.Storage;
 using Microsoft.Azure.Storage.Auth;
 using Microsoft.Azure.Storage.Blob;

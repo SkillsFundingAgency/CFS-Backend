@@ -303,8 +303,9 @@ namespace CalculateFunding.Functions.Publishing
                 {
                     JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
                 };
-
             });
+
+            builder.AddServiceBus(config, "publishing");
 
             builder.AddPublishingServices(config);
 
@@ -314,7 +315,6 @@ namespace CalculateFunding.Functions.Publishing
 
             // Fix recommended by Microsoft for issues with disposed scopes when running in functions in the cloud
             builder.Configure<HttpClientFactoryOptions>(options => options.SuppressHandlerScope = true);
-
 
             builder.AddSpecificationsInterServiceClient(config);
             builder.AddProvidersInterServiceClient(config);

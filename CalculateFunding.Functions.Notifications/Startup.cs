@@ -50,7 +50,7 @@ namespace CalculateFunding.Functions.Notifications
 
             builder.AddFeatureToggling(config);
 
-            builder.AddServiceBus(config);
+            builder.AddServiceBus(config, "notifications");
 
             builder.AddApplicationInsightsForFunctionApps(config, "CalculateFunding.Functions.Notifications");
             builder.AddApplicationInsightsTelemetryClient(config, "CalculateFunding.Functions.Notifications");

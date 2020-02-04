@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace CalculateFunding.Migrations.Specification.Etl.Extensions
+namespace CalculateFunding.Service.Core.Extensions
 {
     public static class DiagnosticExtensions
     {

@@ -229,7 +229,7 @@ namespace CalculateFunding.Functions.CosmosDbScaling
 
             Common.Config.ApiClient.Jobs.ServiceCollectionExtensions.AddJobsInterServiceClient(builder, config);
 
-            builder.AddServiceBus(config);
+            builder.AddServiceBus(config, "cosmosdbscaling");
 
             builder.AddApplicationInsightsTelemetryClient(config, "CalculateFunding.Functions.CosmosDbScaling");
 

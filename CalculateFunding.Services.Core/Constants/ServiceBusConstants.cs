@@ -107,6 +107,8 @@
             public const string DataDefinitionChanges = "data-definition-changes";
 
             public const string ProviderSourceDatasetCleanup = "provider-sourcedataset-cleanup";
+
+            public const string SmokeTest = "smoketest";
         }
 
         public static class TopicSubscribers

@@ -116,6 +116,7 @@ namespace CalculateFunding.Functions.Users
             builder.AddApplicationInsightsTelemetryClient(config, "CalculateFunding.Functions.Users");
             builder.AddLogging("CalculateFunding.Functions.Users");
 
+            builder.AddServiceBus(config, "users");
             builder.AddTelemetry();
             
             Common.Config.ApiClient.Specifications.ServiceCollectionExtensions.AddSpecificationsInterServiceClient(builder, config);

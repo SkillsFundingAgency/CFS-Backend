@@ -169,7 +169,7 @@ namespace CalculateFunding.Functions.CalcEngine
 
             builder.AddEngineSettings(config);
 
-            builder.AddServiceBus(config);
+            builder.AddServiceBus(config, "calcengine");
 
             builder.AddCaching(config);
 

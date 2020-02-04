@@ -6,6 +6,8 @@ using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using Microsoft.WindowsAzure.Storage.Queue;
 using Newtonsoft.Json;
 using Microsoft.WindowsAzure.Storage;
+using System.Threading;
+using Microsoft.Azure.ServiceBus.Core;
 
 namespace CalculateFunding.Services.Core.ServiceBus
 {
@@ -13,10 +15,14 @@ namespace CalculateFunding.Services.Core.ServiceBus
     {
         CloudQueueClient _queueClient;
         CloudStorageAccount _storageAccount;
+        private string _serviceName;
 
-        public QueueMessengerService(string connectionString)
+        public string ServiceName { get; }
+
+        public QueueMessengerService(string connectionString, string serviceName = null)
         {
             _storageAccount = CloudStorageAccount.Parse(connectionString);
+            _serviceName = serviceName;
         }
 
         public async Task<(bool Ok, string Message)> IsHealthOk(string queueName)
@@ -31,6 +37,41 @@ namespace CalculateFunding.Services.Core.ServiceBus
             {
                 return (false, ex.Message);
             }
+        }
+
+        public async Task<IEnumerable<T>> ReceiveMessages<T>(string entityPath, TimeSpan timeout) where T : class
+        {
+            List<T> messages = new List<T>();
+            CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
+
+            CloudQueue queue = QueueClient.GetQueueReference(entityPath);
+
+            await queue.CreateIfNotExistsAsync();
+
+            _ = Task.Run(() =>
+            {
+                Thread.Sleep(timeout);
+                cancellationTokenSource.Cancel();
+            });
+
+            while (true)
+            {
+                CloudQueueMessage message = await queue.GetMessageAsync();
+
+                if (message != null)
+                {
+                    QueueMessage<T> queueMessage = JsonConvert.DeserializeObject<QueueMessage<T>>(message.AsString);
+
+                    messages.Add(queueMessage.Data);
+
+                    await queue.DeleteMessageAsync(message);
+                }
+
+                if (cancellationTokenSource.Token.IsCancellationRequested)
+                    break;
+            }
+
+            return messages;
         }
 
         private CloudQueueClient QueueClient

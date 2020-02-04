@@ -2,6 +2,8 @@ using System;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Core.Constants;
+using CalculateFunding.Services.Core.Functions;
+using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Jobs.Interfaces;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
@@ -9,14 +11,17 @@ using Serilog;
 
 namespace CalculateFunding.Functions.Jobs.ServiceBus
 {
-    public class OnJobNotification
+    public class OnJobNotification : SmokeTest
     {
         private readonly ILogger _logger;
         private readonly IJobManagementService _jobManagementService;
+        public const string FunctionName = "on-job-notification";
 
         public OnJobNotification(
             ILogger logger,
-            IJobManagementService jobManagementService)
+            IJobManagementService jobManagementService,
+            IMessengerService messegerService,
+            bool isDevelopment = false) : base(logger, messegerService, FunctionName, isDevelopment)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(jobManagementService, nameof(jobManagementService));
@@ -25,21 +30,25 @@ namespace CalculateFunding.Functions.Jobs.ServiceBus
             _jobManagementService = jobManagementService;
         }
 
-        [FunctionName("on-job-notification")]
+        [FunctionName(FunctionName)]
         public async Task Run([ServiceBusTrigger(
             ServiceBusConstants.TopicNames.JobNotifications,
             ServiceBusConstants.TopicSubscribers.UpdateJobsOnCompletion,
             Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
         {
-            try
+            await Run(async () =>
             {
-                await _jobManagementService.ProcessJobNotification(message);
-            }
-            catch (Exception exception)
-            {
-                _logger.Error(exception, $"An error occurred getting message from topic: {ServiceBusConstants.TopicNames.JobNotifications}");
-                throw;
-            }
+                try
+                {
+                    await _jobManagementService.ProcessJobNotification(message);
+                }
+                catch (Exception exception)
+                {
+                    _logger.Error(exception, $"An error occurred getting message from topic: {ServiceBusConstants.TopicNames.JobNotifications}");
+                    throw;
+                }
+            },
+            message);
         }
     }
 }

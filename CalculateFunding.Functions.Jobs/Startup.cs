@@ -89,7 +89,7 @@ namespace CalculateFunding.Functions.Jobs
                     return new JobDefinitionsRepository(jobDefinitionsCosmosRepostory);
                 });
 
-            builder.AddServiceBus(config);
+            builder.AddServiceBus(config, "jobs");
 
             builder.AddPolicySettings(config);
 

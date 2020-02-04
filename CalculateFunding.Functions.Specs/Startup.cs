@@ -143,7 +143,7 @@ namespace CalculateFunding.Functions.Specs
                 builder.AddCosmosDb(config);
             }
 
-            builder.AddServiceBus(config);
+            builder.AddServiceBus(config, "specs");
 
             builder.AddSearch(config);
             builder

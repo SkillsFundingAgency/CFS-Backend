@@ -2,6 +2,8 @@
 using System.Threading.Tasks;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Core.Constants;
+using CalculateFunding.Services.Core.Functions;
+using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Results.Interfaces;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
@@ -9,14 +11,17 @@ using Serilog;
 
 namespace CalculateFunding.Functions.Results.ServiceBus
 {
-    public class OnProviderResultsSpecificationCleanup
+    public class OnProviderResultsSpecificationCleanup : SmokeTest
     {
         private readonly ILogger _logger;
         private readonly IResultsService _resultsService;
+        public const string FunctionName = "on-provider-results-specification-cleanup";
 
         public OnProviderResultsSpecificationCleanup(
             ILogger logger,
-            IResultsService resultsService)
+            IResultsService resultsService,
+            IMessengerService messegerService,
+            bool isDevelopment = false) : base(logger, messegerService, FunctionName, isDevelopment)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(resultsService, nameof(resultsService));
@@ -25,21 +30,25 @@ namespace CalculateFunding.Functions.Results.ServiceBus
             _resultsService = resultsService;
         }
 
-        [FunctionName("on-provider-results-specification-cleanup")]
+        [FunctionName(FunctionName)]
         public async Task Run([ServiceBusTrigger(
             ServiceBusConstants.TopicNames.ProviderSourceDatasetCleanup,
             ServiceBusConstants.TopicSubscribers.CleanupCalculationResultsForSpecificationProviders,
             Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
         {
-            try
+            await Run(async () =>
             {
-                await _resultsService.CleanupProviderResultsForSpecification(message);
-            }
-            catch (Exception exception)
-            {
-                _logger.Error(exception, $"An error occurred getting message from topic: {ServiceBusConstants.TopicNames.ProviderSourceDatasetCleanup}");
-                throw;
-            }
+                try
+                {
+                    await _resultsService.CleanupProviderResultsForSpecification(message);
+                }
+                catch (Exception exception)
+                {
+                    _logger.Error(exception, $"An error occurred getting message from topic: {ServiceBusConstants.TopicNames.ProviderSourceDatasetCleanup}");
+                    throw;
+                }
+            },
+            message);
         }
     }
 }

@@ -4,7 +4,6 @@ using CalculateFunding.Common.ApiClient;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Interfaces;
 using CalculateFunding.Functions.Scenarios.ServiceBus;
-using CalculateFunding.Functions.TestEngine.ServiceBus;
 using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.AspNet;
@@ -52,7 +51,7 @@ namespace CalculateFunding.Functions.Scenarios
             if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
             {
                 builder.AddScoped<OnDataDefinitionChanges>();
-                builder.AddScoped<OnEditCaluclationEvent>();
+                builder.AddScoped<OnEditCalculationEvent>();
                 builder.AddScoped<OnEditSpecificationEvent>();
             }
 
@@ -110,7 +109,7 @@ namespace CalculateFunding.Functions.Scenarios
             builder
              .AddSingleton<ISearchRepository<TestScenarioResultIndex>, SearchRepository<TestScenarioResultIndex>>();
 
-            builder.AddServiceBus(config);
+            builder.AddServiceBus(config, "scenarios");
 
             builder.AddCaching(config);
 

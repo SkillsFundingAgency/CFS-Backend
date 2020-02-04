@@ -2,6 +2,8 @@ using System;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Core.Constants;
+using CalculateFunding.Services.Core.Functions;
+using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Publishing;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
@@ -9,14 +11,17 @@ using Serilog;
 
 namespace CalculateFunding.Functions.Publishing.ServiceBus
 {
-    public class OnReIndexPublishedProviders
+    public class OnReIndexPublishedProviders : SmokeTest
     {
         private readonly ILogger _logger;
         private readonly IPublishedProviderReIndexerService _publishedProviderReIndexerService;
+        public const string FunctionName = "on-publishing-reindex-published-providers";
 
         public OnReIndexPublishedProviders(
             ILogger logger,
-            IPublishedProviderReIndexerService publishedProviderReIndexerService)
+            IPublishedProviderReIndexerService publishedProviderReIndexerService,
+            IMessengerService messegerService,
+            bool isDevelopment = false) : base(logger, messegerService, FunctionName, isDevelopment)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(publishedProviderReIndexerService, nameof(publishedProviderReIndexerService));
@@ -25,22 +30,26 @@ namespace CalculateFunding.Functions.Publishing.ServiceBus
             _publishedProviderReIndexerService = publishedProviderReIndexerService;
         }
 
-        [FunctionName("on-publishing-reindex-published-providers")]
+        [FunctionName(FunctionName)]
         public async Task Run([ServiceBusTrigger(
                 ServiceBusConstants.QueueNames.PublishingReIndexPublishedProviders,
                 Connection = ServiceBusConstants.ConnectionStringConfigurationKey)]
             Message message)
         {
-            try
+            await Run(async () =>
             {
-                await _publishedProviderReIndexerService.Run(message);
-            }
-            catch (Exception exception)
-            {
-                _logger.Error(exception, $"An error occurred getting message from queue: {ServiceBusConstants.QueueNames.PublishingReIndexPublishedProviders}");
+                try
+                {
+                    await _publishedProviderReIndexerService.Run(message);
+                }
+                catch (Exception exception)
+                {
+                    _logger.Error(exception, $"An error occurred getting message from queue: {ServiceBusConstants.QueueNames.PublishingReIndexPublishedProviders}");
 
-                throw;
-            }
+                    throw;
+                }
+            },
+            message);
         }
     }
 }

@@ -4,5 +4,4 @@
     {
         public string ConnectionString { get; set; }
     }
-
 }
