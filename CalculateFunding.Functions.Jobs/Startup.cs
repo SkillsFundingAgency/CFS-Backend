@@ -111,7 +111,7 @@ namespace CalculateFunding.Functions.Jobs
                 };
             });
 
-            builder.AddApplicationInsightsForFunctionApps(config, "CalculateFunding.Functions.Jobs");
+            builder.AddApplicationInsightsServiceName(config, "CalculateFunding.Functions.Jobs");
             builder.AddApplicationInsightsTelemetryClient(config, "CalculateFunding.Functions.Jobs");
 
             builder.AddLogging("CalculateFunding.Functions.Jobs");

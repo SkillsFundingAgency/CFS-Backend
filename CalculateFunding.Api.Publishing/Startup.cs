@@ -150,7 +150,7 @@ namespace CalculateFunding.Api.Publishing
                 .AddSingleton<ISearchRepository<PublishedFundingIndex>, SearchRepository<PublishedFundingIndex>>();
 
             builder.AddApplicationInsightsTelemetry();
-            builder.AddApplicationInsightsForApiApp(Configuration, "CalculateFunding.Api.Publishing");
+            builder.AddApplicationInsightsServiceName(Configuration, "CalculateFunding.Api.Publishing");
             builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Api.Publishing");
             builder.AddLogging("CalculateFunding.Api.Publishing");
             builder.AddTelemetry();

@@ -286,7 +286,7 @@ namespace CalculateFunding.Functions.Publishing
 
             builder.AddSingleton<IPublishedProviderReIndexerService, PublishedProviderReIndexerService>();
 
-            builder.AddApplicationInsightsForFunctionApps(config, "CalculateFunding.Functions.Publishing");
+            builder.AddApplicationInsightsServiceName(config, "CalculateFunding.Functions.Publishing");
 
             builder.AddLogging("CalculateFunding.Functions.Publishing", config);
 

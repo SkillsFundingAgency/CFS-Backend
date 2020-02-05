@@ -179,7 +179,6 @@ namespace CalculateFunding.Services.Core.Extensions
             builder.AddScoped<ITelemetry, ApplicationInsightsTelemetrySink>((ctx) =>
             {
                 TelemetryClient client = ctx.GetService<TelemetryClient>();
-                //
 
                 return new ApplicationInsightsTelemetrySink(client);
             });
@@ -211,17 +210,36 @@ namespace CalculateFunding.Services.Core.Extensions
                 appInsightsTelemetryConfiguration.TelemetryChannel = new SyncTelemetryChannel(appInsightsOptions.Url);
             }
 
-            TelemetryClient telemetryClient = new TelemetryClient(appInsightsTelemetryConfiguration)
-            {
-                InstrumentationKey = appInsightsKey
-            };
+            builder.AddSingleton(appInsightsTelemetryConfiguration);
 
-            if (!telemetryClient.Context.GlobalProperties.ContainsKey(LoggingConstants.ServiceNamePropertiesName))
+            builder.AddScoped((ctx) =>
             {
-                telemetryClient.Context.GlobalProperties.Add(LoggingConstants.ServiceNamePropertiesName, serviceName);
-            }
+                TelemetryConfiguration telemetryConfiguration = ctx.GetService<TelemetryConfiguration>();
 
-            builder.AddSingleton(telemetryClient);
+                TelemetryClient client = new TelemetryClient(telemetryConfiguration)
+                {
+                    InstrumentationKey = telemetryConfiguration.InstrumentationKey
+                };
+
+                if (!client.Context.GlobalProperties.ContainsKey(LoggingConstants.ServiceNamePropertiesName))
+                {
+                    client.Context.GlobalProperties.Add(LoggingConstants.ServiceNamePropertiesName, serviceName);
+                }
+
+                return client;
+            });
+
+            return builder;
+        }
+
+        public static IServiceCollection AddApplicationInsightsServiceName(this IServiceCollection builder, IConfiguration config, string serviceName)
+        {
+            Guard.ArgumentNotNull(config, nameof(config));
+            Guard.IsNullOrWhiteSpace(serviceName, nameof(serviceName));
+
+            ServiceNameTelemetryInitializer serviceNameEnricher = new ServiceNameTelemetryInitializer(serviceName);
+
+            builder.AddSingleton<ITelemetryInitializer>(serviceNameEnricher);
 
             return builder;
         }

@@ -206,7 +206,7 @@ namespace CalculateFunding.Api.Policy
             builder.AddCaching(Configuration);
 
             builder.AddApplicationInsightsTelemetry();
-            builder.AddApplicationInsightsForApiApp(Configuration, "CalculateFunding.Api.Policy");
+            builder.AddApplicationInsightsServiceName(Configuration, "CalculateFunding.Api.Policy");
             builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Api.Policy");
             builder.AddLogging("CalculateFunding.Api.Policy");
             builder.AddTelemetry();

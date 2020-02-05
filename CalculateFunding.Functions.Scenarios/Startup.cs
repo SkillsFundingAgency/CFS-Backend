@@ -113,7 +113,7 @@ namespace CalculateFunding.Functions.Scenarios
 
             builder.AddCaching(config);
 
-            builder.AddApplicationInsightsForFunctionApps(config, "CalculateFunding.Functions.Scenarios");
+            builder.AddApplicationInsightsServiceName(config, "CalculateFunding.Functions.Scenarios");
             builder.AddApplicationInsightsTelemetryClient(config, "CalculateFunding.Functions.Scenarios");
 
             builder.AddLogging("CalculateFunding.Functions.Scenarios");

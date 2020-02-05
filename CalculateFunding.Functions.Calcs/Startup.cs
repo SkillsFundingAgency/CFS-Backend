@@ -167,7 +167,7 @@ namespace CalculateFunding.Functions.Calcs
 
             builder.AddEngineSettings(config);
 
-            builder.AddApplicationInsightsForFunctionApps(config, "CalculateFunding.Functions.Calcs");
+            builder.AddApplicationInsightsServiceName(config, "CalculateFunding.Functions.Calcs");
             builder.AddApplicationInsightsTelemetryClient(config, "CalculateFunding.Functions.Calcs");
             builder.AddLogging("CalculateFunding.Functions.Calcs");
             builder.AddTelemetry();

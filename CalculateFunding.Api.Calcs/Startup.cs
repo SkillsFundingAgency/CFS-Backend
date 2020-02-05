@@ -215,7 +215,7 @@ namespace CalculateFunding.Api.Calcs
             builder.AddCaching(Configuration);
 
             builder.AddApplicationInsightsTelemetry();
-            builder.AddApplicationInsightsForApiApp(Configuration, "CalculateFunding.Api.Calcs");
+            builder.AddApplicationInsightsServiceName(Configuration, "CalculateFunding.Api.Calcs");
             builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Api.Calcs");
             builder.AddLogging("CalculateFunding.Api.Calcs");
             builder.AddTelemetry();

@@ -112,7 +112,7 @@ namespace CalculateFunding.Functions.Users
 
             builder.AddCaching(config);
 
-            builder.AddApplicationInsightsForFunctionApps(config, "CalculateFunding.Functions.Users");
+            builder.AddApplicationInsightsServiceName(config, "CalculateFunding.Functions.Users");
             builder.AddApplicationInsightsTelemetryClient(config, "CalculateFunding.Functions.Users");
             builder.AddLogging("CalculateFunding.Functions.Users");
 

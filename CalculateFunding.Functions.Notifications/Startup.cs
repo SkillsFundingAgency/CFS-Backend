@@ -52,7 +52,7 @@ namespace CalculateFunding.Functions.Notifications
 
             builder.AddServiceBus(config, "notifications");
 
-            builder.AddApplicationInsightsForFunctionApps(config, "CalculateFunding.Functions.Notifications");
+            builder.AddApplicationInsightsServiceName(config, "CalculateFunding.Functions.Notifications");
             builder.AddApplicationInsightsTelemetryClient(config, "CalculateFunding.Functions.Notifications");
             builder.AddLogging("CalculateFunding.Functions.Notifications");
             builder.AddTelemetry();

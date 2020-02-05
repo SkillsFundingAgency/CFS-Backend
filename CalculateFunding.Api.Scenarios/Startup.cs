@@ -156,7 +156,7 @@ namespace CalculateFunding.Api.Scenarios
             builder.AddFeatureToggling(Configuration);
 
             builder.AddApplicationInsightsTelemetry();
-            builder.AddApplicationInsightsForApiApp(Configuration, "CalculateFunding.Api.Scenarios");
+            builder.AddApplicationInsightsServiceName(Configuration, "CalculateFunding.Api.Scenarios");
             builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Api.Scenarios");
             builder.AddLogging("CalculateFunding.Api.Scenarios");
             builder.AddTelemetry();

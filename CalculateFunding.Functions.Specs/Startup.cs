@@ -162,7 +162,7 @@ namespace CalculateFunding.Functions.Specs
 
             builder.AddFeatureToggling(config);
 
-            builder.AddApplicationInsightsForFunctionApps(config, "CalculateFunding.Functions.Specs");
+            builder.AddApplicationInsightsServiceName(config, "CalculateFunding.Functions.Specs");
             builder.AddApplicationInsightsTelemetryClient(config, "CalculateFunding.Functions.Specs");
             builder.AddLogging("CalculateFunding.Functions.Specs");
             builder.AddTelemetry();
