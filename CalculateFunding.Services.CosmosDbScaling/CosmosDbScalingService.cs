@@ -199,7 +199,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 throw new RetriableException(errorMessage);
             }
 
-            IEnumerable<string> jobDefinitionIdsStillActive = jobSummariesResponse.Content?.Select(m => m.JobType).Distinct();
+            List<string> jobDefinitionIdsStillActive = jobSummariesResponse.Content?.Select(m => m.JobType).Distinct().ToList();
 
             IEnumerable<CosmosDbScalingConfig> cosmosDbScalingConfigs = await GetAllConfigs();
 
@@ -209,10 +209,13 @@ namespace CalculateFunding.Services.CosmosDbScaling
             {
                 CosmosDbScalingCollectionSettings settings = await _scalingConfigRepositoryPolicy.ExecuteAsync(() =>
                     _cosmosDbScalingConfigRepository.GetCollectionSettingsByRepositoryType(cosmosDbScalingConfig.RepositoryType));
+               
+                bool jobNotActive = cosmosDbScalingConfig.JobRequestUnitConfigs.Any(item => jobDefinitionIdsStillActive.Contains(item.JobDefinitionId));
+
 
                 bool proceed = !settingsToUpdate.Any(m => m.Id == cosmosDbScalingConfig.Id);
-
-                if (proceed)
+                
+                if (proceed && jobNotActive)
                 {
                     if (!settings.IsAtBaseLine)
                     {

@@ -1326,6 +1326,146 @@ namespace CalculateFunding.Services.CosmosDbScaling
         }
 
         [TestMethod]
+        public async Task ScaleDownForJobConfiguration_WhenActiveJobSummariesReturnedAndConfigsReturnedFromCacheAndCurrentRequestsButOnlyOneNotAtBaseline_SetsThroughputForOne()
+        {
+            //Arrange
+            IEnumerable<JobSummary> jobSummaries = new[]
+            {
+                new JobSummary
+                {
+                    JobType = "job-def-1"
+                },
+                new JobSummary
+                {
+                    JobType = "job-def-2"
+                },
+                new JobSummary
+                {
+                    JobType = "job-def-3"
+                }
+            };
+
+            IEnumerable<CosmosDbScalingConfig> configs = new[]
+            {
+                new CosmosDbScalingConfig
+                {
+                    RepositoryType = CosmosCollectionType.CalculationProviderResults,
+                    Id = "1",
+                    JobRequestUnitConfigs = new[]
+                    {
+                        new CosmosDbScalingJobConfig
+                        {
+                            JobDefinitionId = "job-def-1",
+                            JobRequestUnits = 50000
+                        }
+                    }
+                },
+                new CosmosDbScalingConfig
+                {
+                    RepositoryType = CosmosCollectionType.ProviderSourceDatasets,
+                    Id = "1",
+                    JobRequestUnitConfigs = new[]
+                    {
+                        new CosmosDbScalingJobConfig
+                        {
+                            JobDefinitionId = "job-def-2",
+                            JobRequestUnits = 10000
+                        }
+                    }
+                },
+                new CosmosDbScalingConfig
+                {
+                    RepositoryType = CosmosCollectionType.PublishedFunding,
+                    Id = "1",
+                    JobRequestUnitConfigs = new[]
+                    {
+                        new CosmosDbScalingJobConfig
+                        {
+                            JobDefinitionId = "job-def-3",
+                            JobRequestUnits = 20000
+                        }
+                    }
+                },
+                new CosmosDbScalingConfig
+                {
+                    RepositoryType = CosmosCollectionType.Specifications,
+                    Id = "1",
+                    JobRequestUnitConfigs = new[]
+                    {
+                        new CosmosDbScalingJobConfig
+                        {
+                            JobDefinitionId = "job-def-4",
+                            JobRequestUnits = 20000
+                        }
+                    }
+                }
+            };
+
+            ApiResponse<IEnumerable<JobSummary>> jobSummariesResponse = new ApiResponse<IEnumerable<JobSummary>>(HttpStatusCode.OK, jobSummaries);
+
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
+                .GetNonCompletedJobsWithinTimeFrame(Arg.Any<DateTimeOffset>(), Arg.Any<DateTimeOffset>())
+                .Returns(jobSummariesResponse);
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+            cacheProvider
+                .GetAsync<List<CosmosDbScalingConfig>>(Arg.Is(CacheKeys.AllCosmosScalingConfigs))
+                .Returns(configs.ToList());
+
+            CosmosDbScalingCollectionSettings settings1 = CreateCollectionSettings(CosmosCollectionType.CalculationProviderResults);
+            settings1.CurrentRequestUnits = 100000;
+
+            CosmosDbScalingCollectionSettings settings2 = CreateCollectionSettings(CosmosCollectionType.ProviderSourceDatasets);
+            settings2.CurrentRequestUnits = settings2.MinRequestUnits;
+
+            CosmosDbScalingCollectionSettings settings3 = CreateCollectionSettings(CosmosCollectionType.PublishedFunding);
+            settings3.CurrentRequestUnits = settings3.MinRequestUnits;
+
+            ICosmosDbScalingConfigRepository cosmosDbScalingConfigRepository = CreateCosmosDbScalingConfigRepository();
+            cosmosDbScalingConfigRepository
+               .UpdateCollectionSettings(Arg.Any<CosmosDbScalingCollectionSettings>())
+               .Returns(HttpStatusCode.OK);
+
+            cosmosDbScalingConfigRepository
+                .GetCollectionSettingsByRepositoryType(Arg.Any<CosmosCollectionType>())
+                .Returns(settings1, settings2, settings3);
+
+            ILogger logger = CreateLogger();
+
+            ICosmosDbScalingRepository scalingRepository = CreateCosmosDbScalingRepository();
+
+            ICosmosDbScalingRepositoryProvider cosmosDbScalingRepositoryProvider = CreateCosmosDbScalingRepositoryProvider();
+            cosmosDbScalingRepositoryProvider
+                .GetRepository(Arg.Is(CosmosCollectionType.CalculationProviderResults))
+                .Returns(scalingRepository);
+
+            CosmosDbScalingService cosmosDbScalingService = CreateScalingService(
+                logger,
+                jobsApiClient: jobsApiClient,
+                cosmosDbScalingConfigRepository: cosmosDbScalingConfigRepository,
+                cacheProvider: cacheProvider,
+                cosmosDbScalingRepositoryProvider: cosmosDbScalingRepositoryProvider);
+
+            //Act
+            await cosmosDbScalingService.ScaleDownForJobConfiguration();
+
+            //Assert           
+            await
+                scalingRepository
+                .Received(1)
+                .SetThroughput(Arg.Any<int>());
+
+            DateTimeOffset now = DateTimeOffset.UtcNow;
+            DateTimeOffset hourAgo = now.AddHours(-1);
+
+            await
+                jobsApiClient
+                .Received(1)
+                .GetNonCompletedJobsWithinTimeFrame(Arg.Is<DateTimeOffset>(x => x.AddHours(-1) < DateTimeOffset.Now), Arg.Any<DateTimeOffset>());
+        }
+
+        [TestMethod]
         public async Task ScaleDownIncrementally_GivenNoCollectionsToProcess_Exists()
         {
             //Arrange
