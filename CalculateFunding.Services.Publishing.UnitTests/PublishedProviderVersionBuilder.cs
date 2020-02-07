@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Tests.Common.Helpers;
 using Microsoft.Azure.Search.Models;
@@ -21,6 +22,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private IEnumerable<FundingCalculation> _calculations;
         private decimal? _totalFunding;
         private IEnumerable<string> _predecessors;
+        private Reference _author;
+
+        public PublishedProviderVersionBuilder WithAuthor(Reference author)
+        {
+            _author = author;
+
+            return this;
+        }
 
         public PublishedProviderVersionBuilder WithPredecessors(params string[] predecessors)
         {
@@ -118,6 +127,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         {
             return new PublishedProviderVersion
             {
+                Author = _author,
                 SpecificationId = _specificationId ?? NewRandomString(),
                 ProviderId = _providerId ?? NewRandomString(),
                 FundingPeriodId = _fundingPeriodId ?? NewRandomString(),

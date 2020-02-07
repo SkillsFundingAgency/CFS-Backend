@@ -238,5 +238,10 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         {
             throw new NotImplementedException();
         }
+
+        public Task<IEnumerable<PublishedProviderVersion>> GetPublishedProviderVersions(string specificationId, string providerId)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

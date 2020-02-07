@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Extensions;
@@ -53,8 +55,8 @@ namespace CalculateFunding.Api.Publishing.Controllers
 
         [HttpGet("api/publishedproviderversions/{fundingStreamId}/{fundingPeriodId}/{providerId}/{version}")]
         [ProducesResponseType(200, Type = typeof(PublishedProviderVersion))]
-        public async Task<IActionResult> GetPublishedProviderVersion([FromRoute] string fundingStreamId, 
-            [FromRoute] string fundingPeriodId, 
+        public async Task<IActionResult> GetPublishedProviderVersion([FromRoute] string fundingStreamId,
+            [FromRoute] string fundingPeriodId,
             [FromRoute] string providerId, 
             [FromRoute] string version)
         {
@@ -62,6 +64,15 @@ namespace CalculateFunding.Api.Publishing.Controllers
                 fundingPeriodId,
                 providerId,
                 version);
+        }
+
+        [HttpGet("api/publishedprovidertransactions/{specificationId}/{providerId}")]
+        [ProducesResponseType(200, Type = typeof(IEnumerable<PublishedProviderTransaction>))]
+        public async Task<IActionResult> GetPublishedProviderTransactions([FromRoute] string specificationId,
+            [FromRoute] string providerId)
+        {
+            return await _providerFundingPublishingService.GetPublishedProviderTransactions(specificationId,
+                providerId);
         }
 
         [HttpGet("api/publishedproviderversion/{publishedProviderVersionId}/body")]

@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Extensions;
@@ -141,6 +143,28 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
             ThenTheResponseShouldBe<OkObjectResult>(_ => ReferenceEquals(_.Value, publishedProviderVersion));
         }
 
+        [TestMethod]
+        public async Task GetsPublishedProviderTransactionForSuppliedSpecificationAndProvider()
+        {
+            PublishedProviderVersion publishedProviderVersion = NewPublishedProviderVersion(_ => _.WithAuthor(new Reference { Id = Guid.NewGuid().ToString() }));
+
+            AndThePublishedFundingRepositoryReturnsPublishedProviderVersions(publishedProviderVersion);
+
+            await WhenGetPublishedProviderTransactionsIsCalled(publishedProviderVersion);
+
+            PublishedProviderTransaction[] expectedPublishedProviderTransaction = new[] { NewPublishedProviderTransaction(_ => _.WithAuthor(publishedProviderVersion.Author)
+            .WithDate(publishedProviderVersion.Date)
+            .WithPublishedProviderStatus(publishedProviderVersion.Status)) };
+
+            ActionResult
+                .Should()
+                .BeOfType<OkObjectResult>()
+                .Which
+                .Value
+                .Should()
+                .BeEquivalentTo(expectedPublishedProviderTransaction); ;
+        }
+
         private void AndTheApiResponseDetailsForPublishedVersionMetaSupplied(
             PublishedProviderVersion publishedProviderVersion)
         {
@@ -151,12 +175,26 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
                 .Returns(publishedProviderVersion);
         }
 
+        
+        private void AndThePublishedFundingRepositoryReturnsPublishedProviderVersions(PublishedProviderVersion publishedProviderVersion)
+        {
+            _publishedFundingRepository.GetPublishedProviderVersions(publishedProviderVersion?.SpecificationId,
+                    publishedProviderVersion?.ProviderId)
+                .Returns(new[] { publishedProviderVersion });
+        }
+
         private async Task WhenGetPublishedProviderVersionIsCalled(PublishedProviderVersion publishedProviderVersion)
         {
             ActionResult = await _service.GetPublishedProviderVersion(publishedProviderVersion.FundingStreamId,
                 publishedProviderVersion.FundingPeriodId,
                 publishedProviderVersion.ProviderId,
                 publishedProviderVersion.Version.ToString());
+        }
+
+        private async Task WhenGetPublishedProviderTransactionsIsCalled(PublishedProviderVersion publishedProviderVersion)
+        {
+            ActionResult = await _service.GetPublishedProviderTransactions(publishedProviderVersion.SpecificationId,
+                publishedProviderVersion.ProviderId);
         }
 
         private PublishedProviderVersion NewPublishedProviderVersion(
@@ -167,6 +205,16 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
             setUp?.Invoke(publishedProviderVersionBuilder);
 
             return publishedProviderVersionBuilder.Build();
+        }
+
+        private PublishedProviderTransaction NewPublishedProviderTransaction(
+            Action<PublishedProviderTransactionBuilder> setUp = null)
+        {
+            PublishedProviderTransactionBuilder publishedProviderTransactionBuilder = new PublishedProviderTransactionBuilder();
+
+            setUp?.Invoke(publishedProviderTransactionBuilder);
+
+            return publishedProviderTransactionBuilder.Build();
         }
 
         private async Task WhenTheProviderFundingIsPublished()

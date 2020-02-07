@@ -1,4 +1,7 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
@@ -73,6 +76,25 @@ namespace CalculateFunding.Services.Publishing.Specifications
             };
 
             return new OkObjectResult(jobCreationResponse);
+        }
+
+        public async Task<IActionResult> GetPublishedProviderTransactions(string specificationId,
+            string providerId)
+        {
+            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
+            Guard.IsNullOrWhiteSpace(providerId, nameof(providerId));
+
+            IEnumerable<PublishedProviderVersion> providerVersions = await ResiliencePolicy.ExecuteAsync(() =>
+                _publishedFundingRepository.GetPublishedProviderVersions(specificationId,
+                    providerId));
+
+            return new OkObjectResult(providerVersions?.Select(_ => new PublishedProviderTransaction
+            {
+                Author = _.Author,
+                Date = _.Date,
+                Status = _.Status,
+                TotalFunding = _.TotalFunding
+            }));
         }
 
         public async Task<IActionResult> GetPublishedProviderVersion(string fundingStreamId,
