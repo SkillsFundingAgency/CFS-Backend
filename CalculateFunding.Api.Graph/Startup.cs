@@ -75,17 +75,17 @@ namespace CalculateFunding.Api.Graph
                 .AddScoped<IHealthChecker, ControllerResolverHealthCheck>();
 
             builder
-                .AddScoped<ICypherBuilder, CypherBuilder>();
+                .AddScoped<ICypherBuilderHost, CypherBuilderHost>();
 
             builder
                 .AddScoped<IGraphRepository, GraphRepository>(ctx =>
                 {
-                    ICypherBuilder cypherBuilder = ctx.GetService<ICypherBuilder>();
+                    ICypherBuilderHost cypherBuilderHost = ctx.GetService<ICypherBuilderHost>();
                     GraphDbSettings graphDbSettings = new GraphDbSettings();
 
                     Configuration.Bind("GraphDbSettings", graphDbSettings);
 
-                    return new GraphRepository(graphDbSettings, cypherBuilder);
+                    return new GraphRepository(graphDbSettings, cypherBuilderHost);
                 });
 
             builder

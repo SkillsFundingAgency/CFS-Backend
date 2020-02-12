@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CalculateFunding.Common.Graph" Version="1.0.1" />
+    <PackageReference Include="CalculateFunding.Common.Graph" Version="1.0.2" />
     <PackageReference Include="Neo4j.Driver.Signed" Version="4.0.0" />
   </ItemGroup>
 

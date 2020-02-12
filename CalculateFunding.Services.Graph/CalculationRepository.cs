@@ -33,7 +33,7 @@ namespace CalculateFunding.Services.Graph
 
         public async Task CreateCalculationRelationship(string calculationId, string specificationId)
         {
-            await _graphRepository.CreateRelationship<Calculation, Specification>("specification", ("calculationid", calculationId), ("specificationid", specificationId));
+            await _graphRepository.CreateRelationship<Calculation, Specification>("BelongsToSpecification", ("calculationid", calculationId), ("specificationid", specificationId));
         }
     }
 }

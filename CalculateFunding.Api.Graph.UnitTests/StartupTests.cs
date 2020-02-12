@@ -37,7 +37,7 @@ namespace CalculateFunding.Api.Graph.UnitTests
             using (IServiceScope scope = provider.CreateScope())
             {
                 scope.ServiceProvider.GetService<IHealthChecker>().Should().NotBeNull(nameof(IHealthChecker));
-                scope.ServiceProvider.GetService<ICypherBuilder>().Should().NotBeNull(nameof(ICypherBuilder));
+                scope.ServiceProvider.GetService<ICypherBuilderHost>().Should().NotBeNull(nameof(ICypherBuilderHost));
                 scope.ServiceProvider.GetService<IGraphRepository>().Should().NotBeNull(nameof(IGraphRepository));
                 scope.ServiceProvider.GetService<ISpecificationRepository>().Should().NotBeNull(nameof(ISpecificationRepository));
                 scope.ServiceProvider.GetService<ICalculationRepository>().Should().NotBeNull(nameof(ICalculationRepository));
