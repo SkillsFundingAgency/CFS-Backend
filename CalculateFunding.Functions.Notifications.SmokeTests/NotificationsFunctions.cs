@@ -37,8 +37,7 @@ namespace CalculateFunding.Functions.Notifications.SmokeTests
                 _services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
                 _isDevelopment);
 
-            (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(OnNotificationEventTrigger.FunctionName,
-                ServiceBusConstants.TopicSubscribers.JobNotificationsToSignalR,
+            (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.TopicSubscribers.JobNotificationsToSignalR,
                 (Message smokeResponse) => onNotificationEventTrigger.Run(smokeResponse, null),
                 ServiceBusConstants.TopicNames.JobNotifications);
 

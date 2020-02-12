@@ -43,8 +43,7 @@ namespace CalculateFunding.Functions.Datasets.SmokeTests
                 _services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
                 _isDevelopment);
 
-            (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(OnDataDefinitionChanges.FunctionName,
-                ServiceBusConstants.TopicSubscribers.UpdateDataDefinitionName,
+            (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.TopicSubscribers.UpdateDataDefinitionName,
                 (Message smokeResponse) => onDataDefinitionChanges.Run(smokeResponse),
                 ServiceBusConstants.TopicNames.DataDefinitionChanges);
 
@@ -61,8 +60,7 @@ namespace CalculateFunding.Functions.Datasets.SmokeTests
                 _services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
                 _isDevelopment);
 
-            (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(OnDatasetEvent.FunctionName,
-                ServiceBusConstants.QueueNames.ProcessDataset,
+            (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.ProcessDataset,
                 (Message smokeResponse) => onDatasetEvent.Run(smokeResponse));
 
             responses
@@ -78,8 +76,7 @@ namespace CalculateFunding.Functions.Datasets.SmokeTests
                 _services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
                 _isDevelopment);
 
-            (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(OnDatasetValidationEvent.FunctionName,
-                ServiceBusConstants.QueueNames.ValidateDataset,
+            (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.ValidateDataset,
                 (Message smokeResponse) => onDatasetValidationEvent.Run(smokeResponse));
 
             responses
@@ -95,8 +92,7 @@ namespace CalculateFunding.Functions.Datasets.SmokeTests
                 _services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
                 _isDevelopment);
 
-            (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(OnDeleteDatasets.FunctionName,
-                ServiceBusConstants.QueueNames.DeleteDatasets,
+            (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.DeleteDatasets,
                 (Message smokeResponse) => onDeleteDatasets.Run(smokeResponse));
 
             responses

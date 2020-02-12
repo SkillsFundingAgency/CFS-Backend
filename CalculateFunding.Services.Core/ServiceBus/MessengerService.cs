@@ -11,16 +11,17 @@ using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Core.Options;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.ServiceBus.Core;
+using Microsoft.Azure.ServiceBus.Management;
 using Newtonsoft.Json;
 
 namespace CalculateFunding.Services.Core.ServiceBus
 {
-    public class MessengerService : IMessengerService
+    public class MessengerService : IMessengerService, IServiceBusService
     {
         private static readonly ConcurrentDictionary<string, QueueClient> _queueClients = new ConcurrentDictionary<string, QueueClient>();
         private static readonly ConcurrentDictionary<string, TopicClient> _topicClients = new ConcurrentDictionary<string, TopicClient>();
+        private static readonly ConcurrentDictionary<string, SubscriptionClient> _subscriptionClients = new ConcurrentDictionary<string, SubscriptionClient>();
         private readonly string _connectionString;
-        private readonly string _serviceName;
 
         public string ServiceName { get; }
 
@@ -34,7 +35,8 @@ namespace CalculateFunding.Services.Core.ServiceBus
         {
             try
             {
-                // Only way to check if connection string is correct is try receiving a message, which isn't possible for topics as don't have a subscription
+                // Only way to check if connection string is correct is try receiving a message, 
+                // which isn't possible for topics as don't have a subscription
                 MessageReceiver receiver = new MessageReceiver(_connectionString, queueName);
                 IList<Message> message = await receiver.PeekAsync(1);
                 await receiver.CloseAsync();
@@ -44,6 +46,42 @@ namespace CalculateFunding.Services.Core.ServiceBus
             {
                 return (false, ex.Message);
             }
+        }
+
+        public async Task CreateSubscription(string topicName, string subscriptionName)
+        {
+            ManagementClient managementClient = new ManagementClient(_connectionString);
+            await managementClient.CreateSubscriptionAsync(topicName, subscriptionName);
+        }
+
+        public async Task DeleteSubscription(string topicName, string subscriptionName)
+        {
+            ManagementClient managementClient = new ManagementClient(_connectionString);
+            await managementClient.DeleteSubscriptionAsync(topicName, subscriptionName);
+        }
+
+        public async Task CreateQueue(string queuePath)
+        {
+            ManagementClient managementClient = new ManagementClient(_connectionString);
+            await managementClient.CreateQueueAsync(queuePath);
+        }
+
+        public async Task DeleteQueue(string queuePath)
+        {
+            ManagementClient managementClient = new ManagementClient(_connectionString);
+            await managementClient.DeleteQueueAsync(queuePath);
+        }
+
+        public async Task CreateTopic(string topicName)
+        {
+            ManagementClient managementClient = new ManagementClient(_connectionString);
+            await managementClient.CreateTopicAsync(topicName);
+        }
+
+        public async Task DeleteTopic(string topicName)
+        {
+            ManagementClient managementClient = new ManagementClient(_connectionString);
+            await managementClient.DeleteTopicAsync(topicName);
         }
 
         public async Task<IEnumerable<T>> ReceiveMessages<T>(string entityPath, TimeSpan timeout) where T : class
@@ -95,14 +133,22 @@ namespace CalculateFunding.Services.Core.ServiceBus
             });
         }
 
-        public async Task SendToQueue<T>(string queueName, T data, IDictionary<string, string> properties, bool compressData = false, string sessionId = null) where T : class
+        public async Task SendToQueue<T>(string queueName, 
+            T data, 
+            IDictionary<string, string> properties, 
+            bool compressData = false, 
+            string sessionId = null) where T : class
         {
             string json = JsonConvert.SerializeObject(data);
 
             await SendToQueueAsJson(queueName, json, properties, compressData, sessionId);
         }
 
-        public async Task SendToQueueAsJson(string queueName, string data, IDictionary<string, string> properties, bool compressData = false, string sessionId = null)
+        public async Task SendToQueueAsJson(string queueName, 
+            string data, 
+            IDictionary<string, string> properties, 
+            bool compressData = false, 
+            string sessionId = null)
         {
             Guard.IsNullOrWhiteSpace(queueName, nameof(queueName));
 
@@ -126,14 +172,22 @@ namespace CalculateFunding.Services.Core.ServiceBus
             });
         }
 
-        public async Task SendToTopic<T>(string topicName, T data, IDictionary<string, string> properties, bool compressData = false, string sessionId = null) where T : class
+        public async Task SendToTopic<T>(string topicName,
+            T data, 
+            IDictionary<string, string> properties, 
+            bool compressData = false, 
+            string sessionId = null) where T : class
         {
             string json = JsonConvert.SerializeObject(data);
 
             await SendToTopicAsJson(topicName, json, properties, compressData, sessionId);
         }
 
-        public async Task SendToTopicAsJson(string topicName, string data, IDictionary<string, string> properties, bool compressData = false, string sessionId = null)
+        public async Task SendToTopicAsJson(string topicName, 
+            string data, 
+            IDictionary<string, string> properties, 
+            bool compressData = false, 
+            string sessionId = null)
         {
             Guard.IsNullOrWhiteSpace(topicName, nameof(topicName));
 

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Services.CalcEngine.Interfaces;
+using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.DeadletterProcessor;
 using CalculateFunding.Tests.Common;
 using FluentAssertions;
@@ -31,6 +32,7 @@ namespace CalculateFunding.Functions.CalcEngine.UnitTests
                 scope.ServiceProvider.GetService<IAllocationFactory>().Should().NotBeNull(nameof(IAllocationFactory));
                 scope.ServiceProvider.GetService<IJobHelperService>().Should().NotBeNull(nameof(IJobHelperService));
                 scope.ServiceProvider.GetService<ILogger>().Should().NotBeNull(nameof(ILogger));
+                scope.ServiceProvider.GetService<IMessengerService>().Should().NotBeNull(nameof(IMessengerService));
             }
         }
 

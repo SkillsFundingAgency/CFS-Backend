@@ -11,18 +11,17 @@ using Microsoft.Azure.ServiceBus.Core;
 
 namespace CalculateFunding.Services.Core.ServiceBus
 {
-    public class QueueMessengerService : IMessengerService
+    public class QueueMessengerService : IMessengerService, IQueueService
     {
         CloudQueueClient _queueClient;
         CloudStorageAccount _storageAccount;
-        private string _serviceName;
 
         public string ServiceName { get; }
 
         public QueueMessengerService(string connectionString, string serviceName = null)
         {
             _storageAccount = CloudStorageAccount.Parse(connectionString);
-            _serviceName = serviceName;
+            ServiceName = serviceName;
         }
 
         public async Task<(bool Ok, string Message)> IsHealthOk(string queueName)
@@ -37,6 +36,20 @@ namespace CalculateFunding.Services.Core.ServiceBus
             {
                 return (false, ex.Message);
             }
+        }
+
+        public async Task CreateQueue(string entityPath)
+        {
+            CloudQueue queue = QueueClient.GetQueueReference(entityPath);
+
+            await queue.CreateIfNotExistsAsync();
+        }
+
+        public async Task DeleteQueue(string entityPath)
+        {
+            CloudQueue queue = QueueClient.GetQueueReference(entityPath);
+
+            await queue.DeleteAsync();
         }
 
         public async Task<IEnumerable<T>> ReceiveMessages<T>(string entityPath, TimeSpan timeout) where T : class
@@ -87,7 +100,11 @@ namespace CalculateFunding.Services.Core.ServiceBus
             }
         }
 
-        public async Task SendToQueue<T>(string queueName, T data, IDictionary<string, string> properties, bool compressData = false, string sessionId = null) where T : class
+        public async Task SendToQueue<T>(string queueName, 
+            T data, 
+            IDictionary<string, string> properties, 
+            bool compressData = false, 
+            string sessionId = null) where T : class
         {
             Guard.IsNullOrWhiteSpace(queueName, nameof(queueName));
 
@@ -117,7 +134,11 @@ namespace CalculateFunding.Services.Core.ServiceBus
             await queue.AddMessageAsync(message);
         }
 
-        public async Task SendToQueueAsJson(string queueName, string data, IDictionary<string, string> properties, bool compressData = false, string sessionId = null)
+        public async Task SendToQueueAsJson(string queueName, 
+            string data, 
+            IDictionary<string, string> properties, 
+            bool compressData = false, 
+            string sessionId = null)
         {
             Guard.IsNullOrWhiteSpace(queueName, nameof(queueName));
 
@@ -139,7 +160,11 @@ namespace CalculateFunding.Services.Core.ServiceBus
             await queue.AddMessageAsync(message);
         }
 
-        public async Task SendToTopic<T>(string topicName, T data, IDictionary<string, string> properties, bool compressData = false, string sessionId = null) where T : class
+        public async Task SendToTopic<T>(string topicName, 
+            T data, 
+            IDictionary<string, string> properties, 
+            bool compressData = false, 
+            string sessionId = null) where T : class
         {
             await SendToQueue<T>(topicName, data, properties, compressData);
         }

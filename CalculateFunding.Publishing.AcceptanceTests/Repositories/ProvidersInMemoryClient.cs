@@ -193,5 +193,10 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 
             _scopedProviders[specificationId][providerId] = provider;
         }
+
+        public Task<ApiResponse<IEnumerable<ProviderGraphQlFieldInfo>>> GetProviderGraphQlFields()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

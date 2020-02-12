@@ -4,6 +4,7 @@ using CalculateFunding.Services.Calcs;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Calcs.Interfaces.CodeGen;
 using CalculateFunding.Services.Compiler.Interfaces;
+using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.DeadletterProcessor;
 using CalculateFunding.Tests.Common;
 using FluentAssertions;
@@ -43,6 +44,7 @@ namespace CalculateFunding.Functions.Calcs.UnitTests
                 scope.ServiceProvider.GetService<IInstructionAllocationJobCreation>().Should().NotBeNull(nameof(IInstructionAllocationJobCreation));
                 scope.ServiceProvider.GetService<ICalcsResiliencePolicies>().Should().NotBeNull(nameof(ICalcsResiliencePolicies));
                 scope.ServiceProvider.GetService<IJobManagement>().Should().NotBeNull(nameof(IJobManagement));
+                scope.ServiceProvider.GetService<IMessengerService>().Should().NotBeNull(nameof(IMessengerService));
             }
         }
 

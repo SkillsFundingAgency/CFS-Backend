@@ -22,7 +22,7 @@ namespace CalculateFunding.Functions.Publishing.ServiceBus
             ILogger logger,
             IRefreshService refreshService,
             IMessengerService messegerService,
-            bool isDevelopment = false) : base(logger, messegerService, FunctionName, isDevelopment)
+            bool useAzureStorage = false) : base(logger, messegerService, FunctionName, useAzureStorage)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(refreshService, nameof(refreshService));

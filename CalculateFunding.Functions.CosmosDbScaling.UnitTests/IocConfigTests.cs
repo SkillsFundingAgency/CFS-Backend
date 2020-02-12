@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
+using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 
 namespace CalculateFunding.Functions.CosmosDbScaling.UnitTests
 {
@@ -26,6 +27,7 @@ namespace CalculateFunding.Functions.CosmosDbScaling.UnitTests
                 scope.ServiceProvider.GetService<ICosmosDbScalingRepositoryProvider>().Should().NotBeNull(nameof(ICosmosDbScalingRepositoryProvider));
                 scope.ServiceProvider.GetService<ICosmosDbScalingService>().Should().NotBeNull(nameof(ICosmosDbScalingService));
                 scope.ServiceProvider.GetService<ICosmosDbScalingResiliencePolicies>().Should().NotBeNull(nameof(ICosmosDbScalingResiliencePolicies));
+                scope.ServiceProvider.GetService<IMessengerService>().Should().NotBeNull(nameof(IMessengerService));
             }
         }
 

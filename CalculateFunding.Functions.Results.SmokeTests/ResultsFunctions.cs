@@ -42,8 +42,7 @@ namespace CalculateFunding.Functions.Results.SmokeTests
                 _services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
                 _isDevelopment);
 
-            (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(OnCalculationResultsCsvGeneration.FunctionName,
-                ServiceBusConstants.QueueNames.CalculationResultsCsvGeneration,
+            (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.CalculationResultsCsvGeneration,
                 (Message smokeResponse) => onCalculationResultsCsvGeneration.Run(smokeResponse));
 
             responses
@@ -59,8 +58,7 @@ namespace CalculateFunding.Functions.Results.SmokeTests
                 _services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
                 _isDevelopment);
 
-            (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(OnProviderResultsSpecificationCleanup.FunctionName,
-                ServiceBusConstants.TopicSubscribers.CleanupCalculationResultsForSpecificationProviders,
+            (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.TopicSubscribers.CleanupCalculationResultsForSpecificationProviders,
                 (Message smokeResponse) => onProviderResultsSpecificationCleanup.Run(smokeResponse),
                 ServiceBusConstants.TopicNames.ProviderSourceDatasetCleanup);
 
@@ -77,8 +75,7 @@ namespace CalculateFunding.Functions.Results.SmokeTests
                 _services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
                 _isDevelopment);
 
-            (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(OnReIndexCalculationResults.FunctionName,
-                ServiceBusConstants.QueueNames.ReIndexCalculationResultsIndex,
+            (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.ReIndexCalculationResultsIndex,
                 (Message smokeResponse) => onReIndexCalculationResults.Run(smokeResponse));
 
             responses

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Services.CodeMetadataGenerator.Interfaces;
+using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.TestRunner;
 using CalculateFunding.Services.TestRunner.Interfaces;
 using CalculateFunding.Tests.Common;
@@ -40,6 +41,7 @@ namespace CalculateFunding.Functions.TestEngine.UnitTests
                 scope.ServiceProvider.GetService<ITestResultsSearchService>().Should().NotBeNull(nameof(ITestResultsSearchService));
                 scope.ServiceProvider.GetService<ITestResultsCountsService>().Should().NotBeNull(nameof(ITestResultsCountsService));
                 scope.ServiceProvider.GetService<ITestResultsService>().Should().NotBeNull(nameof(ITestResultsService));
+                scope.ServiceProvider.GetService<IMessengerService>().Should().NotBeNull(nameof(IMessengerService));
             }
         }
 

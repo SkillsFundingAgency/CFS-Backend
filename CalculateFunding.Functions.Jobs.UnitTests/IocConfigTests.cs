@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Jobs.Interfaces;
 using CalculateFunding.Tests.Common;
 using FluentAssertions;
@@ -26,6 +27,7 @@ namespace CalculateFunding.Functions.Jobs.UnitTests
                 scope.ServiceProvider.GetService<IJobManagementService>().Should().NotBeNull(nameof(IJobManagementService));
                 scope.ServiceProvider.GetService<INotificationService>().Should().NotBeNull(nameof(INotificationService));
                 scope.ServiceProvider.GetService<IJobDefinitionsService>().Should().NotBeNull(nameof(IJobDefinitionsService));
+                scope.ServiceProvider.GetService<IMessengerService>().Should().NotBeNull(nameof(IMessengerService));
             }
         }
 

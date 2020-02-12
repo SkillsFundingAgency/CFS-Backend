@@ -38,8 +38,7 @@ namespace CalculateFunding.Functions.Users.SmokeTests
                 _services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
                 _isDevelopment);
 
-            (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(OnEditSpecificationEvent.FunctionName,
-                ServiceBusConstants.TopicSubscribers.UpdateUsersForEditSpecification,
+            (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.TopicSubscribers.UpdateUsersForEditSpecification,
                 (Message smokeResponse) => onEditSpecificationEvent.Run(smokeResponse),
                 ServiceBusConstants.TopicNames.EditSpecification);
 

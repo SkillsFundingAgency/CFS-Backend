@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.DeadletterProcessor;
 using CalculateFunding.Services.Results.Interfaces;
 using CalculateFunding.Tests.Common;
@@ -27,6 +28,7 @@ namespace CalculateFunding.Functions.Results.UnitTests
                 scope.ServiceProvider.GetService<IProviderSourceDatasetRepository>().Should().NotBeNull(nameof(IProviderSourceDatasetRepository));
                 scope.ServiceProvider.GetService<IJobHelperService>().Should().NotBeNull(nameof(IJobHelperService));
                 scope.ServiceProvider.GetService<IProviderResultsCsvGeneratorService>().Should().NotBeNull(nameof(IJobHelperService));
+                scope.ServiceProvider.GetService<IMessengerService>().Should().NotBeNull(nameof(IMessengerService));
             }
         }
 

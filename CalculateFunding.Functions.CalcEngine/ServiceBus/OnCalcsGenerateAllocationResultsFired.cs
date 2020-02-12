@@ -22,7 +22,7 @@ namespace CalculateFunding.Functions.CalcEngine.ServiceBus
             ILogger logger,
             ICalculationEngineService calculationEngineService,
             IMessengerService messegerService,
-            bool isDevelopment = false) : base(logger, messegerService, FunctionName, isDevelopment)
+            bool useAzureStorage = false) : base(logger, messegerService, FunctionName, useAzureStorage)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(calculationEngineService, nameof(calculationEngineService));

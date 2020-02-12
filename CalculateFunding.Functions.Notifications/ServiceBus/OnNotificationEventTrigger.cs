@@ -22,7 +22,7 @@ namespace CalculateFunding.Functions.Notifications
             ILogger logger,
             INotificationService notificationService,
             IMessengerService messegerService,
-            bool isDevelopment = false) : base(logger, messegerService, FunctionName, isDevelopment)
+            bool useAzureStorage = false) : base(logger, messegerService, FunctionName, useAzureStorage)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(notificationService, nameof(notificationService));

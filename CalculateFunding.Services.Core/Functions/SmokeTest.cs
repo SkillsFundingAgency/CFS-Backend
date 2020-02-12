@@ -15,10 +15,13 @@ namespace CalculateFunding.Services.Core.Functions
         private ILogger _logger;
         private IMessengerService _messengerService;
         private const string _smoketest = "smoketest";
-        private bool _isDevelopment;
+        private bool _useAzureStorage;
         private string _functionName;
 
-        public SmokeTest(ILogger logger, IMessengerService messengerService, string functionName, bool isDevelopment)
+        public SmokeTest(ILogger logger, 
+            IMessengerService messengerService, 
+            string functionName, 
+            bool useAzureStorage)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(messengerService, nameof(messengerService));
@@ -26,7 +29,7 @@ namespace CalculateFunding.Services.Core.Functions
 
             _logger = logger;
             _messengerService = messengerService;
-            _isDevelopment = isDevelopment;
+            _useAzureStorage = useAzureStorage;
             _functionName = functionName;
         }
 
@@ -40,13 +43,21 @@ namespace CalculateFunding.Services.Core.Functions
 
                 Dictionary<string, string> properties = new Dictionary<string, string> { { "listener", _functionName } };
 
-                if (_isDevelopment)
+                if (_useAzureStorage)
                 {
-                    await _messengerService.SendToQueue($"{_functionName}-{_smoketest}", new SmokeResponse { Listener = _functionName, InvocationId = message.UserProperties[_smoketest].ToString(), Service = _messengerService.ServiceName }, properties);
+                    await _messengerService.SendToQueue(message.UserProperties[_smoketest].ToString(), 
+                        new SmokeResponse { Listener = _functionName, 
+                            InvocationId = message.UserProperties[_smoketest].ToString(), 
+                            Service = _messengerService.ServiceName }, 
+                        properties);
                 }
                 else
                 {
-                    await _messengerService.SendToTopic(_smoketest, new SmokeResponse { Listener = _functionName, InvocationId = message.UserProperties[_smoketest].ToString(), Service = _messengerService.ServiceName }, properties);
+                    await _messengerService.SendToTopic(_smoketest, 
+                        new SmokeResponse { Listener = _functionName, 
+                            InvocationId = message.UserProperties[_smoketest].ToString(), 
+                            Service = _messengerService.ServiceName }, 
+                        properties);
                 }
             }
             else

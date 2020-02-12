@@ -39,8 +39,7 @@ namespace CalculateFunding.Functions.CosmosDbScaling.SmokeTests
                 _services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
                 _isDevelopment);
 
-            (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(OnScaleUpCosmosDbCollection.FunctionName,
-                ServiceBusConstants.TopicSubscribers.ScaleUpCosmosdbCollection,
+            (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.TopicSubscribers.ScaleUpCosmosdbCollection,
                 (Message smokeResponse) => onScaleUpCosmosDbCollection.Run(smokeResponse),
                 ServiceBusConstants.TopicNames.JobNotifications);
 

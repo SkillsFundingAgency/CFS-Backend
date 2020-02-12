@@ -40,8 +40,7 @@ namespace CalculateFunding.Functions.TestEngine.SmokeTests
                 _services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
                 _isDevelopment);
 
-            (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(OnDeleteTestResults.FunctionName,
-                ServiceBusConstants.QueueNames.DeleteTestResults,
+            (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.DeleteTestResults,
                 (Message smokeResponse) => onDeleteTestResults.Run(smokeResponse));
 
             responses
@@ -57,8 +56,7 @@ namespace CalculateFunding.Functions.TestEngine.SmokeTests
                 _services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
                 _isDevelopment);
 
-            (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(OnEditSpecificationEvent.FunctionName,
-                ServiceBusConstants.TopicSubscribers.UpdateScenarioResultsForEditSpecification,
+            (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.TopicSubscribers.UpdateScenarioResultsForEditSpecification,
                 (Message smokeResponse) => onEditSpecificationEvent.Run(smokeResponse),
                 ServiceBusConstants.TopicNames.EditSpecification);
 
@@ -75,8 +73,7 @@ namespace CalculateFunding.Functions.TestEngine.SmokeTests
                 _services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
                 _isDevelopment);
 
-            (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(OnTestExecution.FunctionName,
-                ServiceBusConstants.QueueNames.TestEngineExecuteTests,
+            (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.TestEngineExecuteTests,
                 (Message smokeResponse) => onTestExecution.Run(smokeResponse));
 
             responses
@@ -92,8 +89,7 @@ namespace CalculateFunding.Functions.TestEngine.SmokeTests
                 _services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
                 _isDevelopment);
 
-            (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(OnTestSpecificationProviderResultsCleanup.FunctionName,
-                ServiceBusConstants.TopicSubscribers.CleanupTestResultsForSpecificationProviders,
+            (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.TopicSubscribers.CleanupTestResultsForSpecificationProviders,
                 (Message smokeResponse) => onTestSpecificationProviderResultsCleanup.Run(smokeResponse),
                 ServiceBusConstants.TopicNames.ProviderSourceDatasetCleanup);
 

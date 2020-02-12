@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using CalculateFunding.Functions.Publishing.ServiceBus;
+using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Tests.Common;
 using FluentAssertions;
@@ -28,6 +29,7 @@ namespace CalculateFunding.Functions.Publishing.UnitTests
                 scope.ServiceProvider.GetService<ICalculationResultsRepository>().Should().NotBeNull(nameof(ICalculationResultsRepository));
                 scope.ServiceProvider.GetService<IRefreshPrerequisiteChecker>().Should().NotBeNull(nameof(IRefreshPrerequisiteChecker));
                 scope.ServiceProvider.GetService<IPublishedSearchService>().Should().NotBeNull(nameof(IPublishedSearchService));
+                scope.ServiceProvider.GetService<IMessengerService>().Should().NotBeNull(nameof(IMessengerService));
             }
         }
 

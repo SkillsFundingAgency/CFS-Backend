@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.ApiClient.Providers;
+using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Specs.Interfaces;
 using CalculateFunding.Tests.Common;
 using FluentAssertions;
@@ -33,6 +34,7 @@ namespace CalculateFunding.Functions.Specs.UnitTests
                 scope.ServiceProvider.GetService<ISpecificationsService>().Should().NotBeNull(nameof(ISpecificationsService));
                 scope.ServiceProvider.GetService<ISpecificationsSearchService>().Should().NotBeNull(nameof(ISpecificationsSearchService));
                 scope.ServiceProvider.GetService<IResultsRepository>().Should().NotBeNull(nameof(IResultsRepository));
+                scope.ServiceProvider.GetService<IMessengerService>().Should().NotBeNull(nameof(IMessengerService));
             }
         }
 

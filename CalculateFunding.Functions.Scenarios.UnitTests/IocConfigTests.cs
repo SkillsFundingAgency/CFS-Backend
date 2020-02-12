@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Scenarios.Interfaces;
 using CalculateFunding.Tests.Common;
 using FluentAssertions;
@@ -23,7 +24,8 @@ namespace CalculateFunding.Functions.Scenarios.UnitTests
                 // Assert
                 scope.ServiceProvider.GetService<IScenariosRepository>().Should().NotBeNull(nameof(IScenariosRepository));
                 scope.ServiceProvider.GetService<IScenariosService>().Should().NotBeNull(nameof(IScenariosService));
-                scope.ServiceProvider.GetService<IScenariosSearchService>().Should().NotBeNull(nameof(IScenariosSearchService));              
+                scope.ServiceProvider.GetService<IScenariosSearchService>().Should().NotBeNull(nameof(IScenariosSearchService));
+                scope.ServiceProvider.GetService<IMessengerService>().Should().NotBeNull(nameof(IMessengerService));
             }
         }
 

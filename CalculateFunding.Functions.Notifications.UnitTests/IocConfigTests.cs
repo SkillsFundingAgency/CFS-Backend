@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Notifications.Interfaces;
 using CalculateFunding.Tests.Common;
 using FluentAssertions;
@@ -22,6 +23,7 @@ namespace CalculateFunding.Functions.Notifications.UnitTests
             {
                 // Assert
                 scope.ServiceProvider.GetService<INotificationService>().Should().NotBeNull(nameof(INotificationService));
+                scope.ServiceProvider.GetService<IMessengerService>().Should().NotBeNull(nameof(IMessengerService));
             }
         }
 

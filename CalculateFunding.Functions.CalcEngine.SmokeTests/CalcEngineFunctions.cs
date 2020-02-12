@@ -40,8 +40,7 @@ namespace CalculateFunding.Functions.CalcEngine.SmokeTests
                 _services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
                 _isDevelopment);
 
-            (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(OnCalcsGenerateAllocationResults.FunctionName,
-                ServiceBusConstants.QueueNames.CalcEngineGenerateAllocationResults, 
+            (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.CalcEngineGenerateAllocationResults, 
                 (Message smokeResponse) => onCalcsGenerateAllocationResults.Run(smokeResponse));
 
             responses

@@ -21,7 +21,7 @@ namespace CalculateFunding.Functions.Datasets.ServiceBus
             ILogger logger,
             IProcessDatasetService processDatasetService,
             IMessengerService messegerService,
-            bool isDevelopment = false) : base(logger, messegerService, FunctionName, isDevelopment)
+            bool useAzureStorage = false) : base(logger, messegerService, FunctionName, useAzureStorage)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(processDatasetService, nameof(processDatasetService));

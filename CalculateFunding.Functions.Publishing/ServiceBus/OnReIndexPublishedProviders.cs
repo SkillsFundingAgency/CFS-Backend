@@ -21,7 +21,7 @@ namespace CalculateFunding.Functions.Publishing.ServiceBus
             ILogger logger,
             IPublishedProviderReIndexerService publishedProviderReIndexerService,
             IMessengerService messegerService,
-            bool isDevelopment = false) : base(logger, messegerService, FunctionName, isDevelopment)
+            bool useAzureStorage = false) : base(logger, messegerService, FunctionName, useAzureStorage)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(publishedProviderReIndexerService, nameof(publishedProviderReIndexerService));
