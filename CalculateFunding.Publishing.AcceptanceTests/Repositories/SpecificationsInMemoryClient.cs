@@ -14,7 +14,10 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 {
     public class SpecificationsInMemoryClient : ISpecificationsApiClient
     {
-        private Dictionary<string, SpecificationPublishDateModel> _specificationPublishDateModels = new Dictionary<string, SpecificationPublishDateModel>();
+        private readonly Dictionary<string, SpecificationPublishDateModel> _specificationPublishDateModels 
+            = new Dictionary<string, SpecificationPublishDateModel>();
+        readonly Dictionary<string, IEnumerable<ProfileVariationPointer>> _profileVariationPointers 
+        = new Dictionary<string, IEnumerable<ProfileVariationPointer>>();
 
         public Task<ValidatedApiResponse<SpecificationSummary>> CreateSpecification(CreateSpecificationModel specification)
         {
@@ -68,7 +71,10 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 
         public Task<ApiResponse<IEnumerable<ProfileVariationPointer>>> GetProfileVariationPointers(string specificationId)
         {
-            throw new NotImplementedException();
+            return _profileVariationPointers.TryGetValue(specificationId,
+                out IEnumerable<ProfileVariationPointer> pointers)
+                ? Task.FromResult(new ApiResponse<IEnumerable<ProfileVariationPointer>>(HttpStatusCode.OK, pointers))
+                : Task.FromResult(new ApiResponse<IEnumerable<ProfileVariationPointer>>(HttpStatusCode.NotFound));
         }
 
         public Task<ApiResponse<SpecificationPublishDateModel>> GetPublishDates(string specificationId)
@@ -143,7 +149,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 
         public void SetSpecificationPublishDateModel(string specificationId, PublishedFundingDates publishedFundingDates)
         {
-            Guard.ArgumentNotNull(specificationId, nameof(specificationId));
+            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
 
             SpecificationPublishDateModel specificationPublishDateModel = new SpecificationPublishDateModel
             {
@@ -152,6 +158,14 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             };
 
             _specificationPublishDateModels[specificationId] = specificationPublishDateModel;
+        }
+
+        public void SetProfileVariationPointers(string specificationId,
+            params ProfileVariationPointer[] variationPointers)
+        {
+            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
+
+            _profileVariationPointers[specificationId] = variationPointers;
         }
 
         public Task<ApiResponse<IEnumerable<string>>> GetFundingStreamIdsForSelectedFundingSpecification()

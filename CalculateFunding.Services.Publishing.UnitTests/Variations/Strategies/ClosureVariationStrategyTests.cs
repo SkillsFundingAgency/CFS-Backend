@@ -36,6 +36,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
         [TestMethod]
         public async Task QueuesZeroRemainingProfileAndCloseProviderChangesIfPassesPreconditionChecks()
         {
+            GivenTheOtherwiseValidVariationContext();
+
             await WhenTheVariationsAreDetermined();
 
             ThenTheVariationChangeWasQueued<ZeroRemainingProfilesChange>();

@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Calcs.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Publishing.AcceptanceTests.Contexts;
-using FluentAssertions;
+using CalculateFunding.Services.Publishing.Interfaces;
+using Microsoft.Azure.ServiceBus;
 using TechTalk.SpecFlow;
 using TechTalk.SpecFlow.Assist;
 
@@ -18,16 +20,19 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
         private readonly CurrentSpecificationStepContext _currentSpecificationStepContext;
         private readonly CurrentJobStepContext _currentJobStepContext;
         private readonly CurrentUserStepContext _currentUserStepContext;
+        private readonly IPublishService _publishService;
 
         public PublishingStepDefinition(IPublishFundingStepContext publishFundingStepContext,
             CurrentSpecificationStepContext currentSpecificationStepContext,
             CurrentJobStepContext currentJobStepContext,
-            CurrentUserStepContext currentUserStepContext)
+            CurrentUserStepContext currentUserStepContext, 
+            IPublishService publishService)
         {
             _publishFundingStepContext = publishFundingStepContext;
             _currentSpecificationStepContext = currentSpecificationStepContext;
             _currentJobStepContext = currentJobStepContext;
             _currentUserStepContext = currentUserStepContext;
+            _publishService = publishService;
         }
 
 
@@ -36,10 +41,14 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
         {
             IEnumerable<TemplateMappingItem> templateMappingItems = table.CreateSet<TemplateMappingItem>();
 
-            _publishFundingStepContext.TemplateMapping.TemplateMappingItems = templateMappingItems;
+            _publishFundingStepContext.CalculationsInMemoryClient.SetInMemoryTemplateMapping(new TemplateMapping
+            {
+                TemplateMappingItems = templateMappingItems
+            });
         }
 
         [Given(@"calculation meta data exists for '(.*)'")]
+        [SuppressMessage("ReSharper", "PossibleMultipleEnumeration")]
         public void GivenCalculationMetaDataExistsFor(string fundingStreamId, Table table)
         {
             IEnumerable<CalculationMetadata> calculationMetadata = table.CreateSet<CalculationMetadata>();
@@ -47,33 +56,47 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
             foreach (CalculationMetadata calculation in calculationMetadata)
             {
                 calculation.SpecificationId = _currentSpecificationStepContext.SpecificationId;
+                calculation.FundingStreamId = fundingStreamId;
             }
 
-            _publishFundingStepContext.CalculationMetadata = calculationMetadata.Select(_ =>
-            {
-                _.FundingStreamId = fundingStreamId;
-                return _;
-            });
+            _publishFundingStepContext.CalculationsInMemoryClient
+                .SetInMemoryCalculationMetaData(calculationMetadata);
         }
 
         [Given(@"calculations exists")]
         public void GivenCalculationsExists(Table table)
         {
-            _publishFundingStepContext.CalculationResults = table.CreateSet<CalculationResult>();
+            _publishFundingStepContext.CalculationsInMemoryRepository.SetCalculationResults(table.CreateSet<CalculationResult>());
         }
 
         [Given(@"the following distribution periods exist")]
         public void GivenTheFollowingDistributionPeriodsExist(Table table)
         {
-            _publishFundingStepContext.DistributionPeriods = table.Rows.Select(_ => new Common.ApiClient.Profiling.Models.DistributionPeriods { DistributionPeriodCode = _[0], Value = decimal.Parse(_[1]) }) ;
+            _publishFundingStepContext.ProfilingInMemoryClient.DistributionPeriods = table.Rows.Select(_ =>
+                new Common.ApiClient.Profiling.Models.DistributionPeriods
+                {
+                    DistributionPeriodCode = _[0], 
+                    Value = decimal.Parse(_[1])
+                });
         }
 
         [Given(@"the following profiles exist")]
         public void GivenTheFollowingProfilesExist(Table table)
         {
-            _publishFundingStepContext.DistributionPeriods.ToList().ForEach(_ =>
+            _publishFundingStepContext.ProfilingInMemoryClient.DistributionPeriods.ToList().ForEach(_ =>
             {
-                _publishFundingStepContext.ProfilingPeriods = table.Rows.Where(row => row[0] == _.DistributionPeriodCode).Select(row => new Common.ApiClient.Profiling.Models.ProfilingPeriod { DistributionPeriod = _.DistributionPeriodCode, Type = row[1], Period = row[2], Year = Convert.ToInt16(row[3]), Occurrence = Convert.ToInt16(row[4]), Value = decimal.Parse(row[5]) });
+                _publishFundingStepContext.ProfilingInMemoryClient.ProfilingPeriods = table.Rows.Where(row => 
+                    row[0] == _.DistributionPeriodCode)
+                    .Select(row => 
+                        new Common.ApiClient.Profiling.Models.ProfilingPeriod
+                    {
+                        DistributionPeriod = _.DistributionPeriodCode, 
+                        Type = row[1], 
+                        Period = row[2], 
+                        Year = Convert.ToInt16(row[3]), 
+                        Occurrence = Convert.ToInt16(row[4]), 
+                        Value = decimal.Parse(row[5])
+                    });
             });
         }
 
@@ -81,29 +104,14 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
         [When(@"funding is published")]
         public async Task WhenFundingIsPublished()
         {
-            try
-            {
-                await _publishFundingStepContext.PublishFunding(
-                _currentSpecificationStepContext.SpecificationId,
-                _currentJobStepContext.JobId,
-                _currentUserStepContext.UserId,
-                _currentUserStepContext.UserName);
-            }
-            catch (Exception)
-            {
-                _publishFundingStepContext.PublishSuccessful = false;
-                throw;
-            }
-            _publishFundingStepContext.PublishSuccessful = true;
+            Message message = new Message();
 
-        }
+            message.UserProperties.Add("user-id", _currentUserStepContext.UserId);
+            message.UserProperties.Add("user-name", _currentUserStepContext.UserName);
+            message.UserProperties.Add("specification-id", _currentSpecificationStepContext.SpecificationId);
+            message.UserProperties.Add("jobId", _currentJobStepContext.JobId);
 
-        [Then(@"publishing succeeds")]
-        public void ThenPublishingSucceeds()
-        {
-            _publishFundingStepContext.PublishSuccessful
-                .Should()
-                .BeTrue();
+            await _publishService.PublishResults(message);
         }
     }
 }

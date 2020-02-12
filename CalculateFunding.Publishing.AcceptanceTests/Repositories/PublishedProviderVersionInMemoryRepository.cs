@@ -5,14 +5,26 @@ using System.Threading.Tasks;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Services;
+using Gherkin.Stream;
 
 namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 {
     public class PublishedProviderVersionInMemoryRepository : IVersionRepository<PublishedProviderVersion>
     {
-        Dictionary<string, PublishedProviderVersion> _publishedProviderVersions = new Dictionary<string, PublishedProviderVersion>();
+        public Dictionary<string, PublishedProviderVersion> PublishedProviderVersions { get; } =
+            new Dictionary<string, PublishedProviderVersion>();
 
-        VersionRepository<PublishedProviderVersion> _realImplementation = new VersionRepository<PublishedProviderVersion>(new InMemoryCosmosRepository());
+        public IEnumerable<PublishedProviderVersion> UpsertedPublishedProviderVersions =>
+            PublishedProviderVersions.Values.ToReadOnlyCollection();
+
+        private readonly InMemoryCosmosRepository _inMemoryCosmosRepository = new InMemoryCosmosRepository();
+
+        private readonly VersionRepository<PublishedProviderVersion> _realImplementation;
+
+        public PublishedProviderVersionInMemoryRepository()
+        {
+            _realImplementation = new VersionRepository<PublishedProviderVersion>(_inMemoryCosmosRepository);
+        }
 
         public Task<PublishedProviderVersion> CreateVersion(PublishedProviderVersion newVersion, PublishedProviderVersion currentVersion = null, string partitionKey = null, bool incrementFromCurrentVersion = false)
         {
@@ -36,24 +48,24 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 
         public Task SaveVersion(PublishedProviderVersion newVersion)
         {
-            if (_publishedProviderVersions.ContainsKey(newVersion.Id))
+            if (PublishedProviderVersions.ContainsKey(newVersion.Id))
             {
                 throw new InvalidOperationException("Unable to save version, existing one already exists");
             }         
 
-            _publishedProviderVersions[newVersion.Id] = newVersion;
+            PublishedProviderVersions[newVersion.Id] = newVersion;
 
             return Task.FromResult(newVersion);
         }
 
         public Task SaveVersion(PublishedProviderVersion newVersion, string partitionKey)
         {
-            if (_publishedProviderVersions.ContainsKey(newVersion.Id))
+            if (PublishedProviderVersions.ContainsKey(newVersion.Id))
             {
                 throw new InvalidOperationException("Unable to save version, existing one already exists");
             }
 
-            _publishedProviderVersions[newVersion.Id] = newVersion;
+            PublishedProviderVersions[newVersion.Id] = newVersion;
 
             return Task.FromResult(newVersion);
         }
@@ -67,9 +79,9 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         {
             if (newVersions.AnyWithNullCheck())
             {
-                foreach (var version in newVersions)
+                foreach (KeyValuePair<string, PublishedProviderVersion> version in newVersions)
                 {
-                    _publishedProviderVersions[version.Key] = version.Value;
+                    PublishedProviderVersions[version.Key] = version.Value;
                 }
             }
 

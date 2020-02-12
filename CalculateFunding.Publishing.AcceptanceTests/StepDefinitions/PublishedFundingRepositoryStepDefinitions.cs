@@ -42,25 +42,53 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
         }
 
         [Given(@"the Published Provider has the following funding lines")]
-        public void GivenThePublishedProviderHasTheFollowingFundingLines(Table table)
+        public void GivenThePublishedProviderHasTheFollowingFundingLines(IEnumerable<FundingLine> fundingLines)
         {
             _publishedFundingRepositoryStepContext.CurrentPublishedProvider
                 .Should()
                 .NotBeNull();
-
-            IEnumerable<FundingLine> fundingLines = table.CreateSet<FundingLine>();
 
             _publishedFundingRepositoryStepContext.CurrentPublishedProvider.Current.FundingLines = fundingLines;
         }
 
+        [Given(@"the Published Provider '(.*)' has the following funding lines")]
+        public void GivenThePublishedProviderHasTheFollowingFundingLines(string publishedProviderId, 
+            IEnumerable<FundingLine> fundingLines)
+        {
+            PublishedProvider publishedProvider = GetPublishedProvider(publishedProviderId);
+
+            publishedProvider.Current.FundingLines =  fundingLines.ToArray();
+        }
+
+
+        [Given(@"the Published Provider '(.*)' has the following distribution period for funding line '(.*)'")]
+        public void GivenThePublishedProviderHasTheFollowingDistributionPeriodForFundingLine(string providerId, 
+            string fundingLineCode, 
+            Table table)
+        {
+            SetFundingLineOnPublishedProvider(fundingLineCode,
+                table,
+                GetPublishedProvider(providerId));
+        }
+
+
         [Given(@"the Published Provider has the following distribution period for funding line '(.*)'")]
         public void GivenThePublishedProviderHasTheFollowingDistributionPeriodForFundingLine(string fundingLineCode, Table table)
         {
-            _publishedFundingRepositoryStepContext.CurrentPublishedProvider
+            SetFundingLineOnPublishedProvider(fundingLineCode, 
+                table, 
+                _publishedFundingRepositoryStepContext.CurrentPublishedProvider);
+        }
+
+        private void SetFundingLineOnPublishedProvider(string fundingLineCode, Table table, PublishedProvider publishedProvider)
+        {
+            publishedProvider
                 .Should()
                 .NotBeNull();
 
-            FundingLine fundingLine = _publishedFundingRepositoryStepContext.CurrentPublishedProvider.Current.FundingLines.SingleOrDefault(f => f.FundingLineCode == fundingLineCode && f.Type == OrganisationGroupingReason.Payment);
+            FundingLine fundingLine =
+                publishedProvider.Current.FundingLines.SingleOrDefault(f =>
+                    f.FundingLineCode == fundingLineCode && f.Type == OrganisationGroupingReason.Payment);
             fundingLine
                 .Should()
                 .NotBeNull($"funding line should exist with code '{fundingLineCode}'");
@@ -76,14 +104,39 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
             fundingLine.DistributionPeriods = distributionPeriods;
         }
 
+        [Given(@"the Published Provider '(.*)' distribution period has the following profiles for funding line '(.*)'")]
+        public void GivenThePublishedProviderDistributionPeriodHasTheFollowingProfilesForFundingLine(string providerId, string fundingLineCode, Table table)
+        {
+            SetProfilePeriodsOnPublishedProvider(fundingLineCode,
+                table,
+                GetPublishedProvider(providerId));
+        }
+
+        private PublishedProvider GetPublishedProvider(string providerId)
+        {
+            return _publishedFundingRepositoryStepContext.Repo
+                .GetInMemoryPublishedProviders(_currentSpecificationStepContext.SpecificationId)
+                .FirstOrDefault(_ => _.Current.ProviderId == providerId);
+        }
+
+
         [Given(@"the Published Providers distribution period has the following profiles for funding line '(.*)'")]
         public void GivenThePublishedProvidersDistributionPeriodHasTheFollowingProfilesForFundingLine(string fundingLineCode, Table table)
         {
-            _publishedFundingRepositoryStepContext.CurrentPublishedProvider
+            SetProfilePeriodsOnPublishedProvider(fundingLineCode, 
+                table, 
+                _publishedFundingRepositoryStepContext.CurrentPublishedProvider);
+        }
+
+        private void SetProfilePeriodsOnPublishedProvider(string fundingLineCode, Table table, PublishedProvider publishedProvider)
+        {
+            publishedProvider
                 .Should()
                 .NotBeNull();
 
-            FundingLine fundingLine = _publishedFundingRepositoryStepContext.CurrentPublishedProvider.Current.FundingLines.SingleOrDefault(f => f.FundingLineCode == fundingLineCode && f.Type == OrganisationGroupingReason.Payment);
+            FundingLine fundingLine =
+                publishedProvider.Current.FundingLines.SingleOrDefault(f =>
+                    f.FundingLineCode == fundingLineCode && f.Type == OrganisationGroupingReason.Payment);
             fundingLine
                 .Should()
                 .NotBeNull($"funding line should exist with code '{fundingLineCode}'");
@@ -118,24 +171,27 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
                 distributionPeriod.ProfilePeriods = profilePeriodsForDistributionPeriod;
             }
 
-            _publishFundingStepContext.FundingValueProfileSplits.Add(
+            _publishFundingStepContext.ProfilingInMemoryClient.AddFundingValueProfileSplit(
                 (fundingLine.Value,
-                _publishedFundingRepositoryStepContext.CurrentPublishedProvider.Current.FundingStreamId, 
-                _publishedFundingRepositoryStepContext.CurrentPublishedProvider.Current.FundingPeriodId, 
-                fundingLine.FundingLineCode, 
-                profilePeriods.Select(_ => 
-                    new Common.ApiClient.Profiling.Models.ProfilingPeriod {
-                        DistributionPeriod = _.DistributionPeriodId,
-                        Occurrence = _.Occurrence,
-                        Type = _.TypeValue,
-                        Value = _.ProfiledValue,
-                        Year = _.Year
-                    }),
-                distributionPeriods.Values.Select(_ => 
-                    new Common.ApiClient.Profiling.Models.DistributionPeriods {
-                        DistributionPeriodCode = _.DistributionPeriodId,
-                        Value = _.Value
-                    })));
+                    publishedProvider.Current.FundingStreamId,
+                    publishedProvider.Current.FundingPeriodId,
+                    fundingLine.FundingLineCode,
+                    profilePeriods.Select(_ =>
+                        new Common.ApiClient.Profiling.Models.ProfilingPeriod
+                        {
+                            DistributionPeriod = _.DistributionPeriodId,
+                            Occurrence = _.Occurrence,
+                            Type = _.Type.ToString(),
+                            Period = _.TypeValue,
+                            Value = _.ProfiledValue,
+                            Year = _.Year
+                        }),
+                    distributionPeriods.Values.Select(_ =>
+                        new Common.ApiClient.Profiling.Models.DistributionPeriods
+                        {
+                            DistributionPeriodCode = _.DistributionPeriodId,
+                            Value = _.Value
+                        })));
         }
 
         [Given(@"the Published Provider contains the following calculation results")]
@@ -147,16 +203,28 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
 
             List<FundingCalculationTestModel> calculations = new List<FundingCalculationTestModel>(table.CreateSet<FundingCalculationTestModel>());
 
-            Console.WriteLine($"Adding a total of {calculations.Count()} calculation for provider {_publishedFundingRepositoryStepContext.CurrentPublishedProvider.Current.ProviderId}");
+            //TODO: if possible refactor out the deep method chaining (train wrecks)
 
-            _publishFundingStepContext.ProviderCalculationResults.Add(_publishedFundingRepositoryStepContext.CurrentPublishedProvider.Current.ProviderId, calculations.Select(_ => new CalculationResult { Id = _publishFundingStepContext.TemplateMapping.TemplateMappingItems.Where(t => t.TemplateId == _.TemplateCalculationId).FirstOrDefault().CalculationId, Value = _.Value }));
-            
+            _publishFundingStepContext.CalculationsInMemoryRepository.AddProviderResults(_publishedFundingRepositoryStepContext.CurrentPublishedProvider.Current.ProviderId,
+                    calculations.Select(_ =>
+                        new CalculationResult
+                        {
+                            Id = _publishFundingStepContext.CalculationsInMemoryClient.Mapping.TemplateMappingItems.FirstOrDefault(t => t.TemplateId == _.TemplateCalculationId)?.CalculationId, 
+                            Value = _.Value
+                        }).ToArray()
+                );
+
             _publishedFundingRepositoryStepContext
                 .CurrentPublishedProvider
                 .Current
                 .Calculations = calculations
-                .Select(c => new FundingCalculation() { TemplateCalculationId = c.TemplateCalculationId, Value = c.Value });
+                .Select(c => new FundingCalculation
+                {
+                    TemplateCalculationId = c.TemplateCalculationId, 
+                    Value = c.Value
+                });
         }
+
 
         [Given(@"the Published Provider has the following provider information")]
         public void GivenThePublishedProviderHasTheFollowingProviderInformation(Table table)
@@ -177,7 +245,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
             Guard.ArgumentNotNull(_publishedFundingRepositoryStepContext.CurrentPublishedProvider, nameof(_publishedFundingRepositoryStepContext.CurrentPublishedProvider));
 
             _publishedFundingRepositoryStepContext.Repo.AddPublishedProvider(_currentSpecificationStepContext.SpecificationId, _publishedFundingRepositoryStepContext.CurrentPublishedProvider);
-
+            
             _publishedFundingRepositoryStepContext.CurrentPublishedProvider = null;
         }
 

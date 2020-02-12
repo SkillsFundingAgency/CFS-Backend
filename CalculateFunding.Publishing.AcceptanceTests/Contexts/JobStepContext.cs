@@ -7,7 +7,14 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
 {
     public class JobStepContext : IJobStepContext
     {
-        public JobsInMemoryRepository InMemoryRepo { get; set; }
+        public JobStepContext(IJobsApiClient jobsClient, 
+            IJobManagement jobManagement)
+        {
+            JobsClient = jobsClient;
+            JobManagement = jobManagement;
+        }
+
+        public JobsInMemoryRepository InMemoryRepo => (JobsInMemoryRepository) JobsClient;
 
         public IJobsApiClient JobsClient { get; set; }
 

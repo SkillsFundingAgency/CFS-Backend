@@ -4,6 +4,11 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
 {
     public class LoggerStepContext : ILoggerStepContext
     {
-        public ILogger Logger { get; set; }
+        public LoggerStepContext(ILogger logger)
+        {
+            Logger = logger;
+        }
+
+        public ILogger Logger { get; }
     }
 }

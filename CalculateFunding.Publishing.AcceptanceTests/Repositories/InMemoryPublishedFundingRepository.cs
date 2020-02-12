@@ -18,9 +18,16 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         {
             _repo = inMemoryCosmosRepository;
         }
-
      
         private readonly InMemoryCosmosRepository _repo;
+
+        public IEnumerable<PublishedProvider> GetInMemoryPublishedProviders(string specificationId)
+        {
+            return _repo.PublishedProviders.TryGetValue(specificationId,
+                out ConcurrentBag<PublishedProvider> publishedProviders)
+                ? publishedProviders
+                : (IEnumerable<PublishedProvider>) new PublishedProvider[0];
+        }
 
         public Task<IEnumerable<PublishedFunding>> GetLatestPublishedFundingBySpecification(string specificationId)
         {

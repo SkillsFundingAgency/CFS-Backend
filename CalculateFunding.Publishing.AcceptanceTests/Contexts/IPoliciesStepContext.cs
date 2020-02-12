@@ -6,11 +6,13 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
 {
     public interface IPoliciesStepContext
     {
-        IPoliciesApiClient Client { get; set; }
+        IPoliciesApiClient Client { get; }
 
-        PoliciesInMemoryRepository Repo { get; set; }
+        PoliciesInMemoryRepository Repo { get; }
+
         string CreateFundingPeriodId { get; set; }
         string CreateFundingStreamId { get; set; }
+
         FundingConfiguration CreateFundingConfiguration { get; set; }
     }
 }

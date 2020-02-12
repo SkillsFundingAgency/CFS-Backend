@@ -13,7 +13,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
         [TestMethod]
         public async Task FailsPreconditionCheckIfProviderPreviouslyClosed()
         {
-            GivenTheOtherwiseValidVariationContext(_ => _.ReleasedState.Provider.Status = Variation.Closed);
+            GivenTheOtherwiseValidVariationContext(_ => _.PriorState.Provider.Status = Variation.Closed);
 
             await WhenTheVariationsAreDetermined();
 

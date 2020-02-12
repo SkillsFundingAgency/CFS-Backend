@@ -9,12 +9,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
 {
     public abstract class VariationStrategyTestBase : ProviderVariationContextTestBase
     {
-        protected void GivenTheOtherwiseValidVariationContext(Action<ProviderVariationContext> changes)
+        protected void GivenTheOtherwiseValidVariationContext(Action<ProviderVariationContext> changes = null)
         {
             VariationContext.AllPublishedProviderSnapShots = AsDictionary(new  PublishedProviderSnapShots(VariationContext.PublishedProvider));
             VariationContext.AllPublishedProvidersRefreshStates = AsDictionary(VariationContext.PublishedProvider);
             
-            changes(VariationContext);
+            changes?.Invoke(VariationContext);
         }
 
         protected void AndTheAllRefreshStateProvider(PublishedProvider publishedProvider)

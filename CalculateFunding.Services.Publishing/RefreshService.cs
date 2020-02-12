@@ -109,6 +109,7 @@ namespace CalculateFunding.Services.Publishing
             _providerExclusionCheck = providerExclusionCheck;
             _fundingLineValueOverride = fundingLineValueOverride;
             _detectProviderVariations = detectProviderVariations;
+            _applyProviderVariations = applyProviderVariations;
             _recordVariationErrors = recordVariationErrors;
             _publishedProviderIndexerService = publishedProviderIndexerService;
 
@@ -307,17 +308,9 @@ namespace CalculateFunding.Services.Publishing
                         specification.TemplateIds[fundingStream.Id],
                         newProviders.ContainsKey(publishedProvider.Key));
                     
-                    //if its not in the existing published providers (according to Dans notes)
-                    //we create a new published provider - which we already have in this method so I surely just grab it from the
-                    //the list of new newProviders
                     if (publishedProviderUpdated &&
                         shouldRunVariations)
                     {
-                        //if we changed the published provider we need to make a new deep copy in the all list
-                        //so that the variation changes have access to the latest
-                        //funding numbers from the calc run (as they may differ) e.g. for merging we need
-                        //to take funding that we zeroed in closed providers profile periods and use that in 
-                        //a new provider. 
                         allPublishedProviderDeepCopies[publishedProvider.Key].AddRefreshedSnapshot(publishedProvider.Value);
                         
                         ProviderVariationContext variationContext = await _detectProviderVariations.CreateRequiredVariationChanges(publishedProvider.Value,
@@ -327,7 +320,7 @@ namespace CalculateFunding.Services.Publishing
                             allPublishedProviderDeepCopies,
                             publishedProviders);
 
-                        if (variationContext.Result.HasProviderBeenVaried)
+                        if (variationContext.HasVariationChanges)
                         {
                             _applyProviderVariations.AddVariationContext(variationContext);
                         }

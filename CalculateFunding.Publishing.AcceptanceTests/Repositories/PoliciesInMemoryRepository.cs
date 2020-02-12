@@ -20,28 +20,28 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
     {
         private readonly ILogger _logger;
         private readonly Dictionary<string, FundingConfiguration> _fundingConfigurations = new Dictionary<string, FundingConfiguration>();
-        private Dictionary<string, FundingPeriod> _fundingPeriods = new Dictionary<string, FundingPeriod>();
+        private readonly Dictionary<string, FundingPeriod> _fundingPeriods = new Dictionary<string, FundingPeriod>();
 
         public PoliciesInMemoryRepository(ILogger logger)
         {
             _logger = logger;
         }
 
+        public void SetFundingConfiguration(string fundingStreamId, string fundingPeriodId,
+            FundingConfiguration fundingConfiguration)
+        {
+            _fundingConfigurations[$"{fundingStreamId}-{fundingPeriodId}"] = fundingConfiguration;
+        }
+
         public Task<ApiResponse<FundingConfiguration>> GetFundingConfiguration(string fundingStreamId, string fundingPeriodId)
         {
             string fundingConfigurationKey = $"{fundingStreamId}-{fundingPeriodId}";
 
-            FundingConfiguration fundingConfiguration;
-            _fundingConfigurations.TryGetValue(fundingConfigurationKey, out fundingConfiguration);
+            _fundingConfigurations.TryGetValue(fundingConfigurationKey, out FundingConfiguration fundingConfiguration);
 
-            if (fundingConfiguration == null)
-            {
-                return Task.FromResult(new ApiResponse<FundingConfiguration>(System.Net.HttpStatusCode.NotFound));
-            }
-            else
-            {
-                return Task.FromResult(new ApiResponse<FundingConfiguration>(System.Net.HttpStatusCode.OK, fundingConfiguration));
-            }
+            return Task.FromResult(fundingConfiguration == null ? 
+                new ApiResponse<FundingConfiguration>(System.Net.HttpStatusCode.NotFound) : 
+                new ApiResponse<FundingConfiguration>(System.Net.HttpStatusCode.OK, fundingConfiguration));
         }
 
         public Task<ApiResponse<FundingPeriod>> GetFundingPeriodById(string fundingPeriodId)

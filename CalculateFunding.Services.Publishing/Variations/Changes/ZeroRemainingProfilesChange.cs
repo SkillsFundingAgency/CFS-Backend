@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Models.Publishing;
-using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Models;
 
 namespace CalculateFunding.Services.Publishing.Variations.Changes

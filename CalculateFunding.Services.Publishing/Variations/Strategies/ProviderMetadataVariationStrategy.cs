@@ -5,6 +5,7 @@ using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
+using CalculateFunding.Services.Publishing.Variations.Changes;
 using ApiProvider = CalculateFunding.Common.ApiClient.Providers.Models.Provider;
 using PublishingProvider = CalculateFunding.Models.Publishing.Provider;
 
@@ -71,6 +72,11 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
             foreach (VariationCheck variationCheck in VariationChecks)
             {
                 variationCheck.Run(providerVariationContext);
+            }
+
+            if (providerVariationContext.Result.VariationReasons.AnyWithNullCheck())
+            {
+                providerVariationContext.QueueVariationChange(new MetaDataVariationsChange(providerVariationContext));
             }
 
             return Task.CompletedTask;

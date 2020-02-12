@@ -127,6 +127,13 @@ Scenario Outline: Successful approve of funding
 		| DistributionPeriodId | Type          | TypeValue | Year | Occurrence | ProfiledValue |
 		| FY-1920              | CalendarMonth | October   | 1920 | 1          | 7000          |
 		| FY-2021              | CalendarMonth | April     | 2021 | 1          | 5000          |
+	And template mapping exists
+		| EntityType  | CalculationId | TemplateId | Name				|
+		| Calculation | calculation1 | 2		  | Total Allocation	|
+		| Calculation | calculation2 | 3		  | Eligible Pupils		|
+		| Calculation | calculation3 | 4	      | Pupil rate threshold|
+		| Calculation | calculation4 | 5		  | Rate				|
+		| Calculation | calculation5 | 6		  | Additional Rate		|
 	And the Published Provider contains the following calculation results
 		| TemplateCalculationId | Value |
 		| 2                     | 12000 |
@@ -1503,13 +1510,6 @@ Scenario Outline: Successful approve of funding
 		| URN                           |                          |
 		| WardCode                      |                          |
 		| WardName                      |                          |
-	And template mapping exists
-		| EntityType  | CalculationId | TemplateId | Name				|
-		| Calculation | calculation1 | 2		  | Total Allocation	|
-		| Calculation | calculation2 | 3		  | Eligible Pupils		|
-		| Calculation | calculation3 | 4	      | Pupil rate threshold|
-		| Calculation | calculation4 | 5		  | Rate				|
-		| Calculation | calculation5 | 6		  | Additional Rate		|
 	And calculations exists
 		| Value         | Id			   |
 		| 24000         | calculation1	   |
@@ -1519,8 +1519,7 @@ Scenario Outline: Successful approve of funding
 		| 20			| calculation5	   |
 
 	When funding is approved
-	Then approve funding succeeds	
-	And the following published provider ids are upserted
+	Then the following published provider ids are upserted
 		| PublishedProviderId                                           | Status  |
 		| publishedprovider-1000000-<FundingPeriodId>-<FundingStreamId> | Approved|
 		| publishedprovider-1000002-<FundingPeriodId>-<FundingStreamId> | Approved|				

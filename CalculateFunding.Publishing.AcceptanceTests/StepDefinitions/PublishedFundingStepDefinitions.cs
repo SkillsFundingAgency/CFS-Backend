@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Extensions;
 using CalculateFunding.Common.Utility;
@@ -9,6 +8,7 @@ using CalculateFunding.Models.Publishing;
 using CalculateFunding.Publishing.AcceptanceTests.Contexts;
 using CalculateFunding.Publishing.AcceptanceTests.Models;
 using CalculateFunding.Publishing.AcceptanceTests.Properties;
+using CalculateFunding.Publishing.AcceptanceTests.Repositories;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Newtonsoft.Json;
@@ -96,9 +96,12 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
                 expectedPublishedProviderIds.Add((table.Rows[i][0], table.Rows[i][1].AsEnum<PublishedProviderStatus>()));
             }
 
-            publishedProviders
+            (string Id, PublishedProviderStatus Status)[] actualProviderIdsAndStatus = publishedProviders
                 .Select(_ => (_.Id, _.Current.Status))
                 .OrderBy(_ => _.Id)
+                .ToArray();
+
+            actualProviderIdsAndStatus
                 .Should()
                 .BeEquivalentTo(expectedPublishedProviderIds);
 
@@ -109,18 +112,25 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
                 .Should()
                 .BeNull();
 
+            CalculationInMemoryRepository calculationsInMemoryRepository = _publishFundingStepContext.CalculationsInMemoryRepository;
 
+            IDictionary<string, IEnumerable<CalculationResult>> providerCalculationResults = calculationsInMemoryRepository.ProviderResults;
+
+            //TODO: remove the deep chaining
             publishedProviders
                 .ToList().ForEach(_ =>
                 {
                     _.Current.Calculations.Select(calc => new CalculationResult
                     {
-                        Id = _publishFundingStepContext.TemplateMapping.TemplateMappingItems.Where(cm => cm.TemplateId == calc.TemplateCalculationId).FirstOrDefault().CalculationId,
+                        Id = _publishFundingStepContext.CalculationsInMemoryClient.Mapping.TemplateMappingItems.FirstOrDefault(cm => cm.TemplateId == calc.TemplateCalculationId)?.CalculationId,
                         Value = decimal.Parse(calc.Value.ToString())
                     })
                     .Should()
-                    .BeEquivalentTo(_publishFundingStepContext.ProviderCalculationResults.ContainsKey(_.Current.ProviderId) ? _publishFundingStepContext.ProviderCalculationResults[_.Current.ProviderId] : _publishFundingStepContext.CalculationResults);
+                    .BeEquivalentTo(providerCalculationResults.ContainsKey(_.Current.ProviderId) ? 
+                        providerCalculationResults[_.Current.ProviderId] : 
+                        calculationsInMemoryRepository.Results);
                 });
+            //TODO: replace the branching in an assertion with a different step definition
         }
 
         [Then(@"the following released published provider ids are upserted")]
@@ -131,9 +141,9 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
 
             List<(string, PublishedProviderStatus)> expectedPublishedProviderIds = new List<(string, PublishedProviderStatus)>();
 
-            for (int i = 0; i < table.Rows.Count; i++)
+            foreach (var row in table.Rows)
             {
-                expectedPublishedProviderIds.Add((table.Rows[i][0], table.Rows[i][1].AsEnum<PublishedProviderStatus>()));
+                expectedPublishedProviderIds.Add((row[0], row[1].AsEnum<PublishedProviderStatus>()));
             }
 
             publishedProviders
@@ -158,16 +168,18 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
             IEnumerable<PublishedProvider> publishedProviders = await _publishedFundingRepositoryStepContext.Repo
                 .GetLatestPublishedProvidersBySpecification(_currentSpecificationStepContext.SpecificationId);
             
-            IEnumerable<(string FundingLineCode, decimal? Value)> fundingLines = table.Rows.Select(_ => (_[0], (decimal?)decimal.Parse(_[1])));
+            IEnumerable<(string FundingLineCode, decimal? Value)> expectedFundingLines = table.Rows.Select(_ => (_[0], (decimal?)decimal.Parse(_[1])));
 
-            publishedProviders.FirstOrDefault(_ => _.Current.ProviderId == providerId).Current.FundingLines.Select(_ => {
-                _.DistributionPeriods.Sum(dp => dp.Value)
-                    .Should()
-                    .Be(_.Value);
-                return (_.FundingLineCode, _.Value);
-            })
+            IEnumerable<(string FundingLineCode, decimal? Value)> actualFundingLines 
+                = publishedProviders.FirstOrDefault(_ => _.Current.ProviderId == providerId)?.Current.FundingLines.Select(_ => (_.FundingLineCode, _.Value));
+
+            actualFundingLines
+                .Should()
+                .NotBeNullOrEmpty();
+
+            actualFundingLines
             .Should()
-            .BeEquivalentTo(fundingLines);
+            .BeEquivalentTo(expectedFundingLines);
         }
 
         [Then(@"the total funding is '(.*)'")]

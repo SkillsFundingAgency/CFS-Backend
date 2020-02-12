@@ -6,8 +6,6 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
-using CalculateFunding.Common.Extensions;
-using CalculateFunding.Services.Core;
 
 namespace System
 {
@@ -23,6 +21,26 @@ namespace System
 
                 return string.Concat(hash.Select(_ => _.ToString("X2")));
             }
+        }
+
+        public static int AsInt(this string literal)
+        {
+            if (literal.IsNullOrWhitespace())
+            {
+                throw new ArgumentOutOfRangeException(nameof(literal));
+            }
+
+            return Convert.ToInt32(literal);
+        }
+
+        public static decimal AsDecimal(this string literal)
+        {
+            if (literal.IsNullOrWhitespace())
+            {
+                throw new ArgumentOutOfRangeException(nameof(literal));
+            }
+
+            return Convert.ToDecimal(literal);
         }
         
         public static string ConvertExpotentialNumber(this string text, string replaceWith = "0")

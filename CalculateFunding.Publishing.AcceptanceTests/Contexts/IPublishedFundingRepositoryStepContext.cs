@@ -6,11 +6,12 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
 {
     public interface IPublishedFundingRepositoryStepContext
     {
-        InMemoryPublishedFundingRepository Repo { get; set; }
+        InMemoryPublishedFundingRepository Repo { get; }
+
         PublishedProvider CurrentPublishedProvider { get; set; }
 
-        ICosmosRepository CosmosRepo { get; set; }
+        ICosmosRepository CosmosRepo { get; }
 
-        InMemoryBlobClient BlobRepo { get; set; }
+        InMemoryBlobClient BlobRepo { get; }
     }
 }

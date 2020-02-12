@@ -127,6 +127,13 @@ Scenario Outline: Successful publishing of funding
 		| DistributionPeriodId | Type          | TypeValue | Year | Occurrence | ProfiledValue |
 		| FY-1920              | CalendarMonth | October   | 1920 | 1          | 7000          |
 		| FY-2021              | CalendarMonth | April     | 2021 | 1          | 5000          |
+	And template mapping exists
+		| EntityType  | CalculationId | TemplateId | Name                 |
+		| Calculation | calculation1  | 2          | Total Allocation     |
+		| Calculation | calculation2  | 3          | Eligible Pupils      |
+		| Calculation | calculation3  | 4          | Pupil rate threshold |
+		| Calculation | calculation4  | 5          | Rate                 |
+		| Calculation | calculation5  | 6          | Additional Rate      |
 	And the Published Provider contains the following calculation results
 		| TemplateCalculationId | Value |
 		| 2                     | 12000 |
@@ -139,52 +146,14 @@ Scenario Outline: Successful publishing of funding
 		| ProviderId                    | 1000000                  |
 		| Name                          | Maintained School 1      |
 		| Authority                     | Local Authority 1        |
-		| CensusWardCode                |                          |
-		| CensusWardName                |                          |
-		| CompaniesHouseNumber          |                          |
-		| CountryCode                   |                          |
-		| CountryName                   |                          |
-		| CrmAccountId                  |                          |
-		| DateClosed                    |                          |
 		| DateOpened                    | 2012-03-15               |
-		| DfeEstablishmentNumber        |                          |
-		| DistrictCode                  |                          |
-		| DistrictName                  |                          |
-		| EstablishmentNumber           |                          |
-		| GovernmentOfficeRegionCode    |                          |
-		| GovernmentOfficeRegionName    |                          |
-		| GroupIdNumber                 |                          |
 		| LACode                        | 200                      |
-		| LegalName                     |                          |
 		| LocalAuthorityName            | Maintained School 1      |
-		| LowerSuperOutputAreaCode      |                          |
-		| LowerSuperOutputAreaName      |                          |
-		| MiddleSuperOutputAreaCode     |                          |
-		| MiddleSuperOutputAreaName     |                          |
-		| NavVendorNo                   |                          |
-		| ParliamentaryConstituencyCode |                          |
-		| ParliamentaryConstituencyName |                          |
-		| PhaseOfEducation              |                          |
-		| Postcode                      |                          |
-		| ProviderProfileIdType         |                          |
 		| ProviderType                  | LA maintained schools    |
 		| ProviderSubType               | Community school         |
 		| ProviderVersionId             | <ProviderVersionId>      |
-		| ReasonEstablishmentClosed     |                          |
-		| ReasonEstablishmentOpened     |                          |
-		| RscRegionCode                 |                          |
-		| RscRegionName                 |                          |
-		| Status                        |                          |
-		| Successor                     |                          |
-		| Town                          |                          |
-		| TrustCode                     |                          |
-		| TrustName                     |                          |
 		| TrustStatus                   | Not Supported By A Trust |
 		| UKPRN                         | 1000000                  |
-		| UPIN                          |                          |
-		| URN                           |                          |
-		| WardCode                      |                          |
-		| WardName                      |                          |
 	And the Published Provider is available in the repository for this specification
 	And the following Published Provider has been previously generated for the current specification
 		| Field           | Value             |
@@ -219,52 +188,14 @@ Scenario Outline: Successful publishing of funding
 		| ProviderId                    | 1000002                  |
 		| Name                          | Maintained School 2      |
 		| Authority                     | Local Authority 1        |
-		| CensusWardCode                |                          |
-		| CensusWardName                |                          |
-		| CompaniesHouseNumber          |                          |
-		| CountryCode                   |                          |
-		| CountryName                   |                          |
-		| CrmAccountId                  |                          |
-		| DateClosed                    |                          |
 		| DateOpened                    | 2013-04-16               |
-		| DfeEstablishmentNumber        |                          |
-		| DistrictCode                  |                          |
-		| DistrictName                  |                          |
-		| EstablishmentNumber           |                          |
-		| GovernmentOfficeRegionCode    |                          |
-		| GovernmentOfficeRegionName    |                          |
-		| GroupIdNumber                 |                          |
 		| LACode                        | 200                      |
-		| LegalName                     |                          |
 		| LocalAuthorityName            | Local Authority 1        |
-		| LowerSuperOutputAreaCode      |                          |
-		| LowerSuperOutputAreaName      |                          |
-		| MiddleSuperOutputAreaCode     |                          |
-		| MiddleSuperOutputAreaName     |                          |
-		| NavVendorNo                   |                          |
-		| ParliamentaryConstituencyCode |                          |
-		| ParliamentaryConstituencyName |                          |
-		| PhaseOfEducation              |                          |
-		| Postcode                      |                          |
-		| ProviderProfileIdType         |                          |
 		| ProviderType                  | LA maintained schools    |
 		| ProviderSubType               | Community school         |
 		| ProviderVersionId             | <ProviderVersionId>      |
-		| ReasonEstablishmentClosed     |                          |
-		| ReasonEstablishmentOpened     |                          |
-		| RscRegionCode                 |                          |
-		| RscRegionName                 |                          |
-		| Status                        |                          |
-		| Successor                     |                          |
-		| Town                          |                          |
-		| TrustCode                     |                          |
-		| TrustName                     |                          |
 		| TrustStatus                   | Not Supported By A Trust |
 		| UKPRN                         | 1000002                  |
-		| UPIN                          |                          |
-		| URN                           |                          |
-		| WardCode                      |                          |
-		| WardName                      |                          |
 	And the Published Provider is available in the repository for this specification
 	# PublishedProviders - Academy Trusts
 	And the following Published Provider has been previously generated for the current specification
@@ -300,52 +231,15 @@ Scenario Outline: Successful publishing of funding
 		| ProviderId                    | 1000101                       |
 		| Name                          | Academy 1                     |
 		| Authority                     | Local Authority 1             |
-		| CensusWardCode                |                               |
-		| CensusWardName                |                               |
-		| CompaniesHouseNumber          |                               |
-		| CountryCode                   |                               |
-		| CountryName                   |                               |
-		| CrmAccountId                  |                               |
-		| DateClosed                    |                               |
 		| DateOpened                    | 2013-04-16                    |
-		| DfeEstablishmentNumber        |                               |
-		| DistrictCode                  |                               |
-		| DistrictName                  |                               |
-		| EstablishmentNumber           |                               |
-		| GovernmentOfficeRegionCode    |                               |
-		| GovernmentOfficeRegionName    |                               |
-		| GroupIdNumber                 |                               |
 		| LACode                        | 200                           |
-		| LegalName                     |                               |
 		| LocalAuthorityName            | Local Authority 1             |
-		| LowerSuperOutputAreaCode      |                               |
-		| LowerSuperOutputAreaName      |                               |
-		| MiddleSuperOutputAreaCode     |                               |
-		| MiddleSuperOutputAreaName     |                               |
-		| NavVendorNo                   |                               |
-		| ParliamentaryConstituencyCode |                               |
-		| ParliamentaryConstituencyName |                               |
-		| PhaseOfEducation              |                               |
-		| Postcode                      |                               |
-		| ProviderProfileIdType         |                               |
 		| ProviderType                  | Academies                     |
 		| ProviderSubType               | Academy special sponsor led   |
 		| ProviderVersionId             | <ProviderVersionId>           |
-		| ReasonEstablishmentClosed     |                               |
-		| ReasonEstablishmentOpened     |                               |
-		| RscRegionCode                 |                               |
-		| RscRegionName                 |                               |
-		| Status                        |                               |
-		| Successor                     |                               |
-		| Town                          |                               |
 		| TrustCode                     | 1001                          |
-		| TrustName                     |                               |
 		| TrustStatus                   | SupportedByAMultiAcademyTrust |
 		| UKPRN                         | 1000101                       |
-		| UPIN                          |                               |
-		| URN                           |                               |
-		| WardCode                      |                               |
-		| WardName                      |                               |
 	And the Published Provider is available in the repository for this specification
 	And the following Published Provider has been previously generated for the current specification
 		| Field           | Value             |
@@ -380,52 +274,15 @@ Scenario Outline: Successful publishing of funding
 		| ProviderId                    | 1000102                       |
 		| Name                          | Academy 2                     |
 		| Authority                     | Local Authority 1             |
-		| CensusWardCode                |                               |
-		| CensusWardName                |                               |
-		| CompaniesHouseNumber          |                               |
-		| CountryCode                   |                               |
-		| CountryName                   |                               |
-		| CrmAccountId                  |                               |
-		| DateClosed                    |                               |
 		| DateOpened                    | 2013-04-16                    |
-		| DfeEstablishmentNumber        |                               |
-		| DistrictCode                  |                               |
-		| DistrictName                  |                               |
-		| EstablishmentNumber           |                               |
-		| GovernmentOfficeRegionCode    |                               |
-		| GovernmentOfficeRegionName    |                               |
-		| GroupIdNumber                 |                               |
 		| LACode                        | 400                           |
-		| LegalName                     |                               |
 		| LocalAuthorityName            | Local Authority 1             |
-		| LowerSuperOutputAreaCode      |                               |
-		| LowerSuperOutputAreaName      |                               |
-		| MiddleSuperOutputAreaCode     |                               |
-		| MiddleSuperOutputAreaName     |                               |
-		| NavVendorNo                   |                               |
-		| ParliamentaryConstituencyCode |                               |
-		| ParliamentaryConstituencyName |                               |
-		| PhaseOfEducation              |                               |
-		| Postcode                      |                               |
-		| ProviderProfileIdType         |                               |
 		| ProviderType                  | Academies                     |
 		| ProviderSubType               | Academy special sponsor led   |
 		| ProviderVersionId             | <ProviderVersionId>           |
-		| ReasonEstablishmentClosed     |                               |
-		| ReasonEstablishmentOpened     |                               |
-		| RscRegionCode                 |                               |
-		| RscRegionName                 |                               |
-		| Status                        |                               |
-		| Successor                     |                               |
-		| Town                          |                               |
 		| TrustCode                     | 1001                          |
-		| TrustName                     |                               |
 		| TrustStatus                   | SupportedByAMultiAcademyTrust |
 		| UKPRN                         | 1000102                       |
-		| UPIN                          |                               |
-		| URN                           |                               |
-		| WardCode                      |                               |
-		| WardName                      |                               |
 	And the Published Provider is available in the repository for this specification
 	# PublishedProviders - Providers - Non-maintained special school
 	And the following Published Provider has been previously generated for the current specification
@@ -462,52 +319,15 @@ Scenario Outline: Successful publishing of funding
 		| ProviderId                    | 1000201                       |
 		| Name                          | Non-Maintained School 1       |
 		| Authority                     | Local Authority 1             |
-		| CensusWardCode                |                               |
-		| CensusWardName                |                               |
-		| CompaniesHouseNumber          |                               |
-		| CountryCode                   |                               |
-		| CountryName                   |                               |
-		| CrmAccountId                  |                               |
-		| DateClosed                    |                               |
 		| DateOpened                    | 2013-04-16                    |
-		| DfeEstablishmentNumber        |                               |
-		| DistrictCode                  |                               |
-		| DistrictName                  |                               |
-		| EstablishmentNumber           |                               |
-		| GovernmentOfficeRegionCode    |                               |
-		| GovernmentOfficeRegionName    |                               |
-		| GroupIdNumber                 |                               |
 		| LACode                        | 200                           |
-		| LegalName                     |                               |
 		| LocalAuthorityName            | Local Authority 1             |
-		| LowerSuperOutputAreaCode      |                               |
-		| LowerSuperOutputAreaName      |                               |
-		| MiddleSuperOutputAreaCode     |                               |
-		| MiddleSuperOutputAreaName     |                               |
-		| NavVendorNo                   |                               |
-		| ParliamentaryConstituencyCode |                               |
-		| ParliamentaryConstituencyName |                               |
-		| PhaseOfEducation              |                               |
-		| Postcode                      |                               |
-		| ProviderProfileIdType         |                               |
 		| ProviderType                  | Special schools               |
 		| ProviderSubType               | Non-maintained special school |
 		| ProviderVersionId             | <ProviderVersionId>           |
-		| ReasonEstablishmentClosed     |                               |
-		| ReasonEstablishmentOpened     |                               |
-		| RscRegionCode                 |                               |
-		| RscRegionName                 |                               |
-		| Status                        |                               |
-		| Successor                     |                               |
-		| Town                          |                               |
 		| TrustCode                     | 1001                          |
-		| TrustName                     |                               |
 		| TrustStatus                   | SupportedByAMultiAcademyTrust |
 		| UKPRN                         | 1000201                       |
-		| UPIN                          |                               |
-		| URN                           |                               |
-		| WardCode                      |                               |
-		| WardName                      |                               |
 	And the Published Provider is available in the repository for this specification
 	And the following Published Provider has been previously generated for the current specification
 		| Field           | Value             |
@@ -542,52 +362,15 @@ Scenario Outline: Successful publishing of funding
 		| ProviderId                    | 1000202                       |
 		| Name                          | Non-Maintained School 1       |
 		| Authority                     | Local Authority 1             |
-		| CensusWardCode                |                               |
-		| CensusWardName                |                               |
-		| CompaniesHouseNumber          |                               |
-		| CountryCode                   |                               |
-		| CountryName                   |                               |
-		| CrmAccountId                  |                               |
-		| DateClosed                    |                               |
 		| DateOpened                    | 2013-04-16                    |
-		| DfeEstablishmentNumber        |                               |
-		| DistrictCode                  |                               |
-		| DistrictName                  |                               |
-		| EstablishmentNumber           |                               |
-		| GovernmentOfficeRegionCode    |                               |
-		| GovernmentOfficeRegionName    |                               |
-		| GroupIdNumber                 |                               |
 		| LACode                        | 200                           |
-		| LegalName                     |                               |
 		| LocalAuthorityName            | Local Authority 1             |
-		| LowerSuperOutputAreaCode      |                               |
-		| LowerSuperOutputAreaName      |                               |
-		| MiddleSuperOutputAreaCode     |                               |
-		| MiddleSuperOutputAreaName     |                               |
-		| NavVendorNo                   |                               |
-		| ParliamentaryConstituencyCode |                               |
-		| ParliamentaryConstituencyName |                               |
-		| PhaseOfEducation              |                               |
-		| Postcode                      |                               |
-		| ProviderProfileIdType         |                               |
 		| ProviderType                  | Special schools               |
 		| ProviderSubType               | Non-maintained special school |
 		| ProviderVersionId             | <ProviderVersionId>           |
-		| ReasonEstablishmentClosed     |                               |
-		| ReasonEstablishmentOpened     |                               |
-		| RscRegionCode                 |                               |
-		| RscRegionName                 |                               |
-		| Status                        |                               |
-		| Successor                     |                               |
-		| Town                          |                               |
 		| TrustCode                     | 1001                          |
-		| TrustName                     |                               |
 		| TrustStatus                   | SupportedByAMultiAcademyTrust |
 		| UKPRN                         | 1000202                       |
-		| UPIN                          |                               |
-		| URN                           |                               |
-		| WardCode                      |                               |
-		| WardName                      |                               |
 	And the Published Provider is available in the repository for this specification
 	# Maintained schools in Core Provider Data
 	And the following provider exists within core provider data in provider version '<ProviderVersionId>'
@@ -595,312 +378,84 @@ Scenario Outline: Successful publishing of funding
 		| ProviderId                    | 1000000                  |
 		| Name                          | Maintained School 1      |
 		| Authority                     | Local Authority 1        |
-		| CensusWardCode                |                          |
-		| CensusWardName                |                          |
-		| CompaniesHouseNumber          |                          |
-		| CountryCode                   |                          |
-		| CountryName                   |                          |
-		| CrmAccountId                  |                          |
-		| DateClosed                    |                          |
 		| DateOpened                    | 2012-03-15               |
-		| DfeEstablishmentNumber        |                          |
-		| DistrictCode                  |                          |
-		| DistrictName                  |                          |
-		| EstablishmentNumber           |                          |
-		| GovernmentOfficeRegionCode    |                          |
-		| GovernmentOfficeRegionName    |                          |
-		| GroupIdNumber                 |                          |
 		| LACode                        | 200                      |
-		| LegalName                     |                          |
 		| LocalAuthorityName            | Maintained School 1      |
-		| LowerSuperOutputAreaCode      |                          |
-		| LowerSuperOutputAreaName      |                          |
-		| MiddleSuperOutputAreaCode     |                          |
-		| MiddleSuperOutputAreaName     |                          |
-		| NavVendorNo                   |                          |
-		| ParliamentaryConstituencyCode |                          |
-		| ParliamentaryConstituencyName |                          |
-		| PhaseOfEducation              |                          |
-		| Postcode                      |                          |
-		| ProviderProfileIdType         |                          |
 		| ProviderType                  | LA maintained schools    |
 		| ProviderSubType               | Community school         |
 		| ProviderVersionId             | <ProviderVersionId>      |
-		| ReasonEstablishmentClosed     |                          |
-		| ReasonEstablishmentOpened     |                          |
-		| RscRegionCode                 |                          |
-		| RscRegionName                 |                          |
-		| Status                        |                          |
-		| Successor                     |                          |
-		| Town                          |                          |
-		| TrustCode                     |                          |
-		| TrustName                     |                          |
 		| TrustStatus                   | Not Supported By A Trust |
 		| UKPRN                         | 1000000                  |
-		| UPIN                          |                          |
-		| URN                           |                          |
-		| WardCode                      |                          |
-		| WardName                      |                          |
 	And the provider with id '1000000' should be a scoped provider in the current specification in provider version '<ProviderVersionId>'
 	And the following provider exists within core provider data in provider version '<ProviderVersionId>'
 		| Field                         | Value                    |
 		| ProviderId                    | 1000002                  |
 		| Name                          | Maintained School 2      |
 		| Authority                     | Local Authority 1        |
-		| CensusWardCode                |                          |
-		| CensusWardName                |                          |
-		| CompaniesHouseNumber          |                          |
-		| CountryCode                   |                          |
-		| CountryName                   |                          |
-		| CrmAccountId                  |                          |
-		| DateClosed                    |                          |
 		| DateOpened                    | 2013-04-16               |
-		| DfeEstablishmentNumber        |                          |
-		| DistrictCode                  |                          |
-		| DistrictName                  |                          |
-		| EstablishmentNumber           |                          |
-		| GovernmentOfficeRegionCode    |                          |
-		| GovernmentOfficeRegionName    |                          |
-		| GroupIdNumber                 |                          |
 		| LACode                        | 200                      |
-		| LegalName                     |                          |
 		| LocalAuthorityName            | Local Authority 1        |
-		| LowerSuperOutputAreaCode      |                          |
-		| LowerSuperOutputAreaName      |                          |
-		| MiddleSuperOutputAreaCode     |                          |
-		| MiddleSuperOutputAreaName     |                          |
-		| NavVendorNo                   |                          |
-		| ParliamentaryConstituencyCode |                          |
-		| ParliamentaryConstituencyName |                          |
-		| PhaseOfEducation              |                          |
-		| Postcode                      |                          |
-		| ProviderProfileIdType         |                          |
 		| ProviderType                  | LA maintained schools    |
 		| ProviderSubType               | Community school         |
 		| ProviderVersionId             | <ProviderVersionId>      |
-		| ReasonEstablishmentClosed     |                          |
-		| ReasonEstablishmentOpened     |                          |
-		| RscRegionCode                 |                          |
-		| RscRegionName                 |                          |
-		| Status                        |                          |
-		| Successor                     |                          |
-		| Town                          |                          |
-		| TrustCode                     |                          |
-		| TrustName                     |                          |
 		| TrustStatus                   | Not Supported By A Trust |
 		| UKPRN                         | 1000002                  |
-		| UPIN                          |                          |
-		| URN                           |                          |
-		| WardCode                      |                          |
-		| WardName                      |                          |
 	And the provider with id '1000002' should be a scoped provider in the current specification in provider version '<ProviderVersionId>'
 	And the following provider exists within core provider data in provider version '<ProviderVersionId>'
 		| Field                         | Value                    |
 		| ProviderId                    | 1000003                  |
 		| Name                          | Maintained School 3      |
 		| Authority                     | Local Authority 1        |
-		| CensusWardCode                |                          |
-		| CensusWardName                |                          |
-		| CompaniesHouseNumber          |                          |
-		| CountryCode                   |                          |
-		| CountryName                   |                          |
-		| CrmAccountId                  |                          |
-		| DateClosed                    |                          |
 		| DateOpened                    | 2013-04-16               |
-		| DfeEstablishmentNumber        |                          |
-		| DistrictCode                  |                          |
-		| DistrictName                  |                          |
-		| EstablishmentNumber           |                          |
-		| GovernmentOfficeRegionCode    |                          |
-		| GovernmentOfficeRegionName    |                          |
-		| GroupIdNumber                 |                          |
 		| LACode                        | 200                      |
-		| LegalName                     |                          |
 		| LocalAuthorityName            | Local Authority 1        |
-		| LowerSuperOutputAreaCode      |                          |
-		| LowerSuperOutputAreaName      |                          |
-		| MiddleSuperOutputAreaCode     |                          |
-		| MiddleSuperOutputAreaName     |                          |
-		| NavVendorNo                   |                          |
-		| ParliamentaryConstituencyCode |                          |
-		| ParliamentaryConstituencyName |                          |
-		| PhaseOfEducation              |                          |
-		| Postcode                      |                          |
-		| ProviderProfileIdType         |                          |
 		| ProviderType                  | LA maintained schools    |
 		| ProviderSubType               | Community school         |
 		| ProviderVersionId             | <ProviderVersionId>      |
-		| ReasonEstablishmentClosed     |                          |
-		| ReasonEstablishmentOpened     |                          |
-		| RscRegionCode                 |                          |
-		| RscRegionName                 |                          |
-		| Status                        |                          |
-		| Successor                     |                          |
-		| Town                          |                          |
-		| TrustCode                     |                          |
-		| TrustName                     |                          |
 		| TrustStatus                   | Not Supported By A Trust |
 		| UKPRN                         | 1000003                  |
-		| UPIN                          |                          |
-		| URN                           |                          |
-		| WardCode                      |                          |
-		| WardName                      |                          |
 	And the provider with id '1000003' should be a scoped provider in the current specification in provider version '<ProviderVersionId>'
 	And the following provider exists within core provider data in provider version '<ProviderVersionId>'
 		| Field                         | Value                    |
 		| ProviderId                    | 1000004                  |
 		| Name                          | Maintained School 4      |
 		| Authority                     | Local Authority 2        |
-		| CensusWardCode                |                          |
-		| CensusWardName                |                          |
-		| CompaniesHouseNumber          |                          |
-		| CountryCode                   |                          |
-		| CountryName                   |                          |
-		| CrmAccountId                  |                          |
-		| DateClosed                    |                          |
 		| DateOpened                    | 2013-04-16               |
-		| DfeEstablishmentNumber        |                          |
-		| DistrictCode                  |                          |
-		| DistrictName                  |                          |
-		| EstablishmentNumber           |                          |
-		| GovernmentOfficeRegionCode    |                          |
-		| GovernmentOfficeRegionName    |                          |
-		| GroupIdNumber                 |                          |
 		| LACode                        | 202                      |
-		| LegalName                     |                          |
 		| LocalAuthorityName            | Local Authority 2        |
-		| LowerSuperOutputAreaCode      |                          |
-		| LowerSuperOutputAreaName      |                          |
-		| MiddleSuperOutputAreaCode     |                          |
-		| MiddleSuperOutputAreaName     |                          |
-		| NavVendorNo                   |                          |
-		| ParliamentaryConstituencyCode |                          |
-		| ParliamentaryConstituencyName |                          |
-		| PhaseOfEducation              |                          |
-		| Postcode                      |                          |
-		| ProviderProfileIdType         |                          |
 		| ProviderType                  | LA maintained schools    |
 		| ProviderSubType               | Community school         |
 		| ProviderVersionId             | <ProviderVersionId>      |
-		| ReasonEstablishmentClosed     |                          |
-		| ReasonEstablishmentOpened     |                          |
-		| RscRegionCode                 |                          |
-		| RscRegionName                 |                          |
-		| Status                        |                          |
-		| Successor                     |                          |
-		| Town                          |                          |
-		| TrustCode                     |                          |
-		| TrustName                     |                          |
 		| TrustStatus                   | Not Supported By A Trust |
 		| UKPRN                         | 1000004                  |
-		| UPIN                          |                          |
-		| URN                           |                          |
-		| WardCode                      |                          |
-		| WardName                      |                          |
 	And the provider with id '1000004' should be a scoped provider in the current specification in provider version '<ProviderVersionId>'
 	And the following provider exists within core provider data in provider version '<ProviderVersionId>'
 		| Field                         | Value                    |
 		| ProviderId                    | 1000005                  |
 		| Name                          | Maintained School 5      |
 		| Authority                     | Local Authority 2        |
-		| CensusWardCode                |                          |
-		| CensusWardName                |                          |
-		| CompaniesHouseNumber          |                          |
-		| CountryCode                   |                          |
-		| CountryName                   |                          |
-		| CrmAccountId                  |                          |
-		| DateClosed                    |                          |
 		| DateOpened                    | 2013-04-16               |
-		| DfeEstablishmentNumber        |                          |
-		| DistrictCode                  |                          |
-		| DistrictName                  |                          |
-		| EstablishmentNumber           |                          |
-		| GovernmentOfficeRegionCode    |                          |
-		| GovernmentOfficeRegionName    |                          |
-		| GroupIdNumber                 |                          |
 		| LACode                        | 202                      |
-		| LegalName                     |                          |
 		| LocalAuthorityName            | Local Authority 2        |
-		| LowerSuperOutputAreaCode      |                          |
-		| LowerSuperOutputAreaName      |                          |
-		| MiddleSuperOutputAreaCode     |                          |
-		| MiddleSuperOutputAreaName     |                          |
-		| NavVendorNo                   |                          |
-		| ParliamentaryConstituencyCode |                          |
-		| ParliamentaryConstituencyName |                          |
-		| PhaseOfEducation              |                          |
-		| Postcode                      |                          |
-		| ProviderProfileIdType         |                          |
 		| ProviderType                  | LA maintained schools    |
 		| ProviderSubType               | Community school         |
 		| ProviderVersionId             | <ProviderVersionId>      |
-		| ReasonEstablishmentClosed     |                          |
-		| ReasonEstablishmentOpened     |                          |
-		| RscRegionCode                 |                          |
-		| RscRegionName                 |                          |
-		| Status                        |                          |
-		| Successor                     |                          |
-		| Town                          |                          |
-		| TrustCode                     |                          |
-		| TrustName                     |                          |
 		| TrustStatus                   | Not Supported By A Trust |
 		| UKPRN                         | 1000005                  |
-		| UPIN                          |                          |
-		| URN                           |                          |
-		| WardCode                      |                          |
-		| WardName                      |                          |
 	And the provider with id '1000005' should be a scoped provider in the current specification in provider version '<ProviderVersionId>'
 	And the following provider exists within core provider data in provider version '<ProviderVersionId>'
 		| Field                         | Value                                                                       |
 		| ProviderId                    | 1000009                                                                     |
 		| Name                          | Maintained School 9  - Excluded for funding, but in scope for specification |
 		| Authority                     | Local Authority 3                                                           |
-		| CensusWardCode                |                                                                             |
-		| CensusWardName                |                                                                             |
-		| CompaniesHouseNumber          |                                                                             |
-		| CountryCode                   |                                                                             |
-		| CountryName                   |                                                                             |
-		| CrmAccountId                  |                                                                             |
-		| DateClosed                    |                                                                             |
 		| DateOpened                    | 2013-04-16                                                                  |
-		| DfeEstablishmentNumber        |                                                                             |
-		| DistrictCode                  |                                                                             |
-		| DistrictName                  |                                                                             |
-		| EstablishmentNumber           |                                                                             |
-		| GovernmentOfficeRegionCode    |                                                                             |
-		| GovernmentOfficeRegionName    |                                                                             |
-		| GroupIdNumber                 |                                                                             |
 		| LACode                        | 203                                                                         |
-		| LegalName                     |                                                                             |
 		| LocalAuthorityName            | Local Authority 3                                                           |
-		| LowerSuperOutputAreaCode      |                                                                             |
-		| LowerSuperOutputAreaName      |                                                                             |
-		| MiddleSuperOutputAreaCode     |                                                                             |
-		| MiddleSuperOutputAreaName     |                                                                             |
-		| NavVendorNo                   |                                                                             |
-		| ParliamentaryConstituencyCode |                                                                             |
-		| ParliamentaryConstituencyName |                                                                             |
-		| PhaseOfEducation              |                                                                             |
-		| Postcode                      |                                                                             |
-		| ProviderProfileIdType         |                                                                             |
 		| ProviderType                  | LA maintained schools                                                       |
 		| ProviderSubType               | Community school                                                            |
 		| ProviderVersionId             | <ProviderVersionId>                                                         |
-		| ReasonEstablishmentClosed     |                                                                             |
-		| ReasonEstablishmentOpened     |                                                                             |
-		| RscRegionCode                 |                                                                             |
-		| RscRegionName                 |                                                                             |
-		| Status                        |                                                                             |
-		| Successor                     |                                                                             |
-		| Town                          |                                                                             |
-		| TrustCode                     |                                                                             |
-		| TrustName                     |                                                                             |
 		| TrustStatus                   | Not Supported By A Trust                                                    |
 		| UKPRN                         | 1000009                                                                     |
-		| UPIN                          |                                                                             |
-		| URN                           |                                                                             |
-		| WardCode                      |                                                                             |
-		| WardName                      |                                                                             |
 	And the provider with id '1000009' should be a scoped provider in the current specification in provider version '<ProviderVersionId>'
 	# Academy providers
 	And the following provider exists within core provider data in provider version '<ProviderVersionId>'
@@ -908,156 +463,45 @@ Scenario Outline: Successful publishing of funding
 		| ProviderId                    | 1000101                       |
 		| Name                          | Academy 1                     |
 		| Authority                     | Local Authority 1             |
-		| CensusWardCode                |                               |
-		| CensusWardName                |                               |
-		| CompaniesHouseNumber          |                               |
-		| CountryCode                   |                               |
-		| CountryName                   |                               |
-		| CrmAccountId                  |                               |
-		| DateClosed                    |                               |
 		| DateOpened                    | 2013-04-16                    |
-		| DfeEstablishmentNumber        |                               |
-		| DistrictCode                  |                               |
-		| DistrictName                  |                               |
-		| EstablishmentNumber           |                               |
-		| GovernmentOfficeRegionCode    |                               |
-		| GovernmentOfficeRegionName    |                               |
-		| GroupIdNumber                 |                               |
 		| LACode                        | 200                           |
-		| LegalName                     |                               |
 		| LocalAuthorityName            | Local Authority 1             |
-		| LowerSuperOutputAreaCode      |                               |
-		| LowerSuperOutputAreaName      |                               |
-		| MiddleSuperOutputAreaCode     |                               |
-		| MiddleSuperOutputAreaName     |                               |
-		| NavVendorNo                   |                               |
-		| ParliamentaryConstituencyCode |                               |
-		| ParliamentaryConstituencyName |                               |
-		| PhaseOfEducation              |                               |
-		| Postcode                      |                               |
-		| ProviderProfileIdType         |                               |
 		| ProviderType                  | Academies                     |
 		| ProviderSubType               | Academy special sponsor led   |
 		| ProviderVersionId             | <ProviderVersionId>           |
-		| ReasonEstablishmentClosed     |                               |
-		| ReasonEstablishmentOpened     |                               |
-		| RscRegionCode                 |                               |
-		| RscRegionName                 |                               |
-		| Status                        |                               |
-		| Successor                     |                               |
-		| Town                          |                               |
 		| TrustCode                     | 1001                          |
-		| TrustName                     |                               |
 		| TrustStatus                   | SupportedByAMultiAcademyTrust |
 		| UKPRN                         | 1000101                       |
-		| UPIN                          |                               |
-		| URN                           |                               |
-		| WardCode                      |                               |
-		| WardName                      |                               |
 	And the provider with id '1000101' should be a scoped provider in the current specification in provider version '<ProviderVersionId>'
 	And the following provider exists within core provider data in provider version '<ProviderVersionId>'
 		| Field                         | Value                         |
 		| ProviderId                    | 1000102                       |
 		| Name                          | Academy 2                     |
 		| Authority                     | Local Authority 1             |
-		| CensusWardCode                |                               |
-		| CensusWardName                |                               |
-		| CompaniesHouseNumber          |                               |
-		| CountryCode                   |                               |
-		| CountryName                   |                               |
-		| CrmAccountId                  |                               |
-		| DateClosed                    |                               |
 		| DateOpened                    | 2013-04-16                    |
-		| DfeEstablishmentNumber        |                               |
-		| DistrictCode                  |                               |
-		| DistrictName                  |                               |
-		| EstablishmentNumber           |                               |
-		| GovernmentOfficeRegionCode    |                               |
-		| GovernmentOfficeRegionName    |                               |
-		| GroupIdNumber                 |                               |
 		| LACode                        | 200                           |
-		| LegalName                     |                               |
 		| LocalAuthorityName            | Local Authority 1             |
-		| LowerSuperOutputAreaCode      |                               |
-		| LowerSuperOutputAreaName      |                               |
-		| MiddleSuperOutputAreaCode     |                               |
-		| MiddleSuperOutputAreaName     |                               |
-		| NavVendorNo                   |                               |
-		| ParliamentaryConstituencyCode |                               |
-		| ParliamentaryConstituencyName |                               |
-		| PhaseOfEducation              |                               |
-		| Postcode                      |                               |
-		| ProviderProfileIdType         |                               |
 		| ProviderType                  | Academies                     |
 		| ProviderSubType               | Academy special sponsor led   |
 		| ProviderVersionId             | <ProviderVersionId>           |
-		| ReasonEstablishmentClosed     |                               |
-		| ReasonEstablishmentOpened     |                               |
-		| RscRegionCode                 |                               |
-		| RscRegionName                 |                               |
-		| Status                        |                               |
-		| Successor                     |                               |
-		| Town                          |                               |
 		| TrustCode                     | 1001                          |
-		| TrustName                     |                               |
 		| TrustStatus                   | SupportedByAMultiAcademyTrust |
 		| UKPRN                         | 1000102                       |
-		| UPIN                          |                               |
-		| URN                           |                               |
-		| WardCode                      |                               |
-		| WardName                      |                               |
 	And the provider with id '1000102' should be a scoped provider in the current specification in provider version '<ProviderVersionId>'
 	And the following provider exists within core provider data in provider version '<ProviderVersionId>'
 		| Field                         | Value                         |
 		| ProviderId                    | 1000103                       |
 		| Name                          | Academy 3                     |
 		| Authority                     | Local Authority 2             |
-		| CensusWardCode                |                               |
-		| CensusWardName                |                               |
-		| CompaniesHouseNumber          |                               |
-		| CountryCode                   |                               |
-		| CountryName                   |                               |
-		| CrmAccountId                  |                               |
-		| DateClosed                    |                               |
 		| DateOpened                    | 2013-04-16                    |
-		| DfeEstablishmentNumber        |                               |
-		| DistrictCode                  |                               |
-		| DistrictName                  |                               |
-		| EstablishmentNumber           |                               |
-		| GovernmentOfficeRegionCode    |                               |
-		| GovernmentOfficeRegionName    |                               |
-		| GroupIdNumber                 |                               |
 		| LACode                        | 200                           |
-		| LegalName                     |                               |
 		| LocalAuthorityName            | Local Authority 2             |
-		| LowerSuperOutputAreaCode      |                               |
-		| LowerSuperOutputAreaName      |                               |
-		| MiddleSuperOutputAreaCode     |                               |
-		| MiddleSuperOutputAreaName     |                               |
-		| NavVendorNo                   |                               |
-		| ParliamentaryConstituencyCode |                               |
-		| ParliamentaryConstituencyName |                               |
-		| PhaseOfEducation              |                               |
-		| Postcode                      |                               |
-		| ProviderProfileIdType         |                               |
 		| ProviderType                  | Free Schools                  |
 		| ProviderSubType               | Free Schools                  |
 		| ProviderVersionId             | <ProviderVersionId>           |
-		| ReasonEstablishmentClosed     |                               |
-		| ReasonEstablishmentOpened     |                               |
-		| RscRegionCode                 |                               |
-		| RscRegionName                 |                               |
-		| Status                        |                               |
-		| Successor                     |                               |
-		| Town                          |                               |
 		| TrustCode                     | 1002                          |
-		| TrustName                     |                               |
 		| TrustStatus                   | SupportedByAMultiAcademyTrust |
 		| UKPRN                         | 1000103                       |
-		| UPIN                          |                               |
-		| URN                           |                               |
-		| WardCode                      |                               |
-		| WardName                      |                               |
 	And the provider with id '1000103' should be a scoped provider in the current specification in provider version '<ProviderVersionId>'
 	# Non-Maintained schools in Core Provider Data
 	And the following provider exists within core provider data in provider version '<ProviderVersionId>'
@@ -1066,52 +510,15 @@ Scenario Outline: Successful publishing of funding
 		| ProviderId                    | 1000201                       |
 		| Name                          | Non-Maintained School 1       |
 		| Authority                     | Local Authority 1             |
-		| CensusWardCode                |                               |
-		| CensusWardName                |                               |
-		| CompaniesHouseNumber          |                               |
-		| CountryCode                   |                               |
-		| CountryName                   |                               |
-		| CrmAccountId                  |                               |
-		| DateClosed                    |                               |
 		| DateOpened                    | 2013-04-16                    |
-		| DfeEstablishmentNumber        |                               |
-		| DistrictCode                  |                               |
-		| DistrictName                  |                               |
-		| EstablishmentNumber           |                               |
-		| GovernmentOfficeRegionCode    |                               |
-		| GovernmentOfficeRegionName    |                               |
-		| GroupIdNumber                 |                               |
 		| LACode                        | 200                           |
-		| LegalName                     |                               |
 		| LocalAuthorityName            | Local Authority 1             |
-		| LowerSuperOutputAreaCode      |                               |
-		| LowerSuperOutputAreaName      |                               |
-		| MiddleSuperOutputAreaCode     |                               |
-		| MiddleSuperOutputAreaName     |                               |
-		| NavVendorNo                   |                               |
-		| ParliamentaryConstituencyCode |                               |
-		| ParliamentaryConstituencyName |                               |
-		| PhaseOfEducation              |                               |
-		| Postcode                      |                               |
-		| ProviderProfileIdType         |                               |
 		| ProviderType                  | Special schools               |
 		| ProviderSubType               | Non-maintained special school |
 		| ProviderVersionId             | <ProviderVersionId>           |
-		| ReasonEstablishmentClosed     |                               |
-		| ReasonEstablishmentOpened     |                               |
-		| RscRegionCode                 |                               |
-		| RscRegionName                 |                               |
-		| Status                        |                               |
-		| Successor                     |                               |
-		| Town                          |                               |
 		| TrustCode                     | 1001                          |
-		| TrustName                     |                               |
 		| TrustStatus                   | SupportedByAMultiAcademyTrust |
 		| UKPRN                         | 1000201                       |
-		| UPIN                          |                               |
-		| URN                           |                               |
-		| WardCode                      |                               |
-		| WardName                      |                               |
 	And the provider with id '1000201' should be a scoped provider in the current specification in provider version '<ProviderVersionId>'
 	And the following provider exists within core provider data in provider version '<ProviderVersionId>'
 		| Field                         | Value                         |
@@ -1119,52 +526,15 @@ Scenario Outline: Successful publishing of funding
 		| ProviderId                    | 1000202                       |
 		| Name                          | Non-Maintained School 1       |
 		| Authority                     | Local Authority 1             |
-		| CensusWardCode                |                               |
-		| CensusWardName                |                               |
-		| CompaniesHouseNumber          |                               |
-		| CountryCode                   |                               |
-		| CountryName                   |                               |
-		| CrmAccountId                  |                               |
-		| DateClosed                    |                               |
 		| DateOpened                    | 2013-04-16                    |
-		| DfeEstablishmentNumber        |                               |
-		| DistrictCode                  |                               |
-		| DistrictName                  |                               |
-		| EstablishmentNumber           |                               |
-		| GovernmentOfficeRegionCode    |                               |
-		| GovernmentOfficeRegionName    |                               |
-		| GroupIdNumber                 |                               |
 		| LACode                        | 200                           |
-		| LegalName                     |                               |
 		| LocalAuthorityName            | Local Authority 1             |
-		| LowerSuperOutputAreaCode      |                               |
-		| LowerSuperOutputAreaName      |                               |
-		| MiddleSuperOutputAreaCode     |                               |
-		| MiddleSuperOutputAreaName     |                               |
-		| NavVendorNo                   |                               |
-		| ParliamentaryConstituencyCode |                               |
-		| ParliamentaryConstituencyName |                               |
-		| PhaseOfEducation              |                               |
-		| Postcode                      |                               |
-		| ProviderProfileIdType         |                               |
 		| ProviderType                  | Special schools               |
 		| ProviderSubType               | Non-maintained special school |
 		| ProviderVersionId             | <ProviderVersionId>           |
-		| ReasonEstablishmentClosed     |                               |
-		| ReasonEstablishmentOpened     |                               |
-		| RscRegionCode                 |                               |
-		| RscRegionName                 |                               |
-		| Status                        |                               |
-		| Successor                     |                               |
-		| Town                          |                               |
 		| TrustCode                     | 1001                          |
-		| TrustName                     |                               |
 		| TrustStatus                   | SupportedByAMultiAcademyTrust |
 		| UKPRN                         | 1000202                       |
-		| UPIN                          |                               |
-		| URN                           |                               |
-		| WardCode                      |                               |
-		| WardName                      |                               |
 	And the provider with id '1000202' should be a scoped provider in the current specification in provider version '<ProviderVersionId>'
 	# Local Authorities in Core Provider Data
 	And the following provider exists within core provider data in provider version '<ProviderVersionId>'
@@ -1172,264 +542,69 @@ Scenario Outline: Successful publishing of funding
 		| ProviderId                    | 9000000                  |
 		| Name                          | Local Authority 1        |
 		| Authority                     | Local Authority 1        |
-		| CensusWardCode                |                          |
-		| CensusWardName                |                          |
-		| CompaniesHouseNumber          |                          |
-		| CountryCode                   |                          |
-		| CountryName                   |                          |
-		| CrmAccountId                  |                          |
-		| DateClosed                    |                          |
 		| DateOpened                    | 2012-03-15               |
-		| DfeEstablishmentNumber        |                          |
-		| DistrictCode                  |                          |
-		| DistrictName                  |                          |
-		| EstablishmentNumber           |                          |
-		| GovernmentOfficeRegionCode    |                          |
-		| GovernmentOfficeRegionName    |                          |
-		| GroupIdNumber                 |                          |
 		| LACode                        | 200                      |
-		| LegalName                     |                          |
 		| LocalAuthorityName            | Local Authority 1        |
-		| LowerSuperOutputAreaCode      |                          |
-		| LowerSuperOutputAreaName      |                          |
-		| MiddleSuperOutputAreaCode     |                          |
-		| MiddleSuperOutputAreaName     |                          |
-		| NavVendorNo                   |                          |
-		| ParliamentaryConstituencyCode |                          |
-		| ParliamentaryConstituencyName |                          |
-		| PhaseOfEducation              |                          |
-		| Postcode                      |                          |
-		| ProviderProfileIdType         |                          |
 		| ProviderType                  | Local Authority          |
 		| ProviderSubType               | Local Authority          |
 		| ProviderVersionId             | <ProviderVersionId>      |
-		| ReasonEstablishmentClosed     |                          |
-		| ReasonEstablishmentOpened     |                          |
-		| RscRegionCode                 |                          |
-		| RscRegionName                 |                          |
-		| Status                        |                          |
-		| Successor                     |                          |
-		| Town                          |                          |
-		| TrustCode                     |                          |
-		| TrustName                     |                          |
 		| TrustStatus                   | Not Supported By A Trust |
 		| UKPRN                         | 9000000                  |
-		| UPIN                          |                          |
-		| URN                           |                          |
-		| WardCode                      |                          |
-		| WardName                      |                          |
 	And the following provider exists within core provider data in provider version '<ProviderVersionId>'
 		| Field                         | Value                    |
 		| ProviderId                    | 9000002                  |
 		| Name                          | Local Authority 2        |
 		| Authority                     | Local Authority 2        |
-		| CensusWardCode                |                          |
-		| CensusWardName                |                          |
-		| CompaniesHouseNumber          |                          |
-		| CountryCode                   |                          |
-		| CountryName                   |                          |
-		| CrmAccountId                  |                          |
-		| DateClosed                    |                          |
 		| DateOpened                    | 2012-03-15               |
-		| DfeEstablishmentNumber        |                          |
-		| DistrictCode                  |                          |
-		| DistrictName                  |                          |
-		| EstablishmentNumber           |                          |
-		| GovernmentOfficeRegionCode    |                          |
-		| GovernmentOfficeRegionName    |                          |
-		| GroupIdNumber                 |                          |
 		| LACode                        | 202                      |
-		| LegalName                     |                          |
 		| LocalAuthorityName            | Local Authority 2        |
-		| LowerSuperOutputAreaCode      |                          |
-		| LowerSuperOutputAreaName      |                          |
-		| MiddleSuperOutputAreaCode     |                          |
-		| MiddleSuperOutputAreaName     |                          |
-		| NavVendorNo                   |                          |
-		| ParliamentaryConstituencyCode |                          |
-		| ParliamentaryConstituencyName |                          |
-		| PhaseOfEducation              |                          |
-		| Postcode                      |                          |
-		| ProviderProfileIdType         |                          |
 		| ProviderType                  | Local Authority          |
 		| ProviderSubType               | Local Authority          |
 		| ProviderVersionId             | <ProviderVersionId>      |
-		| ReasonEstablishmentClosed     |                          |
-		| ReasonEstablishmentOpened     |                          |
-		| RscRegionCode                 |                          |
-		| RscRegionName                 |                          |
-		| Status                        |                          |
-		| Successor                     |                          |
-		| Town                          |                          |
-		| TrustCode                     |                          |
-		| TrustName                     |                          |
 		| TrustStatus                   | Not Supported By A Trust |
 		| UKPRN                         | 9000002                  |
-		| UPIN                          |                          |
-		| URN                           |                          |
-		| WardCode                      |                          |
-		| WardName                      |                          |
 	And the following provider exists within core provider data in provider version '<ProviderVersionId>'
 		| Field                         | Value                    |
 		| ProviderId                    | 9000003                  |
 		| Name                          | Local Authority 3        |
 		| Authority                     | Local Authority 3        |
-		| CensusWardCode                |                          |
-		| CensusWardName                |                          |
-		| CompaniesHouseNumber          |                          |
-		| CountryCode                   |                          |
-		| CountryName                   |                          |
-		| CrmAccountId                  |                          |
-		| DateClosed                    |                          |
 		| DateOpened                    | 2012-03-15               |
-		| DfeEstablishmentNumber        |                          |
-		| DistrictCode                  |                          |
-		| DistrictName                  |                          |
-		| EstablishmentNumber           |                          |
-		| GovernmentOfficeRegionCode    |                          |
-		| GovernmentOfficeRegionName    |                          |
-		| GroupIdNumber                 |                          |
 		| LACode                        | 202                      |
-		| LegalName                     |                          |
 		| LocalAuthorityName            | Local Authority 3        |
-		| LowerSuperOutputAreaCode      |                          |
-		| LowerSuperOutputAreaName      |                          |
-		| MiddleSuperOutputAreaCode     |                          |
-		| MiddleSuperOutputAreaName     |                          |
-		| NavVendorNo                   |                          |
-		| ParliamentaryConstituencyCode |                          |
-		| ParliamentaryConstituencyName |                          |
-		| PhaseOfEducation              |                          |
-		| Postcode                      |                          |
-		| ProviderProfileIdType         |                          |
 		| ProviderType                  | Local Authority          |
 		| ProviderSubType               | Local Authority          |
 		| ProviderVersionId             | <ProviderVersionId>      |
-		| ReasonEstablishmentClosed     |                          |
-		| ReasonEstablishmentOpened     |                          |
-		| RscRegionCode                 |                          |
-		| RscRegionName                 |                          |
-		| Status                        |                          |
-		| Successor                     |                          |
-		| Town                          |                          |
-		| TrustCode                     |                          |
-		| TrustName                     |                          |
 		| TrustStatus                   | Not Supported By A Trust |
 		| UKPRN                         | 9000003                  |
-		| UPIN                          |                          |
-		| URN                           |                          |
-		| WardCode                      |                          |
-		| WardName                      |                          |
 	# Academy Trusts
 	And the following provider exists within core provider data in provider version '<ProviderVersionId>'
 		| Field                         | Value                    |
 		| ProviderId                    | 8000001                  |
 		| Name                          | Academy Trust 1          |
 		| Authority                     | Local Authority 1        |
-		| CensusWardCode                |                          |
-		| CensusWardName                |                          |
-		| CompaniesHouseNumber          |                          |
-		| CountryCode                   |                          |
-		| CountryName                   |                          |
-		| CrmAccountId                  |                          |
-		| DateClosed                    |                          |
 		| DateOpened                    | 2012-03-15               |
-		| DfeEstablishmentNumber        |                          |
-		| DistrictCode                  |                          |
-		| DistrictName                  |                          |
-		| EstablishmentNumber           |                          |
-		| GovernmentOfficeRegionCode    |                          |
-		| GovernmentOfficeRegionName    |                          |
-		| GroupIdNumber                 |                          |
 		| LACode                        | 202                      |
-		| LegalName                     |                          |
 		| LocalAuthorityName            | Local Authority 1        |
-		| LowerSuperOutputAreaCode      |                          |
-		| LowerSuperOutputAreaName      |                          |
-		| MiddleSuperOutputAreaCode     |                          |
-		| MiddleSuperOutputAreaName     |                          |
-		| NavVendorNo                   |                          |
-		| ParliamentaryConstituencyCode |                          |
-		| ParliamentaryConstituencyName |                          |
-		| PhaseOfEducation              |                          |
-		| Postcode                      |                          |
-		| ProviderProfileIdType         |                          |
 		| ProviderType                  | Academy trust            |
 		| ProviderSubType               | Academy trust            |
 		| ProviderVersionId             | <ProviderVersionId>      |
-		| ReasonEstablishmentClosed     |                          |
-		| ReasonEstablishmentOpened     |                          |
-		| RscRegionCode                 |                          |
-		| RscRegionName                 |                          |
-		| Status                        |                          |
-		| Successor                     |                          |
-		| Town                          |                          |
 		| TrustCode                     | 1001                     |
-		| TrustName                     |                          |
 		| TrustStatus                   | Not Supported By A Trust |
 		| UKPRN                         | 8000001                  |
-		| UPIN                          |                          |
-		| URN                           |                          |
-		| WardCode                      |                          |
-		| WardName                      |                          |
 	And the following provider exists within core provider data in provider version '<ProviderVersionId>'
 		| Field                         | Value                    |
 		| ProviderId                    | 8000002                  |
 		| Name                          | Academy Trust 2          |
 		| Authority                     | Local Authority 2        |
-		| CensusWardCode                |                          |
-		| CensusWardName                |                          |
-		| CompaniesHouseNumber          |                          |
-		| CountryCode                   |                          |
-		| CountryName                   |                          |
-		| CrmAccountId                  |                          |
-		| DateClosed                    |                          |
 		| DateOpened                    | 2012-03-15               |
-		| DfeEstablishmentNumber        |                          |
-		| DistrictCode                  |                          |
-		| DistrictName                  |                          |
-		| EstablishmentNumber           |                          |
-		| GovernmentOfficeRegionCode    |                          |
-		| GovernmentOfficeRegionName    |                          |
-		| GroupIdNumber                 |                          |
 		| LACode                        | 202                      |
-		| LegalName                     |                          |
 		| LocalAuthorityName            | Academy Trust 1          |
-		| LowerSuperOutputAreaCode      |                          |
-		| LowerSuperOutputAreaName      |                          |
-		| MiddleSuperOutputAreaCode     |                          |
-		| MiddleSuperOutputAreaName     |                          |
-		| NavVendorNo                   |                          |
-		| ParliamentaryConstituencyCode |                          |
-		| ParliamentaryConstituencyName |                          |
-		| PhaseOfEducation              |                          |
-		| Postcode                      |                          |
-		| ProviderProfileIdType         |                          |
 		| ProviderType                  | Academy Trust            |
 		| ProviderSubType               | Academy Trust            |
 		| ProviderVersionId             | <ProviderVersionId>      |
-		| ReasonEstablishmentClosed     |                          |
-		| ReasonEstablishmentOpened     |                          |
-		| RscRegionCode                 |                          |
-		| RscRegionName                 |                          |
-		| Status                        |                          |
-		| Successor                     |                          |
-		| Town                          |                          |
 		| TrustCode                     | 1002                     |
-		| TrustName                     |                          |
 		| TrustStatus                   | Not Supported By A Trust |
 		| UKPRN                         | 8000001                  |
-		| UPIN                          |                          |
-		| URN                           |                          |
-		| WardCode                      |                          |
-		| WardName                      |                          |
-	And template mapping exists
-		| EntityType  | CalculationId | TemplateId | Name                 |
-		| Calculation | calculation1  | 2          | Total Allocation     |
-		| Calculation | calculation2  | 3          | Eligible Pupils      |
-		| Calculation | calculation3  | 4          | Pupil rate threshold |
-		| Calculation | calculation4  | 5          | Rate                 |
-		| Calculation | calculation5  | 6          | Additional Rate      |
 	And calculations exists
 		| Value | Id           |
 		| 24000 | calculation1 |
@@ -1438,8 +613,7 @@ Scenario Outline: Successful publishing of funding
 		| 1000  | calculation4 |
 		| 20    | calculation5 |
 	When funding is published
-	Then publishing succeeds
-	And the following published funding is produced
+	Then the following published funding is produced
 		| Field                            | Value             |
 		| GroupingReason                   | Payment           |
 		| OrganisationGroupTypeCode        | LocalAuthority    |

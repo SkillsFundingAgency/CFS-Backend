@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using CalculateFunding.Common.ApiClient.Calcs.Models;
-using CalculateFunding.Models.Publishing;
+﻿using System.Threading.Tasks;
 using CalculateFunding.Publishing.AcceptanceTests.Contexts;
-using FluentAssertions;
+using CalculateFunding.Services.Publishing.Interfaces;
+using Microsoft.Azure.ServiceBus;
 using TechTalk.SpecFlow;
-using TechTalk.SpecFlow.Assist;
 
 namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
 {
@@ -18,43 +13,32 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
         private readonly CurrentSpecificationStepContext _currentSpecificationStepContext;
         private readonly CurrentJobStepContext _currentJobStepContext;
         private readonly CurrentUserStepContext _currentUserStepContext;
+        private readonly IApproveService _approveService;
 
         public ApproveFundingStepDefinition(IPublishFundingStepContext publishFundingStepContext,
             CurrentSpecificationStepContext currentSpecificationStepContext,
             CurrentJobStepContext currentJobStepContext,
-            CurrentUserStepContext currentUserStepContext)
+            CurrentUserStepContext currentUserStepContext, 
+            IApproveService approveService)
         {
             _publishFundingStepContext = publishFundingStepContext;
             _currentSpecificationStepContext = currentSpecificationStepContext;
             _currentJobStepContext = currentJobStepContext;
             _currentUserStepContext = currentUserStepContext;
+            _approveService = approveService;
         }
 
         [When(@"funding is approved")]
         public async Task WhenFundingIsApproved()
         {
-            try
-            {
-                await _publishFundingStepContext.ApproveResults(
-                _currentSpecificationStepContext.SpecificationId,
-                _currentJobStepContext.JobId,
-                _currentUserStepContext.UserId,
-                _currentUserStepContext.UserName);
-            }
-            catch (Exception)
-            {
-                _publishFundingStepContext.ApproveFundingSuccessful = false;
-                throw;
-            }
-            _publishFundingStepContext.ApproveFundingSuccessful = true;
-        }
+            Message message = new Message();
 
-        [Then(@"approve funding succeeds")]
-        public void ThenApproveFundingSucceeds()
-        {
-            _publishFundingStepContext.ApproveFundingSuccessful
-               .Should()
-               .BeTrue();
+            message.UserProperties.Add("user-id", _currentUserStepContext.UserId);
+            message.UserProperties.Add("user-name", _currentUserStepContext.UserName);
+            message.UserProperties.Add("specification-id", _currentSpecificationStepContext.SpecificationId);
+            message.UserProperties.Add("jobId", _currentJobStepContext.JobId);
+
+            await _approveService.ApproveResults(message);
         }
     }
 }

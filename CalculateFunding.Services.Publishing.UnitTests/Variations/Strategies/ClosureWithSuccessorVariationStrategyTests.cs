@@ -23,6 +23,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
         [TestMethod]
         public async Task FailsPreconditionCheckIfUpdatedProviderHasNoASuccessor()
         {
+            GivenTheOtherwiseValidVariationContext();
+
             await WhenTheVariationsAreDetermined();
 
             VariationContext

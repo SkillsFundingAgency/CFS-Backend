@@ -1,9 +1,15 @@
-﻿using CalculateFunding.Services.Publishing.Interfaces;
+﻿using CalculateFunding.Publishing.AcceptanceTests.Repositories;
+using CalculateFunding.Services.Publishing.Interfaces;
 
 namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
 {
     public interface IVariationServiceStepContext
     {
-        IDetectProviderVariations Service { get; set; }
+        IDetectProviderVariations VariationsDetection { get; set; }
+
+        IApplyProviderVariations VariationsApplication { get; set; }
+
+        SpecificationsInMemoryClient SpecificationsInMemoryClient { get; }
     }
 }
+

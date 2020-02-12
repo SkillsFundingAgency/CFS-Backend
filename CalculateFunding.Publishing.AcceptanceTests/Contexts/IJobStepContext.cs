@@ -5,9 +5,10 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
 {
     public interface IJobStepContext
     {
-        Repositories.JobsInMemoryRepository InMemoryRepo { get; set; }
-        Common.ApiClient.Jobs.IJobsApiClient JobsClient { get; set; }
+        Repositories.JobsInMemoryRepository InMemoryRepo { get; }
+        Common.ApiClient.Jobs.IJobsApiClient JobsClient { get; }
         JobCreateModel JobToCreate { get; set; }
-        IJobManagement JobManagement { get; set; }
+
+        IJobManagement JobManagement { get; }
     }
 }

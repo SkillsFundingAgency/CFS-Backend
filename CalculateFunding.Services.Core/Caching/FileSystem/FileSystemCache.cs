@@ -173,10 +173,10 @@ namespace CalculateFunding.Services.Core.Caching.FileSystem
 
         private string CachePathForKey(FileSystemCacheKey key)
         {
-            var cachePath = key.Path;
+            string cachePath = key.Path;
 
-            var fileName = Path.GetFileName(cachePath);
-            var folder = Path.GetDirectoryName(cachePath);
+            string fileName = Path.GetFileName(cachePath);
+            string folder = Path.GetDirectoryName(cachePath);
 
             return Path.Combine(_settings.Path, folder, $"{_settings.Prefix}_{fileName}");
         }

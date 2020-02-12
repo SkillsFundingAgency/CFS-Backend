@@ -4,8 +4,8 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
 {
     public interface ICurrentSpecificationStepContext
     {
-        string SpecificationId { get; set; }
+        string SpecificationId { get; set;}
 
-        SpecificationInMemoryRepository Repo { get; set; }
+        SpecificationInMemoryRepository Repo { get; }
     }
 }

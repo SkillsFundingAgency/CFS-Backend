@@ -1,11 +1,11 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Variations;
 using ApiProvider = CalculateFunding.Common.ApiClient.Providers.Models.Provider;
-using PublishingProvider = CalculateFunding.Models.Publishing.Provider;
 
 namespace CalculateFunding.Services.Publishing.Models
 {
@@ -47,8 +47,16 @@ namespace CalculateFunding.Services.Publishing.Models
         /// this is the current released version if there is one else the current version
         /// on the published provider being varied
         /// </summary>
-        public PublishedProviderVersion PriorState => ReleasedState ?? RefreshState;
-        
+        public PublishedProviderVersion PriorState
+        {
+            get
+            {
+                PublishedProvider publishedProviderOriginalSnapShot = GetPublishedProviderOriginalSnapShot(ProviderId);
+
+                return publishedProviderOriginalSnapShot?.Released ?? publishedProviderOriginalSnapShot?.Current;
+            }
+        }
+
         public PublishedProvider PublishedProvider { get; set; }
         
         /// <summary>
@@ -130,5 +138,7 @@ namespace CalculateFunding.Services.Publishing.Models
         }
 
         public IEnumerable<IVariationChange> QueuedChanges => _variationChanges.ToArray();
+
+        public bool HasVariationChanges => _variationChanges.AnyWithNullCheck();
     }
 }

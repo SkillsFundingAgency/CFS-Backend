@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Providers.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Models;
+using CalculateFunding.Services.Publishing.Variations;
+using CalculateFunding.Services.Publishing.Variations.Changes;
 using CalculateFunding.Services.Publishing.Variations.Strategies;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
@@ -40,6 +42,20 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
                 .OrderBy(_ => _)
                 .Should()
                 .BeEquivalentTo(expectedVariationReasons.OrderBy(_ => _));
+
+            if (expectedVariationReasons.AnyWithNullCheck())
+            {
+                variationContext.QueuedChanges
+                    .FirstOrDefault()
+                    .Should()
+                    .BeOfType<MetaDataVariationsChange>();
+            }
+            else
+            {
+                variationContext.QueuedChanges
+                    .Should()
+                    .BeNullOrEmpty();
+            }
         }
 
         private static IEnumerable<object[]> VariationReasonExamples()
@@ -158,7 +174,21 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
             
             setUp?.Invoke(variationContextBuilder);
 
-            return variationContextBuilder.Build();
+            var providerVariationContext = variationContextBuilder.Build();
+
+            providerVariationContext.AllPublishedProviderSnapShots = AsDictionary(new PublishedProviderSnapShots(providerVariationContext.PublishedProvider));
+            providerVariationContext.AllPublishedProvidersRefreshStates = AsDictionary(providerVariationContext.PublishedProvider);
+
+            return providerVariationContext;
+        }
+
+        private static IDictionary<string, PublishedProviderSnapShots> AsDictionary(params PublishedProviderSnapShots[] publishedProviders)
+        {
+            return publishedProviders.ToDictionary(_ => _.LatestSnapshot.Current.ProviderId);
+        }
+        private static IDictionary<string, PublishedProvider> AsDictionary(params PublishedProvider[] publishedProviders)
+        {
+            return publishedProviders.ToDictionary(_ => _.Current.ProviderId);
         }
     }
 }

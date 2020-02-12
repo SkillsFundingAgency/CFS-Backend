@@ -27,12 +27,22 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         private Dictionary<string, Dictionary<string, CalculationResult>> _calculations = new Dictionary<string, Dictionary<string, CalculationResult>>();
         private Dictionary<string, Dictionary<string, Provider>> _scopedProviders = new Dictionary<string, Dictionary<string, Provider>>();
         private IEnumerable<CalculationMetadata> _calculationMetadata;
-        private TemplateMapping _templateMapping;
+        public TemplateMapping Mapping { get; private set; }
 
-        public CalculationsInMemoryClient(TemplateMapping templateMapping, IEnumerable<CalculationMetadata> calculationMetadata = null)
+        public CalculationsInMemoryClient()
         {
-            _templateMapping = templateMapping;
-            _calculationMetadata = calculationMetadata;
+            Mapping = new TemplateMapping();
+            _calculationMetadata = new List<CalculationMetadata>();
+        }
+
+        public void SetInMemoryTemplateMapping(TemplateMapping templateMapping)
+        {
+            Mapping = templateMapping;
+        }
+
+        public void SetInMemoryCalculationMetaData(IEnumerable<CalculationMetadata> calculationMetadata)
+        {
+            _calculationMetadata = calculationMetadata.ToArray();
         }
 
         public Task<ApiResponse<TemplateMapping>> AssociateTemplateIdWithSpecification(string specificationId, string templateVersion, string fundingStreamId)
@@ -89,15 +99,9 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         {
             IEnumerable<CalculationMetadata> items = _calculationMetadata.Where(c => c.SpecificationId == specificationId);
 
-            if (items.Any())
-            {
-                return Task.FromResult(new ApiResponse<IEnumerable<CalculationMetadata>>(HttpStatusCode.OK, items));
-
-            }
-            else
-            {
-                return Task.FromResult(new ApiResponse<IEnumerable<CalculationMetadata>>(HttpStatusCode.NotFound));
-            }
+            return Task.FromResult(items.Any() ? 
+                new ApiResponse<IEnumerable<CalculationMetadata>>(HttpStatusCode.OK, items) : 
+                new ApiResponse<IEnumerable<CalculationMetadata>>(HttpStatusCode.NotFound));
         }
 
         public Task<ApiResponse<IEnumerable<Calculation>>> GetCalculationsForSpecification(string specificationId)
@@ -122,10 +126,10 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 
         public async Task<ApiResponse<TemplateMapping>> GetTemplateMapping(string specificationId, string fundingStreamId)
         {
-            _templateMapping.SpecificationId = specificationId;
-            _templateMapping.FundingStreamId = fundingStreamId;
+            Mapping.SpecificationId = specificationId;
+            Mapping.FundingStreamId = fundingStreamId;
 
-            ApiResponse<TemplateMapping> result = new ApiResponse<TemplateMapping>(HttpStatusCode.OK, _templateMapping);
+            ApiResponse<TemplateMapping> result = new ApiResponse<TemplateMapping>(HttpStatusCode.OK, Mapping);
 
             return await Task.FromResult(result);
         }

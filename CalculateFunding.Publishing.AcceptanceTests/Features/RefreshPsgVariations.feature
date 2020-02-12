@@ -1,16 +1,14 @@
-﻿#this has been hacked about to force change detection in the refresh service code otherwise it fails as the previously Approved providers
-#just pick up the same fundling lines etc as before as so don't get upserted during the refresh as nothing changed - have changed some of the
-#metadata between the previosuly published and core data to force the upsert - BUT this test setup was very broken and kind of remains so
-#I've wasted enough time dealing with this but it should really be replaced to be honest
-Feature: RefreshPsg
+﻿Feature: RefreshPsgVariations
 	In order to refresh funding for PE and Sport
 	As a funding approver
 	I want to refresh funding for all approved providers within a specification
+	And for variations with the allocations or provider data to be taken into account 
 
 Background: Existing published funding
-	Given a funding configuration exists for funding stream 'PSG' in funding period 'AY-1920'
+    Given a funding configuration exists for funding stream 'PSG' in funding period 'AY-1920'
 		| Field                  | Value |
 		| DefaultTemplateVersion | 1.0   |
+	And variations are enabled
 	And the funding configuration has the following organisation group
 		| Field                     | Value          |
 		| GroupTypeIdentifier       | UKPRN          |
@@ -58,6 +56,11 @@ Background: Existing published funding
 	And the funding configuration has the following provider type matches
 		| ProviderType    | ProviderSubtype               |
 		| Special schools | Non-maintained special school |
+	And the funding configuration has the following funding variations
+		| Name                 | Order |
+		| ProviderMetadata     | 0     |
+		| Closure              | 1     |
+		| ClosureWithSuccessor | 2     |
 	And the funding configuration is available in the policies repository
 	And the funding configuration has the following organisation group
 		| Field                     | Value                |
@@ -82,7 +85,7 @@ Background: Existing published funding
 		| ProviderVersionId    | psg-providers-1.0               |
 	And the specification has the funding period with id 'AY-1920' and name 'Academic Year 2019-20'
 	And the specification has the following funding streams
-		| Name          | Id                |
+		| Name          | Id  |
 		| PE and Sports | PSG |
 	And the specification has the following template versions for funding streams
 		| Key | Value |
@@ -117,7 +120,7 @@ Background: Existing published funding
 		| FundingPeriodId | AY-1920  |
 		| TemplateVersion | 1.0      |
 		| Status          | Approved |
-		| TotalFunding    | 12000    |
+		| TotalFunding    | 30000    |
 		| MajorVersion    | 0        |
 		| MinorVersion    | 1        |
 	And the Published Provider has the following funding lines
@@ -140,7 +143,7 @@ Background: Existing published funding
 		| Calculation | calculation5 | 6		  | Additional Rate		|
 	And the Published Provider contains the following calculation results
 		| TemplateCalculationId | Value |
-		| 2                     | 12000 |
+		| 2                     | 30000 |
 		| 3                     | 120   |
 		| 4                     | 500   |
 		| 5                     | 1000  |
@@ -166,7 +169,7 @@ Background: Existing published funding
 		| FundingPeriodId | AY-1920  |
 		| TemplateVersion | 1.0      |
 		| Status          | Approved |
-		| TotalFunding    | 24000    |
+		| TotalFunding    | 40000    |
 		| MajorVersion    | 0        |
 		| MinorVersion    | 1        |
 	And the Published Provider has the following funding lines
@@ -182,7 +185,7 @@ Background: Existing published funding
 		| FY-2021              | CalendarMonth | April     | 2021 | 1          | 10000         |
 	And the Published Provider contains the following calculation results
 		| TemplateCalculationId | Value |
-		| 2                     | 24000 |
+		| 2                     | 40000 |
 		| 3                     | 120   |
 		| 4                     | 500   |
 		| 5                     | 1000  |
@@ -192,7 +195,7 @@ Background: Existing published funding
 		| ProviderId         | 1000002                  |
 		| Name               | Maintained School 2      |
 		| Authority          | Local Authority 1        |
-		| DateOpened         | 2013-04-17               |
+		| DateOpened         | 2013-04-16               |
 		| LACode             | 200                      |
 		| LocalAuthorityName | Local Authority 1        |
 		| ProviderType       | LA maintained schools    |
@@ -235,7 +238,7 @@ Background: Existing published funding
 		| ProviderId         | 1000101                       |
 		| Name               | Academy 1                     |
 		| Authority          | Local Authority 1             |
-		| DateOpened         | 2013-04-17                    |
+		| DateOpened         | 2013-04-16                    |
 		| LACode             | 200                           |
 		| LocalAuthorityName | Local Authority 1             |
 		| ProviderType       | Academies                     |
@@ -268,7 +271,7 @@ Background: Existing published funding
 		| FY-2021              | CalendarMonth | April     | 2021 | 1          | 10000         |
 	And the Published Provider contains the following calculation results
 		| TemplateCalculationId | Value |
-		| 2                     | 24000 |
+		| 2                     | 2600  |
 		| 3                     | 120   |
 		| 4                     | 500   |
 		| 5                     | 1000  |
@@ -278,7 +281,7 @@ Background: Existing published funding
 		| ProviderId         | 1000102                       |
 		| Name               | Academy 2                     |
 		| Authority          | Local Authority 1             |
-		| DateOpened         | 2013-04-17                    |
+		| DateOpened         | 2013-04-16                    |
 		| LACode             | 200                           |
 		| LocalAuthorityName | Local Authority 1             |
 		| ProviderType       | Academies                     |
@@ -294,7 +297,7 @@ Background: Existing published funding
 		| ProviderId         | 1000000                  |
 		| Name               | Maintained School 1      |
 		| Authority          | Local Authority 1        |
-		| DateOpened         | 2012-03-16               |
+		| DateOpened         | 2012-03-15               |
 		| LACode             | 200                      |
 		| LocalAuthorityName | Maintained School 1      |
 		| ProviderType       | LA maintained schools    |
@@ -433,7 +436,6 @@ Background: Existing published funding
 		| ProviderVersionId  | psg-providers-1.0        |
 		| TrustStatus        | Not Supported By A Trust |
 		| UKPRN              | 9000000                  |
-		| WardName           |                          |
 	And the following provider exists within core provider data in provider version 'psg-providers-1.0'
 		| Field              | Value                    |
 		| ProviderId         | 9000002                  |
@@ -488,7 +490,8 @@ Background: Existing published funding
 		| ProviderVersionId  | psg-providers-1.0        |
 		| TrustCode          | 1002                     |
 		| TrustStatus        | Not Supported By A Trust |
-		| UKPRN              | 8000001                  | 
+		| UKPRN              | 8000001                  |
+	
 	And calculation meta data exists for 'PSG'
 	    | CalculationType | CalculationId | Name                 | PublishStatus |
 	    | Template        | calculation1  | Total Allocation     | Approved      |
@@ -511,102 +514,228 @@ Background: Existing published funding
 		| DistributionPeriodId | Type          | TypeValue | Year | Occurrence | ProfiledValue |
 		| FY-1920              | CalendarMonth | October   | 1920 | 1          | 14000         |
 		| FY-2021              | CalendarMonth | April     | 2021 | 1          | 10000         |
+		| FY-2021              | CalendarMonth | May       | 2021 | 1          | 10000         |
+		| FY-2021              | CalendarMonth | June      | 2021 | 1          | 10000         |
+		| FY-2021              | CalendarMonth | July      | 2021 | 1          | 10000         |
 
-Scenario: Successful refresh of funding
-	When funding is refreshed
-	Then the following published provider ids are upserted
-		| PublishedProviderId                   | Status  |
-		| publishedprovider-1000000-AY-1920-PSG | Updated |
-		| publishedprovider-1000002-AY-1920-PSG | Updated |
-		| publishedprovider-1000003-AY-1920-PSG | Draft   |
-		| publishedprovider-1000004-AY-1920-PSG | Draft   |
-		| publishedprovider-1000005-AY-1920-PSG | Draft   |
-		| publishedprovider-1000009-AY-1920-PSG | Draft   |
-		| publishedprovider-1000101-AY-1920-PSG | Updated |
-		| publishedprovider-1000102-AY-1920-PSG | Updated |
-		| publishedprovider-1000103-AY-1920-PSG | Draft   |
-
-Scenario: No important change made to the providers in core should result in no changes to the published providers
+Scenario: Metadata changed some of the published providers
 	Given the following provider exists within core provider data in provider version 'psg-providers-1.0'
 		| Field              | Value                    |
-		| ProviderId         | 9000000                  |
-		| Name               | Local Authority 1        |
+		| ProviderId         | 1000000                  |
+		| Name               | Maintained School 1      |
+		| LegalName          | New Legal Name           |
+		| CensusWardName     | New Census Ward Name     |
 		| Authority          | Local Authority 1        |
 		| DateOpened         | 2012-03-15               |
 		| LACode             | 200                      |
-		| LocalAuthorityName | Local Authority 1        |
-		| NavVendorNo        | 1234                     |
-		| ProviderType       | Local Authority          |
-		| ProviderSubType    | Local Authority          |
+		| LocalAuthorityName | Maintained School 1      |
+		| ProviderType       | LA maintained schools    |
+		| ProviderSubType    | Community school         |
 		| ProviderVersionId  | psg-providers-1.0        |
 		| TrustStatus        | Not Supported By A Trust |
-		| UKPRN              | 9000000                  |
+		| UKPRN              | 1000000                  |
+	And the following provider exists within core provider data in provider version 'psg-providers-1.0'
+		| Field              | Value                         |
+		| ProviderId         | 1000102                       |
+		| Name               | Academy 2                     |
+		| CensusWardName     | New Census Ward Name          |
+		| Authority          | Local Authority 1             |
+		| DateOpened         | 2013-04-16                    |
+		| LACode             | 200                           |
+		| LocalAuthorityName | Local Authority 1             |
+		| ProviderType       | Academies                     |
+		| ProviderSubType    | Academy special sponsor led   |
+		| ProviderVersionId  | psg-providers-1.0             |
+		| TrustCode          | 1001                          |
+		| TrustStatus        | SupportedByAMultiAcademyTrust |
+		| UKPRN              | 1000102                       |
 	When funding is refreshed
-	Then the following published provider ids are upserted
-		| PublishedProviderId                   | Status  |
-		| publishedprovider-1000000-AY-1920-PSG | Updated |
-		| publishedprovider-1000002-AY-1920-PSG | Updated |
-		| publishedprovider-1000003-AY-1920-PSG | Draft   |
-		| publishedprovider-1000004-AY-1920-PSG | Draft   |
-		| publishedprovider-1000005-AY-1920-PSG | Draft   |
-		| publishedprovider-1000009-AY-1920-PSG | Draft   |
-		| publishedprovider-1000101-AY-1920-PSG | Updated |
-		| publishedprovider-1000102-AY-1920-PSG | Updated |
-		| publishedprovider-1000103-AY-1920-PSG | Draft   |
+	Then the provider variation reasons were recorded
+		| ProviderId | VariationReason            |
+		| 1000000    | LegalNameFieldUpdated      |
+		| 1000000    | CensusWardNameFieldUpdated |
+		| 1000102    | CensusWardNameFieldUpdated |
 
-Scenario: Add a new provider to the core provider data and then do a refresh
-	Given the provider with id '9000000' should be a scoped provider in the current specification in provider version 'psg-providers-1.0'
-	And the provider with id '9000002' should be a scoped provider in the current specification in provider version 'psg-providers-1.0'
-	And the provider with id '9000003' should be a scoped provider in the current specification in provider version 'psg-providers-1.0'
-	When funding is refreshed
-	Then the following published provider ids are upserted
-		| PublishedProviderId                   | Status  |
-		| publishedprovider-1000000-AY-1920-PSG | Updated |
-		| publishedprovider-1000002-AY-1920-PSG | Updated |
-		| publishedprovider-1000003-AY-1920-PSG | Draft   |
-		| publishedprovider-1000004-AY-1920-PSG | Draft   |
-		| publishedprovider-1000005-AY-1920-PSG | Draft   |
-		| publishedprovider-1000009-AY-1920-PSG | Draft   |
-		| publishedprovider-1000101-AY-1920-PSG | Updated |
-		| publishedprovider-1000102-AY-1920-PSG | Updated |
-		| publishedprovider-1000103-AY-1920-PSG | Draft   |
-		| publishedprovider-9000000-AY-1920-PSG | Draft   |
-		| publishedprovider-9000002-AY-1920-PSG | Draft   |
-		| publishedprovider-9000003-AY-1920-PSG | Draft   |
-	And the following funding lines are set against provider with id '1000000'
-		| FundingLineCode | Value  |
-		| TotalAllocation | 12000  |
-	And the following funding lines are set against provider with id '9000000'
-		| FundingLineCode | Value  |
-		| TotalAllocation | 24000  |
-
-Scenario: Provider name updated in core provider data and then do a refresh the 'Total Allocation' does not change
-	# Given provider name updated in core provider data and then do a refresh the 'Total Allocation' does not change
+Scenario: New LACode for a provider after already being published
 	Given the following provider exists within core provider data in provider version 'psg-providers-1.0'
-		| Field              | Value                     |
-		| ProviderId         | 1000000                   |
-		| Name               | Local Authority Updated 1 |
-		| Authority          | Local Authority 1         |
-		| DateOpened         | 2012-03-15                |
-		| LACode             | 200                       |
-		| LocalAuthorityName | Local Authority 1         |
-		| ProviderType       | Local Authority           |
-		| ProviderSubType    | Local Authority           |
-		| ProviderVersionId  | psg-providers-1.0         |
-		| TrustStatus        | Not Supported By A Trust  |
-		| UKPRN              | 9000000                   |
+		| Field              | Value                    |
+		| ProviderId         | 1000000                  |
+		| Name               | Maintained School 1      |
+		| Authority          | Local Authority 1        |
+		| DateOpened         | 2012-03-15               |
+		| LACode             | 201                      |
+		| LocalAuthorityName | Maintained School 1      |
+		| ProviderType       | LA maintained schools    |
+		| ProviderSubType    | Community school         |
+		| ProviderVersionId  | psg-providers-1.0        |
+		| TrustStatus        | Not Supported By A Trust |
+		| UKPRN              | 1000000                  |
 	When funding is refreshed
-	Then the following published provider ids are upserted
-		| PublishedProviderId                   | Status  |
-		| publishedprovider-1000000-AY-1920-PSG | Updated |
-		| publishedprovider-1000002-AY-1920-PSG | Updated |
-		| publishedprovider-1000003-AY-1920-PSG | Draft   |
-		| publishedprovider-1000004-AY-1920-PSG | Draft   |
-		| publishedprovider-1000005-AY-1920-PSG | Draft   |
-		| publishedprovider-1000009-AY-1920-PSG | Draft   |
-		| publishedprovider-1000101-AY-1920-PSG | Updated |
-		| publishedprovider-1000102-AY-1920-PSG | Updated |
-		| publishedprovider-1000103-AY-1920-PSG | Draft   |
-	And the following funding lines are set against provider with id '1000000'
-		| FundingLineCode | Value  |
-		| TotalAllocation | 12000  |
+	Then the provider variation reasons were recorded
+		| ProviderId | VariationReason    |
+		| 1000000    | LACodeFieldUpdated |
+
+Scenario: New TrustCode for a provider after already being published
+	Given the following provider exists within core provider data in provider version 'psg-providers-1.0'
+		| Field              | Value                    |
+		| ProviderId         | 1000000                  |
+		| Name               | Maintained School 1      |
+		| Authority          | Local Authority 1        |
+		| DateOpened         | 2012-03-15               |
+		| LACode             | 200                      |
+		| TrustCode          | New MAT                  |
+		| LocalAuthorityName | Maintained School 1      |
+		| ProviderType       | LA maintained schools    |
+		| ProviderSubType    | Community school         |
+		| ProviderVersionId  | psg-providers-1.0        |
+		| TrustStatus        | Not Supported By A Trust |
+		| UKPRN              | 1000000                  |
+	When funding is refreshed
+	Then the provider variation reasons were recorded
+		| ProviderId | VariationReason       |
+		| 1000000    | TrustCodeFieldUpdated |
+
+Scenario: Provider closes without successor
+	Given the following provider exists within core provider data in provider version 'psg-providers-1.0'
+		| Field              | Value                    |
+		| ProviderId         | 1000000                  |
+		| Status             | Closed                   |
+		| Name               | Maintained School 1      |
+		| Authority          | Local Authority 1        |
+		| DateOpened         | 2012-03-15               |
+		| LACode             | 200                      |
+		| LocalAuthorityName | Maintained School 1      |
+		| ProviderType       | LA maintained schools    |
+		| ProviderSubType    | Community school         |
+		| ProviderVersionId  | psg-providers-1.0        |
+		| TrustStatus        | Not Supported By A Trust |
+		| UKPRN              | 1000000                  |
+   And the Published Provider '1000000' has the following funding lines
+		| Name            | FundingLineCode | Value | TemplateLineId | Type    |
+		| TotalAllocation | TotalAllocation | 30000 | 1              | Payment |
+   And the Published Provider '1000000' has the following distribution period for funding line 'TotalAllocation'
+		| DistributionPeriodId | Value |
+		| FY-2021              | 30000 |
+   And the Published Provider '1000000' distribution period has the following profiles for funding line 'TotalAllocation'
+		| DistributionPeriodId | Type          | TypeValue | Year | Occurrence | ProfiledValue |
+		| FY-2021              | CalendarMonth | April     | 2021 | 1          | 10000         |
+		| FY-2021              | CalendarMonth | May       | 2021 | 0          | 700           |
+		| FY-2021              | CalendarMonth | May       | 2021 | 1          | 300           |
+		| FY-2021              | CalendarMonth | June      | 2021 | 1          | 10000         |
+   And the following variation pointers exist
+		| FundingStreamId | FundingLineId   | PeriodType    | TypeValue | Year | Occurrence |
+		| PSG             | TotalAllocation | CalenderMonth | May       | 2021 | 0          |
+   When funding is refreshed
+   Then the upserted provider version for '1000000' has the following funding line profile periods
+		| FundingLineCode | DistributionPeriodId | Type          | TypeValue | Year | Occurrence | ProfiledValue |
+		| TotalAllocation | FY-2021              | CalendarMonth | April     | 2021 | 1          | 10000         |
+		| TotalAllocation | FY-2021              | CalendarMonth | May       | 2021 | 0          | 0             |
+		| TotalAllocation | FY-2021              | CalendarMonth | May       | 2021 | 1          | 0             |
+		| TotalAllocation | FY-2021              | CalendarMonth | June      | 2021 | 1          | 0             |
+   And the upserted provider version for '1000000' has the funding line totals 
+		| FundingLineCode | Value |
+		| TotalAllocation | 10000 |
+
+Scenario: Providers close with successor
+	Given the following provider exists within core provider data in provider version 'psg-providers-1.0'
+		| Field              | Value                    |
+		| ProviderId         | 1000000                  |
+		| Status             | Closed                   |
+		| Successor          | 1000102                  |
+		| Name               | Maintained School 1      |
+		| Authority          | Local Authority 1        |
+		| DateOpened         | 2012-03-15               |
+		| LACode             | 200                      |
+		| LocalAuthorityName | Maintained School 1      |
+		| ProviderType       | LA maintained schools    |
+		| ProviderSubType    | Community school         |
+		| ProviderVersionId  | psg-providers-1.0        |
+		| TrustStatus        | Not Supported By A Trust |
+		| UKPRN              | 1000000                  |
+   And the following provider exists within core provider data in provider version 'psg-providers-1.0'
+		| Field              | Value                    |
+		| ProviderId         | 1000002                  |
+		| Status             | Closed                   |
+		| Successor          | 1000102                  |
+		| Name               | Maintained School 2      |
+		| Authority          | Local Authority 1        |
+		| DateOpened         | 2013-04-16               |
+		| LACode             | 200                      |
+		| LocalAuthorityName | Local Authority 1        |
+		| ProviderType       | LA maintained schools    |
+		| ProviderSubType    | Community school         |
+		| ProviderVersionId  | psg-providers-1.0        |
+		| TrustStatus        | Not Supported By A Trust |
+		| UKPRN              | 1000002                  |
+   And the Published Provider '1000000' has the following funding lines
+		| Name            | FundingLineCode | Value | TemplateLineId | Type    |
+		| TotalAllocation | TotalAllocation | 30000 | 1              | Payment |
+   And the Published Provider '1000000' has the following distribution period for funding line 'TotalAllocation'
+		| DistributionPeriodId | Value |
+		| FY-2021              | 30000 |
+   And the Published Provider '1000000' distribution period has the following profiles for funding line 'TotalAllocation'
+		| DistributionPeriodId | Type          | TypeValue | Year | Occurrence | ProfiledValue |
+		| FY-2021              | CalendarMonth | April     | 2021 | 1          | 10000         |
+		| FY-2021              | CalendarMonth | May       | 2021 | 0          | 700           |
+		| FY-2021              | CalendarMonth | May       | 2021 | 1          | 300           |
+		| FY-2021              | CalendarMonth | June      | 2021 | 1          | 10000         |
+   And the Published Provider '1000002' has the following funding lines
+		| Name            | FundingLineCode | Value | TemplateLineId | Type    |
+		| TotalAllocation | TotalAllocation | 40000 | 1              | Payment |
+   And the Published Provider '1000002' has the following distribution period for funding line 'TotalAllocation'
+		| DistributionPeriodId | Value |
+		| FY-2021              | 40000 |
+   And the Published Provider '1000002' distribution period has the following profiles for funding line 'TotalAllocation'
+		| DistributionPeriodId | Type          | TypeValue | Year | Occurrence | ProfiledValue |
+		| FY-2021              | CalendarMonth | April     | 2021 | 1          | 20000         |
+		| FY-2021              | CalendarMonth | May       | 2021 | 0          | 700           |
+		| FY-2021              | CalendarMonth | May       | 2021 | 1          | 300           |
+		| FY-2021              | CalendarMonth | June      | 2021 | 1          | 10000         |
+   And the Published Provider '1000102' has the following funding lines
+		| Name            | FundingLineCode | Value | TemplateLineId | Type    |
+		| TotalAllocation | TotalAllocation | 2600  | 1              | Payment |
+   And the Published Provider '1000102' has the following distribution period for funding line 'TotalAllocation'
+		| DistributionPeriodId | Value |
+		| FY-2021              | 2600  |
+   And the Published Provider '1000102' distribution period has the following profiles for funding line 'TotalAllocation'
+		| DistributionPeriodId | Type          | TypeValue | Year | Occurrence | ProfiledValue |
+		| FY-2021              | CalendarMonth | April     | 2021 | 1          | 500           |
+		| FY-2021              | CalendarMonth | May       | 2021 | 0          | 600           |
+		| FY-2021              | CalendarMonth | May       | 2021 | 1          | 700           |
+		| FY-2021              | CalendarMonth | June      | 2021 | 1          | 800           |
+   And the following variation pointers exist
+		| FundingStreamId | FundingLineId   | PeriodType    | TypeValue | Year | Occurrence |
+		| PSG             | TotalAllocation | CalenderMonth | May       | 2021 | 0          |
+   When funding is refreshed
+   Then the upserted provider version for '1000000' has the following funding line profile periods
+		| FundingLineCode | DistributionPeriodId | Type          | TypeValue | Year | Occurrence | ProfiledValue |
+		| TotalAllocation | FY-2021              | CalendarMonth | April     | 2021 | 1          | 10000         |
+		| TotalAllocation | FY-2021              | CalendarMonth | May       | 2021 | 0          | 0             |
+		| TotalAllocation | FY-2021              | CalendarMonth | May       | 2021 | 1          | 0             |
+		| TotalAllocation | FY-2021              | CalendarMonth | June      | 2021 | 1          | 0             |
+   And the upserted provider version for '1000000' has the funding line totals 
+		| FundingLineCode | Value |
+		| TotalAllocation | 10000 |
+   And the upserted provider version for '1000002' has the following funding line profile periods
+		| FundingLineCode | DistributionPeriodId | Type          | TypeValue | Year | Occurrence | ProfiledValue |
+		| TotalAllocation | FY-2021              | CalendarMonth | April     | 2021 | 1          | 20000         |
+		| TotalAllocation | FY-2021              | CalendarMonth | May       | 2021 | 0          | 0             |
+		| TotalAllocation | FY-2021              | CalendarMonth | May       | 2021 | 1          | 0             |
+		| TotalAllocation | FY-2021              | CalendarMonth | June      | 2021 | 1          | 0             |
+   And the upserted provider version for '1000002' has the funding line totals 
+		| FundingLineCode | Value |
+		| TotalAllocation | 20000 |
+   And the upserted provider version for '1000102' has the following funding line profile periods
+		| FundingLineCode | DistributionPeriodId | Type          | TypeValue | Year | Occurrence | ProfiledValue |
+		| TotalAllocation | FY-2021              | CalendarMonth | April     | 2021 | 1          | 500           |
+		| TotalAllocation | FY-2021              | CalendarMonth | May       | 2021 | 0          | 2000          |
+		| TotalAllocation | FY-2021              | CalendarMonth | May       | 2021 | 1          | 1300          |
+		| TotalAllocation | FY-2021              | CalendarMonth | June      | 2021 | 1          | 20800         |
+   And the upserted provider version for '1000102' has the funding line totals 
+		| FundingLineCode | Value |
+		| TotalAllocation | 24600 |
+   And the upserted provider version for '1000102' has the following predecessors
+		| ProviderId |
+		| 1000002    |
+		| 1000000    |
+	

@@ -38,6 +38,8 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
             fundingConfiguration.FundingPeriodId = fundingPeriodId;
             fundingConfiguration.FundingStreamId = fundingStreamId;
             _policiesStepContext.CreateFundingConfiguration = fundingConfiguration;
+
+            _policiesStepContext.Repo.SetFundingConfiguration(fundingPeriodId, fundingStreamId, fundingConfiguration);
         }
 
         [Given(@"the funding configuration has the following organisation group")]
@@ -57,6 +59,22 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
 
             _policiesStepContext.CreateFundingConfiguration.OrganisationGroupings = newGroupings;
         }
+
+        [Given(@"the funding configuration has the following funding variations")]
+        public void GivenTheFundingConfigurationHasTheFollowingFundingVariations(IEnumerable<FundingVariation> fundingVariations)
+        {
+            //TODO; this is all a bit frankenstein - remove the variable and access it via the in memory repo methods ideally
+            FundingConfiguration fundingConfiguration = _policiesStepContext
+                .CreateFundingConfiguration;
+
+            fundingConfiguration
+                .Should()
+                .NotBeNull();
+
+            fundingConfiguration
+                    .Variations = fundingVariations ?? new FundingVariation[0];
+        }
+
 
         [Given(@"the funding configuration has the following provider type matches")]
         public void GivenTheFundingConfigurationHasTheFollowingProviderTypeMatches(Table table)

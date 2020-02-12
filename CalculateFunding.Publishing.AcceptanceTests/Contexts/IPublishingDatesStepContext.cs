@@ -6,10 +6,10 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
 {
     public interface IPublishingDatesStepContext
     {
-        IPublishedFundingDateService Service { get; set; }
+        IPublishedFundingDateService Service { get; }
 
-        PublishedFundingDateService EmulatedService { get; set; }
+        PublishedFundingDateService EmulatedService { get; }
 
-        SpecificationsInMemoryClient EmulatedClient { get; set; }
+        SpecificationsInMemoryClient EmulatedClient { get; }
     }
 }
