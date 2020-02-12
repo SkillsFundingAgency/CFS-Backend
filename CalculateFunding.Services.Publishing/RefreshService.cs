@@ -351,7 +351,7 @@ namespace CalculateFunding.Services.Publishing
                         
                         await _jobManagement.UpdateJobStatus(jobId, 0, 0, false, "Refresh job failed with variations errors.");
                         
-                        return;
+                        throw new NonRetriableException($"Unable to refresh funding. Variations generated {_applyProviderVariations.ErrorMessages.Count()} errors. Check log for details");
                     }
 
                     foreach (PublishedProvider publishedProvider in _applyProviderVariations.ProvidersToUpdate)

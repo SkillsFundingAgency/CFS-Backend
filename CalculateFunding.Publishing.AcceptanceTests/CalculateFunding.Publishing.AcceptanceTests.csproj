@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <None Remove="Resources\DSG1.0.json" />
+    <None Remove="Resources\DSG2.0.json" />
     <None Remove="Resources\PSG-AY-1920-Information-Provider-1000201-1_0.json" />
     <None Remove="Resources\PSG-AY-1920-Information-Provider-1000202-1_0.json" />
     <None Remove="Resources\PSG-AY-1920-Payment-AcademyTrust-8000001-1_0.json" />
@@ -27,11 +28,13 @@
 
   <ItemGroup>
     <SpecFlowObsoleteCodeBehindFiles Remove="Features\PublishingPsg - Copy.feature.cs" />
+    <SpecFlowObsoleteCodeBehindFiles Remove="Features\RefreshDsg - Copy.feature.cs" />
     <SpecFlowObsoleteCodeBehindFiles Remove="Features\RefreshPsg - Copy.feature.cs" />
     <SpecFlowObsoleteCodeBehindFiles Remove="Features\RefreshPsgVariations - Copy.feature.cs" />
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="Resources\DSG2.0.json" />
     <EmbeddedResource Include="Resources\DSG1.0.json" />
     <EmbeddedResource Include="Resources\PublishedFunding\DSG-FY-2021-Information-LocalAuthority-200-1_0.json" />
     <EmbeddedResource Include="Resources\PublishedFunding\DSG-FY-2021-Payment-LocalAuthority-9000000-1_0.json" />
@@ -73,6 +76,9 @@
     <Compile Update="Features\PublishingDsg.feature.cs">
       <DependentUpon>PublishingDsg.feature</DependentUpon>
     </Compile>
+    <Compile Update="Features\RefreshDsgVariations.feature.cs">
+      <DependentUpon>RefreshDsgVariations.feature</DependentUpon>
+    </Compile>
     <Compile Update="Features\RefreshPsgVariations.feature.cs">
       <DependentUpon>RefreshPsgVariations.feature</DependentUpon>
     </Compile>
@@ -92,6 +98,10 @@
 
   <ItemGroup>
     <SpecFlowFeatureFiles Update="Features\PublishingDsg.feature">
+      <Visible>$(UsingMicrosoftNETSdk)</Visible>
+      <CodeBehindFile>%(RelativeDir)%(Filename).feature$(DefaultLanguageSourceExtension)</CodeBehindFile>
+    </SpecFlowFeatureFiles>
+    <SpecFlowFeatureFiles Update="Features\RefreshDsgVariations.feature">
       <Visible>$(UsingMicrosoftNETSdk)</Visible>
       <CodeBehindFile>%(RelativeDir)%(Filename).feature$(DefaultLanguageSourceExtension)</CodeBehindFile>
     </SpecFlowFeatureFiles>

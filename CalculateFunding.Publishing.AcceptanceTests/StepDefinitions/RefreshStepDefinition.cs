@@ -140,10 +140,10 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
         }
 
         [Then(@"the upserted provider version for '(.*)' has the following predecessors")]
-        public void ThenTheUpsertedProviderVersionForHasTheFollowingPredecessors(string providerId, 
+        public void ThenTheUpsertedProviderVersionForHasTheFollowingPredecessors(string providerId,
             IEnumerable<ExpectedPredecessor> expectedPredecessors)
         {
-            PublishedProviderVersion publishedProviderVersion = GetUpsertedPublishedProviderVersion(providerId);
+            var publishedProviderVersion = GetUpsertedPublishedProviderVersion(providerId);
 
             publishedProviderVersion
                 .Predecessors
@@ -205,6 +205,42 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
                         .VariationReasons
                         .Should()
                         .BeNullOrEmpty();
+            }
+        }
+
+        [Then(@"the upserted provider version for '(.*)' has no funding line over payments for funding line '(.*)'")]
+        public void ThenTheUpsertedProviderVersionForHasNoFundingLineOverPaymentsForFundingLine(string providerId,
+            string fundingLineCode)
+        {
+            var publishedProviderVersion = GetUpsertedPublishedProviderVersion(providerId);
+
+            (publishedProviderVersion.FundingLineOverPayments ?? new Dictionary<string, decimal>())
+                .ContainsKey(fundingLineCode)
+                .Should()
+                .BeFalse();
+        }
+
+        [Then(@"the upserted provider version for '(.*)' has the following funding line over payments")]
+        public void ThenTheUpsertedProviderVersionForHasTheFollowingFundingLineOverPayments(string providerId,
+            IEnumerable<ExpectedFundingLineOverPayment> expectedFundingLineOverPayments)
+        {
+            var publishedProviderVersion = GetUpsertedPublishedProviderVersion(providerId);
+
+            IDictionary<string, decimal> overPayments =
+                publishedProviderVersion.FundingLineOverPayments ?? new Dictionary<string, decimal>();
+
+            foreach (var expectedFundingLineOverPayment in expectedFundingLineOverPayments)
+            {
+                var fundingLineCode = expectedFundingLineOverPayment.FundingLineCode;
+
+                overPayments
+                    .ContainsKey(fundingLineCode)
+                    .Should()
+                    .BeTrue();
+
+                overPayments[fundingLineCode]
+                    .Should()
+                    .Be(expectedFundingLineOverPayment.OverPayment);
             }
         }
 

@@ -23,6 +23,11 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             Results = calculationResults.ToArray();
         }
 
+        public void AddCalculationResults(IEnumerable<CalculationResult> calculationResults)
+        {
+            Results = Results.Concat(calculationResults);
+        }
+
         public void AddProviderResults(string providerId, IEnumerable<CalculationResult> providerResults)
         {
             ProviderResults[providerId] = providerResults;

@@ -15,6 +15,16 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Transforms
     public class VariationsTransforms : TransformsBase
     {
         [StepArgumentTransformation]
+        public IEnumerable<ExpectedFundingLineOverPayment> ToExpectedFundingLineOverPayments(
+            Table fundingLineOverPaymentsTable)
+        {
+            EnsureTableHasData(fundingLineOverPaymentsTable);
+
+            return fundingLineOverPaymentsTable.CreateSet<ExpectedFundingLineOverPayment>()
+                .ToArray();
+        }
+
+        [StepArgumentTransformation]
         public IEnumerable<ExpectedFundingLineProfileValues> ToExpectedFundingLineProfileValues(
             Table fundingLineProfileValuesTable)
         {

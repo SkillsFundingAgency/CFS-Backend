@@ -64,9 +64,15 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
         }
 
         [Given(@"calculations exists")]
-        public void GivenCalculationsExists(Table table)
+        public void GivenCalculationsExists(IEnumerable<CalculationResult> calculationResults)
         {
-            _publishFundingStepContext.CalculationsInMemoryRepository.SetCalculationResults(table.CreateSet<CalculationResult>());
+            _publishFundingStepContext.CalculationsInMemoryRepository.SetCalculationResults(calculationResults);
+        }
+
+        [Given(@"the following calculation results also exist")]
+        public void GivenCalculationsAlsoExist(IEnumerable<CalculationResult> calculationResults)
+        {
+            _publishFundingStepContext.CalculationsInMemoryRepository.AddCalculationResults(calculationResults);
         }
 
         [Given(@"the following distribution periods exist")]
