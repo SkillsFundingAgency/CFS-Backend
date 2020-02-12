@@ -2132,10 +2132,13 @@ namespace CalculateFunding.Services.Datasets.Services
 
 
         [TestMethod]
-        public async Task OnValidateDataset_WhenBlobReturnsDuplicateDatasetName_ThenErrorLogged()
+        public async Task OnValidateDataset_WhenBlobReturnsDuplicateDatasetNameWithDifferentDataSetId_ThenErrorLogged()
         {
             // Arrange
-            Message message = GetValidateDatasetMessage(NewGetDatasetBlobModel());
+            string dataSetId1 = "id-1";
+            string dataSetId2 = "id-2";
+
+            Message message = GetValidateDatasetMessage(NewGetDatasetBlobModel(x=>x.WithDatasetId(dataSetId1)));
 
             ILogger logger = CreateLogger();
 
@@ -2171,7 +2174,93 @@ namespace CalculateFunding.Services.Datasets.Services
                 .DownloadToStreamAsync(Arg.Is(cloubBlob))
                 .Returns(memoryStream);
 
-            IEnumerable<Dataset> datasets = new Dataset[] { new Dataset { Name = "dataset" } };
+            IEnumerable<Dataset> datasets = new Dataset[] { new Dataset { Name = "dataset", Id = dataSetId2 } };
+
+            IDatasetRepository datasetsRepository = CreateDatasetsRepository();
+            datasetsRepository
+                 .GetDatasetsByQuery(Arg.Any<Expression<Func<DocumentEntity<Dataset>, bool>>>())
+                 .Returns(datasets);
+
+            DatasetService service = CreateDatasetService(
+                logger: logger,
+                datasetRepository: datasetsRepository,
+                cacheProvider: cacheProvider,
+                getDatasetBlobModelValidator: validator,
+                blobClient: blobClient);
+
+            // Act
+            await service.ValidateDataset(message);
+
+            // Assert
+            logger
+                .Received(1)
+                .Error(Arg.Is("Dataset dataset needs to be a unique name"));
+
+            await cacheProvider
+                .Received(1)
+                .SetAsync<DatasetValidationStatusModel>(
+                Arg.Is<string>(a => a.StartsWith(CacheKeys.DatasetValidationStatus)),
+                Arg.Is<DatasetValidationStatusModel>(s =>
+                    s.CurrentOperation == DatasetValidationStatus.Processing &&
+                    s.OperationId == message.UserProperties["operation-id"].ToString()
+                    ));
+
+            await cacheProvider
+                 .Received(1)
+                 .SetAsync<DatasetValidationStatusModel>(
+                 Arg.Is<string>(a => a.StartsWith(CacheKeys.DatasetValidationStatus)),
+                 Arg.Is<DatasetValidationStatusModel>(s =>
+                     s.CurrentOperation == DatasetValidationStatus.FailedValidation &&
+                     s.ErrorMessage == "Dataset dataset needs to be a unique name" &&
+                     s.OperationId == message.UserProperties["operation-id"].ToString()
+                     ));
+        }
+
+        [TestMethod]
+        public async Task OnValidateDataset_WhenBlobReturnsDuplicateDatasetNameWithSameDataSetIdAndDecreasingVersionId_ThenErrorLogged()
+        {
+            // Arrange
+            string dataSetId = "id-1";
+            int oldVersionId = 2;
+            int newVersionId = 1;
+
+            Message message = GetValidateDatasetMessage(NewGetDatasetBlobModel(x => x.WithDatasetId(dataSetId).WithVersion(newVersionId)));
+
+            ILogger logger = CreateLogger();
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+
+            IValidator<GetDatasetBlobModel> validator = CreateGetDatasetBlobModelValidator();
+
+            List<ValidationFailure> validationFailures = new List<ValidationFailure>();
+
+            ValidationResult validationResult = new ValidationResult(validationFailures);
+
+            validator
+                .ValidateAsync(Arg.Any<GetDatasetBlobModel>())
+                .Returns(validationResult);
+
+            ICloudBlob cloubBlob = Substitute.For<ICloudBlob>();
+            cloubBlob
+                .Name
+                .Returns("dsid/v1/filename.xlsx");
+
+            cloubBlob
+                .Metadata["name"]
+                .Returns("dataset");
+
+            MemoryStream memoryStream = new MemoryStream(new byte[1]);
+
+            IBlobClient blobClient = CreateBlobClient();
+            blobClient
+                .GetBlobReferenceFromServerAsync(Arg.Any<string>())
+                .Returns(cloubBlob);
+
+            blobClient
+                .DownloadToStreamAsync(Arg.Is(cloubBlob))
+                .Returns(memoryStream);
+
+            IEnumerable<Dataset> datasets = new Dataset[] { new Dataset { Name = "dataset", Id = dataSetId, Current = new DatasetVersion { Version = oldVersionId } } };
 
             IDatasetRepository datasetsRepository = CreateDatasetsRepository();
             datasetsRepository

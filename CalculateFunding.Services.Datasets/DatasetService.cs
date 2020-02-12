@@ -482,7 +482,8 @@ namespace CalculateFunding.Services.Datasets
                 }
 
                 IEnumerable<Dataset> datasets = _datasetRepository.GetDatasetsByQuery(m => m.Content.Name.ToLower() == blob.Metadata["name"].ToLower()).Result;
-                if (datasets != null && datasets.Any())
+                if (datasets != null && datasets.Any() && 
+                    (datasets.Any(d => d.Id != model.DatasetId) || datasets.Any(d => d.Id == model.DatasetId && d.Current.Version >= model.Version)))
                 {
                     _logger.Error($"Dataset {blob.Metadata["name"]} needs to be a unique name");
 
