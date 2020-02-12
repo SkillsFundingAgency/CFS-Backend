@@ -12,6 +12,8 @@ namespace CalculateFunding.Services.Graph.Interfaces
 
         Task SaveCalculations(IEnumerable<Calculation> calculations);
 
-        Task CreateCalculationRelationship(string calculationId, string specificationId);
+        Task CreateCalculationSpecificationRelationship(string calculationId, string specificationId);
+
+        Task CreateCalculationCalculationRelationship(string calculationIdA, string calculationIdB);
     }
 }

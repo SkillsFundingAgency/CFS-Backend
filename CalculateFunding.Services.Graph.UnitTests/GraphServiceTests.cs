@@ -158,16 +158,16 @@ namespace CalculateFunding.Services.Graph.UnitTests
         }
 
         [TestMethod]
-        public async Task CreateCalculationRelationship_GivenValidRelationship_OkStatusCodeReturned()
+        public async Task CreateCalculationSpecificationRelationship_GivenValidRelationship_OkStatusCodeReturned()
         {
             Calculation calc = NewCalculation();
             Specification specification = NewSpecification();
 
-            IActionResult result = await _graphService.CreateCalculationRelationship(calc.CalculationId, specification.SpecificationId);
+            IActionResult result = await _graphService.CreateCalculationSpecificationRelationship(calc.CalculationId, specification.SpecificationId);
 
             await _calculationRepository
                 .Received(1)
-                .CreateCalculationRelationship(calc.CalculationId, specification.SpecificationId);
+                .CreateCalculationSpecificationRelationship(calc.CalculationId, specification.SpecificationId);
 
             result
                 .Should()
@@ -175,16 +175,50 @@ namespace CalculateFunding.Services.Graph.UnitTests
         }
 
         [TestMethod]
-        public async Task CreateCalculationRelationship_FailedToCreateRelationship_InternalServerErrorReturned()
+        public async Task CreateCalculationSpecificationRelationship_FailedToCreateRelationship_InternalServerErrorReturned()
         {
             Calculation calc = NewCalculation();
             Specification specification = NewSpecification();
 
             _calculationRepository
-                .CreateCalculationRelationship(calc.CalculationId, specification.SpecificationId)
+                .CreateCalculationSpecificationRelationship(calc.CalculationId, specification.SpecificationId)
                 .Throws(new Exception());
 
-            IActionResult result = await _graphService.CreateCalculationRelationship(calc.CalculationId, specification.SpecificationId);
+            IActionResult result = await _graphService.CreateCalculationSpecificationRelationship(calc.CalculationId, specification.SpecificationId);
+
+            result
+                .Should()
+                .BeAssignableTo<InternalServerErrorResult>();
+        }
+
+        [TestMethod]
+        public async Task CreateCalculationCalculationRelationship_GivenValidRelationship_OkStatusCodeReturned()
+        {
+            Calculation calcA = NewCalculation();
+            Calculation calcB = NewCalculation();
+
+            IActionResult result = await _graphService.CreateCalculationCalculationRelationship(calcA.CalculationId, calcB.CalculationId);
+
+            await _calculationRepository
+                .Received(1)
+                .CreateCalculationCalculationRelationship(calcA.CalculationId, calcB.CalculationId);
+
+            result
+                .Should()
+                .BeOfType<OkResult>();
+        }
+
+        [TestMethod]
+        public async Task CreateCalculationCalculationRelationship_FailedToCreateRelationship_InternalServerErrorReturned()
+        {
+            Calculation calcA = NewCalculation();
+            Calculation calcB = NewCalculation();
+
+            _calculationRepository
+                .CreateCalculationCalculationRelationship(calcA.CalculationId, calcB.CalculationId)
+                .Throws(new Exception());
+
+            IActionResult result = await _graphService.CreateCalculationCalculationRelationship(calcA.CalculationId, calcB.CalculationId);
 
             result
                 .Should()

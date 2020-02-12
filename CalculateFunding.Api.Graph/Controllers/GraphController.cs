@@ -50,12 +50,20 @@ namespace CalculateFunding.Api.Graph.Controllers
             return await _graphService.DeleteSpecification(specificationId);
         }
 
-        [Route("api/graph/calculations/{calculationId}/{specificationId}")]
+        [Route("api/graph/calculation/specification/{calculationId}/{specificationId}")]
         [HttpPut]
         [ProducesResponseType(200)]
-        public async Task<IActionResult> CreateCalculationRelationship([FromRoute]string calculationId, [FromRoute]string specificationId)
+        public async Task<IActionResult> CreateCalculationSpecificationRelationship([FromRoute]string calculationId, [FromRoute]string specificationId)
         {
-            return await _graphService.CreateCalculationRelationship(calculationId, specificationId);
+            return await _graphService.CreateCalculationSpecificationRelationship(calculationId, specificationId);
+        }
+
+        [Route("api/graph/calculation/calculation/{calculationIdA}/{calculationIdB}")]
+        [HttpPut]
+        [ProducesResponseType(200)]
+        public async Task<IActionResult> CreateCalculationCalculationRelationship([FromRoute]string calculationIdA, [FromRoute]string calculationIdB)
+        {
+            return await _graphService.CreateCalculationCalculationRelationship(calculationIdA, calculationIdB);
         }
     }
 }

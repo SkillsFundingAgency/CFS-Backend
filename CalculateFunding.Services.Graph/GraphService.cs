@@ -82,11 +82,25 @@ namespace CalculateFunding.Services.Graph
             }
         }
 
-        public async Task<IActionResult> CreateCalculationRelationship(string calculationId, string specificationId)
+        public async Task<IActionResult> CreateCalculationSpecificationRelationship(string calculationId, string specificationId)
         {
             try
             {
-                await _calcRepository.CreateCalculationRelationship(calculationId, specificationId);
+                await _calcRepository.CreateCalculationSpecificationRelationship(calculationId, specificationId);
+
+                return new OkResult();
+            }
+            catch (Exception ex)
+            {
+                return new InternalServerErrorResult(ex.Message);
+            }
+        }
+
+        public async Task<IActionResult> CreateCalculationCalculationRelationship(string calculationIdA, string calculationIdB)
+        {
+            try
+            {
+                await _calcRepository.CreateCalculationCalculationRelationship(calculationIdA, calculationIdB);
 
                 return new OkResult();
             }
