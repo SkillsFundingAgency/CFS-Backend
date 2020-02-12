@@ -30,5 +30,10 @@ namespace CalculateFunding.Services.Graph
         {
             await _graphRepository.AddNodes(calculations.ToList(), new string[] { "calculationid" });
         }
+
+        public async Task CreateCalculationRelationship(string calculationId, string specificationId)
+        {
+            await _graphRepository.CreateRelationship<Calculation, Specification>("specification", ("calculationid", calculationId), ("specificationid", specificationId));
+        }
     }
 }

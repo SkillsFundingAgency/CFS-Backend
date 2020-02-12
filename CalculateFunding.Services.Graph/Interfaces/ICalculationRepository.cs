@@ -11,5 +11,7 @@ namespace CalculateFunding.Services.Graph.Interfaces
         Task DeleteCalculation(string calculationId);
 
         Task SaveCalculations(IEnumerable<Calculation> calculations);
+
+        Task CreateCalculationRelationship(string calculationId, string specificationId);
     }
 }

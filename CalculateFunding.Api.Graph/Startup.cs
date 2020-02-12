@@ -75,20 +75,27 @@ namespace CalculateFunding.Api.Graph
                 .AddScoped<IHealthChecker, ControllerResolverHealthCheck>();
 
             builder
-                .AddSingleton<IGraphRepository, GraphRepository>(ctx =>
+                .AddScoped<ICypherBuilder, CypherBuilder>();
+
+            builder
+                .AddScoped<IGraphRepository, GraphRepository>(ctx =>
                 {
+                    ICypherBuilder cypherBuilder = ctx.GetService<ICypherBuilder>();
                     GraphDbSettings graphDbSettings = new GraphDbSettings();
 
                     Configuration.Bind("GraphDbSettings", graphDbSettings);
 
-                    return new GraphRepository(graphDbSettings);
+                    return new GraphRepository(graphDbSettings, cypherBuilder);
                 });
 
             builder
-                .AddSingleton<ICalculationRepository, CalculationRepository>();
+                .AddScoped<ISpecificationRepository, SpecificationRepository>();
 
             builder
-                .AddSingleton<IGraphService, GraphService>();
+                .AddScoped<ICalculationRepository, CalculationRepository>();
+
+            builder
+                .AddScoped<IGraphService, GraphService>();
 
             builder.AddApiKeyMiddlewareSettings((IConfigurationRoot)Configuration);
 
