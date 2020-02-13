@@ -225,6 +225,74 @@ namespace CalculateFunding.Services.Graph.UnitTests
                 .BeAssignableTo<InternalServerErrorResult>();
         }
 
+        [TestMethod]
+        public async Task DeleteCalculationSpecificationRelationship_GivenValidRelationship_OkStatusCodeReturned()
+        {
+            Calculation calc = NewCalculation();
+            Specification specification = NewSpecification();
+
+            IActionResult result = await _graphService.DeleteCalculationSpecificationRelationship(calc.CalculationId, specification.SpecificationId);
+
+            await _calculationRepository
+                .Received(1)
+                .DeleteCalculationSpecificationRelationship(calc.CalculationId, specification.SpecificationId);
+
+            result
+                .Should()
+                .BeOfType<OkResult>();
+        }
+
+        [TestMethod]
+        public async Task DeleteCalculationSpecificationRelationship_FailedToDeleteRelationship_InternalServerErrorReturned()
+        {
+            Calculation calc = NewCalculation();
+            Specification specification = NewSpecification();
+
+            _calculationRepository
+                .DeleteCalculationSpecificationRelationship(calc.CalculationId, specification.SpecificationId)
+                .Throws(new Exception());
+
+            IActionResult result = await _graphService.DeleteCalculationSpecificationRelationship(calc.CalculationId, specification.SpecificationId);
+
+            result
+                .Should()
+                .BeAssignableTo<InternalServerErrorResult>();
+        }
+
+        [TestMethod]
+        public async Task DeleteCalculationCalculationRelationship_GivenValidRelationship_OkStatusCodeReturned()
+        {
+            Calculation calcA = NewCalculation();
+            Calculation calcB = NewCalculation();
+
+            IActionResult result = await _graphService.DeleteCalculationCalculationRelationship(calcA.CalculationId, calcB.CalculationId);
+
+            await _calculationRepository
+                .Received(1)
+                .DeleteCalculationCalculationRelationship(calcA.CalculationId, calcB.CalculationId);
+
+            result
+                .Should()
+                .BeOfType<OkResult>();
+        }
+
+        [TestMethod]
+        public async Task DeleteCalculationCalculationRelationship_FailedToDeleteRelationship_InternalServerErrorReturned()
+        {
+            Calculation calcA = NewCalculation();
+            Calculation calcB = NewCalculation();
+
+            _calculationRepository
+                .DeleteCalculationCalculationRelationship(calcA.CalculationId, calcB.CalculationId)
+                .Throws(new Exception());
+
+            IActionResult result = await _graphService.DeleteCalculationCalculationRelationship(calcA.CalculationId, calcB.CalculationId);
+
+            result
+                .Should()
+                .BeAssignableTo<InternalServerErrorResult>();
+        }
+
         private Calculation NewCalculation(Action<CalculationBuilder> setUp = null)
         {
             CalculationBuilder calculationBuilder = new CalculationBuilder();

@@ -39,6 +39,19 @@ namespace CalculateFunding.Services.Graph
         public async Task CreateCalculationCalculationRelationship(string calculationIdA, string calculationIdB)
         {
             await _graphRepository.CreateRelationship<Calculation, Calculation>("CallsCalculation", ("calculationid", calculationIdA), ("calculationid", calculationIdB));
+
+        }
+
+        public async Task DeleteCalculationSpecificationRelationship(string calculationId, string specificationId)
+        {
+            await _graphRepository.DeleteRelationship<Calculation, Specification>("BelongsToSpecification", ("calculationid", calculationId), ("specificationid", specificationId));
+        }
+
+        public async Task DeleteCalculationCalculationRelationship(string calculationIdA, string calculationIdB)
+        {
+            await _graphRepository.DeleteRelationship<Calculation, Calculation>("CallsCalculation", ("calculationid", calculationIdA), ("calculationid", calculationIdB));
+
         }
     }
+    
 }

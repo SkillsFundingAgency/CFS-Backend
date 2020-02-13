@@ -10,10 +10,11 @@ namespace CalculateFunding.Services.Graph.Interfaces
     {
         Task DeleteCalculation(string calculationId);
 
-        Task SaveCalculations(IEnumerable<Calculation> calculations);
-
+        Task SaveCalculations(IEnumerable<Calculation> calculations);        
         Task CreateCalculationSpecificationRelationship(string calculationId, string specificationId);
-
         Task CreateCalculationCalculationRelationship(string calculationIdA, string calculationIdB);
+        Task DeleteCalculationSpecificationRelationship(string calculationId, string specificationId);
+        Task DeleteCalculationCalculationRelationship(string calculationIdA, string calculationIdB);
+
     }
 }

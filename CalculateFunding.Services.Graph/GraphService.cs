@@ -109,5 +109,33 @@ namespace CalculateFunding.Services.Graph
                 return new InternalServerErrorResult(ex.Message);
             }
         }
+
+        public async Task<IActionResult> DeleteCalculationSpecificationRelationship(string calculationId, string specificationId)
+        {
+            try
+            {
+                await _calcRepository.DeleteCalculationSpecificationRelationship(calculationId, specificationId);
+
+                return new OkResult();
+            }
+            catch (Exception ex)
+            {
+                return new InternalServerErrorResult(ex.Message);
+            }
+        }
+
+        public async Task<IActionResult> DeleteCalculationCalculationRelationship(string calculationIdA, string calculationIdB)
+        {
+            try
+            {
+                await _calcRepository.DeleteCalculationCalculationRelationship(calculationIdA, calculationIdB);
+
+                return new OkResult();
+            }
+            catch (Exception ex)
+            {
+                return new InternalServerErrorResult(ex.Message);
+            }
+        }
     }
 }
