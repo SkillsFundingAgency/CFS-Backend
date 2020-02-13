@@ -9,6 +9,8 @@ using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using System;
 using System.Threading.Tasks;
+using Serilog;
+using Neo4jDriver = Neo4j.Driver;
 
 namespace CalculateFunding.Services.Graph.UnitTests
 {
@@ -18,13 +20,15 @@ namespace CalculateFunding.Services.Graph.UnitTests
         private ICalculationRepository _calculationRepository;
         private ISpecificationRepository _specificationRepository;
         private IGraphService _graphService;
+        private ILogger _logger;
 
         [TestInitialize]
         public void SetupTest()
         {
+            _logger = Substitute.For<ILogger>();
             _calculationRepository = Substitute.For<ICalculationRepository>();
             _specificationRepository = Substitute.For<ISpecificationRepository>();
-            _graphService = new GraphService(_calculationRepository, _specificationRepository);
+            _graphService = new GraphService(_logger, _calculationRepository, _specificationRepository);
         }
 
         [TestMethod]
@@ -50,7 +54,7 @@ namespace CalculateFunding.Services.Graph.UnitTests
 
             _calculationRepository
                 .SaveCalculations(calcs)
-                .Throws(new Exception());
+                .Throws(new Neo4jDriver.Neo4jException());
 
             IActionResult result = await _graphService.SaveCalculations(calcs);
 
@@ -75,8 +79,6 @@ namespace CalculateFunding.Services.Graph.UnitTests
                 .BeOfType<OkResult>();
         }
 
-
-
         [TestMethod]
         public async Task SaveSpecifications_FailsToAddSpecifications_InternalServerErrorReturned()
         {
@@ -84,9 +86,13 @@ namespace CalculateFunding.Services.Graph.UnitTests
 
             _specificationRepository
                 .SaveSpecifications(specifications)
-                .Throws(new Exception());
+                .Throws(new Neo4jDriver.Neo4jException());
 
             IActionResult result = await _graphService.SaveSpecifications(specifications);
+
+            _logger
+                .Received(1)
+                .Error($"Save specifications failed for specifications:'{specifications.AsJson()}'");
 
             result
                 .Should()
@@ -116,9 +122,13 @@ namespace CalculateFunding.Services.Graph.UnitTests
 
             _calculationRepository
                 .DeleteCalculation(calc.CalculationId)
-                .Throws(new Exception());
+                .Throws(new Neo4jDriver.Neo4jException());
 
             IActionResult result = await _graphService.DeleteCalculation(calc.CalculationId);
+
+            _logger
+                .Received(1)
+                .Error($"Delete calculation failed for calculation:'{calc.CalculationId}'");
 
             result
                 .Should()
@@ -148,9 +158,13 @@ namespace CalculateFunding.Services.Graph.UnitTests
 
             _specificationRepository
                 .DeleteSpecification(specification.SpecificationId)
-                .Throws(new Exception());
+                .Throws(new Neo4jDriver.Neo4jException());
 
             IActionResult result = await _graphService.DeleteSpecification(specification.SpecificationId);
+
+            _logger
+                .Received(1)
+                .Error($"Delete specification failed for specification:'{specification.SpecificationId}'");
 
             result
                 .Should()
@@ -163,7 +177,8 @@ namespace CalculateFunding.Services.Graph.UnitTests
             Calculation calc = NewCalculation();
             Specification specification = NewSpecification();
 
-            IActionResult result = await _graphService.CreateCalculationSpecificationRelationship(calc.CalculationId, specification.SpecificationId);
+            IActionResult result = await _graphService.CreateCalculationSpecificationRelationship(calc.CalculationId,
+                specification.SpecificationId);
 
             await _calculationRepository
                 .Received(1)
@@ -182,9 +197,15 @@ namespace CalculateFunding.Services.Graph.UnitTests
 
             _calculationRepository
                 .CreateCalculationSpecificationRelationship(calc.CalculationId, specification.SpecificationId)
-                .Throws(new Exception());
+                .Throws(new Neo4jDriver.Neo4jException());
 
-            IActionResult result = await _graphService.CreateCalculationSpecificationRelationship(calc.CalculationId, specification.SpecificationId);
+            IActionResult result = await _graphService.CreateCalculationSpecificationRelationship(calc.CalculationId,
+                specification.SpecificationId);
+
+            _logger
+                .Received(1)
+                .Error($"Create calculation relationship between specification failed for calculation:'{calc.CalculationId}'" +
+                    $" and specification:'{specification.SpecificationId}'");
 
             result
                 .Should()
@@ -197,7 +218,8 @@ namespace CalculateFunding.Services.Graph.UnitTests
             Calculation calcA = NewCalculation();
             Calculation calcB = NewCalculation();
 
-            IActionResult result = await _graphService.CreateCalculationCalculationRelationship(calcA.CalculationId, calcB.CalculationId);
+            IActionResult result = await _graphService.CreateCalculationCalculationRelationship(calcA.CalculationId,
+                calcB.CalculationId);
 
             await _calculationRepository
                 .Received(1)
@@ -216,9 +238,15 @@ namespace CalculateFunding.Services.Graph.UnitTests
 
             _calculationRepository
                 .CreateCalculationCalculationRelationship(calcA.CalculationId, calcB.CalculationId)
-                .Throws(new Exception());
+                .Throws(new Neo4jDriver.Neo4jException());
 
-            IActionResult result = await _graphService.CreateCalculationCalculationRelationship(calcA.CalculationId, calcB.CalculationId);
+            IActionResult result = await _graphService.CreateCalculationCalculationRelationship(calcA.CalculationId,
+                calcB.CalculationId);
+
+            _logger
+                .Received(1)
+                .Error($"Create calculation relationship call to calculation failed for calculation:'{calcA.CalculationId}'" +
+                    $" calling calculation:'{calcB.CalculationId}'");
 
             result
                 .Should()
@@ -250,9 +278,14 @@ namespace CalculateFunding.Services.Graph.UnitTests
 
             _calculationRepository
                 .DeleteCalculationSpecificationRelationship(calc.CalculationId, specification.SpecificationId)
-                .Throws(new Exception());
+                .Throws(new Neo4jDriver.Neo4jException());
 
             IActionResult result = await _graphService.DeleteCalculationSpecificationRelationship(calc.CalculationId, specification.SpecificationId);
+
+            _logger
+                .Received(1)
+                .Error($"Delete calculation relationship between specification failed for calculation:'{calc.CalculationId}'" +
+                    $" and specification:'{specification.SpecificationId}'");
 
             result
                 .Should()
@@ -284,10 +317,14 @@ namespace CalculateFunding.Services.Graph.UnitTests
 
             _calculationRepository
                 .DeleteCalculationCalculationRelationship(calcA.CalculationId, calcB.CalculationId)
-                .Throws(new Exception());
+                .Throws(new Neo4jDriver.Neo4jException());
 
             IActionResult result = await _graphService.DeleteCalculationCalculationRelationship(calcA.CalculationId, calcB.CalculationId);
 
+            _logger
+                .Received(1)
+                .Error($"Delete calculation relationship call to calculation failed for calculation:'{calcA.CalculationId}'" +
+                    $" calling calculation:'{calcB.CalculationId}'");
             result
                 .Should()
                 .BeAssignableTo<InternalServerErrorResult>();

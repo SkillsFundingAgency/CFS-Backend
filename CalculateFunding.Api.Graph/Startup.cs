@@ -4,6 +4,7 @@ using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.WebApi.Extensions;
 using CalculateFunding.Common.WebApi.Middleware;
 using CalculateFunding.Services.Core.AspNet.HealthChecks;
+using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Graph;
 using CalculateFunding.Services.Graph.Interfaces;
 using Microsoft.AspNetCore.Builder;
@@ -102,6 +103,11 @@ namespace CalculateFunding.Api.Graph
             builder.AddHttpContextAccessor();
 
             builder.AddHealthCheckMiddleware();
+
+            builder.AddApplicationInsightsTelemetry();
+            builder.AddApplicationInsightsServiceName(Configuration, "CalculateFunding.Api.Graph");
+            builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Api.Graph");
+            builder.AddLogging("CalculateFunding.Api.Graph");
 
             builder.AddSwaggerGen(c =>
             {
