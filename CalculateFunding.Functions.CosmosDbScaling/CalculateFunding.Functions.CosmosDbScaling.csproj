@@ -5,12 +5,6 @@
     <LangVersion>7.1</LangVersion>
   </PropertyGroup>
   <ItemGroup>
-    <None Remove="host.json" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="host.json" CopyToOutputDirectory="Always" CopyToPublishDirectory="Always" />
-  </ItemGroup>
-  <ItemGroup>
     <PackageReference Include="Microsoft.Azure.EventHubs.Processor" Version="4.1.0" />
     <PackageReference Include="Microsoft.Azure.Functions.Extensions" Version="1.0.0" />
     <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.EventHubs" Version="4.0.0" />
@@ -22,6 +16,9 @@
     <PackageReference Include="Microsoft.Azure.EventHubs" Version="4.1.0" />
   </ItemGroup>
   <ItemGroup>
+    <None Update="host.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="local.settings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

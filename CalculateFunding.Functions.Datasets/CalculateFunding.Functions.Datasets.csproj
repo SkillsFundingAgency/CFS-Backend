@@ -27,14 +27,6 @@
     <ProjectReference Include="..\CalculateFunding.Services.DataImporter\CalculateFunding.Services.DataImporter.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Datasets\CalculateFunding.Services.Datasets.csproj" />
   </ItemGroup>
-
-  <ItemGroup>
-    <None Remove="host.json" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="host.json" CopyToOutputDirectory="Always" CopyToPublishDirectory="Always" />
-  </ItemGroup>
   
   <ItemGroup>
     <None Update="host.json">
