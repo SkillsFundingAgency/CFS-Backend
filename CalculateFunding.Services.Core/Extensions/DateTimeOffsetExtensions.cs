@@ -13,5 +13,10 @@ namespace System
 
             return new DateTimeOffset(theDate.Value.LocalDateTime);
         }
+
+        public static string ToCosmosString(this DateTimeOffset theDate)
+        {
+            return theDate.ToString("yyyy-MM-ddThh:mm:ss.sssZ");
+        }
     }
 }

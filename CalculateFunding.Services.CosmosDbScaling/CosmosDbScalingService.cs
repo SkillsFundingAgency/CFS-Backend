@@ -210,12 +210,11 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 CosmosDbScalingCollectionSettings settings = await _scalingConfigRepositoryPolicy.ExecuteAsync(() =>
                     _cosmosDbScalingConfigRepository.GetCollectionSettingsByRepositoryType(cosmosDbScalingConfig.RepositoryType));
                
-                bool jobNotActive = cosmosDbScalingConfig.JobRequestUnitConfigs.Any(item => jobDefinitionIdsStillActive.Contains(item.JobDefinitionId));
-
+                bool jobActive = cosmosDbScalingConfig.JobRequestUnitConfigs.Any(item => jobDefinitionIdsStillActive.Contains(item.JobDefinitionId));
 
                 bool proceed = !settingsToUpdate.Any(m => m.Id == cosmosDbScalingConfig.Id);
                 
-                if (proceed && jobNotActive)
+                if (proceed && !jobActive)
                 {
                     if (!settings.IsAtBaseLine)
                     {

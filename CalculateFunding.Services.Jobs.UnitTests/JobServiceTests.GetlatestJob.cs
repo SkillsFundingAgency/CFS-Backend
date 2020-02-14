@@ -51,6 +51,105 @@ namespace CalculateFunding.Services.Jobs
         }
 
         [TestMethod]
+        public async Task GetCreatedJobsWithinTimeFrame_WhenJobsExistWithinTimeFrame_JobsReturned()
+        {
+            // Arrange
+            string specificationId = "spec123";
+
+            DateTimeOffset now = DateTimeOffset.UtcNow;
+            DateTimeOffset hourAgo = now.AddHours(-1);
+
+            string dateFromString = hourAgo.ToString("yyyy-MM-ddThh:mm:ss.sssZ");
+            string dateToString = now.ToString("yyyy-MM-ddThh:mm:ss.sssZ");
+
+            IJobRepository jobRepository = CreateJobRepository();
+            jobRepository
+                .GetRunningJobsWithinTimeFrame(Arg.Is<string>(_ => _ == dateFromString), Arg.Is<string>(_ => _ == dateToString))
+                .Returns(
+                    new[] {new Job
+                    {
+                        Created = DateTimeOffset.UtcNow.AddHours(-1),
+                        Id = "job1",
+                        InvokerUserDisplayName = "test",
+                        InvokerUserId = "test1",
+                        JobDefinitionId = "jobType1",
+                        LastUpdated = DateTimeOffset.UtcNow.AddHours(-1),
+                        RunningStatus = RunningStatus.InProgress,
+                        SpecificationId = specificationId,
+                        Trigger = new Trigger { EntityId = "calc1", EntityType = "Calculation", Message = "Calc run started" }
+                    } });
+
+            IJobService service = CreateJobService(jobRepository: jobRepository);
+
+            // Act
+            IActionResult result = await service.GetCreatedJobsWithinTimeFrame(hourAgo, now);
+
+            // Assert
+            OkObjectResult okResult = result
+                .Should()
+                .BeOfType<OkObjectResult>()
+                .Subject;
+
+            IEnumerable<JobSummary> jobs = okResult.Value as IEnumerable<JobSummary>;
+
+            jobs
+                .Should()
+                .ContainSingle(_ => _.JobId == "job1");
+        }
+
+        [TestMethod]
+        public async Task GetCreatedJobsWithinTimeFrame_WhenDateFromGreaterThanDateTo_ReturnBadRequest()
+        {
+            // Arrange
+            DateTimeOffset now = DateTimeOffset.UtcNow;
+            DateTimeOffset hourAgo = now.AddHours(-1);
+
+            IJobService service = CreateJobService();
+
+            // Act
+            IActionResult result = await service.GetCreatedJobsWithinTimeFrame(now, hourAgo);
+
+            // Assert
+            result.Should().BeOfType<BadRequestObjectResult>();
+
+            BadRequestObjectResult badRequestObjectResult = result
+                .Should()
+                .BeOfType<BadRequestObjectResult>()
+                .Subject;
+
+            badRequestObjectResult
+                .Value
+                .Should()
+                .Be($"dateTimeTo cannot be before dateTimeFrom.");
+        }
+
+        [TestMethod]
+        public async Task GetCreatedJobsWithinTimeFrame_WhenDateFromGreaterThanNow_ReturnBadRequest()
+        {
+            // Arrange
+            DateTimeOffset now = DateTimeOffset.UtcNow;
+            DateTimeOffset hourAgo = now.AddHours(1);
+
+            IJobService service = CreateJobService();
+
+            // Act
+            IActionResult result = await service.GetCreatedJobsWithinTimeFrame(hourAgo, now);
+
+            // Assert
+            result.Should().BeOfType<BadRequestObjectResult>();
+
+            BadRequestObjectResult badRequestObjectResult = result
+                .Should()
+                .BeOfType<BadRequestObjectResult>()
+                .Subject;
+
+            badRequestObjectResult
+                .Value
+                .Should()
+                .Be($"dateTimeFrom cannot be in the future");
+        }
+
+        [TestMethod]
         public async Task GetLatestJob_WhenOnlyOneJobForSpecification_ReturnJob()
         {
             // Arrange

@@ -187,8 +187,8 @@ namespace CalculateFunding.Services.Jobs
                 return new BadRequestObjectResult($"{nameof(dateTimeTo)} cannot be before {nameof(dateTimeFrom)}.");
             }
 
-            string dateTimeFromAsString = dateTimeFrom.ToString();
-            string dateTimeToAsString = dateTimeTo.ToString();
+            string dateTimeFromAsString = dateTimeFrom.ToCosmosString();
+            string dateTimeToAsString = dateTimeTo.ToCosmosString();
 
             IEnumerable<Job> jobs = await _jobsRepositoryPolicy.ExecuteAsync(() => _jobRepository.GetRunningJobsWithinTimeFrame(dateTimeFromAsString, dateTimeToAsString));
 

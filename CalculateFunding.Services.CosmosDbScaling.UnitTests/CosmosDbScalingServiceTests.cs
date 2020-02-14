@@ -894,17 +894,9 @@ namespace CalculateFunding.Services.CosmosDbScaling
         }
 
         [TestMethod]
-        public async Task ScaleDownForJobConfiguration_WhenJobSummariesReturnedAndConfigsReturnedFromCacheButFailsToSetThroughput_ThrowsRetriableException()
+        public void ScaleDownForJobConfiguration_WhenJobSummariesReturnedAndConfigsReturnedFromCacheButFailsToSetThroughput_ThrowsRetriableException()
         {
             //Arrange
-            IEnumerable<JobSummary> jobSummaries = new[]
-            {
-                new JobSummary
-                {
-                    JobType = "job-def-1"
-                }
-            };
-
             CosmosDbScalingConfig cosmosDbScalingConfig = CreateCosmosScalingConfig(CosmosCollectionType.CalculationProviderResults);
 
             CosmosDbScalingCollectionSettings settings = CreateCollectionSettings(CosmosCollectionType.CalculationProviderResults);
@@ -912,7 +904,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
             IEnumerable<CosmosDbScalingConfig> configs = new[] { cosmosDbScalingConfig };
 
-            ApiResponse<IEnumerable<JobSummary>> jobSummariesResponse = new ApiResponse<IEnumerable<JobSummary>>(HttpStatusCode.OK, jobSummaries);
+            ApiResponse<IEnumerable<JobSummary>> jobSummariesResponse = new ApiResponse<IEnumerable<JobSummary>>(HttpStatusCode.OK, Enumerable.Empty<JobSummary>());
 
             IJobsApiClient jobsApiClient = CreateJobsApiClient();
             jobsApiClient
@@ -965,14 +957,6 @@ namespace CalculateFunding.Services.CosmosDbScaling
         public async Task ScaleDownForJobConfiguration_WhenJobSummariesReturnedAndConfigsReturnedFromCacheButFailsToUpdateConfig_ThrowsRetriableException()
         {
             //Arrange
-            IEnumerable<JobSummary> jobSummaries = new[]
-            {
-                new JobSummary
-                {
-                    JobType = "job-def-1"
-                }
-            };
-
             CosmosDbScalingConfig cosmosDbScalingConfig = CreateCosmosScalingConfig(CosmosCollectionType.CalculationProviderResults);
 
             CosmosDbScalingCollectionSettings settings = CreateCollectionSettings(CosmosCollectionType.CalculationProviderResults);
@@ -980,7 +964,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
             IEnumerable<CosmosDbScalingConfig> configs = new[] { cosmosDbScalingConfig };
 
-            ApiResponse<IEnumerable<JobSummary>> jobSummariesResponse = new ApiResponse<IEnumerable<JobSummary>>(HttpStatusCode.OK, jobSummaries);
+            ApiResponse<IEnumerable<JobSummary>> jobSummariesResponse = new ApiResponse<IEnumerable<JobSummary>>(HttpStatusCode.OK, Enumerable.Empty<JobSummary>());
 
             IJobsApiClient jobsApiClient = CreateJobsApiClient();
             jobsApiClient
@@ -1100,14 +1084,6 @@ namespace CalculateFunding.Services.CosmosDbScaling
         public async Task ScaleDownForJobConfiguration_WhenJobSummariesReturnedAndConfigsReturnedFromCacheAndCurrentRequestsNotAtBaseline_SetsThroughputAndUpdatesConfig()
         {
             //Arrange
-            IEnumerable<JobSummary> jobSummaries = new[]
-            {
-                new JobSummary
-                {
-                    JobType = "job-def-1"
-                }
-            };
-
             CosmosDbScalingConfig cosmosDbScalingConfig = CreateCosmosScalingConfig(CosmosCollectionType.CalculationProviderResults);
 
             CosmosDbScalingCollectionSettings settings = CreateCollectionSettings(CosmosCollectionType.CalculationProviderResults);
@@ -1115,7 +1091,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
             IEnumerable<CosmosDbScalingConfig> configs = new[] { cosmosDbScalingConfig };
 
-            ApiResponse<IEnumerable<JobSummary>> jobSummariesResponse = new ApiResponse<IEnumerable<JobSummary>>(HttpStatusCode.OK, jobSummaries);
+            ApiResponse<IEnumerable<JobSummary>> jobSummariesResponse = new ApiResponse<IEnumerable<JobSummary>>(HttpStatusCode.OK, Enumerable.Empty<JobSummary>());
 
             IJobsApiClient jobsApiClient = CreateJobsApiClient();
             jobsApiClient
@@ -1251,25 +1227,9 @@ namespace CalculateFunding.Services.CosmosDbScaling
         public async Task ScaleDownForJobConfiguration_WhenJobSummariesReturnedAndConfigsReturnedFromCacheAndCurrentRequestsButOnlyOneNotAtBaseline_SetsThroughputForOne()
         {
             //Arrange
-            IEnumerable<JobSummary> jobSummaries = new[]
-            {
-                new JobSummary
-                {
-                    JobType = "job-def-1"
-                },
-                new JobSummary
-                {
-                    JobType = "job-def-2"
-                },
-                new JobSummary
-                {
-                    JobType = "job-def-3"
-                }
-            };
-
             IEnumerable<CosmosDbScalingConfig> configs = CreateCosmosScalingConfigs();
 
-            ApiResponse<IEnumerable<JobSummary>> jobSummariesResponse = new ApiResponse<IEnumerable<JobSummary>>(HttpStatusCode.OK, jobSummaries);
+            ApiResponse<IEnumerable<JobSummary>> jobSummariesResponse = new ApiResponse<IEnumerable<JobSummary>>(HttpStatusCode.OK, Enumerable.Empty<JobSummary>());
 
             IJobsApiClient jobsApiClient = CreateJobsApiClient();
             jobsApiClient
@@ -1329,22 +1289,6 @@ namespace CalculateFunding.Services.CosmosDbScaling
         public async Task ScaleDownForJobConfiguration_WhenActiveJobSummariesReturnedAndConfigsReturnedFromCacheAndCurrentRequestsButOnlyOneNotAtBaseline_SetsThroughputForOne()
         {
             //Arrange
-            IEnumerable<JobSummary> jobSummaries = new[]
-            {
-                new JobSummary
-                {
-                    JobType = "job-def-1"
-                },
-                new JobSummary
-                {
-                    JobType = "job-def-2"
-                },
-                new JobSummary
-                {
-                    JobType = "job-def-3"
-                }
-            };
-
             IEnumerable<CosmosDbScalingConfig> configs = new[]
             {
                 new CosmosDbScalingConfig
@@ -1401,7 +1345,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 }
             };
 
-            ApiResponse<IEnumerable<JobSummary>> jobSummariesResponse = new ApiResponse<IEnumerable<JobSummary>>(HttpStatusCode.OK, jobSummaries);
+            ApiResponse<IEnumerable<JobSummary>> jobSummariesResponse = new ApiResponse<IEnumerable<JobSummary>>(HttpStatusCode.OK, Enumerable.Empty<JobSummary>());
 
             IJobsApiClient jobsApiClient = CreateJobsApiClient();
             jobsApiClient
