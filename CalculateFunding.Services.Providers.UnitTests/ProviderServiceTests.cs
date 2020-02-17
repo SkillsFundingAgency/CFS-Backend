@@ -77,7 +77,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
             IScopedProvidersService providerService = CreateProviderService(resultsApiClient: resultsApiClient, specificationsApiClient: specificationsApiClientProxy, providerVersionService: providerVersionService, cacheProvider: cacheProvider);
 
             //Act
-            IActionResult totalCountResult = await providerService.PopulateProviderSummariesForSpecification(specificationId);
+            IActionResult totalCountResult = await providerService.PopulateProviderSummariesForSpecification(specificationId,true);
 
             await specificationsApiClientProxy
                 .Received(1)
@@ -145,6 +145,96 @@ namespace CalculateFunding.Services.Providers.UnitTests
             await cacheProvider
                .Received(1)
                .SetExpiry<ProviderSummary>(Arg.Is(cacheKeyForList), Arg.Any<DateTime>());
+
+            totalCountResult
+                .Should()
+                .BeOfType<OkObjectResult>();
+
+            OkObjectResult objectResult = totalCountResult as OkObjectResult;
+
+
+            int? totalCount = objectResult.Value as int?;
+
+            totalCount
+                .Should()
+                .Be(1);
+        }
+
+        [TestMethod]
+        public async Task PopulateProviderSummariesForSpecification_GivenSpecificationWithSetScopedProviderToFalse_TotalCountOfProvidersReturned()
+        {
+            //Arrange
+            string specificationId = Guid.NewGuid().ToString();
+            string providerVersionId = Guid.NewGuid().ToString();
+            string cacheKeyForList = $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}";
+            
+           
+            string cacheKeyScopedProviderSummariesCount = $"{CacheKeys.ScopedProviderSummariesCount}{specificationId}";
+            string cacheKeyScopedProviderSummaries = $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}";
+
+            Provider provider = CreateProvider();
+
+            ProviderVersion providerVersion = new ProviderVersion
+            {
+                Providers = new List<Provider> { provider }
+            };
+
+            SpecificationSummary specificationSummary = new SpecificationSummary
+            {
+                Id = specificationId,
+                ProviderVersionId = providerVersionId
+            };
+
+            List<ProviderSummary> cachedProviderSummaries = new List<ProviderSummary>
+            {
+                MapProviderToSummary(provider)
+            };
+
+            ISpecificationsApiClient specificationsApiClientProxy = CreateSpecificationsApiClient();
+
+
+            specificationsApiClientProxy
+                .GetSpecificationSummaryById(Arg.Any<string>())
+                .Returns(new ApiResponse<SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
+
+            IProviderVersionService providerVersionService = CreateProviderVersionService();
+            providerVersionService
+                .GetProvidersByVersion(Arg.Is(providerVersionId))
+                .Returns(providerVersion);
+
+            IResultsApiClient resultsApiClient = CreateResultsApiClient();
+            ApiResponse<IEnumerable<string>> scopedProviderResponse = new ApiResponse<IEnumerable<string>>(HttpStatusCode.OK, new List<string> { { "1234" } });
+
+            resultsApiClient
+                .GetScopedProviderIdsBySpecificationId(Arg.Any<string>())
+                .Returns(scopedProviderResponse);
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+           
+            cacheProvider
+                .GetAsync<string>(Arg.Is(cacheKeyScopedProviderSummariesCount))
+                .Returns("1");
+
+            cacheProvider
+                .ListRangeAsync<ProviderSummary>(Arg.Is(cacheKeyScopedProviderSummaries), Arg.Is(0), Arg.Is(1))
+                .Returns(cachedProviderSummaries);
+
+            cacheProvider
+                .ListLengthAsync<ProviderSummary>(Arg.Is(cacheKeyScopedProviderSummaries))
+                .Returns(1);
+
+            IScopedProvidersService providerService = CreateProviderService(resultsApiClient: resultsApiClient, specificationsApiClient: specificationsApiClientProxy, providerVersionService: providerVersionService, cacheProvider: cacheProvider);
+
+            //Act
+            IActionResult totalCountResult = await providerService.PopulateProviderSummariesForSpecification(specificationId, false);
+
+            await specificationsApiClientProxy
+                .Received(0)
+                .GetSpecificationSummaryById(Arg.Any<string>());
+
+            await providerVersionService
+                .Received(0)
+                .GetProvidersByVersion(Arg.Is(providerVersionId));
 
             totalCountResult
                 .Should()

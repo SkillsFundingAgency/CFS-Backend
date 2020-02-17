@@ -8,7 +8,7 @@ namespace CalculateFunding.Services.Providers.Interfaces
     public interface IScopedProvidersService
     {
         Task<IActionResult> FetchCoreProviderData(string specificationId);
-        Task<IActionResult> PopulateProviderSummariesForSpecification(string specificationId);
+        Task<IActionResult> PopulateProviderSummariesForSpecification(string specificationId,bool setCachedProviders = false);
         Task<IActionResult> GetScopedProviderIds(string specificationId);
     }
 }

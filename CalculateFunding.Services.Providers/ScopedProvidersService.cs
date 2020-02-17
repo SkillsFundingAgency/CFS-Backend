@@ -83,10 +83,10 @@ namespace CalculateFunding.Services.Providers
             return health;
         }
 
-        public async Task<IActionResult> PopulateProviderSummariesForSpecification(string specificationId)
+        public async Task<IActionResult> PopulateProviderSummariesForSpecification(string specificationId,bool setCachedProviders)
         {
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
-            IEnumerable<ProviderSummary> providerSummaries = await GenerateScopedProvidersForSpecification(specificationId);
+            IEnumerable<ProviderSummary> providerSummaries = await GenerateScopedProvidersForSpecification(specificationId, setCachedProviders);
 
             return new OkObjectResult(providerSummaries.Count());
         }
@@ -121,7 +121,7 @@ namespace CalculateFunding.Services.Providers
                 }
             }
 
-            IEnumerable<ProviderSummary> providerSummaries = await this.GenerateScopedProvidersForSpecification(specificationId);
+            IEnumerable<ProviderSummary> providerSummaries = await this.GenerateScopedProvidersForSpecification(specificationId,false);
             if (providerSummaries.IsNullOrEmpty())
             {
                 return new NoContentResult();
@@ -171,7 +171,7 @@ namespace CalculateFunding.Services.Providers
 
         }
 
-        private async Task<IEnumerable<ProviderSummary>> GenerateScopedProvidersForSpecification(string specificationId)
+        private async Task<IEnumerable<ProviderSummary>> GenerateScopedProvidersForSpecification(string specificationId,bool setCachedProviders)
         {
             string scopedProviderSummariesCountCacheKey = $"{CacheKeys.ScopedProviderSummariesCount}{specificationId}";
             string currentProviderCount = await _cacheProvider.GetAsync<string>(scopedProviderSummariesCountCacheKey);
@@ -179,9 +179,9 @@ namespace CalculateFunding.Services.Providers
             string cacheKeyScopedListCacheKey = $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}";
             long scopedProviderRedisListCount = await _cacheProvider.ListLengthAsync<ProviderSummary>(cacheKeyScopedListCacheKey);
 
-            if (string.IsNullOrWhiteSpace(currentProviderCount) || int.Parse(currentProviderCount) != scopedProviderRedisListCount)
+            if (string.IsNullOrWhiteSpace(currentProviderCount) || int.Parse(currentProviderCount) != scopedProviderRedisListCount || setCachedProviders)
             {
-                string url = string.Format(getSpecificationSummary, specificationId);
+                //string url = string.Format(getSpecificationSummary, specificationId);
 
                 ApiResponse<SpecificationSummary> spec =
                  await _specificationsApiClient.GetSpecificationSummaryById(specificationId);

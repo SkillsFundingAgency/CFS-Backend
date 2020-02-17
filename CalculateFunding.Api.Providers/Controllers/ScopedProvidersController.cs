@@ -26,11 +26,11 @@ namespace CalculateFunding.Api.Providers.Controllers
             return await _scopedProvidersService.FetchCoreProviderData(specificationId);
         }
 
-        [HttpGet("api/scopedproviders/set-cached-providers/{specificationId}")]
+        [HttpGet("api/scopedproviders/set-cached-providers/{specificationId}/{setScopedProviders}")]
         [ProducesResponseType(200, Type = typeof(int?))]
-        public async Task<IActionResult> PopulateProviderSummariesForSpecification(string specificationId)
+        public async Task<IActionResult> PopulateProviderSummariesForSpecification([FromRoute]string specificationId, [FromRoute]bool setCachedProviders)
         {
-            return await _scopedProvidersService.PopulateProviderSummariesForSpecification(specificationId);
+            return await _scopedProvidersService.PopulateProviderSummariesForSpecification(specificationId, setCachedProviders: setCachedProviders);
         }
 
         [HttpGet("api/scopedproviders/get-provider-ids/{specificationId}")]
