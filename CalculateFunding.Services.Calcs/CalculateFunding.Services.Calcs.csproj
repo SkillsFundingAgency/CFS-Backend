@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="CalculateFunding.Common.ApiClient.Graph" Version="1.0.2" />
     <PackageReference Include="CalculateFunding.Common.ApiClient.Policies" Version="2.0.16" />
     <PackageReference Include="CalculateFunding.Common.ApiClient.Providers" Version="1.0.24" />
     <PackageReference Include="CalculateFunding.Common.ApiClient.Specifications" Version="1.0.27" />
@@ -20,7 +21,7 @@
     <PackageReference Include="CalculateFunding.Common.Storage" Version="1.0.5" />
     <PackageReference Include="FluentValidation" Version="8.6.0" />
     <PackageReference Include="Microsoft.Azure.Storage.Blob" Version="11.0.1" />
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="System.Threading.Tasks" Version="4.3.0" />
   </ItemGroup>
 

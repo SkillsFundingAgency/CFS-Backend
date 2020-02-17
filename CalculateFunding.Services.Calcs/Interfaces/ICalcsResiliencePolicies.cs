@@ -4,6 +4,8 @@ namespace CalculateFunding.Services.Calcs.Interfaces
 {
     public interface ICalcsResiliencePolicies
     {
+        Policy GraphApiClientPolicy { get; set; }
+        
         Policy CalculationsRepository { get; set; }
 
         Policy CalculationsSearchRepository { get; set; }

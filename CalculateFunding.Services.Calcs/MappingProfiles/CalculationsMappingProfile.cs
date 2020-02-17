@@ -31,6 +31,21 @@ namespace CalculateFunding.Services.Calcs.MappingProfiles
             CreateMap<Common.ApiClient.Calcs.Models.Schema.FieldDefinition, FieldDefinition>();
             CreateMap<Common.ApiClient.Calcs.Models.Schema.FieldType, FieldType>();
             CreateMap<Common.ApiClient.Calcs.Models.Schema.IdentifierFieldType, IdentifierFieldType>();
+            
+            CreateGraphMappingProfiles();
+        }
+
+        private void CreateGraphMappingProfiles()
+        {
+            CreateMap<Common.ApiClient.Calcs.Models.Calculation, Models.Graph.Calculation>();
+            CreateMap<Common.ApiClient.Specifications.Models.SpecificationSummary, Models.Graph.Specification>()
+                .ForMember(dst => dst.SpecificationId, 
+                    map 
+                        => map.MapFrom(src => src.Id));
+            
+            CreateMap<Models.Graph.Calculation, Common.ApiClient.Graph.Models.Calculation>();
+            CreateMap<Models.Graph.CalculationType, Common.ApiClient.Graph.Models.CalculationType>();
+            CreateMap<Models.Graph.Specification, Common.ApiClient.Graph.Models.Specification>();
         }
     }
 }

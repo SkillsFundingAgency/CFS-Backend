@@ -1,0 +1,11 @@
+using System.Collections.Generic;
+using CalculateFunding.Models.Graph;
+using Calculation = CalculateFunding.Models.Calcs.Calculation;
+
+namespace CalculateFunding.Services.Compiler.Interfaces
+{
+    public interface ICalculationAnalysis
+    {
+        IEnumerable<CalculationRelationship> DetermineRelationshipsBetweenCalculations(IEnumerable<Calculation> calculations);
+    }
+}

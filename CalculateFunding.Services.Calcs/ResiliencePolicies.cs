@@ -6,6 +6,8 @@ namespace CalculateFunding.Services.Calcs
 {
     public class ResiliencePolicies : ICalcsResiliencePolicies, IJobHelperResiliencePolicies
     {
+        public Policy GraphApiClientPolicy { get; set; }
+        
         public Policy CalculationsRepository { get; set; }
 
         public Policy CalculationsSearchRepository { get; set; }

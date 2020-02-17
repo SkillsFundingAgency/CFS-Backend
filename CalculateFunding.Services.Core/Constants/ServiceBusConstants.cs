@@ -94,6 +94,8 @@
             public const string DeleteSpecifications = "specifications-delete";
             
             public const string DeletePublishedProviders = "publishing-delete-published-providers";
+
+            public const string ReIndexSpecificationCalculationRelationships = "calculations-reindex-specification-calculation-relationships";
         }
 
         public static class TopicNames

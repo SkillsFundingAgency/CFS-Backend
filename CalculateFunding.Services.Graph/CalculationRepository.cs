@@ -21,6 +21,11 @@ namespace CalculateFunding.Services.Graph
             _graphRepository = graphRepository;
         }
 
+        public async Task DeleteAllCalculationsBySpecificationId(string specificationId)
+        {
+            
+        }
+
         public async Task DeleteCalculation(string calculationId)
         {
             await _graphRepository.DeleteNode<Calculation>("calculationid", calculationId);

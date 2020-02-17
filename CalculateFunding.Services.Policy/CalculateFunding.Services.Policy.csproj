@@ -14,7 +14,7 @@
     <PackageReference Include="CalculateFunding.Common.TemplateMetadata.Schema10" Version="1.0.16" />
     <PackageReference Include="FluentValidation" Version="8.6.0" />
     <PackageReference Include="Microsoft.AspNet.Mvc" Version="5.2.7" />
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="Newtonsoft.Json.Schema" Version="3.0.11" />
     <PackageReference Include="YamlDotNet" Version="6.1.2" />
   </ItemGroup>
