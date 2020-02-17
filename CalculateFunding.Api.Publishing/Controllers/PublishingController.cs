@@ -160,9 +160,9 @@ namespace CalculateFunding.Api.Publishing.Controllers
                 .GetProviderStatusCounts(specificationId, providerType, localAuthority, status);
         }
 
-        [HttpPost("api/publishedproviders/{fundingStreamId}/{fundingPeriodId}/localauthorities")]
+        [HttpGet("api/publishedproviders/{fundingStreamId}/{fundingPeriodId}/localauthorities")]
         [ProducesResponseType(200, Type = typeof(IEnumerable<string>))]
-        public async Task<IActionResult> SearchPublishedProviderLocalAuthorities([FromBody] string searchText, [FromRoute] string fundingStreamId, [FromRoute] string fundingPeriodId)
+        public async Task<IActionResult> SearchPublishedProviderLocalAuthorities([FromQuery] string searchText, [FromRoute] string fundingStreamId, [FromRoute] string fundingPeriodId)
         {
             return await _publishedSearchService.SearchPublishedProviderLocalAuthorities(searchText, fundingStreamId, fundingPeriodId);
         }

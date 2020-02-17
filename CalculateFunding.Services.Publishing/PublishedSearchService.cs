@@ -62,7 +62,10 @@ namespace CalculateFunding.Services.Publishing
                 .Facets
                 .SingleOrDefault(x => x.Name == facetName)
                 .FacetValues
-                .Where(x => x.Name?.Split().Any(s=> s.ToLowerInvariant().StartsWith(searchText.ToLowerInvariant())) == true)
+                .Where(x => x.Name?.Split().Any(s=> 
+                { 
+                    return searchText != null ? s.ToLowerInvariant().StartsWith(searchText.ToLowerInvariant()) : true; 
+                }) == true)
                 .Select(x => x.Name);
 
             return new OkObjectResult(distinctFacetValues);
