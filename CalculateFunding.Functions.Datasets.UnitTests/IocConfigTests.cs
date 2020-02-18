@@ -1,43 +1,15 @@
 using System.Collections.Generic;
-using CalculateFunding.Common.ApiClient.Specifications;
-using CalculateFunding.Services.Core.Interfaces.ServiceBus;
-using CalculateFunding.Services.DataImporter;
-using CalculateFunding.Services.Datasets.Interfaces;
-using CalculateFunding.Services.DeadletterProcessor;
+using System.Reflection;
+using CalculateFunding.Functions.Datasets.ServiceBus;
 using CalculateFunding.Tests.Common;
-using FluentAssertions;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CalculateFunding.Functions.Datasets.UnitTests
 {
     [TestClass]
-    public class IocConfigTests : IoCUnitTestBase
+    public class IocConfigTests : FunctionIoCUnitTestBase
     {
-        [TestMethod]
-        public void ConfigureServices_RegisterDependenciesCorrectly()
-        {
-            // Arrange
-            IConfigurationRoot configuration = CreateTestConfiguration();
-
-            // Act
-            using (IServiceScope scope = Startup.RegisterComponents(new ServiceCollection(), configuration).CreateScope())
-            {
-                // Assert
-                scope.ServiceProvider.GetService<IDefinitionsService>().Should().NotBeNull(nameof(IDefinitionsService));
-                scope.ServiceProvider.GetService<IDatasetService>().Should().NotBeNull(nameof(IDatasetService));
-                scope.ServiceProvider.GetService<IDatasetRepository>().Should().NotBeNull(nameof(IDatasetRepository));
-                scope.ServiceProvider.GetService<IDatasetSearchService>().Should().NotBeNull(nameof(IDatasetSearchService));
-                scope.ServiceProvider.GetService<IDefinitionSpecificationRelationshipService>().Should().NotBeNull(nameof(IDefinitionSpecificationRelationshipService));
-                scope.ServiceProvider.GetService<ISpecificationsApiClient>().Should().NotBeNull(nameof(ISpecificationsApiClient));
-                scope.ServiceProvider.GetService<IExcelDatasetReader>().Should().NotBeNull(nameof(IExcelDatasetReader));
-                scope.ServiceProvider.GetService<ICalcsRepository>().Should().NotBeNull(nameof(ICalcsRepository));
-                scope.ServiceProvider.GetService<IJobHelperService>().Should().NotBeNull(nameof(IJobHelperService));
-                scope.ServiceProvider.GetService<IMessengerService>().Should().NotBeNull(nameof(IMessengerService));
-            }
-        }
-
         protected override Dictionary<string, string> AddToConfiguration()
         {
             var configData = new Dictionary<string, string>
@@ -61,5 +33,11 @@ namespace CalculateFunding.Functions.Datasets.UnitTests
 
             return configData;
         }
+        
+        protected override Assembly FunctionAssembly => typeof(OnDeleteDatasets).Assembly;
+
+        protected override IServiceScope CreateServiceScope() =>
+            Startup.RegisterComponents(ServiceCollection, CreateTestConfiguration())
+                .CreateScope();
     }
 }

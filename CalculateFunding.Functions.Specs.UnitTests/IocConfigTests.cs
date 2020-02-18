@@ -1,43 +1,17 @@
 using System.Collections.Generic;
-using CalculateFunding.Common.ApiClient.Jobs;
-using CalculateFunding.Common.ApiClient.Policies;
-using CalculateFunding.Common.ApiClient.Providers;
-using CalculateFunding.Services.Core.Interfaces.ServiceBus;
-using CalculateFunding.Services.Specs.Interfaces;
+using System.Reflection;
+using CalculateFunding.Functions.Specs.ServiceBus;
 using CalculateFunding.Tests.Common;
-using FluentAssertions;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Hosting.Internal;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NSubstitute;
 
 namespace CalculateFunding.Functions.Specs.UnitTests
 {
     [TestClass]
-    public class IocConfigTests : IoCUnitTestBase
+    public class IocConfigTests : FunctionIoCUnitTestBase
     {
-        [TestMethod]
-        public void ConfigureServices_RegisterDependenciesCorrectly()
-        {
-            // Arrange
-            var serviceCollection = new ServiceCollection();
-            serviceCollection.AddSingleton<IHostingEnvironment>(new HostingEnvironment());
-            IConfigurationRoot configuration = CreateTestConfiguration();
-
-            // Act
-            using (IServiceScope scope = Startup.RegisterComponents(serviceCollection, configuration).CreateScope())
-            {
-                // Assert
-                scope.ServiceProvider.GetService<ISpecificationsRepository>().Should().NotBeNull(nameof(ISpecificationsRepository));
-                scope.ServiceProvider.GetService<IPoliciesApiClient>().Should().NotBeNull(nameof(IPoliciesApiClient));
-                scope.ServiceProvider.GetService<ISpecificationsService>().Should().NotBeNull(nameof(ISpecificationsService));
-                scope.ServiceProvider.GetService<ISpecificationsSearchService>().Should().NotBeNull(nameof(ISpecificationsSearchService));
-                scope.ServiceProvider.GetService<IResultsRepository>().Should().NotBeNull(nameof(IResultsRepository));
-                scope.ServiceProvider.GetService<IMessengerService>().Should().NotBeNull(nameof(IMessengerService));
-            }
-        }
-
         protected override Dictionary<string, string> AddToConfiguration()
         {
             Dictionary<string, string> configData = new Dictionary<string, string>
@@ -61,5 +35,16 @@ namespace CalculateFunding.Functions.Specs.UnitTests
 
             return configData;
         }
+
+        protected override void AddExtraRegistrations(IServiceCollection serviceCollection)
+        {
+            serviceCollection.AddSingleton(Substitute.For<IHostingEnvironment>());
+        }
+
+        protected override Assembly FunctionAssembly => typeof(OnDeleteSpecifications).Assembly;
+
+        protected override IServiceScope CreateServiceScope() =>
+            Startup.RegisterComponents(ServiceCollection, CreateTestConfiguration())
+                .CreateScope();
     }
 }

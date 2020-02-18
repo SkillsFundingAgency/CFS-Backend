@@ -1,37 +1,15 @@
 using System.Collections.Generic;
-using CalculateFunding.Services.Core.Interfaces.ServiceBus;
-using CalculateFunding.Services.DeadletterProcessor;
-using CalculateFunding.Services.Results.Interfaces;
+using System.Reflection;
+using CalculateFunding.Functions.Results.ServiceBus;
 using CalculateFunding.Tests.Common;
-using FluentAssertions;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CalculateFunding.Functions.Results.UnitTests
 {
     [TestClass]
-    public class IocConfigTests : IoCUnitTestBase
+    public class IocConfigTests : FunctionIoCUnitTestBase
     {
-        [TestMethod]
-        public void ConfigureServices_RegisterDependenciesCorrectly()
-        {
-            // Arrange
-            IConfigurationRoot configuration = CreateTestConfiguration();
-
-            // Act
-            using (IServiceScope scope = Startup.RegisterComponents(new ServiceCollection(), configuration).CreateScope())
-            {
-                // Assert
-                scope.ServiceProvider.GetService<ICalculationResultsRepository>().Should().NotBeNull(nameof(ICalculationResultsRepository));
-                scope.ServiceProvider.GetService<IResultsService>().Should().NotBeNull(nameof(IResultsService));
-                scope.ServiceProvider.GetService<IProviderSourceDatasetRepository>().Should().NotBeNull(nameof(IProviderSourceDatasetRepository));
-                scope.ServiceProvider.GetService<IJobHelperService>().Should().NotBeNull(nameof(IJobHelperService));
-                scope.ServiceProvider.GetService<IProviderResultsCsvGeneratorService>().Should().NotBeNull(nameof(IJobHelperService));
-                scope.ServiceProvider.GetService<IMessengerService>().Should().NotBeNull(nameof(IMessengerService));
-            }
-        }
-
         protected override Dictionary<string, string> AddToConfiguration()
         {
             Dictionary<string, string> configData = new Dictionary<string, string>
@@ -63,5 +41,11 @@ namespace CalculateFunding.Functions.Results.UnitTests
 
             return configData;
         }
+        
+        protected override Assembly FunctionAssembly => typeof(OnCalculationResultsCsvGeneration).Assembly;
+
+        protected override IServiceScope CreateServiceScope() =>
+            Startup.RegisterComponents(ServiceCollection, CreateTestConfiguration())
+                .CreateScope();
     }
 }

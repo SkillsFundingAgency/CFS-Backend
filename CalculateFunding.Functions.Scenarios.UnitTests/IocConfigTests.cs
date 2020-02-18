@@ -1,34 +1,15 @@
 using System.Collections.Generic;
-using CalculateFunding.Services.Core.Interfaces.ServiceBus;
-using CalculateFunding.Services.Scenarios.Interfaces;
+using System.Reflection;
+using CalculateFunding.Functions.Scenarios.ServiceBus;
 using CalculateFunding.Tests.Common;
-using FluentAssertions;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CalculateFunding.Functions.Scenarios.UnitTests
 {
     [TestClass]
-    public class IocConfigTests : IoCUnitTestBase
+    public class IocConfigTests : FunctionIoCUnitTestBase
     {
-        [TestMethod]
-        public void ConfigureServices_RegisterDependenciesCorrectly()
-        {
-            // Arrange
-            IConfigurationRoot configuration = CreateTestConfiguration();
-
-            // Act
-            using (IServiceScope scope = Startup.RegisterComponents(new ServiceCollection(), configuration).CreateScope())
-            {
-                // Assert
-                scope.ServiceProvider.GetService<IScenariosRepository>().Should().NotBeNull(nameof(IScenariosRepository));
-                scope.ServiceProvider.GetService<IScenariosService>().Should().NotBeNull(nameof(IScenariosService));
-                scope.ServiceProvider.GetService<IScenariosSearchService>().Should().NotBeNull(nameof(IScenariosSearchService));
-                scope.ServiceProvider.GetService<IMessengerService>().Should().NotBeNull(nameof(IMessengerService));
-            }
-        }
-
         protected override Dictionary<string, string> AddToConfiguration()
         {
             var configData = new Dictionary<string, string>
@@ -43,10 +24,18 @@ namespace CalculateFunding.Functions.Scenarios.UnitTests
                 { "calcsClient:ApiEndpoint", "https://localhost:7002/api/" },
                 { "calcsClient:ApiKey", "Local" },
                 { "jobsClient:ApiEndpoint", "https://localhost:7010/api/" },
-                { "jobsClient:ApiKey", "Local" }
+                { "jobsClient:ApiKey", "Local" },
+                { "datasetsClient:ApiEndpoint", "https://localhost:7010/api/" },
+                { "datasetsClient:ApiKey", "Local" }
             };
 
             return configData;
         }
+        
+        protected override Assembly FunctionAssembly => typeof(OnDeleteTests).Assembly;
+
+        protected override IServiceScope CreateServiceScope() =>
+            Startup.RegisterComponents(ServiceCollection, CreateTestConfiguration())
+                .CreateScope();
     }
 }

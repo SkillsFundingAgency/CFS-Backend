@@ -1,36 +1,15 @@
 using System.Collections.Generic;
-using CalculateFunding.Services.CosmosDbScaling.Interfaces;
 using CalculateFunding.Tests.Common;
-using FluentAssertions;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Collections.Generic;
-using CalculateFunding.Services.Core.Interfaces.ServiceBus;
+using System.Reflection;
+using CalculateFunding.Functions.CosmosDbScaling.EventHubs;
 
 namespace CalculateFunding.Functions.CosmosDbScaling.UnitTests
 {
     [TestClass]
-    public class IocConfigTests : IoCUnitTestBase
+    public class IocConfigTests : FunctionIoCUnitTestBase
     {
-        [TestMethod]
-        public void ConfigureServices_RegisterDependenciesCorrectly()
-        {
-            // Arrange
-            IConfigurationRoot configuration = CreateTestConfiguration();
-
-            // Act
-            using (IServiceScope scope = Startup.RegisterComponents(new ServiceCollection(), configuration).CreateScope())
-            {
-                // Assert
-                scope.ServiceProvider.GetService<ICosmosDbScalingConfigRepository>().Should().NotBeNull(nameof(ICosmosDbScalingConfigRepository));
-                scope.ServiceProvider.GetService<ICosmosDbScalingRepositoryProvider>().Should().NotBeNull(nameof(ICosmosDbScalingRepositoryProvider));
-                scope.ServiceProvider.GetService<ICosmosDbScalingService>().Should().NotBeNull(nameof(ICosmosDbScalingService));
-                scope.ServiceProvider.GetService<ICosmosDbScalingResiliencePolicies>().Should().NotBeNull(nameof(ICosmosDbScalingResiliencePolicies));
-                scope.ServiceProvider.GetService<IMessengerService>().Should().NotBeNull(nameof(IMessengerService));
-            }
-        }
-
         protected override Dictionary<string, string> AddToConfiguration()
         {
             var configData = new Dictionary<string, string>
@@ -52,5 +31,11 @@ namespace CalculateFunding.Functions.CosmosDbScaling.UnitTests
 
             return configData;
         }
+        protected override Assembly FunctionAssembly => typeof(OnCosmosDbDiagnosticsReceived).Assembly;
+
+        protected override IServiceScope CreateServiceScope() =>
+            Startup.RegisterComponents(ServiceCollection, CreateTestConfiguration())
+                .CreateScope();
+        
     }
 }

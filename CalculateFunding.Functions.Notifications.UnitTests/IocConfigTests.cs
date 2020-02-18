@@ -1,32 +1,14 @@
 using System.Collections.Generic;
-using CalculateFunding.Services.Core.Interfaces.ServiceBus;
-using CalculateFunding.Services.Notifications.Interfaces;
+using System.Reflection;
 using CalculateFunding.Tests.Common;
-using FluentAssertions;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CalculateFunding.Functions.Notifications.UnitTests
 {
     [TestClass]
-    public class IocConfigTests : IoCUnitTestBase
+    public class IocConfigTests : FunctionIoCUnitTestBase
     {
-        [TestMethod]
-        public void FunctionsNotifications_ConfigureServices_RegisterDependenciesCorrectly()
-        {
-            // Arrange
-            IConfigurationRoot configuration = CreateTestConfiguration();
-
-            // Act
-            using (IServiceScope scope = Startup.RegisterComponents(new ServiceCollection(), configuration).CreateScope())
-            {
-                // Assert
-                scope.ServiceProvider.GetService<INotificationService>().Should().NotBeNull(nameof(INotificationService));
-                scope.ServiceProvider.GetService<IMessengerService>().Should().NotBeNull(nameof(IMessengerService));
-            }
-        }
-
         protected override Dictionary<string, string> AddToConfiguration()
         {
             Dictionary<string, string> configData = new Dictionary<string, string>
@@ -38,5 +20,11 @@ namespace CalculateFunding.Functions.Notifications.UnitTests
 
             return configData;
         }
+        
+        protected override Assembly FunctionAssembly => typeof(OnNotificationEventTrigger).Assembly;
+
+        protected override IServiceScope CreateServiceScope() =>
+            Startup.RegisterComponents(ServiceCollection, CreateTestConfiguration())
+                .CreateScope();
     }
 }

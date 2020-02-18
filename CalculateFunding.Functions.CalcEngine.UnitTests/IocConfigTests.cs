@@ -1,41 +1,15 @@
 using System.Collections.Generic;
-using CalculateFunding.Common.ApiClient.Specifications;
-using CalculateFunding.Services.CalcEngine.Interfaces;
-using CalculateFunding.Services.Core.Interfaces.ServiceBus;
-using CalculateFunding.Services.DeadletterProcessor;
+using System.Reflection;
+using CalculateFunding.Functions.CalcEngine.ServiceBus;
 using CalculateFunding.Tests.Common;
-using FluentAssertions;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Serilog;
 
 namespace CalculateFunding.Functions.CalcEngine.UnitTests
 {
     [TestClass]
-    public class IocConfigTests : IoCUnitTestBase
+    public class IocConfigTests : FunctionIoCUnitTestBase
     {
-        [TestMethod]
-        public void ConfigureServices_RegisterDependenciesCorrectly()
-        {
-            // Arrange
-            IConfigurationRoot configuration = CreateTestConfiguration();
-
-            // Act
-            using (IServiceScope scope = Startup.RegisterComponents(new ServiceCollection(), configuration).CreateScope())
-            {
-                // Assert
-                scope.ServiceProvider.GetService<ICalculationEngineService>().Should().NotBeNull(nameof(ICalculationEngineService));
-                scope.ServiceProvider.GetService<ICalculationsRepository>().Should().NotBeNull(nameof(ICalculationsRepository));
-                scope.ServiceProvider.GetService<ISpecificationsApiClient>().Should().NotBeNull(nameof(ISpecificationsApiClient));
-                scope.ServiceProvider.GetService<ICalculationEngine>().Should().NotBeNull(nameof(ICalculationEngine));
-                scope.ServiceProvider.GetService<IAllocationFactory>().Should().NotBeNull(nameof(IAllocationFactory));
-                scope.ServiceProvider.GetService<IJobHelperService>().Should().NotBeNull(nameof(IJobHelperService));
-                scope.ServiceProvider.GetService<ILogger>().Should().NotBeNull(nameof(ILogger));
-                scope.ServiceProvider.GetService<IMessengerService>().Should().NotBeNull(nameof(IMessengerService));
-            }
-        }
-
         protected override Dictionary<string, string> AddToConfiguration()
         {
             var configData = new Dictionary<string, string>
@@ -57,5 +31,10 @@ namespace CalculateFunding.Functions.CalcEngine.UnitTests
 
             return configData;
         }
+
+        protected override Assembly FunctionAssembly => typeof(OnCalcsGenerateAllocationResults).Assembly;
+        protected override IServiceScope CreateServiceScope() =>
+            Startup.RegisterComponents(ServiceCollection, CreateTestConfiguration())
+                .CreateScope();
     }
 }

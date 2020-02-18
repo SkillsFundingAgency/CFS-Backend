@@ -1,38 +1,15 @@
 ﻿using System.Collections.Generic;
+using System.Reflection;
 using CalculateFunding.Functions.Publishing.ServiceBus;
-using CalculateFunding.Services.Core.Interfaces.ServiceBus;
-using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Tests.Common;
-using FluentAssertions;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CalculateFunding.Functions.Publishing.UnitTests
 {
     [TestClass]
-    public class StartupTests : IoCUnitTestBase
+    public class StartupTests : FunctionIoCUnitTestBase
     {
-        [TestMethod]
-        public void ConfigureServices_RegisterDependenciesCorrectly()
-        {
-            // Arrange
-            IConfigurationRoot configuration = CreateTestConfiguration();
-
-            // Act
-            using (IServiceScope scope = Startup.RegisterComponents(new ServiceCollection(), configuration).CreateScope())
-            {
-                // Assert
-                scope.ServiceProvider.GetService<IPublishService>().Should().NotBeNull(nameof(IPublishService));
-                scope.ServiceProvider.GetService<IApproveService>().Should().NotBeNull(nameof(IApproveService));
-                scope.ServiceProvider.GetService<IRefreshService>().Should().NotBeNull(nameof(IRefreshService));
-                scope.ServiceProvider.GetService<ICalculationResultsRepository>().Should().NotBeNull(nameof(ICalculationResultsRepository));
-                scope.ServiceProvider.GetService<IRefreshPrerequisiteChecker>().Should().NotBeNull(nameof(IRefreshPrerequisiteChecker));
-                scope.ServiceProvider.GetService<IPublishedSearchService>().Should().NotBeNull(nameof(IPublishedSearchService));
-                scope.ServiceProvider.GetService<IMessengerService>().Should().NotBeNull(nameof(IMessengerService));
-            }
-        }
-
         protected override Dictionary<string, string> AddToConfiguration()
         {
             Dictionary<string, string> configData = new Dictionary<string, string>
@@ -60,5 +37,11 @@ namespace CalculateFunding.Functions.Publishing.UnitTests
 
             return configData;
         }
+        
+        protected override Assembly FunctionAssembly => typeof(OnApproveFunding).Assembly;
+
+        protected override IServiceScope CreateServiceScope() =>
+            Startup.RegisterComponents(ServiceCollection, CreateTestConfiguration())
+                .CreateScope();
     }
 }

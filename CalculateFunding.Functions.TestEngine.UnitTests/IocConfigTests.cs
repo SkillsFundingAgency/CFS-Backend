@@ -1,50 +1,15 @@
 using System.Collections.Generic;
-using CalculateFunding.Common.ApiClient.Specifications;
-using CalculateFunding.Services.CodeMetadataGenerator.Interfaces;
-using CalculateFunding.Services.Core.Interfaces.ServiceBus;
-using CalculateFunding.Services.TestRunner;
-using CalculateFunding.Services.TestRunner.Interfaces;
+using System.Reflection;
+using CalculateFunding.Functions.TestEngine.ServiceBus;
 using CalculateFunding.Tests.Common;
-using FluentAssertions;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CalculateFunding.Functions.TestEngine.UnitTests
 {
     [TestClass]
-    public class IocConfigTests : IoCUnitTestBase
+    public class IocConfigTests : FunctionIoCUnitTestBase
     {
-        [TestMethod]
-        public void ConfigureServices_RegisterDependenciesCorrectly()
-        {
-            // Arrange
-            IConfigurationRoot configuration = CreateTestConfiguration();
-
-            // Act
-            using (IServiceScope scope = Startup.RegisterComponents(new ServiceCollection(), configuration).CreateScope())
-            {
-                // Assert
-                scope.ServiceProvider.GetService<IBuildProjectRepository>().Should().NotBeNull(nameof(IBuildProjectRepository));
-                scope.ServiceProvider.GetService<IGherkinParserService>().Should().NotBeNull(nameof(IGherkinParserService));
-                scope.ServiceProvider.GetService<IGherkinParser>().Should().NotBeNull(nameof(IGherkinParser));
-                scope.ServiceProvider.GetService<ICodeMetadataGeneratorService>().Should().NotBeNull(nameof(ICodeMetadataGeneratorService));
-                scope.ServiceProvider.GetService<IStepParserFactory>().Should().NotBeNull(nameof(IStepParserFactory));
-                scope.ServiceProvider.GetService<ITestResultsRepository>().Should().NotBeNull(nameof(ITestResultsRepository));
-                scope.ServiceProvider.GetService<ISpecificationsApiClient>().Should().NotBeNull(nameof(ISpecificationsApiClient));
-                scope.ServiceProvider.GetService<IScenariosRepository>().Should().NotBeNull(nameof(IScenariosRepository));
-                scope.ServiceProvider.GetService<ITestEngineService>().Should().NotBeNull(nameof(ITestEngineService));
-                scope.ServiceProvider.GetService<ITestEngine>().Should().NotBeNull(nameof(ITestEngine));
-                scope.ServiceProvider.GetService<IGherkinExecutor>().Should().NotBeNull(nameof(IGherkinExecutor));
-                scope.ServiceProvider.GetService<IProviderSourceDatasetsRepository>().Should().NotBeNull(nameof(IProviderSourceDatasetsRepository));
-                scope.ServiceProvider.GetService<IProviderResultsRepository>().Should().NotBeNull(nameof(IProviderResultsRepository));
-                scope.ServiceProvider.GetService<ITestResultsSearchService>().Should().NotBeNull(nameof(ITestResultsSearchService));
-                scope.ServiceProvider.GetService<ITestResultsCountsService>().Should().NotBeNull(nameof(ITestResultsCountsService));
-                scope.ServiceProvider.GetService<ITestResultsService>().Should().NotBeNull(nameof(ITestResultsService));
-                scope.ServiceProvider.GetService<IMessengerService>().Should().NotBeNull(nameof(IMessengerService));
-            }
-        }
-
         protected override Dictionary<string, string> AddToConfiguration()
         {
             var configData = new Dictionary<string, string>
@@ -68,5 +33,11 @@ namespace CalculateFunding.Functions.TestEngine.UnitTests
 
             return configData;
         }
+        
+        protected override Assembly FunctionAssembly => typeof(OnDeleteTestResults).Assembly;
+
+        protected override IServiceScope CreateServiceScope() =>
+            Startup.RegisterComponents(ServiceCollection, CreateTestConfiguration())
+                .CreateScope();
     }
 }
