@@ -16,7 +16,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
     public class ReIndexSpecificationCalculationRelationshipsTests
     {
         private Mock<ISpecificationCalculationAnalysis> _analysis;
-        private Mock<IGraphRepository> _relationships;
+        private Mock<Interfaces.Analysis.IGraphRepository> _relationships;
 
         private Message _message;
         
@@ -26,7 +26,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
         public void SetUp()
         {
             _analysis = new Mock<ISpecificationCalculationAnalysis>();
-            _relationships = new Mock<IGraphRepository>();
+            _relationships = new Mock<Interfaces.Analysis.IGraphRepository>();
         
             _message = new Message();
             

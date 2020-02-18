@@ -76,9 +76,7 @@ namespace CalculateFunding.Services.Calcs
         private readonly ICalculationNameInUseCheck _calculationNameInUseCheck;
         private readonly IInstructionAllocationJobCreation _instructionAllocationJobCreation;
         private readonly ICreateCalculationService _createCalculationService;
-        private readonly IGraphApiClient _graphApiClient;
-        private readonly Polly.Policy _graphApiClientPolicy;
-        private readonly ICalculationsFeatureFlag _calculationsFeatureFlag;
+        private readonly IGraphRepository _graphRepository;
 
         public CalculationService(
             ICalculationsRepository calculationsRepository,
@@ -99,8 +97,7 @@ namespace CalculateFunding.Services.Calcs
             ICalculationNameInUseCheck calculationNameInUseCheck,
             IInstructionAllocationJobCreation instructionAllocationJobCreation,
             ICreateCalculationService createCalculationService,
-            IGraphApiClient graphApiClient,
-            ICalculationsFeatureFlag calculationsFeatureFlag)
+            IGraphRepository graphRepository)
         {
             Guard.ArgumentNotNull(calculationsRepository, nameof(calculationsRepository));
             Guard.ArgumentNotNull(logger, nameof(logger));
@@ -127,8 +124,7 @@ namespace CalculateFunding.Services.Calcs
             Guard.ArgumentNotNull(resiliencePolicies?.BuildProjectRepositoryPolicy, nameof(resiliencePolicies.BuildProjectRepositoryPolicy));
             Guard.ArgumentNotNull(resiliencePolicies?.PoliciesApiClient, nameof(resiliencePolicies.PoliciesApiClient));
             Guard.ArgumentNotNull(resiliencePolicies?.SpecificationsApiClient, nameof(resiliencePolicies.SpecificationsApiClient));
-            Guard.ArgumentNotNull(graphApiClient, nameof(graphApiClient));
-            Guard.ArgumentNotNull(calculationsFeatureFlag, nameof(calculationsFeatureFlag));
+            Guard.ArgumentNotNull(graphRepository, nameof(graphRepository));
 
             _calculationsRepository = calculationsRepository;
             _logger = logger;
@@ -155,9 +151,7 @@ namespace CalculateFunding.Services.Calcs
             _createCalculationService = createCalculationService;
             _specificationsApiClientPolicy = resiliencePolicies.SpecificationsApiClient;
             _calculationEditModelValidator = calculationEditModelValidator;
-            _graphApiClient = graphApiClient;
-            _graphApiClientPolicy = resiliencePolicies.GraphApiClientPolicy;
-            _calculationsFeatureFlag = calculationsFeatureFlag;
+            _graphRepository = graphRepository;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -395,7 +389,7 @@ namespace CalculateFunding.Services.Calcs
             {
                 IEnumerable<Calculation> calculations = await _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCalculationsBySpecificationId(specificationId));
 
-                await calculations.PersistToGraph(_graphApiClient, _graphApiClientPolicy, specificationApiResponse.Content, _calculationsFeatureFlag, createCalculationResponse.Calculation.Current.CalculationId);
+                await _graphRepository.PersistToGraph(calculations, specificationApiResponse.Content, createCalculationResponse.Calculation.Current.CalculationId);
 
                 return new OkObjectResult(createCalculationResponse.Calculation.ToResponseModel());
             }
@@ -1208,7 +1202,7 @@ namespace CalculateFunding.Services.Calcs
             if (calculationId != null)
             {
                 // there are only changes to the calc which effect the graph if a calculationId is sent into this method
-                await calculations.PersistToGraph(_graphApiClient, _graphApiClientPolicy, specificationSummary, _calculationsFeatureFlag, calculationId, true);
+                await _graphRepository.PersistToGraph(calculations, specificationSummary, calculationId, true);
             }
 
             return buildProject;

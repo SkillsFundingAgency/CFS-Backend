@@ -163,6 +163,7 @@ namespace CalculateFunding.Functions.Calcs
 
             builder.AddServiceBus(config, "calcs");
             builder.AddScoped<ICalculationsFeatureFlag, CalculationsFeatureFlag>();
+            builder.AddScoped<IGraphRepository, GraphRepository>();
 
             builder.AddProvidersInterServiceClient(config);
             builder.AddSpecificationsInterServiceClient(config);

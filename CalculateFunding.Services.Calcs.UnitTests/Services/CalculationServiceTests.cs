@@ -51,8 +51,7 @@ namespace CalculateFunding.Services.Calcs.Services
             IValidator<CalculationCreateModel> calculationCreateModelValidator = null,
             IValidator<CalculationEditModel> calculationEditModelValidator = null,
             ISpecificationsApiClient specificationsApiClient = null,
-            IGraphApiClient graphApiClient = null,
-            ICalculationsFeatureFlag calculationsFeatureFlag = null)
+            IGraphRepository graphRepository = null)
         {
             CalculationNameInUseCheck calculationNameInUseCheck = new CalculationNameInUseCheck(calculationsRepository ?? CreateCalculationsRepository(),
                 specificationsApiClient ?? CreateSpecificationsApiClient(),
@@ -91,8 +90,7 @@ namespace CalculateFunding.Services.Calcs.Services
                     searchRepository ?? CreateSearchRepository(),
                     logger ?? CreateLogger(),
                     instructionAllocationJobCreation),
-                graphApiClient ?? CreateGraphApiClient(),
-                calculationsFeatureFlag ?? CreateCalculationsFeatureFlag());
+                graphRepository?? CreateGraphRepository());
         }
 
         private static ICalculationCodeReferenceUpdate CreateCalculationCodeReferenceUpdate()
@@ -149,9 +147,9 @@ namespace CalculateFunding.Services.Calcs.Services
             return Substitute.For<ISearchRepository<CalculationIndex>>();
         }
 
-        private static IGraphApiClient CreateGraphApiClient()
+        private static IGraphRepository CreateGraphRepository()
         {
-            return Substitute.For<IGraphApiClient>();
+            return Substitute.For<IGraphRepository>();
         }
 
         private static ICalculationsFeatureFlag CreateCalculationsFeatureFlag()

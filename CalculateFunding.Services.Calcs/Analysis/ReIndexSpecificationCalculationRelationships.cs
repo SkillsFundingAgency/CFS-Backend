@@ -12,13 +12,13 @@ namespace CalculateFunding.Services.Calcs.Analysis
     public class ReIndexSpecificationCalculationRelationships : IReIndexSpecificationCalculationRelationships
     {
         private readonly ISpecificationCalculationAnalysis _analysis;
-        private readonly IGraphRepository _graphs;
+        private readonly Interfaces.Analysis.IGraphRepository _graphs;
         private readonly ILogger _logger;
 
         private const string SpecificationId = "specification-id";
 
         public ReIndexSpecificationCalculationRelationships(ISpecificationCalculationAnalysis analysis,
-            IGraphRepository graphs,
+            Interfaces.Analysis.IGraphRepository graphs,
             ILogger logger)
         {
             Guard.ArgumentNotNull(analysis, nameof(analysis));

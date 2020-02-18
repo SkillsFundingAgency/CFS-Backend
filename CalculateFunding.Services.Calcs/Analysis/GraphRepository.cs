@@ -15,7 +15,7 @@ using ApiCalculation = CalculateFunding.Common.ApiClient.Graph.Models.Calculatio
 
 namespace CalculateFunding.Services.Calcs.Analysis
 {
-    public class GraphRepository : IGraphRepository
+    public class GraphRepository : Interfaces.Analysis.IGraphRepository
     {
         private readonly IGraphApiClient _graphApiClient;
         private readonly IMapper _mapper;

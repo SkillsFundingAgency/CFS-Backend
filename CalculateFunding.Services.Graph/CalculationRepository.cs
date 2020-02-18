@@ -31,7 +31,7 @@ namespace CalculateFunding.Services.Graph
 
         public async Task UpsertCalculations(IEnumerable<Calculation> calculations)
         {
-            await _graphRepository.UpsertNodes(calculations.ToList(), new[] { CalculationId });
+            await _graphRepository.UpsertNodes(calculations.ToList(), new string[] { "calculationid" });
         }
 
         public async Task UpsertCalculationSpecificationRelationship(string calculationId, string specificationId)

@@ -42,10 +42,9 @@ namespace CalculateFunding.Services.Calcs.Services
         private IInstructionAllocationJobCreation _instructionAllocationJobCreation;
         private IPoliciesApiClient _policies;
         private ISpecificationsApiClient _specificationApiClient;
-        private IGraphApiClient _graphApiClient;
+        private IGraphRepository _graphRepository;
         private ICalculationService _calculationService;
         private ICacheProvider _cacheProvider;
-        private ICalculationsFeatureFlag _calculationsFeatureFlag;
 
         private string _specificationId;
         private string _fundingStreamId;
@@ -69,7 +68,7 @@ namespace CalculateFunding.Services.Calcs.Services
         {
             _policies = Substitute.For<IPoliciesApiClient>();
             _specificationApiClient = Substitute.For<ISpecificationsApiClient>();
-            _graphApiClient = Substitute.For<IGraphApiClient>();
+            _graphRepository = Substitute.For<IGraphRepository>();
             _createCalculationService = Substitute.For<ICreateCalculationService>();
             _calculationQuery = Substitute.For<ITemplateContentsCalculationQuery>();
             _calculationsRepository = Substitute.For<ICalculationsRepository>();
@@ -78,7 +77,6 @@ namespace CalculateFunding.Services.Calcs.Services
             _instructionAllocationJobCreation = Substitute.For<IInstructionAllocationJobCreation>();
             _calculationService = Substitute.For<ICalculationService>();
             _cacheProvider = Substitute.For<ICacheProvider>();
-            _calculationsFeatureFlag = Substitute.For<ICalculationsFeatureFlag>();
 
             _jobTrackerFactory.CreateJobTracker(Arg.Any<Message>())
                 .Returns(_jobTracker);
@@ -118,9 +116,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 Substitute.For<ILogger>(),
                 _calculationService,
                 _cacheProvider,
-                _graphApiClient,
                 _specificationApiClient,
-                _calculationsFeatureFlag);
+                _graphRepository);
         }
 
         [TestMethod]

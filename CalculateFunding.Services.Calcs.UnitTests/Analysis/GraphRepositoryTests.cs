@@ -19,7 +19,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
     [TestClass]
     public class GraphRepositoryTests : GraphTestBase
     {
-        private GraphRepository _repository;
+        private Calcs.Analysis.GraphRepository _repository;
         private Mock<IGraphApiClient> _graphApiClient;
 
         [TestInitialize]
@@ -27,7 +27,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
         {
             _graphApiClient = new Mock<IGraphApiClient>();
 
-            _repository = new GraphRepository(_graphApiClient.Object,
+            _repository = new Calcs.Analysis.GraphRepository(_graphApiClient.Object,
                 new ResiliencePolicies
                 {
                     GraphApiClientPolicy = Policy.NoOpAsync()

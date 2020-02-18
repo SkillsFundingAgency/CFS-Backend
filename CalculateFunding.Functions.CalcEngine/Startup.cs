@@ -2,6 +2,9 @@
 using AutoMapper;
 using CalculateFunding.Common.ApiClient;
 using CalculateFunding.Common.ApiClient.Specifications;
+using CalculateFunding.Common.Config.ApiClient.Calcs;
+using CalculateFunding.Common.Config.ApiClient.Jobs;
+using CalculateFunding.Common.Config.ApiClient.Specifications;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Interfaces;
 using CalculateFunding.Common.Storage;
@@ -160,10 +163,10 @@ namespace CalculateFunding.Functions.CalcEngine
                 .AddSingleton(calculationsConfig.CreateMapper());
 
 
-            Common.Config.ApiClient.Calcs.ServiceCollectionExtensions.AddCalculationsInterServiceClient(builder, config);
-            Common.Config.ApiClient.Specifications.ServiceCollectionExtensions.AddSpecificationsInterServiceClient(builder, config);
+            builder.AddCalculationsInterServiceClient(config);
+            builder.AddSpecificationsInterServiceClient(config);
+            builder.AddJobsInterServiceClient(config);
 
-            Common.Config.ApiClient.Jobs.ServiceCollectionExtensions.AddJobsInterServiceClient(builder, config);
 
             builder.AddDatasetsInterServiceClient(config);
 

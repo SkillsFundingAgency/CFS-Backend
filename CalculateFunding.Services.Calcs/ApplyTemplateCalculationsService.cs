@@ -41,11 +41,9 @@ namespace CalculateFunding.Services.Calcs
         private readonly ICalculationService _calculationService;
         private readonly Polly.Policy _cachePolicy;
         private readonly ICacheProvider _cacheProvider;
-        private readonly IGraphApiClient _graphApiClient;
-        private readonly Polly.Policy _graphApiClientPolicy;
         private readonly ISpecificationsApiClient _specificationsApiClient;
         private readonly Polly.Policy _specificationsApiClientPolicy;
-        private readonly ICalculationsFeatureFlag _calculationsFeatureFlag;
+        private readonly IGraphRepository _graphRepository;
 
         public ApplyTemplateCalculationsService(ICreateCalculationService createCalculationService,
             IPoliciesApiClient policiesApiClient,
@@ -57,9 +55,8 @@ namespace CalculateFunding.Services.Calcs
             ILogger logger,
             ICalculationService calculationService,
             ICacheProvider cacheProvider,
-            IGraphApiClient graphApiClient,
             ISpecificationsApiClient specificationsApiClient,
-            ICalculationsFeatureFlag calculationsFeatureFlag)
+            IGraphRepository graphRepository)
         {
             Guard.ArgumentNotNull(instructionAllocationJobCreation, nameof(instructionAllocationJobCreation));
             Guard.ArgumentNotNull(jobTrackerFactory, nameof(jobTrackerFactory));
@@ -73,9 +70,8 @@ namespace CalculateFunding.Services.Calcs
             Guard.ArgumentNotNull(calculationService, nameof(calculationService));
             Guard.ArgumentNotNull(calculationsResiliencePolicies?.CacheProviderPolicy, nameof(calculationsResiliencePolicies.CacheProviderPolicy));
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
-            Guard.ArgumentNotNull(graphApiClient, nameof(graphApiClient));
+            Guard.ArgumentNotNull(graphRepository, nameof(graphRepository));
             Guard.ArgumentNotNull(specificationsApiClient, nameof(specificationsApiClient));
-            Guard.ArgumentNotNull(calculationsFeatureFlag, nameof(calculationsFeatureFlag));
 
             _createCalculationService = createCalculationService;
             _calculationsRepository = calculationsRepository;
@@ -89,11 +85,9 @@ namespace CalculateFunding.Services.Calcs
             _calculationService = calculationService;
             _cachePolicy = calculationsResiliencePolicies.CacheProviderPolicy;
             _cacheProvider = cacheProvider;
-            _graphApiClient = graphApiClient;
-            _graphApiClientPolicy = calculationsResiliencePolicies.GraphApiClientPolicy;
             _specificationsApiClient = specificationsApiClient;
             _specificationsApiClientPolicy = calculationsResiliencePolicies.SpecificationsApiClient;
-            _calculationsFeatureFlag = calculationsFeatureFlag;
+            _graphRepository = graphRepository;
         }
 
         public async Task ApplyTemplateCalculation(Message message)
@@ -282,7 +276,7 @@ namespace CalculateFunding.Services.Calcs
                 if ((calculationCount + 1) % 10 == 0) await jobTracker.NotifyProgress(startingItemCount + calculationCount + 1);
             }
 
-            await calculations.PersistToGraph(_graphApiClient, _graphApiClientPolicy, specification, _calculationsFeatureFlag);
+            await _graphRepository.PersistToGraph(calculations, specification);
         }
 
         private Func<TemplateMappingItem, Task<bool>> IsMissingCalculation(string specificationId, Reference author, string correlationId, IEnumerable<TemplateMappingItem> missingMappings)

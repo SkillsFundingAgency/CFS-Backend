@@ -212,6 +212,7 @@ namespace CalculateFunding.Api.Calcs
 
             builder.AddScoped<IJobManagement, JobManagement>();
             builder.AddScoped<ICalculationsFeatureFlag, CalculationsFeatureFlag>();
+            builder.AddScoped<IGraphRepository, GraphRepository>();
 
             builder.AddProvidersInterServiceClient(Configuration);
             builder.AddSpecificationsInterServiceClient(Configuration);
