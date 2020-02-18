@@ -36,11 +36,11 @@ namespace CalculateFunding.Services.Graph.UnitTests
         {
             Calculation[] calcs = new Calculation[] { NewCalculation(), NewCalculation() };
 
-            IActionResult result = await _graphService.SaveCalculations(calcs);
+            IActionResult result = await _graphService.UpsertCalculations(calcs);
 
             await _calculationRepository
                 .Received(1)
-                .SaveCalculations(calcs);
+                .UpsertCalculations(calcs);
 
             result
                 .Should()
@@ -53,10 +53,10 @@ namespace CalculateFunding.Services.Graph.UnitTests
             Calculation[] calcs = new Calculation[] { NewCalculation(), NewCalculation() };
 
             _calculationRepository
-                .SaveCalculations(calcs)
+                .UpsertCalculations(calcs)
                 .Throws(new Neo4jDriver.Neo4jException());
 
-            IActionResult result = await _graphService.SaveCalculations(calcs);
+            IActionResult result = await _graphService.UpsertCalculations(calcs);
 
             result
                 .Should()
@@ -68,11 +68,11 @@ namespace CalculateFunding.Services.Graph.UnitTests
         {
             Specification[] specifications = new Specification[] { NewSpecification(), NewSpecification() };
 
-            IActionResult result = await _graphService.SaveSpecifications(specifications);
+            IActionResult result = await _graphService.UpsertSpecifications(specifications);
 
             await _specificationRepository
                 .Received(1)
-                .SaveSpecifications(specifications);
+                .UpsertSpecifications(specifications);
 
             result
                 .Should()
@@ -85,10 +85,10 @@ namespace CalculateFunding.Services.Graph.UnitTests
             Specification[] specifications = new Specification[] { NewSpecification(), NewSpecification() };
 
             _specificationRepository
-                .SaveSpecifications(specifications)
+                .UpsertSpecifications(specifications)
                 .Throws(new Neo4jDriver.Neo4jException());
 
-            IActionResult result = await _graphService.SaveSpecifications(specifications);
+            IActionResult result = await _graphService.UpsertSpecifications(specifications);
 
             _logger
                 .Received(1)
@@ -177,12 +177,12 @@ namespace CalculateFunding.Services.Graph.UnitTests
             Calculation calc = NewCalculation();
             Specification specification = NewSpecification();
 
-            IActionResult result = await _graphService.CreateCalculationSpecificationRelationship(calc.CalculationId,
+            IActionResult result = await _graphService.UpsertCalculationSpecificationRelationship(calc.CalculationId,
                 specification.SpecificationId);
 
             await _calculationRepository
                 .Received(1)
-                .CreateCalculationSpecificationRelationship(calc.CalculationId, specification.SpecificationId);
+                .UpsertCalculationSpecificationRelationship(calc.CalculationId, specification.SpecificationId);
 
             result
                 .Should()
@@ -196,15 +196,15 @@ namespace CalculateFunding.Services.Graph.UnitTests
             Specification specification = NewSpecification();
 
             _calculationRepository
-                .CreateCalculationSpecificationRelationship(calc.CalculationId, specification.SpecificationId)
+                .UpsertCalculationSpecificationRelationship(calc.CalculationId, specification.SpecificationId)
                 .Throws(new Neo4jDriver.Neo4jException());
 
-            IActionResult result = await _graphService.CreateCalculationSpecificationRelationship(calc.CalculationId,
+            IActionResult result = await _graphService.UpsertCalculationSpecificationRelationship(calc.CalculationId,
                 specification.SpecificationId);
 
             _logger
                 .Received(1)
-                .Error($"Create calculation relationship between specification failed for calculation:'{calc.CalculationId}'" +
+                .Error($"Upsert calculation relationship between specification failed for calculation:'{calc.CalculationId}'" +
                     $" and specification:'{specification.SpecificationId}'");
 
             result
@@ -218,12 +218,12 @@ namespace CalculateFunding.Services.Graph.UnitTests
             Calculation calcA = NewCalculation();
             Calculation calcB = NewCalculation();
 
-            IActionResult result = await _graphService.CreateCalculationCalculationRelationship(calcA.CalculationId,
+            IActionResult result = await _graphService.UpsertCalculationCalculationRelationship(calcA.CalculationId,
                 calcB.CalculationId);
 
             await _calculationRepository
                 .Received(1)
-                .CreateCalculationCalculationRelationship(calcA.CalculationId, calcB.CalculationId);
+                .UpsertCalculationCalculationRelationship(calcA.CalculationId, calcB.CalculationId);
 
             result
                 .Should()
@@ -237,16 +237,41 @@ namespace CalculateFunding.Services.Graph.UnitTests
             Calculation calcB = NewCalculation();
 
             _calculationRepository
-                .CreateCalculationCalculationRelationship(calcA.CalculationId, calcB.CalculationId)
+                .UpsertCalculationCalculationRelationship(calcA.CalculationId, calcB.CalculationId)
                 .Throws(new Neo4jDriver.Neo4jException());
 
-            IActionResult result = await _graphService.CreateCalculationCalculationRelationship(calcA.CalculationId,
+            IActionResult result = await _graphService.UpsertCalculationCalculationRelationship(calcA.CalculationId,
                 calcB.CalculationId);
 
             _logger
                 .Received(1)
-                .Error($"Create calculation relationship call to calculation failed for calculation:'{calcA.CalculationId}'" +
+                .Error($"Upsert calculation relationship call to calculation failed for calculation:'{calcA.CalculationId}'" +
                     $" calling calculation:'{calcB.CalculationId}'");
+
+            result
+                .Should()
+                .BeAssignableTo<InternalServerErrorResult>();
+        }
+
+        [TestMethod]
+        public async Task CreateCalculationCalculationsRelationships_FailedToCreateRelationships_InternalServerErrorReturned()
+        {
+            Calculation calcA = NewCalculation();
+            Calculation calcB = NewCalculation();
+            Calculation calcC = NewCalculation();
+
+            _calculationRepository
+                .UpsertCalculationCalculationRelationship(calcA.CalculationId, calcB.CalculationId)
+                .Throws(new Neo4jDriver.Neo4jException());
+
+            IActionResult result = await _graphService.UpsertCalculationCalculationsRelationships(calcA.CalculationId,
+                new[] {calcB.CalculationId,
+                calcC.CalculationId});
+
+            _logger
+                .Received(1)
+                .Error($"Upsert calculation relationship call to calculation failed for calculation:'{calcA.CalculationId}'" +
+                    $" calling calculations:'{new[] { calcB.CalculationId, calcC.CalculationId}.AsJson()}'");
 
             result
                 .Should()

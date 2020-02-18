@@ -15,8 +15,8 @@ namespace CalculateFunding.Services.Compiler.Analysis
             Guard.IsNotEmpty(calculations, nameof(calculations));
             
             Dictionary<string, string> calculationIdsBySourceCodeName = calculations
-                .ToDictionary(_ => _.Current.SourceCodeName, _ => _.Id);
-            string[] calculationNames = calculations.Select(_ => _.Current.SourceCodeName)
+                .ToDictionary(_ => $"{_.Namespace}.{_.Current.SourceCodeName}", _ => _.Id);
+            string[] calculationNames = calculations.Select(_ => $"{_.Namespace}.{_.Current.SourceCodeName}")
                 .ToArray();
 
             return calculations.SelectMany(_ =>

@@ -12,6 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Graph" Version="1.0.0" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Jobs" Version="1.0.0" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Policies" Version="1.0.0" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Providers" Version="1.0.0" />

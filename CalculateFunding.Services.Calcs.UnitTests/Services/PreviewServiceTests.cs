@@ -2622,7 +2622,7 @@ Calculation Name: {{calculationName}}").ToArray()
                 datasetRepository ?? CreateDatasetRepository(),
                 cacheProvider ?? CreateCacheProvider(),
                 sourceCodeService ?? CreateSourceCodeService(),
-                tokenChecker ?? tokenChecker);
+                tokenChecker ?? CreateTokenChecker());
         }
 
         static ISourceCodeService CreateSourceCodeService()

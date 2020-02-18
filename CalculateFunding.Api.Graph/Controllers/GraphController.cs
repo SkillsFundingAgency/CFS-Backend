@@ -21,17 +21,17 @@ namespace CalculateFunding.Api.Graph.Controllers
         [Route("api/graph/calculations")]
         [HttpPost]
         [ProducesResponseType(200)]
-        public async Task<IActionResult> SaveCalculations([FromBody]Calculation[] calculations)
+        public async Task<IActionResult> UpsertCalculations([FromBody]Calculation[] calculations)
         {
-            return await _graphService.SaveCalculations(calculations);
+            return await _graphService.UpsertCalculations(calculations);
         }
 
         [Route("api/graph/specifications")]
         [HttpPost]
         [ProducesResponseType(200)]
-        public async Task<IActionResult> SaveSpecifications([FromBody]Specification[] specifications)
+        public async Task<IActionResult> UpsertSpecifications([FromBody]Specification[] specifications)
         {
-            return await _graphService.SaveSpecifications(specifications);
+            return await _graphService.UpsertSpecifications(specifications);
         }
 
         [Route("api/graph/calculation/{calculationId}")]
@@ -53,30 +53,37 @@ namespace CalculateFunding.Api.Graph.Controllers
         [Route("api/graph/specification/{specificationId}/relationships/calculation/{calculationId}")]
         [HttpPut]
         [ProducesResponseType(200)]
-        public async Task<IActionResult> CreateCalculationSpecificationRelationship([FromRoute]string calculationId, [FromRoute]string specificationId)
+        public async Task<IActionResult> UpsertCalculationSpecificationRelationship([FromRoute]string calculationId, [FromRoute]string specificationId)
         {
-            return await _graphService.CreateCalculationSpecificationRelationship(calculationId, specificationId);
+            return await _graphService.UpsertCalculationSpecificationRelationship(calculationId, specificationId);
         }
 
         [Route("api/graph/calculation/{calculationIdA}/relationships/calculation/{calculationIdB}")]
         [HttpPut]
         [ProducesResponseType(200)]
-        public async Task<IActionResult> CreateCalculationCalculationRelationship([FromRoute]string calculationIdA, [FromRoute]string calculationIdB)
+        public async Task<IActionResult> UpsertCalculationCalculationRelationship([FromRoute]string calculationIdA, [FromRoute]string calculationIdB)
         {
-            return await _graphService.CreateCalculationCalculationRelationship(calculationIdA, calculationIdB);
+            return await _graphService.UpsertCalculationCalculationRelationship(calculationIdA, calculationIdB);
         }
 
+        [Route("api/graph/calculation/{calculationId}/relationships/calculations")]
+        [HttpPost]
+        [ProducesResponseType(200)]
+        public async Task<IActionResult> UpsertCalculationCalculationsRelationships([FromRoute]string calculationId, [FromBody]string[] calculationIds)
+        {
+            return await _graphService.UpsertCalculationCalculationsRelationships(calculationId, calculationIds);
+        }
 
-        [Route("api/graph/calculations/delete/specification/{calculationId}/{specificationId}")]
-        [HttpPut]
+        [Route("api/graph/specification/{specificationId}/relationships/calculation/{calculationId}/")]
+        [HttpDelete]
         [ProducesResponseType(200)]
         public async Task<IActionResult> DeleteCalculationSpecificationRelationship([FromRoute]string calculationId, [FromRoute]string specificationId)
         {
             return await _graphService.DeleteCalculationSpecificationRelationship(calculationId, specificationId);
         }
 
-        [Route("api/graph/calculation/delete/calculation/{calculationIdA}/{calculationIdB}")]
-        [HttpPut]
+        [Route("api/graph/calculation/{calculationIdA}/relationships/calculation/{calculationIdB}")]
+        [HttpDelete]
         [ProducesResponseType(200)]
         public async Task<IActionResult> DeleteCalculationCalculationRelationship([FromRoute]string calculationIdA, [FromRoute]string calculationIdB)
         {

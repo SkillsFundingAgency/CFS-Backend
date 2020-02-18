@@ -289,6 +289,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             SpecModel.SpecificationSummary specificationSummary = new SpecModel.SpecificationSummary()
             {
+                Id = calculation.SpecificationId,
                 Name = "spec name",
                 FundingStreams = new[]
                 {
@@ -446,6 +447,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             SpecModel.SpecificationSummary specificationSummary = new SpecModel.SpecificationSummary()
             {
+                Id = calculation.SpecificationId,
                 Name = "spec name",
                 FundingStreams = new[]
                 {

@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using CalculateFunding.Common.ApiClient.Graph;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.ApiClient.Specifications;
@@ -49,7 +50,9 @@ namespace CalculateFunding.Services.Calcs.Services
             ICalculationCodeReferenceUpdate calculationCodeReferenceUpdate = null,
             IValidator<CalculationCreateModel> calculationCreateModelValidator = null,
             IValidator<CalculationEditModel> calculationEditModelValidator = null,
-            ISpecificationsApiClient specificationsApiClient = null)
+            ISpecificationsApiClient specificationsApiClient = null,
+            IGraphApiClient graphApiClient = null,
+            ICalculationsFeatureFlag calculationsFeatureFlag = null)
         {
             CalculationNameInUseCheck calculationNameInUseCheck = new CalculationNameInUseCheck(calculationsRepository ?? CreateCalculationsRepository(),
                 specificationsApiClient ?? CreateSpecificationsApiClient(),
@@ -87,7 +90,9 @@ namespace CalculateFunding.Services.Calcs.Services
                     cacheProvider ?? CreateCacheProvider(),
                     searchRepository ?? CreateSearchRepository(),
                     logger ?? CreateLogger(),
-                    instructionAllocationJobCreation));
+                    instructionAllocationJobCreation),
+                graphApiClient ?? CreateGraphApiClient(),
+                calculationsFeatureFlag ?? CreateCalculationsFeatureFlag());
         }
 
         private static ICalculationCodeReferenceUpdate CreateCalculationCodeReferenceUpdate()
@@ -142,6 +147,16 @@ namespace CalculateFunding.Services.Calcs.Services
         private static ISearchRepository<CalculationIndex> CreateSearchRepository()
         {
             return Substitute.For<ISearchRepository<CalculationIndex>>();
+        }
+
+        private static IGraphApiClient CreateGraphApiClient()
+        {
+            return Substitute.For<IGraphApiClient>();
+        }
+
+        private static ICalculationsFeatureFlag CreateCalculationsFeatureFlag()
+        {
+            return Substitute.For<ICalculationsFeatureFlag>();
         }
 
         private static IPoliciesApiClient CreatePoliciesApiClient()

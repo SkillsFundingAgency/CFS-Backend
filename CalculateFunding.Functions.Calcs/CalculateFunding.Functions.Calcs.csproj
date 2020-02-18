@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="9.0.0" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Graph" Version="1.0.0" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Jobs" Version="1.0.0" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Policies" Version="1.0.0" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Providers" Version="1.0.0" />
@@ -20,6 +21,7 @@
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.2.1" />
     <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic" Version="3.2.1" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+    <PackageReference Include="Microsoft.FeatureManagement.AspNetCore" Version="2.0.0-preview-010610001-1263" />
     
   </ItemGroup>
 

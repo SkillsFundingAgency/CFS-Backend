@@ -56,7 +56,7 @@ namespace CalculateFunding.Api.Publishing
 
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Users Microservice API", Version = "v1" });
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Publishing Microservice API", Version = "v1" });
                 c.AddSecurityDefinition("API Key", new OpenApiSecurityScheme()
                 {
                     Type = SecuritySchemeType.ApiKey,
@@ -96,7 +96,7 @@ namespace CalculateFunding.Api.Publishing
 
             app.UseSwaggerUI(c =>
             {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Users Microservice API");
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Publishing Microservice API");
                 c.DocumentTitle = "Users Microservice - Swagger";
             });
         }

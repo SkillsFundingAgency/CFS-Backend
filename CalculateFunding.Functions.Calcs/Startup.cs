@@ -1,5 +1,6 @@
 ﻿using System;
 using CalculateFunding.Common.ApiClient;
+using CalculateFunding.Common.Config.ApiClient.Graph;
 using CalculateFunding.Common.Config.ApiClient.Jobs;
 using CalculateFunding.Common.Config.ApiClient.Policies;
 using CalculateFunding.Common.Config.ApiClient.Providers;
@@ -34,6 +35,7 @@ using FluentValidation;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.FeatureManagement;
 using Polly;
 using Polly.Bulkhead;
 
@@ -62,6 +64,10 @@ namespace CalculateFunding.Functions.Calcs
 
         private static IServiceProvider Register(IServiceCollection builder, IConfigurationRoot config)
         {
+            builder.AddFeatureManagement();
+
+            builder.AddSingleton<IConfiguration>(ctx => config);
+
             // These registrations of the functions themselves are just for the DebugQueue. Ideally we don't want these registered in production
             if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
             {
@@ -156,11 +162,13 @@ namespace CalculateFunding.Functions.Calcs
                 .AddSingleton<ISearchRepository<ProviderCalculationResultsIndex>, SearchRepository<ProviderCalculationResultsIndex>>();
 
             builder.AddServiceBus(config, "calcs");
+            builder.AddScoped<ICalculationsFeatureFlag, CalculationsFeatureFlag>();
 
             builder.AddProvidersInterServiceClient(config);
             builder.AddSpecificationsInterServiceClient(config);
             builder.AddDatasetsInterServiceClient(config);
             builder.AddJobsInterServiceClient(config);
+            builder.AddGraphInterServiceClient(config);
             builder.AddPoliciesInterServiceClient(config);
 
             builder.AddCaching(config);
@@ -206,7 +214,8 @@ namespace CalculateFunding.Functions.Calcs
                 SpecificationsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                 SourceFilesRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                 DatasetsRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-                PoliciesApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
+                PoliciesApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                GraphApiClientPolicy = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
             };
         }
     }

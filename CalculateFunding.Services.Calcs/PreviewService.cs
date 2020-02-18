@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Graph;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Models.HealthCheck;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Services.Calcs.Interfaces;
@@ -46,6 +48,15 @@ namespace CalculateFunding.Services.Calcs
             ISourceCodeService sourceCodeService,
             ITokenChecker tokenChecker)
         {
+            Guard.ArgumentNotNull(logger, nameof(logger));
+            Guard.ArgumentNotNull(buildProjectsService, nameof(buildProjectsService));
+            Guard.ArgumentNotNull(previewRequestValidator, nameof(previewRequestValidator));
+            Guard.ArgumentNotNull(calculationsRepository, nameof(calculationsRepository));
+            Guard.ArgumentNotNull(datasetRepository, nameof(datasetRepository));
+            Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
+            Guard.ArgumentNotNull(sourceCodeService, nameof(sourceCodeService));
+            Guard.ArgumentNotNull(tokenChecker, nameof(tokenChecker));
+
             _logger = logger;
             _buildProjectsService = buildProjectsService;
             _previewRequestValidator = previewRequestValidator;
@@ -223,6 +234,7 @@ namespace CalculateFunding.Services.Calcs
                         }
                     }
                 }
+
                 //Forcing to compile for calc runs only
                 compilerOptions.OptionStrictEnabled = false;
 

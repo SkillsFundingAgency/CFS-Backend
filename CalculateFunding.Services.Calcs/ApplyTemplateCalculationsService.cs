@@ -2,17 +2,23 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Graph;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies;
+using CalculateFunding.Common.ApiClient.Specifications;
+using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Services.Calcs.Interfaces;
+using CalculateFunding.Services.CodeGeneration.VisualBasic;
+using CalculateFunding.Services.Compiler;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Helpers;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
 using Polly;
@@ -35,6 +41,11 @@ namespace CalculateFunding.Services.Calcs
         private readonly ICalculationService _calculationService;
         private readonly Polly.Policy _cachePolicy;
         private readonly ICacheProvider _cacheProvider;
+        private readonly IGraphApiClient _graphApiClient;
+        private readonly Polly.Policy _graphApiClientPolicy;
+        private readonly ISpecificationsApiClient _specificationsApiClient;
+        private readonly Polly.Policy _specificationsApiClientPolicy;
+        private readonly ICalculationsFeatureFlag _calculationsFeatureFlag;
 
         public ApplyTemplateCalculationsService(ICreateCalculationService createCalculationService,
             IPoliciesApiClient policiesApiClient,
@@ -45,7 +56,10 @@ namespace CalculateFunding.Services.Calcs
             IInstructionAllocationJobCreation instructionAllocationJobCreation,
             ILogger logger,
             ICalculationService calculationService,
-            ICacheProvider cacheProvider)
+            ICacheProvider cacheProvider,
+            IGraphApiClient graphApiClient,
+            ISpecificationsApiClient specificationsApiClient,
+            ICalculationsFeatureFlag calculationsFeatureFlag)
         {
             Guard.ArgumentNotNull(instructionAllocationJobCreation, nameof(instructionAllocationJobCreation));
             Guard.ArgumentNotNull(jobTrackerFactory, nameof(jobTrackerFactory));
@@ -59,6 +73,9 @@ namespace CalculateFunding.Services.Calcs
             Guard.ArgumentNotNull(calculationService, nameof(calculationService));
             Guard.ArgumentNotNull(calculationsResiliencePolicies?.CacheProviderPolicy, nameof(calculationsResiliencePolicies.CacheProviderPolicy));
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
+            Guard.ArgumentNotNull(graphApiClient, nameof(graphApiClient));
+            Guard.ArgumentNotNull(specificationsApiClient, nameof(specificationsApiClient));
+            Guard.ArgumentNotNull(calculationsFeatureFlag, nameof(calculationsFeatureFlag));
 
             _createCalculationService = createCalculationService;
             _calculationsRepository = calculationsRepository;
@@ -72,6 +89,11 @@ namespace CalculateFunding.Services.Calcs
             _calculationService = calculationService;
             _cachePolicy = calculationsResiliencePolicies.CacheProviderPolicy;
             _cacheProvider = cacheProvider;
+            _graphApiClient = graphApiClient;
+            _graphApiClientPolicy = calculationsResiliencePolicies.GraphApiClientPolicy;
+            _specificationsApiClient = specificationsApiClient;
+            _specificationsApiClientPolicy = calculationsResiliencePolicies.SpecificationsApiClient;
+            _calculationsFeatureFlag = calculationsFeatureFlag;
         }
 
         public async Task ApplyTemplateCalculation(Message message)
@@ -141,10 +163,19 @@ namespace CalculateFunding.Services.Calcs
 
                 await jobTracker.NotifyProgress(startingItemCount + 1);
 
+                ApiResponse<SpecificationSummary> specificationApiResponse =
+                    await _specificationsApiClientPolicy.ExecuteAsync(() => _specificationsApiClient.GetSpecificationSummaryById(specificationId));
+
+                if (!specificationApiResponse.StatusCode.IsSuccess() || specificationApiResponse.Content == null)
+                {
+                    LogAndThrowException(
+                        $"Did not locate specification : {specificationId}");
+                }
+
                 await EnsureAllRequiredCalculationsExist(mappingsWithoutCalculations,
                     templateMetadataContents,
                     fundingStreamId,
-                    specificationId,
+                    specificationApiResponse.Content,
                     author,
                     correlationId,
                     startingItemCount,
@@ -152,7 +183,7 @@ namespace CalculateFunding.Services.Calcs
                     templateMapping);
 
                 await EnsureAllExistingCalculationsModified(mappingsWithCalculations,
-                    specificationId,
+                    specificationApiResponse.Content,
                     correlationId,
                     author,
                     flattenedFundingLines,
@@ -174,7 +205,7 @@ namespace CalculateFunding.Services.Calcs
         }
 
         private async Task EnsureAllExistingCalculationsModified(TemplateMappingItem[] mappingsWithCalculations,
-            string specificationId,
+            SpecificationSummary specification,
             string correlationId,
             Reference author,
             IEnumerable<FundingLine> flattenedFundingLines,
@@ -189,7 +220,7 @@ namespace CalculateFunding.Services.Calcs
                 .Flatten(_ => _?.Calculations)
                 ?? new Calculation[0];
 
-            IEnumerable<Models.Calcs.Calculation> existingCalculations = await _calculationsRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCalculationsBySpecificationId(specificationId));
+            IEnumerable<Models.Calcs.Calculation> existingCalculations = await _calculationsRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCalculationsBySpecificationId(specification.Id));
 
             for (int calculationCount = 0; calculationCount < mappingsWithCalculations.Length; calculationCount++)
             {
@@ -212,7 +243,7 @@ namespace CalculateFunding.Services.Calcs
                     ValueType = templateCalculation.ValueFormat.AsMatchingEnum<CalculationValueType>(),
                 };
 
-                IActionResult editCalculationResult = await _calculationService.EditCalculation(specificationId, mappingWithCalculations.CalculationId, calculationEditModel, author, correlationId);
+                IActionResult editCalculationResult = await _calculationService.EditCalculation(specification.Id, mappingWithCalculations.CalculationId, calculationEditModel, author, correlationId);
 
                 if (!(editCalculationResult is OkObjectResult))
                 {
@@ -224,7 +255,7 @@ namespace CalculateFunding.Services.Calcs
         private async Task EnsureAllRequiredCalculationsExist(TemplateMappingItem[] mappingsWithoutCalculations,
             TemplateMetadataContents templateMetadataContents,
             string fundingStreamId,
-            string specificationId,
+            SpecificationSummary specification,
             Reference author,
             string correlationId,
             int startingItemCount,
@@ -233,21 +264,25 @@ namespace CalculateFunding.Services.Calcs
         {
             if (!mappingsWithoutCalculations.Any()) return;
 
+            List<Models.Calcs.Calculation> calculations = new List<Models.Calcs.Calculation>();
+
             for (int calculationCount = 0; calculationCount < mappingsWithoutCalculations.Length; calculationCount++)
             {
                 TemplateMappingItem mappingWithCalculation = mappingsWithoutCalculations[calculationCount];
 
-                await CreateDefaultCalculationForTemplateItem(mappingWithCalculation,
+                calculations.Add(await CreateDefaultCalculationForTemplateItem(mappingWithCalculation,
                     templateMetadataContents,
                     fundingStreamId,
-                    specificationId,
+                    specification.Id,
                     author,
-                    correlationId);
+                    correlationId));
 
-                await RefreshTemplateMapping(specificationId, fundingStreamId, templateMapping);
+                await RefreshTemplateMapping(specification.Id, fundingStreamId, templateMapping);
 
                 if ((calculationCount + 1) % 10 == 0) await jobTracker.NotifyProgress(startingItemCount + calculationCount + 1);
             }
+
+            await calculations.PersistToGraph(_graphApiClient, _graphApiClientPolicy, specification, _calculationsFeatureFlag);
         }
 
         private Func<TemplateMappingItem, Task<bool>> IsMissingCalculation(string specificationId, Reference author, string correlationId, IEnumerable<TemplateMappingItem> missingMappings)
@@ -297,7 +332,7 @@ namespace CalculateFunding.Services.Calcs
                 correlationId);
         }
 
-        private async Task CreateDefaultCalculationForTemplateItem(TemplateMappingItem templateMapping,
+        private async Task<Models.Calcs.Calculation> CreateDefaultCalculationForTemplateItem(TemplateMappingItem templateMapping,
             TemplateMetadataContents templateMetadataContents,
             string fundingStreamId,
             string specificationId,
@@ -330,6 +365,8 @@ namespace CalculateFunding.Services.Calcs
                 LogAndThrowException("Unable to create new default template calculation for template mapping");
 
             templateMapping.CalculationId = createCalculationResponse.Calculation.Id;
+
+            return createCalculationResponse.Calculation;
         }
 
         private string UserPropertyFrom(Message message, string key)

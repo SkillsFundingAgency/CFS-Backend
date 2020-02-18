@@ -31,19 +31,19 @@ namespace CalculateFunding.Services.Graph
             await _graphRepository.DeleteNode<Calculation>("calculationid", calculationId);
         }
 
-        public async Task SaveCalculations(IEnumerable<Calculation> calculations)
+        public async Task UpsertCalculations(IEnumerable<Calculation> calculations)
         {
-            await _graphRepository.AddNodes(calculations.ToList(), new string[] { "calculationid" });
+            await _graphRepository.UpsertNodes(calculations.ToList(), new string[] { "calculationid" });
         }
 
-        public async Task CreateCalculationSpecificationRelationship(string calculationId, string specificationId)
+        public async Task UpsertCalculationSpecificationRelationship(string calculationId, string specificationId)
         {
-            await _graphRepository.CreateRelationship<Calculation, Specification>("BelongsToSpecification", ("calculationid", calculationId), ("specificationid", specificationId));
+            await _graphRepository.UpsertRelationship<Calculation, Specification>("BelongsToSpecification", ("calculationid", calculationId), ("specificationid", specificationId));
         }
 
-        public async Task CreateCalculationCalculationRelationship(string calculationIdA, string calculationIdB)
+        public async Task UpsertCalculationCalculationRelationship(string calculationIdA, string calculationIdB)
         {
-            await _graphRepository.CreateRelationship<Calculation, Calculation>("CallsCalculation", ("calculationid", calculationIdA), ("calculationid", calculationIdB));
+            await _graphRepository.UpsertRelationship<Calculation, Calculation>("CallsCalculation", ("calculationid", calculationIdA), ("calculationid", calculationIdB));
 
         }
 

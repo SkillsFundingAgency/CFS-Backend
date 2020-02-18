@@ -26,9 +26,9 @@ namespace CalculateFunding.Services.Graph
             await _graphRepository.DeleteNode<Specification>("specificationid", specificationid);
         }
 
-        public async Task SaveSpecifications(IEnumerable<Specification> specifications)
+        public async Task UpsertSpecifications(IEnumerable<Specification> specifications)
         {
-            await _graphRepository.AddNodes(specifications.ToList(), new string[] { "specificationid" });
+            await _graphRepository.UpsertNodes(specifications.ToList(), new string[] { "specificationid" });
         }
     }
 }

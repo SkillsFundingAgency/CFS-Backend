@@ -11,6 +11,7 @@ using System;
 using CalculateFunding.Services.Core.Extensions;
 using Serilog;
 using Neo4jDriver = Neo4j.Driver;
+using CalculateFunding.Services.Core.Helpers;
 
 namespace CalculateFunding.Services.Graph
 {
@@ -47,11 +48,11 @@ namespace CalculateFunding.Services.Graph
             }
         }
 
-        public async Task<IActionResult> SaveSpecifications(IEnumerable<Specification> specifications)
+        public async Task<IActionResult> UpsertSpecifications(IEnumerable<Specification> specifications)
         {
             try
             {
-                await _specRepository.SaveSpecifications(specifications);
+                await _specRepository.UpsertSpecifications(specifications);
 
                 return new OkResult();
             }
@@ -79,51 +80,73 @@ namespace CalculateFunding.Services.Graph
             }
         }
 
-        public async Task<IActionResult> SaveCalculations(IEnumerable<Calculation> calculations)
+        public async Task<IActionResult> UpsertCalculations(IEnumerable<Calculation> calculations)
         {
             try
             {
-                await _calcRepository.SaveCalculations(calculations);
+                await _calcRepository.UpsertCalculations(calculations);
 
                 return new OkResult();
             }
             catch (Neo4jDriver.Neo4jException ex)
             {
-                string error = $"Save calculations failed for calculations:'{calculations.AsJson()}'";
+                string error = $"Upsert calculations failed for calculations:'{calculations.AsJson()}'";
                 _logger.Error(error);
                 return new InternalServerErrorResult(ex.ToString());
             }
         }
 
-        public async Task<IActionResult> CreateCalculationSpecificationRelationship(string calculationId, string specificationId)
+        public async Task<IActionResult> UpsertCalculationSpecificationRelationship(string calculationId, string specificationId)
         {
             try
             {
-                await _calcRepository.CreateCalculationSpecificationRelationship(calculationId, specificationId);
+                await _calcRepository.UpsertCalculationSpecificationRelationship(calculationId, specificationId);
 
                 return new OkResult();
             }
             catch (Neo4jDriver.Neo4jException ex)
             {
-                string error = $"Create calculation relationship between specification failed for calculation:'{calculationId}'" +
+                string error = $"Upsert calculation relationship between specification failed for calculation:'{calculationId}'" +
                     $" and specification:'{specificationId}'";
                 _logger.Error(error);
                 return new InternalServerErrorResult(ex.ToString());
             }
         }
 
-        public async Task<IActionResult> CreateCalculationCalculationRelationship(string calculationIdA, string calculationIdB)
+        public async Task<IActionResult> UpsertCalculationCalculationRelationship(string calculationIdA, string calculationIdB)
         {
             try
             {
-                await _calcRepository.CreateCalculationCalculationRelationship(calculationIdA, calculationIdB);
+                await _calcRepository.UpsertCalculationCalculationRelationship(calculationIdA, calculationIdB);
 
                 return new OkResult();
             }
             catch (Neo4jDriver.Neo4jException ex)
             {
-                string error = $"Create calculation relationship call to calculation failed for calculation:'{calculationIdA}'" +
+                string error = $"Upsert calculation relationship call to calculation failed for calculation:'{calculationIdA}'" +
                     $" calling calculation:'{calculationIdB}'";
+                _logger.Error(error);
+                return new InternalServerErrorResult(ex.ToString());
+            }
+        }
+
+        public async Task<IActionResult> UpsertCalculationCalculationsRelationships(string calculationId, string[] calculationIds)
+        {
+            try
+            {
+                IEnumerable<Task> tasks = calculationIds.Select(async(_) =>
+                {
+                    await _calcRepository.UpsertCalculationCalculationRelationship(calculationId, _);
+                });
+
+                await TaskHelper.WhenAllAndThrow(tasks.ToArray());
+
+                return new OkResult();
+            }
+            catch (Neo4jDriver.Neo4jException ex)
+            {
+                string error = $"Upsert calculation relationship call to calculation failed for calculation:'{calculationId}'" +
+                    $" calling calculations:'{calculationIds.AsJson()}'";
                 _logger.Error(error);
                 return new InternalServerErrorResult(ex.ToString());
             }

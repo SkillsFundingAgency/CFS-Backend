@@ -48,6 +48,8 @@ namespace CalculateFunding.Api.Calcs.UnitTests
                 { "AzureStorageSettings:ConnectionString", "StorageConnection" },
                 { "providersClient:ApiEndpoint", "https://localhost:7002/api" },
                 { "providersClient:ApiKey", "Local" },
+                { "graphClient:ApiEndpoint", "https://localhost:7015/api" },
+                { "graphClient:ApiKey", "Local" }
             };
         }
     }

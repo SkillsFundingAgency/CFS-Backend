@@ -90,7 +90,7 @@ namespace CalculateFunding.Services.Calcs.Analysis
             ApiSpecification graphSpecification = _mapper.Map<ApiSpecification>(specification);
 
             HttpStatusCode response = await _resilience.ExecuteAsync(() =>
-                _graphApiClient.SaveSpecifications(new List<ApiSpecification>(new[] {graphSpecification})));
+                _graphApiClient.UpsertSpecifications(new[] {graphSpecification}));
 
             EnsureApiCallSucceeded(response, "Unable to create specification node");
         }
@@ -99,10 +99,9 @@ namespace CalculateFunding.Services.Calcs.Analysis
         {
             Guard.IsNotEmpty(calculations, nameof(calculations));
 
-            List<ApiCalculation> graphCalculations = _mapper.Map<IEnumerable<ApiCalculation>>(calculations)
-                .ToList();
+            IEnumerable<ApiCalculation> graphCalculations = _mapper.Map<IEnumerable<ApiCalculation>>(calculations);
 
-            HttpStatusCode response = await _resilience.ExecuteAsync(() => _graphApiClient.SaveCalculations(graphCalculations));
+            HttpStatusCode response = await _resilience.ExecuteAsync(() => _graphApiClient.UpsertCalculations(graphCalculations.ToArray()));
 
             EnsureApiCallSucceeded(response, "Unable to create calculation nodes");
         }
@@ -115,7 +114,7 @@ namespace CalculateFunding.Services.Calcs.Analysis
             foreach (string calculationId in calculationIds)
             {
                 HttpStatusCode response = await _resilience.ExecuteAsync(() => 
-                    _graphApiClient.CreateCalculationSpecificationRelationship(calculationId, specificationId));
+                    _graphApiClient.UpsertCalculationSpecificationRelationship(calculationId, specificationId));
                 
                 EnsureApiCallSucceeded(response, $"Unable to create specification calculation relationship {specificationId}->{calculationId}");
             }
@@ -131,7 +130,7 @@ namespace CalculateFunding.Services.Calcs.Analysis
             foreach (IGrouping<string, CalculationRelationship> relationships in relationshipsPerCalculation)
             {
                 HttpStatusCode response = await _resilience.ExecuteAsync(() =>
-                    _graphApiClient.CreateCalculationCalculationsRelationships(relationships.Key,
+                    _graphApiClient.UpsertCalculationCalculationsRelationships(relationships.Key,
                         relationships.Select(_ => _.CalculationTwoId).ToArray()));
 
                 EnsureApiCallSucceeded(response, "Unable to create calculation relationships");

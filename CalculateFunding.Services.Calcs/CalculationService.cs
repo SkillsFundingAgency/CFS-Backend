@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Graph;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.ApiClient.Specifications;
@@ -36,6 +37,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
 using Newtonsoft.Json;
 using Serilog;
+using CalculateFunding.Services.Calcs;
 using Calculation = CalculateFunding.Models.Calcs.Calculation;
 using CalculationResponseModel = CalculateFunding.Models.Calcs.CalculationResponseModel;
 using Job = CalculateFunding.Common.ApiClient.Jobs.Models.Job;
@@ -74,6 +76,9 @@ namespace CalculateFunding.Services.Calcs
         private readonly ICalculationNameInUseCheck _calculationNameInUseCheck;
         private readonly IInstructionAllocationJobCreation _instructionAllocationJobCreation;
         private readonly ICreateCalculationService _createCalculationService;
+        private readonly IGraphApiClient _graphApiClient;
+        private readonly Polly.Policy _graphApiClientPolicy;
+        private readonly ICalculationsFeatureFlag _calculationsFeatureFlag;
 
         public CalculationService(
             ICalculationsRepository calculationsRepository,
@@ -93,7 +98,9 @@ namespace CalculateFunding.Services.Calcs
             ISpecificationsApiClient specificationsApiClient,
             ICalculationNameInUseCheck calculationNameInUseCheck,
             IInstructionAllocationJobCreation instructionAllocationJobCreation,
-            ICreateCalculationService createCalculationService)
+            ICreateCalculationService createCalculationService,
+            IGraphApiClient graphApiClient,
+            ICalculationsFeatureFlag calculationsFeatureFlag)
         {
             Guard.ArgumentNotNull(calculationsRepository, nameof(calculationsRepository));
             Guard.ArgumentNotNull(logger, nameof(logger));
@@ -120,6 +127,8 @@ namespace CalculateFunding.Services.Calcs
             Guard.ArgumentNotNull(resiliencePolicies?.BuildProjectRepositoryPolicy, nameof(resiliencePolicies.BuildProjectRepositoryPolicy));
             Guard.ArgumentNotNull(resiliencePolicies?.PoliciesApiClient, nameof(resiliencePolicies.PoliciesApiClient));
             Guard.ArgumentNotNull(resiliencePolicies?.SpecificationsApiClient, nameof(resiliencePolicies.SpecificationsApiClient));
+            Guard.ArgumentNotNull(graphApiClient, nameof(graphApiClient));
+            Guard.ArgumentNotNull(calculationsFeatureFlag, nameof(calculationsFeatureFlag));
 
             _calculationsRepository = calculationsRepository;
             _logger = logger;
@@ -146,6 +155,9 @@ namespace CalculateFunding.Services.Calcs
             _createCalculationService = createCalculationService;
             _specificationsApiClientPolicy = resiliencePolicies.SpecificationsApiClient;
             _calculationEditModelValidator = calculationEditModelValidator;
+            _graphApiClient = graphApiClient;
+            _graphApiClientPolicy = resiliencePolicies.GraphApiClientPolicy;
+            _calculationsFeatureFlag = calculationsFeatureFlag;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -365,6 +377,13 @@ namespace CalculateFunding.Services.Calcs
 
         public async Task<IActionResult> CreateAdditionalCalculation(string specificationId, CalculationCreateModel model, Reference author, string correlationId)
         {
+            ApiResponse<SpecModel.SpecificationSummary> specificationApiResponse = await _specificationsApiClientPolicy.ExecuteAsync(() => _specificationsApiClient.GetSpecificationSummaryById(specificationId));
+
+            if (!specificationApiResponse.StatusCode.IsSuccess() || specificationApiResponse.Content == null)
+            {
+                return new PreconditionFailedResult("Specification not found");
+            }
+
             CreateCalculationResponse createCalculationResponse = await _createCalculationService.CreateCalculation(specificationId,
                 model,
                 CalculationNamespace.Additional,
@@ -374,6 +393,10 @@ namespace CalculateFunding.Services.Calcs
 
             if (createCalculationResponse.Succeeded)
             {
+                IEnumerable<Calculation> calculations = await _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCalculationsBySpecificationId(specificationId));
+
+                await calculations.PersistToGraph(_graphApiClient, _graphApiClientPolicy, specificationApiResponse.Content, _calculationsFeatureFlag, createCalculationResponse.Calculation.Current.CalculationId);
+
                 return new OkObjectResult(createCalculationResponse.Calculation.ToResponseModel());
             }
 
@@ -612,7 +635,7 @@ namespace CalculateFunding.Services.Calcs
                 return new StatusCodeResult((int)statusCode);
             }
 
-            await UpdateBuildProject(calculation.SpecificationId);
+            await UpdateBuildProject(specificationSummary);
 
             string fundingStreamName = specificationSummary.FundingStreams.FirstOrDefault(_ => _.Id == calculation.FundingStreamId)?.Name;
 
@@ -1119,12 +1142,12 @@ namespace CalculateFunding.Services.Calcs
 
             BuildProject buildProject = null;
 
+            SpecModel.SpecificationSummary specificationSummary = (await _specificationsApiClientPolicy.ExecuteAsync(() => _specificationsApiClient.GetSpecificationSummaryById(calculation.SpecificationId))).Content;
+
             if (updateBuildProject)
             {
-                buildProject = await UpdateBuildProject(calculation.SpecificationId);
+                buildProject = await UpdateBuildProject(specificationSummary, calculation.Current.CalculationId);
             }
-
-            SpecModel.SpecificationSummary specificationSummary = (await _specificationsApiClientPolicy.ExecuteAsync(() => _specificationsApiClient.GetSpecificationSummaryById(calculation.SpecificationId))).Content;
 
             string fundingStreamName = specificationSummary.FundingStreams.FirstOrDefault(_ => _.Id == calculation.FundingStreamId)?.Name;
 
@@ -1141,27 +1164,27 @@ namespace CalculateFunding.Services.Calcs
             };
         }
 
-        private async Task<BuildProject> UpdateBuildProject(string specificationId)
+        private async Task<BuildProject> UpdateBuildProject(SpecModel.SpecificationSummary specificationSummary, string calculationId = null)
         {
-            Task<IEnumerable<Calculation>> calculationsRequest = _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCalculationsBySpecificationId(specificationId));
-            Task<BuildProject> buildProjectRequest = _buildProjectsService.GetBuildProjectForSpecificationId(specificationId);
+            Task<IEnumerable<Calculation>> calculationsRequest = _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCalculationsBySpecificationId(specificationSummary.Id));
+            Task<BuildProject> buildProjectRequest = _buildProjectsService.GetBuildProjectForSpecificationId(specificationSummary.Id);
 
             await TaskHelper.WhenAllAndThrow(calculationsRequest, buildProjectRequest);
 
             List<Calculation> calculations = new List<Calculation>(calculationsRequest.Result);
             BuildProject buildProject = buildProjectRequest.Result;
 
-            return await UpdateBuildProject(specificationId, calculations, buildProject);
+            return await UpdateBuildProject(specificationSummary, calculations, calculationId, buildProject);
         }
 
-        private async Task<BuildProject> UpdateBuildProject(string specificationId, IEnumerable<Calculation> calculations, BuildProject buildProject = null)
+        private async Task<BuildProject> UpdateBuildProject(SpecModel.SpecificationSummary specificationSummary, IEnumerable<Calculation> calculations, string calculationId, BuildProject buildProject = null)
         {
             if (buildProject == null)
             {
-                buildProject = await _buildProjectsService.GetBuildProjectForSpecificationId(specificationId);
+                buildProject = await _buildProjectsService.GetBuildProjectForSpecificationId(specificationSummary.Id);
             }
 
-            CompilerOptions compilerOptions = await _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCompilerOptions(specificationId));
+            CompilerOptions compilerOptions = await _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCompilerOptions(specificationSummary.Id));
 
             if (compilerOptions == null)
             {
@@ -1173,13 +1196,19 @@ namespace CalculateFunding.Services.Calcs
 
             buildProject.Build = _sourceCodeService.Compile(buildProject, calculations, compilerOptions);
 
-            await _sourceCodeService.SaveSourceFiles(buildProject.Build.SourceFiles, specificationId, SourceCodeType.Release);
+            await _sourceCodeService.SaveSourceFiles(buildProject.Build.SourceFiles, specificationSummary.Id, SourceCodeType.Release);
 
             await _sourceCodeService.SaveAssembly(buildProject);
 
             if (!_featureToggle.IsDynamicBuildProjectEnabled())
             {
                 await _buildProjectRepositoryPolicy.ExecuteAsync(() => _buildProjectsRepository.UpdateBuildProject(buildProject));
+            }
+
+            if (calculationId != null)
+            {
+                // there are only changes to the calc which effect the graph if a calculationId is sent into this method
+                await calculations.PersistToGraph(_graphApiClient, _graphApiClientPolicy, specificationSummary, _calculationsFeatureFlag, calculationId, true);
             }
 
             return buildProject;

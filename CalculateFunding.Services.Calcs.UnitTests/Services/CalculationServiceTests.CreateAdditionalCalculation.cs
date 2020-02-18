@@ -4,6 +4,9 @@ using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.ApiClient.Specifications;
+using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Calcs;
@@ -42,7 +45,15 @@ namespace CalculateFunding.Services.Calcs.Services
 
             IValidator<CalculationCreateModel> validator = CreateCalculationCreateModelValidator(validationResult);
 
-            CalculationService calculationService = CreateCalculationService(calculationCreateModelValidator: validator);
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+            specificationsApiClient
+                .GetSpecificationSummaryById(Arg.Is(SpecificationId))
+                .Returns(new ApiResponse<SpecificationSummary>(
+                    HttpStatusCode.OK,
+                    new SpecificationSummary { Id = SpecificationId }
+                ));
+
+            CalculationService calculationService = CreateCalculationService(calculationCreateModelValidator: validator, specificationsApiClient: specificationsApiClient);
 
             //Act
             IActionResult result = await calculationService.CreateAdditionalCalculation(SpecificationId, model, author, correlationId);
@@ -68,9 +79,17 @@ namespace CalculateFunding.Services.Calcs.Services
                 .CreateDraftCalculation(Arg.Any<Calculation>())
                 .Returns(HttpStatusCode.BadRequest);
 
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+            specificationsApiClient
+                .GetSpecificationSummaryById(Arg.Is(SpecificationId))
+                .Returns(new ApiResponse<SpecificationSummary>(
+                    HttpStatusCode.OK,
+                    new SpecificationSummary { Id = SpecificationId }
+                ));
+
             ILogger logger = CreateLogger();
 
-            CalculationService calculationService = CreateCalculationService(logger: logger, calculationsRepository: calculationsRepository);
+            CalculationService calculationService = CreateCalculationService(logger: logger, calculationsRepository: calculationsRepository, specificationsApiClient: specificationsApiClient);
 
             string errorMessage = $"There was problem creating a new calculation with name {CalculationName} in Cosmos Db with status code 400";
 
@@ -115,6 +134,14 @@ namespace CalculateFunding.Services.Calcs.Services
                 .CreateJob(Arg.Any<JobCreateModel>())
                 .Returns(new Job { Id = "job-id-1" });
 
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+            specificationsApiClient
+                .GetSpecificationSummaryById(Arg.Is(SpecificationId))
+                .Returns(new ApiResponse<SpecificationSummary>(
+                    HttpStatusCode.OK,
+                    new SpecificationSummary {Id = SpecificationId }
+                ));
+
             ILogger logger = CreateLogger();
 
             ICacheProvider cacheProvider = CreateCacheProvider();
@@ -125,7 +152,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 searchRepository: searchRepository,
                 jobsApiClient: jobsApiClient,
                 logger: logger,
-                cacheProvider: cacheProvider);
+                cacheProvider: cacheProvider,
+                specificationsApiClient: specificationsApiClient);
 
             IEnumerable<CalculationIndex> indexedCalculations = null;
 
@@ -171,7 +199,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 versionRepository
                     .Received(1)
                     .SaveVersion(Arg.Is<CalculationVersion>(m =>
-                        m.PublishStatus == PublishStatus.Draft &&
+                        m.PublishStatus == Models.Versioning.PublishStatus.Draft &&
                         m.Author.Id == UserId &&
                         m.Author.Name == Username &&
                         m.Date.Date == DateTimeOffset.Now.Date &&
@@ -254,6 +282,14 @@ namespace CalculateFunding.Services.Calcs.Services
                 .CreateJob(Arg.Any<JobCreateModel>())
                 .Returns((Job)null);
 
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+            specificationsApiClient
+                .GetSpecificationSummaryById(Arg.Is(SpecificationId))
+                .Returns(new ApiResponse<SpecificationSummary>(
+                    HttpStatusCode.OK,
+                    new SpecificationSummary { Id = SpecificationId }
+                ));
+
             ILogger logger = CreateLogger();
 
             CalculationService calculationService = CreateCalculationService(
@@ -261,7 +297,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 calculationVersionRepository: versionRepository,
                 searchRepository: searchRepository,
                 jobsApiClient: jobsApiClient,
-                logger: logger);
+                logger: logger,
+                specificationsApiClient: specificationsApiClient);
 
             //Act
             IActionResult result = await calculationService.CreateAdditionalCalculation(SpecificationId, model, author, CorrelationId);

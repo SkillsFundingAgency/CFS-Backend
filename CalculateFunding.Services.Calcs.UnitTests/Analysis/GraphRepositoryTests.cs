@@ -121,7 +121,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
 
         private void AndTheSpecificationIsCreated(ApiSpecification specification)
         {
-            _graphApiClient.Setup(_ => _.SaveSpecifications(It.Is<IList<ApiSpecification>>(specs =>
+            _graphApiClient.Setup(_ => _.UpsertSpecifications(It.Is<ApiSpecification[]>(specs =>
                     specs.SequenceEqual(new [] { specification }))))
                 .ReturnsAsync(HttpStatusCode.OK)
                 .Verifiable();
@@ -129,7 +129,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
 
         private void AndTheCalculationsAreCreated(params ApiCalculation[] calculations)
         {
-            _graphApiClient.Setup(_ => _.SaveCalculations(It.Is<IList<ApiCalculation>>(calcs =>
+            _graphApiClient.Setup(_ => _.UpsertCalculations(It.Is<ApiCalculation[]>(calcs =>
                     calculations.SequenceEqual(calcs))))
                 .ReturnsAsync(HttpStatusCode.OK)
                 .Verifiable();
@@ -142,7 +142,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
 
             foreach (IGrouping<string, CalculationRelationship> relationships in relationshipsPerCalculation)
             {
-                _graphApiClient.Setup(_ => _.CreateCalculationCalculationsRelationships(relationships.Key, It.Is<string[]>(calcs =>
+                _graphApiClient.Setup(_ => _.UpsertCalculationCalculationsRelationships(relationships.Key, It.Is<string[]>(calcs =>
                         calcs.SequenceEqual(relationships.Select(rel => rel.CalculationTwoId).ToArray()))))
                     .ReturnsAsync(HttpStatusCode.OK)
                     .Verifiable();
@@ -153,7 +153,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
         {
             foreach (string calculationId in calculationIds)
             {
-                _graphApiClient.Setup(_ => _.CreateCalculationSpecificationRelationship(calculationId, specificationId))
+                _graphApiClient.Setup(_ => _.UpsertCalculationSpecificationRelationship(calculationId, specificationId))
                     .ReturnsAsync(HttpStatusCode.OK)
                     .Verifiable();
             }

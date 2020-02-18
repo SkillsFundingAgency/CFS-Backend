@@ -10,6 +10,6 @@ namespace CalculateFunding.Services.Graph.Interfaces
     {
         Task DeleteSpecification(string specificationId);
 
-        Task SaveSpecifications(IEnumerable<Specification> specifications);
+        Task UpsertSpecifications(IEnumerable<Specification> specifications);
     }
 }

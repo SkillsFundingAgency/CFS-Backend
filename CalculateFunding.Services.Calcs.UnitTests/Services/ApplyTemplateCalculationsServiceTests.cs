@@ -3,9 +3,12 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Net;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Graph;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies;
+using CalculateFunding.Common.ApiClient.Specifications;
+using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.TemplateMetadata.Enums;
@@ -38,8 +41,11 @@ namespace CalculateFunding.Services.Calcs.Services
         private IApplyTemplateCalculationsJobTracker _jobTracker;
         private IInstructionAllocationJobCreation _instructionAllocationJobCreation;
         private IPoliciesApiClient _policies;
+        private ISpecificationsApiClient _specificationApiClient;
+        private IGraphApiClient _graphApiClient;
         private ICalculationService _calculationService;
         private ICacheProvider _cacheProvider;
+        private ICalculationsFeatureFlag _calculationsFeatureFlag;
 
         private string _specificationId;
         private string _fundingStreamId;
@@ -62,6 +68,8 @@ namespace CalculateFunding.Services.Calcs.Services
         public void SetUp()
         {
             _policies = Substitute.For<IPoliciesApiClient>();
+            _specificationApiClient = Substitute.For<ISpecificationsApiClient>();
+            _graphApiClient = Substitute.For<IGraphApiClient>();
             _createCalculationService = Substitute.For<ICreateCalculationService>();
             _calculationQuery = Substitute.For<ITemplateContentsCalculationQuery>();
             _calculationsRepository = Substitute.For<ICalculationsRepository>();
@@ -70,6 +78,7 @@ namespace CalculateFunding.Services.Calcs.Services
             _instructionAllocationJobCreation = Substitute.For<IInstructionAllocationJobCreation>();
             _calculationService = Substitute.For<ICalculationService>();
             _cacheProvider = Substitute.For<ICacheProvider>();
+            _calculationsFeatureFlag = Substitute.For<ICalculationsFeatureFlag>();
 
             _jobTrackerFactory.CreateJobTracker(Arg.Any<Message>())
                 .Returns(_jobTracker);
@@ -99,7 +108,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 {
                     PoliciesApiClient = Policy.NoOpAsync(),
                     CalculationsRepository = Policy.NoOpAsync(),
-                    CacheProviderPolicy = Policy.NoOpAsync()
+                    CacheProviderPolicy = Policy.NoOpAsync(),
+                    SpecificationsApiClient = Policy.NoOpAsync()
                 },
                 _calculationsRepository,
                 _calculationQuery,
@@ -107,7 +117,10 @@ namespace CalculateFunding.Services.Calcs.Services
                 _instructionAllocationJobCreation,
                 Substitute.For<ILogger>(),
                 _calculationService,
-                _cacheProvider);
+                _cacheProvider,
+                _graphApiClient,
+                _specificationApiClient,
+                _calculationsFeatureFlag);
         }
 
         [TestMethod]
@@ -171,6 +184,7 @@ namespace CalculateFunding.Services.Calcs.Services
             AndTheTemplateMapping(templateMapping);
             AndTheTemplateMetaDataContents(templateMetadataContents);
             AndTheTemplateContentsCalculation(mappingWithMissingCalculation1, templateMetadataContents, templateCalculationOne);
+            AndTheSpecificationIsReturned();
 
             ThenAnExceptionShouldBeThrownWithMessage("Unable to create new default template calculation for template mapping");
         }
@@ -233,6 +247,7 @@ namespace CalculateFunding.Services.Calcs.Services
             AndTheTemplateContentsCalculation(mappingWithMissingCalculation1, templateMetadataContents, templateCalculationOne);
             AndTheTemplateContentsCalculation(mappingWithMissingCalculation2, templateMetadataContents, templateCalculationTwo);
             AndTheTemplateContentsCalculation(mappingWithMissingCalculation3, templateMetadataContents, templateCalculationThree);
+            AndTheSpecificationIsReturned();
 
             await WhenTheTemplateCalculationsAreApplied();
 
@@ -357,6 +372,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             AndMissingCalculation(calculationId3, missingCalculation);
             AndTheCalculations(calculations);
+            AndTheSpecificationIsReturned();
 
             await WhenTheTemplateCalculationsAreApplied();
 
@@ -444,6 +460,7 @@ namespace CalculateFunding.Services.Calcs.Services
             AndTheTemplateContentsCalculation(mappingWithMissingCalculation2, templateMetadataContents, templateCalculationTwo);
 
             AndTheCalculations(calculations);
+            AndTheSpecificationIsReturned();
 
             await WhenTheTemplateCalculationsAreApplied();
 
@@ -489,6 +506,18 @@ namespace CalculateFunding.Services.Calcs.Services
                     Succeeded = true,
                     Calculation = calculation
                 });
+        }
+
+        private void AndTheSpecificationIsReturned()
+        {
+            _specificationApiClient.GetSpecificationSummaryById(Arg.Is(_specificationId))
+                .Returns(new ApiResponse<SpecificationSummary>
+                (
+                    HttpStatusCode.OK,
+                    new SpecificationSummary { 
+                        Id = _specificationId
+                    }
+                ));
         }
 
         private void AndTheCalculationIsEditedForRequestMatching(Expression<Predicate<CalculationEditModel>> editModelMatching, string calculationId)

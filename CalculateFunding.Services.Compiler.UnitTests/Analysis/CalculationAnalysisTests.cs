@@ -78,11 +78,11 @@ namespace CalculateFunding.Services.Compiler.UnitTests.Analysis
                         .WithId(calcOneId)),
                     NewCalculation(_ => _.WithCurrentVersion(NewCalculationVersion(cv
                             => cv.WithSourceCodeName(calcTwoName)
-                                .WithSourceCode($"return {calcOneName}() + 20")))
+                                .WithSourceCode($"return Calculations.{calcOneName}() + 20")))
                         .WithId(calcTwoId)),
                     NewCalculation(_ => _.WithCurrentVersion(NewCalculationVersion(cv
                             => cv.WithSourceCodeName(calcThreeName)
-                                .WithSourceCode($"return {calcOneName}() * {calcFourName}() + 20")))
+                                .WithSourceCode($"return Calculations.{calcOneName}() * Calculations.{calcFourName}() + 20")))
                         .WithId(calcThreeId)),
                     NewCalculation(_ => _.WithCurrentVersion(NewCalculationVersion(cv
                             => cv.WithSourceCodeName(calcFourName)
@@ -104,7 +104,7 @@ namespace CalculateFunding.Services.Compiler.UnitTests.Analysis
                         .WithId(calcOneId)),
                     NewCalculation(_ => _.WithCurrentVersion(NewCalculationVersion(cv
                             => cv.WithSourceCodeName(calcTwoName)
-                                .WithSourceCode($"return {calcOneName}() + 20")))
+                                .WithSourceCode($"return Calculations.{calcOneName}() + 20")))
                         .WithId(calcTwoId)),
                     NewCalculation(_ => _.WithCurrentVersion(NewCalculationVersion(cv
                             => cv.WithSourceCodeName(calcThreeName)

@@ -1,4 +1,5 @@
-﻿using CalculateFunding.Common.Config.ApiClient.Jobs;
+﻿using CalculateFunding.Common.Config.ApiClient.Graph;
+using CalculateFunding.Common.Config.ApiClient.Jobs;
 using CalculateFunding.Common.Config.ApiClient.Policies;
 using CalculateFunding.Common.Config.ApiClient.Providers;
 using CalculateFunding.Common.Config.ApiClient.Specifications;
@@ -38,6 +39,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.FeatureManagement;
 using Microsoft.OpenApi.Models;
 using Polly;
 using Polly.Bulkhead;
@@ -59,6 +61,8 @@ namespace CalculateFunding.Api.Calcs
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
 
             RegisterComponents(services);
+
+            services.AddFeatureManagement();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -96,6 +100,8 @@ namespace CalculateFunding.Api.Calcs
 
         public void RegisterComponents(IServiceCollection builder)
         {
+            builder.AddSingleton(Configuration);
+
             builder
                 .AddScoped<IHealthChecker, ControllerResolverHealthCheck>();
 
@@ -205,11 +211,13 @@ namespace CalculateFunding.Api.Calcs
             builder.AddServiceBus(Configuration);
 
             builder.AddScoped<IJobManagement, JobManagement>();
+            builder.AddScoped<ICalculationsFeatureFlag, CalculationsFeatureFlag>();
 
             builder.AddProvidersInterServiceClient(Configuration);
             builder.AddSpecificationsInterServiceClient(Configuration);
             builder.AddDatasetsInterServiceClient(Configuration);
             builder.AddJobsInterServiceClient(Configuration);
+            builder.AddGraphInterServiceClient(Configuration);
             builder.AddPoliciesInterServiceClient(Configuration);
 
             builder.AddCaching(Configuration);
@@ -219,7 +227,6 @@ namespace CalculateFunding.Api.Calcs
             builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Api.Calcs");
             builder.AddLogging("CalculateFunding.Api.Calcs");
             builder.AddTelemetry();
-
             builder.AddEngineSettings(Configuration);
 
             builder.AddFeatureToggling(Configuration);
@@ -275,6 +282,7 @@ namespace CalculateFunding.Api.Calcs
                 DatasetsRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                 PoliciesApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                 SpecificationsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                GraphApiClientPolicy = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
             };
         }
 

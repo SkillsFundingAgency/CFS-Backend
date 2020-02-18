@@ -7,11 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CalculateFunding.Common.ApiClient.Graph" Version="1.0.2" />
+    <PackageReference Include="CalculateFunding.Common.ApiClient.Graph" Version="1.0.3" />
     <PackageReference Include="CalculateFunding.Common.ApiClient.Policies" Version="2.0.16" />
     <PackageReference Include="CalculateFunding.Common.ApiClient.Providers" Version="1.0.25" />
     <PackageReference Include="CalculateFunding.Common.ApiClient.Specifications" Version="1.0.27" />
-
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Calcs" Version="1.0.0" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Jobs" Version="1.0.0" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Policies" Version="1.0.0" />
@@ -23,18 +22,21 @@
     <PackageReference Include="Microsoft.Azure.Storage.Blob" Version="11.0.1" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="System.Threading.Tasks" Version="4.3.0" />
+    <PackageReference Include="Microsoft.FeatureManagement" Version="2.0.0-preview-010610001-1263" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\CalculateFunding.Models.Calcs\CalculateFunding.Models.Calcs.csproj" />
     <ProjectReference Include="..\CalculateFunding.Models.Datasets\CalculateFunding.Models.Datasets.csproj" />
     <ProjectReference Include="..\CalculateFunding.Models.Messages\CalculateFunding.Models.Messages.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Models.Specs\CalculateFunding.Models.Specs.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.CodeGeneration.VisualBasic\CalculateFunding.Services.CodeGeneration.VisualBasic.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.CodeGeneration\CalculateFunding.Services.CodeGeneration.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.CodeMetadataGenerator\CalculateFunding.Services.CodeMetadataGenerator.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Compiler\CalculateFunding.Services.Compiler.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Core\CalculateFunding.Services.Core.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.DeadletterProcessor\CalculateFunding.Services.DeadletterProcessor.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Services.Graph\CalculateFunding.Services.Graph.csproj" />
   </ItemGroup>
 
   <ItemGroup>
