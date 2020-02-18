@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Models.Calcs;
@@ -20,18 +22,26 @@ namespace CalculateFunding.Api.Calcs.Controllers
         private readonly IPreviewService _previewService;
         private readonly ICalculationsSearchService _calcsSearchService;
         private readonly IBuildProjectsService _buildProjectsService;
+        private readonly IQueueReIndexSpecificationCalculationRelationships _calculationRelationships;
 
         public CalculationsController(
             ICalculationService calcsService,
             ICalculationsSearchService calcsSearchService,
             IPreviewService previewService,
-            IBuildProjectsService buildProjectsService)
+            IBuildProjectsService buildProjectsService, 
+            IQueueReIndexSpecificationCalculationRelationships calculationRelationships)
         {
+            Guard.ArgumentNotNull(calcsService, nameof(calcsService));
+            Guard.ArgumentNotNull(calcsSearchService, nameof(calcsSearchService));
+            Guard.ArgumentNotNull(previewService, nameof(previewService));
+            Guard.ArgumentNotNull(buildProjectsService, nameof(buildProjectsService));
+            Guard.ArgumentNotNull(calculationRelationships, nameof(calculationRelationships));
 
             _calcsService = calcsService;
             _previewService = previewService;
             _calcsSearchService = calcsSearchService;
             _buildProjectsService = buildProjectsService;
+            _calculationRelationships = calculationRelationships;
         }
 
         [Route("api/calcs/calculations-search")]
@@ -264,6 +274,13 @@ namespace CalculateFunding.Api.Calcs.Controllers
         public async Task<IActionResult> CheckHasAllApprovedTemplateCalculationsForSpecificationId([FromRoute]string specificationId)
         {
             return await _calcsService.CheckHasAllApprovedTemplateCalculationsForSpecificationId(specificationId);
+        }
+
+        [HttpPost("api/calcs/specifications/{specificationId}/relationships/reindex")]
+        [ProducesResponseType((int) HttpStatusCode.OK)]
+        public async Task<IActionResult> QueueReIndexSpecificationCalculationsRelationships([FromRoute] string specificationId)
+        {
+            return await _calculationRelationships.QueueForSpecification(specificationId);
         }
     }
 }

@@ -15,6 +15,7 @@ using CalculateFunding.Models.Calcs;
 
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Calcs;
+using CalculateFunding.Services.Calcs.Analysis;
 using CalculateFunding.Services.Calcs.CodeGen;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Calcs.Interfaces.CodeGen;
@@ -114,6 +115,9 @@ namespace CalculateFunding.Api.Calcs
                .AddSingleton<IInstructionAllocationJobCreation, InstructionAllocationJobCreation>()
                .AddScoped<IHealthChecker, CalculationService>()
                .AddScoped<ICreateCalculationService, CreateCalculationService>();
+
+            builder
+                .AddScoped<IQueueReIndexSpecificationCalculationRelationships, QueueReIndexSpecificationCalculationRelationships>();
 
             builder
                 .AddSingleton<ICalculationCodeReferenceUpdate, CalculationCodeReferenceUpdate>()

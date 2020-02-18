@@ -15,10 +15,7 @@ namespace CalculateFunding.Tests.Common
         /// <summary>
         /// Gets the service provider for DI
         /// </summary>
-        protected ServiceProvider ServiceProvider
-        {
-            get { return Services.BuildServiceProvider(); }
-        }
+        protected ServiceProvider ServiceProvider => Services.BuildServiceProvider();
 
         /// <summary>
         /// If implemented in a base class provides additional configuration for the service
@@ -37,20 +34,20 @@ namespace CalculateFunding.Tests.Common
         {
             var configData = new Dictionary<string, string>
             {
-                { "AzureWebJobsStorage", "UseDevelopmentStorage=true" },
-                { "AzureWebJobsDashboard", "UseDevelopmentStorage=true"},
-                { "AzureStorageSettings:ConnectionString", "DefaultEndpointsProtocol=https;AccountName=test;AccountKey=test==" },
-                { "ApplicationInsightsOptions:InstrumentationKey", "test" },
-                { "Logging:LogLevel:Default", "Debug" },
-                { "Logging:LogLevel:System", "Information" },
-                { "Logging:LogLevel:Microsoft", "Information" },
-                { "apiKeyMiddleware:apiKey", "Local" },
-                { "specificationsClient:ApiEndpoint", "https://localhost:7001/api/" },
-                { "specificationsClient:ApiKey", "Local" },
-                { "resultsClient:ApiEndPoint", "https://localhost:7005/api/" },
-                { "resultsClient:ApiKey", "Local" },
-                { "policiesClient:ApiEndPoint", "https://localhost:7013/api/" },
-                { "policiesClient:ApiKey", "Local" },
+                {"AzureWebJobsStorage", "UseDevelopmentStorage=true"},
+                {"AzureWebJobsDashboard", "UseDevelopmentStorage=true"},
+                {"AzureStorageSettings:ConnectionString", "DefaultEndpointsProtocol=https;AccountName=test;AccountKey=test=="},
+                {"ApplicationInsightsOptions:InstrumentationKey", "test"},
+                {"Logging:LogLevel:Default", "Debug"},
+                {"Logging:LogLevel:System", "Information"},
+                {"Logging:LogLevel:Microsoft", "Information"},
+                {"apiKeyMiddleware:apiKey", "Local"},
+                {"specificationsClient:ApiEndpoint", "https://localhost:7001/api/"},
+                {"specificationsClient:ApiKey", "Local"},
+                {"resultsClient:ApiEndPoint", "https://localhost:7005/api/"},
+                {"resultsClient:ApiKey", "Local"},
+                {"policiesClient:ApiEndPoint", "https://localhost:7013/api/"},
+                {"policiesClient:ApiKey", "Local"},
             };
 
             var cb = new ConfigurationBuilder()

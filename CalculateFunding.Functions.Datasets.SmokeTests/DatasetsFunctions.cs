@@ -40,8 +40,8 @@ namespace CalculateFunding.Functions.Datasets.SmokeTests
         {
             OnDataDefinitionChanges onDataDefinitionChanges = new OnDataDefinitionChanges(_logger,
                 _datasetDefinitionChangesProcessor,
-                _services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
-                _isDevelopment);
+                Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                IsDevelopment);
 
             (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.TopicSubscribers.UpdateDataDefinitionName,
                 (Message smokeResponse) => onDataDefinitionChanges.Run(smokeResponse),
@@ -57,8 +57,8 @@ namespace CalculateFunding.Functions.Datasets.SmokeTests
         {
             OnDatasetEvent onDatasetEvent = new OnDatasetEvent(_logger,
                 _processDatasetService,
-                _services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
-                _isDevelopment);
+                Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                IsDevelopment);
 
             (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.ProcessDataset,
                 (Message smokeResponse) => onDatasetEvent.Run(smokeResponse));
@@ -73,8 +73,8 @@ namespace CalculateFunding.Functions.Datasets.SmokeTests
         {
             OnDatasetValidationEvent onDatasetValidationEvent = new OnDatasetValidationEvent(_logger,
                 _datasetService,
-                _services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
-                _isDevelopment);
+                Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                IsDevelopment);
 
             (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.ValidateDataset,
                 (Message smokeResponse) => onDatasetValidationEvent.Run(smokeResponse));
@@ -89,8 +89,8 @@ namespace CalculateFunding.Functions.Datasets.SmokeTests
         {
             OnDeleteDatasets onDeleteDatasets = new OnDeleteDatasets(_logger,
                 _datasetService,
-                _services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
-                _isDevelopment);
+                Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                IsDevelopment);
 
             (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.DeleteDatasets,
                 (Message smokeResponse) => onDeleteDatasets.Run(smokeResponse));

@@ -37,8 +37,8 @@ namespace CalculateFunding.Functions.Scenarios.SmokeTests
         {
             OnDataDefinitionChanges onDataDefinitionChanges = new OnDataDefinitionChanges(_logger,
                 _datasetDefinitionFieldChangesProcessor,
-                _services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
-                _isDevelopment);
+                Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                IsDevelopment);
 
             (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.TopicSubscribers.UpdateScenarioFieldDefinitionProperties,
                 (Message smokeResponse) => onDataDefinitionChanges.Run(smokeResponse),
@@ -54,8 +54,8 @@ namespace CalculateFunding.Functions.Scenarios.SmokeTests
         {
             OnDeleteTests onDeleteTests = new OnDeleteTests(_logger,
                 _scenariosService,
-                _services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
-                _isDevelopment);
+                Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                IsDevelopment);
 
             (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.DeleteTests,
                 (Message smokeResponse) => onDeleteTests.Run(smokeResponse));
@@ -70,8 +70,8 @@ namespace CalculateFunding.Functions.Scenarios.SmokeTests
         {
             OnEditCalculationEvent onEditCalculationEvent = new OnEditCalculationEvent(_logger,
                 _scenariosService,
-                _services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
-                _isDevelopment);
+                Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                IsDevelopment);
 
             (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.TopicSubscribers.UpdateScenariosForEditCalculation,
                 (Message smokeResponse) => onEditCalculationEvent.Run(smokeResponse),
@@ -87,8 +87,8 @@ namespace CalculateFunding.Functions.Scenarios.SmokeTests
         {
             OnEditSpecificationEvent onEditSpecificationEvent = new OnEditSpecificationEvent(_logger,
                 _scenariosService,
-                _services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
-                _isDevelopment);
+                Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                IsDevelopment);
 
             (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.TopicSubscribers.UpdateScenariosForEditSpecification,
                 (Message smokeResponse) => onEditSpecificationEvent.Run(smokeResponse),

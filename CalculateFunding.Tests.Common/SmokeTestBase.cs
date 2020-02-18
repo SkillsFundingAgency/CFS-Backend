@@ -20,12 +20,14 @@ namespace CalculateFunding.Tests.Common
 {
     public class SmokeTestBase
     {
-        protected static bool _isDevelopment;
-        protected static bool _useMocking;
+        protected static bool IsDevelopment;
+        private static bool _useMocking;
+        
         private static TimeSpan _timeout;
-        protected static IServiceCollection _services;
+        
+        protected static IServiceCollection Services;
 
-        public static void SetupTests(string serviceName)
+        protected static void SetupTests(string serviceName)
         {
             Guard.IsNullOrWhiteSpace(serviceName, nameof(serviceName));
 
@@ -33,15 +35,15 @@ namespace CalculateFunding.Tests.Common
                 .AddJsonFile("local.settings.json")
                 .Build();
 
-            _services = new ServiceCollection();
+            Services = new ServiceCollection();
 
-            _services.AddSingleton(configuration);
+            Services.AddSingleton(configuration);
 
-            _isDevelopment = configuration["ASPNETCORE_ENVIRONMENT"] == "Development";
+            IsDevelopment = configuration["ASPNETCORE_ENVIRONMENT"] == "Development";
 
             _useMocking = configuration["USE_MOCKING"] == "true";
 
-            _services.AddSingleton((ctx) =>
+            Services.AddSingleton((ctx) =>
             {
                 if (_useMocking)
                 {
@@ -53,16 +55,16 @@ namespace CalculateFunding.Tests.Common
                 }
             });
 
-            _timeout = TimeSpan.FromSeconds(_isDevelopment ? 10 : 30);
+            _timeout = TimeSpan.FromSeconds(IsDevelopment ? 10 : 30);
         }
 
         public async Task<(IEnumerable<SmokeResponse> responses, string uniqueId)> RunSmokeTest(string queueName,
             Action<Message> action,
             string topicName = null)
         {
-            ServiceProvider serviceProvider = _services.BuildServiceProvider();
+            ServiceProvider serviceProvider = Services.BuildServiceProvider();
 
-            if (_isDevelopment && !_useMocking)
+            if (IsDevelopment && !_useMocking)
             {
                 using (AzureStorageEmulatorAutomation azureStorageEmulatorAutomation = new AzureStorageEmulatorAutomation())
                 {
@@ -96,7 +98,7 @@ namespace CalculateFunding.Tests.Common
 
             IDictionary<string, string> properties = new Dictionary<string, string> { { "smoketest", uniqueId } };
 
-            string entityPathBase = !_isDevelopment ? $"{ServiceBusConstants.TopicNames.SmokeTest}/Subscriptions/{uniqueId}" : uniqueId;
+            string entityPathBase = !IsDevelopment ? $"{ServiceBusConstants.TopicNames.SmokeTest}/Subscriptions/{uniqueId}" : uniqueId;
 
             if (_useMocking)
             {
@@ -105,12 +107,12 @@ namespace CalculateFunding.Tests.Common
 
             try
             {
-                if(!_isDevelopment)
+                if(!IsDevelopment)
                 {
                     await ((IServiceBusService)messengerService).CreateSubscription("smoketest", uniqueId);
                 }
 
-                if (!_isDevelopment && topicName != null)
+                if (!IsDevelopment && topicName != null)
                 {
                     await messengerService.SendToTopic(topicName,
                         uniqueId,
@@ -123,7 +125,7 @@ namespace CalculateFunding.Tests.Common
                         properties);
                 }
 
-                if (_isDevelopment)
+                if (IsDevelopment)
                 {
                     IEnumerable<string> smokeResponsesFromFunction = await messengerService.ReceiveMessages<string>(queueName,
                         _timeout);
@@ -145,7 +147,7 @@ namespace CalculateFunding.Tests.Common
             }
             finally
             {
-                if (!_isDevelopment)
+                if (!IsDevelopment)
                 {
                     await ((IServiceBusService)messengerService).DeleteSubscription("smoketest", uniqueId);
                 }
@@ -174,7 +176,7 @@ namespace CalculateFunding.Tests.Common
 
         private static void CheckServiceBusCalls(IMessengerService messengerService, string uniqueId, string queueName, string topicName, string entityPathBase)
         {
-            if (!_isDevelopment && topicName != null)
+            if (!IsDevelopment && topicName != null)
             {
                 messengerService
                     .Received(1)
@@ -191,7 +193,7 @@ namespace CalculateFunding.Tests.Common
                     Arg.Any<Dictionary<string, string>>());
             }
 
-            if (!_isDevelopment)
+            if (!IsDevelopment)
             {
                 ((IServiceBusService)messengerService)
                 .Received(1)
@@ -216,7 +218,7 @@ namespace CalculateFunding.Tests.Common
 
         private static IMessengerService AddServiceBus(IConfiguration configuration, string serviceName)
         {
-            if (_isDevelopment)
+            if (IsDevelopment)
             {
                 return new QueueMessengerService("UseDevelopmentStorage=true", serviceName);
             }

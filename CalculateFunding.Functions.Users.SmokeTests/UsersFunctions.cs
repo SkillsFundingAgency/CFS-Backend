@@ -35,8 +35,8 @@ namespace CalculateFunding.Functions.Users.SmokeTests
         {
             OnEditSpecificationEvent onEditSpecificationEvent = new OnEditSpecificationEvent(_logger,
                 _fundingStreamPermissionService,
-                _services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
-                _isDevelopment);
+                Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                IsDevelopment);
 
             (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.TopicSubscribers.UpdateUsersForEditSpecification,
                 (Message smokeResponse) => onEditSpecificationEvent.Run(smokeResponse),

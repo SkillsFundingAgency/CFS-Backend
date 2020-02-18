@@ -37,8 +37,8 @@ namespace CalculateFunding.Functions.CalcEngine.SmokeTests
         {
             OnCalcsGenerateAllocationResults onCalcsGenerateAllocationResults = new OnCalcsGenerateAllocationResults(_logger,
                 _calcEngineService,
-                _services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
-                _isDevelopment);
+                Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                IsDevelopment);
 
             (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.CalcEngineGenerateAllocationResults, 
                 (Message smokeResponse) => onCalcsGenerateAllocationResults.Run(smokeResponse));

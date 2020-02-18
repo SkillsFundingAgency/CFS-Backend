@@ -44,8 +44,8 @@ namespace CalculateFunding.Functions.Publishing.SmokeTests
         {
             OnApproveFunding onApproveFunding = new OnApproveFunding(_logger,
                 _approveService,
-                _services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
-                _isDevelopment);
+                Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                IsDevelopment);
 
             (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.PublishingApproveFunding,
                 (Message smokeResponse) => onApproveFunding.Run(smokeResponse));
@@ -60,8 +60,8 @@ namespace CalculateFunding.Functions.Publishing.SmokeTests
         {
             OnPublishFunding onPublishFunding = new OnPublishFunding(_logger,
                 _publishService,
-                _services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
-                _isDevelopment);
+                Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                IsDevelopment);
 
             (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.PublishingPublishFunding,
                 (Message smokeResponse) => onPublishFunding.Run(smokeResponse));
@@ -76,8 +76,8 @@ namespace CalculateFunding.Functions.Publishing.SmokeTests
         {
             OnRefreshFunding onRefreshFunding = new OnRefreshFunding(_logger,
                 _refreshService,
-                _services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
-                _isDevelopment);
+                Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                IsDevelopment);
 
             (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.PublishingRefreshFunding,
                 (Message smokeResponse) => onRefreshFunding.Run(smokeResponse));
@@ -92,8 +92,8 @@ namespace CalculateFunding.Functions.Publishing.SmokeTests
         {
             OnReIndexPublishedProviders onReIndexPublishedProviders = new OnReIndexPublishedProviders(_logger,
                 _publishedProviderReIndexerService,
-                _services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
-                _isDevelopment);
+                Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                IsDevelopment);
 
             (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.PublishingReIndexPublishedProviders,
                 (Message smokeResponse) => onReIndexPublishedProviders.Run(smokeResponse));
@@ -108,8 +108,8 @@ namespace CalculateFunding.Functions.Publishing.SmokeTests
         {
             OnDeletePublishedProviders onDeletePublishedProvider = new OnDeletePublishedProviders(_logger,
                 _deletePublishedProvidersService,
-                _services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
-                _isDevelopment);
+                Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                IsDevelopment);
 
             (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.DeletePublishedProviders,
                 (Message smokeResponse) => onDeletePublishedProvider.Run(smokeResponse));

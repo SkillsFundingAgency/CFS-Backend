@@ -35,8 +35,8 @@ namespace CalculateFunding.Functions.Jobs.SmokeTests
         {
             OnDeleteJobs onDeleteJobs = new OnDeleteJobs(_logger,
                 _jobManagementService,
-                _services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
-                _isDevelopment);
+                Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                IsDevelopment);
 
             (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.DeleteJobs,
                 (Message smokeResponse) => onDeleteJobs.Run(smokeResponse));
@@ -51,8 +51,8 @@ namespace CalculateFunding.Functions.Jobs.SmokeTests
         {
             OnJobNotification onJobNotification = new OnJobNotification(_logger,
                 _jobManagementService,
-                _services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
-                _isDevelopment);
+                Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                IsDevelopment);
 
             (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.TopicSubscribers.UpdateJobsOnCompletion,
                 (Message smokeResponse) => onJobNotification.Run(smokeResponse),

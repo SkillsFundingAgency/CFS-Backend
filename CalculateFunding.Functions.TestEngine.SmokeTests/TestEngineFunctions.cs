@@ -37,8 +37,8 @@ namespace CalculateFunding.Functions.TestEngine.SmokeTests
         {
             OnDeleteTestResults onDeleteTestResults = new OnDeleteTestResults(_logger,
                 _testResultsService,
-                _services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
-                _isDevelopment);
+                Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                IsDevelopment);
 
             (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.DeleteTestResults,
                 (Message smokeResponse) => onDeleteTestResults.Run(smokeResponse));
@@ -53,8 +53,8 @@ namespace CalculateFunding.Functions.TestEngine.SmokeTests
         {
             OnEditSpecificationEvent onEditSpecificationEvent = new OnEditSpecificationEvent(_logger,
                 _testResultsService,
-                _services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
-                _isDevelopment);
+                Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                IsDevelopment);
 
             (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.TopicSubscribers.UpdateScenarioResultsForEditSpecification,
                 (Message smokeResponse) => onEditSpecificationEvent.Run(smokeResponse),
@@ -70,8 +70,8 @@ namespace CalculateFunding.Functions.TestEngine.SmokeTests
         {
             OnTestExecution onTestExecution = new OnTestExecution(_logger,
                 _testEngineService,
-                _services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
-                _isDevelopment);
+                Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                IsDevelopment);
 
             (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.TestEngineExecuteTests,
                 (Message smokeResponse) => onTestExecution.Run(smokeResponse));
@@ -86,8 +86,8 @@ namespace CalculateFunding.Functions.TestEngine.SmokeTests
         {
             OnTestSpecificationProviderResultsCleanup onTestSpecificationProviderResultsCleanup = new OnTestSpecificationProviderResultsCleanup(_logger,
                 _testResultsService,
-                _services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
-                _isDevelopment);
+                Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                IsDevelopment);
 
             (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.TopicSubscribers.CleanupTestResultsForSpecificationProviders,
                 (Message smokeResponse) => onTestSpecificationProviderResultsCleanup.Run(smokeResponse),

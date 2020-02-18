@@ -34,7 +34,8 @@ namespace CalculateFunding.Functions.Calcs.ServiceBus
         [FunctionName(FunctionName)]
         public async Task Run([ServiceBusTrigger(
             ServiceBusConstants.QueueNames.ReIndexSpecificationCalculationRelationships,
-            Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
+            Connection = ServiceBusConstants.ConnectionStringConfigurationKey,
+            IsSessionsEnabled = true)] Message message)
         {
             await Run(async () =>
             {
@@ -44,7 +45,7 @@ namespace CalculateFunding.Functions.Calcs.ServiceBus
                 }
                 catch (Exception exception)
                 {
-                    _logger.Error(exception, $"An error occurred getting message from queue: {ServiceBusConstants.QueueNames.DeleteCalculations}");
+                    _logger.Error(exception, $"An error occurred getting message from queue: {ServiceBusConstants.QueueNames.ReIndexSpecificationCalculationRelationships}");
                     throw;
                 }
             },

@@ -1,9 +1,9 @@
 using System.Threading.Tasks;
 using CalculateFunding.Models.Graph;
 
-namespace CalculateFunding.Services.Calcs.Interfaces.Analysis
+namespace CalculateFunding.Services.Calcs.Interfaces
 {
-    public interface IGraphRepository
+    public interface IReIndexGraphRepository
     {
         Task RecreateGraph(SpecificationCalculationRelationships specificationCalculationRelationships);
     }

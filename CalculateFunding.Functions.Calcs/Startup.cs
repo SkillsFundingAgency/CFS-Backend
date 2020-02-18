@@ -1,4 +1,5 @@
 ﻿using System;
+using AutoMapper;
 using CalculateFunding.Common.ApiClient;
 using CalculateFunding.Common.Config.ApiClient.Graph;
 using CalculateFunding.Common.Config.ApiClient.Jobs;
@@ -14,14 +15,17 @@ using CalculateFunding.Models.Calcs;
 
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Calcs;
+using CalculateFunding.Services.Calcs.Analysis;
 using CalculateFunding.Services.Calcs.CodeGen;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Calcs.Interfaces.CodeGen;
+using CalculateFunding.Services.Calcs.MappingProfiles;
 using CalculateFunding.Services.Calcs.Validators;
 using CalculateFunding.Services.CodeGeneration.VisualBasic;
 using CalculateFunding.Services.CodeMetadataGenerator;
 using CalculateFunding.Services.CodeMetadataGenerator.Interfaces;
 using CalculateFunding.Services.Compiler;
+using CalculateFunding.Services.Compiler.Analysis;
 using CalculateFunding.Services.Compiler.Interfaces;
 using CalculateFunding.Services.Compiler.Languages;
 using CalculateFunding.Services.Core.AspNet;
@@ -109,6 +113,19 @@ namespace CalculateFunding.Functions.Calcs
             builder.AddSingleton<ISourceCodeService, SourceCodeService>();
             builder.AddScoped<IJobHelperService, JobHelperService>();
             builder.AddScoped<IJobManagement, JobManagement>();
+            
+            MapperConfiguration calculationsConfig = new MapperConfiguration(c =>
+            {
+                c.AddProfile<CalculationsMappingProfile>();
+            });
+
+            builder
+                .AddSingleton(calculationsConfig.CreateMapper());
+
+            builder.AddScoped<IReIndexGraphRepository, ReIndexGraphRepository>();
+            builder.AddScoped<ISpecificationCalculationAnalysis, SpecificationCalculationAnalysis>();
+            builder.AddScoped<IReIndexSpecificationCalculationRelationships, ReIndexSpecificationCalculationRelationships>();
+            builder.AddScoped<ICalculationAnalysis, CalculationAnalysis>();
 
             builder
                .AddScoped<IDatasetDefinitionFieldChangesProcessor, DatasetDefinitionFieldChangesProcessor>();

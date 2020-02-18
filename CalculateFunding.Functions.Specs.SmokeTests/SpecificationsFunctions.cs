@@ -36,8 +36,8 @@ namespace CalculateFunding.Functions.Specs.SmokeTests
         {
             OnAddRelationshipEvent onAddRelationshipEvent = new OnAddRelationshipEvent(_logger,
                 _specificationsService,
-                _services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
-                _isDevelopment);
+                Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                IsDevelopment);
 
             (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.AddDefinitionRelationshipToSpecification,
                 (Message smokeResponse) => onAddRelationshipEvent.Run(smokeResponse));
@@ -52,8 +52,8 @@ namespace CalculateFunding.Functions.Specs.SmokeTests
         {
             OnDeleteSpecifications onDeleteSpecifications = new OnDeleteSpecifications(_logger,
                 _specificationsService,
-                _services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
-                _isDevelopment);
+                Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                IsDevelopment);
 
             (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.DeleteSpecifications,
                 (Message smokeResponse) => onDeleteSpecifications.Run(smokeResponse));

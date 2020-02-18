@@ -36,8 +36,8 @@ namespace CalculateFunding.Functions.CosmosDbScaling.SmokeTests
         {
             OnScaleUpCosmosDbCollection onScaleUpCosmosDbCollection = new OnScaleUpCosmosDbCollection(_logger,
                 _cosmosDbScalingService,
-                _services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
-                _isDevelopment);
+                Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                IsDevelopment);
 
             (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.TopicSubscribers.ScaleUpCosmosdbCollection,
                 (Message smokeResponse) => onScaleUpCosmosDbCollection.Run(smokeResponse),

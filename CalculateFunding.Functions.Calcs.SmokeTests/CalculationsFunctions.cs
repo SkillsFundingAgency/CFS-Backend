@@ -45,8 +45,8 @@ namespace CalculateFunding.Functions.Calcs.SmokeTests
         {
             OnApplyTemplateCalculations onApplyTemplateCalculations = new OnApplyTemplateCalculations(_logger,
                 _applyTemplateCalculationsService,
-                _services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
-                _isDevelopment);
+                Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                IsDevelopment);
 
             (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.ApplyTemplateCalculations,
                 (Message smokeResponse) => onApplyTemplateCalculations.Run(smokeResponse));
@@ -61,8 +61,8 @@ namespace CalculateFunding.Functions.Calcs.SmokeTests
         {
             CalcsAddRelationshipToBuildProject calcsAddRelationshipToBuildProject = new CalcsAddRelationshipToBuildProject(_logger,
                 _buildProjectsService,
-                _services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
-                _isDevelopment);
+                Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                IsDevelopment);
 
             (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.UpdateBuildProjectRelationships,
                 (Message smokeResponse) => calcsAddRelationshipToBuildProject.Run(smokeResponse));
@@ -77,8 +77,8 @@ namespace CalculateFunding.Functions.Calcs.SmokeTests
         {
             OnCalcsInstructAllocationResults onCalcsInstructAllocationResults = new OnCalcsInstructAllocationResults(_logger,
                 _buildProjectsService,
-                _services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
-                _isDevelopment);
+                Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                IsDevelopment);
 
             (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.CalculationJobInitialiser, 
                 (Message smokeResponse) => onCalcsInstructAllocationResults.Run(smokeResponse));
@@ -93,8 +93,8 @@ namespace CalculateFunding.Functions.Calcs.SmokeTests
         {
             OnCalculationAggregationsJobCompleted onCalculationAggregationsJobCompleted = new OnCalculationAggregationsJobCompleted(_logger,
                 _jobService,
-                _services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
-                _isDevelopment);
+                Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                IsDevelopment);
 
             (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.TopicSubscribers.CreateInstructAllocationsJob,
                 (Message smokeResponse) => onCalculationAggregationsJobCompleted.Run(smokeResponse),
@@ -110,8 +110,8 @@ namespace CalculateFunding.Functions.Calcs.SmokeTests
         {
             OnDataDefinitionChanges onDataDefinitionChanges = new OnDataDefinitionChanges(_logger,
                 _datasetDefinitionFieldChangesProcessor,
-                _services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
-                _isDevelopment);
+                Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                IsDevelopment);
 
             (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.TopicSubscribers.UpdateCalculationFieldDefinitionProperties,
                 (Message smokeResponse) => onDataDefinitionChanges.Run(smokeResponse),
@@ -127,8 +127,8 @@ namespace CalculateFunding.Functions.Calcs.SmokeTests
         {
             OnDeleteCalculationResults onDeleteCalculationResults = new OnDeleteCalculationResults(_logger,
                 _calculationService,
-                _services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
-                _isDevelopment);
+                Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                IsDevelopment);
 
             (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.DeleteCalculationResults,
                 (Message smokeResponse) => onDeleteCalculationResults.Run(smokeResponse));
@@ -143,8 +143,8 @@ namespace CalculateFunding.Functions.Calcs.SmokeTests
         {
             OnDeleteCalculations onDeleteCalculations = new OnDeleteCalculations(_logger,
                 _calculationService,
-                _services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
-                _isDevelopment);
+                Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                IsDevelopment);
 
             (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.DeleteCalculations,
                 (Message smokeResponse) => onDeleteCalculations.Run(smokeResponse));

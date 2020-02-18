@@ -15,14 +15,14 @@ using ApiCalculation = CalculateFunding.Common.ApiClient.Graph.Models.Calculatio
 
 namespace CalculateFunding.Services.Calcs.Analysis
 {
-    public class GraphRepository : Interfaces.Analysis.IGraphRepository
+    public class ReIndexGraphRepository : IReIndexGraphRepository
     {
         private readonly IGraphApiClient _graphApiClient;
         private readonly IMapper _mapper;
         private readonly Policy _resilience;
         private readonly ILogger _logger;
 
-        public GraphRepository(IGraphApiClient graphApiClient,
+        public ReIndexGraphRepository(IGraphApiClient graphApiClient,
             ICalcsResiliencePolicies resiliencePolicies,
             IMapper mapper,
             ILogger logger)

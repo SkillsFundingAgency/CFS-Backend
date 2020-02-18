@@ -39,8 +39,8 @@ namespace CalculateFunding.Functions.Results.SmokeTests
         {
             OnCalculationResultsCsvGeneration onCalculationResultsCsvGeneration = new OnCalculationResultsCsvGeneration(_logger,
                 _providerResultsCsvGeneratorService,
-                _services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
-                _isDevelopment);
+                Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                IsDevelopment);
 
             (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.CalculationResultsCsvGeneration,
                 (Message smokeResponse) => onCalculationResultsCsvGeneration.Run(smokeResponse));
@@ -55,8 +55,8 @@ namespace CalculateFunding.Functions.Results.SmokeTests
         {
             OnProviderResultsSpecificationCleanup onProviderResultsSpecificationCleanup = new OnProviderResultsSpecificationCleanup(_logger,
                 _resultsService,
-                _services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
-                _isDevelopment);
+                Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                IsDevelopment);
 
             (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.TopicSubscribers.CleanupCalculationResultsForSpecificationProviders,
                 (Message smokeResponse) => onProviderResultsSpecificationCleanup.Run(smokeResponse),
@@ -72,8 +72,8 @@ namespace CalculateFunding.Functions.Results.SmokeTests
         {
             OnReIndexCalculationResults onReIndexCalculationResults = new OnReIndexCalculationResults(_logger,
                 _providerCalculationResultsReIndexerService,
-                _services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
-                _isDevelopment);
+                Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                IsDevelopment);
 
             (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.ReIndexCalculationResultsIndex,
                 (Message smokeResponse) => onReIndexCalculationResults.Run(smokeResponse));

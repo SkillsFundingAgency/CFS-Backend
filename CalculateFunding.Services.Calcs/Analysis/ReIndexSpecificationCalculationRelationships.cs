@@ -12,22 +12,22 @@ namespace CalculateFunding.Services.Calcs.Analysis
     public class ReIndexSpecificationCalculationRelationships : IReIndexSpecificationCalculationRelationships
     {
         private readonly ISpecificationCalculationAnalysis _analysis;
-        private readonly Interfaces.Analysis.IGraphRepository _graphs;
+        private readonly IReIndexGraphRepository _reIndexGraphs;
         private readonly ILogger _logger;
 
         private const string SpecificationId = "specification-id";
 
         public ReIndexSpecificationCalculationRelationships(ISpecificationCalculationAnalysis analysis,
-            Interfaces.Analysis.IGraphRepository graphs,
+            IReIndexGraphRepository reIndexGraphs,
             ILogger logger)
         {
             Guard.ArgumentNotNull(analysis, nameof(analysis));
             Guard.ArgumentNotNull(logger, nameof(logger));
-            Guard.ArgumentNotNull(graphs, nameof(graphs));            
+            Guard.ArgumentNotNull(reIndexGraphs, nameof(reIndexGraphs));            
             
             _analysis = analysis;
             _logger = logger;
-            _graphs = graphs;
+            _reIndexGraphs = reIndexGraphs;
         }
 
         public async Task Run(Message message)
@@ -43,7 +43,7 @@ namespace CalculateFunding.Services.Calcs.Analysis
                 SpecificationCalculationRelationships specificationCalculationRelationships = await _analysis
                     .GetSpecificationCalculationRelationships(specificationId);
 
-                await _graphs.RecreateGraph(specificationCalculationRelationships);
+                await _reIndexGraphs.RecreateGraph(specificationCalculationRelationships);
             }
             catch (Exception e)
             {
