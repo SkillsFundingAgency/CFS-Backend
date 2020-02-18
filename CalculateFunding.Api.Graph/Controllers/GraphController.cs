@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Graph;
@@ -88,6 +89,13 @@ namespace CalculateFunding.Api.Graph.Controllers
         public async Task<IActionResult> DeleteCalculationCalculationRelationship([FromRoute]string calculationIdA, [FromRoute]string calculationIdB)
         {
             return await _graphService.DeleteCalculationCalculationRelationship(calculationIdA, calculationIdB);
+        }
+
+        [HttpDelete("api/graph/specification/{specificationId}/all")]
+        [ProducesResponseType((int) HttpStatusCode.OK)]
+        public async Task<IActionResult> DeleteAllForSpecification([FromRoute] string specificationId)
+        {
+            return await _graphService.DeleteAllForSpecification(specificationId);
         }
     }
 }

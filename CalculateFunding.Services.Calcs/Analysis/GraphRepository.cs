@@ -99,9 +99,10 @@ namespace CalculateFunding.Services.Calcs.Analysis
         {
             Guard.IsNotEmpty(calculations, nameof(calculations));
 
-            IEnumerable<ApiCalculation> graphCalculations = _mapper.Map<IEnumerable<ApiCalculation>>(calculations);
+            ApiCalculation[] graphCalculations = _mapper.Map<IEnumerable<ApiCalculation>>(calculations)
+                .ToArray();
 
-            HttpStatusCode response = await _resilience.ExecuteAsync(() => _graphApiClient.UpsertCalculations(graphCalculations.ToArray()));
+            HttpStatusCode response = await _resilience.ExecuteAsync(() => _graphApiClient.UpsertCalculations(graphCalculations));
 
             EnsureApiCallSucceeded(response, "Unable to create calculation nodes");
         }

@@ -1,25 +1,22 @@
-﻿using System.Linq;
+﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
-using CalculateFunding.Common.Graph;
-using CalculateFunding.Common.Graph.Interfaces;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Graph;
 using CalculateFunding.Services.Graph.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using System;
 using CalculateFunding.Services.Core.Extensions;
-using Serilog;
-using Neo4jDriver = Neo4j.Driver;
 using CalculateFunding.Services.Core.Helpers;
+using Serilog;
 
 namespace CalculateFunding.Services.Graph
 {
     public class GraphService : IGraphService
     {
-        private ILogger _logger;
-        private ICalculationRepository _calcRepository;
-        private ISpecificationRepository _specRepository;
+        private readonly ILogger _logger;
+        private readonly ICalculationRepository _calcRepository;
+        private readonly ISpecificationRepository _specRepository;
 
         public GraphService(ILogger logger, ICalculationRepository calcRepository, ISpecificationRepository specRepository)
         {
@@ -32,6 +29,21 @@ namespace CalculateFunding.Services.Graph
             _specRepository = specRepository;
         }
 
+        public async Task<IActionResult> DeleteAllForSpecification(string specificationId)
+        {
+            try
+            {
+                await _specRepository.DeleteAllForSpecification(specificationId);
+                
+                return new OkResult();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
+        }
+
         public async Task<IActionResult> DeleteSpecification(string specificationId)
         {
             try
@@ -40,10 +52,10 @@ namespace CalculateFunding.Services.Graph
 
                 return new OkResult();
             }
-            catch (Neo4jDriver.Neo4jException ex)
+            catch (Exception ex)
             {
-                string error = $"Delete specification failed for specification:'{specificationId}'";
-                _logger.Error(error);
+                _logger.Error($"Delete specification failed for specification:'{specificationId}'");
+                
                 return new InternalServerErrorResult(ex.ToString());
             }
         }
@@ -56,10 +68,10 @@ namespace CalculateFunding.Services.Graph
 
                 return new OkResult();
             }
-            catch (Neo4jDriver.Neo4jException ex)
+            catch (Exception ex)
             {
-                string error = $"Save specifications failed for specifications:'{specifications.AsJson()}'";
-                _logger.Error(error);
+                _logger.Error($"Save specifications failed for specifications:'{specifications.AsJson()}'");
+                
                 return new InternalServerErrorResult(ex.ToString());
             }
         }
@@ -72,10 +84,10 @@ namespace CalculateFunding.Services.Graph
 
                 return new OkResult();
             }
-            catch (Neo4jDriver.Neo4jException ex)
+            catch (Exception ex)
             {
-                string error = $"Delete calculation failed for calculation:'{calculationId}'";
-                _logger.Error(error);
+                _logger.Error($"Delete calculation failed for calculation:'{calculationId}'");
+                
                 return new InternalServerErrorResult(ex.ToString());
             }
         }
@@ -88,10 +100,10 @@ namespace CalculateFunding.Services.Graph
 
                 return new OkResult();
             }
-            catch (Neo4jDriver.Neo4jException ex)
+            catch (Exception ex)
             {
-                string error = $"Upsert calculations failed for calculations:'{calculations.AsJson()}'";
-                _logger.Error(error);
+                _logger.Error($"Save calculations failed for calculations:'{calculations.AsJson()}'");
+                
                 return new InternalServerErrorResult(ex.ToString());
             }
         }
@@ -104,8 +116,11 @@ namespace CalculateFunding.Services.Graph
 
                 return new OkResult();
             }
-            catch (Neo4jDriver.Neo4jException ex)
+            catch (Exception ex)
             {
+                _logger.Error($"Create calculation relationship between specification failed for calculation:'{calculationId}'" +
+                              $" and specification:'{specificationId}'");
+                
                 string error = $"Upsert calculation relationship between specification failed for calculation:'{calculationId}'" +
                     $" and specification:'{specificationId}'";
                 _logger.Error(error);
@@ -121,11 +136,11 @@ namespace CalculateFunding.Services.Graph
 
                 return new OkResult();
             }
-            catch (Neo4jDriver.Neo4jException ex)
+            catch (Exception ex)
             {
-                string error = $"Upsert calculation relationship call to calculation failed for calculation:'{calculationIdA}'" +
-                    $" calling calculation:'{calculationIdB}'";
-                _logger.Error(error);
+                _logger.Error($"Upsert calculation relationship call to calculation failed for calculation:'{calculationIdA}'" +
+                              $" calling calculation:'{calculationIdB}'");
+                
                 return new InternalServerErrorResult(ex.ToString());
             }
         }
@@ -143,7 +158,7 @@ namespace CalculateFunding.Services.Graph
 
                 return new OkResult();
             }
-            catch (Neo4jDriver.Neo4jException ex)
+            catch (Exception ex)
             {
                 string error = $"Upsert calculation relationship call to calculation failed for calculation:'{calculationId}'" +
                     $" calling calculations:'{calculationIds.AsJson()}'";
@@ -160,11 +175,11 @@ namespace CalculateFunding.Services.Graph
 
                 return new OkResult();
             }
-            catch (Neo4jDriver.Neo4jException ex)
+            catch (Exception ex)
             {
-                string error = $"Delete calculation relationship between specification failed for calculation:'{calculationId}'" +
-                    $" and specification:'{specificationId}'";
-                _logger.Error(error);
+                _logger.Error($"Delete calculation relationship between specification failed for calculation:'{calculationId}'" +
+                              $" and specification:'{specificationId}'");
+                
                 return new InternalServerErrorResult(ex.ToString());
             }
         }
@@ -177,11 +192,11 @@ namespace CalculateFunding.Services.Graph
 
                 return new OkResult();
             }
-            catch (Neo4jDriver.Neo4jException ex)
+            catch (Exception ex)
             {
-                string error = $"Delete calculation relationship call to calculation failed for calculation:'{calculationIdA}'" +
-                    $" calling calculation:'{calculationIdB}'";
-                _logger.Error(error);
+                _logger.Error($"Delete calculation relationship call to calculation failed for calculation:'{calculationIdA}'" +
+                              $" calling calculation:'{calculationIdB}'");
+                
                 return new InternalServerErrorResult(ex.ToString());
             }
         }

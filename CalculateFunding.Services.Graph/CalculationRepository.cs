@@ -12,7 +12,10 @@ namespace CalculateFunding.Services.Graph
 {
     public class CalculationRepository : ICalculationRepository
     {
-        private IGraphRepository _graphRepository;
+        private const string CalculationId = "calculationid";
+        private const string SpecificationId = "specificationid";
+        
+        private readonly IGraphRepository _graphRepository;
 
         public CalculationRepository(IGraphRepository graphRepository)
         {
@@ -21,41 +24,38 @@ namespace CalculateFunding.Services.Graph
             _graphRepository = graphRepository;
         }
 
-        public async Task DeleteAllCalculationsBySpecificationId(string specificationId)
-        {
-            
-        }
-
         public async Task DeleteCalculation(string calculationId)
         {
-            await _graphRepository.DeleteNode<Calculation>("calculationid", calculationId);
+            await _graphRepository.DeleteNode<Calculation>(CalculationId, calculationId);
         }
 
         public async Task UpsertCalculations(IEnumerable<Calculation> calculations)
         {
-            await _graphRepository.UpsertNodes(calculations.ToList(), new string[] { "calculationid" });
+            await _graphRepository.UpsertNodes(calculations.ToList(), new[] { CalculationId });
         }
 
         public async Task UpsertCalculationSpecificationRelationship(string calculationId, string specificationId)
         {
-            await _graphRepository.UpsertRelationship<Calculation, Specification>("BelongsToSpecification", ("calculationid", calculationId), ("specificationid", specificationId));
+            await _graphRepository.UpsertRelationship<Calculation, Specification>("BelongsToSpecification", (CalculationId, calculationId), 
+                (SpecificationId, specificationId));
         }
 
         public async Task UpsertCalculationCalculationRelationship(string calculationIdA, string calculationIdB)
         {
-            await _graphRepository.UpsertRelationship<Calculation, Calculation>("CallsCalculation", ("calculationid", calculationIdA), ("calculationid", calculationIdB));
-
+            await _graphRepository.UpsertRelationship<Calculation, Calculation>("CallsCalculation", (CalculationId, calculationIdA),
+                (CalculationId, calculationIdB));
         }
 
         public async Task DeleteCalculationSpecificationRelationship(string calculationId, string specificationId)
         {
-            await _graphRepository.DeleteRelationship<Calculation, Specification>("BelongsToSpecification", ("calculationid", calculationId), ("specificationid", specificationId));
+            await _graphRepository.DeleteRelationship<Calculation, Specification>("BelongsToSpecification", (CalculationId, calculationId), 
+                (SpecificationId, specificationId));
         }
 
         public async Task DeleteCalculationCalculationRelationship(string calculationIdA, string calculationIdB)
         {
-            await _graphRepository.DeleteRelationship<Calculation, Calculation>("CallsCalculation", ("calculationid", calculationIdA), ("calculationid", calculationIdB));
-
+            await _graphRepository.DeleteRelationship<Calculation, Calculation>("CallsCalculation", (CalculationId, calculationIdA), 
+                (CalculationId, calculationIdB));
         }
     }
     

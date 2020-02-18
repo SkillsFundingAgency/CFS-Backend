@@ -8,7 +8,9 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using System;
+using System.Threading.Channels;
 using System.Threading.Tasks;
+using CalculateFunding.Tests.Common.Helpers;
 using Serilog;
 using Neo4jDriver = Neo4j.Driver;
 
@@ -19,7 +21,7 @@ namespace CalculateFunding.Services.Graph.UnitTests
     {
         private ICalculationRepository _calculationRepository;
         private ISpecificationRepository _specificationRepository;
-        private IGraphService _graphService;
+        private GraphService _graphService;
         private ILogger _logger;
 
         [TestInitialize]
@@ -354,6 +356,24 @@ namespace CalculateFunding.Services.Graph.UnitTests
                 .Should()
                 .BeAssignableTo<InternalServerErrorResult>();
         }
+
+        [TestMethod]
+        public async Task DeleteAllForSpecificationDelegatesToSpecificationRepository()
+        {
+            string specificationId = NewRandomString();
+
+            IActionResult result = await _graphService.DeleteAllForSpecification(specificationId);
+            
+            result
+                .Should()
+                .BeOfType<OkResult>();
+
+            await _specificationRepository
+                .Received(1)
+                .DeleteAllForSpecification(specificationId);
+        }
+        
+        private string NewRandomString() => new RandomString();
 
         private Calculation NewCalculation(Action<CalculationBuilder> setUp = null)
         {

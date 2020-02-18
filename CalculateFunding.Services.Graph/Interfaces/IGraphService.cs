@@ -16,5 +16,6 @@ namespace CalculateFunding.Services.Graph.Interfaces
         Task<IActionResult> UpsertCalculationCalculationsRelationships(string calculationId, string[] calculationIds);
         Task<IActionResult> DeleteCalculationSpecificationRelationship(string calculationId, string specificationId);
         Task<IActionResult> DeleteCalculationCalculationRelationship(string calculationIdA, string calculationIdB);
+        Task<IActionResult> DeleteAllForSpecification(string specificationId);
     }
 }
