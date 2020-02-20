@@ -1,58 +1,15 @@
-using System;
 using System.Collections.Generic;
+using System.Reflection;
 using CalculateFunding.Api.CosmosDbScaling.Controllers;
 using CalculateFunding.API.CosmosDbScaling;
-using CalculateFunding.Services.CosmosDbScaling;
-using CalculateFunding.Services.CosmosDbScaling.Interfaces;
 using CalculateFunding.Tests.Common;
-using FluentAssertions;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Hosting.Internal;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CalculateFunding.Api.CosmosDbScaling.UnitTests
 {
     [TestClass]
-    public class StartupTests : IoCUnitTestBase
+    public class StartupTests : ControllerIoCUnitTestBase
     {
-        [TestMethod]
-        public void ConfigureServices_RegisterDependenciesCorrectly()
-        {
-            // Arrange
-            Services.AddSingleton<IHostingEnvironment>(new HostingEnvironment());
-            IConfigurationRoot configuration = CreateTestConfiguration();
-            Startup target = new Startup(configuration);
-
-            // Act
-            target.ConfigureServices(Services);
-
-            // Assert
-            ResolveType<CosmosDbScalingController>().Should().NotBeNull(nameof(CosmosDbScalingController));
-        }
-
-        [TestMethod]
-        public void ConfigureServices_WhenMajorMinorVersioningIsEnabled_RegisterDependenciesCorrectly()
-        {
-            // Arrange
-            Services.AddSingleton<IHostingEnvironment>(new HostingEnvironment());
-            IConfigurationRoot configuration = CreateTestConfiguration();
-            Startup target = new Startup(configuration);
-
-            // Act
-            target.ConfigureServices(Services);
-
-            // Assert
-            IServiceProvider serviceProvider = target.ServiceProvider;
-
-            CosmosDbScalingService service = (CosmosDbScalingService)serviceProvider.GetService(typeof(ICosmosDbScalingService));
-
-            service
-              .Should()
-              .BeOfType<CosmosDbScalingService>();
-        }
-
         protected override Dictionary<string, string> AddToConfiguration()
         {
             Dictionary<string, string> configData = new Dictionary<string, string>
@@ -73,6 +30,14 @@ namespace CalculateFunding.Api.CosmosDbScaling.UnitTests
             };
 
             return configData;
+        }
+        
+        protected override Assembly EntryAssembly => typeof(CosmosDbScalingController).Assembly;
+        
+        protected override void RegisterDependencies()
+        {
+            new Startup(CreateTestConfiguration())
+                .ConfigureServices(ServiceCollection);
         }
     }
 }

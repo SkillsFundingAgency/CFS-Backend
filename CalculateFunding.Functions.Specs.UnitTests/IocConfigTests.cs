@@ -36,15 +36,16 @@ namespace CalculateFunding.Functions.Specs.UnitTests
             return configData;
         }
 
-        protected override void AddExtraRegistrations(IServiceCollection serviceCollection)
+        protected override void AddExtraRegistrations()
         {
-            serviceCollection.AddSingleton(Substitute.For<IHostingEnvironment>());
+            ServiceCollection.AddSingleton(Substitute.For<IHostingEnvironment>());
         }
 
-        protected override Assembly FunctionAssembly => typeof(OnDeleteSpecifications).Assembly;
+        protected override Assembly EntryAssembly => typeof(OnDeleteSpecifications).Assembly;
 
-        protected override IServiceScope CreateServiceScope() =>
-            Startup.RegisterComponents(ServiceCollection, CreateTestConfiguration())
-                .CreateScope();
+        protected override void RegisterDependencies()
+        {
+            Startup.RegisterComponents(ServiceCollection, CreateTestConfiguration());
+        }
     }
 }

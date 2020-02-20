@@ -1,55 +1,14 @@
-using System;
 using System.Collections.Generic;
-using CalculateFunding.Api.External.V3.Interfaces;
-using CalculateFunding.Api.External.V3.Services;
+using System.Reflection;
+using CalculateFunding.Api.External.V3.Controllers;
 using CalculateFunding.Tests.Common;
-using FluentAssertions;
-using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CalculateFunding.Api.External.UnitTests
 {
     [TestClass]
-    public class StartupTests : IoCUnitTestBase
+    public class StartupTests : ControllerIoCUnitTestBase
     {
-        [TestMethod]
-        public void ConfigureServices_RegisterDependenciesCorrectly()
-        {
-            // Arrange
-            IConfigurationRoot configuration = CreateTestConfiguration();
-            Startup target = new Startup(configuration);
-
-            // Act
-            target.ConfigureServices(Services);
-
-            // Assert v3
-            ResolveType<V3.Controllers.FundingFeedController>().Should().NotBeNull(nameof(V3.Controllers.FundingFeedController));
-            ResolveType<V3.Controllers.FundingFeedItemController>().Should().NotBeNull(nameof(V3.Controllers.FundingFeedItemController));
-            ResolveType<V3.Controllers.ProviderFundingVersionController>().Should().NotBeNull(nameof(V3.Controllers.ProviderFundingVersionController));
-            ResolveType<FundingFeedService>().Should().NotBeNull(nameof(FundingFeedService));
-            ResolveType<FeedItemPreLoader>().Should().NotBeNull(nameof(FeedItemPreLoader));
-        }
-
-        [TestMethod]
-        public void ConfigureServices_WhenMajorMinorVersioningIsEnabled_RegisterDependenciesCorrectly()
-        {
-            // Arrange
-            IConfigurationRoot configuration = CreateTestConfiguration();
-            Startup target = new Startup(configuration);
-
-            // Act
-            target.ConfigureServices(Services);
-
-            // Assert
-            IServiceProvider serviceProvider = target.ServiceProvider;
-
-            IProviderFundingVersionService service = (IProviderFundingVersionService)serviceProvider.GetService(typeof(IProviderFundingVersionService));
-
-            service
-                .Should()
-                .BeOfType<ProviderFundingVersionService>();
-        }
-
         protected override Dictionary<string, string> AddToConfiguration()
         {
             var configData = new Dictionary<string, string>
@@ -60,6 +19,14 @@ namespace CalculateFunding.Api.External.UnitTests
             };
 
             return configData;
+        }
+        
+        protected override Assembly EntryAssembly => typeof(FundingFeedItemController).Assembly;
+        
+        protected override void RegisterDependencies()
+        {
+            new Startup(CreateTestConfiguration())
+                .ConfigureServices(ServiceCollection);
         }
     }
 }

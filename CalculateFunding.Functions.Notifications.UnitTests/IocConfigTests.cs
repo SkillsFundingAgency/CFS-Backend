@@ -21,10 +21,11 @@ namespace CalculateFunding.Functions.Notifications.UnitTests
             return configData;
         }
         
-        protected override Assembly FunctionAssembly => typeof(OnNotificationEventTrigger).Assembly;
+        protected override Assembly EntryAssembly => typeof(OnNotificationEventTrigger).Assembly;
 
-        protected override IServiceScope CreateServiceScope() =>
-            Startup.RegisterComponents(ServiceCollection, CreateTestConfiguration())
-                .CreateScope();
+        protected override void RegisterDependencies()
+        {
+            Startup.RegisterComponents(ServiceCollection, CreateTestConfiguration());
+        }
     }
 }

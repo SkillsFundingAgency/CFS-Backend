@@ -31,11 +31,11 @@ namespace CalculateFunding.Functions.CosmosDbScaling.UnitTests
 
             return configData;
         }
-        protected override Assembly FunctionAssembly => typeof(OnCosmosDbDiagnosticsReceived).Assembly;
+        protected override Assembly EntryAssembly => typeof(OnCosmosDbDiagnosticsReceived).Assembly;
 
-        protected override IServiceScope CreateServiceScope() =>
-            Startup.RegisterComponents(ServiceCollection, CreateTestConfiguration())
-                .CreateScope();
-        
+        protected override void RegisterDependencies()
+        {
+            Startup.RegisterComponents(ServiceCollection, CreateTestConfiguration());
+        }
     }
 }

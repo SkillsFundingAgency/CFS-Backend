@@ -32,9 +32,11 @@ namespace CalculateFunding.Functions.CalcEngine.UnitTests
             return configData;
         }
 
-        protected override Assembly FunctionAssembly => typeof(OnCalcsGenerateAllocationResults).Assembly;
-        protected override IServiceScope CreateServiceScope() =>
-            Startup.RegisterComponents(ServiceCollection, CreateTestConfiguration())
-                .CreateScope();
+        protected override Assembly EntryAssembly => typeof(OnCalcsGenerateAllocationResults).Assembly;
+
+        protected override void RegisterDependencies()
+        {
+            Startup.RegisterComponents(ServiceCollection, CreateTestConfiguration());
+        }
     }
 }

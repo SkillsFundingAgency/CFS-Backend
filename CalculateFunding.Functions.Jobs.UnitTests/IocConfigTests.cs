@@ -22,10 +22,11 @@ namespace CalculateFunding.Functions.Jobs.UnitTests
             return configData;
         }
         
-        protected override Assembly FunctionAssembly => typeof(OnDeleteJobs).Assembly;
+        protected override Assembly EntryAssembly => typeof(OnDeleteJobs).Assembly;
 
-        protected override IServiceScope CreateServiceScope() =>
-            Startup.RegisterComponents(ServiceCollection, CreateTestConfiguration())
-                .CreateScope();
+        protected override void RegisterDependencies()
+        {
+            Startup.RegisterComponents(ServiceCollection, CreateTestConfiguration());
+        }
     }
 }

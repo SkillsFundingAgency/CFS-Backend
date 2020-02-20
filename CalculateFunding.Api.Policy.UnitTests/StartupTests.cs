@@ -1,30 +1,14 @@
 ﻿using System.Collections.Generic;
+using System.Reflection;
 using CalculateFunding.Api.Policy.Controllers;
-using CalculateFunding.Common.TemplateMetadata;
 using CalculateFunding.Tests.Common;
-using FluentAssertions;
-using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CalculateFunding.Api.Policy.UnitTests
 {
     [TestClass]
-    public class StartupTests : IoCUnitTestBase
+    public class StartupTests : ControllerIoCUnitTestBase
     {
-        [TestMethod]
-        public void ConfigureServices_RegisterDependenciesCorrectly()
-        {
-            // Arrange
-            IConfigurationRoot configuration = CreateTestConfiguration();
-            Startup target = new Startup(configuration);
-
-            // Act
-            target.ConfigureServices(Services);
-
-            // Assert
-            ResolveType<FundingStreamController>().Should().NotBeNull(nameof(FundingStreamController));
-        }
-
         protected override Dictionary<string, string> AddToConfiguration()
         {
             var configData = new Dictionary<string, string>
@@ -34,6 +18,14 @@ namespace CalculateFunding.Api.Policy.UnitTests
             };
 
             return configData;
+        }
+        
+        protected override Assembly EntryAssembly => typeof(TemplateController).Assembly;
+        
+        protected override void RegisterDependencies()
+        {
+            new Startup(CreateTestConfiguration())
+                .ConfigureServices(ServiceCollection);
         }
     }
 }

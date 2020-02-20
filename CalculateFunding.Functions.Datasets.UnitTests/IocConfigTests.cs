@@ -34,10 +34,11 @@ namespace CalculateFunding.Functions.Datasets.UnitTests
             return configData;
         }
         
-        protected override Assembly FunctionAssembly => typeof(OnDeleteDatasets).Assembly;
+        protected override Assembly EntryAssembly => typeof(OnDeleteDatasets).Assembly;
 
-        protected override IServiceScope CreateServiceScope() =>
-            Startup.RegisterComponents(ServiceCollection, CreateTestConfiguration())
-                .CreateScope();
+        protected override void RegisterDependencies()
+        {
+            Startup.RegisterComponents(ServiceCollection, CreateTestConfiguration());
+        }
     }
 }

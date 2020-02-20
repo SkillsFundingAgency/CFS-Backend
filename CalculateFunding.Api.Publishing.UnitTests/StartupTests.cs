@@ -1,35 +1,14 @@
 ﻿using System.Collections.Generic;
+using System.Reflection;
 using CalculateFunding.Api.Publishing.Controllers;
 using CalculateFunding.Tests.Common;
-using FluentAssertions;
-using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Hosting.Internal;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace CalculateFunding.Api.Publishing.UnitTests
 {
     [TestClass]
-    public class StartupTests : IoCUnitTestBase
+    public class StartupTests : ControllerIoCUnitTestBase
     {
-        [TestMethod]
-        public void ConfigureServices_RegisterDependenciesCorrectly()
-        {
-            // Arrange
-            Services.AddSingleton<IHostingEnvironment>(new HostingEnvironment());
-            IConfigurationRoot configuration = CreateTestConfiguration();
-            Startup target = new Startup(configuration);
-
-            // Act
-            target.ConfigureServices(Services);
-
-            // Assert
-            ResolveType<PublishingController>().Should().NotBeNull(nameof(PublishingController));
-            ResolveType<PublishedProvidersController>().Should().NotBeNull(nameof(PublishedProvidersController));
-
-        }
-
         protected override Dictionary<string, string> AddToConfiguration()
         {
             return new Dictionary<string, string>
@@ -45,6 +24,14 @@ namespace CalculateFunding.Api.Publishing.UnitTests
                 { "providersClient:ApiKey", "Local" },
                 { "AzureStorageSettings:ConnectionString", "StorageConnection" },
             };
+        }
+        
+        protected override Assembly EntryAssembly => typeof(PublishingController).Assembly;
+        
+        protected override void RegisterDependencies()
+        {
+            new Startup(CreateTestConfiguration())
+                .ConfigureServices(ServiceCollection);
         }
     }
 }

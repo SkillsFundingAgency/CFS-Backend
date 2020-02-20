@@ -8,6 +8,7 @@
   <ItemGroup>
     <PackageReference Include="CalculateFunding.Common" Version="1.39.0" />
     <PackageReference Include="FluentAssertions" Version="5.10.0" />
+    <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.8.2" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.2.5" />
     <PackageReference Include="Microsoft.Azure.ServiceBus" Version="4.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="2.2.0" />

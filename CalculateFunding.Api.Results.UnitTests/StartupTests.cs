@@ -1,36 +1,14 @@
-using System;
 using System.Collections.Generic;
+using System.Reflection;
 using CalculateFunding.Api.Results.Controllers;
-using CalculateFunding.Services.Results;
-using CalculateFunding.Services.Results.Interfaces;
 using CalculateFunding.Tests.Common;
-using FluentAssertions;
-using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Hosting.Internal;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace CalculateFunding.Api.Results.UnitTests
 {
     [TestClass]
-    public class StartupTests : IoCUnitTestBase
+    public class StartupTests : ControllerIoCUnitTestBase
     {
-        [TestMethod]
-        public void ConfigureServices_RegisterDependenciesCorrectly()
-        {
-            // Arrange
-            Services.AddSingleton<IHostingEnvironment>(new HostingEnvironment());
-            IConfigurationRoot configuration = CreateTestConfiguration();
-            Startup target = new Startup(configuration);
-
-            // Act
-            target.ConfigureServices(Services);
-
-            // Assert
-            ResolveType<ResultsController>().Should().NotBeNull(nameof(ResultsController));
-        }
-
         protected override Dictionary<string, string> AddToConfiguration()
         {
             var configData = new Dictionary<string, string>
@@ -49,6 +27,14 @@ namespace CalculateFunding.Api.Results.UnitTests
             };
 
             return configData;
+        }
+                
+        protected override Assembly EntryAssembly => typeof(ResultsController).Assembly;
+        
+        protected override void RegisterDependencies()
+        {
+            new Startup(CreateTestConfiguration())
+                .ConfigureServices(ServiceCollection);
         }
     }
 }

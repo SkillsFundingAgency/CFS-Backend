@@ -1,90 +1,14 @@
 using CalculateFunding.Api.Providers.Controllers;
-using CalculateFunding.Services.Providers;
-using CalculateFunding.Services.Providers.Interfaces;
 using CalculateFunding.Tests.Common;
-using FluentAssertions;
-using Microsoft.Extensions.Configuration;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Hosting.Internal;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
 using System.Collections.Generic;
+using System.Reflection;
 
 namespace CalculateFunding.Api.Providers.UnitTests
 {
     [TestClass]
-    public class StartupTests : IoCUnitTestBase
+    public class StartupTests : ControllerIoCUnitTestBase
     {
-        bool enableMajorMinorVersioning = true;
-
-        [TestInitialize()]
-        public void BeforeTest()
-        {
-            enableMajorMinorVersioning = true;
-        }
-
-        [TestMethod]
-        public void ConfigureServices_RegisterDependenciesCorrectly()
-        {
-            // Arrange
-            Services.AddSingleton<IHostingEnvironment>(new HostingEnvironment());
-            IConfigurationRoot configuration = CreateTestConfiguration();
-            Startup target = new Startup(configuration);
-
-            // Act
-            target.ConfigureServices(Services);
-
-            // Assert
-            ResolveType<MasterProviderController>().Should().NotBeNull(nameof(MasterProviderController));
-            ResolveType<ProviderByDateController>().Should().NotBeNull(nameof(ProviderByDateController));
-            ResolveType<ProviderByVersionController>().Should().NotBeNull(nameof(ProviderByVersionController));
-            ResolveType<ScopedProvidersController>().Should().NotBeNull(nameof(ProviderByVersionController));
-        }
-
-        [TestMethod]
-        public void ConfigureServices_WhenMajorMinorVersioningIsEnabled_RegisterDependenciesCorrectly()
-        {
-            // Arrange
-            IConfigurationRoot configuration = CreateTestConfiguration();
-            Startup target = new Startup(configuration);
-
-            // Act
-            target.ConfigureServices(Services);
-
-            // Assert
-            IServiceProvider serviceProvider = target.ServiceProvider;
-
-            ProviderVersionService service = (ProviderVersionService)serviceProvider.GetService(typeof(IProviderVersionService));
-
-            service
-              .Should()
-              .BeOfType<ProviderVersionService>();
-        }
-
-        [TestMethod]
-        public void ConfigureServices_WhenMajorMinorVersioningIsDisabled_RegisterDependenciesCorrectly()
-        {
-            // Arrange
-            enableMajorMinorVersioning = false;
-
-            IConfigurationRoot configuration = CreateTestConfiguration();
-
-            Startup target = new Startup(configuration);
-
-            // Act
-            target.ConfigureServices(Services);
-
-            // Assert
-            IServiceProvider serviceProvider = target.ServiceProvider;
-
-            ProviderVersionService service = (ProviderVersionService)serviceProvider.GetService(typeof(IProviderVersionService));
-
-            service
-               .Should()
-               .BeOfType<ProviderVersionService>();
-        }
-
         protected override Dictionary<string, string> AddToConfiguration()
         {
             var configData = new Dictionary<string, string>
@@ -106,6 +30,14 @@ namespace CalculateFunding.Api.Providers.UnitTests
             };
 
             return configData;
+        }
+        
+        protected override Assembly EntryAssembly => typeof(ProvidersController).Assembly;
+        
+        protected override void RegisterDependencies()
+        {
+            new Startup(CreateTestConfiguration())
+                .ConfigureServices(ServiceCollection);
         }
     }
 }

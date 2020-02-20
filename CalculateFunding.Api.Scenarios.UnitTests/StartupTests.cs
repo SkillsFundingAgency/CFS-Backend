@@ -1,33 +1,14 @@
 using System.Collections.Generic;
+using System.Reflection;
 using CalculateFunding.Api.Scenarios.Controllers;
 using CalculateFunding.Tests.Common;
-using FluentAssertions;
-using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Hosting.Internal;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace CalculateFunding.Api.Scenarios.UnitTests
 {
     [TestClass]
-    public class StartupTests : IoCUnitTestBase
+    public class StartupTests : ControllerIoCUnitTestBase
     {
-        [TestMethod]
-        public void ConfigureServices_RegisterDependenciesCorrectly()
-        {
-            // Arrange
-            Services.AddSingleton<IHostingEnvironment>(new HostingEnvironment());
-            IConfigurationRoot configuration = CreateTestConfiguration();
-            Startup target = new Startup(configuration);
-
-            // Act
-            target.ConfigureServices(Services);
-
-            // Assert
-            ResolveType<ScenariosController>().Should().NotBeNull(nameof(ScenariosController));
-        }
-
         protected override Dictionary<string, string> AddToConfiguration()
         {
             var configData = new Dictionary<string, string>
@@ -46,6 +27,14 @@ namespace CalculateFunding.Api.Scenarios.UnitTests
             };
 
             return configData;
+        }
+        
+        protected override Assembly EntryAssembly => typeof(ScenariosController).Assembly;
+        
+        protected override void RegisterDependencies()
+        {
+            new Startup(CreateTestConfiguration())
+                .ConfigureServices(ServiceCollection);
         }
     }
 }

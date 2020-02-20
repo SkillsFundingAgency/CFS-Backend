@@ -1,33 +1,14 @@
 using System.Collections.Generic;
+using System.Reflection;
 using CalculateFunding.Api.Calcs.Controllers;
 using CalculateFunding.Tests.Common;
-using FluentAssertions;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Hosting.Internal;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CalculateFunding.Api.Calcs.UnitTests
 {
     [TestClass]
-    public class StartupTests : IoCUnitTestBase
+    public class StartupTests : ControllerIoCUnitTestBase
     {
-        [TestMethod]
-        public void ConfigureServices_RegisterDependenciesCorrectly()
-        {
-            // Arrange
-            Services.AddSingleton<IHostingEnvironment>(new HostingEnvironment());
-            IConfigurationRoot configuration = CreateTestConfiguration();
-            Startup target = new Startup(configuration);
-
-            // Act
-            target.ConfigureServices(Services);
-
-            // Assert
-            ResolveType<CalculationsController>().Should().NotBeNull(nameof(CalculationsController));
-        }
-
         protected override Dictionary<string, string> AddToConfiguration()
         {
             return new Dictionary<string, string>
@@ -51,6 +32,14 @@ namespace CalculateFunding.Api.Calcs.UnitTests
                 { "graphClient:ApiEndpoint", "https://localhost:7015/api" },
                 { "graphClient:ApiKey", "Local" }
             };
+        }
+
+        protected override Assembly EntryAssembly => typeof(CalculationsController).Assembly;
+        
+        protected override void RegisterDependencies()
+        {
+            new Startup(CreateTestConfiguration())
+                .ConfigureServices(ServiceCollection);
         }
     }
 }

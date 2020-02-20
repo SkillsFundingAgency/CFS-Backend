@@ -16,25 +16,25 @@ namespace CalculateFunding.Tests.Common
             ServiceCollection = new ServiceCollection();
         }
         
-        protected abstract Assembly FunctionAssembly { get; }
-        protected abstract IServiceScope CreateServiceScope();
+        protected abstract Assembly EntryAssembly { get; }
+
+        protected virtual IServiceScope CreateServiceScope() => ServiceCollection
+            .BuildServiceProvider()
+            .CreateScope();
 
         protected IServiceCollection ServiceCollection { get; private set; }
 
         [TestMethod]
-        public void CanResolveAllFunctionClasses()
+        public void CanResolveAllSystemEntryPoints()
         {
-            IEnumerable<Type> EntryPoints = FunctionAssembly.GetTypes()
+            IEnumerable<Type> EntryPoints = EntryAssembly.GetTypes()
                 .Where(_ => _.IsSubclassOf(typeof(TBase)) &&
                             !_.IsAbstract)
                 .ToArray();
 
-            foreach(Type function in EntryPoints)
-            {
-                ServiceCollection.AddScoped(function);
-            }
-
-            AddExtraRegistrations(ServiceCollection);
+            RegisterEntryPoints(EntryPoints);
+            RegisterDependencies();
+            AddExtraRegistrations();
             
             using (IServiceScope scope = CreateServiceScope())
             {
@@ -50,7 +50,17 @@ namespace CalculateFunding.Tests.Common
             }
         }
 
-        protected virtual void AddExtraRegistrations(IServiceCollection serviceCollection)
+        private void RegisterEntryPoints(IEnumerable<Type> EntryPoints)
+        {
+            foreach (Type function in EntryPoints)
+            {
+                ServiceCollection.AddScoped(function);
+            }
+        }
+
+        protected abstract void RegisterDependencies();
+
+        protected virtual void AddExtraRegistrations()
         {
         }
     }

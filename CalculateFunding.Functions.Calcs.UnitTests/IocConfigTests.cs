@@ -39,11 +39,11 @@ namespace CalculateFunding.Functions.Calcs.UnitTests
             return configData;
         }
 
-        protected override Assembly FunctionAssembly => typeof(OnDeleteCalculations).Assembly;
+        protected override Assembly EntryAssembly => typeof(OnDeleteCalculations).Assembly;
 
-        protected override IServiceScope CreateServiceScope() =>
-            Startup.RegisterComponents(ServiceCollection, CreateTestConfiguration())
-                .CreateScope();
-
+        protected override void RegisterDependencies()
+        {
+            Startup.RegisterComponents(ServiceCollection, CreateTestConfiguration());
+        }
     }
 }
