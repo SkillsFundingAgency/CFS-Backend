@@ -44,7 +44,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
 
                 if (priorValue != currentValue)
                 {
-                    providerVariationContext.Result.VariationReasons.Add(_variationReason);
+                    providerVariationContext.Result.AddVariationReasons(_variationReason);
                 }        
             }
         }

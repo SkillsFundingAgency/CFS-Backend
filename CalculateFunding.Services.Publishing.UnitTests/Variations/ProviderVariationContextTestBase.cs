@@ -142,6 +142,18 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
             _queuedChangeIndex++;
         }
 
+        protected void AndTheVariationReasonsWereRecordedOnTheVariationContext(params VariationReason[] variationReasons)
+        {
+            foreach (VariationReason variationReason in variationReasons)
+            {
+                VariationContext
+                    .Result
+                    .VariationReasons
+                    .Should()
+                    .Contain(variationReason, variationReason.ToString());
+            }
+        }
+        
         protected void AndTheVariationChangeWasQueued<TChange>()
             where TChange : IVariationChange
         {

@@ -5,6 +5,7 @@ using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Publishing.AcceptanceTests.Contexts;
 using CalculateFunding.Publishing.AcceptanceTests.Models;
+using CalculateFunding.Services.Core.Extensions;
 using FluentAssertions;
 using TechTalk.SpecFlow;
 using TechTalk.SpecFlow.Assist;
@@ -38,17 +39,29 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
                 Current = publishedProviderVersion,
             };
 
+            if (publishedProviderVersion.Status == PublishedProviderStatus.Released)
+            {
+                publishedProvider.Released = publishedProviderVersion.DeepCopy();
+            }
+
             _publishedFundingRepositoryStepContext.CurrentPublishedProvider = publishedProvider;
         }
 
         [Given(@"the Published Provider has the following funding lines")]
         public void GivenThePublishedProviderHasTheFollowingFundingLines(IEnumerable<FundingLine> fundingLines)
         {
-            _publishedFundingRepositoryStepContext.CurrentPublishedProvider
+            var currentPublishedProvider = _publishedFundingRepositoryStepContext.CurrentPublishedProvider;
+
+            currentPublishedProvider
                 .Should()
                 .NotBeNull();
 
-            _publishedFundingRepositoryStepContext.CurrentPublishedProvider.Current.FundingLines = fundingLines;
+            currentPublishedProvider.Current.FundingLines = fundingLines;
+
+            if (currentPublishedProvider.Released != null)
+            {
+                currentPublishedProvider.Released.FundingLines = fundingLines.DeepCopy();
+            }
         }
 
         [Given(@"the Published Provider '(.*)' has the following funding lines")]
@@ -229,13 +242,20 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
         [Given(@"the Published Provider has the following provider information")]
         public void GivenThePublishedProviderHasTheFollowingProviderInformation(Table table)
         {
-            _publishedFundingRepositoryStepContext.CurrentPublishedProvider
+            var currentPublishedProvider = _publishedFundingRepositoryStepContext.CurrentPublishedProvider;
+
+            currentPublishedProvider
                             .Should()
                             .NotBeNull();
 
             Provider provider = table.CreateInstance<Provider>();
 
-            _publishedFundingRepositoryStepContext.CurrentPublishedProvider.Current.Provider = provider;
+            currentPublishedProvider.Current.Provider = provider;
+
+            if (currentPublishedProvider.Released != null)
+            {
+                currentPublishedProvider.Released.Provider = provider.DeepCopy();
+            }
         }
 
         [Given(@"the Published Provider is available in the repository for this specification")]

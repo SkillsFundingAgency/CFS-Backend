@@ -13,7 +13,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
         [TestInitialize]
         public void SetUp()
         {
-            _closureVariationStrategy = new ClosureWithSuccessorVariationStrategy();
+            ClosureVariationStrategy = new ClosureWithSuccessorVariationStrategy();
 
             VariationContext.SuccessorRefreshState = VariationContext.RefreshState.DeepCopy();
 

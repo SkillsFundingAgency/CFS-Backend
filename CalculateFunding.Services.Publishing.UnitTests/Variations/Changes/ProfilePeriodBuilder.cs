@@ -51,7 +51,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
             return new ProfilePeriod
             {
                 Type = _type.GetValueOrDefault(NewRandomEnum<ProfilePeriodType>()),
-                TypeValue = _typeValue,
+                TypeValue = _typeValue ?? NewRandomMonth(),
                 ProfiledValue = _profiledAmount.GetValueOrDefault(NewRandomNumberBetween(1900, 3000)),
                 Year = _year.GetValueOrDefault(NewRandomDateTime().Year),
                 Occurrence = _occurence.GetValueOrDefault(NewRandomNumberBetween(0, 2))

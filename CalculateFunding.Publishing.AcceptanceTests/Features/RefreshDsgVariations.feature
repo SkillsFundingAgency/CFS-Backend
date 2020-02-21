@@ -92,7 +92,7 @@ Background:
 		| FundingStreamId | DSG      |
 		| FundingPeriodId | FY-2021  |
 		| TemplateVersion | 1.0      |
-		| Status          | Approved |
+		| Status          | Released |
 		| TotalFunding    | 14000    |
 		| MajorVersion    | 0        |
 		| MinorVersion    | 1        |
@@ -150,6 +150,8 @@ Background:
 		| Name                     | Order |
 		| ProviderMetadata         | 0     |
 		| DsgTotalAllocationChange | 1     |
+		| FundingUpdated           | 2     |
+		| ProfilingUpdated         | 3     |
 
 Scenario: When the total allocation increases
     Given the following variation pointers exist
@@ -184,6 +186,11 @@ Scenario: When the total allocation increases
 	    | FundingLineCode | Value |
 	    | TotalAllocation | 21000 |
 	And the upserted provider version for '1000000' has no funding line over payments for funding line 'DSG-002'
+	And the provider variation reasons were recorded
+		| ProviderId | VariationReason  |
+		| 1000000    | FundingUpdated   |
+		| 1000000    | NameFieldUpdated |
+		| 1000000    | ProfilingUpdated |
 
 Scenario: When the total allocation decreases but repaid in period
     Given the following variation pointers exist
@@ -218,6 +225,11 @@ Scenario: When the total allocation decreases but repaid in period
 	    | FundingLineCode | Value |
 	    | TotalAllocation | 3500  |
 	And the upserted provider version for '1000000' has no funding line over payments for funding line 'DSG-002'
+	And the provider variation reasons were recorded
+		| ProviderId | VariationReason  |
+		| 1000000    | FundingUpdated   |
+		| 1000000    | NameFieldUpdated |
+		| 1000000    | ProfilingUpdated |
 
 Scenario: When the total allocation decreases and leaves an overpayment outside of the period
     Given the following variation pointers exist
@@ -254,3 +266,8 @@ Scenario: When the total allocation decreases and leaves an overpayment outside 
 	And the upserted provider version for '1000000' has the following funding line over payments
 	    | FundingLineCode | OverPayment |
 	    | DSG-002         | 6500        |
+	And the provider variation reasons were recorded
+		| ProviderId | VariationReason  |
+		| 1000000    | FundingUpdated   |
+		| 1000000    | NameFieldUpdated |
+		| 1000000    | ProfilingUpdated |

@@ -12,7 +12,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
         [TestInitialize]
         public void SetUp()
         {
-            _closureVariationStrategy = new ClosureVariationStrategy();
+            ClosureVariationStrategy = new ClosureVariationStrategy();
         }
 
         [TestMethod]

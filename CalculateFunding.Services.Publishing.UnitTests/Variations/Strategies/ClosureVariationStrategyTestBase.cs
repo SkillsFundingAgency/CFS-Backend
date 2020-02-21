@@ -8,7 +8,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
 {
     public abstract class ClosureVariationStrategyTestBase : VariationStrategyTestBase
     {
-        protected IVariationStrategy _closureVariationStrategy;
+        protected IVariationStrategy ClosureVariationStrategy;
 
         [TestMethod]
         public async Task FailsPreconditionCheckIfProviderPreviouslyClosed()
@@ -48,7 +48,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
 
         protected async Task WhenTheVariationsAreDetermined()
         {
-            await _closureVariationStrategy.DetermineVariations(VariationContext);
+            await ClosureVariationStrategy.DetermineVariations(VariationContext);
         }
     }
 }

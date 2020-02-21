@@ -9,7 +9,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
 {
     public abstract class VariationStrategyTestBase : ProviderVariationContextTestBase
     {
-        protected void GivenTheOtherwiseValidVariationContext(Action<ProviderVariationContext> changes = null)
+        protected const string Closed = "Closed";
+
+        protected virtual void GivenTheOtherwiseValidVariationContext(Action<ProviderVariationContext> changes = null)
         {
             VariationContext.AllPublishedProviderSnapShots = AsDictionary(new  PublishedProviderSnapShots(VariationContext.PublishedProvider));
             VariationContext.AllPublishedProvidersRefreshStates = AsDictionary(VariationContext.PublishedProvider);
@@ -22,12 +24,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
             VariationContext.AllPublishedProvidersRefreshStates[publishedProvider.Current.ProviderId] = publishedProvider;
         }
 
-        private IDictionary<string, PublishedProvider> AsDictionary(params PublishedProvider[] publishedProviders)
+        protected IDictionary<string, PublishedProvider> AsDictionary(params PublishedProvider[] publishedProviders)
         {
             return publishedProviders.ToDictionary(_ => _.Current.ProviderId);
         }
 
-        private IDictionary<string, PublishedProviderSnapShots> AsDictionary(params PublishedProviderSnapShots[] publishedProviders)
+        protected IDictionary<string, PublishedProviderSnapShots> AsDictionary(params PublishedProviderSnapShots[] publishedProviders)
         {
             return publishedProviders.ToDictionary(_ => _.LatestSnapshot.Current.ProviderId);
         }

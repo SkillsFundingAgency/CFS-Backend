@@ -1,4 +1,6 @@
-﻿using AutoMapper;
+﻿using System;
+using System.Linq;
+using AutoMapper;
 using BoDi;
 using CalculateFunding.Common.ApiClient.Calcs;
 using CalculateFunding.Common.ApiClient.Jobs;
@@ -23,6 +25,7 @@ using CalculateFunding.Services.Publishing.Providers;
 using CalculateFunding.Services.Publishing.Variations;
 using CalculateFunding.Services.Publishing.Variations.Errors;
 using CalculateFunding.Services.Publishing.Variations.Strategies;
+using FluentAssertions.Common;
 using Microsoft.Extensions.Configuration;
 using Microsoft.FeatureManagement;
 using Polly;
@@ -150,13 +153,12 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
                 c.AddProfile<PublishingServiceMappingProfile>();
             }).CreateMapper());
 
-            RegisterInstanceAs<IVariationStrategyServiceLocator>(new VariationStrategyServiceLocator(new IVariationStrategy[]
-            {
-                new ClosureVariationStrategy(),
-                new ClosureWithSuccessorVariationStrategy(),
-                new ProviderMetadataVariationStrategy(),
-                new DsgTotalAllocationChangeVariationStrategy(),
-            }));
+            IVariationStrategy[] variationStrategies = typeof(IVariationStrategy).Assembly.GetTypes()
+                .Where(_ => _.Implements(typeof(IVariationStrategy)))
+                .Select(_ => (IVariationStrategy)Activator.CreateInstance(_))
+                .ToArray();
+
+            RegisterInstanceAs<IVariationStrategyServiceLocator>(new VariationStrategyServiceLocator(variationStrategies));
 
             RegisterTypeAs<ProviderVariationsDetection, IDetectProviderVariations>();
             RegisterTypeAs<SpecificationsInMemoryClient, ISpecificationsApiClient>();
