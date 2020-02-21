@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
@@ -13,7 +14,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
     {
         public string Name => "ClosureWithSuccessor";
 
-        public Task DetermineVariations(ProviderVariationContext providerVariationContext)
+        public Task DetermineVariations(ProviderVariationContext providerVariationContext, IEnumerable<string> fundingLineCodes)
         {
             Guard.ArgumentNotNull(providerVariationContext, nameof(providerVariationContext));
             

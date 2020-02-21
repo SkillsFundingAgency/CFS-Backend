@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
+using CalculateFunding.Common.ApiClient.Policies.Models;
 using FluentAssertions;
 using TechTalk.SpecFlow;
 using TechTalk.SpecFlow.Assist;

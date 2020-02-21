@@ -13,7 +13,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
     {
         public string Name => "ProfilingUpdated";
 
-        public Task DetermineVariations(ProviderVariationContext providerVariationContext)
+        public Task DetermineVariations(ProviderVariationContext providerVariationContext, IEnumerable<string> fundingLineCodes)
         {
             Guard.ArgumentNotNull(providerVariationContext, nameof(providerVariationContext));
 

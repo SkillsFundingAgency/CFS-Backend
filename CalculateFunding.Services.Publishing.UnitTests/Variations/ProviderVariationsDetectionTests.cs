@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
+using CalculateFunding.Common.ApiClient.Policies.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
@@ -80,7 +80,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
                                ctx.ProviderId == existingPublishedProvider.Current.ProviderId &&
                                ReferenceEquals(ctx.UpdatedProvider, updatedProvider) &&
                                ReferenceEquals(ctx.AllPublishedProviderSnapShots, allPublishedProviderSnapShots) &&
-                               ReferenceEquals(ctx.AllPublishedProvidersRefreshStates, allPublishedProviderRefreshStates)));
+                               ReferenceEquals(ctx.AllPublishedProvidersRefreshStates, allPublishedProviderRefreshStates)), 
+                        fundingVariation.FundingLineCodes);
                 }   
             });
         }
@@ -113,20 +114,26 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
         private static IEnumerable<object[]> FundingVariationExamples()
         {
             yield return NewFundingVariationExample(
+                NewFundingLineCodes(NewRandomString()),
                 (NewRandomString(), 13),
                 (NewRandomString(), 3));
             yield return NewFundingVariationExample(
+                NewFundingLineCodes(NewRandomString(), NewRandomString(), NewRandomString()),
                 (NewRandomString(), 1),
                 (NewRandomString(), 3),
                 (NewRandomString(), 5),
                 (NewRandomString(), 12));
         }
 
-        private static object[] NewFundingVariationExample(params (string, int)[] variations)
+        private static string[] NewFundingLineCodes(params string[] codes) => codes;
+
+        private static object[] NewFundingVariationExample(string[] fundingLineCodes, 
+            params (string, int)[] variations)
         {
             return new object[] { variations.Select(variation =>
                     NewFundingVariation(fv => fv.WithName(variation.Item1)
-                        .WithOrder(variation.Item2)))
+                        .WithOrder(variation.Item2)
+                        .WithFundingLineCodes(fundingLineCodes)))
                 .ToArray() };
         }
 

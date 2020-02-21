@@ -48,7 +48,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
 
         protected async Task WhenTheVariationsAreDetermined()
         {
-            await ClosureVariationStrategy.DetermineVariations(VariationContext);
+            await ClosureVariationStrategy.DetermineVariations(VariationContext, null);
         }
     }
 }

@@ -34,7 +34,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
         {
             expectedVariationReasons = expectedVariationReasons ?? new VariationReason[0];
             
-            await _metadataVariationStrategy.DetermineVariations(variationContext);
+            await _metadataVariationStrategy.DetermineVariations(variationContext, null);
 
             variationContext
                 .Result

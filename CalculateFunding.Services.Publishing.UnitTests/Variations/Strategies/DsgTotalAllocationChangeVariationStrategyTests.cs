@@ -80,7 +80,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
 
         private async Task WhenTheVariationsAreDetermined()
         {
-            await _variationStrategy.DetermineVariations(VariationContext);
+            await _variationStrategy.DetermineVariations(VariationContext, null);
         }
     }
 }

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
+using CalculateFunding.Common.ApiClient.Policies.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
@@ -45,11 +45,11 @@ namespace CalculateFunding.Services.Publishing.Variations
                 AllPublishedProvidersRefreshStates = allPublishedProviderRefreshStates
             };
 
-            foreach (string variationStrategyName in variations.OrderBy(_ => _.Order).Select(_ => _.Name))
+            foreach (FundingVariation configuredVariation in variations.OrderBy(_ => _.Order))
             {
-                IVariationStrategy variationStrategy = _variationStrategyServiceLocator.GetService(variationStrategyName);
+                IVariationStrategy variationStrategy = _variationStrategyServiceLocator.GetService(configuredVariation.Name);
 
-                await variationStrategy.DetermineVariations(providerVariationContext);
+                await variationStrategy.DetermineVariations(providerVariationContext, configuredVariation.FundingLineCodes);
             }
 
             return providerVariationContext;

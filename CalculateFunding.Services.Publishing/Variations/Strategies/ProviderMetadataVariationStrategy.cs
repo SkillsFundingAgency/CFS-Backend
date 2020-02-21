@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Utility;
@@ -62,7 +63,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
 
         public string Name => "ProviderMetadata";
 
-        public Task DetermineVariations(ProviderVariationContext providerVariationContext)
+        public Task DetermineVariations(ProviderVariationContext providerVariationContext, IEnumerable<string> fundingLineCodes)
         {
             if (providerVariationContext.PriorState == null || providerVariationContext.UpdatedProvider == null)
             {

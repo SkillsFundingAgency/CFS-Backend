@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
+using CalculateFunding.Common.ApiClient.Policies.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Models;
 using CalculateFunding.Services.Publishing.Variations;

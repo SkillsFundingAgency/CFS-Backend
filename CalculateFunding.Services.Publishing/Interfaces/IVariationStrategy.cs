@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using CalculateFunding.Services.Publishing.Models;
 
 namespace CalculateFunding.Services.Publishing.Interfaces
@@ -7,6 +8,6 @@ namespace CalculateFunding.Services.Publishing.Interfaces
     {
         string Name { get; }
         
-        Task DetermineVariations(ProviderVariationContext providerVariationContext);
+        Task DetermineVariations(ProviderVariationContext providerVariationContext, IEnumerable<string> fundingLineCodes);
     }
 }
