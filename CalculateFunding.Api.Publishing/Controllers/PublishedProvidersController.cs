@@ -34,7 +34,7 @@ namespace CalculateFunding.Api.Publishing.Controllers
             _deletePublishedProvidersService = deletePublishedProvidersService;
             _featureToggle = featureToggle;
         }
-        
+
         [HttpDelete("api/publishedproviders/{fundingStreamId}/{fundingPeriodId}")]
         [ApiExplorerSettings(IgnoreApi = true)]
         [ProducesResponseType(200)]

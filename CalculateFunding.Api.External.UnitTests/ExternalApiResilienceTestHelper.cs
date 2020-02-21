@@ -12,6 +12,7 @@ namespace CalculateFunding.Api.External.UnitTests
             {
                 PublishedProviderBlobRepositoryPolicy = Policy.NoOpAsync(),
                 PublishedFundingBlobRepositoryPolicy = Policy.NoOpAsync(),
+                PublishedFundingRepositoryPolicy = Policy.NoOpAsync()
             };
         }
     }

@@ -56,7 +56,26 @@ namespace CalculateFunding.Services.Publishing.Repositories
 
             return health;
         }
-        
+
+        public async Task<IEnumerable<dynamic>> GetFundings(string publishedProviderVersion)
+        {
+            Guard.IsNullOrWhiteSpace(publishedProviderVersion, nameof(publishedProviderVersion));
+
+            return await _repository
+             .DynamicQuery(new CosmosDbQuery
+             {
+                 QueryText = @"SELECT c.content.fundingId As fundingId FROM c
+                                where c.documentType = 'PublishedFundingVersion'
+                                AND ARRAY_CONTAINS(c.content.providerFundings, @publishedProviderVersion, true)
+                                and c.content.status = 'Released'
+                                and c.deleted = false",
+                 Parameters = new[]
+                 {
+                    new CosmosDbQueryParameter("@publishedProviderVersion", publishedProviderVersion)
+                 }
+             });
+        }
+
         public async Task<IEnumerable<PublishedProviderVersion>> GetPublishedProviderVersions(string specificationId,
             string providerId)
         {

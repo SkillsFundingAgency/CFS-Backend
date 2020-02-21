@@ -4,6 +4,7 @@ using CalculateFunding.Api.External.Middleware;
 using CalculateFunding.Api.External.Swagger;
 using CalculateFunding.Api.External.V3.Interfaces;
 using CalculateFunding.Api.External.V3.Services;
+using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Storage;
 using CalculateFunding.Common.WebApi.Extensions;
@@ -17,6 +18,7 @@ using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
+using CalculateFunding.Services.Publishing.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -183,6 +185,19 @@ namespace CalculateFunding.Api.External
 
                 return new PublishedFundingRetrievalService(blobClient, resiliencePolicies, fileSystemCache, logger, settings);
             });
+            
+            builder.AddSingleton<IPublishedFundingRepository, PublishedFundingRepository>((ctx) =>
+            {
+                CosmosDbSettings calssDbSettings = new CosmosDbSettings();
+
+                Configuration.Bind("CosmosDbSettings", calssDbSettings);
+
+                calssDbSettings.ContainerName = "publishedfunding";
+
+                CosmosRepository calcsCosmosRepostory = new CosmosRepository(calssDbSettings);
+
+                return new PublishedFundingRepository(calcsCosmosRepostory);
+            });
 
             // Register dependencies
             builder
@@ -227,6 +242,7 @@ namespace CalculateFunding.Api.External
                 {
                     PublishedProviderBlobRepositoryPolicy = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                     PublishedFundingBlobRepositoryPolicy = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                    PublishedFundingRepositoryPolicy  = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy)
                 };
             });
 
@@ -247,8 +263,9 @@ namespace CalculateFunding.Api.External
                 ILogger logger = ctx.GetService<ILogger>();
                 IFileSystemCache fileSystemCache = ctx.GetService<IFileSystemCache>();
                 IExternalApiFileSystemCacheSettings settings = ctx.GetService<IExternalApiFileSystemCacheSettings>();
+                IPublishedFundingRepository publishedFundingRepository = ctx.GetService<IPublishedFundingRepository>();
 
-                return new ProviderFundingVersionService(blobClient, logger, publishingResiliencePolicies, fileSystemCache, settings);
+                return new ProviderFundingVersionService(blobClient, publishedFundingRepository, logger, publishingResiliencePolicies, fileSystemCache, settings);
             });
 
             ServiceProvider = builder.BuildServiceProvider();

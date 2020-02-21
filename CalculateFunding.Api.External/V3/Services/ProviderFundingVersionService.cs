@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Api.External.V3.Interfaces;
@@ -8,6 +10,7 @@ using CalculateFunding.Common.Storage;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Core.Caching.FileSystem;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Publishing.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Storage.Blob;
 using Polly;
@@ -22,8 +25,11 @@ namespace CalculateFunding.Api.External.V3.Services
         private readonly IBlobClient _blobClient;
         private readonly Policy _blobClientPolicy;
         private readonly ILogger _logger;
+        private readonly IPublishedFundingRepository _publishedFundingRepository;
+        private readonly Policy _publishedFundingRepositoryPolicy;
 
         public ProviderFundingVersionService(IBlobClient blobClient,
+            IPublishedFundingRepository publishedFundingRepository,
             ILogger logger,
             IExternalApiResiliencePolicies resiliencePolicies,
             IFileSystemCache fileSystemCache,
@@ -35,12 +41,16 @@ namespace CalculateFunding.Api.External.V3.Services
             Guard.ArgumentNotNull(fileSystemCache, nameof(fileSystemCache));
             Guard.ArgumentNotNull(cacheSettings, nameof(cacheSettings));
             Guard.ArgumentNotNull(resiliencePolicies.PublishedProviderBlobRepositoryPolicy, nameof(resiliencePolicies.PublishedProviderBlobRepositoryPolicy));
+            Guard.ArgumentNotNull(publishedFundingRepository, nameof(publishedFundingRepository));
+            Guard.ArgumentNotNull(resiliencePolicies.PublishedFundingRepositoryPolicy, nameof(resiliencePolicies.PublishedFundingRepositoryPolicy));
 
             _blobClient = blobClient;
             _logger = logger;
             _fileSystemCache = fileSystemCache;
             _cacheSettings = cacheSettings;
             _blobClientPolicy = resiliencePolicies.PublishedProviderBlobRepositoryPolicy;
+            _publishedFundingRepository = publishedFundingRepository;
+            _publishedFundingRepositoryPolicy = resiliencePolicies.PublishedFundingRepositoryPolicy;
         }
 
         public async Task<IActionResult> GetProviderFundingVersion(string providerFundingVersion)
@@ -90,6 +100,13 @@ namespace CalculateFunding.Api.External.V3.Services
 
                 return new InternalServerErrorResult(errorMessage);
             }
+        }
+
+        public async Task<IActionResult> GetFundings(string publishedProviderVersion)
+        {
+            if (string.IsNullOrWhiteSpace(publishedProviderVersion)) return new BadRequestObjectResult("Null or empty id provided.");
+
+            return new OkObjectResult(await _publishedFundingRepositoryPolicy.ExecuteAsync(() => _publishedFundingRepository.GetFundings(publishedProviderVersion)));
         }
 
         private async Task<ContentResult> GetContentResultForStream(Stream stream)

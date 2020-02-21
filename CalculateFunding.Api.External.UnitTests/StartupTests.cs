@@ -13,6 +13,9 @@ namespace CalculateFunding.Api.External.UnitTests
         {
             var configData = new Dictionary<string, string>
             {
+                { "CosmosDbSettings:ContainerName", "publishedfunding" },
+                { "CosmosDbSettings:DatabaseName", "calculate-funding" },
+                { "CosmosDbSettings:ConnectionString", "AccountEndpoint=https://test.documents.azure.com:443/;AccountKey=dGVzdA==;" },
                 { "SearchServiceName", "ss-t1te-cfs"},
                 { "SearchServiceKey", "test" },
                 { "AzureStorageSettings:ConnectionString", "DefaultEndpointsProtocol=https;AccountName=test;AccountKey=AccountKey=dGVzdA==;EndpointSuffix=core.windows.net" },

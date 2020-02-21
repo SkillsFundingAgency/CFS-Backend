@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using CalculateFunding.Api.External.V3.Interfaces;
 using CalculateFunding.Common.Utility;
 using Microsoft.AspNetCore.Authorization;
@@ -30,6 +31,18 @@ namespace CalculateFunding.Api.External.V3.Controllers
         public async Task<IActionResult> GetFunding([FromRoute] string providerFundingVersion)
         {
             return await _providerFundingVersionService.GetProviderFundingVersion(providerFundingVersion);
+        }
+
+        /// <summary>
+        /// Gets provider funding based on prublished funding version
+        /// </summary>
+        /// <param name="publishedProviderVersion">Published Provider Version</param>
+        /// <returns>Provider Version contents</returns>
+        [HttpGet("{publishedProviderVersion}/fundings")]
+        [ProducesResponseType(200, Type = typeof(IEnumerable<dynamic>))]
+        public async Task<IActionResult> GetFundings([FromRoute] string publishedProviderVersion)
+        {
+            return await _providerFundingVersionService.GetFundings(publishedProviderVersion);
         }
     }
 }

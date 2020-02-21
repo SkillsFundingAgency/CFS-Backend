@@ -21,6 +21,8 @@ namespace CalculateFunding.Services.Publishing.Interfaces
 
         Task<IEnumerable<KeyValuePair<string, string>>> GetPublishedProviderIdsForApproval(string fundingStreamId, string fundingPeriodId);
 
+        Task<IEnumerable<dynamic>> GetFundings(string publishedProviderVersion);
+
         Task<IEnumerable<PublishedProviderVersion>> GetPublishedProviderVersions(string specificationId,
             string providerId);
 

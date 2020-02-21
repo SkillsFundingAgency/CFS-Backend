@@ -250,5 +250,10 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         {
             throw new NotImplementedException();
         }
+
+        public Task<IEnumerable<dynamic>> GetFundings(string publishedProviderVersion)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

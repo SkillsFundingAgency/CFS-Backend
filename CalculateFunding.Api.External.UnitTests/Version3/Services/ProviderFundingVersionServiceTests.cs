@@ -11,6 +11,7 @@ using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Storage;
 using CalculateFunding.Services.Core.Caching.FileSystem;
 using CalculateFunding.Services.Core.Extensions;
+using PublishingInterfaces = CalculateFunding.Services.Publishing.Interfaces;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Storage.Blob;
@@ -18,6 +19,8 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Serilog;
+using CalculateFunding.Services.Publishing.Interfaces;
+using System.Collections.Generic;
 
 namespace CalculateFunding.Api.External.UnitTests.Version3.Services
 {
@@ -25,8 +28,37 @@ namespace CalculateFunding.Api.External.UnitTests.Version3.Services
     public class ProviderFundingVersionServiceTests
     {
         private const string providerFundingVersion = "id1";
+        private const string publishedProviderVersion = "publishedProviderVersion";
 
         private readonly string blobName = $"{providerFundingVersion}.json";
+
+        [TestMethod]
+        public async Task GetFundings_GivenPublishedProviderVersionIncludedInFunding_ReturnsFundingIds()
+        {
+            //Arrange
+            IEnumerable<dynamic> fundingIds = new[] { new { fundingId = "id1" } };
+
+            IPublishedFundingRepository publishedFundingRepository = Substitute.For<IPublishedFundingRepository>();
+
+            ProviderFundingVersionService service = CreateProviderFundingVersionService(publishedFundingRepository: publishedFundingRepository);
+
+            publishedFundingRepository.GetFundings(Arg.Is<string>(publishedProviderVersion))
+                .Returns(fundingIds);
+
+            //Act
+            IActionResult result = await service.GetFundings(publishedProviderVersion);
+
+            result
+                .Should()
+                .BeOfType<OkObjectResult>();
+
+            OkObjectResult contentResult = result as OkObjectResult;
+
+            IEnumerable<dynamic> fundingIdResults = contentResult.Value as IEnumerable<dynamic>;
+
+            fundingIdResults.Should()
+                .BeEquivalentTo(fundingIds);
+        }
 
         [TestMethod]
         public async Task GetProviderFundingVersionsBody_GivenNullOrEmptyId_ReturnsBadRequest()
@@ -351,9 +383,11 @@ namespace CalculateFunding.Api.External.UnitTests.Version3.Services
         private static ProviderFundingVersionService CreateProviderFundingVersionService(ILogger logger = null,
             IBlobClient blobClient = null,
             IFileSystemCache fileSystemCache = null,
-            IExternalApiFileSystemCacheSettings cacheSettings = null)
+            IExternalApiFileSystemCacheSettings cacheSettings = null,
+            PublishingInterfaces.IPublishedFundingRepository publishedFundingRepository = null)
         {
             return new ProviderFundingVersionService(blobClient ?? CreateBlobClient(),
+                publishedFundingRepository ?? CreatePublishedFundingRepository(),
                 logger ?? CreateLogger(),
                 ExternalApiResilienceTestHelper.GenerateTestPolicies(),
                 fileSystemCache ?? CreateFileSystemCache(),
@@ -378,6 +412,11 @@ namespace CalculateFunding.Api.External.UnitTests.Version3.Services
         private static IFileSystemCache CreateFileSystemCache()
         {
             return Substitute.For<IFileSystemCache>();
+        }
+
+        private static PublishingInterfaces.IPublishedFundingRepository CreatePublishedFundingRepository()
+        {
+            return Substitute.For<PublishingInterfaces.IPublishedFundingRepository>();
         }
 
         private static IExternalApiFileSystemCacheSettings CreateFileSystemCacheSettings()

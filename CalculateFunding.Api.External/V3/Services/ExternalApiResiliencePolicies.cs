@@ -8,5 +8,7 @@ namespace CalculateFunding.Api.External.V3.Services
         public Policy PublishedProviderBlobRepositoryPolicy { get; set; }
 
         public Policy PublishedFundingBlobRepositoryPolicy { get; set; }
+
+        public Policy PublishedFundingRepositoryPolicy { get; set; }
     }
 }
