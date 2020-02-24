@@ -26,7 +26,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
                 return Task.CompletedTask;
             }
 
-            providerVariationContext.Result.AddVariationReasons(VariationReason.FundingUpdated);
+            providerVariationContext.AddVariationReasons(VariationReason.FundingUpdated);
             
             providerVariationContext.QueueVariationChange(new MetaDataVariationsChange(providerVariationContext));
             

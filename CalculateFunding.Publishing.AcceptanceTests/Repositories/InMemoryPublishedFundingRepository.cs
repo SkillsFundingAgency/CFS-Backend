@@ -246,6 +246,11 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             throw new NotImplementedException();
         }
 
+        public Task<PublishedProviderVersion> GetLatestPublishedProviderVersion(string fundingStreamId, string fundingPeriodId, string providerId)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<IEnumerable<PublishedProviderVersion>> GetPublishedProviderVersions(string specificationId, string providerId)
         {
             throw new NotImplementedException();

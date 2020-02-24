@@ -6,6 +6,7 @@ using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.FeatureToggles;
 using CalculateFunding.Services.Publishing.Interfaces;
+using CalculateFunding.Services.Publishing.Profiling;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CalculateFunding.Api.Publishing.Controllers
@@ -16,25 +17,39 @@ namespace CalculateFunding.Api.Publishing.Controllers
         private readonly IProviderFundingPublishingService _providerFundingPublishingService;
         private readonly IPublishedProviderVersionService _publishedProviderVersionService;
         private readonly IDeletePublishedProvidersService _deletePublishedProvidersService;
+        private readonly IProfileTotalsService _profileTotalsService;
         private readonly IFeatureToggle _featureToggle;
 
-        public PublishedProvidersController(
-            IProviderFundingPublishingService providerFundingPublishingService,
-            IPublishedProviderVersionService publishedProviderVersionService, 
-            IDeletePublishedProvidersService deletePublishedProvidersService, 
+        public PublishedProvidersController(IProviderFundingPublishingService providerFundingPublishingService,
+            IPublishedProviderVersionService publishedProviderVersionService,
+            IDeletePublishedProvidersService deletePublishedProvidersService,
+            IProfileTotalsService profileTotalsService,
             IFeatureToggle featureToggle)
         {
             Guard.ArgumentNotNull(providerFundingPublishingService, nameof(providerFundingPublishingService));
             Guard.ArgumentNotNull(publishedProviderVersionService, nameof(publishedProviderVersionService));
             Guard.ArgumentNotNull(deletePublishedProvidersService, nameof(deletePublishedProvidersService));
+            Guard.ArgumentNotNull(profileTotalsService, nameof(profileTotalsService));
             Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
 
             _providerFundingPublishingService = providerFundingPublishingService;
             _publishedProviderVersionService = publishedProviderVersionService;
             _deletePublishedProvidersService = deletePublishedProvidersService;
             _featureToggle = featureToggle;
+            _profileTotalsService = profileTotalsService;
         }
-
+        
+        [HttpGet("api/publishedproviders/{fundingStreamId}/{fundingPeriodId}/{providerId}/profileTotals")]
+        [ProducesResponseType(200, Type = typeof(IEnumerable<ProfileTotal>))]
+        public async Task<IActionResult> GetLatestProfileTotalsForPublishedProvider([FromRoute] string fundingStreamId, 
+            [FromRoute] string fundingPeriodId,
+            [FromRoute] string providerId)
+        {
+            return await _profileTotalsService.GetPaymentProfileTotalsForFundingStreamForProvider(fundingStreamId,
+                fundingPeriodId,
+                providerId);
+        }
+        
         [HttpDelete("api/publishedproviders/{fundingStreamId}/{fundingPeriodId}")]
         [ApiExplorerSettings(IgnoreApi = true)]
         [ProducesResponseType(200)]

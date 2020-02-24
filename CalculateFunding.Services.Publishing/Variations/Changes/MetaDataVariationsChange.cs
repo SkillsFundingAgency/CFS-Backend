@@ -14,7 +14,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
 
         protected override Task ApplyChanges(IApplyProviderVariations variationsApplications)
         {
-            RefreshState.VariationReasons = VariationContext.Result.VariationReasons.ToArray();
+            RefreshState.VariationReasons = VariationContext.VariationReasons.ToArray();
             
             return Task.CompletedTask;
         }

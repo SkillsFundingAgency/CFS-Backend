@@ -29,7 +29,6 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
                 
                 return Task.CompletedTask;
             }
-
             
             providerVariationContext.QueueVariationChange(new ZeroRemainingProfilesChange(providerVariationContext));
             providerVariationContext.QueueVariationChange(new ReAdjustFundingValuesForProfileValuesChange(providerVariationContext));

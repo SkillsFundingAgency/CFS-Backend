@@ -37,7 +37,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
             await _metadataVariationStrategy.DetermineVariations(variationContext, null);
 
             variationContext
-                .Result
                 .VariationReasons
                 .OrderBy(_ => _)
                 .Should()

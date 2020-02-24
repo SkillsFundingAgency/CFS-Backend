@@ -38,7 +38,6 @@ namespace CalculateFunding.Services.Publishing.Variations
             ProviderVariationContext providerVariationContext = new ProviderVariationContext
             {
                 PublishedProvider = existingPublishedProvider,
-                Result = new ProviderVariationResult(),
                 UpdatedProvider = provider,
                 GeneratedProvider = generatedProviderResult,
                 AllPublishedProviderSnapShots = allPublishedProviderSnapShots,

@@ -45,7 +45,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
 
                 if (priorValue != currentValue)
                 {
-                    providerVariationContext.Result.AddVariationReasons(_variationReason);
+                    providerVariationContext.AddVariationReasons(_variationReason);
                 }        
             }
         }
@@ -75,7 +75,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
                 variationCheck.Run(providerVariationContext);
             }
 
-            if (providerVariationContext.Result.VariationReasons.AnyWithNullCheck())
+            if (providerVariationContext.VariationReasons.AnyWithNullCheck())
             {
                 providerVariationContext.QueueVariationChange(new MetaDataVariationsChange(providerVariationContext));
             }

@@ -20,10 +20,6 @@ namespace CalculateFunding.Services.Publishing.Models
         /// </summary>
         public ApiProvider UpdatedProvider { get; set; }
 
-        public ApiProvider SuccessorProvider { get; set; }
-
-        public ProviderVariationResult Result { get; set; }
-
         public GeneratedProviderResult GeneratedProvider { get; set; }
 
         /// <summary>
@@ -75,10 +71,13 @@ namespace CalculateFunding.Services.Publishing.Models
         public IDictionary<string, PublishedProvider> AllPublishedProvidersRefreshStates { get; set; }
 
         public ICollection<string> ErrorMessages { get; } = new List<string>();
+        
+        public ICollection<VariationReason> VariationReasons { get; set; } = new List<VariationReason>();
 
-        public string FundingStreamId { get; set; }
-
-        public string TemplateVersion { get; set; }
+        public void AddVariationReasons(params VariationReason[] variationReasons)
+        {
+            VariationReasons.AddRange(variationReasons.Except(VariationReasons));
+        }
 
         public void RecordErrors(params string[] errors)
         {

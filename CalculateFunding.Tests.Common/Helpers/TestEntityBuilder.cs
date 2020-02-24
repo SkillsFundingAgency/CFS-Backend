@@ -19,5 +19,7 @@ namespace CalculateFunding.Tests.Common.Helpers
         protected DateTimeOffset NewRandomDateTime() => new RandomDateTime();
 
         protected string NewRandomMonth() => NewRandomDateTime().ToString("MMMM");
+
+        protected int NewRandomYear() => NewRandomDateTime().Year;
     }
 }

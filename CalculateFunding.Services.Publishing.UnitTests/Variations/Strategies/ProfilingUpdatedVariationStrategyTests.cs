@@ -36,7 +36,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
                 .Should()
                 .BeEmpty();
             VariationContext
-                .Result
                 .VariationReasons
                 .Should()
                 .BeEmpty();
@@ -54,7 +53,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
                 .Should()
                 .BeEmpty();
             VariationContext
-                .Result
                 .VariationReasons
                 .Should()
                 .BeEmpty();
@@ -73,7 +71,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
                 .Should()
                 .BeEmpty();
             VariationContext
-                .Result
                 .VariationReasons
                 .Should()
                 .BeEmpty();
@@ -91,7 +88,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
                 .Should()
                 .BeEmpty();
             VariationContext
-                .Result
                 .VariationReasons
                 .Should()
                 .BeEmpty();
@@ -111,7 +107,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
                 .Should()
                 .BeEmpty();
             VariationContext
-                .Result
                 .VariationReasons
                 .Should()
                 .BeEmpty();

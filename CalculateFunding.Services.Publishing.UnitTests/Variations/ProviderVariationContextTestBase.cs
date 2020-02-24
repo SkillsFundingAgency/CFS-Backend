@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Models;
-using CalculateFunding.Services.Publishing.UnitTests.Variations.Changes;
+using CalculateFunding.Services.Publishing.UnitTests.Profiling;
 using CalculateFunding.Services.Publishing.Variations.Strategies;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
@@ -10,7 +10,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.Variations
 {
-    public abstract class ProviderVariationContextTestBase
+    public abstract class ProviderVariationContextTestBase : ProfilingTestBase
     {
         protected ProviderVariationContext VariationContext;
         private int _queuedChangeIndex;
@@ -21,42 +21,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
             _queuedChangeIndex = 0;
             
             VariationContext = NewVariationContext();
-        }
-
-        protected ProfilePeriod NewProfilePeriod(int occurrence, int year, string month, decimal? amount = null)
-        {
-            return NewProfilePeriod(_ => _.WithOccurence(occurrence)
-                .WithAmount(amount.GetValueOrDefault())
-                .WithType(ProfilePeriodType.CalendarMonth)
-                .WithYear(year)
-                .WithTypeValue(month));
-        }
-
-        protected FundingLine NewFundingLine(Action<FundingLineBuilder> setUp = null)
-        {
-            FundingLineBuilder fundingLineBuilder = new FundingLineBuilder();
-
-            setUp?.Invoke(fundingLineBuilder);
-            
-            return fundingLineBuilder.Build();
-        }
-
-        protected DistributionPeriod NewDistributionPeriod(Action<DistributionPeriodBuilder> setUp = null)
-        {
-            DistributionPeriodBuilder distributionPeriodBuilder = new DistributionPeriodBuilder();
-
-            setUp?.Invoke(distributionPeriodBuilder);
-            
-            return distributionPeriodBuilder.Build();
-        }
-
-        protected ProfilePeriod NewProfilePeriod(Action<ProfilePeriodBuilder> setUp = null)
-        {
-            ProfilePeriodBuilder profilePeriodBuilder = new ProfilePeriodBuilder();
-            
-            setUp?.Invoke(profilePeriodBuilder);
-
-            return profilePeriodBuilder.Build();
         }
 
         protected ProviderVariationContext NewVariationContext(Action<ProviderVariationContextBuilder> setUp = null)
@@ -72,34 +36,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
             setUp?.Invoke(variationContextBuilder);
 
             return variationContextBuilder.Build();
-        }
-
-        protected PublishedProvider NewPublishedProvider(Action<PublishedProviderBuilder> setUp = null)
-        {
-            PublishedProviderBuilder publishedProviderBuilder = new PublishedProviderBuilder();
-
-            setUp?.Invoke(publishedProviderBuilder);
-            
-            return publishedProviderBuilder.Build();
-        }
-
-        protected PublishedProviderVersion NewPublishedProviderVersion(Action<PublishedProviderVersionBuilder> setUp = null)
-        {
-            PublishedProviderVersionBuilder providerVersionBuilder = new PublishedProviderVersionBuilder()
-                .WithProvider(NewProvider());
-
-            setUp?.Invoke(providerVersionBuilder);
-
-            return providerVersionBuilder.Build();
-        }
-
-        protected Provider NewProvider(Action<ProviderBuilder> setUp = null)
-        {
-            ProviderBuilder providerBuilder = new ProviderBuilder();
-
-            setUp?.Invoke(providerBuilder);
-
-            return providerBuilder.Build();
         }
 
         protected Common.ApiClient.Providers.Models.Provider NewApiProvider(Action<ApiProviderBuilder> setUp = null)
@@ -147,7 +83,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
             foreach (VariationReason variationReason in variationReasons)
             {
                 VariationContext
-                    .Result
                     .VariationReasons
                     .Should()
                     .Contain(variationReason, variationReason.ToString());

@@ -3,6 +3,7 @@ using System.Linq;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Models;
+using CalculateFunding.Services.Publishing.Profiling;
 
 namespace CalculateFunding.Services.Publishing.Variations.Changes
 {

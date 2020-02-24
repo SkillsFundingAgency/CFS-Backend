@@ -20,10 +20,12 @@ namespace CalculateFunding.Api.Publishing.UnitTests.Controllers
     {
         private PublishedProvidersController _controller;
         private IDeletePublishedProvidersService _deletePublishedProvidersService;
+        private IProfileTotalsService _profileTotalsService;
         private IFeatureToggle _featureToggle;
 
         private string _fundingStreamId;
         private string _fundPeriodId;
+        private string _providerId;
         private string _correlationId;
         private string _userId;
         private string _userName;
@@ -35,14 +37,17 @@ namespace CalculateFunding.Api.Publishing.UnitTests.Controllers
         {
             _featureToggle = Substitute.For<IFeatureToggle>();
             _deletePublishedProvidersService = Substitute.For<IDeletePublishedProvidersService>();
+            _profileTotalsService = Substitute.For<IProfileTotalsService>();
 
             _controller = new PublishedProvidersController(Substitute.For<IProviderFundingPublishingService>(),
                 Substitute.For<IPublishedProviderVersionService>(),
                 _deletePublishedProvidersService,
+                _profileTotalsService,
                 _featureToggle);
 
             _fundingStreamId = NewRandomString();
             _fundPeriodId = NewRandomString();
+            _providerId = NewRandomString();
             _correlationId = NewRandomString();
             _userId = NewRandomString();
             _userName = NewRandomString();
@@ -68,6 +73,22 @@ namespace CalculateFunding.Api.Publishing.UnitTests.Controllers
             {
                 {"sfa-correlationId", new StringValues(_correlationId)}
             }));
+        }
+
+        [TestMethod]
+        public async Task GetLatestProfileTotalsForPublishedProviderDelegatesToProfileTotalService()
+        {
+            IActionResult expectedResult = Substitute.For<IActionResult>();
+            
+            GivenTheProfilesTotalResponse(expectedResult);
+
+            IActionResult actualResult = await _controller.GetLatestProfileTotalsForPublishedProvider(_fundingStreamId,
+                _fundPeriodId,
+                _providerId);
+
+            actualResult
+                .Should()
+                .BeSameAs(expectedResult);
         }
 
         [TestMethod]
@@ -103,6 +124,15 @@ namespace CalculateFunding.Api.Publishing.UnitTests.Controllers
             _featureToggle
                 .IsDeletePublishedProviderForbidden()
                 .Returns(true);
+        }
+
+        private void GivenTheProfilesTotalResponse(IActionResult result)
+        {
+            _profileTotalsService
+                .GetPaymentProfileTotalsForFundingStreamForProvider(_fundingStreamId,
+                    _fundPeriodId,
+                    _providerId)
+                .Returns(result);
         }
 
         private async Task WhenThePublishedProvidersAreDeleted()

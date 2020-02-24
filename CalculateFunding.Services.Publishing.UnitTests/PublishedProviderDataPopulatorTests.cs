@@ -28,7 +28,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private PublishedProviderVersion _publishedProviderVersionForMapping;
         private GeneratedProviderResult _generatedProviderResult;
         private ApiProvider _provider;
-        private ProviderVariationResult _providerVariationResult;
 
         private IMapper _mapper;
         private ILogger _logger;
@@ -50,8 +49,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .Returns(_publishedProviderVersionForMapping.Provider);
 
             _logger = CreateLogger();
-
-            _providerVariationResult = NewProviderVariationResult();
             
             _publishedProviderDataPopulator = new PublishedProviderDataPopulator(_mapper, _logger);
         }
@@ -165,15 +162,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 _provider, 
                 _templateVersion,
                 false);
-        }
-
-        private ProviderVariationResult NewProviderVariationResult(Action<ProviderVariationResultBuilder> setUp = null)
-        {
-            ProviderVariationResultBuilder providerVariationResultBuilder = new ProviderVariationResultBuilder();
-
-            setUp?.Invoke(providerVariationResultBuilder);
-            
-            return providerVariationResultBuilder.Build();
         }
 
         private static string NewRandomString() => new RandomString();

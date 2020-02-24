@@ -5,6 +5,7 @@ using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
+using CalculateFunding.Services.Publishing.Profiling;
 using CalculateFunding.Services.Publishing.Variations.Changes;
 
 namespace CalculateFunding.Services.Publishing.Variations.Strategies
@@ -27,7 +28,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
                 return Task.CompletedTask;
             }
 
-            providerVariationContext.Result.AddVariationReasons(VariationReason.ProfilingUpdated);
+            providerVariationContext.AddVariationReasons(VariationReason.ProfilingUpdated);
 
             providerVariationContext.QueueVariationChange(new MetaDataVariationsChange(providerVariationContext));
 

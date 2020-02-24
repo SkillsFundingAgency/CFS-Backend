@@ -5,7 +5,7 @@ using System.Globalization;
 using System.Linq;
 using CalculateFunding.Models.Publishing;
 
-namespace CalculateFunding.Services.Publishing.Variations.Changes
+namespace CalculateFunding.Services.Publishing.Profiling
 {
     public class YearMonthOrderedProfilePeriods : IEnumerable<ProfilePeriod>
     {

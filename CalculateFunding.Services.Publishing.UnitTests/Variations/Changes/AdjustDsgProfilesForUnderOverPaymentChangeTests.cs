@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Models.Publishing;
+using CalculateFunding.Services.Publishing.Profiling;
 using CalculateFunding.Services.Publishing.Variations;
 using CalculateFunding.Services.Publishing.Variations.Changes;
 using CalculateFunding.Tests.Common.Helpers;

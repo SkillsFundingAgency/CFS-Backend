@@ -12,7 +12,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
     {
         private Provider _currentState;
         private PublishedProvider _publishedProvider;
-        private ProviderVariationResult _result;
         private GeneratedProviderResult _generatedProviderResult;
         private IEnumerable<string> _errors;
 
@@ -29,14 +28,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
 
             return this;
         }
-
-        public ProviderVariationContextBuilder WithResult(ProviderVariationResult result)
-        {
-            _result = result;
-
-            return this;
-        }
-
+       
         public ProviderVariationContextBuilder WithPublishedProvider(PublishedProvider publishedProvider)
         {
             _publishedProvider = publishedProvider;
@@ -57,7 +49,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
             {
                 UpdatedProvider = _currentState,
                 PublishedProvider =_publishedProvider,
-                Result = _result ?? new ProviderVariationResult(),
                 GeneratedProvider = _generatedProviderResult
             };
 

@@ -74,8 +74,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
                 {
                     _variationStrategyServiceLocator.GetService(fundingVariation.Name);
                     _variationStrategy.DetermineVariations(Arg.Is<ProviderVariationContext>(
-                        ctx => ctx.Result != null &&
-                               ReferenceEquals(ctx.GeneratedProvider, generatedProviderResult) &&
+                        ctx => ReferenceEquals(ctx.GeneratedProvider, generatedProviderResult) &&
                                ReferenceEquals(ctx.ReleasedState, existingPublishedProvider.Released) &&
                                ctx.ProviderId == existingPublishedProvider.Current.ProviderId &&
                                ReferenceEquals(ctx.UpdatedProvider, updatedProvider) &&

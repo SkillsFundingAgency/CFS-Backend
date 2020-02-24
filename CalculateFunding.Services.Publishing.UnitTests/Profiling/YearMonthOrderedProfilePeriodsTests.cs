@@ -1,13 +1,13 @@
 using System.Linq;
 using CalculateFunding.Models.Publishing;
-using CalculateFunding.Services.Publishing.Variations.Changes;
+using CalculateFunding.Services.Publishing.Profiling;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
+namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
 {
     [TestClass]
-    public class YearMonthOrderedProfilePeriodsTests : ProviderVariationContextTestBase
+    public class YearMonthOrderedProfilePeriodsTests : ProfilingTestBase 
     {
         [TestMethod]
         public void ProjectsDistributionPeriodsAndProfilePeriodsOrderedByYearThenProfilePeriodMonthThenOccurence_ExampleOne()

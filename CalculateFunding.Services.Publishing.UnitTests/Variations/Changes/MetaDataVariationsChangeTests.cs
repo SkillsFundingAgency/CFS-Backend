@@ -57,7 +57,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
 
         private void GivenTheVariationReasons(params VariationReason[] variationReasons)
         {
-            VariationContext.Result.VariationReasons = variationReasons;
+            VariationContext.VariationReasons = variationReasons;
         }
         
         private VariationReason NewRandomVariationReason() => new RandomEnum<VariationReason>();

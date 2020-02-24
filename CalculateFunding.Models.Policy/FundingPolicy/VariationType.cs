@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.FundingPolicy
@@ -9,5 +10,8 @@ namespace CalculateFunding.Models.FundingPolicy
         
         [JsonProperty("order")]
         public int Order { get; set; }
+        
+        [JsonProperty("fundingLineCodes")]
+        public IEnumerable<string> FundingLineCodes { get; set; }
     }
 }
