@@ -10,5 +10,10 @@ namespace CalculateFunding.Models.FundingPolicy.ViewModels
         /// Organisational groupings for funding feed publishing
         /// </summary>
         public IEnumerable<OrganisationGroupingConfiguration> OrganisationGroupings { get; set; }
+
+        /// <summary>
+        /// Variation strategies
+        /// </summary>
+        public IEnumerable<VariationType> Variations { get; set; }
     }
 }
