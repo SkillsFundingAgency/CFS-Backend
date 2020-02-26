@@ -24,12 +24,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
             VariationContext.AllPublishedProvidersRefreshStates[publishedProvider.Current.ProviderId] = publishedProvider;
         }
 
-        protected IDictionary<string, PublishedProvider> AsDictionary(params PublishedProvider[] publishedProviders)
+        private IDictionary<string, PublishedProvider> AsDictionary(params PublishedProvider[] publishedProviders)
         {
             return publishedProviders.ToDictionary(_ => _.Current.ProviderId);
         }
 
-        protected IDictionary<string, PublishedProviderSnapShots> AsDictionary(params PublishedProviderSnapShots[] publishedProviders)
+        private IDictionary<string, PublishedProviderSnapShots> AsDictionary(params PublishedProviderSnapShots[] publishedProviders)
         {
             return publishedProviders.ToDictionary(_ => _.LatestSnapshot.Current.ProviderId);
         }

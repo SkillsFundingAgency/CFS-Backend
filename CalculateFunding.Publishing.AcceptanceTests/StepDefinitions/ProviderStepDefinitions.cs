@@ -1,4 +1,5 @@
 ﻿using CalculateFunding.Common.ApiClient.Providers.Models;
+using CalculateFunding.Common.ApiClient.Providers.Models.Search;
 using CalculateFunding.Publishing.AcceptanceTests.Contexts;
 using FluentAssertions;
 using TechTalk.SpecFlow;
@@ -27,6 +28,13 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
 
             _providersStepContext.EmulatedClient.AddProviderVersion(providerVersion);
         }
+
+        [Given(@"the following provider exists within master provider data")]
+        public void GivenTheFollowingProviderExistsWithinMasterProviderData(ProviderVersionSearchResult providerVersionSearchResult)
+        {
+            _providersStepContext.EmulatedClient.AddProviderVersionSearchResultToMasterProviderData(providerVersionSearchResult);
+        }
+
 
         [Given(@"the following provider exists within core provider data in provider version '(.*)'")]
         public void GivenTheFollowingProviderExistsWithinCoreProviderDataInProviderVersion(string providerVersionId, Table table)

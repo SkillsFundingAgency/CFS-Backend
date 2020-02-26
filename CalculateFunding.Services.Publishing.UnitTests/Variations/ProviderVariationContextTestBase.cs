@@ -116,5 +116,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
         {
             VariationContext.SuccessorRefreshState.FundingLines = fundingLines;
         }
+
+        protected void AndTheFundingLines(params FundingLine[] fundingLines)
+        {
+            GivenTheFundingLines(fundingLines);
+        }
+
+        protected void GivenTheFundingLines(params FundingLine[] fundingLines)
+        {
+            VariationContext.RefreshState.FundingLines = fundingLines;
+        }
     }
 }

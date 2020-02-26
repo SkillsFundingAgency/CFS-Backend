@@ -1,19 +1,26 @@
 using System.Threading.Tasks;
+using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Variations.Changes;
 using CalculateFunding.Services.Publishing.Variations.Strategies;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
 {
     [TestClass]
     public class ClosureWithSuccessorVariationStrategyTests : ClosureVariationStrategyTestBase
     {
+        private Mock<IOutOfScopePublishedProviderBuilder> _outOfScopeProviderBuilder;
+        
         [TestInitialize]
         public void SetUp()
         {
-            ClosureVariationStrategy = new ClosureWithSuccessorVariationStrategy();
+            _outOfScopeProviderBuilder = new Mock<IOutOfScopePublishedProviderBuilder>();
+
+            ClosureVariationStrategy = new ClosureWithSuccessorVariationStrategy(_outOfScopeProviderBuilder.Object);
 
             VariationContext.SuccessorRefreshState = VariationContext.RefreshState.DeepCopy();
 
@@ -39,7 +46,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
         }
         
         [TestMethod]
-        public async Task FailsPreconditionCheckSuccessorNotLocatedInVariationContext()
+        public async Task FailsPreconditionCheckSuccessorNotLocatedInVariationContextOrCreatedFromCoreProviderData()
         {
             GivenTheOtherwiseValidVariationContext(_ => _.UpdatedProvider.Successor = NewRandomString());
             
@@ -48,7 +55,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
             VariationContext
                 .ErrorMessages
                 .Should()
-                .BeEquivalentTo("Unable to run Closure with Successor variation as could not locate successor provider");
+                .BeEquivalentTo("Unable to run Closure with Successor variation as could not locate or create a successor provider");
 
 
             VariationContext
@@ -118,12 +125,39 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
             AndTheVariationChangeWasQueued<ReAdjustFundingValuesForProfileValuesChange>();
             AndThePredecessorWasAddedToTheSuccessor(VariationContext.ProviderId);
         }
+        
+        [TestMethod]
+        public async Task CreatesMissingPublishedProviderAndQueuesTransferAndZeroRemainingProfileAndReAdjustChangesIfPassesPreconditionChecks()
+        {
+            string successorId = NewRandomString();
+            
+            GivenTheOtherwiseValidVariationContext(_ => _.UpdatedProvider.Successor = successorId);
+            
+            PublishedProvider missingProvider = NewPublishedProvider();
+            
+            AndTheMissingPublishedProviderIsCreated(missingProvider);
+            
+            await WhenTheVariationsAreDetermined();
+
+            ThenTheVariationChangeWasQueued<TransferRemainingProfilesToSuccessorChange>();
+            AndTheVariationChangeWasQueued<ReAdjustSuccessorFundingValuesForProfileValueChange>();
+            AndTheVariationChangeWasQueued<ZeroRemainingProfilesChange>();
+            AndTheVariationChangeWasQueued<ReAdjustFundingValuesForProfileValuesChange>();
+            AndThePredecessorWasAddedToTheSuccessor(VariationContext.ProviderId);
+        }
 
         private void AndThePredecessorWasAddedToTheSuccessor(string successorId)
         {
             VariationContext.SuccessorRefreshState.Predecessors
                 .Should()
                 .BeEquivalentTo(successorId);
+        }
+        
+        private void AndTheMissingPublishedProviderIsCreated(PublishedProvider missingProvider)
+        {
+            _outOfScopeProviderBuilder.Setup(_ => _.CreateMissingPublishedProviderForPredecessor(VariationContext, 
+                    VariationContext.UpdatedProvider.Successor))
+                .ReturnsAsync(missingProvider);
         }
     }
 }

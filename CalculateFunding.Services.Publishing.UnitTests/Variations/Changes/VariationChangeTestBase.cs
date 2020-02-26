@@ -55,19 +55,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
             return variationPointerBuilder.Build();
         }
 
-        protected void AndTheFundingLines(params FundingLine[] fundingLines)
-        {
-            GivenTheFundingLines(fundingLines);
-        }
-
         protected void AndTheSuccessorFundingLines(params FundingLine[] fundingLines)
         {
             GivenTheSuccessorFundingLines(fundingLines);
-        }
-        
-        protected void GivenTheFundingLines(params FundingLine[] fundingLines)
-        {
-            VariationContext.RefreshState.FundingLines = fundingLines;
         }
     }
 }

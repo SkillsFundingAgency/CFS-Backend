@@ -537,4 +537,71 @@ Scenario: Providers close with successor
 		| ProviderId |
 		| 1000002    |
 		| 1000000    |
+
+Scenario: Providers close with successor but successor not in scope for specification yet
+	Given the following provider exists within core provider data in provider version 'psg-providers-1.0'
+		| Field              | Value                    |
+		| ProviderId         | 1000000                  |
+		| Status             | Closed                   |
+		| Successor          | 2000002                  |
+		| Name               | Maintained School 1      |
+		| Authority          | Local Authority 1        |
+		| DateOpened         | 2012-03-15               |
+		| LACode             | 200                      |
+		| LocalAuthorityName | Maintained School 1      |
+		| ProviderType       | LA maintained schools    |
+		| ProviderSubType    | Community school         |
+		| ProviderVersionId  | psg-providers-1.0        |
+		| TrustStatus        | Not Supported By A Trust |
+		| UKPRN              | 1000000                  |
+   And the following provider exists within master provider data
+		| Field              | Value                    |
+		| ProviderId         | 2000002                  |
+		| Status             | Closed                   |
+		| Name               | Maintained School 2      |
+		| Authority          | Local Authority 1        |
+		| DateOpened         | 2013-04-16               |
+		| LACode             | 200                      |
+		| LocalAuthorityName | Local Authority 1        |
+		| ProviderType       | LA maintained schools    |
+		| ProviderSubType    | Community school         |
+		| TrustStatus        | Not Supported By A Trust |
+		| UKPRN              | 2000002                  |
+   And the Published Provider '1000000' has the following funding lines
+		| Name            | FundingLineCode | Value | TemplateLineId | Type    |
+		| TotalAllocation | TotalAllocation | 30000 | 1              | Payment |
+   And the Published Provider '1000000' has the following distribution period for funding line 'TotalAllocation'
+		| DistributionPeriodId | Value |
+		| FY-2021              | 30000 |
+   And the Published Provider '1000000' distribution period has the following profiles for funding line 'TotalAllocation'
+		| DistributionPeriodId | Type          | TypeValue | Year | Occurrence | ProfiledValue |
+		| FY-2021              | CalendarMonth | April     | 2021 | 1          | 10000         |
+		| FY-2021              | CalendarMonth | May       | 2021 | 0          | 700           |
+		| FY-2021              | CalendarMonth | May       | 2021 | 1          | 300           |
+		| FY-2021              | CalendarMonth | June      | 2021 | 1          | 10000         |
+   And the following variation pointers exist
+		| FundingStreamId | FundingLineId   | PeriodType    | TypeValue | Year | Occurrence |
+		| PSG             | TotalAllocation | CalenderMonth | May       | 2021 | 0          |
+   When funding is refreshed
+   Then the upserted provider version for '1000000' has the following funding line profile periods
+		| FundingLineCode | DistributionPeriodId | Type          | TypeValue | Year | Occurrence | ProfiledValue |
+		| TotalAllocation | FY-2021              | CalendarMonth | April     | 2021 | 1          | 10000         |
+		| TotalAllocation | FY-2021              | CalendarMonth | May       | 2021 | 0          | 0             |
+		| TotalAllocation | FY-2021              | CalendarMonth | May       | 2021 | 1          | 0             |
+		| TotalAllocation | FY-2021              | CalendarMonth | June      | 2021 | 1          | 0             |
+   And the upserted provider version for '1000000' has the funding line totals 
+		| FundingLineCode | Value |
+		| TotalAllocation | 10000 |
+   And the upserted provider version for '2000002' has the following funding line profile periods
+		| FundingLineCode | DistributionPeriodId | Type          | TypeValue | Year | Occurrence | ProfiledValue |
+		| TotalAllocation | FY-2021              | CalendarMonth | April     | 2021 | 1          | 0             |
+		| TotalAllocation | FY-2021              | CalendarMonth | May       | 2021 | 0          | 700           |
+		| TotalAllocation | FY-2021              | CalendarMonth | May       | 2021 | 1          | 300           |
+		| TotalAllocation | FY-2021              | CalendarMonth | June      | 2021 | 1          | 10000         |
+   And the upserted provider version for '2000002' has the funding line totals 
+		| FundingLineCode | Value |
+		| TotalAllocation | 11000 |
+   And the upserted provider version for '2000002' has the following predecessors
+		| ProviderId |
+		| 1000000    |
 	

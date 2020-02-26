@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Reflection;
 using AutoMapper;
 using BoDi;
 using CalculateFunding.Common.ApiClient.Calcs;
@@ -102,7 +103,10 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
             RegisterTypeAs<JobManagement, IJobManagement>();
             RegisterTypeAs<InMemoryPublishedFundingRepository, IPublishedFundingRepository>();
             RegisterTypeAs<PoliciesInMemoryRepository, IPoliciesApiClient>();
-            RegisterTypeAs<ProvidersInMemoryClient, IProvidersApiClient>();
+
+            var providersInMemoryClient = new ProvidersInMemoryClient();
+            
+            RegisterInstanceAs<IProvidersApiClient>(providersInMemoryClient);
             RegisterTypeAs<ProviderService, IProviderService>();
             RegisterTypeAs<PublishedFundingDateService, IPublishedFundingDateService>();
             RegisterTypeAs<PublishServiceAcceptanceStepContext, IPublishFundingStepContext>();
@@ -148,15 +152,25 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
             RegisterTypeAs<PublishedProviderStatusUpdateService, IPublishedProviderStatusUpdateService>();
             RegisterTypeAs<PublishedProviderStatusUpdateSettings, IPublishedProviderStatusUpdateSettings>();
 
-            RegisterInstanceAs<IMapper>(new MapperConfiguration(c =>
+            var mapper = new MapperConfiguration(c =>
             {
                 c.AddProfile<PublishingServiceMappingProfile>();
-            }).CreateMapper());
+            }).CreateMapper();
+
+            RegisterInstanceAs<IMapper>(mapper);
 
             IVariationStrategy[] variationStrategies = typeof(IVariationStrategy).Assembly.GetTypes()
-                .Where(_ => _.Implements(typeof(IVariationStrategy)))
+                .Where(_ => _.Implements(typeof(IVariationStrategy)) &&
+                            _.GetConstructors().Any(ci => !ci.GetParameters().Any()))
                 .Select(_ => (IVariationStrategy)Activator.CreateInstance(_))
                 .ToArray();
+
+            var closureWithSuccessorVariationStrategy = new ClosureWithSuccessorVariationStrategy(
+                new OutOfScopePublishedProviderBuilder(providersInMemoryClient,
+                    publishingResiliencePolicies,
+                    mapper));
+
+            variationStrategies = variationStrategies.Concat(new [] { closureWithSuccessorVariationStrategy }).ToArray();
 
             RegisterInstanceAs<IVariationStrategyServiceLocator>(new VariationStrategyServiceLocator(variationStrategies));
 

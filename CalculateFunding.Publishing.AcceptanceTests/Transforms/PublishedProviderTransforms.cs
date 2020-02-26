@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using CalculateFunding.Common.ApiClient.Providers.Models.Search;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Publishing.AcceptanceTests.Models;
 using TechTalk.SpecFlow;
@@ -26,6 +27,14 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Transforms
 
             return predecessorsTable.CreateSet<ExpectedPredecessor>()
                 .ToArray();
+        }
+
+        [StepArgumentTransformation]
+        public ProviderVersionSearchResult ToProviderVersionSearchResult(Table providerVersionSearchResultTable)
+        {
+            EnsureTableHasData(providerVersionSearchResultTable);
+
+            return providerVersionSearchResultTable.CreateInstance<ProviderVersionSearchResult>();
         }
     }
 }

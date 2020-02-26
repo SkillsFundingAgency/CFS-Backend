@@ -275,7 +275,11 @@ namespace CalculateFunding.Services.Publishing
                 }
                 
                 // Set generated data on the Published provider
-                foreach (KeyValuePair<string, PublishedProvider> publishedProvider in publishedProviders)
+
+                //we need enumerate a readonly cut of this as we add to it in some variations now (for missing providers not in scope)
+                Dictionary<string, PublishedProvider> publishedProvidersReadonlyDictionary = publishedProviders.ToDictionary(_ => _.Key, _ => _.Value);
+
+                foreach (KeyValuePair<string, PublishedProvider> publishedProvider in publishedProvidersReadonlyDictionary)
                 {
                     PublishedProviderVersion publishedProviderVersion = publishedProvider.Value.Current;
                     string providerId = publishedProviderVersion.ProviderId;
@@ -323,6 +327,11 @@ namespace CalculateFunding.Services.Publishing
                         if (variationContext.HasVariationChanges)
                         {
                             _applyProviderVariations.AddVariationContext(variationContext);
+
+                            if (variationContext.NewProvidersToAdd.Any())
+                            {
+                                newProviders.AddRange(variationContext.NewProvidersToAdd.ToDictionary(_ => _.Current.ProviderId));
+                            }
                         }
                     }
 

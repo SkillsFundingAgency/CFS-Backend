@@ -21,6 +21,8 @@ namespace CalculateFunding.Services.Publishing.Models
         public ApiProvider UpdatedProvider { get; set; }
 
         public GeneratedProviderResult GeneratedProvider { get; set; }
+        
+        public ICollection<PublishedProvider> NewProvidersToAdd { get; } = new List<PublishedProvider>(); 
 
         /// <summary>
         /// The calling code uses side effects on the PublishedProvider.Current instance
@@ -51,6 +53,16 @@ namespace CalculateFunding.Services.Publishing.Models
 
                 return publishedProviderOriginalSnapShot?.Released ?? publishedProviderOriginalSnapShot?.Current;
             }
+        }
+
+        public void AddMissingProvider(PublishedProvider missingProvider)
+        {
+            NewProvidersToAdd.Add(missingProvider);
+            
+            string providerId = missingProvider.Current.ProviderId;
+            
+            AllPublishedProvidersRefreshStates[providerId] = missingProvider;
+            AllPublishedProviderSnapShots[providerId] = new PublishedProviderSnapShots(missingProvider);
         }
 
         public PublishedProvider PublishedProvider { get; set; }

@@ -18,6 +18,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         private Dictionary<string, Dictionary<string, Provider>> _providers = new Dictionary<string, Dictionary<string, Provider>>();
         private Dictionary<string, Dictionary<string, Provider>> _scopedProviders = new Dictionary<string, Dictionary<string, Provider>>();
         private Dictionary<string, ProviderVersion> _providerVersions = new Dictionary<string, ProviderVersion>();
+        private Dictionary<string, ProviderVersionSearchResult> _masterProviderDataByProviderId = new Dictionary<string, ProviderVersionSearchResult>();
 
         public Task<HttpStatusCode> DoesProviderVersionExist(string providerVersionId)
         {
@@ -39,9 +40,12 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             throw new NotImplementedException();
         }
 
-        public Task<ApiResponse<ProviderVersionSearchResult>> GetProviderByIdFromMaster(string providerId)
+        public async Task<ApiResponse<ProviderVersionSearchResult>> GetProviderByIdFromMaster(string providerId)
         {
-            throw new NotImplementedException();
+            return _masterProviderDataByProviderId.TryGetValue(providerId,
+                out ProviderVersionSearchResult providerVersionSearchResult)
+                ? new ApiResponse<ProviderVersionSearchResult>(HttpStatusCode.OK, providerVersionSearchResult)
+                : new ApiResponse<ProviderVersionSearchResult>(HttpStatusCode.NotFound);
         }
 
         public Task<ApiResponse<ProviderVersionSearchResult>> GetProviderByIdFromProviderVersion(string providerVersionId, string providerId)
@@ -152,6 +156,14 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             }
 
             providerVersion.Providers = _providers[providerVersion.ProviderVersionId].Values;
+        }
+
+        public void AddProviderVersionSearchResultToMasterProviderData(
+            ProviderVersionSearchResult providerVersionSearchResult)
+        {
+            Guard.ArgumentNotNull(providerVersionSearchResult, nameof(providerVersionSearchResult));
+
+            _masterProviderDataByProviderId[providerVersionSearchResult.ProviderId] = providerVersionSearchResult;
         }
 
         public void AddProviderToCoreProviderData(string providerVersionId, Provider provider)

@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using CalculateFunding.Common.ApiClient.Providers.Models.Search;
 using CalculateFunding.Models.Publishing;
 using ApiProvider = CalculateFunding.Common.ApiClient.Providers.Models.Provider;
 using GeneratorModels = CalculateFunding.Generators.Funding.Models;
@@ -36,6 +37,8 @@ namespace CalculateFunding.Services.Publishing
             CreateMap<TemplateModels.ReferenceData, FundingReferenceData>();
 
             CreateMap<Generators.OrganisationGroup.Models.OrganisationIdentifier, PublishedOrganisationGroupTypeIdentifier>();
+
+            CreateMap<ProviderVersionSearchResult, Provider>();
         }
     }
 }
