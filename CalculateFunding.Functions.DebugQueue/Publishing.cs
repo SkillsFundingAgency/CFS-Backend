@@ -10,6 +10,38 @@ namespace CalculateFunding.Functions.DebugQueue
 {
     public static class Publishing
     {
+        [FunctionName("on-publishing-generate-published-funding-csv")]
+        public static async Task RunGeneratePublishedFundingCsv([QueueTrigger(ServiceBusConstants.QueueNames.GeneratePublishedFundingCsv, 
+            Connection = "AzureConnectionString")] string item, ILogger log)
+        {
+            using (IServiceScope scope = Functions.Publishing.Startup.RegisterComponents(new ServiceCollection()).CreateScope())
+            {
+                Message message = Helpers.ConvertToMessage<string>(item);
+
+                OnGeneratePublishedFundingCsv function = scope.ServiceProvider.GetService<OnGeneratePublishedFundingCsv>();
+
+                await function.Run(message);
+
+                log.LogInformation($"C# Queue trigger function processed: {item}");
+            }
+        }
+        
+        [FunctionName("on-publishing-generate-published-funding-csv-failure")]
+        public static async Task RunGeneratePublishedFundingCsvFailure([QueueTrigger(ServiceBusConstants.QueueNames.GeneratePublishedFundingCsvPoisonedLocal, 
+            Connection = "AzureConnectionString")] string item, ILogger log)
+        {
+            using (IServiceScope scope = Functions.Publishing.Startup.RegisterComponents(new ServiceCollection()).CreateScope())
+            {
+                Message message = Helpers.ConvertToMessage<string>(item);
+
+                OnGeneratePublishedFundingCsvFailure function = scope.ServiceProvider.GetService<OnGeneratePublishedFundingCsvFailure>();
+
+                await function.Run(message);
+
+                log.LogInformation($"C# Queue trigger function processed: {item}");
+            }
+        }
+        
         [FunctionName("on-publishing-delete-published-providers")]
         public static async Task RunDeletePublishedProviders([QueueTrigger(ServiceBusConstants.QueueNames.DeletePublishedProviders, 
             Connection = "AzureConnectionString")] string item, ILogger log)

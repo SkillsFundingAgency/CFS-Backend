@@ -98,7 +98,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
                     {
                         new CosmosDbQueryParameter("@fundingStreamId", fundingStreamId),
                         new CosmosDbQueryParameter("@fundingPeriodId", fundingPeriodId),
-                        new CosmosDbQueryParameter("@v", providerId)
+                        new CosmosDbQueryParameter("@providerId", providerId)
                     }
                 }))
                 .SingleOrDefault()
@@ -331,6 +331,57 @@ namespace CalculateFunding.Services.Publishing.Repositories
                 },
                 cosmosDbQuery: query,
                 itemsPerPage: 50);
+        }
+
+        public async Task PublishedProviderBatchProcessing(string predicate,
+            string specificationId,
+            Func<List<PublishedProvider>, Task> persistIndexBatch,
+            int batchSize)
+        {
+            CosmosDbQuery query = new CosmosDbQuery
+            {
+                QueryText = $@"SELECT 
+                                {{
+                                    'id': c.content.current.id,
+                                    'providerId' : c.content.current.providerId,
+                                    'fundingStreamId' : c.content.current.fundingStreamId,
+                                    'fundingPeriodId' : c.content.current.fundingPeriodId,
+                                    'specificationId' : c.content.current.specificationId,
+                                    'status'          : c.content.current.status,
+                                    'totalFunding'    : c.content.current.totalFunding,
+                                    'version'         : c.content.current.version,
+                                    'majorVersion'    : c.content.current.majorVersion,
+                                    'minorVersion'    : c.content.current.minorVersion,
+                                    'date'            : c.content.current.date,
+                                    'author'          : {{
+                                        'name' : c.content.current.author.name
+                                    }},
+                                    'provider'        : {{ 
+                                        'providerType' : c.content.current.provider.providerType,
+                                        'localAuthorityName' : c.content.current.provider.localAuthorityName,
+                                        'name' : c.content.current.provider.name,
+                                        'ukprn' : c.content.current.provider.ukprn
+                                    }},
+                                    'fundingLines' : ARRAY(
+                                        SELECT fundingLine.name,
+                                               fundingLine['value']
+                                        FROM fundingLine IN c.content.current.fundingLines
+                                    )
+                                }} AS Current
+                               FROM     publishedProviders c
+                               WHERE    c.documentType = 'PublishedProvider'
+                               AND      c.content.current.specificationId = @specificationId
+                               AND      {predicate} 
+                               AND      c.deleted = false",
+                Parameters = new []
+                {
+                    new CosmosDbQueryParameter("@specificationId", specificationId), 
+                }
+            };
+
+            await _repository.DocumentsBatchProcessingAsync(persistBatchToIndex: persistIndexBatch,
+                cosmosDbQuery: query,
+                itemsPerPage: batchSize);   
         }
 
         public async Task AllPublishedProviderBatchProcessing(Func<List<PublishedProvider>, Task> persistIndexBatch, int batchSize)

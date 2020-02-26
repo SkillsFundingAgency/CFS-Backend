@@ -150,7 +150,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             _results[id]
                 .Should()
-                .BeEquivalentTo(expectedPublishedProvider);
+                .BeEquivalentTo(expectedPublishedProvider,
+                    opt => opt.Excluding(_ => _.Current.Date));
         }
 
         private void TheExceptionShouldBeThrown(string message)

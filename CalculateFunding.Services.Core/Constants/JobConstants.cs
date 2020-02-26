@@ -39,6 +39,8 @@
             public const string DeletePublishedProvidersJob = nameof(DeletePublishedProvidersJob);
 
             public const string ReIndexSpecificationCalculationRelationshipsJob = nameof(ReIndexSpecificationCalculationRelationshipsJob);
+
+            public const string GeneratePublishedFundingCsvJob = nameof(GeneratePublishedFundingCsvJob);
         }
 
         public static class NotificationChannels

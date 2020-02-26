@@ -1,9 +1,9 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Tests.Common.Helpers;
-using Microsoft.Azure.Search.Models;
 
 namespace CalculateFunding.Services.Publishing.UnitTests
 {
@@ -23,6 +23,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private decimal? _totalFunding;
         private IEnumerable<string> _predecessors;
         private Reference _author;
+        private DateTimeOffset? _date;
+
+        public PublishedProviderVersionBuilder WithDate(string dateLiteral)
+        {
+            _date = DateTimeOffset.Parse(dateLiteral);
+
+            return this;
+        }
 
         public PublishedProviderVersionBuilder WithAuthor(Reference author)
         {
@@ -121,7 +129,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             return this;
         }
-        
 
         public PublishedProviderVersion Build()
         {
@@ -140,7 +147,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 Calculations = _calculations,
                 Provider = _provider,
                 TotalFunding = _totalFunding,
-                Predecessors = _predecessors?.ToList()
+                Predecessors = _predecessors?.ToList(),
+                Date = _date.GetValueOrDefault(NewRandomDateTime())
             };
         }
     }

@@ -47,5 +47,10 @@ namespace CalculateFunding.Services.Publishing.Interfaces
         Task<PublishedProviderVersion> GetLatestPublishedProviderVersion(string fundingStreamId,
             string fundingPeriodId,
             string providerId);
+
+        Task PublishedProviderBatchProcessing(string predicate,
+            string specificationId,
+            Func<List<PublishedProvider>, Task> persistIndexBatch,
+            int batchSize);
     }
 }

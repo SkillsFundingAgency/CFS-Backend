@@ -20,6 +20,7 @@ using CalculateFunding.Functions.Publishing.ServiceBus;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.AspNet;
+using CalculateFunding.Services.Core.Caching.FileSystem;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
@@ -31,6 +32,7 @@ using CalculateFunding.Services.Publishing.Helper;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.IoC;
 using CalculateFunding.Services.Publishing.Providers;
+using CalculateFunding.Services.Publishing.Reporting;
 using CalculateFunding.Services.Publishing.Repositories;
 using CalculateFunding.Services.Publishing.Specifications;
 using CalculateFunding.Services.Publishing.Variations;
@@ -111,6 +113,8 @@ namespace CalculateFunding.Functions.Publishing
                 builder.AddScoped<OnPublishFundingFailure>();
                 builder.AddScoped<OnDeletePublishedProviders>();
                 builder.AddScoped<OnReIndexPublishedProviders>();
+                builder.AddScoped<OnGeneratePublishedFundingCsv>();
+                builder.AddScoped<OnGeneratePublishedFundingCsvFailure>();
             }
 
             builder.AddSingleton<ISpecificationService, SpecificationService>();
@@ -134,6 +138,13 @@ namespace CalculateFunding.Functions.Publishing
             builder.AddSingleton<IPublishService, PublishService>();
             builder.AddSingleton<IJobManagement, JobManagement>();
             builder.AddSingleton<ISpecificationFundingStatusService, SpecificationFundingStatusService>();
+            builder.AddScoped<IFundingLineCsvGenerator, FundingLineCsvGenerator>();
+            builder.AddScoped<IFundingLineCsvTransform, FundingLineCsvTransform>();
+            builder.AddScoped<IFundingLineCsvTransformServiceLocator, FundingLineCsvTransformServiceLocator>();
+            builder.AddScoped<IPublishedFundingPredicateBuilder, PublishedFundingPredicateBuilder>();
+            builder.AddScoped<ICsvUtils, CsvUtils>();
+            builder.AddSingleton<IFileSystemAccess, FileSystemAccess>();
+            builder.AddSingleton<IFileSystemCacheSettings, FileSystemCacheSettings>();
 
             builder
                 .AddSingleton<IPublishedProviderVersioningService, PublishedProviderVersioningService>()

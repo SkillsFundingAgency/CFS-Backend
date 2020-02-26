@@ -9,9 +9,7 @@ namespace CalculateFunding.Services.Core.Helpers
     public class CsvUtils : ICsvUtils
     {
         /// <summary>
-        /// Returns a pooled stream writer for the supplied documents transformed into CVS rows
-        /// NB the calling code is responsible for returning stream writer after use to the
-        /// csv utils
+        /// Returns the supplied documents as a Csv string
         /// </summary>
         public string AsCsv(IEnumerable<dynamic> documents, bool outputHeaders)
         {

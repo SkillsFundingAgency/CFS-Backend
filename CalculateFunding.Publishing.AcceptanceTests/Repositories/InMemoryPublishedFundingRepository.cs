@@ -251,6 +251,11 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             throw new NotImplementedException();
         }
 
+        public Task PublishedProviderBatchProcessing(string predicate, string specificationId, Func<List<PublishedProvider>, Task> persistIndexBatch, int batchSize)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<IEnumerable<PublishedProviderVersion>> GetPublishedProviderVersions(string specificationId, string providerId)
         {
             throw new NotImplementedException();

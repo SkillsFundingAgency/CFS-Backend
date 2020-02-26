@@ -96,6 +96,12 @@
             public const string DeletePublishedProviders = "publishing-delete-published-providers";
 
             public const string ReIndexSpecificationCalculationRelationships = "calculations-reindex-specification-calculation-relationships";
+
+            public const string GeneratePublishedFundingCsv = "publishing-generate-published-funding-csv";
+            
+            public const string GeneratePublishedFundingCsvPoisoned = "publishing-generate-published-funding-csv/$DeadLetterQueue";
+            
+            public const string GeneratePublishedFundingCsvPoisonedLocal = "publishing-generate-published-funding-csv-poisoned";
         }
 
         public static class TopicNames
