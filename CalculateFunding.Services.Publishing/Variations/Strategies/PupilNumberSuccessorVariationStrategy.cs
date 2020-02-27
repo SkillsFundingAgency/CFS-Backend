@@ -13,7 +13,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
 
         public Task DetermineVariations(ProviderVariationContext providerVariationContext, IEnumerable<string> fundingLineCodes)
         {
-            if (providerVariationContext.ReleasedState.Provider.Status != Closed
+            if (providerVariationContext.ReleasedState != null && providerVariationContext.ReleasedState.Provider.Status != Closed
                 && providerVariationContext.UpdatedProvider.Status == Closed
                 && string.IsNullOrWhiteSpace(providerVariationContext.UpdatedProvider.Successor))
             {
