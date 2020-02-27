@@ -24,6 +24,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
             return fundingLineBuilder.Build();
         }
 
+        protected static FundingCalculation NewFundingCalculation(Action<FundingCalculationBuilder> setUp = null)
+        {
+            FundingCalculationBuilder fundingCalculationBuilder = new FundingCalculationBuilder();
+
+            setUp?.Invoke(fundingCalculationBuilder);
+
+            return fundingCalculationBuilder.Build();
+        }
+
         protected static DistributionPeriod NewDistributionPeriod(Action<DistributionPeriodBuilder> setUp = null)
         {
             DistributionPeriodBuilder distributionPeriodBuilder = new DistributionPeriodBuilder();

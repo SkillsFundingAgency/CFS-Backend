@@ -155,8 +155,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
         
         private void AndTheMissingPublishedProviderIsCreated(PublishedProvider missingProvider)
         {
-            _outOfScopeProviderBuilder.Setup(_ => _.CreateMissingPublishedProviderForPredecessor(VariationContext, 
-                    VariationContext.UpdatedProvider.Successor))
+            _outOfScopeProviderBuilder.Setup(_ => _.CreateMissingPublishedProviderForPredecessor(VariationContext.PublishedProvider, 
+                    VariationContext.UpdatedProvider.Successor,
+                    VariationContext))
                 .ReturnsAsync(missingProvider);
         }
     }

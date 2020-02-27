@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using CalculateFunding.Common.ApiClient.Calcs;
 using CalculateFunding.Common.ApiClient.Calcs.Models;
 using CalculateFunding.Common.ApiClient.Jobs;
@@ -61,6 +62,8 @@ namespace CalculateFunding.Services.Publishing
         private readonly IPublishingEngineOptions _publishingEngineOptions;
         private readonly IJobManagement _jobManagement;
         private readonly Policy _publishedIndexSearchResiliencePolicy;
+        private readonly IOutOfScopePublishedProviderBuilder _outOfScopePublishedProviderBuilder;
+        private readonly IMapper _mapper;
 
         public PublishService(IPublishedFundingStatusUpdateService publishedFundingStatusUpdateService,
             IPublishedFundingDataService publishedFundingDataService,
@@ -84,7 +87,9 @@ namespace CalculateFunding.Services.Publishing
             ICalculationsApiClient calculationsApiClient,
             ILogger logger,
             IPublishingEngineOptions publishingEngineOptions,
-            IJobManagement jobManagement)
+            IJobManagement jobManagement,
+            IOutOfScopePublishedProviderBuilder outOfScopePublishedProviderBuilder,
+            IMapper mapper)
         {
             Guard.ArgumentNotNull(publishedFundingStatusUpdateService, nameof(publishedFundingStatusUpdateService));
             Guard.ArgumentNotNull(publishedFundingDataService, nameof(publishedFundingDataService));
@@ -108,12 +113,14 @@ namespace CalculateFunding.Services.Publishing
             Guard.ArgumentNotNull(calculationsApiClient, nameof(calculationsApiClient));
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(publishingEngineOptions, nameof(publishingEngineOptions));
+            Guard.ArgumentNotNull(outOfScopePublishedProviderBuilder, nameof(outOfScopePublishedProviderBuilder));
 
             Guard.ArgumentNotNull(publishingResiliencePolicies.PublishedFundingRepository, nameof(publishingResiliencePolicies.PublishedFundingRepository));
             Guard.ArgumentNotNull(publishingResiliencePolicies.JobsApiClient, nameof(publishingResiliencePolicies.JobsApiClient));
             Guard.ArgumentNotNull(publishingResiliencePolicies.PoliciesApiClient, nameof(publishingResiliencePolicies.PoliciesApiClient));
             Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
             Guard.ArgumentNotNull(publishingResiliencePolicies.PublishedIndexSearchResiliencePolicy, nameof(publishingResiliencePolicies.PublishedIndexSearchResiliencePolicy));
+            Guard.ArgumentNotNull(mapper, nameof(mapper));
 
             _publishedFundingStatusUpdateService = publishedFundingStatusUpdateService;
             _publishedFundingDataService = publishedFundingDataService;
@@ -136,6 +143,7 @@ namespace CalculateFunding.Services.Publishing
             _logger = logger;
             _publishingEngineOptions = publishingEngineOptions;
             _calculationsApiClient = calculationsApiClient;
+            _outOfScopePublishedProviderBuilder = outOfScopePublishedProviderBuilder;
 
             _publishingResiliencePolicy = publishingResiliencePolicies.PublishedFundingRepository;
             _jobsApiClientPolicy = publishingResiliencePolicies.JobsApiClient;
@@ -143,6 +151,7 @@ namespace CalculateFunding.Services.Publishing
             _policyApiClientPolicy = publishingResiliencePolicies.PoliciesApiClient;
             _jobManagement = jobManagement;
             _publishedIndexSearchResiliencePolicy = publishingResiliencePolicies.PublishedIndexSearchResiliencePolicy;
+            _mapper = mapper;
         }
 
         public async Task PublishResults(Message message)
@@ -291,14 +300,6 @@ namespace CalculateFunding.Services.Publishing
 
             List<PublishedProvider> publishedProvidersToSaveAsReleased = await SavePublishedProvidersAsPublishedReleased(jobId, author, publishedProviders.Values);
 
-            if (!publishedProvidersToSaveAsReleased.IsNullOrEmpty())
-            {
-                // Update Published Providers in search 
-                _logger.Information($"Updating published providers in search. Total='{publishedProvidersToSaveAsReleased.Count}'");
-                await _publishedProviderIndexerService.IndexPublishedProviders(publishedProvidersToSaveAsReleased.Select(_ => _.Current));
-                _logger.Information($"Finished updating published providers in search");
-            }
-
             _logger.Information($"Generating published funding");
             IEnumerable<(PublishedFunding PublishedFunding, PublishedFundingVersion PublishedFundingVersion)> publishedFundingToSave =
                 _publishedFundingGenerator.GeneratePublishedFunding(generatePublishedFundingInput).ToList();
@@ -356,19 +357,28 @@ namespace CalculateFunding.Services.Publishing
             SpecificationSummary specification,
             IEnumerable<PublishedProvider> publishedProviders)
         {
-            IEnumerable<Provider> scopedProvidersUnfiltered =
-                await _providerService.GetScopedProvidersForSpecification(specificationId, specification.ProviderVersionId);
+            Dictionary<string, Provider> scopedProvidersUnfiltered =
+                (await _providerService.GetScopedProvidersForSpecification(specificationId, specification.ProviderVersionId)).ToDictionary(_ => _.ProviderId);
 
-            List<string> publishedProviderProviderIds = publishedProviders.Select(p => p.Current.ProviderId).Distinct().ToList();
+            IEnumerable<PublishedProvider> publishedProviderProviders = publishedProviders.DistinctBy(_ => _.Current.ProviderId);
 
             // Filter scoped providers based on the PublishedProvider's which exist to support excluded PublishedProviders
-            IEnumerable<Provider> scopedProvidersFiltered =
-                scopedProvidersUnfiltered.Where(p => publishedProviderProviderIds.Contains(p.ProviderId));
+            Dictionary<string, Provider> scopedProvidersFiltered =
+                scopedProvidersUnfiltered.Where(p => publishedProviderProviders.Any(_ => _.Current.ProviderId == p.Key)).ToDictionary(_ => _.Key, _=> _.Value);
+            
+            IEnumerable<PublishedProvider> predecessorProviders = publishedProviderProviders.Where(_ => !string.IsNullOrWhiteSpace(_.Current.Provider.Successor) && scopedProvidersFiltered.ContainsKey(_.Current.Provider.ProviderId));
 
             Dictionary<string, Provider> scopedProviders = new Dictionary<string, Provider>();
-            foreach (Provider provider in scopedProvidersFiltered)
+            foreach (Provider provider in scopedProvidersFiltered.Values)
             {
                 scopedProviders.Add(provider.ProviderId, provider);
+            }
+
+            foreach(PublishedProvider publishedProvider in predecessorProviders.Where(_ => !scopedProvidersFiltered.ContainsKey(_.Current.Provider.Successor)))
+            {
+                PublishedProvider missingProvider = await _outOfScopePublishedProviderBuilder.CreateMissingPublishedProviderForPredecessor(publishedProvider, publishedProvider.Current.Provider.Successor);
+
+                scopedProviders.Add(missingProvider.Current.ProviderId, _mapper.Map<Provider>(missingProvider.Current.Provider));
             }
 
             return scopedProviders;

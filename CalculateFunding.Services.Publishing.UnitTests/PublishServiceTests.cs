@@ -1,3 +1,4 @@
+using AutoMapper;
 using CalculateFunding.Common.ApiClient.Calcs;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Policies;
@@ -49,6 +50,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         ISearchRepository<PublishedFundingIndex> _publishedFundingSearchRepository;
         private IPublishedProviderIndexerService _publishedProviderIndexerService;
         private IJobManagement _jobManagement;
+        private IOutOfScopePublishedProviderBuilder _outOfScopePublishedProviderBuilder;
+        private IMapper _mapper;
 
         [TestInitialize]
         public void SetUp()
@@ -78,6 +81,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             _calculationsApiClient = Substitute.For<ICalculationsApiClient>();
             _configuration = Substitute.For<IConfiguration>();
             _jobManagement = Substitute.For<IJobManagement>();
+            _outOfScopePublishedProviderBuilder = Substitute.For<IOutOfScopePublishedProviderBuilder>();
+            _mapper = Substitute.For<IMapper>();
 
             _resiliencePolicies = new ResiliencePolicies()
             {
@@ -117,7 +122,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 _calculationsApiClient,
                 _logger,
                 new PublishingEngineOptions(_configuration),
-                _jobManagement);
+                _jobManagement,
+                _outOfScopePublishedProviderBuilder,
+                _mapper);
         }
     }
 }

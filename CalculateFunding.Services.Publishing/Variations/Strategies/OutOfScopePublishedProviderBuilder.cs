@@ -34,8 +34,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
             _mapper = mapper;
         }
         
-        public async Task<PublishedProvider> CreateMissingPublishedProviderForPredecessor(ProviderVariationContext providerVariationContext,
-            string successorId)
+        public async Task<PublishedProvider> CreateMissingPublishedProviderForPredecessor(PublishedProvider predecessor, string successorId, ProviderVariationContext providerVariationContext)
         {
             ApiResponse<ProviderVersionSearchResult> apiResponse = await _resilience.ExecuteAsync(() =>
                 _providers.GetProviderByIdFromMaster(successorId));
@@ -46,8 +45,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
             {
                 return null;
             }
-            
-            PublishedProvider predecessor = providerVariationContext.PublishedProvider;
+
             PublishedProviderVersion predecessorProviderVersion = predecessor.Current;
             
             PublishedProvider missingProvider = new PublishedProvider
@@ -65,7 +63,8 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
                     FundingPeriodId = predecessorProviderVersion.FundingPeriodId,
                     FundingStreamId = predecessorProviderVersion.FundingStreamId,
                     FundingLines = predecessorProviderVersion.FundingLines.DeepCopy(),
-                    Comment = "Created by the system as not in scope but referenced as a successor provider"
+                    Comment = "Created by the system as not in scope but referenced as a successor provider",
+                    Calculations = predecessorProviderVersion.Calculations.DeepCopy()
                 }
             };
 
@@ -75,7 +74,10 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
                 profilePeriod.ProfiledValue = 0;
             }
 
-            providerVariationContext.AddMissingProvider(missingProvider);
+            if (providerVariationContext != null)
+            {
+                providerVariationContext.AddMissingProvider(missingProvider);
+            }
             
             return missingProvider;
         }

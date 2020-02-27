@@ -126,5 +126,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
         {
             VariationContext.RefreshState.FundingLines = fundingLines;
         }
+
+        protected void GivenTheCalcaulations(params FundingCalculation[] fundingCalculations)
+        {
+            VariationContext.RefreshState.Calculations = fundingCalculations;
+        }
     }
 }

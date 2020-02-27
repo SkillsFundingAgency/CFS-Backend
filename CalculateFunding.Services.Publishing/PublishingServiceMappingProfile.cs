@@ -12,6 +12,7 @@ namespace CalculateFunding.Services.Publishing
         public PublishingServiceMappingProfile()
         {
             CreateMap<ApiProvider, Provider>();
+            CreateMap<Provider, ApiProvider>();
 
             CreateMap<GeneratorModels.ReferenceData, TemplateModels.ReferenceData>()
                 .ForMember(c => c.Format, opt => opt.Ignore())

@@ -68,6 +68,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
                         dp.WithProfilePeriods(NewProfilePeriod(pp => pp.WithAmount(100)),
                             NewProfilePeriod(pp => pp.WithAmount(101)),
                             NewProfilePeriod(pp => pp.WithAmount(101)))))));
+
+            GivenTheCalcaulations(NewFundingCalculation(_ => _.WithValue("1234")));
             
             ProviderVersionSearchResult coreProviderData = NewProviderVersionSearchResult();
             Provider missingProvider = NewProvider();
@@ -97,6 +99,20 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
             missingPublishedProviderVersion?.Provider
                 .Should()
                 .BeSameAs(missingProvider);
+
+            foreach(FundingCalculation fundingCalculation in VariationContext.PublishedProvider.Current.Calculations)
+            {
+                FundingCalculation fundingCalculationCopy = missingPublishedProviderVersion.Calculations
+                    .SingleOrDefault(_ => _.TemplateCalculationId == fundingCalculation.TemplateCalculationId);
+
+                fundingCalculationCopy
+                    .Should()
+                    .NotBeNull();
+
+                fundingCalculationCopy.Value
+                    .Should()
+                    .Be(fundingCalculation.Value);
+            }
 
             foreach (FundingLine fundingLine in VariationContext.PublishedProvider.Current.FundingLines)
             {
@@ -147,7 +163,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
 
         private async Task<PublishedProvider> WhenTheMissingPublishedProviderIsBuilt(string successorId)
         {
-            return await _builder.CreateMissingPublishedProviderForPredecessor(VariationContext, successorId);
+            return await _builder.CreateMissingPublishedProviderForPredecessor(VariationContext.PublishedProvider, successorId, VariationContext);
         }
 
         private void AndTheProviderMapping(ProviderVersionSearchResult coreProviderData, Provider provider)

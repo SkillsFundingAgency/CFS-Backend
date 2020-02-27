@@ -95,7 +95,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
 
             JobManagementResiliencePolicies jobManagementResiliencePolicies = new JobManagementResiliencePolicies()
             {
-                JobsApiClient = Policy.NoOpAsync(),
+                JobsApiClient = Policy.NoOpAsync()
             };
 
             RegisterInstanceAs<IJobManagementResiliencePolicies>(jobManagementResiliencePolicies);
@@ -165,11 +165,14 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
                 .Select(_ => (IVariationStrategy)Activator.CreateInstance(_))
                 .ToArray();
 
-            var closureWithSuccessorVariationStrategy = new ClosureWithSuccessorVariationStrategy(
-                new OutOfScopePublishedProviderBuilder(providersInMemoryClient,
+            IOutOfScopePublishedProviderBuilder outOfScopePublishedProviderBuilder = new OutOfScopePublishedProviderBuilder(providersInMemoryClient,
                     publishingResiliencePolicies,
-                    mapper));
+                    mapper);
 
+            var closureWithSuccessorVariationStrategy = new ClosureWithSuccessorVariationStrategy(
+                outOfScopePublishedProviderBuilder);
+
+            RegisterInstanceAs(outOfScopePublishedProviderBuilder);
             variationStrategies = variationStrategies.Concat(new [] { closureWithSuccessorVariationStrategy }).ToArray();
 
             RegisterInstanceAs<IVariationStrategyServiceLocator>(new VariationStrategyServiceLocator(variationStrategies));
@@ -182,7 +185,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
             RegisterTypeAs<CalculationPrerequisiteCheckerService, ICalculationPrerequisiteCheckerService>();
             RegisterTypeAs<CalculationEngineRunningChecker, ICalculationEngineRunningChecker>();
             RegisterTypeAs<SpecificationFundingStatusService, ISpecificationFundingStatusService>();
-
+            
             PublishedFundingIdGeneratorResolver idGeneratorResolver = new PublishedFundingIdGeneratorResolver();
             idGeneratorResolver.Register("1.0", new PublishedFundingIdGenerator());
             RegisterTypeAs<PublishedFundingGenerator, IPublishedFundingGenerator>();

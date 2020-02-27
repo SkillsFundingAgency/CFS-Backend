@@ -75,7 +75,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
             string successorId)
         {
             return providerVariationContext.GetPublishedProviderRefreshState(successorId) ??
-                await _outOfScopePublishedProviderBuilder.CreateMissingPublishedProviderForPredecessor(providerVariationContext, successorId);
+                await _outOfScopePublishedProviderBuilder.CreateMissingPublishedProviderForPredecessor(providerVariationContext.PublishedProvider, successorId, providerVariationContext);
         }
     }
 }

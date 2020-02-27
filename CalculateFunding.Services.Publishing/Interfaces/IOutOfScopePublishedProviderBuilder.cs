@@ -6,7 +6,8 @@ namespace CalculateFunding.Services.Publishing.Interfaces
 {
     public interface IOutOfScopePublishedProviderBuilder
     {
-        Task<PublishedProvider> CreateMissingPublishedProviderForPredecessor(ProviderVariationContext providerVariationContext,
-            string successorId);
+        Task<PublishedProvider> CreateMissingPublishedProviderForPredecessor(PublishedProvider predecessor,
+            string successorId,
+            ProviderVariationContext variationContext = null);
     }
 }
