@@ -15,7 +15,8 @@ namespace CalculateFunding.Services.Publishing.Reporting
         public bool IsForJobType(FundingLineCsvGeneratorJobType jobType)
         {
             //done this way as will probably end up being a single transform supporting many job types
-            return jobType == FundingLineCsvGeneratorJobType.CurrentState;
+            return jobType == FundingLineCsvGeneratorJobType.CurrentState ||
+                jobType == FundingLineCsvGeneratorJobType.Released;
         }
 
         public IEnumerable<ExpandoObject> Transform(IEnumerable<PublishedProvider> publishedProviders)
@@ -46,7 +47,7 @@ namespace CalculateFunding.Services.Publishing.Reporting
                 row["Allocation Author"] = publishedProviderVersion.Author?.Name;
                 row["Allocation DateTime"] = publishedProviderVersion.Date.ToString("s");
 
-                foreach (FundingLine fundingLine in publishedProviderVersion.FundingLines)
+                foreach (FundingLine fundingLine in publishedProviderVersion.FundingLines.OrderBy(_ => _.Name))
                 {
                     row[fundingLine.Name] = fundingLine.Value?.ToString();
                 }

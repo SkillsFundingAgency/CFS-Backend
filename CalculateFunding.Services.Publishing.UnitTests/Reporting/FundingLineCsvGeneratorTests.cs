@@ -103,6 +103,32 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
         }
 
         [TestMethod]
+        public async Task ExitsEarlyIfNoProvidersMatchForTheJobTypePredicate()
+        {
+            string specificationId = NewRandomString();
+            string expectedInterimFilePath = Path.Combine(_rootPath, $"funding-lines-Released-{specificationId}.csv");
+
+            GivenTheMessageProperties(("specification-id", specificationId), ("job-type", "Released"));
+            AndTheFileExists(expectedInterimFilePath);
+
+            await WhenTheCsvIsGenerated();
+
+            _fileSystemAccess
+                .Verify(_ => _.Delete(expectedInterimFilePath),
+                    Times.Once);
+
+            _fileSystemAccess
+                .Verify(_ => _.Append(expectedInterimFilePath,
+                        It.IsAny<string>(),
+                        default),
+                    Times.Never);
+
+            _blobClient
+                .Verify(_ => _.UploadAsync(_cloudBlob.Object, It.IsAny<Stream>()),
+                    Times.Never);
+        }
+
+        [TestMethod]
         [DynamicData(nameof(JobTypeExamples), DynamicDataSourceType.Method)]
         public async Task TransformsProviderResultsForSpecificationInBatchesAndCreatesCsvWithResults(
             FundingLineCsvGeneratorJobType jobType)
@@ -135,9 +161,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
             
             string expectedCsvOne = NewRandomString();
             string expectedCsvTwo = NewRandomString();
-            
-            StreamWriter streamWriterOne = new StreamWriter(new MemoryStream(expectedCsvOne.AsUTF8Bytes()));
-            StreamWriter streamWriterTwo = new StreamWriter(new MemoryStream(expectedCsvTwo.AsUTF8Bytes()));
             
             MemoryStream incrementalFileStream = new MemoryStream();
 

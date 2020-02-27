@@ -81,6 +81,7 @@ namespace CalculateFunding.Services.Publishing.Reporting
                 EnsureFileIsNew(temporaryFilePath);
 
                 bool outputHeaders = true;
+                bool procesedResults = false;
 
                 IFundingLineCsvTransform fundingLineCsvTransform = _transformServiceLocator.GetService(jobType);
                 string predicate = _predicateBuilder.BuildPredicate(jobType);
@@ -98,9 +99,18 @@ namespace CalculateFunding.Services.Publishing.Reporting
                             .GetResult();
 
                         outputHeaders = false;
+                        procesedResults = true;
                         return Task.CompletedTask;
                     }, BatchSize)
                 );
+
+                if (!procesedResults)
+                {
+                    _logger.Information(
+                        $"Did not create a new csv report as no providers matched for the job type {jobType} in the specification {specificationId}");
+
+                    return;
+                }
 
                 ICloudBlob blob = _blobClient.GetBlockBlobReference($"funding-lines-{jobType}-{specificationId}.csv");
 

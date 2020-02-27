@@ -1,4 +1,3 @@
-
 using System;
 using CalculateFunding.Services.Publishing.Reporting;
 using FluentAssertions;
@@ -6,7 +5,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
 {
-
     [TestClass]
     public class PublishedFundingPredicateBuilderTests
     {
@@ -20,6 +18,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
 
         [TestMethod]
         [DataRow(FundingLineCsvGeneratorJobType.CurrentState, "1 = 1")]
+        [DataRow(FundingLineCsvGeneratorJobType.Released, "c.content.current.status = 'Released'")]
         public void ReturnsPredicatesAppropriateToJobTypes(FundingLineCsvGeneratorJobType jobType,
             string expectedPredicate)
         {

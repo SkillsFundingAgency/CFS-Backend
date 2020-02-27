@@ -6,6 +6,7 @@ namespace CalculateFunding.Services.Publishing.Reporting
     public enum FundingLineCsvGeneratorJobType
     {
         Undefined = 0,
-        CurrentState = 1    
+        CurrentState = 1,
+        Released = 2,
     }
 }

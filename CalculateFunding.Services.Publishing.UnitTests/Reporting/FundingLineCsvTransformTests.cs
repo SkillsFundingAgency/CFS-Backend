@@ -25,6 +25,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
         [TestMethod]
         [DataRow(FundingLineCsvGeneratorJobType.Undefined, false)]
         [DataRow(FundingLineCsvGeneratorJobType.CurrentState, true)]
+        [DataRow(FundingLineCsvGeneratorJobType.Released, true)]
         public void SupportsCurrentStateJobType(FundingLineCsvGeneratorJobType jobType,
             bool expectedSupportsFlag)
         {
@@ -46,9 +47,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
                                 .WithUKPRN("ukprn1")
                                 .WithProviderType("pt1")
                                 .WithProviderSubType("pst1")))
-                        .WithFundingLines(NewFundingLine(fl => fl.WithName("fl1")
+                        .WithFundingLines(NewFundingLine(fl => fl.WithName("bfl1")
                                 .WithValue(999M)),
-                            NewFundingLine(fl => fl.WithName("fl2")
+                            NewFundingLine(fl => fl.WithName("afl2")
                                 .WithValue(666M)))
                         .WithAuthor(NewReference(auth => auth.WithName("author1")))
                         .WithMajorVersion(1)
@@ -65,14 +66,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
                                 .WithUKPRN("ukprn2")
                                 .WithProviderType("pt2")
                                 .WithProviderSubType("pst2")))
-                        .WithFundingLines(NewFundingLine(fl => fl.WithName("fl1")
+                        .WithFundingLines(NewFundingLine(fl => fl.WithName("zfl1")
                             .WithValue(123M)))
                         .WithAuthor(NewReference(auth => auth.WithName("author2")))
                         .WithMajorVersion(2)
                         .WithMinorVersion(21)
                         .WithPublishedProviderStatus(PublishedProviderStatus.Approved)
                         .WithDate("2020-02-05T20:03:55"))));
-
             dynamic[] expectedCsvRows =
             {
                 new Dictionary<string, object>
@@ -90,8 +90,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
                     {"Allocation Minor Version", "11"},
                     {"Allocation Author", "author1"},
                     {"Allocation DateTime", "2020-01-05T20:05:44"},
-                    {"fl1", 999M.ToString(CultureInfo.InvariantCulture)},
-                    {"fl2", 666M.ToString(CultureInfo.InvariantCulture)}
+                    {"afl2", 666M.ToString(CultureInfo.InvariantCulture)}, //funding lines to be alpha numerically ordered on name
+                    {"bfl1", 999M.ToString(CultureInfo.InvariantCulture)}
                 },
                 new Dictionary<string, object>
                 {
@@ -108,9 +108,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
                     {"Allocation Minor Version", "21"},
                     {"Allocation Author", "author2"},
                     {"Allocation DateTime", "2020-02-05T20:03:55"},
-                    {"fl1", 123M.ToString(CultureInfo.InvariantCulture)},
+                    {"zfl1", 123M.ToString(CultureInfo.InvariantCulture)},
                 }
             };
+
 
             ExpandoObject[] transformProviderResultsIntoCsvRows = _transformation.Transform(publishedProviders).ToArray();
 

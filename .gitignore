@@ -316,3 +316,4 @@ local.settings.json
 /CalculateFunding.Functions.CosmosDbScaling/Properties/launchSettings.json
 /CalculateFunding.Functions.Users/Properties/launchSettings.json
 /CalculateFunding.Migrations.Calculations.Etl/Properties/launchSettings.json
+/CalculateFunding.Api.Graph/Properties/launchSettings.json

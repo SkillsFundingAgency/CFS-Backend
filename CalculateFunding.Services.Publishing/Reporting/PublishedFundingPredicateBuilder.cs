@@ -8,7 +8,8 @@ namespace CalculateFunding.Services.Publishing.Reporting
     {
         private static readonly IDictionary<FundingLineCsvGeneratorJobType, string> _predicates = new Dictionary<FundingLineCsvGeneratorJobType, string>
         {
-            {FundingLineCsvGeneratorJobType.CurrentState, "1 = 1"}
+            {FundingLineCsvGeneratorJobType.CurrentState, "1 = 1"},
+            {FundingLineCsvGeneratorJobType.Released, "c.content.current.status = 'Released'"}
         };
 
         public string BuildPredicate(FundingLineCsvGeneratorJobType jobType)
