@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Variations.Changes;
@@ -14,12 +15,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
         {
             Change = new ZeroRemainingProfilesChange(VariationContext);
         }
+
         [TestMethod]
         public async Task RecordsErrorIfNoVariationPointersForSpecificationId()
         {
             await WhenTheChangeIsApplied();
             
-            ThenTheErrorWasRecorded($"Unable to zero profiles for provider id {VariationContext.ProviderId}");
+            ThenTheErrorWasRecorded($"Unable to zero remaining profiles for provider id {VariationContext.ProviderId}");
             AndNoVariationChangesWereQueued();
         }
         
@@ -54,8 +56,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
                 .WithDistributionPeriods(NewDistributionPeriod(dp => dp.WithProfilePeriods(periodOne, periodTwo, periodThree)),
                     NewDistributionPeriod(dp => dp.WithProfilePeriods(periodFour, periodFive)))));
             
-           
-            
             await WhenTheChangeIsApplied();
             
             ThenProfilePeriodsShouldBeZeroAmount(periodTwo, periodThree, periodFive, periodFour);
@@ -64,13 +64,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
 
         private void ThenProfilePeriodsShouldBeZeroAmount(params ProfilePeriod[] profilePeriods)
         {
-            foreach (ProfilePeriod profilePeriod in profilePeriods)
-            {
-                profilePeriod
-                    .ProfiledValue
-                    .Should()
-                    .Be(0);
-            }
+            AndTheProfilePeriodsAmountShouldBe(profilePeriods, 0);
         }
 
         [TestMethod]

@@ -11,17 +11,12 @@ using NSubstitute;
 namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
 {
     [TestClass]
-    public class MetaDataVariationsChangeTests : ProviderVariationContextTestBase
+    public class MetaDataVariationsChangeTests : VariationChangeTestBase
     {
-        private MetaDataVariationsChange _change;
-        private IApplyProviderVariations _applyProviderVariations;
-
         [TestInitialize]
         public void SetUp()
         {
-            _change = new MetaDataVariationsChange(VariationContext);
-
-            _applyProviderVariations = Substitute.For<IApplyProviderVariations>();
+            Change = new MetaDataVariationsChange(VariationContext);
         }
         
         [TestMethod]
@@ -44,15 +39,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
                 .VariationReasons
                 .Should()
                 .BeEquivalentTo(expectedVariationReasons);
-            
-            _applyProviderVariations
+
+            VariationsApplication
                 .Received(1)
                 .AddPublishedProviderToUpdate(VariationContext.PublishedProvider);
-        }
-        
-        private async Task WhenTheChangeIsApplied()
-        {
-            await _change.Apply(_applyProviderVariations);
         }
 
         private void GivenTheVariationReasons(params VariationReason[] variationReasons)

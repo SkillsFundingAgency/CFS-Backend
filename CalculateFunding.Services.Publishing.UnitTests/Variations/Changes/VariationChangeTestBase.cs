@@ -1,12 +1,15 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
+using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Polly;
@@ -15,6 +18,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
 {
     public abstract class VariationChangeTestBase : ProviderVariationContextTestBase
     {
+        protected IVariationChange Change;
         protected IApplyProviderVariations VariationsApplication;
         protected ISpecificationsApiClient SpecificationsApiClient;
 
@@ -32,6 +36,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
                 {
                     SpecificationsApiClient = Policy.NoOpAsync()
                 });
+        }
+
+        protected async Task WhenTheChangeIsApplied()
+        {
+            await Change.Apply(VariationsApplication);
         }
 
         protected void GivenTheVariationPointersForTheSpecification(params ProfileVariationPointer[] variationPointers)
@@ -58,6 +67,22 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
         protected void AndTheSuccessorFundingLines(params FundingLine[] fundingLines)
         {
             GivenTheSuccessorFundingLines(fundingLines);
+        }
+
+        protected void AndTheProfilePeriodAmountShouldBe(ProfilePeriod profilePeriod, decimal expectedAmount)
+        {
+            profilePeriod
+                .ProfiledValue
+                .Should()
+                .Be(expectedAmount);
+        }
+
+        protected void AndTheProfilePeriodsAmountShouldBe(ProfilePeriod[] profilePeriods, decimal expectedAmount)
+        {
+            profilePeriods.ToList().ForEach(_ =>
+            {
+                AndTheProfilePeriodAmountShouldBe(_, expectedAmount);
+            });
         }
     }
 }

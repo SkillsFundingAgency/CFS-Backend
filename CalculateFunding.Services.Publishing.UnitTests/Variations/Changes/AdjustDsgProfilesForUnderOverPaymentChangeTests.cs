@@ -15,15 +15,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
     [TestClass]
     public class AdjustDsgProfilesForUnderOverPaymentChangeTests : VariationChangeTestBase
     {
-        private AdjustDsgProfilesForUnderOverPaymentChange _change;
-        
         private int _year;
         private string _fundingLineCode;
 
         [TestInitialize]
         public void SetUp()
         {
-            _change = new AdjustDsgProfilesForUnderOverPaymentChange(VariationContext);    
+            Change = new AdjustDsgProfilesForUnderOverPaymentChange(VariationContext);    
 
             VariationContext.AllPublishedProviderSnapShots = new Dictionary<string, PublishedProviderSnapShots>
             {
@@ -159,11 +157,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
                 .WithTypeValue(MonthByVariationPointerIndex(index))
                 .WithYear(_year)))
                 .ToArray();
-        }
-
-        private async Task WhenTheChangeIsApplied()
-        {
-            await _change.Apply(VariationsApplication);
         }
 
         private void AndThePreviousSnapShotFundingLines(params FundingLine[] fundingLines)

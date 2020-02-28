@@ -15,7 +15,7 @@ namespace CalculateFunding.Tests.Common.Helpers
                 .Except(excluding)
                 .ToArray();
 
-            _value = possibleValues[(int) new RandomNumberBetween(0, possibleValues.Length - 1)];
+            _value = possibleValues[(int) new RandomNumberBetween(0, possibleValues.Length)];
         }
         
         public static implicit operator TEnum(RandomEnum<TEnum> randomEnum)

@@ -8,8 +8,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
 {
     public abstract class ZeroRemainingProfilesChangeTestBase : VariationChangeTestBase
     {
-        protected IVariationChange Change;
-
         [TestMethod]
         public async Task RecordsErrorIfNoMatchingFundingLineForAVariationPointer()
         {
@@ -23,22 +21,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
             AndNoVariationChangesWereQueued();
         }
 
-        protected async Task WhenTheChangeIsApplied()
-        {
-            await Change.Apply(VariationsApplication);
-        }
-
         protected void ThenTheProfilePeriodAmountShouldBe(ProfilePeriod profilePeriod, decimal expectedAmount)
         {
             AndTheProfilePeriodAmountShouldBe(profilePeriod, expectedAmount);     
-        }
-
-        protected void AndTheProfilePeriodAmountShouldBe(ProfilePeriod profilePeriod, decimal expectedAmount)
-        {
-            profilePeriod
-                .ProfiledValue
-                .Should()
-                .Be(expectedAmount);
         }
     }
 }
