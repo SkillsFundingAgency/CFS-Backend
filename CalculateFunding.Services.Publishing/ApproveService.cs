@@ -24,6 +24,7 @@ namespace CalculateFunding.Services.Publishing
         private readonly IPublishedFundingDataService _publishedFundingDataService;
         private readonly IPublishedProviderIndexerService _publishedProviderIndexerService;
         private readonly IApprovePrerequisiteChecker _approvePrerequisiteChecker;
+        private readonly IGeneratePublishedFundingCsvJobsCreation _publishedFundingCsvJobsCreation;
 
         public ApproveService(IPublishedProviderStatusUpdateService publishedProviderStatusUpdateService,
             IPublishedFundingDataService publishedFundingDataService,
@@ -31,8 +32,10 @@ namespace CalculateFunding.Services.Publishing
             IPublishingResiliencePolicies publishingResiliencePolicies,
             IApprovePrerequisiteChecker approvePrerequisiteChecker,
             IJobManagement jobManagement,
-            ILogger logger)
+            ILogger logger, 
+            IGeneratePublishedFundingCsvJobsCreation publishedFundingCsvJobsCreation)
         {
+            Guard.ArgumentNotNull(publishedFundingCsvJobsCreation, nameof(publishedFundingCsvJobsCreation));
             Guard.ArgumentNotNull(approvePrerequisiteChecker, nameof(approvePrerequisiteChecker));
             Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
             Guard.ArgumentNotNull(publishedProviderStatusUpdateService, nameof(publishedProviderStatusUpdateService));
@@ -47,6 +50,7 @@ namespace CalculateFunding.Services.Publishing
             _approvePrerequisiteChecker = approvePrerequisiteChecker;
             _jobManagement = jobManagement;
             _logger = logger;
+            _publishedFundingCsvJobsCreation = publishedFundingCsvJobsCreation;
         }
 
         public async Task ApproveResults(Message message)
@@ -103,6 +107,12 @@ namespace CalculateFunding.Services.Publishing
                 _logger.Information($"Indexing published providers");
                 await _publishedProviderIndexerService.IndexPublishedProviders(publishedProviders.Select(_ => _.Current));
             }
+            
+            string correlationId = message.GetUserProperty<string>("correlation-id");
+            
+            _logger.Information("Creating generate Csv jobs");
+
+            await _publishedFundingCsvJobsCreation.CreateJobs(specificationId, correlationId, author);
 
             _logger.Information($"Completing approve funding job. JobId='{jobId}'");
             await _jobManagement.UpdateJobStatus(jobId, 0, 0, true, null);

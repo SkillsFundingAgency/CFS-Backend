@@ -5,7 +5,6 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
-using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
@@ -333,9 +332,60 @@ namespace CalculateFunding.Services.Publishing.Repositories
                 itemsPerPage: 50);
         }
 
+        public async Task PublishedProviderVersionBatchProcessing(string specificationId,
+            Func<List<PublishedProviderVersion>, Task> batchProcessor,
+            int batchSize)
+        {
+                CosmosDbQuery query = new CosmosDbQuery
+            {
+                QueryText = @"SELECT
+                                        c.content.id,
+                                        { 
+                                           'providerType' : c.content.provider.providerType,
+                                           'localAuthorityName' : c.content.provider.localAuthorityName,
+                                           'laCode' : c.content.provider.laCode,
+                                           'name' : c.content.provider.name,
+                                           'ukprn' : c.content.provider.ukprn,
+                                           'urn' : c.content.provider.urn,
+                                           'establishmentNumber' : c.content.provider.establishmentNumber
+                                        } AS Provider,
+                                        c.content.status,
+                                        c.content.totalFunding,
+                                        c.content.specificationId,
+                                        c.content.fundingStreamId,
+                                        c.content.providerId,
+                                        c.content.fundingPeriodId,
+                                        c.content.version,
+                                        c.content.majorVersion,
+                                        c.content.minorVersion,
+                                        c.content.date,
+                                        {
+                                            'name' : c.content.author.name
+                                        } AS Author,
+                                        ARRAY(
+                                            SELECT fundingLine.name,
+                                                   fundingLine['value']
+                                            FROM fundingLine IN c.content.fundingLines
+                                        ) AS FundingLines
+                               FROM     publishedProviderVersion c
+                               WHERE    c.documentType = 'PublishedProviderVersion'
+                               AND      c.content.specificationId = @specificationId
+                               AND      c.deleted = false
+                               ORDER BY c.content.provider.name",
+                Parameters = new []
+                {
+                    new CosmosDbQueryParameter("@specificationId", specificationId), 
+                }
+            };
+
+            await _repository.DocumentsBatchProcessingAsync(persistBatchToIndex: batchProcessor,
+                cosmosDbQuery: query,
+                itemsPerPage: batchSize);      
+        }
+        
         public async Task PublishedProviderBatchProcessing(string predicate,
             string specificationId,
-            Func<List<PublishedProvider>, Task> persistIndexBatch,
+            Func<List<PublishedProvider>, Task> batchProcessor,
             int batchSize)
         {
             CosmosDbQuery query = new CosmosDbQuery
@@ -359,8 +409,11 @@ namespace CalculateFunding.Services.Publishing.Repositories
                                     'provider'        : {{ 
                                         'providerType' : c.content.current.provider.providerType,
                                         'localAuthorityName' : c.content.current.provider.localAuthorityName,
+                                        'laCode' : c.content.current.provider.laCode,
                                         'name' : c.content.current.provider.name,
                                         'ukprn' : c.content.current.provider.ukprn
+                                        'urn' : c.content.current.provider.urn,
+                                        'establishmentNumber' : c.content.current.provider.establishmentNumber,
                                     }},
                                     'fundingLines' : ARRAY(
                                         SELECT fundingLine.name,
@@ -379,7 +432,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
                 }
             };
 
-            await _repository.DocumentsBatchProcessingAsync(persistBatchToIndex: persistIndexBatch,
+            await _repository.DocumentsBatchProcessingAsync(persistBatchToIndex: batchProcessor,
                 cosmosDbQuery: query,
                 itemsPerPage: batchSize);   
         }

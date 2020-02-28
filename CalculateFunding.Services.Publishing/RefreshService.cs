@@ -48,6 +48,7 @@ namespace CalculateFunding.Services.Publishing
         private readonly IJobManagement _jobManagement;
         private readonly IPublishingFeatureFlag _publishingFeatureFlag;
         private readonly IRecordVariationErrors _recordVariationErrors;
+        private readonly IGeneratePublishedFundingCsvJobsCreation _generateCsvJobs;
 
         public RefreshService(IPublishedProviderStatusUpdateService publishedProviderStatusUpdateService,
             IPublishedFundingDataService publishedFundingDataService,
@@ -70,8 +71,10 @@ namespace CalculateFunding.Services.Publishing
             IPublishedProviderIndexerService publishedProviderIndexerService,
             IDetectProviderVariations detectProviderVariations,
             IApplyProviderVariations applyProviderVariations, 
-            IRecordVariationErrors recordVariationErrors)
+            IRecordVariationErrors recordVariationErrors, 
+            IGeneratePublishedFundingCsvJobsCreation generateCsvJobs)
         {
+            Guard.ArgumentNotNull(generateCsvJobs, nameof(generateCsvJobs));
             Guard.ArgumentNotNull(publishedProviderStatusUpdateService, nameof(publishedProviderStatusUpdateService));
             Guard.ArgumentNotNull(publishedFundingDataService, nameof(publishedFundingDataService));
             Guard.ArgumentNotNull(publishingResiliencePolicies, nameof(publishingResiliencePolicies));
@@ -111,6 +114,7 @@ namespace CalculateFunding.Services.Publishing
             _detectProviderVariations = detectProviderVariations;
             _applyProviderVariations = applyProviderVariations;
             _recordVariationErrors = recordVariationErrors;
+            _generateCsvJobs = generateCsvJobs;
             _publishedProviderIndexerService = publishedProviderIndexerService;
 
             _publishingResiliencePolicy = publishingResiliencePolicies.PublishedFundingRepository;
@@ -399,9 +403,16 @@ namespace CalculateFunding.Services.Publishing
                 }
             }
 
+            string correlationId = message.GetUserProperty<string>("correlation-id");
+            
+            _logger.Information("Creating generate Csv jobs");
+
+            await _generateCsvJobs.CreateJobs(specificationId, correlationId, author);
+            
             _logger.Information("Marking job as complete");
             // Mark job as complete
             await _jobManagement.UpdateJobStatus(jobId, 0, 0, true, null);
+            
             _logger.Information("Refresh complete");
         }
 

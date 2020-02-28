@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Caching.FileSystem;
+using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
@@ -31,6 +32,7 @@ namespace CalculateFunding.Services.Publishing.Reporting
         private readonly IFileSystemCacheSettings _fileSystemCacheSettings;
         private readonly Policy _blobClientPolicy;
         private readonly Policy _publishedFundingRepository;
+        private readonly IJobTracker _jobTracker;
 
         public FundingLineCsvGenerator(IFundingLineCsvTransformServiceLocator transformServiceLocator,
             IPublishedFundingPredicateBuilder predicateBuilder,
@@ -40,8 +42,10 @@ namespace CalculateFunding.Services.Publishing.Reporting
             IFileSystemAccess fileSystemAccess,
             IFileSystemCacheSettings fileSystemCacheSettings,
             IPublishingResiliencePolicies policies,
+            IJobTracker jobTracker,
             ILogger logger)
         {
+            Guard.ArgumentNotNull(jobTracker, nameof(jobTracker));
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(blobClient, nameof(blobClient));
             Guard.ArgumentNotNull(publishedFunding, nameof(publishedFunding));
@@ -54,6 +58,7 @@ namespace CalculateFunding.Services.Publishing.Reporting
             Guard.ArgumentNotNull(policies?.PublishedFundingRepository, nameof(policies.PublishedFundingRepository));
 
             _logger = logger;
+            _jobTracker = jobTracker;
             _blobClient = blobClient;
             _publishedFunding = publishedFunding;
             _transformServiceLocator = transformServiceLocator;
@@ -71,6 +76,12 @@ namespace CalculateFunding.Services.Publishing.Reporting
             {
                 JobParameters parameters = message;
 
+                if (!await _jobTracker.TryStartTrackingJob(parameters.JobId,
+                    JobConstants.DefinitionNames.GeneratePublishedFundingCsvJob))
+                {
+                    throw new ArgumentOutOfRangeException(nameof(parameters.JobId));
+                }
+
                 string specificationId = parameters.SpecificationId;
                 FundingLineCsvGeneratorJobType jobType = parameters.JobType;
 
@@ -79,36 +90,20 @@ namespace CalculateFunding.Services.Publishing.Reporting
                     specificationId);
 
                 EnsureFileIsNew(temporaryFilePath);
-
-                bool outputHeaders = true;
-                bool procesedResults = false;
-
+                
                 IFundingLineCsvTransform fundingLineCsvTransform = _transformServiceLocator.GetService(jobType);
-                string predicate = _predicateBuilder.BuildPredicate(jobType);
 
-                await _publishedFundingRepository.ExecuteAsync(() => _publishedFunding.PublishedProviderBatchProcessing(predicate,
-                    specificationId,
-                    publishedProvider =>
-                    {
-                        IEnumerable<ExpandoObject> csvRows = fundingLineCsvTransform.Transform(publishedProvider);
+                bool processedResults = jobType == FundingLineCsvGeneratorJobType.History ?
+                    await GeneratePublishedProviderVersionCsv(specificationId, temporaryFilePath, fundingLineCsvTransform) :
+                    await GeneratePublishedProviderCsv(jobType, specificationId, temporaryFilePath, fundingLineCsvTransform);
 
-                        string csv = _csvUtils.AsCsv(csvRows, outputHeaders);
-
-                        _fileSystemAccess.Append(temporaryFilePath, csv)
-                            .GetAwaiter()
-                            .GetResult();
-
-                        outputHeaders = false;
-                        procesedResults = true;
-                        return Task.CompletedTask;
-                    }, BatchSize)
-                );
-
-                if (!procesedResults)
+                if (!processedResults)
                 {
                     _logger.Information(
                         $"Did not create a new csv report as no providers matched for the job type {jobType} in the specification {specificationId}");
 
+                    await CompleteJob(parameters);
+                    
                     return;
                 }
 
@@ -118,6 +113,8 @@ namespace CalculateFunding.Services.Publishing.Reporting
                 {
                     await _blobClientPolicy.ExecuteAsync(() => _blobClient.UploadAsync(blob, csvFileStream));
                 }
+
+                await CompleteJob(parameters);
             }
             catch (Exception e)
             {
@@ -127,6 +124,70 @@ namespace CalculateFunding.Services.Publishing.Reporting
 
                 throw new NonRetriableException(error);
             }
+        }
+
+        private async Task CompleteJob(JobParameters parameters)
+        {
+            await _jobTracker.CompleteTrackingJob(parameters.JobId);
+        }
+
+        private async Task<bool> GeneratePublishedProviderCsv(FundingLineCsvGeneratorJobType jobType,
+            string specificationId, 
+            string temporaryFilePath, 
+            IFundingLineCsvTransform fundingLineCsvTransform)
+        {
+            bool outputHeaders = true;
+            bool processedResults = false;
+
+            string predicate = _predicateBuilder.BuildPredicate(jobType);
+
+            await _publishedFundingRepository.ExecuteAsync(() => _publishedFunding.PublishedProviderBatchProcessing(predicate,
+                specificationId,
+                publishedProviders =>
+                {
+                    IEnumerable<ExpandoObject> csvRows = fundingLineCsvTransform.Transform(publishedProviders);
+
+                    AppendCsvFragment(temporaryFilePath, csvRows, outputHeaders);
+
+                    outputHeaders = false;
+                    processedResults = true;
+                    return Task.CompletedTask;
+                }, BatchSize)
+            );
+            
+            return processedResults;
+        }
+
+        private async Task<bool> GeneratePublishedProviderVersionCsv(string specificationId, 
+            string temporaryFilePath, 
+            IFundingLineCsvTransform fundingLineCsvTransform)
+        {
+            bool outputHeaders = true;
+            bool processedResults = false;
+
+            await _publishedFundingRepository.ExecuteAsync(() => _publishedFunding.PublishedProviderVersionBatchProcessing(specificationId,
+                publishedProviderVersions =>
+                {
+                    IEnumerable<ExpandoObject> csvRows = fundingLineCsvTransform.Transform(publishedProviderVersions);
+
+                    AppendCsvFragment(temporaryFilePath, csvRows, outputHeaders);
+
+                    outputHeaders = false;
+                    processedResults = true;
+                    return Task.CompletedTask;
+                }, BatchSize)
+            );
+            
+            return processedResults;
+        }
+
+        private void AppendCsvFragment(string temporaryFilePath, IEnumerable<ExpandoObject> csvRows, bool outputHeaders)
+        {
+            string csv = _csvUtils.AsCsv(csvRows, outputHeaders);
+
+            _fileSystemAccess.Append(temporaryFilePath, csv)
+                .GetAwaiter()
+                .GetResult();
         }
 
         private void EnsureFileIsNew(string path)
@@ -140,6 +201,8 @@ namespace CalculateFunding.Services.Publishing.Reporting
         private class JobParameters
         {
             public string SpecificationId { get; private set; }
+            
+            public string JobId { get; private set; }
 
             public FundingLineCsvGeneratorJobType JobType { get; private set; }
 
@@ -149,14 +212,17 @@ namespace CalculateFunding.Services.Publishing.Reporting
 
                 string specificationId = GetProperty(message, "specification-id");
                 string jobType = GetProperty(message, "job-type");
+                string jobId = GetProperty(message, "job-id");
 
                 Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
                 Guard.IsNullOrWhiteSpace(jobType, nameof(jobType));
-
+                Guard.IsNullOrWhiteSpace(jobId, nameof(jobId));
+                
                 return new JobParameters
                 {
                     SpecificationId = specificationId,
-                    JobType = jobType.AsEnum<FundingLineCsvGeneratorJobType>()
+                    JobType = jobType.AsEnum<FundingLineCsvGeneratorJobType>(),
+                    JobId = jobId
                 };
             }
 

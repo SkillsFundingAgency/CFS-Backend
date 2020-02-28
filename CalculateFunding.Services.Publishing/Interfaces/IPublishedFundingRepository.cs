@@ -50,7 +50,11 @@ namespace CalculateFunding.Services.Publishing.Interfaces
 
         Task PublishedProviderBatchProcessing(string predicate,
             string specificationId,
-            Func<List<PublishedProvider>, Task> persistIndexBatch,
+            Func<List<PublishedProvider>, Task> batchProcessor,
+            int batchSize);
+
+        Task PublishedProviderVersionBatchProcessing(string specificationId,
+            Func<List<PublishedProviderVersion>, Task> batchProcessor,
             int batchSize);
     }
 }

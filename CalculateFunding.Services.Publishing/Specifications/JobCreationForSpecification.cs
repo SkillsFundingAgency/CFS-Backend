@@ -54,6 +54,8 @@ namespace CalculateFunding.Services.Publishing.Specifications
             messageProperties.Add("user-id", user.Id);
             messageProperties.Add("user-name", user.Name);
 
+            AddExtraMessageProperties(messageProperties);
+
             try
             {
                 Job job = await JobsPolicy.ExecuteAsync(() => _jobs.CreateJob(new JobCreateModel
@@ -95,5 +97,7 @@ namespace CalculateFunding.Services.Publishing.Specifications
                 throw new Exception(error);
             }
         }
+        
+        protected virtual void AddExtraMessageProperties(Dictionary<string, string> messageProperties){}
     }
 }

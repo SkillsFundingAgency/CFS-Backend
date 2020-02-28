@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Dynamic;
 using System.Globalization;
 using System.Linq;
-using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Reporting;
 using FluentAssertions;
@@ -12,20 +11,21 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
 {
     [TestClass]
-    public class FundingLineCsvTransformTests
+    public class PublishedProviderFundingLineCsvTransformTests : FundingLineCsvTransformTestBase
     {
-        private FundingLineCsvTransform _transformation;
+        private PublishedProviderFundingLineCsvTransform _transformation;
 
         [TestInitialize]
         public void SetUp()
         {
-            _transformation = new FundingLineCsvTransform();
+            _transformation = new PublishedProviderFundingLineCsvTransform();
         }
 
         [TestMethod]
         [DataRow(FundingLineCsvGeneratorJobType.Undefined, false)]
         [DataRow(FundingLineCsvGeneratorJobType.CurrentState, true)]
         [DataRow(FundingLineCsvGeneratorJobType.Released, true)]
+        [DataRow(FundingLineCsvGeneratorJobType.History, false)]
         public void SupportsCurrentStateJobType(FundingLineCsvGeneratorJobType jobType,
             bool expectedSupportsFlag)
         {
@@ -133,42 +133,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
             setUp?.Invoke(publishedProviderBuilder);
 
             return publishedProviderBuilder.Build();
-        }
-
-        private static Provider NewProvider(Action<ProviderBuilder> setUp = null)
-        {
-            ProviderBuilder providerBuilder = new ProviderBuilder();
-
-            setUp?.Invoke(providerBuilder);
-
-            return providerBuilder.Build();
-        }
-
-        private static PublishedProviderVersion NewPublishedProviderVersion(Action<PublishedProviderVersionBuilder> setUp = null)
-        {
-            PublishedProviderVersionBuilder publishedProviderVersionBuilder = new PublishedProviderVersionBuilder();
-
-            setUp?.Invoke(publishedProviderVersionBuilder);
-
-            return publishedProviderVersionBuilder.Build();
-        }
-
-        private static FundingLine NewFundingLine(Action<FundingLineBuilder> setUp = null)
-        {
-            FundingLineBuilder fundingLineBuilder = new FundingLineBuilder();
-
-            setUp?.Invoke(fundingLineBuilder);
-
-            return fundingLineBuilder.Build();
-        }
-
-        private static Reference NewReference(Action<ReferenceBuilder> setUp = null)
-        {
-            ReferenceBuilder referenceBuilder = new ReferenceBuilder();
-
-            setUp?.Invoke(referenceBuilder);
-
-            return referenceBuilder.Build();
         }
     }
 }

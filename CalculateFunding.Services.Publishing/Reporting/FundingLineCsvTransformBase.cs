@@ -7,27 +7,22 @@ using CalculateFunding.Services.Publishing.Interfaces;
 
 namespace CalculateFunding.Services.Publishing.Reporting
 {
-    public class FundingLineCsvTransform : IFundingLineCsvTransform
+    public abstract class FundingLineCsvTransformBase : IFundingLineCsvTransform
     {
         private readonly ArrayPool<ExpandoObject> _expandoObjectsPool 
             = ArrayPool<ExpandoObject>.Create(FundingLineCsvGenerator.BatchSize, 4);
-        
-        public bool IsForJobType(FundingLineCsvGeneratorJobType jobType)
-        {
-            //done this way as will probably end up being a single transform supporting many job types
-            return jobType == FundingLineCsvGeneratorJobType.CurrentState ||
-                jobType == FundingLineCsvGeneratorJobType.Released;
-        }
 
-        public IEnumerable<ExpandoObject> Transform(IEnumerable<PublishedProvider> publishedProviders)
+        public abstract bool IsForJobType(FundingLineCsvGeneratorJobType jobType);
+
+        public IEnumerable<ExpandoObject> Transform(IEnumerable<dynamic> documents)
         {
-            int resultsCount = publishedProviders.Count();
+            int resultsCount = documents.Count();
             
             ExpandoObject[] resultsBatch = _expandoObjectsPool.Rent(resultsCount);
 
             for (int resultCount = 0; resultCount < resultsCount; resultCount++)
             {
-                PublishedProviderVersion publishedProviderVersion = publishedProviders.ElementAt(resultCount).Current;
+                PublishedProviderVersion publishedProviderVersion = GetPublishedProviderVersion(documents, resultCount);
                 
                 IDictionary<string, object> row = resultsBatch[resultCount] ?? (resultsBatch[resultCount] = new ExpandoObject());
 
@@ -57,5 +52,7 @@ namespace CalculateFunding.Services.Publishing.Reporting
             
             _expandoObjectsPool.Return(resultsBatch);
         }
+
+        protected abstract PublishedProviderVersion GetPublishedProviderVersion(IEnumerable<dynamic> documents, int resultCount);
     }
 }

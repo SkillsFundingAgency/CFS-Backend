@@ -8,5 +8,6 @@ namespace CalculateFunding.Services.Publishing.Reporting
         Undefined = 0,
         CurrentState = 1,
         Released = 2,
+        History = 3
     }
 }

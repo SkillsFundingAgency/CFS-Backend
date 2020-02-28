@@ -140,12 +140,15 @@ namespace CalculateFunding.Functions.Publishing
             builder.AddSingleton<IJobManagement, JobManagement>();
             builder.AddSingleton<ISpecificationFundingStatusService, SpecificationFundingStatusService>();
             builder.AddScoped<IFundingLineCsvGenerator, FundingLineCsvGenerator>();
-            builder.AddScoped<IFundingLineCsvTransform, FundingLineCsvTransform>();
+            builder.AddScoped<IFundingLineCsvTransform, PublishedProviderFundingLineCsvTransform>();
+            builder.AddScoped<IFundingLineCsvTransform, PublishedProviderVersionFundingLineCsvTransform>();
             builder.AddScoped<IFundingLineCsvTransformServiceLocator, FundingLineCsvTransformServiceLocator>();
             builder.AddScoped<IPublishedFundingPredicateBuilder, PublishedFundingPredicateBuilder>();
             builder.AddScoped<ICsvUtils, CsvUtils>();
             builder.AddSingleton<IFileSystemAccess, FileSystemAccess>();
             builder.AddSingleton<IFileSystemCacheSettings, FileSystemCacheSettings>();
+            builder.AddTransient<IGeneratePublishedFundingCsvJobsCreation, GeneratePublishedFundingCsvJobsCreation>();
+            builder.AddTransient<ICreateGeneratePublishedFundingCsvJobs, GeneratePublishedFundingCsvJobCreation>();
 
             builder
                 .AddSingleton<IPublishedProviderVersioningService, PublishedProviderVersioningService>()

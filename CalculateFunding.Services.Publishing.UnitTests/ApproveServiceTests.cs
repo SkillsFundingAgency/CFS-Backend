@@ -30,6 +30,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private IPublishedFundingDataService _publishedFundingDataService;
         private IPublishedProviderStatusUpdateService _publishedProviderStatusUpdateService;
         private IPublishedProviderIndexerService _publishedProviderIndexerService;
+        private IGeneratePublishedFundingCsvJobsCreation _publishedFundingCsvJobsCreation;
         private ILogger _logger;
         private Message _message;
         private string _jobId;
@@ -47,6 +48,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             _publishedFundingDataService = Substitute.For<IPublishedFundingDataService>();
             _publishedProviderStatusUpdateService = Substitute.For<IPublishedProviderStatusUpdateService>();
             _publishedProviderIndexerService = Substitute.For<IPublishedProviderIndexerService>();
+            _publishedFundingCsvJobsCreation = Substitute.For<IGeneratePublishedFundingCsvJobsCreation>();
             _logger = Substitute.For<ILogger>();
 
             _approveService = new ApproveService(_publishedProviderStatusUpdateService,
@@ -58,7 +60,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 },
                 _approvePrerequisiteChecker,
                 _jobManagement,
-                _logger);
+                _logger,
+                _publishedFundingCsvJobsCreation);
 
             _jobId = NewRandomString();
             _userId = NewRandomString();
@@ -141,6 +144,18 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             await WhenTheResultsAreApproved();
 
             ThenThePublishedProvidersWereApproved(expectedPublishedProviders);
+            await AndTheCsvGenerationJobsWereCreated(specificationId);
+        }
+
+        private async Task AndTheCsvGenerationJobsWereCreated(string specificationId)
+        {
+            await _publishedFundingCsvJobsCreation
+                .Received(1)
+                .CreateJobs(Arg.Is(specificationId),
+                    Arg.Any<string>(),
+                    Arg.Is<Reference>(usr => usr != null &&
+                                             usr.Id == _userId &&
+                                             usr.Name == _userName));
         }
 
         private void GivenTheMessageHasAJobId()

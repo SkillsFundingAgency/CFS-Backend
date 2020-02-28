@@ -95,7 +95,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
 
             JobManagementResiliencePolicies jobManagementResiliencePolicies = new JobManagementResiliencePolicies()
             {
-                JobsApiClient = Policy.NoOpAsync()
+                JobsApiClient = Policy.NoOpAsync(),
             };
 
             RegisterInstanceAs<IJobManagementResiliencePolicies>(jobManagementResiliencePolicies);
@@ -186,6 +186,8 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
             RegisterTypeAs<CalculationEngineRunningChecker, ICalculationEngineRunningChecker>();
             RegisterTypeAs<SpecificationFundingStatusService, ISpecificationFundingStatusService>();
             
+            RegisterTypeAs<GenerateCsvJobsInMemoryClient, IGeneratePublishedFundingCsvJobsCreation>();
+
             PublishedFundingIdGeneratorResolver idGeneratorResolver = new PublishedFundingIdGeneratorResolver();
             idGeneratorResolver.Register("1.0", new PublishedFundingIdGenerator());
             RegisterTypeAs<PublishedFundingGenerator, IPublishedFundingGenerator>();

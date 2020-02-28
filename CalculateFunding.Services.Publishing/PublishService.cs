@@ -55,6 +55,7 @@ namespace CalculateFunding.Services.Publishing
         private readonly IOrganisationGroupGenerator _organisationGroupGenerator;
         private readonly ISearchRepository<PublishedFundingIndex> _publishedFundingSearchRepository;
         private readonly IPublishedProviderIndexerService _publishedProviderIndexerService;
+        private readonly IGeneratePublishedFundingCsvJobsCreation _publishedFundingCsvJobsCreation;
         private readonly Policy _publishingResiliencePolicy;
         private readonly Policy _jobsApiClientPolicy;
         private readonly Policy _calculationsApiClientPolicy;
@@ -87,10 +88,12 @@ namespace CalculateFunding.Services.Publishing
             ICalculationsApiClient calculationsApiClient,
             ILogger logger,
             IPublishingEngineOptions publishingEngineOptions,
-            IJobManagement jobManagement,
+            IJobManagement jobManagement, 
+            IGeneratePublishedFundingCsvJobsCreation publishedFundingCsvJobsCreation,
             IOutOfScopePublishedProviderBuilder outOfScopePublishedProviderBuilder,
             IMapper mapper)
         {
+            Guard.ArgumentNotNull(publishedFundingCsvJobsCreation, nameof(publishedFundingCsvJobsCreation));
             Guard.ArgumentNotNull(publishedFundingStatusUpdateService, nameof(publishedFundingStatusUpdateService));
             Guard.ArgumentNotNull(publishedFundingDataService, nameof(publishedFundingDataService));
             Guard.ArgumentNotNull(publishingResiliencePolicies, nameof(publishingResiliencePolicies));
@@ -150,6 +153,7 @@ namespace CalculateFunding.Services.Publishing
             _calculationsApiClientPolicy = publishingResiliencePolicies.CalculationsApiClient;
             _policyApiClientPolicy = publishingResiliencePolicies.PoliciesApiClient;
             _jobManagement = jobManagement;
+            _publishedFundingCsvJobsCreation = publishedFundingCsvJobsCreation;
             _publishedIndexSearchResiliencePolicy = publishingResiliencePolicies.PublishedIndexSearchResiliencePolicy;
             _mapper = mapper;
         }
@@ -199,6 +203,12 @@ namespace CalculateFunding.Services.Publishing
 
             _logger.Information($"Running search reindexer for published funding");
             await _publishedIndexSearchResiliencePolicy.ExecuteAsync(() => _publishedFundingSearchRepository.RunIndexer());
+            
+            string correlationId = message.GetUserProperty<string>("correlation-id");
+            
+            _logger.Information("Creating generate Csv jobs");
+
+            await _publishedFundingCsvJobsCreation.CreateJobs(specificationId, correlationId, author);
 
             // Mark job as complete
             _logger.Information($"Marking publish funding job complete");

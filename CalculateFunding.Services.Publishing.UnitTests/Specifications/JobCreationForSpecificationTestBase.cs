@@ -106,12 +106,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
                 .Returns(job);
         }
 
-        protected string NewRandomString()
+        private string NewRandomString()
         {
             return new RandomString();
         }
 
-        protected Reference NewUser(Action<UserBuilder> setUp = null)
+        private Reference NewUser(Action<UserBuilder> setUp = null)
         {
             UserBuilder userBuilder = new UserBuilder();
 
@@ -120,7 +120,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
             return userBuilder.Build();
         }
 
-        protected Job NewJob(Action<JobBuilder> setUp = null)
+        private Job NewJob(Action<JobBuilder> setUp = null)
         {
             JobBuilder jobBuilder = new JobBuilder();
 
