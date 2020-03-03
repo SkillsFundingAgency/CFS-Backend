@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
@@ -128,12 +129,60 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             _publishedFunding.VerifyAll();
         }
 
+        [TestMethod]
+        public async Task LocatesAllPublishedProviderVersionsThenGroupsItsProfileValuesAndSumsThem()
+        {
+            PublishedProviderVersion publishedProviderVersion = NewPublishedProviderVersion(_ =>
+                _.WithFundingLines(NewFundingLine(fl => fl.WithOrganisationGroupingReason(OrganisationGroupingReason.Payment)
+                    .WithDistributionPeriods(NewDistributionPeriod(dp => dp.WithProfilePeriods(
+                        NewProfilePeriod(pp => pp.WithAmount(123)
+                            .WithTypeValue("January")
+                            .WithYear(2012)
+                            .WithOccurence(1))))))));
+
+            string fundingStreamId = NewRandomString();
+            string fundingPeriodId = NewRandomString();
+            string providerId = NewRandomString();
+
+            GivenAllThePublishedProviderVersions(fundingStreamId, fundingPeriodId, providerId, publishedProviderVersion);
+
+            IActionResult result = await WhenAllTheProfileTotalsAreQueried(fundingStreamId,
+                fundingPeriodId,
+                providerId);
+
+            OkObjectResult objectResult = result as OkObjectResult;
+
+            objectResult?.Value
+                .Should()
+                .BeEquivalentTo((new[] { publishedProviderVersion }).ToDictionary(_ => _.Version, 
+                    _ => new ProfilingVersion
+                    {
+                        Date = _.Date,
+                        ProfileTotals = new[] { NewProfileTotal(ptbldr => ptbldr.WithOccurrence(1)
+                        .WithYear(2012)
+                        .WithTypeValue("January")
+                        .WithValue(123)) },
+                        Version = _.Version
+                    }));
+
+            _publishedFunding.VerifyAll();
+        }
+
         private string NewRandomString() => new RandomString();
         private async Task<IActionResult> WhenTheProfileTotalsAreQueried(string fundingStreamId,
             string fundingPeriodId,
             string providerId)
         {
             return await _service.GetPaymentProfileTotalsForFundingStreamForProvider(fundingStreamId,
+                fundingPeriodId,
+                providerId);
+        }
+
+        private async Task<IActionResult> WhenAllTheProfileTotalsAreQueried(string fundingStreamId,
+            string fundingPeriodId,
+            string providerId)
+        {
+            return await _service.GetAllReleasedPaymentProfileTotalsForFundingStreamForProvider(fundingStreamId,
                 fundingPeriodId,
                 providerId);
         }
@@ -149,7 +198,20 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .ReturnsAsync(publishedProviderVersion)
                 .Verifiable();
         }
-        
+
+        private void GivenAllThePublishedProviderVersions(string fundingStreamId,
+            string fundingPeriodId,
+            string providerId,
+            PublishedProviderVersion publishedProviderVersion)
+        {
+            _publishedFunding.Setup(_ => _.GetPublishedProviderVersions(fundingStreamId,
+                    fundingPeriodId,
+                    providerId,
+                    "Released"))
+                .ReturnsAsync(new[] { publishedProviderVersion })
+                .Verifiable();
+        }
+
         private static IEnumerable<object[]> MissingIdExamples()
         {
             yield return new object[] {null};

@@ -92,6 +92,22 @@ namespace CalculateFunding.Api.Publishing.UnitTests.Controllers
         }
 
         [TestMethod]
+        public async Task GetAllProfileTotalsForPublishedProviderDelegatesToProfileTotalService()
+        {
+            IActionResult expectedResult = Substitute.For<IActionResult>();
+
+            GivenAllTheProfilesTotalResponse(expectedResult);
+
+            IActionResult actualResult = await _controller.GetAllReleasedProfileTotalsForPublishedProvider(_fundingStreamId,
+                _fundPeriodId,
+                _providerId);
+
+            actualResult
+                .Should()
+                .BeSameAs(expectedResult);
+        }
+
+        [TestMethod]
         public async Task DeletePublishProvidersIfDeleteForbiddenReturns403Response()
         {
             GivenThatDeletingPublishedProvidersIsForbidden();
@@ -130,6 +146,15 @@ namespace CalculateFunding.Api.Publishing.UnitTests.Controllers
         {
             _profileTotalsService
                 .GetPaymentProfileTotalsForFundingStreamForProvider(_fundingStreamId,
+                    _fundPeriodId,
+                    _providerId)
+                .Returns(result);
+        }
+
+        private void GivenAllTheProfilesTotalResponse(IActionResult result)
+        {
+            _profileTotalsService
+                .GetAllReleasedPaymentProfileTotalsForFundingStreamForProvider(_fundingStreamId,
                     _fundPeriodId,
                     _providerId)
                 .Returns(result);

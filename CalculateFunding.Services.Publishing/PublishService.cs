@@ -388,7 +388,10 @@ namespace CalculateFunding.Services.Publishing
             {
                 PublishedProvider missingProvider = await _outOfScopePublishedProviderBuilder.CreateMissingPublishedProviderForPredecessor(publishedProvider, publishedProvider.Current.Provider.Successor);
 
-                scopedProviders.Add(missingProvider.Current.ProviderId, _mapper.Map<Provider>(missingProvider.Current.Provider));
+                if (!scopedProviders.ContainsKey(missingProvider.Current.ProviderId))
+                {
+                    scopedProviders.Add(missingProvider.Current.ProviderId, _mapper.Map<Provider>(missingProvider.Current.Provider));
+                }
             }
 
             return scopedProviders;

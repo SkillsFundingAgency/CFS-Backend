@@ -45,5 +45,27 @@ namespace CalculateFunding.Services.Publishing
 
             return new OkObjectResult(profileTotals);
         }
+
+        public async Task<IActionResult> GetAllReleasedPaymentProfileTotalsForFundingStreamForProvider(string fundingStreamId,
+            string fundingPeriodId,
+            string providerId)
+        {
+            Guard.IsNullOrWhiteSpace(fundingStreamId, nameof(fundingStreamId));
+            Guard.IsNullOrWhiteSpace(fundingPeriodId, nameof(fundingPeriodId));
+            Guard.IsNullOrWhiteSpace(providerId, nameof(providerId));
+
+            PublishedProviderVersion[] publishedProviderVersions = (await _resilience.ExecuteAsync(() =>
+                _publishedFunding.GetPublishedProviderVersions(fundingStreamId, fundingPeriodId, providerId, "Released"))).ToArray();
+
+            if (publishedProviderVersions.IsNullOrEmpty())
+            {
+                return new NotFoundResult();
+            }
+
+            return new OkObjectResult(publishedProviderVersions.ToDictionary(_ => _.Version, 
+                _ => new ProfilingVersion { Date = _.Date, 
+                    ProfileTotals = new PaymentFundingLineProfileTotals(_).ToArray(),
+                    Version = _.Version }));
+        }
     }
 }

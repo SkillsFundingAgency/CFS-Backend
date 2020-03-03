@@ -26,6 +26,8 @@ namespace CalculateFunding.Services.Publishing.Interfaces
         Task<IEnumerable<PublishedProviderVersion>> GetPublishedProviderVersions(string specificationId,
             string providerId);
 
+        Task<IEnumerable<PublishedProviderVersion>> GetPublishedProviderVersions(string fundingStreamId, string fundingPeriodId, string providerId, string status = null);
+
         Task<PublishedProvider> GetPublishedProviderById(string cosmosId, string partitionKey);
 
         Task<IEnumerable<KeyValuePair<string, string>>> GetPublishedProviderIds(string fundingStreamId, string fundingPeriodId);

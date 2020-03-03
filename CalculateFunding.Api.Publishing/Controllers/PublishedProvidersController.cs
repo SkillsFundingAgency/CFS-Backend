@@ -49,7 +49,18 @@ namespace CalculateFunding.Api.Publishing.Controllers
                 fundingPeriodId,
                 providerId);
         }
-        
+
+        [HttpGet("api/publishedproviders/{fundingStreamId}/{fundingPeriodId}/{providerId}/allProfileTotals")]
+        [ProducesResponseType(200, Type = typeof(IDictionary<int, ProfilingVersion>))]
+        public async Task<IActionResult> GetAllReleasedProfileTotalsForPublishedProvider([FromRoute] string fundingStreamId,
+            [FromRoute] string fundingPeriodId,
+            [FromRoute] string providerId)
+        {
+            return await _profileTotalsService.GetAllReleasedPaymentProfileTotalsForFundingStreamForProvider(fundingStreamId,
+                fundingPeriodId,
+                providerId);
+        }
+
         [HttpDelete("api/publishedproviders/{fundingStreamId}/{fundingPeriodId}")]
         [ApiExplorerSettings(IgnoreApi = true)]
         [ProducesResponseType(200)]

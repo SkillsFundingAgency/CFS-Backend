@@ -103,7 +103,45 @@ namespace CalculateFunding.Services.Publishing.Repositories
                 .SingleOrDefault()
                 ?.Current;
         }
-        
+
+        public async Task<IEnumerable<PublishedProviderVersion>> GetPublishedProviderVersions(string fundingStreamId,
+            string fundingPeriodId,
+            string providerId,
+            string status = null)
+        {
+            Guard.IsNullOrWhiteSpace(fundingStreamId, nameof(fundingStreamId));
+            Guard.IsNullOrWhiteSpace(fundingPeriodId, nameof(fundingPeriodId));
+            Guard.IsNullOrWhiteSpace(providerId, nameof(providerId));
+
+            StringBuilder publishedProviderVersionQry = new StringBuilder(@"SELECT *
+                                 FROM c
+                                 WHERE c.documentType = 'PublishedProviderVersion'
+                                 AND c.deleted = false
+                                 AND c.content.providerId = @providerId
+                                 AND c.content.fundingStreamId = @fundingStreamId
+                                 AND c.content.fundingPeriodId = @fundingPeriodId");
+
+            IEnumerable<CosmosDbQueryParameter> parameters = new[]
+                    {
+                        new CosmosDbQueryParameter("@fundingStreamId", fundingStreamId),
+                        new CosmosDbQueryParameter("@fundingPeriodId", fundingPeriodId),
+                        new CosmosDbQueryParameter("@providerId", providerId)
+                    };
+
+            if (status != null)
+            {
+                publishedProviderVersionQry.Append(" AND c.content.status = @status");
+                parameters = parameters.Append(new CosmosDbQueryParameter("@status", status));
+            }
+
+            return (await _repository
+                .QuerySql<PublishedProviderVersion>(new CosmosDbQuery
+                {
+                    QueryText = publishedProviderVersionQry.ToString(),
+                    Parameters = parameters
+                }));
+        }
+
         public async Task<IEnumerable<PublishedProviderVersion>> GetPublishedProviderVersions(string specificationId,
             string providerId)
         {
@@ -445,6 +483,8 @@ namespace CalculateFunding.Services.Publishing.Repositories
                                         c.content.id,
                                         { 
                                            'id' : c.content.current.id,
+                                           'major' : c.content.current.major,
+                                           'minor' : c.content.current.minor,
                                            'providerId' : c.content.current.providerId,
                                            'fundingStreamId' : c.content.current.fundingStreamId,
                                            'fundingPeriodId' : c.content.current.fundingPeriodId,

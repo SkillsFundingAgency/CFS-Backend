@@ -22,6 +22,11 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             return _realImplementation.CreateVersion(newVersion, currentVersion, partitionKey, incrementFromCurrentVersion);
         }
 
+        public Task DeleteVersions(IEnumerable<KeyValuePair<string, PublishedFundingVersion>> newVersions, int maxDegreesOfParallelism = 30)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<int> GetNextVersionNumber(PublishedFundingVersion version = null, int currentVersion = 0, string partitionKeyId = null, bool incrementFromCurrentVersion = false)
         {
             throw new NotImplementedException();
