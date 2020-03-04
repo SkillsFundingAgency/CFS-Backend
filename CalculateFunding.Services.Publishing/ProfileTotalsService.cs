@@ -64,7 +64,7 @@ namespace CalculateFunding.Services.Publishing
 
             return new OkObjectResult(publishedProviderVersions.ToDictionary(_ => _.Version, 
                 _ => new ProfilingVersion { Date = _.Date, 
-                    ProfileTotals = new PaymentFundingLineProfileTotals(_).ToArray(),
+                    ProfileTotals = new PaymentFundingLineProfileTotals(_),
                     Version = _.Version }));
         }
     }

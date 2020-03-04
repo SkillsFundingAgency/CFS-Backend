@@ -10,6 +10,6 @@ namespace CalculateFunding.Services.Publishing.Profiling
 
         public DateTimeOffset Date { get; set; }
 
-        public ProfileTotal[] ProfileTotals { get; set; }
+        public IEnumerable<ProfileTotal> ProfileTotals { get; set; }
     }
 }
