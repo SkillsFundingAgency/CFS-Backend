@@ -1,12 +1,5 @@
-﻿using CalculateFunding.Common.Graph.Interfaces;
-using CalculateFunding.Models.Graph;
-using CalculateFunding.Services.Graph.Interfaces;
+﻿using CalculateFunding.Models.Graph;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NSubstitute;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Graph.UnitTests
@@ -14,53 +7,83 @@ namespace CalculateFunding.Services.Graph.UnitTests
     [TestClass]
     public class SpecificationRepositoryTests : GraphRepositoryTestBase
     {
-        private const string CalculationId = "calculationid";
         private const string SpecificationId = "specificationid";
-        private IGraphRepository _graphRepository;
-        private ISpecificationRepository _specificationRepository;
+        private const string DatasetId = Dataset.IdField;
+        private const string SpecificationDatasetRelationship = SpecificationRepository.SpecificationDatasetRelationship;
+        private const string DatasetSpecificationRelationship =  SpecificationRepository.DatasetSpecificationRelationship;
+        
+        private SpecificationRepository _specificationRepository;
 
         [TestInitialize]
         public void Setup()
         {
-            _graphRepository = Substitute.For<IGraphRepository>();
-            _specificationRepository = new SpecificationRepository(_graphRepository);
+            _specificationRepository = new SpecificationRepository(GraphRepository);
         }
 
         [TestMethod]
         public async Task UpsertSpecifications_GivenValidSpecifications_ExpectedMethodsCalled()
         {
-            Specification[] specs = new Specification[] { NewSpecification(), NewSpecification() };
+            Specification[] specifications = new[] { NewSpecification(), NewSpecification() };
 
-            await _specificationRepository.UpsertSpecifications(specs);
+            await _specificationRepository.UpsertSpecifications(specifications);
 
-            await _graphRepository
-                .Received(1)
-                .UpsertNodes(Arg.Is<IEnumerable<Specification>>(_ => _.ToArray().All(spec => specs.Contains(spec))),
-                    Arg.Is<IEnumerable<string>>(_ => _.All(rel => rel == SpecificationId) && _.Count() == 1));
+            await ThenTheNodesWereCreated(specifications, SpecificationId);
         }
 
         [TestMethod]
         public async Task DeleteCalculation_GivenValidCalculation_ExpectedMethodsCalled()
         {
-            Specification spec = NewSpecification();
+            string specificationId = NewRandomString();
+            
+            await _specificationRepository.DeleteSpecification(specificationId);
 
-            await _specificationRepository.DeleteSpecification(spec.SpecificationId);
-
-            await _graphRepository
-                .Received(1)
-                .DeleteNode<Specification>(SpecificationId, Arg.Is(spec.SpecificationId));
+            await ThenTheNodeWasDeleted<Specification>(SpecificationId, specificationId);
         }
 
         [TestMethod]
         public async Task DeleteAllForSpecification_GivenValidCalculation_ExpectedMethodsCalled()
         {
-            Specification spec = NewSpecification();
+            string specificationId = NewRandomString();
 
-            await _specificationRepository.DeleteAllForSpecification(spec.SpecificationId);
+            await _specificationRepository.DeleteAllForSpecification(specificationId);
 
-            await _graphRepository
-                .Received(1)
-                .DeleteNodeAndChildNodes<Specification>(SpecificationId, Arg.Is(spec.SpecificationId));
+            await ThenTheNodeAndAllItsChildrenWereDeleted<Specification>(SpecificationId, specificationId);
+        }
+        
+        [TestMethod]
+        public async Task DeleteSpecificationDatasetRelationshipDelegatesToGraphRepository()
+        {
+            string specificationId = NewRandomString();
+            string datasetId = NewRandomString();
+            
+            await _specificationRepository.DeleteSpecificationDatasetRelationship(specificationId,
+                datasetId);
+
+            await ThenTheRelationshipWasDeleted<Specification, Dataset>(SpecificationDatasetRelationship,
+                (SpecificationId, specificationId),
+                (DatasetId, datasetId));
+
+            await AndTheRelationshipWasDeleted<Dataset, Specification>(DatasetSpecificationRelationship,
+                (DatasetId, datasetId),
+                (SpecificationId, specificationId));
+        }
+        
+        [TestMethod]
+        public async Task CreateSpecificationDatasetRelationshipDelegatesToGraphRepository()
+        {
+            string specificationId = NewRandomString();
+            string datasetId = NewRandomString();
+            
+            await _specificationRepository.CreateSpecificationDatasetRelationship(specificationId,
+                datasetId);
+
+            await ThenTheRelationshipWasCreated<Specification, Dataset>(SpecificationDatasetRelationship,
+                (SpecificationId, specificationId),
+                (DatasetId, datasetId));
+
+            await AndTheRelationshipWasCreated<Dataset, Specification>(DatasetSpecificationRelationship,
+                (DatasetId, datasetId),
+                (SpecificationId, specificationId));
         }
     }
 }

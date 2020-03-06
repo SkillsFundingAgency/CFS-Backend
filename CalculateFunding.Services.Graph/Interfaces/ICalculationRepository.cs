@@ -16,5 +16,10 @@ namespace CalculateFunding.Services.Graph.Interfaces
         Task DeleteCalculationSpecificationRelationship(string calculationId, string specificationId);
         Task DeleteCalculationCalculationRelationship(string calculationIdA, string calculationIdB);
 
+        Task CreateCalculationDataFieldRelationship(string calculationId,
+            string dataFieldId);
+
+        Task DeleteCalculationDataFieldRelationship(string calculationId,
+            string dataFieldId);
     }
 }

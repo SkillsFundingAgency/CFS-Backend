@@ -1,14 +1,10 @@
-using CalculateFunding.Common.Graph.Interfaces;
 using CalculateFunding.Models.Graph;
-using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Graph.Interfaces;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
-using NSubstitute.ExceptionExtensions;
 using System;
-using System.Threading.Channels;
 using System.Threading.Tasks;
 using CalculateFunding.Tests.Common.Helpers;
 using Serilog;
@@ -21,6 +17,7 @@ namespace CalculateFunding.Services.Graph.UnitTests
     {
         private ICalculationRepository _calculationRepository;
         private ISpecificationRepository _specificationRepository;
+        private IDatasetRepository _datasetRepository;
         private GraphService _graphService;
         private ILogger _logger;
 
@@ -30,19 +27,24 @@ namespace CalculateFunding.Services.Graph.UnitTests
             _logger = Substitute.For<ILogger>();
             _calculationRepository = Substitute.For<ICalculationRepository>();
             _specificationRepository = Substitute.For<ISpecificationRepository>();
-            _graphService = new GraphService(_logger, _calculationRepository, _specificationRepository);
+            _datasetRepository = Substitute.For<IDatasetRepository>();
+            
+            _graphService = new GraphService(_logger, 
+                _calculationRepository, 
+                _specificationRepository,
+                _datasetRepository);
         }
 
         [TestMethod]
-        public async Task SaveCalculations_GivenValidCalulations_OkStatusCodeReturned()
+        public async Task UpsertDatasetDelegatesToTheRepository()
         {
-            Calculation[] calcs = new Calculation[] { NewCalculation(), NewCalculation() };
+            Dataset dataset = new Dataset();
 
-            IActionResult result = await _graphService.UpsertCalculations(calcs);
+            IActionResult result = await _graphService.UpsertDataset(dataset);
 
-            await _calculationRepository
+            await _datasetRepository
                 .Received(1)
-                .UpsertCalculations(calcs);
+                .UpsertDataset(dataset);
 
             result
                 .Should()
@@ -50,25 +52,249 @@ namespace CalculateFunding.Services.Graph.UnitTests
         }
 
         [TestMethod]
-        public async Task SaveCalculations_FailsToAddCalculations_InternalServerErrorReturned()
+        public async Task DeleteDatasetDelegatesToTheRepository()
         {
-            Calculation[] calcs = new Calculation[] { NewCalculation(), NewCalculation() };
+            string datasetId = NewRandomString();
+            
+            IActionResult result = await _graphService.DeleteDataset(datasetId);
 
-            _calculationRepository
-                .UpsertCalculations(calcs)
-                .Throws(new Neo4jDriver.Neo4jException());
-
-            IActionResult result = await _graphService.UpsertCalculations(calcs);
+            await _datasetRepository
+                .Received(1)
+                .DeleteDataset(datasetId);
 
             result
                 .Should()
-                .BeAssignableTo<InternalServerErrorResult>();
+                .BeOfType<OkResult>();
+        }
+
+        [TestMethod]
+        public async Task UpsertDatasetDefinitionDelegatesToTheRepository()
+        {
+            DatasetDefinition definition = new DatasetDefinition();
+
+            IActionResult result = await _graphService.UpsertDatasetDefinition(definition);
+
+            await _datasetRepository
+                .Received(1)
+                .UpsertDatasetDefinition(definition);
+
+            result
+                .Should()
+                .BeOfType<OkResult>();
+        }
+        
+        [TestMethod]
+        public async Task DeleteDatasetDefinitionDelegatesToTheRepository()
+        {
+            string definitionId = NewRandomString();
+            
+            IActionResult result = await _graphService.DeleteDatasetDefinition(definitionId);
+
+            await _datasetRepository
+                .Received(1)
+                .DeleteDatasetDefinition(definitionId);
+
+            result
+                .Should()
+                .BeOfType<OkResult>();
+        }
+        
+        [TestMethod]
+        public async Task UpsertDataFieldDelegatesToTheRepository()
+        {
+            DataField field = new DataField();
+
+            IActionResult result = await _graphService.UpsertDataField(field);
+
+            await _datasetRepository
+                .Received(1)
+                .UpsertDataField(field);
+
+            result
+                .Should()
+                .BeOfType<OkResult>();
+        }
+        
+        [TestMethod]
+        public async Task DeleteDataFieldDelegatesToTheRepository()
+        {
+            string fieldId = NewRandomString();
+            
+            IActionResult result = await _graphService.DeleteDataField(fieldId);
+
+            await _datasetRepository
+                .Received(1)
+                .DeleteDataField(fieldId);
+
+            result
+                .Should()
+                .BeOfType<OkResult>();
+        }
+        
+        [TestMethod]
+        public async Task UpsertDataDefinitionDatasetRelationshipDelegatesToRepository()
+        {
+            string definitionId = NewRandomString();
+            string datasetId = NewRandomString();
+            
+            IActionResult result = await _graphService.UpsertDataDefinitionDatasetRelationship(definitionId,
+                datasetId);
+
+            await _datasetRepository
+                .Received(1)
+                .CreateDataDefinitionDatasetRelationship(definitionId, datasetId);
+
+            result
+                .Should()
+                .BeOfType<OkResult>();
+        }
+
+        [TestMethod]
+        public async Task DeleteDataDefinitionDatasetRelationshipDelegatesToRepository()
+        {
+            string definitionId = NewRandomString();
+            string datasetId = NewRandomString();
+            
+            IActionResult result = await _graphService.DeleteDataDefinitionDatasetRelationship(definitionId,
+                datasetId);
+
+            await _datasetRepository
+                .Received(1)
+                .DeleteDataDefinitionDatasetRelationship(definitionId, datasetId);
+
+            result
+                .Should()
+                .BeOfType<OkResult>();
+        }
+        
+        [TestMethod]
+        public async Task UpsertDatasetDataFieldRelationshipDelegatesToRepository()
+        {
+            string datasetId = NewRandomString();
+            string fieldId = NewRandomString();
+            
+            IActionResult result = await _graphService.UpsertDatasetDataFieldRelationship(datasetId,
+                fieldId);
+
+            await _datasetRepository
+                .Received(1)
+                .CreateDatasetDataFieldRelationship(datasetId, fieldId);
+
+            result
+                .Should()
+                .BeOfType<OkResult>();
+        }
+
+        [TestMethod]
+        public async Task DeleteDatasetDataFieldRelationshipDelegatesToRepository()
+        {
+            string datasetId = NewRandomString();
+            string fieldId = NewRandomString();
+            
+            IActionResult result = await _graphService.DeleteDatasetDataFieldRelationship(datasetId,
+                fieldId);
+
+            await _datasetRepository
+                .Received(1)
+                .DeleteDatasetDataFieldRelationship(datasetId, fieldId);
+
+            result
+                .Should()
+                .BeOfType<OkResult>();
+        }
+        
+        [TestMethod]
+        public async Task CreateSpecificationDatasetRelationshipDelegatesToRepository()
+        {
+            string specificationId = NewRandomString();
+            string datasetId = NewRandomString();
+            
+            IActionResult result = await _graphService.CreateSpecificationDatasetRelationship(specificationId,
+                datasetId);
+
+            await _specificationRepository
+                .Received(1)
+                .CreateSpecificationDatasetRelationship(specificationId, datasetId);
+
+            result
+                .Should()
+                .BeOfType<OkResult>();
+        }
+
+        [TestMethod]
+        public async Task DeleteSpecificationDatasetRelationshipDelegatesToRepository()
+        {
+            string specificationId = NewRandomString();
+            string datasetId = NewRandomString();
+            
+            IActionResult result = await _graphService.DeleteSpecificationDatasetRelationship(specificationId,
+                datasetId);
+
+            await _specificationRepository
+                .Received(1)
+                .DeleteSpecificationDatasetRelationship(specificationId, datasetId);
+
+            result
+                .Should()
+                .BeOfType<OkResult>();
+        }
+        
+        [TestMethod]
+        public async Task CreateCalculationDataFieldRelationshipDelegatesToRepository()
+        {
+            string calculationId = NewRandomString();
+            string fieldId = NewRandomString();
+            
+            IActionResult result = await _graphService.CreateCalculationDataFieldRelationship(calculationId,
+                fieldId);
+
+            await _calculationRepository
+                .Received(1)
+                .CreateCalculationDataFieldRelationship(calculationId, fieldId);
+
+            result
+                .Should()
+                .BeOfType<OkResult>();
+        }
+
+        [TestMethod]
+        public async Task DeleteCalculationDataFieldRelationshipDelegatesToRepository()
+        {
+            string calculationId = NewRandomString();
+            string fieldId = NewRandomString();
+            
+            IActionResult result = await _graphService.DeleteCalculationDataFieldRelationship(calculationId,
+                fieldId);
+
+            await _calculationRepository
+                .Received(1)
+                .DeleteCalculationDataFieldRelationship(calculationId, fieldId);
+
+            result
+                .Should()
+                .BeOfType<OkResult>();
+        }
+        
+        [TestMethod]
+        public async Task SaveCalculations_GivenValidCalculations_OkStatusCodeReturned()
+        {
+            Calculation[] calculations = new[] { NewCalculation(), NewCalculation() };
+
+            IActionResult result = await _graphService.UpsertCalculations(calculations);
+
+            await _calculationRepository
+                .Received(1)
+                .UpsertCalculations(calculations);
+
+            result
+                .Should()
+                .BeOfType<OkResult>();
         }
 
         [TestMethod]
         public async Task SaveSpecifications_GivenValidSpecifications_OkStatusCodeReturned()
         {
-            Specification[] specifications = new Specification[] { NewSpecification(), NewSpecification() };
+            Specification[] specifications = new[] { NewSpecification(), NewSpecification() };
 
             IActionResult result = await _graphService.UpsertSpecifications(specifications);
 
@@ -82,279 +308,105 @@ namespace CalculateFunding.Services.Graph.UnitTests
         }
 
         [TestMethod]
-        public async Task SaveSpecifications_FailsToAddSpecifications_InternalServerErrorReturned()
-        {
-            Specification[] specifications = new Specification[] { NewSpecification(), NewSpecification() };
-
-            _specificationRepository
-                .UpsertSpecifications(specifications)
-                .Throws(new Neo4jDriver.Neo4jException());
-
-            IActionResult result = await _graphService.UpsertSpecifications(specifications);
-
-            _logger
-                .Received(1)
-                .Error($"Save specifications failed for specifications:'{specifications.AsJson()}'");
-
-            result
-                .Should()
-                .BeAssignableTo<InternalServerErrorResult>();
-        }
-
-        [TestMethod]
         public async Task DeleteCalculation_GivenExistingCalculation_OkStatusCodeReturned()
         {
-            Calculation calc = NewCalculation();
-
-            IActionResult result = await _graphService.DeleteCalculation(calc.CalculationId);
+            string calculationId = NewRandomString();
+            
+            IActionResult result = await _graphService.DeleteCalculation(calculationId);
 
             await _calculationRepository
                 .Received(1)
-                .DeleteCalculation(calc.CalculationId);
+                .DeleteCalculation(calculationId);
 
             result
                 .Should()
                 .BeOfType<OkResult>();
-        }
-
-        [TestMethod]
-        public async Task DeleteCalculation_FailsToDeleteCalculation_InternalServerErrorReturned()
-        {
-            Calculation calc = NewCalculation();
-
-            _calculationRepository
-                .DeleteCalculation(calc.CalculationId)
-                .Throws(new Neo4jDriver.Neo4jException());
-
-            IActionResult result = await _graphService.DeleteCalculation(calc.CalculationId);
-
-            _logger
-                .Received(1)
-                .Error($"Delete calculation failed for calculation:'{calc.CalculationId}'");
-
-            result
-                .Should()
-                .BeAssignableTo<InternalServerErrorResult>();
         }
 
         [TestMethod]
         public async Task DeleteSpecification_GivenExistingSpecification_OkStatusCodeReturned()
         {
-            Specification specification = NewSpecification();
-
-            IActionResult result = await _graphService.DeleteSpecification(specification.SpecificationId);
+            string specificationId = NewRandomString();
+            
+            IActionResult result = await _graphService.DeleteSpecification(specificationId);
 
             await _specificationRepository
                 .Received(1)
-                .DeleteSpecification(specification.SpecificationId);
+                .DeleteSpecification(specificationId);
 
             result
                 .Should()
                 .BeOfType<OkResult>();
-        }
-
-        [TestMethod]
-        public async Task DeleteSpecification_FailsToDeleteSpecification_InternalServerErrorReturned()
-        {
-            Specification specification = NewSpecification();
-
-            _specificationRepository
-                .DeleteSpecification(specification.SpecificationId)
-                .Throws(new Neo4jDriver.Neo4jException());
-
-            IActionResult result = await _graphService.DeleteSpecification(specification.SpecificationId);
-
-            _logger
-                .Received(1)
-                .Error($"Delete specification failed for specification:'{specification.SpecificationId}'");
-
-            result
-                .Should()
-                .BeAssignableTo<InternalServerErrorResult>();
         }
 
         [TestMethod]
         public async Task CreateCalculationSpecificationRelationship_GivenValidRelationship_OkStatusCodeReturned()
         {
-            Calculation calc = NewCalculation();
-            Specification specification = NewSpecification();
-
-            IActionResult result = await _graphService.UpsertCalculationSpecificationRelationship(calc.CalculationId,
-                specification.SpecificationId);
+            string calculationId = NewRandomString();
+            string specificationId = NewRandomString();
+            
+            IActionResult result = await _graphService.UpsertCalculationSpecificationRelationship(calculationId,
+                specificationId);
 
             await _calculationRepository
                 .Received(1)
-                .UpsertCalculationSpecificationRelationship(calc.CalculationId, specification.SpecificationId);
+                .UpsertCalculationSpecificationRelationship(calculationId, specificationId);
 
             result
                 .Should()
                 .BeOfType<OkResult>();
-        }
-
-        [TestMethod]
-        public async Task CreateCalculationSpecificationRelationship_FailedToCreateRelationship_InternalServerErrorReturned()
-        {
-            Calculation calc = NewCalculation();
-            Specification specification = NewSpecification();
-
-            _calculationRepository
-                .UpsertCalculationSpecificationRelationship(calc.CalculationId, specification.SpecificationId)
-                .Throws(new Neo4jDriver.Neo4jException());
-
-            IActionResult result = await _graphService.UpsertCalculationSpecificationRelationship(calc.CalculationId,
-                specification.SpecificationId);
-
-            _logger
-                .Received(1)
-                .Error($"Upsert calculation relationship between specification failed for calculation:'{calc.CalculationId}'" +
-                    $" and specification:'{specification.SpecificationId}'");
-
-            result
-                .Should()
-                .BeAssignableTo<InternalServerErrorResult>();
         }
 
         [TestMethod]
         public async Task CreateCalculationCalculationRelationship_GivenValidRelationship_OkStatusCodeReturned()
         {
-            Calculation calcA = NewCalculation();
-            Calculation calcB = NewCalculation();
-
-            IActionResult result = await _graphService.UpsertCalculationCalculationRelationship(calcA.CalculationId,
-                calcB.CalculationId);
+            string calculationAId = NewRandomString();
+            string calculationBId = NewRandomString();
+            
+            IActionResult result = await _graphService.UpsertCalculationCalculationRelationship(calculationAId,
+                calculationBId);
 
             await _calculationRepository
                 .Received(1)
-                .UpsertCalculationCalculationRelationship(calcA.CalculationId, calcB.CalculationId);
+                .UpsertCalculationCalculationRelationship(calculationAId, calculationBId);
 
             result
                 .Should()
                 .BeOfType<OkResult>();
-        }
-
-        [TestMethod]
-        public async Task CreateCalculationCalculationRelationship_FailedToCreateRelationship_InternalServerErrorReturned()
-        {
-            Calculation calcA = NewCalculation();
-            Calculation calcB = NewCalculation();
-
-            _calculationRepository
-                .UpsertCalculationCalculationRelationship(calcA.CalculationId, calcB.CalculationId)
-                .Throws(new Neo4jDriver.Neo4jException());
-
-            IActionResult result = await _graphService.UpsertCalculationCalculationRelationship(calcA.CalculationId,
-                calcB.CalculationId);
-
-            _logger
-                .Received(1)
-                .Error($"Upsert calculation relationship call to calculation failed for calculation:'{calcA.CalculationId}'" +
-                    $" calling calculation:'{calcB.CalculationId}'");
-
-            result
-                .Should()
-                .BeAssignableTo<InternalServerErrorResult>();
-        }
-
-        [TestMethod]
-        public async Task CreateCalculationCalculationsRelationships_FailedToCreateRelationships_InternalServerErrorReturned()
-        {
-            Calculation calcA = NewCalculation();
-            Calculation calcB = NewCalculation();
-            Calculation calcC = NewCalculation();
-
-            _calculationRepository
-                .UpsertCalculationCalculationRelationship(calcA.CalculationId, calcB.CalculationId)
-                .Throws(new Neo4jDriver.Neo4jException());
-
-            IActionResult result = await _graphService.UpsertCalculationCalculationsRelationships(calcA.CalculationId,
-                new[] {calcB.CalculationId,
-                calcC.CalculationId});
-
-            _logger
-                .Received(1)
-                .Error($"Upsert calculation relationship call to calculation failed for calculation:'{calcA.CalculationId}'" +
-                    $" calling calculations:'{new[] { calcB.CalculationId, calcC.CalculationId}.AsJson()}'");
-
-            result
-                .Should()
-                .BeAssignableTo<InternalServerErrorResult>();
         }
 
         [TestMethod]
         public async Task DeleteCalculationSpecificationRelationship_GivenValidRelationship_OkStatusCodeReturned()
         {
-            Calculation calc = NewCalculation();
-            Specification specification = NewSpecification();
+            string calculationAId = NewRandomString();
+            string specificationId = NewRandomString();
 
-            IActionResult result = await _graphService.DeleteCalculationSpecificationRelationship(calc.CalculationId, specification.SpecificationId);
+            IActionResult result = await _graphService.DeleteCalculationSpecificationRelationship(calculationAId, specificationId);
 
             await _calculationRepository
                 .Received(1)
-                .DeleteCalculationSpecificationRelationship(calc.CalculationId, specification.SpecificationId);
+                .DeleteCalculationSpecificationRelationship(calculationAId, specificationId);
 
             result
                 .Should()
                 .BeOfType<OkResult>();
-        }
-
-        [TestMethod]
-        public async Task DeleteCalculationSpecificationRelationship_FailedToDeleteRelationship_InternalServerErrorReturned()
-        {
-            Calculation calc = NewCalculation();
-            Specification specification = NewSpecification();
-
-            _calculationRepository
-                .DeleteCalculationSpecificationRelationship(calc.CalculationId, specification.SpecificationId)
-                .Throws(new Neo4jDriver.Neo4jException());
-
-            IActionResult result = await _graphService.DeleteCalculationSpecificationRelationship(calc.CalculationId, specification.SpecificationId);
-
-            _logger
-                .Received(1)
-                .Error($"Delete calculation relationship between specification failed for calculation:'{calc.CalculationId}'" +
-                    $" and specification:'{specification.SpecificationId}'");
-
-            result
-                .Should()
-                .BeAssignableTo<InternalServerErrorResult>();
         }
 
         [TestMethod]
         public async Task DeleteCalculationCalculationRelationship_GivenValidRelationship_OkStatusCodeReturned()
         {
-            Calculation calcA = NewCalculation();
-            Calculation calcB = NewCalculation();
+            string calculationAId = NewRandomString();
+            string calculationBId = NewRandomString();
 
-            IActionResult result = await _graphService.DeleteCalculationCalculationRelationship(calcA.CalculationId, calcB.CalculationId);
+            IActionResult result = await _graphService.DeleteCalculationCalculationRelationship(calculationAId, calculationBId);
 
             await _calculationRepository
                 .Received(1)
-                .DeleteCalculationCalculationRelationship(calcA.CalculationId, calcB.CalculationId);
+                .DeleteCalculationCalculationRelationship(calculationAId, calculationBId);
 
             result
                 .Should()
                 .BeOfType<OkResult>();
-        }
-
-        [TestMethod]
-        public async Task DeleteCalculationCalculationRelationship_FailedToDeleteRelationship_InternalServerErrorReturned()
-        {
-            Calculation calcA = NewCalculation();
-            Calculation calcB = NewCalculation();
-
-            _calculationRepository
-                .DeleteCalculationCalculationRelationship(calcA.CalculationId, calcB.CalculationId)
-                .Throws(new Neo4jDriver.Neo4jException());
-
-            IActionResult result = await _graphService.DeleteCalculationCalculationRelationship(calcA.CalculationId, calcB.CalculationId);
-
-            _logger
-                .Received(1)
-                .Error($"Delete calculation relationship call to calculation failed for calculation:'{calcA.CalculationId}'" +
-                    $" calling calculation:'{calcB.CalculationId}'");
-            result
-                .Should()
-                .BeAssignableTo<InternalServerErrorResult>();
         }
 
         [TestMethod]

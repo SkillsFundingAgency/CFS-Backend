@@ -1,86 +1,105 @@
 ﻿using CalculateFunding.Common.Graph.Interfaces;
-using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Graph;
 using CalculateFunding.Services.Graph.Interfaces;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Graph
 {
-    public class CalculationRepository : ICalculationRepository
+    public class CalculationRepository : GraphRepositoryBase, ICalculationRepository
     {
-        private const string CalculationId = "calculationid";
-        private const string SpecificationId = "specificationid";
-        private const string CalculationSpecificationRelationship = "BelongsToSpecification";
-        private const string SpecificationCalculationRelationship = "HasCalculation";
-        private const string CalculationACalculationBRelationship = "CallsCalculation";
-        private const string CalculationBCalculationARelationship = "CalledByCalculation";
-
-        private readonly IGraphRepository _graphRepository;
+        private const string DataFieldId = DataField.IdField;
+        
+        public const string CalculationId = "calculationid";
+        public const string SpecificationId = "specificationid";
+        public const string CalculationSpecificationRelationship = "BelongsToSpecification";
+        public const string SpecificationCalculationRelationship = "HasCalculation";
+        public const string CalculationACalculationBRelationship = "CallsCalculation";
+        public const string CalculationBCalculationARelationship = "CalledByCalculation";
+        public const string CalculationDataFieldRelationship = "ReferencesDataField";
+        public const string DataFieldCalculationRelationship = "IsReferencedByCalculation";
 
         public CalculationRepository(IGraphRepository graphRepository)
+            : base(graphRepository)
         {
-            Guard.ArgumentNotNull(graphRepository, nameof(graphRepository));
-
-            _graphRepository = graphRepository;
         }
 
         public async Task DeleteCalculation(string calculationId)
         {
-            await _graphRepository.DeleteNode<Calculation>(CalculationId, calculationId);
+            await DeleteNode<Calculation>(CalculationId, calculationId);
         }
 
         public async Task UpsertCalculations(IEnumerable<Calculation> calculations)
         {
-            await _graphRepository.UpsertNodes(calculations.ToList(), new string[] { CalculationId });
+            await UpsertNodes(calculations, CalculationId);
         }
 
         public async Task UpsertCalculationSpecificationRelationship(string calculationId, string specificationId)
         {
-            await _graphRepository.UpsertRelationship<Calculation, Specification>(CalculationSpecificationRelationship, 
+            await UpsertRelationship<Calculation, Specification>(CalculationSpecificationRelationship, 
                 (CalculationId, calculationId), 
                 (SpecificationId, specificationId));
 
-            await _graphRepository.UpsertRelationship<Specification, Calculation>(SpecificationCalculationRelationship, 
+            await UpsertRelationship<Specification, Calculation>(SpecificationCalculationRelationship, 
                 (SpecificationId, specificationId),
                 (CalculationId, calculationId));
         }
 
         public async Task UpsertCalculationCalculationRelationship(string calculationIdA, string calculationIdB)
         {
-            await _graphRepository.UpsertRelationship<Calculation, Calculation>(CalculationACalculationBRelationship, 
+            await UpsertRelationship<Calculation, Calculation>(CalculationACalculationBRelationship, 
                 (CalculationId, calculationIdA),
                 (CalculationId, calculationIdB));
 
-            await _graphRepository.UpsertRelationship<Calculation, Calculation>(CalculationBCalculationARelationship,
+            await UpsertRelationship<Calculation, Calculation>(CalculationBCalculationARelationship,
                 (CalculationId, calculationIdB),
                 (CalculationId, calculationIdA));
         }
 
         public async Task DeleteCalculationSpecificationRelationship(string calculationId, string specificationId)
         {
-            await _graphRepository.DeleteRelationship<Calculation, Specification>(CalculationSpecificationRelationship, 
+            await DeleteRelationship<Calculation, Specification>(CalculationSpecificationRelationship, 
                 (CalculationId, calculationId), 
                 (SpecificationId, specificationId));
 
-            await _graphRepository.DeleteRelationship<Specification, Calculation>(SpecificationCalculationRelationship,
+            await DeleteRelationship<Specification, Calculation>(SpecificationCalculationRelationship,
                 (SpecificationId, specificationId),
                 (CalculationId, calculationId));
         }
 
         public async Task DeleteCalculationCalculationRelationship(string calculationIdA, string calculationIdB)
         {
-            await _graphRepository.DeleteRelationship<Calculation, Calculation>(CalculationACalculationBRelationship, 
+            await DeleteRelationship<Calculation, Calculation>(CalculationACalculationBRelationship, 
                 (CalculationId, calculationIdA), 
                 (CalculationId, calculationIdB));
 
-            await _graphRepository.DeleteRelationship<Calculation, Calculation>(CalculationBCalculationARelationship,
+            await DeleteRelationship<Calculation, Calculation>(CalculationBCalculationARelationship,
                 (CalculationId, calculationIdB),
                 (CalculationId, calculationIdA));
         }
+
+        public async Task CreateCalculationDataFieldRelationship(string calculationId,
+            string dataFieldId)
+        {
+            await UpsertRelationship<Calculation, DataField>(CalculationDataFieldRelationship,
+                (CalculationId, calculationId),
+                (DataFieldId, dataFieldId));
+            
+            await UpsertRelationship<DataField, Calculation>(DataFieldCalculationRelationship,
+                (DataFieldId, dataFieldId),
+                (CalculationId, calculationId));
+        }
+        
+        public async Task DeleteCalculationDataFieldRelationship(string calculationId,
+            string dataFieldId)
+        {
+            await DeleteRelationship<Calculation, DataField>(CalculationDataFieldRelationship,
+                (CalculationId, calculationId),
+                (DataFieldId, dataFieldId));
+            
+            await DeleteRelationship<DataField, Calculation>(DataFieldCalculationRelationship,
+                (DataFieldId, dataFieldId),
+                (CalculationId, calculationId));
+        }
     }
-    
 }

@@ -1,12 +1,5 @@
-﻿using CalculateFunding.Common.Graph.Interfaces;
-using CalculateFunding.Models.Graph;
-using CalculateFunding.Services.Graph.Interfaces;
+﻿using CalculateFunding.Models.Graph;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NSubstitute;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Graph.UnitTests
@@ -14,133 +7,150 @@ namespace CalculateFunding.Services.Graph.UnitTests
     [TestClass]
     public class CalculationRepositoryTests : GraphRepositoryTestBase
     {
-        private const string CalculationId = "calculationid";
-        private const string SpecificationId = "specificationid";
-        private const string CalculationSpecificationRelationship = "BelongsToSpecification";
-        private const string SpecificationCalculationRelationship = "HasCalculation";
-        private const string CalculationACalculationBRelationship = "CallsCalculation";
-        private const string CalculationBCalculationARelationship = "CalledByCalculation";
-        private IGraphRepository _graphRepository;
-        private ICalculationRepository _calculationRepository;
+        private const string CalculationId = CalculationRepository.CalculationId;
+        private const string SpecificationId = CalculationRepository.SpecificationId;
+        private const string CalculationSpecificationRelationship = CalculationRepository.CalculationSpecificationRelationship;
+        private const string SpecificationCalculationRelationship = CalculationRepository.SpecificationCalculationRelationship;
+        private const string CalculationACalculationBRelationship = CalculationRepository.CalculationACalculationBRelationship;
+        private const string CalculationBCalculationARelationship = CalculationRepository.CalculationBCalculationARelationship;
+        private const string CalculationDataFieldRelationship = CalculationRepository.CalculationDataFieldRelationship;
+        private const string DataFieldCalculationRelationship = CalculationRepository.DataFieldCalculationRelationship;
+        private const string DataFieldId = DataField.IdField;
+        
+        private CalculationRepository _calculationRepository;
 
         [TestInitialize]
         public void Setup()
         {
-            _graphRepository = Substitute.For<IGraphRepository>();
-            _calculationRepository = new CalculationRepository(_graphRepository);
+            _calculationRepository = new CalculationRepository(GraphRepository);
         }
 
         [TestMethod]
         public async Task UpsertCalculations_GivenValidCalculations_ExpectedMethodsCalled()
         {
-            Calculation[] calcs = new Calculation[] { NewCalculation(), NewCalculation() };
+            Calculation[] calculations = new[] { NewCalculation(), NewCalculation() };
 
-            await _calculationRepository.UpsertCalculations(calcs);
+            await _calculationRepository.UpsertCalculations(calculations);
 
-            await _graphRepository
-                .Received(1)
-                .UpsertNodes(Arg.Is<IEnumerable<Calculation>>(_ => _.ToArray().All(calc => calcs.Contains(calc))),
-                    Arg.Is<IEnumerable<string>>(_ => _.All(rel => rel == CalculationId) && _.Count()==1));
+            await ThenTheNodesWereCreated(calculations, CalculationId);
         }
 
         [TestMethod]
         public async Task DeleteCalculation_GivenValidCalculation_ExpectedMethodsCalled()
         {
-            Calculation calc = NewCalculation();
+            string calculationId = NewRandomString();
 
-            await _calculationRepository.DeleteCalculation(calc.CalculationId);
+            await _calculationRepository.DeleteCalculation(calculationId);
 
-            await _graphRepository
-                .Received(1)
-                .DeleteNode<Calculation>(CalculationId, Arg.Is(calc.CalculationId));
+            await ThenTheNodeWasDeleted<Calculation>( CalculationId, calculationId);
         }
 
         [TestMethod]
         public async Task UpsertCalculationSpecificationRelationship_GivenValidSpecificationAndCalculation_ExpectedMethodsCalled()
         {
-            Calculation calculation = NewCalculation();
-            Specification specification = NewSpecification();
+            string calculationId = NewRandomString();
+            string specificationId = NewRandomString();
+            
+            await _calculationRepository.UpsertCalculationSpecificationRelationship(calculationId,
+                specificationId);
 
-            await _calculationRepository.UpsertCalculationSpecificationRelationship(calculation.CalculationId,
-                specification.SpecificationId);
+            await ThenTheRelationshipWasCreated<Calculation, Specification>(CalculationSpecificationRelationship,
+                    (CalculationId, calculationId),
+                    (SpecificationId, specificationId));
 
-            await _graphRepository
-                .Received(1)
-                .UpsertRelationship<Calculation, Specification>(CalculationSpecificationRelationship,
-                    Arg.Is((CalculationId, calculation.CalculationId)),
-                    Arg.Is((SpecificationId, specification.SpecificationId)));
-
-            await _graphRepository
-                .Received(1)
-                .UpsertRelationship<Specification, Calculation>(SpecificationCalculationRelationship,
-                    Arg.Is((SpecificationId, specification.SpecificationId)),
-                    Arg.Is((CalculationId, calculation.CalculationId)));
+            await AndTheRelationshipWasCreated<Specification, Calculation>(SpecificationCalculationRelationship,
+                    (SpecificationId, specificationId),
+                    (CalculationId, calculationId));
         }
 
         [TestMethod]
         public async Task UpsertCalculationCalculationRelationship_GivenValidCalculationAndCalculation_ExpectedMethodsCalled()
         {
-            Calculation calculationA = NewCalculation();
-            Calculation calculationB = NewCalculation();
+            string calculationAId = NewRandomString();
+            string calculationBId = NewRandomString();
+            
+            await _calculationRepository.UpsertCalculationCalculationRelationship(calculationAId,
+                calculationBId);
 
-            await _calculationRepository.UpsertCalculationCalculationRelationship(calculationA.CalculationId,
-                calculationB.CalculationId);
+            await ThenTheRelationshipWasCreated<Calculation, Calculation>(CalculationACalculationBRelationship,
+                (CalculationId, calculationAId),
+                (CalculationId, calculationBId));
 
-            await _graphRepository
-                .Received(1)
-                .UpsertRelationship<Calculation, Calculation>(CalculationACalculationBRelationship,
-                    Arg.Is((CalculationId, calculationA.CalculationId)),
-                    Arg.Is((CalculationId, calculationB.CalculationId)));
-
-            await _graphRepository
-                .Received(1)
-                .UpsertRelationship<Calculation, Calculation>(CalculationBCalculationARelationship,
-                    Arg.Is((CalculationId, calculationB.CalculationId)),
-                    Arg.Is((CalculationId, calculationA.CalculationId)));
+            await AndTheRelationshipWasCreated<Calculation, Calculation>(CalculationBCalculationARelationship,
+                (CalculationId, calculationBId),
+                (CalculationId, calculationAId));
         }
 
         [TestMethod]
         public async Task DeleteCalculationSpecificationRelationship_GivenValidCalculationAndSpecification_ExpectedMethodsCalled()
         {
-            Calculation calculation = NewCalculation();
-            Specification specification = NewSpecification();
+            string calculationId = NewRandomString();
+            string specificationId = NewRandomString();
+            
+            await _calculationRepository.DeleteCalculationSpecificationRelationship(calculationId,
+                specificationId);
 
-            await _calculationRepository.DeleteCalculationSpecificationRelationship(calculation.CalculationId,
-                specification.SpecificationId);
+            await ThenTheRelationshipWasDeleted<Calculation, Specification>(CalculationSpecificationRelationship,
+                    (CalculationId, calculationId),
+                   (SpecificationId, specificationId));
 
-            await _graphRepository
-                .Received(1)
-                .DeleteRelationship<Calculation, Specification>(CalculationSpecificationRelationship,
-                    Arg.Is((CalculationId, calculation.CalculationId)),
-                    Arg.Is((SpecificationId, specification.SpecificationId)));
-
-            await _graphRepository
-                .Received(1)
-                .DeleteRelationship<Specification, Calculation>(SpecificationCalculationRelationship,
-                    Arg.Is((SpecificationId, specification.SpecificationId)),
-                    Arg.Is((CalculationId, calculation.CalculationId)));
+            await AndTheRelationshipWasDeleted<Specification, Calculation>(SpecificationCalculationRelationship,
+                    (SpecificationId, specificationId),
+                    (CalculationId, calculationId));
         }
 
         [TestMethod]
         public async Task DeleteCalculationCalculationRelationship_GivenValidCalculationAndCalculation_ExpectedMethodsCalled()
         {
-            Calculation calculationA = NewCalculation();
-            Calculation calculationB = NewCalculation();
+            string calculationAId = NewRandomString();
+            string calculationBId = NewRandomString();
+            
+            await _calculationRepository.DeleteCalculationCalculationRelationship(calculationAId,
+                calculationBId);
 
-            await _calculationRepository.DeleteCalculationCalculationRelationship(calculationA.CalculationId,
-                calculationB.CalculationId);
+            await ThenTheRelationshipWasDeleted<Calculation, Calculation>(CalculationACalculationBRelationship,
+                (CalculationId, calculationAId),
+                (CalculationId, calculationBId));
 
-            await _graphRepository
-                .Received(1)
-                .DeleteRelationship<Calculation, Calculation>(CalculationACalculationBRelationship,
-                    Arg.Is((CalculationId, calculationA.CalculationId)),
-                    Arg.Is((CalculationId, calculationB.CalculationId)));
+            await AndTheRelationshipWasDeleted<Calculation, Calculation>(CalculationBCalculationARelationship,
+                (CalculationId, calculationBId),
+                (CalculationId, calculationAId));
+        }
 
-            await _graphRepository
-                .Received(1)
-                .DeleteRelationship<Calculation, Calculation>(CalculationBCalculationARelationship,
-                    Arg.Is((CalculationId, calculationB.CalculationId)),
-                    Arg.Is((CalculationId, calculationA.CalculationId)));
+        [TestMethod]
+        public async Task DeleteCalculationDataFieldRelationshipDelegatesToGraphRepository()
+        {
+            string calculationAId = NewRandomString();
+            string dataFieldId = NewRandomString();
+            
+            await _calculationRepository.DeleteCalculationDataFieldRelationship(calculationAId,
+                dataFieldId);
+
+            await ThenTheRelationshipWasDeleted<Calculation, DataField>(CalculationDataFieldRelationship,
+                (CalculationId, calculationAId),
+                (DataFieldId, dataFieldId));
+
+            await AndTheRelationshipWasDeleted<DataField, Calculation>(DataFieldCalculationRelationship,
+                (DataFieldId, dataFieldId),
+                (CalculationId, calculationAId));
+        }
+        
+        [TestMethod]
+        public async Task UpsertCalculationDataFieldRelationshipDelegatesToGraphRepository()
+        {
+            string calculationAId = NewRandomString();
+            string dataFieldId = NewRandomString();
+            
+            await _calculationRepository.CreateCalculationDataFieldRelationship(calculationAId,
+                dataFieldId);
+
+            await ThenTheRelationshipWasCreated<Calculation, DataField>(CalculationDataFieldRelationship,
+                (CalculationId, calculationAId),
+                (DataFieldId, dataFieldId));
+
+            await AndTheRelationshipWasCreated<DataField, Calculation>(DataFieldCalculationRelationship,
+                (DataFieldId, dataFieldId),
+                (CalculationId, calculationAId));
         }
     }
 }

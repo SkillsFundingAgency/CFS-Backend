@@ -1,12 +1,26 @@
 ﻿using CalculateFunding.Models.Graph;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
+using CalculateFunding.Common.Graph.Interfaces;
+using CalculateFunding.Tests.Common.Helpers;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NSubstitute;
 
 namespace CalculateFunding.Services.Graph.UnitTests
 {
     public abstract class GraphRepositoryTestBase
     {
+        protected IGraphRepository GraphRepository;
+
+        [TestInitialize]
+        public void GraphRepositoryTestBaseSetUp()
+        {
+            GraphRepository = Substitute.For<IGraphRepository>();
+        }
+
         protected Calculation NewCalculation(Action<CalculationBuilder> setUp = null)
         {
             CalculationBuilder calculationBuilder = new CalculationBuilder();
@@ -23,6 +37,75 @@ namespace CalculateFunding.Services.Graph.UnitTests
             setUp?.Invoke(specificationBuilder);
 
             return specificationBuilder.Build();
+        }
+
+        protected async Task ThenTheNodeWasDeleted<TNode>(string field, string value)
+        {
+            await GraphRepository
+                .Received(1)
+                .DeleteNode<TNode>(field, value);
+        }
+        
+        protected string NewRandomString() => new RandomString();
+
+        protected async Task ThenTheRelationshipWasCreated<TNodeA, TNodeB>(string label, 
+            (string, string) left, 
+            (string, string) right)
+        {
+            await GraphRepository
+                .Received(1)
+                .UpsertRelationship<TNodeA, TNodeB>(label,
+                    left,
+                    right);    
+        }
+
+        protected async Task AndTheRelationshipWasCreated<TNodeA, TNodeB>(string label,
+            (string, string) left,
+            (string, string) right)
+        {
+            await ThenTheRelationshipWasCreated<TNodeA, TNodeB>(label,
+                left,
+                right);
+        }
+
+        protected async Task ThenTheRelationshipWasDeleted<TNodeA, TNodeB>(string label, 
+            (string, string) left, 
+            (string, string) right)
+        {
+            await GraphRepository
+                .Received(1)
+                .DeleteRelationship<TNodeA, TNodeB>(label,
+                    left,
+                    right);    
+        }
+
+        protected async Task AndTheRelationshipWasDeleted<TNodeA, TNodeB>(string label,
+            (string, string) left,
+            (string, string) right)
+        {
+            await ThenTheRelationshipWasDeleted<TNodeA, TNodeB>(label,
+                left,
+                right);
+        }
+
+        protected async Task ThenTheNodesWereCreated<TNode>(IEnumerable<TNode> nodes, params string[] indices)
+        {
+            await GraphRepository
+                .Received(1)
+                .UpsertNodes(Arg.Is<IEnumerable<TNode>>(_ => _.SequenceEqual<TNode>(nodes)),
+                    Arg.Is<string[]>(_ => _.SequenceEqual(indices)));   
+        }
+
+        protected async Task ThenTheNodeWasCreated<TNode>(TNode node, params string[] indices)
+        {
+            await ThenTheNodesWereCreated(new[] {node}, indices);
+        }
+
+        protected async Task ThenTheNodeAndAllItsChildrenWereDeleted<TNode>(string field, string value)
+        {
+            await GraphRepository
+                .Received(1)
+                .DeleteNodeAndChildNodes<TNode>(field, value);
         }
     }
 }

@@ -13,5 +13,9 @@ namespace CalculateFunding.Services.Graph.Interfaces
         Task UpsertSpecifications(IEnumerable<Specification> specifications);
         
         Task DeleteAllForSpecification(string specificationId);
+        
+        Task CreateSpecificationDatasetRelationship(string specificationId, string datasetId);
+        
+        Task DeleteSpecificationDatasetRelationship(string specificationId, string datasetId);
     }
 }

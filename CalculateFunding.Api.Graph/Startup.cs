@@ -98,6 +98,9 @@ namespace CalculateFunding.Api.Graph
             builder
                 .AddScoped<IGraphService, GraphService>();
 
+            builder
+                .AddScoped<IDatasetRepository, DatasetRepository>();
+
             builder.AddApiKeyMiddlewareSettings((IConfigurationRoot)Configuration);
 
             builder.AddHttpContextAccessor();
