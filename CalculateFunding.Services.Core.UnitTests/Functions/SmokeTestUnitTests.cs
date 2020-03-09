@@ -1,31 +1,33 @@
-﻿using CalculateFunding.Common.Models;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Reflection;
+using System.Threading.Tasks;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
-using CalculateFunding.Services.Core.Options;
-using CalculateFunding.Services.Core.ServiceBus;
+using CalculateFunding.Tests.Common.Helpers;
+using FluentAssertions;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Core.Functions
 {
     [TestClass]
     public class SmokeTestUnitTests
     {
-        private SmokeFunction _smokefunction;
+        private SmokeFunction _smokeFunction;
         private ILogger _logger;
-        private IMessengerService _messengerservice;
+        private IMessengerService _messengerService;
+        private string _expectedFileVersion;
 
         [TestInitialize]
         public void Setup()
         {
             _logger = Substitute.For<ILogger>();
-            _messengerservice = Substitute.For<IMessengerService>();
-            _messengerservice
+            _messengerService = Substitute.For<IMessengerService>();
+            _messengerService
                 .ServiceName
                 .Returns("SmokeService");
         }
@@ -35,24 +37,17 @@ namespace CalculateFunding.Services.Core.Functions
         {
             GivenSmokeTestCreatedInDevelopment();
 
-            string uniqueId = Guid.NewGuid().ToString();
+            string expectedInvocationId = NewRandomString();
 
-            await WhenMessageReceivedBySmokeTest(uniqueId);
+            await WhenMessageReceivedBySmokeTest(expectedInvocationId);
 
-            Dictionary<string, string> properties = new Dictionary<string, string> { { "listener", SmokeFunction.FunctionName } };
-
-            SmokeResponse smokeResponse = NewSmokeResponse(_ =>
-            {
-                _.WithInvocationId(uniqueId)
-                .WithListener(SmokeFunction.FunctionName)
-                .WithServiceName(_messengerservice.ServiceName);
-            });
-
-            await _messengerservice
+            await _messengerService
                 .Received(1)
-                .SendToQueue(uniqueId, 
-                    Arg.Is<SmokeResponse>(_ => _.InvocationId == smokeResponse.InvocationId), 
-                    Arg.Is<Dictionary<string, string>>(_ => _["listener"] == properties["listener"]));
+                .SendToQueue(expectedInvocationId,
+                    Arg.Is<SmokeResponse>(_ => _.InvocationId == expectedInvocationId &&
+                                               _.BuildNumber == _expectedFileVersion),
+                    Arg.Is<Dictionary<string, string>>(_ => 
+                        _["listener"] == SmokeFunction.FunctionName));
         }
 
         [TestMethod]
@@ -60,43 +55,39 @@ namespace CalculateFunding.Services.Core.Functions
         {
             GivenSmokeTestCreatedNotInDevelopment();
 
-            string uniqueId = Guid.NewGuid().ToString();
+            string expectedInvocationId = Guid.NewGuid().ToString();
 
-            await WhenMessageReceivedBySmokeTest(uniqueId);
+            await WhenMessageReceivedBySmokeTest(expectedInvocationId);
 
-            Dictionary<string, string> properties = new Dictionary<string, string> { { "listener", SmokeFunction.FunctionName } };
-
-            SmokeResponse smokeResponse = NewSmokeResponse(_ =>
-            {
-                _.WithInvocationId(uniqueId)
-                .WithListener(SmokeFunction.FunctionName)
-                .WithServiceName(_messengerservice.ServiceName);
-            });
-
-            await _messengerservice
+            await _messengerService
                 .Received(1)
                 .SendToTopic("smoketest",
-                    Arg.Is<SmokeResponse>(_ => _.InvocationId == smokeResponse.InvocationId),
-                    Arg.Is<Dictionary<string, string>>(_ => _["listener"] == properties["listener"]));
+                    Arg.Is<SmokeResponse>(_ => _.InvocationId == expectedInvocationId &&
+                                               _.BuildNumber == _expectedFileVersion),
+                    Arg.Is<Dictionary<string, string>>(_ => 
+                        _["listener"] == SmokeFunction.FunctionName));
         }
 
         [TestMethod]
         public async Task Run_WhenSmokeTestRunAgainstNonSmokeTest_SmokeTestByPassed()
         {
             string test = null;
+            string expectedTest = "ran";
 
-            GivenSmokeTestCreatedInDevelopment(async () => await Task.Run(() => { test = "ran"; }));
+            GivenSmokeTestCreatedInDevelopment(async () => await Task.Run(() => { test = expectedTest; }));
 
             await WhenNonSmokeMessageReceivedBySmokeTest();
 
-            test.Equals("ran");
+            test
+                .Should()
+                .BeSameAs(expectedTest);
         }
 
         private async Task WhenNonSmokeMessageReceivedBySmokeTest()
         {
             Message message = new Message();
 
-            await _smokefunction.Run(message);
+            await _smokeFunction.Run(message);
         }
 
         private async Task WhenMessageReceivedBySmokeTest(string uniqueId)
@@ -105,26 +96,24 @@ namespace CalculateFunding.Services.Core.Functions
 
             message.UserProperties.Add("smoketest", uniqueId);
 
-            await _smokefunction.Run(message);
+            await _smokeFunction.Run(message);
         }
 
         private void GivenSmokeTestCreatedInDevelopment(Func<Task> action = null)
         {
-            _smokefunction = new SmokeFunction(_logger, _messengerservice, true, action);
+            _smokeFunction = new SmokeFunction(_logger, _messengerService, true, action);
+            _expectedFileVersion = _smokeFunction.BuildNumber;
         }
 
         private void GivenSmokeTestCreatedNotInDevelopment()
         {
-            _smokefunction = new SmokeFunction(_logger, _messengerservice, false);
+            _smokeFunction = new SmokeFunction(_logger, _messengerService, false);
+            _expectedFileVersion = _smokeFunction.BuildNumber;
         }
 
-        private SmokeResponse NewSmokeResponse(Action<SmokeResponseBuilder> setUp = null)
+        private string NewRandomString()
         {
-            SmokeResponseBuilder smokeResponseBuilder = new SmokeResponseBuilder();
-
-            setUp?.Invoke(smokeResponseBuilder);
-
-            return smokeResponseBuilder.Build();
+            return new RandomString();
         }
     }
 }

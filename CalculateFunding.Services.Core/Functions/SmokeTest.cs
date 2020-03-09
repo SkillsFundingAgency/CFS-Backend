@@ -5,20 +5,22 @@ using Microsoft.Azure.ServiceBus;
 using Serilog;
 using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Diagnostics;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Core.Functions
 {
     public abstract class SmokeTest
     {
-        private ILogger _logger;
-        private IMessengerService _messengerService;
-        private const string _smoketest = "smoketest";
-        private bool _useAzureStorage;
-        private string _functionName;
+        private const string SmokeTestKey = "smoketest";
+        
+        private readonly ILogger _logger;
+        private readonly IMessengerService _messengerService;
+        private readonly bool _useAzureStorage;
+        private readonly string _functionName;
 
-        public SmokeTest(ILogger logger, 
+        protected SmokeTest(ILogger logger, 
             IMessengerService messengerService, 
             string functionName, 
             bool useAzureStorage)
@@ -33,7 +35,9 @@ namespace CalculateFunding.Services.Core.Functions
             _functionName = functionName;
         }
 
-        private bool IsSmokeTest(Message message) => message.UserProperties.ContainsKey("smoketest");
+        private bool IsSmokeTest(Message message) => message.UserProperties.ContainsKey(SmokeTestKey);
+
+        public string BuildNumber => FileVersionInfo.GetVersionInfo(GetType().Assembly.Location).FileVersion;
 
         protected async Task Run(Func<Task> function, Message message)
         {
@@ -43,20 +47,18 @@ namespace CalculateFunding.Services.Core.Functions
 
                 Dictionary<string, string> properties = new Dictionary<string, string> { { "listener", _functionName } };
 
+                string invocationId = message.UserProperties[SmokeTestKey].ToString();
+                
                 if (_useAzureStorage)
                 {
-                    await _messengerService.SendToQueue(message.UserProperties[_smoketest].ToString(), 
-                        new SmokeResponse { Listener = _functionName, 
-                            InvocationId = message.UserProperties[_smoketest].ToString(), 
-                            Service = _messengerService.ServiceName }, 
+                    await _messengerService.SendToQueue(invocationId, 
+                        BuildResponseFor(invocationId), 
                         properties);
                 }
                 else
                 {
-                    await _messengerService.SendToTopic(_smoketest, 
-                        new SmokeResponse { Listener = _functionName, 
-                            InvocationId = message.UserProperties[_smoketest].ToString(), 
-                            Service = _messengerService.ServiceName }, 
+                    await _messengerService.SendToTopic(SmokeTestKey, 
+                        BuildResponseFor(invocationId), 
                         properties);
                 }
             }
@@ -64,6 +66,17 @@ namespace CalculateFunding.Services.Core.Functions
             {
                 await function();
             }
+        }
+
+        private SmokeResponse BuildResponseFor(string invocationId)
+        {
+            return new SmokeResponse 
+            { 
+                Listener = _functionName, 
+                InvocationId = invocationId, 
+                Service = _messengerService.ServiceName,
+                BuildNumber = BuildNumber
+            };
         }
     }
 }

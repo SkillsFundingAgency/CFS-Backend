@@ -11,13 +11,13 @@ namespace CalculateFunding.Services.Core.Functions
     public class SmokeFunction : SmokeTest
     {
         public const string FunctionName = "smokefunction";
-        private Func<Task> _action;
+        private readonly Func<Task> _action;
 
         public SmokeFunction(ILogger logger,
-            IMessengerService messengerservice,
+            IMessengerService messengerService,
             bool isDevelopment,
             Func<Task> action = null) : base(logger,
-                messengerservice,
+                messengerService,
                 FunctionName,
                 isDevelopment)
         {
