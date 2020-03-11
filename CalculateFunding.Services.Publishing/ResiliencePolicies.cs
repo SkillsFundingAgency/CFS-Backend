@@ -27,10 +27,13 @@ namespace CalculateFunding.Services.Publishing
         public Policy BlobClient { get; set; }
 
         public Policy CalculationsApiClient { get; set; }
+        
         public Policy PoliciesApiClient { get; set; }
         
         public Policy SpecificationsApiClient { get; set; }
 
         public Policy PublishedIndexSearchResiliencePolicy { get; set; }
+        
+        public Policy FundingStreamPaymentDatesRepository { get; set; }
     }
 }

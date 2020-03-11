@@ -21,6 +21,8 @@ namespace CalculateFunding.Api.Publishing.Controllers
         private readonly IPublishedProviderVersionService _publishedProviderVersionService;
         private readonly IPublishedProviderStatusService _publishedProviderStatusService;
         private readonly IDeleteSpecifications _deleteSpecifications;
+        private readonly IFundingStreamPaymentDatesIngestion _fundingStreamPaymentDatesIngestion;
+        private readonly IFundingStreamPaymentDatesQuery _fundingStreamPaymentDatesQuery;
 
         public PublishingController(ISpecificationPublishingService specificationPublishingService,
             IProviderFundingPublishingService providerFundingPublishingService,
@@ -28,7 +30,9 @@ namespace CalculateFunding.Api.Publishing.Controllers
             IPublishedSearchService publishedSearchService,
             IPublishedProviderVersionService publishedProviderVersionService,
             IPublishedProviderStatusService publishedProviderStatusService, 
-            IDeleteSpecifications deleteSpecifications)
+            IDeleteSpecifications deleteSpecifications, 
+            IFundingStreamPaymentDatesIngestion fundingStreamPaymentDatesIngestion, 
+            IFundingStreamPaymentDatesQuery fundingStreamPaymentDatesQuery)
         {
             Guard.ArgumentNotNull(specificationPublishingService, nameof(specificationPublishingService));
             Guard.ArgumentNotNull(providerFundingPublishingService, nameof(providerFundingPublishingService));
@@ -37,6 +41,8 @@ namespace CalculateFunding.Api.Publishing.Controllers
             Guard.ArgumentNotNull(publishedProviderVersionService, nameof(publishedProviderVersionService));
             Guard.ArgumentNotNull(publishedProviderStatusService, nameof(publishedProviderStatusService));
             Guard.ArgumentNotNull(deleteSpecifications, nameof(deleteSpecifications));
+            Guard.ArgumentNotNull(fundingStreamPaymentDatesIngestion, nameof(fundingStreamPaymentDatesIngestion));
+            Guard.ArgumentNotNull(fundingStreamPaymentDatesQuery, nameof(fundingStreamPaymentDatesQuery));
 
             _specificationPublishingService = specificationPublishingService;
             _providerFundingPublishingService = providerFundingPublishingService;
@@ -45,6 +51,28 @@ namespace CalculateFunding.Api.Publishing.Controllers
             _publishedProviderVersionService = publishedProviderVersionService;
             _publishedProviderStatusService = publishedProviderStatusService;
             _deleteSpecifications = deleteSpecifications;
+            _fundingStreamPaymentDatesIngestion = fundingStreamPaymentDatesIngestion;
+            _fundingStreamPaymentDatesQuery = fundingStreamPaymentDatesQuery;
+        }
+        
+        [HttpPost("api/fundingstreams/{fundingStreamId}/fundingperiods/{fundingPeriodId}/paymentdates")]
+        [ProducesResponseType(200)]
+        public async Task<IActionResult> SaveFundingStreamPaymentDates([FromRoute] string fundingStreamId, [FromRoute] string fundingPeriodId)
+        {
+            string paymentDatesCsv = await Request.GetRawBodyStringAsync();
+
+            return await _fundingStreamPaymentDatesIngestion.IngestFundingStreamPaymentDates(paymentDatesCsv, 
+                fundingStreamId, 
+                fundingPeriodId);
+        }
+        
+        [HttpGet("api/fundingstreams/{fundingStreamId}/fundingperiods/{fundingPeriodId}/paymentdates")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(404)]
+        public async Task<IActionResult> QueryFundingStreamPaymentDates([FromRoute] string fundingStreamId, [FromRoute] string fundingPeriodId)
+        {
+            return await _fundingStreamPaymentDatesQuery.GetFundingStreamPaymentDates(fundingStreamId, 
+                fundingPeriodId);
         }
         
         [HttpDelete("api/specifications/{specificationId}")]
@@ -52,7 +80,7 @@ namespace CalculateFunding.Api.Publishing.Controllers
         [ProducesResponseType(204)]
         public async Task<IActionResult> DeleteSpecification([FromRoute] string specificationId)
         {
-            await _specificationPublishingService.CreateRefreshFundingJob(specificationId,
+            await _deleteSpecifications.QueueDeleteSpecificationJob(specificationId,
                 Request.GetUser(),
                 Request.GetCorrelationId());
 

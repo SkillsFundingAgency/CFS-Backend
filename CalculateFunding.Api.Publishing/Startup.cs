@@ -14,11 +14,13 @@ using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.AspNet.HealthChecks;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Publishing;
 using CalculateFunding.Services.Publishing.Helper;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.IoC;
+using CalculateFunding.Services.Publishing.Profiling;
 using CalculateFunding.Services.Publishing.Repositories;
 using CalculateFunding.Services.Publishing.Specifications;
 using Microsoft.AspNetCore.Builder;
@@ -101,7 +103,7 @@ namespace CalculateFunding.Api.Publishing
             });
         }
 
-        public void RegisterComponents(IServiceCollection builder)
+        private void RegisterComponents(IServiceCollection builder)
         {
             builder
                 .AddSingleton<IHealthChecker, ControllerResolverHealthCheck>();
@@ -114,6 +116,21 @@ namespace CalculateFunding.Api.Publishing
             builder.AddScoped<IProfileTotalsService, ProfileTotalsService>();
 
             builder.AddScoped<IPublishingFeatureFlag, PublishingFeatureFlag>();
+
+            builder.AddScoped<IFundingStreamPaymentDatesQuery, FundingStreamPaymentDatesQuery>();
+            builder.AddScoped<IFundingStreamPaymentDatesIngestion, FundingStreamPaymentDatesIngestion>();
+            builder.AddSingleton<ICsvUtils, CsvUtils>();
+
+            builder.AddSingleton<IFundingStreamPaymentDatesRepository>((ctx) =>
+            {
+                CosmosDbSettings cosmosSettings = new CosmosDbSettings();
+
+                Configuration.Bind("CosmosDbSettings", cosmosSettings);
+
+                cosmosSettings.ContainerName = "profiling";
+
+                return new FundingStreamPaymentDatesRepository(new CosmosRepository(cosmosSettings));
+            });
 
             builder.AddSingleton<IPublishedFundingRepository, PublishedFundingRepository>((ctx) =>
             {
@@ -165,6 +182,7 @@ namespace CalculateFunding.Api.Publishing
             builder.AddCalculationsInterServiceClient(Configuration);
             builder.AddJobsInterServiceClient(Configuration);
             builder.AddFeatureToggling(Configuration);
+            
 
             builder
                 .AddSingleton<LocalIBlobClient, LocalBlobClient>((ctx) =>
@@ -203,7 +221,8 @@ namespace CalculateFunding.Api.Publishing
                     PoliciesApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                     PublishedIndexSearchResiliencePolicy = PublishedIndexSearchResiliencePolicy.GeneratePublishedIndexSearch(totalNetworkRequestsPolicy),
                     PublishedProviderSearchRepository = PublishedIndexSearchResiliencePolicy.GeneratePublishedIndexSearch(totalNetworkRequestsPolicy),
-                    SpecificationsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
+                    SpecificationsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                    FundingStreamPaymentDatesRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy)
                 };
             });
         }

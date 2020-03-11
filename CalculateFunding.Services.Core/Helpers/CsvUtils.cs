@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using CalculateFunding.Services.Core.Interfaces;
@@ -25,6 +26,24 @@ namespace CalculateFunding.Services.Core.Helpers
                 csvWriter.WriteRecords(documents);
                 
                 return writer.ToString();
+            }
+        }
+
+        public IEnumerable<TPoco> AsPocos<TPoco>(string csv, string dateTimeFormat = "dd/MM/yyyy")
+        {
+            if (csv.IsNullOrWhitespace()) return new TPoco[0];
+            
+            using (StringReader stringReader = new StringReader(csv))
+            using (CsvReader csvReader = new CsvReader(stringReader))
+            {
+                csvReader.Configuration.Quote = '\"';
+                csvReader.Configuration.HasHeaderRecord = true;
+                csvReader.Configuration.TypeConverterOptionsCache
+                    .GetOptions<DateTimeOffset>()
+                    .Formats = new[] {dateTimeFormat};
+                
+                return csvReader.GetRecords<TPoco>()
+                    .ToArray();
             }
         }
     }

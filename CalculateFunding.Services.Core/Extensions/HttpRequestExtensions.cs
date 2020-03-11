@@ -28,27 +28,6 @@ namespace CalculateFunding.Services.Core.Extensions
             }
         }
 
-        public static string GetParameter(this HttpRequest request, string name)
-        {
-            return request.GetParameters(name)?.FirstOrDefault();
-        }
-
-        public static StringValues? GetParameters(this HttpRequest request, string name)
-        {
-            if (request.Query.TryGetValue(name, out StringValues parameter))
-            {
-                return parameter;
-            }
-            return null;
-        }
-
-        public async static Task<T> ReadBodyJson<T>(this HttpRequest request, Encoding encoding = null)
-        {
-            string json = await request.GetRawBodyStringAsync(encoding);
-
-            return JsonConvert.DeserializeObject<T>(json);
-        }
-
         public static string GetYamlFileNameFromRequest(this HttpRequest request)
         {
             return request.GetHeaderKey("yaml-file") ?? "File name not provided";
@@ -108,7 +87,7 @@ namespace CalculateFunding.Services.Core.Extensions
             return reference;
         }
 
-        public static string GetClaimValue(this HttpRequest request, string claimType)
+        private static string GetClaimValue(this HttpRequest request, string claimType)
         {
             Claim claim = request.HttpContext.User.Claims.FirstOrDefault(m => m.Type == claimType);
 

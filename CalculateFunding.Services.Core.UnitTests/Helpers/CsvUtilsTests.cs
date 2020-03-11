@@ -1,25 +1,101 @@
-﻿using System.Collections.Generic;
-using System.IO;
+﻿using System;
+using System.Collections.Generic;
+using System.Globalization;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+// ReSharper disable NonReadonlyMemberInGetHashCode
 
 namespace CalculateFunding.Services.Core.Helpers
 {
     [TestClass]
     public class CsvUtilsTests
     {
-        [TestMethod]
-        [DynamicData(nameof(CreateCsvExpandoTestCases), DynamicDataSourceType.Method)]
-        public void CreateCsv_ProjectsSuppliedItemsIntoExpandoObjectRows(IEnumerable<dynamic> input, string expectedOutput, bool outputHeaders)
+        private CsvUtils _csvUtils;
+
+        [TestInitialize]
+        public void SetUp()
         {
-            string actualCsvOutput = new CsvUtils().AsCsv(input, outputHeaders);
+            _csvUtils = new CsvUtils();
+        }
+
+        [TestMethod]
+        [DynamicData(nameof(AsPocosExamples), DynamicDataSourceType.Method)]
+        public void AsPocos_DeserializesSuppliedRowsIntoSuppliedType(string csv,
+            Poco[] expectedInstances)
+        {
+            IEnumerable<Poco> actualInstances = _csvUtils.AsPocos<Poco>(csv);
+
+            actualInstances
+                .Should()
+                .BeEquivalentTo(expectedInstances, 
+                    cfg => cfg.WithStrictOrdering());
+        }
+        
+        [TestMethod]
+        [DynamicData(nameof(AsCsvExpandoExamples), DynamicDataSourceType.Method)]
+        public void AsCsv_ProjectsSuppliedItemsIntoExpandoObjectRows(IEnumerable<dynamic> input, 
+            string expectedOutput, 
+            bool outputHeaders)
+        {
+            string actualCsvOutput = _csvUtils.AsCsv(input, outputHeaders);
 
             actualCsvOutput
                 .Should()
                 .Be(expectedOutput);
         }
+        
+        private static IEnumerable<object[]> AsPocosExamples()
+        {
+            yield return new object[]
+            {
+                "One,Two,Three\r\n1,two,21/12/2012\r\n2,three,21/12/2012\r\n",
+                new[]
+                {
+                    NewPoco(1, "two", "21/12/2012"),
+                    NewPoco(2, "three", "21/12/2012")
+                }
+            };
+            yield return new object[]
+            {
+                null,
+                new Poco[0]
+            };
+            yield return new object[]
+            {
+                "",
+                new Poco[0]
+            };
+        }
 
-        private static IEnumerable<object[]> CreateCsvExpandoTestCases()
+        public class Poco
+        {
+            public int One { get; set; }
+            
+            public string Two { get; set; }
+            
+            public DateTimeOffset Three { get; set; }
+            public override bool Equals(object obj)
+            {
+                return GetHashCode().Equals(obj?.GetHashCode());
+            }
+
+            public override int GetHashCode()
+            {
+                return HashCode.Combine(One, Two, Three);
+            }
+        }
+
+        private static Poco NewPoco(int one, string two, string three)
+        {
+            return new Poco
+            {
+                One = one,
+                Two = two,
+                Three = DateTimeOffset.ParseExact(three, "dd/MM/yyyy", CultureInfo.InvariantCulture)
+            };
+        }
+
+        private static IEnumerable<object[]> AsCsvExpandoExamples()
         {
             yield return new object[]
             {
