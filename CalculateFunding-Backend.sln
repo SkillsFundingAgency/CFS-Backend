@@ -328,9 +328,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Services.G
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Models.Graph", "CalculateFunding.Models.Graph\CalculateFunding.Models.Graph.csproj", "{1E28A972-CF72-4A58-ACF8-A939C8EDB156}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalculateFunding.Api.Graph.UnitTests", "CalculateFunding.Api.Graph.UnitTests\CalculateFunding.Api.Graph.UnitTests.csproj", "{87A839E4-789E-4058-811E-1BA75739669F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Api.Graph.UnitTests", "CalculateFunding.Api.Graph.UnitTests\CalculateFunding.Api.Graph.UnitTests.csproj", "{87A839E4-789E-4058-811E-1BA75739669F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalculateFunding.Services.Graph.UnitTests", "CalculateFunding.Services.Graph.UnitTests\CalculateFunding.Services.Graph.UnitTests.csproj", "{1A9444B9-83A1-456C-AC32-87BE8FBE1939}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Services.Graph.UnitTests", "CalculateFunding.Services.Graph.UnitTests\CalculateFunding.Services.Graph.UnitTests.csproj", "{1A9444B9-83A1-456C-AC32-87BE8FBE1939}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

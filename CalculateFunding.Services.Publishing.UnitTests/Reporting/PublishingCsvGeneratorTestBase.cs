@@ -24,7 +24,7 @@ using Serilog;
 namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
 {
     [TestClass]
-    public class FundingLineCsvGeneratorTests
+    public abstract class PublishingCsvGeneratorTestBase
     {
         private FundingLineCsvGenerator _service;
 

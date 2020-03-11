@@ -41,6 +41,8 @@
             public const string ReIndexSpecificationCalculationRelationshipsJob = nameof(ReIndexSpecificationCalculationRelationshipsJob);
 
             public const string GeneratePublishedFundingCsvJob = nameof(GeneratePublishedFundingCsvJob);
+
+            public const string GeneratePublishedProviderEstateCsvJob = nameof(GeneratePublishedProviderEstateCsvJob);
         }
 
         public static class NotificationChannels

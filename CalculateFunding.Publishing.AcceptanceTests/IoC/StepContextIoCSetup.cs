@@ -23,6 +23,8 @@ using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Providers;
+using CalculateFunding.Services.Publishing.Reporting;
+using CalculateFunding.Services.Publishing.Reporting.PublishedProviderEstate;
 using CalculateFunding.Services.Publishing.Variations;
 using CalculateFunding.Services.Publishing.Variations.Errors;
 using CalculateFunding.Services.Publishing.Variations.Strategies;
@@ -57,6 +59,12 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
             where TType : class
         {
             _objectContainer.RegisterInstanceAs<TType>(instance);
+        }
+
+        private TType ResolveInstance<TType>()
+            where TType : class
+        {
+            return _objectContainer.Resolve<TType>();
         }
 
         [BeforeScenario]
@@ -134,6 +142,19 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
             RegisterTypeAs<PublishedFundingChangeDetectorService, IPublishedFundingChangeDetectorService>();
             RegisterTypeAs<PublishedProviderVersionService, IPublishedProviderVersionService>();
             RegisterTypeAs<PublishedFundingInMemorySearchRepository, ISearchRepository<PublishedFundingIndex>>();
+
+            RegisterTypeAs<GeneratePublishedFundingCsvJobCreation, ICreateGeneratePublishedFundingCsvJobs>();
+            RegisterTypeAs<CreateGeneratePublishedProviderEstateCsvJobs, ICreateGeneratePublishedProviderEstateCsvJobs>();
+
+
+            IGeneratePublishedFundingCsvJobsCreation[] generatePublishedFundingCsvJobsCreations = 
+                typeof(IGeneratePublishedFundingCsvJobsCreation).Assembly.GetTypes()
+                .Where(_ => _.Implements(typeof(IGeneratePublishedFundingCsvJobsCreation)) &&
+                            !_.IsAbstract)
+                .Select(_ => (IGeneratePublishedFundingCsvJobsCreation)Activator.CreateInstance(_, ResolveInstance<ICreateGeneratePublishedFundingCsvJobs>(), ResolveInstance<ICreateGeneratePublishedProviderEstateCsvJobs>()))
+                .ToArray();
+            RegisterInstanceAs<IGeneratePublishedFundingCsvJobsCreationLocator>(new GeneratePublishedFundingCsvJobsCreationLocator(generatePublishedFundingCsvJobsCreations));
+
 
             RegisterInstanceAs<IOrganisationGroupResiliencePolicies>(new OrganisationGroupResiliencePolicies
             {

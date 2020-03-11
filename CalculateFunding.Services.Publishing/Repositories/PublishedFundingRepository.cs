@@ -563,5 +563,51 @@ namespace CalculateFunding.Services.Publishing.Repositories
 
             return await Task.FromResult(results);
         }
+
+        public async Task RefreshedProviderVersionBatchProcessing(
+            string specificationId, Func<List<PublishedProviderVersion>, Task> persistIndexBatch, int batchSize)
+        {
+            List<CosmosDbQueryParameter> cosmosDbQueryParameters = new List<CosmosDbQueryParameter>
+            {
+                new CosmosDbQueryParameter("@specificationId", specificationId)
+            };
+
+            CosmosDbQuery query = new CosmosDbQuery
+            {
+                QueryText = @"SELECT 
+                                        c.content.id,
+                                        c.content.variationReasons,
+                                        c.content.providerId,
+                                        c.content.status,
+                                        c.content.version,
+                                        {
+                                            'ukprn' : c.content.provider.ukprn,
+                                            'successor' : c.content.provider.successor,
+                                            'dateClosed' : c.content.provider.dateClosed,
+                                            'dateOpened' : c.content.provider.dateOpened,
+                                            'urn' : c.content.provider.urn,
+                                            'name' : c.content.provider.name,
+                                            'providerType': c.content.provider.providerType,
+                                            'providerSubType': c.content.provider.providerSubType,
+                                            'laCode' : c.content.provider.laCode,
+                                            'localAuthorityName' : c.content.provider.localAuthorityName,
+                                            'reasonEstablishmentOpened' : c.content.provider.reasonEstablishmentOpened,
+                                            'reasonEstablishmentClosed' : c.content.provider.reasonEstablishmentClosed,
+                                            'trustCode' : c.content.provider.trustCode,
+                                            'trustName' : c.content.provider.trustName
+                                        } AS Provider
+                                FROM publishedProviders c
+                                WHERE c.documentType = 'PublishedProviderVersion' 
+                                AND c.content.specificationId = @specificationId 
+                                AND (c.content.status = 'Updated' OR c.content.status = 'Released')
+                                AND c.deleted = false
+                                ORDER BY c.content.providerId",
+                Parameters = cosmosDbQueryParameters
+            };
+
+            await _repository.DocumentsBatchProcessingAsync(persistBatchToIndex: persistIndexBatch,
+                cosmosDbQuery: query,
+                itemsPerPage: batchSize);
+        }
     }
 }

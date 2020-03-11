@@ -16,15 +16,19 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
     {
         private const string JobType = "job-type";
 
-        private Mock<ICreateGeneratePublishedFundingCsvJobs> _jobs;
-        private GeneratePublishedFundingCsvJobsCreation _jobsCreation;
+        private Mock<ICreateGeneratePublishedFundingCsvJobs> _createGeneratePublishedFundingCsvJobs;
+        private Mock<ICreateGeneratePublishedProviderEstateCsvJobs> _createGeneratePublishedProviderEstateCsvJobs;
+
+        private GenerateApprovePublishedFundingCsvJobsCreation _jobsCreation;
 
         [TestInitialize]
         public void SetUp()
         {
-            _jobs = new Mock<ICreateGeneratePublishedFundingCsvJobs>();
+            _createGeneratePublishedFundingCsvJobs = new Mock<ICreateGeneratePublishedFundingCsvJobs>();
+            _createGeneratePublishedProviderEstateCsvJobs = new Mock<ICreateGeneratePublishedProviderEstateCsvJobs>();
 
-            _jobsCreation = new GeneratePublishedFundingCsvJobsCreation(_jobs.Object);
+            _jobsCreation = new GenerateApprovePublishedFundingCsvJobsCreation(
+                _createGeneratePublishedFundingCsvJobs.Object, _createGeneratePublishedProviderEstateCsvJobs.Object);
         }
 
         [TestMethod]
@@ -78,7 +82,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
             Reference user,
             FundingLineCsvGeneratorJobType jobType)
         {
-            _jobs.Verify(_ => _.CreateJob(specificationId, user, correlationId,
+            _createGeneratePublishedFundingCsvJobs.Verify(_ => _.CreateJob(specificationId, user, correlationId,
                     It.Is<Dictionary<string, string>>(props
                         => props.ContainsKey(JobType) &&
                            props[JobType] == jobType.ToString()),

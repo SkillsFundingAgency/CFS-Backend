@@ -1,15 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
-using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Publishing.Interfaces;
+using CalculateFunding.Services.Publishing.Models;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.Azure.ServiceBus;
@@ -23,7 +22,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests
     [TestClass]
     public class ApproveServiceTests
     {
-        private const string JobType = "ApproveResults";
         private IJobManagement _jobManagement;
         private IApprovePrerequisiteChecker _approvePrerequisiteChecker;
         private IApproveService _approveService;
@@ -31,14 +29,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private IPublishedProviderStatusUpdateService _publishedProviderStatusUpdateService;
         private IPublishedProviderIndexerService _publishedProviderIndexerService;
         private IGeneratePublishedFundingCsvJobsCreation _publishedFundingCsvJobsCreation;
+        private IGeneratePublishedFundingCsvJobsCreationLocator _generatePublishedFundingCsvJobsCreationLocator;
         private ILogger _logger;
         private Message _message;
         private string _jobId;
         private JobViewModel _job;
         private string _userId;
         private string _userName;
-        private IEnumerable<string> _validationErrors;
-
 
         [TestInitialize]
         public void SetUp()
@@ -49,6 +46,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             _publishedProviderStatusUpdateService = Substitute.For<IPublishedProviderStatusUpdateService>();
             _publishedProviderIndexerService = Substitute.For<IPublishedProviderIndexerService>();
             _publishedFundingCsvJobsCreation = Substitute.For<IGeneratePublishedFundingCsvJobsCreation>();
+            _generatePublishedFundingCsvJobsCreationLocator = Substitute.For<IGeneratePublishedFundingCsvJobsCreationLocator>();
+            _generatePublishedFundingCsvJobsCreationLocator
+                .GetService(Arg.Any<GeneratePublishingCsvJobsCreationAction>())
+                .Returns(_publishedFundingCsvJobsCreation);
+
             _logger = Substitute.For<ILogger>();
 
             _approveService = new ApproveService(_publishedProviderStatusUpdateService,
@@ -61,7 +63,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 _approvePrerequisiteChecker,
                 _jobManagement,
                 _logger,
-                _publishedFundingCsvJobsCreation);
+                _generatePublishedFundingCsvJobsCreationLocator);
 
             _jobId = NewRandomString();
             _userId = NewRandomString();

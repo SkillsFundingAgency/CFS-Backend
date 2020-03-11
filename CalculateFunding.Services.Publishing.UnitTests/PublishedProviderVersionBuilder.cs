@@ -24,6 +24,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private IEnumerable<string> _predecessors;
         private Reference _author;
         private DateTimeOffset? _date;
+        private IEnumerable<VariationReason> _variationReasons;
+
+        public PublishedProviderVersionBuilder WithVariationReasons(IEnumerable<VariationReason> variationReasons)
+        {
+            _variationReasons = variationReasons;
+
+            return this;
+        }
 
         public PublishedProviderVersionBuilder WithDate(string dateLiteral)
         {
@@ -148,7 +156,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 Provider = _provider,
                 TotalFunding = _totalFunding,
                 Predecessors = _predecessors?.ToList(),
-                Date = _date.GetValueOrDefault(NewRandomDateTime())
+                Date = _date.GetValueOrDefault(NewRandomDateTime()),
+                VariationReasons = _variationReasons
             };
         }
     }

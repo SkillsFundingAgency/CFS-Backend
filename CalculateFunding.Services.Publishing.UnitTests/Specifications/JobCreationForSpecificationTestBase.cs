@@ -4,7 +4,6 @@ using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Services.Publishing.Interfaces;
-using CalculateFunding.Services.Publishing.Specifications;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;

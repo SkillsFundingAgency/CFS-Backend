@@ -19,7 +19,7 @@ namespace CalculateFunding.Functions.DebugQueue
                 Message message = Helpers.ConvertToMessage<string>(item);
 
                 OnGeneratePublishedFundingCsv function = scope.ServiceProvider.GetService<OnGeneratePublishedFundingCsv>();
-
+                
                 await function.Run(message);
 
                 log.LogInformation($"C# Queue trigger function processed: {item}");
@@ -174,6 +174,38 @@ namespace CalculateFunding.Functions.DebugQueue
                 Message message = Helpers.ConvertToMessage<string>(item);
 
                 OnPublishFundingFailure function = scope.ServiceProvider.GetService<OnPublishFundingFailure>();
+
+                await function.Run(message);
+
+                log.LogInformation($"C# Queue trigger function processed: {item}");
+            }
+        }
+
+        [FunctionName("on-publishing-generate-published-provider-estate-csv")]
+        public static async Task RunGeneratePublishedProviderEstateCsv([QueueTrigger(ServiceBusConstants.QueueNames.GeneratePublishedProviderEstateCsv,
+            Connection = "AzureConnectionString")] string item, ILogger log)
+        {
+            using (IServiceScope scope = Functions.Publishing.Startup.RegisterComponents(new ServiceCollection()).CreateScope())
+            {
+                Message message = Helpers.ConvertToMessage<string>(item);
+
+                OnGeneratePublishedProviderEstateCsv function = scope.ServiceProvider.GetService<OnGeneratePublishedProviderEstateCsv>();
+
+                await function.Run(message);
+
+                log.LogInformation($"C# Queue trigger function processed: {item}");
+            }
+        }
+
+        [FunctionName("on-publishing-generate-published-provider-estate-csv-failure")]
+        public static async Task RunGeneratePublishedProviderEstateCsvFailure([QueueTrigger(ServiceBusConstants.QueueNames.GeneratePublishedProviderEstateCsvPoisonedLocal,
+            Connection = "AzureConnectionString")] string item, ILogger log)
+        {
+            using (IServiceScope scope = Functions.Publishing.Startup.RegisterComponents(new ServiceCollection()).CreateScope())
+            {
+                Message message = Helpers.ConvertToMessage<string>(item);
+
+                OnGeneratePublishedFundingCsvFailure function = scope.ServiceProvider.GetService<OnGeneratePublishedFundingCsvFailure>();
 
                 await function.Run(message);
 

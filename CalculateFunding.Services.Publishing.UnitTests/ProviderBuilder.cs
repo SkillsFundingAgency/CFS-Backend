@@ -1,6 +1,6 @@
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Tests.Common.Helpers;
-using Microsoft.AspNetCore.Mvc;
+using System;
 
 namespace CalculateFunding.Services.Publishing.UnitTests
 {
@@ -16,6 +16,62 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private string _providerType;
         private string _providerSubType;
         private string _name;
+        private string _successor;
+        private DateTimeOffset? _dateClosed;
+        private DateTimeOffset? _dateOpened;
+        private string _reasonEstablishmentOpened;
+        private string _trustCode;
+        private string _trustName;
+        private string _reasonEstablishmentClosed;
+
+        public ProviderBuilder WithReasonEstablishmentClosed(string reasonEstablishmentClosed)
+        {
+            _reasonEstablishmentClosed = reasonEstablishmentClosed;
+
+            return this;
+        }
+
+        public ProviderBuilder WithTrustCode(string trustCode)
+        {
+            _trustCode = trustCode;
+
+            return this;
+        }
+
+        public ProviderBuilder WithTrustName(string trustName)
+        {
+            _trustName = trustName;
+
+            return this;
+        }
+
+        public ProviderBuilder WithReasonEstablishmentOpened(string reasonEstablishmentOpened)
+        {
+            _reasonEstablishmentOpened = reasonEstablishmentOpened;
+
+            return this;
+        }
+
+        public ProviderBuilder WithDateOpened(DateTimeOffset? dateOpened)
+        {
+            _dateOpened = dateOpened;
+
+            return this;
+        }
+
+        public ProviderBuilder WithDateClosed(DateTimeOffset? dateClosed)
+        {
+            _dateClosed = dateClosed;
+
+            return this;
+        }
+
+        public ProviderBuilder WithSuccessor(string successor)
+        {
+            _successor = successor;
+
+            return this;
+        }
 
         public ProviderBuilder WithName(string name)
         {
@@ -96,21 +152,21 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 Name = _name ?? NewRandomString(),
                 Postcode = NewRandomString(),
                 Status = _status ?? NewRandomString(),
-                Successor = NewRandomString(),
+                Successor = _successor ?? NewRandomString(),
                 Town = NewRandomString(),
                 CountryCode = NewRandomString(),
                 CountryName = NewRandomString(),
-                DateClosed = NewRandomDateTime(),
-                DateOpened = NewRandomDateTime(),
+                DateClosed = _dateClosed,
+                DateOpened = _dateOpened,
                 DistrictCode = NewRandomString(),
                 DistrictName = NewRandomString(),
                 EstablishmentNumber = _establishmentNumber ?? NewRandomString(),
                 LegalName = NewRandomString(),
                 ProviderType = _providerType ?? NewRandomString(),
                 ProviderSubType = _providerSubType ?? NewRandomString(),
-                TrustCode = NewRandomString(),
+                TrustCode = _trustCode ?? NewRandomString(),
                 TrustStatus = NewRandomEnum<ProviderTrustStatus>(),
-                TrustName = NewRandomString(),
+                TrustName = _trustName ?? NewRandomString(),
                 WardCode = NewRandomString(),
                 WardName = NewRandomString(),
                 CensusWardCode = NewRandomString(),
@@ -128,6 +184,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 UKPRN = _ukprn ?? NewRandomString(),
                 GovernmentOfficeRegionCode = NewRandomString(),
                 GovernmentOfficeRegionName = NewRandomString(),
+                ReasonEstablishmentOpened = _reasonEstablishmentOpened,
+                ReasonEstablishmentClosed = _reasonEstablishmentClosed
             };
         }
     }

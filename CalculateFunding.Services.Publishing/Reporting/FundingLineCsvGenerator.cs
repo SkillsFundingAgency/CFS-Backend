@@ -212,7 +212,7 @@ namespace CalculateFunding.Services.Publishing.Reporting
 
                 string specificationId = GetProperty(message, "specification-id");
                 string jobType = GetProperty(message, "job-type");
-                string jobId = GetProperty(message, "job-id");
+                string jobId = GetProperty(message, "jobId");
 
                 Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
                 Guard.IsNullOrWhiteSpace(jobType, nameof(jobType));

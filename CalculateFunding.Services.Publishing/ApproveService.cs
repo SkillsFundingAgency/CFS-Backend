@@ -11,6 +11,7 @@ using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Interfaces;
+using CalculateFunding.Services.Publishing.Models;
 using Microsoft.Azure.ServiceBus;
 using Serilog;
 
@@ -24,7 +25,7 @@ namespace CalculateFunding.Services.Publishing
         private readonly IPublishedFundingDataService _publishedFundingDataService;
         private readonly IPublishedProviderIndexerService _publishedProviderIndexerService;
         private readonly IApprovePrerequisiteChecker _approvePrerequisiteChecker;
-        private readonly IGeneratePublishedFundingCsvJobsCreation _publishedFundingCsvJobsCreation;
+        private readonly IGeneratePublishedFundingCsvJobsCreationLocator _generateCsvJobsLocator;
 
         public ApproveService(IPublishedProviderStatusUpdateService publishedProviderStatusUpdateService,
             IPublishedFundingDataService publishedFundingDataService,
@@ -32,10 +33,10 @@ namespace CalculateFunding.Services.Publishing
             IPublishingResiliencePolicies publishingResiliencePolicies,
             IApprovePrerequisiteChecker approvePrerequisiteChecker,
             IJobManagement jobManagement,
-            ILogger logger, 
-            IGeneratePublishedFundingCsvJobsCreation publishedFundingCsvJobsCreation)
+            ILogger logger,
+            IGeneratePublishedFundingCsvJobsCreationLocator generateCsvJobsLocator)
         {
-            Guard.ArgumentNotNull(publishedFundingCsvJobsCreation, nameof(publishedFundingCsvJobsCreation));
+            Guard.ArgumentNotNull(generateCsvJobsLocator, nameof(generateCsvJobsLocator));
             Guard.ArgumentNotNull(approvePrerequisiteChecker, nameof(approvePrerequisiteChecker));
             Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
             Guard.ArgumentNotNull(publishedProviderStatusUpdateService, nameof(publishedProviderStatusUpdateService));
@@ -50,7 +51,7 @@ namespace CalculateFunding.Services.Publishing
             _approvePrerequisiteChecker = approvePrerequisiteChecker;
             _jobManagement = jobManagement;
             _logger = logger;
-            _publishedFundingCsvJobsCreation = publishedFundingCsvJobsCreation;
+            _generateCsvJobsLocator = generateCsvJobsLocator;
         }
 
         public async Task ApproveResults(Message message)
@@ -112,7 +113,9 @@ namespace CalculateFunding.Services.Publishing
             
             _logger.Information("Creating generate Csv jobs");
 
-            await _publishedFundingCsvJobsCreation.CreateJobs(specificationId, correlationId, author);
+            IGeneratePublishedFundingCsvJobsCreation generateCsvJobs = _generateCsvJobsLocator
+                .GetService(GeneratePublishingCsvJobsCreationAction.Approve);
+            await generateCsvJobs.CreateJobs(specificationId, correlationId, author);
 
             _logger.Information($"Completing approve funding job. JobId='{jobId}'");
             await _jobManagement.UpdateJobStatus(jobId, 0, 0, true, null);

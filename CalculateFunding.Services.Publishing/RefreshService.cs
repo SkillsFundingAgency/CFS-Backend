@@ -48,7 +48,7 @@ namespace CalculateFunding.Services.Publishing
         private readonly IJobManagement _jobManagement;
         private readonly IPublishingFeatureFlag _publishingFeatureFlag;
         private readonly IRecordVariationErrors _recordVariationErrors;
-        private readonly IGeneratePublishedFundingCsvJobsCreation _generateCsvJobs;
+        private readonly IGeneratePublishedFundingCsvJobsCreationLocator _generateCsvJobsLocator;
 
         public RefreshService(IPublishedProviderStatusUpdateService publishedProviderStatusUpdateService,
             IPublishedFundingDataService publishedFundingDataService,
@@ -71,10 +71,10 @@ namespace CalculateFunding.Services.Publishing
             IPublishedProviderIndexerService publishedProviderIndexerService,
             IDetectProviderVariations detectProviderVariations,
             IApplyProviderVariations applyProviderVariations, 
-            IRecordVariationErrors recordVariationErrors, 
-            IGeneratePublishedFundingCsvJobsCreation generateCsvJobs)
+            IRecordVariationErrors recordVariationErrors,
+            IGeneratePublishedFundingCsvJobsCreationLocator generateCsvJobsLocator)
         {
-            Guard.ArgumentNotNull(generateCsvJobs, nameof(generateCsvJobs));
+            Guard.ArgumentNotNull(generateCsvJobsLocator, nameof(generateCsvJobsLocator));
             Guard.ArgumentNotNull(publishedProviderStatusUpdateService, nameof(publishedProviderStatusUpdateService));
             Guard.ArgumentNotNull(publishedFundingDataService, nameof(publishedFundingDataService));
             Guard.ArgumentNotNull(publishingResiliencePolicies, nameof(publishingResiliencePolicies));
@@ -114,7 +114,7 @@ namespace CalculateFunding.Services.Publishing
             _detectProviderVariations = detectProviderVariations;
             _applyProviderVariations = applyProviderVariations;
             _recordVariationErrors = recordVariationErrors;
-            _generateCsvJobs = generateCsvJobs;
+            _generateCsvJobsLocator = generateCsvJobsLocator;
             _publishedProviderIndexerService = publishedProviderIndexerService;
 
             _publishingResiliencePolicy = publishingResiliencePolicies.PublishedFundingRepository;
@@ -407,7 +407,9 @@ namespace CalculateFunding.Services.Publishing
             
             _logger.Information("Creating generate Csv jobs");
 
-            await _generateCsvJobs.CreateJobs(specificationId, correlationId, author);
+            IGeneratePublishedFundingCsvJobsCreation generateCsvJobs = _generateCsvJobsLocator
+                .GetService(GeneratePublishingCsvJobsCreationAction.Refresh);
+            await generateCsvJobs.CreateJobs(specificationId, correlationId, author);
             
             _logger.Information("Marking job as complete");
             // Mark job as complete

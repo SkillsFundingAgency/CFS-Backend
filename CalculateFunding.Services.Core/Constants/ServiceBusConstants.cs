@@ -102,6 +102,12 @@
             public const string GeneratePublishedFundingCsvPoisoned = "publishing-generate-published-funding-csv/$DeadLetterQueue";
             
             public const string GeneratePublishedFundingCsvPoisonedLocal = "publishing-generate-published-funding-csv-poisoned";
+
+            public const string GeneratePublishedProviderEstateCsv = "publishing-generate-published-provider-estate-csv";
+                                                 
+            public const string GeneratePublishedProviderEstateCsvPoisoned = "publishing-generate-published-provider-estate-csv/$DeadLetterQueue";
+                                                 
+            public const string GeneratePublishedProviderEstateCsvPoisonedLocal = "publishing-generate-published-provider-estate-csv-poisoned";
         }
 
         public static class TopicNames

@@ -11,7 +11,7 @@ using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.Publishing.Interfaces;
-using CalculateFunding.Services.Publishing.Reporting;
+using CalculateFunding.Services.Publishing.Reporting.PublishedProviderEstate;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.Azure.ServiceBus;
@@ -24,16 +24,15 @@ using Serilog;
 namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
 {
     [TestClass]
-    public class FundingLineCsvGeneratorTests
+    public class PublishedProviderEstateCsvGeneratorTests
     {
-        private FundingLineCsvGenerator _service;
+        private PublishedProviderEstateCsvGenerator _service;
 
-        private Mock<IFundingLineCsvTransformServiceLocator> _transformServiceLocator;
-        private Mock<IPublishedFundingPredicateBuilder> _predicateBuilder;
+        private Mock<IPublishedProviderCsvTransformServiceLocator> _publishedProviderCsvTransformServiceLocator;
         private Mock<ICsvUtils> _csvUtils;
         private Mock<IBlobClient> _blobClient;
         private Mock<ICloudBlob> _cloudBlob; 
-        private Mock<IFundingLineCsvTransform> _transformation;
+        private Mock<IPublishedProviderCsvTransform> _transformation;
         private Mock<IPublishedFundingRepository> _publishedFunding;
         private Mock<IFileSystemAccess> _fileSystemAccess;
         private Mock<IFileSystemCacheSettings> _fileSystemCacheSettings;
@@ -45,31 +44,30 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
         [TestInitialize]
         public void SetUp()
         {
-            _predicateBuilder = new Mock<IPublishedFundingPredicateBuilder>();
-            _transformServiceLocator = new Mock<IFundingLineCsvTransformServiceLocator>();
+            _publishedProviderCsvTransformServiceLocator = new Mock<IPublishedProviderCsvTransformServiceLocator>();
             _publishedFunding = new Mock<IPublishedFundingRepository>();
             _blobClient = new Mock<IBlobClient>();
             _csvUtils = new Mock<ICsvUtils>();
-            _transformation = new Mock<IFundingLineCsvTransform>();
+            _transformation = new Mock<IPublishedProviderCsvTransform>();
             _cloudBlob = new Mock<ICloudBlob>();
             _fileSystemAccess = new Mock<IFileSystemAccess>();
             _fileSystemCacheSettings = new Mock<IFileSystemCacheSettings>();
             _jobTracker = new Mock<IJobTracker>();
             
-            _service = new FundingLineCsvGenerator(_transformServiceLocator.Object,
-                _predicateBuilder.Object,
+            _service = new PublishedProviderEstateCsvGenerator(
+                _jobTracker.Object,
+                _fileSystemAccess.Object,
+                _fileSystemCacheSettings.Object,
                 _blobClient.Object,
                 _publishedFunding.Object,
                 _csvUtils.Object,
-                _fileSystemAccess.Object,
-                _fileSystemCacheSettings.Object,
+                new Mock<ILogger>().Object,
+                _publishedProviderCsvTransformServiceLocator.Object,
                 new ResiliencePolicies
                 {
                     BlobClient = Policy.NoOpAsync(),
                     PublishedFundingRepository = Policy.NoOpAsync()
-                },
-                _jobTracker.Object,
-                new Mock<ILogger>().Object);
+                });
             
             _message = new Message();
             _rootPath = NewRandomString();
@@ -94,21 +92,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
         }
         
         [TestMethod]
-        public void ThrowsExceptionIfNoJobTypeInMessageProperties()
-        {
-            GivenTheMessageProperties(("specification-id", NewRandomString()));
-            
-            Func<Task> invocation = WhenTheCsvIsGenerated;
-
-            invocation
-                .Should()
-                .ThrowAsync<NonRetriableException>()
-                .WithMessage("Specification id missing");
-        }
-        [TestMethod]
         public void ThrowsExceptionIfNoJobIdInMessageProperties()
         {
-            GivenTheMessageProperties(("specification-id", NewRandomString()), ("job-type", "History"));
+            GivenTheMessageProperties(("specification-id", NewRandomString()));
             
             Func<Task> invocation = WhenTheCsvIsGenerated;
 
@@ -119,19 +105,19 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
         }
 
         [TestMethod]
-        public async Task ExitsEarlyIfNoProvidersMatchForTheJobTypePredicate()
+        public async Task ExitsEarlyIfNoProvidersMatchForTheSpecificationId()
         {
             string specificationId = NewRandomString();
             string jobId = NewRandomString();
-            string expectedInterimFilePath = Path.Combine(_rootPath, $"funding-lines-Released-{specificationId}.csv");
+            string expectedInterimFilePath = Path.Combine(_rootPath, $"published-provider-estate-{specificationId}.csv");
 
-            GivenTheMessageProperties(("specification-id", specificationId), ("job-type", "Released"), ("jobId", jobId));
+            GivenTheMessageProperties(("specification-id", specificationId), ("jobId", jobId));
             AndTheFileExists(expectedInterimFilePath);
             AndTheJobExists(jobId);
 
             await WhenTheCsvIsGenerated();
             
-            _jobTracker.Verify(_ => _.TryStartTrackingJob(jobId, JobConstants.DefinitionNames.GeneratePublishedFundingCsvJob),
+            _jobTracker.Verify(_ => _.TryStartTrackingJob(jobId, JobConstants.DefinitionNames.GeneratePublishedProviderEstateCsvJob),
                 Times.Once);
 
             _fileSystemAccess
@@ -153,23 +139,21 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
         }
 
         [TestMethod]
-        [DataRow(FundingLineCsvGeneratorJobType.CurrentState)]
-        [DataRow(FundingLineCsvGeneratorJobType.Released)]
-        public async Task TransformsPublishedProvidersForSpecificationInBatchesAndCreatesCsvWithResults(
-            FundingLineCsvGeneratorJobType jobType)
+        public async Task TransformsPublishedProvidersForSpecificationInBatchesAndCreatesCsvWithResults()
         {
             string specificationId = NewRandomString();
             string jobId = NewRandomString();
-            string expectedInterimFilePath = Path.Combine(_rootPath, $"funding-lines-{jobType}-{specificationId}.csv");
-            
-            IEnumerable<PublishedProvider> publishProvidersOne = new []
+            string expectedInterimFilePath = Path.Combine(_rootPath, $"published-provider-estate-{specificationId}.csv");
+            string jobDefinitionName = JobConstants.DefinitionNames.GeneratePublishedProviderEstateCsvJob;
+
+            IEnumerable<PublishedProviderVersion> publishProviderVersionsOne = new []
             {
-                new PublishedProvider(),
+                new PublishedProviderVersion(),
             };
-            IEnumerable<PublishedProvider> publishedProvidersTwo = new []
+            IEnumerable<PublishedProviderVersion> publishedProviderVersionsTwo = new []
             {
-                new PublishedProvider(),
-                new PublishedProvider(),
+                new PublishedProviderVersion(),
+                new PublishedProviderVersion()
             };
             
             ExpandoObject[] transformedRowsOne = {
@@ -190,29 +174,25 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
             
             MemoryStream incrementalFileStream = new MemoryStream();
 
-            string predicate = NewRandomString();
-
-            GivenTheCsvRowTransformation(publishProvidersOne, transformedRowsOne, expectedCsvOne, true);
-            AndTheCsvRowTransformation(publishedProvidersTwo, transformedRowsTwo, expectedCsvTwo,  false);
-            AndTheMessageProperties(("specification-id", specificationId), ("job-type", jobType.ToString()), ("jobId", jobId));
-            AndTheCloudBlobForSpecificationId(specificationId, jobType);
+            GivenTheCsvRowTransformation(transformedRowsOne, expectedCsvOne, true);
+            AndTheMessageProperties(("specification-id", specificationId), ("jobId", jobId));
+            AndTheCloudBlobForSpecificationId(specificationId);
             AndTheFileStream(expectedInterimFilePath, incrementalFileStream);
             AndTheFileExists(expectedInterimFilePath);
-            AndTheTransformForJobType(jobType);
-            AndThePredicate(jobType, predicate);
+            AndTheTransformForJobDefinition(jobDefinitionName);
             AndTheJobExists(jobId);
             
-            _publishedFunding.Setup(_ => _.PublishedProviderBatchProcessing(predicate,
+            _publishedFunding.Setup(_ => _.RefreshedProviderVersionBatchProcessing(
                     specificationId,
-                    It.IsAny<Func<List<PublishedProvider>, Task>>(),
-                    100))
-                .Callback<string, string, Func<List<PublishedProvider>, Task>, int>((pred, spec,  batchProcessor, batchSize) =>
+                    It.IsAny<Func<List<PublishedProviderVersion>, Task>>(),
+                    It.IsAny<int>()))
+                .Callback<string, Func<List<PublishedProviderVersion>, Task>, int>((spec,  batchProcessor, batchSize) =>
                 {
-                    batchProcessor(publishProvidersOne.ToList())
+                    batchProcessor(publishProviderVersionsOne.ToList())
                         .GetAwaiter()
                         .GetResult();
                     
-                    batchProcessor(publishedProvidersTwo.ToList())
+                    batchProcessor(publishedProviderVersionsTwo.ToList())
                         .GetAwaiter()
                         .GetResult();
                 })
@@ -220,7 +200,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
 
             await WhenTheCsvIsGenerated();
             
-            _jobTracker.Verify(_ => _.TryStartTrackingJob(jobId, JobConstants.DefinitionNames.GeneratePublishedFundingCsvJob),
+            _jobTracker.Verify(_ => _.TryStartTrackingJob(jobId, JobConstants.DefinitionNames.GeneratePublishedProviderEstateCsvJob),
                 Times.Once);
             
             _fileSystemAccess
@@ -229,15 +209,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
 
             _fileSystemAccess
                 .Verify(_ => _.Append(expectedInterimFilePath, 
-                        expectedCsvOne, 
+                        It.IsAny<string>(), 
                         default),
-                    Times.Once);
-            
-            _fileSystemAccess
-                .Verify(_ => _.Append(expectedInterimFilePath, 
-                        expectedCsvTwo, 
-                        default),
-                    Times.Once);
+                    Times.Exactly(3));
             
             _blobClient
                 .Verify(_ => _.UploadAsync(_cloudBlob.Object, incrementalFileStream),
@@ -252,8 +226,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
         {
             string specificationId = NewRandomString();
             string jobId = NewRandomString();
-            string expectedInterimFilePath = Path.Combine(_rootPath, $"funding-lines-{FundingLineCsvGeneratorJobType.History}-{specificationId}.csv");
-            
+            string expectedInterimFilePath = Path.Combine(_rootPath, $"published-provider-estate-{specificationId}.csv");
+            string jobDefinitionName = JobConstants.DefinitionNames.GeneratePublishedProviderEstateCsvJob;
+
             IEnumerable<PublishedProviderVersion> publishProviderVersionsOne = new []
             {
                 new PublishedProviderVersion(),
@@ -280,19 +255,18 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
             
             MemoryStream incrementalFileStream = new MemoryStream();
 
-            GivenTheCsvRowTransformation(publishProviderVersionsOne, transformedRowsOne, expectedCsvOne, true);
-            AndTheCsvRowTransformation(publishedProviderVersionsTwo, transformedRowsTwo, expectedCsvTwo,  false);
-            AndTheMessageProperties(("specification-id", specificationId), ("job-type", "History"), ("jobId", jobId));
-            AndTheCloudBlobForSpecificationId(specificationId, FundingLineCsvGeneratorJobType.History);
+            GivenTheCsvRowTransformation(transformedRowsOne, expectedCsvOne, true);
+            AndTheMessageProperties(("specification-id", specificationId), ("jobId", jobId));
+            AndTheCloudBlobForSpecificationId(specificationId);
             AndTheFileStream(expectedInterimFilePath, incrementalFileStream);
             AndTheFileExists(expectedInterimFilePath);
-            AndTheTransformForJobType(FundingLineCsvGeneratorJobType.History);
+            AndTheTransformForJobDefinition(jobDefinitionName);
             AndTheJobExists(jobId);
 
-            _publishedFunding.Setup(_ => _.PublishedProviderVersionBatchProcessing(
+            _publishedFunding.Setup(_ => _.RefreshedProviderVersionBatchProcessing(
                     specificationId,
                     It.IsAny<Func<List<PublishedProviderVersion>, Task>>(),
-                    100))
+                    It.IsAny<int>()))
                 .Callback<string, Func<List<PublishedProviderVersion>, Task>, int>((spec,  batchProcessor, batchSize) =>
                 {
                     batchProcessor(publishProviderVersionsOne.ToList())
@@ -307,24 +281,18 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
 
             await WhenTheCsvIsGenerated();
             
-            _jobTracker.Verify(_ => _.TryStartTrackingJob(jobId, JobConstants.DefinitionNames.GeneratePublishedFundingCsvJob),
+            _jobTracker.Verify(_ => _.TryStartTrackingJob(jobId, JobConstants.DefinitionNames.GeneratePublishedProviderEstateCsvJob),
                 Times.Once);
             
             _fileSystemAccess
                 .Verify(_ => _.Delete(expectedInterimFilePath),
                     Times.Once);
-
-            _fileSystemAccess
-                .Verify(_ => _.Append(expectedInterimFilePath, 
-                        expectedCsvOne, 
-                        default),
-                    Times.Once);
             
             _fileSystemAccess
                 .Verify(_ => _.Append(expectedInterimFilePath, 
-                        expectedCsvTwo, 
+                        It.IsAny<string>(), 
                         default),
-                    Times.Once);
+                    Times.Exactly(3));
             
             _blobClient
                 .Verify(_ => _.UploadAsync(_cloudBlob.Object, incrementalFileStream),
@@ -333,35 +301,22 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
             _jobTracker.Verify(_ => _.CompleteTrackingJob(jobId));
         }
 
-        private void AndThePredicate(FundingLineCsvGeneratorJobType jobType, string predicate)
-        {
-            _predicateBuilder.Setup(_ => _.BuildPredicate(jobType))
-                .Returns(predicate);
-        }
-
         private void AndTheJobExists(string jobId)
         {
-            _jobTracker.Setup(_ => _.TryStartTrackingJob(jobId, JobConstants.DefinitionNames.GeneratePublishedFundingCsvJob))
+            _jobTracker.Setup(_ => _.TryStartTrackingJob(jobId, JobConstants.DefinitionNames.GeneratePublishedProviderEstateCsvJob))
                 .ReturnsAsync(true);
         }
 
-        private void AndTheTransformForJobType(FundingLineCsvGeneratorJobType jobType)
+        private void AndTheTransformForJobDefinition(string jobDefinitionName)
         {
-            _transformServiceLocator.Setup(_ => _.GetService(jobType))
+            _publishedProviderCsvTransformServiceLocator.Setup(_ => _.GetService(jobDefinitionName))
                 .Returns(_transformation.Object);
         }
 
-        private static IEnumerable<object[]> JobTypeExamples()
-        {
-            yield return new object [] {FundingLineCsvGeneratorJobType.CurrentState};
-            yield return new object [] {FundingLineCsvGeneratorJobType.Released};
-            yield return new object [] {FundingLineCsvGeneratorJobType.History};
-        }
-
-        private void AndTheCloudBlobForSpecificationId(string specificationId, FundingLineCsvGeneratorJobType jobType)
+        private void AndTheCloudBlobForSpecificationId(string specificationId)
         {
             _blobClient
-                .Setup(_ => _.GetBlockBlobReference($"funding-lines-{jobType}-{specificationId}.csv"))
+                .Setup(_ => _.GetBlockBlobReference($"published-provider-estate-{specificationId}.csv"))
                 .Returns(_cloudBlob.Object);
         }
 
@@ -377,15 +332,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
                 .Returns(true);
         }
 
-        private void AndTheCsvRowTransformation(IEnumerable<dynamic> publishedProviders, ExpandoObject[] transformedRows, string csv, bool outputHeaders)
-        {
-            GivenTheCsvRowTransformation(publishedProviders, transformedRows, csv, outputHeaders);
-        }
-
-        private void GivenTheCsvRowTransformation(IEnumerable<dynamic> publishedProviders, IEnumerable<ExpandoObject> transformedRows, string csv, bool outputHeaders)
+        private void GivenTheCsvRowTransformation(IEnumerable<ExpandoObject> transformedRows, string csv, bool outputHeaders)
         {
             _transformation
-                .Setup(_ => _.Transform(publishedProviders))
+                .Setup(_ => _.Transform(It.IsAny<IEnumerable<dynamic>>()))
                 .Returns(transformedRows);
 
             _csvUtils
