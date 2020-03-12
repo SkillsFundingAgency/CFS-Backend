@@ -136,9 +136,9 @@ namespace CalculateFunding.Functions.Publishing
             builder.AddTransient<IVariationStrategy, DsgTotalAllocationChangeVariationStrategy>();
             builder.AddTransient<IOutOfScopePublishedProviderBuilder, OutOfScopePublishedProviderBuilder>();
             builder.AddScoped<IPublishingFeatureFlag, PublishingFeatureFlag>();
-            builder.AddSingleton<IApproveService, ApproveService>();
+            builder.AddScoped<IApproveService, ApproveService>();
             builder.AddSingleton<IJobTracker, JobTracker>();
-            builder.AddSingleton<IPublishService, PublishService>();
+            builder.AddScoped<IPublishService, PublishService>();
             builder.AddSingleton<IJobManagement, JobManagement>();
             builder.AddSingleton<ISpecificationFundingStatusService, SpecificationFundingStatusService>();
             builder.AddScoped<ICsvUtils, CsvUtils>();
