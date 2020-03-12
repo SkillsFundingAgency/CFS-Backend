@@ -5,6 +5,7 @@ using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
+using CalculateFunding.Services.Publishing.Reporting.FundingLines;
 
 namespace CalculateFunding.Services.Publishing.Reporting
 {

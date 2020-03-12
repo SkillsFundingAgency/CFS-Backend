@@ -4,7 +4,7 @@ using System.Linq;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Publishing.Interfaces;
 
-namespace CalculateFunding.Services.Publishing.Reporting
+namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
 {
     public class FundingLineCsvTransformServiceLocator : IFundingLineCsvTransformServiceLocator
     {

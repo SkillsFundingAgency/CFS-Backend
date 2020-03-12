@@ -32,6 +32,7 @@ using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.IoC;
 using CalculateFunding.Services.Publishing.Providers;
 using CalculateFunding.Services.Publishing.Reporting;
+using CalculateFunding.Services.Publishing.Reporting.FundingLines;
 using CalculateFunding.Services.Publishing.Reporting.PublishedProviderEstate;
 using CalculateFunding.Services.Publishing.Repositories;
 using CalculateFunding.Services.Publishing.Specifications;
@@ -154,6 +155,10 @@ namespace CalculateFunding.Functions.Publishing
             builder.AddScoped<IFundingLineCsvTransform, PublishedProviderVersionFundingLineCsvTransform>();
             builder.AddScoped<IFundingLineCsvTransformServiceLocator, FundingLineCsvTransformServiceLocator>();
             builder.AddScoped<IPublishedFundingPredicateBuilder, PublishedFundingPredicateBuilder>();
+            
+            builder.AddScoped<IFundingLineCsvBatchProcessorServiceLocator, FundingLineCsvBatchProcessorServiceLocator>();
+            builder.AddScoped<IFundingLineCsvBatchProcessor, PublishedProviderCsvBatchProcessor>();
+            builder.AddScoped<IFundingLineCsvBatchProcessor, PublishedProviderVersionCsvBatchProcessor>();
 
             builder.AddTransient<ICreateGeneratePublishedFundingCsvJobs, GeneratePublishedFundingCsvJobCreation>();
             builder.AddScoped<IPublishedProviderEstateCsvGenerator, PublishedProviderEstateCsvGenerator>();

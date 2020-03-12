@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using CalculateFunding.Services.Publishing.Interfaces;
 
-namespace CalculateFunding.Services.Publishing.Reporting
+namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
 {
     public class PublishedFundingPredicateBuilder : IPublishedFundingPredicateBuilder
     {

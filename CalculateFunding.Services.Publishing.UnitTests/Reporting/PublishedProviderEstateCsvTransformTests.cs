@@ -6,6 +6,7 @@ using System.Linq;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Publishing.Reporting.PublishedProviderEstate;
+using CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;

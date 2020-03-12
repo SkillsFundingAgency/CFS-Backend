@@ -4,13 +4,14 @@ using System.Dynamic;
 using System.Linq;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
+using CalculateFunding.Services.Publishing.Reporting.FundingLines;
 
 namespace CalculateFunding.Services.Publishing.Reporting
 {
     public abstract class FundingLineCsvTransformBase : IFundingLineCsvTransform
     {
         private readonly ArrayPool<ExpandoObject> _expandoObjectsPool 
-            = ArrayPool<ExpandoObject>.Create(FundingLineCsvGenerator.BatchSize, 4);
+            = ArrayPool<ExpandoObject>.Create(CsvBatchProcessBase.BatchSize, 4);
 
         public abstract bool IsForJobType(FundingLineCsvGeneratorJobType jobType);
 
@@ -44,13 +45,18 @@ namespace CalculateFunding.Services.Publishing.Reporting
 
                 foreach (FundingLine fundingLine in publishedProviderVersion.FundingLines.OrderBy(_ => _.Name))
                 {
-                    row[fundingLine.Name] = fundingLine.Value?.ToString();
+                    TransformFundingLine(row, fundingLine);
                 }
 
                 yield return (ExpandoObject) row;
             }
             
             _expandoObjectsPool.Return(resultsBatch);
+        }
+
+        protected virtual void TransformFundingLine(IDictionary<string, object> row, FundingLine fundingLine)
+        {
+            row[fundingLine.Name] = fundingLine.Value?.ToString();
         }
 
         protected abstract PublishedProviderVersion GetPublishedProviderVersion(IEnumerable<dynamic> documents, int resultCount);

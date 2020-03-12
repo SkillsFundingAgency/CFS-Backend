@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using CalculateFunding.Models.Publishing;
 
-namespace CalculateFunding.Services.Publishing.Reporting
+namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
 {
     public class PublishedProviderVersionFundingLineCsvTransform : FundingLineCsvTransformBase
     {

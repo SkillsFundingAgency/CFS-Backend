@@ -2,7 +2,7 @@ using System;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Publishing;
 
-namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
+namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
 {
     public abstract class FundingLineCsvTransformTestBase
     {

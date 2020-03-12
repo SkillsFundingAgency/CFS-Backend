@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Dynamic;
 using CalculateFunding.Services.Publishing.Reporting;
+using CalculateFunding.Services.Publishing.Reporting.FundingLines;
 
 namespace CalculateFunding.Services.Publishing.Interfaces
 {

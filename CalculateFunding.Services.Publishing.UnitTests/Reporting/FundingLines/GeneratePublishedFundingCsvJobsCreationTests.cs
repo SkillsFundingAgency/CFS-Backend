@@ -4,12 +4,13 @@ using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Reporting;
+using CalculateFunding.Services.Publishing.Reporting.FundingLines;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 
-namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
+namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
 {
     [TestClass]
     public class GeneratePublishedFundingCsvJobsCreationTests

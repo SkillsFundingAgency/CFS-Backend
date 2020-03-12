@@ -4,11 +4,11 @@ using System.Dynamic;
 using System.Globalization;
 using System.Linq;
 using CalculateFunding.Models.Publishing;
-using CalculateFunding.Services.Publishing.Reporting;
+using CalculateFunding.Services.Publishing.Reporting.FundingLines;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
+namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
 {
     [TestClass]
     public class PublishedProviderFundingLineCsvTransformTests : FundingLineCsvTransformTestBase

@@ -1,13 +1,11 @@
-using System;
-
-namespace CalculateFunding.Services.Publishing.Reporting
+namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
 {
-    [Flags]
     public enum FundingLineCsvGeneratorJobType
     {
         Undefined = 0,
         CurrentState = 1,
         Released = 2,
-        History = 3
+        History = 3,
+        ProfileValues = 4
     }
 }
