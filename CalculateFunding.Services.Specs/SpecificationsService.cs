@@ -9,6 +9,7 @@ using CalculateFunding.Common.ApiClient.Calcs;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
+using CalculateFunding.Common.ApiClient.Providers;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models;
@@ -63,6 +64,7 @@ namespace CalculateFunding.Services.Specs
         private readonly IHostingEnvironment _hostingEnvironment;
         private readonly Polly.Policy _calcsApiClientPolicy;
         private readonly IFeatureToggle _featureToggle;
+        private readonly IProvidersApiClient _providersApiClient;
 
         public SpecificationsService(
             IMapper mapper,
@@ -82,7 +84,8 @@ namespace CalculateFunding.Services.Specs
             IQueueDeleteSpecificationJobActions queueDeleteSpecificationJobAction,
             ICalculationsApiClient calcsApiClient,
             IHostingEnvironment hostingEnvironment,
-            IFeatureToggle featureToggle)
+            IFeatureToggle featureToggle,
+            IProvidersApiClient providersApiClient)
         {
             Guard.ArgumentNotNull(mapper, nameof(mapper));
             Guard.ArgumentNotNull(specificationsRepository, nameof(specificationsRepository));
@@ -105,6 +108,7 @@ namespace CalculateFunding.Services.Specs
             Guard.ArgumentNotNull(calcsApiClient, nameof(calcsApiClient));
             Guard.ArgumentNotNull(hostingEnvironment, nameof(hostingEnvironment));
             Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
+            Guard.ArgumentNotNull(providersApiClient, nameof(providersApiClient));
 
             _mapper = mapper;
             _specificationsRepository = specificationsRepository;
@@ -125,6 +129,7 @@ namespace CalculateFunding.Services.Specs
             _hostingEnvironment = hostingEnvironment;
             _featureToggle = featureToggle;
             _calcsApiClientPolicy = resiliencePolicies.CalcsApiClient;
+            _providersApiClient = providersApiClient;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -607,6 +612,19 @@ namespace CalculateFunding.Services.Specs
             }
 
             Models.Specs.SpecificationVersion previousSpecificationVersion = specification.Current;
+
+            if(previousSpecificationVersion.ProviderVersionId != editModel.ProviderVersionId)
+            {
+                ApiResponse<int?> totalCountFromApi = await _providersApiClient.PopulateProviderSummariesForSpecification(specificationId,true);
+
+                if (totalCountFromApi?.Content == null)
+                {
+                    string errorMessage = $"No provider version set for specification '{specificationId}'";
+                    _logger.Information(errorMessage);
+
+                    throw new NonRetriableException(errorMessage);
+                }
+            }
 
             Models.Specs.SpecificationVersion specificationVersion =
                 specification.Current.Clone() as Models.Specs.SpecificationVersion;

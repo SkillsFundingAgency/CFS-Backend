@@ -3,6 +3,7 @@ using AutoMapper;
 using CalculateFunding.Common.ApiClient.Calcs;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Policies;
+using CalculateFunding.Common.ApiClient.Providers;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.TemplateMetadata;
@@ -46,6 +47,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         private readonly ILogger _logger = CreateLogger();
         private readonly ISpecificationsRepository _specificationsRepository;
         private readonly IPoliciesApiClient _policiesApiClient;
+        private readonly IProvidersApiClient _providersApiClient;
         private readonly IMapper _mapper;
         private readonly ISearchRepository<SpecificationIndex> _searchRepository;
         private readonly ICacheProvider _cacheProvider;
@@ -68,7 +70,8 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             IQueueCreateSpecificationJobActions queueCreateSpecificationJobActions = null,
             IQueueDeleteSpecificationJobActions queueDeleteSpecificationJobActions = null,
             IFeatureToggle featureToggle = null,
-            ICalculationsApiClient calcsApiClient = null)
+            ICalculationsApiClient calcsApiClient = null,
+            IProvidersApiClient providersApiClient = null)
         {
             return new SpecificationsService(mapper ?? CreateMapper(),
                 specificationsRepository ?? CreateSpecificationsRepository(),
@@ -87,7 +90,8 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 queueDeleteSpecificationJobActions ?? Substitute.For<IQueueDeleteSpecificationJobActions>(),
                 calcsApiClient ?? CreateCalcsApiClient(),
                 Substitute.For<IHostingEnvironment>(),
-                featureToggle ?? Substitute.For<IFeatureToggle>());
+                featureToggle ?? Substitute.For<IFeatureToggle>(),
+                providersApiClient ?? Substitute.For<IProvidersApiClient>());
         }
 
         protected IJobsApiClient CreateJobsApiClient()
@@ -145,6 +149,11 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         protected IPoliciesApiClient CreatePoliciesApiClient()
         {
             return Substitute.For<IPoliciesApiClient>();
+        }
+
+        protected IProvidersApiClient CreateProvidersApiClient()
+        {
+            return Substitute.For<IProvidersApiClient>();
         }
 
         protected static ILogger CreateLogger()

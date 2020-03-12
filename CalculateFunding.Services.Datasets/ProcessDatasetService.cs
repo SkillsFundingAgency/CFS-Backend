@@ -226,11 +226,25 @@ namespace CalculateFunding.Services.Datasets
             SpecificationSummary specification = specificationSummaryResponse.Content;
 
             DefinitionSpecificationRelationship relationship = await _datasetRepository.GetDefinitionSpecificationRelationshipById(relationshipId);
+
             if (relationship == null)
             {
                 _logger.Error($"Relationship not found for relationship id: {relationshipId}");
                 await _jobManagement.UpdateJobStatus(jobId, 100, false, "Failed to Process - relationship not found");
                 return;
+            }
+
+            if(relationship.IsSetAsProviderData)
+            {
+                ApiResponse<int?> totalCountFromApi = await _providersApiClient.PopulateProviderSummariesForSpecification(specificationId, true);
+
+                if (totalCountFromApi?.Content == null)
+                {
+                    string errorMessage = $"No provider version set for specification '{specificationId}'";
+                    _logger.Information(errorMessage);
+
+                    throw new NonRetriableException(errorMessage);
+                }
             }
 
             BuildProject buildProject = null;

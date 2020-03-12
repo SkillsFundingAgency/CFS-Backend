@@ -20,6 +20,7 @@ using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.Messages;
 using CalculateFunding.Services.CodeGeneration.VisualBasic;
+using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
@@ -1220,6 +1221,120 @@ namespace CalculateFunding.Services.Datasets.Services
                 .UpdateJobStatus(Arg.Is(invokedByJobId), 100, true, "Processed Dataset");
         }
 
+        [TestMethod]
+        public async Task ProcessDataset_GivenPayloadAndTableResultsWithRelationshipIsSetAsProviderData_ThenPopulateProviderSummariesForSpecification()
+        {
+            GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"),
+                ("user-id", UserId), ("user-name", Username));
+            AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
+                .WithDefinition(NewReference(rf => rf.WithId(DataDefintionId)))
+                .WithHistory(NewDatasetVersion())));
+            AndTheSpecification(SpecificationId, NewSpecification(_ =>
+            _.WithId(SpecificationId)
+            .WithProviderVersionId(ProviderVersionId)
+            ));
+            AndTheRelationship(_relationshipId, NewRelationship(_ => _.WithDatasetDefinition(NewReference(
+                    rf => rf.WithId(DataDefintionId)))
+                .WithDatasetVersion(NewRelationshipVersion())
+                .WithIsSetAsProviderData(true)));
+            var setCachedProviders = true;
+            AndThePopulationOfProvierSummeriesForSpecification(setCachedProviders, 1);
+
+            DatasetDefinition datasetDefinition = NewDatasetDefinition(_ => _.WithTableDefinitions(NewTableDefinition(tb =>
+                tb.WithFieldDefinitions(NewFieldDefinition(fld => fld.WithName(Upin)
+                    .WithIdentifierFieldType(IdentifierFieldType.UPIN))))));
+
+            AndTheDatasetDefinitions(datasetDefinition);
+            AndTheBuildProject(SpecificationId, NewBuildProject(_ => _.WithRelationships(NewRelationshipSummary(summary =>
+                summary.WithDefinesScope(true)
+                    .WithRelationship(NewReference(rf => rf.WithId(_relationshipId)
+                    .WithName(_relationshipName)))
+                    .WithDatasetDefinition(NewDatasetDefinition())))));
+            AndTheCompileResponse(HttpStatusCode.NoContent);
+
+            ICloudBlob cloudBlob = NewCloudBlob();
+
+            AndTheCloudBlob(BlobPath, cloudBlob);
+
+            Stream tableStream = NewStream(new byte[1]);
+
+            AndTheCloudStream(cloudBlob, tableStream);
+
+            TableLoadResult tableLoadResult = NewTableLoadResult(_ => _.WithRows(NewRowLoadResult(
+                row => row.WithFields((Upin, _upin)))));
+
+            AndTheCachedTableLoadResults(_datasetCacheKey, tableLoadResult);
+            AndTheTableLoadResultsFromExcel(tableStream, datasetDefinition, tableLoadResult);
+            AndTheCoreProviderData(NewApiProviderSummary(_ => _.WithId(_providerId)
+                .WithUPIN(_upin)));
+            AndTheJob(NewJob(_ => _.WithId(_jobId)
+                .WithDefinitionId(CreateInstructAllocationJob)), CreateInstructAllocationJob);
+
+            await WhenTheProcessDatasetMessageIsProcessed();
+
+            await ThenTheProvierSummeriesForSpecificationArePopulatedInvoked(setCachedProviders);
+        }
+
+        [TestMethod]
+        public async Task ProcessDataset_GivenPayloadAndTableResultsWithRelationshipIsSetAsProviderDataAndTheProviderSummariesForSpecNull_LogErrorThrowException()
+        {
+            GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"),
+                ("user-id", UserId), ("user-name", Username));
+            AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
+                .WithDefinition(NewReference(rf => rf.WithId(DataDefintionId)))
+                .WithHistory(NewDatasetVersion())));
+            AndTheSpecification(SpecificationId, NewSpecification(_ =>
+            _.WithId(SpecificationId)
+            .WithProviderVersionId(ProviderVersionId)
+            ));
+            AndTheRelationship(_relationshipId, NewRelationship(_ => _.WithDatasetDefinition(NewReference(
+                    rf => rf.WithId(DataDefintionId)))
+                .WithDatasetVersion(NewRelationshipVersion())
+                .WithIsSetAsProviderData(true)));
+            var setCachedProviders = true;
+            AndThePopulationOfProvierSummeriesForSpecification(setCachedProviders, null);
+
+            DatasetDefinition datasetDefinition = NewDatasetDefinition(_ => _.WithTableDefinitions(NewTableDefinition(tb =>
+                tb.WithFieldDefinitions(NewFieldDefinition(fld => fld.WithName(Upin)
+                    .WithIdentifierFieldType(IdentifierFieldType.UPIN))))));
+
+            AndTheDatasetDefinitions(datasetDefinition);
+            AndTheBuildProject(SpecificationId, NewBuildProject(_ => _.WithRelationships(NewRelationshipSummary(summary =>
+                summary.WithDefinesScope(true)
+                    .WithRelationship(NewReference(rf => rf.WithId(_relationshipId)
+                    .WithName(_relationshipName)))
+                    .WithDatasetDefinition(NewDatasetDefinition())))));
+            AndTheCompileResponse(HttpStatusCode.NoContent);
+
+            ICloudBlob cloudBlob = NewCloudBlob();
+
+            AndTheCloudBlob(BlobPath, cloudBlob);
+
+            Stream tableStream = NewStream(new byte[1]);
+
+            AndTheCloudStream(cloudBlob, tableStream);
+
+            TableLoadResult tableLoadResult = NewTableLoadResult(_ => _.WithRows(NewRowLoadResult(
+                row => row.WithFields((Upin, _upin)))));
+
+            AndTheCachedTableLoadResults(_datasetCacheKey, tableLoadResult);
+            AndTheTableLoadResultsFromExcel(tableStream, datasetDefinition, tableLoadResult);
+            AndTheCoreProviderData(NewApiProviderSummary(_ => _.WithId(_providerId)
+                .WithUPIN(_upin)));
+            
+            Func<Task> invocation = WhenTheProcessDatasetMessageIsProcessed;
+
+            invocation
+                .Should().ThrowExactly<NonRetriableException>()
+                .Which
+                .Message
+                .Should()
+                .Be($"No provider version set for specification '{SpecificationId}'");
+
+            await ThenTheProvierSummeriesForSpecificationArePopulatedInvoked(setCachedProviders);
+            AndTheErrorWasLogged($"No provider version set for specification '{SpecificationId}'");
+        }
+
         private CalculationResponseModel NewCalculation(Action<CalculationResponseBuilder> setUp = null)
         {
             CalculationResponseBuilder calculationResponseBuilder = new CalculationResponseBuilder();
@@ -1538,6 +1653,13 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Returns(new ApiResponse<IEnumerable<ApiProviderSummary>>(HttpStatusCode.OK, providerSummaries));
         }
 
+        private void AndThePopulationOfProvierSummeriesForSpecification(bool setCachedProviders, int? providerSummariesCount)
+        {
+            _providersApiClient
+                .PopulateProviderSummariesForSpecification(SpecificationId, setCachedProviders)
+                .Returns(new ApiResponse<int?>(HttpStatusCode.OK, providerSummariesCount));
+        }
+
         private void AndTheCoreProviderVersion(ApiProviderVersion providerVersion)
         {
             _providersApiClient
@@ -1770,6 +1892,12 @@ namespace CalculateFunding.Services.Datasets.Services
                             job.Trigger.EntityType == nameof(DefinitionSpecificationRelationship) &&
                             job.Trigger.Message == $"Processed dataset relationship: '{expectedRelationshipId}' for specification: '{SpecificationId}'"
                     ));
+        }
+
+        private async Task ThenTheProvierSummeriesForSpecificationArePopulatedInvoked(bool setCachedProviders)
+        {
+           await _providersApiClient.Received(1)
+                .PopulateProviderSummariesForSpecification(SpecificationId, setCachedProviders);
         }
 
         private string GenerateIdentifier(string rawValue)

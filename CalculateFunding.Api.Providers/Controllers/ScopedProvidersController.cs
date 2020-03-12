@@ -26,7 +26,7 @@ namespace CalculateFunding.Api.Providers.Controllers
             return await _scopedProvidersService.FetchCoreProviderData(specificationId);
         }
 
-        [HttpGet("api/scopedproviders/set-cached-providers/{specificationId}/{setScopedProviders}")]
+        [HttpGet("api/scopedproviders/set-cached-providers/{specificationId}/{setCachedProviders}")]
         [ProducesResponseType(200, Type = typeof(int?))]
         public async Task<IActionResult> PopulateProviderSummariesForSpecification([FromRoute]string specificationId, [FromRoute]bool setCachedProviders)
         {
