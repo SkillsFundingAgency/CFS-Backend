@@ -6,5 +6,7 @@
         Polly.Policy PoliciesApiClient { get; set; }
 
         Polly.Policy CalcsApiClient { get; set; }
+
+        Polly.Policy ProvidersApiClient { get; set; }
     }
 }

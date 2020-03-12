@@ -236,14 +236,16 @@ namespace CalculateFunding.Services.Datasets
 
             if(relationship.IsSetAsProviderData)
             {
-                ApiResponse<int?> totalCountFromApi = await _providersApiClient.PopulateProviderSummariesForSpecification(specificationId, true);
 
-                if (totalCountFromApi?.Content == null)
+                ApiResponse<int?> totalCountFromApi = await _providersApiClientPolicy.ExecuteAsync(() =>
+                                 _providersApiClient.PopulateProviderSummariesForSpecification(specificationId, true));
+
+                if (!totalCountFromApi.StatusCode.IsSuccess() || totalCountFromApi?.Content == null)
                 {
-                    string errorMessage = $"No provider version set for specification '{specificationId}'";
+                    string errorMessage = $"Unable to set scoped providers while updating dataset '{relationshipId}' for specification '{specificationId}' with status code: {totalCountFromApi.StatusCode.ToString()}";
                     _logger.Information(errorMessage);
 
-                    throw new NonRetriableException(errorMessage);
+                    throw new RetriableException(errorMessage);
                 }
             }
 

@@ -1325,14 +1325,15 @@ namespace CalculateFunding.Services.Datasets.Services
             Func<Task> invocation = WhenTheProcessDatasetMessageIsProcessed;
 
             invocation
-                .Should().ThrowExactly<NonRetriableException>()
+                .Should().ThrowExactly<RetriableException>()
                 .Which
                 .Message
-                .Should()
-                .Be($"No provider version set for specification '{SpecificationId}'");
+                .Should()               
+                .Be($"Unable to set scoped providers while updating dataset '{_relationshipId}' for specification '{SpecificationId}' with status code: OK");
 
             await ThenTheProvierSummeriesForSpecificationArePopulatedInvoked(setCachedProviders);
-            AndTheErrorWasLogged($"No provider version set for specification '{SpecificationId}'");
+            AndTheErrorWasLogged($"Unable to set scoped providers while updating dataset '{_relationshipId}' for specification '{SpecificationId}' with status code: OK");
+
         }
 
         private CalculationResponseModel NewCalculation(Action<CalculationResponseBuilder> setUp = null)

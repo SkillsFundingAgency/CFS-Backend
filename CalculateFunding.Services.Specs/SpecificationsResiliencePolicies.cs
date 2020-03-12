@@ -11,5 +11,7 @@ namespace CalculateFunding.Services.Specs
 
         public Policy CalcsApiClient { get; set; }
 
+        public Policy ProvidersApiClient { get; set; }
+
     }
 }

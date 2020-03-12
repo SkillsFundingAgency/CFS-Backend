@@ -65,6 +65,8 @@ namespace CalculateFunding.Services.Specs
         private readonly Polly.Policy _calcsApiClientPolicy;
         private readonly IFeatureToggle _featureToggle;
         private readonly IProvidersApiClient _providersApiClient;
+        private readonly Polly.Policy _providersApiClientPolicy;
+
 
         public SpecificationsService(
             IMapper mapper,
@@ -103,6 +105,7 @@ namespace CalculateFunding.Services.Specs
             Guard.ArgumentNotNull(resiliencePolicies?.PoliciesApiClient, nameof(resiliencePolicies.PoliciesApiClient));
             Guard.ArgumentNotNull(resiliencePolicies?.JobsApiClient, nameof(resiliencePolicies.JobsApiClient));
             Guard.ArgumentNotNull(resiliencePolicies?.CalcsApiClient, nameof(resiliencePolicies.CalcsApiClient));
+            Guard.ArgumentNotNull(resiliencePolicies?.ProvidersApiClient, nameof(resiliencePolicies.ProvidersApiClient));
             Guard.ArgumentNotNull(queueCreateSpecificationJobAction, nameof(queueCreateSpecificationJobAction));
             Guard.ArgumentNotNull(queueDeleteSpecificationJobAction, nameof(queueDeleteSpecificationJobAction));
             Guard.ArgumentNotNull(calcsApiClient, nameof(calcsApiClient));
@@ -130,6 +133,8 @@ namespace CalculateFunding.Services.Specs
             _featureToggle = featureToggle;
             _calcsApiClientPolicy = resiliencePolicies.CalcsApiClient;
             _providersApiClient = providersApiClient;
+            _providersApiClientPolicy = resiliencePolicies.ProvidersApiClient;
+
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -615,14 +620,15 @@ namespace CalculateFunding.Services.Specs
 
             if(previousSpecificationVersion.ProviderVersionId != editModel.ProviderVersionId)
             {
-                ApiResponse<int?> totalCountFromApi = await _providersApiClient.PopulateProviderSummariesForSpecification(specificationId,true);
+                ApiResponse<int?> totalCountFromApi = await _providersApiClientPolicy.ExecuteAsync(() => 
+                                 _providersApiClient.PopulateProviderSummariesForSpecification(specificationId,true));
 
-                if (totalCountFromApi?.Content == null)
+                if (!totalCountFromApi.StatusCode.IsSuccess() || totalCountFromApi?.Content == null)
                 {
-                    string errorMessage = $"No provider version set for specification '{specificationId}'";
+                    string errorMessage = $"Unable to set scoped providers while editing specification '{specificationId}' with status code: {totalCountFromApi.StatusCode.ToString()}";
                     _logger.Information(errorMessage);
 
-                    throw new NonRetriableException(errorMessage);
+                    throw new RetriableException(errorMessage);
                 }
             }
 

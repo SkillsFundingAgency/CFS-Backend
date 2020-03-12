@@ -585,7 +585,8 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             newSpecVersion.FundingStreams = new[] { new Reference { Id = "fs11" } };
 
             _providersApiClient.PopulateProviderSummariesForSpecification(SpecificationId, true)
-                .Returns(new ApiResponse<int?>(HttpStatusCode.OK, null));
+                .Returns(new ApiResponse<int?>(HttpStatusCode.BadRequest, null));
+
 
             var service = CreateSpecificationsService(fundingStream, newSpecVersion);
 
@@ -595,11 +596,12 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             //Assert
             editSpecification
                 .Should()
-                .Throw<NonRetriableException>()
+                .Throw<RetriableException>()
                 .Which
                 .Message
                 .Should()
-                .Be($"No provider version set for specification '{SpecificationId}'");
+                .Be($"Unable to set scoped providers while editing specification '{SpecificationId}' with status code: BadRequest");
+
 
             await
                 _providersApiClient
