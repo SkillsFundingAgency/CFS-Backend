@@ -166,5 +166,15 @@ namespace CalculateFunding.Services.Publishing
 
             return results;
         }
+
+        public async Task<IEnumerable<string>> GetPublishedProviderFundingLines(string specificationId)
+        {
+            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
+
+            IEnumerable<string> result = await _publishedFundingRepositoryPolicy.ExecuteAsync(
+                                () => _publishedFundingRepository.GetPublishedProviderFundingLines(specificationId));
+
+            return result;
+        }
     }
 }

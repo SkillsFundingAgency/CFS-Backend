@@ -53,8 +53,9 @@ namespace CalculateFunding.Services.Publishing.Interfaces
         Task PublishedProviderBatchProcessing(string predicate,
             string specificationId,
             Func<List<PublishedProvider>, Task> batchProcessor,
-            int batchSize);
-
+            int batchSize,
+            string joinPredicate = null,
+            string fundingLineCode = null);
         Task PublishedProviderVersionBatchProcessing(string specificationId,
             Func<List<PublishedProviderVersion>, Task> batchProcessor,
             int batchSize);
@@ -62,5 +63,7 @@ namespace CalculateFunding.Services.Publishing.Interfaces
         Task RefreshedProviderVersionBatchProcessing(string specificationId,
             Func<List<PublishedProviderVersion>, Task> persistIndexBatch,
             int batchSize);
+
+        Task<IEnumerable<string>> GetPublishedProviderFundingLines(string specificationId);
     }
 }

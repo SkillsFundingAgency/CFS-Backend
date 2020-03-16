@@ -34,6 +34,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
         [DataRow(FundingLineCsvGeneratorJobType.Undefined, false)]
         [DataRow(FundingLineCsvGeneratorJobType.ProfileValues, false)]
         [DataRow(FundingLineCsvGeneratorJobType.CurrentState, false)]
+        [DataRow(FundingLineCsvGeneratorJobType.CurrentProfileValues, false)]
         public void SupportedJobTypes(FundingLineCsvGeneratorJobType jobType,
             bool expectedIsSupportedFlag)
         {
@@ -46,8 +47,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
         public async Task ReturnsFalseIfNoResultsProcessed()
         {
             string specificationId = NewRandomString();
+            string fundingLineCode = NewRandomString();
 
-            bool processedResults = await WhenTheCsvIsGenerated(FundingLineCsvGeneratorJobType.Released, specificationId, NewRandomString());
+            bool processedResults = await WhenTheCsvIsGenerated(FundingLineCsvGeneratorJobType.Released, specificationId, NewRandomString(), fundingLineCode);
 
             processedResults
                 .Should()
@@ -61,6 +63,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
             FundingLineCsvGeneratorJobType jobType)
         {
             string specificationId = NewRandomString();
+            string fundingLineCode = NewRandomString();
             string expectedInterimFilePath = "TODO;";
             
             IEnumerable<PublishedProviderVersion> publishProviderVersionsOne = new []
@@ -107,7 +110,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
                 })
                 .Returns(Task.CompletedTask);
 
-            bool processedResults = await WhenTheCsvIsGenerated(jobType, specificationId, expectedInterimFilePath);
+            bool processedResults = await WhenTheCsvIsGenerated(jobType, specificationId, expectedInterimFilePath, fundingLineCode);
 
             processedResults
                 .Should()

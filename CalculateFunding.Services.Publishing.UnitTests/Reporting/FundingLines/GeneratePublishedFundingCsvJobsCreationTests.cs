@@ -16,6 +16,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
     public class GeneratePublishedFundingCsvJobsCreationTests
     {
         private const string JobType = "job-type";
+        private const string FundingLineCode = "funding-line-code";
 
         private Mock<ICreateGeneratePublishedFundingCsvJobs> _createGeneratePublishedFundingCsvJobs;
         private Mock<ICreateGeneratePublishedProviderEstateCsvJobs> _createGeneratePublishedProviderEstateCsvJobs;
@@ -37,7 +38,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
         {
             Func<Task> invocation = () => WhenTheJobsAreCreated(null,
                 NewRandomString(),
-                NewUser());
+                NewUser(),
+                null);
 
             invocation
                 .Should()
@@ -53,6 +55,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
         {
             Func<Task> invocation = () => WhenTheJobsAreCreated(NewRandomString(),
                 NewRandomString(),
+                null,
                 null);
 
             invocation
@@ -65,28 +68,54 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
         }
 
         [TestMethod]
+        public void GuardsAgainstMissingFundingLineCodes()
+        {
+            Func<Task> invocation = () => WhenTheJobsAreCreated(NewRandomString(),
+                NewRandomString(),
+                NewUser(),
+                null);
+
+            invocation
+                .Should()
+                .Throw<ArgumentNullException>()
+                .And
+                .ParamName
+                .Should()
+                .Be("fundingLineCodes");
+        }
+
+        [TestMethod]
         public async Task CreatesCsvJobForEachJobType()
         {
             string specificationId = NewRandomString();
+            IEnumerable<string> fundingLineCodes = new[] { NewRandomString(), NewRandomString() };
             string correlationId = NewRandomString();
             Reference user = NewUser();
 
-            await WhenTheJobsAreCreated(specificationId, correlationId, user);
+            await WhenTheJobsAreCreated(specificationId, correlationId, user, fundingLineCodes);
 
-            ThenTheJobWasCreated(specificationId, correlationId, user, FundingLineCsvGeneratorJobType.History);
-            AndTheJobWasCreated(specificationId, correlationId, user, FundingLineCsvGeneratorJobType.Released);
-            AndTheJobWasCreated(specificationId, correlationId, user, FundingLineCsvGeneratorJobType.CurrentState);
+            ThenTheJobWasCreated(specificationId, correlationId, user, FundingLineCsvGeneratorJobType.History, null);
+            AndTheJobWasCreated(specificationId, correlationId, user, FundingLineCsvGeneratorJobType.Released, null);
+            AndTheJobWasCreated(specificationId, correlationId, user, FundingLineCsvGeneratorJobType.CurrentState, null);
+
+            foreach (string fundingLineCode in fundingLineCodes)
+            {
+                AndTheJobWasCreated(specificationId, correlationId, user, FundingLineCsvGeneratorJobType.CurrentProfileValues, fundingLineCode);
+            }
         }
 
         private void ThenTheJobWasCreated(string specificationId,
             string correlationId,
             Reference user,
-            FundingLineCsvGeneratorJobType jobType)
+            FundingLineCsvGeneratorJobType jobType,
+            string fundingLineCode)
         {
             _createGeneratePublishedFundingCsvJobs.Verify(_ => _.CreateJob(specificationId, user, correlationId,
                     It.Is<Dictionary<string, string>>(props
                         => props.ContainsKey(JobType) &&
-                           props[JobType] == jobType.ToString()),
+                           props[JobType] == jobType.ToString() &&
+                           props.ContainsKey(FundingLineCode) &&
+                           props[FundingLineCode] == fundingLineCode),
                     null),
                 Times.Once);
         }
@@ -94,14 +123,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
         private void AndTheJobWasCreated(string specificationId,
             string correlationId,
             Reference user,
-            FundingLineCsvGeneratorJobType jobType)
+            FundingLineCsvGeneratorJobType jobType,
+            string fundingLineCode)
         {
-            ThenTheJobWasCreated(specificationId, correlationId, user, jobType);
+            ThenTheJobWasCreated(specificationId, correlationId, user, jobType, fundingLineCode);
         }
 
-        private Task WhenTheJobsAreCreated(string specificationId, string correlationId, Reference user)
+        private Task WhenTheJobsAreCreated(string specificationId, string correlationId, Reference user, IEnumerable<string> fundingLineCodes)
         {
-            return _jobsCreation.CreateJobs(specificationId, correlationId, user);
+            return _jobsCreation.CreateJobs(specificationId, correlationId, user, fundingLineCodes);
         }
 
         private Reference NewUser()

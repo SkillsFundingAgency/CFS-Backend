@@ -137,19 +137,24 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             };
 
             string specificationId = NewRandomString();
+            string fundingLineCode = NewRandomString();
+            IEnumerable<string> fundingLineCodes = new[] { fundingLineCode };
 
             GivenTheMessageHasTheSpecificationId(specificationId);
+            GivenTheMessageHasTheFundingLineCode(fundingLineCode);
             AndTheMessageIsOtherwiseValid();
             AndTheSpecificationHasTheHeldUnApprovedPublishedProviders(specificationId, expectedPublishedProviders);
+            AndThePublishedProvidersFundingLines(specificationId, fundingLineCodes);
+
             AndRetrieveJobAndCheckCanBeProcessedSuccessfully();
 
             await WhenTheResultsAreApproved();
 
             ThenThePublishedProvidersWereApproved(expectedPublishedProviders);
-            await AndTheCsvGenerationJobsWereCreated(specificationId);
+            await AndTheCsvGenerationJobsWereCreated(specificationId, fundingLineCodes);
         }
 
-        private async Task AndTheCsvGenerationJobsWereCreated(string specificationId)
+        private async Task AndTheCsvGenerationJobsWereCreated(string specificationId, IEnumerable<string> fundingLineCodes)
         {
             await _publishedFundingCsvJobsCreation
                 .Received(1)
@@ -157,7 +162,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                     Arg.Any<string>(),
                     Arg.Is<Reference>(usr => usr != null &&
                                              usr.Id == _userId &&
-                                             usr.Name == _userName));
+                                             usr.Name == _userName),
+                    Arg.Is<IEnumerable<string>>(flc => flc.Count() == fundingLineCodes.Count() && flc.SequenceEqual(fundingLineCodes)));
         }
 
         private void GivenTheMessageHasAJobId()
@@ -180,6 +186,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             GivenTheUserProperty("specification-id", specificationId);
         }
 
+        private void GivenTheMessageHasTheFundingLineCode(string fundingLineCode)
+        {
+            GivenTheUserProperty("funding-line-code", fundingLineCode);
+        }
+
         private void AndTheMessageIsOtherwiseValid()
         {
             GivenTheMessageHasAJobId();
@@ -189,6 +200,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         {
             _publishedFundingDataService.GetPublishedProvidersForApproval(specificationId)
                 .Returns(publishedProviders);
+        }
+
+        private void AndThePublishedProvidersFundingLines(string specificationId, IEnumerable<string> fundingLineCodes)
+        {
+            _publishedFundingDataService.GetPublishedProviderFundingLines(specificationId)
+                .Returns(fundingLineCodes);
         }
 
         private async Task WhenTheResultsAreApproved()

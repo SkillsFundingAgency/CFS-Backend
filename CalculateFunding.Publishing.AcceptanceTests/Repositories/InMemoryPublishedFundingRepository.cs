@@ -280,5 +280,26 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         {
             throw new NotImplementedException();
         }
+
+        public Task PublishedProviderBatchProcessing(string predicate, string specificationId, Func<List<PublishedProvider>, Task> batchProcessor, int batchSize, string joinPredicate = null, string fundingLineCode = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<IEnumerable<string>> GetPublishedProviderFundingLines(string specificationId)
+        {
+            IEnumerable<PublishedProvider> publishedProviders = null;
+            if (_repo.PublishedProviders.ContainsKey(specificationId))
+            {
+                publishedProviders = _repo.PublishedProviders[specificationId];
+            }
+
+            IEnumerable<string> fundingLines = publishedProviders
+                .SelectMany(x => x.Current.FundingLines)
+                .Select(x => x.Name)
+                .Distinct();
+
+            return Task.FromResult(fundingLines);
+        }
     }
 }

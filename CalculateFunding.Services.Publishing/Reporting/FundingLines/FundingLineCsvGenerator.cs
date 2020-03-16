@@ -87,7 +87,8 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
                 bool processedResults = await fundingLineCsvBatchProcessor.GenerateCsv(jobType, 
                     specificationId, 
                     temporaryPath, 
-                    fundingLineCsvTransform);
+                    fundingLineCsvTransform,
+                    fundingLineCode);
 
                 if (!processedResults)
                 {
@@ -176,10 +177,7 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
                 string specificationId,
                 string fundingLineCode)
             {
-                fundingLineCode = fundingLineCode.IsNullOrWhitespace() ? 
-                    "" : $"{fundingLineCode}-";
-
-                FileName = $"funding-lines-{jobType}-{fundingLineCode}{specificationId}.csv";
+                FileName = $"funding-lines-{jobType}-{specificationId}-{fundingLineCode}.csv";
                 TemporaryPath = Path.Combine(root, FileName);
             }
             

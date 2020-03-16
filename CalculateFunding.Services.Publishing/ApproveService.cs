@@ -115,7 +115,8 @@ namespace CalculateFunding.Services.Publishing
 
             IGeneratePublishedFundingCsvJobsCreation generateCsvJobs = _generateCsvJobsLocator
                 .GetService(GeneratePublishingCsvJobsCreationAction.Approve);
-            await generateCsvJobs.CreateJobs(specificationId, correlationId, author);
+            IEnumerable<string> fundingLineCodes = await _publishedFundingDataService.GetPublishedProviderFundingLines(specificationId);
+            await generateCsvJobs.CreateJobs(specificationId, correlationId, author, fundingLineCodes);
 
             _logger.Information($"Completing approve funding job. JobId='{jobId}'");
             await _jobManagement.UpdateJobStatus(jobId, 0, 0, true, null);

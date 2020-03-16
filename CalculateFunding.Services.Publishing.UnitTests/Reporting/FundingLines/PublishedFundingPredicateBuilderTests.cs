@@ -19,10 +19,21 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
         [TestMethod]
         [DataRow(FundingLineCsvGeneratorJobType.CurrentState, "1 = 1")]
         [DataRow(FundingLineCsvGeneratorJobType.Released, "c.content.current.status = 'Released'")]
+        [DataRow(FundingLineCsvGeneratorJobType.CurrentProfileValues, "fl.name = @fundingLineCode")]
         public void ReturnsPredicatesAppropriateToJobTypes(FundingLineCsvGeneratorJobType jobType,
             string expectedPredicate)
         {
             _predicateBuilder.BuildPredicate(jobType)
+                .Should()
+                .Be(expectedPredicate);
+        }
+
+        [TestMethod]
+        [DataRow(FundingLineCsvGeneratorJobType.CurrentProfileValues, "JOIN fl IN c.content.current.fundingLines")]
+        public void ReturnsJoinPredicatesAppropriateToJobTypes(FundingLineCsvGeneratorJobType jobType,
+            string expectedPredicate)
+        {
+            _predicateBuilder.BuildJoinPredicate(jobType)
                 .Should()
                 .Be(expectedPredicate);
         }

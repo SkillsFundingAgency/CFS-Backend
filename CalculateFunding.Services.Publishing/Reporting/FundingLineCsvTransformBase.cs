@@ -43,10 +43,7 @@ namespace CalculateFunding.Services.Publishing.Reporting
                 row["Allocation Author"] = publishedProviderVersion.Author?.Name;
                 row["Allocation DateTime"] = publishedProviderVersion.Date.ToString("s");
 
-                foreach (FundingLine fundingLine in publishedProviderVersion.FundingLines.OrderBy(_ => _.Name))
-                {
-                    TransformFundingLine(row, fundingLine);
-                }
+                TransformFundingLine(row, publishedProviderVersion);
 
                 yield return (ExpandoObject) row;
             }
@@ -54,9 +51,12 @@ namespace CalculateFunding.Services.Publishing.Reporting
             _expandoObjectsPool.Return(resultsBatch);
         }
 
-        protected virtual void TransformFundingLine(IDictionary<string, object> row, FundingLine fundingLine)
+        protected virtual void TransformFundingLine(IDictionary<string, object> row, PublishedProviderVersion publishedProviderVersion)
         {
-            row[fundingLine.Name] = fundingLine.Value?.ToString();
+            foreach (FundingLine fundingLine in publishedProviderVersion.FundingLines.OrderBy(_ => _.Name))
+            {
+                row[fundingLine.Name] = fundingLine.Value?.ToString();
+            }
         }
 
         protected abstract PublishedProviderVersion GetPublishedProviderVersion(IEnumerable<dynamic> documents, int resultCount);

@@ -34,6 +34,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
         [DataRow(FundingLineCsvGeneratorJobType.Undefined, false)]
         [DataRow(FundingLineCsvGeneratorJobType.ProfileValues, false)]
         [DataRow(FundingLineCsvGeneratorJobType.CurrentState, true)]
+        [DataRow(FundingLineCsvGeneratorJobType.CurrentProfileValues, true)]
         public void SupportedJobTypes(FundingLineCsvGeneratorJobType jobType,
             bool expectedIsSupportedFlag)
         {
@@ -47,7 +48,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
         {
             string specificationId = NewRandomString();
 
-            bool processedResults = await WhenTheCsvIsGenerated(FundingLineCsvGeneratorJobType.Released, specificationId, NewRandomString());
+            bool processedResults = await WhenTheCsvIsGenerated(FundingLineCsvGeneratorJobType.Released, specificationId, NewRandomString(), null);
 
             processedResults
                 .Should()
@@ -57,10 +58,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
         [TestMethod]
         [DataRow(FundingLineCsvGeneratorJobType.CurrentState)]
         [DataRow(FundingLineCsvGeneratorJobType.Released)]
+        [DataRow(FundingLineCsvGeneratorJobType.CurrentProfileValues)]
         public async Task TransformsPublishedProvidersForSpecificationInBatchesAndCreatesCsvWithResults(
             FundingLineCsvGeneratorJobType jobType)
         {
             string specificationId = NewRandomString();
+            string fundingLineCode = NewRandomString();
+            IEnumerable<string> fundingLineCodes = new[] { fundingLineCode };
             string expectedInterimFilePath = "TODO;";
             
             IEnumerable<PublishedProvider> publishProvidersOne = new []
@@ -90,16 +94,20 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
             string expectedCsvTwo = NewRandomString();
 
             string predicate = NewRandomString();
+            string joinPredicate = NewRandomString();
 
             GivenTheCsvRowTransformation(publishProvidersOne, transformedRowsOne, expectedCsvOne, true);
             AndTheCsvRowTransformation(publishedProvidersTwo, transformedRowsTwo, expectedCsvTwo,  false);
             AndThePredicate(jobType, predicate);
-            
+            AndTheJoinPredicate(jobType, joinPredicate);
+
             PublishedFunding.Setup(_ => _.PublishedProviderBatchProcessing(predicate,
                     specificationId,
                     It.IsAny<Func<List<PublishedProvider>, Task>>(),
-                    100))
-                .Callback<string, string, Func<List<PublishedProvider>, Task>, int>((pred, spec,  batchProcessor, batchSize) =>
+                    100,
+                    joinPredicate,
+                    fundingLineCode))
+                .Callback<string, string, Func<List<PublishedProvider>, Task>, int, string, string>((pred, spec,  batchProcessor, batchSize, joinPred, flc) =>
                 {
                     batchProcessor(publishProvidersOne.ToList())
                         .GetAwaiter()
@@ -111,7 +119,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
                 })
                 .Returns(Task.CompletedTask);
 
-            bool processedResults = await WhenTheCsvIsGenerated(jobType, specificationId, expectedInterimFilePath);
+            bool processedResults = await WhenTheCsvIsGenerated(jobType, specificationId, expectedInterimFilePath, fundingLineCode);
 
             processedResults
                 .Should()

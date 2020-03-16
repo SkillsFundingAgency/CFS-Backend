@@ -424,7 +424,9 @@ namespace CalculateFunding.Services.Publishing.Repositories
         public async Task PublishedProviderBatchProcessing(string predicate,
             string specificationId,
             Func<List<PublishedProvider>, Task> batchProcessor,
-            int batchSize)
+            int batchSize,
+            string joinPredicate = null,
+            string fundingLineCode = null)
         {
             CosmosDbQuery query = new CosmosDbQuery
             {
@@ -446,27 +448,43 @@ namespace CalculateFunding.Services.Publishing.Repositories
                                     }},
                                     'provider'        : {{ 
                                         'providerType' : c.content.current.provider.providerType,
+                                        'providerSubType' : c.content.current.provider.providerSubType,
                                         'localAuthorityName' : c.content.current.provider.localAuthorityName,
                                         'laCode' : c.content.current.provider.laCode,
                                         'name' : c.content.current.provider.name,
-                                        'ukprn' : c.content.current.provider.ukprn
+                                        'ukprn' : c.content.current.provider.ukprn,
                                         'urn' : c.content.current.provider.urn,
-                                        'establishmentNumber' : c.content.current.provider.establishmentNumber,
+                                        'establishmentNumber' : c.content.current.provider.establishmentNumber
                                     }},
                                     'fundingLines' : ARRAY(
                                         SELECT fundingLine.name,
-                                               fundingLine['value']
+                                        fundingLine['value'],
+                                        ARRAY(
+                                            SELECT distributionPeriod['value'],
+                                            ARRAY(
+                                                SELECT profilePeriod.year,
+                                                profilePeriod.typeValue,
+                                                profilePeriod.occurrence,
+                                                profilePeriod.profiledValue
+                                                FROM profilePeriod IN distributionPeriod.profilePeriods
+                                            ) AS profilePeriods
+                                            FROM distributionPeriod IN fundingLine.distributionPeriods
+                                        ) AS distributionPeriods
                                         FROM fundingLine IN c.content.current.fundingLines
                                     )
                                 }} AS Current
                                FROM     publishedProviders c
+                               {joinPredicate}
                                WHERE    c.documentType = 'PublishedProvider'
+                               {joinPredicate}
                                AND      c.content.current.specificationId = @specificationId
                                AND      {predicate} 
-                               AND      c.deleted = false",
+                               AND      c.deleted = false
+                                ORDER BY c.content.current.provider.ukprn",
                 Parameters = new []
                 {
-                    new CosmosDbQueryParameter("@specificationId", specificationId), 
+                    new CosmosDbQueryParameter("@specificationId", specificationId),
+                    new CosmosDbQueryParameter("@fundingLineCode", fundingLineCode),
                 }
             };
 
@@ -608,6 +626,35 @@ namespace CalculateFunding.Services.Publishing.Repositories
             await _repository.DocumentsBatchProcessingAsync(persistBatchToIndex: persistIndexBatch,
                 cosmosDbQuery: query,
                 itemsPerPage: batchSize);
+        }
+
+        public async Task<IEnumerable<string>> GetPublishedProviderFundingLines(string specificationId)
+        {
+            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
+
+            List<string> fundingLines = new List<string>();
+            IEnumerable<dynamic> queryResults = await _repository
+             .DynamicQuery(new CosmosDbQuery
+             {
+                 QueryText = @"
+                                SELECT DISTINCT VALUE  f.name
+                                FROM publishedProviders p
+                                JOIN f IN p.content.current.fundingLines
+                                WHERE    p.documentType = 'PublishedProvider'
+                                AND      p.content.current.specificationId = @specificationId
+                                AND      p.deleted = false",
+                 Parameters = new[]
+                 {
+                                    new CosmosDbQueryParameter("@specificationId", specificationId),
+                 }
+             });
+
+            foreach (dynamic item in queryResults)
+            {
+                fundingLines.Add((string)item);
+            }
+
+            return await Task.FromResult(fundingLines.Distinct()); ;
         }
     }
 }

@@ -38,7 +38,8 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
         public async Task<bool> GenerateCsv(FundingLineCsvGeneratorJobType jobType,
             string specificationId, 
             string temporaryFilePath, 
-            IFundingLineCsvTransform fundingLineCsvTransform)
+            IFundingLineCsvTransform fundingLineCsvTransform,
+            string fundingLineCode)
         {
             bool outputHeaders = true;
             bool processedResults = false;

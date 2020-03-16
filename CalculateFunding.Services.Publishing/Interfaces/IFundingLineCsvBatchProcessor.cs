@@ -10,6 +10,7 @@ namespace CalculateFunding.Services.Publishing.Interfaces
         Task<bool> GenerateCsv(FundingLineCsvGeneratorJobType jobType,
             string specificationId,
             string temporaryFilePath,
-            IFundingLineCsvTransform fundingLineCsvTransform);
+            IFundingLineCsvTransform fundingLineCsvTransform,
+            string fundingLineCode);
     }
 }

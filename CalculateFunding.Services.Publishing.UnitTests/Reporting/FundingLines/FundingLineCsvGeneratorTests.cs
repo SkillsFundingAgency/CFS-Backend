@@ -120,11 +120,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
         public async Task ExitsEarlyIfNoProvidersMatchForTheJobTypePredicate()
         {
             string specificationId = NewRandomString();
+            string fundingLineCode = NewRandomString();
             string jobId = NewRandomString();
-            string expectedInterimFilePath = Path.Combine(_rootPath, $"funding-lines-Released-{specificationId}.csv");
+            string expectedInterimFilePath = Path.Combine(_rootPath, $"funding-lines-Released-{specificationId}-{fundingLineCode}.csv");
             FundingLineCsvGeneratorJobType jobType = FundingLineCsvGeneratorJobType.Released;
 
-            GivenTheMessageProperties(("specification-id", specificationId), ("job-type", jobType.ToString()), ("jobId", jobId));
+            GivenTheMessageProperties(("specification-id", specificationId), ("job-type", jobType.ToString()), ("jobId", jobId), ("funding-line-code", fundingLineCode));
             AndTheFileExists(expectedInterimFilePath);
             AndTheJobExists(jobId);
             AndTheBatchProcessorForJobType(jobType);
@@ -155,26 +156,28 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
         [TestMethod]
         [DataRow(FundingLineCsvGeneratorJobType.CurrentState)]
         [DataRow(FundingLineCsvGeneratorJobType.Released)]
+        [DataRow(FundingLineCsvGeneratorJobType.CurrentProfileValues)]
         public async Task TransformsPublishedProvidersForSpecificationInBatchesAndCreatesCsvWithResults(
             FundingLineCsvGeneratorJobType jobType)
         {
             string specificationId = NewRandomString();
+            string fundingLineCode = NewRandomString();
             string jobId = NewRandomString();
-            string expectedInterimFilePath = Path.Combine(_rootPath, $"funding-lines-{jobType}-{specificationId}.csv");
+            string expectedInterimFilePath = Path.Combine(_rootPath, $"funding-lines-{jobType}-{specificationId}-{fundingLineCode}.csv");
             
             MemoryStream incrementalFileStream = new MemoryStream();
 
             string predicate = NewRandomString();
 
-            GivenTheMessageProperties(("specification-id", specificationId), ("job-type", jobType.ToString()), ("jobId", jobId));
-            AndTheCloudBlobForSpecificationId(specificationId, jobType);
+            GivenTheMessageProperties(("specification-id", specificationId), ("job-type", jobType.ToString()), ("jobId", jobId), ("funding-line-code", fundingLineCode));
+            AndTheCloudBlobForSpecificationId(specificationId, jobType, fundingLineCode);
             AndTheFileStream(expectedInterimFilePath, incrementalFileStream);
             AndTheFileExists(expectedInterimFilePath);
             AndTheTransformForJobType(jobType);
             AndThePredicate(jobType, predicate);
             AndTheJobExists(jobId);
             AndTheBatchProcessorForJobType(jobType);
-            AndTheBatchProcessorProcessedResults(jobType, specificationId, expectedInterimFilePath);
+            AndTheBatchProcessorProcessedResults(jobType, specificationId, expectedInterimFilePath, fundingLineCode);
 
             await WhenTheCsvIsGenerated();
             
@@ -207,9 +210,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
 
         private void AndTheBatchProcessorProcessedResults(FundingLineCsvGeneratorJobType jobType,
             string specificationId,
-            string filePath)
+            string filePath,
+            string fundingLineCode)
         {
-            _batchProcessor.Setup(_ => _.GenerateCsv(jobType, specificationId, filePath, _transformation.Object))
+            _batchProcessor.Setup(_ => _.GenerateCsv(jobType, specificationId, filePath, _transformation.Object, fundingLineCode))
                 .ReturnsAsync(true)
                 .Verifiable();
         }
@@ -233,10 +237,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
             yield return new object [] {FundingLineCsvGeneratorJobType.History};
         }
 
-        private void AndTheCloudBlobForSpecificationId(string specificationId, FundingLineCsvGeneratorJobType jobType)
+        private void AndTheCloudBlobForSpecificationId(string specificationId, FundingLineCsvGeneratorJobType jobType, string fundingLineCode)
         {
             _blobClient
-                .Setup(_ => _.GetBlockBlobReference($"funding-lines-{jobType}-{specificationId}.csv"))
+                .Setup(_ => _.GetBlockBlobReference($"funding-lines-{jobType}-{specificationId}-{fundingLineCode}.csv"))
                 .Returns(_cloudBlob.Object);
         }
 

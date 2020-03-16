@@ -409,7 +409,8 @@ namespace CalculateFunding.Services.Publishing
 
             IGeneratePublishedFundingCsvJobsCreation generateCsvJobs = _generateCsvJobsLocator
                 .GetService(GeneratePublishingCsvJobsCreationAction.Refresh);
-            await generateCsvJobs.CreateJobs(specificationId, correlationId, author);
+            IEnumerable<string> fundingLineCodes = await _publishedFundingDataService.GetPublishedProviderFundingLines(specificationId);
+            await generateCsvJobs.CreateJobs(specificationId, correlationId, author, fundingLineCodes);
             
             _logger.Information("Marking job as complete");
             // Mark job as complete

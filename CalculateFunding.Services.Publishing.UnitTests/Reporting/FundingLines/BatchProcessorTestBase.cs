@@ -35,9 +35,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
         
         protected async Task<bool> WhenTheCsvIsGenerated(FundingLineCsvGeneratorJobType jobType, 
             string specificationId, 
-            string path)
+            string path,
+            string fundingLineCode)
         {
-            return await BatchProcessor.GenerateCsv(jobType, specificationId, path, _transformation.Object);
+            return await BatchProcessor.GenerateCsv(jobType, specificationId, path, _transformation.Object, fundingLineCode);
         }
 
         protected void AndTheCsvRowTransformation(IEnumerable<object> publishedProviders, ExpandoObject[] transformedRows, string csv, bool outputHeaders)
@@ -59,6 +60,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
         protected void AndThePredicate(FundingLineCsvGeneratorJobType jobType, string predicate)
         {
             PredicateBuilder.Setup(_ => _.BuildPredicate(jobType))
+                .Returns(predicate);
+        }
+
+        protected void AndTheJoinPredicate(FundingLineCsvGeneratorJobType jobType, string predicate)
+        {
+            PredicateBuilder.Setup(_ => _.BuildJoinPredicate(jobType))
                 .Returns(predicate);
         }
 
