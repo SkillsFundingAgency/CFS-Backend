@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Constants;
@@ -11,11 +13,10 @@ using Serilog;
 
 namespace CalculateFunding.Services.Publishing
 {
-    public class RefreshPrerequisiteChecker : IRefreshPrerequisiteChecker
+    public class RefreshPrerequisiteChecker : BasePrerequisiteChecker, IPrerequisiteChecker
     {
         private readonly ISpecificationFundingStatusService _specificationFundingStatusService;
         private readonly ISpecificationService _specificationService;
-        private readonly ICalculationEngineRunningChecker _calculationEngineRunningChecker;
         private readonly ICalculationPrerequisiteCheckerService _calculationApprovalCheckerService;
         private readonly ILogger _logger;
 
@@ -24,23 +25,33 @@ namespace CalculateFunding.Services.Publishing
             ISpecificationService specificationService,
             ICalculationEngineRunningChecker calculationEngineRunningChecker,
             ICalculationPrerequisiteCheckerService calculationApprovalCheckerService,
-            ILogger logger)
+            IJobManagement jobManagement,
+            ILogger logger) : base(calculationEngineRunningChecker, jobManagement, logger)
         {
             Guard.ArgumentNotNull(specificationFundingStatusService, nameof(specificationFundingStatusService));
             Guard.ArgumentNotNull(specificationService, nameof(specificationService));
-            Guard.ArgumentNotNull(calculationEngineRunningChecker, nameof(calculationEngineRunningChecker));
             Guard.ArgumentNotNull(calculationApprovalCheckerService, nameof(calculationApprovalCheckerService));
             Guard.ArgumentNotNull(logger, nameof(logger));
 
             _specificationFundingStatusService = specificationFundingStatusService;
             _specificationService = specificationService;
-            _calculationEngineRunningChecker = calculationEngineRunningChecker;
             _calculationApprovalCheckerService = calculationApprovalCheckerService;
             _logger = logger;
         }
 
-        public async Task<IEnumerable<string>> PerformPrerequisiteChecks(SpecificationSummary specification)
+        public async Task PerformChecks<T>(T prereqObject, string jobId, IEnumerable<PublishedProvider> publishedProviders = null)
         {
+            SpecificationSummary specification = prereqObject as SpecificationSummary;
+            
+            Guard.ArgumentNotNull(specification, nameof(specification));
+
+            await BasePerformChecks(specification, specification.Id, jobId, new string[] { JobConstants.DefinitionNames.CreateInstructAllocationJob, JobConstants.DefinitionNames.ApproveFunding, JobConstants.DefinitionNames.PublishProviderFundingJob, JobConstants.DefinitionNames.ReIndexPublishedProvidersJob });
+        }
+
+        protected override async Task<IEnumerable<string>> PerformChecks<T>(T prereqObject, IEnumerable<PublishedProvider> publishedProviders)
+        {
+            SpecificationSummary specification = prereqObject as SpecificationSummary;
+
             Guard.ArgumentNotNull(specification, nameof(specification));
 
             SpecificationFundingStatus specificationFundingStatus = await _specificationFundingStatusService.CheckChooseForFundingStatus(specification);
@@ -68,21 +79,21 @@ namespace CalculateFunding.Services.Publishing
 
             List<string> results = new List<string>();
 
-            bool calculationEngineRunning = await _calculationEngineRunningChecker.IsCalculationEngineRunning(specification.Id, new string[] { JobConstants.DefinitionNames.CreateInstructAllocationJob, JobConstants.DefinitionNames.ApproveFunding, JobConstants.DefinitionNames.PublishProviderFundingJob });
-            if (calculationEngineRunning)
-            {
-                results.Add("Calculation engine is still running");
-            }
-
             IEnumerable<string> calculationPrereqValidationErrors = await _calculationApprovalCheckerService.VerifyCalculationPrerequisites(specification);
+            
             if (calculationPrereqValidationErrors.AnyWithNullCheck())
             {
                 results.AddRange(calculationPrereqValidationErrors);
             }
 
             _logger.Error(string.Join(Environment.NewLine, results));
+
             return results;
         }
 
+        public override bool IsCheckerType(PrerequisiteCheckerType type)
+        {
+            return type == PrerequisiteCheckerType.Refresh;
+        }
     }
 }

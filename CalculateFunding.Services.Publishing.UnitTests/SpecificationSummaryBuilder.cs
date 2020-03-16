@@ -15,6 +15,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private bool? _isSelectedForFunding;
         private IEnumerable<string> _fundingStreamIds = Enumerable.Empty<string>();
         private bool _withNoId;
+        private IEnumerable<(string fundingId, string version)> _templateIds = Enumerable.Empty<(string fundingId, string version)>();
 
         public SpecificationSummaryBuilder WithNoId()
         {
@@ -58,6 +59,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             return this;
         }
 
+        public SpecificationSummaryBuilder WithTemplateIds(params (string fundingId, string version)[] ids)
+        {
+            _templateIds = ids;
+
+            return this;
+        }
 
         public SpecificationSummary Build()
         {
@@ -71,7 +78,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 FundingStreams = _fundingStreamIds.Select(_ => new FundingStream
                 {
                     Id = _
-                }).ToArray()
+                }).ToArray(),
+                TemplateIds = _templateIds.ToDictionary(_ => _.fundingId, _ => _.version)
             };
         }
     }

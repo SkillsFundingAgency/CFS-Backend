@@ -61,6 +61,12 @@ namespace CalculateFunding.Services.Core.Services
             await _cosmosRepository.BulkUpsertAsync<T>(newVersions.ToList(), degreeOfParallelism: maxDegreesOfParallelism);
         }
 
+        public async Task DeleteVersions(IEnumerable<KeyValuePair<string, T>> newVersions, int maxDegreesOfParallelism = 30)
+        {
+            Guard.ArgumentNotNull(newVersions, nameof(newVersions));
+            await _cosmosRepository.BulkDeleteAsync(newVersions.ToList(), degreeOfParallelism: maxDegreesOfParallelism);
+        }
+
         public async Task<T> CreateVersion(T newVersion, T currentVersion = null, string partitionKey = null, bool incrementFromCurrentVersion = false)
         {
             Guard.ArgumentNotNull(newVersion, nameof(newVersion));

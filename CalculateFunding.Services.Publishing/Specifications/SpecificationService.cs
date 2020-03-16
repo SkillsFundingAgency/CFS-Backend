@@ -35,7 +35,7 @@ namespace CalculateFunding.Services.Publishing.Specifications
             ApiResponse<ApiSpecificationSummary> specificationSummaryResponse =
                 await _resiliencePolicy.ExecuteAsync(() => _specifications.GetSpecificationSummaryById(specificationId));
 
-            return specificationSummaryResponse.Content;
+            return specificationSummaryResponse?.Content;
         }
 
         public async Task<IEnumerable<ApiSpecificationSummary>> GetSpecificationsSelectedForFundingByPeriod(string fundingPeriodId)

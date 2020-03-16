@@ -13,14 +13,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
     [TestClass]
     public class ClosureWithSuccessorVariationStrategyTests : ClosureVariationStrategyTestBase
     {
-        private Mock<IOutOfScopePublishedProviderBuilder> _outOfScopeProviderBuilder;
+        private Mock<IProviderService> _providerService;
         
         [TestInitialize]
         public void SetUp()
         {
-            _outOfScopeProviderBuilder = new Mock<IOutOfScopePublishedProviderBuilder>();
+            _providerService = new Mock<IProviderService>();
 
-            ClosureVariationStrategy = new ClosureWithSuccessorVariationStrategy(_outOfScopeProviderBuilder.Object);
+            ClosureVariationStrategy = new ClosureWithSuccessorVariationStrategy(_providerService.Object);
 
             VariationContext.SuccessorRefreshState = VariationContext.RefreshState.DeepCopy();
 
@@ -91,7 +91,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
         {
             GivenTheOtherwiseValidVariationContext(_ =>
             {
-                _.GeneratedProvider.TotalFunding += 1M;
+                _.UpdatedTotalFunding += 1M;
                 _.UpdatedProvider.Successor = NewRandomString();
             });
 
@@ -125,40 +125,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
             AndTheVariationChangeWasQueued<ReAdjustFundingValuesForProfileValuesChange>();
             AndThePredecessorWasAddedToTheSuccessor(VariationContext.ProviderId);
         }
-        
-        [TestMethod]
-        public async Task CreatesMissingPublishedProviderAndQueuesTransferAndZeroRemainingProfileAndReAdjustChangesIfPassesPreconditionChecks()
-        {
-            string successorId = NewRandomString();
-            
-            GivenTheOtherwiseValidVariationContext(_ => _.UpdatedProvider.Successor = successorId);
-            
-            PublishedProvider missingProvider = NewPublishedProvider();
-            
-            AndTheMissingPublishedProviderIsCreated(missingProvider);
-            
-            await WhenTheVariationsAreDetermined();
-
-            ThenTheVariationChangeWasQueued<TransferRemainingProfilesToSuccessorChange>();
-            AndTheVariationChangeWasQueued<ReAdjustSuccessorFundingValuesForProfileValueChange>();
-            AndTheVariationChangeWasQueued<ZeroRemainingProfilesChange>();
-            AndTheVariationChangeWasQueued<ReAdjustFundingValuesForProfileValuesChange>();
-            AndThePredecessorWasAddedToTheSuccessor(VariationContext.ProviderId);
-        }
 
         private void AndThePredecessorWasAddedToTheSuccessor(string successorId)
         {
             VariationContext.SuccessorRefreshState.Predecessors
                 .Should()
                 .BeEquivalentTo(successorId);
-        }
-        
-        private void AndTheMissingPublishedProviderIsCreated(PublishedProvider missingProvider)
-        {
-            _outOfScopeProviderBuilder.Setup(_ => _.CreateMissingPublishedProviderForPredecessor(VariationContext.PublishedProvider, 
-                    VariationContext.UpdatedProvider.Successor,
-                    VariationContext))
-                .ReturnsAsync(missingProvider);
         }
     }
 }

@@ -24,6 +24,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private IEnumerable<string> _predecessors;
         private Reference _author;
         private DateTimeOffset? _date;
+        private string _templateVersion;
         private IEnumerable<VariationReason> _variationReasons;
 
         public PublishedProviderVersionBuilder WithVariationReasons(IEnumerable<VariationReason> variationReasons)
@@ -138,13 +139,20 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             return this;
         }
 
+        public PublishedProviderVersionBuilder WithTemplateVersion(string templateVersion)
+        {
+            _templateVersion = templateVersion;
+
+            return this;
+        }
+
         public PublishedProviderVersion Build()
         {
             return new PublishedProviderVersion
             {
                 Author = _author,
                 SpecificationId = _specificationId ?? NewRandomString(),
-                ProviderId = _providerId ?? NewRandomString(),
+                ProviderId = _providerId ?? _provider?.ProviderId ?? NewRandomString(),
                 FundingPeriodId = _fundingPeriodId ?? NewRandomString(),
                 FundingStreamId = _fundingStreamId ?? NewRandomString(),
                 Version = _version ?? 1,
@@ -157,6 +165,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 TotalFunding = _totalFunding,
                 Predecessors = _predecessors?.ToList(),
                 Date = _date.GetValueOrDefault(NewRandomDateTime()),
+                TemplateVersion = _templateVersion ?? "1.0",
                 VariationReasons = _variationReasons
             };
         }

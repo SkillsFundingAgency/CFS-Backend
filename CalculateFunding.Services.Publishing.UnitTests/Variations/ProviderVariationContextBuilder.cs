@@ -4,7 +4,6 @@ using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Models;
 using CalculateFunding.Tests.Common.Helpers;
-using Provider = CalculateFunding.Common.ApiClient.Providers.Models.Provider;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.Variations
 {
@@ -12,12 +11,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
     {
         private Provider _currentState;
         private PublishedProvider _publishedProvider;
-        private GeneratedProviderResult _generatedProviderResult;
+        private decimal? _updatedTotalFunding;
         private IEnumerable<string> _errors;
 
-        public ProviderVariationContextBuilder WithGeneratedProviderResult(GeneratedProviderResult generatedProviderResult)
+        public ProviderVariationContextBuilder WithUpdatedTotalFunding(decimal? updatedTotalFunding)
         {
-            _generatedProviderResult = generatedProviderResult;
+            _updatedTotalFunding = updatedTotalFunding;
 
             return this;
         }
@@ -48,8 +47,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
             ProviderVariationContext providerVariationContext = new ProviderVariationContext
             {
                 UpdatedProvider = _currentState,
-                PublishedProvider =_publishedProvider,
-                GeneratedProvider = _generatedProviderResult
+                PublishedProvider = _publishedProvider,
+                UpdatedTotalFunding = _updatedTotalFunding
             };
 
             if (_errors?.Any() == true)

@@ -15,6 +15,8 @@ namespace CalculateFunding.Services.Publishing.Interfaces
         void AddVariationContext(ProviderVariationContext variationContext);
         
         Task ApplyProviderVariations();
+
+        bool HasVariations { get; }
         
         bool HasErrors { get; }
         

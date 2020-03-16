@@ -7,8 +7,6 @@ using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
 using CalculateFunding.Services.Publishing.Variations.Changes;
-using ApiProvider = CalculateFunding.Common.ApiClient.Providers.Models.Provider;
-using PublishingProvider = CalculateFunding.Models.Publishing.Provider;
 
 namespace CalculateFunding.Services.Publishing.Variations.Strategies
 {
@@ -21,7 +19,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
         private class VariationCheck
         {
             private static readonly PropertyInfo[] UpdatedStateProperties 
-                = typeof(ApiProvider).GetProperties();
+                = typeof(Provider).GetProperties();
         
             private readonly VariationReason _variationReason;
             private readonly PropertyInfo _priorStateAccessor;
@@ -52,7 +50,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
 
         static ProviderMetadataVariationStrategy()
         {
-            VariationChecks = typeof(PublishingProvider)
+            VariationChecks = typeof(Provider)
                 .GetProperties()
                 .Where(_ => _.GetCustomAttributes(typeof(VariationReasonValueAttribute)).Any())
                 .Select(_ => new VariationCheck(_))

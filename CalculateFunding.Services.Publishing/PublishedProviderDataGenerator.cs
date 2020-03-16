@@ -34,7 +34,7 @@ namespace CalculateFunding.Services.Publishing
         /// <param name="scopedProviders">Scoped providers for a specification</param>
         /// <param name="calculationResults">Calculation Results</param>
         /// <returns>Dictionary of Generated Provider Results, keyed on ProviderId</returns>
-        public Dictionary<string, GeneratedProviderResult> Generate(TemplateMetadataContents templateMetadata, Common.ApiClient.Calcs.Models.TemplateMapping templateMapping, IEnumerable<Common.ApiClient.Providers.Models.Provider> scopedProviders, IDictionary<string, ProviderCalculationResult> calculationResults)
+        public IDictionary<string, GeneratedProviderResult> Generate(TemplateMetadataContents templateMetadata, Common.ApiClient.Calcs.Models.TemplateMapping templateMapping, IEnumerable<Provider> scopedProviders, IDictionary<string, ProviderCalculationResult> calculationResults)
         {
             Guard.ArgumentNotNull(templateMetadata, nameof(templateMetadata));
             Guard.ArgumentNotNull(templateMapping, nameof(templateMapping));
@@ -42,7 +42,7 @@ namespace CalculateFunding.Services.Publishing
 
             Dictionary<string, GeneratedProviderResult> results = new Dictionary<string, GeneratedProviderResult>();
 
-            foreach (Common.ApiClient.Providers.Models.Provider provider in scopedProviders)
+            foreach (Provider provider in scopedProviders)
             {
                 GeneratedProviderResult generatedProviderResult = new GeneratedProviderResult();
 

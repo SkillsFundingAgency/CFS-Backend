@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Models.Publishing;
+using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Publishing.Interfaces;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -18,18 +20,21 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private PublishPrerequisiteChecker _publishPrerequisiteChecker;
         private ISpecificationFundingStatusService _specificationFundingStatusService;
         private ICalculationEngineRunningChecker _calculationEngineRunningChecker;
+        private IJobManagement _jobManagement;
         private SpecificationSummary _specification;
         private PublishedProvider _publishedProvider;
+        private ILogger _logger;
         private PublishedFundingPeriod _publishedFundingPeriod;
 
         [TestInitialize]
         public void SetUp()
         {
-            ILogger logger = Substitute.For<ILogger>();
+            _logger = Substitute.For<ILogger>();
             _specificationFundingStatusService = Substitute.For<ISpecificationFundingStatusService>();
             _calculationEngineRunningChecker = Substitute.For<ICalculationEngineRunningChecker>();
+            _jobManagement = Substitute.For<IJobManagement>();
 
-            _publishPrerequisiteChecker = new PublishPrerequisiteChecker(_specificationFundingStatusService, _calculationEngineRunningChecker, logger);
+            _publishPrerequisiteChecker = new PublishPrerequisiteChecker(_specificationFundingStatusService, _calculationEngineRunningChecker, _jobManagement, _logger);
 
             _publishedFundingPeriod = new PublishedFundingPeriod { Type = PublishedFundingPeriodType.AY, Period = "123" };
 
@@ -37,29 +42,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         }
 
         [TestMethod]
-        public async Task PerformPrerequisiteChecks_GivenASpecificationAndPublishedProvidersAllApproved_ReturnsEmptyPreReqs()
-        {
-            // Arrange
-            _publishedProvider = NewPublishedProvider(_ => _.WithCurrent(NewPublishedProviderVersion(version => version.WithFundingPeriodId(_publishedFundingPeriod.Id)
-            .WithFundingStreamId("stream")
-            .WithProviderId("provider"))));
-
-            _specificationFundingStatusService.CheckChooseForFundingStatus(_specification)
-                .Returns(SpecificationFundingStatus.AlreadyChosen);
-
-            _publishedProvider.Current.Status = PublishedProviderStatus.Approved;
-
-            // Act
-            IEnumerable<string> outstandingPreReqs = await _publishPrerequisiteChecker.PerformPrerequisiteChecks(_specification, new List<PublishedProvider> { _publishedProvider });
-
-            // Assert
-            outstandingPreReqs.IsNullOrEmpty()
-                .Should()
-                .Be(true);
-        }
-
-        [TestMethod]
-        public async Task PerformPrerequisiteChecks_GivenASpecificationAndPublishedProvidersNotAllApproved_ReturnsPreReqs()
+        public void PerformPrerequisiteChecks_GivenASpecificationAndPublishedProvidersNotAllApproved_ReturnsPreReqs()
         {
             // Arrange
             _publishedProvider = NewPublishedProvider(_ => _.WithCurrent(NewPublishedProviderVersion(version => version.WithFundingPeriodId(_publishedFundingPeriod.Id)
@@ -72,20 +55,23 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             _publishedProvider.Current.Status = PublishedProviderStatus.Draft;
 
             // Act
-            IEnumerable<string> outstandingPreReqs = await _publishPrerequisiteChecker.PerformPrerequisiteChecks(_specification, new List<PublishedProvider> { _publishedProvider });
+            Func<Task> invocation
+                = () => _publishPrerequisiteChecker.PerformChecks(_specification, null, new List<PublishedProvider> { _publishedProvider });
+
+            invocation
+                .Should()
+                .Throw<NonRetriableException>()
+                .Where(_ =>
+                    _.Message == $"Specification with id: '{_specification.Id} has prerequisites which aren't complete.");
 
             // Assert
-            outstandingPreReqs.IsNullOrEmpty()
-                .Should()
-                .Be(false);
-
-            outstandingPreReqs.First()
-                .Should()
-                .Be($"Provider with id:{_publishedProvider.Id} has current status:{_publishedProvider.Current.Status} so cannot be published.");
+            _logger
+                .Received(1)
+                .Error($"Provider with id:{_publishedProvider.Id} has current status:{_publishedProvider.Current.Status} so cannot be published.");
         }
 
         [TestMethod]
-        public async Task PerformPrerequisiteChecks_GivenASpecificationNotAbleToChooseAndPublishedProviders_ReturnsPreReqs()
+        public void PerformPrerequisiteChecks_GivenASpecificationNotAbleToChooseAndPublishedProviders_ReturnsPreReqs()
         {
             // Arrange
             _publishedProvider = NewPublishedProvider(_ => _.WithCurrent(NewPublishedProviderVersion(version => version.WithFundingPeriodId(_publishedFundingPeriod.Id)
@@ -98,16 +84,19 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             _publishedProvider.Current.Status = PublishedProviderStatus.Approved;
 
             // Act
-            IEnumerable<string> outstandingPreReqs = await _publishPrerequisiteChecker.PerformPrerequisiteChecks(_specification, new List<PublishedProvider> { _publishedProvider });
+            Func<Task> invocation
+                = () => _publishPrerequisiteChecker.PerformChecks(_specification, null, new List<PublishedProvider> { _publishedProvider });
+
+            invocation
+                .Should()
+                .Throw<NonRetriableException>()
+                .Where(_ =>
+                    _.Message == $"Specification with id: '{_specification.Id} has prerequisites which aren't complete.");
 
             // Assert
-            outstandingPreReqs.IsNullOrEmpty()
-                .Should()
-                .Be(false);
-
-            outstandingPreReqs.First()
-                .Should()
-                .Be($"Specification with id: '{_specification.Id}' is not chosen for funding");
+            _logger
+                .Received(1)
+                .Error($"Specification with id: '{_specification.Id}' is not chosen for funding");
         }
 
         private PublishedProvider NewPublishedProvider(Action<PublishedProviderBuilder> setUp = null)

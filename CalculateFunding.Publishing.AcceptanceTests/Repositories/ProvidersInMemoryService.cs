@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using CalculateFunding.Common.ApiClient.Providers.Models;
+using CalculateFunding.Models.Publishing;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Publishing.Interfaces;
+using CalculateFunding.Common.ApiClient.Specifications.Models;
+using CalculateFunding.Common.Models;
 
 namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 {
@@ -24,12 +26,12 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             return Task.FromResult(result);
         }
 
-        public Task<IEnumerable<Provider>> GetScopedProvidersForSpecification(string specificationId, string providerVersionId)
+        public Task<IDictionary<string, Provider>> GetScopedProvidersForSpecification(string specificationId, string providerVersionId)
         {
-            IEnumerable<Provider> result = null;
+            IDictionary<string, Provider> result = null;
             if (_scopedProviders.ContainsKey(specificationId))
             {
-                result = _scopedProviders[specificationId].Values;
+                result = _scopedProviders[specificationId];
             }
 
             return Task.FromResult(result);
@@ -78,6 +80,21 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         public Task<IEnumerable<string>> GetScopedProviderIdsForSpecification(string specificationId)
         {
             return Task.FromResult(_scopedProviders[specificationId].Keys.AsEnumerable());
+        }
+
+        public Task<(IDictionary<string, PublishedProvider> PublishedProvidersForFundingStream, IDictionary<string, PublishedProvider> ScopedPublishedProviders)> GetPublishedProviders(Reference fundingStream, SpecificationSummary specification)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IDictionary<string, PublishedProvider> GenerateMissingPublishedProviders(IEnumerable<Provider> scopedProviders, SpecificationSummary specification, Reference fundingStream, IDictionary<string, PublishedProvider> publishedProviders)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<PublishedProvider> CreateMissingPublishedProviderForPredecessor(PublishedProvider predecessor, string successorId)
+        {
+            throw new NotImplementedException();
         }
     }
 }

@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using CalculateFunding.Common.ApiClient.Providers.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Models;
 using CalculateFunding.Services.Publishing.Variations;
@@ -11,8 +10,6 @@ using CalculateFunding.Services.Publishing.Variations.Strategies;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using ApiProvider = CalculateFunding.Common.ApiClient.Providers.Models.Provider;
-using PublishingProvider = CalculateFunding.Models.Publishing.Provider;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
 {
@@ -92,7 +89,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
             yield return VariationExample(_ => _.LocalGovernmentGroupTypeName = NewRandomString());
             yield return VariationExample(_ => _.ProviderVersionId = NewRandomString());
             yield return VariationExample(_ => _.ProviderId = NewRandomString());
-            yield return VariationExample(_ => _.TrustStatus = new RandomEnum<TrustStatus>());
+            yield return VariationExample(_ => _.TrustStatus = new RandomEnum<ProviderTrustStatus>());
             yield return VariationExample(_ => _.UKPRN = NewRandomString());
             yield return VariationExample(_ => _.UPIN = NewRandomString());
             yield return VariationExample(_ => _.ProviderType = NewRandomString());
@@ -119,20 +116,20 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
             }, VariationReason.DistrictNameFieldUpdated, VariationReason.NameFieldUpdated);
         }
 
-        private static object[] VariationExample(Action<ApiProvider> differences, 
+        private static object[] VariationExample(Action<Provider> differences, 
             params VariationReason[] variationReasons)
         {
-            PublishingProvider priorState = NewProvider();
+            Provider priorState = NewProvider();
             
-            return new object [] { NewProviderVariationContext(_ => _.WithPublishedProvider(NewPublishedProvider(pp => 
+            return new object[] { NewProviderVariationContext(_ => _.WithPublishedProvider(NewPublishedProvider(pp => 
                     pp.WithReleased(NewPublishedProviderVersion(ppv => ppv.WithProvider(priorState)))))
-                    .WithCurrentState(ApiProviderCopy(priorState, differences))),
+                    .WithCurrentState(ProviderCopy(priorState, differences))),
                 variationReasons};    
         }
         
         private static string NewRandomString() => new RandomString();
 
-        private static PublishingProvider NewProvider()
+        private static Provider NewProvider()
         {
             return new ProviderBuilder()
                 .Build();
@@ -147,9 +144,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
             return publishedProviderBuilder.Build();
         }
 
-        private static ApiProvider ApiProviderCopy(PublishingProvider provider, Action<ApiProvider> differences = null)
+        private static Provider ProviderCopy(Provider provider, Action<Provider> differences = null)
         {
-            ApiProvider copy = new ApiProviderBuilder()
+            Provider copy = new ProviderBuilder()
                 .WithPropertiesFrom(provider)
                 .Build();
             

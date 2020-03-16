@@ -57,10 +57,11 @@ Background: Existing published funding
 		| ProviderType    | ProviderSubtype               |
 		| Special schools | Non-maintained special school |
 	And the funding configuration has the following funding variations
-		| Name                 | Order |
-		| ProviderMetadata     | 0     |
-		| Closure              | 1     |
-		| ClosureWithSuccessor | 2     |
+		| Name					| Order |
+		| ProviderMetadata		| 0     |
+		| NewOpener				| 1     |
+		| Closure				| 2     |
+		| ClosureWithSuccessor	| 3     |
 	And the funding configuration is available in the policies repository
 	And the funding configuration has the following organisation group
 		| Field                     | Value                |
@@ -543,7 +544,7 @@ Scenario: Providers close with successor but successor not in scope for specific
 		| Field              | Value                    |
 		| ProviderId         | 1000000                  |
 		| Status             | Closed                   |
-		| Successor          | 2000002                  |
+		| Successor			 | 2000002                  |
 		| Name               | Maintained School 1      |
 		| Authority          | Local Authority 1        |
 		| DateOpened         | 2012-03-15               |
@@ -554,10 +555,11 @@ Scenario: Providers close with successor but successor not in scope for specific
 		| ProviderVersionId  | psg-providers-1.0        |
 		| TrustStatus        | Not Supported By A Trust |
 		| UKPRN              | 1000000                  |
-   And the following provider exists within master provider data
+	And the provider with id '1000000' should be a scoped provider in the current specification in provider version 'psg-providers-1.0'
+	And the following provider exists within master provider data
 		| Field              | Value                    |
 		| ProviderId         | 2000002                  |
-		| Status             | Closed                   |
+		| Status             | Open                     |
 		| Name               | Maintained School 2      |
 		| Authority          | Local Authority 1        |
 		| DateOpened         | 2013-04-16               |

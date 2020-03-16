@@ -31,13 +31,13 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
         {
             foreach (FundingLine fundingLine in PaymentFundingLines)
             {
-                fundingLine.Value = fundingLine.DistributionPeriods.Sum(_ => _.Value);
+                fundingLine.Value = fundingLine.DistributionPeriods?.Sum(_ => _.Value);
             }   
         }
         
         private void AdjustDistributionPeriodValuesForProfileAmountChanges()
         {
-            foreach (DistributionPeriod distributionPeriod in PaymentFundingLines.SelectMany(_ => _.DistributionPeriods))
+            foreach (DistributionPeriod distributionPeriod in PaymentFundingLines?.SelectMany(_ => _.DistributionPeriods ?? new DistributionPeriod[0]))
             {
                 distributionPeriod.Value = distributionPeriod.ProfilePeriods.Sum(_ => _.ProfiledValue);
             }
@@ -46,6 +46,6 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
         protected virtual PublishedProviderVersion PublishedProviderToAdjust => RefreshState;
 
         protected IEnumerable<FundingLine> PaymentFundingLines =>
-            PublishedProviderToAdjust.FundingLines.Where(_ => _.Type == OrganisationGroupingReason.Payment);
+            PublishedProviderToAdjust.FundingLines?.Where(_ => _.Type == OrganisationGroupingReason.Payment);
     }
 }

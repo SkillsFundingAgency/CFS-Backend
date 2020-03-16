@@ -21,7 +21,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
             
             if (priorState.Provider.Status == Closed || 
                 providerVariationContext.UpdatedProvider.Status == Closed ||
-                providerVariationContext.GeneratedProvider.TotalFunding == priorState.TotalFunding)
+                providerVariationContext.UpdatedTotalFunding == priorState.TotalFunding)
             {
                 return Task.CompletedTask;
             }

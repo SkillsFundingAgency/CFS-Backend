@@ -1,12 +1,11 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core;
+using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
 using CalculateFunding.Tests.Common.Helpers;
@@ -14,22 +13,33 @@ using FluentAssertions;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using Polly;
 using Serilog;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Publishing.UnitTests
 {
     [TestClass]
     public class ApproveServiceTests
     {
+        private const string JobType = "ApproveResults";
         private IJobManagement _jobManagement;
-        private IApprovePrerequisiteChecker _approvePrerequisiteChecker;
+        private IPrerequisiteCheckerLocator _prerequisiteCheckerLocator;
         private IApproveService _approveService;
         private IPublishedFundingDataService _publishedFundingDataService;
         private IPublishedProviderStatusUpdateService _publishedProviderStatusUpdateService;
         private IPublishedProviderIndexerService _publishedProviderIndexerService;
-        private IGeneratePublishedFundingCsvJobsCreation _publishedFundingCsvJobsCreation;
-        private IGeneratePublishedFundingCsvJobsCreationLocator _generatePublishedFundingCsvJobsCreationLocator;
+        private IGeneratePublishedFundingCsvJobsCreationLocator _generateCsvJobsLocator;
+        private ITransactionFactory _transactionFactory;
+        private IPublishedProviderVersionService _publishedProviderVersionService;
+        private ITransactionResiliencePolicies _transactionResiliencePolicies;
+        private ICalculationEngineRunningChecker _calculationEngineRunningChecker;
+        private IJobsApiClient _jobsApiClient;
         private ILogger _logger;
         private Message _message;
         private string _jobId;
@@ -37,21 +47,24 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private string _userId;
         private string _userName;
 
+
         [TestInitialize]
         public void SetUp()
         {
-            _jobManagement = Substitute.For<IJobManagement>();
-            _approvePrerequisiteChecker = Substitute.For<IApprovePrerequisiteChecker>();
+            _logger = Substitute.For<ILogger>();
+            _jobsApiClient = Substitute.For<IJobsApiClient>();
+            _jobManagement = new JobManagement(_jobsApiClient, _logger, new JobManagementResiliencePolicies { JobsApiClient = Policy.NoOpAsync() });
+            _calculationEngineRunningChecker = Substitute.For<ICalculationEngineRunningChecker>();
+            _prerequisiteCheckerLocator = Substitute.For<IPrerequisiteCheckerLocator>();
+            _prerequisiteCheckerLocator.GetPreReqChecker(PrerequisiteCheckerType.Approve)
+                .Returns(new ApprovePrerequisiteChecker(_calculationEngineRunningChecker, _jobManagement, _logger));
             _publishedFundingDataService = Substitute.For<IPublishedFundingDataService>();
             _publishedProviderStatusUpdateService = Substitute.For<IPublishedProviderStatusUpdateService>();
             _publishedProviderIndexerService = Substitute.For<IPublishedProviderIndexerService>();
-            _publishedFundingCsvJobsCreation = Substitute.For<IGeneratePublishedFundingCsvJobsCreation>();
-            _generatePublishedFundingCsvJobsCreationLocator = Substitute.For<IGeneratePublishedFundingCsvJobsCreationLocator>();
-            _generatePublishedFundingCsvJobsCreationLocator
-                .GetService(Arg.Any<GeneratePublishingCsvJobsCreationAction>())
-                .Returns(_publishedFundingCsvJobsCreation);
-
-            _logger = Substitute.For<ILogger>();
+            _generateCsvJobsLocator = Substitute.For<IGeneratePublishedFundingCsvJobsCreationLocator>();
+            _transactionResiliencePolicies = new TransactionResiliencePolicies { TransactionPolicy = Policy.NoOpAsync() };
+            _transactionFactory = new TransactionFactory(_logger, _transactionResiliencePolicies);
+            _publishedProviderVersionService = Substitute.For<IPublishedProviderVersionService>();
 
             _approveService = new ApproveService(_publishedProviderStatusUpdateService,
                 _publishedFundingDataService,
@@ -60,10 +73,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 {
                     PublishedFundingRepository = Policy.NoOpAsync()
                 },
-                _approvePrerequisiteChecker,
+                _prerequisiteCheckerLocator,
                 _jobManagement,
                 _logger,
-                _generatePublishedFundingCsvJobsCreationLocator);
+                _transactionFactory,
+                _publishedProviderVersionService,
+                _generateCsvJobsLocator);
 
             _jobId = NewRandomString();
             _userId = NewRandomString();
@@ -84,6 +99,67 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         }
 
         [TestMethod]
+        public void CheckPrerequisitesForSpecificationToBeApproved_WhenPreReqsValidationErrors_ThrowsException()
+        {
+            string specificationId = NewRandomString();
+
+            GivenTheMessageHasTheSpecificationId(specificationId);
+            AndTheMessageIsOtherwiseValid();
+            AndCalculationEngineRunning(specificationId);
+            AndRetrieveJobAndCheckCanBeProcessedSuccessfully();
+
+            Func<Task> invocation = WhenTheResultsAreApproved;
+
+            invocation
+                .Should()
+                .Throw<Exception>()
+                .And
+                .Message
+                .Should()
+                .Be($"Specification with id: '{specificationId} has prerequisites which aren't complete.");
+
+            string[] prereqValidationErrors = new string[] { "Calculation engine is still running" };
+
+            _logger.Received(1)
+                .Error("Calculation engine is still running");
+
+            _jobsApiClient.Received(1)
+                .AddJobLog(Arg.Is(_jobId), Arg.Is<JobLogUpdateModel>(_ => _.CompletedSuccessfully == false && _.Outcome == string.Join(", ", prereqValidationErrors)));
+        }
+
+        [TestMethod]
+        public async Task ApproveResults_IfUpdateProviderStatusExceptionsTransactionCompensates()
+        {
+            PublishedProvider[] expectedPublishedProviders =
+            {
+                NewPublishedProvider(),
+                NewPublishedProvider(),
+                NewPublishedProvider(),
+                NewPublishedProvider(),
+                NewPublishedProvider(),
+                NewPublishedProvider()
+            };
+
+            string specificationId = NewRandomString();
+
+            GivenTheMessageHasTheSpecificationId(specificationId);
+            AndTheMessageIsOtherwiseValid();
+            AndTheSpecificationHasTheHeldUnApprovedPublishedProviders(specificationId, expectedPublishedProviders);
+            AndRetrieveJobAndCheckCanBeProcessedSuccessfully();
+            AndNumberOfApprovedPublishedProvidersThrowsException(expectedPublishedProviders);
+
+            Func<Task> invocation = WhenTheResultsAreApproved;
+
+            invocation
+                .Should()
+                .Throw<Exception>();
+
+            await _publishedProviderVersionService
+                .Received(1)
+                .CreateReIndexJob(Arg.Any<Reference>(), Arg.Any<string>());
+        }
+
+        [TestMethod]
         public void ApproveResults_ThrowsExceptionIfNoJobIdInMessage()
         {
             Func<Task> invocation = WhenTheResultsAreApproved;
@@ -100,12 +176,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         [TestMethod]
         public async Task ApproveResults_TracksStartAndCompletionOfJobByJobIdInMessageProperties()
         {
+            string specificationId = NewRandomString();
+
             GivenTheMessageHasAJobId();
+            GivenTheMessageHasTheSpecificationId(specificationId);
             AndRetrieveJobAndCheckCanBeProcessedSuccessfully();
 
             await WhenTheResultsAreApproved();
-
-            ThenRetrieveJobAndCheckCanBeProcessed();
             AndTheJobEndWasTracked();
         }
 
@@ -138,32 +215,36 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             string specificationId = NewRandomString();
             string fundingLineCode = NewRandomString();
-            IEnumerable<string> fundingLineCodes = new[] { fundingLineCode };
 
             GivenTheMessageHasTheSpecificationId(specificationId);
             GivenTheMessageHasTheFundingLineCode(fundingLineCode);
             AndTheMessageIsOtherwiseValid();
             AndTheSpecificationHasTheHeldUnApprovedPublishedProviders(specificationId, expectedPublishedProviders);
-            AndThePublishedProvidersFundingLines(specificationId, fundingLineCodes);
 
             AndRetrieveJobAndCheckCanBeProcessedSuccessfully();
+            AndNumberOfApprovedPublishedProvidersIsReturned(expectedPublishedProviders);
 
             await WhenTheResultsAreApproved();
 
             ThenThePublishedProvidersWereApproved(expectedPublishedProviders);
-            await AndTheCsvGenerationJobsWereCreated(specificationId, fundingLineCodes);
+            AndTheCsvGenerationJobsWereCreated();
         }
 
-        private async Task AndTheCsvGenerationJobsWereCreated(string specificationId, IEnumerable<string> fundingLineCodes)
+        private void AndTheCsvGenerationJobsWereCreated()
         {
-            await _publishedFundingCsvJobsCreation
-                .Received(1)
-                .CreateJobs(Arg.Is(specificationId),
-                    Arg.Any<string>(),
-                    Arg.Is<Reference>(usr => usr != null &&
-                                             usr.Id == _userId &&
-                                             usr.Name == _userName),
-                    Arg.Is<IEnumerable<string>>(flc => flc.Count() == fundingLineCodes.Count() && flc.SequenceEqual(fundingLineCodes)));
+            _generateCsvJobsLocator.Received(1)
+                .GetService(Arg.Any<GeneratePublishingCsvJobsCreationAction>());
+        }
+
+        private void AndCalculationEngineRunning(string specificationId)
+        {
+            string[] jobTypes = new string[] { JobConstants.DefinitionNames.RefreshFundingJob,
+                JobConstants.DefinitionNames.PublishProviderFundingJob,
+                JobConstants.DefinitionNames.ReIndexPublishedProvidersJob };
+
+            _calculationEngineRunningChecker
+                .IsCalculationEngineRunning(Arg.Is(specificationId), Arg.Is<IEnumerable<string>>(_ => _.All(jt => jobTypes.Contains(jt))))
+                .Returns(true);
         }
 
         private void GivenTheMessageHasAJobId()
@@ -202,10 +283,26 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .Returns(publishedProviders);
         }
 
-        private void AndThePublishedProvidersFundingLines(string specificationId, IEnumerable<string> fundingLineCodes)
+        private void AndNumberOfApprovedPublishedProvidersIsReturned(IEnumerable<PublishedProvider> publishedProviders)
         {
-            _publishedFundingDataService.GetPublishedProviderFundingLines(specificationId)
-                .Returns(fundingLineCodes);
+            _publishedProviderStatusUpdateService
+                .UpdatePublishedProviderStatus(Arg.Is<IEnumerable<PublishedProvider>>(_ => _.SequenceEqual(publishedProviders)),
+                    Arg.Is<Reference>(auth => auth.Id == _userId &&
+                                              auth.Name == _userName),
+                    PublishedProviderStatus.Approved,
+                    _jobId)
+                .Returns(publishedProviders.Count());
+        }
+
+        private void AndNumberOfApprovedPublishedProvidersThrowsException(IEnumerable<PublishedProvider> publishedProviders)
+        {
+            _publishedProviderStatusUpdateService
+                .UpdatePublishedProviderStatus(Arg.Is<IEnumerable<PublishedProvider>>(_ => _.SequenceEqual(publishedProviders)),
+                    Arg.Is<Reference>(auth => auth.Id == _userId &&
+                                              auth.Name == _userName),
+                    PublishedProviderStatus.Approved,
+                    _jobId)
+                .Throws(new Exception());
         }
 
         private async Task WhenTheResultsAreApproved()
@@ -232,28 +329,21 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             _job = jobViewModelBuilder.Build();
 
-            _jobManagement.RetrieveJobAndCheckCanBeProcessed(_jobId)
-                .Returns(_job);
+            _jobsApiClient.GetJobById(_jobId)
+                .Returns(new ApiResponse<JobViewModel>(HttpStatusCode.OK, _job));
         }
 
         private void AndRetrieveJobAndCheckCannotBeProcessedSuccessfully(Action<JobViewModelBuilder> setUp = null)
         {
-            _jobManagement.RetrieveJobAndCheckCanBeProcessed(_jobId)
-                .Returns(Task.FromException<JobViewModel>(new Exception()));
-        }
-
-        private void ThenRetrieveJobAndCheckCanBeProcessed()
-        {
-            _jobManagement
-                .Received(1)
-                .RetrieveJobAndCheckCanBeProcessed(_jobId);
+            _jobsApiClient.GetJobById(_jobId)
+                .Returns(new ApiResponse<JobViewModel>(HttpStatusCode.OK, null));
         }
 
         private void AndTheJobEndWasTracked()
         {
-            _jobManagement
+            _jobsApiClient
                 .Received(1)
-                .UpdateJobStatus(_jobId, 0, 0, true, null);
+                .AddJobLog(_jobId, Arg.Is<JobLogUpdateModel>(_ => _.CompletedSuccessfully == true));
         }
 
         private void AndTheJobEndWasNotTracked()

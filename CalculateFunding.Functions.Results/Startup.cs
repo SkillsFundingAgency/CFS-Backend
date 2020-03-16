@@ -1,5 +1,9 @@
 ﻿using System;
 using CalculateFunding.Common.ApiClient;
+using CalculateFunding.Common.Config.ApiClient.Calcs;
+using CalculateFunding.Common.Config.ApiClient.Jobs;
+using CalculateFunding.Common.Config.ApiClient.Providers;
+using CalculateFunding.Common.Config.ApiClient.Specifications;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Interfaces;
 using CalculateFunding.Common.JobManagement;
@@ -130,10 +134,10 @@ namespace CalculateFunding.Functions.Results
             builder.AddLogging("CalculateFunding.Functions.Results");
             builder.AddTelemetry();
 
-            Common.Config.ApiClient.Calcs.ServiceCollectionExtensions.AddCalculationsInterServiceClient(builder, config);
-            Common.Config.ApiClient.Specifications.ServiceCollectionExtensions.AddSpecificationsInterServiceClient(builder, config);
-            Common.Config.ApiClient.Jobs.ServiceCollectionExtensions.AddJobsInterServiceClient(builder, config);
-            Common.Config.ApiClient.Providers.ServiceCollectionExtensions.AddProvidersInterServiceClient(builder, config);
+            builder.AddCalculationsInterServiceClient(config);
+            builder.AddSpecificationsInterServiceClient(config);
+            builder.AddJobsInterServiceClient(config);
+            builder.AddProvidersInterServiceClient(config);
 
             builder.AddFeatureToggling(config);
 

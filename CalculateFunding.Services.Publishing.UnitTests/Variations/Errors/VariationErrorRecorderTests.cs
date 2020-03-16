@@ -44,7 +44,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Errors
 
             await WhenTheErrorsAreRecorded(variationErrors, specificationId);
             
-            string expectedFileContents = variationErrors.Join("\n");
+            string expectedFileContents = variationErrors.Join("/n");
             
             _blobClient.Verify(_ => _.UploadFileAsync(
                 $"variationerrors_{specificationId}.csv", 

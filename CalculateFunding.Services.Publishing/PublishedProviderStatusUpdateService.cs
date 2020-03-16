@@ -173,7 +173,7 @@ namespace CalculateFunding.Services.Publishing
         }
 
         private async Task<IEnumerable<PublishedProvider>> CreateVersions(IEnumerable<PublishedProviderCreateVersionRequest> publishedProviderCreateVersionRequests,
-            PublishedProviderStatus publishedProviderStatus)
+            PublishedProviderStatus publishedProviderStatus = default)
         {
             IEnumerable<PublishedProvider> updatedPublishedProviders = null;
 
@@ -202,6 +202,23 @@ namespace CalculateFunding.Services.Publishing
             catch (Exception ex)
             {
                 string errorMessage = $"Failed to save versions when updating status:' {publishedProviderStatus}' on published providers.";
+
+                _logger.Error(ex, errorMessage);
+
+                throw new RetriableException(errorMessage, ex);
+            }
+        }
+
+
+        private async Task DeleteVersions(IEnumerable<PublishedProvider> updatedPublishedProviders)
+        {
+            try
+            {
+                await _publishedProviderVersioningService.DeleteVersions(updatedPublishedProviders);
+            }
+            catch (Exception ex)
+            {
+                string errorMessage = $"Failed to delete versions on published providers.";
 
                 _logger.Error(ex, errorMessage);
 

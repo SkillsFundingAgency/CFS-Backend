@@ -30,6 +30,8 @@ namespace CalculateFunding.Services.Publishing.Variations
             ResiliencePolicies = resiliencePolicies;
         }
 
+        public bool HasVariations => _variationContexts.AnyWithNullCheck();
+
         public IPublishingResiliencePolicies ResiliencePolicies { get; }
         
         public ISpecificationsApiClient SpecificationsApiClient { get; }

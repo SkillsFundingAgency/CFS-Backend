@@ -116,6 +116,9 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
             
             RegisterInstanceAs<IProvidersApiClient>(providersInMemoryClient);
             RegisterTypeAs<ProviderService, IProviderService>();
+            RegisterTypeAs<PublishedFundingService, IPublishedFundingService>();
+            RegisterTypeAs<PoliciesService, IPoliciesService>();
+            RegisterTypeAs<VariationService, IVariationService>();
             RegisterTypeAs<PublishedFundingDateService, IPublishedFundingDateService>();
             RegisterTypeAs<PublishServiceAcceptanceStepContext, IPublishFundingStepContext>();
             RegisterTypeAs<CurrentSpecificationStepContext, ICurrentSpecificationStepContext>();
@@ -137,7 +140,8 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
             RegisterTypeAs<PublishedFundingVersionInMemoryRepository, IVersionRepository<PublishedFundingVersion>>();
             RegisterTypeAs<PublishedProviderDataGenerator, IPublishedProviderDataGenerator>();
             RegisterTypeAs<PublishedFundingStatusUpdateService, IPublishedFundingStatusUpdateService>();
-            RegisterTypeAs<PublishPrerequisiteChecker, IPublishPrerequisiteChecker>();
+            RegisterTypeAs<SpecificationFundingStatusService, ISpecificationFundingStatusService>();
+
             RegisterTypeAs<OrganisationGroupGenerator, IOrganisationGroupGenerator>();
             RegisterTypeAs<PublishedFundingChangeDetectorService, IPublishedFundingChangeDetectorService>();
             RegisterTypeAs<PublishedProviderVersionService, IPublishedProviderVersionService>();
@@ -181,21 +185,10 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
             RegisterInstanceAs<IMapper>(mapper);
 
             IVariationStrategy[] variationStrategies = typeof(IVariationStrategy).Assembly.GetTypes()
-                .Where(_ => _.Implements(typeof(IVariationStrategy)) &&
-                            _.GetConstructors().Any(ci => !ci.GetParameters().Any()))
-                .Select(_ => (IVariationStrategy)Activator.CreateInstance(_))
+                .Where(_ => _.Implements(typeof(IVariationStrategy)))
+                .Select(_ => (IVariationStrategy)_objectContainer.Resolve(_))
                 .ToArray();
-
-            IOutOfScopePublishedProviderBuilder outOfScopePublishedProviderBuilder = new OutOfScopePublishedProviderBuilder(providersInMemoryClient,
-                    publishingResiliencePolicies,
-                    mapper);
-
-            var closureWithSuccessorVariationStrategy = new ClosureWithSuccessorVariationStrategy(
-                outOfScopePublishedProviderBuilder);
-
-            RegisterInstanceAs(outOfScopePublishedProviderBuilder);
-            variationStrategies = variationStrategies.Concat(new [] { closureWithSuccessorVariationStrategy }).ToArray();
-
+            
             RegisterInstanceAs<IVariationStrategyServiceLocator>(new VariationStrategyServiceLocator(variationStrategies));
 
             RegisterTypeAs<ProviderVariationsDetection, IDetectProviderVariations>();
@@ -206,7 +199,19 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
             RegisterTypeAs<CalculationPrerequisiteCheckerService, ICalculationPrerequisiteCheckerService>();
             RegisterTypeAs<CalculationEngineRunningChecker, ICalculationEngineRunningChecker>();
             RegisterTypeAs<SpecificationFundingStatusService, ISpecificationFundingStatusService>();
-            
+            RegisterTypeAs<CalculationEngineRunningChecker, ICalculationEngineRunningChecker>();
+            RegisterTypeAs<CalculationPrerequisiteCheckerService, ICalculationPrerequisiteCheckerService>();
+            RegisterTypeAs<RefreshPrerequisiteChecker, IPrerequisiteChecker>();
+            RegisterTypeAs<PublishPrerequisiteChecker, IPrerequisiteChecker>();
+            RegisterTypeAs<ApprovePrerequisiteChecker, IPrerequisiteChecker>();
+
+            IPrerequisiteChecker[] prerequisiteCheckers = typeof(IPrerequisiteChecker).Assembly.GetTypes()
+                .Where(_ => _.Implements(typeof(IPrerequisiteChecker)))
+                .Select(_ => (IPrerequisiteChecker)_objectContainer.Resolve(_))
+                .ToArray();
+
+            RegisterInstanceAs<IPrerequisiteCheckerLocator>(new PrerequisiteCheckerLocator(prerequisiteCheckers));
+
             RegisterTypeAs<GenerateCsvJobsInMemoryClient, IGeneratePublishedFundingCsvJobsCreation>();
 
             PublishedFundingIdGeneratorResolver idGeneratorResolver = new PublishedFundingIdGeneratorResolver();
@@ -226,17 +231,21 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
             publishedFundingContentsGeneratorResolver.Register("1.0", v10Generator);
 
             RegisterInstanceAs<IPublishedFundingContentsGeneratorResolver>(publishedFundingContentsGeneratorResolver);
+            
+            RegisterTypeAs<TransactionFactory, ITransactionFactory>();
+
+            RegisterInstanceAs<ITransactionResiliencePolicies>(new TransactionResiliencePolicies
+            {
+                TransactionPolicy = Policy.NoOpAsync()
+            });
 
             RegisterTypeAs<PublishedProviderIndexerService, IPublishedProviderIndexerService>();
             RegisterTypeAs<FundingLineValueOverride, IFundingLineValueOverride>();
-            RegisterTypeAs<InScopePublishedProviderService, IInScopePublishedProviderService>();
             RegisterTypeAs<PublishedProviderDataPopulator, IPublishedProviderDataPopulator>();
             RegisterTypeAs<PublishedProviderExclusionCheck, IPublishProviderExclusionCheck>();
-            RegisterTypeAs<RefreshPrerequisiteChecker, IRefreshPrerequisiteChecker>();
             RegisterTypeAs<PublishedProviderVersioningService, IPublishedProviderVersioningService>();
             RegisterTypeAs<PublishedProviderContentPersistanceService, IPublishedProviderContentPersistanceService>();
             RegisterTypeAs<PublishedFundingContentsPersistanceService, IPublishedFundingContentsPersistanceService>();
-            RegisterTypeAs<ApprovePrerequisiteChecker, IApprovePrerequisiteChecker>();
 
             RegisterTypeAs<VariationErrorRecorder, IRecordVariationErrors>();
             RegisterTypeAs<RefreshService, IRefreshService>();

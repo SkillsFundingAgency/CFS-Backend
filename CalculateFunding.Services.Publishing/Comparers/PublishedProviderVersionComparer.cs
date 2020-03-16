@@ -16,9 +16,9 @@ namespace CalculateFunding.Services.Publishing.Comparers
             _variances = new List<string>();
         }
 
-        private (bool, T) CompareEnumerable<T>(IEnumerable<T> firstEnumerable, IEnumerable<T> secondEnumerable, Func<T, T, bool> predicate)
+        private (bool equals, T mismatchedObject) CompareEnumerable<T>(IEnumerable<T> firstEnumerable, IEnumerable<T> secondEnumerable, Func<T, T, bool> predicate)
         {
-            T mismatchedObject = default(T);
+            T mismatchedObject = default;
 
             if (!firstEnumerable.IsNullOrEmpty())
             {
@@ -26,20 +26,25 @@ namespace CalculateFunding.Services.Publishing.Comparers
                 {
                     if (firstEnumerable.Count() != secondEnumerable.Count() || !firstEnumerable.All(x =>
                     {
+                        // if all objects within the first enumerable are in the second enumerable
                         if (secondEnumerable.Any(y => predicate(x, y)))
                         {
+                            // both enumerables have the same number of objects and all the objects in the first enumerable exist in the second 
                             return true;
                         }
 
+                        // there is an object which doesn't exist in the second enumerable but exists in the first
                         mismatchedObject = x;
                         return false;
                     }))
                     {
+                        // the number of objects in the first enumerable doesn't match the number in the second
                         return (false, mismatchedObject);
                     }
                 }
                 else
                 {
+                    // the second enumerable is empty
                     return (false, mismatchedObject);
                 }
             }
@@ -47,15 +52,19 @@ namespace CalculateFunding.Services.Publishing.Comparers
             {
                 if (!secondEnumerable.IsNullOrEmpty())
                 {
+                    // the first enumerable is empty but the second one is not
                     return (false, mismatchedObject);
                 }
             }
 
+            // if the code reaches this point then the two enumerable are equivalent
             return (true, mismatchedObject);
         }
 
         public bool Equals(PublishedProviderVersion x, PublishedProviderVersion y)
         {
+            bool equals = true;
+
             (bool equal, FundingLine fundingLine) hasFundingLineChanges = CompareEnumerable(x.FundingLines, y.FundingLines, (xfl, yfl) => {
                 if (xfl.TemplateLineId == yfl.TemplateLineId && xfl.FundingLineCode == yfl.FundingLineCode && xfl.Name == yfl.Name && xfl.Type == yfl.Type && xfl.Value == yfl.Value)
                 {
@@ -96,7 +105,7 @@ namespace CalculateFunding.Services.Publishing.Comparers
             if (!hasFundingLineChanges.equal)
             {
                 _variances.Add($"FundingLine:{hasFundingLineChanges.fundingLine?.FundingLineCode}");
-                return false;
+                equals = false;
             }
 
             (bool equal, FundingCalculation calculation) hasCalcChanges = CompareEnumerable(x.Calculations, y.Calculations, (xc, yc) => xc.TemplateCalculationId == yc.TemplateCalculationId && xc.Value.ToString() == yc.Value.ToString());
@@ -104,7 +113,7 @@ namespace CalculateFunding.Services.Publishing.Comparers
             if (!hasCalcChanges.equal)
             {
                 _variances.Add($"Calculation:{hasCalcChanges.calculation?.TemplateCalculationId}");
-                return false;
+                equals = false;
             }
 
             (bool equal, FundingReferenceData reference) hasReferenceChanges = CompareEnumerable(x.ReferenceData, y.ReferenceData, (xr, yr) => xr.TemplateReferenceId == yr.TemplateReferenceId && xr.Value.Equals(yr.Value));
@@ -112,13 +121,13 @@ namespace CalculateFunding.Services.Publishing.Comparers
             if (!hasReferenceChanges.equal)
             {
                 _variances.Add($"ReferenceData:{hasReferenceChanges.reference?.TemplateReferenceId}");
-                return false;
+                equals = false;
             }
 
             if (x.TemplateVersion != y.TemplateVersion)
             {
                 _variances.Add($"TemplateVersion: {x.TemplateVersion} != {y.TemplateVersion}");
-                return false;
+                equals = false;
             }
 
             ProviderComparer providerComparer = new ProviderComparer();
@@ -130,10 +139,10 @@ namespace CalculateFunding.Services.Publishing.Comparers
                     _variances.Add($"Provider: {_.Key}: {_.Value}");
                 });
 
-                return false;
+                equals = false;
             }
 
-            return true;
+            return equals;
         }
 
         public int GetHashCode(PublishedProviderVersion obj)

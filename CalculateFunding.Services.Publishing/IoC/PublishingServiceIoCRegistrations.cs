@@ -60,8 +60,12 @@ namespace CalculateFunding.Services.Publishing.IoC
             serviceCollection.AddSingleton<IOrganisationGroupResiliencePolicies>(organisationResiliencePolicies);
             serviceCollection.AddSingleton<IOrganisationGroupTargetProviderLookup, OrganisationGroupTargetProviderLookup>();
             serviceCollection.AddSingleton<IOrganisationGroupGenerator, OrganisationGroupGenerator>();
-            serviceCollection.AddSingleton<IApprovePrerequisiteChecker, ApprovePrerequisiteChecker>();
-            serviceCollection.AddSingleton<IPublishPrerequisiteChecker, PublishPrerequisiteChecker>();
+
+            serviceCollection.AddScoped<IPrerequisiteCheckerLocator, PrerequisiteCheckerLocator>();
+            serviceCollection.AddScoped<IPrerequisiteChecker, RefreshPrerequisiteChecker>();
+            serviceCollection.AddScoped<IPrerequisiteChecker, PublishPrerequisiteChecker>();
+            serviceCollection.AddScoped<IPrerequisiteChecker, ApprovePrerequisiteChecker>();
+
             serviceCollection.AddSingleton<IPublishedFundingChangeDetectorService, PublishedFundingChangeDetectorService>();
 
             serviceCollection.AddSingleton<IPublishedFundingGenerator, PublishedFundingGenerator>();

@@ -1,0 +1,162 @@
+﻿using CalculateFunding.Common.ApiClient.Policies.Models;
+using CalculateFunding.Common.Utility;
+using CalculateFunding.Models.Publishing;
+using CalculateFunding.Services.Publishing.Interfaces;
+using CalculateFunding.Services.Publishing.Models;
+using CalculateFunding.Services.Publishing.Variations;
+using Serilog;
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace CalculateFunding.Services.Publishing
+{
+    public class VariationService : IVariationService
+    {
+        private readonly IPublishingFeatureFlag _publishingFeatureFlag;
+        private readonly IDetectProviderVariations _detectProviderVariations;
+        private readonly IApplyProviderVariations _applyProviderVariations;
+        private readonly ConcurrentDictionary<string, IDictionary<string, PublishedProviderSnapShots>> _snapshots;
+        private readonly IRecordVariationErrors _recordVariationErrors;
+        private readonly ILogger _logger;
+        private bool? _variationsEnabled;
+
+        public int ErrorCount => _applyProviderVariations.ErrorMessages.Count();
+
+        public async Task<bool> VariationsEnabled()
+        {
+            _variationsEnabled = _variationsEnabled ?? await _publishingFeatureFlag.IsVariationsEnabled();
+
+            return _variationsEnabled.Value;
+        }
+
+        public VariationService(IDetectProviderVariations detectProviderVariations,
+            IApplyProviderVariations applyProviderVariations,
+            IRecordVariationErrors recordVariationErrors,
+            ILogger logger,
+            IPublishingFeatureFlag publishingFeatureFlag)
+        {
+            Guard.ArgumentNotNull(detectProviderVariations, nameof(detectProviderVariations));
+            Guard.ArgumentNotNull(applyProviderVariations, nameof(applyProviderVariations));
+            Guard.ArgumentNotNull(recordVariationErrors, nameof(recordVariationErrors));
+            Guard.ArgumentNotNull(publishingFeatureFlag, nameof(publishingFeatureFlag));
+            Guard.ArgumentNotNull(logger, nameof(logger));
+
+            _detectProviderVariations = detectProviderVariations;
+            _applyProviderVariations = applyProviderVariations;
+            _recordVariationErrors = recordVariationErrors;
+            _publishingFeatureFlag = publishingFeatureFlag;
+            _logger = logger;
+            _snapshots = new ConcurrentDictionary<string, IDictionary<string, PublishedProviderSnapShots>>();
+        }
+
+        public async Task<string> SnapShot(IDictionary<string, PublishedProvider> publishedProviders, string snapshotId = null)
+        {
+            Guard.ArgumentNotNull(publishedProviders, nameof(publishedProviders));
+
+            if (await VariationsEnabled())
+            {
+                snapshotId = snapshotId ?? Guid.NewGuid().ToString();
+
+                IDictionary<string, PublishedProviderSnapShots> snapshots = publishedProviders
+                        .ToDictionary(_ => _.Key, _ => new PublishedProviderSnapShots(_.Value));
+
+                _snapshots.AddOrUpdate(snapshotId, snapshots, (k,v) => snapshots);
+
+                return snapshotId;
+            }
+
+            return string.Empty;
+        }
+
+        public async Task<IDictionary<string, PublishedProvider>> PrepareVariedProviders(decimal? updatedTotalFunding, 
+            IDictionary<string, PublishedProvider> allPublishedProviderRefreshStates, 
+            PublishedProvider existingPublishedProvider, 
+            Provider updatedProvider, 
+            IEnumerable<FundingVariation> variations,
+            string snapshotId)
+        {
+            Guard.ArgumentNotNull(updatedTotalFunding, nameof(updatedTotalFunding));
+            Guard.ArgumentNotNull(allPublishedProviderRefreshStates, nameof(allPublishedProviderRefreshStates));
+            Guard.ArgumentNotNull(existingPublishedProvider, nameof(existingPublishedProvider));
+            Guard.ArgumentNotNull(updatedProvider, nameof(updatedProvider));
+
+            bool shouldRunVariations = (await VariationsEnabled() &&
+                                        allPublishedProviderRefreshStates.AnyWithNullCheck() &&
+                                        variations.AnyWithNullCheck()&&
+                                        !string.IsNullOrWhiteSpace(snapshotId));
+
+            if (!shouldRunVariations || !_snapshots.TryGetValue(snapshotId, out IDictionary<string, PublishedProviderSnapShots> publishedProviderSnapshots))
+            {
+                return null;
+            }
+
+            _logger.Information($"Variations enabled = {shouldRunVariations}");
+
+            if (shouldRunVariations)
+            {
+                ProviderVariationContext variationContext = await _detectProviderVariations.CreateRequiredVariationChanges(existingPublishedProvider,
+                        updatedTotalFunding,
+                        updatedProvider,
+                        variations,
+                        publishedProviderSnapshots,
+                        allPublishedProviderRefreshStates);
+
+                if (variationContext.HasVariationChanges)
+                {
+                    _applyProviderVariations.AddVariationContext(variationContext);
+
+                    if (variationContext.NewProvidersToAdd.Any())
+                    {
+                        return variationContext.NewProvidersToAdd.ToDictionary(_ => _.Current.ProviderId);
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        public async Task<bool> ApplyVariations(IDictionary<string, PublishedProvider> publishedProvidersToUpdate, 
+            IDictionary<string, PublishedProvider> newProviders, 
+            string specificationId)
+        {
+            Guard.ArgumentNotNull(publishedProvidersToUpdate, nameof(publishedProvidersToUpdate));
+            Guard.ArgumentNotNull(newProviders, nameof(newProviders));
+            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
+
+            if (_applyProviderVariations.HasVariations)
+            {
+                await _applyProviderVariations.ApplyProviderVariations();
+
+                if (_applyProviderVariations.HasErrors)
+                {
+                    await _recordVariationErrors.RecordVariationErrors(_applyProviderVariations.ErrorMessages, specificationId);
+
+                    _logger.Error("Unable to complete refresh funding job. Encountered variation errors");
+
+                    return false;
+                }
+
+                foreach (PublishedProvider publishedProvider in _applyProviderVariations.ProvidersToUpdate)
+                {
+                    publishedProvidersToUpdate[publishedProvider.Id] = publishedProvider;
+                }
+
+                foreach (PublishedProvider publishedProvider in _applyProviderVariations.NewProvidersToAdd)
+                {
+                    newProviders[publishedProvider.Id] = publishedProvider;
+                }
+            }
+
+            return true;
+        }
+
+        public void ClearSnapshots()
+        {
+            _snapshots.Clear();
+        }
+    }
+}

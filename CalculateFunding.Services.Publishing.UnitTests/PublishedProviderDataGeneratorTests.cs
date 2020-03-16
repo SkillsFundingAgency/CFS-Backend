@@ -37,7 +37,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             PublishedProviderDataGenerator publishedProviderDataGenerator = new PublishedProviderDataGenerator(fundingLineTotalAggregator, mapper);
 
             //Act
-            Dictionary<string, GeneratedProviderResult> generatedProviderResult = publishedProviderDataGenerator.Generate(contents, mapping, GetProviders(), CreateCalculations(mapping));
+            IDictionary<string, GeneratedProviderResult> generatedProviderResult = publishedProviderDataGenerator.Generate(contents, mapping, GetProviders(), CreateCalculations(mapping));
 
             //Assert
             generatedProviderResult["1234"].FundingLines.Single(_ => _.TemplateLineId == 1).Value
@@ -134,7 +134,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             //Act
             Dictionary<string, ProviderCalculationResult> providerCalculationResults = new Dictionary<string, ProviderCalculationResult>();
 
-            Dictionary<string, GeneratedProviderResult> generatedProviderResult = publishedProviderDataGenerator.Generate(contents, mapping, GetProviders(), providerCalculationResults);
+            IDictionary<string, GeneratedProviderResult> generatedProviderResult = publishedProviderDataGenerator.Generate(contents, mapping, GetProviders(), providerCalculationResults);
 
             generatedProviderResult.Any()
                 .Should()
@@ -162,9 +162,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             return Substitute.For<ILogger>();
         }
 
-        public IEnumerable<Common.ApiClient.Providers.Models.Provider> GetProviders()
+        public IEnumerable<Provider> GetProviders()
         {
-            return new List<Common.ApiClient.Providers.Models.Provider> { new Common.ApiClient.Providers.Models.Provider { ProviderId = "1234", Name = "Provider 1" } };
+            return new List<Provider> { new Provider { ProviderId = "1234", Name = "Provider 1" } };
         }
 
         public TemplateMapping CreateTemplateMappings()

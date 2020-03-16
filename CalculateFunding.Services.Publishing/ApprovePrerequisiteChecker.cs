@@ -1,44 +1,42 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Threading.Tasks;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Utility;
+using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Publishing.Interfaces;
 using Serilog;
 
 namespace CalculateFunding.Services.Publishing
 {
-    public class ApprovePrerequisiteChecker : IApprovePrerequisiteChecker
+    public class ApprovePrerequisiteChecker : BasePrerequisiteChecker, IPrerequisiteChecker
     {
-        private readonly ICalculationEngineRunningChecker _calculationEngineRunningChecker;
-        private readonly ILogger _logger;
-
         public ApprovePrerequisiteChecker(
             ICalculationEngineRunningChecker calculationEngineRunningChecker,
-            ILogger logger)
+            IJobManagement jobManagement,
+            ILogger logger) : base(calculationEngineRunningChecker, jobManagement, logger)
         {
-            Guard.ArgumentNotNull(calculationEngineRunningChecker, nameof(calculationEngineRunningChecker));
-            Guard.ArgumentNotNull(logger, nameof(logger));
-
-            _calculationEngineRunningChecker = calculationEngineRunningChecker;
-            _logger = logger;
         }
 
-        public async Task<IEnumerable<string>> PerformPrerequisiteChecks(string specificationId)
+        public async Task PerformChecks<T>(T prereqObject, string jobId, IEnumerable<PublishedProvider> publishedProviders = null)
         {
+            string specificationId = prereqObject as string;
+
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
 
-            bool calculationEngineRunning = await _calculationEngineRunningChecker.IsCalculationEngineRunning(specificationId, new string[] { JobConstants.DefinitionNames.RefreshFundingJob, JobConstants.DefinitionNames.PublishProviderFundingJob });
-            List<string> results = new List<string>();
+            await BasePerformChecks(specificationId, specificationId, jobId, new string[] { JobConstants.DefinitionNames.RefreshFundingJob, JobConstants.DefinitionNames.PublishProviderFundingJob, JobConstants.DefinitionNames.ReIndexPublishedProvidersJob });
+        }
 
-            if (calculationEngineRunning)
-            {
-                results.Add("Calculation engine is still running");
-                _logger.Error(string.Join(Environment.NewLine, results));
-                return results;
-            }
+        protected override Task<IEnumerable<string>> PerformChecks<T>(T prereqObject, IEnumerable<PublishedProvider> publishedProviders = null)
+        {
+            return Task.FromResult<IEnumerable<string>>(null);
+        }
 
-            return results;
+        public override bool IsCheckerType(PrerequisiteCheckerType type)
+        {
+            return type == PrerequisiteCheckerType.Approve;
         }
     }
 }

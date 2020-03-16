@@ -87,5 +87,10 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 
             return Task.CompletedTask;
         }
+
+        public Task DeleteVersions(IEnumerable<KeyValuePair<string, PublishedProviderVersion>> newVersions, int maxDegreesOfParallelism = 30)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

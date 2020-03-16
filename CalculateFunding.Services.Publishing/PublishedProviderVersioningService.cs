@@ -67,8 +67,7 @@ namespace CalculateFunding.Services.Publishing
             {
                 Guard.ArgumentNotNull(publishedProvider.Current, nameof(publishedProvider.Current));
 
-                if (publishedProviderStatus != PublishedProviderStatus.Draft &&
-                    (publishedProvider.Current.Status == publishedProviderStatus))
+                if (publishedProviderStatus != PublishedProviderStatus.Draft && publishedProvider.Current.Status == publishedProviderStatus)
                 {
                     continue;
                 }
@@ -204,8 +203,43 @@ namespace CalculateFunding.Services.Publishing
                     }));
             }
             await TaskHelper.WhenAllAndThrow(allTasks.ToArray());
+        }
 
+        public async Task DeleteVersions(IEnumerable<PublishedProvider> publishedProviders)
+        {
+            Guard.ArgumentNotNull(publishedProviders, nameof(publishedProviders));
 
+            IEnumerable<KeyValuePair<string, PublishedProviderVersion>> versionsToDelete = publishedProviders.Select(m =>
+               new KeyValuePair<string, PublishedProviderVersion>(m.ParitionKey, m.Current));
+
+            List<Task> allTasks = new List<Task>();
+            SemaphoreSlim throttler = new SemaphoreSlim(initialCount: _publishingEngineOptions.PublishedProviderSaveVersionsConcurrencyCount);
+            foreach (var versions in versionsToDelete.ToBatches(10))
+            {
+                await throttler.WaitAsync();
+                allTasks.Add(
+                    Task.Run(async () =>
+                    {
+                        try
+                        {
+                            try
+                            {
+                                await _versionRepositoryPolicy.ExecuteAsync(() => _versionRepository.DeleteVersions(versions));
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.Error(ex, "Failed to delete published provider versions");
+
+                                throw;
+                            }
+                        }
+                        finally
+                        {
+                            throttler.Release();
+                        }
+                    }));
+            }
+            await TaskHelper.WhenAllAndThrow(allTasks.ToArray());
         }
     }
 }

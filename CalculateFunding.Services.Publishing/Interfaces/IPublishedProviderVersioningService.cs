@@ -12,5 +12,6 @@ namespace CalculateFunding.Services.Publishing.Interfaces
         Task<IEnumerable<PublishedProvider>> CreateVersions(IEnumerable<PublishedProviderCreateVersionRequest> publishedProviderCreateVersionRequests);
 
         Task SaveVersions(IEnumerable<PublishedProvider> publishedProviders);
+        Task DeleteVersions(IEnumerable<PublishedProvider> publishedProviders);
     }
 }

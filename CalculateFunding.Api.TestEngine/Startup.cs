@@ -1,5 +1,8 @@
 ﻿using AutoMapper;
 using CalculateFunding.Common.Caching;
+using CalculateFunding.Common.Config.ApiClient.Calcs;
+using CalculateFunding.Common.Config.ApiClient.Providers;
+using CalculateFunding.Common.Config.ApiClient.Specifications;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.WebApi.Extensions;
@@ -192,11 +195,11 @@ namespace CalculateFunding.Api.TestRunner
             builder
                 .AddSingleton<ISearchRepository<TestScenarioResultIndex>, SearchRepository<TestScenarioResultIndex>>();
 
-            
-            Common.Config.ApiClient.Calcs.ServiceCollectionExtensions.AddCalculationsInterServiceClient(builder, Configuration);           
-            Common.Config.ApiClient.Specifications.ServiceCollectionExtensions.AddSpecificationsInterServiceClient(builder, Configuration);
-            builder.AddScenariosInterServiceClient(Configuration);          
-            Common.Config.ApiClient.Providers.ServiceCollectionExtensions.AddProvidersInterServiceClient(builder, Configuration);
+
+            builder.AddCalculationsInterServiceClient(Configuration);
+            builder.AddSpecificationsInterServiceClient(Configuration);
+            builder.AddScenariosInterServiceClient(Configuration);
+            builder.AddProvidersInterServiceClient(Configuration);
 
             builder.AddCaching(Configuration);
 

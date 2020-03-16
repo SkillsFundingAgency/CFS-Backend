@@ -19,6 +19,7 @@ namespace CalculateFunding.Services.Core.Interfaces
         Task SaveVersions(IEnumerable<T> newVersions, int maxDegreesOfParallelism = 30);
 
         Task SaveVersions(IEnumerable<KeyValuePair<string, T>> newVersions, int maxDegreesOfParallelism = 30);
+        Task DeleteVersions(IEnumerable<KeyValuePair<string, T>> newVersions, int maxDegreesOfParallelism = 30);
 
         Task<int> GetNextVersionNumber(T version = null, int currentVersion = 0, string partitionKeyId = null, bool incrementFromCurrentVersion = false);
     }

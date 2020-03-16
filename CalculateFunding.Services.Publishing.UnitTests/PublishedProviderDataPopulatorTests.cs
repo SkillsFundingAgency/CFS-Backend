@@ -12,7 +12,6 @@ using DistributionPeriod = CalculateFunding.Models.Publishing.DistributionPeriod
 using FundingLine = CalculateFunding.Models.Publishing.FundingLine;
 using ProfilePeriod = CalculateFunding.Models.Publishing.ProfilePeriod;
 using Provider = CalculateFunding.Models.Publishing.Provider;
-using ApiProvider = CalculateFunding.Common.ApiClient.Providers.Models.Provider;
 using Serilog;
 
 namespace CalculateFunding.Services.Publishing.UnitTests
@@ -27,7 +26,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private PublishedProviderVersion _publishedProviderVersion;
         private PublishedProviderVersion _publishedProviderVersionForMapping;
         private GeneratedProviderResult _generatedProviderResult;
-        private ApiProvider _provider;
+        private Provider _provider;
 
         private IMapper _mapper;
         private ILogger _logger;
@@ -295,9 +294,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             };
         }
 
-        private static Common.ApiClient.Providers.Models.Provider CreateProvider()
+        private static Provider CreateProvider()
         {
-            return new Common.ApiClient.Providers.Models.Provider
+            return new Provider
             {
                 ProviderId = "12345678",
                 Name = "Example School 1",

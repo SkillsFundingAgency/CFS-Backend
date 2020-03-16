@@ -6,7 +6,6 @@ using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
-using ApiProvider = CalculateFunding.Common.ApiClient.Providers.Models.Provider;
 
 namespace CalculateFunding.Services.Publishing.Variations
 {
@@ -22,14 +21,14 @@ namespace CalculateFunding.Services.Publishing.Variations
         }
 
         public async Task<ProviderVariationContext> CreateRequiredVariationChanges(PublishedProvider existingPublishedProvider,
-            GeneratedProviderResult generatedProviderResult,
-            ApiProvider provider,
+            decimal? updatedTotalFunding,
+            Provider provider,
             IEnumerable<FundingVariation> variations,
             IDictionary<string, PublishedProviderSnapShots> allPublishedProviderSnapShots,
             IDictionary<string, PublishedProvider> allPublishedProviderRefreshStates)
         {
             Guard.ArgumentNotNull(existingPublishedProvider, nameof(existingPublishedProvider));
-            Guard.ArgumentNotNull(generatedProviderResult, nameof(generatedProviderResult));
+            Guard.ArgumentNotNull(updatedTotalFunding, nameof(updatedTotalFunding));
             Guard.ArgumentNotNull(provider, nameof(provider));
             Guard.ArgumentNotNull(variations, nameof(variations));
             Guard.ArgumentNotNull(allPublishedProviderRefreshStates, nameof(allPublishedProviderRefreshStates));
@@ -39,7 +38,7 @@ namespace CalculateFunding.Services.Publishing.Variations
             {
                 PublishedProvider = existingPublishedProvider,
                 UpdatedProvider = provider,
-                GeneratedProvider = generatedProviderResult,
+                UpdatedTotalFunding = updatedTotalFunding,
                 AllPublishedProviderSnapShots = allPublishedProviderSnapShots,
                 AllPublishedProvidersRefreshStates = allPublishedProviderRefreshStates
             };

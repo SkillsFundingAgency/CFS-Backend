@@ -1,5 +1,10 @@
 ﻿using System;
 using AutoMapper;
+using CalculateFunding.Common.Config.ApiClient.Calcs;
+using CalculateFunding.Common.Config.ApiClient.Jobs;
+using CalculateFunding.Common.Config.ApiClient.Policies;
+using CalculateFunding.Common.Config.ApiClient.Providers;
+using CalculateFunding.Common.Config.ApiClient.Results;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.TemplateMetadata;
 using CalculateFunding.Common.TemplateMetadata.Schema10;
@@ -151,12 +156,12 @@ namespace CalculateFunding.Functions.Specs
 
             builder.AddCaching(config);
 
-         
-            Common.Config.ApiClient.Results.ServiceCollectionExtensions.AddResultsInterServiceClient(builder, config);
-            Common.Config.ApiClient.Providers.ServiceCollectionExtensions.AddProvidersInterServiceClient(builder, config);         
-            Common.Config.ApiClient.Policies.ServiceCollectionExtensions.AddPoliciesInterServiceClient(builder, config);                 
-            Common.Config.ApiClient.Jobs.ServiceCollectionExtensions.AddJobsInterServiceClient(builder, config);
-            Common.Config.ApiClient.Calcs.ServiceCollectionExtensions.AddCalculationsInterServiceClient(builder, config);
+
+            builder.AddResultsInterServiceClient(config);
+            builder.AddProvidersInterServiceClient(config);
+            builder.AddPoliciesInterServiceClient(config);
+            builder.AddJobsInterServiceClient(config);
+            builder.AddCalculationsInterServiceClient(config);
 
             builder.AddPolicySettings(config);
 

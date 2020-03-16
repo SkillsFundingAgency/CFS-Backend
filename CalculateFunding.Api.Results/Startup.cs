@@ -1,5 +1,7 @@
 ﻿using System;
 using AutoMapper;
+using CalculateFunding.Common.Config.ApiClient.Calcs;
+using CalculateFunding.Common.Config.ApiClient.Specifications;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models.HealthCheck;
@@ -167,9 +169,9 @@ namespace CalculateFunding.Api.Results
             builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Api.Results");
             builder.AddLogging("CalculateFunding.Api.Results");
             builder.AddTelemetry();
-          
-            Common.Config.ApiClient.Specifications.ServiceCollectionExtensions.AddSpecificationsInterServiceClient(builder, Configuration);
-            Common.Config.ApiClient.Calcs.ServiceCollectionExtensions.AddCalculationsInterServiceClient(builder, Configuration);
+
+            builder.AddSpecificationsInterServiceClient(Configuration);
+            builder.AddCalculationsInterServiceClient(Configuration);
 
             builder.AddPolicySettings(Configuration);
 

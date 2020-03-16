@@ -6,6 +6,6 @@ namespace CalculateFunding.Services.Publishing.Interfaces
 {
     public interface IPublishedFundingGenerator
     {
-        IEnumerable<(PublishedFunding, PublishedFundingVersion)> GeneratePublishedFunding(GeneratePublishedFundingInput generatePublishedFundingInput);
+        IEnumerable<(PublishedFunding, PublishedFundingVersion)> GeneratePublishedFunding(PublishedFundingInput generatePublishedFundingInput, IEnumerable<PublishedProvider> publishedProviders);
     }
 }

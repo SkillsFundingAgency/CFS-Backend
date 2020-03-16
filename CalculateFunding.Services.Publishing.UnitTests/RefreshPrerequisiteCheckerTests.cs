@@ -1,5 +1,7 @@
 ﻿using CalculateFunding.Common.ApiClient.Specifications.Models;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Models.Publishing;
+using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Publishing.Interfaces;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -20,6 +22,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private ISpecificationService _specificationService;
         private ICalculationEngineRunningChecker _calculationEngineRunningChecker;
         private ICalculationPrerequisiteCheckerService _calculationApprovalCheckerService;
+        private IJobManagement _jobManagement;
         private ILogger _logger;
         private RefreshPrerequisiteChecker _refreshPrerequisiteChecker;
 
@@ -32,6 +35,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             _specificationService = Substitute.For<ISpecificationService>();
             _calculationEngineRunningChecker = Substitute.For<ICalculationEngineRunningChecker>();
             _calculationApprovalCheckerService = Substitute.For<ICalculationPrerequisiteCheckerService>();
+            _jobManagement = Substitute.For<IJobManagement>();
             _logger = Substitute.For<ILogger>();
 
             _refreshPrerequisiteChecker = new RefreshPrerequisiteChecker(
@@ -39,6 +43,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 _specificationService, 
                 _calculationEngineRunningChecker,
                 _calculationApprovalCheckerService,
+                _jobManagement,
                 _logger);
         }
 
@@ -60,7 +65,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         }
 
         [TestMethod]
-        public async Task ReturnsErrorMessageWhenSharesAlreadyChoseFundingStream()
+        public void ReturnsErrorMessageWhenSharesAlreadyChoseFundingStream()
         {
             // Arrange
             string specificationId = "specId01";
@@ -69,17 +74,17 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             string errorMessage = $"Specification with id: '{specificationId} already shares chosen funding streams";
             
             GivenTheSpecificationFundingStatusForTheSpecification(specificationSummary, SpecificationFundingStatus.SharesAlreadyChosenFundingStream);
-            
+
             // Act
-            await WhenThePreRequisitesAreChecked(specificationSummary);
+            Func<Task> invocation
+                = () => WhenThePreRequisitesAreChecked(specificationSummary);
 
             // Assert
-            _validationErrors
+            invocation
                 .Should()
-                .Contain(new[]
-                {
-                    errorMessage
-                });
+                .Throw<NonRetriableException>()
+                .Where(_ =>
+                    _.Message == $"Specification with id: '{specificationSummary.Id} has prerequisites which aren't complete.");
 
             _logger
                 .Received()
@@ -88,7 +93,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         }
 
         [TestMethod]
-        public async Task ReturnsErrorMessageWhenCanChooseSpecificationFundingAndErrorSelectingSpecificationForFunding()
+        public void ReturnsErrorMessageWhenCanChooseSpecificationFundingAndErrorSelectingSpecificationForFunding()
         {
             // Arrange
             string specificationId = "specId01";
@@ -100,15 +105,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             GivenExceptionThrownForSelectSpecificationForFunding(specificationId, new Exception(errorMessage));
 
             // Act
-            await WhenThePreRequisitesAreChecked(specificationSummary);
+            Func<Task> invocation
+                = () => WhenThePreRequisitesAreChecked(specificationSummary);
 
             // Assert
-            _validationErrors
+            invocation
                 .Should()
-                .Contain(new[]
-                {
-                    errorMessage
-                });
+                .Throw<NonRetriableException>()
+                .Where(_ =>
+                    _.Message == $"Specification with id: '{specificationSummary.Id} has prerequisites which aren't complete.");
 
             _logger
                 .Received()
@@ -116,7 +121,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         }
 
         [TestMethod]
-        public async Task ReturnsErrorMessageWhenCalculationEngineRunning()
+        public void ReturnsErrorMessageWhenCalculationEngineRunning()
         {
             // Arrange
             string specificationId = "specId01";
@@ -129,15 +134,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             GivenValidationErrorsForTheSpecification(specificationSummary, Enumerable.Empty<string>());
 
             // Act
-            await WhenThePreRequisitesAreChecked(specificationSummary);
+            Func<Task> invocation
+                = () => WhenThePreRequisitesAreChecked(specificationSummary);
 
             // Assert
-            _validationErrors
+            invocation
                 .Should()
-                .Contain(new[]
-                {
-                    errorMessage
-                });
+                .Throw<NonRetriableException>()
+                .Where(_ =>
+                    _.Message == $"Specification with id: '{specificationSummary.Id} has prerequisites which aren't complete.");
 
             _logger
                 .Received()
@@ -145,7 +150,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         }
 
         [TestMethod]
-        public async Task ReturnsErrorMessageWhenCalculationPrequisitesNotMet()
+        public void ReturnsErrorMessageWhenCalculationPrequisitesNotMet()
         {
             // Arrange
             string specificationId = "specId01";
@@ -158,15 +163,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             GivenValidationErrorsForTheSpecification(specificationSummary, new List<string> { errorMessage });
 
             // Act
-            await WhenThePreRequisitesAreChecked(specificationSummary);
+            Func<Task> invocation
+                = () => WhenThePreRequisitesAreChecked(specificationSummary);
 
             // Assert
-            _validationErrors
+            invocation
                 .Should()
-                .Contain(new[]
-                {
-                    errorMessage
-                });
+                .Throw<NonRetriableException>()
+                .Where(_ =>
+                    _.Message == $"Specification with id: '{specificationSummary.Id} has prerequisites which aren't complete.");
 
             _logger
                 .Received()
@@ -199,7 +204,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
         private async Task WhenThePreRequisitesAreChecked(SpecificationSummary specification)
         {
-            _validationErrors = await _refreshPrerequisiteChecker.PerformPrerequisiteChecks(specification);
+            await _refreshPrerequisiteChecker.PerformChecks(specification, null);
         }
 
     }

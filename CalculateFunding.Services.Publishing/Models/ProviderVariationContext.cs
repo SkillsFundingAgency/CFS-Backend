@@ -5,7 +5,6 @@ using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Variations;
-using ApiProvider = CalculateFunding.Common.ApiClient.Providers.Models.Provider;
 
 namespace CalculateFunding.Services.Publishing.Models
 {
@@ -18,9 +17,9 @@ namespace CalculateFunding.Services.Publishing.Models
         /// <summary>
         /// Latest (current) core provider information which is being compared against the prior provider information
         /// </summary>
-        public ApiProvider UpdatedProvider { get; set; }
+        public Provider UpdatedProvider { get; set; }
 
-        public GeneratedProviderResult GeneratedProvider { get; set; }
+        public decimal? UpdatedTotalFunding { get; set; }
         
         public ICollection<PublishedProvider> NewProvidersToAdd { get; } = new List<PublishedProvider>(); 
 
@@ -55,14 +54,23 @@ namespace CalculateFunding.Services.Publishing.Models
             }
         }
 
-        public void AddMissingProvider(PublishedProvider missingProvider)
+        public PublishedProvider AddMissingProvider(PublishedProvider missingProvider)
         {
-            NewProvidersToAdd.Add(missingProvider);
-            
-            string providerId = missingProvider.Current.ProviderId;
-            
-            AllPublishedProvidersRefreshStates[providerId] = missingProvider;
-            AllPublishedProviderSnapShots[providerId] = new PublishedProviderSnapShots(missingProvider);
+            if (missingProvider != null)
+            {
+                NewProvidersToAdd.Add(missingProvider);
+
+                string providerId = missingProvider.Current.ProviderId;
+
+                AllPublishedProvidersRefreshStates[providerId] = missingProvider;
+                AllPublishedProviderSnapShots[providerId] = new PublishedProviderSnapShots(missingProvider);
+
+                return missingProvider;
+            }
+            else
+            {
+                return null;
+            }
         }
 
         public PublishedProvider PublishedProvider { get; set; }

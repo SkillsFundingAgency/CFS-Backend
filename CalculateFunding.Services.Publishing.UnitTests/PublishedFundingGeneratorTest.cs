@@ -189,17 +189,17 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private void WhenPublishedFundingGenerated()
         {
             _publishedFundingAndPublishedFundingVersion = _publishedFundingGenerator.GeneratePublishedFunding(
-                new GeneratePublishedFundingInput()
+                new PublishedFundingInput()
                 {
                     OrganisationGroupsToSave = new List<(PublishingModels.PublishedFunding PublishedFunding, OrganisationGroupResult OrganisationGroupResult)> { (_publishedFunding, _organisationGroupResult) },
                     TemplateMetadataContents = _templateMetadataContents,
-                    PublishedProviders = new List<PublishingModels.PublishedProvider> { _publishedProvider, _publishedProvider2 }, //TODO; this also needs the second item in the list
                     TemplateVersion = _templateVersion,
                     FundingPeriod = _fundingPeriod,
                     FundingStream = _fundingStream,
                     PublishingDates = _fundingPublishingDates,
                     SpecificationId = _specificationId,
-                }).ToArray();
+                },
+                new List<PublishedProvider> { _publishedProvider, _publishedProvider2 }).ToArray();
         }
 
         private OrganisationGroupResult NewOrganisationGroupResult(Action<OrganisationGroupResultBuilder> setUp = null)

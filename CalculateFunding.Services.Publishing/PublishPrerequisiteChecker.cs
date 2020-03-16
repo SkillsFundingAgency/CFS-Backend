@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Constants;
@@ -11,30 +12,40 @@ using Serilog;
 
 namespace CalculateFunding.Services.Publishing
 {
-    public class PublishPrerequisiteChecker : IPublishPrerequisiteChecker
+    public class PublishPrerequisiteChecker : BasePrerequisiteChecker, IPrerequisiteChecker
     {
         private readonly ISpecificationFundingStatusService _specificationFundingStatusService;
-        private readonly ICalculationEngineRunningChecker _calculationEngineRunningChecker;
         private readonly ILogger _logger;
 
         public PublishPrerequisiteChecker(
             ISpecificationFundingStatusService specificationFundingStatusService,
             ICalculationEngineRunningChecker calculationEngineRunningChecker,
-            ILogger logger)
+            IJobManagement jobManagement,
+            ILogger logger) : base(calculationEngineRunningChecker, jobManagement, logger)
         {
             Guard.ArgumentNotNull(specificationFundingStatusService, nameof(specificationFundingStatusService));
-            Guard.ArgumentNotNull(calculationEngineRunningChecker, nameof(calculationEngineRunningChecker));
             Guard.ArgumentNotNull(logger, nameof(logger));
 
             _specificationFundingStatusService = specificationFundingStatusService;
-            _calculationEngineRunningChecker = calculationEngineRunningChecker;
             _logger = logger;
         }
 
-        public async Task<IEnumerable<string>> PerformPrerequisiteChecks(SpecificationSummary specification, IEnumerable<PublishedProvider> publishedProviders)
+        public async Task PerformChecks<TSpecification>(TSpecification prereqObject, string jobId, IEnumerable<PublishedProvider> publishedProviders = null)
         {
-            Guard.ArgumentNotNull(specification, nameof(specification));
             Guard.ArgumentNotNull(publishedProviders, nameof(publishedProviders));
+            SpecificationSummary specification = prereqObject as SpecificationSummary;
+            Guard.ArgumentNotNull(specification, nameof(specification));
+
+            await BasePerformChecks(prereqObject, specification.Id, jobId, new string[] { JobConstants.DefinitionNames.RefreshFundingJob, JobConstants.DefinitionNames.ApproveFunding, JobConstants.DefinitionNames.ReIndexPublishedProvidersJob }, publishedProviders);
+        }
+
+        protected async override Task<IEnumerable<string>> PerformChecks<TSpecification>(TSpecification prereqObject, IEnumerable<PublishedProvider> publishedProviders = null)
+        {
+            Guard.ArgumentNotNull(publishedProviders, nameof(publishedProviders));
+
+            SpecificationSummary specification = prereqObject as SpecificationSummary;
+
+            Guard.ArgumentNotNull(specification, nameof(specification));
 
             SpecificationFundingStatus specificationFundingStatus = await _specificationFundingStatusService.CheckChooseForFundingStatus(specification);
 
@@ -48,14 +59,6 @@ namespace CalculateFunding.Services.Publishing
 
             List<string> results = new List<string>();
 
-            bool calculationEngineRunning = await _calculationEngineRunningChecker.IsCalculationEngineRunning(specification.Id, new string[] { JobConstants.DefinitionNames.RefreshFundingJob, JobConstants.DefinitionNames.ApproveFunding });
-            if (calculationEngineRunning)
-            {
-                results.Add("Calculation engine is still running");
-                _logger.Error(string.Join(Environment.NewLine, results));
-                return results;
-            }
-
             if (publishedProviders?.Any(_ => _.Current.Status == PublishedProviderStatus.Draft || _.Current.Status == PublishedProviderStatus.Updated) ?? false)
             {
                 results.AddRange(publishedProviders.Where(_ => _.Current.Status == PublishedProviderStatus.Draft || _.Current.Status == PublishedProviderStatus.Updated).Select(_ => $"Provider with id:{_.Id} has current status:{_.Current.Status} so cannot be published."));
@@ -64,6 +67,11 @@ namespace CalculateFunding.Services.Publishing
             }
 
             return results;
+        }
+    
+        public override bool IsCheckerType(PrerequisiteCheckerType type)
+        {
+            return type == PrerequisiteCheckerType.Release;
         }
     }
 }

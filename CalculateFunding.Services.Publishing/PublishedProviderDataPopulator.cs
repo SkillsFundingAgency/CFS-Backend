@@ -37,7 +37,7 @@ namespace CalculateFunding.Services.Publishing
         /// <returns>True when the PublishedProviderVersion has been updated, false if not</returns>
         public bool UpdatePublishedProvider(PublishedProviderVersion publishedProviderVersion,
             GeneratedProviderResult generatedProviderResult,
-            Common.ApiClient.Providers.Models.Provider provider,
+            Provider provider,
             string templateVersion,
             bool isNewProvider)
         {

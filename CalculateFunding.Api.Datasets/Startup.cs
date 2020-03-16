@@ -1,5 +1,8 @@
 ﻿using AutoMapper;
 using CalculateFunding.Common.ApiClient.Providers;
+using CalculateFunding.Common.Config.ApiClient.Calcs;
+using CalculateFunding.Common.Config.ApiClient.Jobs;
+using CalculateFunding.Common.Config.ApiClient.Providers;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Interfaces;
 using CalculateFunding.Common.JobManagement;
@@ -217,9 +220,9 @@ namespace CalculateFunding.Api.Datasets
             builder.AddUserProviderFromRequest();
 
 
-            Common.Config.ApiClient.Calcs.ServiceCollectionExtensions.AddCalculationsInterServiceClient(builder, Configuration);
-            Common.Config.ApiClient.Jobs.ServiceCollectionExtensions.AddJobsInterServiceClient(builder, Configuration);
-            Common.Config.ApiClient.Providers.ServiceCollectionExtensions.AddProvidersInterServiceClient(builder, Configuration);
+            builder.AddCalculationsInterServiceClient(Configuration);
+            builder.AddJobsInterServiceClient(Configuration);
+            builder.AddProvidersInterServiceClient(Configuration);
 
             builder.AddSearch(Configuration);
             builder

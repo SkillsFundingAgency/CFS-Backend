@@ -14,6 +14,6 @@ namespace CalculateFunding.Services.Publishing.Interfaces
         /// <param name="scopedProviders">Scoped providers for this specification</param>
         /// <param name="calculationResults">Calculation Results for Specification</param>
         /// <returns>Dictionary of providers (provider ID as key) containing the funding streams, calculations and reference data of that provider</returns>
-        Dictionary<string, GeneratedProviderResult> Generate(TemplateMetadataContents templateMetadata, Common.ApiClient.Calcs.Models.TemplateMapping templateMapping, IEnumerable<Common.ApiClient.Providers.Models.Provider> scopedProviders, IDictionary<string, ProviderCalculationResult> calculationResults);
+        IDictionary<string, GeneratedProviderResult> Generate(TemplateMetadataContents templateMetadata, Common.ApiClient.Calcs.Models.TemplateMapping templateMapping, IEnumerable<Provider> scopedProviders, IDictionary<string, ProviderCalculationResult> calculationResults);
     }
 }

@@ -34,24 +34,23 @@ namespace CalculateFunding.Services.Publishing
         /// <param name="templateMetadataContents"></param>
         /// <param name="publishedProviders"></param>
         /// <returns></returns>
-        public IEnumerable<(PublishingModels.PublishedFunding, PublishingModels.PublishedFundingVersion)> GeneratePublishedFunding(GeneratePublishedFundingInput generatePublishedFundingInput)
+        public IEnumerable<(PublishingModels.PublishedFunding, PublishingModels.PublishedFundingVersion)> GeneratePublishedFunding(PublishedFundingInput publishedFundingInput, IEnumerable<PublishedProvider> publishedProviders)
         {
-            Guard.ArgumentNotNull(generatePublishedFundingInput, nameof(generatePublishedFundingInput));
-            Guard.ArgumentNotNull(generatePublishedFundingInput.FundingPeriod, nameof(generatePublishedFundingInput.FundingPeriod));
-            Guard.ArgumentNotNull(generatePublishedFundingInput.FundingStream, nameof(generatePublishedFundingInput.FundingStream));
-            Guard.ArgumentNotNull(generatePublishedFundingInput.OrganisationGroupsToSave, nameof(generatePublishedFundingInput.OrganisationGroupsToSave));
-            Guard.ArgumentNotNull(generatePublishedFundingInput.PublishedProviders, nameof(generatePublishedFundingInput.PublishedProviders));
-            Guard.ArgumentNotNull(generatePublishedFundingInput.PublishingDates, nameof(generatePublishedFundingInput.PublishingDates));
-            Guard.ArgumentNotNull(generatePublishedFundingInput.TemplateMetadataContents, nameof(generatePublishedFundingInput.TemplateMetadataContents));
-            Guard.IsNullOrWhiteSpace(generatePublishedFundingInput.TemplateVersion, nameof(generatePublishedFundingInput.TemplateVersion));
-            Guard.IsNullOrWhiteSpace(generatePublishedFundingInput.SpecificationId, nameof(generatePublishedFundingInput.SpecificationId));
+            Guard.ArgumentNotNull(publishedFundingInput, nameof(publishedFundingInput));
+            Guard.ArgumentNotNull(publishedFundingInput.FundingPeriod, nameof(publishedFundingInput.FundingPeriod));
+            Guard.ArgumentNotNull(publishedFundingInput.FundingStream, nameof(publishedFundingInput.FundingStream));
+            Guard.ArgumentNotNull(publishedFundingInput.OrganisationGroupsToSave, nameof(publishedFundingInput.OrganisationGroupsToSave));
+            Guard.ArgumentNotNull(publishedProviders, nameof(publishedProviders));
+            Guard.ArgumentNotNull(publishedFundingInput.PublishingDates, nameof(publishedFundingInput.PublishingDates));
+            Guard.ArgumentNotNull(publishedFundingInput.TemplateMetadataContents, nameof(publishedFundingInput.TemplateMetadataContents));
+            Guard.IsNullOrWhiteSpace(publishedFundingInput.TemplateVersion, nameof(publishedFundingInput.TemplateVersion));
+            Guard.IsNullOrWhiteSpace(publishedFundingInput.SpecificationId, nameof(publishedFundingInput.SpecificationId));
 
-            IEnumerable<(PublishingModels.PublishedFunding PublishedFunding, OrganisationGroupResult OrganisationGroupResult)> organisationGroupsToSave = generatePublishedFundingInput.OrganisationGroupsToSave;
+            IEnumerable<(PublishingModels.PublishedFunding PublishedFunding, OrganisationGroupResult OrganisationGroupResult)> organisationGroupsToSave = publishedFundingInput.OrganisationGroupsToSave;
 
-            TemplateMetadataContents templateMetadataContents = generatePublishedFundingInput.TemplateMetadataContents;
-            IEnumerable<PublishingModels.PublishedProvider> publishedProviders = generatePublishedFundingInput.PublishedProviders;
-            string templateVersion = generatePublishedFundingInput.TemplateVersion;
-            FundingPeriod fundingPeriod = generatePublishedFundingInput.FundingPeriod;
+            TemplateMetadataContents templateMetadataContents = publishedFundingInput.TemplateMetadataContents;
+            string templateVersion = publishedFundingInput.TemplateVersion;
+            FundingPeriod fundingPeriod = publishedFundingInput.FundingPeriod;
 
             FundingValueAggregator fundingValueAggregator = new FundingValueAggregator();
 
@@ -86,8 +85,8 @@ namespace CalculateFunding.Services.Publishing
 
                 PublishingModels.PublishedFundingVersion publishedFundingVersion = new PublishingModels.PublishedFundingVersion
                 {
-                    FundingStreamId = generatePublishedFundingInput.FundingStream.Id,
-                    FundingStreamName = generatePublishedFundingInput.FundingStream.Name,
+                    FundingStreamId = publishedFundingInput.FundingStream.Id,
+                    FundingStreamName = publishedFundingInput.FundingStream.Name,
                     TotalFunding = totalFunding,
                     FundingPeriod = new PublishingModels.PublishedFundingPeriod
                     {
@@ -97,7 +96,7 @@ namespace CalculateFunding.Services.Publishing
                         StartDate = fundingPeriod.StartDate,
                         Name = fundingPeriod.Name,
                     },
-                    SpecificationId = generatePublishedFundingInput.SpecificationId,
+                    SpecificationId = publishedFundingInput.SpecificationId,
                     OrganisationGroupTypeCode = organisationGroup.OrganisationGroupResult.GroupTypeCode.ToString(),
                     OrganisationGroupTypeIdentifier = organisationGroup.OrganisationGroupResult.GroupTypeIdentifier.ToString(),
                     OrganisationGroupIdentifierValue = organisationGroup.OrganisationGroupResult.IdentifierValue,
@@ -112,9 +111,9 @@ namespace CalculateFunding.Services.Publishing
                     GroupingReason = organisationGroup.OrganisationGroupResult.GroupReason.AsMatchingEnum<PublishingModels.GroupingReason>(),
                     ProviderFundings = publishedProviderVersionsForOrganisationGroup.Select(_ => _.FundingId),
                     TemplateVersion = templateVersion,
-                    StatusChangedDate = generatePublishedFundingInput.PublishingDates.StatusChangedDate,
-                    EarliestPaymentAvailableDate = generatePublishedFundingInput.PublishingDates.EarliestPaymentAvailableDate,
-                    ExternalPublicationDate = generatePublishedFundingInput.PublishingDates.ExternalPublicationDate,
+                    StatusChangedDate = publishedFundingInput.PublishingDates.StatusChangedDate,
+                    EarliestPaymentAvailableDate = publishedFundingInput.PublishingDates.EarliestPaymentAvailableDate,
+                    ExternalPublicationDate = publishedFundingInput.PublishingDates.ExternalPublicationDate,
                 };
 
                 publishedFundingVersion.FundingId = _publishedFundingIdGeneratorResolver.GetService(templateMetadataContents.SchemaVersion).GetFundingId(publishedFundingVersion);

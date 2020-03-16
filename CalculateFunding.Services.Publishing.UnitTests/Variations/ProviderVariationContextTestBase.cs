@@ -30,21 +30,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
             ProviderVariationContextBuilder variationContextBuilder = new ProviderVariationContextBuilder()
                 .WithPublishedProvider(NewPublishedProvider(_ => _.WithReleased(NewPublishedProviderVersion(ppv =>
                     ppv.WithTotalFunding(totalFunding)))))
-                .WithCurrentState(NewApiProvider(_ => _.WithStatus(Variation.Closed)))
-                .WithGeneratedProviderResult(NewGeneratedProviderResult(_ => _.WithTotalFunding(totalFunding)));
+                .WithCurrentState(NewProvider(_ => _.WithStatus(Variation.Closed)))
+                .WithUpdatedTotalFunding(totalFunding);
 
             setUp?.Invoke(variationContextBuilder);
 
             return variationContextBuilder.Build();
-        }
-
-        protected Common.ApiClient.Providers.Models.Provider NewApiProvider(Action<ApiProviderBuilder> setUp = null)
-        {
-            ApiProviderBuilder providerBuilder = new ApiProviderBuilder();
-
-            setUp?.Invoke(providerBuilder);
-
-            return providerBuilder.Build();
         }
 
         protected GeneratedProviderResult NewGeneratedProviderResult(Action<GeneratedProviderResultBuilder> setUp = null)

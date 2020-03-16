@@ -95,10 +95,33 @@ namespace CalculateFunding.Services.Publishing
                 _logger.Error(formattedErrorMessage);
                 throw new RetriableException(formattedErrorMessage);
             }
-
         }
 
-        private PublishedProviderIndex CreatePublishedProviderIndex(PublishedProviderVersion publishedProviderVersion)
+        private async Task<string> Remove(IEnumerable<PublishedProviderVersion> publishedProviderVersions)
+        {
+            if (publishedProviderVersions == null)
+            {
+                string error = "Null published provider version supplied";
+                _logger.Error(error);
+                return error;
+            }
+
+            IEnumerable<IndexError> publishedProviderIndexingErrors = await _searchPolicy.ExecuteAsync(
+                () => _searchRepository.Remove(publishedProviderVersions.Select(p => CreatePublishedProviderIndex(p))));
+
+            List<IndexError> publishedProviderIndexingErrorsAsList = publishedProviderIndexingErrors.ToList();
+            if (!publishedProviderIndexingErrorsAsList.IsNullOrEmpty())
+            {
+                string publishedProviderIndexingErrorsConcatted = string.Join(". ", publishedProviderIndexingErrorsAsList.Select(e => e.ErrorMessage));
+                string formattedErrorMessage =
+                    $"Could not index Published Providers because: {publishedProviderIndexingErrorsConcatted}";
+                return formattedErrorMessage;
+            }
+
+            return string.Empty;
+        }
+
+            private PublishedProviderIndex CreatePublishedProviderIndex(PublishedProviderVersion publishedProviderVersion)
         {
             return new PublishedProviderIndex
             {

@@ -11,7 +11,6 @@ using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
-using ApiProvider = CalculateFunding.Common.ApiClient.Providers.Models.Provider;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.Variations
 {
@@ -41,22 +40,22 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
             FundingVariation[] fundingVariations)
         {
             PublishedProvider existingPublishedProvider = NewPublishedProvider();
-            GeneratedProviderResult generatedProviderResult = NewGeneratedProviderResult();
-            ApiProvider updatedProvider = NewApiProvider();
+            Provider updatedProvider = NewApiProvider();
+            decimal updatedTotalFunding = new RandomNumberBetween(0, 1000);
             IDictionary<string, PublishedProviderSnapShots> allPublishedProviderSnapShots = new Dictionary<string, PublishedProviderSnapShots>();
             IDictionary<string, PublishedProvider> allPublishedProviderRefreshStates = new Dictionary<string, PublishedProvider>();
 
             ProviderVariationContext providerVariationContext = await _factory.CreateRequiredVariationChanges(existingPublishedProvider,
-                generatedProviderResult,
+                updatedTotalFunding,
                 updatedProvider,
                 fundingVariations, 
                 allPublishedProviderSnapShots,
                 allPublishedProviderRefreshStates);
 
             providerVariationContext
-                .GeneratedProvider
+                .UpdatedTotalFunding
                 .Should()
-                .BeSameAs(generatedProviderResult);
+                .Equals(updatedTotalFunding);
 
             providerVariationContext
                 .ReleasedState
@@ -74,7 +73,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
                 {
                     _variationStrategyServiceLocator.GetService(fundingVariation.Name);
                     _variationStrategy.DetermineVariations(Arg.Is<ProviderVariationContext>(
-                        ctx => ReferenceEquals(ctx.GeneratedProvider, generatedProviderResult) &&
+                        ctx => ctx.UpdatedTotalFunding == updatedTotalFunding &&
                                ReferenceEquals(ctx.ReleasedState, existingPublishedProvider.Released) &&
                                ctx.ProviderId == existingPublishedProvider.Current.ProviderId &&
                                ReferenceEquals(ctx.UpdatedProvider, updatedProvider) &&
@@ -85,15 +84,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
             });
         }
 
-        private ApiProvider NewApiProvider()
+        private Provider NewApiProvider()
         {
-            return new ApiProviderBuilder()
-                .Build();
-        }
-
-        private GeneratedProviderResult NewGeneratedProviderResult()
-        {
-            return new GeneratedProviderResultBuilder()
+            return new ProviderBuilder()
                 .Build();
         }
 

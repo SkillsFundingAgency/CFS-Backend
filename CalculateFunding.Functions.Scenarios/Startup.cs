@@ -1,6 +1,8 @@
 ﻿using System;
 using AutoMapper;
 using CalculateFunding.Common.ApiClient;
+using CalculateFunding.Common.Config.ApiClient.Calcs;
+using CalculateFunding.Common.Config.ApiClient.Specifications;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Interfaces;
 using CalculateFunding.Functions.Scenarios.ServiceBus;
@@ -85,9 +87,9 @@ namespace CalculateFunding.Functions.Scenarios
 
                 return new VersionRepository<TestScenarioVersion>(resultsRepostory);
             });
-                                  
-            Common.Config.ApiClient.Calcs.ServiceCollectionExtensions.AddCalculationsInterServiceClient(builder, config);           
-            Common.Config.ApiClient.Specifications.ServiceCollectionExtensions.AddSpecificationsInterServiceClient(builder, config);
+
+            builder.AddCalculationsInterServiceClient(config);
+            builder.AddSpecificationsInterServiceClient(config);
             builder.AddDatasetsInterServiceClient(config);
 
             if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")

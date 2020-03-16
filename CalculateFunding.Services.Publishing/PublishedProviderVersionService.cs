@@ -47,8 +47,6 @@ namespace CalculateFunding.Services.Publishing
             _blobClientPolicy = resiliencePolicies.BlobClient;
         }
 
-
-
         public async Task<ServiceHealth> IsHealthOk()
         {
             (bool Ok, string Message) blobHealth = await _blobClient.IsHealthOk();
@@ -134,20 +132,49 @@ namespace CalculateFunding.Services.Publishing
             Guard.ArgumentNotNull(user, nameof(user));
             Guard.IsNullOrWhiteSpace(correlationId, nameof(correlationId));
 
-            await _jobsClientPolicy.ExecuteAsync(() => _jobs.CreateJob(new JobCreateModel
-            {
-                JobDefinitionId = JobConstants.DefinitionNames.ReIndexPublishedProvidersJob,
-                InvokerUserId = user.Id,
-                InvokerUserDisplayName = user.Name,
-                CorrelationId = correlationId,
-                Trigger = new Trigger
-                {
-                    Message = "ReIndexing PublishedProviders",
-                    EntityType = nameof(PublishedProviderIndex),
-                }
-            }));
-            
+            await CreateReIndexJob(user, correlationId);
+
             return new NoContentResult();
+        }
+
+        public async Task<Job> CreateReIndexJob(Reference user, string correlationId)
+        {
+            try
+            {
+                Job job = await _jobsClientPolicy.ExecuteAsync(() => _jobs.CreateJob(new JobCreateModel
+                {
+                    JobDefinitionId = JobConstants.DefinitionNames.ReIndexPublishedProvidersJob,
+                    InvokerUserId = user.Id,
+                    InvokerUserDisplayName = user.Name,
+                    CorrelationId = correlationId,
+                    Trigger = new Trigger
+                    {
+                        Message = "ReIndexing PublishedProviders",
+                        EntityType = nameof(PublishedProviderIndex),
+                    }
+                }));
+
+                if (job != null)
+                {
+                    _logger.Information($"New job of type '{job.JobDefinitionId}' created with id: '{job.Id}'");
+                }
+                else
+                {
+                    string errorMessage = $"Failed to create job of type '{JobConstants.DefinitionNames.ReIndexPublishedProvidersJob}'";
+
+                    _logger.Error(errorMessage);
+                }
+
+                return job;
+            }
+            catch (Exception ex)
+            {
+                string error = $"Failed to queue published provider re-index job";
+
+                _logger.Error(ex, error);
+
+                throw new Exception(error);
+            }
         }
     }
 }

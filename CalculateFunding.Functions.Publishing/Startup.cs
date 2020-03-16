@@ -121,7 +121,11 @@ namespace CalculateFunding.Functions.Publishing
 
             builder.AddSingleton<ISpecificationService, SpecificationService>();
             builder.AddSingleton<IProviderService, ProviderService>();
+            builder.AddSingleton<IPublishedFundingService, PublishedFundingService>();
+            builder.AddSingleton<IPoliciesService, PoliciesService>();
+            
             builder.AddScoped<IRefreshService, RefreshService>();
+            builder.AddScoped<IVariationService, VariationService>();
             builder.AddTransient<IRecordVariationErrors, VariationErrorRecorder>();
             builder.AddTransient<IApplyProviderVariations, ProviderVariationsApplication>();
             builder.AddTransient<IDetectProviderVariations, ProviderVariationsDetection>();
@@ -134,7 +138,6 @@ namespace CalculateFunding.Functions.Publishing
             builder.AddTransient<IVariationStrategy, FundingUpdatedVariationStrategy>();
             builder.AddTransient<IVariationStrategy, ProfilingUpdatedVariationStrategy>();
             builder.AddTransient<IVariationStrategy, DsgTotalAllocationChangeVariationStrategy>();
-            builder.AddTransient<IOutOfScopePublishedProviderBuilder, OutOfScopePublishedProviderBuilder>();
             builder.AddScoped<IPublishingFeatureFlag, PublishingFeatureFlag>();
             builder.AddScoped<IApproveService, ApproveService>();
             builder.AddSingleton<IJobTracker, JobTracker>();
@@ -266,16 +269,12 @@ namespace CalculateFunding.Functions.Publishing
 
             builder.AddSingleton<IProfilingService, ProfilingService>();
 
-            builder.AddSingleton<IInScopePublishedProviderService, InScopePublishedProviderService>();
-
             builder.AddSingleton(new MapperConfiguration(_ =>
             {
                 _.AddProfile<PublishingServiceMappingProfile>();
             }).CreateMapper());
 
             builder.AddSingleton<IPublishedProviderDataPopulator, PublishedProviderDataPopulator>();
-
-            builder.AddSingleton<IRefreshPrerequisiteChecker, RefreshPrerequisiteChecker>();
 
             builder.AddSingleton<ICalculationEngineRunningChecker, CalculationEngineRunningChecker>();
 
@@ -356,6 +355,16 @@ namespace CalculateFunding.Functions.Publishing
             builder.AddJobsInterServiceClient(config);
             builder.AddCalculationsInterServiceClient(config);
             builder.AddPoliciesInterServiceClient(config);
+
+            builder.AddSingleton<ITransactionResiliencePolicies>((ctx) =>
+            {
+                return new TransactionResiliencePolicies()
+                {
+                    TransactionPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings)
+                };
+            });
+
+            builder.AddSingleton<ITransactionFactory, TransactionFactory>();
 
             builder.AddHttpClient(HttpClientKeys.Profiling,
                    c =>

@@ -24,34 +24,42 @@ namespace CalculateFunding.Services.Publishing
         private readonly IPublishedProviderStatusUpdateService _publishedProviderStatusUpdateService;
         private readonly IPublishedFundingDataService _publishedFundingDataService;
         private readonly IPublishedProviderIndexerService _publishedProviderIndexerService;
-        private readonly IApprovePrerequisiteChecker _approvePrerequisiteChecker;
+        private readonly IPrerequisiteCheckerLocator _prerequisiteCheckerLocator;
         private readonly IGeneratePublishedFundingCsvJobsCreationLocator _generateCsvJobsLocator;
+        private readonly ITransactionFactory _transactionFactory;
+        private readonly IPublishedProviderVersionService _publishedProviderVersionService;
 
         public ApproveService(IPublishedProviderStatusUpdateService publishedProviderStatusUpdateService,
             IPublishedFundingDataService publishedFundingDataService,
             IPublishedProviderIndexerService publishedProviderIndexerService,
             IPublishingResiliencePolicies publishingResiliencePolicies,
-            IApprovePrerequisiteChecker approvePrerequisiteChecker,
+            IPrerequisiteCheckerLocator prerequisiteCheckerLocator,
             IJobManagement jobManagement,
             ILogger logger,
+            ITransactionFactory transactionFactory,
+            IPublishedProviderVersionService publishedProviderVersionService,
             IGeneratePublishedFundingCsvJobsCreationLocator generateCsvJobsLocator)
         {
             Guard.ArgumentNotNull(generateCsvJobsLocator, nameof(generateCsvJobsLocator));
-            Guard.ArgumentNotNull(approvePrerequisiteChecker, nameof(approvePrerequisiteChecker));
+            Guard.ArgumentNotNull(prerequisiteCheckerLocator, nameof(prerequisiteCheckerLocator));
             Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
             Guard.ArgumentNotNull(publishedProviderStatusUpdateService, nameof(publishedProviderStatusUpdateService));
             Guard.ArgumentNotNull(publishedFundingDataService, nameof(publishedFundingDataService));
             Guard.ArgumentNotNull(publishedProviderIndexerService, nameof(publishedProviderIndexerService));
             Guard.ArgumentNotNull(publishingResiliencePolicies, nameof(publishingResiliencePolicies));
             Guard.ArgumentNotNull(logger, nameof(logger));
+            Guard.ArgumentNotNull(transactionFactory, nameof(transactionFactory));
+            Guard.ArgumentNotNull(publishedProviderVersionService, nameof(publishedProviderVersionService));
 
             _publishedProviderStatusUpdateService = publishedProviderStatusUpdateService;
             _publishedFundingDataService = publishedFundingDataService;
             _publishedProviderIndexerService = publishedProviderIndexerService;
-            _approvePrerequisiteChecker = approvePrerequisiteChecker;
+            _prerequisiteCheckerLocator = prerequisiteCheckerLocator;
             _jobManagement = jobManagement;
             _logger = logger;
             _generateCsvJobsLocator = generateCsvJobsLocator;
+            _transactionFactory = transactionFactory;
+            _publishedProviderVersionService = publishedProviderVersionService;
         }
 
         public async Task ApproveResults(Message message)
@@ -84,7 +92,8 @@ namespace CalculateFunding.Services.Publishing
 
             _logger.Information($"Verifying prerequisites for funding approval");
 
-            await CheckPrerequisitesForSpecificationToBeApproved(specificationId, jobId);
+            IPrerequisiteChecker prerequisiteChecker = _prerequisiteCheckerLocator.GetPreReqChecker(PrerequisiteCheckerType.Approve);
+            await prerequisiteChecker.PerformChecks(specificationId, jobId);
 
             _logger.Information($"Prerequisites for approval passed");
 
@@ -102,40 +111,44 @@ namespace CalculateFunding.Services.Publishing
             if (publishedProviders.IsNullOrEmpty())
                 throw new RetriableException($"Null or empty published providers returned for specification id : '{specificationId}' when setting status to approved.");
 
-            _logger.Information($"Persisting new versions of published providers");
-            if ((await _publishedProviderStatusUpdateService.UpdatePublishedProviderStatus(publishedProviders, author, PublishedProviderStatus.Approved, jobId)) > 0)
-            {
-                _logger.Information($"Indexing published providers");
-                await _publishedProviderIndexerService.IndexPublishedProviders(publishedProviders.Select(_ => _.Current));
-            }
-            
             string correlationId = message.GetUserProperty<string>("correlation-id");
-            
-            _logger.Information("Creating generate Csv jobs");
 
-            IGeneratePublishedFundingCsvJobsCreation generateCsvJobs = _generateCsvJobsLocator
-                .GetService(GeneratePublishingCsvJobsCreationAction.Approve);
-            IEnumerable<string> fundingLineCodes = await _publishedFundingDataService.GetPublishedProviderFundingLines(specificationId);
-            await generateCsvJobs.CreateJobs(specificationId, correlationId, author, fundingLineCodes);
+            using (Transaction transaction = _transactionFactory.NewTransaction<ApproveService>())
+            {
+                try
+                {
+                    // if any error occurs while updating or indexing then we need to re-index all published providers for consistency
+                    transaction.Enroll(async () =>
+                    {
+                        await _publishedProviderVersionService.CreateReIndexJob(author, correlationId);
+                    });
+
+                    _logger.Information($"Persisting new versions of published providers");
+                    if ((await _publishedProviderStatusUpdateService.UpdatePublishedProviderStatus(publishedProviders, author, PublishedProviderStatus.Approved, jobId)) > 0)
+                    {
+                        _logger.Information($"Indexing published providers");
+                        await _publishedProviderIndexerService.IndexPublishedProviders(publishedProviders.Select(_ => _.Current));
+
+                        _logger.Information("Creating generate Csv jobs");
+                        IGeneratePublishedFundingCsvJobsCreation generateCsvJobs = _generateCsvJobsLocator
+                            .GetService(GeneratePublishingCsvJobsCreationAction.Approve);
+                        IEnumerable<string> fundingLineCodes = await _publishedFundingDataService.GetPublishedProviderFundingLines(specificationId);
+                        await generateCsvJobs.CreateJobs(specificationId, correlationId, author, fundingLineCodes);
+                    }
+
+                    transaction.Complete();
+                }
+                catch
+                {
+                    await transaction.Compensate();
+
+                    throw;
+                }
+            }
 
             _logger.Information($"Completing approve funding job. JobId='{jobId}'");
             await _jobManagement.UpdateJobStatus(jobId, 0, 0, true, null);
             _logger.Information($"Approve funding job complete. JobId='{jobId}'");
-        }
-
-        private async Task CheckPrerequisitesForSpecificationToBeApproved(string specificationId, string jobId)
-        {
-            IEnumerable<string> prereqValidationErrors = await _approvePrerequisiteChecker
-                .PerformPrerequisiteChecks(specificationId);
-
-            if (!prereqValidationErrors.IsNullOrEmpty())
-            {
-                string errorMessage = $"Specification with id: '{specificationId} has prerequisites which aren't complete.";
-
-                await _jobManagement.UpdateJobStatus(jobId, completedSuccessfully: false, outcome: string.Join(", ", prereqValidationErrors));
-
-                throw new NonRetriableException(errorMessage);
-            }
         }
     }
 }

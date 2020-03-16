@@ -35,10 +35,9 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
             _providersStepContext.EmulatedClient.AddProviderVersionSearchResultToMasterProviderData(providerVersionSearchResult);
         }
 
-
         [Given(@"the following provider exists within core provider data in provider version '(.*)'")]
         public void GivenTheFollowingProviderExistsWithinCoreProviderDataInProviderVersion(string providerVersionId, Table table)
-        {
+        { 
             providerVersionId
                 .Should()
                 .NotBeNull();

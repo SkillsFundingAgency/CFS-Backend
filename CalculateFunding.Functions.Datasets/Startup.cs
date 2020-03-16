@@ -1,6 +1,10 @@
 ﻿using System;
 using AutoMapper;
 using CalculateFunding.Common.ApiClient.Providers;
+using CalculateFunding.Common.Config.ApiClient.Calcs;
+using CalculateFunding.Common.Config.ApiClient.Jobs;
+using CalculateFunding.Common.Config.ApiClient.Providers;
+using CalculateFunding.Common.Config.ApiClient.Specifications;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Functions.Datasets.ServiceBus;
@@ -171,10 +175,10 @@ namespace CalculateFunding.Functions.Datasets
                 new DatasetsAggregationsRepository(CreateCosmosDbSettings(config, "datasetaggregations")));
 
 
-            Common.Config.ApiClient.Calcs.ServiceCollectionExtensions.AddCalculationsInterServiceClient(builder, config);
-            Common.Config.ApiClient.Specifications.ServiceCollectionExtensions.AddSpecificationsInterServiceClient(builder, config);
-            Common.Config.ApiClient.Jobs.ServiceCollectionExtensions.AddJobsInterServiceClient(builder, config);
-            Common.Config.ApiClient.Providers.ServiceCollectionExtensions.AddProvidersInterServiceClient(builder, config);
+            builder.AddCalculationsInterServiceClient(config);
+            builder.AddSpecificationsInterServiceClient(config);
+            builder.AddJobsInterServiceClient(config);
+            builder.AddProvidersInterServiceClient(config);
 
             builder.AddSearch(config);
             builder

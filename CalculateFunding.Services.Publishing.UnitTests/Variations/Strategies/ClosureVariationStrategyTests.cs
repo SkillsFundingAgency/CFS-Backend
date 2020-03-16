@@ -47,7 +47,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
         [TestMethod]
         public async Task TracksErrorIfTotalFundingDiffersFromPriorStateWhenGeneratingChanges()
         {
-            GivenTheOtherwiseValidVariationContext(_ => _.GeneratedProvider.TotalFunding += 1M);
+            GivenTheOtherwiseValidVariationContext(_ => _.UpdatedTotalFunding += 1M);
 
             await WhenTheVariationsAreDetermined();
 

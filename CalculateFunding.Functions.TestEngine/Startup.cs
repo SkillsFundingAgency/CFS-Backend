@@ -1,6 +1,9 @@
 ﻿using System;
 using AutoMapper;
 using CalculateFunding.Common.Caching;
+using CalculateFunding.Common.Config.ApiClient.Calcs;
+using CalculateFunding.Common.Config.ApiClient.Providers;
+using CalculateFunding.Common.Config.ApiClient.Specifications;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Functions.TestEngine.ServiceBus;
 using CalculateFunding.Models.Scenarios;
@@ -154,11 +157,11 @@ namespace CalculateFunding.Functions.TestEngine
             builder.AddSearch(config);
             builder
                 .AddSingleton<ISearchRepository<TestScenarioResultIndex>, SearchRepository<TestScenarioResultIndex>>();
-                       
-            Common.Config.ApiClient.Specifications.ServiceCollectionExtensions.AddSpecificationsInterServiceClient(builder, config);
-            builder.AddScenariosInterServiceClient(config);      
-            Common.Config.ApiClient.Calcs.ServiceCollectionExtensions.AddCalculationsInterServiceClient(builder, config);
-            Common.Config.ApiClient.Providers.ServiceCollectionExtensions.AddProvidersInterServiceClient(builder, config);
+
+            builder.AddSpecificationsInterServiceClient(config);
+            builder.AddScenariosInterServiceClient(config);
+            builder.AddCalculationsInterServiceClient(config);
+            builder.AddProvidersInterServiceClient(config);
 
             builder.AddCaching(config);
 
