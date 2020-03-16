@@ -72,7 +72,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         private IOrganisationGroupGenerator _organisationGroupGenerator;
         private IPublishedFundingDateService _publishedFundingDateService;
         private ISpecificationFundingStatusService _specificationFundingStatusService;
-        private ICalculationEngineRunningChecker _calculationEngineRunningChecker;
+        private IJobsRunning _jobsRunning;
         private const string SpecificationId = "SpecificationId";
         private const string JobId = "JobId";
         private const string FundingStreamId = "PSG";
@@ -92,7 +92,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             _specificationsApiClient = Substitute.For<ISpecificationsApiClient>();
             _specificationService = new SpecificationService(_specificationsApiClient, _publishingResiliencePolicies);
             _specificationFundingStatusService = Substitute.For<ISpecificationFundingStatusService>();
-            _calculationEngineRunningChecker = Substitute.For<ICalculationEngineRunningChecker>();
+            _jobsRunning = Substitute.For<IJobsRunning>();
             _logger = Substitute.For<ILogger>();
             _publishedFundingChangeDetectorService = Substitute.For<IPublishedFundingChangeDetectorService>();
             _publishedFundingGenerator = Substitute.For<IPublishedFundingGenerator>();
@@ -107,7 +107,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             _jobManagement = new JobManagement(_jobsApiClient, _logger, new JobManagementResiliencePolicies { JobsApiClient = Policy.NoOpAsync() });
             _prerequisiteCheckerLocator = Substitute.For<IPrerequisiteCheckerLocator>();
             _prerequisiteCheckerLocator.GetPreReqChecker(PrerequisiteCheckerType.Release)
-                .Returns(new PublishPrerequisiteChecker(_specificationFundingStatusService, _calculationEngineRunningChecker, _jobManagement, _logger));
+                .Returns(new PublishPrerequisiteChecker(_specificationFundingStatusService, _jobsRunning, _jobManagement, _logger));
             _generateCsvJobsLocator = Substitute.For<IGeneratePublishedFundingCsvJobsCreationLocator>();
             _mapper = Substitute.For<IMapper>();
             _transactionFactory = new TransactionFactory(_logger, new TransactionResiliencePolicies { TransactionPolicy = Policy.NoOpAsync() });
@@ -285,7 +285,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 .Should()
                 .Be($"Specification with id: '{SpecificationId} has prerequisites which aren't complete.");
 
-            string[] prereqValidationErrors = new string[] { "Calculation engine is still running" };
+            string[] prereqValidationErrors = new string[] { $"{JobConstants.DefinitionNames.RefreshFundingJob} is still running" };
 
             _jobsApiClient.Received(1)
                 .AddJobLog(Arg.Is(JobId),
@@ -390,10 +390,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             string[] jobTypes = new string[] { JobConstants.DefinitionNames.RefreshFundingJob, 
                 JobConstants.DefinitionNames.ApproveFunding,
                 JobConstants.DefinitionNames.ReIndexPublishedProvidersJob };
-            
-            _calculationEngineRunningChecker
-                .IsCalculationEngineRunning(Arg.Is(SpecificationId), Arg.Is<IEnumerable<string>>(_ => _.All(jt => jobTypes.Contains(jt))))
-                .Returns(true);
+
+            _jobsRunning
+                .GetJobTypes(Arg.Is(SpecificationId), Arg.Is<IEnumerable<string>>(_ => _.All(jt => jobTypes.Contains(jt))))
+                .Returns(new[] { JobConstants.DefinitionNames.RefreshFundingJob });
         }
 
         private void AndCalculationResultsBySpecificationId()

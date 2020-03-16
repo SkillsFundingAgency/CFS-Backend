@@ -14,9 +14,9 @@ namespace CalculateFunding.Services.Publishing
     public class ApprovePrerequisiteChecker : BasePrerequisiteChecker, IPrerequisiteChecker
     {
         public ApprovePrerequisiteChecker(
-            ICalculationEngineRunningChecker calculationEngineRunningChecker,
+            IJobsRunning jobsRunning,
             IJobManagement jobManagement,
-            ILogger logger) : base(calculationEngineRunningChecker, jobManagement, logger)
+            ILogger logger) : base(jobsRunning, jobManagement, logger)
         {
         }
 

@@ -38,7 +38,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private ITransactionFactory _transactionFactory;
         private IPublishedProviderVersionService _publishedProviderVersionService;
         private ITransactionResiliencePolicies _transactionResiliencePolicies;
-        private ICalculationEngineRunningChecker _calculationEngineRunningChecker;
+        private IJobsRunning _jobsRunning;
         private IJobsApiClient _jobsApiClient;
         private ILogger _logger;
         private Message _message;
@@ -54,10 +54,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             _logger = Substitute.For<ILogger>();
             _jobsApiClient = Substitute.For<IJobsApiClient>();
             _jobManagement = new JobManagement(_jobsApiClient, _logger, new JobManagementResiliencePolicies { JobsApiClient = Policy.NoOpAsync() });
-            _calculationEngineRunningChecker = Substitute.For<ICalculationEngineRunningChecker>();
+            _jobsRunning = Substitute.For<IJobsRunning>();
             _prerequisiteCheckerLocator = Substitute.For<IPrerequisiteCheckerLocator>();
             _prerequisiteCheckerLocator.GetPreReqChecker(PrerequisiteCheckerType.Approve)
-                .Returns(new ApprovePrerequisiteChecker(_calculationEngineRunningChecker, _jobManagement, _logger));
+                .Returns(new ApprovePrerequisiteChecker(_jobsRunning, _jobManagement, _logger));
             _publishedFundingDataService = Substitute.For<IPublishedFundingDataService>();
             _publishedProviderStatusUpdateService = Substitute.For<IPublishedProviderStatusUpdateService>();
             _publishedProviderIndexerService = Substitute.For<IPublishedProviderIndexerService>();
@@ -118,10 +118,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .Should()
                 .Be($"Specification with id: '{specificationId} has prerequisites which aren't complete.");
 
-            string[] prereqValidationErrors = new string[] { "Calculation engine is still running" };
+            string[] prereqValidationErrors = new string[] { $"{JobConstants.DefinitionNames.RefreshFundingJob} is still running" };
 
             _logger.Received(1)
-                .Error("Calculation engine is still running");
+                .Error($"{JobConstants.DefinitionNames.RefreshFundingJob} is still running");
 
             _jobsApiClient.Received(1)
                 .AddJobLog(Arg.Is(_jobId), Arg.Is<JobLogUpdateModel>(_ => _.CompletedSuccessfully == false && _.Outcome == string.Join(", ", prereqValidationErrors)));
@@ -242,9 +242,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 JobConstants.DefinitionNames.PublishProviderFundingJob,
                 JobConstants.DefinitionNames.ReIndexPublishedProvidersJob };
 
-            _calculationEngineRunningChecker
-                .IsCalculationEngineRunning(Arg.Is(specificationId), Arg.Is<IEnumerable<string>>(_ => _.All(jt => jobTypes.Contains(jt))))
-                .Returns(true);
+            _jobsRunning
+                .GetJobTypes(Arg.Is(specificationId), Arg.Is<IEnumerable<string>>(_ => _.All(jt => jobTypes.Contains(jt))))
+                .Returns(new[] { JobConstants.DefinitionNames.RefreshFundingJob });
         }
 
         private void GivenTheMessageHasAJobId()

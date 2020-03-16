@@ -82,7 +82,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         private IPublishingFeatureFlag _publishingFeatureFlag;
         private FundingConfiguration _fundingConfiguration;
         private ISpecificationFundingStatusService _specificationFundingStatusService;
-        private ICalculationEngineRunningChecker _calculationEngineRunningChecker;
+        private IJobsRunning _jobsRunning;
         private ICalculationPrerequisiteCheckerService _calculationApprovalCheckerService;
         private IMapper _mapper;
         private string _providerIdVaried;
@@ -112,7 +112,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             _profilingService = Substitute.For<IProfilingService>();
             _calculationsApiClient = Substitute.For<ICalculationsApiClient>();
             _specificationFundingStatusService = Substitute.For<ISpecificationFundingStatusService>();
-            _calculationEngineRunningChecker = Substitute.For<ICalculationEngineRunningChecker>();
+            _jobsRunning = Substitute.For<IJobsRunning>();
             _calculationApprovalCheckerService = Substitute.For<ICalculationPrerequisiteCheckerService>();
             _providerExclusionCheck = Substitute.For<IPublishProviderExclusionCheck>();
             _fundingLineValueOverride = Substitute.For<IFundingLineValueOverride>();
@@ -121,7 +121,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             _jobManagement = new JobManagement(_jobsApiClient, _logger, new JobManagementResiliencePolicies { JobsApiClient = Policy.NoOpAsync() });
             _prerequisiteCheckerLocator = Substitute.For<IPrerequisiteCheckerLocator>();
             _prerequisiteCheckerLocator.GetPreReqChecker(PrerequisiteCheckerType.Refresh)
-                .Returns(new RefreshPrerequisiteChecker(_specificationFundingStatusService, _specificationService, _calculationEngineRunningChecker, _calculationApprovalCheckerService, _jobManagement, _logger));
+                .Returns(new RefreshPrerequisiteChecker(_specificationFundingStatusService, _specificationService, _jobsRunning, _calculationApprovalCheckerService, _jobManagement, _logger));
             _transactionFactory = new TransactionFactory(_logger, new TransactionResiliencePolicies { TransactionPolicy = Policy.NoOpAsync() });
             _publishedProviderVersionService = Substitute.For<IPublishedProviderVersionService>();
             _generateCsvJobsLocator = Substitute.For<IGeneratePublishedFundingCsvJobsCreationLocator>();
@@ -369,7 +369,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             AndScopedProviderCalculationResults();
             AndTemplateMapping();
             AndPublishedProviders();
-            AndCalculationEngineRunning();
+            AndJobsRunning();
 
             Func<Task> invocation = WhenMessageReceivedWithJobId;
 
@@ -381,7 +381,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 .Should()
                 .Be($"Specification with id: '{SpecificationId} has prerequisites which aren't complete.");
 
-            string[] prereqValidationErrors = new string[] { "Calculation engine is still running" };
+            string[] prereqValidationErrors = new string[] { $"{JobConstants.DefinitionNames.CreateInstructAllocationJob} is still running" };
 
             _jobsApiClient.Received(1)
                 .AddJobLog(Arg.Is(JobId), Arg.Is<JobLogUpdateModel>(_ => _.CompletedSuccessfully == false && _.Outcome == string.Join(", ", prereqValidationErrors)));
@@ -622,15 +622,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 .Returns(_publishedProviders);
         }
 
-        private void AndCalculationEngineRunning()
+        private void AndJobsRunning()
         {
             string[] jobTypes = new string[] { JobConstants.DefinitionNames.CreateInstructAllocationJob, JobConstants.DefinitionNames.ApproveFunding,
                 JobConstants.DefinitionNames.PublishProviderFundingJob,
                 JobConstants.DefinitionNames.ReIndexPublishedProvidersJob };
 
-            _calculationEngineRunningChecker
-                .IsCalculationEngineRunning(Arg.Is(SpecificationId), Arg.Is<IEnumerable<string>>(_ => _.All(jt => jobTypes.Contains(jt))))
-                .Returns(true);
+            _jobsRunning
+                .GetJobTypes(Arg.Is(SpecificationId), Arg.Is<IEnumerable<string>>(_ => _.All(jt => jobTypes.Contains(jt))))
+                .Returns(new[] { JobConstants.DefinitionNames.CreateInstructAllocationJob });
         }
 
         private void GivenVariationsEnabled()

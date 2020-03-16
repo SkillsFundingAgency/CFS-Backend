@@ -2,6 +2,7 @@
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core;
+using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Publishing.Interfaces;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -15,7 +16,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
     [TestClass]
     public class ApprovePrerequisiteCheckerTests
     {
-        private ICalculationEngineRunningChecker _calculationEngineRunningChecker;
+        private IJobsRunning _jobsRunning;
         private ILogger _logger;
         private IJobManagement _jobManagement;
         private ApprovePrerequisiteChecker _approvePrerequisiteChecker;
@@ -23,12 +24,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         [TestInitialize]
         public void SetUp()
         {
-            _calculationEngineRunningChecker = Substitute.For<ICalculationEngineRunningChecker>();
+            _jobsRunning = Substitute.For<IJobsRunning>();
             _jobManagement = Substitute.For<IJobManagement>();
             _logger = Substitute.For<ILogger>();
 
             _approvePrerequisiteChecker = new ApprovePrerequisiteChecker(
-                _calculationEngineRunningChecker,
+                _jobsRunning,
                 _jobManagement,
                 _logger);
         }
@@ -51,14 +52,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         }
 
         [TestMethod]
-        public void ReturnsErrorMessageWhenCalculationEngineRunning()
+        public void ReturnsErrorMessageWhenJobTypesRunning()
         {
             // Arrange
             string specificationId = "specId01";
             
-            string errorMessage = "Calculation engine is still running";
+            string errorMessage = $"{JobConstants.DefinitionNames.RefreshFundingJob} is still running";
 
-            GivenCalculationEngineRunningStatusForTheSpecification(specificationId, true);
+            GivenCalculationEngineRunningStatusForTheSpecification(specificationId, JobConstants.DefinitionNames.RefreshFundingJob);
             
             // Act
             Func<Task> invocation
@@ -76,10 +77,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .Error(errorMessage);
         }
 
-        private void GivenCalculationEngineRunningStatusForTheSpecification(string specificationId, bool calculationEngineRunningStatus)
+        private void GivenCalculationEngineRunningStatusForTheSpecification(string specificationId, params string[] jobDefinitions)
         {
-            _calculationEngineRunningChecker.IsCalculationEngineRunning(specificationId, Arg.Any<string[]>())
-                .Returns(calculationEngineRunningStatus);
+            _jobsRunning.GetJobTypes(specificationId, Arg.Any<string[]>())
+                .Returns(jobDefinitions);
         }
 
         private async Task WhenThePreRequisitesAreChecked(string specificationId)

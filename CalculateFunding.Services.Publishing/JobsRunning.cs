@@ -12,13 +12,13 @@ using Polly;
 
 namespace CalculateFunding.Services.Publishing
 {
-    public class CalculationEngineRunningChecker : ICalculationEngineRunningChecker
+    public class JobsRunning : IJobsRunning
     {
         private readonly IJobsApiClient _jobsApiClient;
         private readonly Policy _resiliencePolicy;
 
 
-        public CalculationEngineRunningChecker(
+        public JobsRunning(
             IJobsApiClient jobsApiClient,
             IPublishingResiliencePolicies publishingResiliencePolicies)
         {
@@ -29,7 +29,7 @@ namespace CalculateFunding.Services.Publishing
             _resiliencePolicy = publishingResiliencePolicies.JobsApiClient;
         }
 
-        public async Task<bool> IsCalculationEngineRunning(string specificationId, IEnumerable<string> jobTypes)
+        public async Task<IEnumerable<string>> GetJobTypes(string specificationId, IEnumerable<string> jobTypes)
         {
             Guard.ArgumentNotNull(jobTypes, nameof(jobTypes));
 
@@ -38,7 +38,7 @@ namespace CalculateFunding.Services.Publishing
 
             await TaskHelper.WhenAllAndThrow(jobResponses.ToArraySafe());
 
-            return jobResponses.Any(_ =>  _.Result?.Content != null && ((JobSummary)_.Result?.Content).RunningStatus == RunningStatus.InProgress);
+            return jobResponses.Select(_ => _.Result?.Content).Where(_ =>  _ != null && _.RunningStatus == RunningStatus.InProgress).Select(_ => _.JobType);
         }
     }
 }

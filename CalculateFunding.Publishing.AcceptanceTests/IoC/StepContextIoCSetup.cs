@@ -197,9 +197,8 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
             RegisterTypeAs<VariationServiceStepContext, IVariationServiceStepContext>();
             RegisterTypeAs<CalculationsInMemoryClient, ICalculationsApiClient>();
             RegisterTypeAs<CalculationPrerequisiteCheckerService, ICalculationPrerequisiteCheckerService>();
-            RegisterTypeAs<CalculationEngineRunningChecker, ICalculationEngineRunningChecker>();
+            RegisterTypeAs<JobsRunning, IJobsRunning>();
             RegisterTypeAs<SpecificationFundingStatusService, ISpecificationFundingStatusService>();
-            RegisterTypeAs<CalculationEngineRunningChecker, ICalculationEngineRunningChecker>();
             RegisterTypeAs<CalculationPrerequisiteCheckerService, ICalculationPrerequisiteCheckerService>();
             RegisterTypeAs<RefreshPrerequisiteChecker, IPrerequisiteChecker>();
             RegisterTypeAs<PublishPrerequisiteChecker, IPrerequisiteChecker>();

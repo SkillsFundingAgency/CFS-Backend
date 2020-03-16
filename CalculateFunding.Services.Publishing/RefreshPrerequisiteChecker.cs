@@ -23,10 +23,10 @@ namespace CalculateFunding.Services.Publishing
         public RefreshPrerequisiteChecker(
             ISpecificationFundingStatusService specificationFundingStatusService,
             ISpecificationService specificationService,
-            ICalculationEngineRunningChecker calculationEngineRunningChecker,
+            IJobsRunning jobsRunning,
             ICalculationPrerequisiteCheckerService calculationApprovalCheckerService,
             IJobManagement jobManagement,
-            ILogger logger) : base(calculationEngineRunningChecker, jobManagement, logger)
+            ILogger logger) : base(jobsRunning, jobManagement, logger)
         {
             Guard.ArgumentNotNull(specificationFundingStatusService, nameof(specificationFundingStatusService));
             Guard.ArgumentNotNull(specificationService, nameof(specificationService));

@@ -16,7 +16,7 @@ using System.Threading.Tasks;
 namespace CalculateFunding.Services.Publishing.UnitTests
 {
     [TestClass]
-    public class CalculationEngineRunningCheckerTests
+    public class JobsRunningCheckerTests
 
     {
         private IJobsApiClient _jobs;
@@ -24,7 +24,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private string _specificationId;
         private string[] _jobTypes;
 
-        private CalculationEngineRunningChecker _calculationEngineRunningChecker;
+        private JobsRunning _jobsRunning;
 
         [TestInitialize]
         public void SetUp()
@@ -33,7 +33,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             _specificationId = NewRandomString();
             _jobTypes = new string[] { JobConstants.DefinitionNames.CreateInstructAllocationJob };
 
-            _calculationEngineRunningChecker = new CalculationEngineRunningChecker(_jobs,
+            _jobsRunning = new JobsRunning(_jobs,
                 new ResiliencePolicies
                 {
                     JobsApiClient = Policy.NoOpAsync()
@@ -50,12 +50,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             });
 
             //Act
-            bool running = await WhenTheCalculationEngineRunningStatusIsChecked();
+            IEnumerable<string> jobTypes = await WhenJobsAreRunningStatusIsChecked();
 
             //Assert
-            running
+            jobTypes
                 .Should()
-                .Be(true);
+                .NotBeEmpty();
         }
 
         [TestMethod]
@@ -65,24 +65,24 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             GivenTheJobForTheJobId(_ => _.WithJobType(_jobTypes.Single()));
 
             //Act
-            bool running = await WhenTheCalculationEngineRunningStatusIsChecked();
+            IEnumerable<string> jobTypes = await WhenJobsAreRunningStatusIsChecked();
 
             //Assert
-            running
+            jobTypes
                 .Should()
-                .Be(false);
+                .BeEmpty();
         }
 
         [TestMethod]
         public async Task CalculationEngineRunningChecker_WhenNoCreateAllocationJobsForSpecificationAreFound_FalseIsReturned()
         {
             //Act
-            bool running = await WhenTheCalculationEngineRunningStatusIsChecked();
+            IEnumerable<string> jobTypes = await WhenJobsAreRunningStatusIsChecked();
 
             //Assert
-            running
+            jobTypes
                 .Should()
-                .Be(false);
+                .BeEmpty();
         }
 
         private static RandomString NewRandomString()
@@ -102,9 +102,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .Returns(new ApiResponse<JobSummary>(HttpStatusCode.OK, _job));
         }
 
-        private async Task<bool> WhenTheCalculationEngineRunningStatusIsChecked()
+        private async Task<IEnumerable<string>> WhenJobsAreRunningStatusIsChecked()
         {
-            return await _calculationEngineRunningChecker.IsCalculationEngineRunning(_specificationId, _jobTypes);
+            return await _jobsRunning.GetJobTypes(_specificationId, _jobTypes);
         }
     }
 }

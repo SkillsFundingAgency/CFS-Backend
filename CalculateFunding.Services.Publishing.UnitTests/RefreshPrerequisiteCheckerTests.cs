@@ -2,6 +2,7 @@
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core;
+using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Publishing.Interfaces;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -20,7 +21,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
     {
         private ISpecificationFundingStatusService _specificationFundingStatusService;
         private ISpecificationService _specificationService;
-        private ICalculationEngineRunningChecker _calculationEngineRunningChecker;
+        private IJobsRunning _jobsRunning;
         private ICalculationPrerequisiteCheckerService _calculationApprovalCheckerService;
         private IJobManagement _jobManagement;
         private ILogger _logger;
@@ -33,15 +34,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         {
             _specificationFundingStatusService = Substitute.For<ISpecificationFundingStatusService>();
             _specificationService = Substitute.For<ISpecificationService>();
-            _calculationEngineRunningChecker = Substitute.For<ICalculationEngineRunningChecker>();
+            _jobsRunning = Substitute.For<IJobsRunning>();
             _calculationApprovalCheckerService = Substitute.For<ICalculationPrerequisiteCheckerService>();
             _jobManagement = Substitute.For<IJobManagement>();
             _logger = Substitute.For<ILogger>();
 
             _refreshPrerequisiteChecker = new RefreshPrerequisiteChecker(
                 _specificationFundingStatusService, 
-                _specificationService, 
-                _calculationEngineRunningChecker,
+                _specificationService,
+                _jobsRunning,
                 _calculationApprovalCheckerService,
                 _jobManagement,
                 _logger);
@@ -121,16 +122,16 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         }
 
         [TestMethod]
-        public void ReturnsErrorMessageWhenCalculationEngineRunning()
+        public void ReturnsErrorMessageWhenJobsRunning()
         {
             // Arrange
             string specificationId = "specId01";
             SpecificationSummary specificationSummary = new SpecificationSummary { Id = specificationId };
 
-            string errorMessage = "Calculation engine is still running";
+            string errorMessage = $"{JobConstants.DefinitionNames.CreateInstructAllocationJob} is still running";
 
             GivenTheSpecificationFundingStatusForTheSpecification(specificationSummary, SpecificationFundingStatus.AlreadyChosen);
-            GivenCalculationEngineRunningStatusForTheSpecification(specificationId, true);
+            GivenCalculationEngineRunningStatusForTheSpecification(specificationId, JobConstants.DefinitionNames.CreateInstructAllocationJob);
             GivenValidationErrorsForTheSpecification(specificationSummary, Enumerable.Empty<string>());
 
             // Act
@@ -159,7 +160,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             string errorMessage = "Error message";
 
             GivenTheSpecificationFundingStatusForTheSpecification(specificationSummary, SpecificationFundingStatus.AlreadyChosen);
-            GivenCalculationEngineRunningStatusForTheSpecification(specificationId, false);
+            GivenCalculationEngineRunningStatusForTheSpecification(specificationId);
             GivenValidationErrorsForTheSpecification(specificationSummary, new List<string> { errorMessage });
 
             // Act
@@ -190,10 +191,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .Throws(ex);
         }
 
-        private void GivenCalculationEngineRunningStatusForTheSpecification(string specificationId, bool calculationEngineRunningStatus)
+        private void GivenCalculationEngineRunningStatusForTheSpecification(string specificationId, params string[] jobDefinitions)
         {
-            _calculationEngineRunningChecker.IsCalculationEngineRunning(specificationId, Arg.Any<string[]>())
-                .Returns(calculationEngineRunningStatus);
+            _jobsRunning.GetJobTypes(specificationId, Arg.Any<string[]>())
+                .Returns(jobDefinitions);
         }
 
         private void GivenValidationErrorsForTheSpecification(SpecificationSummary specification, IEnumerable<string> validationErrors)

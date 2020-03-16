@@ -276,7 +276,7 @@ namespace CalculateFunding.Functions.Publishing
 
             builder.AddSingleton<IPublishedProviderDataPopulator, PublishedProviderDataPopulator>();
 
-            builder.AddSingleton<ICalculationEngineRunningChecker, CalculationEngineRunningChecker>();
+            builder.AddSingleton<IJobsRunning, JobsRunning>();
 
             builder.AddSingleton<ICalculationPrerequisiteCheckerService, CalculationPrerequisiteCheckerService>();
 

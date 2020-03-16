@@ -19,9 +19,9 @@ namespace CalculateFunding.Services.Publishing
 
         public PublishPrerequisiteChecker(
             ISpecificationFundingStatusService specificationFundingStatusService,
-            ICalculationEngineRunningChecker calculationEngineRunningChecker,
+            IJobsRunning jobsRunning,
             IJobManagement jobManagement,
-            ILogger logger) : base(calculationEngineRunningChecker, jobManagement, logger)
+            ILogger logger) : base(jobsRunning, jobManagement, logger)
         {
             Guard.ArgumentNotNull(specificationFundingStatusService, nameof(specificationFundingStatusService));
             Guard.ArgumentNotNull(logger, nameof(logger));
