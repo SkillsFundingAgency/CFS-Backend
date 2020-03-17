@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CalculateFunding.Common.ApiClient.Graph" Version="1.0.3" />
+    <PackageReference Include="CalculateFunding.Common.ApiClient.Graph" Version="1.0.5" />
     <PackageReference Include="CalculateFunding.Common.ApiClient.Policies" Version="2.0.17" />
     <PackageReference Include="CalculateFunding.Common.ApiClient.Providers" Version="1.0.25" />
     <PackageReference Include="CalculateFunding.Common.ApiClient.Specifications" Version="1.0.27" />
@@ -27,6 +27,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CalculateFunding.Models.Calcs\CalculateFunding.Models.Calcs.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Models.Graph\CalculateFunding.Models.Graph.csproj" />
     <ProjectReference Include="..\CalculateFunding.Models.Datasets\CalculateFunding.Models.Datasets.csproj" />
     <ProjectReference Include="..\CalculateFunding.Models.Messages\CalculateFunding.Models.Messages.csproj" />
     <ProjectReference Include="..\CalculateFunding.Models.Specs\CalculateFunding.Models.Specs.csproj" />

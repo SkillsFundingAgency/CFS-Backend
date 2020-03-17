@@ -2,6 +2,7 @@
 using AutoMapper;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets.Schema;
+using GraphCalculation = CalculateFunding.Models.Graph.Calculation;
 
 namespace CalculateFunding.Services.Calcs.MappingProfiles
 {
@@ -37,13 +38,23 @@ namespace CalculateFunding.Services.Calcs.MappingProfiles
 
         private void CreateGraphMappingProfiles()
         {
-            CreateMap<Common.ApiClient.Calcs.Models.Calculation, Models.Graph.Calculation>();
+            CreateMap<Common.ApiClient.Calcs.Models.Calculation, GraphCalculation>();
+            CreateMap<Calculation, GraphCalculation>()
+                .ForMember(dst => dst.CalculationId,
+                    map => map.MapFrom(src => src.Current.CalculationId))
+                .ForMember(dst => dst.CalculationName,
+                    map => map.MapFrom(src => src.Current.Name))
+                .ForMember(dst => dst.CalculationType,
+                    map => map.MapFrom(src => src.Current.CalculationType))
+                .ForMember(dst => dst.FundingStream,
+                    map => map.MapFrom(src => src.FundingStreamId));
+
             CreateMap<Common.ApiClient.Specifications.Models.SpecificationSummary, Models.Graph.Specification>()
                 .ForMember(dst => dst.SpecificationId, 
                     map 
                         => map.MapFrom(src => src.Id));
             
-            CreateMap<Models.Graph.Calculation, Common.ApiClient.Graph.Models.Calculation>();
+            CreateMap<GraphCalculation, Common.ApiClient.Graph.Models.Calculation>();
             CreateMap<Models.Graph.CalculationType, Common.ApiClient.Graph.Models.CalculationType>();
             CreateMap<Models.Graph.Specification, Common.ApiClient.Graph.Models.Specification>();
         }
