@@ -41,6 +41,7 @@ namespace CalculateFunding.Services.Publishing.Reporting
             foreach (string fundingLineCode in fundingLineCodes)
             {
                 await CreatePublishedFundingCsvJob(specificationId, correlationId, user, FundingLineCsvGeneratorJobType.CurrentProfileValues, fundingLineCode);
+                await CreatePublishedFundingCsvJob(specificationId, correlationId, user, FundingLineCsvGeneratorJobType.HistoryProfileValues, fundingLineCode);
             }
         }
 

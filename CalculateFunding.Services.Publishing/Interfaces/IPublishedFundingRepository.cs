@@ -69,6 +69,6 @@ namespace CalculateFunding.Services.Publishing.Interfaces
             Func<List<PublishedProviderVersion>, Task> persistIndexBatch,
             int batchSize);
 
-        Task<IEnumerable<string>> GetPublishedProviderFundingLines(string specificationId);
+        Task<IEnumerable<string>> GetPublishedProviderFundingLines(string specificationId, GroupingReason fundingLineType);
     }
 }

@@ -644,7 +644,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
                 itemsPerPage: batchSize);
         }
 
-        public async Task<IEnumerable<string>> GetPublishedProviderFundingLines(string specificationId)
+        public async Task<IEnumerable<string>> GetPublishedProviderFundingLines(string specificationId, GroupingReason fundingLineType)
         {
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
 
@@ -657,11 +657,13 @@ namespace CalculateFunding.Services.Publishing.Repositories
                                 FROM publishedProviders p
                                 JOIN f IN p.content.current.fundingLines
                                 WHERE    p.documentType = 'PublishedProvider'
+                                AND      f.type = @fundingLineType
                                 AND      p.content.current.specificationId = @specificationId
                                 AND      p.deleted = false",
                  Parameters = new[]
                  {
-                                    new CosmosDbQueryParameter("@specificationId", specificationId),
+                    new CosmosDbQueryParameter("@specificationId", specificationId),
+                    new CosmosDbQueryParameter("@fundingLineType", fundingLineType.ToString()),
                  }
              });
 

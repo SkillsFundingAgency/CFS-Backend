@@ -20,6 +20,7 @@ namespace CalculateFunding.Services.Publishing.Reporting
         {
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
             Guard.ArgumentNotNull(user, nameof(user));
+            Guard.ArgumentNotNull(fundingLineCodes, nameof(fundingLineCodes));
 
             await CreatePublishedFundingCsvJobs(specificationId, correlationId, user, fundingLineCodes);
             await CreatePublishedProviderEstateCsvJobs(specificationId, correlationId, user);

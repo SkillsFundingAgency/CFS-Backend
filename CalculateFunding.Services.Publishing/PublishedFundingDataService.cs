@@ -172,7 +172,7 @@ namespace CalculateFunding.Services.Publishing
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
 
             IEnumerable<string> result = await _publishedFundingRepositoryPolicy.ExecuteAsync(
-                                () => _publishedFundingRepository.GetPublishedProviderFundingLines(specificationId));
+                                () => _publishedFundingRepository.GetPublishedProviderFundingLines(specificationId, GroupingReason.Payment));
 
             return result;
         }

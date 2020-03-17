@@ -10,6 +10,7 @@ using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
+using GroupingReason = CalculateFunding.Services.Publishing.GroupingReason;
 
 namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 {
@@ -283,7 +284,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             throw new NotImplementedException();
         }
 
-        public Task<IEnumerable<string>> GetPublishedProviderFundingLines(string specificationId)
+        public Task<IEnumerable<string>> GetPublishedProviderFundingLines(string specificationId, GroupingReason fundingLineType)
         {
             IEnumerable<PublishedProvider> publishedProviders = null;
             if (_repo.PublishedProviders.ContainsKey(specificationId))
