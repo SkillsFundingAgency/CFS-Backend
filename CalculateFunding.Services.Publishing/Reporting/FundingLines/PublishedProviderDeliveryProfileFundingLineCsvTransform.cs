@@ -1,10 +1,13 @@
-﻿using CalculateFunding.Models.Publishing;
+﻿using System;
+using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Profiling;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
 {
+    //TODO; Put this under test 
+    //TODO; change this name to something meaningful (probably PublishedProviderFundingLineProfileValuesCsvTransform)
     public class PublishedProviderDeliveryProfileFundingLineCsvTransform : FundingLineCsvTransformBase
     {
         public override bool IsForJobType(FundingLineCsvGeneratorJobType jobType)
@@ -19,7 +22,13 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
 
         protected override void TransformFundingLine(IDictionary<string, object> row, PublishedProviderVersion publishedProviderVersion)
         {
-            FundingLine fundingLine = publishedProviderVersion.FundingLines.FirstOrDefault();
+            FundingLine fundingLine = publishedProviderVersion.FundingLines.SingleOrDefault();
+
+            if (fundingLine == null)
+            {
+                throw new InvalidOperationException("Expected to transform a funding line but none located on published provider version");
+            }
+
             row["Total Funding"] = fundingLine.Value;
             
             foreach (ProfilePeriod profilePeriod in new YearMonthOrderedProfilePeriods(fundingLine))

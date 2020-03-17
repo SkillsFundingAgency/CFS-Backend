@@ -19,7 +19,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
         [TestMethod]
         [DataRow(FundingLineCsvGeneratorJobType.CurrentState, "1 = 1")]
         [DataRow(FundingLineCsvGeneratorJobType.Released, "c.content.current.status = 'Released'")]
-        [DataRow(FundingLineCsvGeneratorJobType.CurrentProfileValues, "fl.name = @fundingLineCode")]
+        [DataRow(FundingLineCsvGeneratorJobType.CurrentProfileValues, "1 = 1")]
+        [DataRow(FundingLineCsvGeneratorJobType.HistoryProfileValues, "1 = 1")]
         public void ReturnsPredicatesAppropriateToJobTypes(FundingLineCsvGeneratorJobType jobType,
             string expectedPredicate)
         {
@@ -29,7 +30,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
         }
 
         [TestMethod]
-        [DataRow(FundingLineCsvGeneratorJobType.CurrentProfileValues, "JOIN fl IN c.content.current.fundingLines")]
+        [DataRow(FundingLineCsvGeneratorJobType.CurrentProfileValues, "WHERE fundingLine.name = @fundingLineCode")]
+        [DataRow(FundingLineCsvGeneratorJobType.HistoryProfileValues, "WHERE fundingLine.name = @fundingLineCode")]
         public void ReturnsJoinPredicatesAppropriateToJobTypes(FundingLineCsvGeneratorJobType jobType,
             string expectedPredicate)
         {

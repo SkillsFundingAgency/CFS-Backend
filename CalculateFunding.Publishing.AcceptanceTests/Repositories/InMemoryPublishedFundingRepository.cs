@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
@@ -251,12 +252,13 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             throw new NotImplementedException();
         }
 
-        public Task PublishedProviderBatchProcessing(string predicate, string specificationId, Func<List<PublishedProvider>, Task> batchProcessor, int batchSize)
+        public Task PublishedProviderBatchProcessing(string predicate, string specificationId, Func<List<PublishedProvider>, Task> batchProcessor, int batchSize,
+            string joinPredicate = null, string fundingLineCode = null)
         {
             throw new NotImplementedException();
         }
 
-        public Task PublishedProviderVersionBatchProcessing(string specificationId, Func<List<PublishedProviderVersion>, Task> batchProcessor, int batchSize)
+        public Task PublishedProviderVersionBatchProcessing(string predicate, string specificationId, Func<List<PublishedProviderVersion>, Task> batchProcessor, int batchSize, string joinPredicate = null, string fundingLineCode = null)
         {
             throw new NotImplementedException();
         }
@@ -277,11 +279,6 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         }
 
         public Task RefreshedProviderVersionBatchProcessing(string specificationId, Func<List<PublishedProviderVersion>, Task> persistIndexBatch, int batchSize)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task PublishedProviderBatchProcessing(string predicate, string specificationId, Func<List<PublishedProvider>, Task> batchProcessor, int batchSize, string joinPredicate = null, string fundingLineCode = null)
         {
             throw new NotImplementedException();
         }

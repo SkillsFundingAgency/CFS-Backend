@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Publishing;
 
@@ -40,6 +42,20 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
             setUp?.Invoke(referenceBuilder);
 
             return referenceBuilder.Build();
+        }
+
+        protected static IEnumerable<PublishedProvider> NewPublishedProviders(params Action<PublishedProviderBuilder>[] setUps)
+        {
+            return setUps.Select(NewPublishedProvider);
+        }
+
+        private static PublishedProvider NewPublishedProvider(Action<PublishedProviderBuilder> setUp = null)
+        {
+            PublishedProviderBuilder publishedProviderBuilder = new PublishedProviderBuilder();
+
+            setUp?.Invoke(publishedProviderBuilder);
+
+            return publishedProviderBuilder.Build();
         }
     }
 }

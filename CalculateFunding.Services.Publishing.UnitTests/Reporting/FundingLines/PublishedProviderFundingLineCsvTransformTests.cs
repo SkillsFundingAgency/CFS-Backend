@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Globalization;
@@ -24,6 +23,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
         [TestMethod]
         [DataRow(FundingLineCsvGeneratorJobType.Undefined, false)]
         [DataRow(FundingLineCsvGeneratorJobType.CurrentState, true)]
+        [DataRow(FundingLineCsvGeneratorJobType.HistoryProfileValues, false)]
+        [DataRow(FundingLineCsvGeneratorJobType.CurrentProfileValues, false)]
         [DataRow(FundingLineCsvGeneratorJobType.Released, true)]
         [DataRow(FundingLineCsvGeneratorJobType.History, false)]
         public void SupportsCurrentStateJobType(FundingLineCsvGeneratorJobType jobType,
@@ -119,20 +120,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
                 .Should()
                 .BeEquivalentTo(expectedCsvRows,
                     cfg => cfg.WithStrictOrdering());
-        }
-
-        private static IEnumerable<PublishedProvider> NewPublishedProviders(params Action<PublishedProviderBuilder>[] setUps)
-        {
-            return setUps.Select(NewPublishedProvider);
-        }
-
-        private static PublishedProvider NewPublishedProvider(Action<PublishedProviderBuilder> setUp = null)
-        {
-            PublishedProviderBuilder publishedProviderBuilder = new PublishedProviderBuilder();
-
-            setUp?.Invoke(publishedProviderBuilder);
-
-            return publishedProviderBuilder.Build();
         }
     }
 }

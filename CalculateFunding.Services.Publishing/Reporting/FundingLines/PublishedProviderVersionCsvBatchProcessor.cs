@@ -32,7 +32,8 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
 
         public bool IsForJobType(FundingLineCsvGeneratorJobType jobType)
         {
-            return jobType == FundingLineCsvGeneratorJobType.History;
+            return jobType == FundingLineCsvGeneratorJobType.History ||
+                   jobType == FundingLineCsvGeneratorJobType.HistoryProfileValues;
         }
 
         public async Task<bool> GenerateCsv(FundingLineCsvGeneratorJobType jobType,
@@ -44,7 +45,11 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
             bool outputHeaders = true;
             bool processedResults = false;
 
-            await _publishedFundingRepository.ExecuteAsync(() => _publishedFunding.PublishedProviderVersionBatchProcessing(specificationId,
+            string predicate = _predicateBuilder.BuildPredicate(jobType);
+            string join = _predicateBuilder.BuildJoinPredicate(jobType);
+
+            await _publishedFundingRepository.ExecuteAsync(() => _publishedFunding.PublishedProviderVersionBatchProcessing(predicate,
+                specificationId,
                 publishedProviderVersions =>
                 {
                     IEnumerable<ExpandoObject> csvRows = fundingLineCsvTransform.Transform(publishedProviderVersions);
@@ -54,7 +59,10 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
                     outputHeaders = false;
                     processedResults = true;
                     return Task.CompletedTask;
-                }, BatchSize)
+                }, 
+                BatchSize,
+                join,
+                fundingLineCode)
             );
             
             return processedResults;

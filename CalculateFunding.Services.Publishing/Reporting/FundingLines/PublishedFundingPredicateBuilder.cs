@@ -6,26 +6,28 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
 {
     public class PublishedFundingPredicateBuilder : IPublishedFundingPredicateBuilder
     {
-        private static readonly IDictionary<FundingLineCsvGeneratorJobType, string> _predicates = new Dictionary<FundingLineCsvGeneratorJobType, string>
+        private static readonly IDictionary<FundingLineCsvGeneratorJobType, string> Predicates = new Dictionary<FundingLineCsvGeneratorJobType, string>
         {
             {FundingLineCsvGeneratorJobType.CurrentState, "1 = 1"},
             {FundingLineCsvGeneratorJobType.Released, "c.content.current.status = 'Released'"},
-            {FundingLineCsvGeneratorJobType.CurrentProfileValues, "fl.name = @fundingLineCode"}
+            {FundingLineCsvGeneratorJobType.CurrentProfileValues, "1 = 1"},
+            {FundingLineCsvGeneratorJobType.HistoryProfileValues, "1 = 1"}
         };
 
-        private static readonly IDictionary<FundingLineCsvGeneratorJobType, string> _joinPredicates = new Dictionary<FundingLineCsvGeneratorJobType, string>
+        private static readonly IDictionary<FundingLineCsvGeneratorJobType, string> Joins = new Dictionary<FundingLineCsvGeneratorJobType, string>
         {
-            {FundingLineCsvGeneratorJobType.CurrentProfileValues, "JOIN fl IN c.content.current.fundingLines"}
+            {FundingLineCsvGeneratorJobType.CurrentProfileValues, "WHERE fundingLine.name = @fundingLineCode"},
+            {FundingLineCsvGeneratorJobType.HistoryProfileValues, "WHERE fundingLine.name = @fundingLineCode"}
         };
 
         public string BuildJoinPredicate(FundingLineCsvGeneratorJobType jobType)
         {
-            return _joinPredicates.TryGetValue(jobType, out string predicate) ? predicate : string.Empty;
+            return Joins.TryGetValue(jobType, out string @join) ? @join : string.Empty;
         }
 
         public string BuildPredicate(FundingLineCsvGeneratorJobType jobType)
         {
-            return _predicates.TryGetValue(jobType, out string predicate) ? predicate : throw new ArgumentOutOfRangeException();
+            return Predicates.TryGetValue(jobType, out string predicate) ? predicate : throw new ArgumentOutOfRangeException();
         }
     }
 }

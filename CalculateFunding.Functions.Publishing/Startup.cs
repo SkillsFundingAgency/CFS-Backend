@@ -157,6 +157,7 @@ namespace CalculateFunding.Functions.Publishing
             builder.AddScoped<IFundingLineCsvTransform, PublishedProviderFundingLineCsvTransform>();
             builder.AddScoped<IFundingLineCsvTransform, PublishedProviderVersionFundingLineCsvTransform>();
             builder.AddScoped<IFundingLineCsvTransform, PublishedProviderDeliveryProfileFundingLineCsvTransform>();
+            builder.AddScoped<IFundingLineCsvTransform, PublishedProviderVersionFundingLineProfileValuesCsvTransform>();
             builder.AddScoped<IFundingLineCsvTransformServiceLocator, FundingLineCsvTransformServiceLocator>();
             builder.AddScoped<IPublishedFundingPredicateBuilder, PublishedFundingPredicateBuilder>();
             

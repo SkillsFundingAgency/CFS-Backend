@@ -5,6 +5,7 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
@@ -370,51 +371,68 @@ namespace CalculateFunding.Services.Publishing.Repositories
                 itemsPerPage: 50);
         }
 
-        public async Task PublishedProviderVersionBatchProcessing(string specificationId,
+        public async Task PublishedProviderVersionBatchProcessing(string predicate,
+            string specificationId,
             Func<List<PublishedProviderVersion>, Task> batchProcessor,
-            int batchSize)
+            int batchSize,
+            string joinPredicate = null,
+            string fundingLineCode = null)
         {
                 CosmosDbQuery query = new CosmosDbQuery
-            {
-                QueryText = @"SELECT
-                                        c.content.id,
-                                        { 
-                                           'providerType' : c.content.provider.providerType,
-                                           'localAuthorityName' : c.content.provider.localAuthorityName,
-                                           'laCode' : c.content.provider.laCode,
-                                           'name' : c.content.provider.name,
-                                           'ukprn' : c.content.provider.ukprn,
-                                           'urn' : c.content.provider.urn,
-                                           'establishmentNumber' : c.content.provider.establishmentNumber
-                                        } AS Provider,
-                                        c.content.status,
-                                        c.content.totalFunding,
-                                        c.content.specificationId,
-                                        c.content.fundingStreamId,
-                                        c.content.providerId,
-                                        c.content.fundingPeriodId,
-                                        c.content.version,
-                                        c.content.majorVersion,
-                                        c.content.minorVersion,
-                                        c.content.date,
-                                        {
-                                            'name' : c.content.author.name
-                                        } AS Author,
-                                        ARRAY(
-                                            SELECT fundingLine.name,
-                                                   fundingLine['value']
-                                            FROM fundingLine IN c.content.fundingLines
-                                        ) AS FundingLines
-                               FROM     publishedProviderVersion c
-                               WHERE    c.documentType = 'PublishedProviderVersion'
-                               AND      c.content.specificationId = @specificationId
-                               AND      c.deleted = false
-                               ORDER BY c.content.provider.name",
-                Parameters = new []
                 {
-                    new CosmosDbQueryParameter("@specificationId", specificationId), 
-                }
-            };
+                    QueryText = $@"SELECT 
+                                c.content.id,
+                                c.content.providerId,
+                                c.content.fundingStreamId,
+                                c.content.fundingPeriodId,
+                                c.content.specificationId,
+                                c.content.status,
+                                c.content.totalFunding,
+                                c.content.version,
+                                c.content.majorVersion,
+                                c.content.minorVersion,
+                                c.content.date,
+                                {{
+                                    'name' : c.content.author.name
+                                }} AS Author,
+                                {{ 
+                                    'providerType' : c.content.provider.providerType,
+                                    'providerSubType' : c.content.provider.providerSubType,
+                                    'localAuthorityName' : c.content.provider.localAuthorityName,
+                                    'laCode' : c.content.provider.laCode,
+                                    'name' : c.content.provider.name,
+                                    'ukprn' : c.content.provider.ukprn,
+                                    'urn' : c.content.provider.urn,
+                                    'establishmentNumber' : c.content.provider.establishmentNumber
+                                }} AS Provider,
+                               ARRAY(
+                                    SELECT fundingLine.name,
+                                    fundingLine['value'],
+                                    ARRAY(
+                                        SELECT distributionPeriod['value'],
+                                        ARRAY(
+                                            SELECT profilePeriod.year,
+                                            profilePeriod.typeValue,
+                                            profilePeriod.occurrence,
+                                            profilePeriod.profiledValue
+                                            FROM profilePeriod IN distributionPeriod.profilePeriods
+                                        ) AS profilePeriods
+                                        FROM distributionPeriod IN fundingLine.distributionPeriods
+                                    ) AS distributionPeriods
+                                    FROM fundingLine IN c.content.fundingLines {joinPredicate}
+                                ) AS FundingLines
+                                FROM     publishedProviderVersions c
+                                WHERE    c.documentType = 'PublishedProviderVersion'
+                                AND      c.content.specificationId = @specificationId
+                                AND      {predicate} 
+                                AND      c.deleted = false
+                                ORDER BY c.content.provider.ukprn",
+                    Parameters = new []
+                    {
+                        new CosmosDbQueryParameter("@specificationId", specificationId),
+                        new CosmosDbQueryParameter("@fundingLineCode", fundingLineCode),
+                    }
+                };
 
             await _repository.DocumentsBatchProcessingAsync(persistBatchToIndex: batchProcessor,
                 cosmosDbQuery: query,
@@ -470,17 +488,15 @@ namespace CalculateFunding.Services.Publishing.Repositories
                                             ) AS profilePeriods
                                             FROM distributionPeriod IN fundingLine.distributionPeriods
                                         ) AS distributionPeriods
-                                        FROM fundingLine IN c.content.current.fundingLines
+                                        FROM fundingLine IN c.content.current.fundingLines  {joinPredicate}
                                     )
                                 }} AS Current
                                FROM     publishedProviders c
-                               {joinPredicate}
                                WHERE    c.documentType = 'PublishedProvider'
-                               {joinPredicate}
                                AND      c.content.current.specificationId = @specificationId
                                AND      {predicate} 
                                AND      c.deleted = false
-                                ORDER BY c.content.current.provider.ukprn",
+                               ORDER BY c.content.current.provider.ukprn",
                 Parameters = new []
                 {
                     new CosmosDbQueryParameter("@specificationId", specificationId),

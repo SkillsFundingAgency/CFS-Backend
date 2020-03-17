@@ -32,7 +32,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
         [DataRow(FundingLineCsvGeneratorJobType.History, true)]
         [DataRow(FundingLineCsvGeneratorJobType.Released, false)]
         [DataRow(FundingLineCsvGeneratorJobType.Undefined, false)]
-        [DataRow(FundingLineCsvGeneratorJobType.ProfileValues, false)]
+        [DataRow(FundingLineCsvGeneratorJobType.HistoryProfileValues, true)]
         [DataRow(FundingLineCsvGeneratorJobType.CurrentState, false)]
         [DataRow(FundingLineCsvGeneratorJobType.CurrentProfileValues, false)]
         public void SupportedJobTypes(FundingLineCsvGeneratorJobType jobType,
@@ -59,21 +59,22 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
         [TestMethod]
         [DataRow(FundingLineCsvGeneratorJobType.CurrentState)]
         [DataRow(FundingLineCsvGeneratorJobType.Released)]
+        [DataRow(FundingLineCsvGeneratorJobType.HistoryProfileValues)]
         public async Task TransformsPublishedProvidersForSpecificationInBatchesAndCreatesCsvWithResults(
             FundingLineCsvGeneratorJobType jobType)
         {
             string specificationId = NewRandomString();
             string fundingLineCode = NewRandomString();
-            string expectedInterimFilePath = "TODO;";
+            string expectedInterimFilePath = NewRandomString();
             
             IEnumerable<PublishedProviderVersion> publishProviderVersionsOne = new []
             {
-                new PublishedProviderVersion(),
+                NewPublishedProviderVersion(),
             };
             IEnumerable<PublishedProviderVersion> publishedProviderVersionTwo = new []
             {
-                new PublishedProviderVersion(),
-                new PublishedProviderVersion(),
+                NewPublishedProviderVersion(),
+                NewPublishedProviderVersion()
             };
             
             ExpandoObject[] transformedRowsOne = {
@@ -91,14 +92,23 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
             
             string expectedCsvOne = NewRandomString();
             string expectedCsvTwo = NewRandomString();
+            
+            string predicate = NewRandomString();
+            string joinPredicate = NewRandomString();
 
             GivenTheCsvRowTransformation(publishProviderVersionsOne, transformedRowsOne, expectedCsvOne, true);
             AndTheCsvRowTransformation(publishedProviderVersionTwo, transformedRowsTwo, expectedCsvTwo,  false);
+            AndThePredicate(jobType, predicate);
+            AndTheJoinPredicate(jobType, joinPredicate);
             
-            PublishedFunding.Setup(_ => _.PublishedProviderVersionBatchProcessing(specificationId,
+            PublishedFunding.Setup(_ => _.PublishedProviderVersionBatchProcessing(predicate,
+                    specificationId,
                     It.IsAny<Func<List<PublishedProviderVersion>, Task>>(),
-                    100))
-                .Callback<string, Func<List<PublishedProviderVersion>, Task>, int>((spec,  batchProcessor, batchSize) =>
+                    100,
+                    joinPredicate,
+                    fundingLineCode))
+                .Callback<string, string, Func<List<PublishedProviderVersion>, Task>, int, string, string>((pred, spec, 
+                    batchProcessor, batchSize, join, fl) =>
                 {
                     batchProcessor(publishProviderVersionsOne.ToList())
                         .GetAwaiter()
@@ -128,5 +138,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
                         default),
                     Times.Once);
         }
+        
+        private PublishedProviderVersion NewPublishedProviderVersion() => new PublishedProviderVersion();
     }
 }

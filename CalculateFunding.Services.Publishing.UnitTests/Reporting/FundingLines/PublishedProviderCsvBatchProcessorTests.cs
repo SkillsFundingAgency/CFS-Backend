@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Reporting.FundingLines;
 using FluentAssertions;
@@ -32,7 +33,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
         [DataRow(FundingLineCsvGeneratorJobType.History, false)]
         [DataRow(FundingLineCsvGeneratorJobType.Released, true)]
         [DataRow(FundingLineCsvGeneratorJobType.Undefined, false)]
-        [DataRow(FundingLineCsvGeneratorJobType.ProfileValues, false)]
+        [DataRow(FundingLineCsvGeneratorJobType.HistoryProfileValues, false)]
         [DataRow(FundingLineCsvGeneratorJobType.CurrentState, true)]
         [DataRow(FundingLineCsvGeneratorJobType.CurrentProfileValues, true)]
         public void SupportedJobTypes(FundingLineCsvGeneratorJobType jobType,
@@ -48,7 +49,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
         {
             string specificationId = NewRandomString();
 
-            bool processedResults = await WhenTheCsvIsGenerated(FundingLineCsvGeneratorJobType.Released, specificationId, NewRandomString(), null);
+            bool processedResults = await WhenTheCsvIsGenerated(FundingLineCsvGeneratorJobType.Released, specificationId, NewRandomString(), NewRandomString());
 
             processedResults
                 .Should()
@@ -64,17 +65,17 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
         {
             string specificationId = NewRandomString();
             string fundingLineCode = NewRandomString();
-            IEnumerable<string> fundingLineCodes = new[] { fundingLineCode };
-            string expectedInterimFilePath = "TODO;";
+            string expectedInterimFilePath = NewRandomString();
             
             IEnumerable<PublishedProvider> publishProvidersOne = new []
             {
-                new PublishedProvider(),
+                NewPublishedProvider(),
             };
             IEnumerable<PublishedProvider> publishedProvidersTwo = new []
             {
-                new PublishedProvider(),
-                new PublishedProvider(),
+                NewPublishedProvider(),
+                NewPublishedProvider(),
+                NewPublishedProvider()
             };
             
             ExpandoObject[] transformedRowsOne = {
@@ -137,5 +138,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
                         default),
                     Times.Once);
         }
+        
+        private PublishedProvider NewPublishedProvider() => new PublishedProvider();
     }
 }

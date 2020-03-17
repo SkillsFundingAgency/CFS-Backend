@@ -14,8 +14,7 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
         public override bool IsForJobType(FundingLineCsvGeneratorJobType jobType)
         {
             return jobType == FundingLineCsvGeneratorJobType.CurrentState ||
-                   jobType == FundingLineCsvGeneratorJobType.Released ||
-                   jobType == FundingLineCsvGeneratorJobType.CurrentProfileValues;
+                   jobType == FundingLineCsvGeneratorJobType.Released;
         }
     }
 }

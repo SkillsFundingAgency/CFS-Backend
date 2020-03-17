@@ -41,12 +41,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
             return await BatchProcessor.GenerateCsv(jobType, specificationId, path, _transformation.Object, fundingLineCode);
         }
 
-        protected void AndTheCsvRowTransformation(IEnumerable<object> publishedProviders, ExpandoObject[] transformedRows, string csv, bool outputHeaders)
+        protected void AndTheCsvRowTransformation(IEnumerable<dynamic> publishedProviders, ExpandoObject[] transformedRows, string csv, bool outputHeaders)
         {
             GivenTheCsvRowTransformation(publishedProviders, transformedRows, csv, outputHeaders);
         }
 
-        protected void GivenTheCsvRowTransformation(IEnumerable<object> publishedProviders, IEnumerable<ExpandoObject> transformedRows, string csv, bool outputHeaders)
+        protected void GivenTheCsvRowTransformation(IEnumerable<dynamic> publishedProviders, IEnumerable<ExpandoObject> transformedRows, string csv, bool outputHeaders)
         {
             _transformation
                 .Setup(_ => _.Transform(publishedProviders))

@@ -6,7 +6,7 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
         CurrentState = 1,
         Released = 2,
         History = 3,
-        ProfileValues = 4,
-        CurrentProfileValues = 5
+        HistoryProfileValues = 4,
+        CurrentProfileValues = 5,
     }
-}
+} 
