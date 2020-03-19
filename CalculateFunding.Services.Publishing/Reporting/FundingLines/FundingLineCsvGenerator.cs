@@ -177,7 +177,10 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
                 string specificationId,
                 string fundingLineCode)
             {
-                FileName = $"funding-lines-{jobType}-{specificationId}-{fundingLineCode}.csv";
+                fundingLineCode = fundingLineCode.IsNullOrWhitespace() ? 
+                    "" : $"-{fundingLineCode}";
+                
+                FileName = $"funding-lines-{jobType}-{specificationId}{fundingLineCode}.csv";
                 TemporaryPath = Path.Combine(root, FileName);
             }
             
