@@ -21,6 +21,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
         [DataRow(FundingLineCsvGeneratorJobType.Released, "c.content.current.status = 'Released'")]
         [DataRow(FundingLineCsvGeneratorJobType.CurrentProfileValues, "1 = 1")]
         [DataRow(FundingLineCsvGeneratorJobType.HistoryProfileValues, "1 = 1")]
+        [DataRow(FundingLineCsvGeneratorJobType.History, "1 = 1")]
         public void ReturnsPredicatesAppropriateToJobTypes(FundingLineCsvGeneratorJobType jobType,
             string expectedPredicate)
         {
