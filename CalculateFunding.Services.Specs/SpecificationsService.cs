@@ -61,7 +61,6 @@ namespace CalculateFunding.Services.Specs
         private readonly IQueueCreateSpecificationJobActions _queueCreateSpecificationJobAction;
         private readonly IQueueDeleteSpecificationJobActions _queueDeleteSpecificationJobAction;
         private readonly ICalculationsApiClient _calcsApiClient;
-        private readonly IHostingEnvironment _hostingEnvironment;
         private readonly Polly.Policy _calcsApiClientPolicy;
         private readonly IFeatureToggle _featureToggle;
         private readonly IProvidersApiClient _providersApiClient;
@@ -85,7 +84,6 @@ namespace CalculateFunding.Services.Specs
             IQueueCreateSpecificationJobActions queueCreateSpecificationJobAction,
             IQueueDeleteSpecificationJobActions queueDeleteSpecificationJobAction,
             ICalculationsApiClient calcsApiClient,
-            IHostingEnvironment hostingEnvironment,
             IFeatureToggle featureToggle,
             IProvidersApiClient providersApiClient)
         {
@@ -109,7 +107,6 @@ namespace CalculateFunding.Services.Specs
             Guard.ArgumentNotNull(queueCreateSpecificationJobAction, nameof(queueCreateSpecificationJobAction));
             Guard.ArgumentNotNull(queueDeleteSpecificationJobAction, nameof(queueDeleteSpecificationJobAction));
             Guard.ArgumentNotNull(calcsApiClient, nameof(calcsApiClient));
-            Guard.ArgumentNotNull(hostingEnvironment, nameof(hostingEnvironment));
             Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
             Guard.ArgumentNotNull(providersApiClient, nameof(providersApiClient));
 
@@ -129,7 +126,6 @@ namespace CalculateFunding.Services.Specs
             _queueCreateSpecificationJobAction = queueCreateSpecificationJobAction;
             _queueDeleteSpecificationJobAction = queueDeleteSpecificationJobAction;
             _calcsApiClient = calcsApiClient;
-            _hostingEnvironment = hostingEnvironment;
             _featureToggle = featureToggle;
             _calcsApiClientPolicy = resiliencePolicies.CalcsApiClient;
             _providersApiClient = providersApiClient;
@@ -1486,9 +1482,9 @@ WHERE   s.documentType = @DocumentType",
             return new OkObjectResult(true);
         }
 
-        public async Task<IActionResult> PermanentDeleteSpecificationById(string specificationId, Reference user, string correlationId)
+        public async Task<IActionResult> PermanentDeleteSpecificationById(string specificationId, Reference user, string correlationId, bool allowDelete = false)
         {
-            if (!_hostingEnvironment.IsDevelopment())
+            if (!allowDelete)
             {
                 return new BadRequestObjectResult("Requested endpoint cannot be executed in the current environment");
             }
@@ -1517,12 +1513,6 @@ WHERE   s.documentType = @DocumentType",
                 return new BadRequestObjectResult("Null or empty deletion type provided");
 
             var deletionType = deletionTypeProperty.ToDeletionType();
-
-            if (!_hostingEnvironment.IsDevelopment() && deletionType == DeletionType.PermanentDelete)
-            {
-                return new BadRequestObjectResult(
-                    $"Requested permanent deletion for specification {specificationId} cannot be executed in the current environment");
-            }
 
             await _specificationsRepository.DeleteSpecifications(specificationId, deletionType);
 

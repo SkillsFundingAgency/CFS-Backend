@@ -9,6 +9,7 @@ using CalculateFunding.Models.Versioning;
 using CalculateFunding.Repositories.Common.Search.Results;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Specs.Interfaces;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CalculateFunding.Api.Specs.Controllers
@@ -17,16 +18,20 @@ namespace CalculateFunding.Api.Specs.Controllers
     {
         private readonly ISpecificationsService _specService;
         private readonly ISpecificationsSearchService _specSearchService;
+        private readonly IHostingEnvironment _hostingEnvironment;
 
         public SpecificationsController(
             ISpecificationsService specService,
-            ISpecificationsSearchService specSearchService)
+            ISpecificationsSearchService specSearchService,
+            IHostingEnvironment hostingEnvironment)
         {
             Guard.ArgumentNotNull(specService, nameof(specService));
             Guard.ArgumentNotNull(specSearchService, nameof(specSearchService));
+            Guard.ArgumentNotNull(hostingEnvironment, nameof(hostingEnvironment));
 
             _specService = specService;
             _specSearchService = specSearchService;
+            _hostingEnvironment = hostingEnvironment;
         }
 
         [Route("api/specs/specification-by-id")]
@@ -275,7 +280,8 @@ namespace CalculateFunding.Api.Specs.Controllers
             Reference user = ControllerContext.HttpContext.Request.GetUser();
             string correlationId = ControllerContext.HttpContext.Request.GetCorrelationId();
 
-            return await _specService.PermanentDeleteSpecificationById(specificationId, user, correlationId);
+            // only allow permenant delete if in development
+            return await _specService.PermanentDeleteSpecificationById(specificationId, user, correlationId, _hostingEnvironment.IsDevelopment());
         }
 
         [Route("api/specs/fundingstream-id-for-specifications")]

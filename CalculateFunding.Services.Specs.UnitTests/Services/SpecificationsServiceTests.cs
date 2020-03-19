@@ -89,7 +89,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 queueCreateSpecificationJobActions ?? Substitute.For<IQueueCreateSpecificationJobActions>(),
                 queueDeleteSpecificationJobActions ?? Substitute.For<IQueueDeleteSpecificationJobActions>(),
                 calcsApiClient ?? CreateCalcsApiClient(),
-                Substitute.For<IHostingEnvironment>(),
                 featureToggle ?? Substitute.For<IFeatureToggle>(),
                 providersApiClient ?? Substitute.For<IProvidersApiClient>());
         }
