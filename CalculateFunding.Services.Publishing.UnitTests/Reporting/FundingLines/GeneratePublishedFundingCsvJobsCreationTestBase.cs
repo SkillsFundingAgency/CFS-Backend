@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Services.Publishing.Interfaces;
@@ -34,6 +35,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
             Func<Task> invocation = () => WhenTheJobsAreCreated(null,
                 NewRandomString(),
                 NewUser(),
+                null,
                 null);
 
             invocation
@@ -50,6 +52,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
         {
             Func<Task> invocation = () => WhenTheJobsAreCreated(NewRandomString(),
                 NewRandomString(),
+                null,
                 null,
                 null);
 
@@ -68,6 +71,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
             Func<Task> invocation = () => WhenTheJobsAreCreated(NewRandomString(),
                 NewRandomString(),
                 NewUser(),
+                null,
                 null);
 
             invocation
@@ -80,14 +84,33 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
         }
 
         [TestMethod]
+        public void GuardsAgainstMissingFundingStreamIds()
+        {
+            Func<Task> invocation = () => WhenTheJobsAreCreated(NewRandomString(),
+                NewRandomString(),
+                NewUser(),
+                new List<string>(),
+                null);
+
+            invocation
+                .Should()
+                .Throw<ArgumentNullException>()
+                .And
+                .ParamName
+                .Should()
+                .Be("fundingStreamIds");
+        }
+
+        [TestMethod]
         public async Task CreatesCsvJobForEachJobType()
         {
             string specificationId = NewRandomString();
             IEnumerable<string> fundingLineCodes = new[] { NewRandomString(), NewRandomString() };
+            IEnumerable<string> fundingStreamIds = new[] { NewRandomString(), NewRandomString() };
             string correlationId = NewRandomString();
             Reference user = NewUser();
 
-            await WhenTheJobsAreCreated(specificationId, correlationId, user, fundingLineCodes);
+            await WhenTheJobsAreCreated(specificationId, correlationId, user, fundingLineCodes, fundingStreamIds);
 
             ThenTheJobWasCreated(specificationId, correlationId, user, FundingLineCsvGeneratorJobType.History, null);
             AndTheJobWasCreated(specificationId, correlationId, user, FundingLineCsvGeneratorJobType.Released, null);
@@ -145,9 +168,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
             ThenTheJobWasCreated(specificationId, correlationId, user, jobType, fundingLineCode);
         }
 
-        protected Task WhenTheJobsAreCreated(string specificationId, string correlationId, Reference user, IEnumerable<string> fundingLineCodes)
+        protected Task WhenTheJobsAreCreated(string specificationId, string correlationId, Reference user, IEnumerable<string> fundingLineCodes, IEnumerable<string> fundingStreamIds)
         {
-            return JobsCreation.CreateJobs(specificationId, correlationId, user, fundingLineCodes);
+            return JobsCreation.CreateJobs(specificationId, correlationId, user, fundingLineCodes, fundingStreamIds);
         }
 
         protected Reference NewUser()

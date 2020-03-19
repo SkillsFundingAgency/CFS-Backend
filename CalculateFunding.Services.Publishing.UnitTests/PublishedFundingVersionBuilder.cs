@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Generators.OrganisationGroup.Enums;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Tests.Common.Helpers;
@@ -21,6 +23,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private CalculateFunding.Models.Publishing.GroupingReason _groupingReason;
         private int? _majorVersion;
         private int _minorVersion;
+        private string _organisationGroupName;
+        private Reference _author;
+        private DateTimeOffset _date;
+        private IEnumerable<FundingLine> _fundingLines;
+
 
         public PublishedFundingVersionBuilder WithFundingId(string fundingId)
         {
@@ -36,9 +43,37 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             return this;
         }
 
+        public PublishedFundingVersionBuilder WithAuthor(Reference author)
+        {
+            _author = author;
+
+            return this;
+        }
+
+        public PublishedFundingVersionBuilder WithDate(string dateLiteral)
+        {
+            _date = DateTimeOffset.Parse(dateLiteral);
+
+            return this;
+        }
+
+        public PublishedFundingVersionBuilder WithFundingLines(IEnumerable<FundingLine> fundingLines)
+        {
+            _fundingLines = fundingLines;
+
+            return this;
+        }
+
         public PublishedFundingVersionBuilder WithSpecificationId(string specificationId)
         {
             _specificationId = specificationId;
+
+            return this;
+        }
+
+        public PublishedFundingVersionBuilder WithOrganisationGroupName(string organisationGroupName)
+        {
+            _organisationGroupName = organisationGroupName;
 
             return this;
         }
@@ -136,7 +171,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 OrganisationGroupIdentifierValue = _organisationGroupIdentifierValue,
                 GroupingReason = _groupingReason,
                 MajorVersion = _majorVersion ?? 1,
-                MinorVersion = _minorVersion
+                MinorVersion = _minorVersion,
+                OrganisationGroupName = _organisationGroupName,
+                Author = _author,
+                Date = _date,
+                FundingLines = _fundingLines
             };
         }
     }

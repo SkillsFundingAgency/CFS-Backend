@@ -25,11 +25,19 @@ namespace CalculateFunding.Services.Publishing.Reporting
             _createGeneratePublishedProviderEstateCsvJobs = createGeneratePublishedProviderEstateCsvJob;
         }
 
-        public abstract Task CreateJobs(string specificationId, string correlationId, Reference user, IEnumerable<string> fundingLineCodes);
+        public abstract Task CreateJobs(string specificationId, string correlationId, Reference user, IEnumerable<string> fundingLineCodes, IEnumerable<string> fundingStreamIds);
 
         protected async Task CreatePublishedProviderEstateCsvJobs(string specificationId, string correlationId, Reference user)
         {
             await _createGeneratePublishedProviderEstateCsvJobs.CreateJob(specificationId, user, correlationId);
+        }
+
+        protected async Task CreatePublishedOrganisationGroupCsvJobs(string specificationId, string correlationId, Reference user, IEnumerable<string> fundingStreamIds)
+        {
+            foreach (var fundingStreamId in fundingStreamIds)
+            {
+                await CreatePublishedFundingCsvJob(specificationId, correlationId, user, FundingLineCsvGeneratorJobType.CurrentOrganisationGroupValues, null, fundingStreamId);
+            }
         }
 
         protected async Task CreatePublishedFundingCsvJobs(string specificationId, string correlationId, Reference user, IEnumerable<string> fundingLineCodes)
@@ -45,17 +53,24 @@ namespace CalculateFunding.Services.Publishing.Reporting
             }
         }
 
-        private Task<Job> CreatePublishedFundingCsvJob(string specification, string correlationId, Reference user, FundingLineCsvGeneratorJobType jobType, string fundingLineCode = null)
+        private Task<Job> CreatePublishedFundingCsvJob(
+            string specification, 
+            string correlationId, 
+            Reference user, 
+            FundingLineCsvGeneratorJobType jobType, 
+            string fundingLineCode = null,
+            string fundingStreamId = null)
         {
-            return _createGeneratePublishedFundingCsvJobs.CreateJob(specification, user, correlationId, JobProperties(jobType, fundingLineCode));
+            return _createGeneratePublishedFundingCsvJobs.CreateJob(specification, user, correlationId, JobProperties(jobType, fundingLineCode, fundingStreamId));
         }
 
-        private Dictionary<string, string> JobProperties(FundingLineCsvGeneratorJobType jobType, string fundingLineCode = null)
+        private Dictionary<string, string> JobProperties(FundingLineCsvGeneratorJobType jobType, string fundingLineCode = null, string fundingStreamId = null)
         {
             return new Dictionary<string, string>
             {
                 {"job-type", jobType.ToString()},
-                {"funding-line-code", fundingLineCode}
+                {"funding-line-code", fundingLineCode},
+                {"funding-stream-id", fundingStreamId}
             };
         }
 

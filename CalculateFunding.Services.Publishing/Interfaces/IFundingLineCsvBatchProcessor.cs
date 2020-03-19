@@ -11,6 +11,7 @@ namespace CalculateFunding.Services.Publishing.Interfaces
             string specificationId,
             string temporaryFilePath,
             IFundingLineCsvTransform fundingLineCsvTransform,
-            string fundingLineCode);
+            string fundingLineCode,
+            string fundingStreamId);
     }
 }

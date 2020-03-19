@@ -49,7 +49,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
         {
             string specificationId = NewRandomString();
 
-            bool processedResults = await WhenTheCsvIsGenerated(FundingLineCsvGeneratorJobType.Released, specificationId, NewRandomString(), NewRandomString());
+            bool processedResults = await WhenTheCsvIsGenerated(FundingLineCsvGeneratorJobType.Released, specificationId, NewRandomString(), NewRandomString(), NewRandomString());
 
             processedResults
                 .Should()
@@ -65,6 +65,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
         {
             string specificationId = NewRandomString();
             string fundingLineCode = NewRandomString();
+            string fundingStreamId = NewRandomString();
+
             string expectedInterimFilePath = NewRandomString();
             
             IEnumerable<PublishedProvider> publishProvidersOne = new []
@@ -120,7 +122,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
                 })
                 .Returns(Task.CompletedTask);
 
-            bool processedResults = await WhenTheCsvIsGenerated(jobType, specificationId, expectedInterimFilePath, fundingLineCode);
+            bool processedResults = await WhenTheCsvIsGenerated(jobType, specificationId, expectedInterimFilePath, fundingLineCode, fundingStreamId);
 
             processedResults
                 .Should()

@@ -3,7 +3,6 @@ using System.Dynamic;
 using System.Globalization;
 using System.Linq;
 using CalculateFunding.Models.Publishing;
-using CalculateFunding.Services.Publishing.Reporting;
 using CalculateFunding.Services.Publishing.Reporting.FundingLines;
 using CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines;
 using FluentAssertions;

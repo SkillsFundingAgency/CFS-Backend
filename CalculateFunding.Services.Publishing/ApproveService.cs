@@ -133,7 +133,8 @@ namespace CalculateFunding.Services.Publishing
                         IGeneratePublishedFundingCsvJobsCreation generateCsvJobs = _generateCsvJobsLocator
                             .GetService(GeneratePublishingCsvJobsCreationAction.Approve);
                         IEnumerable<string> fundingLineCodes = await _publishedFundingDataService.GetPublishedProviderFundingLines(specificationId);
-                        await generateCsvJobs.CreateJobs(specificationId, correlationId, author, fundingLineCodes);
+                        IEnumerable<string> fundingStreamIds = Array.Empty<string>();
+                        await generateCsvJobs.CreateJobs(specificationId, correlationId, author, fundingLineCodes, fundingStreamIds);
                     }
 
                     transaction.Complete();

@@ -21,10 +21,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
         {
             string specificationId = NewRandomString();
             IEnumerable<string> fundingLineCodes = new[] { NewRandomString(), NewRandomString() };
+            IEnumerable<string> fundingStreamIds = new[] { NewRandomString(), NewRandomString() };
             string correlationId = NewRandomString();
             Reference user = NewUser();
 
-            await WhenTheJobsAreCreated(specificationId, correlationId, user, fundingLineCodes);
+            await WhenTheJobsAreCreated(specificationId, correlationId, user, fundingLineCodes, fundingStreamIds);
 
             ThenNoProviderEstateCsvJobsWereCreated(specificationId, correlationId, user);
         }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
@@ -21,10 +22,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
         {
             string specificationId = NewRandomString();
             IEnumerable<string> fundingLineCodes = new[] { NewRandomString(), NewRandomString() };
+            IEnumerable<string> fundingStreamIds = Array.Empty<string>();
             string correlationId = NewRandomString();
             Reference user = NewUser();
 
-            await WhenTheJobsAreCreated(specificationId, correlationId, user, fundingLineCodes);
+            await WhenTheJobsAreCreated(specificationId, correlationId, user, fundingLineCodes, fundingStreamIds);
 
             ThenTheProviderEstateCsvJobsWasCreated(specificationId, correlationId, user);
         }

@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Core;
@@ -70,12 +71,14 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
 
                 string specificationId = parameters.SpecificationId;
                 string fundingLineCode = parameters.FundingLineCode;
+                string fundingStreamId = parameters.FundingStreamId;
                 FundingLineCsvGeneratorJobType jobType = parameters.JobType;
 
                 CsvFileInfo fileInfo = new CsvFileInfo(_fileSystemCacheSettings.Path,
                     jobType,
                     specificationId,
-                    fundingLineCode);
+                    fundingLineCode,
+                    fundingStreamId);
 
                 string temporaryPath = fileInfo.TemporaryPath;
                 
@@ -88,12 +91,13 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
                     specificationId, 
                     temporaryPath, 
                     fundingLineCsvTransform,
-                    fundingLineCode);
+                    fundingLineCode,
+                    fundingStreamId);
 
                 if (!processedResults)
                 {
                     _logger.Information(
-                        $"Did not create a new csv report as no providers matched for the job type {jobType} in the specification {specificationId}");
+                        $"Did not create a new csv report as no providers matched for the job type {jobType} in the specification {specificationId} and funding line code {fundingLineCode} and funding stream id {fundingStreamId}");
 
                     await CompleteJob(parameters);
                     
@@ -140,6 +144,8 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
             
             public string FundingLineCode { get; private set; }
 
+            public string FundingStreamId { get; private set; }
+
             public FundingLineCsvGeneratorJobType JobType { get; private set; }
 
             public static implicit operator JobParameters(Message message)
@@ -150,6 +156,7 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
                 string jobType = GetProperty(message, "job-type");
                 string jobId = GetProperty(message, "jobId");
                 string fundingLineCode = GetProperty(message, "funding-line-code");
+                string fundingStreamId = GetProperty(message, "funding-stream-id");
 
                 Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
                 Guard.IsNullOrWhiteSpace(jobType, nameof(jobType));
@@ -160,7 +167,8 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
                     SpecificationId = specificationId,
                     JobType = jobType.AsEnum<FundingLineCsvGeneratorJobType>(),
                     JobId = jobId,
-                    FundingLineCode = fundingLineCode
+                    FundingLineCode = fundingLineCode,
+                    FundingStreamId = fundingStreamId
                 };
             }
             
@@ -175,12 +183,17 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
             public CsvFileInfo(string root,
                 FundingLineCsvGeneratorJobType jobType,
                 string specificationId,
-                string fundingLineCode)
+                string fundingLineCode,
+                string fundingStreamId)
             {
-                fundingLineCode = fundingLineCode.IsNullOrWhitespace() ? 
-                    "" : $"-{fundingLineCode}";
-                
-                FileName = $"funding-lines-{jobType}-{specificationId}{fundingLineCode}.csv";
+                fundingLineCode = fundingLineCode.IsNullOrWhitespace() ?
+                    string.Empty : $"-{fundingLineCode}";
+
+                fundingStreamId = fundingStreamId.IsNullOrWhitespace() ?
+                    string.Empty : $"-{fundingStreamId}";
+
+                FileName = $"funding-lines-{jobType}-{specificationId}{fundingLineCode}{fundingStreamId}.csv";
+
                 TemporaryPath = Path.Combine(root, FileName);
             }
             

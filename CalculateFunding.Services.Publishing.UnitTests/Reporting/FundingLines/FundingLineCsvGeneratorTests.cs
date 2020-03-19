@@ -213,7 +213,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
             string filePath,
             string fundingLineCode)
         {
-            _batchProcessor.Setup(_ => _.GenerateCsv(jobType, specificationId, filePath, _transformation.Object, fundingLineCode))
+            _batchProcessor.Setup(_ => _.GenerateCsv(jobType, specificationId, filePath, _transformation.Object, fundingLineCode, null))
                 .ReturnsAsync(true)
                 .Verifiable();
         }

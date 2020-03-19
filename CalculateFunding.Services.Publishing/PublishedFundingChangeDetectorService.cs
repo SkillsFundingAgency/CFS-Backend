@@ -61,5 +61,34 @@ namespace CalculateFunding.Services.Publishing
 
             return results;
         }
+
+        public IEnumerable<(PublishedFunding PublishedFunding, OrganisationGroupResult OrganisationGroupResult)> GenerateOrganisationGroupings(IEnumerable<OrganisationGroupResult> organisationGroups, IEnumerable<PublishedFunding> existingPublishedFunding, IDictionary<string, PublishedProvider> currentPublishedProviders)
+        {
+            ConcurrentBag<(PublishedFunding, OrganisationGroupResult)> results = new ConcurrentBag<(PublishedFunding, OrganisationGroupResult)>();
+
+            Parallel.ForEach(organisationGroups, (organisationGroup) =>
+            {
+                // get all funding where the organisation group matches the published funding
+                PublishedFunding publishedFunding = existingPublishedFunding?.Where(_ => organisationGroup.IdentifierValue == _.Current.OrganisationGroupIdentifierValue &&
+                organisationGroup.GroupTypeCode == Enum.Parse<OrganisationGroupTypeCode>(_.Current.OrganisationGroupTypeCode) &&
+                organisationGroup.GroupTypeClassification == Enum.Parse<OrganisationGroupTypeClassification>(_.Current.OrganisationGroupTypeClassification) &&
+                organisationGroup.GroupTypeIdentifier == Enum.Parse<OrganisationGroupTypeIdentifier>(_.Current.OrganisationGroupTypeIdentifier)
+                ).OrderBy(_ => _.Current.Version).LastOrDefault();
+
+                // no existing published funding so need to yield the organisation group
+                if (publishedFunding == null || publishedFunding.Current == null)
+                {
+                    results.Add((null, organisationGroup));
+                    return;
+                }
+                else
+                {
+                    results.Add((publishedFunding, organisationGroup));
+                    return;
+                }
+            });
+
+            return results;
+        }
     }
 }

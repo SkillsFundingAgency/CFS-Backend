@@ -40,7 +40,8 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
             string specificationId, 
             string temporaryFilePath, 
             IFundingLineCsvTransform fundingLineCsvTransform,
-            string fundingLineCode)
+            string fundingLineCode,
+            string fundingStreamId)
         {
             bool outputHeaders = true;
             bool processedResults = false;
