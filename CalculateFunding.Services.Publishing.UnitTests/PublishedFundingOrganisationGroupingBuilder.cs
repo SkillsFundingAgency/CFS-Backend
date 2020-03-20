@@ -2,17 +2,18 @@
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Reporting.FundingLines;
 using CalculateFunding.Tests.Common.Helpers;
+using System.Collections.Generic;
 
 namespace CalculateFunding.Services.Publishing.UnitTests
 {
     public class PublishedFundingOrganisationGroupingBuilder : TestEntityBuilder
     {
         private OrganisationGroupResult _organisationGroupResult;
-        private PublishedFunding _publishedFunding;
+        private IEnumerable<PublishedFundingVersion> _publishedFundingVersions;
 
-        public PublishedFundingOrganisationGroupingBuilder WithPublishedFunding(PublishedFunding publishedFunding)
+        public PublishedFundingOrganisationGroupingBuilder WithPublishedFundingVersions(IEnumerable<PublishedFundingVersion> publishedFundingVersions)
         {
-            _publishedFunding = publishedFunding;
+            _publishedFundingVersions = publishedFundingVersions;
 
             return this;
         }
@@ -29,7 +30,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             return new PublishedFundingOrganisationGrouping
             {
                 OrganisationGroupResult = _organisationGroupResult,
-                PublishedFunding = _publishedFunding
+                PublishedFundingVersions = _publishedFundingVersions
             };
         }
 

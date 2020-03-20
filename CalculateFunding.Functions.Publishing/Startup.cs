@@ -123,7 +123,8 @@ namespace CalculateFunding.Functions.Publishing
             builder.AddSingleton<IProviderService, ProviderService>();
             builder.AddSingleton<IPublishedFundingService, PublishedFundingService>();
             builder.AddSingleton<IPoliciesService, PoliciesService>();
-            
+            builder.AddSingleton<IPublishedFundingVersionDataService, PublishedFundingVersionDataService>();
+
             builder.AddScoped<IRefreshService, RefreshService>();
             builder.AddScoped<IVariationService, VariationService>();
             builder.AddTransient<IRecordVariationErrors, VariationErrorRecorder>();
@@ -147,7 +148,8 @@ namespace CalculateFunding.Functions.Publishing
             builder.AddScoped<ICsvUtils, CsvUtils>();
             builder.AddSingleton<IFileSystemAccess, FileSystemAccess>();
             builder.AddSingleton<IFileSystemCacheSettings, FileSystemCacheSettings>();
-            
+            builder.AddSingleton<IPublishedFundingOrganisationGroupingService, PublishedFundingOrganisationGroupingService>();
+
             builder.AddScoped<IGeneratePublishedFundingCsvJobsCreationLocator, GeneratePublishedFundingCsvJobsCreationLocator>();
             builder.AddScoped<IGeneratePublishedFundingCsvJobsCreation, GenerateRefreshPublishedFundingCsvJobsCreation>();
             builder.AddScoped<IGeneratePublishedFundingCsvJobsCreation, GenerateApprovePublishedFundingCsvJobsCreation>();
@@ -166,7 +168,8 @@ namespace CalculateFunding.Functions.Publishing
             builder.AddScoped<IFundingLineCsvBatchProcessorServiceLocator, FundingLineCsvBatchProcessorServiceLocator>();
             builder.AddScoped<IFundingLineCsvBatchProcessor, PublishedProviderCsvBatchProcessor>();
             builder.AddScoped<IFundingLineCsvBatchProcessor, PublishedProviderVersionCsvBatchProcessor>();
-            builder.AddScoped<IFundingLineCsvBatchProcessor, PublishedProviderOrganisationGroupCsvBatchProcessor>();
+            builder.AddScoped<IFundingLineCsvBatchProcessor, PublishedFundingOrganisationGroupCsvBatchProcessor>();
+            builder.AddScoped<IFundingLineCsvBatchProcessor, PublishedFundingVersionOrganisationGroupCsvBatchProcessor>();
 
             builder.AddTransient<ICreateGeneratePublishedFundingCsvJobs, GeneratePublishedFundingCsvJobCreation>();
             builder.AddScoped<IPublishedProviderEstateCsvGenerator, PublishedProviderEstateCsvGenerator>();

@@ -5,7 +5,6 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
-using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
@@ -264,7 +263,6 @@ namespace CalculateFunding.Services.Publishing.Repositories
             Guard.IsNullOrWhiteSpace(fundingStreamId, nameof(fundingStreamId));
             Guard.IsNullOrWhiteSpace(fundingPeriodId, nameof(fundingPeriodId));
 
-
             Dictionary<string, string> results = new Dictionary<string, string>();
             IEnumerable<dynamic> queryResults = await _repository
              .DynamicQuery(new CosmosDbQuery
@@ -289,6 +287,35 @@ namespace CalculateFunding.Services.Publishing.Repositories
             return await Task.FromResult(results);
         }
 
+        public async Task<IEnumerable<KeyValuePair<string, string>>> GetPublishedFundingVersionIds(string fundingStreamId, string fundingPeriodId)
+        {
+            Guard.IsNullOrWhiteSpace(fundingStreamId, nameof(fundingStreamId));
+            Guard.IsNullOrWhiteSpace(fundingPeriodId, nameof(fundingPeriodId));
+
+            Dictionary<string, string> results = new Dictionary<string, string>();
+            IEnumerable<dynamic> queryResults = await _repository
+             .DynamicQuery(new CosmosDbQuery
+             {
+                 QueryText = @"
+                                SELECT c.id as id, c.content.partitionKey as partitionKey FROM c
+                                WHERE c.documentType = 'PublishedFundingVersion'
+                                AND c.content.fundingStreamId = @fundingStreamId
+                                AND c.content.fundingPeriod.id = @fundingPeriodId",
+                 Parameters = new[]
+                 {
+                                    new CosmosDbQueryParameter("@fundingStreamId", fundingStreamId),
+                                    new CosmosDbQueryParameter("@fundingPeriodId", fundingPeriodId)
+                 }
+             });
+
+            foreach (dynamic item in queryResults)
+            {
+                results.Add((string)item.id, (string)item.partitionKey);
+            }
+
+            return await Task.FromResult(results);
+        }
+
         public async Task<PublishedFunding> GetPublishedFundingById(string cosmosId, string partitionKey)
         {
             Guard.IsNullOrWhiteSpace(cosmosId, nameof(cosmosId));
@@ -296,7 +323,15 @@ namespace CalculateFunding.Services.Publishing.Repositories
 
             return (await _repository.ReadDocumentByIdPartitionedAsync<PublishedFunding>(cosmosId, partitionKey))?.Content;
         }
-        
+
+        public async Task<PublishedFundingVersion> GetPublishedFundingVersionById(string cosmosId, string partitionKey)
+        {
+            Guard.IsNullOrWhiteSpace(cosmosId, nameof(cosmosId));
+            Guard.IsNullOrWhiteSpace(partitionKey, nameof(partitionKey));
+
+            return (await _repository.ReadDocumentByIdPartitionedAsync<PublishedFundingVersion>(cosmosId, partitionKey))?.Content;
+        }
+
         public async Task DeleteAllPublishedProvidersByFundingStreamAndPeriod(string fundingStreamId, 
             string fundingPeriodId)
         {

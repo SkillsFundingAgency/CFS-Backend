@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using CalculateFunding.Generators.OrganisationGroup.Models;
 using CalculateFunding.Models.Publishing;
+using CalculateFunding.Services.Publishing.Reporting.FundingLines;
 
 namespace CalculateFunding.Services.Publishing.Interfaces
 {
@@ -8,6 +9,10 @@ namespace CalculateFunding.Services.Publishing.Interfaces
     {
         IEnumerable<(PublishedFunding PublishedFunding, OrganisationGroupResult OrganisationGroupResult)> GenerateOrganisationGroupsToSave(IEnumerable<OrganisationGroupResult> organisationGroups, IEnumerable<PublishedFunding> existingPublishedFunding, IDictionary<string, PublishedProvider> currentPublishedProviders);
 
-        IEnumerable<(PublishedFunding PublishedFunding, OrganisationGroupResult OrganisationGroupResult)> GenerateOrganisationGroupings(IEnumerable<OrganisationGroupResult> organisationGroups, IEnumerable<PublishedFunding> existingPublishedFunding, IDictionary<string, PublishedProvider> currentPublishedProviders);
+        IEnumerable<PublishedFundingOrganisationGrouping> GenerateOrganisationGroupings(
+            IEnumerable<OrganisationGroupResult> organisationGroups, 
+            IEnumerable<PublishedFundingVersion> existingPublishedFunding, 
+            IDictionary<string, PublishedProvider> currentPublishedProviders,
+            bool includeHistory);
     }
 }

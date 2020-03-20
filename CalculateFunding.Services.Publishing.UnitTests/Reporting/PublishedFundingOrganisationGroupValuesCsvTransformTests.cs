@@ -6,7 +6,6 @@ using CalculateFunding.Services.Publishing.Reporting.FundingLines;
 using CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Globalization;
@@ -37,6 +36,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
         [DataRow(FundingLineCsvGeneratorJobType.Released, false)]
         [DataRow(FundingLineCsvGeneratorJobType.History, false)]
         [DataRow(FundingLineCsvGeneratorJobType.CurrentOrganisationGroupValues, true)]
+        [DataRow(FundingLineCsvGeneratorJobType.HistoryOrganisationGroupValues, true)]
         public void SupportsCurrentStateJobType(FundingLineCsvGeneratorJobType jobType,
             bool expectedSupportsFlag)
         {
@@ -49,28 +49,27 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
         public void FlattensTemplateCalculationsAndProviderMetaDataIntoRows()
         {
             IEnumerable<PublishedFundingOrganisationGrouping> publishedFundingOrganisationGroupings =
-                NewPublishedFundingOrganisationGroupings(_ => 
-                _.WithPublishedFunding(
-                    NewPublishedFunding(pf => pf.WithCurrent(
-                        NewPublishedFundingVersion(pfv =>
-                        pfv.WithOrganisationGroupTypeCode(OrganisationGroupTypeCode.LocalAuthority)
-                        .WithOrganisationGroupName("Enfield")
-                        .WithPublishedProviderStatus(PublishedFundingStatus.Released)
-                        .WithMajor(1)
-                        .WithAuthor(new Reference { Name = "system" })
-                        .WithDate("2020-02-05T20:03:55")
-                        .WithFundingLines(
-                            NewFundingLines(fl =>
-                                fl.WithName("fundingLine1")
-                                .WithValue(123M),
-                            fl => 
-                                fl.WithName("fundingLine2")
-                                .WithValue(456M)))))))
+                NewPublishedFundingOrganisationGroupings(_ =>
+                _.WithPublishedFundingVersions(
+                    NewPublishedFundingVersions(pfv =>
+                           pfv.WithOrganisationGroupTypeCode(OrganisationGroupTypeCode.LocalAuthority)
+                           .WithOrganisationGroupName("Enfield")
+                           .WithPublishedProviderStatus(PublishedFundingStatus.Released)
+                           .WithMajor(1)
+                           .WithAuthor(new Reference { Name = "system" })
+                           .WithDate("2020-02-05T20:03:55")
+                           .WithFundingLines(
+                               NewFundingLines(fl =>
+                                   fl.WithName("fundingLine1")
+                                   .WithValue(123M),
+                               fl =>
+                                   fl.WithName("fundingLine2")
+                                   .WithValue(456M)))))
                 .WithOrganisationGroupResult(
                     NewOrganisationGroupResult(ogp =>
                     ogp.WithProviders(
                         _mapper.Map<IEnumerable<Common.ApiClient.Providers.Models.Provider>>(NewProviders(p =>
-                            p.WithName("p1"), 
+                            p.WithName("p1"),
                         p =>
                             p.WithName("p2")))))));
 

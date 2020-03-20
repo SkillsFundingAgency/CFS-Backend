@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
@@ -298,6 +297,24 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
                 .Distinct();
 
             return Task.FromResult(fundingLines);
+        }
+
+        public Task<IEnumerable<KeyValuePair<string, string>>> GetPublishedFundingVersionIds(string fundingStreamId, string fundingPeriodId)
+        {
+            IEnumerable<KeyValuePair<string, string>> results = _repo.PublishedFundingVersions
+                .SelectMany(c => c.Value)
+                .Where(p => p.Value.FundingStreamId == fundingStreamId
+                    && p.Value.FundingPeriod.Id == fundingPeriodId)
+                .Select(r => new KeyValuePair<string, string>(r.Value.Id, r.Value.PartitionKey));
+
+            return Task.FromResult(results);
+        }
+
+        public Task<PublishedFundingVersion> GetPublishedFundingVersionById(string cosmosId, string partitionKey)
+        {
+            PublishedFundingVersion publishedFunding = _repo.PublishedFundingVersions.SelectMany(c => c.Value).FirstOrDefault(p => p.Value.Id == cosmosId).Value;
+
+            return Task.FromResult(publishedFunding);
         }
     }
 }

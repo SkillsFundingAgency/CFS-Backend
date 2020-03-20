@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Services.Core.Caching.FileSystem;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Publishing.Interfaces;
@@ -73,6 +75,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
         protected static RandomString NewRandomString()
         {
             return new RandomString();
+        }
+
+        protected static SpecificationSummary NewSpecificationSummary(Action<SpecificationSummaryBuilder> setUp = null)
+        {
+            SpecificationSummaryBuilder specificationSummaryBuilder = new SpecificationSummaryBuilder();
+
+            setUp?.Invoke(specificationSummaryBuilder);
+
+            return specificationSummaryBuilder.Build();
         }
     }
 }

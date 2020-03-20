@@ -134,6 +134,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
             RegisterTypeAs<ProfilingService, IProfilingService>();
             RegisterTypeAs<ProfilingInMemoryClient, IProfilingApiClient>();
             RegisterTypeAs<PublishedFundingDataService, IPublishedFundingDataService>();
+            RegisterTypeAs<PublishedFundingVersionDataService, IPublishedFundingVersionDataService>();
             RegisterTypeAs<CalculationResultsService, ICalculationResultsService>();
             RegisterTypeAs<PublishingEngineOptions, IPublishingEngineOptions>();
             RegisterTypeAs<PublishedProviderVersionInMemoryRepository, IVersionRepository<PublishedProviderVersion>>();

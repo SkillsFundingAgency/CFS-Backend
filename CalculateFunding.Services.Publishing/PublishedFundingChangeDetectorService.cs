@@ -7,6 +7,7 @@ using CalculateFunding.Generators.OrganisationGroup.Enums;
 using CalculateFunding.Generators.OrganisationGroup.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
+using CalculateFunding.Services.Publishing.Reporting.FundingLines;
 
 namespace CalculateFunding.Services.Publishing
 {
@@ -62,30 +63,30 @@ namespace CalculateFunding.Services.Publishing
             return results;
         }
 
-        public IEnumerable<(PublishedFunding PublishedFunding, OrganisationGroupResult OrganisationGroupResult)> GenerateOrganisationGroupings(IEnumerable<OrganisationGroupResult> organisationGroups, IEnumerable<PublishedFunding> existingPublishedFunding, IDictionary<string, PublishedProvider> currentPublishedProviders)
+        public IEnumerable<PublishedFundingOrganisationGrouping> GenerateOrganisationGroupings(
+            IEnumerable<OrganisationGroupResult> organisationGroups, 
+            IEnumerable<PublishedFundingVersion> existingPublishedFunding, 
+            IDictionary<string, PublishedProvider> currentPublishedProviders,
+            bool includeNonCurrent)
         {
-            ConcurrentBag<(PublishedFunding, OrganisationGroupResult)> results = new ConcurrentBag<(PublishedFunding, OrganisationGroupResult)>();
+            ConcurrentBag<PublishedFundingOrganisationGrouping> results = new ConcurrentBag<PublishedFundingOrganisationGrouping>();
 
             Parallel.ForEach(organisationGroups, (organisationGroup) =>
             {
                 // get all funding where the organisation group matches the published funding
-                PublishedFunding publishedFunding = existingPublishedFunding?.Where(_ => organisationGroup.IdentifierValue == _.Current.OrganisationGroupIdentifierValue &&
-                organisationGroup.GroupTypeCode == Enum.Parse<OrganisationGroupTypeCode>(_.Current.OrganisationGroupTypeCode) &&
-                organisationGroup.GroupTypeClassification == Enum.Parse<OrganisationGroupTypeClassification>(_.Current.OrganisationGroupTypeClassification) &&
-                organisationGroup.GroupTypeIdentifier == Enum.Parse<OrganisationGroupTypeIdentifier>(_.Current.OrganisationGroupTypeIdentifier)
-                ).OrderBy(_ => _.Current.Version).LastOrDefault();
+                IEnumerable<PublishedFundingVersion> publishedFundingVersions = existingPublishedFunding?.Where(_ => organisationGroup.IdentifierValue == _.OrganisationGroupIdentifierValue &&
+                organisationGroup.GroupTypeCode == Enum.Parse<OrganisationGroupTypeCode>(_.OrganisationGroupTypeCode) &&
+                organisationGroup.GroupTypeClassification == Enum.Parse<OrganisationGroupTypeClassification>(_.OrganisationGroupTypeClassification) &&
+                organisationGroup.GroupTypeIdentifier == Enum.Parse<OrganisationGroupTypeIdentifier>(_.OrganisationGroupTypeIdentifier)
+                ).OrderBy(_ => _.Version);
 
-                // no existing published funding so need to yield the organisation group
-                if (publishedFunding == null || publishedFunding.Current == null)
+                if (!includeNonCurrent)
                 {
-                    results.Add((null, organisationGroup));
-                    return;
+                    publishedFundingVersions = new[] { publishedFundingVersions.LastOrDefault() };
                 }
-                else
-                {
-                    results.Add((publishedFunding, organisationGroup));
-                    return;
-                }
+
+                results.Add(new PublishedFundingOrganisationGrouping { OrganisationGroupResult = organisationGroup, PublishedFundingVersions = publishedFundingVersions });
+                return;
             });
 
             return results;

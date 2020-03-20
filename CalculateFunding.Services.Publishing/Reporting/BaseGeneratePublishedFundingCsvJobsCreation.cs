@@ -37,6 +37,7 @@ namespace CalculateFunding.Services.Publishing.Reporting
             foreach (var fundingStreamId in fundingStreamIds)
             {
                 await CreatePublishedFundingCsvJob(specificationId, correlationId, user, FundingLineCsvGeneratorJobType.CurrentOrganisationGroupValues, null, fundingStreamId);
+                await CreatePublishedFundingCsvJob(specificationId, correlationId, user, FundingLineCsvGeneratorJobType.HistoryOrganisationGroupValues, null, fundingStreamId);
             }
         }
 

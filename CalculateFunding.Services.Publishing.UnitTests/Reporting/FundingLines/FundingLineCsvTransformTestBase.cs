@@ -84,7 +84,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
             return setUps.Select(NewPublishedFundingOrganisationGrouping);
         }
 
-        protected PublishedFunding NewPublishedFunding(Action<PublishedFundingBuilder> setUp = null)
+        protected static PublishedFunding NewPublishedFunding(Action<PublishedFundingBuilder> setUp = null)
         {
             PublishedFundingBuilder publishedFundingBuilder = new PublishedFundingBuilder();
 
@@ -93,7 +93,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
             return publishedFundingBuilder.Build();
         }
 
-        protected PublishedFundingVersion NewPublishedFundingVersion(Action<PublishedFundingVersionBuilder> setUp = null)
+        protected static PublishedFundingVersion NewPublishedFundingVersion(Action<PublishedFundingVersionBuilder> setUp = null)
         {
             PublishedFundingVersionBuilder publishedFundingVersionBuilder = new PublishedFundingVersionBuilder();
 
@@ -102,7 +102,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
             return publishedFundingVersionBuilder.Build();
         }
 
-        protected OrganisationGroupResult NewOrganisationGroupResult(Action<OrganisationGroupResultBuilder> setUp = null)
+        protected static IEnumerable<PublishedFundingVersion> NewPublishedFundingVersions(params Action<PublishedFundingVersionBuilder>[] setUps)
+        {
+            return setUps.Select(NewPublishedFundingVersion);
+        }
+
+        protected static OrganisationGroupResult NewOrganisationGroupResult(Action<OrganisationGroupResultBuilder> setUp = null)
         {
             OrganisationGroupResultBuilder organisationGroupResultBuilder = new OrganisationGroupResultBuilder();
 

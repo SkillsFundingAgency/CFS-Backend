@@ -17,6 +17,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
     {
         private const string JobType = "job-type";
         private const string FundingLineCode = "funding-line-code";
+        private const string FundingStreamId = "funding-stream-id";
 
         protected Mock<ICreateGeneratePublishedFundingCsvJobs> CreateGeneratePublishedFundingCsvJobs;
         protected Mock<ICreateGeneratePublishedProviderEstateCsvJobs> CreateGeneratePublishedProviderEstateCsvJobs;
@@ -112,14 +113,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
 
             await WhenTheJobsAreCreated(specificationId, correlationId, user, fundingLineCodes, fundingStreamIds);
 
-            ThenTheJobWasCreated(specificationId, correlationId, user, FundingLineCsvGeneratorJobType.History, null);
-            AndTheJobWasCreated(specificationId, correlationId, user, FundingLineCsvGeneratorJobType.Released, null);
-            AndTheJobWasCreated(specificationId, correlationId, user, FundingLineCsvGeneratorJobType.CurrentState, null);
+            ThenTheJobWasCreated(specificationId, correlationId, user, FundingLineCsvGeneratorJobType.History, null, null);
+            AndTheJobWasCreated(specificationId, correlationId, user, FundingLineCsvGeneratorJobType.Released, null, null);
+            AndTheJobWasCreated(specificationId, correlationId, user, FundingLineCsvGeneratorJobType.CurrentState, null, null);
 
             foreach (string fundingLineCode in fundingLineCodes)
             {
-                AndTheJobWasCreated(specificationId, correlationId, user, FundingLineCsvGeneratorJobType.CurrentProfileValues, fundingLineCode);
-                AndTheJobWasCreated(specificationId, correlationId, user, FundingLineCsvGeneratorJobType.HistoryProfileValues, fundingLineCode);
+                AndTheJobWasCreated(specificationId, correlationId, user, FundingLineCsvGeneratorJobType.CurrentProfileValues, fundingLineCode, null);
+                AndTheJobWasCreated(specificationId, correlationId, user, FundingLineCsvGeneratorJobType.HistoryProfileValues, fundingLineCode, null);
             }
         }
 
@@ -147,14 +148,17 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
             string correlationId,
             Reference user,
             FundingLineCsvGeneratorJobType jobType,
-            string fundingLineCode)
+            string fundingLineCode,
+            string fundingStreamId)
         {
             CreateGeneratePublishedFundingCsvJobs.Verify(_ => _.CreateJob(specificationId, user, correlationId,
                     It.Is<Dictionary<string, string>>(props
                         => props.ContainsKey(JobType) &&
                            props[JobType] == jobType.ToString() &&
                            props.ContainsKey(FundingLineCode) &&
-                           props[FundingLineCode] == fundingLineCode),
+                           props[FundingLineCode] == fundingLineCode &&
+                           props.ContainsKey(FundingStreamId) &&
+                           props[FundingStreamId] == fundingStreamId),
                     null),
                 Times.Once);
         }
@@ -163,9 +167,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
             string correlationId,
             Reference user,
             FundingLineCsvGeneratorJobType jobType,
-            string fundingLineCode)
+            string fundingLineCode,
+            string fundingStreamId)
         {
-            ThenTheJobWasCreated(specificationId, correlationId, user, jobType, fundingLineCode);
+            ThenTheJobWasCreated(specificationId, correlationId, user, jobType, fundingLineCode, fundingStreamId);
         }
 
         protected Task WhenTheJobsAreCreated(string specificationId, string correlationId, Reference user, IEnumerable<string> fundingLineCodes, IEnumerable<string> fundingStreamIds)

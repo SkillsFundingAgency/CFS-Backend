@@ -1,6 +1,5 @@
 using CalculateFunding.Generators.OrganisationGroup.Enums;
 using CalculateFunding.Generators.OrganisationGroup.Models;
-using CalculateFunding.Models.Publishing;
 using CalculateFunding.Tests.Common.Helpers;
 using System.Collections.Generic;
 
