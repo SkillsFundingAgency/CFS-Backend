@@ -40,6 +40,11 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
                 {
                     PublishedFundingVersion publishedFundingVersion = publishedFundingVersions.ElementAt(publishedFundingVersionCount);
 
+                    if(publishedFundingVersion == null)
+                    {
+                        continue;
+                    }
+
                     IDictionary<string, object> row = resultsBatch[itemCount] ?? (resultsBatch[itemCount] = new ExpandoObject());
 
                     row["Grouping Code"] = publishedFundingVersion.OrganisationGroupTypeCode;
