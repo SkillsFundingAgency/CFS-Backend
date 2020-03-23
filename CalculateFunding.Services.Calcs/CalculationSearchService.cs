@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Models.HealthCheck;
+using CalculateFunding.Models.Versioning;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Calcs;
@@ -44,28 +45,41 @@ namespace CalculateFunding.Services.Calcs
             {
                 Name = nameof(CalculationService)
             };
-            health.Dependencies.Add(new DependencyHealth { HealthOk = searchRepoHealth.Ok, DependencyName = _searchRepository.GetType().GetFriendlyName(), Message = searchRepoHealth.Message });
+            health.Dependencies.Add(new DependencyHealth 
+            { 
+                HealthOk = searchRepoHealth.Ok, 
+                DependencyName = _searchRepository.GetType().GetFriendlyName(),
+                Message = searchRepoHealth.Message 
+            });
 
             return health;
         }
 
-        public async Task<IActionResult> SearchCalculations(string specificationId, 
-            CalculationType calculationType, 
+        public async Task<IActionResult> SearchCalculations(string specificationId,
+            CalculationType calculationType,
+            PublishStatus? status,
             string searchTerm,
             int? page)
         {
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
 
+            Dictionary<string,string[]> filters = new Dictionary<string, string[]>
+            {
+                {"specificationId", new []{ specificationId }},
+                {"calculationType", new []{ calculationType.ToString() }}
+            };
+
+            if (status.HasValue)
+            {
+                filters.Add("status", new [] { status.Value.ToString() });
+            }
+            
             return await SearchCalculations(new SearchModel
             {
                 SearchMode = Models.Search.SearchMode.All,
                 FacetCount = 50,
                 SearchTerm = searchTerm,
-                Filters    = new Dictionary<string, string[]>
-                {
-                    {"specificationId", new []{ specificationId }},
-                    {"calculationType", new []{ calculationType.ToString() }}
-                },
+                Filters    = filters,
                 PageNumber = page.GetValueOrDefault(1),
                 Top = 50
             });

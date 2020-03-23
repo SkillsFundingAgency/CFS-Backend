@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Versioning;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Repositories.Common.Search.Results;
 using CalculateFunding.Tests.Common.Helpers;
@@ -25,8 +26,8 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
         {
             string searchTerm = NewRandomString();
             string specificationId = NewRandomString();
-            int page  = new RandomNumberBetween(1, 100);
-            CalculationType calculationType = new RandomEnum<CalculationType>();
+            int page  = NewRandomNumberBetween(1, 100);
+            CalculationType calculationType = NewRandomEnum<CalculationType>();
             
             SearchResults<CalculationIndex> searchResults = new SearchResults<CalculationIndex>();
 
@@ -51,7 +52,60 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
 
             CalculationSearchService service = CreateCalculationSearchService(logger: logger, serachRepository: searchRepository);
 
-            OkObjectResult result = await service.SearchCalculations(specificationId, calculationType, searchTerm, page) as OkObjectResult;
+            OkObjectResult result = await service.SearchCalculations(specificationId, calculationType, null, searchTerm, page) as OkObjectResult;
+
+            result?
+                .Value
+                .Should()
+                .BeOfType<CalculationSearchResults>();
+
+            await searchRepository
+                .Received(1)
+                .Search(searchTerm,
+                    Arg.Is<SearchParameters>(_ =>
+                        _.SearchMode == SearchMode.All &&
+                        _.Filter == expectedSearchFilter &&
+                        _.SearchFields != null &&
+                        _.SearchFields.SequenceEqual(new [] { "name" }) &&
+                        _.IncludeTotalResultCount &&
+                        _.QueryType == QueryType.Full &&
+                        _.Top == 50 &&
+                        _.Skip == (page - 1) * 50));
+        }
+        
+        [TestMethod]
+        public async Task SearchCalculationsWithStatusSuppliedDelegatesToOverloadWithSearchModelParameter()
+        {
+            string searchTerm = NewRandomString();
+            string specificationId = NewRandomString();
+            int page  = NewRandomNumberBetween(1, 100);
+            CalculationType calculationType = NewRandomEnum<CalculationType>();
+            PublishStatus status = NewRandomEnum<PublishStatus>();
+            
+            SearchResults<CalculationIndex> searchResults = new SearchResults<CalculationIndex>();
+
+            ILogger logger = CreateLogger();
+
+            ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
+
+            string expectedSearchFilter = $"(status eq '{status}') and (specificationId eq '{specificationId}') and (calculationType eq '{calculationType}')";
+            
+            searchRepository
+                .Search(searchTerm, 
+                    Arg.Is<SearchParameters>(_ => 
+                        _.SearchMode == SearchMode.All &&
+                        _.SearchFields != null &&
+                        _.SearchFields.SequenceEqual(new [] { "name" }) &&
+                        _.Filter == expectedSearchFilter &&
+                        _.IncludeTotalResultCount &&
+                        _.QueryType == QueryType.Full &&
+                        _.Top == 50 &&
+                        _.Skip == (page - 1) * 50))
+                .Returns(searchResults);
+
+            CalculationSearchService service = CreateCalculationSearchService(logger: logger, serachRepository: searchRepository);
+
+            OkObjectResult result = await service.SearchCalculations(specificationId, calculationType, status, searchTerm, page) as OkObjectResult;
 
             result?
                 .Value
@@ -74,6 +128,14 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
 
         private string NewRandomString() => new RandomString();
         
+        private int NewRandomNumberBetween(int start, int end) => new RandomNumberBetween(start, end);
+
+        private TEnum NewRandomEnum<TEnum>()
+            where TEnum : struct
+        {
+            return new RandomEnum<TEnum>();
+        }
+
         [TestMethod]
         public async Task SearchCalculation_SearchRequestFails_ThenBadRequestReturned()
         {
