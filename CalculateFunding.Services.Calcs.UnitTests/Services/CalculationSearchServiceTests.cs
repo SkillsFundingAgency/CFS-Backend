@@ -1,8 +1,11 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Repositories.Common.Search.Results;
+using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Search.Models;
@@ -10,11 +13,67 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
 
-namespace CalculateFunding.Services.Calcs.Services
+namespace CalculateFunding.Services.Calcs.UnitTests.Services
 {
     [TestClass]
     public class CalculationSearchServiceTests
     {
+        //TODO; clean this all up and add actual mocking constraints instead of all this Any stuff that doesnt test anything
+
+        [TestMethod]
+        public async Task SearchCalculationsDelegatesToOverloadWithSearchModelParameter()
+        {
+            string searchTerm = NewRandomString();
+            string specificationId = NewRandomString();
+            int page  = new RandomNumberBetween(1, 100);
+            CalculationType calculationType = new RandomEnum<CalculationType>();
+            
+            SearchResults<CalculationIndex> searchResults = new SearchResults<CalculationIndex>();
+
+            ILogger logger = CreateLogger();
+
+            ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
+
+            string expectedSearchFilter = $"(specificationId eq '{specificationId}') and (calculationType eq '{calculationType}')";
+            
+            searchRepository
+                .Search(searchTerm, 
+                    Arg.Is<SearchParameters>(_ => 
+                        _.SearchMode == SearchMode.All &&
+                        _.SearchFields != null &&
+                        _.SearchFields.SequenceEqual(new [] { "name" }) &&
+                        _.Filter == expectedSearchFilter &&
+                        _.IncludeTotalResultCount &&
+                        _.QueryType == QueryType.Full &&
+                        _.Top == 50 &&
+                        _.Skip == (page - 1) * 50))
+                .Returns(searchResults);
+
+            CalculationSearchService service = CreateCalculationSearchService(logger: logger, serachRepository: searchRepository);
+
+            OkObjectResult result = await service.SearchCalculations(specificationId, calculationType, searchTerm, page) as OkObjectResult;
+
+            result?
+                .Value
+                .Should()
+                .BeOfType<CalculationSearchResults>();
+
+            await searchRepository
+                .Received(1)
+                .Search(searchTerm,
+                    Arg.Is<SearchParameters>(_ =>
+                        _.SearchMode == SearchMode.All &&
+                        _.Filter == expectedSearchFilter &&
+                        _.SearchFields != null &&
+                        _.SearchFields.SequenceEqual(new [] { "name" }) &&
+                        _.IncludeTotalResultCount &&
+                        _.QueryType == QueryType.Full &&
+                        _.Top == 50 &&
+                        _.Skip == (page - 1) * 50));
+        }
+
+        private string NewRandomString() => new RandomString();
+        
         [TestMethod]
         public async Task SearchCalculation_SearchRequestFails_ThenBadRequestReturned()
         {
@@ -33,7 +92,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             searchRepository
                 .When(s => s.Search(Arg.Any<string>(), Arg.Any<SearchParameters>()))
-                    .Do(x => { throw new FailedToQuerySearchException("Test Message", null); });
+                    .Do(x => throw new FailedToQuerySearchException("Test Message", null));
 
 
             CalculationSearchService service = CreateCalculationSearchService(logger: logger, serachRepository: searchRepository);

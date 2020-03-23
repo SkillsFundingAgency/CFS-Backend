@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Models.HealthCheck;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Repositories.Common.Search;
@@ -46,6 +47,28 @@ namespace CalculateFunding.Services.Calcs
             health.Dependencies.Add(new DependencyHealth { HealthOk = searchRepoHealth.Ok, DependencyName = _searchRepository.GetType().GetFriendlyName(), Message = searchRepoHealth.Message });
 
             return health;
+        }
+
+        public async Task<IActionResult> SearchCalculations(string specificationId, 
+            CalculationType calculationType, 
+            string searchTerm,
+            int? page)
+        {
+            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
+
+            return await SearchCalculations(new SearchModel
+            {
+                SearchMode = Models.Search.SearchMode.All,
+                FacetCount = 50,
+                SearchTerm = searchTerm,
+                Filters    = new Dictionary<string, string[]>
+                {
+                    {"specificationId", new []{ specificationId }},
+                    {"calculationType", new []{ calculationType.ToString() }}
+                },
+                PageNumber = page.GetValueOrDefault(1),
+                Top = 50
+            });
         }
 
         public async Task<IActionResult> SearchCalculations(SearchModel searchModel)

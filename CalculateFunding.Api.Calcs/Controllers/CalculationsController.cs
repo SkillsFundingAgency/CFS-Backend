@@ -43,6 +43,16 @@ namespace CalculateFunding.Api.Calcs.Controllers
             _buildProjectsService = buildProjectsService;
             _calculationRelationships = calculationRelationships;
         }
+       
+        [HttpGet("api/specifications/{specificationId}/calculations/calculationType/{calculationType}")]
+        [Produces(typeof(CalculationSearchResults))]
+        public async Task<IActionResult> SearchCalculationsForSpecification([FromRoute] string specificationId,
+            [FromRoute] CalculationType calculationType,
+            [FromQuery] string searchTerm,
+            [FromQuery] int? page)
+        {
+            return await _calcsSearchService.SearchCalculations(specificationId, calculationType, searchTerm, page);
+        }
 
         [Route("api/calcs/calculations-search")]
         [HttpPost]
