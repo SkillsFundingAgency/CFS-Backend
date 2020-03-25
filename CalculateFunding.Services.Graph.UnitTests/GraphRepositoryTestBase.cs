@@ -8,6 +8,7 @@ using CalculateFunding.Common.Graph.Interfaces;
 using CalculateFunding.Tests.Common.Helpers;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using CalculateFunding.Common.Graph;
 
 namespace CalculateFunding.Services.Graph.UnitTests
 {
@@ -43,20 +44,20 @@ namespace CalculateFunding.Services.Graph.UnitTests
         {
             await GraphRepository
                 .Received(1)
-                .DeleteNode<TNode>(field, value);
+                .DeleteNode<TNode>(Arg.Is<Field>(_ => _.Name == field && _.Value == value));
         }
         
         protected string NewRandomString() => new RandomString();
 
         protected async Task ThenTheRelationshipWasCreated<TNodeA, TNodeB>(string label, 
-            (string, string) left, 
-            (string, string) right)
+            (string Name, string Value) left, 
+            (string Name, string Value) right)
         {
             await GraphRepository
                 .Received(1)
                 .UpsertRelationship<TNodeA, TNodeB>(label,
-                    left,
-                    right);    
+                    Arg.Is<Field>(_ => _.Name == left.Name && _.Value == left.Value),
+                    Arg.Is<Field>(_ => _.Name == right.Name && _.Value == right.Value));    
         }
 
         protected async Task AndTheRelationshipWasCreated<TNodeA, TNodeB>(string label,
@@ -69,14 +70,14 @@ namespace CalculateFunding.Services.Graph.UnitTests
         }
 
         protected async Task ThenTheRelationshipWasDeleted<TNodeA, TNodeB>(string label, 
-            (string, string) left, 
-            (string, string) right)
+            (string Name, string Value) left, 
+            (string Name, string Value) right)
         {
             await GraphRepository
                 .Received(1)
                 .DeleteRelationship<TNodeA, TNodeB>(label,
-                    left,
-                    right);    
+                    Arg.Is<Field>(_ => _.Name == left.Name && _.Value == left.Value),
+                    Arg.Is<Field>(_ => _.Name == right.Name && _.Value == right.Value ));    
         }
 
         protected async Task AndTheRelationshipWasDeleted<TNodeA, TNodeB>(string label,
@@ -105,7 +106,7 @@ namespace CalculateFunding.Services.Graph.UnitTests
         {
             await GraphRepository
                 .Received(1)
-                .DeleteNodeAndChildNodes<TNode>(field, value);
+                .DeleteNodeAndChildNodes<TNode>(Arg.Is<Field>(_ => _.Name == field && _.Value == value));
         }
     }
 }

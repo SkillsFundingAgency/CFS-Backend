@@ -1,6 +1,8 @@
-﻿using CalculateFunding.Common.Graph.Interfaces;
+﻿using CalculateFunding.Common.Graph;
+using CalculateFunding.Common.Graph.Interfaces;
 using CalculateFunding.Models.Graph;
 using CalculateFunding.Services.Graph.Interfaces;
+using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -43,6 +45,11 @@ namespace CalculateFunding.Services.Graph
             await UpsertRelationship<Specification, Calculation>(SpecificationCalculationRelationship, 
                 (SpecificationId, specificationId),
                 (CalculationId, calculationId));
+        }
+
+        public async Task<IEnumerable<Entity<Calculation, JObject>>> GetCalculationCircularDependencies(string specificationId)
+        {
+            return await GetCircularDependencies<Calculation>("CalledByCalculation", SpecificationId, specificationId);
         }
 
         public async Task UpsertCalculationCalculationRelationship(string calculationIdA, string calculationIdB)

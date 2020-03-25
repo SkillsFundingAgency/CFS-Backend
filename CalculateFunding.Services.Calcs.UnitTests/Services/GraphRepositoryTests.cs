@@ -12,6 +12,15 @@ using CalculateFunding.Common.ApiClient.Specifications.Models;
 using GraphModels = CalculateFunding.Common.ApiClient.Graph.Models;
 using CalculateFunding.Services.CodeGeneration.VisualBasic;
 using Serilog;
+using System.Linq;
+using FluentAssertions;
+using CalculateFunding.Common.ApiClient.Models;
+using System.Net;
+using Newtonsoft.Json.Linq;
+using CalculateFunding.Tests.Common.Helpers;
+using GraphCalculation = CalculateFunding.Common.ApiClient.Graph.Models.Calculation;
+using GraphEntity = CalculateFunding.Common.ApiClient.Graph.Models.Entity<CalculateFunding.Common.ApiClient.Graph.Models.Calculation, Newtonsoft.Json.Linq.JObject>;
+using CalculationEntity = CalculateFunding.Models.Graph.Entity<CalculateFunding.Models.Calcs.Calculation>;
 
 namespace CalculateFunding.Services.Calcs.UnitTests.Services
 {
@@ -20,7 +29,6 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
     {
         ICalculationsFeatureFlag _calculationsFeatureFlag;
         IGraphApiClient _graphApiClient;
-        Polly.Policy _graphApiClientPolicy;
         IGraphRepository _graphRepository;
         ILogger _logger;
 
@@ -32,6 +40,78 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
             ResiliencePolicies resiliencePolicies = new ResiliencePolicies { GraphApiClientPolicy = Polly.Policy.NoOpAsync() };
             _logger = Substitute.For<ILogger>();
             _graphRepository = new GraphRepository(_graphApiClient, resiliencePolicies, _logger, _calculationsFeatureFlag);
+        }
+
+        [TestMethod]
+        public async Task GetCircularDependencies_WhenFeatureNotEnabledAndSpecificationSuppliedWithCalculation_NoCircularDependenciesReturned()
+        {
+            SpecificationSummary specificationSummary = NewSpecification();
+            
+            _calculationsFeatureFlag
+                            .IsGraphEnabled()
+                .Returns(false);
+
+            IEnumerable<CalculationEntity> circularDependencies = await _graphRepository.GetCircularDependencies(specificationSummary.Id);
+
+            circularDependencies
+                .IsNullOrEmpty()
+                .Should()
+                .Be(true);
+        }
+
+        [TestMethod]
+        public async Task GetCircularDependencies_WhenFeatureEnabledAndSpecificationSuppliedWithCalculationWithNoCircularDependencies_NoCircularDependenciesReturned()
+        {
+            SpecificationSummary specificationSummary = NewSpecification();
+
+            _graphApiClient
+                .GetCircularDependencies(specificationSummary.Id)
+                .Returns(new ApiResponse<IEnumerable<GraphEntity>>(HttpStatusCode.OK));
+
+            _calculationsFeatureFlag
+                .IsGraphEnabled()
+                .Returns(false);
+
+            IEnumerable<CalculationEntity> circularDependencies = await _graphRepository.GetCircularDependencies(specificationSummary.Id);
+
+            circularDependencies
+                .IsNullOrEmpty()
+                .Should()
+                .Be(true);
+        }
+
+        [TestMethod]
+        public async Task GetCircularDependencies_WhenFeatureEnabledAndSpecificationSuppliedWithCalculationWithCircularDependencies_CircularDependenciesReturned()
+        {
+            SpecificationSummary specificationSummary = NewSpecification(_ => _.WithId("ebc5153d-0a3b-44aa-ab4b-aea405cb0df0"));
+
+            GraphCalculation calculation = NewGraphCalculation(_ => _.WithSpecificationId(specificationSummary.Id)
+            .WithId("41402e30-f8a7-40bc-a4fc-4cd256e2fbeb"));
+
+            GraphEntity entity = new GraphEntity { Node = calculation, Relationship = JObject.Parse(GetResourceString("CalculateFunding.Services.Calcs.UnitTests.Resources.relationships.json")) };
+
+            _calculationsFeatureFlag
+                .IsGraphEnabled()
+                .Returns(true);
+
+            _graphApiClient
+                .GetCircularDependencies(Arg.Is(specificationSummary.Id))
+                .Returns(new ApiResponse<IEnumerable<GraphEntity>>(HttpStatusCode.OK, new[] { entity }));
+
+            IEnumerable<CalculationEntity> circularDependencies = await _graphRepository.GetCircularDependencies(specificationSummary.Id);
+
+            circularDependencies
+                .IsNullOrEmpty()
+                .Should()
+                .Be(false);
+
+            circularDependencies
+                .Where(_ => _.Id == calculation.CalculationId)
+                .FirstOrDefault()
+                .Relationships
+                .Count()
+                .Should()
+                .Be(4);
         }
 
         [TestMethod]
@@ -173,6 +253,15 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
             return calculationBuilder.Build();
         }
 
+        protected static GraphCalculation NewGraphCalculation(Action<GraphCalculationBuilder> setUp = null)
+        {
+            GraphCalculationBuilder graphCalculationBuilder = new GraphCalculationBuilder();
+
+            setUp?.Invoke(graphCalculationBuilder);
+
+            return graphCalculationBuilder.Build();
+        }
+
         protected static CalculationVersion NewCalculationVersion(Action<CalculationVersionBuilder> setUp = null)
         {
             CalculationVersionBuilder calculationVersionBuilder = new CalculationVersionBuilder();
@@ -180,6 +269,13 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
             setUp?.Invoke(calculationVersionBuilder);
 
             return calculationVersionBuilder.Build();
+        }
+
+        public string GetResourceString(string resourceName)
+        {
+            return typeof(GraphRepositoryTests)
+                .Assembly
+                .GetEmbeddedResourceFileContents(resourceName);
         }
     }
 }

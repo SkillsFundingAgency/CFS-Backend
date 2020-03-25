@@ -1,4 +1,6 @@
-﻿using CalculateFunding.Models.Graph;
+﻿using CalculateFunding.Common.Graph;
+using CalculateFunding.Models.Graph;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -21,5 +23,7 @@ namespace CalculateFunding.Services.Graph.Interfaces
 
         Task DeleteCalculationDataFieldRelationship(string calculationId,
             string dataFieldId);
+
+        Task<IEnumerable<Entity<Calculation, JObject>>> GetCalculationCircularDependencies(string specificationId);
     }
 }

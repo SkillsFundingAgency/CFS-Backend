@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CalculateFunding.Common" Version="1.39.0" />
+    <PackageReference Include="CalculateFunding.Common" Version="1.40.0" />
     <PackageReference Include="CalculateFunding.Common.ApiClient.Calcs" Version="2.0.2" />
     <PackageReference Include="CalculateFunding.Common.ApiClient.Jobs" Version="1.0.14" />
     <PackageReference Include="CalculateFunding.Common.ApiClient.Policies" Version="2.0.17" />

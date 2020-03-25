@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
@@ -31,6 +32,7 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Azure.ServiceBus;
 using Serilog;
 using static CalculateFunding.Services.Core.Constants.JobConstants;
+using CalculationEntity = CalculateFunding.Models.Graph.Entity<CalculateFunding.Models.Calcs.Calculation>;
 
 namespace CalculateFunding.Services.Calcs
 {
@@ -52,6 +54,7 @@ namespace CalculateFunding.Services.Calcs
         private readonly IBuildProjectsRepository _buildProjectsRepository;
         private readonly Polly.Policy _buildProjectsRepositoryPolicy;
         private readonly ICalculationEngineRunningChecker _calculationEngineRunningChecker;
+        private readonly IGraphRepository _graphRepository;
 
         public BuildProjectsService(
             ILogger logger,
@@ -67,7 +70,8 @@ namespace CalculateFunding.Services.Calcs
             IDatasetRepository datasetRepository,
             IBuildProjectsRepository buildProjectsRepository,
             ICalculationEngineRunningChecker calculationEngineRunningChecker,
-            IJobManagement jobManagement)
+            IJobManagement jobManagement,
+            IGraphRepository graphRepository)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(telemetry, nameof(telemetry));
@@ -83,6 +87,7 @@ namespace CalculateFunding.Services.Calcs
             Guard.ArgumentNotNull(providersApiClient, nameof(providersApiClient));
             Guard.ArgumentNotNull(calculationEngineRunningChecker, nameof(calculationEngineRunningChecker));
             Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
+            Guard.ArgumentNotNull(graphRepository, nameof(graphRepository));
             Guard.ArgumentNotNull(resiliencePolicies?.DatasetsRepository, nameof(resiliencePolicies.DatasetsRepository));
             Guard.ArgumentNotNull(resiliencePolicies?.JobsApiClient, nameof(resiliencePolicies.JobsApiClient));
             Guard.ArgumentNotNull(resiliencePolicies?.BuildProjectRepositoryPolicy, nameof(resiliencePolicies.BuildProjectRepositoryPolicy));
@@ -99,6 +104,7 @@ namespace CalculateFunding.Services.Calcs
             _sourceCodeService = sourceCodeService;
             _datasetRepository = datasetRepository;
             _jobManagement = jobManagement;
+            _graphRepository = graphRepository;
             _datasetRepositoryPolicy = resiliencePolicies.DatasetsRepository;
             _buildProjectsRepository = buildProjectsRepository;
             _buildProjectsRepositoryPolicy = resiliencePolicies.BuildProjectRepositoryPolicy;
@@ -159,6 +165,43 @@ namespace CalculateFunding.Services.Calcs
             IDictionary<string, string> properties = message.BuildMessageProperties();
 
             string specificationId = message.UserProperties["specification-id"].ToString();
+
+            IEnumerable<CalculationEntity> circularDependencies = await _graphRepository.GetCircularDependencies(specificationId);
+
+            if(!circularDependencies.IsNullOrEmpty())
+            {
+                string errorMessage = $"circular dependencies exist for specification: '{specificationId}'";
+                
+                foreach(CalculationEntity calculationEntity in circularDependencies)
+                {
+                    StringBuilder stringBuilder = new StringBuilder();
+
+                    int i = -1;
+
+                    _logger.Information(calculationEntity.Relationships.Select(rel =>
+                    {
+                        try
+                        {
+                            if (i == -1)
+                            {
+                                return rel.Name;
+                            }
+                            else
+                            {
+                                return $"|--->{rel.Name}".AddLeading(i * 3);
+                            }
+                        }
+                        finally
+                        {
+                            i++;
+                        }
+                    }).Aggregate((partialLog, log) => $"{partialLog}\r\n{log}"));
+                }
+
+                _logger.Information(errorMessage);
+
+                throw new NonRetriableException(errorMessage);
+            }
 
             BuildProject buildProject = await GetBuildProjectForSpecificationId(specificationId);
 

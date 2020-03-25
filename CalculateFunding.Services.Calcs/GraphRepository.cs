@@ -11,8 +11,13 @@ using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Compiler;
 using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Common.ApiClient.Models;
 using Polly;
 using Serilog;
+using GraphCalculation = CalculateFunding.Common.ApiClient.Graph.Models.Calculation;
+using GraphEntity = CalculateFunding.Common.ApiClient.Graph.Models.Entity<CalculateFunding.Common.ApiClient.Graph.Models.Calculation, Newtonsoft.Json.Linq.JObject>;
+using CalculationEntity = CalculateFunding.Models.Graph.Entity<CalculateFunding.Models.Calcs.Calculation>;
+using Newtonsoft.Json.Linq;
 
 namespace CalculateFunding.Services.Calcs
 {
@@ -22,6 +27,14 @@ namespace CalculateFunding.Services.Calcs
         private readonly Policy _resilience;
         private readonly ILogger _logger;
         private readonly ICalculationsFeatureFlag _calculationsFeatureFlag;
+        private bool? _graphEnabled;
+
+        public async Task<bool> GraphEnabled()
+        {
+            _graphEnabled = _graphEnabled ?? await _calculationsFeatureFlag.IsGraphEnabled();
+
+            return _graphEnabled.Value;
+        }
 
         public GraphRepository(IGraphApiClient graphApiClient,
             ICalcsResiliencePolicies resiliencePolicies,
@@ -37,6 +50,38 @@ namespace CalculateFunding.Services.Calcs
             _logger = logger;
             _resilience = resiliencePolicies.GraphApiClientPolicy;
             _calculationsFeatureFlag = calculationsFeatureFlag;
+        }
+
+        public async Task<IEnumerable<CalculationEntity>> GetCircularDependencies(string specificationId)
+        {
+            if (!(await GraphEnabled()))
+            {
+                return null;
+            }
+
+            ApiResponse<IEnumerable<GraphEntity>> entities = await _resilience.ExecuteAsync(() => _graphApiClient.GetCircularDependencies(specificationId));
+
+            return entities?.Content?.Select(_ => 
+                new CalculationEntity
+                {
+                    Id = _.Node.CalculationId,
+                    Relationships = _.Relationship["nodes"].ToObject<JArray>().Select(node =>
+                    {
+                        GraphCalculation graphCalculation = node["properties"].ToObject<GraphCalculation>();
+                        return new Calculation
+                        {
+                            Id = graphCalculation.CalculationId,
+                            Current = new CalculationVersion
+                            {
+                                CalculationId = graphCalculation.CalculationId,
+                                Name = graphCalculation.CalculationName,
+                                CalculationType = graphCalculation.CalculationType.AsMatchingEnum<CalculationType>()
+                            },
+                            FundingStreamId = graphCalculation.FundingStream,
+                            SpecificationId = graphCalculation.SpecificationId
+                        };
+                    })
+                });
         }
 
         public async Task PersistToGraph(IEnumerable<Calculation> calculations, SpecificationSummary specification, string calculationId = null, bool withDelete = false)
@@ -70,7 +115,7 @@ namespace CalculateFunding.Services.Calcs
                 await TaskHelper.WhenAllAndThrow(deleteTasks.ToArray());
             }
 
-            await _resilience.ExecuteAsync(() => _graphApiClient.UpsertCalculations(currentCalculations.Select(_ => new Common.ApiClient.Graph.Models.Calculation
+            await _resilience.ExecuteAsync(() => _graphApiClient.UpsertCalculations(currentCalculations.Select(_ => new GraphCalculation
             {
                 CalculationId = _.Id,
                 CalculationName = _.Current.Name,

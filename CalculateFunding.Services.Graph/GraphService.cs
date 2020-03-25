@@ -157,6 +157,11 @@ namespace CalculateFunding.Services.Graph
                 $" and specification:'{specificationId}'");
         }
 
+        public async Task<IActionResult> GetCalculationCircularDependencies(string specificationId)
+        {
+            return await ExecuteRepositoryAction(() => _calcRepository.GetCalculationCircularDependencies(specificationId), $"Unable to retrieve calculation circulardependencies.");
+        }
+
         public async Task<IActionResult> UpsertCalculationCalculationRelationship(string calculationIdA, string calculationIdB)
         {
             return await ExecuteRepositoryAction(() => _calcRepository.UpsertCalculationCalculationRelationship(calculationIdA, calculationIdB),
@@ -198,6 +203,24 @@ namespace CalculateFunding.Services.Graph
             return await ExecuteRepositoryAction(() => _calcRepository.DeleteCalculationCalculationRelationship(calculationIdA, calculationIdB),
                 $"Delete calculation relationship call to calculation failed for calculation:'{calculationIdA}'" +
                 $" calling calculation:'{calculationIdB}'");
+        }
+
+
+
+        private async Task<IActionResult> ExecuteRepositoryAction<T>(Func<Task<T>> action, string errorMessage)
+        {
+            try
+            {
+                T results =  await action();
+
+                return new OkObjectResult(results);
+            }
+            catch (Exception e)
+            {
+                _logger.Error(e, errorMessage);
+
+                throw;
+            }
         }
 
         private async Task<IActionResult> ExecuteRepositoryAction(Func<Task> action, string errorMessage)

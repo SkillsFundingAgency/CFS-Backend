@@ -32,6 +32,7 @@ using Newtonsoft.Json;
 using NSubstitute;
 using Serilog;
 using Calculation = CalculateFunding.Models.Calcs.Calculation;
+using CalculationEntity = CalculateFunding.Models.Graph.Entity<CalculateFunding.Models.Calcs.Calculation>;
 
 namespace CalculateFunding.Services.Calcs.Services
 {
@@ -1395,6 +1396,79 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
+        public void UpdateAllocations_GivenSpecificationHasCirculardependencies_ExceptionThrown()
+        {
+            string parentJobId = "job-id-1";
+
+            string specificationId = "test-spec1";
+
+            JobViewModel parentJob = new JobViewModel
+            {
+                Id = parentJobId,
+                InvokerUserDisplayName = "Username",
+                InvokerUserId = "UserId",
+                SpecificationId = specificationId,
+                CorrelationId = "correlation-id-1",
+                JobDefinitionId = JobConstants.DefinitionNames.CreateInstructGenerateAggregationsAllocationJob
+            };
+
+            ApiResponse<JobViewModel> jobViewModelResponse = new ApiResponse<JobViewModel>(HttpStatusCode.OK, parentJob);
+
+            Message message = new Message(Encoding.UTF8.GetBytes(""));
+            message.UserProperties.Add("jobId", "job-id-1");
+            message.UserProperties.Add("specification-id", specificationId);
+
+            Calculation calculation1 = new Calculation
+            {
+                Id = "1",
+                Current = new CalculationVersion
+                {
+                    Name = "Calc 1",
+                    SourceCode = "return Sum(Calc2)"
+                }
+            };
+
+            Calculation calculation2 = new Calculation
+            {
+                Id = "2",
+                Current = new CalculationVersion
+                {
+                    Name = "Calc 2",
+                    SourceCode = "return 1000"
+                }
+            };
+
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
+                .GetJobById(Arg.Is(parentJobId))
+                .Returns(jobViewModelResponse);
+
+            ILogger logger = CreateLogger();
+
+            IGraphRepository graphRepository = CreateGraphRepository();
+
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(
+                logger: logger, jobsApiClient: jobsApiClient, graphRepository: graphRepository);
+
+            graphRepository.GetCircularDependencies(specificationId)
+                .Returns(new[] { new CalculationEntity {
+                    Id = calculation1.Id,
+                    Relationships = new[] { calculation1, calculation2, calculation1 }
+                }});
+
+            //Act
+            Func<Task> invocation = async() => await buildProjectsService.UpdateAllocations(message);
+
+            //Assert
+            invocation
+                .Should()
+                .Throw<NonRetriableException>()
+                .WithMessage($"circular dependencies exist for specification: '{specificationId}'");
+
+            logger.Received(1).Information("Calc 1\r\n|--->Calc 2\r\n   |--->Calc 1");
+        }
+
+        [TestMethod]
         public async Task UpdateAllocations_GivenBuildProjectAndListLengthOfTenProvidersAndIsAggregationJobAndOneAggregatedCalcsFound_CreatesTenJobs()
         {
             //Arrange
@@ -1443,6 +1517,8 @@ namespace CalculateFunding.Services.Calcs.Services
             Message message = new Message(Encoding.UTF8.GetBytes(""));
             message.UserProperties.Add("jobId", "job-id-1");
             message.UserProperties.Add("specification-id", specificationId);
+            message.UserProperties.Add("provider-cache-key", $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}");
+            message.UserProperties.Add("ignore-save-provider-results", "true");
 
             ICacheProvider cacheProvider = CreateCacheProvider();
             cacheProvider
@@ -1524,6 +1600,7 @@ namespace CalculateFunding.Services.Calcs.Services
                             m.Count(p => p.Trigger.EntityId == parentJob.Id) == 10 &&
                             m.Count(p => p.Trigger.EntityType == nameof(Job)) == 10 &&
                             m.Count(p => p.Trigger.Message == $"Triggered by parent job with id: '{parentJob.Id}") == 10 &&
+                            m.Count(p => p.Properties["ignore-save-provider-results"] == "true") == 10 &&
                             m.Count(p => p.Properties["calculations-to-aggregate"] == "Calc2") == 10 &&
                             m.ElementAt(0).Properties["batch-number"] == "1" &&
                             m.ElementAt(1).Properties["batch-number"] == "2" &&
@@ -1844,6 +1921,69 @@ namespace CalculateFunding.Services.Calcs.Services
             logger
                 .Received(1)
                 .Information(Arg.Is($"No scoped providers set for specification '{specificationId}'"));
+        }
+
+        [TestMethod]
+        public void UpdateAllocations_GivenBuildProjectAndSummariesNotInCacheAndProviderVersionEmptyForSpecification_ExceptionThrown()
+        {
+            string specificationId = "test-spec1";
+            string parentJobId = "job-id-1";
+            string jobId = "job2";
+
+            Message message = new Message(Encoding.UTF8.GetBytes(""));
+            message.UserProperties.Add("jobId", jobId);
+            message.UserProperties.Add("specification-id", specificationId);
+
+            JobViewModel parentJob = new JobViewModel
+            {
+                Id = parentJobId,
+                InvokerUserDisplayName = "Username",
+                InvokerUserId = "UserId",
+                SpecificationId = specificationId,
+                CorrelationId = "correlation-id-1",
+                JobDefinitionId = JobConstants.DefinitionNames.CreateInstructGenerateAggregationsAllocationJob
+            };
+
+            ApiResponse<JobViewModel> parentJobViewModelResponse = new ApiResponse<JobViewModel>(HttpStatusCode.OK, parentJob);
+            
+            JobViewModel childJob = new JobViewModel
+            {
+                Id = jobId,
+                InvokerUserDisplayName = "Username",
+                InvokerUserId = "UserId",
+                SpecificationId = specificationId,
+                CorrelationId = "correlation-id-1",
+                JobDefinitionId = JobConstants.DefinitionNames.CreateInstructGenerateAggregationsAllocationJob
+            };
+
+            ApiResponse<JobViewModel> jobViewModelResponse = new ApiResponse<JobViewModel>(HttpStatusCode.OK, childJob);
+
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
+                .GetJobById(Arg.Is(parentJobId))
+                .Returns(parentJobViewModelResponse);
+            jobsApiClient
+                .GetJobById(Arg.Is(jobId))
+                .Returns(jobViewModelResponse);
+
+            ILogger logger = CreateLogger();
+
+            IProvidersApiClient providersApiClient = CreateProvidersApiClient();
+
+            providersApiClient
+                .PopulateProviderSummariesForSpecification(Arg.Is(specificationId), Arg.Is(true))
+                .Returns(new ApiResponse<int?>(HttpStatusCode.OK));
+
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(jobsApiClient: jobsApiClient,
+                logger: logger, providersApiClient: providersApiClient);
+
+            //Act
+            Func<Task> invocation = async() => await buildProjectsService.UpdateAllocations(message);
+
+            invocation
+                .Should()
+                .Throw<NonRetriableException>()
+                .WithMessage($"No provider version set for specification '{specificationId}'");
         }
 
         [TestMethod]
@@ -2202,7 +2342,8 @@ namespace CalculateFunding.Services.Calcs.Services
             IDatasetRepository datasetRepository = null,
             IBuildProjectsRepository buildProjectsRepository = null,
             ICalculationEngineRunningChecker calculationEngineRunningChecker = null,
-            IJobManagement jobManagement = null)
+            IJobManagement jobManagement = null,
+            IGraphRepository graphRepository = null)
         {
             return new BuildProjectsService(
                 logger ?? CreateLogger(),
@@ -2218,7 +2359,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 datasetRepository ?? CreateDatasetRepository(),
                 buildProjectsRepository ?? CreateBuildProjectRepository(),
                 calculationEngineRunningChecker ?? CreateCalculationEngineRunningChecker(),
-                jobManagement ?? CreateJobManagement());
+                jobManagement ?? CreateJobManagement(),
+                graphRepository ?? CreateGraphRepository());
         }
 
         private static ISourceCodeService CreateSourceCodeService()
@@ -2229,6 +2371,11 @@ namespace CalculateFunding.Services.Calcs.Services
         private static IJobManagement CreateJobManagement()
         {
             return Substitute.For<IJobManagement>();
+        }
+
+        private static IGraphRepository CreateGraphRepository()
+        {
+            return Substitute.For<IGraphRepository>();
         }
 
         private static EngineSettings CreateEngineSettings(int maxPartitionSize = 1000)

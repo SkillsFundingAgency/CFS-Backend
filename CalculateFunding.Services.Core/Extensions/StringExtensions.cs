@@ -160,5 +160,10 @@ namespace System
         {
             return string.IsNullOrWhiteSpace(identifier) ? null : $"{char.ToLower(identifier[0])}{identifier.Substring(1)}";
         }
+
+        public static string AddLeading(this string text, int leadingInt)
+        {
+            return text?.PadLeft(text.Length + leadingInt);
+        }
     }
 }

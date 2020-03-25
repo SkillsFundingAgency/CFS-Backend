@@ -1,7 +1,9 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Graph;
 using CalculateFunding.Common.Graph.Interfaces;
 using CalculateFunding.Common.Utility;
+using Newtonsoft.Json.Linq;
 
 namespace CalculateFunding.Services.Graph
 {
@@ -18,7 +20,7 @@ namespace CalculateFunding.Services.Graph
 
         protected async Task DeleteNode<TNode>(string field, string value)
         {
-            await _graphRepository.DeleteNode<TNode>(field, value);    
+            await _graphRepository.DeleteNode<TNode>(new Field { Name = field, Value = value });    
         }
         protected async Task UpsertNodes<TNode>(IEnumerable<TNode> nodes, params string[] indices)
         {
@@ -32,21 +34,28 @@ namespace CalculateFunding.Services.Graph
 
         protected async Task DeleteNodeAndChildNodes<TNode>(string field, string value)
         {
-            await _graphRepository.DeleteNodeAndChildNodes<TNode>(field, value);
+            await _graphRepository.DeleteNodeAndChildNodes<TNode>(new Field { Name = field, Value = value });
         }
 
-        protected async Task UpsertRelationship<TNodeA, TNodeB>(string label, (string, string) idA, (string, string) idB)
+        protected async Task UpsertRelationship<TNodeA, TNodeB>(string label, (string Name, string Value) idA, (string Name, string Value) idB)
         {
             await _graphRepository.UpsertRelationship<TNodeA, TNodeB>(label, 
-                (idA.Item1, idA.Item2), 
-                (idB.Item1, idB.Item2));    
+                (new Field { Name = idA.Name, Value = idA.Value }), 
+                (new Field { Name = idB.Name, Value = idB.Value }));    
         }
-        
-        protected async Task DeleteRelationship<TNodeA, TNodeB>(string label, (string, string) idA, (string, string) idB)
+
+        protected async Task<IEnumerable<Entity<TNode, JObject>>> GetCircularDependencies<TNode> (string relationship, string field, string value)
+            where TNode : class
         {
-            await _graphRepository.DeleteRelationship<TNodeA, TNodeB>(label, 
-                (idA.Item1, idA.Item2), 
-                (idB.Item1, idB.Item2));    
+            return await _graphRepository.GetCircularDependencies<TNode, JObject>(relationship, new Field { Name = field, Value = value });
+        }
+
+
+        protected async Task DeleteRelationship<TNodeA, TNodeB>(string label, (string Name, string Value) idA, (string Name, string Value) idB)
+        {
+            await _graphRepository.DeleteRelationship<TNodeA, TNodeB>(label,
+                (new Field { Name = idA.Name, Value = idA.Value }),
+                (new Field { Name = idB.Name, Value = idB.Value }));
         }
     }
 }

@@ -13,10 +13,12 @@
 
   <ItemGroup>
     <None Remove="Resources\DSG1.0.json" />
+    <None Remove="Resources\relationships.json" />
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="Resources\DSG1.0.json" />
+    <EmbeddedResource Include="Resources\relationships.json" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,0 +1,105 @@
+{
+  "start": {
+    "id": 1,
+    "labels": [
+      "calculation"
+    ],
+    "properties": {
+      "specificationid": "ebc5153d-0a3b-44aa-ab4b-aea405cb0df0",
+      "fundingstream": "DSG",
+      "calculationid": "41402e30-f8a7-40bc-a4fc-4cd256e2fbeb",
+      "calculationtype": "Template",
+      "calculationname": "Primary pupil sub-total"
+    }
+  },
+  "end": {
+    "id": 1,
+    "labels": [
+      "calculation"
+    ],
+    "properties": {
+      "specificationid": "ebc5153d-0a3b-44aa-ab4b-aea405cb0df0",
+      "fundingstream": "DSG",
+      "calculationid": "41402e30-f8a7-40bc-a4fc-4cd256e2fbeb",
+      "calculationtype": "Template",
+      "calculationname": "Primary pupil sub-total"
+    }
+  },
+  "nodes": [
+    {
+      "id": 1,
+      "labels": [
+        "calculation"
+      ],
+      "properties": {
+        "specificationid": "ebc5153d-0a3b-44aa-ab4b-aea405cb0df0",
+        "fundingstream": "DSG",
+        "calculationid": "41402e30-f8a7-40bc-a4fc-4cd256e2fbeb",
+        "calculationtype": "Template",
+        "calculationname": "Primary pupil sub-total"
+      }
+    },
+    {
+      "id": 2,
+      "labels": [
+        "calculation"
+      ],
+      "properties": {
+        "specificationid": "ebc5153d-0a3b-44aa-ab4b-aea405cb0df0",
+        "fundingstream": "DSG",
+        "calculationid": "4e95bd3f-479a-4c82-b7ed-5d2cc44e4ac2",
+        "calculationtype": "Template",
+        "calculationname": "Primary Unit of Funding"
+      }
+    },
+    {
+      "id": 24,
+      "labels": [
+        "calculation"
+      ],
+      "properties": {
+        "specificationid": "ebc5153d-0a3b-44aa-ab4b-aea405cb0df0",
+        "fundingstream": "DSG",
+        "calculationid": "9525c7f8-1b89-4b6d-8812-8d4150aeff56",
+        "calculationtype": "Template",
+        "calculationname": "Pupil Premium Pupil Count for 3 to 4 Year Olds (PTE)"
+      }
+    },
+    {
+      "id": 1,
+      "labels": [
+        "calculation"
+      ],
+      "properties": {
+        "specificationid": "ebc5153d-0a3b-44aa-ab4b-aea405cb0df0",
+        "fundingstream": "DSG",
+        "calculationid": "41402e30-f8a7-40bc-a4fc-4cd256e2fbeb",
+        "calculationtype": "Template",
+        "calculationname": "Primary pupil sub-total"
+      }
+    }
+  ],
+  "relationships": [
+    {
+      "id": 21,
+      "type": "CalledByCalculation",
+      "startNodeId": 2,
+      "endNodeId": 1,
+      "properties": {}
+    },
+    {
+      "id": 1907,
+      "type": "CalledByCalculation",
+      "startNodeId": 24,
+      "endNodeId": 2,
+      "properties": {}
+    },
+    {
+      "id": 1889,
+      "type": "CalledByCalculation",
+      "startNodeId": 1,
+      "endNodeId": 24,
+      "properties": {}
+    }
+  ]
+}

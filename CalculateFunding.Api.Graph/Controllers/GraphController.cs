@@ -151,6 +151,12 @@ namespace CalculateFunding.Api.Graph.Controllers
             return await _graphService.UpsertCalculationSpecificationRelationship(calculationId, specificationId);
         }
 
+        [HttpGet("api/graph/calculations/circulardependencies/{specificationId}")]
+        public async Task<IActionResult> GetCalculationCircularDependencies([FromRoute]string specificationId)
+        {
+            return await _graphService.GetCalculationCircularDependencies(specificationId);
+        }
+
         [HttpPut("api/graph/calculation/{calculationIdA}/relationships/calculation/{calculationIdB}")]
         [ProducesResponseType(200)]
         public async Task<IActionResult> UpsertCalculationCalculationRelationship([FromRoute]string calculationIdA, [FromRoute]string calculationIdB)

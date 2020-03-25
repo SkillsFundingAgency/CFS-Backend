@@ -6,11 +6,19 @@ namespace CalculateFunding.Services.Calcs.Services
     public class CalculationBuilder : TestEntityBuilder
     {
         private string _id;
+        private string _specificationId;
         private CalculationVersion _calculationVersion;
 
         public CalculationBuilder WithId(string id)
         {
             _id = id;
+
+            return this;
+        }
+
+        public CalculationBuilder WithSpecificationId(string specificationId)
+        {
+            _specificationId = specificationId;
 
             return this;
         }
@@ -27,7 +35,8 @@ namespace CalculateFunding.Services.Calcs.Services
             return new Calculation
             {
                 Id = _id ?? NewRandomString(),
-                Current = _calculationVersion
+                Current = _calculationVersion,
+                SpecificationId = _specificationId ?? NewRandomString()
             };
         }
         
