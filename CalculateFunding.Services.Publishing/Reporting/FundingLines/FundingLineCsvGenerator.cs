@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Utility;
@@ -72,13 +73,15 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
                 string specificationId = parameters.SpecificationId;
                 string fundingLineCode = parameters.FundingLineCode;
                 string fundingStreamId = parameters.FundingStreamId;
+                string fundingPeriodId = parameters.FundingPeriodId;
                 FundingLineCsvGeneratorJobType jobType = parameters.JobType;
 
                 CsvFileInfo fileInfo = new CsvFileInfo(_fileSystemCacheSettings.Path,
                     jobType,
                     specificationId,
                     fundingLineCode,
-                    fundingStreamId);
+                    fundingStreamId,
+                    fundingPeriodId);
 
                 string temporaryPath = fileInfo.TemporaryPath;
                 
@@ -97,7 +100,8 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
                 if (!processedResults)
                 {
                     _logger.Information(
-                        $"Did not create a new csv report as no providers matched for the job type {jobType} in the specification {specificationId} and funding line code {fundingLineCode} and funding stream id {fundingStreamId}");
+                        $"Did not create a new csv report as no providers matched for the job type {jobType} in the specification {specificationId}" + 
+                        $" and funding line code {fundingLineCode} and funding stream id {fundingStreamId}");
 
                     await CompleteJob(parameters);
                     
@@ -105,6 +109,7 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
                 }
 
                 ICloudBlob blob = _blobClient.GetBlockBlobReference(fileInfo.FileName);
+                blob.Properties.ContentDisposition = fileInfo.ContentDisposition;
 
                 using (Stream csvFileStream = _fileSystemAccess.OpenRead(temporaryPath))
                 {
@@ -145,6 +150,8 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
             public string FundingLineCode { get; private set; }
 
             public string FundingStreamId { get; private set; }
+            
+            public string FundingPeriodId { get; private set; }
 
             public FundingLineCsvGeneratorJobType JobType { get; private set; }
 
@@ -155,8 +162,6 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
                 string specificationId = GetProperty(message, "specification-id");
                 string jobType = GetProperty(message, "job-type");
                 string jobId = GetProperty(message, "jobId");
-                string fundingLineCode = GetProperty(message, "funding-line-code");
-                string fundingStreamId = GetProperty(message, "funding-stream-id");
 
                 Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
                 Guard.IsNullOrWhiteSpace(jobType, nameof(jobType));
@@ -167,8 +172,9 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
                     SpecificationId = specificationId,
                     JobType = jobType.AsEnum<FundingLineCsvGeneratorJobType>(),
                     JobId = jobId,
-                    FundingLineCode = fundingLineCode,
-                    FundingStreamId = fundingStreamId
+                    FundingLineCode = GetProperty(message, "funding-line-code"),
+                    FundingStreamId = GetProperty(message, "funding-stream-id"),
+                    FundingPeriodId = GetProperty(message, "funding-period-id")
                 };
             }
             
@@ -184,22 +190,27 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
                 FundingLineCsvGeneratorJobType jobType,
                 string specificationId,
                 string fundingLineCode,
-                string fundingStreamId)
+                string fundingStreamId,
+                string fundingPeriodId)
             {
-                fundingLineCode = fundingLineCode.IsNullOrWhitespace() ?
-                    string.Empty : $"-{fundingLineCode}";
-
-                fundingStreamId = fundingStreamId.IsNullOrWhitespace() ?
-                    string.Empty : $"-{fundingStreamId}";
+                fundingLineCode = WithPrefixDelimiterOrEmpty(fundingLineCode);
+                fundingPeriodId = WithPrefixDelimiterOrEmpty(fundingPeriodId);
+                fundingStreamId = WithPrefixDelimiterOrEmpty(fundingStreamId);
 
                 FileName = $"funding-lines-{jobType}-{specificationId}{fundingLineCode}{fundingStreamId}.csv";
-
+                ContentDisposition = $"attachment; filename=funding-lines-{jobType}{fundingLineCode}{fundingStreamId}{fundingPeriodId}-{DateTimeOffset.UtcNow:s}.csv";
                 TemporaryPath = Path.Combine(root, FileName);
             }
+
+            private string WithPrefixDelimiterOrEmpty(string literal) 
+                => literal.IsNullOrWhitespace() ? string.Empty : $"-{literal}";
             
             public string FileName { get; }
             
             public string TemporaryPath { get; }
+            
+            public string ContentDisposition { get; }
+            
         }
     }
 }

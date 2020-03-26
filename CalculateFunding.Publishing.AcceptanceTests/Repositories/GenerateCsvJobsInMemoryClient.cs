@@ -8,7 +8,8 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 {
     public class GenerateCsvJobsInMemoryClient : IGeneratePublishedFundingCsvJobsCreation
     {
-        public Task CreateJobs(string specificationId, string correlationId, Reference user, IEnumerable<string> fundingLineCodes, IEnumerable<string> fundingStreamIds = null)
+        public Task CreateJobs(string specificationId, string correlationId, Reference user, IEnumerable<string> fundingLineCodes = null, IEnumerable<string> fundingStreamIds = null,
+            string fundingPeriodId = null)
         {
             RequestedSpecificationIds.Add(specificationId);
             

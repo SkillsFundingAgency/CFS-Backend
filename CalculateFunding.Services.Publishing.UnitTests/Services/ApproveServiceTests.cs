@@ -1,3 +1,8 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
@@ -16,21 +21,14 @@ using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Polly;
 using Serilog;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Threading.Tasks;
 
-namespace CalculateFunding.Services.Publishing.UnitTests
+namespace CalculateFunding.Services.Publishing.UnitTests.Services
 {
     [TestClass]
     public class ApproveServiceTests
     {
-        private const string JobType = "ApproveResults";
         private IJobManagement _jobManagement;
         private IPrerequisiteCheckerLocator _prerequisiteCheckerLocator;
-        private IApproveService _approveService;
         private IPublishedFundingDataService _publishedFundingDataService;
         private IPublishedProviderStatusUpdateService _publishedProviderStatusUpdateService;
         private IPublishedProviderIndexerService _publishedProviderIndexerService;
@@ -47,6 +45,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private string _userId;
         private string _userName;
 
+        private ApproveService _approveService;
 
         [TestInitialize]
         public void SetUp()
@@ -344,13 +343,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             _jobsApiClient
                 .Received(1)
                 .AddJobLog(_jobId, Arg.Is<JobLogUpdateModel>(_ => _.CompletedSuccessfully == true));
-        }
-
-        private void AndTheJobEndWasNotTracked()
-        {
-            _jobManagement
-                .Received(0)
-                .UpdateJobStatus(_jobId, 0, 0, true, null);
         }
 
         private PublishedProvider NewPublishedProvider()

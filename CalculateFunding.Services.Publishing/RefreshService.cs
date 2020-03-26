@@ -393,7 +393,7 @@ namespace CalculateFunding.Services.Publishing
                     .GetService(GeneratePublishingCsvJobsCreationAction.Refresh);
                     IEnumerable<string> fundingLineCodes = await _publishedFundingDataService.GetPublishedProviderFundingLines(specification.Id);
                     IEnumerable<string> fundingStreamIds = Array.Empty<string>();
-                    await generateCsvJobs.CreateJobs(specification.Id, correlationId, author, fundingLineCodes, fundingStreamIds);
+                    await generateCsvJobs.CreateJobs(specification.Id, correlationId, author, fundingLineCodes, fundingStreamIds, specification.FundingPeriod?.Id);
                 }
             }
         }

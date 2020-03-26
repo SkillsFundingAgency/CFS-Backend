@@ -112,6 +112,8 @@ namespace CalculateFunding.Services.Publishing
                 throw new RetriableException($"Null or empty published providers returned for specification id : '{specificationId}' when setting status to approved.");
 
             string correlationId = message.GetUserProperty<string>("correlation-id");
+            
+            string fundingPeriodId = publishedProviders.First().Current?.FundingPeriodId;
 
             using (Transaction transaction = _transactionFactory.NewTransaction<ApproveService>())
             {
@@ -134,7 +136,7 @@ namespace CalculateFunding.Services.Publishing
                             .GetService(GeneratePublishingCsvJobsCreationAction.Approve);
                         IEnumerable<string> fundingLineCodes = await _publishedFundingDataService.GetPublishedProviderFundingLines(specificationId);
                         IEnumerable<string> fundingStreamIds = Array.Empty<string>();
-                        await generateCsvJobs.CreateJobs(specificationId, correlationId, author, fundingLineCodes, fundingStreamIds);
+                        await generateCsvJobs.CreateJobs(specificationId, correlationId, author, fundingLineCodes, fundingStreamIds, fundingPeriodId);
                     }
 
                     transaction.Complete();

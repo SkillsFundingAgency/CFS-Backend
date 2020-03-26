@@ -162,8 +162,8 @@ namespace CalculateFunding.Services.Publishing
             IGeneratePublishedFundingCsvJobsCreation generateCsvJobs = _generateCsvJobsLocator
                 .GetService(GeneratePublishingCsvJobsCreationAction.Release);
             IEnumerable<string> fundingLineCodes = await _publishedFundingDataService.GetPublishedProviderFundingLines(specificationId);
-            IEnumerable<string> fundingStreamIds = specification.FundingStreams.Select(fs => fs.Id);
-            await generateCsvJobs.CreateJobs(specificationId, correlationId, author, fundingLineCodes, fundingStreamIds);
+            IEnumerable<string> fundingStreamIds = specification.FundingStreams.Select(fs => fs.Id); //this will only ever be a single I think
+            await generateCsvJobs.CreateJobs(specificationId, correlationId, author, fundingLineCodes, fundingStreamIds, specification.FundingPeriod?.Id);
 
             // Mark job as complete
             _logger.Information($"Marking publish funding job complete");

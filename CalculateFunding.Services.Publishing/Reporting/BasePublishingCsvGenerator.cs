@@ -86,7 +86,7 @@ namespace CalculateFunding.Services.Publishing.Reporting
                     return;
                 }
 
-                await UploadToBlob(temporaryFilePath, GetCsvFileName(message));
+                await UploadToBlob(temporaryFilePath, GetCsvFileName(message), GetContentDisposition(message));
                 await CompleteJob(jobId);
             }
             catch (Exception e)
@@ -125,9 +125,10 @@ namespace CalculateFunding.Services.Publishing.Reporting
             }
         }
 
-        private async Task UploadToBlob(string temporaryFilePath, string blobPath)
+        private async Task UploadToBlob(string temporaryFilePath, string blobPath, string contentDisposition)
         {
             ICloudBlob blob = _blobClient.GetBlockBlobReference(blobPath);
+            blob.Properties.ContentDisposition = contentDisposition;            
 
             using (Stream csvFileStream = _fileSystemAccess.OpenRead(temporaryFilePath))
             {
@@ -139,5 +140,7 @@ namespace CalculateFunding.Services.Publishing.Reporting
         {
             return Path.Combine(rootPath, GetCsvFileName(message));
         }
+
+        protected abstract string GetContentDisposition(Message message);
     }
 }

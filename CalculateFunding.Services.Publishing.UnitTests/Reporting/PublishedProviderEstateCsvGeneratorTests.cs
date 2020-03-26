@@ -37,6 +37,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
         private Mock<IFileSystemAccess> _fileSystemAccess;
         private Mock<IFileSystemCacheSettings> _fileSystemCacheSettings;
         private Mock<IJobTracker> _jobTracker;
+
+        private BlobProperties _blobProperties;
+        
         private string _rootPath;
 
         private Message _message;
@@ -78,6 +81,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
             _fileSystemAccess.Setup(_ => _.Append(It.IsAny<string>(), 
                     It.IsAny<string>(), default))
                 .Returns(Task.CompletedTask);
+            
+            _blobProperties = new BlobProperties();
+            _cloudBlob.Setup(_ => _.Properties)
+                .Returns(_blobProperties);
         }
 
         [TestMethod]
@@ -109,9 +116,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
         {
             string specificationId = NewRandomString();
             string jobId = NewRandomString();
+            string fundingStreamId = NewRandomString();
+            string fundingPeriodId = NewRandomString();
             string expectedInterimFilePath = Path.Combine(_rootPath, $"published-provider-estate-{specificationId}.csv");
 
-            GivenTheMessageProperties(("specification-id", specificationId), ("jobId", jobId));
+            GivenTheMessageProperties(("specification-id", specificationId), 
+                ("jobId", jobId),
+                ("funding-period-id", fundingPeriodId),
+                ("funding-stream-id", fundingStreamId));
             AndTheFileExists(expectedInterimFilePath);
             AndTheJobExists(jobId);
 
@@ -143,6 +155,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
         {
             string specificationId = NewRandomString();
             string jobId = NewRandomString();
+            string fundingStreamId = NewRandomString();
+            string fundingPeriodId = NewRandomString();
             string expectedInterimFilePath = Path.Combine(_rootPath, $"published-provider-estate-{specificationId}.csv");
             string jobDefinitionName = JobConstants.DefinitionNames.GeneratePublishedProviderEstateCsvJob;
 
@@ -175,7 +189,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
             MemoryStream incrementalFileStream = new MemoryStream();
 
             GivenTheCsvRowTransformation(transformedRowsOne, expectedCsvOne, true);
-            AndTheMessageProperties(("specification-id", specificationId), ("jobId", jobId));
+            AndTheMessageProperties(("specification-id", specificationId), 
+                ("jobId", jobId),
+                ("funding-period-id", fundingPeriodId),
+                ("funding-stream-id", fundingStreamId));
             AndTheCloudBlobForSpecificationId(specificationId);
             AndTheFileStream(expectedInterimFilePath, incrementalFileStream);
             AndTheFileExists(expectedInterimFilePath);
@@ -219,6 +236,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
             
             _jobTracker.Verify(_ => _.CompleteTrackingJob(jobId),
                 Times.Once);
+
+            _blobProperties.ContentDisposition
+                .Should()
+                .StartWith($"attachment; filename=published-provider-estate-{fundingStreamId}-{fundingPeriodId}-{DateTimeOffset.UtcNow:yyyy-MM-dd}");
         }
         
         [TestMethod]

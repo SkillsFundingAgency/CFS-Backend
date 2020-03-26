@@ -1,4 +1,5 @@
-﻿using CalculateFunding.Common.Utility;
+﻿using System;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Core.Caching.FileSystem;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
@@ -13,6 +14,7 @@ using System.Dynamic;
 using System.Threading.Tasks;
 using System.Linq;
 using CalculateFunding.Models.Publishing;
+using StackExchange.Redis;
 
 namespace CalculateFunding.Services.Publishing.Reporting.PublishedProviderEstate
 {
@@ -60,7 +62,7 @@ namespace CalculateFunding.Services.Publishing.Reporting.PublishedProviderEstate
                 {
                     if (lastGroupInBatch != null)
                     {
-                        publishedProviderVersions.AddRange(lastGroupInBatch.AsEnumerable());
+                        publishedProviderVersions.AddRange(lastGroupInBatch);
                     }
 
                     List<IGrouping<string, PublishedProviderVersion>> providerVersionGroups = publishedProviderVersions.GroupBy(v => v.ProviderId).ToList();
@@ -82,6 +84,14 @@ namespace CalculateFunding.Services.Publishing.Reporting.PublishedProviderEstate
             }
 
             return processedResults;
+        }
+
+        protected override string GetContentDisposition(Message message)
+        {
+            string fundingStreamId = message.GetUserProperty<string>("funding-stream-id");
+            string fundingPeriodId = message.GetUserProperty<string>("funding-period-id");
+            
+            return $"attachment; filename=published-provider-estate-{fundingStreamId}-{fundingPeriodId}-{DateTimeOffset.UtcNow:s}";
         }
 
         private void GenerateGroupedPublishedProviderEstateCsv(

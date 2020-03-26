@@ -37,6 +37,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
         private Mock<IFileSystemCacheSettings> _fileSystemCacheSettings;
         private Mock<IJobTracker> _jobTracker;
         private Mock<IFundingLineCsvBatchProcessor> _batchProcessor;
+        private BlobProperties _blobProperties;
         private string _rootPath;
 
         private Message _message;
@@ -78,6 +79,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
             _fileSystemAccess.Setup(_ => _.Append(It.IsAny<string>(), 
                     It.IsAny<string>(), default))
                 .Returns(Task.CompletedTask);
+            
+            _blobProperties = new BlobProperties();
+
+            _cloudBlob.Setup(_ => _.Properties)
+                .Returns(_blobProperties);
         }
 
         [TestMethod]
@@ -154,30 +160,45 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
         }
 
         [TestMethod]
-        [DataRow(FundingLineCsvGeneratorJobType.CurrentState)]
-        [DataRow(FundingLineCsvGeneratorJobType.Released)]
-        [DataRow(FundingLineCsvGeneratorJobType.CurrentProfileValues)]
+        [DataRow(FundingLineCsvGeneratorJobType.CurrentState, "spec1", null, null, "AY-1920",
+            "funding-lines-CurrentState-spec1.csv",
+            "funding-lines-CurrentState-AY-1920")]
+        [DataRow(FundingLineCsvGeneratorJobType.Released, "spec2", "FL1", "DSG", "AY-2020",
+            "funding-lines-Released-spec2-FL1-DSG.csv",
+            "funding-lines-Released-FL1-DSG-AY-2020")]
+        [DataRow(FundingLineCsvGeneratorJobType.CurrentProfileValues, "spec3", null, "PSG", "AY-2021",
+            "funding-lines-CurrentProfileValues-spec3-PSG.csv",
+            "funding-lines-CurrentProfileValues-PSG-AY-2021")]
         public async Task TransformsPublishedProvidersForSpecificationInBatchesAndCreatesCsvWithResults(
-            FundingLineCsvGeneratorJobType jobType)
+            FundingLineCsvGeneratorJobType jobType,
+            string specificationId,
+            string fundingLineCode,
+            string fundingStreamId,
+            string fundingPeriodId,
+            string expectedFileName,
+            string expectedContentDisposition)
         {
-            string specificationId = NewRandomString();
-            string fundingLineCode = NewRandomString();
             string jobId = NewRandomString();
-            string expectedInterimFilePath = Path.Combine(_rootPath, $"funding-lines-{jobType}-{specificationId}-{fundingLineCode}.csv");
+            string expectedInterimFilePath = Path.Combine(_rootPath, expectedFileName);
             
             MemoryStream incrementalFileStream = new MemoryStream();
 
             string predicate = NewRandomString();
 
-            GivenTheMessageProperties(("specification-id", specificationId), ("job-type", jobType.ToString()), ("jobId", jobId), ("funding-line-code", fundingLineCode));
-            AndTheCloudBlobForSpecificationId(specificationId, jobType, fundingLineCode);
+            GivenTheMessageProperties(("specification-id", specificationId), 
+                ("job-type", jobType.ToString()), 
+                ("jobId", jobId), 
+                ("funding-line-code", fundingLineCode), 
+                ("funding-period-id", fundingPeriodId), 
+                ("funding-stream-id", fundingStreamId));
+            AndTheCloudBlobForFileName(expectedFileName);
             AndTheFileStream(expectedInterimFilePath, incrementalFileStream);
             AndTheFileExists(expectedInterimFilePath);
             AndTheTransformForJobType(jobType);
             AndThePredicate(jobType, predicate);
             AndTheJobExists(jobId);
             AndTheBatchProcessorForJobType(jobType);
-            AndTheBatchProcessorProcessedResults(jobType, specificationId, expectedInterimFilePath, fundingLineCode);
+            AndTheBatchProcessorProcessedResults(jobType, specificationId, expectedInterimFilePath, fundingLineCode, fundingStreamId);
 
             await WhenTheCsvIsGenerated();
             
@@ -187,6 +208,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
             _fileSystemAccess
                 .Verify(_ => _.Delete(expectedInterimFilePath),
                     Times.Once);
+
+            _blobProperties?.ContentDisposition
+                .Should()
+                .StartWith($"attachment; filename={expectedContentDisposition}-{DateTimeOffset.UtcNow:yyyy-MM-d}");
             
             _blobClient
                 .Verify(_ => _.UploadAsync(_cloudBlob.Object, incrementalFileStream),
@@ -211,9 +236,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
         private void AndTheBatchProcessorProcessedResults(FundingLineCsvGeneratorJobType jobType,
             string specificationId,
             string filePath,
-            string fundingLineCode)
+            string fundingLineCode,
+            string fundingStreamId)
         {
-            _batchProcessor.Setup(_ => _.GenerateCsv(jobType, specificationId, filePath, _transformation.Object, fundingLineCode, null))
+            _batchProcessor.Setup(_ => _.GenerateCsv(jobType, specificationId, filePath, _transformation.Object, fundingLineCode, fundingStreamId))
                 .ReturnsAsync(true)
                 .Verifiable();
         }
@@ -237,10 +263,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
             yield return new object [] {FundingLineCsvGeneratorJobType.History};
         }
 
-        private void AndTheCloudBlobForSpecificationId(string specificationId, FundingLineCsvGeneratorJobType jobType, string fundingLineCode)
+        private void AndTheCloudBlobForFileName(string fileName)
         {
             _blobClient
-                .Setup(_ => _.GetBlockBlobReference($"funding-lines-{jobType}-{specificationId}-{fundingLineCode}.csv"))
+                .Setup(_ => _.GetBlockBlobReference(fileName))
                 .Returns(_cloudBlob.Object);
         }
 
@@ -280,11 +306,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
         private async Task WhenTheCsvIsGenerated()
         {
             await _service.Run(_message);
-        }
-
-        private void AndTheMessageProperties(params (string, string)[] properties)
-        {
-            GivenTheMessageProperties(properties);            
         }
 
         private void GivenTheMessageProperties(params (string,string)[] properties)
