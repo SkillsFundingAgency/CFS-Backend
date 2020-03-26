@@ -105,6 +105,13 @@ namespace CalculateFunding.Api.External.V3.Services
         /// <returns>Relative path from the container, without a leading /</returns>
         public string ParseDocumentPathRelativeToBlobContainerFromFullUrl(string documentPath)
         {
+            if (!Uri.IsWellFormedUriString(documentPath, UriKind.Absolute))
+            {
+                //then this is actually just the blob name - not the blob storage uri
+                return documentPath;
+            }
+
+
             Uri uri = new Uri(documentPath);
             documentPath = uri.AbsolutePath;
             if (!string.IsNullOrWhiteSpace(documentPath))

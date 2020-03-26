@@ -133,6 +133,9 @@ namespace CalculateFunding.Api.External
         public void RegisterComponents(IServiceCollection builder)
         {
             builder
+                .AddSingleton<IPublishedFundingQueryBuilder, PublishedFundingQueryBuilder>();
+            
+            builder
                 .AddSingleton<IHealthChecker, ControllerResolverHealthCheck>();
             
             builder.AddFeatureToggling(Configuration);
@@ -185,7 +188,7 @@ namespace CalculateFunding.Api.External
 
                 return new PublishedFundingRetrievalService(blobClient, resiliencePolicies, fileSystemCache, logger, settings);
             });
-            
+
             builder.AddSingleton<IPublishedFundingRepository, PublishedFundingRepository>((ctx) =>
             {
                 CosmosDbSettings calssDbSettings = new CosmosDbSettings();
@@ -195,8 +198,9 @@ namespace CalculateFunding.Api.External
                 calssDbSettings.ContainerName = "publishedfunding";
 
                 CosmosRepository calcsCosmosRepostory = new CosmosRepository(calssDbSettings);
+                IPublishedFundingQueryBuilder publishedFundingQueryBuilder = ctx.GetService<IPublishedFundingQueryBuilder>();
 
-                return new PublishedFundingRepository(calcsCosmosRepostory);
+                return new PublishedFundingRepository(calcsCosmosRepostory, publishedFundingQueryBuilder);
             });
 
             // Register dependencies
@@ -225,10 +229,11 @@ namespace CalculateFunding.Api.External
 
                 BulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
 
-                return new CalculateFunding.Services.Publishing.ResiliencePolicies()
+                return new ResiliencePolicies()
                 {
                     FundingFeedSearchRepository = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
-                    PublishedFundingBlobRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
+                    PublishedFundingBlobRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                    PublishedFundingRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy)
                 };
             });
 
@@ -242,7 +247,7 @@ namespace CalculateFunding.Api.External
                 {
                     PublishedProviderBlobRepositoryPolicy = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                     PublishedFundingBlobRepositoryPolicy = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-                    PublishedFundingRepositoryPolicy  = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy)
+                    PublishedFundingRepositoryPolicy  = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
                 };
             });
 

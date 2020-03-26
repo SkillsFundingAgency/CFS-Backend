@@ -281,6 +281,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version3
         [DataRow("https://www.education.gov.uk/cfs/embiggen", "embiggen")]
         [DataRow("https://strgt1dvprovcfs.blob.core.windows.net/publishedfunding/subfolder/PES-AY-1920-Payment-LocalAuthority-12345678-1_0.json",
             "subfolder/PES-AY-1920-Payment-LocalAuthority-12345678-1_0.json")]
+        [DataRow("embiggen", "embiggen")]
         public void ParseDocumentPathRelativeToBlobContainerFromFullUrl_ParsesAsExpected(string input, string output)
         {
             //Arrange

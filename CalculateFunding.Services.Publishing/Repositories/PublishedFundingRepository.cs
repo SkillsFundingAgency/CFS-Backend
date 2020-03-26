@@ -12,18 +12,23 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
+using Newtonsoft.Json.Linq;
 
 namespace CalculateFunding.Services.Publishing.Repositories
 {
     public class PublishedFundingRepository : IPublishedFundingRepository
     {
         private readonly ICosmosRepository _repository;
+        private readonly IPublishedFundingQueryBuilder _publishedFundingQueryBuilder;
 
-        public PublishedFundingRepository(ICosmosRepository cosmosRepository)
+        public PublishedFundingRepository(ICosmosRepository cosmosRepository, 
+            IPublishedFundingQueryBuilder publishedFundingQueryBuilder)
         {
             Guard.ArgumentNotNull(cosmosRepository, nameof(cosmosRepository));
+            Guard.ArgumentNotNull(publishedFundingQueryBuilder, nameof(publishedFundingQueryBuilder));
 
             _repository = cosmosRepository;
+            _publishedFundingQueryBuilder = publishedFundingQueryBuilder;
         }
 
         public async Task<IEnumerable<HttpStatusCode>> UpsertPublishedProviders(IEnumerable<PublishedProvider> publishedProviders)
@@ -708,6 +713,48 @@ namespace CalculateFunding.Services.Publishing.Repositories
             }
 
             return await Task.FromResult(fundingLines.Distinct()); ;
+        }
+
+        public async Task<int> QueryPublishedFundingCount(IEnumerable<string> fundingStreamIds,
+            IEnumerable<string> fundingPeriodIds,
+            IEnumerable<string> groupingReasons)
+        {
+            CosmosDbQuery query = _publishedFundingQueryBuilder.BuildCountQuery(fundingStreamIds,
+                fundingPeriodIds,
+                groupingReasons);
+
+            IEnumerable<dynamic> dynamicQuery = await _repository.DynamicQuery(query);
+
+            return Convert.ToInt32(dynamicQuery
+                .Single());
+        }
+
+        public async Task<IEnumerable<PublishedFundingIndex>> QueryPublishedFunding(IEnumerable<string> fundingStreamIds, 
+            IEnumerable<string> fundingPeriodIds, 
+            IEnumerable<string> groupingReasons, 
+            int top, 
+            int? pageRef)
+        {
+            CosmosDbQuery query = _publishedFundingQueryBuilder.BuildQuery(fundingStreamIds,
+                fundingPeriodIds,
+                groupingReasons,
+                top,
+                pageRef);
+
+            return (await _repository.DynamicQuery(query))
+                .Select(_ => new PublishedFundingIndex
+                {
+                    Id = _.id,
+                    Deleted = _.deleted,
+                    DocumentPath = _.DocumentPath,
+                    FundingPeriodId = _.FundingPeriodId,
+                    FundingStreamId = _.fundingStreamId,
+                    GroupTypeIdentifier = _.GroupTypeIdentifier,
+                    GroupingType = _.GroupingType,
+                    IdentifierValue = _.IdentifierValue,
+                    Version = _.version,
+                    StatusChangedDate = _.statusChangedDate
+                });
         }
     }
 }

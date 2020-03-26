@@ -5,10 +5,13 @@ using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Models.Publishing;
+using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Repositories;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
+using Newtonsoft.Json.Linq;
 using NSubstitute;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
@@ -17,6 +20,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
     public class PublishedFundingRepositoryTests
     {
         private ICosmosRepository _cosmosRepository;
+        private Mock<IPublishedFundingQueryBuilder> _publishedFundingQueryBuilder;
 
         private PublishedFundingRepository _repository;
         
@@ -27,8 +31,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
         public void SetUp()
         {
             _cosmosRepository = Substitute.For<ICosmosRepository>();
+            _publishedFundingQueryBuilder = new Mock<IPublishedFundingQueryBuilder>();
 
-            _repository = new PublishedFundingRepository(_cosmosRepository);
+            _repository = new PublishedFundingRepository(_cosmosRepository,
+                _publishedFundingQueryBuilder.Object);
             
             _fundingPeriodId = NewRandomString();
             _fundingStreamId = NewRandomString();
@@ -62,6 +68,104 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
                 .Match<DependencyHealth>(_ => _.HealthOk == expectedIsOkFlag &&
                                               _.Message == expectedMessage);
         }
+
+        [TestMethod]
+        public async Task QueryPublishedFundingDelegatesToQueryBuilderAndExecutesCosmosDbQueryItCreates()
+        {
+            IEnumerable<string> fundingStreamIds = EnumerableFor(NewRandomString(), NewRandomString());
+            IEnumerable<string> fundingPeriodIds = EnumerableFor(NewRandomString(), NewRandomString(), NewRandomString());
+            IEnumerable<string> groupingReasons = EnumerableFor(NewRandomString());
+            int top = NewRandomNumber();
+            int pageRef = NewRandomNumber();
+
+            
+            IEnumerable<PublishedFundingIndex> expectedResults = new PublishedFundingIndex[0];
+            CosmosDbQuery query = new CosmosDbQuery();
+            
+            GivenTheCosmosDbQuery(fundingStreamIds, 
+                fundingPeriodIds,
+                groupingReasons,
+                top,
+                pageRef,
+                query);
+            AndTheDynamicResultsForTheQuery(query, expectedResults);
+
+            IEnumerable<PublishedFundingIndex> actualResults = await _repository.QueryPublishedFunding(fundingStreamIds,
+                fundingPeriodIds,
+                groupingReasons,
+                top,
+                pageRef);
+
+            actualResults
+                .Should()
+                .BeEquivalentTo(expectedResults);
+        }
+
+        [TestMethod]
+        public async Task QueryPublishedFundingCountBuildsQueryAndTreatsResultsAsScalarCountJObject()
+        {
+            IEnumerable<string> fundingStreamIds = EnumerableFor(NewRandomString(), NewRandomString());
+            IEnumerable<string> fundingPeriodIds = EnumerableFor(NewRandomString(), NewRandomString(), NewRandomString());
+            IEnumerable<string> groupingReasons = EnumerableFor(NewRandomString());
+
+            IEnumerable<PublishedFundingIndex> expectedResults = new PublishedFundingIndex[0];
+            CosmosDbQuery query = new CosmosDbQuery();
+
+            GivenTheCosmosDbCountQuery(fundingStreamIds,
+                fundingPeriodIds,
+                groupingReasons,
+                query);
+
+            int expectedCount = new RandomNumberBetween(1, 10000);
+            IEnumerable<dynamic> results = new dynamic[] { expectedCount };
+
+            AndTheDynamicResultsForTheQuery(query, results);
+
+            int actualCount = await _repository.QueryPublishedFundingCount(fundingStreamIds,
+                fundingPeriodIds,
+                groupingReasons);
+
+            actualCount
+                .Should()
+                .Be(expectedCount);
+        }
+
+        private void GivenTheCosmosDbQuery(IEnumerable<string> fundingStreamIds,
+            IEnumerable<string> fundingPeriodIds,
+            IEnumerable<string> groupingReasons,
+            int top,
+            int? pageRef,
+            CosmosDbQuery expectedQuery)
+        {
+            _publishedFundingQueryBuilder.Setup(_ => _.BuildQuery(fundingStreamIds,
+                    fundingPeriodIds,
+                    groupingReasons,
+                    top,
+                    pageRef))
+                .Returns(expectedQuery);
+        }
+
+        private void GivenTheCosmosDbCountQuery(IEnumerable<string> fundingStreamIds,
+            IEnumerable<string> fundingPeriodIds,
+            IEnumerable<string> groupingReasons,
+            CosmosDbQuery expectedQuery)
+        {
+            _publishedFundingQueryBuilder.Setup(_ => _.BuildCountQuery(fundingStreamIds,
+                    fundingPeriodIds,
+                    groupingReasons))
+                .Returns(expectedQuery);
+        }
+
+        private void AndTheDynamicResultsForTheQuery(CosmosDbQuery query, IEnumerable<dynamic> expectedResults)
+        {
+            _cosmosRepository
+                .DynamicQuery(query)
+                .Returns(expectedResults);
+        }
+
+        private int NewRandomNumber() => new RandomNumberBetween(1, 10000);
+        
+        private IEnumerable<string> EnumerableFor(params string[] items) => items;
 
         [TestMethod]
         public async Task DeleteAllPublishedProvidersByFundingStreamAndPeriodBulkDeletesAllDocumentsWithMatchingFundingPeriodAndStream()

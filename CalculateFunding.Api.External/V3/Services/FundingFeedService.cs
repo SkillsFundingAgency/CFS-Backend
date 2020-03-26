@@ -80,6 +80,8 @@ namespace CalculateFunding.Api.External.V3.Services
                     {
                         try
                         {
+                            //TODO; sort out the full document url as just the blob name is no good
+
                             string contents = await _publishedFundingRetrievalService.GetFundingFeedDocument(feedIndex.DocumentPath);
 
                             // Need to convert to an object, so JSON.NET can reserialise the contents, otherwise the string is escaped.

@@ -1,12 +1,13 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
+using CalculateFunding.Common.Models;
 using Microsoft.Azure.Search;
 using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Publishing
 {
     [SearchIndex(IndexerType = IndexerType.Search, IndexName = "publishedfundingindex", IndexerName = "publishedfundingindexer")]
-    public class PublishedFundingIndex
+    public class PublishedFundingIndex : IIdentifiable
     {
         [Key]
         [IsSearchable]

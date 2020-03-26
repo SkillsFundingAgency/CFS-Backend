@@ -80,6 +80,8 @@ namespace CalculateFunding.Functions.Publishing
             builder.AddFeatureManagement();
 
             builder.AddSingleton<IConfiguration>(ctx => config);
+            builder
+                .AddScoped<IPublishedFundingQueryBuilder, PublishedFundingQueryBuilder>();
 
             builder.AddSingleton<IPublishedFundingRepository, PublishedFundingRepository>((ctx) =>
             {
@@ -90,8 +92,9 @@ namespace CalculateFunding.Functions.Publishing
                 calssDbSettings.ContainerName = "publishedfunding";
 
                 CosmosRepository calcsCosmosRepostory = new CosmosRepository(calssDbSettings);
+                IPublishedFundingQueryBuilder publishedFundingQueryBuilder = ctx.GetService<IPublishedFundingQueryBuilder>();
 
-                return new PublishedFundingRepository(calcsCosmosRepostory);
+                return new PublishedFundingRepository(calcsCosmosRepostory, publishedFundingQueryBuilder);
             });
 
             builder.AddSingleton<ICosmosRepository, CosmosRepository>();

@@ -6,40 +6,41 @@ using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.External;
 using CalculateFunding.Models.Publishing;
-using CalculateFunding.Models.Search;
-using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Services.Core.Filtering;
 using CalculateFunding.Services.Publishing.Interfaces;
-using Microsoft.Azure.Search.Models;
+using Polly;
 
 namespace CalculateFunding.Services.Publishing
 {
     public class FundingFeedSearchService : IFundingFeedSearchService, IHealthChecker
     {
-        private readonly ISearchRepository<PublishedFundingIndex> _fundingSearchRepository;
-        private readonly Polly.Policy _fundingSearchRepositoryPolicy;
+        private readonly IPublishedFundingRepository _publishedFundingRepository;
+        private readonly Policy _publishedFundingRepositoryPolicy;
 
-        public FundingFeedSearchService(
-            ISearchRepository<PublishedFundingIndex> fundingSearchRepository,
-            IPublishingResiliencePolicies resiliencePolicies)
+        public FundingFeedSearchService(IPublishedFundingRepository publishedFundingRepository, IPublishingResiliencePolicies resiliencePolicies)
         {
-            Guard.ArgumentNotNull(fundingSearchRepository, nameof(fundingSearchRepository));
-            Guard.ArgumentNotNull(resiliencePolicies?.FundingFeedSearchRepository, nameof(resiliencePolicies.FundingFeedSearchRepository));
+            Guard.ArgumentNotNull(publishedFundingRepository, nameof(publishedFundingRepository));
+            Guard.ArgumentNotNull(resiliencePolicies?.PublishedFundingRepository, nameof(resiliencePolicies.PublishedFundingRepository));
 
-            _fundingSearchRepository = fundingSearchRepository;
-            _fundingSearchRepositoryPolicy = resiliencePolicies.FundingFeedSearchRepository;
+            _publishedFundingRepository = publishedFundingRepository;
+            _publishedFundingRepositoryPolicy = resiliencePolicies.PublishedFundingRepository;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
         {
-            (bool Ok, string Message) searchRepoHealth = await _fundingSearchRepository.IsHealthOk();
+            ServiceHealth publishedFundingRepoHealth = await _publishedFundingRepository.IsHealthOk();
 
-            ServiceHealth health = new ServiceHealth()
+            ServiceHealth health = new ServiceHealth
             {
                 Name = nameof(FundingFeedSearchService)
             };
-            health.Dependencies.Add(new DependencyHealth { HealthOk = searchRepoHealth.Ok, DependencyName = _fundingSearchRepository.GetType().GetFriendlyName(), Message = searchRepoHealth.Message });
+
+            health.Dependencies.AddRange(publishedFundingRepoHealth.Dependencies);
+            health.Dependencies.Add(new DependencyHealth
+            {
+                HealthOk = publishedFundingRepoHealth.Dependencies.All(_ => _.HealthOk),
+                DependencyName = publishedFundingRepoHealth.GetType().GetFriendlyName()
+            });
 
             return health;
         }
@@ -60,97 +61,49 @@ namespace CalculateFunding.Services.Publishing
                 top = 500;
             }
 
-            FilterHelper filterHelper = new FilterHelper();
-            AddFiltersForNotification(fundingStreamIds, fundingPeriodIds, groupingReasons, filterHelper);
-            bool reverseOrder = false;
+            int totalCount = await _publishedFundingRepositoryPolicy.ExecuteAsync(() => _publishedFundingRepository.QueryPublishedFundingCount(fundingStreamIds,
+                fundingPeriodIds,
+                groupingReasons));
 
-            if (pageRef == null)
+            bool pageRefRequested = true;
+
+            if (!pageRef.HasValue)
             {
-                SearchResults<PublishedFundingIndex> countSearchResults = await SearchResults(0, null, filterHelper.BuildAndFilterQuery());
-                SearchFeedV3<PublishedFundingIndex> searchFeedCountResult = CreateSearchFeedResult(null, top, countSearchResults);
-                pageRef = searchFeedCountResult.Last;
-                reverseOrder = true;
+                pageRef = new LastPage(totalCount, top);
+                pageRefRequested = false;
             }
 
-            int skip = (pageRef.Value - 1) * top;
+            IEnumerable<PublishedFundingIndex> results = await _publishedFundingRepositoryPolicy.ExecuteAsync(() =>
+                _publishedFundingRepository.QueryPublishedFunding(fundingStreamIds,
+                    fundingPeriodIds,
+                    groupingReasons,
+                    top,
+                    pageRef));
 
-            string filters = filterHelper.Filters.IsNullOrEmpty() ? "" : filterHelper.BuildAndFilterQuery();
-
-            SearchResults<PublishedFundingIndex> searchResults = await SearchResults(top, skip, filters, reverseOrder);
-
-            return CreateSearchFeedResult(pageRef, top, searchResults);
+            return CreateSearchFeedResult(pageRef.Value, top, totalCount, pageRefRequested, results);
         }
 
-        private static SearchFeedV3<PublishedFundingIndex> CreateSearchFeedResult(int? pageRef, int top, SearchResults<PublishedFundingIndex> searchResults)
+        private static SearchFeedV3<PublishedFundingIndex> CreateSearchFeedResult(int pageRef,
+            int top,
+            int totalCount,
+            bool pageRefRequested,
+            IEnumerable<PublishedFundingIndex> searchResults)
         {
+            PublishedFundingIndex[] fundingFeedResults = pageRefRequested ? searchResults.ToArray() : searchResults.Reverse().ToArray();
+
             SearchFeedV3<PublishedFundingIndex> searchFeedResult = new SearchFeedV3<PublishedFundingIndex>
             {
                 Top = top,
-                TotalCount = searchResults != null && searchResults.TotalCount.HasValue ? (int)searchResults?.TotalCount : 0,
-                Entries = searchResults?.Results.Select(m => m.Result)
+                TotalCount = totalCount,
+                Entries = fundingFeedResults
             };
-            if (pageRef.HasValue)
+
+            if (pageRefRequested)
             {
-                searchFeedResult.PageRef = pageRef.Value;
+                searchFeedResult.PageRef = pageRef;
             }
+
             return searchFeedResult;
-        }
-
-        private static void AddFiltersForNotification(IEnumerable<string> fundingStreamIds, IEnumerable<string> fundingPeriodIds, IEnumerable<string> groupingReasons, FilterHelper filterHelper)
-        {
-            if (!groupingReasons.IsNullOrEmpty())
-            {
-                if (!groupingReasons.Contains("All"))
-                {
-                    filterHelper.Filters.Add(new Filter("groupingType", groupingReasons, false, "eq"));
-                }
-            }
-
-            if (!fundingStreamIds.IsNullOrEmpty())
-            {
-                filterHelper.Filters.Add(new Filter("fundingStreamId", fundingStreamIds, false, "eq"));
-            }
-
-            if (!fundingPeriodIds.IsNullOrEmpty())
-            {
-                filterHelper.Filters.Add(new Filter("fundingPeriodId", fundingPeriodIds, false, "eq"));
-            }
-        }
-
-        private async Task<SearchResults<PublishedFundingIndex>> SearchResults(int top, int? skip, string filters, bool reverse = false)
-        {
-            SearchResults <PublishedFundingIndex> searchResults =
-                await _fundingSearchRepositoryPolicy.ExecuteAsync(
-                    () =>
-                    {
-                        return _fundingSearchRepository.Search("", new SearchParameters
-                        {
-                            Top = skip.HasValue ? (int?)null : top,
-                            SearchMode = Microsoft.Azure.Search.Models.SearchMode.Any,
-                            IncludeTotalResultCount = true,
-                            Filter = filters,
-                            OrderBy = new[] { "statusChangedDate", "id" },
-                            QueryType = QueryType.Full
-                        },
-                        true);
-                    });
-
-            if(skip.HasValue)
-            {
-                searchResults?.Results?.RemoveRange(0, skip.Value);
-
-                if (reverse)
-                {
-                    searchResults?.Results?.Reverse();
-                }
-
-                if (searchResults != null && !searchResults.Results.IsNullOrEmpty() && searchResults.Results.Count > top)
-                {
-                    searchResults.Results = searchResults.Results.Take(top).ToList();
-                }
-            }
-
-            return searchResults;
         }
     }
 }

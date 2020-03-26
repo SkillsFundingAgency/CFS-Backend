@@ -130,6 +130,9 @@ namespace CalculateFunding.Api.Publishing
 
                 return new FundingStreamPaymentDatesRepository(new CosmosRepository(cosmosSettings));
             });
+            
+            builder
+                .AddSingleton<IPublishedFundingQueryBuilder, PublishedFundingQueryBuilder>();
 
             builder.AddSingleton<IPublishedFundingRepository, PublishedFundingRepository>((ctx) =>
             {
@@ -140,8 +143,9 @@ namespace CalculateFunding.Api.Publishing
                 calssDbSettings.ContainerName = "publishedfunding";
 
                 CosmosRepository calcsCosmosRepostory = new CosmosRepository(calssDbSettings);
+                IPublishedFundingQueryBuilder publishedFundingQueryBuilder = ctx.GetService<IPublishedFundingQueryBuilder>();
 
-                return new PublishedFundingRepository(calcsCosmosRepostory);
+                return new PublishedFundingRepository(calcsCosmosRepostory, publishedFundingQueryBuilder);
             });
 
             builder

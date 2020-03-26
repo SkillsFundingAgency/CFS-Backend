@@ -74,5 +74,16 @@ namespace CalculateFunding.Services.Publishing.Interfaces
             int batchSize);
 
         Task<IEnumerable<string>> GetPublishedProviderFundingLines(string specificationId, GroupingReason fundingLineType);
+
+        Task<IEnumerable<PublishedFundingIndex>> QueryPublishedFunding(
+            IEnumerable<string> fundingStreamIds,
+            IEnumerable<string> fundingPeriodIds,
+            IEnumerable<string> groupingReasons,
+            int top,
+            int? pageRef);
+
+        Task<int> QueryPublishedFundingCount(IEnumerable<string> fundingStreamIds,
+            IEnumerable<string> fundingPeriodIds,
+            IEnumerable<string> groupingReasons);
     }
 }

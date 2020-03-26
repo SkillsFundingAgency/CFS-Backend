@@ -299,6 +299,16 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             return Task.FromResult(fundingLines);
         }
 
+        public Task<IEnumerable<PublishedFundingIndex>> QueryPublishedFunding(IEnumerable<string> fundingStreamIds, IEnumerable<string> fundingPeriodIds, IEnumerable<string> groupingReasons, int top, int? pageRef)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<int> QueryPublishedFundingCount(IEnumerable<string> fundingStreamIds, IEnumerable<string> fundingPeriodIds, IEnumerable<string> groupingReasons)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<IEnumerable<KeyValuePair<string, string>>> GetPublishedFundingVersionIds(string fundingStreamId, string fundingPeriodId)
         {
             IEnumerable<KeyValuePair<string, string>> results = _repo.PublishedFundingVersions
