@@ -14,6 +14,7 @@ using CalculateFunding.Services.Core.AspNet.HealthChecks;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
+using CalculateFunding.Services.Core.Interfaces.Helpers;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Publishing;
 using CalculateFunding.Services.Publishing.Helper;
@@ -107,6 +108,8 @@ namespace CalculateFunding.Api.Publishing
             builder
                 .AddSingleton<IHealthChecker, ControllerResolverHealthCheck>();
 
+            builder.AddSingleton<IProfileHistoryService, ProfileHistoryService>();
+            builder.AddSingleton<IDateTimeProvider, DateTimeProvider>();
             builder.AddSingleton<IPublishedProviderVersionService, PublishedProviderVersionService>();
             builder.AddSingleton<ISpecificationFundingStatusService, SpecificationFundingStatusService>();
             builder.AddSingleton<IPublishedSearchService, PublishedSearchService>()

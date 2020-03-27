@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
@@ -7,6 +8,7 @@ using CalculateFunding.Models.Publishing;
 using CalculateFunding.Repositories.Common.Search.Results;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Interfaces;
+using CalculateFunding.Services.Publishing.Profiling;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CalculateFunding.Api.Publishing.Controllers
@@ -23,6 +25,7 @@ namespace CalculateFunding.Api.Publishing.Controllers
         private readonly IDeleteSpecifications _deleteSpecifications;
         private readonly IFundingStreamPaymentDatesIngestion _fundingStreamPaymentDatesIngestion;
         private readonly IFundingStreamPaymentDatesQuery _fundingStreamPaymentDatesQuery;
+        private readonly IProfileHistoryService _profileHistories;
 
         public PublishingController(ISpecificationPublishingService specificationPublishingService,
             IProviderFundingPublishingService providerFundingPublishingService,
@@ -32,7 +35,8 @@ namespace CalculateFunding.Api.Publishing.Controllers
             IPublishedProviderStatusService publishedProviderStatusService, 
             IDeleteSpecifications deleteSpecifications, 
             IFundingStreamPaymentDatesIngestion fundingStreamPaymentDatesIngestion, 
-            IFundingStreamPaymentDatesQuery fundingStreamPaymentDatesQuery)
+            IFundingStreamPaymentDatesQuery fundingStreamPaymentDatesQuery, 
+            IProfileHistoryService profileHistories)
         {
             Guard.ArgumentNotNull(specificationPublishingService, nameof(specificationPublishingService));
             Guard.ArgumentNotNull(providerFundingPublishingService, nameof(providerFundingPublishingService));
@@ -43,6 +47,7 @@ namespace CalculateFunding.Api.Publishing.Controllers
             Guard.ArgumentNotNull(deleteSpecifications, nameof(deleteSpecifications));
             Guard.ArgumentNotNull(fundingStreamPaymentDatesIngestion, nameof(fundingStreamPaymentDatesIngestion));
             Guard.ArgumentNotNull(fundingStreamPaymentDatesQuery, nameof(fundingStreamPaymentDatesQuery));
+            Guard.ArgumentNotNull(profileHistories, nameof(profileHistories));
 
             _specificationPublishingService = specificationPublishingService;
             _providerFundingPublishingService = providerFundingPublishingService;
@@ -53,6 +58,16 @@ namespace CalculateFunding.Api.Publishing.Controllers
             _deleteSpecifications = deleteSpecifications;
             _fundingStreamPaymentDatesIngestion = fundingStreamPaymentDatesIngestion;
             _fundingStreamPaymentDatesQuery = fundingStreamPaymentDatesQuery;
+            _profileHistories = profileHistories;
+        }
+
+        [HttpGet("api/fundingstreams/{fundingStreamId}/fundingperiods/{fundingPeriodId}/providers/{providerId}/profilinghistory")]
+        [ProducesResponseType(typeof(IEnumerable<ProfileTotal>), 200)]
+        public async Task<IActionResult> GetProfileHistory([FromRoute] string fundingStreamId,
+            [FromRoute] string fundingPeriodId,
+            [FromRoute] string providerId)
+        {
+            return await _profileHistories.GetProfileHistory(fundingStreamId, fundingPeriodId, providerId);
         }
         
         [HttpPost("api/fundingstreams/{fundingStreamId}/fundingperiods/{fundingPeriodId}/paymentdates")]

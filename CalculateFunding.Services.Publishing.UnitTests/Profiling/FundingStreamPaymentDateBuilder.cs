@@ -1,3 +1,4 @@
+using System;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Tests.Common.Helpers;
 
@@ -9,7 +10,21 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
         private ProfilePeriodType? _type;
         private int? _year;
         private int? _occurence;
+        private DateTimeOffset? _date;
 
+        public FundingStreamPaymentDateBuilder WithDate(string dateLiteral)
+        {
+            _date = DateTime.Parse(dateLiteral);
+
+            return this;
+        }
+        
+        public FundingStreamPaymentDateBuilder WithDate(DateTime date)
+        {
+            _date = date;
+
+            return this;
+        }
         public FundingStreamPaymentDateBuilder WithOccurence(int occurence)
         {
             _occurence = occurence;
@@ -42,7 +57,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
         {
             return new FundingStreamPaymentDate
             {
-                Date = NewRandomDateTime(),
+                Date = _date.GetValueOrDefault(NewRandomDateTime()),
                 Year = _year.GetValueOrDefault(NewRandomYear()),
                 Occurrence = _occurence.GetValueOrDefault(NewRandomNumberBetween(0, 3)),
                 TypeValue = _typeValue ?? NewRandomMonth(),

@@ -12,6 +12,8 @@ namespace CalculateFunding.Services.Publishing.Profiling
         public int Occurrence { get; set; }
         
         public decimal Value { get; set; }
+        
+        public bool IsPaid { get; set; }
 
         public override bool Equals(object obj)
         {
@@ -23,7 +25,8 @@ namespace CalculateFunding.Services.Publishing.Profiling
             return HashCode.Combine(Year, 
                 TypeValue, 
                 Occurrence, 
-                Value);
+                Value,
+                IsPaid);
         }
     }
 }

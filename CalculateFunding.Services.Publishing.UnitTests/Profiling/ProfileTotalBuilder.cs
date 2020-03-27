@@ -9,7 +9,16 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
         private int? _occurrence;
         private int? _year;
         private decimal? _value;
+        private bool _isPaid;
 
+        public ProfileTotalBuilder WithIsPaid(bool isPaid)
+        {
+            _isPaid = isPaid;
+
+            return this;
+        }
+        
+        
         public ProfileTotalBuilder WithTypeValue(string typeValue)
         {
             _typeValue = typeValue;
@@ -45,7 +54,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
                 Year = _year.GetValueOrDefault(NewRandomYear()),
                 Occurrence = _occurrence.GetValueOrDefault(NewRandomNumberBetween(0, 3)),
                 Value = _value.GetValueOrDefault(NewRandomNumberBetween(1000, 99999)),
-                TypeValue = _typeValue ?? NewRandomMonth()
+                TypeValue = _typeValue ?? NewRandomMonth(),
+                IsPaid = _isPaid
             };
         }     
     }
