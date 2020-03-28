@@ -28,7 +28,6 @@ using CalculateFunding.Services.Compiler;
 using CalculateFunding.Services.Compiler.Analysis;
 using CalculateFunding.Services.Compiler.Interfaces;
 using CalculateFunding.Services.Compiler.Languages;
-using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
@@ -137,6 +136,8 @@ namespace CalculateFunding.Functions.Calcs
 
             builder
               .AddScoped<IValidator<CalculationEditModel>, CalculationEditModelValidator>();
+            builder
+                .AddSingleton<IBlobContainerRepository, BlobContainerRepository>();
 
             builder.AddSingleton<ISourceFileRepository, SourceFileRepository>(ctx =>
             {
@@ -146,7 +147,7 @@ namespace CalculateFunding.Functions.Calcs
 
                 blobStorageOptions.ContainerName = "source";
 
-                return new SourceFileRepository(blobStorageOptions);
+                return new SourceFileRepository(blobStorageOptions, ctx.GetService<IBlobContainerRepository>());
             });
 
             builder.AddSingleton<IVersionRepository<CalculationVersion>, VersionRepository<CalculationVersion>>((ctx) =>

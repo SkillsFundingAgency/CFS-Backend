@@ -152,6 +152,9 @@ namespace CalculateFunding.Api.External
                 .AddSingleton<IFileSystemAccess, FileSystemAccess>()
                 .AddSingleton<IFileSystemCacheSettings, FileSystemCacheSettings>();
 
+            builder
+                .AddSingleton<IBlobContainerRepository, BlobContainerRepository>();
+
             builder.AddSingleton<IFeedItemPreloader, FeedItemPreLoader>()
                 .AddSingleton<IFeedItemPreloaderSettings>(ctx =>
                 {
@@ -179,7 +182,7 @@ namespace CalculateFunding.Api.External
 
                 storageSettings.ContainerName = "publishedfunding";
 
-                IBlobClient blobClient = new BlobClient(storageSettings);
+                IBlobClient blobClient = new BlobClient(storageSettings, ctx.GetService<IBlobContainerRepository>());
 
                 IExternalApiResiliencePolicies resiliencePolicies = ctx.GetService<IExternalApiResiliencePolicies>();
                 ILogger logger = ctx.GetService<ILogger>();
@@ -262,7 +265,7 @@ namespace CalculateFunding.Api.External
 
                 storageSettings.ContainerName = "publishedproviderversions";
 
-                IBlobClient blobClient = new BlobClient(storageSettings);
+                IBlobClient blobClient = new BlobClient(storageSettings, ctx.GetService<IBlobContainerRepository>());
 
                 IExternalApiResiliencePolicies publishingResiliencePolicies = ctx.GetService<IExternalApiResiliencePolicies>();
                 ILogger logger = ctx.GetService<ILogger>();

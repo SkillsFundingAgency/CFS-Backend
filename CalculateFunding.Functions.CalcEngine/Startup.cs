@@ -131,6 +131,9 @@ namespace CalculateFunding.Functions.CalcEngine
                     calculatorResiliencePolicies);
             });
 
+            builder
+                .AddSingleton<IBlobContainerRepository, BlobContainerRepository>();
+
             builder.AddSingleton<ISourceFileRepository, SourceFileRepository>((ctx) =>
             {
                 BlobStorageOptions blobStorageOptions = new BlobStorageOptions();
@@ -139,7 +142,7 @@ namespace CalculateFunding.Functions.CalcEngine
 
                 blobStorageOptions.ContainerName = "source";
 
-                return new SourceFileRepository(blobStorageOptions);
+                return new SourceFileRepository(blobStorageOptions, ctx.GetService<IBlobContainerRepository>());
             });
 
             builder

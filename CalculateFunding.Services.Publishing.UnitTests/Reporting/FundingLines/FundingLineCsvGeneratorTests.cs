@@ -128,7 +128,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
             string specificationId = NewRandomString();
             string fundingLineCode = NewRandomString();
             string jobId = NewRandomString();
-            string expectedInterimFilePath = Path.Combine(_rootPath, $"funding-lines-Released-{specificationId}-{fundingLineCode}.csv");
+            string expectedInterimFilePath = Path.Combine(_rootPath, $"funding-lines-{specificationId}-Released-{fundingLineCode}.csv");
             FundingLineCsvGeneratorJobType jobType = FundingLineCsvGeneratorJobType.Released;
 
             GivenTheMessageProperties(("specification-id", specificationId), ("job-type", jobType.ToString()), ("jobId", jobId), ("funding-line-code", fundingLineCode));
@@ -161,14 +161,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
 
         [TestMethod]
         [DataRow(FundingLineCsvGeneratorJobType.CurrentState, "spec1", null, null, "AY-1920",
-            "funding-lines-CurrentState-spec1.csv",
-            "funding-lines-CurrentState-AY-1920")]
+            "funding-lines-spec1-CurrentState.csv",
+            " AY-1920 Provider Funding Lines Current State")]
         [DataRow(FundingLineCsvGeneratorJobType.Released, "spec2", "FL1", "DSG", "AY-2020",
-            "funding-lines-Released-spec2-FL1-DSG.csv",
-            "funding-lines-Released-FL1-DSG-AY-2020")]
+            "funding-lines-spec2-Released-FL1-DSG.csv",
+            "DSG AY-2020 Provider Funding Lines Released Only")]
         [DataRow(FundingLineCsvGeneratorJobType.CurrentProfileValues, "spec3", null, "PSG", "AY-2021",
-            "funding-lines-CurrentProfileValues-spec3-PSG.csv",
-            "funding-lines-CurrentProfileValues-PSG-AY-2021")]
+            "funding-lines-spec3-CurrentProfileValues-PSG.csv",
+            "PSG AY-2021  Profile Current State")]
         public async Task TransformsPublishedProvidersForSpecificationInBatchesAndCreatesCsvWithResults(
             FundingLineCsvGeneratorJobType jobType,
             string specificationId,
@@ -211,7 +211,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
 
             _blobProperties?.ContentDisposition
                 .Should()
-                .StartWith($"attachment; filename={expectedContentDisposition}-{DateTimeOffset.UtcNow:yyyy-MM-d}");
+                .StartWith($"attachment; filename={expectedContentDisposition} {DateTimeOffset.UtcNow:yyyy-MM-d}");
             
             _blobClient
                 .Verify(_ => _.UploadAsync(_cloudBlob.Object, incrementalFileStream),

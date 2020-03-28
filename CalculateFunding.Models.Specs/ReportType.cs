@@ -1,6 +1,6 @@
-namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
+﻿namespace CalculateFunding.Models.Specs
 {
-    public enum FundingLineCsvGeneratorJobType
+    public enum ReportType
     {
         Undefined = 0,
         CurrentState = 1,
@@ -10,6 +10,7 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
         CurrentProfileValues = 5,
         CurrentOrganisationGroupValues = 6,
         HistoryOrganisationGroupValues = 7,
-        HistoryPublishedProviderEstate = 8
+        HistoryPublishedProviderEstate = 8,
+        CalcResult = 100,
     }
-} 
+}

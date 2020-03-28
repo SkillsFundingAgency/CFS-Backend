@@ -174,6 +174,8 @@ namespace CalculateFunding.Api.Calcs
                 .AddSingleton<IDatasetDefinitionFieldChangesProcessor, DatasetDefinitionFieldChangesProcessor>();
 
             builder.AddSingleton<ICalculationEngineRunningChecker, CalculationEngineRunningChecker>();
+            builder
+                .AddSingleton<IBlobContainerRepository, BlobContainerRepository>();
 
             builder.AddSingleton<ISourceFileRepository, SourceFileRepository>((ctx) =>
             {
@@ -183,7 +185,7 @@ namespace CalculateFunding.Api.Calcs
 
                 blobStorageOptions.ContainerName = "source";
 
-                return new SourceFileRepository(blobStorageOptions);
+                return new SourceFileRepository(blobStorageOptions, ctx.GetService<IBlobContainerRepository>());
             });
 
             builder.AddSingleton<IVersionRepository<CalculationVersion>, VersionRepository<CalculationVersion>>((ctx) =>

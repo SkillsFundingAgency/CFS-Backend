@@ -208,6 +208,9 @@ namespace CalculateFunding.Functions.Publishing
                 .AddSingleton<IPublishingEngineOptions>(_ => new PublishingEngineOptions(config));
 
             builder
+                .AddSingleton<IBlobContainerRepository, BlobContainerRepository>();
+
+            builder
                 .AddSingleton<Common.Storage.IBlobClient, Common.Storage.BlobClient>((ctx) =>
                 {
                     BlobStorageOptions storageSettings = new BlobStorageOptions();
@@ -216,7 +219,7 @@ namespace CalculateFunding.Functions.Publishing
 
                     storageSettings.ContainerName = "publishedproviderversions";
 
-                    return new Common.Storage.BlobClient(storageSettings);
+                    return new Common.Storage.BlobClient(storageSettings, ctx.GetService<IBlobContainerRepository>());
                 });
 
             builder

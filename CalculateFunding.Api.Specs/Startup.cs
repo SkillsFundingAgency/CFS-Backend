@@ -6,6 +6,7 @@ using CalculateFunding.Common.Config.ApiClient.Providers;
 using CalculateFunding.Common.Config.ApiClient.Results;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models.HealthCheck;
+using CalculateFunding.Common.Storage;
 using CalculateFunding.Common.TemplateMetadata;
 using CalculateFunding.Common.TemplateMetadata.Schema10;
 using CalculateFunding.Common.WebApi.Extensions;
@@ -13,7 +14,6 @@ using CalculateFunding.Common.WebApi.Middleware;
 using CalculateFunding.Models.Messages;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Search;
-using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.AspNet.HealthChecks;
 using CalculateFunding.Services.Core.AzureStorage;
 using CalculateFunding.Services.Core.Extensions;
@@ -30,13 +30,16 @@ using CalculateFunding.Services.Validators;
 using FluentValidation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Hosting.Internal;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
 using Polly.Bulkhead;
 using Serilog;
+using BlobClient = CalculateFunding.Common.Storage.BlobClient;
+using IBlobClient = CalculateFunding.Common.Storage.IBlobClient;
+using LocalBlobClient = CalculateFunding.Services.Core.AzureStorage.BlobClient;
+using LocalIBlobClient = CalculateFunding.Services.Core.Interfaces.AzureStorage.IBlobClient;
 
 
 namespace CalculateFunding.Api.Specs
@@ -121,7 +124,8 @@ namespace CalculateFunding.Api.Specs
             builder
                 .AddSingleton<ISpecificationsSearchService, SpecificationsSearchService>()
                 .AddSingleton<IHealthChecker, SpecificationsSearchService>();
-            builder.AddSingleton<IResultsRepository, ResultsRepository>();        
+            builder.AddSingleton<IResultsRepository, ResultsRepository>();
+            builder.AddSingleton<ISpecificationsReportService, SpecificationsReportService>();
 
             builder.AddSingleton<ITemplateMetadataResolver>((ctx) =>
             {
@@ -135,7 +139,7 @@ namespace CalculateFunding.Api.Specs
             });
 
             builder
-                .AddSingleton<IBlobClient, BlobClient>((ctx) =>
+                .AddSingleton<LocalIBlobClient, LocalBlobClient>((ctx) =>
                 {
                     AzureStorageSettings storageSettings = new AzureStorageSettings();
 
@@ -143,7 +147,22 @@ namespace CalculateFunding.Api.Specs
 
                     storageSettings.ContainerName = "providerversions";
 
-                    return new BlobClient(storageSettings);
+                    return new LocalBlobClient(storageSettings);
+                });
+
+            builder
+                .AddSingleton<IBlobContainerRepository, BlobContainerRepository>();
+
+            builder
+                .AddSingleton<IBlobClient, BlobClient>((ctx) =>
+                {
+                    BlobStorageOptions storageSettings = new BlobStorageOptions();
+
+                    Configuration.Bind("AzureStorageSettings", storageSettings);
+
+                    storageSettings.ContainerName = "providerversions";
+
+                    return new BlobClient(storageSettings, ctx.GetService<IBlobContainerRepository>());
                 });
 
             builder.AddSingleton<ICosmosRepository, CosmosRepository>();

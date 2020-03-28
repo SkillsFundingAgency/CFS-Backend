@@ -86,7 +86,7 @@ namespace CalculateFunding.Services.Publishing.Reporting
                     return;
                 }
 
-                await UploadToBlob(temporaryFilePath, GetCsvFileName(message), GetContentDisposition(message));
+                await UploadToBlob(temporaryFilePath, GetCsvFileName(message), GetContentDisposition(message), GetMetadata(message));
                 await CompleteJob(jobId);
             }
             catch (Exception e)
@@ -100,6 +100,8 @@ namespace CalculateFunding.Services.Publishing.Reporting
         }
 
         protected abstract string GetCsvFileName(Message message);
+
+        protected abstract IDictionary<string, string> GetMetadata(Message message);
 
         protected abstract Task<bool> GenerateCsv(Message message, string temporaryFilePath, IPublishedProviderCsvTransform publishedProviderCsvTransform);
 
@@ -125,15 +127,21 @@ namespace CalculateFunding.Services.Publishing.Reporting
             }
         }
 
-        private async Task UploadToBlob(string temporaryFilePath, string blobPath, string contentDisposition)
+        private async Task UploadToBlob(string temporaryFilePath, string blobPath, string contentDisposition, IDictionary<string, string> metadata)
         {
             ICloudBlob blob = _blobClient.GetBlockBlobReference(blobPath);
             blob.Properties.ContentDisposition = contentDisposition;            
 
             using (Stream csvFileStream = _fileSystemAccess.OpenRead(temporaryFilePath))
             {
-                await _blobClientPolicy.ExecuteAsync(() => _blobClient.UploadAsync(blob, csvFileStream));
+                await _blobClientPolicy.ExecuteAsync(() => UploadBlob(blob, csvFileStream, metadata));
             }
+        }
+
+        private async Task UploadBlob(ICloudBlob blob, Stream csvFileStream, IDictionary<string, string> metadata)
+        {
+            await _blobClient.UploadAsync(blob, csvFileStream);
+            await _blobClient.AddMetadataAsync(blob, metadata);
         }
 
         private string GetCsvFilePath(string rootPath, Message message)

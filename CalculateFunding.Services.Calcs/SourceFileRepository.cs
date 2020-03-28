@@ -10,7 +10,10 @@ namespace CalculateFunding.Services.Calcs
     {
         private const string dllFileName = "implementation.dll";
 
-        public SourceFileRepository(BlobStorageOptions blobStorageOptions) : base(blobStorageOptions) { }
+        public SourceFileRepository(
+            BlobStorageOptions blobStorageOptions, 
+            IBlobContainerRepository blobContainerRepository) 
+            : base(blobStorageOptions, blobContainerRepository) { }
 
         public async Task SaveAssembly(byte[] assemblyBytes, string specificationId)
         {

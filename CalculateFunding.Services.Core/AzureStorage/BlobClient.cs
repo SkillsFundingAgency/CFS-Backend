@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
@@ -132,6 +134,23 @@ namespace CalculateFunding.Services.Core.AzureStorage
             data.Position = 0;
             
             await blob.UploadFromStreamAsync(data);
+        }
+
+        public async Task AddMetadataAsync(ICloudBlob blob, IDictionary<string, string> metadata)
+        {
+            foreach (var metadataItem in metadata.Where(_=>!string.IsNullOrEmpty(_.Value)))
+            {
+                blob.Metadata.Add(
+                    ReplaceInvalidMetadataKeyCharacters(metadataItem.Key), 
+                    metadataItem.Value);
+            }
+
+            await blob.SetMetadataAsync();
+        }
+
+        private string ReplaceInvalidMetadataKeyCharacters(string metadataKey)
+        {
+            return metadataKey.Replace('-', '_');
         }
     }
 }

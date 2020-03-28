@@ -481,11 +481,11 @@ namespace CalculateFunding.Services.Results
 
             foreach (SpecModel.SpecificationSummary specificationSummary in specificationSummaries)
             {
-                await QueueCsvGenerationMessage(specificationSummary.Id);
+                await QueueCsvGenerationMessage(specificationSummary.Id, specificationSummary.Name);
             }
         }
 
-        public async Task QueueCsvGenerationMessage(string specificationId)
+        public async Task QueueCsvGenerationMessage(string specificationId, string specificationName)
         {
             bool hasNewResults = await _resultsRepositoryPolicy.ExecuteAsync(
                 () => _resultsRepository.CheckHasNewResultsForSpecificationIdAndTimePeriod(specificationId, DateTimeOffset.UtcNow.AddDays(-1), DateTimeOffset.UtcNow.AddDays(1)));
@@ -498,7 +498,8 @@ namespace CalculateFunding.Services.Results
                     string.Empty,
                     new Dictionary<string, string>
                     {
-                        { "specification-id", specificationId }
+                        { "specification-id", specificationId },
+                        { "specification-name", specificationName }
                     });
             }
         }

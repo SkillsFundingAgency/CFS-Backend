@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.IO;
@@ -62,6 +63,7 @@ namespace CalculateFunding.Services.Results
         public async Task Run(Message message)
         {
             string specificationId = message.GetUserProperty<string>("specification-id");
+            string specificationName = message.GetUserProperty<string>("specification-name");
 
             if (specificationId == null)
             {
@@ -95,11 +97,18 @@ namespace CalculateFunding.Services.Results
             );
 
             ICloudBlob blob = _blobClient.GetBlockBlobReference($"calculation-results-{specificationId}.csv");
+            blob.Properties.ContentDisposition = $"attachment; filename={GetPrettyFileName(specificationName)}";
 
             using (Stream csvFileStream = _fileSystemAccess.OpenRead(temporaryFilePath))
             {
-                await _blobClientPolicy.ExecuteAsync(() => _blobClient.UploadAsync(blob, csvFileStream));
+                await _blobClientPolicy.ExecuteAsync(() => UploadBlob(blob, csvFileStream, GetMetadata(specificationId, specificationName)));
             }
+        }
+
+        private async Task UploadBlob(ICloudBlob blob, Stream csvFileStream, IDictionary<string, string> metadata)
+        {
+            await _blobClient.UploadAsync(blob, csvFileStream);
+            await _blobClient.AddMetadataAsync(blob, metadata);
         }
 
         private void EnsureFileIsNew(string path)
@@ -108,6 +117,22 @@ namespace CalculateFunding.Services.Results
             {
                 _fileSystemAccess.Delete(path);
             }
+        }
+
+        private IDictionary<string, string> GetMetadata(string specificationId, string specificationName)
+        {
+            return new Dictionary<string, string>
+            {
+                { "specification-id", specificationId },
+                { "specification-name", specificationName },
+                { "file-name", GetPrettyFileName(specificationName) },
+                { "job-type", "CalcResult" }
+            };
+        }
+
+        private string GetPrettyFileName(string specificationName)
+        {
+            return $"Calculation Results {specificationName} {DateTimeOffset.UtcNow:s}.csv";
         }
 
         private class CsvFilePath

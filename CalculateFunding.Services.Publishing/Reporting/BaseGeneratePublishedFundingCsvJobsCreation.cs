@@ -9,7 +9,6 @@ using CalculateFunding.Services.Publishing.Reporting.FundingLines;
 
 namespace CalculateFunding.Services.Publishing.Reporting
 {
-    
     public abstract class BaseGeneratePublishedFundingCsvJobsCreation : IGeneratePublishedFundingCsvJobsCreation
     {
         private readonly ICreateGeneratePublishedFundingCsvJobs _createGeneratePublishedFundingCsvJobs;
@@ -33,9 +32,16 @@ namespace CalculateFunding.Services.Publishing.Reporting
             IEnumerable<string> fundingStreamIds = null,
             string fundingPeriodId = null);
 
-        protected async Task CreatePublishedProviderEstateCsvJobs(string specificationId, string correlationId, Reference user)
+        protected async Task CreatePublishedProviderEstateCsvJobs(string specificationId, string correlationId, Reference user, IEnumerable<string> fundingStreamIds, string fundingPeriodId = null)
         {
-            await _createGeneratePublishedProviderEstateCsvJobs.CreateJob(specificationId, user, correlationId);
+            foreach (string fundingStreamId in fundingStreamIds)
+            {
+                await _createGeneratePublishedProviderEstateCsvJobs.CreateJob(
+                    specificationId,
+                    user,
+                    correlationId,
+                    JobProperties(FundingLineCsvGeneratorJobType.HistoryPublishedProviderEstate, null, fundingStreamId, fundingPeriodId));
+            }
         }
 
         //TODO; we might want to replace this long parameter list with a single parameter object as changing it cascades across many duplicate method signatures

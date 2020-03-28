@@ -118,7 +118,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
             string jobId = NewRandomString();
             string fundingStreamId = NewRandomString();
             string fundingPeriodId = NewRandomString();
-            string expectedInterimFilePath = Path.Combine(_rootPath, $"published-provider-estate-{specificationId}.csv");
+            string expectedInterimFilePath = Path.Combine(_rootPath, $"funding-lines-{specificationId}-HistoryPublishedProviderEstate-{fundingPeriodId}.csv");
 
             GivenTheMessageProperties(("specification-id", specificationId), 
                 ("jobId", jobId),
@@ -157,7 +157,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
             string jobId = NewRandomString();
             string fundingStreamId = NewRandomString();
             string fundingPeriodId = NewRandomString();
-            string expectedInterimFilePath = Path.Combine(_rootPath, $"published-provider-estate-{specificationId}.csv");
+            string fileName = $"funding-lines-{specificationId}-HistoryPublishedProviderEstate-{fundingPeriodId}.csv";
+            string expectedInterimFilePath = Path.Combine(_rootPath, fileName);
             string jobDefinitionName = JobConstants.DefinitionNames.GeneratePublishedProviderEstateCsvJob;
 
             IEnumerable<PublishedProviderVersion> publishProviderVersionsOne = new []
@@ -193,7 +194,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
                 ("jobId", jobId),
                 ("funding-period-id", fundingPeriodId),
                 ("funding-stream-id", fundingStreamId));
-            AndTheCloudBlobForSpecificationId(specificationId);
+            AndTheCloudBlobForSpecificationId(fileName);
             AndTheFileStream(expectedInterimFilePath, incrementalFileStream);
             AndTheFileExists(expectedInterimFilePath);
             AndTheTransformForJobDefinition(jobDefinitionName);
@@ -239,15 +240,17 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
 
             _blobProperties.ContentDisposition
                 .Should()
-                .StartWith($"attachment; filename=published-provider-estate-{fundingStreamId}-{fundingPeriodId}-{DateTimeOffset.UtcNow:yyyy-MM-dd}");
+                .StartWith($"attachment; filename={fundingStreamId} {fundingPeriodId} Provider Estate Variations {DateTimeOffset.UtcNow:yyyy-MM-dd}");
         }
         
         [TestMethod]
         public async Task TransformsPublishedProviderVersionsForSpecificationInBatchesAndCreatesCsvWithResults()
         {
             string specificationId = NewRandomString();
+            string fundingPeriodId = NewRandomString();
             string jobId = NewRandomString();
-            string expectedInterimFilePath = Path.Combine(_rootPath, $"published-provider-estate-{specificationId}.csv");
+            string fileName = $"funding-lines-{specificationId}-HistoryPublishedProviderEstate-{fundingPeriodId}.csv";
+            string expectedInterimFilePath = Path.Combine(_rootPath, fileName);
             string jobDefinitionName = JobConstants.DefinitionNames.GeneratePublishedProviderEstateCsvJob;
 
             IEnumerable<PublishedProviderVersion> publishProviderVersionsOne = new []
@@ -277,8 +280,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
             MemoryStream incrementalFileStream = new MemoryStream();
 
             GivenTheCsvRowTransformation(transformedRowsOne, expectedCsvOne, true);
-            AndTheMessageProperties(("specification-id", specificationId), ("jobId", jobId));
-            AndTheCloudBlobForSpecificationId(specificationId);
+            AndTheMessageProperties(("specification-id", specificationId), ("jobId", jobId), ("funding-period-id", fundingPeriodId));
+            AndTheCloudBlobForSpecificationId(fileName);
             AndTheFileStream(expectedInterimFilePath, incrementalFileStream);
             AndTheFileExists(expectedInterimFilePath);
             AndTheTransformForJobDefinition(jobDefinitionName);
@@ -334,10 +337,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
                 .Returns(_transformation.Object);
         }
 
-        private void AndTheCloudBlobForSpecificationId(string specificationId)
+        private void AndTheCloudBlobForSpecificationId(string fileName)
         {
             _blobClient
-                .Setup(_ => _.GetBlockBlobReference($"published-provider-estate-{specificationId}.csv"))
+                .Setup(_ => _.GetBlockBlobReference(fileName))
                 .Returns(_cloudBlob.Object);
         }
 

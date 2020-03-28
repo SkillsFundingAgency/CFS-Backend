@@ -84,5 +84,10 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         {
             return _files;
         }
+
+        public Task AddMetadataAsync(ICloudBlob blob, IDictionary<string, string> metadata)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

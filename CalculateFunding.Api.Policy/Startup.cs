@@ -124,6 +124,9 @@ namespace CalculateFunding.Api.Policy
                 .AddSingleton<IHealthChecker, FundingTemplateValidationService>();
 
             builder
+                .AddSingleton<IBlobContainerRepository, BlobContainerRepository>();
+
+            builder
                 .AddSingleton<IFundingSchemaRepository, FundingSchemaRepository>((ctx) =>
                 {
                     BlobStorageOptions blobStorageOptions = new BlobStorageOptions();
@@ -132,7 +135,7 @@ namespace CalculateFunding.Api.Policy
 
                     blobStorageOptions.ContainerName = "fundingschemas";
 
-                    return new FundingSchemaRepository(blobStorageOptions);
+                    return new FundingSchemaRepository(blobStorageOptions, ctx.GetService<IBlobContainerRepository>());
                 });
 
             builder
@@ -144,7 +147,7 @@ namespace CalculateFunding.Api.Policy
 
                    blobStorageOptions.ContainerName = "fundingtemplates";
 
-                   return new FundingTemplateRepository(blobStorageOptions);
+                   return new FundingTemplateRepository(blobStorageOptions, ctx.GetService<IBlobContainerRepository>());
                });
 
             builder

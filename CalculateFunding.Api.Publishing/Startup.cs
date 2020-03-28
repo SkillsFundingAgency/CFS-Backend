@@ -153,7 +153,8 @@ namespace CalculateFunding.Api.Publishing
 
             builder
                 .AddSingleton<IPublishingEngineOptions>(_ => new PublishingEngineOptions(Configuration));
-
+            builder
+                .AddSingleton<IBlobContainerRepository, BlobContainerRepository>();
             builder
                 .AddSingleton<IBlobClient, BlobClient>((ctx) =>
                 {
@@ -163,7 +164,7 @@ namespace CalculateFunding.Api.Publishing
 
                     storageSettings.ContainerName = "publishedproviderversions";
 
-                    return new BlobClient(storageSettings);
+                    return new BlobClient(storageSettings, ctx.GetService<IBlobContainerRepository>());
                 });
 
             builder.AddCaching(Configuration);

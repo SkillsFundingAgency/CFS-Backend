@@ -18,20 +18,25 @@ namespace CalculateFunding.Api.Specs.Controllers
     {
         private readonly ISpecificationsService _specService;
         private readonly ISpecificationsSearchService _specSearchService;
+        private readonly ISpecificationsReportService _specificationsReportService;
         private readonly IHostingEnvironment _hostingEnvironment;
 
         public SpecificationsController(
             ISpecificationsService specService,
             ISpecificationsSearchService specSearchService,
-            IHostingEnvironment hostingEnvironment)
+            IHostingEnvironment hostingEnvironment,
+            ISpecificationsReportService specificationsReportService
+            )
         {
             Guard.ArgumentNotNull(specService, nameof(specService));
             Guard.ArgumentNotNull(specSearchService, nameof(specSearchService));
             Guard.ArgumentNotNull(hostingEnvironment, nameof(hostingEnvironment));
+            Guard.ArgumentNotNull(specificationsReportService, nameof(specificationsReportService));
 
             _specService = specService;
             _specSearchService = specSearchService;
             _hostingEnvironment = hostingEnvironment;
+            _specificationsReportService = specificationsReportService;
         }
 
         [Route("api/specs/specification-by-id")]
@@ -290,6 +295,22 @@ namespace CalculateFunding.Api.Specs.Controllers
         public async Task<IActionResult> GetDistinctFundingStreamsForSpecifications()
         {
             return await _specService.GetDistinctFundingStreamsForSpecifications();
+        }
+
+        [Route("api/specs/{specificationId}/report-metadata")]
+        [HttpGet]
+        [Produces(typeof(IEnumerable<ReportMetadata>))]
+        public IActionResult GetReportMetadataForSpecifications([FromRoute] string specificationId)
+        {
+            return _specificationsReportService.GetReportMetadata(specificationId);
+        }
+
+        [Route("api/specs/download-report/{fileName}/{type}")]
+        [HttpGet]
+        [Produces(typeof(SpecificationsDownloadModel))]
+        public IActionResult DownloadSpecificationReport([FromRoute] string fileName, [FromRoute] string type)
+        {
+            return _specificationsReportService.DownloadReport(fileName, type);
         }
     }
 }

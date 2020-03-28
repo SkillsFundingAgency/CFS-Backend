@@ -13,7 +13,6 @@ using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Messages;
 using CalculateFunding.Models.ProviderLegacy;
-using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
@@ -24,10 +23,8 @@ using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Results.Interfaces;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Internal;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
-using Microsoft.Extensions.Primitives;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using NSubstitute;
@@ -986,6 +983,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
         {
             //Arrange
             string specificationId = "12345";
+            string specificationName = "67890";
 
             ICalculationResultsRepository calculationResultsRepository = CreateResultsRepository();
             calculationResultsRepository
@@ -1001,7 +999,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                 messengerService: messengerService);
 
             //Act
-            await resultsService.QueueCsvGenerationMessage(specificationId);
+            await resultsService.QueueCsvGenerationMessage(specificationId, specificationName);
 
             //Assert
             await calculationResultsRepository
@@ -1018,7 +1016,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                 .Received(expectedOperations)
                 .SendToQueue(ServiceBusConstants.QueueNames.CalculationResultsCsvGeneration,
                     string.Empty,
-                    Arg.Is<Dictionary<string, string>>(x => x.Count(y => y.Key == "specification-id" && y.Value == specificationId) == 1));
+                    Arg.Is<Dictionary<string, string>>(_ => _["specification-id"] == specificationId && _["specification-name"] == specificationName ));
         }
 
         #region "Dependency creation"

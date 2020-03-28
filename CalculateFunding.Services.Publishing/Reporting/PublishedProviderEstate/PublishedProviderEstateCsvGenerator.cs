@@ -14,7 +14,7 @@ using System.Dynamic;
 using System.Threading.Tasks;
 using System.Linq;
 using CalculateFunding.Models.Publishing;
-using StackExchange.Redis;
+using CalculateFunding.Services.Publishing.Reporting.FundingLines;
 
 namespace CalculateFunding.Services.Publishing.Reporting.PublishedProviderEstate
 {
@@ -88,10 +88,7 @@ namespace CalculateFunding.Services.Publishing.Reporting.PublishedProviderEstate
 
         protected override string GetContentDisposition(Message message)
         {
-            string fundingStreamId = message.GetUserProperty<string>("funding-stream-id");
-            string fundingPeriodId = message.GetUserProperty<string>("funding-period-id");
-            
-            return $"attachment; filename=published-provider-estate-{fundingStreamId}-{fundingPeriodId}-{DateTimeOffset.UtcNow:s}";
+            return $"attachment; filename={GetPrettyFileName(message)}";
         }
 
         private void GenerateGroupedPublishedProviderEstateCsv(
@@ -107,7 +104,30 @@ namespace CalculateFunding.Services.Publishing.Reporting.PublishedProviderEstate
         protected override string GetCsvFileName(Message message)
         {
             string specificationId = message.GetUserProperty<string>("specification-id");
-            return $"published-provider-estate-{specificationId}.csv";
+            string fundingPeriodId = message.GetUserProperty<string>("funding-period-id");
+
+            return $"funding-lines-{specificationId}-{FundingLineCsvGeneratorJobType.HistoryPublishedProviderEstate}-{fundingPeriodId}.csv";
+        }
+
+        protected override IDictionary<string, string> GetMetadata(Message message)
+        {
+            return new Dictionary<string, string>
+            {
+                { "specification-id", message.GetUserProperty<string>("specification-id") },
+                { "funding-stream-id", message.GetUserProperty<string>("funding-stream-id") },
+                { "funding-period-id", message.GetUserProperty<string>("funding-period-id") },
+                { "jobId", message.GetUserProperty<string>("jobId") },
+                { "job-type", message.GetUserProperty<string>("job-type") },
+                { "file-name", GetPrettyFileName(message) }
+            };
+        }
+
+        private string GetPrettyFileName(Message message)
+        {
+            string fundingStreamId = message.GetUserProperty<string>("funding-stream-id");
+            string fundingPeriodId = message.GetUserProperty<string>("funding-period-id");
+
+            return $"{fundingStreamId} {fundingPeriodId} Provider Estate Variations {DateTimeOffset.UtcNow:s}";
         }
     }
 }

@@ -33,6 +33,7 @@ namespace CalculateFunding.Services.Results
         private IFileSystemAccess _fileSystemAccess;
         private IFileSystemCacheSettings _fileSystemCacheSettings;
         private string _rootPath;
+        private BlobProperties _blobProperties;
 
         private Message _message;
         
@@ -69,6 +70,12 @@ namespace CalculateFunding.Services.Results
             _fileSystemAccess
                 .Append(Arg.Any<string>(), Arg.Any<Stream>())
                 .Returns(Task.CompletedTask);
+
+            _blobProperties = new BlobProperties();
+
+            _cloudBlob
+                .Properties
+                .Returns(_blobProperties);
         }
 
         [TestMethod]
@@ -86,6 +93,7 @@ namespace CalculateFunding.Services.Results
         public async Task TransformsProviderResultsForSpecificationInBatchesAndCreatesCsvWithResults()
         {
             string specificationId = NewRandomString();
+            string specificationName = NewRandomString();
             string expectedInterimFilePath = Path.Combine(_rootPath, $"calculation-results-{specificationId}.csv");
             
             List<ProviderResult> providerResultsOne = new List<ProviderResult>();
@@ -115,6 +123,7 @@ namespace CalculateFunding.Services.Results
             GivenTheCsvRowTransformation(providerResultsOne, transformedRowsOne, expectedCsvOne, true);
             AndTheCsvRowTransformation(providerResultsTwo, transformedRowsTwo, expectedCsvTwo,  false);
             AndTheMessageProperties(("specification-id", specificationId));
+            AndTheMessageProperties(("specification-name", specificationName));
             AndTheCloudBlobForSpecificationId(specificationId);
             AndTheFileStream(expectedInterimFilePath, incrementalFileStream);
             AndTheFileExists(expectedInterimFilePath);
@@ -151,6 +160,17 @@ namespace CalculateFunding.Services.Results
             await _blobClient
                 .Received(1)
                 .UploadAsync(_cloudBlob, incrementalFileStream);
+
+            await _blobClient
+                .Received(1)
+                .AddMetadataAsync(
+                _cloudBlob, 
+                Arg.Is<IDictionary<string, string>>(_=> 
+                    _["specification-id"] == specificationId &&
+                    _["specification-name"] == specificationName &&
+                    _["file-name"].StartsWith($"Calculation Results {specificationName} {DateTimeOffset.UtcNow:yyyy-MM-d}") &&
+                    _["job-type"] == "CalcResult")
+                );
         }
 
         private void AndTheCloudBlobForSpecificationId(string specificationId)

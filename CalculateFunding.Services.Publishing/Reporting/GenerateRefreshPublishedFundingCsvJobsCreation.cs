@@ -29,7 +29,7 @@ namespace CalculateFunding.Services.Publishing.Reporting
             Guard.ArgumentNotNull(fundingStreamIds, nameof(fundingStreamIds));
 
             await CreatePublishedFundingCsvJobs(specificationId, correlationId, user, fundingLineCodes, fundingPeriodId);
-            await CreatePublishedProviderEstateCsvJobs(specificationId, correlationId, user);
+            await CreatePublishedProviderEstateCsvJobs(specificationId, correlationId, user, fundingStreamIds, fundingPeriodId);
         }
 
         public override bool IsForAction(GeneratePublishingCsvJobsCreationAction action)

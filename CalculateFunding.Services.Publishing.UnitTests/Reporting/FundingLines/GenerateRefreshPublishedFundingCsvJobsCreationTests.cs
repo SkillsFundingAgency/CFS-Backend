@@ -22,7 +22,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
         {
             string specificationId = NewRandomString();
             IEnumerable<string> fundingLineCodes = new[] { NewRandomString(), NewRandomString() };
-            IEnumerable<string> fundingStreamIds = Array.Empty<string>();
+            IEnumerable<string> fundingStreamIds = new[] { NewRandomString() };
             string correlationId = NewRandomString();
             Reference user = NewUser();
 

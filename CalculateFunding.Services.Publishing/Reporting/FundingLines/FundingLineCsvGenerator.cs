@@ -1,7 +1,6 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
-using System.Runtime.CompilerServices;
-using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Core;
@@ -113,7 +112,7 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
 
                 using (Stream csvFileStream = _fileSystemAccess.OpenRead(temporaryPath))
                 {
-                    await _blobClientPolicy.ExecuteAsync(() => _blobClient.UploadAsync(blob, csvFileStream));
+                    await _blobClientPolicy.ExecuteAsync(() => UploadBlob(blob, csvFileStream, parameters.ToDictionary()));
                 }
 
                 await CompleteJob(parameters);
@@ -126,6 +125,12 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
 
                 throw new NonRetriableException(error);
             }
+        }
+
+        private async Task UploadBlob(ICloudBlob blob, Stream csvFileStream, IDictionary<string, string> metadata)
+        {
+            await _blobClient.UploadAsync(blob, csvFileStream);
+            await _blobClient.AddMetadataAsync(blob, metadata);
         }
 
         private async Task CompleteJob(JobParameters parameters)
@@ -177,7 +182,20 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
                     FundingPeriodId = GetProperty(message, "funding-period-id")
                 };
             }
-            
+            public IDictionary<string, string> ToDictionary()
+            {
+                return new Dictionary<string, string>
+                {
+                    { "specification-id", SpecificationId },
+                    { "job-type", JobType.ToString() },
+                    { "jobId", JobId },
+                    { "funding-line-code", FundingLineCode },
+                    { "funding-stream-id", FundingStreamId },
+                    { "funding-period-id", FundingPeriodId },
+                    { "file-name", GetPrettyFileName(JobType, FundingLineCode, FundingStreamId, FundingPeriodId) }
+                };
+            }
+
             private static string GetProperty(Message message, string property)
             {
                 return message.GetUserProperty<string>(property);
@@ -193,12 +211,12 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
                 string fundingStreamId,
                 string fundingPeriodId)
             {
+                ContentDisposition = $"attachment; filename={GetPrettyFileName(jobType, fundingLineCode, fundingStreamId, fundingPeriodId)}";
+                
                 fundingLineCode = WithPrefixDelimiterOrEmpty(fundingLineCode);
-                fundingPeriodId = WithPrefixDelimiterOrEmpty(fundingPeriodId);
                 fundingStreamId = WithPrefixDelimiterOrEmpty(fundingStreamId);
 
-                FileName = $"funding-lines-{jobType}-{specificationId}{fundingLineCode}{fundingStreamId}.csv";
-                ContentDisposition = $"attachment; filename=funding-lines-{jobType}{fundingLineCode}{fundingStreamId}{fundingPeriodId}-{DateTimeOffset.UtcNow:s}.csv";
+                FileName = $"funding-lines-{specificationId}-{jobType}{fundingLineCode}{fundingStreamId}.csv";
                 TemporaryPath = Path.Combine(root, FileName);
             }
 
@@ -210,7 +228,31 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
             public string TemporaryPath { get; }
             
             public string ContentDisposition { get; }
-            
+        }
+
+        protected static string GetPrettyFileName(FundingLineCsvGeneratorJobType jobType, string fundingLineCode, string fundingStreamId, string fundingPeriodId)
+        {
+            switch (jobType)
+            {
+                case FundingLineCsvGeneratorJobType.CurrentState:
+                    return $"{fundingStreamId} {fundingPeriodId} Provider Funding Lines Current State {DateTimeOffset.UtcNow:s}.csv";
+                case FundingLineCsvGeneratorJobType.Released:
+                    return $"{fundingStreamId} {fundingPeriodId} Provider Funding Lines Released Only {DateTimeOffset.UtcNow:s}.csv";
+                case FundingLineCsvGeneratorJobType.History:
+                    return $"{fundingStreamId} {fundingPeriodId} Provider Funding Lines All Versions {DateTimeOffset.UtcNow:s}.csv";
+                case FundingLineCsvGeneratorJobType.HistoryProfileValues:
+                    return $"{fundingStreamId} {fundingPeriodId} {fundingLineCode} Profile All Versions {DateTimeOffset.UtcNow:s}.csv";
+                case FundingLineCsvGeneratorJobType.CurrentProfileValues:
+                    return $"{fundingStreamId} {fundingPeriodId} {fundingLineCode} Profile Current State {DateTimeOffset.UtcNow:s}.csv";
+                case FundingLineCsvGeneratorJobType.CurrentOrganisationGroupValues:
+                    return $"{fundingStreamId} {fundingPeriodId} Funding Lines Current State {DateTimeOffset.UtcNow:s}.csv";
+                case FundingLineCsvGeneratorJobType.HistoryOrganisationGroupValues:
+                    return $"{fundingStreamId} {fundingPeriodId} Funding Lines All Versions {DateTimeOffset.UtcNow:s}.csv";
+                case FundingLineCsvGeneratorJobType.Undefined:
+                case FundingLineCsvGeneratorJobType.HistoryPublishedProviderEstate:
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
         }
     }
 }

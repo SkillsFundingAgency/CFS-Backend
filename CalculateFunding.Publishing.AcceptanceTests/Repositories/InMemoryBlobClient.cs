@@ -98,5 +98,10 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         {
             return _files;
         }
+
+        public IEnumerable<IListBlobItem> ListBlobs(string prefix, string containerName = null, bool useFlatBlobListing = false, BlobListingDetails blobListingDetails = BlobListingDetails.None)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

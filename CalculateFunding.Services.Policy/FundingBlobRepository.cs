@@ -10,7 +10,7 @@ namespace CalculateFunding.Services.Policy
 {
     public abstract class FundingBlobRepository : BlobClient
     {
-        public FundingBlobRepository(BlobStorageOptions blobStorageOptions) : base(blobStorageOptions) { }
+        public FundingBlobRepository(BlobStorageOptions blobStorageOptions, IBlobContainerRepository blobContainerRepository) : base(blobStorageOptions, blobContainerRepository) { }
 
         protected async Task SaveVersion(string blobName, byte[] fileBytes)
         {
