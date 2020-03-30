@@ -31,8 +31,9 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using NSubstitute;
 using Serilog;
-using Calculation = CalculateFunding.Models.Calcs.Calculation;
-using CalculationEntity = CalculateFunding.Models.Graph.Entity<CalculateFunding.Models.Calcs.Calculation>;
+using GraphCalculation = CalculateFunding.Common.ApiClient.Graph.Models.Calculation;
+using CalculationEntity = CalculateFunding.Models.Graph.Entity<CalculateFunding.Common.ApiClient.Graph.Models.Calculation, CalculateFunding.Common.ApiClient.Graph.Models.Relationship>;
+using GraphRelationship = CalculateFunding.Common.ApiClient.Graph.Models.Relationship;
 
 namespace CalculateFunding.Services.Calcs.Services
 {
@@ -1418,25 +1419,25 @@ namespace CalculateFunding.Services.Calcs.Services
             message.UserProperties.Add("jobId", "job-id-1");
             message.UserProperties.Add("specification-id", specificationId);
 
-            Calculation calculation1 = new Calculation
+            GraphCalculation calculation1 = new GraphCalculation
             {
-                Id = "1",
-                Current = new CalculationVersion
-                {
-                    Name = "Calc 1",
-                    SourceCode = "return Sum(Calc2)"
-                }
+                CalculationId = "1",
+                CalculationName = "Calc 1"
             };
 
-            Calculation calculation2 = new Calculation
+            GraphCalculation calculation2 = new GraphCalculation
             {
-                Id = "2",
-                Current = new CalculationVersion
-                {
-                    Name = "Calc 2",
-                    SourceCode = "return 1000"
-                }
+                CalculationId = "2",
+                CalculationName = "Calc 2"
             };
+
+            GraphRelationship calculation1Relationship = Substitute.For<GraphRelationship>();
+            calculation1Relationship.One = calculation1;
+            calculation1Relationship.Two = calculation2;
+
+            GraphRelationship calculation2Relationship = Substitute.For<GraphRelationship>();
+            calculation2Relationship.One = calculation2;
+            calculation2Relationship.Two = calculation1;
 
             IJobsApiClient jobsApiClient = CreateJobsApiClient();
             jobsApiClient
@@ -1452,8 +1453,8 @@ namespace CalculateFunding.Services.Calcs.Services
 
             graphRepository.GetCircularDependencies(specificationId)
                 .Returns(new[] { new CalculationEntity {
-                    Id = calculation1.Id,
-                    Relationships = new[] { calculation1, calculation2, calculation1 }
+                    Node = calculation1,
+                    Relationships = new[] { calculation1Relationship, calculation2Relationship }
                 }});
 
             //Act

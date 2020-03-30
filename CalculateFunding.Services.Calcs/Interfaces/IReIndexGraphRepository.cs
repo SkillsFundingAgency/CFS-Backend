@@ -5,6 +5,7 @@ namespace CalculateFunding.Services.Calcs.Interfaces
 {
     public interface IReIndexGraphRepository
     {
-        Task RecreateGraph(SpecificationCalculationRelationships specificationCalculationRelationships);
+        Task<SpecificationCalculationRelationships> GetUnusedRelationships(SpecificationCalculationRelationships specificationCalculationRelationships);
+        Task RecreateGraph(SpecificationCalculationRelationships specificationCalculationRelationships, SpecificationCalculationRelationships specificationCalculationUnusedRelationships);
     }
 }

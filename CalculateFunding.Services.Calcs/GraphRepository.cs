@@ -15,8 +15,8 @@ using CalculateFunding.Common.ApiClient.Models;
 using Polly;
 using Serilog;
 using GraphCalculation = CalculateFunding.Common.ApiClient.Graph.Models.Calculation;
-using GraphEntity = CalculateFunding.Common.ApiClient.Graph.Models.Entity<CalculateFunding.Common.ApiClient.Graph.Models.Calculation, Newtonsoft.Json.Linq.JObject>;
-using CalculationEntity = CalculateFunding.Models.Graph.Entity<CalculateFunding.Models.Calcs.Calculation>;
+using GraphEntity = CalculateFunding.Common.ApiClient.Graph.Models.Entity<CalculateFunding.Common.ApiClient.Graph.Models.Calculation>;
+using CalculationEntity = CalculateFunding.Models.Graph.Entity<CalculateFunding.Common.ApiClient.Graph.Models.Calculation, CalculateFunding.Common.ApiClient.Graph.Models.Relationship>;
 using Newtonsoft.Json.Linq;
 
 namespace CalculateFunding.Services.Calcs
@@ -64,23 +64,8 @@ namespace CalculateFunding.Services.Calcs
             return entities?.Content?.Select(_ => 
                 new CalculationEntity
                 {
-                    Id = _.Node.CalculationId,
-                    Relationships = _.Relationship["nodes"].ToObject<JArray>().Select(node =>
-                    {
-                        GraphCalculation graphCalculation = node["properties"].ToObject<GraphCalculation>();
-                        return new Calculation
-                        {
-                            Id = graphCalculation.CalculationId,
-                            Current = new CalculationVersion
-                            {
-                                CalculationId = graphCalculation.CalculationId,
-                                Name = graphCalculation.CalculationName,
-                                CalculationType = graphCalculation.CalculationType.AsMatchingEnum<CalculationType>()
-                            },
-                            FundingStreamId = graphCalculation.FundingStream,
-                            SpecificationId = graphCalculation.SpecificationId
-                        };
-                    })
+                    Node = _.Node.AsJson().AsPoco<GraphCalculation>(),
+                    Relationships = _.Relationships
                 });
         }
 

@@ -1,5 +1,10 @@
-﻿using CalculateFunding.Models.Graph;
+﻿using CalculateFunding.Common.Graph;
+using CalculateFunding.Common.Graph.Interfaces;
+using CalculateFunding.Models.Graph;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Graph.UnitTests
@@ -61,6 +66,37 @@ namespace CalculateFunding.Services.Graph.UnitTests
             await AndTheRelationshipWasCreated<Specification, Calculation>(SpecificationCalculationRelationship,
                     (SpecificationId, specificationId),
                     (CalculationId, calculationId));
+        }
+
+        [TestMethod]
+        public async Task GetCalculationCircularDependencies_GivenCircularDependencies_ExpectedMethodsCalled()
+        { 
+            string specificationId = NewRandomString();
+
+            Calculation calculation1 = NewCalculation();
+            Calculation calculation2 = NewCalculation();
+
+            Entity<Calculation> entity = new Entity<Calculation> { Node = calculation1, Relationships = new[] { new Relationship { One = calculation2, Two = calculation1, Type = CalculationACalculationBRelationship } } };
+
+            GivenCircularDependencies(CalculationACalculationBRelationship, SpecificationId, specificationId, entity);
+
+            IEnumerable<Entity<Calculation, IRelationship>> entities = await _calculationRepository.GetCalculationCircularDependencies(specificationId);
+
+            entities
+                .Should()
+                .HaveCount(1);
+
+            entities
+                .FirstOrDefault()
+                .Node
+                .Should()
+                .BeEquivalentTo(calculation1);
+
+            entities
+                .FirstOrDefault()
+                .Relationships
+                .Should()
+                .HaveCount(1);
         }
 
         [TestMethod]

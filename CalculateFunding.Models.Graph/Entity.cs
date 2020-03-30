@@ -4,9 +4,9 @@ using System.Text;
 
 namespace CalculateFunding.Models.Graph
 {
-    public class Entity<TRelatedNode>
+    public class Entity<TNode, TRelationship>
     {
-        public string Id { get; set; }
-        public IEnumerable<TRelatedNode> Relationships { get; set; }
+        public TNode Node { get; set; }
+        public IEnumerable<TRelationship> Relationships { get; set; }
     }
 }

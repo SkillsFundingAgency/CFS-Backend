@@ -19,8 +19,9 @@ using System.Net;
 using Newtonsoft.Json.Linq;
 using CalculateFunding.Tests.Common.Helpers;
 using GraphCalculation = CalculateFunding.Common.ApiClient.Graph.Models.Calculation;
-using GraphEntity = CalculateFunding.Common.ApiClient.Graph.Models.Entity<CalculateFunding.Common.ApiClient.Graph.Models.Calculation, Newtonsoft.Json.Linq.JObject>;
-using CalculationEntity = CalculateFunding.Models.Graph.Entity<CalculateFunding.Models.Calcs.Calculation>;
+using GraphEntity = CalculateFunding.Common.ApiClient.Graph.Models.Entity<CalculateFunding.Common.ApiClient.Graph.Models.Calculation>;
+using CalculationEntity = CalculateFunding.Models.Graph.Entity<CalculateFunding.Common.ApiClient.Graph.Models.Calculation, CalculateFunding.Common.ApiClient.Graph.Models.Relationship>;
+using GraphRelationship = CalculateFunding.Common.ApiClient.Graph.Models.Relationship;
 
 namespace CalculateFunding.Services.Calcs.UnitTests.Services
 {
@@ -85,10 +86,21 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
         {
             SpecificationSummary specificationSummary = NewSpecification(_ => _.WithId("ebc5153d-0a3b-44aa-ab4b-aea405cb0df0"));
 
-            GraphCalculation calculation = NewGraphCalculation(_ => _.WithSpecificationId(specificationSummary.Id)
+            GraphCalculation calculation1 = NewGraphCalculation(_ => _.WithSpecificationId(specificationSummary.Id)
             .WithId("41402e30-f8a7-40bc-a4fc-4cd256e2fbeb"));
 
-            GraphEntity entity = new GraphEntity { Node = calculation, Relationship = JObject.Parse(GetResourceString("CalculateFunding.Services.Calcs.UnitTests.Resources.relationships.json")) };
+            GraphCalculation calculation2 = NewGraphCalculation(_ => _.WithSpecificationId(specificationSummary.Id));
+
+            GraphRelationship calculation1Relationship = Substitute.For<GraphRelationship>();
+            calculation1Relationship.One = calculation1;
+            calculation1Relationship.Two = calculation2;
+
+            GraphRelationship calculation2Relationship = Substitute.For<GraphRelationship>();
+            calculation2Relationship.One = calculation2;
+            calculation2Relationship.Two = calculation1;
+
+
+            GraphEntity entity = new GraphEntity { Node = calculation1, Relationships = new[] { calculation1Relationship, calculation2Relationship } };
 
             _calculationsFeatureFlag
                 .IsGraphEnabled()
@@ -106,12 +118,12 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
                 .Be(false);
 
             circularDependencies
-                .Where(_ => _.Id == calculation.CalculationId)
+                .Where(_ => _.Node.CalculationId == calculation1.CalculationId)
                 .FirstOrDefault()
                 .Relationships
                 .Count()
                 .Should()
-                .Be(4);
+                .Be(2);
         }
 
         [TestMethod]

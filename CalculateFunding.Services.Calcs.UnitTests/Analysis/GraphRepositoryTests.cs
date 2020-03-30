@@ -39,7 +39,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
         [TestMethod]
         public void GuardsAgainstNoSpecificationCalculationRelationshipsBeingSupplied()
         {
-            Func<Task> invocation = () => WhenTheGraphIsRecreated(null);
+            Func<Task> invocation = () => WhenTheGraphIsRecreated(null, null);
 
             invocation
                 .Should()
@@ -59,6 +59,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
             string calculationIdTwo = NewRandomString();
             string calculationIdThree = NewRandomString();
             string calculationIdFour = NewRandomString();
+            string calculationIdFive = NewRandomString();
 
             Specification specification = NewGraphSpecification(_ => _.WithId(specificationId));
             Calculation[] calculations = new[]
@@ -67,6 +68,10 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
                 NewGraphCalculation(_ => _.WithId(calculationIdTwo)),
                 NewGraphCalculation(_ => _.WithId(calculationIdThree)),
                 NewGraphCalculation(_ => _.WithId(calculationIdFour)),
+            };
+            Calculation[] unusedCalculations = new[]
+            {
+                NewGraphCalculation(_ => _.WithId(calculationIdFive)),
             };
             CalculationRelationship[] calculationRelationships = new[]
             {
@@ -79,11 +84,21 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
                 NewCalculationRelationship(_ => _.WithCalculationOneId(calculationIdFour)
                     .WithCalculationTwoId(calculationIdThree))
             };
+            CalculationRelationship[] unusedCalculationRelationships = new[]
+            {
+                NewCalculationRelationship(_ => _.WithCalculationOneId(calculationIdFour)
+                    .WithCalculationTwoId(calculationIdFive))
+            };
 
             SpecificationCalculationRelationships specificationCalculationRelationships = NewSpecificationCalculationRelationships(_ =>
                 _.WithSpecification(specification)
                     .WithCalculations(calculations)
                     .WithCalculationRelationships(calculationRelationships));
+
+            SpecificationCalculationRelationships specificationUnusedCalculationRelationships = NewSpecificationCalculationRelationships(_ =>
+                _.WithSpecification(specification)
+                    .WithCalculations(unusedCalculations)
+                    .WithCalculationRelationships(unusedCalculationRelationships));
 
             ApiSpecification apiSpecification = NewApiSpecification();
             ApiCalculation[] apiCalculations = new[]
@@ -95,7 +110,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
             
             GivenTheMapping(specification, apiSpecification);
             AndTheCollectionMapping(calculations, apiCalculations);
-            AndTheSpecificationIsDeleted(specificationId);
+            AndTheSpecificationRelationshipsAreDeleted(calculationIdFive, specificationId, unusedCalculationRelationships);
             AndTheSpecificationIsCreated(apiSpecification);
             AndTheCalculationsAreCreated(apiCalculations);
             AndTheSpecificationCalculationRelationshipsWereCreated(specificationId, new []
@@ -107,16 +122,23 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
             });
             AndTheRelationshipsWereCreated(calculationRelationships);
             
-            await WhenTheGraphIsRecreated(specificationCalculationRelationships);
+            await WhenTheGraphIsRecreated(specificationCalculationRelationships, specificationUnusedCalculationRelationships);
 
             _graphApiClient.VerifyAll();
         }
 
-        private void AndTheSpecificationIsDeleted(string specificationId)
+        private void AndTheSpecificationRelationshipsAreDeleted(string calculationId, string specificationId, IEnumerable<CalculationRelationship> calculationRelationships)
         {
-            _graphApiClient.Setup(_ => _.DeleteAllForSpecification(specificationId))
+            _graphApiClient.Setup(_ => _.DeleteCalculationSpecificationRelationship(calculationId, specificationId))
                 .ReturnsAsync(HttpStatusCode.OK)
                 .Verifiable();
+
+            foreach(CalculationRelationship calculationRelation in calculationRelationships)
+            {
+                _graphApiClient.Setup(_ => _.DeleteCalculationCalculationRelationship(calculationRelation.CalculationOneId, calculationRelation.CalculationTwoId))
+                    .ReturnsAsync(HttpStatusCode.OK)
+                    .Verifiable();
+            }
         }
 
         private void AndTheSpecificationIsCreated(ApiSpecification specification)
@@ -159,9 +181,9 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
             }
         }
         
-        private async Task WhenTheGraphIsRecreated(SpecificationCalculationRelationships specificationCalculationRelationships)
+        private async Task WhenTheGraphIsRecreated(SpecificationCalculationRelationships specificationCalculationRelationships, SpecificationCalculationRelationships specificationUnusedCalculationRelationships)
         {
-            await _repository.RecreateGraph(specificationCalculationRelationships);
+            await _repository.RecreateGraph(specificationCalculationRelationships, specificationUnusedCalculationRelationships);
         }
 
         private ApiSpecification NewApiSpecification()

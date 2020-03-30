@@ -1,4 +1,6 @@
-﻿using CalculateFunding.Models.Graph;
+﻿using CalculateFunding.Common.Graph;
+using CalculateFunding.Common.Graph.Interfaces;
+using CalculateFunding.Models.Graph;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -17,5 +19,6 @@ namespace CalculateFunding.Services.Graph.Interfaces
         Task CreateSpecificationDatasetRelationship(string specificationId, string datasetId);
         
         Task DeleteSpecificationDatasetRelationship(string specificationId, string datasetId);
+        Task<IEnumerable<Entity<Specification, IRelationship>>> GetAllEntities(string specificationId);
     }
 }

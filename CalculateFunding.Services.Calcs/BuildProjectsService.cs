@@ -32,7 +32,8 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Azure.ServiceBus;
 using Serilog;
 using static CalculateFunding.Services.Core.Constants.JobConstants;
-using CalculationEntity = CalculateFunding.Models.Graph.Entity<CalculateFunding.Models.Calcs.Calculation>;
+using CalculationEntity = CalculateFunding.Models.Graph.Entity<CalculateFunding.Common.ApiClient.Graph.Models.Calculation, CalculateFunding.Common.ApiClient.Graph.Models.Relationship>;
+using GraphCalculation = CalculateFunding.Common.ApiClient.Graph.Models.Calculation;
 
 namespace CalculateFunding.Services.Calcs
 {
@@ -176,26 +177,19 @@ namespace CalculateFunding.Services.Calcs
                 {
                     StringBuilder stringBuilder = new StringBuilder();
 
-                    int i = -1;
+                    int i = 0;
 
-                    _logger.Information(calculationEntity.Relationships.Select(rel =>
+                    _logger.Information((new[] { calculationEntity.Node.CalculationName }).Concat(calculationEntity.Relationships.Reverse().Select(rel =>
                     {
                         try
                         {
-                            if (i == -1)
-                            {
-                                return rel.Name;
-                            }
-                            else
-                            {
-                                return $"|--->{rel.Name}".AddLeading(i * 3);
-                            }
+                            return $"|--->{((object)rel.Two).AsJson().AsPoco<GraphCalculation>().CalculationName}".AddLeading(i * 3);
                         }
                         finally
                         {
                             i++;
                         }
-                    }).Aggregate((partialLog, log) => $"{partialLog}\r\n{log}"));
+                    })).Aggregate((partialLog, log) => $"{partialLog}\r\n{log}"));
                 }
 
                 _logger.Information(errorMessage);

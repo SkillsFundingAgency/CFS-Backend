@@ -46,18 +46,18 @@ namespace CalculateFunding.Services.Graph.UnitTests
                 .Received(1)
                 .DeleteNode<TNode>(Arg.Is<Field>(_ => _.Name == field && _.Value == value));
         }
-        
+
         protected string NewRandomString() => new RandomString();
 
-        protected async Task ThenTheRelationshipWasCreated<TNodeA, TNodeB>(string label, 
-            (string Name, string Value) left, 
+        protected async Task ThenTheRelationshipWasCreated<TNodeA, TNodeB>(string label,
+            (string Name, string Value) left,
             (string Name, string Value) right)
         {
             await GraphRepository
                 .Received(1)
                 .UpsertRelationship<TNodeA, TNodeB>(label,
                     Arg.Is<Field>(_ => _.Name == left.Name && _.Value == left.Value),
-                    Arg.Is<Field>(_ => _.Name == right.Name && _.Value == right.Value));    
+                    Arg.Is<Field>(_ => _.Name == right.Name && _.Value == right.Value));
         }
 
         protected async Task AndTheRelationshipWasCreated<TNodeA, TNodeB>(string label,
@@ -67,6 +67,18 @@ namespace CalculateFunding.Services.Graph.UnitTests
             await ThenTheRelationshipWasCreated<TNodeA, TNodeB>(label,
                 left,
                 right);
+        }
+
+        protected void GivenCircularDependencies(string relationship, string fieldName, string fieldValue, Entity<Calculation> entity)
+        {
+            GraphRepository.GetCircularDependencies<Calculation>(relationship, Arg.Is<IField>(_ => _.Name == fieldName && _.Value == fieldValue))
+                .Returns(new[] { entity });
+        }
+
+        protected void GivenAllEntitities (string[] relationships, string fieldName, string fieldValue, Entity<Specification> entity)
+        {
+            GraphRepository.GetAllEntities<Specification>(Arg.Is<IField>(_ => _.Name == fieldName && _.Value == fieldValue), Arg.Is<string[]>(_ => _.EqualTo(relationships)))
+                .Returns(new[] { entity });
         }
 
         protected async Task ThenTheRelationshipWasDeleted<TNodeA, TNodeB>(string label, 

@@ -43,7 +43,9 @@ namespace CalculateFunding.Services.Calcs.Analysis
                 SpecificationCalculationRelationships specificationCalculationRelationships = await _analysis
                     .GetSpecificationCalculationRelationships(specificationId);
 
-                await _reIndexGraphs.RecreateGraph(specificationCalculationRelationships);
+                SpecificationCalculationRelationships specificationCalculationUnusedRelationships = await _reIndexGraphs.GetUnusedRelationships(specificationCalculationRelationships);
+
+                await _reIndexGraphs.RecreateGraph(specificationCalculationRelationships, specificationCalculationUnusedRelationships);
             }
             catch (Exception e)
             {

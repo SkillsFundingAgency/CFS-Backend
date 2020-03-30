@@ -4,6 +4,7 @@ using CalculateFunding.Models.Graph;
 using CalculateFunding.Services.Graph.Interfaces;
 using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Graph
@@ -47,9 +48,12 @@ namespace CalculateFunding.Services.Graph
                 (CalculationId, calculationId));
         }
 
-        public async Task<IEnumerable<Entity<Calculation, JObject>>> GetCalculationCircularDependencies(string specificationId)
+        public async Task<IEnumerable<Entity<Calculation, IRelationship>>> GetCalculationCircularDependencies(string specificationId)
         {
-            return await GetCircularDependencies<Calculation>("CalledByCalculation", SpecificationId, specificationId);
+            IEnumerable<Entity<Calculation>> entities = await GetCircularDependencies<Calculation>(CalculationACalculationBRelationship,
+                SpecificationId,
+                specificationId);
+            return entities.Select(_ => new Entity<Calculation, IRelationship> { Node = _.Node, Relationships = _.Relationships });
         }
 
         public async Task UpsertCalculationCalculationRelationship(string calculationIdA, string calculationIdB)

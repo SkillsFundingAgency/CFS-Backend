@@ -32,5 +32,7 @@ namespace CalculateFunding.Services.Graph.Interfaces
         Task<IActionResult> CreateCalculationDataFieldRelationship(string calculationId, string fieldId);
         Task<IActionResult> DeleteCalculationDataFieldRelationship(string calculationId, string fieldId);
         Task<IActionResult> GetCalculationCircularDependencies(string specificationId);
+        Task<IActionResult> GetAllEntities<TNode>(string nodeId)
+            where TNode:class;
     }
 }

@@ -158,5 +158,10 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         {
             throw new NotImplementedException();
         }
+
+        public Task<ApiResponse<SearchResults<CalculationSearchResult>>> SearchCalculationsForSpecification(string specificationId, Common.ApiClient.Calcs.Models.CalculationType calculationType, PublishStatus? status, string searchTerm = null, int? page = null)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

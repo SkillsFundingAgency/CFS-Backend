@@ -159,7 +159,20 @@ namespace CalculateFunding.Services.Graph
 
         public async Task<IActionResult> GetCalculationCircularDependencies(string specificationId)
         {
-            return await ExecuteRepositoryAction(() => _calcRepository.GetCalculationCircularDependencies(specificationId), $"Unable to retrieve calculation circulardependencies.");
+            return await ExecuteRepositoryAction(() => _calcRepository.GetCalculationCircularDependencies(specificationId), "Unable to retrieve calculation circulardependencies.");
+        }
+
+        public async Task<IActionResult> GetAllEntities<TNode>(string nodeId)
+            where TNode : class
+        {
+            if(typeof(TNode).IsAssignableFrom(typeof(Specification)))
+            {
+                return await ExecuteRepositoryAction(() => _specRepository.GetAllEntities(nodeId), $"Unable to retrieve all entities for {typeof(TNode).Name.ToLowerInvariant()}.");
+            }
+            else
+            {
+                throw new NotImplementedException();
+            }
         }
 
         public async Task<IActionResult> UpsertCalculationCalculationRelationship(string calculationIdA, string calculationIdB)

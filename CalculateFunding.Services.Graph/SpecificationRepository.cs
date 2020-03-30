@@ -2,10 +2,9 @@
 using CalculateFunding.Models.Graph;
 using CalculateFunding.Services.Graph.Interfaces;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.Azure.Search.Models;
-using Microsoft.Azure.ServiceBus;
+using CalculateFunding.Common.Graph;
+using System.Linq;
 
 namespace CalculateFunding.Services.Graph
 {
@@ -56,6 +55,16 @@ namespace CalculateFunding.Services.Graph
             await DeleteRelationship<Dataset, Specification>(DatasetSpecificationRelationship,
                 (Dataset.IdField, datasetId),
                 (SpecificationId, specificationId));
+        }
+
+        public async Task<IEnumerable<Entity<Specification, IRelationship>>> GetAllEntities(string specificationId)
+        {
+            IEnumerable<Entity<Specification>> entities = await GetAllEntities<Specification>(SpecificationId,
+                specificationId,
+                new[] { CalculationRepository.CalculationACalculationBRelationship,
+                    CalculationRepository.CalculationSpecificationRelationship
+                });
+            return entities.Select(_ => new Entity<Specification, IRelationship> { Node = _.Node, Relationships = _.Relationships });
         }
     }
 }

@@ -1,5 +1,10 @@
-﻿using CalculateFunding.Models.Graph;
+﻿using CalculateFunding.Common.Graph;
+using CalculateFunding.Common.Graph.Interfaces;
+using CalculateFunding.Models.Graph;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Graph.UnitTests
@@ -11,7 +16,9 @@ namespace CalculateFunding.Services.Graph.UnitTests
         private const string DatasetId = Dataset.IdField;
         private const string SpecificationDatasetRelationship = SpecificationRepository.SpecificationDatasetRelationship;
         private const string DatasetSpecificationRelationship =  SpecificationRepository.DatasetSpecificationRelationship;
-        
+        private const string CalculationSpecificationRelationship = CalculationRepository.CalculationSpecificationRelationship;
+        private const string CalculationACalculationBRelationship = CalculationRepository.CalculationACalculationBRelationship;
+
         private SpecificationRepository _specificationRepository;
 
         [TestInitialize]
@@ -28,6 +35,38 @@ namespace CalculateFunding.Services.Graph.UnitTests
             await _specificationRepository.UpsertSpecifications(specifications);
 
             await ThenTheNodesWereCreated(specifications, SpecificationId);
+        }
+
+
+        [TestMethod]
+        public async Task GetAllEntities_GivenEntities_ExpectedMethodsCalled()
+        {
+            string specificationId = NewRandomString();
+
+            Specification specification1 = NewSpecification();
+            Calculation calculation2 = NewCalculation();
+
+            Entity<Specification> entity = new Entity<Specification> { Node = specification1, Relationships = new[] { new Relationship { One = calculation2, Two = specification1, Type = CalculationSpecificationRelationship } } };
+
+            GivenAllEntitities(new[] { CalculationACalculationBRelationship, CalculationSpecificationRelationship }, SpecificationId, specificationId, entity);
+
+            IEnumerable<Entity<Specification, IRelationship>> entities = await _specificationRepository.GetAllEntities(specificationId);
+
+            entities
+                .Should()
+                .HaveCount(1);
+
+            entities
+                .FirstOrDefault()
+                .Node
+                .Should()
+                .BeEquivalentTo(specification1);
+
+            entities
+                .FirstOrDefault()
+                .Relationships
+                .Should()
+                .HaveCount(1);
         }
 
         [TestMethod]

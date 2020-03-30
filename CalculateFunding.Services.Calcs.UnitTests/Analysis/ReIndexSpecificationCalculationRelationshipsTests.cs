@@ -70,13 +70,15 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
         {
             string specificationId = new RandomString();
             SpecificationCalculationRelationships specificationCalculationRelationships = new SpecificationCalculationRelationships();
+            SpecificationCalculationRelationships specificationCalculationUnusedRelationships = new SpecificationCalculationRelationships();
 
             GivenTheMessageProperties(("specification-id", specificationId));
             AndTheRelationshipsForSpecificationId(specificationId, specificationCalculationRelationships);
+            AndTheUnusedRelationshipsForSpecificationId(specificationCalculationRelationships, specificationCalculationUnusedRelationships);
 
             await WhenTheReIndexerIsRun();
             
-            _relationships.Verify(_ => _.RecreateGraph(specificationCalculationRelationships),
+            _relationships.Verify(_ => _.RecreateGraph(specificationCalculationRelationships, specificationCalculationUnusedRelationships),
                 Times.Once);
         }
 
@@ -85,6 +87,13 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
         {
             _analysis.Setup(_ => _.GetSpecificationCalculationRelationships(specificationId))
                 .ReturnsAsync(specificationCalculationRelationships);
+        }
+
+        private void AndTheUnusedRelationshipsForSpecificationId(SpecificationCalculationRelationships specificationCalculationRelationships,
+            SpecificationCalculationRelationships specificationUnusedCalculationRelationships)
+        {
+            _relationships.Setup(_ => _.GetUnusedRelationships(specificationCalculationRelationships))
+                .ReturnsAsync(specificationUnusedCalculationRelationships);
         }
 
         private async Task WhenTheReIndexerIsRun()
