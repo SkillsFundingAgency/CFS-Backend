@@ -1454,7 +1454,7 @@ namespace CalculateFunding.Services.Calcs.Services
             graphRepository.GetCircularDependencies(specificationId)
                 .Returns(new[] { new CalculationEntity {
                     Node = calculation1,
-                    Relationships = new[] { calculation1Relationship, calculation2Relationship }
+                    Relationships = new[] { calculation2Relationship, calculation1Relationship }
                 }});
 
             //Act
