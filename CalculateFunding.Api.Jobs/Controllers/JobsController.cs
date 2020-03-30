@@ -68,12 +68,9 @@ namespace CalculateFunding.Api.Jobs.Controllers
         [HttpPost]
         [Route("api/jobs/jobdefinitions")]
         [ProducesResponseType(204)]
-        public async Task<IActionResult> SaveJobDefinition()
+        public async Task<IActionResult> SaveJobDefinition([FromBody] JobDefinition jobDefinition)
         {
-            string json = await ControllerContext.HttpContext.Request.GetRawBodyStringAsync();
-            string jsonFilename = ControllerContext.HttpContext.Request.GetJsonFileNameFromRequest();
-
-            return await _jobDefinitionsService.SaveDefinition(json, jsonFilename);
+            return await _jobDefinitionsService.SaveDefinition(jobDefinition);
         }
 
         [HttpGet]

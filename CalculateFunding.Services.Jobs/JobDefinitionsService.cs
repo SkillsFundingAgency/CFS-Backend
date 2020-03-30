@@ -47,53 +47,44 @@ namespace CalculateFunding.Services.Jobs
             ServiceHealth jobsDefinitionsRepoHealth = await ((IHealthChecker)_jobDefinitionsRepository).IsHealthOk();
             (bool Ok, string Message) cacheHealth = await _cacheProvider.IsHealthOk();
 
-            ServiceHealth health = new ServiceHealth()
+            ServiceHealth health = new ServiceHealth
             {
                 Name = nameof(JobDefinitionsService)
             };
+            
             health.Dependencies.AddRange(jobsDefinitionsRepoHealth.Dependencies);
-            health.Dependencies.Add(new DependencyHealth { HealthOk = cacheHealth.Ok, DependencyName = _cacheProvider.GetType().GetFriendlyName(), Message = cacheHealth.Message });
+            health.Dependencies.Add(new DependencyHealth
+            {
+                HealthOk = cacheHealth.Ok, 
+                DependencyName = _cacheProvider.GetType().GetFriendlyName(), 
+                Message = cacheHealth.Message
+            });
+            
             return health;
         }
 
-        public async Task<IActionResult> SaveDefinition(string json, string jsonFilename)
+        public async Task<IActionResult> SaveDefinition(JobDefinition definition)
         {
-            if (string.IsNullOrEmpty(json))
-            {
-                _logger.Error($"Null or empty json provided for file: {jsonFilename}");
-                return new BadRequestObjectResult($"Invalid json was provided for file: {jsonFilename}");
-            }
-
-            JobDefinition definition = null;
-
             try
             {
-                definition = JsonConvert.DeserializeObject<JobDefinition>(json);
-            }
-            catch (Exception exception)
-            {
-                _logger.Error(exception, $"Invalid json was provided for file: {jsonFilename}");
-                return new BadRequestObjectResult($"Invalid json was provided for file: {jsonFilename}");
-            }
-
-            try
-            {
+                Guard.ArgumentNotNull(definition, nameof(definition));
+                
                 HttpStatusCode result = await _jobDefinitionsRepositoryPolicy.ExecuteAsync(() => _jobDefinitionsRepository.SaveJobDefinition(definition));
 
                 if (!result.IsSuccess())
                 {
                     int statusCode = (int)result;
 
-                    _logger.Error($"Failed to save json file: {jsonFilename} to cosmos db with status {statusCode}");
+                    _logger.Error($"Failed to save json file: {definition.Id} to cosmos db with status {statusCode}");
 
                     return new StatusCodeResult(statusCode);
                 }
             }
             catch (Exception exception)
             {
-                _logger.Error(exception, $"Exception occurred writing json file: {jsonFilename} to cosmos db");
+                _logger.Error(exception, $"Exception occurred writing job definition {definition?.Id} to cosmos db");
 
-                return new InternalServerErrorResult($"Exception occurred writing json file: {jsonFilename} to cosmos db");
+                throw;
             }
 
             await _cachePolicy.ExecuteAsync(() => _cacheProvider.RemoveAsync<List<JobDefinition>>(CacheKeys.JobDefinitions));

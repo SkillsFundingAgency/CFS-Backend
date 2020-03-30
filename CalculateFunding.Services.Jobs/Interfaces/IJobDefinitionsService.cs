@@ -7,7 +7,7 @@ namespace CalculateFunding.Services.Jobs.Interfaces
 {
     public interface IJobDefinitionsService
     {
-        Task<IActionResult> SaveDefinition(string json, string jsonFilename);
+        Task<IActionResult> SaveDefinition(JobDefinition definition);
 
         Task<IActionResult> GetJobDefinitions();
 

@@ -1,460 +1,272 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Net;
-using System.Text;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Caching;
 using CalculateFunding.Models.Jobs;
 using CalculateFunding.Services.Core.Caching;
-using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Common.Caching;
 using CalculateFunding.Services.Jobs.Interfaces;
+using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Primitives;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Newtonsoft.Json;
-using NSubstitute;
+using Moq;
 using Polly;
-using Serilog;
+using Serilog.Core;
 
-namespace CalculateFunding.Services.Jobs.Services
+namespace CalculateFunding.Services.Jobs
 {
     [TestClass]
     public class JobDefinitionsServiceTests
     {
-        private const string jsonFile = "12345.json";
+        private Mock<IJobDefinitionsRepository> _jobDefinitions;
+        private Mock<ICacheProvider> _caching;
 
-        [TestMethod]
-        public async Task SaveDefinition_GivenEmptyJson_ReturnsBadRequest()
+        private JobDefinitionsService _service;
+        
+        [TestInitialize]
+        public void SetUp()
         {
-            //Arrange
-
-            ILogger logger = CreateLogger();
-
-            JobDefinitionsService jobDefinitionsService = CreateJobDefinitionService(logger: logger);
-
-            //Act
-            IActionResult result = await jobDefinitionsService.SaveDefinition(null, jsonFile);
-
-            //Assert
-            result
-                .Should()
-                .BeOfType<BadRequestObjectResult>()
-                .Which
-                .Value
-                .Should()
-                .Be($"Invalid json was provided for file: {jsonFile}");
-
-            logger
-                .Received(1)
-                .Error(Arg.Is($"Null or empty json provided for file: {jsonFile}"));
+            _jobDefinitions = new Mock<IJobDefinitionsRepository>();
+            _caching = new Mock<ICacheProvider>();
+            
+            _service = new JobDefinitionsService(_jobDefinitions.Object,
+                Logger.None, 
+                new ResiliencePolicies
+                {
+                    JobDefinitionsRepository = Policy.NoOpAsync(),
+                    CacheProviderPolicy = Policy.NoOpAsync()
+                }, 
+                _caching.Object);
         }
 
         [TestMethod]
-        public async Task SaveDefinition_GivenInvalidJson_ReturnsBadRequest()
+        public void SaveDefinitionGuardsAgainstMissingDefinition()
         {
-            //Arrange
-            string yaml = "invalid json";
+            Func<Task<IActionResult>> invocation = () => WhenTheJobDefinitionIsSaved(null);
 
-            ILogger logger = CreateLogger();
-
-            JobDefinitionsService jobDefinitionsService = CreateJobDefinitionService(logger: logger);
-
-            //Act
-            IActionResult result = await jobDefinitionsService.SaveDefinition(yaml, jsonFile);
-
-            //Assert
-            result
+            invocation
                 .Should()
-                .BeOfType<BadRequestObjectResult>()
+                .Throw<ArgumentNullException>()
                 .Which
-                .Value
+                .ParamName
                 .Should()
-                .Be($"Invalid json was provided for file: {jsonFile}");
-
-            logger
-                .Received(1)
-                .Error(Arg.Any<Exception>(), Arg.Is($"Invalid json was provided for file: {jsonFile}"));
+                .Be("definition");
         }
 
         [TestMethod]
-        public async Task SaveDefinition_GivenValidJsonButSavingReturns400_ReturnsStatusCodeResult400()
+        public void SaveDefinitionOnInvalidatesCacheOnSuccessfulSave()
         {
-            //Arrange
-            string yaml = JsonConvert.SerializeObject(new JobDefinition());
+            JobDefinition jobDefinition = NewJobDefinition();
+            
+            GivenTheJobsRepositoryThrowsAnException(jobDefinition);
 
-            ILogger logger = CreateLogger();
+            Func<Task<IActionResult>> invocation = () => WhenTheJobDefinitionIsSaved(jobDefinition);
 
-            IJobDefinitionsRepository jobDefinitionsRepository = CreateJobDefinitionsRepository();
-            jobDefinitionsRepository
-                .SaveJobDefinition(Arg.Any<JobDefinition>())
-                .Returns(HttpStatusCode.BadRequest);
-
-            JobDefinitionsService jobDefinitionsService = CreateJobDefinitionService(logger: logger, jobDefinitionsRepository: jobDefinitionsRepository);
-
-            //Act
-            IActionResult result = await jobDefinitionsService.SaveDefinition(yaml, jsonFile);
-
-            //Assert
-            result
+            invocation
                 .Should()
-                .BeOfType<StatusCodeResult>()
-                .Which
-                .StatusCode
-                .Should()
-                .Be(400);
-
-            logger
-                .Received(1)
-                .Error(Arg.Is($"Failed to save json file: {jsonFile} to cosmos db with status 400"));
+                .Throw<Exception>();
+            
+            AndTheCacheWasNotInvalidated();
         }
 
         [TestMethod]
-        public async Task SaveDefinition_GivenValidJsonButSavingThrowsException_ReturnsInternalServerError()
+        public async Task SaveDefinitionDelegatesToRepositoryAndInvalidatesCache()
         {
-            //Arrange
-            string yaml = JsonConvert.SerializeObject(new JobDefinition());
+            JobDefinition jobDefinition = NewJobDefinition();
+            
+            GivenTheJobsRepositoryReturnsTheStatusCode(jobDefinition, HttpStatusCode.OK);
 
-            ILogger logger = CreateLogger();
+            IActionResult actionResult = await WhenTheJobDefinitionIsSaved(jobDefinition);
 
-            IJobDefinitionsRepository jobDefinitionsRepository = CreateJobDefinitionsRepository();
-            jobDefinitionsRepository
-                .When(x => x.SaveJobDefinition(Arg.Any<JobDefinition>()))
-                .Do(x => { throw new Exception(); });
-
-
-            JobDefinitionsService jobDefinitionsService = CreateJobDefinitionService(logger: logger, jobDefinitionsRepository: jobDefinitionsRepository);
-
-            //Act
-            IActionResult result = await jobDefinitionsService.SaveDefinition(yaml, jsonFile);
-
-            //Assert
-            result
-                .Should()
-                .BeOfType<InternalServerErrorResult>()
-                .Which
-                .Value
-                .Should()
-                .Be($"Exception occurred writing json file: {jsonFile} to cosmos db");
-
-            logger
-                .Received(1)
-                .Error(Arg.Any<Exception>(), Arg.Is($"Exception occurred writing json file: {jsonFile} to cosmos db"));
-        }
-
-        [TestMethod]
-        public async Task SaveDefinition_GivenJsonSavesOK_ReturnsNoContentResult()
-        {
-            //Arrange
-            string yaml = JsonConvert.SerializeObject(new JobDefinition());
-
-            ILogger logger = CreateLogger();
-
-            IJobDefinitionsRepository jobDefinitionsRepository = CreateJobDefinitionsRepository();
-            jobDefinitionsRepository
-                .SaveJobDefinition(Arg.Any<JobDefinition>())
-                .Returns(HttpStatusCode.OK);
-
-            ICacheProvider cacheProvider = CreateCacheProvider();
-
-            JobDefinitionsService jobDefinitionsService = CreateJobDefinitionService(logger: logger, jobDefinitionsRepository: jobDefinitionsRepository, cacheProvider: cacheProvider);
-
-            //Act
-            IActionResult result = await jobDefinitionsService.SaveDefinition(yaml, jsonFile);
-
-            //Assert
-            result
+            actionResult
                 .Should()
                 .BeOfType<NoContentResult>();
-
-            await
-                cacheProvider
-                .Received(1)
-                .RemoveAsync<List<JobDefinition>>(Arg.Is(CacheKeys.JobDefinitions));
+            
+            ThenTheJobDefinitionWasSaved(jobDefinition);
+            AndTheCacheWasInvalidated();
         }
 
         [TestMethod]
-        public async Task GetAllJobDefinitions_GivenAlreadyInCache_ReturnsFromCache()
+        public async Task SaveDefinitionDelegatesToRepositoryAndReturnsStatusCodeIfNotSucceeded()
         {
-            //Arrange
-            List<JobDefinition> jobDefinitions = new List<JobDefinition>
+            JobDefinition jobDefinition = NewJobDefinition();
+            
+            GivenTheJobsRepositoryReturnsTheStatusCode(jobDefinition, HttpStatusCode.Conflict);
+
+            IActionResult actionResult = await WhenTheJobDefinitionIsSaved(jobDefinition);
+
+            actionResult
+                .Should()
+                .BeOfType<StatusCodeResult>();
+            
+            ThenTheJobDefinitionWasSaved(jobDefinition);
+            AndTheCacheWasNotInvalidated();
+        }
+
+        [TestMethod]
+        public async Task GetJobDefinitionsDelegatesToRepositoryAndCachesResultsIfCacheEmpty()
+        {
+            JobDefinition[] jobDefinitions = new[]
             {
-                new JobDefinition()
+                NewJobDefinition(),
+                NewJobDefinition(),
+                NewJobDefinition()
             };
+            
+            GivenTheJobDefinitions(jobDefinitions);
 
-            ICacheProvider cacheProvider = CreateCacheProvider();
-            cacheProvider
-                .GetAsync<List<JobDefinition>>(Arg.Is(CacheKeys.JobDefinitions))
-                .Returns(jobDefinitions);
-
-            IJobDefinitionsRepository jobDefinitionsRepository = CreateJobDefinitionsRepository();
-
-            JobDefinitionsService jobDefinitionsService = CreateJobDefinitionService(jobDefinitionsRepository, cacheProvider: cacheProvider);
-
-            //Act
-            IEnumerable<JobDefinition> definitions = await jobDefinitionsService.GetAllJobDefinitions();
-
-            //Assert
-            definitions
-                .Count()
-                .Should()
-                .Be(1);
-
-            await jobDefinitionsRepository
-                .DidNotReceive()
-                    .GetJobDefinitions();
-        }
-
-        [TestMethod]
-        public async Task GetAllJobDefinitions_GivenNotInCacheAndNotInCosmos_ReturnsNullListAndDoesNotSetInCache()
-        {
-            //Arrange
-            List<JobDefinition> jobDefinitions = null;
-
-            ICacheProvider cacheProvider = CreateCacheProvider();
-            cacheProvider
-                .GetAsync<List<JobDefinition>>(Arg.Is(CacheKeys.JobDefinitions))
-                .Returns(jobDefinitions);
-
-            IJobDefinitionsRepository jobDefinitionsRepository = CreateJobDefinitionsRepository();
-            jobDefinitionsRepository
-               .GetJobDefinitions()
-               .Returns(jobDefinitions);
-
-            JobDefinitionsService jobDefinitionsService = CreateJobDefinitionService(jobDefinitionsRepository, resiliencePolicies: GenerateTestPolicies(), cacheProvider: cacheProvider);
-
-            //Act
-            IEnumerable<JobDefinition> definitions = await jobDefinitionsService.GetAllJobDefinitions();
-
-            //Assert
-            definitions
-                .Should()
-                .BeNull();
-
-            await
-                cacheProvider
-                    .DidNotReceive()
-                    .SetAsync(Arg.Any<string>(), Arg.Any<List<JobDefinition>>());
-        }
-
-        [TestMethod]
-        public async Task GetAllJobDefinitions_GivenNotInCacheButFoundInCosmoshe_ReturnsAndSetsInCache()
-        {
-            //Arrange
-            List<JobDefinition> jobDefinitions = new List<JobDefinition>
-            {
-                new JobDefinition()
-            };
-
-            ICacheProvider cacheProvider = CreateCacheProvider();
-            cacheProvider
-                .GetAsync<List<JobDefinition>>(Arg.Is(CacheKeys.JobDefinitions))
-                .Returns((List<JobDefinition>)null);
-
-            IJobDefinitionsRepository jobDefinitionsRepository = CreateJobDefinitionsRepository();
-            jobDefinitionsRepository
-                .GetJobDefinitions()
-                .Returns(jobDefinitions);
-
-            JobDefinitionsService jobDefinitionsService = CreateJobDefinitionService(jobDefinitionsRepository, resiliencePolicies: GenerateTestPolicies(), cacheProvider: cacheProvider);
-
-            //Act
-            IEnumerable<JobDefinition> definitions = await jobDefinitionsService.GetAllJobDefinitions();
-
-            //Assert
-            definitions
-                .Count()
-                .Should()
-                .Be(1);
-
-            await
-                cacheProvider
-                    .Received(1)
-                    .SetAsync(Arg.Is(CacheKeys.JobDefinitions), Arg.Any<List<JobDefinition>>());
-        }
-
-        [TestMethod]
-        public async Task GetJobDefinitions_GivenNotInCacheAndNotInCosmos_ReturnsNullListAndDoesNotSetInCache()
-        {
-            //Arrange
-            List<JobDefinition> jobDefinitions = null;
-
-            ICacheProvider cacheProvider = CreateCacheProvider();
-            cacheProvider
-                .GetAsync<List<JobDefinition>>(Arg.Is(CacheKeys.JobDefinitions))
-                .Returns(jobDefinitions);
-
-            IJobDefinitionsRepository jobDefinitionsRepository = CreateJobDefinitionsRepository();
-            jobDefinitionsRepository
-               .GetJobDefinitions()
-               .Returns(jobDefinitions);
-
-            JobDefinitionsService jobDefinitionsService = CreateJobDefinitionService(jobDefinitionsRepository, resiliencePolicies: GenerateTestPolicies(), cacheProvider: cacheProvider);
-
-            //Act
-            IActionResult result = await jobDefinitionsService.GetJobDefinitions();
-
-            //Assert
-            result
-                .Should()
-                .BeOfType<NotFoundObjectResult>()
-                .Which
-                .Value
-                .Should()
-                .Be("No job definitions were found");
-        }
-
-        [TestMethod]
-        public async Task GetJobDefinitions_GivenResultsFoundAndNotInCosmos_ReturnsOKObjectResultotSetInCache()
-        {
-            //Arrange
-            List<JobDefinition> jobDefinitions = new List<JobDefinition>
-            {
-                new JobDefinition()
-            };
-
-            ICacheProvider cacheProvider = CreateCacheProvider();
-            cacheProvider
-                .GetAsync<List<JobDefinition>>(Arg.Is(CacheKeys.JobDefinitions))
-                .Returns(jobDefinitions);
-
-            JobDefinitionsService jobDefinitionsService = CreateJobDefinitionService(cacheProvider: cacheProvider);
-
-            //Act
-            IActionResult result = await jobDefinitionsService.GetJobDefinitions();
-
-            //Assert
-            result
-                .Should()
-                .BeOfType<OkObjectResult>()
-                .Which
+            OkObjectResult result = (await WhenTheJobDefinitionsAreQueried()) as OkObjectResult;
+            
+            result?
                 .Value
                 .Should()
                 .BeEquivalentTo(jobDefinitions);
+            
+            _caching.Verify(_ => _.SetAsync(CacheKeys.JobDefinitions, 
+                    It.Is<List<JobDefinition>>(jds => jds.SequenceEqual(jobDefinitions)), 
+                    null),
+                Times.Once);
         }
-
+        
         [TestMethod]
-        public async Task GetJobDefinitionById_GivenInvalidDefinitionId_ReturnsBadRequestResult()
+        public async Task GetJobDefinitionsReturnsCachedResultsIfCacheNotEmpty()
         {
-            //Arrange
-            const string jobDefinitionId = "";
-
-            JobDefinitionsService jobDefinitionsService = CreateJobDefinitionService();
-
-            //Act
-            IActionResult result = await jobDefinitionsService.GetJobDefinitionById(jobDefinitionId);
-
-            //Assert
-            result
-                .Should()
-                .BeAssignableTo<BadRequestObjectResult>()
-                .Which
-                .Value
-                .Should()
-                .Be("Job definition id was not provid");
-        }
-
-        [TestMethod]
-        public async Task GetJobDefinitionById_GivenDefinitionNotFound_ReturnsNotFoundResult()
-        {
-            //Arrange
-            const string jobDefinitionId = "jobdef-1";
-
-            List<JobDefinition> jobDefinitions = null;
-
-            ICacheProvider cacheProvider = CreateCacheProvider();
-            cacheProvider
-                .GetAsync<List<JobDefinition>>(Arg.Is(CacheKeys.JobDefinitions))
-                .Returns(jobDefinitions);
-
-            JobDefinitionsService jobDefinitionsService = CreateJobDefinitionService(cacheProvider: cacheProvider, resiliencePolicies: GenerateTestPolicies());
-
-            //Act
-            IActionResult result = await jobDefinitionsService.GetJobDefinitionById(jobDefinitionId);
-
-            //Assert
-            result
-                .Should()
-                .BeOfType<NotFoundObjectResult>()
-                .Which
-                .Value
-                .Should()
-                .Be($"No job definitions were found for id {jobDefinitionId}");
-        }
-
-        [TestMethod]
-        public async Task GetJobDefinitionById_GivenDefinitionFound_ReturnsOKObjectResult()
-        {
-            //Arrange
-            const string jobDefinitionId = "jobdef-1";
-
-            List<JobDefinition> jobDefinitions = new List<JobDefinition>
+            JobDefinition[] jobDefinitions = new[]
             {
-                new JobDefinition
-                {
-                    Id = jobDefinitionId
-                }
+                NewJobDefinition(),
+                NewJobDefinition(),
+                NewJobDefinition()
             };
+            
+            GivenTheCachedJobDefinitions(jobDefinitions);
 
-            ICacheProvider cacheProvider = CreateCacheProvider();
-            cacheProvider
-                .GetAsync<List<JobDefinition>>(Arg.Is(CacheKeys.JobDefinitions))
-                .Returns(jobDefinitions);
-
-            JobDefinitionsService jobDefinitionsService = CreateJobDefinitionService(cacheProvider: cacheProvider);
-
-            //Act
-            IActionResult result = await jobDefinitionsService.GetJobDefinitionById(jobDefinitionId);
-
-            //Assert
-            result
-                .Should()
-                .BeOfType<OkObjectResult>()
-                .Which
+            OkObjectResult result = (await WhenTheJobDefinitionsAreQueried()) as OkObjectResult;
+            
+            result?
                 .Value
                 .Should()
-                .BeEquivalentTo(jobDefinitions.First());
+                .BeEquivalentTo(jobDefinitions);
+            
+            _jobDefinitions.Verify(_ => _.GetJobDefinitions(), Times.Never);
         }
 
-        public JobDefinitionsService CreateJobDefinitionService(
-            IJobDefinitionsRepository jobDefinitionsRepository = null,
-            ILogger logger = null,
-            IJobsResiliencePolicies resiliencePolicies = null,
-            ICacheProvider cacheProvider = null)
+        [TestMethod]
+        public async Task GetByIdGetsAllAndReturnsFirstById()
         {
-            return new JobDefinitionsService(
-                    jobDefinitionsRepository ?? CreateJobDefinitionsRepository(),
-                    logger ?? CreateLogger(),
-                    resiliencePolicies ?? JobsResilienceTestHelper.GenerateTestPolicies(),
-                    cacheProvider ?? CreateCacheProvider()
-                );
-        }
+            string id = new RandomString();
 
-        public static ILogger CreateLogger()
-        {
-            return Substitute.For<ILogger>();
-        }
-
-        public IJobDefinitionsRepository CreateJobDefinitionsRepository()
-        {
-            return Substitute.For<IJobDefinitionsRepository>();
-        }
-
-        public static ICacheProvider CreateCacheProvider()
-        {
-            return Substitute.For<ICacheProvider>();
-        }
-
-        public static IJobsResiliencePolicies GenerateTestPolicies()
-        {
-            return new ResiliencePolicies()
+            JobDefinition expectedJobDefinition = NewJobDefinition(_ => _.WithId(id));
+            
+            JobDefinition[] jobDefinitions = new[]
             {
-                JobDefinitionsRepository = Policy.NoOpAsync(),
-                CacheProviderPolicy = Policy.NoOpAsync()
+                NewJobDefinition(),
+                expectedJobDefinition,
+                NewJobDefinition()
             };
+            
+            GivenTheCachedJobDefinitions(jobDefinitions);
+            
+            OkObjectResult result = (await WhenTheJobDefinitionIsQueried(id)) as OkObjectResult;
+            
+            result?
+                .Value
+                .Should()
+                .BeSameAs(expectedJobDefinition);
+        }
+
+        [TestMethod]
+        public async Task GetByIdGetsAllAndReturnsFirstByIdFromRepoIfNotCached()
+        {
+            string id = new RandomString();
+
+            JobDefinition expectedJobDefinition = NewJobDefinition(_ => _.WithId(id));
+            
+            JobDefinition[] jobDefinitions = new[]
+            {
+                NewJobDefinition(),
+                expectedJobDefinition,
+                NewJobDefinition()
+            };
+            
+            GivenTheJobDefinitions(jobDefinitions);
+            
+            OkObjectResult result = (await WhenTheJobDefinitionIsQueried(id)) as OkObjectResult;
+            
+            result?
+                .Value
+                .Should()
+                .BeSameAs(expectedJobDefinition);
+        }
+        
+        private async Task<IActionResult> WhenTheJobDefinitionIsQueried(string id)
+        {
+            return await _service.GetJobDefinitionById(id);
+        }
+        
+        private void GivenTheJobDefinitions(params JobDefinition[] jobDefinitions)
+        {
+            _jobDefinitions.Setup(_ => _.GetJobDefinitions())
+                .ReturnsAsync(jobDefinitions);
+        }
+        private void GivenTheCachedJobDefinitions(params JobDefinition[] jobDefinitions)
+        {
+            _caching.Setup(_ => _.GetAsync<List<JobDefinition>>(CacheKeys.JobDefinitions, null))
+                .ReturnsAsync(jobDefinitions.ToList);
+        }
+
+        private async Task<IActionResult> WhenTheJobDefinitionsAreQueried()
+        {
+            return await _service.GetJobDefinitions();
+        }
+
+        private void AndTheCacheWasNotInvalidated()
+        {
+            _caching
+                .Verify(_ => _.RemoveAsync<List<JobDefinition>>(CacheKeys.JobDefinitions),
+                    Times.Never);
+        }
+
+        private void ThenTheJobDefinitionWasSaved(JobDefinition jobDefinition)
+        {
+            _jobDefinitions
+                .Verify(_ => _.SaveJobDefinition(jobDefinition),
+                    Times.Once);
+        }
+
+        private void AndTheCacheWasInvalidated()
+        {
+            _caching
+                .Verify(_ => _.RemoveAsync<List<JobDefinition>>(CacheKeys.JobDefinitions),
+                    Times.Once);
+        }
+
+        private void GivenTheJobsRepositoryThrowsAnException(JobDefinition jobDefinition)
+        {
+            _jobDefinitions.Setup(_ => _.SaveJobDefinition(jobDefinition))
+                .ThrowsAsync(new Exception());
+        }
+
+        private void GivenTheJobsRepositoryReturnsTheStatusCode(JobDefinition jobDefinition, HttpStatusCode statusCode)
+        {
+            _jobDefinitions
+                .Setup(_ => _.SaveJobDefinition(jobDefinition))
+                .ReturnsAsync(statusCode);
+        }
+        
+        private JobDefinition NewJobDefinition(Action<JobDefinitionBuilder> setUp = null)
+        {
+            JobDefinitionBuilder jobDefinition = new JobDefinitionBuilder();
+            
+            setUp?.Invoke(jobDefinition);
+            
+            return jobDefinition.Build();
+        }
+
+        private async Task<IActionResult> WhenTheJobDefinitionIsSaved(JobDefinition jobDefinition)
+        {
+            return await _service.SaveDefinition(jobDefinition);
         }
     }
 }
