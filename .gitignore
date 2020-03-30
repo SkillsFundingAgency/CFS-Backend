@@ -300,7 +300,7 @@ __pycache__/
 /CalculateFunding.EndToEnd/CalculateFunding.EndToEnd.v3.ncrunchproject
 /CalculateFunding.Functions.LocalDebugQueueProcessor/CalculateFunding.Functions.LocalDebugQueueProcessor.v3.ncrunchproject
 /CalculateFunding.Functions.DebugQueue/local.settings.json
-local.settings.json
+*/local.settings.json
 
 /Debugging/CalculateFunding/*
 /CalculateFunding-Backend.sln.startup.json
