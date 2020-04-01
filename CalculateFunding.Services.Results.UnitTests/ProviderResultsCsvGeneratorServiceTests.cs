@@ -168,7 +168,7 @@ namespace CalculateFunding.Services.Results
                 Arg.Is<IDictionary<string, string>>(_=> 
                     _["specification-id"] == specificationId &&
                     _["specification-name"] == specificationName &&
-                    _["file-name"].StartsWith($"Calculation Results {specificationName} {DateTimeOffset.UtcNow:yyyy-MM-d}") &&
+                    _["file-name"].StartsWith($"Calculation Results {specificationName} {DateTimeOffset.UtcNow:yyyy-MM-dd}") &&
                     _["job-type"] == "CalcResult")
                 );
         }
