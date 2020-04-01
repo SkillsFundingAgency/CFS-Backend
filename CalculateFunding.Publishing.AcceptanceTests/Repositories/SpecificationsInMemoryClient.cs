@@ -172,5 +172,15 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         {
             throw new NotImplementedException();
         }
+
+        public Task<ApiResponse<IEnumerable<ReportMetadata>>> GetReportMetadataForSpecifications(string specificationId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ApiResponse<SpecificationsDownloadModel>> DownloadSpecificationReport(string fileName, string type)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

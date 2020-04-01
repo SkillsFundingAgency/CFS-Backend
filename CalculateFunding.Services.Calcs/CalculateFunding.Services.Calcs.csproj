@@ -1,23 +1,29 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.2</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <DebugType>full</DebugType>
     <LangVersion>7.1</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CalculateFunding.Common.ApiClient.Graph" Version="1.0.7" />
-    <PackageReference Include="CalculateFunding.Common.ApiClient.Policies" Version="2.0.17" />
-    <PackageReference Include="CalculateFunding.Common.ApiClient.Providers" Version="1.0.25" />
-    <PackageReference Include="CalculateFunding.Common.ApiClient.Specifications" Version="1.0.28" />
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Calcs" Version="1.0.0" />
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Jobs" Version="1.0.0" />
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Policies" Version="1.0.0" />
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Providers" Version="1.0.0" />
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Specifications" Version="1.0.1" />
-    <PackageReference Include="CalculateFunding.Common.JobManagement" Version="1.0.1" />
-    <PackageReference Include="CalculateFunding.Common.Storage" Version="1.0.6" />
+
+
+
+    <PackageReference Include="CalculateFunding.Common.ApiClient.Policies" Version="3.0.0" />
+    <PackageReference Include="CalculateFunding.Common.ApiClient.Providers" Version="2.0.0" />
+    <PackageReference Include="CalculateFunding.Common.ApiClient.Specifications" Version="2.0.0" />
+    <PackageReference Include="CalculateFunding.Common.ApiClient.Graph" Version="2.0.0" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Calcs" Version="2.0.0" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Jobs" Version="2.0.0" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Policies" Version="2.0.0" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Providers" Version="2.0.0" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Specifications" Version="2.0.0" />
+    <PackageReference Include="CalculateFunding.Common.JobManagement" Version="2.0.0" />
+    <PackageReference Include="CalculateFunding.Common.Storage" Version="2.0.0" />
+
+
+
     <PackageReference Include="FluentValidation" Version="8.6.0" />
     <PackageReference Include="Microsoft.Azure.Storage.Blob" Version="11.0.1" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />

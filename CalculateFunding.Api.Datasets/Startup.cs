@@ -39,6 +39,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using OfficeOpenXml;
 using Polly.Bulkhead;
@@ -57,7 +58,9 @@ namespace CalculateFunding.Api.Datasets
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+            // services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+            services.AddControllers()
+                .AddNewtonsoftJson();
 
             RegisterComponents(services);
 
@@ -76,7 +79,7 @@ namespace CalculateFunding.Api.Datasets
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
             {
@@ -91,7 +94,13 @@ namespace CalculateFunding.Api.Datasets
 
             app.UseMiddleware<LoggedInUserMiddleware>();
 
-            app.UseMvc();
+            app.UseRouting();
+            app.UseAuthentication();
+            app.UseAuthorization();
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+            });
 
             app.UseHealthCheckMiddleware();
 
@@ -238,9 +247,9 @@ namespace CalculateFunding.Api.Datasets
 
             builder.AddFeatureToggling(Configuration);
 
-            builder.AddApplicationInsightsTelemetry();
-            builder.AddApplicationInsightsServiceName(Configuration, "CalculateFunding.Api.Datasets");
+           
             builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Api.Datasets");
+            builder.AddApplicationInsightsServiceName(Configuration, "CalculateFunding.Api.Datasets");
             builder.AddLogging("CalculateFunding.Api.Datasets");
             builder.AddTelemetry();
 

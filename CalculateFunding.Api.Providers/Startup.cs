@@ -24,6 +24,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using Polly.Bulkhead;
 
@@ -44,8 +45,9 @@ namespace CalculateFunding.Api.Providers
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddSingleton(Configuration);
-            
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+
+            services.AddControllers()
+                .AddNewtonsoftJson();
 
             RegisterComponents(services);
 
@@ -62,7 +64,7 @@ namespace CalculateFunding.Api.Providers
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
             {
@@ -78,7 +80,13 @@ namespace CalculateFunding.Api.Providers
 
             app.UseHealthCheckMiddleware();
 
-            app.UseMvc();
+            app.UseRouting();
+            app.UseAuthentication();
+            app.UseAuthorization();
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+            });
 
             app.MapWhen(
                     context => !context.Request.Path.Value.StartsWith("/swagger"),
@@ -156,10 +164,10 @@ namespace CalculateFunding.Api.Providers
 
            
             Common.Config.ApiClient.Results.ServiceCollectionExtensions.AddResultsInterServiceClient(builder, Configuration);
-            builder.AddApplicationInsightsTelemetry();            
+                 
             Common.Config.ApiClient.Specifications.ServiceCollectionExtensions.AddSpecificationsInterServiceClient(builder, Configuration);
-            builder.AddApplicationInsightsServiceName(Configuration, "CalculateFunding.Api.Providers");
             builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Api.Providers");
+            builder.AddApplicationInsightsServiceName(Configuration, "CalculateFunding.Api.Providers");
             builder.AddLogging("CalculateFunding.Api.Providers");
             builder.AddTelemetry();
 

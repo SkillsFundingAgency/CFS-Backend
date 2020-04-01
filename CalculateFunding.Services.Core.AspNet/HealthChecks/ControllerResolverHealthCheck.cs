@@ -74,6 +74,7 @@ namespace CalculateFunding.Services.Core.AspNet.HealthChecks
         {
             return AppDomain.CurrentDomain
                 .GetAssemblies()
+                .Where(_ => !_.FullName.StartsWith("Microsoft"))
                 .SelectMany(_ => _.GetTypes())
                 .Where(_ => !_.IsAbstract &&
                             _.IsSubclassOf(typeof(ControllerBase)))//We have some controllers that don't inherit Controller but instead use ControllerBase

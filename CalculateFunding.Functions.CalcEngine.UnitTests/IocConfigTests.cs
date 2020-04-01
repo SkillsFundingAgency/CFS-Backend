@@ -3,6 +3,7 @@ using System.Reflection;
 using CalculateFunding.Functions.CalcEngine.ServiceBus;
 using CalculateFunding.Tests.Common;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CalculateFunding.Functions.CalcEngine.UnitTests
@@ -35,7 +36,7 @@ namespace CalculateFunding.Functions.CalcEngine.UnitTests
         protected override Assembly EntryAssembly => typeof(OnCalcsGenerateAllocationResults).Assembly;
 
         protected override void RegisterDependencies()
-        {
+        {            
             Startup.RegisterComponents(ServiceCollection, CreateTestConfiguration());
         }
     }

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using CalculateFunding.Functions.Jobs.ServiceBus;
 using CalculateFunding.Tests.Common;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -25,7 +26,7 @@ namespace CalculateFunding.Functions.Jobs.UnitTests
         protected override Assembly EntryAssembly => typeof(OnDeleteJobs).Assembly;
 
         protected override void RegisterDependencies()
-        {
+        {            
             Startup.RegisterComponents(ServiceCollection, CreateTestConfiguration());
         }
     }

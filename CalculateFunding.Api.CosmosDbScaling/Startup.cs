@@ -19,6 +19,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using Polly.Bulkhead;
 
@@ -38,7 +39,9 @@ namespace CalculateFunding.API.CosmosDbScaling
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+            services.AddControllers()
+               .AddNewtonsoftJson();
+
             RegisterComponents(services);
             services.AddSwaggerGen(c =>
             {
@@ -53,7 +56,7 @@ namespace CalculateFunding.API.CosmosDbScaling
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
             {
@@ -68,7 +71,13 @@ namespace CalculateFunding.API.CosmosDbScaling
 
             app.UseMiddleware<LoggedInUserMiddleware>();
 
-            app.UseMvc();
+            app.UseRouting();
+            app.UseAuthentication();
+            app.UseAuthorization();
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+            });
 
             app.UseHealthCheckMiddleware();
             
@@ -135,9 +144,9 @@ namespace CalculateFunding.API.CosmosDbScaling
                 return resiliencePolicies;
             });
 
-            builder.AddApplicationInsightsTelemetry();
-            builder.AddApplicationInsightsServiceName(Configuration, "CalculateFunding.Api.CosmosDbScaling");
+           
             builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Apis.CosmosDbScaling");
+            builder.AddApplicationInsightsServiceName(Configuration, "CalculateFunding.Api.CosmosDbScaling");
             builder.AddLogging("CalculateFunding.Apis.CosmosDbScaling");
             builder.AddTelemetry();
             builder.AddApiKeyMiddlewareSettings((IConfigurationRoot)Configuration);

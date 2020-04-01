@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.2</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <RootNamespace>CalculateFunding.Services.Publishing</RootNamespace>
     <DebugType>full</DebugType>
     <LangVersion>7.1</LangVersion>
@@ -9,18 +9,28 @@
   <ItemGroup>
 
 
-	<PackageReference Include="CalculateFunding.Common.ApiClient.Calcs" Version="2.0.2" />
+	<PackageReference Include="CalculateFunding.Common.ApiClient.Bearer" Version="2.0.0" />
 
 
-	<PackageReference Include="CalculateFunding.Common.ApiClient.Policies" Version="2.0.17" />
+	<PackageReference Include="CalculateFunding.Common.ApiClient.Calcs" Version="3.0.0" />
 
-    <PackageReference Include="CalculateFunding.Common.ApiClient.Profiling" Version="1.0.10" />
-    <PackageReference Include="CalculateFunding.Common.ApiClient.Specifications" Version="1.0.27" />
 
-    <PackageReference Include="CalculateFunding.Common.JobManagement" Version="1.0.1" />
-    <PackageReference Include="CalculateFunding.Common.Storage" Version="1.0.6" />
-    <PackageReference Include="CalculateFunding.Generators.Funding" Version="1.0.6" />
-    <PackageReference Include="CalculateFunding.Generators.OrganisationGroup" Version="1.0.18" />
+	<PackageReference Include="CalculateFunding.Common.ApiClient.Policies" Version="3.0.0" />
+
+    <PackageReference Include="CalculateFunding.Common.ApiClient.Profiling" Version="2.0.0" />
+    <PackageReference Include="CalculateFunding.Common.ApiClient.Specifications" Version="2.0.0" />
+
+
+
+    <PackageReference Include="CalculateFunding.Common.JobManagement" Version="2.0.0" />
+
+
+
+    <PackageReference Include="CalculateFunding.Common.Models" Version="2.0.0" />
+    <PackageReference Include="CalculateFunding.Common.Storage" Version="2.0.0" />
+    <PackageReference Include="CalculateFunding.Generators.Funding" Version="2.0.0" />
+    <PackageReference Include="CalculateFunding.Generators.OrganisationGroup" Version="1.0.19" />
+
     <PackageReference Include="Microsoft.FeatureManagement" Version="2.0.0-preview-010610001-1263" />
   </ItemGroup>
   <ItemGroup>
@@ -29,15 +39,5 @@
     <ProjectReference Include="..\CalculateFunding.Services.Core\CalculateFunding.Services.Core.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.DeadletterProcessor\CalculateFunding.Services.DeadletterProcessor.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <Reference Include="CalculateFunding.Common.ApiClient.Bearer">
-      <HintPath>..\..\CalculateFunding-Common\CalculateFunding.Common.ApiClient.Profiling\bin\Debug\netstandard2.0\CalculateFunding.Common.ApiClient.Bearer.dll</HintPath>
-    </Reference>
-    <Reference Include="CalculateFunding.Common.ApiClient.Profiling">
-      <HintPath>..\..\CalculateFunding-Common\CalculateFunding.Common.ApiClient.Profiling\bin\Debug\netstandard2.0\CalculateFunding.Common.ApiClient.Profiling.dll</HintPath>
-    </Reference>
-    <Reference Include="CalculateFunding.Common.Models">
-      <HintPath>..\..\CalculateFunding-Common\CalculateFunding.Common.ApiClient.Profiling\bin\Debug\netstandard2.0\CalculateFunding.Common.Models.dll</HintPath>
-    </Reference>
-  </ItemGroup>
+ 
 </Project>

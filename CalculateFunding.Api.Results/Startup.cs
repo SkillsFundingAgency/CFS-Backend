@@ -25,6 +25,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using Polly.Bulkhead;
 
@@ -44,7 +45,8 @@ namespace CalculateFunding.Api.Results
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+            services.AddControllers()
+               .AddNewtonsoftJson();
 
             RegisterComponents(services);
 
@@ -61,7 +63,7 @@ namespace CalculateFunding.Api.Results
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
             {
@@ -76,7 +78,13 @@ namespace CalculateFunding.Api.Results
 
             app.UseMiddleware<LoggedInUserMiddleware>();
 
-            app.UseMvc();
+            app.UseRouting();
+            app.UseAuthentication();
+            app.UseAuthorization();
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+            });
 
             app.UseHealthCheckMiddleware();
             
@@ -164,9 +172,9 @@ namespace CalculateFunding.Api.Results
 
             builder.AddCaching(Configuration);
 
-            builder.AddApplicationInsightsTelemetry();
-            builder.AddApplicationInsightsServiceName(Configuration, "CalculateFunding.Api.Results");
+           
             builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Api.Results");
+            builder.AddApplicationInsightsServiceName(Configuration, "CalculateFunding.Api.Results");
             builder.AddLogging("CalculateFunding.Api.Results");
             builder.AddTelemetry();
 

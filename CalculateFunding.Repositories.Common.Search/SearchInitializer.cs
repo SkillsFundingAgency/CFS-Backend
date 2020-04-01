@@ -8,6 +8,7 @@ using Microsoft.Azure.Search;
 using Microsoft.Azure.Search.Models;
 using Microsoft.Spatial;
 using Newtonsoft.Json;
+using Index = Microsoft.Azure.Search.Models.Index;
 
 namespace CalculateFunding.Repositories.Common.Search
 {

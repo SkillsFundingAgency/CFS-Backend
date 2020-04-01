@@ -4,7 +4,7 @@ using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Services.Core.AspNet.HealthChecks;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
-using Microsoft.AspNetCore.Identity.UI.V3.Pages.Internal;
+//using Microsoft.AspNetCore.Identity.UI.V3.Pages.Internal;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;

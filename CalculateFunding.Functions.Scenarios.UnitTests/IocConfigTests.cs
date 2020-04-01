@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using CalculateFunding.Functions.Scenarios.ServiceBus;
 using CalculateFunding.Tests.Common;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -35,7 +36,7 @@ namespace CalculateFunding.Functions.Scenarios.UnitTests
         protected override Assembly EntryAssembly => typeof(OnDeleteTests).Assembly;
 
         protected override void RegisterDependencies()
-        {
+        {           
             Startup.RegisterComponents(ServiceCollection, CreateTestConfiguration());
         }
     }

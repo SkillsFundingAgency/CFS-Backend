@@ -4,11 +4,13 @@ using CalculateFunding.Api.Publishing.Controllers;
 using CalculateFunding.Tests.Common;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
+
 namespace CalculateFunding.Api.Publishing.UnitTests
 {
     [TestClass]
     public class StartupTests : ControllerIoCUnitTestBase
     {
+
         protected override Dictionary<string, string> AddToConfiguration()
         {
             return new Dictionary<string, string>

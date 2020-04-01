@@ -1,69 +1,39 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
-using CalculateFunding.Api.External.Swagger.Helpers.Readers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.PlatformAbstractions;
-using Swashbuckle.AspNetCore.Examples;
-using Swashbuckle.AspNetCore.Swagger;
+using Microsoft.Extensions.Options;
+using Microsoft.OpenApi.Models;
+using Swashbuckle.AspNetCore.Filters;
+using Swashbuckle.AspNetCore.SwaggerGen;
 using Swashbuckle.AspNetCore.SwaggerUI;
 
 namespace CalculateFunding.Api.External.Swagger
 {
     public static class SwaggerSetup
     {
-        static Info CreateInfoForApiVersion(ApiVersionDescription description)
-        {
-            string swaggerDocsTopContents = SwaggerTopContentReader.ReadContents(description.ApiVersion.MajorVersion.Value);
-
-            Info info = new Info()
-            {
-                Title = "Calculate Funding Service API",
-                Version = "v1",
-                Description = swaggerDocsTopContents,
-                Contact = new Contact
-                {
-                    Name = "Calculate Funding Team",
-                    Email = "calculate-funding@education.gov.uk"
-                },
-                License = new License
-                {
-                    Name = "MIT License",
-                    Url = "https://opensource.org/licenses/MIT"
-                }
-            };
-
-            if (description.IsDeprecated)
-            {
-                info.Description += " This API version has been deprecated.";
-            }
-
-            return info;
-        }
-
         public static void ConfigureSwaggerServices(IServiceCollection services)
         {
+            services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
+
             services.AddSwaggerGen(c =>
             {
-                IApiVersionDescriptionProvider provider = services.BuildServiceProvider().GetRequiredService<IApiVersionDescriptionProvider>();
-
-                foreach (ApiVersionDescription description in provider.ApiVersionDescriptions)
+                c.AddSecurityDefinition("apiKey", new OpenApiSecurityScheme
                 {
-                    c.SwaggerDoc(description.GroupName, CreateInfoForApiVersion(description));
-                }
-
-                c.AddSecurityDefinition("apiKey", new ApiKeyScheme
-                {
-                    Type = "apiKey",
+                    Type = SecuritySchemeType.ApiKey,
                     Name = "x-api-key",
-                    In = "header"
+                    In = ParameterLocation.Header
                 });
 
-                c.AddSecurityRequirement(new Dictionary<string, IEnumerable<string>> { { "apiKey", new string[] { } } });
+                var req = new OpenApiSecurityRequirement
+                {
+                    { new OpenApiSecurityScheme() { Type = SecuritySchemeType.ApiKey }, new List<string>() }
+                };
+
+                c.AddSecurityRequirement(req);
 
                 c.OperationFilter<AddResponseHeadersFilter>();
 

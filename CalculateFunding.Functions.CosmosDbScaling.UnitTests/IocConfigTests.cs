@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Reflection;
 using CalculateFunding.Functions.CosmosDbScaling.EventHubs;
+using Microsoft.AspNetCore.Hosting;
 
 namespace CalculateFunding.Functions.CosmosDbScaling.UnitTests
 {
@@ -34,7 +35,7 @@ namespace CalculateFunding.Functions.CosmosDbScaling.UnitTests
         protected override Assembly EntryAssembly => typeof(OnCosmosDbDiagnosticsReceived).Assembly;
 
         protected override void RegisterDependencies()
-        {
+        {            
             Startup.RegisterComponents(ServiceCollection, CreateTestConfiguration());
         }
     }

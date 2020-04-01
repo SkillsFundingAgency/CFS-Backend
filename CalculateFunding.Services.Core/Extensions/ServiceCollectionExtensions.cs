@@ -19,6 +19,8 @@ using CalculateFunding.Services.Core.Proxies;
 using CalculateFunding.Services.Core.ServiceBus;
 using CalculateFunding.Services.Core.Services;
 using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.AspNetCore.Extensions;
+using Microsoft.ApplicationInsights.Channel;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.ServiceBus;
@@ -176,12 +178,14 @@ namespace CalculateFunding.Services.Core.Extensions
         {
             //To fix bug for Logging in AppInsight we changed to AddScoped.
             //Please DO NOT change to AddSingleton. 
-            builder.AddScoped<ITelemetry, ApplicationInsightsTelemetrySink>((ctx) =>
-            {
-                TelemetryClient client = ctx.GetService<TelemetryClient>();
+            //builder.AddScoped<Interfaces.Logging.ITelemetry, ApplicationInsightsTelemetrySink>((ctx) =>
+            //{
+            //    TelemetryClient client = ctx.GetService<TelemetryClient>();
 
-                return new ApplicationInsightsTelemetrySink(client);
-            });
+            //    return new ApplicationInsightsTelemetrySink(client);
+            //});
+
+            builder.AddScoped<Interfaces.Logging.ITelemetry, ApplicationInsightsTelemetrySink>();
 
 
             return builder;
@@ -202,15 +206,14 @@ namespace CalculateFunding.Services.Core.Extensions
                 throw new InvalidOperationException("Unable to lookup Application Insights Configuration key from Configuration Provider. The value returned was empty string");
             }
 
-            TelemetryConfiguration appInsightsTelemetryConfiguration = TelemetryConfiguration.Active;
-            appInsightsTelemetryConfiguration.InstrumentationKey = appInsightsKey;
+            builder.Configure((ApplicationInsightsServiceOptions options) => options.InstrumentationKey = appInsightsKey);
 
             if (channelType == TelemetryChannelType.Sync)
             {
-                appInsightsTelemetryConfiguration.TelemetryChannel = new SyncTelemetryChannel(appInsightsOptions.Url);
+                builder.AddSingleton(typeof(ITelemetryChannel), new SyncTelemetryChannel(appInsightsOptions.Url));
             }
 
-            builder.AddSingleton(appInsightsTelemetryConfiguration);
+            //builder.AddApplicationInsightsTelemetry(config);
 
             builder.AddScoped((ctx) =>
             {
@@ -218,7 +221,7 @@ namespace CalculateFunding.Services.Core.Extensions
 
                 TelemetryClient client = new TelemetryClient(telemetryConfiguration)
                 {
-                    InstrumentationKey = telemetryConfiguration.InstrumentationKey
+                    InstrumentationKey = appInsightsKey
                 };
 
                 if (!client.Context.GlobalProperties.ContainsKey(LoggingConstants.ServiceNamePropertiesName))

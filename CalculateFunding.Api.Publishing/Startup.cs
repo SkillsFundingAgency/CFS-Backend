@@ -28,6 +28,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.FeatureManagement;
 using Microsoft.OpenApi.Models;
 using Polly.Bulkhead;
@@ -50,7 +51,8 @@ namespace CalculateFunding.Api.Publishing
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+            services.AddControllers()
+                .AddNewtonsoftJson();
 
             RegisterComponents(services);
 
@@ -69,7 +71,7 @@ namespace CalculateFunding.Api.Publishing
         }
 
         public void Configure(IApplicationBuilder app,
-            IHostingEnvironment env)
+            IWebHostEnvironment env)
         {
             app.UseAzureAppConfiguration();
 
@@ -86,7 +88,13 @@ namespace CalculateFunding.Api.Publishing
 
             app.UseHttpsRedirection();
 
-            app.UseMvc();
+            app.UseRouting();
+            app.UseAuthentication();
+            app.UseAuthorization();
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+            });
 
             app.UseHealthCheckMiddleware();
 
@@ -174,9 +182,9 @@ namespace CalculateFunding.Api.Publishing
             builder
                 .AddSingleton<ISearchRepository<PublishedFundingIndex>, SearchRepository<PublishedFundingIndex>>();
 
-            builder.AddApplicationInsightsTelemetry();
-            builder.AddApplicationInsightsServiceName(Configuration, "CalculateFunding.Api.Publishing");
+           
             builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Api.Publishing");
+            builder.AddApplicationInsightsServiceName(Configuration, "CalculateFunding.Api.Publishing");
             builder.AddLogging("CalculateFunding.Api.Publishing");
             builder.AddTelemetry();
             builder.AddApiKeyMiddlewareSettings((IConfigurationRoot)Configuration);

@@ -117,7 +117,7 @@ namespace CalculateFunding.Services.Scenarios
                 .Which
                 .Message
                 .Should()
-                .Be("Specified argument was out of the range of valid values.\r\nParameter name: identifierType was not one of the expected types");
+                .Be("Specified argument was out of the range of valid values. (Parameter 'identifierType was not one of the expected types')");
         }
 
         public static ProviderSummary CreateProviderSummary()

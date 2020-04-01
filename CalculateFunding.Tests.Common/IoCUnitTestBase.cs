@@ -1,5 +1,10 @@
 ﻿using System.Collections.Generic;
+using System.Reflection;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Internal;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -69,8 +74,26 @@ namespace CalculateFunding.Tests.Common
         /// <returns>The resolved type, or null if cannot be resolved</returns>
         protected T ResolveType<T>()
         {
-            TypeActivatorCache typeActivatorCache = new TypeActivatorCache();
-            return typeActivatorCache.CreateInstance<T>(ServiceProvider, typeof(T));
+            var activator = ServiceProvider.GetService<IControllerActivator>();
+
+            var actionContext = new ActionContext(
+                    new DefaultHttpContext
+                    {
+                        RequestServices = ServiceProvider
+                    },
+                    new RouteData(),
+                    new ControllerActionDescriptor
+                    {
+                        ControllerTypeInfo = typeof(T).GetTypeInfo()
+                    });
+            var controller = activator.Create(new ControllerContext(actionContext));
+
+            if (controller.GetType() == typeof(T))
+            {
+                return (T)controller;
+            }
+
+            return default;
         }
     }
 }

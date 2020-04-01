@@ -62,7 +62,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .Should()
                 .Throw<ArgumentNullException>()
                 .Where(_ =>
-                    _.Message == $"Value cannot be null.{Environment.NewLine}Parameter name: specification");
+                    _.Message == $"Value cannot be null. (Parameter 'specification')");
         }
 
         [TestMethod]

@@ -165,8 +165,8 @@ namespace CalculateFunding.Functions.TestEngine
 
             builder.AddCaching(config);
 
-            builder.AddApplicationInsightsServiceName(config, "CalculateFunding.Functions.TestEngine");
             builder.AddApplicationInsightsTelemetryClient(config, "CalculateFunding.Functions.TestEngine", TelemetryChannelType.Sync);
+            builder.AddApplicationInsightsServiceName(config, "CalculateFunding.Functions.TestEngine");
             builder.AddLogging("CalculateFunding.Functions.TestEngine");
 
             builder.AddServiceBus(config, "testengine");

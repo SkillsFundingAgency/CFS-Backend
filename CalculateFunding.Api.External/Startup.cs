@@ -10,7 +10,6 @@ using CalculateFunding.Common.Storage;
 using CalculateFunding.Common.WebApi.Extensions;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Repositories.Common.Search;
-using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.AspNet.HealthChecks;
 using CalculateFunding.Services.Core.Caching.FileSystem;
 using CalculateFunding.Services.Core.Extensions;
@@ -27,6 +26,7 @@ using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json;
 using Polly.Bulkhead;
 using Serilog;
@@ -66,23 +66,23 @@ namespace CalculateFunding.Api.External
                     options.SubstituteApiVersionInUrl = true;
                 });
 
-            services.AddMvc(options =>
-            {
-                options.OutputFormatters.RemoveType<StringOutputFormatter>();
+            services.AddControllers()
+                .AddNewtonsoftJson(options =>
+                {
+                    options.SerializerSettings.Formatting = Formatting.Indented;
+                    options.SerializerSettings.ContractResolver = new Newtonsoft.Json.Serialization.CamelCasePropertyNamesContractResolver();
+                })
+                .AddMvcOptions(options =>
+                {
+                    options.OutputFormatters.RemoveType<StringOutputFormatter>();
 
-                JsonOutputFormatter jFormatter =
-                    options.OutputFormatters.FirstOrDefault(f => f.GetType() == typeof(JsonOutputFormatter)) as
-                        JsonOutputFormatter;
-                jFormatter?.SupportedMediaTypes.Clear();
-                jFormatter?.SupportedMediaTypes.Add("application/atom+json");
-                jFormatter?.SupportedMediaTypes.Add("application/json");
-            }).AddJsonOptions(options =>
-            {
-                options.SerializerSettings.Formatting = Formatting.Indented;
-                options.SerializerSettings.ContractResolver = new Newtonsoft.Json.Serialization.CamelCasePropertyNamesContractResolver();
-            })
-            // 2.1 versioning still needs to be enabled to support API versioning for endpoints
-                .SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+                    NewtonsoftJsonOutputFormatter jFormatter =
+                        options.OutputFormatters.FirstOrDefault(f => f.GetType() == typeof(NewtonsoftJsonOutputFormatter)) as
+                            NewtonsoftJsonOutputFormatter;
+                    jFormatter?.SupportedMediaTypes.Clear();
+                    jFormatter?.SupportedMediaTypes.Add("application/atom+json");
+                    jFormatter?.SupportedMediaTypes.Add("application/json");
+                });     
 
             services.AddApiVersioning(
                 o =>
@@ -98,7 +98,7 @@ namespace CalculateFunding.Api.External
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IApplicationLifetime applicationLifetime, IHostingEnvironment env, IApiVersionDescriptionProvider provider)
+        public void Configure(IApplicationBuilder app, IHostApplicationLifetime applicationLifetime, IWebHostEnvironment env, IApiVersionDescriptionProvider provider)
         {
             if (env.IsDevelopment())
             {
@@ -109,11 +109,14 @@ namespace CalculateFunding.Api.External
                 app.UseHsts();
             }
 
+            app.UseRouting();
             app.UseAuthentication();
-
+            app.UseAuthorization();
             app.UseMiddleware<ContentTypeCheckMiddleware>();
-
-            app.UseMvc();
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+            });
 
             SwaggerSetup.ConfigureSwagger(app, provider);
 
@@ -215,9 +218,9 @@ namespace CalculateFunding.Api.External
             builder
                .AddSingleton<ISearchRepository<PublishedFundingIndex>, SearchRepository<PublishedFundingIndex>>();
 
-            builder.AddApplicationInsightsTelemetry();
-            builder.AddApplicationInsightsServiceName(Configuration, "CalculateFunding.Api.External");
+           
             builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Api.External");
+            builder.AddApplicationInsightsServiceName(Configuration, "CalculateFunding.Api.External");
             builder.AddLogging("CalculateFunding.Api.External");
             builder.AddTelemetry();
 

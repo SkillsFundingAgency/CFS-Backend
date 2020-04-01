@@ -78,7 +78,7 @@ namespace CalculateFunding.Services.Calculator
                 .ThrowExactly<ArgumentNullException>()
                 .And.Message
                 .Should()
-                .Contain("Parameter name: engineSettings");
+                .Contain("Parameter 'engineSettings'");
         }
 
         [TestMethod]

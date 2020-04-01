@@ -325,7 +325,7 @@ namespace CalculateFunding.Services.Datasets
 
             if (aggregates == null)
             {
-                aggregates = Enumerable.Empty<DatasetAggregations>();
+                aggregates = Array.Empty<DatasetAggregations>();
             }
 
             return new OkObjectResult(aggregates);

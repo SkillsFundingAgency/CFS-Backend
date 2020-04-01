@@ -194,16 +194,16 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Providers
 
             if (string.IsNullOrWhiteSpace(specificationId) || string.IsNullOrWhiteSpace(fundingPeriodId) || string.IsNullOrWhiteSpace(fundingStreamId))
             {
-                string message = $"Specified argument was out of the range of valid values.Parameter name: {nameof(specificationId)}";
+                string message = $"Specified argument was out of the range of valid values. (Parameter 'specificationId')";
 
                 if (string.IsNullOrWhiteSpace(fundingPeriodId))
                 {
-                    message = $"Specified argument was out of the range of valid values.Parameter name: {nameof(fundingPeriodId)}";
+                    message = $"Specified argument was out of the range of valid values. (Parameter 'fundingPeriodId')";
                 }
 
                 if (string.IsNullOrWhiteSpace(fundingStreamId))
                 {
-                    message = $"Specified argument was out of the range of valid values.Parameter name: {nameof(fundingStreamId)}";
+                    message = $"Specified argument was out of the range of valid values. (Parameter 'fundingStreamId')";
                 }
 
                 Action invocation = () => WhenGenerateMissingProviders(scopedProviders,

@@ -93,7 +93,7 @@ namespace CalculateFunding.Services.Calculator
                 .Which
                 .Message
                 .Should()
-                .Be("Value cannot be null.\r\nParameter name: buildProject");
+                .Be("Value cannot be null. (Parameter 'buildProject')");
         }
 
         [Ignore("This test has a provider result as null, but should be checking successful results.")]

@@ -4,6 +4,7 @@ using CalculateFunding.Api.CosmosDbScaling.Controllers;
 using CalculateFunding.API.CosmosDbScaling;
 using CalculateFunding.Tests.Common;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NSubstitute;
 
 namespace CalculateFunding.Api.CosmosDbScaling.UnitTests
 {

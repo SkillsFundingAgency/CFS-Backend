@@ -99,7 +99,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             return Task.FromResult(result);
         }
 
-        public Task<ApiResponse<int?>> PopulateProviderSummariesForSpecification(string specificationId, bool setCachedProviders)
+        public Task<ApiResponse<int?>> PopulateProviderSummariesForSpecification(string specificationId,bool setCachedProviders)
         {
             throw new NotImplementedException();
         }

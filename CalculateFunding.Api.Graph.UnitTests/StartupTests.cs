@@ -9,6 +9,7 @@ namespace CalculateFunding.Api.Graph.UnitTests
     [TestClass]
     public class StartupTests : ControllerIoCUnitTestBase
     {
+
         protected override Dictionary<string, string> AddToConfiguration()
         {
             return new Dictionary<string, string>

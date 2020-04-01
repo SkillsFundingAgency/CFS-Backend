@@ -3,6 +3,7 @@ using System.Reflection;
 using CalculateFunding.Api.Datasets.Controllers;
 using CalculateFunding.Tests.Common;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NSubstitute;
 
 namespace CalculateFunding.Api.Datasets.UnitTests
 {
