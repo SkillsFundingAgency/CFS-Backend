@@ -48,7 +48,7 @@ namespace CalculateFunding.Services.Specs
         private readonly IMapper _mapper;
         private readonly ISpecificationsRepository _specificationsRepository;
         private readonly IPoliciesApiClient _policiesApiClient;
-        private readonly Polly.Policy _policiesApiClientPolicy;
+        private readonly Polly.AsyncPolicy _policiesApiClientPolicy;
         private readonly ILogger _logger;
         private readonly IValidator<SpecificationCreateModel> _specificationCreateModelvalidator;
         private readonly IMessengerService _messengerService;
@@ -61,10 +61,10 @@ namespace CalculateFunding.Services.Specs
         private readonly IQueueCreateSpecificationJobActions _queueCreateSpecificationJobAction;
         private readonly IQueueDeleteSpecificationJobActions _queueDeleteSpecificationJobAction;
         private readonly ICalculationsApiClient _calcsApiClient;
-        private readonly Polly.Policy _calcsApiClientPolicy;
+        private readonly Polly.AsyncPolicy _calcsApiClientPolicy;
         private readonly IFeatureToggle _featureToggle;
         private readonly IProvidersApiClient _providersApiClient;
-        private readonly Polly.Policy _providersApiClientPolicy;
+        private readonly Polly.AsyncPolicy _providersApiClientPolicy;
 
 
         public SpecificationsService(

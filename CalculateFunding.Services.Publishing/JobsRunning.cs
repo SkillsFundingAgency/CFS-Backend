@@ -15,7 +15,7 @@ namespace CalculateFunding.Services.Publishing
     public class JobsRunning : IJobsRunning
     {
         private readonly IJobsApiClient _jobsApiClient;
-        private readonly Policy _resiliencePolicy;
+        private readonly AsyncPolicy _resiliencePolicy;
 
 
         public JobsRunning(

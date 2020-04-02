@@ -12,8 +12,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Results" Version="2.0.0" />
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Specifications" Version="2.0.0" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Results" Version="2.0.1" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Specifications" Version="2.0.1" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.1.2" />
     <PackageReference Include="Microsoft.AspNetCore.Razor.Design" Version="2.2.0" PrivateAssets="All" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="2.2.3" />

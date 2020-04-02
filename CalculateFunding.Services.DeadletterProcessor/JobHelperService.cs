@@ -11,7 +11,7 @@ namespace CalculateFunding.Services.DeadletterProcessor
     public class JobHelperService : IJobHelperService
     {
         private readonly IJobsApiClient _jobsApiClient;
-        private readonly Polly.Policy _jobsApiClientPolicy;
+        private readonly Polly.AsyncPolicy _jobsApiClientPolicy;
         private readonly ILogger _logger;
 
         public JobHelperService(IJobsApiClient jobsApiClient, IJobHelperResiliencePolicies resiliencePolicies, ILogger logger)

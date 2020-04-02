@@ -15,7 +15,7 @@ namespace CalculateFunding.Services.Publishing.Providers
     {
         private const string DeletePublishedProvidersJob = JobConstants.DefinitionNames.DeletePublishedProvidersJob;
         private readonly IJobsApiClient _jobs;
-        private readonly Policy _resiliencePolicy;
+        private readonly AsyncPolicy _resiliencePolicy;
         private readonly ILogger _logger;
 
         public DeletePublishedProvidersJobCreation(IJobsApiClient jobs,

@@ -205,7 +205,7 @@ namespace CalculateFunding.Functions.CalcEngine
 
         private static CalculatorResiliencePolicies CreateResiliencePolicies(PolicySettings policySettings)
         {
-            BulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
+            AsyncBulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
 
             CalculatorResiliencePolicies resiliencePolicies = new CalculatorResiliencePolicies()
             {

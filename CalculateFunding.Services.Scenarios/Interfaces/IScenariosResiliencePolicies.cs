@@ -4,14 +4,14 @@ namespace CalculateFunding.Services.Scenarios.Interfaces
 {
     public interface IScenariosResiliencePolicies
     {
-        Policy CalcsRepository { get; set; }
+        AsyncPolicy CalcsRepository { get; set; }
 
-        Policy JobsApiClient { get; set; }
+        AsyncPolicy JobsApiClient { get; set; }
 
-        Policy DatasetRepository { get; set; }
+        AsyncPolicy DatasetRepository { get; set; }
 
-        Policy ScenariosRepository { get; set; }
+        AsyncPolicy ScenariosRepository { get; set; }
 
-        Policy SpecificationsApiClient { get; set; }
+        AsyncPolicy SpecificationsApiClient { get; set; }
     }
 }

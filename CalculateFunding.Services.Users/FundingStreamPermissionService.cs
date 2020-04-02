@@ -32,10 +32,10 @@ namespace CalculateFunding.Services.Users
         private readonly ICacheProvider _cacheProvider;
         private readonly IMapper _mapper;
         private readonly ILogger _logger;
-        private readonly Polly.Policy _userRepositoryPolicy;
-        private readonly Polly.Policy _specificationsApiClientPolicy;
-        private readonly Polly.Policy _fundingStreamPermissionVersionRepositoryPolicy;
-        private readonly Polly.Policy _cacheProviderPolicy;
+        private readonly Polly.AsyncPolicy _userRepositoryPolicy;
+        private readonly Polly.AsyncPolicy _specificationsApiClientPolicy;
+        private readonly Polly.AsyncPolicy _fundingStreamPermissionVersionRepositoryPolicy;
+        private readonly Polly.AsyncPolicy _cacheProviderPolicy;
 
         public FundingStreamPermissionService(
             IUserRepository userRepository,

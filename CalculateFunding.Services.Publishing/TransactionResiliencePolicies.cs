@@ -8,6 +8,6 @@ namespace CalculateFunding.Services.Publishing
 {
     public class TransactionResiliencePolicies : ITransactionResiliencePolicies
     {
-        public Policy TransactionPolicy { get; set; }
+        public AsyncPolicy TransactionPolicy { get; set; }
     }
 }

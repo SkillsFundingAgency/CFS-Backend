@@ -35,8 +35,8 @@ namespace CalculateFunding.Services.Providers
         private readonly ILogger _logger;
         private readonly IValidator<ProviderVersionViewModel> _providerVersionModelValidator;
         private readonly IProviderVersionsMetadataRepository _providerVersionMetadataRepository;
-        private readonly Policy _providerVersionMetadataRepositoryPolicy;
-        private readonly Policy _blobRepositoryPolicy;
+        private readonly AsyncPolicy _providerVersionMetadataRepositoryPolicy;
+        private readonly AsyncPolicy _blobRepositoryPolicy;
         private readonly IMapper _mapper;
         private readonly IFileSystemCache _fileSystemCache;
         private readonly IProviderVersionServiceSettings _providerVersionServiceSettings;

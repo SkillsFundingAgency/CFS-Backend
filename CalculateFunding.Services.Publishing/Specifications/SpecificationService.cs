@@ -15,7 +15,7 @@ namespace CalculateFunding.Services.Publishing.Specifications
     public class SpecificationService : ISpecificationService
     {
         private readonly ISpecificationsApiClient _specifications;
-        private readonly Policy _resiliencePolicy;
+        private readonly AsyncPolicy _resiliencePolicy;
 
         public SpecificationService(ISpecificationsApiClient specifications,
             IPublishingResiliencePolicies resiliencePolicies)

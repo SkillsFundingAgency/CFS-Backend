@@ -35,14 +35,14 @@ namespace CalculateFunding.Services.Calcs
         private readonly ICalculationsRepository _calculationsRepository;
         private readonly IPoliciesApiClient _policiesApiClient;
         private readonly IInstructionAllocationJobCreation _instructionAllocationJobCreation;
-        private readonly Policy _policiesResiliencePolicy;
-        private readonly Policy _calculationsRepositoryPolicy;
+        private readonly AsyncPolicy _policiesResiliencePolicy;
+        private readonly AsyncPolicy _calculationsRepositoryPolicy;
         private readonly ILogger _logger;
         private readonly ICalculationService _calculationService;
-        private readonly Polly.Policy _cachePolicy;
+        private readonly AsyncPolicy _cachePolicy;
         private readonly ICacheProvider _cacheProvider;
         private readonly ISpecificationsApiClient _specificationsApiClient;
-        private readonly Polly.Policy _specificationsApiClientPolicy;
+        private readonly AsyncPolicy _specificationsApiClientPolicy;
         private readonly IGraphRepository _graphRepository;
 
         public ApplyTemplateCalculationsService(ICreateCalculationService createCalculationService,

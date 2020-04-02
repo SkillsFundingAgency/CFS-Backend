@@ -24,7 +24,7 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
         private readonly IFundingLineCsvBatchProcessorServiceLocator _batchProcessorServiceLocator;
         private readonly IFileSystemAccess _fileSystemAccess;
         private readonly IFileSystemCacheSettings _fileSystemCacheSettings;
-        private readonly Policy _blobClientPolicy;
+        private readonly AsyncPolicy _blobClientPolicy;
         private readonly IJobTracker _jobTracker;
 
         public FundingLineCsvGenerator(IFundingLineCsvTransformServiceLocator transformServiceLocator,

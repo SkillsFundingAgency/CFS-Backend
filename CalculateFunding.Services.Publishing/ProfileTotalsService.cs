@@ -11,7 +11,7 @@ namespace CalculateFunding.Services.Publishing
 {
     public class ProfileTotalsService : IProfileTotalsService
     {
-        private readonly Policy _resilience;
+        private readonly AsyncPolicy _resilience;
         private readonly IPublishedFundingRepository _publishedFunding;
 
         public ProfileTotalsService(IPublishedFundingRepository publishedFunding,

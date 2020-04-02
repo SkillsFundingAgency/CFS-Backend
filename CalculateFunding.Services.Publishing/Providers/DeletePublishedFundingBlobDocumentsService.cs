@@ -15,7 +15,7 @@ namespace CalculateFunding.Services.Publishing.Providers
 {
     public class DeletePublishedFundingBlobDocumentsService : IDeletePublishedFundingBlobDocumentsService
     {
-        private readonly Policy _blobClientPolicy;
+        private readonly AsyncPolicy _blobClientPolicy;
         private readonly IBlobClient _blobClient;
         private readonly ILogger _logger;
 

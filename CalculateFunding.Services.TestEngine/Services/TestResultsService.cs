@@ -35,8 +35,8 @@ namespace CalculateFunding.Services.TestRunner.Services
         private readonly IMapper _mapper;
         private readonly ILogger _logger;
         private readonly ITelemetry _telemetry;
-        private readonly Polly.Policy _testResultsPolicy;
-        private readonly Polly.Policy _testResultsSearchPolicy;
+        private readonly Polly.AsyncPolicy _testResultsPolicy;
+        private readonly Polly.AsyncPolicy _testResultsSearchPolicy;
         private readonly IProvidersApiClient _providersApiClient;
 
         public TestResultsService(ITestResultsRepository testResultsRepository,

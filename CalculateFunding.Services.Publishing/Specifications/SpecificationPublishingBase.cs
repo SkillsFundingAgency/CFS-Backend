@@ -24,6 +24,6 @@ namespace CalculateFunding.Services.Publishing.Specifications
             _resiliencePolicies = resiliencePolicies;
         }
 
-        protected Polly.Policy ResiliencePolicy => _resiliencePolicies.SpecificationsRepositoryPolicy;
+        protected Polly.AsyncPolicy ResiliencePolicy => _resiliencePolicies.SpecificationsRepositoryPolicy;
     }
 }

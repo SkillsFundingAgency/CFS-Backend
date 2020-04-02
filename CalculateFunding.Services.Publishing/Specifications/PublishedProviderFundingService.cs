@@ -15,7 +15,7 @@ namespace CalculateFunding.Services.Publishing.Specifications
 {
     public class PublishedProviderFundingService : IPublishedProviderFundingService
     {
-        private readonly Policy _resiliencePolicy;
+        private readonly AsyncPolicy _resiliencePolicy;
         private readonly IPublishedFundingDataService _publishedFunding;
         private readonly ISpecificationService _specificationService;
         private readonly ISpecificationIdServiceRequestValidator _validator;

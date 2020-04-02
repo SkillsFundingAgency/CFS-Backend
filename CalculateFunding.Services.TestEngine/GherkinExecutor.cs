@@ -21,7 +21,7 @@ namespace CalculateFunding.Services.TestRunner
     {
         private readonly IGherkinParser _parser;
         private readonly ICacheProvider _cacheProvider;
-        private readonly Policy _cacheProviderPolicy;
+        private readonly AsyncPolicy _cacheProviderPolicy;
 
         public GherkinExecutor(IGherkinParser parser,
             ICacheProvider cacheProvider,

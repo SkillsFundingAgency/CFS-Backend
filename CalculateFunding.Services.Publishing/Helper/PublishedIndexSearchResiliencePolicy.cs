@@ -13,12 +13,12 @@ namespace CalculateFunding.Services.Publishing.Helper
 {
     public static class PublishedIndexSearchResiliencePolicy
     {
-        public static Policy GeneratePublishedIndexSearch(IAsyncPolicy chainedPolicy)
+        public static AsyncPolicy GeneratePublishedIndexSearch(IAsyncPolicy chainedPolicy)
         {
             return GeneratePublishedIndexSearch(new[] { chainedPolicy });
         }
 
-        public static Policy GeneratePublishedIndexSearch(IAsyncPolicy[] chainedPolicies = null)
+        public static AsyncPolicy GeneratePublishedIndexSearch(IAsyncPolicy[] chainedPolicies = null)
         {      
             var waitAndRetryPolicy =
                 Policy.Handle<CloudException>(c => c.Message == "Another indexer invocation is currently in progress; concurrent invocations not allowed.")
@@ -32,7 +32,7 @@ namespace CalculateFunding.Services.Publishing.Helper
                         await Task.FromResult(true);                        
                     });
 
-            PolicyWrap policyWrap = fault.WrapAsync(waitAndRetryPolicy);
+            AsyncPolicyWrap policyWrap = fault.WrapAsync(waitAndRetryPolicy);
             return policyWrap;
         }
     }

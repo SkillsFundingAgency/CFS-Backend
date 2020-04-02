@@ -99,7 +99,7 @@ namespace CalculateFunding.Functions.Jobs
             {
                 PolicySettings policySettings = ctx.GetService<PolicySettings>();
 
-                BulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
+                AsyncBulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
                 BulkheadPolicy totalNetworkRequestsPolicyNonAsync = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsNonAsyncPolicy(policySettings);
 
                 return new ResiliencePolicies

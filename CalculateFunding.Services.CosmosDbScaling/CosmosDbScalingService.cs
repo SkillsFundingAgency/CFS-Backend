@@ -30,10 +30,10 @@ namespace CalculateFunding.Services.CosmosDbScaling
         private readonly ICosmosDbScalingConfigRepository _cosmosDbScalingConfigRepository;
         private readonly ICosmosDbScalingRequestModelBuilder _cosmosDbScalingRequestModelBuilder;
         private readonly IJobsApiClient _jobsApiClient;
-        private readonly Policy _jobsApiClientPolicy;
-        private readonly Policy _scalingRepositoryPolicy;
-        private readonly Policy _cacheProviderPolicy;
-        private readonly Policy _scalingConfigRepositoryPolicy;
+        private readonly AsyncPolicy _jobsApiClientPolicy;
+        private readonly AsyncPolicy _scalingRepositoryPolicy;
+        private readonly AsyncPolicy _cacheProviderPolicy;
+        private readonly AsyncPolicy _scalingConfigRepositoryPolicy;
         private readonly ICosmosDbThrottledEventsFilter _cosmosDbThrottledEventsFilter;
         private readonly IValidator<ScalingConfigurationUpdateModel> _scalingConfigurationUpdateModelValidator;
 

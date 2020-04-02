@@ -4,10 +4,10 @@ namespace CalculateFunding.Migrations.Calculations.Etl
 {
     public class ResiliencePolicies : ICalculationsEtlResiliencePolicies
     {
-        public Policy SpecificationApiClient { get; set; }
+        public AsyncPolicy SpecificationApiClient { get; set; }
         
-        public Policy CalculationsApiClient { get; set; }
+        public AsyncPolicy CalculationsApiClient { get; set; }
         
-        public Policy DataSetsApiClient { get; set; }
+        public AsyncPolicy DataSetsApiClient { get; set; }
     }
 }

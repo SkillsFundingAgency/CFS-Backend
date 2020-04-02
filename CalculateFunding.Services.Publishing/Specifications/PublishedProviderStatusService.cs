@@ -18,8 +18,8 @@ namespace CalculateFunding.Services.Publishing.Specifications
         private readonly ISpecificationIdServiceRequestValidator _validator;
         private readonly ISpecificationService _specificationService;
         private readonly IPublishedFundingRepository _publishedFundingRepository;
-        private readonly Policy _publishedFundingRepositoryResilience;
-        private readonly Policy _specificationsRepositoryPolicy;
+        private readonly AsyncPolicy _publishedFundingRepositoryResilience;
+        private readonly AsyncPolicy _specificationsRepositoryPolicy;
 
         public PublishedProviderStatusService(
             ISpecificationIdServiceRequestValidator validator,

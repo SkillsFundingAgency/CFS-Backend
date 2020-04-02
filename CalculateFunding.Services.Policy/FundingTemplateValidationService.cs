@@ -18,9 +18,9 @@ namespace CalculateFunding.Services.Policy
         private const string fundingSchemaFolder = "funding";
 
         private readonly IFundingSchemaRepository _fundingSchemaRepository;
-        private readonly Polly.Policy _fundingSchemaRepositoryPolicy;
+        private readonly Polly.AsyncPolicy _fundingSchemaRepositoryPolicy;
         private readonly IPolicyRepository _policyRepository;
-        private readonly Polly.Policy _policyRepositoryPolicy;
+        private readonly Polly.AsyncPolicy _policyRepositoryPolicy;
 
         public FundingTemplateValidationService(
             IFundingSchemaRepository fundingSchemaRepository,

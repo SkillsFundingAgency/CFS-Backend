@@ -18,7 +18,7 @@ namespace CalculateFunding.Services.Calcs.Validators
         private readonly ICalculationsRepository _calculationRepository;
         private readonly IPreviewService _previewService;
         private readonly ISpecificationsApiClient _specificationsApiClient;
-        private readonly Policy _specificationsApiClientPolicy;
+        private readonly AsyncPolicy _specificationsApiClientPolicy;
 
         public CalculationCreateModelValidator(
             ICalculationsRepository calculationRepository,

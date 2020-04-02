@@ -17,7 +17,7 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
     public class PublishedFundingVersionOrganisationGroupCsvBatchProcessor : CsvBatchProcessBase, IFundingLineCsvBatchProcessor
     {
         private readonly ISpecificationService _specificationService;
-        private readonly Policy _publishingResiliencePolicy;
+        private readonly AsyncPolicy _publishingResiliencePolicy;
         private readonly IPublishedFundingVersionDataService _publishedFundingVersionDataService;
         private readonly IPublishedFundingOrganisationGroupingService _publishedFundingOrganisationGroupingService;
 

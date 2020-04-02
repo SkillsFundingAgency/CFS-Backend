@@ -40,7 +40,7 @@ namespace CalculateFunding.Migrations.ProviderVersionDefectCorrection
             serviceCollection.AddSingleton<IPublishingResiliencePolicies>(ctx =>
             {
                 PolicySettings policySettings = ctx.GetService<PolicySettings>();
-                BulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers
+                AsyncBulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers
                     .GenerateTotalNetworkRequestsPolicy(policySettings);
 
                 return new ResiliencePolicies

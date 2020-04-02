@@ -23,7 +23,7 @@ namespace CalculateFunding.Services.Publishing.Providers
     public class ProviderService : IProviderService
     {
         private readonly IProvidersApiClient _providers;
-        private readonly Policy _resiliencePolicy;
+        private readonly AsyncPolicy _resiliencePolicy;
         private readonly IPublishedFundingDataService _publishedFundingDataService;
         private readonly ILogger _logger;
         private readonly IMapper _mapper;

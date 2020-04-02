@@ -17,8 +17,8 @@ namespace CalculateFunding.Services.Calcs
     {
         private readonly ICalculationsRepository _calculationsRepository;
         private readonly ISpecificationsApiClient _specificationsApiClient;
-        private readonly Policy _specificationsApiClientPolicy;
-        private readonly Policy _calculationRepositoryPolicy;
+        private readonly AsyncPolicy _specificationsApiClientPolicy;
+        private readonly AsyncPolicy _calculationRepositoryPolicy;
 
         public CalculationNameInUseCheck(ICalculationsRepository calculationsRepository,
             ISpecificationsApiClient specificationsApiClient,

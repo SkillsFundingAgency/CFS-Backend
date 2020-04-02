@@ -4,30 +4,30 @@ namespace CalculateFunding.Services.Calcs.Interfaces
 {
     public interface ICalcsResiliencePolicies
     {
-        Policy GraphApiClientPolicy { get; set; }
-        
-        Policy CalculationsRepository { get; set; }
+        AsyncPolicy GraphApiClientPolicy { get; set; }
 
-        Policy CalculationsSearchRepository { get; set; }
+        AsyncPolicy CalculationsRepository { get; set; }
 
-        Policy CacheProviderPolicy { get; set; }
+        AsyncPolicy CalculationsSearchRepository { get; set; }
 
-        Policy CalculationsVersionsRepositoryPolicy { get; set; }
+        AsyncPolicy CacheProviderPolicy { get; set; }
 
-        Policy BuildProjectRepositoryPolicy { get; set; }
+        AsyncPolicy CalculationsVersionsRepositoryPolicy { get; set; }
 
-        Policy SpecificationsRepositoryPolicy { get; set; }
+        AsyncPolicy BuildProjectRepositoryPolicy { get; set; }
 
-        Policy MessagePolicy { get; set; }
+        AsyncPolicy SpecificationsRepositoryPolicy { get; set; }
 
-        Policy JobsApiClient { get; set; }
+        AsyncPolicy MessagePolicy { get; set; }
 
-        Policy SourceFilesRepository { get; set; }
+        AsyncPolicy JobsApiClient { get; set; }
 
-        Policy DatasetsRepository { get; set; }
+        AsyncPolicy SourceFilesRepository { get; set; }
 
-        Policy PoliciesApiClient { get; set; }
+        AsyncPolicy DatasetsRepository { get; set; }
 
-        Policy SpecificationsApiClient { get; set; }
+        AsyncPolicy PoliciesApiClient { get; set; }
+
+        AsyncPolicy SpecificationsApiClient { get; set; }
     }
 }

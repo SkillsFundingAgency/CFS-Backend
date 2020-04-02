@@ -4,12 +4,12 @@ namespace CalculateFunding.Services.Users.Interfaces
 {
     public interface IUsersResiliencePolicies
     {
-        Policy UserRepositoryPolicy { get; set; }
+        AsyncPolicy UserRepositoryPolicy { get; set; }
 
-        Policy SpecificationApiClient { get; set; }
+        AsyncPolicy SpecificationApiClient { get; set; }
 
-        Policy FundingStreamPermissionVersionRepositoryPolicy { get; set; }
+        AsyncPolicy FundingStreamPermissionVersionRepositoryPolicy { get; set; }
 
-        Policy CacheProviderPolicy { get; set; }
+        AsyncPolicy CacheProviderPolicy { get; set; }
     }
 }

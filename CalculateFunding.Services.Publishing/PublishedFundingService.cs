@@ -23,7 +23,7 @@ namespace CalculateFunding.Services.Publishing
     {
         private readonly IPublishedFundingDataService _publishedFundingDataService;
         private readonly IPoliciesService _policiesService;
-        private readonly Policy _publishingResiliencePolicy;
+        private readonly AsyncPolicy _publishingResiliencePolicy;
         private readonly IOrganisationGroupGenerator _organisationGroupGenerator;
         private readonly IPublishedFundingChangeDetectorService _publishedFundingChangeDetectorService;
         private readonly IPublishedFundingDateService _publishedFundingDateService;

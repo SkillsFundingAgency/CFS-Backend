@@ -16,7 +16,7 @@ namespace CalculateFunding.Services.Publishing
     {
         private readonly IPublishedFundingContentsGeneratorResolver _publishedFundingContentsGeneratorResolver;
         private readonly IBlobClient _blobClient;
-        private readonly Policy _publishedFundingRepositoryPolicy;
+        private readonly AsyncPolicy _publishedFundingRepositoryPolicy;
         private readonly IPublishingEngineOptions _publishingEngineOptions;
 
 

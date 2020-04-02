@@ -18,8 +18,8 @@ namespace CalculateFunding.Services.Calcs.Analysis
 {
     public class SpecificationCalculationAnalysis : ISpecificationCalculationAnalysis
     {
-        private readonly Policy _specificationsResilience;
-        private readonly Policy _calculationsResilience;
+        private readonly AsyncPolicy _specificationsResilience;
+        private readonly AsyncPolicy _calculationsResilience;
         readonly ISpecificationsApiClient _specifications;
         private readonly ICalculationsRepository _calculations;
         private readonly ICalculationAnalysis _calculationAnalysis;

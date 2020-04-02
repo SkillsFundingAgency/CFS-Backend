@@ -17,7 +17,7 @@ namespace CalculateFunding.Services.Publishing.Providers
     public class DeselectSpecificationForFundingService : IDeselectSpecificationForFundingService
     {
         private readonly ISpecificationsApiClient _specificationsApiClient;
-        private readonly Policy _specsApiPolicy;
+        private readonly AsyncPolicy _specsApiPolicy;
         private readonly ILogger _logger;
 
         public DeselectSpecificationForFundingService(ISpecificationsApiClient specificationsApiClient, 

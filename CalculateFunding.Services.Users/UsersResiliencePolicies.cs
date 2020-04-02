@@ -5,12 +5,12 @@ namespace CalculateFunding.Services.Users
 {
     public class UsersResiliencePolicies : IUsersResiliencePolicies
     {
-        public Policy UserRepositoryPolicy { get; set; }
+        public AsyncPolicy UserRepositoryPolicy { get; set; }
 
-        public Policy SpecificationApiClient { get; set; }
+        public AsyncPolicy SpecificationApiClient { get; set; }
 
-        public Policy FundingStreamPermissionVersionRepositoryPolicy { get; set; }
+        public AsyncPolicy FundingStreamPermissionVersionRepositoryPolicy { get; set; }
 
-        public Policy CacheProviderPolicy { get; set; }
+        public AsyncPolicy CacheProviderPolicy { get; set; }
     }
 }

@@ -27,9 +27,9 @@ namespace CalculateFunding.Services.Results
         private readonly ISearchRepository<ProviderCalculationResultsIndex> _providerCalculationResultsSearchRepository;
         private readonly ISpecificationsApiClient _specificationsApiClient;
         private readonly ICalculationResultsRepository _resultsRepository;
-        private readonly Polly.Policy _resultsRepositoryPolicy;
-        private readonly Polly.Policy _specificationsApiClientPolicy;
-        private readonly Polly.Policy _resultsSearchRepositoryPolicy;
+        private readonly Polly.AsyncPolicy _resultsRepositoryPolicy;
+        private readonly Polly.AsyncPolicy _specificationsApiClientPolicy;
+        private readonly Polly.AsyncPolicy _resultsSearchRepositoryPolicy;
         private readonly IFeatureToggle _featureToggle;
 
         private const int batchSize = 200;

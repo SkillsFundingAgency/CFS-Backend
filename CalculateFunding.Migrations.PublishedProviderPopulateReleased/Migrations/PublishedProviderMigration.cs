@@ -15,7 +15,7 @@ namespace CalculateFunding.Migrations.PublishedProviderPopulateReleased.Migratio
     public class PublishedProviderMigration : IPublishedProviderMigration
     {
         private readonly ICosmosRepository _cosmosRepository;
-        private readonly Policy _resiliencePolicy;
+        private readonly AsyncPolicy _resiliencePolicy;
         private readonly ILogger _logger;
 
         public PublishedProviderMigration(ICosmosRepository cosmosRepository,

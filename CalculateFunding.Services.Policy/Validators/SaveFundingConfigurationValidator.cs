@@ -3,7 +3,7 @@ using CalculateFunding.Models.FundingPolicy;
 using CalculateFunding.Models.Policy;
 using CalculateFunding.Services.Policy.Interfaces;
 using FluentValidation;
-using ResiliencePolicy = Polly.Policy;
+using ResiliencePolicy = Polly.AsyncPolicy;
 
 namespace CalculateFunding.Services.Providers.Validators
 {

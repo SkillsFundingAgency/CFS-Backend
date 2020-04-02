@@ -29,9 +29,9 @@ namespace CalculateFunding.Services.Calcs
         private readonly ICalculationNameInUseCheck _calculationNameInUseCheck;
         private readonly ICalculationsRepository _calculationsRepository;
         private readonly IVersionRepository<CalculationVersion> _calculationVersionRepository;
-        private readonly Policy _calculationVersionsRepositoryPolicy;
-        private readonly Policy _calculationRepositoryPolicy;
-        private readonly Policy _cachePolicy;
+        private readonly AsyncPolicy _calculationVersionsRepositoryPolicy;
+        private readonly AsyncPolicy _calculationRepositoryPolicy;
+        private readonly AsyncPolicy _cachePolicy;
         private readonly ICacheProvider _cacheProvider;
         private readonly ISearchRepository<CalculationIndex> _searchRepository;
         private readonly ILogger _logger;

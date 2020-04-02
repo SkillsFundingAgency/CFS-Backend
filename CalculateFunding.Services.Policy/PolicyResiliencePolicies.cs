@@ -5,12 +5,12 @@ namespace CalculateFunding.Services.Policy
 {
     public class PolicyResiliencePolicies : IPolicyResiliencePolicies
     {
-        public Polly.Policy PolicyRepository { get; set; }
+        public Polly.AsyncPolicy PolicyRepository { get; set; }
 
-        public Polly.Policy CacheProvider { get; set; }
+        public Polly.AsyncPolicy CacheProvider { get; set; }
 
-        public Polly.Policy FundingSchemaRepository { get; set; }
+        public Polly.AsyncPolicy FundingSchemaRepository { get; set; }
 
-        public Polly.Policy FundingTemplateRepository { get; set; }
+        public Polly.AsyncPolicy FundingTemplateRepository { get; set; }
     }
 }

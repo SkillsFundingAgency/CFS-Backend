@@ -23,10 +23,10 @@ namespace CalculateFunding.Api.External.V3.Services
         private readonly IExternalApiFileSystemCacheSettings _cacheSettings;
         private readonly IFileSystemCache _fileSystemCache;
         private readonly IBlobClient _blobClient;
-        private readonly Policy _blobClientPolicy;
+        private readonly AsyncPolicy _blobClientPolicy;
         private readonly ILogger _logger;
         private readonly IPublishedFundingRepository _publishedFundingRepository;
-        private readonly Policy _publishedFundingRepositoryPolicy;
+        private readonly AsyncPolicy _publishedFundingRepositoryPolicy;
 
         public ProviderFundingVersionService(IBlobClient blobClient,
             IPublishedFundingRepository publishedFundingRepository,

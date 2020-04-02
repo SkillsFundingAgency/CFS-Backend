@@ -5,30 +5,30 @@ namespace CalculateFunding.Services.Results.Interfaces
 {
     public interface IResultsResiliencePolicies : IJobHelperResiliencePolicies
     {
-        Policy CalculationProviderResultsSearchRepository { get; set; }
+        AsyncPolicy CalculationProviderResultsSearchRepository { get; set; }
 
-        Policy ResultsRepository { get; set; }
+        AsyncPolicy ResultsRepository { get; set; }
 
-        Policy ResultsSearchRepository { get; set; }
+        AsyncPolicy ResultsSearchRepository { get; set; }
 
-        Policy SpecificationsApiClient { get; set; }
+        AsyncPolicy SpecificationsApiClient { get; set; }
 
-        Policy ProviderProfilingRepository { get; set; }
+        AsyncPolicy ProviderProfilingRepository { get; set; }
 
-        Policy PublishedProviderCalculationResultsRepository { get; set; }
+        AsyncPolicy PublishedProviderCalculationResultsRepository { get; set; }
 
-        Policy PublishedProviderResultsRepository { get; set; }
+        AsyncPolicy PublishedProviderResultsRepository { get; set; }
 
-        Policy CalculationsRepository { get; set; }
+        AsyncPolicy CalculationsRepository { get; set; }
 
-        Policy ProviderChangesRepository { get; set; }
+        AsyncPolicy ProviderChangesRepository { get; set; }
 
-        Policy ProviderCalculationResultsSearchRepository { get; set; }
+        AsyncPolicy ProviderCalculationResultsSearchRepository { get; set; }
 
-        Policy ProviderVersionsSearchRepository { get; set; }
+        AsyncPolicy ProviderVersionsSearchRepository { get; set; }
 
-        Policy PoliciesApiClient { get; set; }
+        AsyncPolicy PoliciesApiClient { get; set; }
 
-        Policy BlobClient { get; set; }
+        AsyncPolicy BlobClient { get; set; }
     }
 }

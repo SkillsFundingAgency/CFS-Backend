@@ -64,11 +64,11 @@ namespace CalculateFunding.Services.Datasets
         private readonly IVersionRepository<ProviderSourceDatasetVersion> _sourceDatasetsVersionRepository;
         private readonly ILogger _logger;
         private readonly ITelemetry _telemetry;
-        private readonly Policy _providerResultsRepositoryPolicy;
+        private readonly AsyncPolicy _providerResultsRepositoryPolicy;
         private readonly IDatasetsAggregationsRepository _datasetsAggregationsRepository;
-        private readonly Policy _providersApiClientPolicy;
+        private readonly AsyncPolicy _providersApiClientPolicy;
         private readonly IFeatureToggle _featureToggle;
-        private readonly Policy _jobsApiClientPolicy;
+        private readonly AsyncPolicy _jobsApiClientPolicy;
         private readonly IJobsApiClient _jobsApiClient;
         private readonly IMapper _mapper;
         private readonly IJobManagement _jobManagement;

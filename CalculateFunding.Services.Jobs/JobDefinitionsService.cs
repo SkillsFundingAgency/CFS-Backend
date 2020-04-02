@@ -21,9 +21,9 @@ namespace CalculateFunding.Services.Jobs
     {
         private readonly IJobDefinitionsRepository _jobDefinitionsRepository;
         private readonly ILogger _logger;
-        private readonly Polly.Policy _jobDefinitionsRepositoryPolicy;
+        private readonly Polly.AsyncPolicy _jobDefinitionsRepositoryPolicy;
         private readonly ICacheProvider _cacheProvider;
-        private readonly Polly.Policy _cachePolicy;
+        private readonly Polly.AsyncPolicy _cachePolicy;
 
         public JobDefinitionsService(IJobDefinitionsRepository jobDefinitionsRepository, 
             ILogger logger, IJobsResiliencePolicies resiliencePolicies, ICacheProvider cacheProvider)

@@ -13,7 +13,7 @@ namespace CalculateFunding.Services.Calcs.Analysis
 {
     public class QueueReIndexSpecificationCalculationRelationships : IQueueReIndexSpecificationCalculationRelationships
     {
-        private readonly Policy _resilience;
+        private readonly AsyncPolicy _resilience;
         private readonly IJobsApiClient _jobs;
 
         public QueueReIndexSpecificationCalculationRelationships(IJobsApiClient jobs,

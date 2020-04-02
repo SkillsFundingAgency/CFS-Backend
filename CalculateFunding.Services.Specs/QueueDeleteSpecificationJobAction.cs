@@ -22,7 +22,7 @@ namespace CalculateFunding.Services.Specs
     {
         private readonly IJobsApiClient _jobsApiClient;
         private readonly ILogger _logger;
-        private readonly Policy _jobClientResiliencePolicy;
+        private readonly AsyncPolicy _jobClientResiliencePolicy;
         private readonly Dictionary<string, string> _specificationChildJobDefinitions = new Dictionary<string, string>
         {
             [JobConstants.DefinitionNames.DeleteCalculationResultsJob] = "Deleting Calculation Results",

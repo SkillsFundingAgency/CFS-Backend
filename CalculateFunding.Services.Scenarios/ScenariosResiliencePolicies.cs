@@ -5,14 +5,14 @@ namespace CalculateFunding.Services.Scenarios
 {
     public class ScenariosResiliencePolicies : IScenariosResiliencePolicies
     {
-        public Policy CalcsRepository { get; set; }
+        public AsyncPolicy CalcsRepository { get; set; }
 
-        public Policy JobsApiClient { get; set; }
+        public AsyncPolicy JobsApiClient { get; set; }
 
-        public Policy DatasetRepository { get; set; }
+        public AsyncPolicy DatasetRepository { get; set; }
 
-        public Policy ScenariosRepository { get; set; }
+        public AsyncPolicy ScenariosRepository { get; set; }
 
-        public Policy SpecificationsApiClient { get; set; }
+        public AsyncPolicy SpecificationsApiClient { get; set; }
     }
 }

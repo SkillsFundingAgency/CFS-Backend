@@ -4,8 +4,8 @@ namespace CalculateFunding.Migrations.Calculations.Etl
 {
     public interface ICalculationsEtlResiliencePolicies
     {
-        Policy SpecificationApiClient { get; set; }
-        Policy CalculationsApiClient { get; set; }
-        Policy DataSetsApiClient { get; set; }
+        AsyncPolicy SpecificationApiClient { get; set; }
+        AsyncPolicy CalculationsApiClient { get; set; }
+        AsyncPolicy DataSetsApiClient { get; set; }
     }
 }

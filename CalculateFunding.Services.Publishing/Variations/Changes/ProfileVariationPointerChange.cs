@@ -29,7 +29,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
         {
             try
             {
-                Policy resiliencePolicy = variationsApplications.ResiliencePolicies.SpecificationsApiClient;
+                AsyncPolicy resiliencePolicy = variationsApplications.ResiliencePolicies.SpecificationsApiClient;
                 ISpecificationsApiClient specificationsApiClient = variationsApplications.SpecificationsApiClient;
 
                 ApiResponse<IEnumerable<ProfileVariationPointer>> variationPointersResponse =

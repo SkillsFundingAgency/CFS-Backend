@@ -10,9 +10,9 @@ namespace CalculateFunding.Migrations.Calculations.Etl.Migrations
 {
     public class MigrationClients
     {
-        private readonly Policy _calculationsPolicy;
-        private readonly Policy _specificationsPolicy;
-        private readonly Policy _dataSetsPolicy;
+        private readonly AsyncPolicy _calculationsPolicy;
+        private readonly AsyncPolicy _specificationsPolicy;
+        private readonly AsyncPolicy _dataSetsPolicy;
         private readonly ICalculationsApiClient _calculations;
         private readonly ISpecificationsApiClient _specifications;
         private readonly IDatasetsApiClient _dataSets;

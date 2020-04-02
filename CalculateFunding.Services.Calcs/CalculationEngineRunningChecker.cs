@@ -14,7 +14,7 @@ namespace CalculateFunding.Services.Calcs
     public class CalculationEngineRunningChecker : ICalculationEngineRunningChecker
     {
         private readonly IJobsApiClient _jobsApiClient;
-        private readonly Policy _resiliencePolicy;
+        private readonly AsyncPolicy _resiliencePolicy;
 
 
         public CalculationEngineRunningChecker(

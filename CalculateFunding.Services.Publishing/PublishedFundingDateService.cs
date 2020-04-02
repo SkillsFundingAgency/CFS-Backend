@@ -13,7 +13,7 @@ namespace CalculateFunding.Services.Publishing
     public class PublishedFundingDateService : IPublishedFundingDateService
     {
         private readonly ISpecificationsApiClient _specificationsApiClient;
-        private readonly Policy _specificationsApiPolicy;
+        private readonly AsyncPolicy _specificationsApiPolicy;
 
         public PublishedFundingDateService(ISpecificationsApiClient specificationsApiClient, IPublishingResiliencePolicies resiliencePolicies)
         {

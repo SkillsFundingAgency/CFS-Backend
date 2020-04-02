@@ -15,7 +15,7 @@ namespace CalculateFunding.Services.Calcs.Services
     {
         private ILogger _logger;
         private IJobsApiClient _jobs;
-        private Policy _resiliencePolicy;
+        private AsyncPolicy _resiliencePolicy;
         private Message _message;
 
         private ApplyTemplateCalculationsJobTrackerFactory _factory;

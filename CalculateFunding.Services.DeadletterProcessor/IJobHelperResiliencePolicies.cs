@@ -2,6 +2,6 @@
 {
     public interface IJobHelperResiliencePolicies
     {
-        Polly.Policy JobsApiClient { get; set; }
+        Polly.AsyncPolicy JobsApiClient { get; set; }
     }
 }

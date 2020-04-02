@@ -13,7 +13,7 @@ namespace CalculateFunding.Services.Publishing
     public class Transaction : IDisposable
     {
         private readonly ILogger _logger;
-        private readonly Policy _transactionPolicy;
+        private readonly AsyncPolicy _transactionPolicy;
         private readonly ConcurrentBag<Func<Task>> _functions;
         private readonly string _transactionName;
         private bool _committed;

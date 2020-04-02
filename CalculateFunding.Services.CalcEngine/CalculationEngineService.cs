@@ -48,16 +48,16 @@ namespace CalculateFunding.Services.CalcEngine
         private readonly ICalculationsRepository _calculationsRepository;
         private readonly ISpecificationsApiClient _specificationsApiClient;
         private readonly EngineSettings _engineSettings;
-        private readonly Policy _cacheProviderPolicy;
-        private readonly Policy _messengerServicePolicy;
-        private readonly Policy _providerSourceDatasetsRepositoryPolicy;
-        private readonly Policy _providerResultsRepositoryPolicy;
-        private readonly Policy _calculationsRepositoryPolicy;
-        private readonly Policy _specificationsApiPolicy;
+        private readonly AsyncPolicy _cacheProviderPolicy;
+        private readonly AsyncPolicy _messengerServicePolicy;
+        private readonly AsyncPolicy _providerSourceDatasetsRepositoryPolicy;
+        private readonly AsyncPolicy _providerResultsRepositoryPolicy;
+        private readonly AsyncPolicy _calculationsRepositoryPolicy;
+        private readonly AsyncPolicy _specificationsApiPolicy;
         private readonly IValidator<ICalculatorResiliencePolicies> _calculatorResiliencePoliciesValidator;
         private readonly IDatasetAggregationsRepository _datasetAggregationsRepository;
         private readonly IJobsApiClient _jobsApiClient;
-        private readonly Policy _jobsApiClientPolicy;
+        private readonly AsyncPolicy _jobsApiClientPolicy;
 
         public CalculationEngineService(
             ILogger logger,

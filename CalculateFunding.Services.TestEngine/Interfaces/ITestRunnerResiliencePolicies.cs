@@ -4,20 +4,20 @@ namespace CalculateFunding.Services.TestRunner.Interfaces
 {
     public interface ITestRunnerResiliencePolicies
     {
-        Policy TestResultsRepository { get; set; }
+        AsyncPolicy TestResultsRepository { get; set; }
 
-        Policy TestResultsSearchRepository { get; set; }
+        AsyncPolicy TestResultsSearchRepository { get; set; }
 
-        Policy BuildProjectRepository { get; set; }
+        AsyncPolicy BuildProjectRepository { get; set; }
 
-        Policy ProviderResultsRepository { get; set; }
+        AsyncPolicy ProviderResultsRepository { get; set; }
 
-        Policy CacheProviderRepository { get; set; }
+        AsyncPolicy CacheProviderRepository { get; set; }
 
-        Policy SpecificationsApiClient { get; set; }
+        AsyncPolicy SpecificationsApiClient { get; set; }
 
-        Policy ScenariosRepository { get; set; }
+        AsyncPolicy ScenariosRepository { get; set; }
 
-        Policy ProviderSourceDatasetsRepository { get; set; }
+        AsyncPolicy ProviderSourceDatasetsRepository { get; set; }
     }
 }

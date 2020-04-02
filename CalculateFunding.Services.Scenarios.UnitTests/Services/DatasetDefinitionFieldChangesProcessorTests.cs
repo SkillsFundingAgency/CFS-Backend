@@ -397,10 +397,10 @@ namespace CalculateFunding.Services.Scenarios.Services
             };
             IScenariosRepository testsRepository = Substitute.For<IScenariosRepository>();
             var scenariosResiliencePolicies = Substitute.For<IScenariosResiliencePolicies>();
-            scenariosResiliencePolicies.JobsApiClient = Policy.NoOp();
-            scenariosResiliencePolicies.CalcsRepository = Policy.NoOp();
-            scenariosResiliencePolicies.ScenariosRepository = Policy.NoOp();
-            scenariosResiliencePolicies.SpecificationsApiClient = Policy.NoOp();
+            scenariosResiliencePolicies.JobsApiClient = Policy.NoOpAsync();
+            scenariosResiliencePolicies.CalcsRepository = Policy.NoOpAsync();
+            scenariosResiliencePolicies.ScenariosRepository = Policy.NoOpAsync();
+            scenariosResiliencePolicies.SpecificationsApiClient = Policy.NoOpAsync();
             ScenariosService service = new ScenariosService(
                 Substitute.For<ILogger>(),
                 testsRepository,

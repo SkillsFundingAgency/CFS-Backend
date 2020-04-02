@@ -22,8 +22,8 @@ namespace CalculateFunding.Services.Publishing.Providers
         private readonly IDeletePublishedFundingBlobDocumentsService _deletePublishedFundingBlobDocumentsService;
         private readonly IDeselectSpecificationForFundingService _deselectSpecificationForFundingService;
         private readonly IPublishedFundingRepository _publishedFundingRepository;
-        private readonly Policy _publishedFundingRepositoryPolicy;
-        private readonly Policy _jobsApiPolicy;
+        private readonly AsyncPolicy _publishedFundingRepositoryPolicy;
+        private readonly AsyncPolicy _jobsApiPolicy;
         private readonly IJobsApiClient _jobsApiClient;
         private readonly ILogger _logger;
 

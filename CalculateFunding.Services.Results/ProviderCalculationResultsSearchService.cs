@@ -26,7 +26,7 @@ namespace CalculateFunding.Services.Results
     {
         private readonly ILogger _logger;
         private readonly ISearchRepository<ProviderCalculationResultsIndex> _searchRepository;
-        private readonly Policy _searchRepositoryPolicy;
+        private readonly AsyncPolicy _searchRepositoryPolicy;
         private readonly IFeatureToggle _featureToggle;
 
         private readonly FacetFilterType[] Facets = {

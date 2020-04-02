@@ -21,7 +21,7 @@ namespace CalculateFunding.Services.Publishing
     public class FundingConfigurationService : IFundingConfigurationService
     {
         private readonly IPoliciesApiClient _policiesApiClient;
-        private readonly Policy _publishingResiliencePolicy;
+        private readonly AsyncPolicy _publishingResiliencePolicy;
 
         public FundingConfigurationService(
             IPoliciesApiClient policiesApiClient,

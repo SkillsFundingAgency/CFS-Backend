@@ -55,9 +55,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         }
 
         public static IPublishingResiliencePolicies GenerateTestPolicies()
-        {           
+        {
 
-            Policy circuitBreakerRequestException = Policy.Handle<Exception>().CircuitBreakerAsync(100, TimeSpan.FromMinutes(1));
+            AsyncPolicy circuitBreakerRequestException = Policy.Handle<Exception>().CircuitBreakerAsync(100, TimeSpan.FromMinutes(1));
 
             return new ResiliencePolicies()
             {

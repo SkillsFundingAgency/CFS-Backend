@@ -4,12 +4,12 @@ namespace CalculateFunding.Services.CosmosDbScaling.Interfaces
 {
     public interface ICosmosDbScalingResiliencePolicies
     {
-        Policy ScalingRepository { get; set; }
+        AsyncPolicy ScalingRepository { get; set; }
 
-        Policy ScalingConfigRepository { get; set; }
+        AsyncPolicy ScalingConfigRepository { get; set; }
 
-        Policy JobsApiClient { get; set; }
+        AsyncPolicy JobsApiClient { get; set; }
 
-        Policy CacheProvider { get; set; }
+        AsyncPolicy CacheProvider { get; set; }
     }
 }

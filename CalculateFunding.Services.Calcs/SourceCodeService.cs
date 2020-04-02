@@ -28,8 +28,8 @@ namespace CalculateFunding.Services.Calcs
         private readonly ICompilerFactory _compilerFactory;
         private readonly ISourceFileGenerator _sourceFileGenerator;
         private readonly ICodeMetadataGeneratorService _codeMetadataGenerator;
-        private readonly Policy _sourceFilesRepositoryPolicy;
-        private readonly Policy _calculationsRepositoryPolicy;
+        private readonly AsyncPolicy _sourceFilesRepositoryPolicy;
+        private readonly AsyncPolicy _calculationsRepositoryPolicy;
 
         public SourceCodeService(
             ISourceFileRepository sourceFilesRepository,

@@ -14,7 +14,7 @@ namespace CalculateFunding.Api.External.V3.Services
     {
         private readonly IPublishedFundingRetrievalService _publishedFundingRetrievalService;
         private readonly ISearchRepository<PublishedFundingIndex> _fundingSearchRepository;
-        private readonly Polly.Policy _fundingSearchRepositoryPolicy;
+        private readonly Polly.AsyncPolicy _fundingSearchRepositoryPolicy;
         private readonly ILogger _logger;
 
         public FundingFeedItemByIdService(IPublishedFundingRetrievalService publishedFundingRetrievalService,

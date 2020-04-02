@@ -42,12 +42,12 @@ namespace CalculateFunding.Services.TestRunner.Services
         private readonly ITelemetry _telemetry;
         private readonly ICalculationsRepository _calculationsRepository;
 
-        private readonly Policy _cacheProviderPolicy;
-        private readonly Policy _scenariosRepositoryPolicy;
-        private readonly Policy _providerSourceDatasetsRepositoryPolicy;
-        private readonly Policy _testResultsRepositoryPolicy;
-        private readonly Policy _builProjectsRepositoryPolicy;
-        private readonly Policy _specificationsApiClientPolicy;
+        private readonly AsyncPolicy _cacheProviderPolicy;
+        private readonly AsyncPolicy _scenariosRepositoryPolicy;
+        private readonly AsyncPolicy _providerSourceDatasetsRepositoryPolicy;
+        private readonly AsyncPolicy _testResultsRepositoryPolicy;
+        private readonly AsyncPolicy _builProjectsRepositoryPolicy;
+        private readonly AsyncPolicy _specificationsApiClientPolicy;
 
         public TestEngineService(
             ICacheProvider cacheProvider,

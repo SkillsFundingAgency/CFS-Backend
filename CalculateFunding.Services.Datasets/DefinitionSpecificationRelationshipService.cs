@@ -43,9 +43,9 @@ namespace CalculateFunding.Services.Datasets
         private readonly ICalcsRepository _calcsRepository;
         private readonly IDefinitionsService _definitionService;
         private readonly ICacheProvider _cacheProvider;
-        private readonly Polly.Policy _jobsApiClientPolicy;
+        private readonly Polly.AsyncPolicy _jobsApiClientPolicy;
         private readonly IJobsApiClient _jobsApiClient;
-        private readonly Polly.Policy _specificationsApiClientPolicy;
+        private readonly Polly.AsyncPolicy _specificationsApiClientPolicy;
 
         public DefinitionSpecificationRelationshipService(IDatasetRepository datasetRepository,
             ILogger logger,

@@ -24,8 +24,8 @@ namespace CalculateFunding.Services.Specs
     {
         private readonly IPoliciesApiClient _policies;
         private readonly IJobsApiClient _jobs;
-        private readonly Policy _jobClientResiliencePolicy;
-        private readonly Policy _policyResiliencePolicy;
+        private readonly AsyncPolicy _jobClientResiliencePolicy;
+        private readonly AsyncPolicy _policyResiliencePolicy;
         private readonly ILogger _logger;
 
         public QueueCreateSpecificationJobAction(IPoliciesApiClient policies,

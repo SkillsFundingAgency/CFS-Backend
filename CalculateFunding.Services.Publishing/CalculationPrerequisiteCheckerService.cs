@@ -16,7 +16,7 @@ namespace CalculateFunding.Services.Publishing
     {
         private readonly ICalculationsApiClient _calcsApiClient;
         private readonly ILogger _logger;
-        private readonly Policy _policy;
+        private readonly AsyncPolicy _policy;
 
         public CalculationPrerequisiteCheckerService(ICalculationsApiClient calculationsApiClient,
             IPublishingResiliencePolicies publishingResiliencePolicies,

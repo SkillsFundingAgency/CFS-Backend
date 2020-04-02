@@ -19,7 +19,7 @@ namespace CalculateFunding.Services.Publishing
     public class PublishedFundingStatusUpdateService : IPublishedFundingStatusUpdateService
     {
         private readonly IPublishedFundingRepository _publishedFundingRepository;
-        private readonly Policy _publishingResiliencePolicy;
+        private readonly AsyncPolicy _publishingResiliencePolicy;
         private readonly IVersionRepository<PublishedFundingVersion> _publishedFundingVersionRepository;
         private readonly IPublishedFundingIdGeneratorResolver _publishedFundingIdGeneratorResolver;
         private readonly ILogger _logger;

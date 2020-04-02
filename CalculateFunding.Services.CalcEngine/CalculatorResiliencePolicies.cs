@@ -6,18 +6,18 @@ namespace CalculateFunding.Services.CalcEngine
 {
     public class CalculatorResiliencePolicies : ICalculatorResiliencePolicies, IJobHelperResiliencePolicies
     {
-        public Policy CacheProvider { get; set; }
+        public AsyncPolicy CacheProvider { get; set; }
 
-        public Policy Messenger { get; set; }
+        public AsyncPolicy Messenger { get; set; }
 
-        public Policy ProviderSourceDatasetsRepository { get; set; }
+        public AsyncPolicy ProviderSourceDatasetsRepository { get; set; }
 
-        public Policy ProviderResultsRepository { get; set; }
+        public AsyncPolicy ProviderResultsRepository { get; set; }
 
-        public Policy CalculationsRepository { get; set; }
+        public AsyncPolicy CalculationsRepository { get; set; }
 
-        public Policy JobsApiClient { get; set; }
+        public AsyncPolicy JobsApiClient { get; set; }
 
-        public Policy SpecificationsApiClient { get; set; }
+        public AsyncPolicy SpecificationsApiClient { get; set; }
     }
 }

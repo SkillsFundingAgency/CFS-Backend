@@ -28,9 +28,9 @@ namespace CalculateFunding.Services.Jobs
         private readonly IJobRepository _jobRepository;
         private readonly INotificationService _notificationService;
         private readonly IJobDefinitionsService _jobDefinitionsService;
-        private readonly Policy _jobsRepositoryPolicy;
-        private readonly Policy _jobDefinitionsRepositoryPolicy;
-        private readonly Policy _messengerServicePolicy;
+        private readonly AsyncPolicy _jobsRepositoryPolicy;
+        private readonly AsyncPolicy _jobDefinitionsRepositoryPolicy;
+        private readonly AsyncPolicy _messengerServicePolicy;
         private readonly ILogger _logger;
         private readonly IValidator<CreateJobValidationModel> _createJobValidator;
         private readonly IMessengerService _messengerService;

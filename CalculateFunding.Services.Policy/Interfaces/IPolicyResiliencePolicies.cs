@@ -2,12 +2,12 @@
 {
     public interface IPolicyResiliencePolicies
     {
-        Polly.Policy PolicyRepository { get; set; }
+        Polly.AsyncPolicy PolicyRepository { get; set; }
 
-        Polly.Policy CacheProvider { get; set; }
+        Polly.AsyncPolicy CacheProvider { get; set; }
 
-        Polly.Policy FundingSchemaRepository { get; set; }
+        Polly.AsyncPolicy FundingSchemaRepository { get; set; }
 
-        Polly.Policy FundingTemplateRepository { get; set; }
+        Polly.AsyncPolicy FundingTemplateRepository { get; set; }
     }
 }

@@ -201,7 +201,7 @@ namespace CalculateFunding.Functions.Calcs
             builder.AddTelemetry();
 
             PolicySettings policySettings = builder.GetPolicySettings(config);
-            BulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
+            AsyncBulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
 
             ResiliencePolicies resiliencePolicies = CreateResiliencePolicies(totalNetworkRequestsPolicy);
 
@@ -219,7 +219,7 @@ namespace CalculateFunding.Functions.Calcs
             return builder.BuildServiceProvider();
         }
 
-        private static ResiliencePolicies CreateResiliencePolicies(Policy totalNetworkRequestsPolicy)
+        private static ResiliencePolicies CreateResiliencePolicies(AsyncPolicy totalNetworkRequestsPolicy)
         {
             return new ResiliencePolicies
             {

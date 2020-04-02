@@ -13,7 +13,7 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
     {
         private readonly IPublishedFundingRepository _publishedFunding;
         private readonly IPublishedFundingPredicateBuilder _predicateBuilder;
-        private readonly Policy _publishedFundingRepository;
+        private readonly AsyncPolicy _publishedFundingRepository;
 
         public PublishedProviderCsvBatchProcessor(IPublishedFundingRepository publishedFunding,
             IPublishedFundingPredicateBuilder predicateBuilder,

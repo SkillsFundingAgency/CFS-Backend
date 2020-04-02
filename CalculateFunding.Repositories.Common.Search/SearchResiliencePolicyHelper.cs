@@ -10,21 +10,21 @@ namespace CalculateFunding.Repositories.Common.Search
 {
     public static class SearchResiliencePolicyHelper
     {
-        public static Policy GenerateSearchPolicy(IAsyncPolicy chainedPolicy)
+        public static AsyncPolicy GenerateSearchPolicy(IAsyncPolicy chainedPolicy)
         {
             return GenerateSearchPolicy(new[] { chainedPolicy });
         }
 
-        public static Policy GenerateSearchPolicy(IAsyncPolicy[] chainedPolicies = null)
+        public static AsyncPolicy GenerateSearchPolicy(IAsyncPolicy[] chainedPolicies = null)
         {
-            Policy cloudExceptionRetry = Policy.Handle<CloudException>()
+            AsyncPolicy cloudExceptionRetry = Policy.Handle<CloudException>()
                 .WaitAndRetryAsync(new[] { TimeSpan.FromMilliseconds(100), TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(5) });
 
-            Policy indexBatchExceptionRetry = Policy.Handle<IndexBatchException>()
+            AsyncPolicy indexBatchExceptionRetry = Policy.Handle<IndexBatchException>()
                 .WaitAndRetryAsync(new[] { TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(5) });
 
             // IndexBatchException inherits CloudException, so additional circuit breaker not needed
-            Policy circuitBreaker = Policy.Handle<CloudException>().CircuitBreakerAsync(500, TimeSpan.FromMinutes(1));
+            AsyncPolicy circuitBreaker = Policy.Handle<CloudException>().CircuitBreakerAsync(500, TimeSpan.FromMinutes(1));
 
             List<IAsyncPolicy> policies = new List<IAsyncPolicy>(8)
             {
@@ -38,7 +38,7 @@ namespace CalculateFunding.Repositories.Common.Search
                 policies.AddRange(chainedPolicies);
             }
 
-            PolicyWrap policyWrap = Policy.WrapAsync(policies.ToArray());
+            AsyncPolicyWrap policyWrap = Policy.WrapAsync(policies.ToArray());
 
             return policyWrap;
         }

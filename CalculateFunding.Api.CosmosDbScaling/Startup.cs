@@ -131,7 +131,7 @@ namespace CalculateFunding.API.CosmosDbScaling
             {
                 PolicySettings policySettings = builder.GetPolicySettings(Configuration);
 
-                BulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
+                AsyncBulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
 
                 CosmosDbScalingResiliencePolicies resiliencePolicies = new CosmosDbScalingResiliencePolicies()
                 {

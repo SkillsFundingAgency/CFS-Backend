@@ -65,9 +65,9 @@ namespace CalculateFunding.Services.Datasets
         private readonly ICacheProvider _cacheProvider;
         private readonly IValidator<ExcelPackage> _dataWorksheetValidator;
         private readonly IValidator<DatasetUploadValidationModel> _datasetUploadValidator;
-        private readonly Policy _jobsApiClientPolicy;
+        private readonly AsyncPolicy _jobsApiClientPolicy;
         private readonly IJobsApiClient _jobsApiClient;
-        private readonly Policy _providersApiClientPolicy;
+        private readonly AsyncPolicy _providersApiClientPolicy;
         private readonly IJobManagement _jobManagement;
         private readonly IProviderSourceDatasetRepository _providerSourceDatasetRepository;
         private readonly ISpecificationsApiClient _specificationsApiClient;

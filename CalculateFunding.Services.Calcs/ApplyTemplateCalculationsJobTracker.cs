@@ -13,7 +13,7 @@ namespace CalculateFunding.Services.Calcs
     {
         public ApplyTemplateCalculationsJobTracker(string jobId,
             IJobsApiClient jobs,
-            Policy jobsResiliencePolicy,
+            AsyncPolicy jobsResiliencePolicy,
             ILogger logger)
         {
             Guard.IsNullOrWhiteSpace(jobId, nameof(jobId));
@@ -31,7 +31,7 @@ namespace CalculateFunding.Services.Calcs
 
         public IJobsApiClient Jobs { get; }
 
-        public Policy JobsResiliencePolicy { get; }
+        public AsyncPolicy JobsResiliencePolicy { get; }
 
         public ILogger Logger { get; }
 

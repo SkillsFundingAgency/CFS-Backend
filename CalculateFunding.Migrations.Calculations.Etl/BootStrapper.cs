@@ -43,7 +43,7 @@ namespace CalculateFunding.Migrations.Calculations.Etl
             serviceCollection.AddSingleton<ICalculationsEtlResiliencePolicies>(ctx =>
             {
                 PolicySettings policySettings = ctx.GetService<PolicySettings>();
-                BulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers
+                AsyncBulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers
                     .GenerateTotalNetworkRequestsPolicy(policySettings);
 
                 return new ResiliencePolicies
@@ -74,7 +74,7 @@ namespace CalculateFunding.Migrations.Calculations.Etl
             return serviceCollection.BuildServiceProvider();
         }
 
-        private static Policy GenerateRestRepositoryPolicy(BulkheadPolicy totalNetworkRequestsPolicy)
+        private static AsyncPolicy GenerateRestRepositoryPolicy(AsyncBulkheadPolicy totalNetworkRequestsPolicy)
         {
             return ResiliencePolicyHelpers
                 .GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy);

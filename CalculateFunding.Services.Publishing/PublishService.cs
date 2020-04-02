@@ -39,9 +39,9 @@ namespace CalculateFunding.Services.Publishing
         private readonly IPublishedProviderStatusUpdateService _publishedProviderStatusUpdateService;
         private readonly ISearchRepository<PublishedFundingIndex> _publishedFundingSearchRepository;
         private readonly IGeneratePublishedFundingCsvJobsCreationLocator _generateCsvJobsLocator;
-        private readonly Policy _calculationsApiClientPolicy;
+        private readonly AsyncPolicy _calculationsApiClientPolicy;
         private readonly IJobManagement _jobManagement;
-        private readonly Policy _publishedIndexSearchResiliencePolicy;
+        private readonly AsyncPolicy _publishedIndexSearchResiliencePolicy;
         private readonly ITransactionFactory _transactionFactory;
         private readonly IPublishedProviderVersionService _publishedProviderVersionService;
         private readonly IPublishedFundingService _publishedFundingService;

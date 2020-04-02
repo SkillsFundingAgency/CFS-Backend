@@ -15,7 +15,7 @@ namespace CalculateFunding.Services.Publishing.Providers
     {
         private readonly ISearchRepository<PublishedProviderIndex> _publishedProviderSearch;
         private readonly ISearchRepository<PublishedFundingIndex> _publishedFundingSearch;
-        private readonly Policy _searchPolicy;
+        private readonly AsyncPolicy _searchPolicy;
         private readonly ILogger _logger;
  
         public DeleteFundingSearchDocumentsService(ISearchRepository<PublishedProviderIndex> publishedProviderSearch,

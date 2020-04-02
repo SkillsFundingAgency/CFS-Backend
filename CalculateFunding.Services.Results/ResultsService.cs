@@ -35,13 +35,13 @@ namespace CalculateFunding.Services.Results
         private readonly ICalculationResultsRepository _resultsRepository;
         private readonly IProviderSourceDatasetRepository _providerSourceDatasetRepository;
         private readonly ISearchRepository<ProviderCalculationResultsIndex> _calculationProviderResultsSearchRepository;
-        private readonly Polly.Policy _resultsRepositoryPolicy;
+        private readonly Polly.AsyncPolicy _resultsRepositoryPolicy;
         private readonly ISpecificationsApiClient _specificationsApiClient;
-        private readonly Polly.Policy _resultsSearchRepositoryPolicy;
-        private readonly Polly.Policy _specificationsApiClientPolicy;
+        private readonly Polly.AsyncPolicy _resultsSearchRepositoryPolicy;
+        private readonly Polly.AsyncPolicy _specificationsApiClientPolicy;
         private readonly IMessengerService _messengerService;
         private readonly ICalculationsRepository _calculationRepository;
-        private readonly Polly.Policy _calculationsRepositoryPolicy;
+        private readonly Polly.AsyncPolicy _calculationsRepositoryPolicy;
         private readonly IFeatureToggle _featureToggle;
 
         public ResultsService(ILogger logger,

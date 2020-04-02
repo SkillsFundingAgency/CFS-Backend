@@ -16,7 +16,7 @@ namespace CalculateFunding.Services.Calcs
         Task FailJob(string outcome);
         string JobId { get; }
         IJobsApiClient Jobs { get; }
-        Policy JobsResiliencePolicy { get; }
+        AsyncPolicy JobsResiliencePolicy { get; }
         ILogger Logger { get; }
     }
 }

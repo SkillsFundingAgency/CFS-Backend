@@ -7,6 +7,6 @@ namespace CalculateFunding.Services.Publishing.Interfaces
 {
     public interface ITransactionResiliencePolicies
     {
-        Policy TransactionPolicy { get; set; }
+        AsyncPolicy TransactionPolicy { get; set; }
     }
 }

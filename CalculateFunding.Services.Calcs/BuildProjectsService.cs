@@ -46,14 +46,14 @@ namespace CalculateFunding.Services.Calcs
         private readonly ICalculationsRepository _calculationsRepository;
         private readonly IFeatureToggle _featureToggle;
         private readonly IJobsApiClient _jobsApiClient;
-        private readonly Polly.Policy _jobsApiClientPolicy;
+        private readonly Polly.AsyncPolicy _jobsApiClientPolicy;
         private readonly EngineSettings _engineSettings;
         private readonly ISourceCodeService _sourceCodeService;
         private readonly IDatasetRepository _datasetRepository;
         private readonly IJobManagement _jobManagement;
-        private readonly Polly.Policy _datasetRepositoryPolicy;
+        private readonly Polly.AsyncPolicy _datasetRepositoryPolicy;
         private readonly IBuildProjectsRepository _buildProjectsRepository;
-        private readonly Polly.Policy _buildProjectsRepositoryPolicy;
+        private readonly Polly.AsyncPolicy _buildProjectsRepositoryPolicy;
         private readonly ICalculationEngineRunningChecker _calculationEngineRunningChecker;
         private readonly IGraphRepository _graphRepository;
 

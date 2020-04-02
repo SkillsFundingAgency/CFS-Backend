@@ -5,10 +5,10 @@ namespace CalculateFunding.Api.External.V3.Services
 {
     public class ExternalApiResiliencePolicies : IExternalApiResiliencePolicies
     {
-        public Policy PublishedProviderBlobRepositoryPolicy { get; set; }
+        public AsyncPolicy PublishedProviderBlobRepositoryPolicy { get; set; }
 
-        public Policy PublishedFundingBlobRepositoryPolicy { get; set; }
+        public AsyncPolicy PublishedFundingBlobRepositoryPolicy { get; set; }
 
-        public Policy PublishedFundingRepositoryPolicy { get; set; }
+        public AsyncPolicy PublishedFundingRepositoryPolicy { get; set; }
     }
 }

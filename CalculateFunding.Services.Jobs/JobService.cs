@@ -17,7 +17,7 @@ namespace CalculateFunding.Services.Jobs
     {
         private readonly IJobRepository _jobRepository;
         private readonly IMapper _mapper;
-        private readonly Polly.Policy _jobsRepositoryPolicy;
+        private readonly Polly.AsyncPolicy _jobsRepositoryPolicy;
 
         public JobService(IJobRepository jobRepository, IMapper mapper, IJobsResiliencePolicies resiliencePolicies)
         {

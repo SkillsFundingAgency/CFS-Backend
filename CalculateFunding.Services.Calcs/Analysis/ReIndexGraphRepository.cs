@@ -23,7 +23,7 @@ namespace CalculateFunding.Services.Calcs.Analysis
     {
         private readonly IGraphApiClient _graphApiClient;
         private readonly IMapper _mapper;
-        private readonly Policy _resilience;
+        private readonly AsyncPolicy _resilience;
         private readonly ILogger _logger;
 
         public ReIndexGraphRepository(IGraphApiClient graphApiClient,

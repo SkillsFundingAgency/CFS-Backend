@@ -29,7 +29,7 @@ namespace CalculateFunding.Services.Scenarios
         private readonly ISearchRepository<ScenarioIndex> _searchRepository;
         private readonly IScenariosRepository _scenariosRepository;
         private readonly ISpecificationsApiClient _specificationsApiClient;
-        private readonly Policy _specificationsApiClientPolicy;
+        private readonly AsyncPolicy _specificationsApiClientPolicy;
 
         public ScenariosSearchService(
             ISearchRepository<ScenarioIndex> searchRepository,

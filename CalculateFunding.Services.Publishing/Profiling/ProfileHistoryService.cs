@@ -16,8 +16,8 @@ namespace CalculateFunding.Services.Publishing.Profiling
         private readonly IFundingStreamPaymentDatesRepository _paymentDates;
         private readonly IPublishedFundingRepository _publishedFunding;
         private readonly IDateTimeProvider _dateTimeProvider;
-        private readonly Policy _publishedFundingPolicy;
-        private readonly Policy _paymentDatesPolicy;
+        private readonly AsyncPolicy _publishedFundingPolicy;
+        private readonly AsyncPolicy _paymentDatesPolicy;
 
         public ProfileHistoryService(IFundingStreamPaymentDatesRepository paymentDates,
             IPublishedFundingRepository publishedFunding,

@@ -2,11 +2,11 @@
 {
     public interface ISpecificationsResiliencePolicies
     {
-        Polly.Policy JobsApiClient { get; set; }
-        Polly.Policy PoliciesApiClient { get; set; }
+        Polly.AsyncPolicy JobsApiClient { get; set; }
+        Polly.AsyncPolicy PoliciesApiClient { get; set; }
 
-        Polly.Policy CalcsApiClient { get; set; }
+        Polly.AsyncPolicy CalcsApiClient { get; set; }
 
-        Polly.Policy ProvidersApiClient { get; set; }
+        Polly.AsyncPolicy ProvidersApiClient { get; set; }
     }
 }

@@ -33,11 +33,11 @@ namespace CalculateFunding.Services.Calculator
             ICalculatorResiliencePolicies mockCalculatorResiliencePolicies = Substitute.For<ICalculatorResiliencePolicies>();
             var mockMessengerPolicy = Policy.NoOpAsync();
             var mockProviderResultsRepositoryPolicy = Policy.NoOpAsync();
-            mockCalculatorResiliencePolicies.CacheProvider.Returns((Policy)null);
+            mockCalculatorResiliencePolicies.CacheProvider.Returns((AsyncPolicy)null);
             mockCalculatorResiliencePolicies.Messenger.Returns(mockMessengerPolicy);
-            mockCalculatorResiliencePolicies.ProviderSourceDatasetsRepository.Returns((Policy)null);
+            mockCalculatorResiliencePolicies.ProviderSourceDatasetsRepository.Returns((AsyncPolicy)null);
             mockCalculatorResiliencePolicies.ProviderResultsRepository.Returns(mockProviderResultsRepositoryPolicy);
-            mockCalculatorResiliencePolicies.CalculationsRepository.Returns((Policy)null);
+            mockCalculatorResiliencePolicies.CalculationsRepository.Returns((AsyncPolicy)null);
             IValidator<ICalculatorResiliencePolicies> validator = new CalculatorResiliencePoliciesValidator();
 
             // Act

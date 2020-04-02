@@ -267,7 +267,7 @@ namespace CalculateFunding.Api.Datasets
 
             builder.AddSingleton<IJobManagementResiliencePolicies>((ctx) =>
             {
-                BulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
+                AsyncBulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
 
                 return new JobManagementResiliencePolicies()
                 {
@@ -296,7 +296,7 @@ namespace CalculateFunding.Api.Datasets
 
         private static DatasetsResiliencePolicies CreateResiliencePolicies(PolicySettings policySettings)
         {
-            BulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
+            AsyncBulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
 
             return new DatasetsResiliencePolicies
             {

@@ -247,7 +247,7 @@ namespace CalculateFunding.Api.Calcs
             builder.AddFeatureToggling(Configuration);
 
             PolicySettings policySettings = builder.GetPolicySettings(Configuration);
-            BulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
+            AsyncBulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
 
             ResiliencePolicies resiliencePolicies = CreateResiliencePolicies(totalNetworkRequestsPolicy);
 
@@ -280,7 +280,7 @@ namespace CalculateFunding.Api.Calcs
             });
         }
 
-        private static ResiliencePolicies CreateResiliencePolicies(Policy totalNetworkRequestsPolicy)
+        private static ResiliencePolicies CreateResiliencePolicies(AsyncPolicy totalNetworkRequestsPolicy)
         {
             return new ResiliencePolicies
             {

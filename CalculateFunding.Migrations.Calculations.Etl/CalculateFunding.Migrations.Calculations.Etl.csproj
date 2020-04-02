@@ -6,10 +6,10 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="CalculateFunding.Common.ApiClient.Calcs" Version="3.0.0" />
-        <PackageReference Include="CalculateFunding.Common.ApiClient.Datasets" Version="2.0.0" />
-        <PackageReference Include="CalculateFunding.Common.ApiClient.Profiling" Version="2.0.0" />
-        <PackageReference Include="CalculateFunding.Common.ApiClient.Specifications" Version="2.0.0" />
+        <PackageReference Include="CalculateFunding.Common.ApiClient.Calcs" Version="3.0.1" />
+        <PackageReference Include="CalculateFunding.Common.ApiClient.Datasets" Version="2.0.1" />
+        <PackageReference Include="CalculateFunding.Common.ApiClient.Profiling" Version="2.0.1" />
+        <PackageReference Include="CalculateFunding.Common.ApiClient.Specifications" Version="2.0.1" />
         <PackageReference Include="CommandLineParser" Version="2.6.0" />
     </ItemGroup>
 

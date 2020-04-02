@@ -11,7 +11,7 @@ namespace CalculateFunding.Services.Publishing.Error
 {
     public abstract class ErrorRecorder
     {
-        private readonly Policy _resiliencePolicy;
+        private readonly AsyncPolicy _resiliencePolicy;
         private readonly IBlobClient _blobClient;
 
         public ErrorRecorder(IPublishingResiliencePolicies resiliencePolicies, IBlobClient blobClient)

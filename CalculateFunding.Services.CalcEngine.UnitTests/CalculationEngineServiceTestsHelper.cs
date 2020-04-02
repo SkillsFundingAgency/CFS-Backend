@@ -68,12 +68,12 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
         public IFeatureToggle FeatureToggle { get; set; } = Substitute.For<IFeatureToggle>();
         public IJobsApiClient MockJobsApiClient { get; set; } = Substitute.For<IJobsApiClient>();
         public ISpecificationsApiClient MockSpecificationsApiClient { get; set; } = Substitute.For<ISpecificationsApiClient>();
-        public Policy MockCacheProviderPolicy { get; set; } = Policy.NoOpAsync();
-        public Policy MockMessengerPolicy { get; set; } = Policy.NoOpAsync();
-        public Policy MockProviderSourceDatasetsRepositoryPolicy { get; set; } = Policy.NoOpAsync();
-        public Policy MockProviderResultsRepositoryPolicy { get; set; } = Policy.NoOpAsync();
-        public Policy MockCalculationRepositoryPolicy { get; set; } = Policy.NoOpAsync();
-        public Policy MockJobsApiClientPolicy { get; set; } = Policy.NoOpAsync();
-        public Policy MockSpecificationsApiClientPolicy { get; set; } = Policy.NoOpAsync();
+        public AsyncPolicy MockCacheProviderPolicy { get; set; } = Policy.NoOpAsync();
+        public AsyncPolicy MockMessengerPolicy { get; set; } = Policy.NoOpAsync();
+        public AsyncPolicy MockProviderSourceDatasetsRepositoryPolicy { get; set; } = Policy.NoOpAsync();
+        public AsyncPolicy MockProviderResultsRepositoryPolicy { get; set; } = Policy.NoOpAsync();
+        public AsyncPolicy MockCalculationRepositoryPolicy { get; set; } = Policy.NoOpAsync();
+        public AsyncPolicy MockJobsApiClientPolicy { get; set; } = Policy.NoOpAsync();
+        public AsyncPolicy MockSpecificationsApiClientPolicy { get; set; } = Policy.NoOpAsync();
     }
 }

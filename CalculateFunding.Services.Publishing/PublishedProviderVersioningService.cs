@@ -22,7 +22,7 @@ namespace CalculateFunding.Services.Publishing
     {
         private readonly ILogger _logger;
         private readonly IVersionRepository<PublishedProviderVersion> _versionRepository;
-        private readonly Polly.Policy _versionRepositoryPolicy;
+        private readonly Polly.AsyncPolicy _versionRepositoryPolicy;
         private readonly IPublishingEngineOptions _publishingEngineOptions;
 
         public PublishedProviderVersioningService(

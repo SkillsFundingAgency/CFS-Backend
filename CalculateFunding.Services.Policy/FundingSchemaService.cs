@@ -22,7 +22,7 @@ namespace CalculateFunding.Services.Policy
 
         private readonly ILogger _logger;
         private readonly IFundingSchemaRepository _fundingSchemaRepository;
-        private readonly Polly.Policy _fundingSchemaRepositoryPolicy;
+        private readonly Polly.AsyncPolicy _fundingSchemaRepositoryPolicy;
 
         public FundingSchemaService(
             ILogger logger,

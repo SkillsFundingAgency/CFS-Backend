@@ -18,7 +18,7 @@ namespace CalculateFunding.Services.Publishing
     public class PublishedProviderIndexerService : IPublishedProviderIndexerService
     {
         private readonly ISearchRepository<PublishedProviderIndex> _searchRepository;
-        private readonly Policy _searchPolicy;
+        private readonly AsyncPolicy _searchPolicy;
         private readonly ILogger _logger;
         private readonly IPublishingEngineOptions _publishingEngineOptions;
 

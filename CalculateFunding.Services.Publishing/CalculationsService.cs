@@ -13,7 +13,7 @@ namespace CalculateFunding.Services.Publishing
     public class CalculationsService : ICalculationsService
     {
         private readonly ICalculationsApiClient _calculationsApiClient;
-        private readonly Policy _calcsApiClientPolicy;
+        private readonly AsyncPolicy _calcsApiClientPolicy;
         private readonly ILogger _logger;
 
         public CalculationsService(

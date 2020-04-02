@@ -13,7 +13,7 @@ namespace CalculateFunding.Services.Publishing
 {
     public class CalculationResultsService : ICalculationResultsService
     {
-        private readonly Polly.Policy _resultsRepositoryPolicy;
+        private readonly Polly.AsyncPolicy _resultsRepositoryPolicy;
         private readonly ICalculationResultsRepository _calculationResultsRepository;
         private readonly ILogger _logger;
         private readonly IPublishingEngineOptions _publishingEngineOptions;

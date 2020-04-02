@@ -33,11 +33,11 @@ namespace CalculateFunding.Services.Datasets
         private readonly ILogger _logger;
         private readonly IDatasetRepository _datasetsRepository;
         private readonly ISearchRepository<DatasetDefinitionIndex> _datasetDefinitionSearchRepository;
-        private readonly Policy _datasetDefinitionSearchRepositoryPolicy;
-        private readonly Policy _datasetsRepositoryPolicy;
+        private readonly AsyncPolicy _datasetDefinitionSearchRepositoryPolicy;
+        private readonly AsyncPolicy _datasetsRepositoryPolicy;
         private readonly IExcelWriter<DatasetDefinition> _excelWriter;
         private readonly IBlobClient _blobClient;
-        private readonly Policy _blobClientPolicy;
+        private readonly AsyncPolicy _blobClientPolicy;
         private readonly IDefinitionChangesDetectionService _definitionChangesDetectionService;
         private readonly IMessengerService _messengerService;
 

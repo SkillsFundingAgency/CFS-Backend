@@ -6,24 +6,24 @@ namespace CalculateFunding.Services.Datasets
 {
     public class DatasetsResiliencePolicies : IDatasetsResiliencePolicies, IJobHelperResiliencePolicies
     {
-        public Policy ProviderRepository { get; set; }
+        public AsyncPolicy ProviderRepository { get; set; }
 
-        public Policy ProviderResultsRepository { get; set; }
+        public AsyncPolicy ProviderResultsRepository { get; set; }
 
-        public Policy DatasetRepository { get; set; }
+        public AsyncPolicy DatasetRepository { get; set; }
 
-        public Policy DatasetSearchService { get; set; }
+        public AsyncPolicy DatasetSearchService { get; set; }
 
-        public Policy SpecificationsApiClient { get; set; }
+        public AsyncPolicy SpecificationsApiClient { get; set; }
 
-        public Policy CacheProviderRepository { get; set; }
+        public AsyncPolicy CacheProviderRepository { get; set; }
 
-        public Policy DatasetDefinitionSearchRepository { get; set; }
+        public AsyncPolicy DatasetDefinitionSearchRepository { get; set; }
 
-        public Policy BlobClient { get; set; }
+        public AsyncPolicy BlobClient { get; set; }
 
-        public Policy JobsApiClient { get; set; }
+        public AsyncPolicy JobsApiClient { get; set; }
 
-        public Policy ProvidersApiClient { get; set; }
+        public AsyncPolicy ProvidersApiClient { get; set; }
     }
 }

@@ -23,7 +23,7 @@ namespace CalculateFunding.Services.TestRunner.Services
     {
         private readonly ILogger _logger;
         private readonly ISearchRepository<TestScenarioResultIndex> _searchRepository;
-        private readonly Policy _searchRepositoryPolicy;
+        private readonly AsyncPolicy _searchRepositoryPolicy;
 
         private readonly FacetFilterType[] Facets = {
             new FacetFilterType("testResult"),

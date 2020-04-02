@@ -21,9 +21,9 @@ namespace CalculateFunding.Services.Publishing
     {
         private readonly IJobManagement _jobManagement;
         private readonly ISearchRepository<PublishedProviderIndex> _searchRepository;
-        private readonly Policy _searchRepositoryResilience;
+        private readonly AsyncPolicy _searchRepositoryResilience;
         private readonly IPublishedFundingRepository _publishedFundingRepository;
-        private readonly Policy _publishedFundingResilience;
+        private readonly AsyncPolicy _publishedFundingResilience;
         private readonly ILogger _logger;
 
         private const int BatchSize = 1000;

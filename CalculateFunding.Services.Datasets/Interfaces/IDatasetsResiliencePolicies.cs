@@ -4,24 +4,24 @@ namespace CalculateFunding.Services.Datasets.Interfaces
 {
     public interface IDatasetsResiliencePolicies
     {
-        Policy ProviderResultsRepository { get; set; }
+        AsyncPolicy ProviderResultsRepository { get; set; }
 
-        Policy ProviderRepository { get; set; }
+        AsyncPolicy ProviderRepository { get; set; }
 
-        Policy DatasetRepository { get; set; }
+        AsyncPolicy DatasetRepository { get; set; }
 
-        Policy DatasetSearchService { get; set; }
+        AsyncPolicy DatasetSearchService { get; set; }
 
-        Policy SpecificationsApiClient { get; set; }
+        AsyncPolicy SpecificationsApiClient { get; set; }
 
-        Policy CacheProviderRepository { get; set; }
+        AsyncPolicy CacheProviderRepository { get; set; }
 
-        Policy DatasetDefinitionSearchRepository { get; set; }
+        AsyncPolicy DatasetDefinitionSearchRepository { get; set; }
 
-        Policy BlobClient { get; set; }
+        AsyncPolicy BlobClient { get; set; }
 
-        Policy JobsApiClient { get; set; }
+        AsyncPolicy JobsApiClient { get; set; }
 
-        Policy ProvidersApiClient { get; set; }
+        AsyncPolicy ProvidersApiClient { get; set; }
     }
 }

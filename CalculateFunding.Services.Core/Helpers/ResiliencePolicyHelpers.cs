@@ -13,23 +13,23 @@ namespace CalculateFunding.Services.Core.Helpers
 {
     public static class ResiliencePolicyHelpers
     {
-        public static Policy GenerateRedisPolicy(IAsyncPolicy chainedPolicy)
+        public static AsyncPolicy GenerateRedisPolicy(IAsyncPolicy chainedPolicy)
         {
             return GenerateRedisPolicy(new[] { chainedPolicy });
         }
 
 
-        public static Policy GenerateRedisPolicy(IAsyncPolicy[] chainedPolicies = null)
+        public static AsyncPolicy GenerateRedisPolicy(IAsyncPolicy[] chainedPolicies = null)
         {
-            Policy redisServerExceptionRetry = Policy.Handle<RedisServerException>()
+            AsyncPolicy redisServerExceptionRetry = Policy.Handle<RedisServerException>()
                 .WaitAndRetryAsync(new[] { TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(15) });
 
-            Policy circuitBreakerRedisServerException = Policy.Handle<RedisServerException>().CircuitBreakerAsync(1000, TimeSpan.FromMinutes(1));
+            AsyncPolicy circuitBreakerRedisServerException = Policy.Handle<RedisServerException>().CircuitBreakerAsync(1000, TimeSpan.FromMinutes(1));
 
-            Policy connectionExceptionRetry = Policy.Handle<RedisConnectionException>()
+            AsyncPolicy connectionExceptionRetry = Policy.Handle<RedisConnectionException>()
                 .WaitAndRetryAsync(new[] { TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(15) });
 
-            Policy connectionExceptionCircuitBreaker = Policy.Handle<RedisConnectionException>().CircuitBreakerAsync(250, TimeSpan.FromMinutes(1));
+            AsyncPolicy connectionExceptionCircuitBreaker = Policy.Handle<RedisConnectionException>().CircuitBreakerAsync(250, TimeSpan.FromMinutes(1));
 
             List<IAsyncPolicy> policies = new List<IAsyncPolicy>(8)
             {
@@ -44,22 +44,22 @@ namespace CalculateFunding.Services.Core.Helpers
                 policies.AddRange(chainedPolicies);
             }
 
-            PolicyWrap policyWrap = Policy.WrapAsync(policies.ToArray());
+            AsyncPolicyWrap policyWrap = Policy.WrapAsync(policies.ToArray());
 
             return policyWrap;
         }
 
-        public static Policy GenerateRestRepositoryPolicy(IAsyncPolicy chainedPolicy)
+        public static AsyncPolicy GenerateRestRepositoryPolicy(IAsyncPolicy chainedPolicy)
         {
             return GenerateRestRepositoryPolicy(new[] { chainedPolicy });
         }
 
-        public static Policy GenerateRestRepositoryPolicy(IAsyncPolicy[] chainedPolicies = null)
+        public static AsyncPolicy GenerateRestRepositoryPolicy(IAsyncPolicy[] chainedPolicies = null)
         {
-            Policy httpRequestExceptionPolicy = Policy.Handle<HttpRequestException>()
+            AsyncPolicy httpRequestExceptionPolicy = Policy.Handle<HttpRequestException>()
                 .WaitAndRetryAsync(new[] { TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(5) });
 
-            Policy circuitBreakerRequestException = Policy.Handle<HttpRequestException>().CircuitBreakerAsync(100, TimeSpan.FromMinutes(1));
+            AsyncPolicy circuitBreakerRequestException = Policy.Handle<HttpRequestException>().CircuitBreakerAsync(100, TimeSpan.FromMinutes(1));
 
             List<IAsyncPolicy> policies = new List<IAsyncPolicy>(8)
             {
@@ -72,20 +72,20 @@ namespace CalculateFunding.Services.Core.Helpers
                 policies.AddRange(chainedPolicies);
             }
 
-            PolicyWrap policyWrap = Policy.WrapAsync(policies.ToArray());
+            AsyncPolicyWrap policyWrap = Policy.WrapAsync(policies.ToArray());
 
             return policyWrap;
         }
 
-        public static Policy GenerateMessagingPolicy(IAsyncPolicy chainedPolicy)
+        public static AsyncPolicy GenerateMessagingPolicy(IAsyncPolicy chainedPolicy)
         {
             return GenerateMessagingPolicy(new[] { chainedPolicy });
         }
 
-        public static Policy GenerateMessagingPolicy(IAsyncPolicy[] chainedPolicies = null)
+        public static AsyncPolicy GenerateMessagingPolicy(IAsyncPolicy[] chainedPolicies = null)
         {
             // Not sure of exactly the exception the messaging client throws. There is a RetryExponential.Default retry policy on the QueueClient too 
-            Policy circuitBreakerRequestException = Policy.Handle<Exception>().CircuitBreakerAsync(100, TimeSpan.FromMinutes(1));
+            AsyncPolicy circuitBreakerRequestException = Policy.Handle<Exception>().CircuitBreakerAsync(100, TimeSpan.FromMinutes(1));
 
             List<IAsyncPolicy> policies = new List<IAsyncPolicy>(8)
             {
@@ -97,17 +97,17 @@ namespace CalculateFunding.Services.Core.Helpers
                 policies.AddRange(chainedPolicies);
             }
 
-            PolicyWrap policyWrap = Policy.WrapAsync(policies.ToArray());
+            AsyncPolicyWrap policyWrap = Policy.WrapAsync(policies.ToArray());
 
             return policyWrap;
         }
 
-        public static Policy CosmosManagementPolicy(IAsyncPolicy[] chainedPolicies = null)
+        public static AsyncPolicy CosmosManagementPolicy(IAsyncPolicy[] chainedPolicies = null)
         {
-            Policy cosmosExceptionRetry = Policy.Handle<CosmosException>()
+            AsyncPolicy cosmosExceptionRetry = Policy.Handle<CosmosException>()
                .WaitAndRetryAsync(new[] { TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(20) });
 
-            Policy circuitBreakerRequestException = Policy.Handle<Exception>().CircuitBreakerAsync(100, TimeSpan.FromMinutes(1));
+            AsyncPolicy circuitBreakerRequestException = Policy.Handle<Exception>().CircuitBreakerAsync(100, TimeSpan.FromMinutes(1));
 
             List<IAsyncPolicy> policies = new List<IAsyncPolicy>(8)
             {
@@ -120,12 +120,12 @@ namespace CalculateFunding.Services.Core.Helpers
                 policies.AddRange(chainedPolicies);
             }
 
-            PolicyWrap policyWrap = Policy.WrapAsync(policies.ToArray());
+            AsyncPolicyWrap policyWrap = Policy.WrapAsync(policies.ToArray());
 
             return policyWrap;
         }
 
-        public static BulkheadPolicy GenerateTotalNetworkRequestsPolicy(PolicySettings settings)
+        public static AsyncBulkheadPolicy GenerateTotalNetworkRequestsPolicy(PolicySettings settings)
         {
             return Policy.BulkheadAsync(settings.MaximumSimultaneousNetworkRequests);
         }

@@ -105,7 +105,7 @@ namespace CalculateFunding.Services.Publishing.IoC
 
         private static OrganisationGroupResiliencePolicies CreateResiliencePolicies(PolicySettings policySettings)
         {
-            BulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
+            AsyncBulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
 
             OrganisationGroupResiliencePolicies resiliencePolicies = new OrganisationGroupResiliencePolicies
             {

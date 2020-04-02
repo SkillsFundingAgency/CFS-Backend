@@ -15,7 +15,7 @@ namespace CalculateFunding.Services.Publishing
     public class FundingFeedSearchService : IFundingFeedSearchService, IHealthChecker
     {
         private readonly IPublishedFundingRepository _publishedFundingRepository;
-        private readonly Policy _publishedFundingRepositoryPolicy;
+        private readonly AsyncPolicy _publishedFundingRepositoryPolicy;
 
         public FundingFeedSearchService(IPublishedFundingRepository publishedFundingRepository, IPublishingResiliencePolicies resiliencePolicies)
         {

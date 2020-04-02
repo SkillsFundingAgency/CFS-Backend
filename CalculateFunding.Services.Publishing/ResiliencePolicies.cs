@@ -6,34 +6,34 @@ namespace CalculateFunding.Services.Publishing
 {
     public class ResiliencePolicies : IPublishingResiliencePolicies
     {
-        public Policy CalculationResultsRepository { get; set; }
+        public AsyncPolicy CalculationResultsRepository { get; set; }
 
-        public Policy SpecificationsRepositoryPolicy { get; set; }
+        public AsyncPolicy SpecificationsRepositoryPolicy { get; set; }
 
-        public Policy JobsApiClient { get; set; }
+        public AsyncPolicy JobsApiClient { get; set; }
 
-        public Policy ProvidersApiClient { get; set; }
+        public AsyncPolicy ProvidersApiClient { get; set; }
 
-        public Policy PublishedFundingRepository { get; set; }
+        public AsyncPolicy PublishedFundingRepository { get; set; }
 
-        public Policy PublishedProviderVersionRepository { get; set; }
+        public AsyncPolicy PublishedProviderVersionRepository { get; set; }
 
-        public Policy FundingFeedSearchRepository { get; set; }
+        public AsyncPolicy FundingFeedSearchRepository { get; set; }
         
-        public Policy PublishedProviderSearchRepository { get; set; }
+        public AsyncPolicy PublishedProviderSearchRepository { get; set; }
 
-        public Policy PublishedFundingBlobRepository { get; set; }
+        public AsyncPolicy PublishedFundingBlobRepository { get; set; }
 
-        public Policy BlobClient { get; set; }
+        public AsyncPolicy BlobClient { get; set; }
 
-        public Policy CalculationsApiClient { get; set; }
+        public AsyncPolicy CalculationsApiClient { get; set; }
         
-        public Policy PoliciesApiClient { get; set; }
+        public AsyncPolicy PoliciesApiClient { get; set; }
         
-        public Policy SpecificationsApiClient { get; set; }
+        public AsyncPolicy SpecificationsApiClient { get; set; }
 
-        public Policy PublishedIndexSearchResiliencePolicy { get; set; }
+        public AsyncPolicy PublishedIndexSearchResiliencePolicy { get; set; }
         
-        public Policy FundingStreamPaymentDatesRepository { get; set; }
+        public AsyncPolicy FundingStreamPaymentDatesRepository { get; set; }
     }
 }

@@ -7,7 +7,7 @@ using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Publishing.Interfaces;
 using Serilog;
-using Policy = Polly.Policy;
+using Policy = Polly.AsyncPolicy;
 
 namespace CalculateFunding.Services.Publishing.Specifications
 {

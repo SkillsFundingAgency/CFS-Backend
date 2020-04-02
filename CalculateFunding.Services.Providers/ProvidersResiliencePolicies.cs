@@ -5,10 +5,10 @@ namespace CalculateFunding.Services.Providers
 {
     public class ProvidersResiliencePolicies : IProvidersResiliencePolicies
     {
-        public Policy ProviderVersionsSearchRepository { get; set; }
+        public AsyncPolicy ProviderVersionsSearchRepository { get; set; }
 
-        public Policy ProviderVersionMetadataRepository { get; set; }
+        public AsyncPolicy ProviderVersionMetadataRepository { get; set; }
 
-        public Policy BlobRepositoryPolicy { get; set; }
+        public AsyncPolicy BlobRepositoryPolicy { get; set; }
     }
 }

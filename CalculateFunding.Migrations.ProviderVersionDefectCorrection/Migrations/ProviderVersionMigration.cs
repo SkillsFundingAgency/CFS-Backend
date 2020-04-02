@@ -14,7 +14,7 @@ namespace CalculateFunding.Migrations.ProviderVersionDefectCorrection.Migrations
     public class ProviderVersionMigration : IProviderVersionMigration
     {
         private readonly ICosmosRepository _cosmosRepository;
-        private readonly Policy _resiliencePolicy;
+        private readonly AsyncPolicy _resiliencePolicy;
         private readonly ILogger _logger;
 
         public ProviderVersionMigration(ICosmosRepository cosmosRepository,

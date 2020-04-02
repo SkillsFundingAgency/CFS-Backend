@@ -24,7 +24,7 @@ namespace CalculateFunding.Services.Calcs
     public class GraphRepository : IGraphRepository
     {
         private readonly IGraphApiClient _graphApiClient;
-        private readonly Policy _resilience;
+        private readonly AsyncPolicy _resilience;
         private readonly ILogger _logger;
         private readonly ICalculationsFeatureFlag _calculationsFeatureFlag;
         private bool? _graphEnabled;

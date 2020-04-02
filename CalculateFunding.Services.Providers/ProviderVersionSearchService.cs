@@ -19,10 +19,10 @@ namespace CalculateFunding.Services.Providers
 {
     public class ProviderVersionSearchService : IProviderVersionSearchService, IHealthChecker
     {
-        private readonly Policy _searchRepositoryPolicy;
+        private readonly AsyncPolicy _searchRepositoryPolicy;
         private readonly ILogger _logger;
         private readonly ISearchRepository<ProvidersIndex> _searchRepository;
-        private readonly Policy _providerVersionMetadataRepositoryPolicy;
+        private readonly AsyncPolicy _providerVersionMetadataRepositoryPolicy;
         private readonly IProviderVersionsMetadataRepository _providerVersionMetadataRepository;
         private readonly IProviderVersionService _providerVersionService;
 

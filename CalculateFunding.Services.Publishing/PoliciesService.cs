@@ -14,7 +14,7 @@ namespace CalculateFunding.Services.Publishing
     public class PoliciesService : IPoliciesService
     {
         private readonly IPoliciesApiClient _policiesApiClient;
-        private readonly Policy _policiesApiClientPolicy;
+        private readonly AsyncPolicy _policiesApiClientPolicy;
 
         public PoliciesService(
             IPoliciesApiClient policiesApiClient,

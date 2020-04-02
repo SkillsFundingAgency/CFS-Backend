@@ -5,13 +5,13 @@ namespace CalculateFunding.Services.Specs
 {
     public class SpecificationsResiliencePolicies : ISpecificationsResiliencePolicies
     {
-        public Policy JobsApiClient { get; set; }
+        public AsyncPolicy JobsApiClient { get; set; }
 
-        public Policy PoliciesApiClient { get; set; }
+        public AsyncPolicy PoliciesApiClient { get; set; }
 
-        public Policy CalcsApiClient { get; set; }
+        public AsyncPolicy CalcsApiClient { get; set; }
 
-        public Policy ProvidersApiClient { get; set; }
+        public AsyncPolicy ProvidersApiClient { get; set; }
 
     }
 }

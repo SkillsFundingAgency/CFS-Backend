@@ -14,7 +14,7 @@ namespace CalculateFunding.Services.Publishing.Profiling
     public class FundingStreamPaymentDatesIngestion : IFundingStreamPaymentDatesIngestion
     {
         private readonly ILogger _logger;
-        private readonly Policy _resilience;
+        private readonly AsyncPolicy _resilience;
         private readonly IFundingStreamPaymentDatesRepository _fundingStreamPaymentDates;
         private readonly ICsvUtils _csvUtils;
 

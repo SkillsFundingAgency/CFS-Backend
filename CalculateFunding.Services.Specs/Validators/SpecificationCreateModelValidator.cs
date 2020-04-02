@@ -15,7 +15,7 @@ namespace CalculateFunding.Services.Specs.Validators
         private readonly ISpecificationsRepository _specificationsRepository;
         private readonly IProvidersApiClient _providersApiClient;
         private readonly IPoliciesApiClient _policiesApiClient;
-        private readonly Polly.Policy _policiesApiClientPolicy;
+        private readonly Polly.AsyncPolicy _policiesApiClientPolicy;
        
 
         public SpecificationCreateModelValidator(ISpecificationsRepository specificationsRepository, 

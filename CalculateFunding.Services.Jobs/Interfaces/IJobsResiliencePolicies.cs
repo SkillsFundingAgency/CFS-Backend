@@ -4,12 +4,12 @@ namespace CalculateFunding.Services.Jobs.Interfaces
 {
     public interface IJobsResiliencePolicies
     {
-        Policy JobDefinitionsRepository { get; set; }
+        AsyncPolicy JobDefinitionsRepository { get; set; }
 
-        Policy CacheProviderPolicy { get; set; }
+        AsyncPolicy CacheProviderPolicy { get; set; }
 
-        Policy MessengerServicePolicy { get; set; }
+        AsyncPolicy MessengerServicePolicy { get; set; }
 
-        Policy JobRepository { get; set; }
+        AsyncPolicy JobRepository { get; set; }
     }
 }

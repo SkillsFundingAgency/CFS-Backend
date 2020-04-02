@@ -5,6 +5,6 @@ namespace CalculateFunding.Services.Notifications
 {
     public class NotificationsResiliencePolicies : INotificationsResiliencePolicies
     {
-        public Policy MessagePolicy { get; set; }
+        public AsyncPolicy MessagePolicy { get; set; }
     }
 }

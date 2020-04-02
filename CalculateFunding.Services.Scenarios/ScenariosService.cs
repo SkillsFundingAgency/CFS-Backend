@@ -48,10 +48,10 @@ namespace CalculateFunding.Services.Scenarios
         private readonly IVersionRepository<TestScenarioVersion> _versionRepository;
         private readonly IJobsApiClient _jobsApiClient;
         private readonly ICalcsRepository _calcsRepository;
-        private readonly Polly.Policy _jobsApiClientPolicy;
-        private readonly Polly.Policy _calcsRepositoryPolicy;
-        private readonly Polly.Policy _scenariosRepositoryPolicy;
-        private readonly Polly.Policy _specificationsApiClientPolicy;
+        private readonly Polly.AsyncPolicy _jobsApiClientPolicy;
+        private readonly Polly.AsyncPolicy _calcsRepositoryPolicy;
+        private readonly Polly.AsyncPolicy _scenariosRepositoryPolicy;
+        private readonly Polly.AsyncPolicy _specificationsApiClientPolicy;
 
         public ScenariosService(
             ILogger logger,

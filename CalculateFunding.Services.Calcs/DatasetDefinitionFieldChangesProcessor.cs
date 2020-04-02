@@ -20,8 +20,8 @@ namespace CalculateFunding.Services.Calcs
     {
         private readonly IFeatureToggle _featureToggle;
         private readonly IDatasetRepository _datasetRepository;
-        private readonly Polly.Policy _datasetRepositoryPolicy;
-        private readonly Polly.Policy _calculationsRepositoryPolicy;
+        private readonly Polly.AsyncPolicy _datasetRepositoryPolicy;
+        private readonly Polly.AsyncPolicy _calculationsRepositoryPolicy;
         private readonly ILogger _logger;
         private readonly ICalculationService _calculationService;
         private readonly ICalculationsRepository _calculationsRepository;

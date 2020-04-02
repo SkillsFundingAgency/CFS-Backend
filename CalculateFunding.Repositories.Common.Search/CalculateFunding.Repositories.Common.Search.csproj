@@ -11,7 +11,7 @@
     <PackageReference Include="CalculateFunding.Common.Models" Version="2.0.0" />
 
     <PackageReference Include="Microsoft.Azure.Search" Version="10.1.0" />
-    <PackageReference Include="Polly" Version="6.1.2" />
+    <PackageReference Include="Polly" Version="7.1.0" />
   </ItemGroup>
 
   <ItemGroup>

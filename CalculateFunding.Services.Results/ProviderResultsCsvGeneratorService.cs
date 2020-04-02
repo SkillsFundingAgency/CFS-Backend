@@ -28,8 +28,8 @@ namespace CalculateFunding.Services.Results
         private readonly IProverResultsToCsvRowsTransformation _resultsToCsvRowsTransformation;
         private readonly IFileSystemAccess _fileSystemAccess;
         private readonly IFileSystemCacheSettings _fileSystemCacheSettings;
-        private readonly Policy _blobClientPolicy;
-        private readonly Policy _resultsRepositoryPolicy;
+        private readonly AsyncPolicy _blobClientPolicy;
+        private readonly AsyncPolicy _resultsRepositoryPolicy;
 
         public ProviderResultsCsvGeneratorService(ILogger logger,
             IBlobClient blobClient,

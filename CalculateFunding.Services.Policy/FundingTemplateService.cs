@@ -26,10 +26,10 @@ namespace CalculateFunding.Services.Policy
     {
         private readonly ILogger _logger;
         private readonly IFundingTemplateRepository _fundingTemplateRepository;
-        private readonly Polly.Policy _fundingTemplateRepositoryPolicy;
+        private readonly Polly.AsyncPolicy _fundingTemplateRepositoryPolicy;
         private readonly IFundingTemplateValidationService _fundingTemplateValidationService;
         private readonly ICacheProvider _cacheProvider;
-        private readonly Polly.Policy _cacheProviderPolicy;
+        private readonly Polly.AsyncPolicy _cacheProviderPolicy;
         private readonly ITemplateMetadataResolver _templateMetadataResolver;
 
         public FundingTemplateService(

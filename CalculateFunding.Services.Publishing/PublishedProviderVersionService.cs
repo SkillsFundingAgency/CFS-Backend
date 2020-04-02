@@ -24,8 +24,8 @@ namespace CalculateFunding.Services.Publishing
         private readonly ILogger _logger;
         private readonly IBlobClient _blobClient;
         private readonly IJobsApiClient _jobs;
-        private readonly Policy _blobClientPolicy;
-        private readonly Policy _jobsClientPolicy;
+        private readonly AsyncPolicy _blobClientPolicy;
+        private readonly AsyncPolicy _jobsClientPolicy;
 
         public PublishedProviderVersionService(
             ILogger logger,

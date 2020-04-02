@@ -4,18 +4,18 @@ namespace CalculateFunding.Services.CalcEngine.Interfaces
 {
     public interface ICalculatorResiliencePolicies
     {
-        Policy CacheProvider { get; set; }
+        AsyncPolicy CacheProvider { get; set; }
 
-        Policy Messenger { get; set; }
+        AsyncPolicy Messenger { get; set; }
 
-        Policy ProviderSourceDatasetsRepository { get; set; }
+        AsyncPolicy ProviderSourceDatasetsRepository { get; set; }
 
-        Policy ProviderResultsRepository { get; set; }
+        AsyncPolicy ProviderResultsRepository { get; set; }
 
-        Policy CalculationsRepository { get; set; }
+        AsyncPolicy CalculationsRepository { get; set; }
 
-        Policy JobsApiClient { get; set; }
+        AsyncPolicy JobsApiClient { get; set; }
 
-        Policy SpecificationsApiClient { get; set; }
+        AsyncPolicy SpecificationsApiClient { get; set; }
     }
 }

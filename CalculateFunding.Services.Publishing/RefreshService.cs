@@ -35,8 +35,8 @@ namespace CalculateFunding.Services.Publishing
         private readonly ILogger _logger;
         private readonly ICalculationsApiClient _calculationsApiClient;
         private readonly IPrerequisiteCheckerLocator _prerequisiteCheckerLocator;
-        private readonly Policy _publishingResiliencePolicy;
-        private readonly Policy _calculationsApiClientPolicy;
+        private readonly AsyncPolicy _publishingResiliencePolicy;
+        private readonly AsyncPolicy _calculationsApiClientPolicy;
         private readonly IPublishProviderExclusionCheck _providerExclusionCheck;
         private readonly IFundingLineValueOverride _fundingLineValueOverride;
         private readonly IPublishedProviderIndexerService _publishedProviderIndexerService;

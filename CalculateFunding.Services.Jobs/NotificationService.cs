@@ -13,7 +13,7 @@ namespace CalculateFunding.Services.Jobs
     public class NotificationService : INotificationService
     {
         private readonly IMessengerService _messengerService;
-        private readonly Policy _messengerServicePolicy;
+        private readonly AsyncPolicy _messengerServicePolicy;
         private readonly ILogger _logger;
 
         public NotificationService(IMessengerService messengerService, IJobsResiliencePolicies resiliencePolicies, ILogger logger)

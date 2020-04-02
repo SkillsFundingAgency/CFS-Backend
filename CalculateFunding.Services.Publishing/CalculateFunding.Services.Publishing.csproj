@@ -9,27 +9,27 @@
   <ItemGroup>
 
 
-	<PackageReference Include="CalculateFunding.Common.ApiClient.Bearer" Version="2.0.0" />
+	<PackageReference Include="CalculateFunding.Common.ApiClient.Bearer" Version="2.0.1" />
 
 
-	<PackageReference Include="CalculateFunding.Common.ApiClient.Calcs" Version="3.0.0" />
+	<PackageReference Include="CalculateFunding.Common.ApiClient.Calcs" Version="3.0.1" />
 
 
-	<PackageReference Include="CalculateFunding.Common.ApiClient.Policies" Version="3.0.0" />
+	<PackageReference Include="CalculateFunding.Common.ApiClient.Policies" Version="3.0.1" />
 
-    <PackageReference Include="CalculateFunding.Common.ApiClient.Profiling" Version="2.0.0" />
-    <PackageReference Include="CalculateFunding.Common.ApiClient.Specifications" Version="2.0.0" />
+    <PackageReference Include="CalculateFunding.Common.ApiClient.Profiling" Version="2.0.1" />
+    <PackageReference Include="CalculateFunding.Common.ApiClient.Specifications" Version="2.0.1" />
 
 
 
-    <PackageReference Include="CalculateFunding.Common.JobManagement" Version="2.0.0" />
+    <PackageReference Include="CalculateFunding.Common.JobManagement" Version="2.0.1" />
 
 
 
     <PackageReference Include="CalculateFunding.Common.Models" Version="2.0.0" />
     <PackageReference Include="CalculateFunding.Common.Storage" Version="2.0.0" />
     <PackageReference Include="CalculateFunding.Generators.Funding" Version="2.0.0" />
-    <PackageReference Include="CalculateFunding.Generators.OrganisationGroup" Version="1.0.19" />
+    <PackageReference Include="CalculateFunding.Generators.OrganisationGroup" Version="2.0.1" />
 
     <PackageReference Include="Microsoft.FeatureManagement" Version="2.0.0-preview-010610001-1263" />
   </ItemGroup>

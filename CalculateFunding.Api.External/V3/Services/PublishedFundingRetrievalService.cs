@@ -15,7 +15,7 @@ namespace CalculateFunding.Api.External.V3.Services
     public class PublishedFundingRetrievalService : IPublishedFundingRetrievalService
     {
         private readonly IBlobClient _blobClient;
-        private readonly Policy _publishedFundingRepositoryPolicy;
+        private readonly AsyncPolicy _publishedFundingRepositoryPolicy;
         private readonly IFileSystemCache _fileSystemCache;
         private readonly IExternalApiFileSystemCacheSettings _cacheSettings;
         private readonly ILogger _logger;

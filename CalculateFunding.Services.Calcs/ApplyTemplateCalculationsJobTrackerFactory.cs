@@ -12,7 +12,7 @@ namespace CalculateFunding.Services.Calcs
     public class ApplyTemplateCalculationsJobTrackerFactory : IApplyTemplateCalculationsJobTrackerFactory
     {
         private readonly ILogger _logger;
-        private readonly Policy _jobsResiliencePolicy;
+        private readonly AsyncPolicy _jobsResiliencePolicy;
         private readonly IJobsApiClient _jobs;
 
         public ApplyTemplateCalculationsJobTrackerFactory(IJobsApiClient jobs,

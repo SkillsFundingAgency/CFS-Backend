@@ -13,7 +13,7 @@ namespace CalculateFunding.Services.Publishing
 {
     public class PublishedFundingVersionDataService : IPublishedFundingVersionDataService
     {
-        private readonly Policy _publishedFundingRepositoryPolicy;
+        private readonly AsyncPolicy _publishedFundingRepositoryPolicy;
         private readonly IPublishedFundingRepository _publishedFundingRepository;
         private readonly IPublishingEngineOptions _publishingEngineOptions;
 

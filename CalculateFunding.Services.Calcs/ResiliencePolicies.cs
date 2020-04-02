@@ -6,30 +6,30 @@ namespace CalculateFunding.Services.Calcs
 {
     public class ResiliencePolicies : ICalcsResiliencePolicies, IJobHelperResiliencePolicies
     {
-        public Policy GraphApiClientPolicy { get; set; }
+        public AsyncPolicy GraphApiClientPolicy { get; set; }
         
-        public Policy CalculationsRepository { get; set; }
+        public AsyncPolicy CalculationsRepository { get; set; }
 
-        public Policy CalculationsSearchRepository { get; set; }
+        public AsyncPolicy CalculationsSearchRepository { get; set; }
 
-        public Policy CacheProviderPolicy { get; set; }
+        public AsyncPolicy CacheProviderPolicy { get; set; }
 
-        public Policy CalculationsVersionsRepositoryPolicy { get; set; }
+        public AsyncPolicy CalculationsVersionsRepositoryPolicy { get; set; }
 
-        public Policy BuildProjectRepositoryPolicy { get; set; }
+        public AsyncPolicy BuildProjectRepositoryPolicy { get; set; }
 
-        public Policy SpecificationsRepositoryPolicy { get; set; }
+        public AsyncPolicy SpecificationsRepositoryPolicy { get; set; }
 
-        public Policy MessagePolicy { get; set; }
+        public AsyncPolicy MessagePolicy { get; set; }
 
-        public Policy JobsApiClient { get; set; }
+        public AsyncPolicy JobsApiClient { get; set; }
 
-        public Policy SourceFilesRepository { get; set; }
+        public AsyncPolicy SourceFilesRepository { get; set; }
 
-        public Policy DatasetsRepository { get; set; }
+        public AsyncPolicy DatasetsRepository { get; set; }
 
-        public Policy PoliciesApiClient { get; set; }
+        public AsyncPolicy PoliciesApiClient { get; set; }
 
-        public Policy SpecificationsApiClient { get; set; }
+        public AsyncPolicy SpecificationsApiClient { get; set; }
     }
 }

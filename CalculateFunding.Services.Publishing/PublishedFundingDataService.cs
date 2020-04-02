@@ -16,8 +16,8 @@ namespace CalculateFunding.Services.Publishing
     {
         private readonly IPublishedFundingRepository _publishedFundingRepository;
         private readonly ISpecificationService _specificationService;
-        private readonly Policy _publishedFundingRepositoryPolicy;
-        private readonly Policy _specificationsRepositoryPolicy;
+        private readonly AsyncPolicy _publishedFundingRepositoryPolicy;
+        private readonly AsyncPolicy _specificationsRepositoryPolicy;
         private readonly IPublishingEngineOptions _publishingEngineOptions;
 
         public PublishedFundingDataService(

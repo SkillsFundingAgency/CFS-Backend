@@ -5,20 +5,20 @@ namespace CalculateFunding.Services.TestRunner
 {
     public class ResiliencePolicies : ITestRunnerResiliencePolicies
     {
-        public Policy TestResultsRepository { get; set; }
+        public AsyncPolicy TestResultsRepository { get; set; }
 
-        public Policy TestResultsSearchRepository { get; set; }
+        public AsyncPolicy TestResultsSearchRepository { get; set; }
 
-        public Policy BuildProjectRepository { get; set; }
+        public AsyncPolicy BuildProjectRepository { get; set; }
 
-        public Policy ProviderResultsRepository { get; set; }
+        public AsyncPolicy ProviderResultsRepository { get; set; }
 
-        public Policy CacheProviderRepository { get; set; }
+        public AsyncPolicy CacheProviderRepository { get; set; }
 
-        public Policy SpecificationsApiClient { get; set; }
+        public AsyncPolicy SpecificationsApiClient { get; set; }
 
-        public Policy ScenariosRepository { get; set; }
+        public AsyncPolicy ScenariosRepository { get; set; }
 
-        public Policy ProviderSourceDatasetsRepository { get; set; }
+        public AsyncPolicy ProviderSourceDatasetsRepository { get; set; }
     }
 }

@@ -18,7 +18,7 @@ namespace CalculateFunding.Services.Scenarios
         private readonly IFeatureToggle _featureToggle;
         private readonly ILogger _logger;
         private readonly IDatasetRepository _datasetRepository;
-        private readonly Polly.Policy _datasetRepositoryPolicy;
+        private readonly Polly.AsyncPolicy _datasetRepositoryPolicy;
         private readonly IScenariosService _scenariosService;
 
         public DatasetDefinitionFieldChangesProcessor(

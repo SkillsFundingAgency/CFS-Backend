@@ -22,7 +22,7 @@ namespace CalculateFunding.Services.Publishing.Reporting
         private readonly IJobTracker _jobTracker;
         private readonly IFileSystemAccess _fileSystemAccess;
         private readonly IBlobClient _blobClient;
-        private readonly Policy _blobClientPolicy;
+        private readonly AsyncPolicy _blobClientPolicy;
         private readonly ICsvUtils _csvUtils;
         private readonly ILogger _logger;
         private readonly IFileSystemCacheSettings _fileSystemCacheSettings;

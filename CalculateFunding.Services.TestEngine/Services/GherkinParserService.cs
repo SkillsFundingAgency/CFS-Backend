@@ -19,7 +19,7 @@ namespace CalculateFunding.Services.TestRunner.Services
         private readonly IGherkinParser _gherkinParser;
         private readonly ILogger _logger;
         private readonly IBuildProjectRepository _buildProjectRepository;
-        private readonly Policy _buildProjectRepositoryPolicy;
+        private readonly AsyncPolicy _buildProjectRepositoryPolicy;
 
         public GherkinParserService(
             IGherkinParser gherkinParser,

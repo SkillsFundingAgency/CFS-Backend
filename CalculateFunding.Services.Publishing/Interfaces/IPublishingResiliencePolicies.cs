@@ -5,20 +5,20 @@ namespace CalculateFunding.Services.Publishing.Interfaces
 {
     public interface IPublishingResiliencePolicies : IJobHelperResiliencePolicies
     {
-        Policy CalculationResultsRepository { get; set; }
-        Policy SpecificationsRepositoryPolicy { get; set; }
-        Policy JobsApiClient { get; set; }
-        Policy ProvidersApiClient { get; set; }
-        Policy PublishedProviderVersionRepository { get; set; }
-        Policy PublishedFundingRepository { get; set; }
-        Policy BlobClient { get; set; }
-        Policy FundingFeedSearchRepository { get; set; }
-        Policy PublishedProviderSearchRepository { get; set; }
-        Policy PublishedFundingBlobRepository { get; set; }
-        Policy CalculationsApiClient { get; set; }
-        Policy PoliciesApiClient { get; set; }
-        Policy SpecificationsApiClient { get; set; }
-        Policy PublishedIndexSearchResiliencePolicy { get; set; }
-        Policy FundingStreamPaymentDatesRepository { get; set; }
+        AsyncPolicy CalculationResultsRepository { get; set; }
+        AsyncPolicy SpecificationsRepositoryPolicy { get; set; }
+        AsyncPolicy JobsApiClient { get; set; }
+        AsyncPolicy ProvidersApiClient { get; set; }
+        AsyncPolicy PublishedProviderVersionRepository { get; set; }
+        AsyncPolicy PublishedFundingRepository { get; set; }
+        AsyncPolicy BlobClient { get; set; }
+        AsyncPolicy FundingFeedSearchRepository { get; set; }
+        AsyncPolicy PublishedProviderSearchRepository { get; set; }
+        AsyncPolicy PublishedFundingBlobRepository { get; set; }
+        AsyncPolicy CalculationsApiClient { get; set; }
+        AsyncPolicy PoliciesApiClient { get; set; }
+        AsyncPolicy SpecificationsApiClient { get; set; }
+        AsyncPolicy PublishedIndexSearchResiliencePolicy { get; set; }
+        AsyncPolicy FundingStreamPaymentDatesRepository { get; set; }
     }
 }

@@ -15,7 +15,7 @@ namespace CalculateFunding.Services.TestRunner.StepParsers
     public class ProviderStepParser : CalcStepParser, IStepParser
     {
         private readonly IProviderResultsRepository _providerResultsRepository;
-        private readonly Policy _providerResultsRepositoryPolicy;
+        private readonly AsyncPolicy _providerResultsRepositoryPolicy;
 
         public ProviderStepParser(IProviderResultsRepository providerResultsRepository, ITestRunnerResiliencePolicies resiliencePolicies)
         {

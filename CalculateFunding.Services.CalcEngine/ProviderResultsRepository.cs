@@ -31,7 +31,7 @@ namespace CalculateFunding.Services.CalcEngine
         private readonly IFeatureToggle _featureToggle;
         private readonly EngineSettings _engineSettings;
         private readonly IProviderResultCalculationsHashProvider _calculationsHashProvider;
-        private readonly Policy _specificationsApiClientPolicy;
+        private readonly AsyncPolicy _specificationsApiClientPolicy;
 
         public ProviderResultsRepository(
             ICosmosRepository cosmosRepository,

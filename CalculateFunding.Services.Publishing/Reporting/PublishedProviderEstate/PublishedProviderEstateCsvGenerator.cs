@@ -23,7 +23,7 @@ namespace CalculateFunding.Services.Publishing.Reporting.PublishedProviderEstate
         public const int BatchSize = 1000;
 
         private readonly IPublishedFundingRepository _publishedFundingRepository;
-        private readonly Policy _publishedFundingRepositoryPolicy;
+        private readonly AsyncPolicy _publishedFundingRepositoryPolicy;
 
         protected override string JobDefinitionName => JobConstants.DefinitionNames.GeneratePublishedProviderEstateCsvJob;
 

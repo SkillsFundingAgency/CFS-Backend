@@ -5,12 +5,12 @@ namespace CalculateFunding.Services.Jobs
 {
     public class ResiliencePolicies : IJobsResiliencePolicies
     {
-        public Policy JobDefinitionsRepository { get; set; }
+        public AsyncPolicy JobDefinitionsRepository { get; set; }
 
-        public Policy CacheProviderPolicy { get; set; }
+        public AsyncPolicy CacheProviderPolicy { get; set; }
 
-        public Policy MessengerServicePolicy { get; set; }
+        public AsyncPolicy MessengerServicePolicy { get; set; }
 
-        public Policy JobRepository { get; set; }
+        public AsyncPolicy JobRepository { get; set; }
     }
 }

@@ -24,8 +24,8 @@ namespace CalculateFunding.Services.Policy
         private readonly ILogger _logger;
         private readonly IPolicyRepository _policyRepository;
         private readonly ICacheProvider _cacheProvider;
-        private readonly Polly.Policy _policyRepositoryPolicy;
-        private readonly Polly.Policy _cacheProviderPolicy;
+        private readonly Polly.AsyncPolicy _policyRepositoryPolicy;
+        private readonly Polly.AsyncPolicy _cacheProviderPolicy;
         private readonly IValidator<FundingStreamSaveModel> _fundingStreamSaveModelValidator;
 
         public FundingStreamService(

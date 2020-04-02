@@ -17,8 +17,8 @@ namespace CalculateFunding.Services.Calcs
 {
     public class InstructionAllocationJobCreation : IInstructionAllocationJobCreation
     {
-        private readonly Policy _calculationRepositoryPolicy;
-        private readonly Policy _jobsApiClientPolicy;
+        private readonly AsyncPolicy _calculationRepositoryPolicy;
+        private readonly AsyncPolicy _jobsApiClientPolicy;
         private readonly ICalculationsRepository _calculationsRepository;
         private readonly IJobsApiClient _jobsApiClient;
         private readonly ILogger _logger;

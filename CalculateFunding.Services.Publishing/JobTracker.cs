@@ -13,7 +13,7 @@ namespace CalculateFunding.Services.Publishing
     public class JobTracker : IJobTracker
     {
         private readonly IJobsApiClient _jobs;
-        private readonly Policy _resiliencePolicy;
+        private readonly AsyncPolicy _resiliencePolicy;
         private readonly ILogger _logger;
 
         public JobTracker(IJobsApiClient jobs,

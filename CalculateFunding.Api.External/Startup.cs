@@ -233,7 +233,7 @@ namespace CalculateFunding.Api.External
             {
                 PolicySettings policySettings = ctx.GetService<PolicySettings>();
 
-                BulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
+                AsyncBulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
 
                 return new ResiliencePolicies()
                 {
@@ -247,7 +247,7 @@ namespace CalculateFunding.Api.External
             {
                 PolicySettings policySettings = ctx.GetService<PolicySettings>();
 
-                BulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
+                AsyncBulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
 
                 return new ExternalApiResiliencePolicies()
                 {
