@@ -1,13 +1,13 @@
-﻿using CalculateFunding.Common.Storage;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using CalculateFunding.Common.Storage;
 using CalculateFunding.Models.Specs;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Storage.Blob;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace CalculateFunding.Services.Specs.UnitTests.Services
 {
@@ -27,14 +27,21 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         }
 
         [TestMethod]
-        [ExpectedException(typeof(ArgumentNullException))]
         public void GetReportMetadata_NullSpecificationIdPassed_ThrowsException()
         {
-            _service.GetReportMetadata(null);
+            Func<IActionResult> invocation = () => _service.GetReportMetadata(null);
+
+            invocation
+                .Should()
+                .Throw<ArgumentNullException>()
+                .Which
+                .ParamName
+                .Should()
+                .Be("specificationId");
         }
 
         [TestMethod]
-        public void GetReportMetadata_GivenSpecificationIdWithBlobs_ReturnesReportMetadata()
+        public void GetReportMetadata_GivenSpecificationIdWithBlobs_ReturnsReportMetadata()
         {
             string fundingLineBlobName = "funding-line-file";
             string fundingLineFileExtension = "csv";
@@ -45,8 +52,8 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             IDictionary<string, string> fundingLineFileMetadata = new Dictionary<string, string>
             {
-                { "job_type", ReportType.Released.ToString() },
-                { "file_name", fundingLineFileName },
+                {"job_type", ReportType.Released.ToString()},
+                {"file_name", fundingLineFileName}
             };
 
             BlobProperties blobProperties = new BlobProperties();
@@ -67,7 +74,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             IEnumerable<IListBlobItem> fundingLineListBlobItems = new List<IListBlobItem>
             {
-                fundingLineCloudBlob,
+                fundingLineCloudBlob
             };
 
             ICloudBlob calcResultsCloudBlob = Substitute.For<ICloudBlob>();
@@ -82,7 +89,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             IEnumerable<IListBlobItem> calcResultsListBlobItems = new List<IListBlobItem>
             {
-                calcResultsCloudBlob,
+                calcResultsCloudBlob
             };
 
             _blobClient
@@ -113,82 +120,65 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             result
                 .Should()
-                .BeOfType<OkObjectResult>()
-                .Which
-                .Value
-                .Should()
-                .BeOfType<List<ReportMetadata>>();
+                .BeOfType<OkObjectResult>();
 
-            IEnumerable<ReportMetadata> reportMetadata = (result as OkObjectResult).Value as IEnumerable<ReportMetadata>;
+            IEnumerable<ReportMetadata> reportMetadata = ((OkObjectResult) result).Value as IEnumerable<ReportMetadata>;
+
+            reportMetadata
+                .Should()
+                .NotBeNull();
 
             reportMetadata
                 .Count()
                 .Should()
                 .Be(2);
 
-            reportMetadata
-                .ElementAt(0)
-                .Name
-                .Should()
-                .Be(fundingLineFileName);
+            ReportMetadata metadata = reportMetadata
+                .ElementAt(0);
 
-            reportMetadata
-                .ElementAt(0)
-                .BlobName
+            metadata
                 .Should()
-                .Be("funding-line-file.csv");
+                .BeEquivalentTo(new ReportMetadata
+                    {
+                        Name = fundingLineFileName,
+                        BlobName = "funding-line-file.csv",
+                        Type = "Released",
+                        Category = "Live",
+                        Format = "csv"
+                    },
+                    opt => opt.Excluding(_ => _.Identifier));
 
-            reportMetadata
-                .ElementAt(0)
-                .Type
-                .Should()
-                .Be("Released");
-
-            reportMetadata
-                .ElementAt(0)
+            metadata
                 .Identifier["job_type"]
                 .Should()
                 .Be("Released");
-
-            reportMetadata
-                .ElementAt(0)
-                .Category
-                .Should()
-                .Be("Live");
-
-            reportMetadata
-                .ElementAt(0)
-                .Format
-                .Should()
-                .Be("Csv");
         }
 
         [TestMethod]
-        [ExpectedException(typeof(ArgumentNullException))]
         public void DownloadReport_NullFileNamePassed_ThrowsException()
         {
-            _service.DownloadReport(null, "test");
-        }
+            Func<IActionResult> invocation = () => _service.DownloadReport(null, ReportType.CalcResult);
 
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentNullException))]
-        public void DownloadReport_NullTypePassed_ThrowsException()
-        {
-            _service.DownloadReport("test", null);
+            invocation
+                .Should()
+                .Throw<ArgumentNullException>()
+                .Which
+                .ParamName
+                .Should()
+                .Be("fileName");
         }
 
         [TestMethod]
         public void DownloadReport_GivenFileNameAndType_ReturnsDownloadUrl()
         {
             string fileName = "test.csv";
-            string type = "CurrentProfileValues";
             string sasUrl = "http://www.test.com/test.csv";
 
             _blobClient
                 .GetBlobSasUrl(Arg.Any<string>(), Arg.Any<DateTimeOffset>(), Arg.Any<SharedAccessBlobPermissions>(), Arg.Any<string>())
                 .Returns(sasUrl);
 
-            IActionResult result = _service.DownloadReport(fileName, type);
+            IActionResult result = _service.DownloadReport(fileName, ReportType.CurrentProfileValues);
 
             result
                 .Should()
@@ -214,6 +204,5 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         {
             return new Uri($"http://www.test.com/{fileName}.{extension}");
         }
-
     }
 }

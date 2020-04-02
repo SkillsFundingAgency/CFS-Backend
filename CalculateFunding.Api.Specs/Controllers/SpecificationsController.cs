@@ -308,7 +308,7 @@ namespace CalculateFunding.Api.Specs.Controllers
         [Route("api/specs/download-report/{fileName}/{type}")]
         [HttpGet]
         [Produces(typeof(SpecificationsDownloadModel))]
-        public IActionResult DownloadSpecificationReport([FromRoute] string fileName, [FromRoute] string type)
+        public IActionResult DownloadSpecificationReport([FromRoute] string fileName, [FromRoute] ReportType type)
         {
             return _specificationsReportService.DownloadReport(fileName, type);
         }

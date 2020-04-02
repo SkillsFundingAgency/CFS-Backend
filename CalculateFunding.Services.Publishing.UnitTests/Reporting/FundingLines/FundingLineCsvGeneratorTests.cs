@@ -211,7 +211,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
 
             _blobProperties?.ContentDisposition
                 .Should()
-                .StartWith($"attachment; filename={expectedContentDisposition} {DateTimeOffset.UtcNow:yyyy-MM-dd}");
+                .StartWith($"attachment; filename={expectedContentDisposition} {DateTimeOffset.UtcNow:yyyy-MM-dd}")
+                .And
+                .NotContain(":");
             
             _blobClient
                 .Verify(_ => _.UploadAsync(_cloudBlob.Object, incrementalFileStream),

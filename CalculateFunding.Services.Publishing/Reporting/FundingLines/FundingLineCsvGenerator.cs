@@ -230,24 +230,29 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
             public string ContentDisposition { get; }
         }
 
-        protected static string GetPrettyFileName(FundingLineCsvGeneratorJobType jobType, string fundingLineCode, string fundingStreamId, string fundingPeriodId)
+        private static string GetPrettyFileName(FundingLineCsvGeneratorJobType jobType, 
+            string fundingLineCode, 
+            string fundingStreamId, 
+            string fundingPeriodId)
         {
+            string utcNow = DateTimeOffset.UtcNow.ToString("s").Replace(":", null);
+            
             switch (jobType)
             {
                 case FundingLineCsvGeneratorJobType.CurrentState:
-                    return $"{fundingStreamId} {fundingPeriodId} Provider Funding Lines Current State {DateTimeOffset.UtcNow:s}.csv";
+                    return $"{fundingStreamId} {fundingPeriodId} Provider Funding Lines Current State {utcNow}.csv";
                 case FundingLineCsvGeneratorJobType.Released:
-                    return $"{fundingStreamId} {fundingPeriodId} Provider Funding Lines Released Only {DateTimeOffset.UtcNow:s}.csv";
+                    return $"{fundingStreamId} {fundingPeriodId} Provider Funding Lines Released Only {utcNow}.csv";
                 case FundingLineCsvGeneratorJobType.History:
-                    return $"{fundingStreamId} {fundingPeriodId} Provider Funding Lines All Versions {DateTimeOffset.UtcNow:s}.csv";
+                    return $"{fundingStreamId} {fundingPeriodId} Provider Funding Lines All Versions {utcNow}.csv";
                 case FundingLineCsvGeneratorJobType.HistoryProfileValues:
-                    return $"{fundingStreamId} {fundingPeriodId} {fundingLineCode} Profile All Versions {DateTimeOffset.UtcNow:s}.csv";
+                    return $"{fundingStreamId} {fundingPeriodId} {fundingLineCode} Profile All Versions {utcNow}.csv";
                 case FundingLineCsvGeneratorJobType.CurrentProfileValues:
-                    return $"{fundingStreamId} {fundingPeriodId} {fundingLineCode} Profile Current State {DateTimeOffset.UtcNow:s}.csv";
+                    return $"{fundingStreamId} {fundingPeriodId} {fundingLineCode} Profile Current State {utcNow}.csv";
                 case FundingLineCsvGeneratorJobType.CurrentOrganisationGroupValues:
-                    return $"{fundingStreamId} {fundingPeriodId} Funding Lines Current State {DateTimeOffset.UtcNow:s}.csv";
+                    return $"{fundingStreamId} {fundingPeriodId} Funding Lines Current State {utcNow}.csv";
                 case FundingLineCsvGeneratorJobType.HistoryOrganisationGroupValues:
-                    return $"{fundingStreamId} {fundingPeriodId} Funding Lines All Versions {DateTimeOffset.UtcNow:s}.csv";
+                    return $"{fundingStreamId} {fundingPeriodId} Funding Lines All Versions {utcNow}.csv";
                 case FundingLineCsvGeneratorJobType.Undefined:
                 case FundingLineCsvGeneratorJobType.HistoryPublishedProviderEstate:
                 default:

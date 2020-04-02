@@ -1,16 +1,20 @@
-﻿namespace CalculateFunding.Models.Specs
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+
+namespace CalculateFunding.Models.Specs
 {
+    [JsonConverter(typeof(StringEnumConverter))]
     public enum ReportType
     {
-        Undefined = 0,
-        CurrentState = 1,
-        Released = 2,
-        History = 3,
-        HistoryProfileValues = 4,
-        CurrentProfileValues = 5,
-        CurrentOrganisationGroupValues = 6,
-        HistoryOrganisationGroupValues = 7,
-        HistoryPublishedProviderEstate = 8,
-        CalcResult = 100,
+        Undefined,
+        CurrentState,
+        Released,
+        History,
+        HistoryProfileValues,
+        CurrentProfileValues,
+        CurrentOrganisationGroupValues,
+        HistoryOrganisationGroupValues,
+        HistoryPublishedProviderEstate,
+        CalcResult
     }
 }

@@ -25,12 +25,10 @@ namespace CalculateFunding.Services.Specs
             _blobClient = blobClient;
         }
 
-        public IActionResult DownloadReport(string fileName, string type)
+        public IActionResult DownloadReport(string fileName, ReportType reportType)
         {
-            Guard.ArgumentNotNull(fileName, nameof(fileName));
-            Guard.ArgumentNotNull(type, nameof(type));
+            Guard.IsNullOrWhiteSpace(fileName, nameof(fileName));
 
-            Enum.TryParse(type, true, out ReportType reportType);
             string containerName = GetContainerName(reportType);
             
             string blobUrl = _blobClient.GetBlobSasUrl(fileName, DateTimeOffset.Now.AddDays(1), SharedAccessBlobPermissions.Read, containerName);
@@ -41,12 +39,10 @@ namespace CalculateFunding.Services.Specs
 
         public IActionResult GetReportMetadata(string specificationId)
         {
-            Guard.ArgumentNotNull(specificationId, nameof(specificationId));
+            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
 
-            var publishingMetadata = GetReportMetadata($"funding-lines-{specificationId}", PublishedProviderVersionsContainerName).ToList();
-            var calcsMetadata = GetReportMetadata($"calculation-results-{specificationId}", CalcsResultsContainerName, ReportType.CalcResult).ToList();
-
-            publishingMetadata.AddRange(calcsMetadata);
+            IEnumerable<ReportMetadata> publishingMetadata = GetReportMetadata($"funding-lines-{specificationId}", PublishedProviderVersionsContainerName)
+                .Concat(GetReportMetadata($"calculation-results-{specificationId}", CalcsResultsContainerName, ReportType.CalcResult));
 
             return new OkObjectResult(publishingMetadata);
         }
@@ -63,9 +59,12 @@ namespace CalculateFunding.Services.Specs
         {
             return listBlobItems.Select(b =>
             {
-                (b as ICloudBlob).Metadata.TryGetValue("file_name", out string fileName);
-                (b as ICloudBlob).Metadata.TryGetValue("job_type", out string jobType);
-                Enum.TryParse(Path.GetExtension(b.Uri.AbsolutePath).Replace(".", string.Empty), true, out ReportFormat reportFormat);
+                ICloudBlob cloudBlob = (ICloudBlob)b;
+                
+                cloudBlob.Metadata.TryGetValue("file_name", out string fileName);
+                cloudBlob.Metadata.TryGetValue("job_type", out string jobType);
+                
+                string fileSuffix = Path.GetExtension(b.Uri.AbsolutePath).Replace(".", string.Empty);
 
                 if (!reportType.HasValue)
                 {
@@ -78,10 +77,10 @@ namespace CalculateFunding.Services.Specs
                     Name = fileName,
                     BlobName = Path.GetFileName(b.Uri.AbsolutePath),
                     Type = reportType.Value.ToString(),
-                    Identifier = (b as ICloudBlob).Metadata,
+                    Identifier = cloudBlob.Metadata,
                     Category = GetReportCategory(reportType.Value).ToString(),
-                    LastModified = (b as ICloudBlob).Properties.LastModified,
-                    Format = reportFormat.ToString(),
+                    LastModified = cloudBlob.Properties.LastModified,
+                    Format = fileSuffix,
             };
             }).OrderByDescending(_ => _.LastModified);
         }

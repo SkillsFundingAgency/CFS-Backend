@@ -29,7 +29,7 @@ namespace CalculateFunding.Services.Core.AzureStorage
             try
             {
                 Initialize();
-                var container = _container.Value;
+                CloudBlobContainer container = _container.Value;
                 return await Task.FromResult((true, string.Empty));
             }
             catch (Exception ex)
@@ -66,14 +66,14 @@ namespace CalculateFunding.Services.Core.AzureStorage
         public async Task<bool> BlobExistsAsync(string blobName)
         {
             EnsureBlobClient();
-            var blob = _container.Value.GetBlockBlobReference(blobName);
+            CloudBlockBlob blob = _container.Value.GetBlockBlobReference(blobName);
 
             return await blob.ExistsAsync(null, null);
         }
 
         public async Task<Stream> DownloadToStreamAsync(ICloudBlob blob)
         {
-            var stream = new MemoryStream();
+            MemoryStream stream = new MemoryStream();
             await blob.DownloadToStreamAsync(stream);
             stream.Position = 0;
 
@@ -84,9 +84,9 @@ namespace CalculateFunding.Services.Core.AzureStorage
         {
             _container = new Lazy<CloudBlobContainer>(() =>
             {
-                var credentials = CloudStorageAccount.Parse(_azureStorageSettings.ConnectionString);
-                var client = credentials.CreateCloudBlobClient();
-                var container = client.GetContainerReference(_azureStorageSettings.ContainerName.ToLower());
+                CloudStorageAccount credentials = CloudStorageAccount.Parse(_azureStorageSettings.ConnectionString);
+                CloudBlobClient client = credentials.CreateCloudBlobClient();
+                CloudBlobContainer container = client.GetContainerReference(_azureStorageSettings.ContainerName.ToLower());
 
                 AsyncContext.Run(() => container.CreateIfNotExistsAsync());
 
@@ -102,7 +102,7 @@ namespace CalculateFunding.Services.Core.AzureStorage
 
         string GetSharedAccessSignature(ICloudBlob blob, DateTimeOffset finish, SharedAccessBlobPermissions permissions)
         {
-            var sasConstraints = new SharedAccessBlobPolicy
+            SharedAccessBlobPolicy sasConstraints = new SharedAccessBlobPolicy
             {
                 SharedAccessExpiryTime = finish,
                 Permissions = permissions
@@ -138,7 +138,7 @@ namespace CalculateFunding.Services.Core.AzureStorage
 
         public async Task AddMetadataAsync(ICloudBlob blob, IDictionary<string, string> metadata)
         {
-            foreach (var metadataItem in metadata.Where(_=>!string.IsNullOrEmpty(_.Value)))
+            foreach (KeyValuePair<string, string> metadataItem in metadata.Where(_=>!string.IsNullOrEmpty(_.Value)))
             {
                 blob.Metadata.Add(
                     ReplaceInvalidMetadataKeyCharacters(metadataItem.Key), 
