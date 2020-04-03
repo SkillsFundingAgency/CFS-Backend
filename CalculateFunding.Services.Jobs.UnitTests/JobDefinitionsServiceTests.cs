@@ -9,6 +9,8 @@ using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Jobs.Interfaces;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
+using FluentValidation;
+using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -22,6 +24,7 @@ namespace CalculateFunding.Services.Jobs
     {
         private Mock<IJobDefinitionsRepository> _jobDefinitions;
         private Mock<ICacheProvider> _caching;
+        private Mock<IValidator<JobDefinition>> _validator;
 
         private JobDefinitionsService _service;
         
@@ -30,6 +33,7 @@ namespace CalculateFunding.Services.Jobs
         {
             _jobDefinitions = new Mock<IJobDefinitionsRepository>();
             _caching = new Mock<ICacheProvider>();
+            _validator = new Mock<IValidator<JobDefinition>>();
             
             _service = new JobDefinitionsService(_jobDefinitions.Object,
                 Logger.None, 
@@ -38,7 +42,8 @@ namespace CalculateFunding.Services.Jobs
                     JobDefinitionsRepository = Policy.NoOpAsync(),
                     CacheProviderPolicy = Policy.NoOpAsync()
                 }, 
-                _caching.Object);
+                _caching.Object,
+                _validator.Object);
         }
 
         [TestMethod]
@@ -77,6 +82,7 @@ namespace CalculateFunding.Services.Jobs
             JobDefinition jobDefinition = NewJobDefinition();
             
             GivenTheJobsRepositoryReturnsTheStatusCode(jobDefinition, HttpStatusCode.OK);
+            AndTheJobDefinitionValidationResult(jobDefinition, NewValidationResult());
 
             IActionResult actionResult = await WhenTheJobDefinitionIsSaved(jobDefinition);
 
@@ -87,6 +93,36 @@ namespace CalculateFunding.Services.Jobs
             ThenTheJobDefinitionWasSaved(jobDefinition);
             AndTheCacheWasInvalidated();
         }
+        
+        [TestMethod]
+        public async Task SaveDefinitionExitsEarlyIfValidationFails()
+        {
+            JobDefinition jobDefinition = NewJobDefinition();
+
+            string invalidProperty = NewRandomString();
+            string validationFailureMessage = NewRandomString();
+            
+            GivenTheJobsRepositoryReturnsTheStatusCode(jobDefinition, HttpStatusCode.OK);
+            GivenTheJobDefinitionValidationResult(jobDefinition, NewValidationResult(_ => 
+                _.WithValidationFailures(NewValidationFailure(vf => 
+                    vf.WithPropertyName(invalidProperty)
+                        .WithErrorMessage(validationFailureMessage)))));
+
+            BadRequestObjectResult actionResult = (await WhenTheJobDefinitionIsSaved(jobDefinition)) as BadRequestObjectResult;
+            SerializableError serializableError = actionResult?.Value as SerializableError;
+
+            serializableError
+                .Should()
+                .NotBeNull();
+
+            serializableError[invalidProperty]
+                .Should()
+                .BeEquivalentTo(new [] {  validationFailureMessage });
+
+
+            ThenNoJobDefinitionsWereSaved();
+            AndTheCacheWasNotInvalidated();
+        }
 
         [TestMethod]
         public async Task SaveDefinitionDelegatesToRepositoryAndReturnsStatusCodeIfNotSucceeded()
@@ -94,6 +130,7 @@ namespace CalculateFunding.Services.Jobs
             JobDefinition jobDefinition = NewJobDefinition();
             
             GivenTheJobsRepositoryReturnsTheStatusCode(jobDefinition, HttpStatusCode.Conflict);
+            AndTheJobDefinitionValidationResult(jobDefinition, NewValidationResult());
 
             IActionResult actionResult = await WhenTheJobDefinitionIsSaved(jobDefinition);
 
@@ -234,6 +271,13 @@ namespace CalculateFunding.Services.Jobs
                 .Verify(_ => _.SaveJobDefinition(jobDefinition),
                     Times.Once);
         }
+        
+        private void ThenNoJobDefinitionsWereSaved()
+        {
+            _jobDefinitions
+                .Verify(_ => _.SaveJobDefinition(It.IsAny<JobDefinition>()),
+                    Times.Never);
+        }
 
         private void AndTheCacheWasInvalidated()
         {
@@ -254,6 +298,36 @@ namespace CalculateFunding.Services.Jobs
                 .Setup(_ => _.SaveJobDefinition(jobDefinition))
                 .ReturnsAsync(statusCode);
         }
+
+        private void GivenTheJobDefinitionValidationResult(JobDefinition jobDefinition, ValidationResult validationResult)
+        {
+            _validator.Setup(_ => _.ValidateAsync(jobDefinition, default))
+                .ReturnsAsync(validationResult); 
+        }
+        
+        private void AndTheJobDefinitionValidationResult(JobDefinition jobDefinition, ValidationResult validationResult)
+        {
+           GivenTheJobDefinitionValidationResult(jobDefinition, validationResult);
+        }
+
+        private ValidationResult NewValidationResult(Action<ValidationResultBuilder> setUp = null)
+        {
+            ValidationResultBuilder validationResultBuilder = new ValidationResultBuilder();
+            
+            setUp?.Invoke(validationResultBuilder);
+            
+            return validationResultBuilder
+                .Build();
+        }
+
+        private ValidationFailure NewValidationFailure(Action<ValidationFailureBuilder> setUp = null)
+        {
+            ValidationFailureBuilder validationFailureBuilder = new ValidationFailureBuilder();
+
+            setUp?.Invoke(validationFailureBuilder);
+            
+            return validationFailureBuilder.Build();
+        }
         
         private JobDefinition NewJobDefinition(Action<JobDefinitionBuilder> setUp = null)
         {
@@ -268,5 +342,7 @@ namespace CalculateFunding.Services.Jobs
         {
             return await _service.SaveDefinition(jobDefinition);
         }
+
+        private string NewRandomString() => new RandomString();
     }
 }

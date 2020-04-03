@@ -52,6 +52,9 @@ namespace CalculateFunding.Functions.Jobs
             builder
                 .AddSingleton<IJobManagementService, JobManagementService>();
 
+            builder
+                .AddSingleton<IValidator<JobDefinition>, JobDefinitionValidator>();
+
             builder.
                 AddSingleton<IValidator<CreateJobValidationModel>, CreateJobValidator>();
 

@@ -14,6 +14,8 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Models.HealthCheck;
+using FluentValidation;
+using FluentValidation.Results;
 
 namespace CalculateFunding.Services.Jobs
 {
@@ -24,9 +26,13 @@ namespace CalculateFunding.Services.Jobs
         private readonly Polly.AsyncPolicy _jobDefinitionsRepositoryPolicy;
         private readonly ICacheProvider _cacheProvider;
         private readonly Polly.AsyncPolicy _cachePolicy;
+        private readonly IValidator<JobDefinition> _validator;
 
         public JobDefinitionsService(IJobDefinitionsRepository jobDefinitionsRepository, 
-            ILogger logger, IJobsResiliencePolicies resiliencePolicies, ICacheProvider cacheProvider)
+            ILogger logger, 
+            IJobsResiliencePolicies resiliencePolicies, 
+            ICacheProvider cacheProvider, 
+            IValidator<JobDefinition> validator)
         {
             Guard.ArgumentNotNull(jobDefinitionsRepository, nameof(jobDefinitionsRepository));
             Guard.ArgumentNotNull(logger, nameof(logger));
@@ -34,11 +40,13 @@ namespace CalculateFunding.Services.Jobs
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
             Guard.ArgumentNotNull(resiliencePolicies?.JobDefinitionsRepository, nameof(resiliencePolicies.JobDefinitionsRepository));
             Guard.ArgumentNotNull(resiliencePolicies?.CacheProviderPolicy, nameof(resiliencePolicies.CacheProviderPolicy));
+            Guard.ArgumentNotNull(validator, nameof(validator));
 
             _jobDefinitionsRepository = jobDefinitionsRepository;
             _logger = logger;
             _jobDefinitionsRepositoryPolicy = resiliencePolicies.JobDefinitionsRepository;
             _cacheProvider = cacheProvider;
+            _validator = validator;
             _cachePolicy = resiliencePolicies.CacheProviderPolicy;
         }
 
@@ -68,6 +76,13 @@ namespace CalculateFunding.Services.Jobs
             try
             {
                 Guard.ArgumentNotNull(definition, nameof(definition));
+
+                ValidationResult validationResult = await _validator.ValidateAsync(definition);
+
+                if (!validationResult.IsValid)
+                {
+                    return validationResult.AsBadRequest();
+                }
                 
                 HttpStatusCode result = await _jobDefinitionsRepositoryPolicy.ExecuteAsync(() => _jobDefinitionsRepository.SaveJobDefinition(definition));
 

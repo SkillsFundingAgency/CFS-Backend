@@ -118,6 +118,9 @@ namespace CalculateFunding.Api.Jobs
                 AddSingleton<IValidator<CreateJobValidationModel>, CreateJobValidator>();
 
             builder
+                .AddSingleton<IValidator<JobDefinition>, JobDefinitionValidator>();
+
+            builder
                  .AddSingleton<IJobDefinitionsRepository, JobDefinitionsRepository>((ctx) =>
                  {
                      CosmosDbSettings cosmosDbSettings = new CosmosDbSettings();
