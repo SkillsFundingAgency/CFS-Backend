@@ -1394,7 +1394,11 @@ WHERE   s.documentType = @DocumentType",
 
             if (merge && !newSpecificationVersion.ProfileVariationPointers.IsNullOrEmpty())
             {
-                profileVariationPointers = newSpecificationVersion.ProfileVariationPointers.Concat(profileVariationPointers.Where(_ => !newSpecificationVersion.ProfileVariationPointers.Any(pvp => pvp.FundingLineId == _.FundingLineId && pvp.FundingStreamId == _.FundingStreamId)));
+                profileVariationPointers = newSpecificationVersion.ProfileVariationPointers
+                    .Concat(
+                        profileVariationPointers
+                            .Where(_ => 
+                                !newSpecificationVersion.ProfileVariationPointers.Any(pvp => pvp.FundingLineId == _.FundingLineId && pvp.FundingStreamId == _.FundingStreamId))).ToList();
             }
 
             newSpecificationVersion.Version++;
