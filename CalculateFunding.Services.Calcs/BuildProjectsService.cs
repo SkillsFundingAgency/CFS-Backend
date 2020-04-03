@@ -240,7 +240,7 @@ namespace CalculateFunding.Services.Calcs
 
             if (!summariesExist || refreshCachedScopedProviders)
             {
-                ApiResponse<int?> totalCountFromApi = await _providersApiClient.PopulateProviderSummariesForSpecification(specificationId, true);
+                ApiResponse<int?> totalCountFromApi = await _providersApiClient.PopulateProviderSummariesForSpecification(specificationId, !summariesExist);
 
                 if (totalCountFromApi?.Content == null)
                 {
