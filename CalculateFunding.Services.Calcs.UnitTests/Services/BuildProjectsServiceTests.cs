@@ -2045,7 +2045,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Returns(new ApiResponse<IEnumerable<string>>(HttpStatusCode.OK, providerIds));
 
             providersApiClient
-                .PopulateProviderSummariesForSpecification(Arg.Is(specificationId), Arg.Is(true))
+                .PopulateProviderSummariesForSpecification(Arg.Is(specificationId), Arg.Is(false))
                 .Returns(new ApiResponse<int?>(HttpStatusCode.OK, 0));
 
             ILogger logger = CreateLogger();
@@ -2092,7 +2092,7 @@ namespace CalculateFunding.Services.Calcs.Services
             await
                 providersApiClient
                     .Received(1)
-                    .PopulateProviderSummariesForSpecification(Arg.Is(specificationId), Arg.Is(true));
+                    .PopulateProviderSummariesForSpecification(Arg.Is(specificationId), Arg.Is(false));
         }
 
         [TestMethod]
