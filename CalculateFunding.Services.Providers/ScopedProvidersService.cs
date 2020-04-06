@@ -6,11 +6,14 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
+using CalculateFunding.Common.ApiClient.Jobs;
+using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Results;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Caching;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
@@ -18,11 +21,15 @@ using CalculateFunding.Models.ProviderLegacy;
 using CalculateFunding.Models.Providers;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Caching.FileSystem;
+using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Providers.Caching;
 using CalculateFunding.Services.Providers.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.ServiceBus;
 using Newtonsoft.Json;
+using Serilog;
 
 namespace CalculateFunding.Services.Providers
 {
@@ -40,15 +47,22 @@ namespace CalculateFunding.Services.Providers
         private readonly IScopedProvidersServiceSettings _scopedProvidersServiceSettings;
         private static volatile bool _haveCheckedFileSystemCacheFolder;
         private readonly IFileSystemCache _fileSystemCache;
-
+        private readonly IJobsApiClient _jobsApiClient;
+        private readonly IJobManagement _jobManagement;
+        private readonly ILogger _logger;
+        private const string SpecificationId = "specification-id";
+        private const string JobId = "jobId";
 
         public ScopedProvidersService(ICacheProvider cacheProvider,
             IResultsApiClient resultsApiClient,
+            IJobsApiClient jobsApiClient,
             ISpecificationsApiClient specificationsApiClient,
             IProviderVersionService providerVersionService,
             IMapper mapper,
             IScopedProvidersServiceSettings scopedProvidersServiceSettings,
-            IFileSystemCache fileSystemCache)
+            IFileSystemCache fileSystemCache,
+            IJobManagement jobManagement,
+            ILogger logger)
         {
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
             Guard.ArgumentNotNull(resultsApiClient, nameof(resultsApiClient));
@@ -57,6 +71,9 @@ namespace CalculateFunding.Services.Providers
             Guard.ArgumentNotNull(mapper, nameof(mapper));
             Guard.ArgumentNotNull(scopedProvidersServiceSettings, nameof(scopedProvidersServiceSettings));
             Guard.ArgumentNotNull(fileSystemCache, nameof(fileSystemCache));
+            Guard.ArgumentNotNull(jobsApiClient, nameof(jobsApiClient));
+            Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
+            Guard.ArgumentNotNull(logger, nameof(logger));
 
             _cacheProvider = cacheProvider;
             _resultsApiClient = resultsApiClient;
@@ -65,6 +82,9 @@ namespace CalculateFunding.Services.Providers
             _mapper = mapper;
             _fileSystemCache = fileSystemCache;
             _scopedProvidersServiceSettings = scopedProvidersServiceSettings;
+            _jobsApiClient = jobsApiClient;
+            _jobManagement = jobManagement;
+            _logger = logger;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -83,12 +103,118 @@ namespace CalculateFunding.Services.Providers
             return health;
         }
 
-        public async Task<IActionResult> PopulateProviderSummariesForSpecification(string specificationId,bool setCachedProviders)
+        public async Task PopulateScopedProviders(Message message)
+        {
+            Guard.ArgumentNotNull(message, nameof(message));
+
+            string jobId = message.GetUserProperty<string>(JobId);
+
+            string specificationId = message.GetUserProperty<string>(SpecificationId);
+
+            string scopedProviderSummariesCountCacheKey = $"{CacheKeys.ScopedProviderSummariesCount}{specificationId}";
+            string cacheKeyScopedListCacheKey = $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}";
+            
+            await _jobManagement.UpdateJobStatus(jobId, 0, null);
+
+            ApiResponse<SpecificationSummary> spec =
+                 await _specificationsApiClient.GetSpecificationSummaryById(specificationId);
+
+            if (string.IsNullOrWhiteSpace(spec?.Content.ProviderVersionId))
+            {
+                return;
+            }
+
+            ProviderVersion providerVersion = await _providerVersionService.GetProvidersByVersion(spec.Content.ProviderVersionId);
+
+            if (providerVersion == null)
+            {
+                return;
+            }
+
+            IEnumerable<string> scopedProviderIds = await GetScopedProviderIdsBySpecification(specificationId);
+
+            IEnumerable<ProviderSummary> providerSummaries = providerVersion.Providers.Where(p => scopedProviderIds.Contains(p.ProviderId))
+                .Select(x => new ProviderSummary
+                {
+                    Name = x.Name,
+                    Id = x.ProviderId,
+                    ProviderProfileIdType = x.ProviderProfileIdType,
+                    UKPRN = x.UKPRN,
+                    URN = x.URN,
+                    Authority = x.Authority,
+                    UPIN = x.UPIN,
+                    ProviderSubType = x.ProviderSubType,
+                    EstablishmentNumber = x.EstablishmentNumber,
+                    ProviderType = x.ProviderType,
+                    DateOpened = x.DateOpened,
+                    DateClosed = x.DateClosed,
+                    LACode = x.LACode,
+                    CrmAccountId = x.CrmAccountId,
+                    LegalName = x.LegalName,
+                    NavVendorNo = x.NavVendorNo,
+                    DfeEstablishmentNumber = x.DfeEstablishmentNumber,
+                    Status = x.Status,
+                    PhaseOfEducation = x.PhaseOfEducation,
+                    ReasonEstablishmentClosed = x.ReasonEstablishmentClosed,
+                    ReasonEstablishmentOpened = x.ReasonEstablishmentOpened,
+                    Successor = x.Successor,
+                    TrustStatus = x.TrustStatus,
+                    TrustName = x.TrustName,
+                    TrustCode = x.TrustCode,
+                    Town = x.Town,
+                    Postcode = x.Postcode,
+                    LocalAuthorityName = x.LocalAuthorityName,
+                    CompaniesHouseNumber = x.CompaniesHouseNumber,
+                    GroupIdNumber = x.GroupIdNumber,
+                    RscRegionName = x.RscRegionName,
+                    RscRegionCode = x.RscRegionCode,
+                    GovernmentOfficeRegionName = x.GovernmentOfficeRegionName,
+                    GovernmentOfficeRegionCode = x.GovernmentOfficeRegionCode,
+                    DistrictCode = x.DistrictCode,
+                    DistrictName = x.DistrictName,
+                    WardName = x.WardName,
+                    WardCode = x.WardCode,
+                    CensusWardCode = x.CensusWardCode,
+                    CensusWardName = x.CensusWardName,
+                    MiddleSuperOutputAreaCode = x.MiddleSuperOutputAreaCode,
+                    MiddleSuperOutputAreaName = x.MiddleSuperOutputAreaName,
+                    LowerSuperOutputAreaCode = x.LowerSuperOutputAreaCode,
+                    LowerSuperOutputAreaName = x.LowerSuperOutputAreaName,
+                    ParliamentaryConstituencyCode = x.ParliamentaryConstituencyCode,
+                    ParliamentaryConstituencyName = x.ParliamentaryConstituencyName,
+                    CountryCode = x.CountryCode,
+                    CountryName = x.CountryName,
+                    LocalGovernmentGroupTypeCode = x.LocalGovernmentGroupTypeCode,
+                    LocalGovernmentGroupTypeName = x.LocalGovernmentGroupTypeName
+                });
+
+            await _cacheProvider.KeyDeleteAsync<ProviderSummary>(cacheKeyScopedListCacheKey);
+
+            // Batch to get around redis timeouts
+            foreach (IEnumerable<ProviderSummary> batch in providerSummaries.ToBatches(1000))
+            {
+                // Create list is an upsert into the redis list
+                await _cacheProvider.CreateListAsync(batch, cacheKeyScopedListCacheKey);
+                await _cacheProvider.SetExpiry<ProviderSummary>(cacheKeyScopedListCacheKey, DateTime.UtcNow.AddDays(7));
+            }
+
+            await _cacheProvider.SetAsync(scopedProviderSummariesCountCacheKey, providerSummaries.Count().ToString(), TimeSpan.FromDays(7), true);
+
+            string filesystemCacheKey = $"{CacheKeys.ScopedProviderSummariesFilesystemKeyPrefix}{specificationId}";
+            await _cacheProvider.KeyDeleteAsync<string>(filesystemCacheKey);
+
+            // Mark job as complete
+            _logger.Information($"Marking populate scoped providers job complete");
+
+            await _jobManagement.UpdateJobStatus(jobId, 0, 0, true, null);
+            _logger.Information($"Populate scoped providers job complete");
+        }
+
+        public async Task<IActionResult> PopulateProviderSummariesForSpecification(string specificationId, string correlationId, Reference user, bool setCachedProviders)
         {
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
-            IEnumerable<ProviderSummary> providerSummaries = await GenerateScopedProvidersForSpecification(specificationId, setCachedProviders);
-
-            return new OkObjectResult(providerSummaries.Count());
+            
+            return new OkObjectResult(await RegenerateScopedProvidersForSpecification(specificationId, setCachedProviders, correlationId, user));
         }
 
         public async Task<IActionResult> FetchCoreProviderData(string specificationId)
@@ -121,7 +247,7 @@ namespace CalculateFunding.Services.Providers
                 }
             }
 
-            IEnumerable<ProviderSummary> providerSummaries = await this.GenerateScopedProvidersForSpecification(specificationId,false);
+            IEnumerable<ProviderSummary> providerSummaries = await this.GetScopedProvidersForSpecification(specificationId);
             if (providerSummaries.IsNullOrEmpty())
             {
                 return new NoContentResult();
@@ -171,7 +297,15 @@ namespace CalculateFunding.Services.Providers
 
         }
 
-        private async Task<IEnumerable<ProviderSummary>> GenerateScopedProvidersForSpecification(string specificationId,bool setCachedProviders)
+        private async Task<IEnumerable<ProviderSummary>> GetScopedProvidersForSpecification(string specificationId)
+        {
+            string cacheKeyScopedListCacheKey = $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}";
+            long scopedProviderRedisListCount = await _cacheProvider.ListLengthAsync<ProviderSummary>(cacheKeyScopedListCacheKey);
+
+            return await _cacheProvider.ListRangeAsync<ProviderSummary>(cacheKeyScopedListCacheKey, 0, (int)scopedProviderRedisListCount);
+        }
+
+        private async Task<bool> RegenerateScopedProvidersForSpecification(string specificationId, bool setCachedProviders, string correlationId, Reference user)
         {
             string scopedProviderSummariesCountCacheKey = $"{CacheKeys.ScopedProviderSummariesCount}{specificationId}";
             string currentProviderCount = await _cacheProvider.GetAsync<string>(scopedProviderSummariesCountCacheKey);
@@ -181,101 +315,27 @@ namespace CalculateFunding.Services.Providers
 
             if (string.IsNullOrWhiteSpace(currentProviderCount) || int.Parse(currentProviderCount) != scopedProviderRedisListCount || setCachedProviders)
             {
-                //string url = string.Format(getSpecificationSummary, specificationId);
-
-                ApiResponse<SpecificationSummary> spec =
-                 await _specificationsApiClient.GetSpecificationSummaryById(specificationId);
-
-
-                if (string.IsNullOrWhiteSpace(spec?.Content.ProviderVersionId))
+                await _jobsApiClient.CreateJob(new JobCreateModel
                 {
-                    return null;
-                }
-
-                ProviderVersion providerVersion = await _providerVersionService.GetProvidersByVersion(spec.Content.ProviderVersionId);
-
-                if (providerVersion == null)
-                {
-                    return null;
-                }
-
-                IEnumerable<string> scopedProviderIds = await GetScopedProviderIdsBySpecification(specificationId);
-
-                IEnumerable<ProviderSummary> providerSummaries = providerVersion.Providers.Where(p => scopedProviderIds.Contains(p.ProviderId))
-                    .Select(x => new ProviderSummary
+                    JobDefinitionId = JobConstants.DefinitionNames.PopulateScopedProvidersJob,
+                    SpecificationId = specificationId,
+                    Trigger = new Trigger
                     {
-                        Name = x.Name,
-                        Id = x.ProviderId,
-                        ProviderProfileIdType = x.ProviderProfileIdType,
-                        UKPRN = x.UKPRN,
-                        URN = x.URN,
-                        Authority = x.Authority,
-                        UPIN = x.UPIN,
-                        ProviderSubType = x.ProviderSubType,
-                        EstablishmentNumber = x.EstablishmentNumber,
-                        ProviderType = x.ProviderType,
-                        DateOpened = x.DateOpened,
-                        DateClosed = x.DateClosed,
-                        LACode = x.LACode,
-                        CrmAccountId = x.CrmAccountId,
-                        LegalName = x.LegalName,
-                        NavVendorNo = x.NavVendorNo,
-                        DfeEstablishmentNumber = x.DfeEstablishmentNumber,
-                        Status = x.Status,
-                        PhaseOfEducation = x.PhaseOfEducation,
-                        ReasonEstablishmentClosed = x.ReasonEstablishmentClosed,
-                        ReasonEstablishmentOpened = x.ReasonEstablishmentOpened,
-                        Successor = x.Successor,
-                        TrustStatus = x.TrustStatus,
-                        TrustName = x.TrustName,
-                        TrustCode = x.TrustCode,
-                        Town = x.Town,
-                        Postcode = x.Postcode,
-                        LocalAuthorityName = x.LocalAuthorityName,
-                        CompaniesHouseNumber = x.CompaniesHouseNumber,
-                        GroupIdNumber = x.GroupIdNumber,
-                        RscRegionName = x.RscRegionName,
-                        RscRegionCode = x.RscRegionCode,
-                        GovernmentOfficeRegionName = x.GovernmentOfficeRegionName,
-                        GovernmentOfficeRegionCode = x.GovernmentOfficeRegionCode,
-                        DistrictCode = x.DistrictCode,
-                        DistrictName = x.DistrictName,
-                        WardName = x.WardName,
-                        WardCode = x.WardCode,
-                        CensusWardCode = x.CensusWardCode,
-                        CensusWardName = x.CensusWardName,
-                        MiddleSuperOutputAreaCode = x.MiddleSuperOutputAreaCode,
-                        MiddleSuperOutputAreaName = x.MiddleSuperOutputAreaName,
-                        LowerSuperOutputAreaCode = x.LowerSuperOutputAreaCode,
-                        LowerSuperOutputAreaName = x.LowerSuperOutputAreaName,
-                        ParliamentaryConstituencyCode = x.ParliamentaryConstituencyCode,
-                        ParliamentaryConstituencyName = x.ParliamentaryConstituencyName,
-                        CountryCode = x.CountryCode,
-                        CountryName = x.CountryName,
-                        LocalGovernmentGroupTypeCode = x.LocalGovernmentGroupTypeCode,
-                        LocalGovernmentGroupTypeName = x.LocalGovernmentGroupTypeName
-                    });
-
-                await _cacheProvider.KeyDeleteAsync<ProviderSummary>(cacheKeyScopedListCacheKey);
-
-                // Batch to get around redis timeouts
-                foreach (IEnumerable<ProviderSummary> batch in providerSummaries.ToBatches(1000))
+                        EntityId = specificationId,
+                        EntityType = "Specification",
+                        Message = "Triggered for specification changes"
+                    },
+                    Properties = new Dictionary<string, string>
                 {
-                    // Create list is an upsert into the redis list
-                    await _cacheProvider.CreateListAsync(batch, cacheKeyScopedListCacheKey);
-                    await _cacheProvider.SetExpiry<ProviderSummary>(cacheKeyScopedListCacheKey, DateTime.UtcNow.AddDays(7));
+                    {"specification-id", specificationId}
                 }
+                });
 
-                await _cacheProvider.SetAsync(scopedProviderSummariesCountCacheKey, providerSummaries.Count().ToString(), TimeSpan.FromDays(7), true);
-
-                string filesystemCacheKey = $"{CacheKeys.ScopedProviderSummariesFilesystemKeyPrefix}{specificationId}";
-                await _cacheProvider.KeyDeleteAsync<string>(filesystemCacheKey);
-
-                return providerSummaries;
+                return true;
             }
             else
             {
-                return await _cacheProvider.ListRangeAsync<ProviderSummary>(cacheKeyScopedListCacheKey, 0, (int)scopedProviderRedisListCount);
+                return false;
             }
         }
 

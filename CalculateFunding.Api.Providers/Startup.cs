@@ -1,5 +1,8 @@
 ﻿using System;
 using AutoMapper;
+using CalculateFunding.Common.Config.ApiClient.Results;
+using CalculateFunding.Common.Config.ApiClient.Specifications;
+using CalculateFunding.Common.Config.ApiClient.Jobs;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.WebApi.Extensions;
@@ -27,6 +30,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using Polly.Bulkhead;
+using CalculateFunding.Common.JobManagement;
 
 namespace CalculateFunding.Api.Providers
 {
@@ -117,6 +121,9 @@ namespace CalculateFunding.Api.Providers
                 .AddSingleton<IHealthChecker, ProviderVersionSearchService>();
 
             builder
+                .AddSingleton<IJobManagement, JobManagement>();
+
+            builder
                 .AddSingleton<IScopedProvidersService, ScopedProvidersService>()
                 .AddSingleton<IHealthChecker, ScopedProvidersService>();
 
@@ -162,10 +169,10 @@ namespace CalculateFunding.Api.Providers
             builder
                 .AddSingleton(providerVersionsConfig.CreateMapper());
 
-           
-            Common.Config.ApiClient.Results.ServiceCollectionExtensions.AddResultsInterServiceClient(builder, Configuration);
-                 
-            Common.Config.ApiClient.Specifications.ServiceCollectionExtensions.AddSpecificationsInterServiceClient(builder, Configuration);
+
+            builder.AddResultsInterServiceClient(Configuration);
+            builder.AddSpecificationsInterServiceClient(Configuration);
+            builder.AddJobsInterServiceClient(Configuration);
             builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Api.Providers");
             builder.AddApplicationInsightsServiceName(Configuration, "CalculateFunding.Api.Providers");
             builder.AddLogging("CalculateFunding.Api.Providers");
@@ -183,6 +190,19 @@ namespace CalculateFunding.Api.Providers
                     ProviderVersionMetadataRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
                     BlobRepositoryPolicy = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
                 };
+            });
+
+            builder.AddSingleton<IJobManagementResiliencePolicies>((ctx) =>
+            {
+                PolicySettings policySettings = ctx.GetService<PolicySettings>();
+
+                AsyncBulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
+
+                return new JobManagementResiliencePolicies()
+                {
+                    JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
+                };
+
             });
 
             builder
@@ -217,8 +237,6 @@ namespace CalculateFunding.Api.Providers
             ServiceProvider = builder.BuildServiceProvider();
 
             builder.AddSearch(Configuration);
-
-
         }
     }
 }

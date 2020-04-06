@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.ProviderLegacy;
+using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Providers.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -27,10 +28,10 @@ namespace CalculateFunding.Api.Providers.Controllers
         }
 
         [HttpGet("api/scopedproviders/set-cached-providers/{specificationId}/{setCachedProviders}")]
-        [ProducesResponseType(200, Type = typeof(int?))]
+        [ProducesResponseType(200, Type = typeof(bool))]
         public async Task<IActionResult> PopulateProviderSummariesForSpecification([FromRoute]string specificationId, [FromRoute]bool setCachedProviders)
         {
-            return await _scopedProvidersService.PopulateProviderSummariesForSpecification(specificationId, setCachedProviders: setCachedProviders);
+            return await _scopedProvidersService.PopulateProviderSummariesForSpecification(specificationId, Request.GetCorrelationId(), Request.GetUser(), setCachedProviders: setCachedProviders);
         }
 
         [HttpGet("api/scopedproviders/get-provider-ids/{specificationId}")]

@@ -18,11 +18,11 @@
 	<PackageReference Include="CalculateFunding.Common.ApiClient.Policies" Version="3.0.1" />
 
     <PackageReference Include="CalculateFunding.Common.ApiClient.Profiling" Version="2.0.1" />
-    <PackageReference Include="CalculateFunding.Common.ApiClient.Specifications" Version="2.0.1" />
+    <PackageReference Include="CalculateFunding.Common.ApiClient.Specifications" Version="2.0.2" />
 
 
 
-    <PackageReference Include="CalculateFunding.Common.JobManagement" Version="2.0.1" />
+    <PackageReference Include="CalculateFunding.Common.JobManagement" Version="2.0.2" />
 
 
 

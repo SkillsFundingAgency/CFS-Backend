@@ -55,6 +55,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             _messengerService = CreateMessengerService();
             _versionRepository = CreateVersionRepository();
             _providersApiClient = CreateProvidersApiClient();
+            _jobManagement = CreateJobManagement();
             _fundingPeriodResponse = new ApiResponse<PolicyModels.FundingPeriod>(
                 HttpStatusCode.OK, _fundingPeriod);
         }
@@ -135,7 +136,8 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             //Arrange
             SpecificationEditModel specificationEditModel = new SpecificationEditModel
             {
-                FundingPeriodId = "fp10"
+                FundingPeriodId = "fp10",
+                ProviderVersionId = _specification.Current.ProviderVersionId
             };
             _specificationsRepository.GetSpecificationById(Arg.Is(SpecificationId))
                 .Returns(_specification);
@@ -157,7 +159,8 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             var existingFundingStreams = _specification.Current.FundingStreams;
             SpecificationEditModel specificationEditModel = new SpecificationEditModel
             {
-                FundingPeriodId = "fp10"
+                FundingPeriodId = "fp10",
+                ProviderVersionId = _specification.Current.ProviderVersionId
             };
             PolicyModels.FundingStream fundingStream = new PolicyModels.FundingStream
             {
@@ -194,7 +197,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         }
 
         [TestMethod]
-        public async Task EditSpecification_GivenChanges_UpdatesSearchAndSendsMessage()
+        public async Task EditSpecification_GivenProviderVersionChanges_CallsRegenerateScopedProviders()
         {
             //Arrange
             var existingFundingStreams = _specification.Current.FundingStreams;
@@ -202,6 +205,143 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             {
                 FundingPeriodId = "fp10",
                 Name = "new spec name"
+            };
+            PolicyModels.FundingStream fundingStream = new PolicyModels.FundingStream
+            {
+                Id = existingFundingStreams.First().Id
+            };
+            Models.Specs.SpecificationVersion newSpecVersion = _specification.Current.Clone() as Models.Specs.SpecificationVersion;
+            newSpecVersion.Name = specificationEditModel.Name;
+            newSpecVersion.FundingPeriod.Id = specificationEditModel.FundingPeriodId;
+            newSpecVersion.FundingStreams = new[] { new Reference { Id = "fs11" } };
+            newSpecVersion.ProviderVersionId = "Provider version 2";
+
+            _providersApiClient.RegenerateProviderSummariesForSpecification(_specification.Id, true)
+                .Returns(new ApiResponse<bool>(HttpStatusCode.OK, true));
+
+            _jobManagement.WaitForJobsToComplete(Arg.Is<IEnumerable<string>>(_ => _.Single() == JobConstants.DefinitionNames.PopulateScopedProvidersJob), _specification.Id)
+                .Returns(true);
+
+            var service = CreateSpecificationsService(fundingStream, newSpecVersion);
+
+            //Act
+            IActionResult result = await service.EditSpecification(SpecificationId, specificationEditModel, null, null);
+
+            //Arrange
+            await
+                _searchRepository
+                    .Received(1)
+                    .Index(Arg.Is<IEnumerable<SpecificationIndex>>(
+                            m => m.First().Id == SpecificationId &&
+                            m.First().Name == "new spec name" &&
+                            m.First().FundingPeriodId == "fp10" &&
+                            m.First().FundingStreamIds.Count() == 1
+                        ));
+            await
+                _cacheProvider
+                    .Received(1)
+                    .RemoveAsync<SpecificationSummary>(Arg.Is($"{CacheKeys.SpecificationSummaryById}{_specification.Id}"));
+            await
+                _messengerService
+                    .Received(1)
+                    .SendToTopic(Arg.Is(ServiceBusConstants.TopicNames.EditSpecification),
+                                Arg.Is<SpecificationVersionComparisonModel>(
+                                    m => m.Id == SpecificationId &&
+                                    m.Current.Name == "new spec name" &&
+                                    m.Previous.Name == "Spec name"
+                                    ), Arg.Any<IDictionary<string, string>>(), Arg.Is(true));
+            await
+              _versionRepository
+               .Received(1)
+               .SaveVersion(Arg.Is(newSpecVersion));
+        }
+
+        [TestMethod]
+        public void EditSpecification_GivenProviderVersionChangesAndJobFails_ExceptionThrown()
+        {
+            //Arrange
+            var existingFundingStreams = _specification.Current.FundingStreams;
+            SpecificationEditModel specificationEditModel = new SpecificationEditModel
+            {
+                FundingPeriodId = "fp10",
+                Name = "new spec name"
+            };
+            PolicyModels.FundingStream fundingStream = new PolicyModels.FundingStream
+            {
+                Id = existingFundingStreams.First().Id
+            };
+            Models.Specs.SpecificationVersion newSpecVersion = _specification.Current.Clone() as Models.Specs.SpecificationVersion;
+            newSpecVersion.Name = specificationEditModel.Name;
+            newSpecVersion.FundingPeriod.Id = specificationEditModel.FundingPeriodId;
+            newSpecVersion.FundingStreams = new[] { new Reference { Id = "fs11" } };
+            newSpecVersion.ProviderVersionId = "Provider version 2";
+
+            _providersApiClient.RegenerateProviderSummariesForSpecification(_specification.Id, true)
+                .Returns(new ApiResponse<bool>(HttpStatusCode.OK, true));
+
+            _jobManagement.WaitForJobsToComplete(Arg.Is<IEnumerable<string>>(_ => _.Single() == JobConstants.DefinitionNames.PopulateScopedProvidersJob), _specification.Id)
+                .Returns(false);
+
+            var service = CreateSpecificationsService(fundingStream, newSpecVersion);
+
+            //Act
+            Func<Task> invocation = async() => await service.EditSpecification(SpecificationId, specificationEditModel, null, null);
+
+            //Arrange
+            invocation.Should()
+                .Throw<RetriableException>()
+                .WithMessage($"Unable to re-generate scoped providers while editing specification '{_specification.Id}' job didn't complete successfully in time");
+        }
+
+
+        [TestMethod]
+        public void EditSpecification_GivenProviderVersionChangesAndRegenerateScopedProvidersFails_ExceptionThrown()
+        {
+            //Arrange
+            var existingFundingStreams = _specification.Current.FundingStreams;
+            SpecificationEditModel specificationEditModel = new SpecificationEditModel
+            {
+                FundingPeriodId = "fp10",
+                Name = "new spec name"
+            };
+            PolicyModels.FundingStream fundingStream = new PolicyModels.FundingStream
+            {
+                Id = existingFundingStreams.First().Id
+            };
+            Models.Specs.SpecificationVersion newSpecVersion = _specification.Current.Clone() as Models.Specs.SpecificationVersion;
+            newSpecVersion.Name = specificationEditModel.Name;
+            newSpecVersion.FundingPeriod.Id = specificationEditModel.FundingPeriodId;
+            newSpecVersion.FundingStreams = new[] { new Reference { Id = "fs11" } };
+            newSpecVersion.ProviderVersionId = "Provider version 2";
+
+            _providersApiClient.RegenerateProviderSummariesForSpecification(_specification.Id, true)
+                .Returns(new ApiResponse<bool>(HttpStatusCode.BadRequest));
+
+            _jobManagement.WaitForJobsToComplete(Arg.Is<IEnumerable<string>>(_ => _.Single() == JobConstants.DefinitionNames.PopulateScopedProvidersJob), _specification.Id)
+                .Returns(false);
+
+            var service = CreateSpecificationsService(fundingStream, newSpecVersion);
+
+            //Act
+            Func<Task> invocation = async () => await service.EditSpecification(SpecificationId, specificationEditModel, null, null);
+
+            //Arrange
+            invocation.Should()
+                .Throw<RetriableException>()
+                .WithMessage($"Unable to re-generate scoped providers while editing specification '{_specification.Id}' with status code: {HttpStatusCode.BadRequest}");
+        }
+
+
+        [TestMethod]
+        public async Task EditSpecification_GivenChanges_UpdatesSearchAndSendsMessage()
+        {
+            //Arrange
+            var existingFundingStreams = _specification.Current.FundingStreams;
+            SpecificationEditModel specificationEditModel = new SpecificationEditModel
+            {
+                FundingPeriodId = "fp10",
+                Name = "new spec name",
+                ProviderVersionId = _specification.Current.ProviderVersionId
             };
             PolicyModels.FundingStream fundingStream = new PolicyModels.FundingStream
             {
@@ -264,7 +404,8 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 mapper: _mapper, logs: _logger, specificationsRepository: _specificationsRepository,
                 policiesApiClient: _policiesApiClient, searchRepository: _searchRepository,
                 cacheProvider: _cacheProvider, messengerService: _messengerService,
-                specificationVersionRepository: _versionRepository, providersApiClient: _providersApiClient);
+                specificationVersionRepository: _versionRepository,
+                providersApiClient: _providersApiClient, jobManagement: _jobManagement);
             return service;
         }
 
@@ -278,7 +419,8 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             SpecificationEditModel specificationEditModel = new SpecificationEditModel
             {
                 FundingPeriodId = "fp10",
-                Name = specificationEditModelName
+                Name = specificationEditModelName,
+                ProviderVersionId = _specification.Current.ProviderVersionId
             };
             PolicyModels.FundingStream fundingStream = new PolicyModels.FundingStream
             {
@@ -333,7 +475,8 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             SpecificationEditModel specificationEditModel = new SpecificationEditModel
             {
                 FundingPeriodId = "fp10",
-                Name = "new spec name"
+                Name = "new spec name",
+                ProviderVersionId = _specification.Current.ProviderVersionId
             };
             PolicyModels.FundingStream fundingStream = new PolicyModels.FundingStream
             {
@@ -381,92 +524,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         }
 
         [TestMethod]
-        public async Task EditSpecification_GivenChangesIncludingFundingPeriod_EnsuresCacheCorrectlyInvalidates()
-        {
-            //Arrange
-            var existingFundingStreams = _specification.Current.FundingStreams;
-            SpecificationEditModel specificationEditModel = new SpecificationEditModel
-            {
-                FundingPeriodId = "fp10",
-                Name = "new spec name"
-            };
-            PolicyModels.FundingStream fundingStream = new PolicyModels.FundingStream
-            {
-                Id = existingFundingStreams.First().Id
-            };
-            Models.Specs.SpecificationVersion newSpecVersion = _specification.Current.Clone() as Models.Specs.SpecificationVersion;
-            _versionRepository
-                .CreateVersion(Arg.Any<Models.Specs.SpecificationVersion>(), Arg.Any<Models.Specs.SpecificationVersion>())
-                .Returns(newSpecVersion);
-            var service = CreateSpecificationsService(fundingStream, newSpecVersion);
-
-            //Act
-            IActionResult result = await service.EditSpecification(SpecificationId, specificationEditModel, null, null);
-
-            //Assert
-            await
-                _cacheProvider
-                    .Received(1)
-                    .RemoveAsync<SpecificationSummary>(Arg.Is($"{CacheKeys.SpecificationSummaryById}{_specification.Id}"));
-            await
-                _cacheProvider
-                    .Received(1)
-                    .RemoveAsync<List<SpecificationSummary>>(Arg.Is($"{CacheKeys.SpecificationSummariesByFundingPeriodId}fp10"));
-            await
-                _cacheProvider
-                    .Received(1)
-                    .RemoveAsync<List<ProviderSummary>>(Arg.Is($"{CacheKeys.ScopedProviderSummariesPrefix}{_specification.Id}"));
-            await
-                _versionRepository
-                 .Received(1)
-                 .SaveVersion(Arg.Is(newSpecVersion));
-        }
-
-        [TestMethod]
-        public async Task EditSpecification_GivenChangesButFundingPeriodUnchanged_EnsuresCacheCorrectlyInvalidates()
-        {
-            //Arrange
-            var existingFundingStreams = _specification.Current.FundingStreams;
-
-            SpecificationEditModel specificationEditModel = new SpecificationEditModel
-            {
-                FundingPeriodId = "FP1",
-                Name = "new spec name"
-            };
-            PolicyModels.FundingStream fundingStream = new PolicyModels.FundingStream
-            {
-                Id = existingFundingStreams.First().Id
-            };
-            Models.Specs.SpecificationVersion newSpecVersion = _specification.Current.Clone() as Models.Specs.SpecificationVersion;
-            _versionRepository
-                .CreateVersion(Arg.Any<Models.Specs.SpecificationVersion>(), Arg.Any<Models.Specs.SpecificationVersion>())
-                .Returns(newSpecVersion);
-            var service = CreateSpecificationsService(fundingStream, newSpecVersion);
-
-            //Act
-            IActionResult result = await service.EditSpecification(SpecificationId, specificationEditModel, null, null);
-
-            //Assert
-            await
-                _cacheProvider
-                    .Received(1)
-                    .RemoveAsync<SpecificationSummary>(Arg.Is($"{CacheKeys.SpecificationSummaryById}{_specification.Id}"));
-            await
-                _cacheProvider
-                    .Received(1)
-                    .RemoveAsync<List<ProviderSummary>>(Arg.Is($"{CacheKeys.ScopedProviderSummariesPrefix}{_specification.Id}"));
-            await
-                _cacheProvider
-                    .DidNotReceive()
-                    .RemoveAsync<List<SpecificationSummary>>(Arg.Is($"{CacheKeys.SpecificationSummariesByFundingPeriodId}fp1"));
-            await
-                _versionRepository
-                 .Received(1)
-                 .SaveVersion(Arg.Is(newSpecVersion));
-        }
-
-        [TestMethod]
-        public async Task EditSpecification_WhenIndexingReturnsErrors_ShouldThrowException()
+        public void EditSpecification_WhenIndexingReturnsErrors_ShouldThrowException()
         {
             //Arrange
             var existingFundingStreams = _specification.Current.FundingStreams;
@@ -474,7 +532,8 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             SpecificationEditModel specificationEditModel = new SpecificationEditModel
             {
                 FundingPeriodId = "fp10",
-                Name = "new spec name"
+                Name = "new spec name",
+                ProviderVersionId = _specification.Current.ProviderVersionId
             };
             PolicyModels.FundingStream fundingStream = new PolicyModels.FundingStream
             {
@@ -500,113 +559,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .Message
                 .Should()
                 .Be($"Could not index specification {_specification.Current.Id} because: {errorMessage}");
-        }
-
-        [TestMethod]
-        public async Task EditSpecification_GivenNewProviderVersionId_PopulateProviderSummariesFromCache()
-        {
-            //Arrange
-            var existingFundingStreams = _specification.Current.FundingStreams;
-            SpecificationEditModel specificationEditModel = new SpecificationEditModel
-            {
-                FundingPeriodId = "fp10",
-                Name = "new spec name",
-                ProviderVersionId = "PV-1"
-            };
-            PolicyModels.FundingStream fundingStream = new PolicyModels.FundingStream
-            {
-                Id = existingFundingStreams.First().Id
-            };
-            Models.Specs.SpecificationVersion newSpecVersion = _specification.Current.Clone() as Models.Specs.SpecificationVersion;
-            newSpecVersion.Name = specificationEditModel.Name;
-            newSpecVersion.FundingPeriod.Id = specificationEditModel.FundingPeriodId;
-            newSpecVersion.FundingStreams = new[] { new Reference { Id = "fs11" } };
-
-            _providersApiClient.PopulateProviderSummariesForSpecification(SpecificationId, true)
-                .Returns(new ApiResponse<int?>(HttpStatusCode.OK, 1));
-
-            var service = CreateSpecificationsService(fundingStream, newSpecVersion);
-
-            //Act
-            IActionResult result = await service.EditSpecification(SpecificationId, specificationEditModel, null, null);
-
-            //Arrange
-            await
-                _searchRepository
-                    .Received(1)
-                    .Index(Arg.Is<IEnumerable<SpecificationIndex>>(
-                            m => m.First().Id == SpecificationId &&
-                            m.First().Name == "new spec name" &&
-                            m.First().FundingPeriodId == "fp10" &&
-                            m.First().FundingStreamIds.Count() == 1
-                        ));
-            await
-                _cacheProvider
-                    .Received(1)
-                    .RemoveAsync<SpecificationSummary>(Arg.Is($"{CacheKeys.SpecificationSummaryById}{_specification.Id}"));
-            await
-                _messengerService
-                    .Received(1)
-                    .SendToTopic(Arg.Is(ServiceBusConstants.TopicNames.EditSpecification),
-                                Arg.Is<SpecificationVersionComparisonModel>(
-                                    m => m.Id == SpecificationId &&
-                                    m.Current.Name == "new spec name" &&
-                                    m.Previous.Name == "Spec name"
-                                    ), Arg.Any<IDictionary<string, string>>(), Arg.Is(true));
-            await
-              _versionRepository
-               .Received(1)
-               .SaveVersion(Arg.Is(newSpecVersion));
-
-            await
-                _providersApiClient
-                .Received(1)
-                .PopulateProviderSummariesForSpecification(SpecificationId, true);
-        }
-
-        [TestMethod]
-        public async Task EditSpecification_GivenNoProviderSummeries_ShouldThrowException()
-        {
-            //Arrange
-            var existingFundingStreams = _specification.Current.FundingStreams;
-            SpecificationEditModel specificationEditModel = new SpecificationEditModel
-            {
-                FundingPeriodId = "fp10",
-                Name = "new spec name",
-                ProviderVersionId = "PV-1"
-            };
-            PolicyModels.FundingStream fundingStream = new PolicyModels.FundingStream
-            {
-                Id = existingFundingStreams.First().Id
-            };
-            Models.Specs.SpecificationVersion newSpecVersion = _specification.Current.Clone() as Models.Specs.SpecificationVersion;
-            newSpecVersion.Name = specificationEditModel.Name;
-            newSpecVersion.FundingPeriod.Id = specificationEditModel.FundingPeriodId;
-            newSpecVersion.FundingStreams = new[] { new Reference { Id = "fs11" } };
-
-            _providersApiClient.PopulateProviderSummariesForSpecification(SpecificationId, true)
-                .Returns(new ApiResponse<int?>(HttpStatusCode.BadRequest, null));
-
-
-            var service = CreateSpecificationsService(fundingStream, newSpecVersion);
-
-            //Act
-            Func<Task<IActionResult>> editSpecification = async () => await service.EditSpecification(SpecificationId, specificationEditModel, null, null);
-
-            //Assert
-            editSpecification
-                .Should()
-                .Throw<RetriableException>()
-                .Which
-                .Message
-                .Should()
-                .Be($"Unable to set scoped providers while editing specification '{SpecificationId}' with status code: BadRequest");
-
-
-            await
-                _providersApiClient
-                .Received(1)
-                .PopulateProviderSummariesForSpecification(SpecificationId, true);
         }
 
         private static MemoryStream CreateMemoryStreamForModel(SpecificationEditModel specificationEditModel)

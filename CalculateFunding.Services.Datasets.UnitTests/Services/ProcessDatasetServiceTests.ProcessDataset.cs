@@ -202,6 +202,8 @@ namespace CalculateFunding.Services.Datasets.Services
             ));
             AndTheRelationship(_relationshipId, NewRelationship(_ => _.WithDatasetDefinition(NewReference())
                 .WithDatasetVersion(NewRelationshipVersion())));
+            AndThePopulationOfProvierSummeriesForSpecification(false, false);
+            AndThePopulationOfProvierSummeriesForSpecification(false, false);
 
             await WhenTheProcessDatasetMessageIsProcessed();
 
@@ -223,6 +225,7 @@ namespace CalculateFunding.Services.Datasets.Services
             AndTheRelationship(_relationshipId, NewRelationship(_ => _.WithDatasetDefinition(NewReference())
                 .WithDatasetVersion(NewRelationshipVersion())));
             AndTheDatasetDefinitions(NewDatasetDefinition());
+            AndThePopulationOfProvierSummeriesForSpecification(false, false);
 
             await WhenTheProcessDatasetMessageIsProcessed();
 
@@ -245,6 +248,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .WithDatasetVersion(NewRelationshipVersion())));
             AndTheDatasetDefinitions(NewDatasetDefinition());
             AndTheBuildProject(SpecificationId, NewBuildProject());
+            AndThePopulationOfProvierSummeriesForSpecification(false, false);
             AndTheCloudBlob(BlobPath, null);
 
             await WhenTheProcessDatasetMessageIsProcessed();
@@ -268,6 +272,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .WithDatasetVersion(NewRelationshipVersion())));
             AndTheDatasetDefinitions(NewDatasetDefinition());
             AndTheBuildProject(SpecificationId, NewBuildProject());
+            AndThePopulationOfProvierSummeriesForSpecification(false, false);
 
             ICloudBlob cloudBlob = NewCloudBlob();
 
@@ -295,6 +300,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .WithDatasetVersion(NewRelationshipVersion())));
             AndTheDatasetDefinitions(NewDatasetDefinition());
             AndTheBuildProject(SpecificationId, NewBuildProject());
+            AndThePopulationOfProvierSummeriesForSpecification(false, false);
 
             ICloudBlob cloudBlob = NewCloudBlob();
 
@@ -325,6 +331,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             AndTheDatasetDefinitions(datasetDefinition);
             AndTheBuildProject(SpecificationId, NewBuildProject());
+            AndThePopulationOfProvierSummeriesForSpecification(false, false);
 
             ICloudBlob cloudBlob = NewCloudBlob();
 
@@ -361,6 +368,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             AndTheDatasetDefinitions(datasetDefinition);
             AndTheBuildProject(SpecificationId, NewBuildProject(_ => _.WithRelationships(NewRelationshipSummary())));
+            AndThePopulationOfProvierSummeriesForSpecification(false, false);
 
             ICloudBlob cloudBlob = NewCloudBlob();
 
@@ -478,6 +486,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 summary.WithRelationship(NewReference(rf => rf.WithId(_relationshipId)
                     .WithName(_relationshipName)))
                     .WithDatasetDefinition(NewDatasetDefinition())))));
+            AndThePopulationOfProvierSummeriesForSpecification(false, false);
 
             ICloudBlob cloudBlob = NewCloudBlob();
 
@@ -535,6 +544,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 summary.WithRelationship(NewReference(rf => rf.WithId(_relationshipId)
                     .WithName(_relationshipName)))
                     .WithDatasetDefinition(NewDatasetDefinition())))));
+            AndThePopulationOfProvierSummeriesForSpecification(false, false);
 
             ICloudBlob cloudBlob = NewCloudBlob();
 
@@ -594,6 +604,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 summary.WithRelationship(NewReference(rf => rf.WithId(_relationshipId)
                     .WithName(_relationshipName)))
                     .WithDatasetDefinition(NewDatasetDefinition())))));
+            AndThePopulationOfProvierSummeriesForSpecification(false, false);
 
             ICloudBlob cloudBlob = NewCloudBlob();
 
@@ -653,6 +664,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 summary.WithRelationship(NewReference(rf => rf.WithId(_relationshipId)
                     .WithName(_relationshipName)))
                     .WithDatasetDefinition(NewDatasetDefinition())))));
+            AndThePopulationOfProvierSummeriesForSpecification(false, false);
 
             ICloudBlob cloudBlob = NewCloudBlob();
 
@@ -727,6 +739,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 summary.WithRelationship(NewReference(rf => rf.WithId(_relationshipId)
                     .WithName(_relationshipName)))
                     .WithDatasetDefinition(NewDatasetDefinition())))));
+            AndThePopulationOfProvierSummeriesForSpecification(false, false);
 
             ICloudBlob cloudBlob = NewCloudBlob();
 
@@ -808,6 +821,7 @@ namespace CalculateFunding.Services.Datasets.Services
             Stream tableStream = NewStream(new byte[1]);
 
             AndTheCloudStream(cloudBlob, tableStream);
+            AndThePopulationOfProvierSummeriesForSpecification(false, false);
 
             TableLoadResult tableLoadResult = NewTableLoadResult(_ => _.WithRows(NewRowLoadResult(
                 row => row.WithFields((Upin, _upin))),
@@ -852,6 +866,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 summary.WithRelationship(NewReference(rf => rf.WithId(_relationshipId)
                     .WithName(_relationshipName)))
                     .WithDatasetDefinition(NewDatasetDefinition())))));
+            AndThePopulationOfProvierSummeriesForSpecification(false, false);
 
             ICloudBlob cloudBlob = NewCloudBlob();
 
@@ -872,6 +887,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             AndTheJob(NewJob(_ => _.WithId(_jobId)
                 .WithDefinitionId(CreateInstructAllocationJob)), CreateInstructAllocationJob);
+            AndThePopulationOfProvierSummeriesForSpecification(false, false);
 
             await WhenTheProcessDatasetMessageIsProcessed();
 
@@ -957,6 +973,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 summary.WithRelationship(NewReference(rf => rf.WithId(_relationshipId)
                     .WithName(_relationshipName)))
                     .WithDatasetDefinition(NewDatasetDefinition())))));
+            AndThePopulationOfProvierSummeriesForSpecification(false, false);
 
             ICloudBlob cloudBlob = NewCloudBlob();
 
@@ -1025,6 +1042,7 @@ namespace CalculateFunding.Services.Datasets.Services
                     .WithRelationship(NewReference(rf => rf.WithId(_relationshipId)
                     .WithName(_relationshipName)))
                     .WithDatasetDefinition(NewDatasetDefinition())))));
+            AndThePopulationOfProvierSummeriesForSpecification(false, false);
             AndTheCompileResponse(HttpStatusCode.NoContent);
 
             ICloudBlob cloudBlob = NewCloudBlob();
@@ -1077,6 +1095,7 @@ namespace CalculateFunding.Services.Datasets.Services
                     .WithRelationship(NewReference(rf => rf.WithId(_relationshipId)
                     .WithName(_relationshipName)))
                     .WithDatasetDefinition(NewDatasetDefinition())))));
+            AndThePopulationOfProvierSummeriesForSpecification(false, false);
             AndTheCompileResponse(HttpStatusCode.NoContent);
             AndTheCalculations(NewCalculation(_ => _.WithSourceCode("return Sum(Calc1)")));
 
@@ -1132,6 +1151,7 @@ namespace CalculateFunding.Services.Datasets.Services
                     .WithName(_relationshipName)))
                     .WithDatasetDefinition(NewDatasetDefinition())))));
             AndTheCompileResponse(HttpStatusCode.NoContent);
+            AndThePopulationOfProvierSummeriesForSpecification(false, false);
 
             ICloudBlob cloudBlob = NewCloudBlob();
 
@@ -1189,6 +1209,7 @@ namespace CalculateFunding.Services.Datasets.Services
                     .WithRelationship(NewReference(rf => rf.WithId(_relationshipId)
                     .WithName(_relationshipName)))
                     .WithDatasetDefinition(NewDatasetDefinition())))));
+            AndThePopulationOfProvierSummeriesForSpecification(false, false);
             AndTheCompileResponse(HttpStatusCode.NoContent);
             AndTheCalculations(NewCalculation(_ => _.WithSourceCode("return Sum(Calc1)")));
 
@@ -1222,7 +1243,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        public async Task ProcessDataset_GivenPayloadAndTableResultsWithRelationshipIsSetAsProviderData_ThenPopulateProviderSummariesForSpecification()
+        public async Task ProcessDataset_GivenPayloadAndTableResultsWithRelationshipIsSetAsProviderData_ThenRegenerateProviderSummariesForSpecification()
         {
             GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"),
                 ("user-id", UserId), ("user-name", Username));
@@ -1238,7 +1259,62 @@ namespace CalculateFunding.Services.Datasets.Services
                 .WithDatasetVersion(NewRelationshipVersion())
                 .WithIsSetAsProviderData(true)));
             var setCachedProviders = true;
-            AndThePopulationOfProvierSummeriesForSpecification(setCachedProviders, 1);
+            AndThePopulationOfProvierSummeriesForSpecification(setCachedProviders, true);
+
+            DatasetDefinition datasetDefinition = NewDatasetDefinition(_ => _.WithTableDefinitions(NewTableDefinition(tb =>
+                tb.WithFieldDefinitions(NewFieldDefinition(fld => fld.WithName(Upin)
+                    .WithIdentifierFieldType(IdentifierFieldType.UPIN))))));
+
+            AndTheDatasetDefinitions(datasetDefinition);
+            AndTheBuildProject(SpecificationId, NewBuildProject(_ => _.WithRelationships(NewRelationshipSummary(summary =>
+                summary.WithDefinesScope(true)
+                    .WithRelationship(NewReference(rf => rf.WithId(_relationshipId)
+                    .WithName(_relationshipName)))
+                    .WithDatasetDefinition(NewDatasetDefinition())))));
+            AndThePopulationOfProvierSummeriesForSpecification(setCachedProviders, false);
+            AndTheCompileResponse(HttpStatusCode.NoContent);
+
+            ICloudBlob cloudBlob = NewCloudBlob();
+
+            AndTheCloudBlob(BlobPath, cloudBlob);
+
+            Stream tableStream = NewStream(new byte[1]);
+
+            AndTheCloudStream(cloudBlob, tableStream);
+
+            TableLoadResult tableLoadResult = NewTableLoadResult(_ => _.WithRows(NewRowLoadResult(
+                row => row.WithFields((Upin, _upin)))));
+
+            AndTheCachedTableLoadResults(_datasetCacheKey, tableLoadResult);
+            AndTheTableLoadResultsFromExcel(tableStream, datasetDefinition, tableLoadResult);
+            AndTheCoreProviderData(NewApiProviderSummary(_ => _.WithId(_providerId)
+                .WithUPIN(_upin)));
+            AndTheJob(NewJob(_ => _.WithId(_jobId)
+                .WithDefinitionId(CreateInstructAllocationJob)), CreateInstructAllocationJob);
+
+            await WhenTheProcessDatasetMessageIsProcessed();
+
+            await ThenTheRegenerateProviderSummariesForSpecificationInvoked(setCachedProviders);
+        }
+
+        [TestMethod]
+        public async Task ProcessDataset_GivenPayloadAndTableResultsWithRelationshipIsSetAsProviderDataAndTheRegenerateScopedProviderFails_LogErrorThrowException()
+        {
+            GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"),
+                ("user-id", UserId), ("user-name", Username));
+            AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
+                .WithDefinition(NewReference(rf => rf.WithId(DataDefintionId)))
+                .WithHistory(NewDatasetVersion())));
+            AndTheSpecification(SpecificationId, NewSpecification(_ =>
+            _.WithId(SpecificationId)
+            .WithProviderVersionId(ProviderVersionId)
+            ));
+            AndTheRelationship(_relationshipId, NewRelationship(_ => _.WithDatasetDefinition(NewReference(
+                    rf => rf.WithId(DataDefintionId)))
+                .WithDatasetVersion(NewRelationshipVersion())
+                .WithIsSetAsProviderData(true)));
+            var setCachedProviders = true;
+            AndThePopulationOfProvierSummeriesForSpecificationFails(setCachedProviders, true);
 
             DatasetDefinition datasetDefinition = NewDatasetDefinition(_ => _.WithTableDefinitions(NewTableDefinition(tb =>
                 tb.WithFieldDefinitions(NewFieldDefinition(fld => fld.WithName(Upin)
@@ -1267,16 +1343,24 @@ namespace CalculateFunding.Services.Datasets.Services
             AndTheTableLoadResultsFromExcel(tableStream, datasetDefinition, tableLoadResult);
             AndTheCoreProviderData(NewApiProviderSummary(_ => _.WithId(_providerId)
                 .WithUPIN(_upin)));
-            AndTheJob(NewJob(_ => _.WithId(_jobId)
-                .WithDefinitionId(CreateInstructAllocationJob)), CreateInstructAllocationJob);
 
-            await WhenTheProcessDatasetMessageIsProcessed();
+            Func<Task> invocation = WhenTheProcessDatasetMessageIsProcessed;
 
-            await ThenTheProvierSummeriesForSpecificationArePopulatedInvoked(setCachedProviders);
+            invocation
+                .Should().ThrowExactly<RetriableException>()
+                .Which
+                .Message
+                .Should()
+                .Be($"Unable to re-generate providers while updating dataset '{_relationshipId}' for specification '{SpecificationId}' with status code: {HttpStatusCode.BadRequest}");
+
+            await ThenTheRegenerateProviderSummariesForSpecificationInvoked(setCachedProviders);
+            AndTheErrorWasLogged($"Unable to re-generate providers while updating dataset '{_relationshipId}' for specification '{SpecificationId}' with status code: {HttpStatusCode.BadRequest}");
+
         }
 
+
         [TestMethod]
-        public async Task ProcessDataset_GivenPayloadAndTableResultsWithRelationshipIsSetAsProviderDataAndTheProviderSummariesForSpecNull_LogErrorThrowException()
+        public async Task ProcessDataset_GivenPayloadAndTableResultsWithRelationshipIsSetAsProviderDataAndTheJobFails_LogErrorThrowException()
         {
             GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"),
                 ("user-id", UserId), ("user-name", Username));
@@ -1292,7 +1376,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .WithDatasetVersion(NewRelationshipVersion())
                 .WithIsSetAsProviderData(true)));
             var setCachedProviders = true;
-            AndThePopulationOfProvierSummeriesForSpecification(setCachedProviders, null);
+            AndThePopulationOfProvierSummeriesForSpecification(setCachedProviders, true);
 
             DatasetDefinition datasetDefinition = NewDatasetDefinition(_ => _.WithTableDefinitions(NewTableDefinition(tb =>
                 tb.WithFieldDefinitions(NewFieldDefinition(fld => fld.WithName(Upin)
@@ -1304,6 +1388,7 @@ namespace CalculateFunding.Services.Datasets.Services
                     .WithRelationship(NewReference(rf => rf.WithId(_relationshipId)
                     .WithName(_relationshipName)))
                     .WithDatasetDefinition(NewDatasetDefinition())))));
+            AndThePopulationOfProvierSummeriesForSpecification(false, false);
             AndTheCompileResponse(HttpStatusCode.NoContent);
 
             ICloudBlob cloudBlob = NewCloudBlob();
@@ -1329,10 +1414,10 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Which
                 .Message
                 .Should()               
-                .Be($"Unable to set scoped providers while updating dataset '{_relationshipId}' for specification '{SpecificationId}' with status code: OK");
+                .Be($"Unable to re-generate providers while updating dataset '{_relationshipId}' for specification '{SpecificationId}' job didn't complete successfully in time");
 
-            await ThenTheProvierSummeriesForSpecificationArePopulatedInvoked(setCachedProviders);
-            AndTheErrorWasLogged($"Unable to set scoped providers while updating dataset '{_relationshipId}' for specification '{SpecificationId}' with status code: OK");
+            await ThenTheRegenerateProviderSummariesForSpecificationInvoked(setCachedProviders);
+            AndTheErrorWasLogged($"Unable to re-generate providers while updating dataset '{_relationshipId}' for specification '{SpecificationId}' job didn't complete successfully in time");
 
         }
 
@@ -1654,11 +1739,18 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Returns(new ApiResponse<IEnumerable<ApiProviderSummary>>(HttpStatusCode.OK, providerSummaries));
         }
 
-        private void AndThePopulationOfProvierSummeriesForSpecification(bool setCachedProviders, int? providerSummariesCount)
+        private void AndThePopulationOfProvierSummeriesForSpecification(bool setCachedProviders, bool regenerated)
         {
             _providersApiClient
-                .PopulateProviderSummariesForSpecification(SpecificationId, setCachedProviders)
-                .Returns(new ApiResponse<int?>(HttpStatusCode.OK, providerSummariesCount));
+                .RegenerateProviderSummariesForSpecification(SpecificationId, setCachedProviders)
+                .Returns(new ApiResponse<bool>(HttpStatusCode.OK, regenerated));
+        }
+
+        private void AndThePopulationOfProvierSummeriesForSpecificationFails(bool setCachedProviders, bool regenerated)
+        {
+            _providersApiClient
+                .RegenerateProviderSummariesForSpecification(SpecificationId, setCachedProviders)
+                .Returns(new ApiResponse<bool>(HttpStatusCode.BadRequest));
         }
 
         private void AndTheCoreProviderVersion(ApiProviderVersion providerVersion)
@@ -1727,7 +1819,7 @@ namespace CalculateFunding.Services.Datasets.Services
         {
             await _providersApiClient
                 .Received(1)
-                .PopulateProviderSummariesForSpecification(SpecificationId);
+                .RegenerateProviderSummariesForSpecification(SpecificationId);
         }
 
         private async Task AndTheProviderSourceDatasetWasDeleted(string expectedProviderId = null,
@@ -1895,10 +1987,10 @@ namespace CalculateFunding.Services.Datasets.Services
                     ));
         }
 
-        private async Task ThenTheProvierSummeriesForSpecificationArePopulatedInvoked(bool setCachedProviders)
+        private async Task ThenTheRegenerateProviderSummariesForSpecificationInvoked(bool setCachedProviders)
         {
            await _providersApiClient.Received(1)
-                .PopulateProviderSummariesForSpecification(SpecificationId, setCachedProviders);
+                .RegenerateProviderSummariesForSpecification(SpecificationId, setCachedProviders);
         }
 
         private string GenerateIdentifier(string rawValue)

@@ -5,6 +5,7 @@ using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.ApiClient.Providers;
 using CalculateFunding.Common.Caching;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.TemplateMetadata;
 
@@ -48,6 +49,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         private readonly ISpecificationsRepository _specificationsRepository;
         private readonly IPoliciesApiClient _policiesApiClient;
         private readonly IProvidersApiClient _providersApiClient;
+        private readonly IJobManagement _jobManagement;
         private readonly IMapper _mapper;
         private readonly ISearchRepository<SpecificationIndex> _searchRepository;
         private readonly ICacheProvider _cacheProvider;
@@ -71,7 +73,8 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             IQueueDeleteSpecificationJobActions queueDeleteSpecificationJobActions = null,
             IFeatureToggle featureToggle = null,
             ICalculationsApiClient calcsApiClient = null,
-            IProvidersApiClient providersApiClient = null)
+            IProvidersApiClient providersApiClient = null,
+            IJobManagement jobManagement = null)
         {
             return new SpecificationsService(mapper ?? CreateMapper(),
                 specificationsRepository ?? CreateSpecificationsRepository(),
@@ -90,7 +93,8 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 queueDeleteSpecificationJobActions ?? Substitute.For<IQueueDeleteSpecificationJobActions>(),
                 calcsApiClient ?? CreateCalcsApiClient(),
                 featureToggle ?? Substitute.For<IFeatureToggle>(),
-                providersApiClient ?? Substitute.For<IProvidersApiClient>());
+                providersApiClient ?? Substitute.For<IProvidersApiClient>(),
+                jobManagement ?? CreateJobManagement());
         }
 
         protected IJobsApiClient CreateJobsApiClient()
@@ -153,6 +157,11 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         protected IProvidersApiClient CreateProvidersApiClient()
         {
             return Substitute.For<IProvidersApiClient>();
+        }
+
+        protected IJobManagement CreateJobManagement()
+        {
+            return Substitute.For<IJobManagement>();
         }
 
         protected static ILogger CreateLogger()
@@ -232,6 +241,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 Current = new Models.Specs.SpecificationVersion()
                 {
                     Name = "Spec name",
+                    ProviderVersionId = "Provider version 1",
                     FundingStreams = new List<Reference>()
                     {
                          new Reference("fs1", "Funding Stream 1"),

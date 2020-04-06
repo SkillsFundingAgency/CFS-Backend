@@ -8,7 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Calcs" Version="2.0.1" />
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Providers" Version="2.0.1" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Providers" Version="2.0.2" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Specifications" Version="2.0.1" />
     <PackageReference Include="gherkin" Version="5.0.0" />
     <PackageReference Include="Microsoft.ApplicationInsights" Version="2.13.1" />

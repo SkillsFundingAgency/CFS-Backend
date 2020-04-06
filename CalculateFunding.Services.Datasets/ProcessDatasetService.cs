@@ -234,19 +234,26 @@ namespace CalculateFunding.Services.Datasets
                 return;
             }
 
-            if(relationship.IsSetAsProviderData)
+            ApiResponse<bool> refreshCacheFromApi = await _providersApiClientPolicy.ExecuteAsync(() =>
+                                 _providersApiClient.RegenerateProviderSummariesForSpecification(specificationId, relationship.IsSetAsProviderData));
+
+            if (!refreshCacheFromApi.StatusCode.IsSuccess() || refreshCacheFromApi?.Content == null)
             {
+                string errorMessage = $"Unable to re-generate providers while updating dataset '{relationshipId}' for specification '{specificationId}' with status code: {refreshCacheFromApi.StatusCode}";
 
-                ApiResponse<int?> totalCountFromApi = await _providersApiClientPolicy.ExecuteAsync(() =>
-                                 _providersApiClient.PopulateProviderSummariesForSpecification(specificationId, true));
+                _logger.Information(errorMessage);
 
-                if (!totalCountFromApi.StatusCode.IsSuccess() || totalCountFromApi?.Content == null)
-                {
-                    string errorMessage = $"Unable to set scoped providers while updating dataset '{relationshipId}' for specification '{specificationId}' with status code: {totalCountFromApi.StatusCode.ToString()}";
-                    _logger.Information(errorMessage);
+                throw new RetriableException(errorMessage);
+            }
+                
+            // if the scoped providers are being re-generated then wait for the job to finish
+            if (Convert.ToBoolean(refreshCacheFromApi?.Content) && !await _jobManagement.WaitForJobsToComplete(new[] { JobConstants.DefinitionNames.PopulateScopedProvidersJob }, specificationId))
+            {
+                string errorMessage = $"Unable to re-generate providers while updating dataset '{relationshipId}' for specification '{specificationId}' job didn't complete successfully in time";
 
-                    throw new RetriableException(errorMessage);
-                }
+                _logger.Information(errorMessage);
+
+                throw new RetriableException(errorMessage);
             }
 
             BuildProject buildProject = null;
@@ -702,8 +709,6 @@ namespace CalculateFunding.Services.Datasets
 
             // need to remove all calculation result batches so that all calcs are created on calc run
             await _cacheProvider.RemoveByPatternAsync($"{CacheKeys.CalculationResults}{specification.Id}");
-
-            await _providersApiClientPolicy.ExecuteAsync(() => _providersApiClient.PopulateProviderSummariesForSpecification(specification.Id));
         }
 
         private static IEnumerable<string> GetProviderIdsForIdentifier(DatasetDefinition datasetDefinition, RowLoadResult row, IEnumerable<ProviderSummary> providerSummaries)

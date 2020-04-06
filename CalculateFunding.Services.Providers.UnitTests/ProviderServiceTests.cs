@@ -7,11 +7,13 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using AutoMapper;
+using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Results;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Caching;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Models.ProviderLegacy;
 using CalculateFunding.Models.Providers;
 
@@ -22,9 +24,11 @@ using CalculateFunding.Services.Providers.Caching;
 using CalculateFunding.Services.Providers.Interfaces;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.ServiceBus;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using NSubstitute;
+using Serilog;
 using TrustStatus = CalculateFunding.Models.ProviderLegacy.TrustStatus;
 
 namespace CalculateFunding.Services.Providers.UnitTests
@@ -75,9 +79,13 @@ namespace CalculateFunding.Services.Providers.UnitTests
             ICacheProvider cacheProvider = CreateCacheProvider();
 
             IScopedProvidersService providerService = CreateProviderService(resultsApiClient: resultsApiClient, specificationsApiClient: specificationsApiClientProxy, providerVersionService: providerVersionService, cacheProvider: cacheProvider);
+            
+            Message message = new Message();
+            message.UserProperties.Add("jobId", "jobId");
+            message.UserProperties.Add("specification-id", specificationId);
 
             //Act
-            IActionResult totalCountResult = await providerService.PopulateProviderSummariesForSpecification(specificationId,true);
+            await providerService.PopulateScopedProviders(message);
 
             await specificationsApiClientProxy
                 .Received(1)
@@ -145,109 +153,6 @@ namespace CalculateFunding.Services.Providers.UnitTests
             await cacheProvider
                .Received(1)
                .SetExpiry<ProviderSummary>(Arg.Is(cacheKeyForList), Arg.Any<DateTime>());
-
-            totalCountResult
-                .Should()
-                .BeOfType<OkObjectResult>();
-
-            OkObjectResult objectResult = totalCountResult as OkObjectResult;
-
-
-            int? totalCount = objectResult.Value as int?;
-
-            totalCount
-                .Should()
-                .Be(1);
-        }
-
-        [TestMethod]
-        public async Task PopulateProviderSummariesForSpecification_GivenSpecificationWithSetScopedProviderToFalse_TotalCountOfProvidersReturned()
-        {
-            //Arrange
-            string specificationId = Guid.NewGuid().ToString();
-            string providerVersionId = Guid.NewGuid().ToString();
-            string cacheKeyForList = $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}";
-            
-           
-            string cacheKeyScopedProviderSummariesCount = $"{CacheKeys.ScopedProviderSummariesCount}{specificationId}";
-            string cacheKeyScopedProviderSummaries = $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}";
-
-            Provider provider = CreateProvider();
-
-            ProviderVersion providerVersion = new ProviderVersion
-            {
-                Providers = new List<Provider> { provider }
-            };
-
-            SpecificationSummary specificationSummary = new SpecificationSummary
-            {
-                Id = specificationId,
-                ProviderVersionId = providerVersionId
-            };
-
-            List<ProviderSummary> cachedProviderSummaries = new List<ProviderSummary>
-            {
-                MapProviderToSummary(provider)
-            };
-
-            ISpecificationsApiClient specificationsApiClientProxy = CreateSpecificationsApiClient();
-
-
-            specificationsApiClientProxy
-                .GetSpecificationSummaryById(Arg.Any<string>())
-                .Returns(new ApiResponse<SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
-
-            IProviderVersionService providerVersionService = CreateProviderVersionService();
-            providerVersionService
-                .GetProvidersByVersion(Arg.Is(providerVersionId))
-                .Returns(providerVersion);
-
-            IResultsApiClient resultsApiClient = CreateResultsApiClient();
-            ApiResponse<IEnumerable<string>> scopedProviderResponse = new ApiResponse<IEnumerable<string>>(HttpStatusCode.OK, new List<string> { { "1234" } });
-
-            resultsApiClient
-                .GetScopedProviderIdsBySpecificationId(Arg.Any<string>())
-                .Returns(scopedProviderResponse);
-
-            ICacheProvider cacheProvider = CreateCacheProvider();
-           
-            cacheProvider
-                .GetAsync<string>(Arg.Is(cacheKeyScopedProviderSummariesCount))
-                .Returns("1");
-
-            cacheProvider
-                .ListRangeAsync<ProviderSummary>(Arg.Is(cacheKeyScopedProviderSummaries), Arg.Is(0), Arg.Is(1))
-                .Returns(cachedProviderSummaries);
-
-            cacheProvider
-                .ListLengthAsync<ProviderSummary>(Arg.Is(cacheKeyScopedProviderSummaries))
-                .Returns(1);
-
-            IScopedProvidersService providerService = CreateProviderService(resultsApiClient: resultsApiClient, specificationsApiClient: specificationsApiClientProxy, providerVersionService: providerVersionService, cacheProvider: cacheProvider);
-
-            //Act
-            IActionResult totalCountResult = await providerService.PopulateProviderSummariesForSpecification(specificationId, false);
-
-            await specificationsApiClientProxy
-                .Received(0)
-                .GetSpecificationSummaryById(Arg.Any<string>());
-
-            await providerVersionService
-                .Received(0)
-                .GetProvidersByVersion(Arg.Is(providerVersionId));
-
-            totalCountResult
-                .Should()
-                .BeOfType<OkObjectResult>();
-
-            OkObjectResult objectResult = totalCountResult as OkObjectResult;
-
-
-            int? totalCount = objectResult.Value as int?;
-
-            totalCount
-                .Should()
-                .Be(1);
         }
 
         [TestMethod]
@@ -446,15 +351,22 @@ namespace CalculateFunding.Services.Providers.UnitTests
             // Arrange
             string specificationId = Guid.NewGuid().ToString();
             string providerVersionId = Guid.NewGuid().ToString();
-            string cacheKeyScopedProviderSummariesCount = $"{CacheKeys.ScopedProviderSummariesCount}{specificationId}";
             string cacheKeyScopedProviderSummaries = $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}";
+
+            Provider provider = CreateProvider();
+
+            List<ProviderSummary> cachedProviderSummaries = new List<ProviderSummary>
+            {
+                MapProviderToSummary(provider)
+            };
 
             ICacheProvider cacheProvider = CreateCacheProvider();
             cacheProvider
-                .GetAsync<string>(Arg.Is(cacheKeyScopedProviderSummariesCount))
-                .Returns("1");
-
-            Provider provider = CreateProvider();
+                .ListLengthAsync<ProviderSummary>(Arg.Is(cacheKeyScopedProviderSummaries))
+                .Returns(1);
+            cacheProvider
+                .ListRangeAsync<ProviderSummary>(cacheKeyScopedProviderSummaries, 0, 1)
+                .Returns(cachedProviderSummaries);
 
             ProviderVersion providerVersion = new ProviderVersion
             {
@@ -468,19 +380,13 @@ namespace CalculateFunding.Services.Providers.UnitTests
 
             ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
         
-
             specificationsApiClient
                .GetSpecificationSummaryById(Arg.Any<string>())
                .Returns(new ApiResponse<SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
 
-            IResultsApiClient resultsApiClient = CreateResultsApiClient();
-            resultsApiClient
-                .GetScopedProviderIdsBySpecificationId(Arg.Is(specificationId))
-                .Returns(new ApiResponse<IEnumerable<string>>(HttpStatusCode.OK, new string[] { provider.ProviderId }));
-
             IProviderVersionService providerVersionService = CreateProviderVersionService();
 
-            IScopedProvidersService providerService = CreateProviderService(cacheProvider: cacheProvider, specificationsApiClient: specificationsApiClient, providerVersionService: providerVersionService, resultsApiClient: resultsApiClient);
+            IScopedProvidersService providerService = CreateProviderService(cacheProvider: cacheProvider, specificationsApiClient: specificationsApiClient, providerVersionService: providerVersionService);
 
             providerVersionService
                 .GetProvidersByVersion(Arg.Is(providerVersionId))
@@ -511,9 +417,8 @@ namespace CalculateFunding.Services.Providers.UnitTests
             // Arrange
             string specificationId = Guid.NewGuid().ToString();
             string providerVersionId = Guid.NewGuid().ToString();
-            string cacheKeyScopedProviderSummariesCount = $"{CacheKeys.ScopedProviderSummariesCount}{specificationId}";
             string cacheKeyScopedProviderSummaries = $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}"; ;
-
+            
             Provider provider = CreateProvider();
 
             ProviderVersion providerVersion = new ProviderVersion
@@ -546,15 +451,13 @@ namespace CalculateFunding.Services.Providers.UnitTests
                .GetSpecificationSummaryById(Arg.Any<string>())
                .Returns(new ApiResponse<SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
 
-            IResultsApiClient resultsApiClient = CreateResultsApiClient();
-            resultsApiClient
-                .GetScopedProviderIdsBySpecificationId(Arg.Is(specificationId))
-                .Returns(new ApiResponse<IEnumerable<string>>(HttpStatusCode.OK, new string[] { provider.ProviderId }));
-
             ICacheProvider cacheProvider = CreateCacheProvider();
             cacheProvider
-                .GetAsync<string>(Arg.Is(cacheKeyScopedProviderSummariesCount))
-                .Returns("1");
+                .ListLengthAsync<ProviderSummary>(Arg.Is(cacheKeyScopedProviderSummaries))
+                .Returns(1);
+            cacheProvider
+                .ListRangeAsync<ProviderSummary>(cacheKeyScopedProviderSummaries, 0, 1)
+                .Returns(cachedProviderSummaries);
 
             IProviderVersionService providerVersionService = CreateProviderVersionService();
             providerVersionService
@@ -564,7 +467,6 @@ namespace CalculateFunding.Services.Providers.UnitTests
             IScopedProvidersService providerService = CreateProviderService(cacheProvider: cacheProvider,
                 providerVersionService: providerVersionService,
                 specificationsApiClient: specificationsApiClient,
-                resultsApiClient: resultsApiClient,
                 fileSystemCache: fileSystemCache,
                 settings: settings);
 
@@ -575,7 +477,6 @@ namespace CalculateFunding.Services.Providers.UnitTests
             ContentResult contentResult = result as ContentResult;
             IEnumerable<ProviderSummary> results = JsonConvert.DeserializeObject<IEnumerable<ProviderSummary>>(contentResult.Content);
             MemoryStream stream = new MemoryStream(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(results)));
-
 
             fileSystemCache
               .Received(1)
@@ -590,20 +491,25 @@ namespace CalculateFunding.Services.Providers.UnitTests
 
         private IScopedProvidersService CreateProviderService(IProviderVersionService providerVersionService = null,
             ISpecificationsApiClient specificationsApiClient = null,
+            IJobsApiClient jobsApiClient = null,
             ICacheProvider cacheProvider = null,
             IFileSystemCache fileSystemCache = null,
             IScopedProvidersServiceSettings settings = null,
-            IResultsApiClient resultsApiClient = null)
+            IResultsApiClient resultsApiClient = null,
+            IJobManagement jobManagement = null,
+            ILogger logger = null)
         {
             return new ScopedProvidersService(
                 cacheProvider ?? CreateCacheProvider(),
                 resultsApiClient ?? CreateResultsApiClient(),
+                jobsApiClient ?? CreateJobsApiClient(),
                 specificationsApiClient ?? CreateSpecificationsApiClient(),
                 providerVersionService ?? CreateProviderVersionService(),
                 CreateMapper(),
                 settings ?? CreateSettings(),
-                fileSystemCache ?? CreateFileSystemCache()
-                );
+                fileSystemCache ?? CreateFileSystemCache(),
+                jobManagement ?? CreateJobManagement(),
+                logger ?? CreateLogger());
         }
 
         private IProviderVersionService CreateProviderVersionService()
@@ -619,6 +525,11 @@ namespace CalculateFunding.Services.Providers.UnitTests
         private IResultsApiClient CreateResultsApiClient()
         {
             return Substitute.For<IResultsApiClient>();
+        }
+
+        private IJobsApiClient CreateJobsApiClient()
+        {
+            return Substitute.For<IJobsApiClient>();
         }
 
         static ISpecificationsApiClient CreateSpecificationsApiClient()
@@ -752,6 +663,16 @@ namespace CalculateFunding.Services.Providers.UnitTests
         private IFileSystemCache CreateFileSystemCache()
         {
             return Substitute.For<IFileSystemCache>();
+        }
+
+        private IJobManagement CreateJobManagement()
+        {
+            return Substitute.For<IJobManagement>();
+        }
+
+        private ILogger CreateLogger()
+        {
+            return Substitute.For<ILogger>();
         }
     }
 }

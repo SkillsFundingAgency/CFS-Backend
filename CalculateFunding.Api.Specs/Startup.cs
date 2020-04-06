@@ -5,6 +5,7 @@ using CalculateFunding.Common.Config.ApiClient.Policies;
 using CalculateFunding.Common.Config.ApiClient.Providers;
 using CalculateFunding.Common.Config.ApiClient.Results;
 using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Storage;
 using CalculateFunding.Common.TemplateMetadata;
@@ -126,6 +127,9 @@ namespace CalculateFunding.Api.Specs
                 .AddSingleton<ISpecificationsService, SpecificationsService>()
                 .AddSingleton<IHealthChecker, SpecificationsService>();
 
+            builder
+                .AddSingleton<IJobManagement, JobManagement>();
+
             builder.AddSingleton<IValidator<SpecificationCreateModel>, SpecificationCreateModelValidator>();
             builder.AddSingleton<IValidator<SpecificationEditModel>, SpecificationEditModelValidator>();
             builder.AddSingleton<IValidator<AssignDefinitionRelationshipMessage>, AssignDefinitionRelationshipMessageValidator>();
@@ -219,12 +223,12 @@ namespace CalculateFunding.Api.Specs
 
             builder.AddPolicySettings(Configuration);
 
+            PolicySettings policySettings = builder.GetPolicySettings(Configuration);
+
+            AsyncBulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
+
             builder.AddSingleton<ISpecificationsResiliencePolicies>((ctx) =>
             {
-                PolicySettings policySettings = ctx.GetService<PolicySettings>();
-
-                AsyncBulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
-
                 Polly.AsyncPolicy redisPolicy = ResiliencePolicyHelpers.GenerateRedisPolicy(totalNetworkRequestsPolicy);
 
                 return new SpecificationsResiliencePolicies()
@@ -236,7 +240,16 @@ namespace CalculateFunding.Api.Specs
                 };
             });
 
-           
+            builder.AddSingleton<IJobManagementResiliencePolicies>((ctx) =>
+            {
+                return new JobManagementResiliencePolicies()
+                {
+                    JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
+                };
+
+            });
+
+
             builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Apis.Specs");
             builder.AddApplicationInsightsServiceName(Configuration, "CalculateFunding.Api.Specs");
             builder.AddLogging("CalculateFunding.Apis.Specs");

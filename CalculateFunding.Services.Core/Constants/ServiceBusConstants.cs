@@ -79,6 +79,12 @@
             
             public const string PublishingReIndexPublishedProvidersPoisonedLocal = "publishing-reindex-published-providers-poisoned";
 
+            public const string PopulateScopedProviders = "populate-scopedproviders";
+
+            public const string PopulateScopedProvidersPoisoned = "populate-scopedproviders/$DeadLetterQueue";
+
+            public const string PopulateScopedProvidersPoisonedLocal = "populate-scopedproviders-poisoned";
+
             public const string DeleteCalculations = "calculations-delete";
 
             public const string DeleteCalculationResults = "calculation-results-delete";

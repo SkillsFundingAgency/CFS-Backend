@@ -6,6 +6,7 @@ using CalculateFunding.Common.Config.ApiClient.Policies;
 using CalculateFunding.Common.Config.ApiClient.Providers;
 using CalculateFunding.Common.Config.ApiClient.Results;
 using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.TemplateMetadata;
 using CalculateFunding.Common.TemplateMetadata.Schema10;
 using CalculateFunding.Functions.Specs.ServiceBus;
@@ -115,12 +116,15 @@ namespace CalculateFunding.Functions.Specs
                 return new VersionRepository<Models.Specs.SpecificationVersion>(resultsRepostory);
             });
 
+            builder
+                .AddSingleton<IJobManagement, JobManagement>();
+
+            PolicySettings policySettings = builder.GetPolicySettings(config);
+
+            AsyncBulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
+
             builder.AddSingleton<ISpecificationsResiliencePolicies>((ctx) =>
             {
-                PolicySettings policySettings = ctx.GetService<PolicySettings>();
-
-                AsyncBulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
-
                 Polly.AsyncPolicy redisPolicy = ResiliencePolicyHelpers.GenerateRedisPolicy(totalNetworkRequestsPolicy);
 
                 return new SpecificationsResiliencePolicies()
@@ -130,6 +134,15 @@ namespace CalculateFunding.Functions.Specs
                     CalcsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                   ProvidersApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
                 };
+            });
+
+            builder.AddSingleton<IJobManagementResiliencePolicies>((ctx) =>
+            {
+                return new JobManagementResiliencePolicies()
+                {
+                    JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
+                };
+
             });
 
             MapperConfiguration mappingConfig = new MapperConfiguration(c =>

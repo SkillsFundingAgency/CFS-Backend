@@ -43,6 +43,8 @@
             public const string GeneratePublishedFundingCsvJob = nameof(GeneratePublishedFundingCsvJob);
 
             public const string GeneratePublishedProviderEstateCsvJob = nameof(GeneratePublishedProviderEstateCsvJob);
+
+            public const string PopulateScopedProvidersJob = nameof(PopulateScopedProvidersJob);
         }
 
         public static class NotificationChannels

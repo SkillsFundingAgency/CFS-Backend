@@ -634,7 +634,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task UpdateAllocations_GivenBuildProjectButNoSummariesInCache_CallsPopulateSummaries()
+        public async Task UpdateAllocations_GivenBuildProjectButNoSummariesInCache_CallsRegeneratePopulateScopedProviders()
         {
             //Arrange
             string specificationId = "test-spec1";
@@ -661,8 +661,8 @@ namespace CalculateFunding.Services.Calcs.Services
 
             IProvidersApiClient providersApiClient = CreateProvidersApiClient();
             providersApiClient
-                .PopulateProviderSummariesForSpecification(Arg.Is(specificationId), Arg.Is(true))
-                .Returns(new ApiResponse<int?>(HttpStatusCode.OK, 1));
+                .RegenerateProviderSummariesForSpecification(Arg.Is(specificationId), Arg.Is(true))
+                .Returns(new ApiResponse<bool>(HttpStatusCode.OK, true));
 
             ILogger logger = CreateLogger();
 
@@ -690,6 +690,8 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ApiResponse<JobViewModel> jobViewModelResponse = new ApiResponse<JobViewModel>(HttpStatusCode.OK, parentJob);
 
+            IJobManagement jobManagement = CreateJobManagement();
+
             IJobsApiClient jobsApiClient = CreateJobsApiClient();
             jobsApiClient
                 .GetJobById(Arg.Is(parentJobId))
@@ -700,9 +702,11 @@ namespace CalculateFunding.Services.Calcs.Services
             jobsApiClient
                 .CreateJobs(Arg.Any<IEnumerable<JobCreateModel>>())
                 .Returns(new List<Job> { new Job { SpecificationId = specificationId } });
+            jobManagement.WaitForJobsToComplete(Arg.Is<IEnumerable<string>>(_ => _.Single() == JobConstants.DefinitionNames.PopulateScopedProvidersJob), specificationId)
+                .Returns(true);
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(jobsApiClient: jobsApiClient,
-                logger: logger, providersApiClient: providersApiClient, cacheProvider: cacheProvider);
+                logger: logger, providersApiClient: providersApiClient, cacheProvider: cacheProvider, jobManagement: jobManagement);
 
             //Act
             await buildProjectsService.UpdateAllocations(message);
@@ -711,7 +715,177 @@ namespace CalculateFunding.Services.Calcs.Services
             await
                 providersApiClient
                     .Received(1)
-                    .PopulateProviderSummariesForSpecification(Arg.Is(specificationId), Arg.Is(true));
+                    .RegenerateProviderSummariesForSpecification(Arg.Is(specificationId), Arg.Is(true));
+        }
+        
+        [TestMethod]
+        public void UpdateAllocations_GivenBuildProjectButNoSummariesInCacheRegeneratePopulateScopedProvidersFails_ExceptionThrown()
+        {
+            //Arrange
+            string specificationId = "test-spec1";
+            string parentJobId = "job-id-1";
+            string jobId = "job-id-2";
+
+            string cacheKey = $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}";
+
+            BuildProject buildProject = new BuildProject
+            {
+                SpecificationId = specificationId,
+                Id = Guid.NewGuid().ToString(),
+                Name = specificationId
+            };
+
+            Message message = new Message(Encoding.UTF8.GetBytes(""));
+            message.UserProperties.Add("jobId", jobId);
+            message.UserProperties.Add("specification-id", specificationId);
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+            cacheProvider
+                .KeyExists<ProviderSummary>(Arg.Is(cacheKey))
+                .Returns(false);
+
+            IProvidersApiClient providersApiClient = CreateProvidersApiClient();
+            providersApiClient
+                .RegenerateProviderSummariesForSpecification(Arg.Is(specificationId), Arg.Is(true))
+                .Returns(new ApiResponse<bool>(HttpStatusCode.BadRequest));
+
+            ILogger logger = CreateLogger();
+
+            JobViewModel parentJob = new JobViewModel
+            {
+                Id = parentJobId,
+                InvokerUserDisplayName = "Username",
+                InvokerUserId = "UserId",
+                SpecificationId = specificationId,
+                CorrelationId = "correlation-id-1",
+                JobDefinitionId = JobConstants.DefinitionNames.CreateInstructGenerateAggregationsAllocationJob
+            };
+
+            ApiResponse<JobViewModel> parentJobViewModelResponse = new ApiResponse<JobViewModel>(HttpStatusCode.OK, parentJob);
+
+            JobViewModel childJob = new JobViewModel
+            {
+                Id = jobId,
+                InvokerUserDisplayName = "Username",
+                InvokerUserId = "UserId",
+                SpecificationId = specificationId,
+                CorrelationId = "correlation-id-1",
+                JobDefinitionId = JobConstants.DefinitionNames.GenerateCalculationAggregationsJob
+            };
+
+            ApiResponse<JobViewModel> jobViewModelResponse = new ApiResponse<JobViewModel>(HttpStatusCode.OK, parentJob);
+
+            IJobManagement jobManagement = CreateJobManagement();
+
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
+                .GetJobById(Arg.Is(parentJobId))
+                .Returns(parentJobViewModelResponse);
+            jobsApiClient
+                .GetJobById(Arg.Is(jobId))
+                .Returns(jobViewModelResponse);
+            jobsApiClient
+                .CreateJobs(Arg.Any<IEnumerable<JobCreateModel>>())
+                .Returns(new List<Job> { new Job { SpecificationId = specificationId } });
+            jobManagement.WaitForJobsToComplete(Arg.Is<IEnumerable<string>>(_ => _.Single() == JobConstants.DefinitionNames.PopulateScopedProvidersJob), specificationId)
+                .Returns(true);
+
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(jobsApiClient: jobsApiClient,
+                logger: logger, providersApiClient: providersApiClient, cacheProvider: cacheProvider, jobManagement: jobManagement);
+
+            //Act
+            Func<Task> invocation = async() => await buildProjectsService.UpdateAllocations(message);
+
+            //Assert
+            invocation
+                .Should()
+                .Throw<RetriableException>()
+                .WithMessage($"Unable to re-generate scoped providers while building projects '{specificationId}' with status code: {HttpStatusCode.BadRequest}");
+        }
+
+        [TestMethod]
+        public void UpdateAllocations_GivenBuildProjectButNoSummariesInCacheRegeneratePopulateScopedProvidersJobFails_ExceptionThrown()
+        {
+            //Arrange
+            string specificationId = "test-spec1";
+            string parentJobId = "job-id-1";
+            string jobId = "job-id-2";
+
+            string cacheKey = $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}";
+
+            BuildProject buildProject = new BuildProject
+            {
+                SpecificationId = specificationId,
+                Id = Guid.NewGuid().ToString(),
+                Name = specificationId
+            };
+
+            Message message = new Message(Encoding.UTF8.GetBytes(""));
+            message.UserProperties.Add("jobId", jobId);
+            message.UserProperties.Add("specification-id", specificationId);
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+            cacheProvider
+                .KeyExists<ProviderSummary>(Arg.Is(cacheKey))
+                .Returns(false);
+
+            IProvidersApiClient providersApiClient = CreateProvidersApiClient();
+            providersApiClient
+                .RegenerateProviderSummariesForSpecification(Arg.Is(specificationId), Arg.Is(true))
+                .Returns(new ApiResponse<bool>(HttpStatusCode.OK, true));
+
+            ILogger logger = CreateLogger();
+
+            JobViewModel parentJob = new JobViewModel
+            {
+                Id = parentJobId,
+                InvokerUserDisplayName = "Username",
+                InvokerUserId = "UserId",
+                SpecificationId = specificationId,
+                CorrelationId = "correlation-id-1",
+                JobDefinitionId = JobConstants.DefinitionNames.CreateInstructGenerateAggregationsAllocationJob
+            };
+
+            ApiResponse<JobViewModel> parentJobViewModelResponse = new ApiResponse<JobViewModel>(HttpStatusCode.OK, parentJob);
+
+            JobViewModel childJob = new JobViewModel
+            {
+                Id = jobId,
+                InvokerUserDisplayName = "Username",
+                InvokerUserId = "UserId",
+                SpecificationId = specificationId,
+                CorrelationId = "correlation-id-1",
+                JobDefinitionId = JobConstants.DefinitionNames.GenerateCalculationAggregationsJob
+            };
+
+            ApiResponse<JobViewModel> jobViewModelResponse = new ApiResponse<JobViewModel>(HttpStatusCode.OK, parentJob);
+
+            IJobManagement jobManagement = CreateJobManagement();
+
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
+                .GetJobById(Arg.Is(parentJobId))
+                .Returns(parentJobViewModelResponse);
+            jobsApiClient
+                .GetJobById(Arg.Is(jobId))
+                .Returns(jobViewModelResponse);
+            jobsApiClient
+                .CreateJobs(Arg.Any<IEnumerable<JobCreateModel>>())
+                .Returns(new List<Job> { new Job { SpecificationId = specificationId } });
+            jobManagement.WaitForJobsToComplete(Arg.Is<IEnumerable<string>>(_ => _.Single() == JobConstants.DefinitionNames.PopulateScopedProvidersJob), specificationId)
+                .Returns(false);
+
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(jobsApiClient: jobsApiClient,
+                logger: logger, providersApiClient: providersApiClient, cacheProvider: cacheProvider, jobManagement: jobManagement);
+
+            //Act
+            Func<Task> invocation = async () => await buildProjectsService.UpdateAllocations(message);
+
+            //Assert
+            invocation
+                .Should()
+                .Throw<RetriableException>()
+                .WithMessage($"Unable to re-generate scoped providers while building projects '{specificationId}' job didn't complete successfully in time");
         }
 
         [TestMethod]
@@ -805,7 +979,7 @@ namespace CalculateFunding.Services.Calcs.Services
             await
                 providersApiClient
                     .DidNotReceive()
-                    .PopulateProviderSummariesForSpecification(Arg.Is(specificationId));
+                    .RegenerateProviderSummariesForSpecification(Arg.Is(specificationId));
         }
 
         [TestMethod]
@@ -899,7 +1073,7 @@ namespace CalculateFunding.Services.Calcs.Services
             await
                 providersApiClient
                     .DidNotReceive()
-                    .PopulateProviderSummariesForSpecification(Arg.Is(specificationId));
+                    .RegenerateProviderSummariesForSpecification(Arg.Is(specificationId));
 
             await
                 jobsApiClient
@@ -1586,7 +1760,7 @@ namespace CalculateFunding.Services.Calcs.Services
             await
                 providersApiClient
                     .DidNotReceive()
-                    .PopulateProviderSummariesForSpecification(Arg.Is(specificationId));
+                    .RegenerateProviderSummariesForSpecification(Arg.Is(specificationId));
 
             await
                 jobsApiClient
@@ -1761,7 +1935,7 @@ namespace CalculateFunding.Services.Calcs.Services
             await
                 providersApiClient
                     .DidNotReceive()
-                    .PopulateProviderSummariesForSpecification(Arg.Is(specificationId));
+                    .RegenerateProviderSummariesForSpecification(Arg.Is(specificationId));
 
             await
                 jobsApiClient
@@ -1925,70 +2099,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public void UpdateAllocations_GivenBuildProjectAndSummariesNotInCacheAndProviderVersionEmptyForSpecification_ExceptionThrown()
-        {
-            string specificationId = "test-spec1";
-            string parentJobId = "job-id-1";
-            string jobId = "job2";
-
-            Message message = new Message(Encoding.UTF8.GetBytes(""));
-            message.UserProperties.Add("jobId", jobId);
-            message.UserProperties.Add("specification-id", specificationId);
-
-            JobViewModel parentJob = new JobViewModel
-            {
-                Id = parentJobId,
-                InvokerUserDisplayName = "Username",
-                InvokerUserId = "UserId",
-                SpecificationId = specificationId,
-                CorrelationId = "correlation-id-1",
-                JobDefinitionId = JobConstants.DefinitionNames.CreateInstructGenerateAggregationsAllocationJob
-            };
-
-            ApiResponse<JobViewModel> parentJobViewModelResponse = new ApiResponse<JobViewModel>(HttpStatusCode.OK, parentJob);
-            
-            JobViewModel childJob = new JobViewModel
-            {
-                Id = jobId,
-                InvokerUserDisplayName = "Username",
-                InvokerUserId = "UserId",
-                SpecificationId = specificationId,
-                CorrelationId = "correlation-id-1",
-                JobDefinitionId = JobConstants.DefinitionNames.CreateInstructGenerateAggregationsAllocationJob
-            };
-
-            ApiResponse<JobViewModel> jobViewModelResponse = new ApiResponse<JobViewModel>(HttpStatusCode.OK, childJob);
-
-            IJobsApiClient jobsApiClient = CreateJobsApiClient();
-            jobsApiClient
-                .GetJobById(Arg.Is(parentJobId))
-                .Returns(parentJobViewModelResponse);
-            jobsApiClient
-                .GetJobById(Arg.Is(jobId))
-                .Returns(jobViewModelResponse);
-
-            ILogger logger = CreateLogger();
-
-            IProvidersApiClient providersApiClient = CreateProvidersApiClient();
-
-            providersApiClient
-                .PopulateProviderSummariesForSpecification(Arg.Is(specificationId), Arg.Is(true))
-                .Returns(new ApiResponse<int?>(HttpStatusCode.OK));
-
-            BuildProjectsService buildProjectsService = CreateBuildProjectsService(jobsApiClient: jobsApiClient,
-                logger: logger, providersApiClient: providersApiClient);
-
-            //Act
-            Func<Task> invocation = async() => await buildProjectsService.UpdateAllocations(message);
-
-            invocation
-                .Should()
-                .Throw<NonRetriableException>()
-                .WithMessage($"No provider version set for specification '{specificationId}'");
-        }
-
-        [TestMethod]
-        public async Task UpdateAllocations_GivenBuildProjectAndSummariesInCacheButDoesntMatchScopedProviderIdCount_CallsPopulateSummaries()
+        public async Task UpdateAllocations_GivenBuildProjectAndSummariesInCacheButDoesntMatchScopedProviderIdCount_CallsRegenerateScopedProviders()
         {
             //Arrange
             EngineSettings engineSettings = CreateEngineSettings();
@@ -2045,10 +2156,12 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Returns(new ApiResponse<IEnumerable<string>>(HttpStatusCode.OK, providerIds));
 
             providersApiClient
-                .PopulateProviderSummariesForSpecification(Arg.Is(specificationId), Arg.Is(false))
-                .Returns(new ApiResponse<int?>(HttpStatusCode.OK, 0));
+                .RegenerateProviderSummariesForSpecification(Arg.Is(specificationId), Arg.Is(false))
+                .Returns(new ApiResponse<bool>(HttpStatusCode.OK, true));
 
             ILogger logger = CreateLogger();
+
+            IJobManagement jobManagement = CreateJobManagement();
 
             JobViewModel parentJob = new JobViewModel
             {
@@ -2081,9 +2194,14 @@ namespace CalculateFunding.Services.Calcs.Services
             jobsApiClient
                 .GetJobById(Arg.Is(jobId))
                 .Returns(jobViewModelResponse);
+            jobsApiClient
+                .CreateJobs(Arg.Any<IEnumerable<JobCreateModel>>())
+                .Returns(new List<Job> { new Job { SpecificationId = specificationId } });
+            jobManagement.WaitForJobsToComplete(Arg.Is<IEnumerable<string>>(_ => _.Single() == JobConstants.DefinitionNames.PopulateScopedProvidersJob), specificationId)
+                .Returns(true);
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(jobsApiClient: jobsApiClient,
-                logger: logger, cacheProvider: cacheProvider, providersApiClient: providersApiClient);
+                logger: logger, cacheProvider: cacheProvider, providersApiClient: providersApiClient, jobManagement: jobManagement);
 
             //Act
             await buildProjectsService.UpdateAllocations(message);
@@ -2092,7 +2210,7 @@ namespace CalculateFunding.Services.Calcs.Services
             await
                 providersApiClient
                     .Received(1)
-                    .PopulateProviderSummariesForSpecification(Arg.Is(specificationId), Arg.Is(false));
+                    .RegenerateProviderSummariesForSpecification(Arg.Is(specificationId), Arg.Is(false));
         }
 
         [TestMethod]

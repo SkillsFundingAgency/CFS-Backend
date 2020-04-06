@@ -11,7 +11,7 @@
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Calcs" Version="2.0.1" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Results" Version="2.0.1" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Specifications" Version="2.0.1" />
-    <PackageReference Include="CalculateFunding.Common.JobManagement" Version="2.0.1" />
+    <PackageReference Include="CalculateFunding.Common.JobManagement" Version="2.0.2" />
     <PackageReference Include="CalculateFunding.Common.Storage" Version="2.0.0" />
 
     <PackageReference Include="LINQKit.Core" Version="1.1.16" />

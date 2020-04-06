@@ -12,6 +12,7 @@ using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
 using CalculateFunding.Common.ApiClient.Providers;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
@@ -64,8 +65,8 @@ namespace CalculateFunding.Services.Specs
         private readonly Polly.AsyncPolicy _calcsApiClientPolicy;
         private readonly IFeatureToggle _featureToggle;
         private readonly IProvidersApiClient _providersApiClient;
+        private readonly IJobManagement _jobManagement;
         private readonly Polly.AsyncPolicy _providersApiClientPolicy;
-
 
         public SpecificationsService(
             IMapper mapper,
@@ -85,7 +86,8 @@ namespace CalculateFunding.Services.Specs
             IQueueDeleteSpecificationJobActions queueDeleteSpecificationJobAction,
             ICalculationsApiClient calcsApiClient,
             IFeatureToggle featureToggle,
-            IProvidersApiClient providersApiClient)
+            IProvidersApiClient providersApiClient,
+            IJobManagement jobManagement)
         {
             Guard.ArgumentNotNull(mapper, nameof(mapper));
             Guard.ArgumentNotNull(specificationsRepository, nameof(specificationsRepository));
@@ -109,6 +111,7 @@ namespace CalculateFunding.Services.Specs
             Guard.ArgumentNotNull(calcsApiClient, nameof(calcsApiClient));
             Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
             Guard.ArgumentNotNull(providersApiClient, nameof(providersApiClient));
+            Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
 
             _mapper = mapper;
             _specificationsRepository = specificationsRepository;
@@ -130,7 +133,7 @@ namespace CalculateFunding.Services.Specs
             _calcsApiClientPolicy = resiliencePolicies.CalcsApiClient;
             _providersApiClient = providersApiClient;
             _providersApiClientPolicy = resiliencePolicies.ProvidersApiClient;
-
+            _jobManagement = jobManagement;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -616,12 +619,23 @@ namespace CalculateFunding.Services.Specs
 
             if(previousSpecificationVersion.ProviderVersionId != editModel.ProviderVersionId)
             {
-                ApiResponse<int?> totalCountFromApi = await _providersApiClientPolicy.ExecuteAsync(() => 
-                                 _providersApiClient.PopulateProviderSummariesForSpecification(specificationId,true));
+                ApiResponse<bool> refreshCacheFromApi = await _providersApiClientPolicy.ExecuteAsync(() => 
+                                 _providersApiClient.RegenerateProviderSummariesForSpecification(specificationId, true));
 
-                if (!totalCountFromApi.StatusCode.IsSuccess() || totalCountFromApi?.Content == null)
+                if (!refreshCacheFromApi.StatusCode.IsSuccess() || refreshCacheFromApi?.Content == null)
                 {
-                    string errorMessage = $"Unable to set scoped providers while editing specification '{specificationId}' with status code: {totalCountFromApi.StatusCode.ToString()}";
+                    string errorMessage = $"Unable to re-generate scoped providers while editing specification '{specificationId}' with status code: {refreshCacheFromApi.StatusCode}";
+
+                    _logger.Information(errorMessage);
+
+                    throw new RetriableException(errorMessage);
+                }
+
+                // if the scoped providers are being re-generated then wait for the job to finish
+                if (Convert.ToBoolean(refreshCacheFromApi?.Content) && !await _jobManagement.WaitForJobsToComplete(new[] { JobConstants.DefinitionNames.PopulateScopedProvidersJob }, specificationId))
+                {
+                    string errorMessage = $"Unable to re-generate scoped providers while editing specification '{specificationId}' job didn't complete successfully in time";
+
                     _logger.Information(errorMessage);
 
                     throw new RetriableException(errorMessage);
@@ -672,9 +686,7 @@ namespace CalculateFunding.Services.Specs
             }
 
             await TaskHelper.WhenAllAndThrow(ReindexSpecification(specification),
-                ClearSpecificationCacheItems(specificationVersion.FundingPeriod.Id),
-                _cacheProvider.RemoveAsync<List<ProviderSummary>>(
-                    $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}"));
+                ClearSpecificationCacheItems(specificationVersion.FundingPeriod.Id));
 
             if (previousFundingPeriodId != specificationVersion.FundingPeriod.Id)
             {

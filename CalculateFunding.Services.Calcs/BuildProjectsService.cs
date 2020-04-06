@@ -240,17 +240,27 @@ namespace CalculateFunding.Services.Calcs
 
             if (!summariesExist || refreshCachedScopedProviders)
             {
-                ApiResponse<int?> totalCountFromApi = await _providersApiClient.PopulateProviderSummariesForSpecification(specificationId, !summariesExist);
+                ApiResponse<bool> refreshCacheFromApi = await _providersApiClient.RegenerateProviderSummariesForSpecification(specificationId, !summariesExist);
 
-                if (totalCountFromApi?.Content == null)
+                if (!refreshCacheFromApi.StatusCode.IsSuccess() || refreshCacheFromApi?.Content == null)
                 {
-                    string errorMessage = $"No provider version set for specification '{specificationId}'";
+                    string errorMessage = $"Unable to re-generate scoped providers while building projects '{specificationId}' with status code: {refreshCacheFromApi.StatusCode}";
                     _logger.Information(errorMessage);
 
-                    throw new NonRetriableException(errorMessage);
+                    throw new RetriableException(errorMessage);
                 }
 
-                totalCount = totalCountFromApi.Content;
+                // if the scoped providers are being re-generated then wait for the job to finish
+                if (Convert.ToBoolean(refreshCacheFromApi?.Content) && !await _jobManagement.WaitForJobsToComplete(new[] { DefinitionNames.PopulateScopedProvidersJob }, specificationId))
+                {
+                    string errorMessage = $"Unable to re-generate scoped providers while building projects '{specificationId}' job didn't complete successfully in time";
+
+                    _logger.Information(errorMessage);
+
+                    throw new RetriableException(errorMessage);
+                }
+
+                totalCount = await _cacheProvider.ListLengthAsync<ProviderSummary>(cacheKey);
             }
 
             const string providerSummariesPartitionIndex = "provider-summaries-partition-index";
