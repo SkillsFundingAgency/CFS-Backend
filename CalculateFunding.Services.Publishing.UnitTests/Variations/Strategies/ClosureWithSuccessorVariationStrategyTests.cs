@@ -48,14 +48,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
         [TestMethod]
         public async Task FailsPreconditionCheckSuccessorNotLocatedInVariationContextOrCreatedFromCoreProviderData()
         {
-            GivenTheOtherwiseValidVariationContext(_ => _.UpdatedProvider.Successor = NewRandomString());
+            string successorId = NewRandomString();
+            GivenTheOtherwiseValidVariationContext(_ => _.UpdatedProvider.Successor = successorId);
             
             await WhenTheVariationsAreDetermined();
             
             VariationContext
                 .ErrorMessages
                 .Should()
-                .BeEquivalentTo("Unable to run Closure with Successor variation as could not locate or create a successor provider");
+                .BeEquivalentTo($"Unable to run Closure with Successor variation as could not locate or create a successor provider with id:{successorId}");
 
 
             VariationContext

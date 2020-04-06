@@ -11,7 +11,8 @@ namespace CalculateFunding.Services.Providers.UnitTests
             {
                 ProviderVersionsSearchRepository = Policy.NoOpAsync(),
                 ProviderVersionMetadataRepository = Policy.NoOpAsync(),
-                BlobRepositoryPolicy = Policy.NoOpAsync()
+                BlobRepositoryPolicy = Policy.NoOpAsync(),
+                JobsApiClient = Policy.NoOpAsync()
             };
         }
     }

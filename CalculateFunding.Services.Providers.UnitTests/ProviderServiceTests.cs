@@ -509,6 +509,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 settings ?? CreateSettings(),
                 fileSystemCache ?? CreateFileSystemCache(),
                 jobManagement ?? CreateJobManagement(),
+                ProviderResilienceTestHelper.GenerateTestPolicies(),
                 logger ?? CreateLogger());
         }
 

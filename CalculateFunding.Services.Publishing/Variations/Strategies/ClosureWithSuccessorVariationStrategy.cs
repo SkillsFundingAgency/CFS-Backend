@@ -48,7 +48,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
 
             if (successorProvider == null)
             {
-                providerVariationContext.ErrorMessages.Add("Unable to run Closure with Successor variation as could not locate or create a successor provider");
+                providerVariationContext.ErrorMessages.Add($"Unable to run Closure with Successor variation as could not locate or create a successor provider with id:{successorId}");
 
                 return;
             }

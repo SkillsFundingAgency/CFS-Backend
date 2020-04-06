@@ -178,26 +178,23 @@ namespace CalculateFunding.Api.Providers
             builder.AddLogging("CalculateFunding.Api.Providers");
             builder.AddTelemetry();
 
+            PolicySettings policySettings = builder.GetPolicySettings(Configuration);
+
+            AsyncBulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
+
             builder.AddSingleton<IProvidersResiliencePolicies>((ctx) =>
             {
-                PolicySettings policySettings = ctx.GetService<PolicySettings>();
-
-                AsyncBulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
-
                 return new ProvidersResiliencePolicies()
                 {
                     ProviderVersionsSearchRepository = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
                     ProviderVersionMetadataRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
-                    BlobRepositoryPolicy = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
+                    BlobRepositoryPolicy = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                    JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
                 };
             });
 
             builder.AddSingleton<IJobManagementResiliencePolicies>((ctx) =>
             {
-                PolicySettings policySettings = ctx.GetService<PolicySettings>();
-
-                AsyncBulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
-
                 return new JobManagementResiliencePolicies()
                 {
                     JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
