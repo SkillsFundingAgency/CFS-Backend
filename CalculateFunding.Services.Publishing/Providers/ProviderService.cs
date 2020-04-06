@@ -210,7 +210,8 @@ namespace CalculateFunding.Services.Publishing.Providers
                 predecessorProviderVersion.FundingStreamId,
                 predecessorProviderVersion.SpecificationId,
                 "Created by the system as not in scope but referenced as a successor provider",
-                predecessorProviderVersion.FundingLines.DeepCopy());
+                predecessorProviderVersion.FundingLines.DeepCopy(),
+                predecessorProviderVersion.Calculations.DeepCopy());
 
             foreach (ProfilePeriod profilePeriod in missingProvider.Current.FundingLines.SelectMany(_ =>
                 _.DistributionPeriods.SelectMany(dp => dp.ProfilePeriods)))
