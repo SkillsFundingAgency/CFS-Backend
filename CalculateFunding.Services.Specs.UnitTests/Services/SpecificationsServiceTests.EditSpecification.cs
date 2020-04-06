@@ -257,44 +257,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         }
 
         [TestMethod]
-        public void EditSpecification_GivenProviderVersionChangesAndJobFails_ExceptionThrown()
-        {
-            //Arrange
-            var existingFundingStreams = _specification.Current.FundingStreams;
-            SpecificationEditModel specificationEditModel = new SpecificationEditModel
-            {
-                FundingPeriodId = "fp10",
-                Name = "new spec name"
-            };
-            PolicyModels.FundingStream fundingStream = new PolicyModels.FundingStream
-            {
-                Id = existingFundingStreams.First().Id
-            };
-            Models.Specs.SpecificationVersion newSpecVersion = _specification.Current.Clone() as Models.Specs.SpecificationVersion;
-            newSpecVersion.Name = specificationEditModel.Name;
-            newSpecVersion.FundingPeriod.Id = specificationEditModel.FundingPeriodId;
-            newSpecVersion.FundingStreams = new[] { new Reference { Id = "fs11" } };
-            newSpecVersion.ProviderVersionId = "Provider version 2";
-
-            _providersApiClient.RegenerateProviderSummariesForSpecification(_specification.Id, true)
-                .Returns(new ApiResponse<bool>(HttpStatusCode.OK, true));
-
-            _jobManagement.WaitForJobsToComplete(Arg.Is<IEnumerable<string>>(_ => _.Single() == JobConstants.DefinitionNames.PopulateScopedProvidersJob), _specification.Id)
-                .Returns(false);
-
-            var service = CreateSpecificationsService(fundingStream, newSpecVersion);
-
-            //Act
-            Func<Task> invocation = async() => await service.EditSpecification(SpecificationId, specificationEditModel, null, null);
-
-            //Arrange
-            invocation.Should()
-                .Throw<RetriableException>()
-                .WithMessage($"Unable to re-generate scoped providers while editing specification '{_specification.Id}' job didn't complete successfully in time");
-        }
-
-
-        [TestMethod]
         public void EditSpecification_GivenProviderVersionChangesAndRegenerateScopedProvidersFails_ExceptionThrown()
         {
             //Arrange

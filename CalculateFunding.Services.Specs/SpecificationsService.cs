@@ -630,16 +630,6 @@ namespace CalculateFunding.Services.Specs
 
                     throw new RetriableException(errorMessage);
                 }
-
-                // if the scoped providers are being re-generated then wait for the job to finish
-                if (Convert.ToBoolean(refreshCacheFromApi?.Content) && !await _jobManagement.WaitForJobsToComplete(new[] { JobConstants.DefinitionNames.PopulateScopedProvidersJob }, specificationId))
-                {
-                    string errorMessage = $"Unable to re-generate scoped providers while editing specification '{specificationId}' job didn't complete successfully in time";
-
-                    _logger.Information(errorMessage);
-
-                    throw new RetriableException(errorMessage);
-                }
             }
 
             Models.Specs.SpecificationVersion specificationVersion =
