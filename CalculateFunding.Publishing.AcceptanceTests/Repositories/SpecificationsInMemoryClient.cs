@@ -192,5 +192,10 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         {
             throw new NotImplementedException();
         }
+
+        public Task<ApiResponse<SpecificationsDownloadModel>> DownloadSpecificationReport(string fileName, ReportType type)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

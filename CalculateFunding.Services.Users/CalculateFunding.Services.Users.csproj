@@ -17,6 +17,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Specifications" Version="2.0.1" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Specifications" Version="2.0.2" />
   </ItemGroup>
 </Project>
