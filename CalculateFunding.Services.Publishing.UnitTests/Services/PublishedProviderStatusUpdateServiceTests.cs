@@ -12,7 +12,6 @@ using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using NSubstitute;
 using Serilog;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.Services
@@ -36,38 +35,49 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
 
             string jobId = new RandomString();
 
-            ILogger logger = CreateLogger();
+            Mock<ILogger> logger = CreateLogger();
+            Mock<IPublishedProviderVersioningService> providerVersioningService = CreateVersioningService();
+            Mock<IJobTracker> jobTracker = CreateJobTracker();
 
-            Mock<IPublishedProviderVersioningService> providerVersioningService = new Mock<IPublishedProviderVersioningService>();
-            IJobTracker jobTracker = CreateJobTracker();
-
-            providerVersioningService.Setup(_ => 
-                _.AssemblePublishedProviderCreateVersionRequests(It.IsAny<IEnumerable<PublishedProvider>>(), author,
-                   PublishedProviderStatus.Approved))
+            providerVersioningService
+                .Setup(x => 
+                    x.AssemblePublishedProviderCreateVersionRequests(
+                    It.IsAny<IEnumerable<PublishedProvider>>(), 
+                    It.Is<Reference>(_ => _ == author),
+                    It.Is<PublishedProviderStatus>(_ => _ == PublishedProviderStatus.Approved)))
                 .Returns(publishedProviderCreateVersionRequests);
 
-            providerVersioningService.Setup(_ =>
-                _.CreateVersions(publishedProviderCreateVersionRequests))
+            providerVersioningService
+                .Setup(x => 
+                    x.CreateVersions(It.Is<IEnumerable<PublishedProviderCreateVersionRequest>>(
+                        _ => _ == publishedProviderCreateVersionRequests)))
                 .ReturnsAsync(publishedProviders);
 
-            providerVersioningService.Setup(_ =>
-                _.CreateVersions(publishedProviderCreateVersionRequests.Take(200)))
+            providerVersioningService
+                .Setup(x => 
+                    x.CreateVersions(It.Is<IEnumerable<PublishedProviderCreateVersionRequest>>(_
+                        => _.SequenceEqual(publishedProviderCreateVersionRequests.Take(200)))))
                 .ReturnsAsync(publishedProviders.Take(200));
-            
-            providerVersioningService.Setup(_ =>
-                    _.CreateVersions(publishedProviderCreateVersionRequests.Skip(200).Take(200)))
+
+            providerVersioningService
+                .Setup(x => 
+                    x.CreateVersions(It.Is<IEnumerable<PublishedProviderCreateVersionRequest>>(_
+                        => _.SequenceEqual(publishedProviderCreateVersionRequests.Skip(200).Take(200)))))
                 .ReturnsAsync(publishedProviders.Skip(200).Take(200));
 
-            providerVersioningService.Setup(_ =>
-                    _.CreateVersions(publishedProviderCreateVersionRequests.Skip(400).Take(200)))
+            providerVersioningService
+                .Setup(x => x.CreateVersions(It.Is<IEnumerable<PublishedProviderCreateVersionRequest>>(_
+                    => _.SequenceEqual(publishedProviderCreateVersionRequests.Skip(400).Take(200)))))
                 .ReturnsAsync(publishedProviders.Skip(400).Take(200));
-            
-            providerVersioningService.Setup(_ =>
-                    _.CreateVersions(publishedProviderCreateVersionRequests.Skip(600).Take(200)))
+
+            providerVersioningService
+                .Setup(x => x.CreateVersions(It.Is<IEnumerable<PublishedProviderCreateVersionRequest>>(_
+                    => _.SequenceEqual(publishedProviderCreateVersionRequests.Skip(600).Take(200)))))
                 .ReturnsAsync(publishedProviders.Skip(600).Take(200));
 
+
             PublishedProviderStatusUpdateService publishedProviderStatusUpdateService =
-                CreatePublishedProviderStatusUpdateService(providerVersioningService.Object, logger, jobTracker);
+                CreatePublishedProviderStatusUpdateService(providerVersioningService.Object, logger.Object, jobTracker.Object);
 
 
             //Act
@@ -77,39 +87,28 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             // TODO - fix due to further batching because of optmisation
             //await providerVersioningService
             //    .Received(1)
-            //    .SaveVersions(Arg.Is<IEnumerable<PublishedProvider>>(_ =>
+            //    .SaveVersions(It.Is<IEnumerable<PublishedProvider>>(_ =>
             //        _.SequenceEqual(publishedProviders.Take(200))));
 
             //await providerVersioningService
             //    .Received(1)
-            //    .SaveVersions(Arg.Is<IEnumerable<PublishedProvider>>(_ =>
+            //    .SaveVersions(It.Is<IEnumerable<PublishedProvider>>(_ =>
             //        _.SequenceEqual(publishedProviders.Skip(200).Take(200))));
 
             //await providerVersioningService
             //    .Received(1)
-            //    .SaveVersions(Arg.Is<IEnumerable<PublishedProvider>>(_ =>
+            //    .SaveVersions(It.Is<IEnumerable<PublishedProvider>>(_ =>
             //        _.SequenceEqual(publishedProviders.Skip(400).Take(200))));
 
             //await providerVersioningService
             //    .Received(1)
-            //    .SaveVersions(Arg.Is<IEnumerable<PublishedProvider>>(_ =>
+            //    .SaveVersions(It.Is<IEnumerable<PublishedProvider>>(_ =>
             //        _.SequenceEqual(publishedProviders.Skip(600).Take(200))));
 
-            await jobTracker
-                .Received(1)
-                .NotifyProgress(200, jobId);
-
-            await jobTracker
-                .Received(1)
-                .NotifyProgress(400, jobId);
-
-            await jobTracker
-                .Received(1)
-                .NotifyProgress(600, jobId);
-
-            await jobTracker
-                .Received(1)
-                .NotifyProgress(605, jobId);
+            jobTracker.Verify(x => x.NotifyProgress(200, jobId), Times.Once);
+            jobTracker.Verify(x => x.NotifyProgress(400, jobId), Times.Once);
+            jobTracker.Verify(x => x.NotifyProgress(600, jobId), Times.Once);
+            jobTracker.Verify(x => x.NotifyProgress(605, jobId), Times.Once);
         }
 
         [TestMethod]
@@ -121,16 +120,19 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             IEnumerable<PublishedProviderCreateVersionRequest> publishedProviderCreateVersionRequests =
                 Enumerable.Empty<PublishedProviderCreateVersionRequest>();
 
-            ILogger logger = CreateLogger();
+            Mock<ILogger> logger = CreateLogger();
 
-            IPublishedProviderVersioningService providerVersioningService = CreateVersioningService();
+            Mock<IPublishedProviderVersioningService> providerVersioningService = CreateVersioningService();
             providerVersioningService
-                .AssemblePublishedProviderCreateVersionRequests(Arg.Is(publishedProviders), Arg.Is(author), Arg.Is(PublishedProviderStatus.Approved))
+                .Setup(x => 
+                    x.AssemblePublishedProviderCreateVersionRequests(
+                        It.Is<IEnumerable<PublishedProvider>>(_ => _ == publishedProviders), 
+                        It.Is<Reference>(_ => _ == author), 
+                        It.Is<PublishedProviderStatus>(_ => _ == PublishedProviderStatus.Approved)))
                 .Returns(publishedProviderCreateVersionRequests);
-
-
+            
             PublishedProviderStatusUpdateService publishedProviderStatusUpdateService =
-                CreatePublishedProviderStatusUpdateService(providerVersioningService, logger);
+                CreatePublishedProviderStatusUpdateService(providerVersioningService.Object, logger.Object);
 
             //Assert
             int updateCount = await publishedProviderStatusUpdateService.UpdatePublishedProviderStatus(publishedProviders, author, PublishedProviderStatus.Approved);
@@ -151,20 +153,23 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 new PublishedProviderCreateVersionRequest()
             };
 
-            ILogger logger = CreateLogger();
+            Mock<ILogger> logger = CreateLogger();
 
-            IPublishedProviderVersioningService providerVersioningService = CreateVersioningService();
-
+            Mock<IPublishedProviderVersioningService> providerVersioningService = CreateVersioningService();
             providerVersioningService
-                .AssemblePublishedProviderCreateVersionRequests(Arg.Any<IEnumerable<PublishedProvider>>(), Arg.Is(author), Arg.Is(PublishedProviderStatus.Approved))
+                .Setup(x => 
+                    x.AssemblePublishedProviderCreateVersionRequests(
+                        It.IsAny<IEnumerable<PublishedProvider>>(), 
+                        It.Is<Reference>(_ => _ == author), 
+                        It.Is<PublishedProviderStatus>(_ => _ == PublishedProviderStatus.Approved)))
                 .Returns(publishedProviderCreateVersionRequests);
 
-            providerVersioningService
-                .When(x => x.CreateVersions(Arg.Is(publishedProviderCreateVersionRequests)))
-                .Do(x => { throw new Exception(); });
+            providerVersioningService.Setup(x => 
+                    x.CreateVersions(It.Is<IEnumerable<PublishedProviderCreateVersionRequest>>(_ => _ == publishedProviderCreateVersionRequests)))
+                .Throws(new Exception());
 
             PublishedProviderStatusUpdateService publishedProviderStatusUpdateService =
-                CreatePublishedProviderStatusUpdateService(providerVersioningService, logger);
+                CreatePublishedProviderStatusUpdateService(providerVersioningService.Object, logger.Object);
 
             string errorMessage = $"Failed to create versions when updating status:' {PublishedProviderStatus.Approved}' on published providers.";
 
@@ -179,9 +184,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 .Should()
                 .Be(errorMessage);
 
-            logger
-                .Received(1)
-                .Error(Arg.Any<Exception>(), Arg.Is(errorMessage));
+            logger.Verify(x => 
+                    x.Error(It.IsAny<Exception>(), It.Is<string>(_ => _ == errorMessage)),
+                    Times.Once);
         }
 
         [TestMethod]
@@ -198,29 +203,31 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 new PublishedProviderCreateVersionRequest()
             };
 
-            ILogger logger = CreateLogger();
-
-            IPublishedProviderVersioningService providerVersioningService = CreateVersioningService();
-
-            IPublishedFundingRepository publishedFundingRepository = CreatePublishedFundingRepository();
-
+            Mock<ILogger> logger = CreateLogger();
+            Mock<IPublishedProviderVersioningService> providerVersioningService = CreateVersioningService();
+            Mock<IPublishedFundingRepository> publishedFundingRepository = CreatePublishedFundingRepository();
+            
             providerVersioningService
-                .AssemblePublishedProviderCreateVersionRequests(Arg.Any<IEnumerable<PublishedProvider>>(), Arg.Is(author), Arg.Is(PublishedProviderStatus.Approved))
+                .Setup(x => 
+                    x.AssemblePublishedProviderCreateVersionRequests(
+                        It.IsAny<IEnumerable<PublishedProvider>>(), 
+                        It.Is<Reference>(_ => _ == author), 
+                        It.Is<PublishedProviderStatus>(_ => _ == PublishedProviderStatus.Approved)))
                 .Returns(publishedProviderCreateVersionRequests);
-
             providerVersioningService
-                .CreateVersions(Arg.Is(publishedProviderCreateVersionRequests))
-                .Returns(publishedProviders);
+                .Setup(x => 
+                    x.SaveVersions(It.IsAny<IEnumerable<PublishedProvider>>()))
+                .Throws(new Exception());
+            providerVersioningService.Setup(x => 
+                    x.CreateVersions(It.Is<IEnumerable<PublishedProviderCreateVersionRequest>>(_ => _ == publishedProviderCreateVersionRequests)))
+                .ReturnsAsync(publishedProviders);
 
-            publishedFundingRepository.UpsertPublishedProviders(Arg.Is(publishedProviders))
-                .Returns(new[] { HttpStatusCode.OK });
-
-            providerVersioningService
-                .When(x => x.SaveVersions(Arg.Any<IEnumerable<PublishedProvider>>()))
-                .Do(x => { throw new Exception(); });
+            publishedFundingRepository.Setup(x => 
+                    x.UpsertPublishedProviders(It.Is<IEnumerable<PublishedProvider>>(_ => _ == publishedProviders)))
+                .ReturnsAsync(new[] { HttpStatusCode.OK });
 
             PublishedProviderStatusUpdateService publishedProviderStatusUpdateService =
-                CreatePublishedProviderStatusUpdateService(providerVersioningService, logger: logger, publishedFundingRepository: publishedFundingRepository);
+                CreatePublishedProviderStatusUpdateService(providerVersioningService.Object, logger: logger.Object, publishedFundingRepository: publishedFundingRepository.Object);
 
             string errorMessage = $"Failed to save versions when updating status:' {PublishedProviderStatus.Approved}' on published providers.";
 
@@ -236,9 +243,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 .Should()
                 .Be(errorMessage);
 
-            logger
-                .Received(1)
-                .Error(Arg.Any<Exception>(), Arg.Is(errorMessage));
+            logger.Verify(x => 
+                    x.Error(It.IsAny<Exception>(), It.Is<string>(_ => _ == errorMessage)),
+                Times.Once);
         }
 
         [TestMethod]
@@ -252,30 +259,31 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 new PublishedProviderCreateVersionRequest()
             };
 
-            ILogger logger = CreateLogger();
+            Mock<ILogger> logger = CreateLogger();
 
-            IPublishedProviderVersioningService providerVersioningService = CreateVersioningService();
-
+            Mock<IPublishedProviderVersioningService> providerVersioningService = CreateVersioningService();
             providerVersioningService
-                .AssemblePublishedProviderCreateVersionRequests(Arg.Any<IEnumerable<PublishedProvider>>(), Arg.Is(author), Arg.Is(PublishedProviderStatus.Approved))
+                .Setup(x => 
+                    x.AssemblePublishedProviderCreateVersionRequests(
+                        It.IsAny<IEnumerable<PublishedProvider>>(), 
+                        It.Is<Reference>(_ => _ == author), 
+                        It.Is<PublishedProviderStatus>(_ => _ == PublishedProviderStatus.Approved)))
                 .Returns(publishedProviderCreateVersionRequests);
-
-            providerVersioningService
-                .CreateVersions(Arg.Is(publishedProviderCreateVersionRequests))
-                .Returns(publishedProviders);
+            providerVersioningService.Setup(x => 
+                    x.CreateVersions(It.Is<IEnumerable<PublishedProviderCreateVersionRequest>>(_ => _ == publishedProviderCreateVersionRequests)))
+                .ReturnsAsync(publishedProviders);
 
             PublishedProviderStatusUpdateService publishedProviderStatusUpdateService =
-                CreatePublishedProviderStatusUpdateService(providerVersioningService, logger: logger);
+                CreatePublishedProviderStatusUpdateService(providerVersioningService.Object, logger.Object);
 
             string errorMessage = $"Failed to save versions when updating status:' {PublishedProviderStatus.Approved}' on published providers.";
 
             //Assert
             await publishedProviderStatusUpdateService.UpdatePublishedProviderStatus(publishedProviders, author, PublishedProviderStatus.Approved);
 
-            await
-                providerVersioningService
-                    .DidNotReceive()
-                    .SaveVersions(Arg.Any<IEnumerable<PublishedProvider>>());
+            providerVersioningService
+                .Verify(x => x.SaveVersions(It.IsAny<IEnumerable<PublishedProvider>>()),
+                    Times.Never());
         }
 
         private static PublishedProviderStatusUpdateService CreatePublishedProviderStatusUpdateService(
@@ -284,36 +292,36 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             IJobTracker jobTracker = null,
             IPublishedFundingRepository publishedFundingRepository = null)
         {
-            IConfiguration configuration = Substitute.For<IConfiguration>();
+            IConfiguration configuration = Mock.Of<IConfiguration>();
 
             return new PublishedProviderStatusUpdateService(
-                    publishedProviderVersioningService ?? CreateVersioningService(),
-                    publishedFundingRepository ?? CreatePublishedFundingRepository(),
-                    jobTracker ?? CreateJobTracker(),
-                    logger ?? CreateLogger(),
+                    publishedProviderVersioningService ?? CreateVersioningService().Object,
+                    publishedFundingRepository ?? CreatePublishedFundingRepository().Object,
+                    jobTracker ?? CreateJobTracker().Object,
+                    logger ?? CreateLogger().Object,
                     new PublishedProviderStatusUpdateSettings(),
                     new PublishingEngineOptions(configuration));
         }
 
 
-        private static IPublishedProviderVersioningService CreateVersioningService()
+        private static Mock<IPublishedProviderVersioningService> CreateVersioningService()
         {
-            return Substitute.For<IPublishedProviderVersioningService>();
+            return new Mock<IPublishedProviderVersioningService>();
         }
 
-        private static IPublishedFundingRepository CreatePublishedFundingRepository()
+        private static Mock<IPublishedFundingRepository> CreatePublishedFundingRepository()
         {
-            return Substitute.For<IPublishedFundingRepository>();
+            return new Mock<IPublishedFundingRepository>();
         }
 
-        private static ILogger CreateLogger()
+        private static Mock<ILogger> CreateLogger()
         {
-            return Substitute.For<ILogger>();
+            return new Mock<ILogger>();
         }
 
-        private static IJobTracker CreateJobTracker()
+        private static Mock<IJobTracker> CreateJobTracker()
         {
-            return Substitute.For<IJobTracker>();
+            return new Mock<IJobTracker>();
         }
     }
 }
