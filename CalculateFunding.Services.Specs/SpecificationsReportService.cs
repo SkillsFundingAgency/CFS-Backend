@@ -8,6 +8,7 @@ using System.Linq;
 using System;
 using System.IO;
 using Microsoft.Azure.Storage.Blob;
+using ByteSizeLib;
 
 namespace CalculateFunding.Services.Specs
 {
@@ -41,8 +42,10 @@ namespace CalculateFunding.Services.Specs
         {
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
 
-            IEnumerable<ReportMetadata> publishingMetadata = GetReportMetadata($"funding-lines-{specificationId}", PublishedProviderVersionsContainerName)
-                .Concat(GetReportMetadata($"calculation-results-{specificationId}", CalcsResultsContainerName, ReportType.CalcResult));
+            IEnumerable<ReportMetadata> publishingMetadata = 
+                GetReportMetadata($"funding-lines-{specificationId}", PublishedProviderVersionsContainerName)
+                .Concat(
+                    GetReportMetadata($"calculation-results-{specificationId}", CalcsResultsContainerName, ReportType.CalcResult));
 
             return new OkObjectResult(publishingMetadata);
         }
@@ -72,6 +75,8 @@ namespace CalculateFunding.Services.Specs
                     reportType = parsedReportType;
                 }
 
+                ByteSize fileLength = ByteSize.FromBytes(cloudBlob.Properties.Length);
+
                 return new ReportMetadata
                 {
                     Name = fileName,
@@ -80,7 +85,8 @@ namespace CalculateFunding.Services.Specs
                     Identifier = cloudBlob.Metadata,
                     Category = GetReportCategory(reportType.Value).ToString(),
                     LastModified = cloudBlob.Properties.LastModified,
-                    Format = fileSuffix,
+                    Format = fileSuffix.ToUpperInvariant(),
+                    Size = $"{fileLength.LargestWholeNumberDecimalValue:0.#} {fileLength.LargestWholeNumberDecimalSymbol}"
             };
             }).OrderByDescending(_ => _.LastModified);
         }

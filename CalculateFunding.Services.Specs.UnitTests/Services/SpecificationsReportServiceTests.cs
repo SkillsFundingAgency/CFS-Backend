@@ -144,7 +144,8 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                         BlobName = "funding-line-file.csv",
                         Type = ReportType.Released,
                         Category = "Live",
-                        Format = "csv"
+                        Format = "CSV",
+                        Size = "-1 B"
                     },
                     opt => opt.Excluding(_ => _.Identifier));
 

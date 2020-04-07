@@ -12,5 +12,6 @@ namespace CalculateFunding.Models.Specs
         public string Category { get; set; }
         public DateTimeOffset? LastModified { get; set; }
         public string Format { get; set; }
+        public string Size { get; set; }
     }
 }
