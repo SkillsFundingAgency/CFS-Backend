@@ -11,6 +11,7 @@ using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using NSubstitute;
 using Serilog;
 
@@ -37,41 +38,36 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
 
             ILogger logger = CreateLogger();
 
-            IPublishedProviderVersioningService providerVersioningService = CreateVersioningService();
+            Mock<IPublishedProviderVersioningService> providerVersioningService = new Mock<IPublishedProviderVersioningService>();
             IJobTracker jobTracker = CreateJobTracker();
 
-            providerVersioningService
-                .AssemblePublishedProviderCreateVersionRequests(Arg.Any<IEnumerable<PublishedProvider>>(), Arg.Is(author),
-                    Arg.Is(PublishedProviderStatus.Approved))
+            providerVersioningService.Setup(_ => 
+                _.AssemblePublishedProviderCreateVersionRequests(It.IsAny<IEnumerable<PublishedProvider>>(), author,
+                   PublishedProviderStatus.Approved))
                 .Returns(publishedProviderCreateVersionRequests);
 
-            providerVersioningService
-                .CreateVersions(Arg.Is(publishedProviderCreateVersionRequests))
-                .Returns(publishedProviders);
+            providerVersioningService.Setup(_ =>
+                _.CreateVersions(publishedProviderCreateVersionRequests))
+                .ReturnsAsync(publishedProviders);
 
-            providerVersioningService
-                .CreateVersions(Arg.Is<IEnumerable<PublishedProviderCreateVersionRequest>>(_
-                    => _.SequenceEqual(publishedProviderCreateVersionRequests.Take(200))))
-                .Returns(publishedProviders.Take(200));
+            providerVersioningService.Setup(_ =>
+                _.CreateVersions(publishedProviderCreateVersionRequests.Take(200)))
+                .ReturnsAsync(publishedProviders.Take(200));
+            
+            providerVersioningService.Setup(_ =>
+                    _.CreateVersions(publishedProviderCreateVersionRequests.Skip(200).Take(200)))
+                .ReturnsAsync(publishedProviders.Skip(200).Take(200));
 
-            providerVersioningService
-                .CreateVersions(Arg.Is<IEnumerable<PublishedProviderCreateVersionRequest>>(_
-                    => _.SequenceEqual(publishedProviderCreateVersionRequests.Skip(200).Take(200))))
-                .Returns(publishedProviders.Skip(200).Take(200));
-
-            providerVersioningService
-                .CreateVersions(Arg.Is<IEnumerable<PublishedProviderCreateVersionRequest>>(_
-                    => _.SequenceEqual(publishedProviderCreateVersionRequests.Skip(400).Take(200))))
-                .Returns(publishedProviders.Skip(400).Take(200));
-
-            providerVersioningService
-                .CreateVersions(Arg.Is<IEnumerable<PublishedProviderCreateVersionRequest>>(_
-                    => _.SequenceEqual(publishedProviderCreateVersionRequests.Skip(600).Take(200))))
-                .Returns(publishedProviders.Skip(600).Take(200));
-
+            providerVersioningService.Setup(_ =>
+                    _.CreateVersions(publishedProviderCreateVersionRequests.Skip(400).Take(200)))
+                .ReturnsAsync(publishedProviders.Skip(400).Take(200));
+            
+            providerVersioningService.Setup(_ =>
+                    _.CreateVersions(publishedProviderCreateVersionRequests.Skip(600).Take(200)))
+                .ReturnsAsync(publishedProviders.Skip(600).Take(200));
 
             PublishedProviderStatusUpdateService publishedProviderStatusUpdateService =
-                CreatePublishedProviderStatusUpdateService(providerVersioningService, logger, jobTracker);
+                CreatePublishedProviderStatusUpdateService(providerVersioningService.Object, logger, jobTracker);
 
 
             //Act

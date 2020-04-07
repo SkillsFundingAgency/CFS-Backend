@@ -7,7 +7,7 @@ namespace CalculateFunding.Models.Specs
     {
         public string Name { get; set; }
         public string BlobName { get; set; }
-        public string Type { get; set; }
+        public ReportType Type { get; set; }
         public IDictionary<string, string> Identifier { get; set; }
         public string Category { get; set; }
         public DateTimeOffset? LastModified { get; set; }

@@ -76,7 +76,7 @@ namespace CalculateFunding.Services.Specs
                 {
                     Name = fileName,
                     BlobName = Path.GetFileName(b.Uri.AbsolutePath),
-                    Type = reportType.Value.ToString(),
+                    Type = reportType.Value,
                     Identifier = cloudBlob.Metadata,
                     Category = GetReportCategory(reportType.Value).ToString(),
                     LastModified = cloudBlob.Properties.LastModified,

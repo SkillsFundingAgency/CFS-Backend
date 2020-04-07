@@ -142,7 +142,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                     {
                         Name = fundingLineFileName,
                         BlobName = "funding-line-file.csv",
-                        Type = "Released",
+                        Type = ReportType.Released,
                         Category = "Live",
                         Format = "csv"
                     },
