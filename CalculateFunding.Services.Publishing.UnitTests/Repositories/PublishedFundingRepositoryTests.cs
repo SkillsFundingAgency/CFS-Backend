@@ -183,8 +183,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
                                FROM     publishedProvider c
                                WHERE    c.documentType = 'PublishedProvider'
                                AND      c.content.current.fundingStreamId = @fundingStreamId
-                               AND      c.content.current.fundingPeriodId = @fundingPeriodId
-                               AND      c.deleted = false";
+                               AND      c.content.current.fundingPeriodId = @fundingPeriodId";
 
             await _cosmosRepository
                 .Received(1)
@@ -219,8 +218,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
                                FROM     publishedProviderVersion c
                                WHERE    c.documentType = 'PublishedProviderVersion'
                                AND      c.content.fundingStreamId = @fundingStreamId
-                               AND      c.content.fundingPeriodId = @fundingPeriodId
-                               AND      c.deleted = false";
+                               AND      c.content.fundingPeriodId = @fundingPeriodId";
 
             await _cosmosRepository
                 .Received(1)

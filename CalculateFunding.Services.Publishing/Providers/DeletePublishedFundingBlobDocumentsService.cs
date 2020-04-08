@@ -43,7 +43,7 @@ namespace CalculateFunding.Services.Publishing.Providers
             await _blobClientPolicy.ExecuteAsync(() =>
                 _blobClient.BatchProcessBlobs(blobs =>
                 {
-                    blobsToDelete.AddRange(blobs.Select(_ => _.Uri.GetComponents(UriComponents.Path, UriFormat.Unescaped))
+                    blobsToDelete.AddRange(blobs.Select(_ => _.Uri.GetComponents(UriComponents.Path, UriFormat.Unescaped)?.Split('/').Last())
                         .Where(_ => _.ToLower().StartsWith(fileStart)));
 
                     return Task.CompletedTask;
