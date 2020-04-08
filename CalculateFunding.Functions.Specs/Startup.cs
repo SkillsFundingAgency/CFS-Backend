@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using AutoMapper;
 using CalculateFunding.Common.Config.ApiClient.Calcs;
 using CalculateFunding.Common.Config.ApiClient.Jobs;
@@ -170,11 +171,11 @@ namespace CalculateFunding.Functions.Specs
             builder.AddCaching(config);
 
 
-            builder.AddResultsInterServiceClient(config);
-            builder.AddProvidersInterServiceClient(config);
-            builder.AddPoliciesInterServiceClient(config);
-            builder.AddJobsInterServiceClient(config);
-            builder.AddCalculationsInterServiceClient(config);
+            builder.AddResultsInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
+            builder.AddProvidersInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
+            builder.AddPoliciesInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
+            builder.AddJobsInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
+            builder.AddCalculationsInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
 
             builder.AddPolicySettings(config);
 

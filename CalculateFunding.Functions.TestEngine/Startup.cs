@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using AutoMapper;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Config.ApiClient.Calcs;
@@ -158,10 +159,10 @@ namespace CalculateFunding.Functions.TestEngine
             builder
                 .AddSingleton<ISearchRepository<TestScenarioResultIndex>, SearchRepository<TestScenarioResultIndex>>();
 
-            builder.AddSpecificationsInterServiceClient(config);
+            builder.AddSpecificationsInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
             builder.AddScenariosInterServiceClient(config);
-            builder.AddCalculationsInterServiceClient(config);
-            builder.AddProvidersInterServiceClient(config);
+            builder.AddCalculationsInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
+            builder.AddProvidersInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
 
             builder.AddCaching(config);
 

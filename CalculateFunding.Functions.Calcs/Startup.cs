@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using AutoMapper;
 using CalculateFunding.Common.ApiClient;
 using CalculateFunding.Common.Config.ApiClient.Graph;
@@ -184,12 +185,12 @@ namespace CalculateFunding.Functions.Calcs
             builder.AddScoped<ICalculationsFeatureFlag, CalculationsFeatureFlag>();
             builder.AddScoped<IGraphRepository, GraphRepository>();
 
-            builder.AddProvidersInterServiceClient(config);
-            builder.AddSpecificationsInterServiceClient(config);
+            builder.AddProvidersInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
+            builder.AddSpecificationsInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
             builder.AddDatasetsInterServiceClient(config);
-            builder.AddJobsInterServiceClient(config);
-            builder.AddGraphInterServiceClient(config);
-            builder.AddPoliciesInterServiceClient(config);
+            builder.AddJobsInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
+            builder.AddGraphInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
+            builder.AddPoliciesInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
 
             builder.AddCaching(config);
 

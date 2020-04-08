@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net.Http;
+using System.Threading;
 using AutoMapper;
 using CalculateFunding.Common.ApiClient;
 using CalculateFunding.Common.ApiClient.Bearer;
@@ -359,15 +360,12 @@ namespace CalculateFunding.Functions.Publishing
 
             builder.AddSingleton<IJobHelperResiliencePolicies>(publishingResiliencePolicies);
 
-            // Fix recommended by Microsoft for issues with disposed scopes when running in functions in the cloud
-            builder.Configure<HttpClientFactoryOptions>(options => options.SuppressHandlerScope = true);
+            builder.AddSpecificationsInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
+            builder.AddProvidersInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
 
-            builder.AddSpecificationsInterServiceClient(config);
-            builder.AddProvidersInterServiceClient(config);
-
-            builder.AddJobsInterServiceClient(config);
-            builder.AddCalculationsInterServiceClient(config);
-            builder.AddPoliciesInterServiceClient(config);
+            builder.AddJobsInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
+            builder.AddCalculationsInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
+            builder.AddPoliciesInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
 
             builder.AddSingleton<ITransactionResiliencePolicies>((ctx) =>
             {

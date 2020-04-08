@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using AutoMapper;
 using CalculateFunding.Common.ApiClient;
 using CalculateFunding.Common.ApiClient.Specifications;
@@ -166,9 +167,9 @@ namespace CalculateFunding.Functions.CalcEngine
                 .AddSingleton(calculationsConfig.CreateMapper());
 
 
-            builder.AddCalculationsInterServiceClient(config);
-            builder.AddSpecificationsInterServiceClient(config);
-            builder.AddJobsInterServiceClient(config);
+            builder.AddCalculationsInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
+            builder.AddSpecificationsInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
+            builder.AddJobsInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
 
 
             builder.AddDatasetsInterServiceClient(config);

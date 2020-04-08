@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using AutoMapper;
 using CalculateFunding.Common.ApiClient.Providers;
 using CalculateFunding.Common.Config.ApiClient.Calcs;
@@ -175,10 +176,10 @@ namespace CalculateFunding.Functions.Datasets
                 new DatasetsAggregationsRepository(CreateCosmosDbSettings(config, "datasetaggregations")));
 
 
-            builder.AddCalculationsInterServiceClient(config);
-            builder.AddSpecificationsInterServiceClient(config);
-            builder.AddJobsInterServiceClient(config);
-            builder.AddProvidersInterServiceClient(config);
+            builder.AddCalculationsInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
+            builder.AddSpecificationsInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
+            builder.AddJobsInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
+            builder.AddProvidersInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
 
             builder.AddSearch(config);
             builder

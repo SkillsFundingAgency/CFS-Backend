@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using CalculateFunding.Common.ApiClient;
 using CalculateFunding.Common.Config.ApiClient.Calcs;
 using CalculateFunding.Common.Config.ApiClient.Jobs;
@@ -134,10 +135,10 @@ namespace CalculateFunding.Functions.Results
             builder.AddLogging("CalculateFunding.Functions.Results");
             builder.AddTelemetry();
 
-            builder.AddCalculationsInterServiceClient(config);
-            builder.AddSpecificationsInterServiceClient(config);
-            builder.AddJobsInterServiceClient(config);
-            builder.AddProvidersInterServiceClient(config);
+            builder.AddCalculationsInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
+            builder.AddSpecificationsInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
+            builder.AddJobsInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
+            builder.AddProvidersInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
 
             builder.AddFeatureToggling(config);
 

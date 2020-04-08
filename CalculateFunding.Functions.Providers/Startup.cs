@@ -25,6 +25,7 @@ using CalculateFunding.Services.Providers.Validators;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Caching.FileSystem;
 using CalculateFunding.Models.Providers;
+using System.Threading;
 
 [assembly: FunctionsStartup(typeof(CalculateFunding.Functions.Providers.Startup))]
 
@@ -73,9 +74,9 @@ namespace CalculateFunding.Functions.Providers
             builder
                 .AddSingleton<IJobManagement, JobManagement>();
 
-            builder.AddJobsInterServiceClient(config);
-            builder.AddSpecificationsInterServiceClient(config);
-            builder.AddResultsInterServiceClient(config);
+            builder.AddJobsInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
+            builder.AddSpecificationsInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
+            builder.AddResultsInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
 
             builder.AddCaching(config);
 

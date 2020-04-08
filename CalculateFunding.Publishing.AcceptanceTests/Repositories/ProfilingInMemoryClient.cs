@@ -53,5 +53,30 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         {
             throw new NotImplementedException();
         }
+
+        public Task<HttpStatusCode> CreateProfilePattern(CreateProfilePatternRequest request)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<HttpStatusCode> EditProfilePattern(EditProfilePatternRequest request)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<HttpStatusCode> DeleteProfilePattern(string id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ApiResponse<FundingStreamPeriodProfilePattern>> GetProfilePattern(string id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ApiResponse<IEnumerable<FundingStreamPeriodProfilePattern>>> GetProfilePatternsForFundingStreamAndFundingPeriod(string fundingStreamId, string fundingPeriodId)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
