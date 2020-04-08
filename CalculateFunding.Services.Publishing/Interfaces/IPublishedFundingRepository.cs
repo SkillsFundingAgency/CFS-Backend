@@ -51,6 +51,12 @@ namespace CalculateFunding.Services.Publishing.Interfaces
         Task DeleteAllPublishedProviderVersionsByFundingStreamAndPeriod(string fundingStreamId, 
             string fundingPeriodId);
 
+        Task DeleteAllPublishedFundingByFundingStreamAndPeriod(string fundingStreamId,
+            string fundingPeriodId);
+
+        Task DeleteAllPublishedFundingVersionsByFundingStreamAndPeriod(string fundingStreamId,
+            string fundingPeriodId);
+
         Task<PublishedProviderVersion> GetLatestPublishedProviderVersion(string fundingStreamId,
             string fundingPeriodId,
             string providerId);

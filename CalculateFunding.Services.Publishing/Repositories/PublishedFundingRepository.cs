@@ -363,7 +363,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
 
             await _repository.DocumentsBatchProcessingAsync<PublishedProvider>(persistBatchToIndex: async matches =>
                 {
-                    await _repository.BulkDeleteAsync(matches.ToDictionary(_ => _.ParitionKey, _ => _));
+                    await _repository.BulkDeleteAsync(matches.ToDictionary(_ => _.ParitionKey, _ => _), hardDelete: true);
                 },
                 cosmosDbQuery: query,
                 itemsPerPage: 50);
@@ -403,11 +403,68 @@ namespace CalculateFunding.Services.Publishing.Repositories
 
             await _repository.DocumentsBatchProcessingAsync<PublishedProviderVersion>(persistBatchToIndex: async matches =>
                 {
-                    await _repository.BulkDeleteAsync(matches.Select(_ => new KeyValuePair<string, PublishedProviderVersion>(_.PartitionKey, _)));
+                    await _repository.BulkDeleteAsync(matches.Select(_ => new KeyValuePair<string, PublishedProviderVersion>(_.PartitionKey, _)), hardDelete: true);
                 },
                 cosmosDbQuery: query,
                 itemsPerPage: 50);
         }
+
+        public async Task DeleteAllPublishedFundingByFundingStreamAndPeriod(string fundingStreamId,
+            string fundingPeriodId)
+        {
+            CosmosDbQuery query = new CosmosDbQuery
+            {
+                QueryText = @"SELECT
+                                        c.content.id,
+                                        c.content.current.fundingStreamId,
+                                        c.content.current.fundingPeriod.id AS fundingPeriodId
+                               FROM     publishedFunding c
+                               WHERE    c.documentType = 'PublishedFunding'
+                               AND      c.content.current.fundingStreamId = @fundingStreamId
+                               AND      c.content.current.fundingPeriod.id = @fundingPeriodId",
+                Parameters = new[]
+                {
+                    new CosmosDbQueryParameter("@fundingStreamId", fundingStreamId),
+                    new CosmosDbQueryParameter("@fundingPeriodId", fundingPeriodId)
+                }
+            };
+
+            await _repository.DocumentsBatchProcessingAsync<PublishedFunding>(persistBatchToIndex: async matches =>
+            {
+                await _repository.BulkDeleteAsync(matches.Select(_ => new KeyValuePair<string, PublishedFunding>(_.ParitionKey, _)), hardDelete: true);
+            },
+            cosmosDbQuery: query,
+            itemsPerPage: 50);
+        }
+
+        public async Task DeleteAllPublishedFundingVersionsByFundingStreamAndPeriod(string fundingStreamId,
+            string fundingPeriodId)
+        {
+            CosmosDbQuery query = new CosmosDbQuery
+            {
+                QueryText = @"SELECT
+                                        c.content.id,
+                                        c.content.fundingStreamId,
+                                        c.content.fundingPeriod.id AS fundingPeriodId
+                               FROM     publishedFundingVersion c
+                               WHERE    c.documentType = 'PublishedFundingVersion'
+                               AND      c.content.fundingStreamId = @fundingStreamId
+                               AND      c.content.fundingPeriod.id = @fundingPeriodId",
+                Parameters = new[]
+                {
+                    new CosmosDbQueryParameter("@fundingStreamId", fundingStreamId),
+                    new CosmosDbQueryParameter("@fundingPeriodId", fundingPeriodId)
+                }
+            };
+
+            await _repository.DocumentsBatchProcessingAsync<PublishedFunding>(persistBatchToIndex: async matches =>
+            {
+                await _repository.BulkDeleteAsync(matches.Select(_ => new KeyValuePair<string, PublishedFunding>(_.ParitionKey, _)), hardDelete: true);
+            },
+            cosmosDbQuery: query,
+            itemsPerPage: 50);
+        }
+
 
         public async Task PublishedProviderVersionBatchProcessing(string predicate,
             string specificationId,

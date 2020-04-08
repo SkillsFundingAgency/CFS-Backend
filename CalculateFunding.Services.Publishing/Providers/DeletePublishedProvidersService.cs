@@ -90,6 +90,7 @@ namespace CalculateFunding.Services.Publishing.Providers
 
                 await DeletePublishedProviders(fundingStreamId, fundingPeriodId);
                 await DeletePublishedProviderVersions(fundingStreamId, fundingPeriodId);
+                await DeletePublishedFunding(fundingStreamId, fundingPeriodId);
                 await DeletePublishedProviderSearchDocuments(fundingStreamId, fundingPeriodId);
                 await DeletePublishedFundingBlobDocuments(fundingStreamId, fundingPeriodId, "publishedproviderversions");
                 await DeletePublishedFundingBlobDocuments(fundingStreamId, fundingPeriodId, "publishedfunding");
@@ -136,6 +137,22 @@ namespace CalculateFunding.Services.Publishing.Providers
 
             await _publishedFundingRepositoryPolicy.ExecuteAsync(() =>
                 _publishedFundingRepository.DeleteAllPublishedProviderVersionsByFundingStreamAndPeriod(fundingStreamId, fundingPeriodId));
+        }
+
+        private async Task DeletePublishedFunding(string fundingStreamId, string fundingPeriodId)
+        {
+            _logger.Information($"Deleting published funding for {fundingStreamId} {fundingPeriodId}");
+
+            await _publishedFundingRepositoryPolicy.ExecuteAsync(() =>
+                _publishedFundingRepository.DeleteAllPublishedFundingByFundingStreamAndPeriod(fundingStreamId, fundingPeriodId));
+        }
+
+        private async Task DeletePublishedFundingVersions(string fundingStreamId, string fundingPeriodId)
+        {
+            _logger.Information($"Deleting published funding for {fundingStreamId} {fundingPeriodId}");
+
+            await _publishedFundingRepositoryPolicy.ExecuteAsync(() =>
+                _publishedFundingRepository.DeleteAllPublishedFundingVersionsByFundingStreamAndPeriod(fundingStreamId, fundingPeriodId));
         }
 
         private async Task DeletePublishedProviders(string fundingStreamId, string fundingPeriodId)
