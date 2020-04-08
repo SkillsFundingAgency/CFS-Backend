@@ -19,7 +19,7 @@ namespace CalculateFunding.Services.Publishing
                 {BuildFromClauseAndPredicates(fundingStreamIds, fundingPeriodIds, groupingReasons)}"
             };
         }
-        
+
         public CosmosDbQuery BuildQuery(
             IEnumerable<string> fundingStreamIds,
             IEnumerable<string> fundingPeriodIds,
@@ -32,29 +32,29 @@ namespace CalculateFunding.Services.Publishing
                 QueryText = $@"
                 SELECT
                     p.content.id,
-                    p.content.current.statusChangedDate,
-                    p.content.current.fundingStreamId,
-                    p.content.current.fundingPeriod.id AS FundingPeriodId,
-                    p.content.current.groupingReason AS GroupingType,
-                    p.content.current.organisationGroupTypeCode AS GroupTypeIdentifier,
-                    p.content.current.organisationGroupIdentifierValue AS IdentifierValue,
-                    p.content.current.version,
-                    CONCAT(p.content.current.fundingStreamId, '-', 
-                            p.content.current.fundingPeriod.id, '-',
-                            p.content.current.groupingReason, '-',
-                            p.content.current.organisationGroupTypeCode, '-',
-                            ToString(p.content.current.organisationGroupIdentifierValue), '-',
-                            ToString(p.content.current.majorVersion), '_',
-                            ToString(p.content.current.minorVersion), '.json')
+                    p.content.statusChangedDate,
+                    p.content.fundingStreamId,
+                    p.content.fundingPeriod.id AS FundingPeriodId,
+                    p.content.groupingReason AS GroupingType,
+                    p.content.organisationGroupTypeCode AS GroupTypeIdentifier,
+                    p.content.organisationGroupIdentifierValue AS IdentifierValue,
+                    p.content.version,
+                    CONCAT(p.content.fundingStreamId, '-', 
+                            p.content.fundingPeriod.id, '-',
+                            p.content.groupingReason, '-',
+                            p.content.organisationGroupTypeCode, '-',
+                            ToString(p.content.organisationGroupIdentifierValue), '-',
+                            ToString(p.content.majorVersion), '_',
+                            ToString(p.content.minorVersion), '.json')
                     AS DocumentPath,
                     p.deleted
                 {BuildFromClauseAndPredicates(fundingStreamIds, fundingPeriodIds, groupingReasons)}
                 ORDER BY p.documentType,
-				p.content.current.statusChangedDate, 
+				p.content.statusChangedDate, 
 				p.content.id,
-				p.content.current.fundingStreamId,
-				p.content.current.fundingPeriod.id,
-				p.content.current.groupingReason,
+				p.content.fundingStreamId,
+				p.content.fundingPeriod.id,
+				p.content.groupingReason,
 				p.deleted
                 {PagingSkipLimit(pageRef, top)}"
             };
@@ -65,7 +65,7 @@ namespace CalculateFunding.Services.Publishing
             IEnumerable<string> groupingReasons)
         {
             return $@"FROM publishedFunding p
-                WHERE p.documentType = 'PublishedFunding'
+                WHERE p.documentType = 'PublishedFundingVersion'
                 AND p.deleted = false
                 {FundingStreamsPredicate(fundingStreamIds)}
                 {FundingPeriodsPredicate(fundingPeriodIds)}
@@ -73,25 +73,25 @@ namespace CalculateFunding.Services.Publishing
         }
 
         private string FundingStreamsPredicate(IEnumerable<string> fundingStreamIds)
-            => InPredicateFor(fundingStreamIds, "p.content.current.fundingStreamId");
+            => InPredicateFor(fundingStreamIds, "p.content.fundingStreamId");
 
         private string FundingPeriodsPredicate(IEnumerable<string> fundingPeriodIds)
-            => InPredicateFor(fundingPeriodIds, "p.content.current.fundingPeriod.id");
+            => InPredicateFor(fundingPeriodIds, "p.content.fundingPeriod.id");
 
-        private string GroupingReasonsPredicate(IEnumerable<string> groupingReasons) 
-            => InPredicateFor(groupingReasons, "p.content.current.groupingReason");
+        private string GroupingReasonsPredicate(IEnumerable<string> groupingReasons)
+            => InPredicateFor(groupingReasons, "p.content.groupingReason");
 
         private string InPredicateFor(IEnumerable<string> matches, string field)
         {
-            return !matches.IsNullOrEmpty() ? 
+            return !matches.IsNullOrEmpty() ?
                 $"AND {field} IN ({string.Join(",", matches.Select(_ => $"'{_}'"))})" :
                 null;
         }
 
         private string PagingSkipLimit(int? pageRef, int top)
         {
-            return pageRef.HasValue ? 
-                $"OFFSET {(pageRef - 1) * top} LIMIT {top}" : 
+            return pageRef.HasValue ?
+                $"OFFSET {(pageRef - 1) * top} LIMIT {top}" :
                 $"LIMIT {top}";
         }
     }
