@@ -91,6 +91,7 @@ namespace CalculateFunding.Services.Publishing.Providers
                 await DeletePublishedProviders(fundingStreamId, fundingPeriodId);
                 await DeletePublishedProviderVersions(fundingStreamId, fundingPeriodId);
                 await DeletePublishedFunding(fundingStreamId, fundingPeriodId);
+                await DeletePublishedFundingVersions(fundingStreamId, fundingPeriodId);
                 await DeletePublishedProviderSearchDocuments(fundingStreamId, fundingPeriodId);
                 await DeletePublishedFundingBlobDocuments(fundingStreamId, fundingPeriodId, "publishedproviderversions");
                 await DeletePublishedFundingBlobDocuments(fundingStreamId, fundingPeriodId, "publishedfunding");
