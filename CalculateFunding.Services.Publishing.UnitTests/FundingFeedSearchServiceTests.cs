@@ -74,11 +74,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .NotBeNull();
 
             fundingFeedResults
-                .PageRef
-                .Should()
-                .Be(0);//we only set this if they ask for page
-
-            fundingFeedResults
                 .Top
                 .Should()
                 .Be(top);

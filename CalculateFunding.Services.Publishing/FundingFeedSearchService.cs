@@ -93,15 +93,11 @@ namespace CalculateFunding.Services.Publishing
 
             SearchFeedV3<PublishedFundingIndex> searchFeedResult = new SearchFeedV3<PublishedFundingIndex>
             {
+                PageRef = pageRef,
                 Top = top,
                 TotalCount = totalCount,
                 Entries = fundingFeedResults
             };
-
-            if (pageRefRequested)
-            {
-                searchFeedResult.PageRef = pageRef;
-            }
 
             return searchFeedResult;
         }
