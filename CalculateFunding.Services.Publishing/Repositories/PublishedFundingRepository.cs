@@ -35,7 +35,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
         {
             Guard.ArgumentNotNull(publishedProviders, nameof(publishedProviders));
 
-            IEnumerable<Task<HttpStatusCode>> tasks = publishedProviders.Select(async (_) => await _repository.UpsertAsync(_, _.ParitionKey));
+            IEnumerable<Task<HttpStatusCode>> tasks = publishedProviders.Select(async (_) => await _repository.UpsertAsync(_, _.PartitionKey));
 
             await TaskHelper.WhenAllAndThrow(tasks.ToArray());
 
@@ -363,7 +363,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
 
             await _repository.DocumentsBatchProcessingAsync<PublishedProvider>(persistBatchToIndex: async matches =>
                 {
-                    await _repository.BulkDeleteAsync(matches.ToDictionary(_ => _.ParitionKey, _ => _), hardDelete: true);
+                    await _repository.BulkDeleteAsync(matches.ToDictionary(_ => _.PartitionKey, _ => _), hardDelete: true);
                 },
                 cosmosDbQuery: query,
                 itemsPerPage: 50);

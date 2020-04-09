@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Xml;
 using CalculateFunding.Models.Versioning;
 using Newtonsoft.Json;
 
@@ -30,6 +32,13 @@ namespace CalculateFunding.Models.Publishing
         /// </summary>
         [JsonProperty("fundingPeriodId")]
         public string FundingPeriodId { get; set; }
+        
+        /// <summary>
+        /// The custom profiling pattern used for this provider
+        /// in this period and funding stream
+        /// </summary>
+        [JsonProperty("profilePatternKey")]
+        public string ProfilePatternKey { get; set; }
 
         /// <summary>
         /// Specification this ID is associated with
@@ -115,11 +124,30 @@ namespace CalculateFunding.Models.Publishing
         public ICollection<string> Predecessors { get; set; }
 
         /// <summary>
-        /// <summary>
         /// Variation reasons
         /// </summary>
         [JsonProperty("variationReasons")]
         public IEnumerable<VariationReason> VariationReasons { get; set; }
+        
+        /// <summary>
+        /// Errors blocking the release of this funding encountered
+        /// during the publishing cycle that created this version
+        /// </summary>
+        [JsonProperty("errors")]
+        public List<PublishedProviderError> Errors { get; set; }
+
+        public void AddErrors(IEnumerable<PublishedProviderError> errors)
+        {
+            Errors ??= new List<PublishedProviderError>();
+            Errors.AddRange(errors);
+        }
+
+        public void ResetErrors()
+        {
+            Errors?.Clear();
+        }
+
+        public bool HasErrors => Errors?.Any() == true;
 
         /// <summary>
         /// Job ID this PublishedProvider was updated or created on
@@ -153,8 +181,7 @@ namespace CalculateFunding.Models.Publishing
                 throw new ArgumentOutOfRangeException(nameof(overpayment), overpayment, "Over payments must be greater than zero");
             }
 
-            FundingLineOverPayments = FundingLineOverPayments ?? new Dictionary<string, decimal>();
-
+            FundingLineOverPayments ??= new Dictionary<string, decimal>();
             FundingLineOverPayments[fundingLineId] = overpayment;
         }
         

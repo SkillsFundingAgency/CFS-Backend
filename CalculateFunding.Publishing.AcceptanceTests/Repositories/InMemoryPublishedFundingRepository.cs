@@ -172,7 +172,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
                     (p.Current.Status == PublishedProviderStatus.Draft || p.Current.Status == PublishedProviderStatus.Updated)
                 && p.Current.FundingStreamId == fundingStreamId
                 && p.Current.FundingPeriodId == fundingPeriodId)
-                .Select(r => new KeyValuePair<string, string>(r.Id, r.ParitionKey));
+                .Select(r => new KeyValuePair<string, string>(r.Id, r.PartitionKey));
 
             return Task.FromResult(results);
         }
@@ -190,7 +190,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
                             .SelectMany(c => c.Value)
                             .Where(p => p.Current.FundingStreamId == fundingStreamId
                                 && p.Current.FundingPeriodId == fundingPeriodId)
-                            .Select(r => new KeyValuePair<string, string>(r.Id, r.ParitionKey));
+                            .Select(r => new KeyValuePair<string, string>(r.Id, r.PartitionKey));
 
             return Task.FromResult(results);
         }

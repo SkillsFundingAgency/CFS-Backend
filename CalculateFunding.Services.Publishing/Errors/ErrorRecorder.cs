@@ -1,20 +1,19 @@
-﻿using CalculateFunding.Common.Storage;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using CalculateFunding.Common.Storage;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Publishing.Interfaces;
 using Polly;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace CalculateFunding.Services.Publishing.Error
+namespace CalculateFunding.Services.Publishing.Errors
 {
     public abstract class ErrorRecorder
     {
         private readonly AsyncPolicy _resiliencePolicy;
         private readonly IBlobClient _blobClient;
 
-        public ErrorRecorder(IPublishingResiliencePolicies resiliencePolicies, IBlobClient blobClient)
+        protected ErrorRecorder(IPublishingResiliencePolicies resiliencePolicies, IBlobClient blobClient)
         {
             Guard.ArgumentNotNull(blobClient, nameof(blobClient));
             Guard.ArgumentNotNull(resiliencePolicies?.BlobClient, nameof(resiliencePolicies.BlobClient));

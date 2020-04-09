@@ -83,7 +83,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         }
 
         [TestMethod]
-        public async Task IndexPublishedProvider_GivenSearchRepository_NoExceptionThrownAsync()
+        [DataRow(true)]
+        [DataRow(false)]
+        public async Task IndexPublishedProvider_GivenSearchRepository_NoExceptionThrownAsync(bool hasErrors)
         {
             //Arrange           
             PublishedProviderVersion publishedProviderVersion = new PublishedProviderVersion
@@ -95,7 +97,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 Version = 1,
                 MajorVersion = 1,
                 MinorVersion = 0,
-                VariationReasons = new List<VariationReason> { VariationReason.NameFieldUpdated, VariationReason.FundingUpdated }
+                VariationReasons = new List<VariationReason> { VariationReason.NameFieldUpdated, VariationReason.FundingUpdated },
+                Errors = hasErrors ? new List<PublishedProviderError>
+                {
+                    new PublishedProviderError()
+                } : null
             };
 
             ILogger logger = CreateLogger();
@@ -106,12 +112,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                                                                                     searchRepository: searchRepository);
 
             //Act
-            Func<Task> result = async () => await publishedProviderIndexerService.IndexPublishedProvider(publishedProviderVersion);
-
-            //Assert
-            result
-                .Should().NotThrow();
-
+            await publishedProviderIndexerService.IndexPublishedProvider(publishedProviderVersion);
+            
             await searchRepository
                 .Received(1)
                 .Index(Arg.Is<IEnumerable<PublishedProviderIndex>>(
@@ -124,12 +126,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                     d.First().FundingValue == Convert.ToDouble(publishedProviderVersion.TotalFunding) &&
                     d.First().SpecificationId == publishedProviderVersion.SpecificationId &&
                     d.First().FundingStreamId == "PSG" &&
-                    d.First().FundingPeriodId == publishedProviderVersion.FundingPeriodId
+                    d.First().FundingPeriodId == publishedProviderVersion.FundingPeriodId &&
+                    d.First().HasErrors == publishedProviderVersion.HasErrors
               ));
         }
 
-
-        public Provider GetProvider(int index)
+        private Provider GetProvider(int index)
         {
             return new Provider
             {
@@ -174,7 +176,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             };
         }
 
-        protected ILogger CreateLogger()
+        private ILogger CreateLogger()
         {
             return Substitute.For<ILogger>();
         }
@@ -184,17 +186,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         {
             _resiliencePolicies = new ResiliencePolicies()
             {
-                BlobClient = Policy.NoOpAsync(),
-                CalculationsApiClient = Policy.NoOpAsync(),
-                FundingFeedSearchRepository = Policy.NoOpAsync(),
-                JobsApiClient = Policy.NoOpAsync(),
-                PoliciesApiClient = Policy.NoOpAsync(),
-                ProvidersApiClient = Policy.NoOpAsync(),
-                PublishedFundingBlobRepository = Policy.NoOpAsync(),
-                PublishedFundingRepository = Policy.NoOpAsync(),
-                PublishedProviderVersionRepository = Policy.NoOpAsync(),
-                CalculationResultsRepository = Policy.NoOpAsync(),
-                SpecificationsRepositoryPolicy = Policy.NoOpAsync(),
                 PublishedProviderSearchRepository = Policy.NoOpAsync(),
             };
 
@@ -207,7 +198,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 new PublishingEngineOptions(configuration));
         }
 
-        protected ISearchRepository<PublishedProviderIndex> CreateSearchRepository()
+        private ISearchRepository<PublishedProviderIndex> CreateSearchRepository()
         {
             return Substitute.For<ISearchRepository<PublishedProviderIndex>>();
         }

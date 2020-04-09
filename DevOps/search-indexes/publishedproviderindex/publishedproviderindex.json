@@ -130,6 +130,19 @@
 			"analyzer": null,
 			"searchAnalyzer": null,
 			"indexAnalyzer": null
+		},
+		{
+			"name": "hasErrors",
+			"type": "Edm.Boolean",
+			"key": false,
+			"facetable": false,
+			"filterable": true,
+			"retrievable": true,
+			"searchable": false,
+			"sortable": false,
+			"analyzer": null,
+			"searchAnalyzer": null,
+			"indexAnalyzer": null
 		}
 		
 	],

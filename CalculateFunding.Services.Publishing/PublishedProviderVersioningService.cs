@@ -143,7 +143,7 @@ namespace CalculateFunding.Services.Publishing
 
                             PublishedProviderVersion newVersion = publishedProviderCreateVersionRequest.NewVersion;
 
-                            string partitionKey = currentVersion != null ? publishedProviderCreateVersionRequest.PublishedProvider.ParitionKey : string.Empty;
+                            string partitionKey = currentVersion != null ? publishedProviderCreateVersionRequest.PublishedProvider.PartitionKey : string.Empty;
 
                             try
                             {
@@ -173,7 +173,7 @@ namespace CalculateFunding.Services.Publishing
             Guard.ArgumentNotNull(publishedProviders, nameof(publishedProviders));
 
             IEnumerable<KeyValuePair<string, PublishedProviderVersion>> versionsToSave = publishedProviders.Select(m =>
-               new KeyValuePair<string, PublishedProviderVersion>(m.ParitionKey, m.Current));
+               new KeyValuePair<string, PublishedProviderVersion>(m.PartitionKey, m.Current));
 
             List<Task> allTasks = new List<Task>();
             SemaphoreSlim throttler = new SemaphoreSlim(initialCount: _publishingEngineOptions.PublishedProviderSaveVersionsConcurrencyCount);
@@ -210,7 +210,7 @@ namespace CalculateFunding.Services.Publishing
             Guard.ArgumentNotNull(publishedProviders, nameof(publishedProviders));
 
             IEnumerable<KeyValuePair<string, PublishedProviderVersion>> versionsToDelete = publishedProviders.Select(m =>
-               new KeyValuePair<string, PublishedProviderVersion>(m.ParitionKey, m.Current));
+               new KeyValuePair<string, PublishedProviderVersion>(m.PartitionKey, m.Current));
 
             List<Task> allTasks = new List<Task>();
             SemaphoreSlim throttler = new SemaphoreSlim(initialCount: _publishingEngineOptions.PublishedProviderSaveVersionsConcurrencyCount);

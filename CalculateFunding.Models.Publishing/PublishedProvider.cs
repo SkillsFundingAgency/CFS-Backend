@@ -31,7 +31,7 @@ namespace CalculateFunding.Models.Publishing
         /// Cosmos partition to store this document in. The cosmos collection uses /content/partitionKey as partition key
         /// </summary>
         [JsonProperty("partitionKey")]
-        public string ParitionKey => GeneratePartitionKey(Current.FundingStreamId, Current.FundingPeriodId, Current.ProviderId);
+        public string PartitionKey => GeneratePartitionKey(Current.FundingStreamId, Current.FundingPeriodId, Current.ProviderId);
 
         public static string GeneratePartitionKey(string fundingStreamId, string fundingPeriodId, string providerId)
         {
@@ -45,7 +45,7 @@ namespace CalculateFunding.Models.Publishing
 
         public void AddPredecessor(string providerId)
         {
-            Current.Predecessors = Current.Predecessors ?? new List<string>();
+            Current.Predecessors ??= new List<string>();
             Current.Predecessors.Add(providerId);
         }
     }

@@ -1,7 +1,7 @@
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Tests.Common.Helpers;
 
-namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
+namespace CalculateFunding.Services.Publishing.UnitTests
 {
     public class ProfilePeriodBuilder : TestEntityBuilder
     {

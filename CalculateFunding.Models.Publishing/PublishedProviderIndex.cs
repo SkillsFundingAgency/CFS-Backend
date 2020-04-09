@@ -48,5 +48,9 @@ namespace CalculateFunding.Models.Publishing
         [IsFilterable, IsRetrievable(true)]
         [JsonProperty("fundingPeriodId")]
         public string FundingPeriodId { get; set; }
+        
+        [IsFilterable, IsRetrievable(true)]
+        [JsonProperty("hasErrors")]
+        public bool HasErrors { get; set; }
     }
 }

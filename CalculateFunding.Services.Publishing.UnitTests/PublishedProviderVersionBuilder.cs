@@ -12,6 +12,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private string _providerId;
         private string _fundingPeriodId;
         private string _fundingStreamId;
+        private string _profilePatternKey;
         private int? _version;
         private string _specificationId;
         private PublishedProviderStatus? _status;
@@ -26,6 +27,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private DateTimeOffset? _date;
         private string _templateVersion;
         private IEnumerable<VariationReason> _variationReasons;
+
+        public PublishedProviderVersionBuilder WithProfilePatternKey(string profilePatternKey)
+        {
+            _profilePatternKey = profilePatternKey;
+
+            return this;
+        }
 
         public PublishedProviderVersionBuilder WithVariationReasons(IEnumerable<VariationReason> variationReasons)
         {
@@ -155,6 +163,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 ProviderId = _providerId ?? _provider?.ProviderId ?? NewRandomString(),
                 FundingPeriodId = _fundingPeriodId ?? NewRandomString(),
                 FundingStreamId = _fundingStreamId ?? NewRandomString(),
+                ProfilePatternKey = _profilePatternKey,
                 Version = _version ?? 1,
                 MajorVersion = _majorVersion ?? 1,
                 MinorVersion = _minorVersion,

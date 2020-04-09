@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Storage;
 using CalculateFunding.Common.Utility;
-using CalculateFunding.Services.Publishing.Error;
+using CalculateFunding.Services.Publishing.Errors;
 using CalculateFunding.Services.Publishing.Interfaces;
 using Polly;
 
