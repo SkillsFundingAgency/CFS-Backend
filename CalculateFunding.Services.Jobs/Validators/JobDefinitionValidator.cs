@@ -23,22 +23,6 @@ namespace CalculateFunding.Services.Jobs.Validators
                     {
                         ctx.AddFailure(nameof(JobDefinition.Id), "You must supply a job definition id");
                     }
-                    else
-                    {
-                        JobDefinition existingJobDefinition = await resiliencePolicies.JobDefinitionsRepository
-                            .ExecuteAsync(() => jobDefinitions.GetJobDefinitionById(jobDefinitionId));
-
-                        if (existingJobDefinition != null)
-                        {
-                            ctx.AddFailure(nameof(JobDefinition.Id), $"There is an existing job definition with the id {jobDefinitionId}. The id must be unique");
-                        }
-                    }
-
-                    if (jobDefinition.MessageBusQueue.IsNullOrWhitespace() && jobDefinition.MessageBusTopic.IsNullOrWhitespace())
-                    {
-                        ctx.AddFailure(nameof(JobDefinition.MessageBusQueue), "You must supply a message bus queue if no topic supplied");
-                        ctx.AddFailure(nameof(JobDefinition.MessageBusTopic), "You must supply a message bus topic if no queue supplied");
-                    }
                 });
         }
     }

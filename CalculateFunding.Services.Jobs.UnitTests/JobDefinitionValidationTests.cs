@@ -32,47 +32,15 @@ namespace CalculateFunding.Services.Jobs
         }
 
         [TestMethod]
-        public async Task FailsValidationIfBothQueueAndTopicMissing()
-        {
-            ValidationResult validationResult = await WhenTheJobDefinitionIsValidated(NewJobDefinition());
-
-            ThenTheValidationResultsAre(validationResult, 
-                ("MessageBusQueue", "You must supply a message bus queue if no topic supplied"), 
-                ("MessageBusTopic", "You must supply a message bus topic if no queue supplied"));
-        }
-
-        [TestMethod]
         public async Task FailsValidationIfIdMissing()
         {
-            ValidationResult validationResult = await WhenTheJobDefinitionIsValidated(NewJobDefinition(_ => 
+            ValidationResult validationResult = await WhenTheJobDefinitionIsValidated(NewJobDefinition(_ =>
                 _.WithQueueName(NewRandomString())
                     .WithTopicName(NewRandomString())
                     .WithoutId()));
 
             ThenTheValidationResultsAre(validationResult,
                 ("Id", "You must supply a job definition id"));
-        }
-
-        [TestMethod]
-        public async Task FailsValidationIfIdNotUnique()
-        {
-            string id = NewRandomString();
-
-            GivenAJobDefinitionExistsForId(id);
-
-            ValidationResult validationResult = await WhenTheJobDefinitionIsValidated(NewJobDefinition(_ =>
-                _.WithQueueName(NewRandomString())
-                    .WithTopicName(NewRandomString())
-                    .WithId(id)));
-
-            ThenTheValidationResultsAre(validationResult,
-                ("Id", $"There is an existing job definition with the id {id}. The id must be unique"));
-        }
-
-        private void GivenAJobDefinitionExistsForId(string id)
-        {
-            _jobDefinitions.Setup(_ => _.GetJobDefinitionById(id))
-                .ReturnsAsync(NewJobDefinition());
         }
 
         private void ThenTheValidationResultsAre(ValidationResult validationResult,
