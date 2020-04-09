@@ -24,7 +24,7 @@ namespace CalculateFunding.Services.Publishing.Errors
 
         protected async Task RecordErrors(string blobName, IEnumerable<string> errors, string containerName)
         {
-            await _resiliencePolicy.ExecuteAsync(() => _blobClient.UploadFileAsync($"{blobName}.csv", errors.Join("/n"), containerName));
+            await _resiliencePolicy.ExecuteAsync(() => _blobClient.UploadFileAsync($"{blobName}.csv", errors.Join("\n"), containerName));
         }
     }
 }

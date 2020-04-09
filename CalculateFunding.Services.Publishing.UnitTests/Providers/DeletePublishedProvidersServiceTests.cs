@@ -142,6 +142,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Providers
 
             await ThenThePublishedProvidersAreDeleted();
             await AndThePublishedProviderVersionsAreDeleted();
+            await AndThePublishedFundingsAreDeleted();
+            await AndThePublishedFundingVersionsAreDeleted();
             await AndThePublishedProviderSearchDocumentsAreDeleted();
             await AndTheFundingBlobDocumentsAreDeleted();
             await AndTheSpecificationIsDeselectedForFunding();
@@ -159,6 +161,20 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Providers
             await _publishedFundingRepository
                 .Received(1)
                 .DeleteAllPublishedProviderVersionsByFundingStreamAndPeriod(_fundingStreamId, _fundingPeriodId);
+        }
+
+        private async Task AndThePublishedFundingsAreDeleted()
+        {
+            await _publishedFundingRepository
+                .Received(1)
+                .DeleteAllPublishedFundingsByFundingStreamAndPeriod(_fundingStreamId, _fundingPeriodId);
+        }
+
+        private async Task AndThePublishedFundingVersionsAreDeleted()
+        {
+            await _publishedFundingRepository
+                .Received(1)
+                .DeleteAllPublishedFundingVersionsByFundingStreamAndPeriod(_fundingStreamId, _fundingPeriodId);
         }
 
         private async Task AndThePublishedProviderSearchDocumentsAreDeleted()

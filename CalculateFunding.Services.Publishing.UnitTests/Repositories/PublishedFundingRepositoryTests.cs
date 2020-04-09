@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
@@ -229,6 +230,73 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
                     50);
         }
 
+        [TestMethod]
+        public async Task DeleteAllPublishedFundingsByFundingStreamAndPeriodBulkDeletesAllDocumentsWithMatchingFundingPeriodAndStream()
+        {
+            await WhenThePublishedFundingsAreDeleted();
+
+            const string queryText = @"SELECT
+                                    {
+                                        'id':c.content.id,
+                                        'current' : {
+                                            'groupingReason':c.content.current.groupingReason,
+                                            'organisationGroupTypeCode':c.content.current.organisationGroupTypeCode,
+                                            'organisationGroupIdentifierValue':c.content.current.organisationGroupIdentifierValue,
+                                            'fundingStreamId':c.content.current.fundingStreamId,
+                                            'fundingPeriod':{
+                                                        'id':c.content.current.fundingPeriod.id,
+                                                        'type':c.content.current.fundingPeriod.type,
+                                                        'period':c.content.current.fundingPeriod.period
+                                            }
+                                        }
+                                    } AS content
+                               FROM     publishedFunding c
+                               WHERE    c.documentType = 'PublishedFunding'
+                               AND      c.content.current.fundingStreamId = @fundingStreamId
+                               AND      c.content.current.fundingPeriod.id = @fundingPeriodId";
+
+            await _cosmosRepository
+                .Received(1)
+                .DocumentsBatchProcessingAsync(Arg.Any<Func<List<DocumentEntity<PublishedFunding>>, Task>>(),
+                    Arg.Is<CosmosDbQuery>(_ => _.QueryText == queryText &&
+                                               HasParameter(_, "@fundingStreamId", _fundingStreamId) &&
+                                               HasParameter(_, "@fundingPeriodId", _fundingPeriodId)),
+                    50);
+        }
+
+        [TestMethod]
+        public async Task DeleteAllPublishedFundingVersionsByFundingStreamAndPeriodBulkDeletesAllDocumentsWithMatchingFundingPeriodAndStream()
+        {
+            await WhenThePublishedFundingVersionsAreDeleted();
+
+            const string queryText = @"SELECT
+                                    { 
+                                        'id':c.content.id,
+                                        'groupingReason':c.content.groupingReason,
+                                        'organisationGroupTypeCode':c.content.organisationGroupTypeCode,
+                                        'organisationGroupIdentifierValue':c.content.organisationGroupIdentifierValue,
+                                        'version':c.content.version,
+                                        'fundingStreamId':c.content.fundingStreamId,
+                                        'fundingPeriod':{
+                                            'id':c.content.fundingPeriod.id,
+                                            'type':c.content.fundingPeriod.type,
+                                            'period':c.content.fundingPeriod.period
+                                        }
+                                    } as content
+                               FROM     publishedFundingVersion c
+                               WHERE    c.documentType = 'PublishedFundingVersion'
+                               AND      c.content.fundingStreamId = @fundingStreamId
+                               AND      c.content.fundingPeriod.id = @fundingPeriodId";
+
+            await _cosmosRepository
+                .Received(1)
+                .DocumentsBatchProcessingAsync(Arg.Any<Func<List<DocumentEntity<PublishedFundingVersion>>, Task>>(),
+                    Arg.Is<CosmosDbQuery>(_ => _.QueryText == queryText &&
+                                               HasParameter(_, "@fundingStreamId", _fundingStreamId) &&
+                                               HasParameter(_, "@fundingPeriodId", _fundingPeriodId)),
+                    50);
+        }
+
         private async Task WhenThePublishedProvidersAreDeleted()
         {
             await _repository.DeleteAllPublishedProvidersByFundingStreamAndPeriod(_fundingStreamId, _fundingPeriodId);
@@ -237,7 +305,16 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
         {
             await _repository.DeleteAllPublishedProviderVersionsByFundingStreamAndPeriod(_fundingStreamId, _fundingPeriodId);
         }
-        
+
+        private async Task WhenThePublishedFundingsAreDeleted()
+        {
+            await _repository.DeleteAllPublishedFundingsByFundingStreamAndPeriod(_fundingStreamId, _fundingPeriodId);
+        }
+
+        private async Task WhenThePublishedFundingVersionsAreDeleted()
+        {
+            await _repository.DeleteAllPublishedFundingVersionsByFundingStreamAndPeriod(_fundingStreamId, _fundingPeriodId);
+        }
 
         private bool HasParameter(CosmosDbQuery query, string name, string value)
         {

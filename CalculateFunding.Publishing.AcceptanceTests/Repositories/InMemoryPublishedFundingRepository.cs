@@ -327,7 +327,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             return Task.FromResult(publishedFunding);
         }
 
-        public Task DeleteAllPublishedFundingByFundingStreamAndPeriod(string fundingStreamId, string fundingPeriodId)
+        public Task DeleteAllPublishedFundingsByFundingStreamAndPeriod(string fundingStreamId, string fundingPeriodId)
         {
             throw new NotImplementedException();
         }

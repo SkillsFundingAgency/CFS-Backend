@@ -5,6 +5,7 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
@@ -409,15 +410,26 @@ namespace CalculateFunding.Services.Publishing.Repositories
                 itemsPerPage: 50);
         }
 
-        public async Task DeleteAllPublishedFundingByFundingStreamAndPeriod(string fundingStreamId,
+        public async Task DeleteAllPublishedFundingsByFundingStreamAndPeriod(string fundingStreamId,
             string fundingPeriodId)
         {
             CosmosDbQuery query = new CosmosDbQuery
             {
                 QueryText = @"SELECT
-                                        c.content.id,
-                                        c.content.current.fundingStreamId,
-                                        c.content.current.fundingPeriod.id AS fundingPeriodId
+                                    {
+                                        'id':c.content.id,
+                                        'current' : {
+                                            'groupingReason':c.content.current.groupingReason,
+                                            'organisationGroupTypeCode':c.content.current.organisationGroupTypeCode,
+                                            'organisationGroupIdentifierValue':c.content.current.organisationGroupIdentifierValue,
+                                            'fundingStreamId':c.content.current.fundingStreamId,
+                                            'fundingPeriod':{
+                                                        'id':c.content.current.fundingPeriod.id,
+                                                        'type':c.content.current.fundingPeriod.type,
+                                                        'period':c.content.current.fundingPeriod.period
+                                            }
+                                        }
+                                    } AS content
                                FROM     publishedFunding c
                                WHERE    c.documentType = 'PublishedFunding'
                                AND      c.content.current.fundingStreamId = @fundingStreamId
@@ -429,9 +441,9 @@ namespace CalculateFunding.Services.Publishing.Repositories
                 }
             };
 
-            await _repository.DocumentsBatchProcessingAsync<PublishedFunding>(persistBatchToIndex: async matches =>
+            await _repository.DocumentsBatchProcessingAsync<DocumentEntity<PublishedFunding>>(persistBatchToIndex: async matches =>
             {
-                await _repository.BulkDeleteAsync(matches.Select(_ => new KeyValuePair<string, PublishedFunding>(_.ParitionKey, _)), hardDelete: true);
+                await _repository.BulkDeleteAsync(matches.Select(_ => new KeyValuePair<string, PublishedFunding>(_.Content.ParitionKey, _.Content)), hardDelete: true);
             },
             cosmosDbQuery: query,
             itemsPerPage: 50);
@@ -443,9 +455,19 @@ namespace CalculateFunding.Services.Publishing.Repositories
             CosmosDbQuery query = new CosmosDbQuery
             {
                 QueryText = @"SELECT
-                                        c.content.id,
-                                        c.content.fundingStreamId,
-                                        c.content.fundingPeriod.id AS fundingPeriodId
+                                    { 
+                                        'id':c.content.id,
+                                        'groupingReason':c.content.groupingReason,
+                                        'organisationGroupTypeCode':c.content.organisationGroupTypeCode,
+                                        'organisationGroupIdentifierValue':c.content.organisationGroupIdentifierValue,
+                                        'version':c.content.version,
+                                        'fundingStreamId':c.content.fundingStreamId,
+                                        'fundingPeriod':{
+                                            'id':c.content.fundingPeriod.id,
+                                            'type':c.content.fundingPeriod.type,
+                                            'period':c.content.fundingPeriod.period
+                                        }
+                                    } as content
                                FROM     publishedFundingVersion c
                                WHERE    c.documentType = 'PublishedFundingVersion'
                                AND      c.content.fundingStreamId = @fundingStreamId
@@ -457,9 +479,9 @@ namespace CalculateFunding.Services.Publishing.Repositories
                 }
             };
 
-            await _repository.DocumentsBatchProcessingAsync<PublishedFunding>(persistBatchToIndex: async matches =>
+            await _repository.DocumentsBatchProcessingAsync<DocumentEntity<PublishedFundingVersion>>(persistBatchToIndex: async matches =>
             {
-                await _repository.BulkDeleteAsync(matches.Select(_ => new KeyValuePair<string, PublishedFunding>(_.ParitionKey, _)), hardDelete: true);
+                await _repository.BulkDeleteAsync(matches.Select(_ => new KeyValuePair<string, PublishedFundingVersion>(_.Content.PartitionKey, _.Content)), hardDelete: true);
             },
             cosmosDbQuery: query,
             itemsPerPage: 50);
@@ -612,8 +634,8 @@ namespace CalculateFunding.Services.Publishing.Repositories
                                         c.content.id,
                                         { 
                                            'id' : c.content.current.id,
-                                           'major' : c.content.current.major,
-                                           'minor' : c.content.current.minor,
+                                           'majorVersion' : c.content.current.majorVersion,
+                                           'minorVersion' : c.content.current.minorVersion,
                                            'providerId' : c.content.current.providerId,
                                            'fundingStreamId' : c.content.current.fundingStreamId,
                                            'fundingPeriodId' : c.content.current.fundingPeriodId,
