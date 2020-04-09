@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Xml;
 using CalculateFunding.Models.Versioning;
 using Newtonsoft.Json;
 
@@ -34,11 +33,12 @@ namespace CalculateFunding.Models.Publishing
         public string FundingPeriodId { get; set; }
         
         /// <summary>
-        /// The custom profiling pattern used for this provider
-        /// in this period and funding stream
+        /// The custom profiling patterns used for this provider
+        /// in this period and funding stream keyed by funding line
         /// </summary>
         [JsonProperty("profilePatternKey")]
-        public string ProfilePatternKey { get; set; }
+        public ICollection<ProfilePatternKey> ProfilePatternKeys { get; set; }
+        
 
         /// <summary>
         /// Specification this ID is associated with

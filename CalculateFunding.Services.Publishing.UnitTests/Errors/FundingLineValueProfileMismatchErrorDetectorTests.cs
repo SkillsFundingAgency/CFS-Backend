@@ -40,13 +40,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
         }
 
         [TestMethod]
-        public async Task AddsProfiledValueMismatchErrorForEachPaymentFundingLineWithValueMismatches()
+        public async Task AddsProfiledValueMismatchErrorForEachPaymentFundingLineWithValueMismatchesWhereWeHaveACustomProfile()
         {
             string fundingLineCode1 = NewRandomString();
             string fundingLineCode2 = NewRandomString();
             string fundingLineCode3 = NewRandomString();
             
-            PublishedProviderVersion publishedProvider = NewPublishedProviderVersion(_ => _.WithProfilePatternKey(NewRandomString())
+            PublishedProviderVersion publishedProvider = NewPublishedProviderVersion(_ => _.WithProfilePatternKeys(
+                    NewProfilePatternKey(pk => pk.WithFundingLineCode(fundingLineCode1)))
                 .WithFundingLines(
                 NewFundingLine(fl => fl.WithOrganisationGroupingReason(OrganisationGroupingReason.Payment)
                     .WithFundingLineCode(fundingLineCode1)
@@ -80,10 +81,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
             AndPublishedProviderShouldHaveTheErrors(publishedProvider, 
                 NewError(_ => _.WithFundingLineCode(fundingLineCode1)
                     .WithType(PublishedProviderErrorType.FundingLineValueProfileMismatch)
-                    .WithDescription("Expected total funding line to be 999 but custom profiles total 10")),
-                NewError(_ => _.WithFundingLineCode(fundingLineCode3)
-                    .WithType(PublishedProviderErrorType.FundingLineValueProfileMismatch)
-                    .WithDescription("Expected total funding line to be 666 but custom profiles total 999")));
+                    .WithDescription("Expected total funding line to be 999 but custom profiles total 10")));
             
         }
 
@@ -155,7 +153,45 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
             
             return providerErrorBuilder.Build();
         }
+
+        private ProfilePatternKey NewProfilePatternKey(Action<ProfilePatternKeyBuilder> setUp = null)
+        {
+            ProfilePatternKeyBuilder patternKeyBuilder = new ProfilePatternKeyBuilder();
+
+            setUp?.Invoke(patternKeyBuilder);
+            
+            return patternKeyBuilder.Build();
+        }
         
         private string NewRandomString() => new RandomString();
+    }
+    
+    public class ProfilePatternKeyBuilder : TestEntityBuilder
+    {
+        private string _fundingLineCode;
+        private string _key;
+
+        public ProfilePatternKeyBuilder WithFundingLineCode(string fundingLineCode)
+        {
+            _fundingLineCode = fundingLineCode;
+
+            return this;
+        }
+
+        public ProfilePatternKeyBuilder WithKey(string key)
+        {
+            _key = key;
+
+            return this;
+        }
+        
+        public ProfilePatternKey Build()
+        {
+            return new ProfilePatternKey
+            {
+                FundingLineCode = _fundingLineCode ?? NewRandomString(),
+                Key = _key ?? NewRandomString()
+            };
+        }     
     }
 }

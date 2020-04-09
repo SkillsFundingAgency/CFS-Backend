@@ -12,7 +12,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private string _providerId;
         private string _fundingPeriodId;
         private string _fundingStreamId;
-        private string _profilePatternKey;
         private int? _version;
         private string _specificationId;
         private PublishedProviderStatus? _status;
@@ -27,10 +26,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private DateTimeOffset? _date;
         private string _templateVersion;
         private IEnumerable<VariationReason> _variationReasons;
+        private IEnumerable<ProfilePatternKey> _profilePatternKeys;
 
-        public PublishedProviderVersionBuilder WithProfilePatternKey(string profilePatternKey)
+        public PublishedProviderVersionBuilder WithProfilePatternKeys(params ProfilePatternKey[] profilePatternKeys)
         {
-            _profilePatternKey = profilePatternKey;
+            _profilePatternKeys = profilePatternKeys;
 
             return this;
         }
@@ -163,7 +163,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 ProviderId = _providerId ?? _provider?.ProviderId ?? NewRandomString(),
                 FundingPeriodId = _fundingPeriodId ?? NewRandomString(),
                 FundingStreamId = _fundingStreamId ?? NewRandomString(),
-                ProfilePatternKey = _profilePatternKey,
                 Version = _version ?? 1,
                 MajorVersion = _majorVersion ?? 1,
                 MinorVersion = _minorVersion,
@@ -175,7 +174,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 Predecessors = _predecessors?.ToList(),
                 Date = _date.GetValueOrDefault(NewRandomDateTime()),
                 TemplateVersion = _templateVersion ?? "1.0",
-                VariationReasons = _variationReasons
+                VariationReasons = _variationReasons,
+                ProfilePatternKeys = _profilePatternKeys?.ToList()
             };
         }
     }

@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices.ComTypes;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Extensions;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Profiling;
 
@@ -34,9 +36,19 @@ namespace CalculateFunding.Services.Publishing.Errors
 
         private static IEnumerable<FundingLine> PaymentFundingLinesFor(PublishedProviderVersion publishedProviderVersion)
         {
-            return publishedProviderVersion.ProfilePatternKey.IsNotNullOrWhitespace() ? 
-                publishedProviderVersion.FundingLines.Where(_ => _.Type == OrganisationGroupingReason.Payment) : 
-                Enumerable.Empty<FundingLine>();
+            if (publishedProviderVersion.ProfilePatternKeys == null ||
+                !publishedProviderVersion.ProfilePatternKeys.Any())
+            {
+                return Enumerable.Empty<FundingLine>();
+            }
+
+            HashSet<string> fundingLineCodes = publishedProviderVersion
+                .ProfilePatternKeys
+                .Select(_ => _.FundingLineCode)
+                .ToHashSet();
+
+            return publishedProviderVersion.FundingLines.Where(_ => _.Type == OrganisationGroupingReason.Payment
+                                                                    && fundingLineCodes.Contains(_.FundingLineCode)); 
         }
 
         private static decimal GetProfiledSum(FundingLine fundingLine)
