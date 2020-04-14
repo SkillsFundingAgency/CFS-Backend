@@ -155,7 +155,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
         protected static IMessengerService CreateMessengerService()
         {
-            return Substitute.For<IMessengerService>();
+            return Substitute.For<IMessengerService, IServiceBusService>();
         }
 
         protected static ILogger CreateLogger()

@@ -26,7 +26,9 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.FeatureToggles;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.Logging;
+using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Core.Options;
+using CalculateFunding.Services.Core.ServiceBus;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Azure.ServiceBus;
@@ -51,6 +53,7 @@ namespace CalculateFunding.Services.Calcs
         private readonly ISourceCodeService _sourceCodeService;
         private readonly IDatasetRepository _datasetRepository;
         private readonly IJobManagement _jobManagement;
+        private readonly IMessengerService _messengerService;
         private readonly Polly.AsyncPolicy _datasetRepositoryPolicy;
         private readonly IBuildProjectsRepository _buildProjectsRepository;
         private readonly Polly.AsyncPolicy _buildProjectsRepositoryPolicy;
@@ -72,6 +75,7 @@ namespace CalculateFunding.Services.Calcs
             IBuildProjectsRepository buildProjectsRepository,
             ICalculationEngineRunningChecker calculationEngineRunningChecker,
             IJobManagement jobManagement,
+            IMessengerService messengerService,
             IGraphRepository graphRepository)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
@@ -88,6 +92,7 @@ namespace CalculateFunding.Services.Calcs
             Guard.ArgumentNotNull(providersApiClient, nameof(providersApiClient));
             Guard.ArgumentNotNull(calculationEngineRunningChecker, nameof(calculationEngineRunningChecker));
             Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
+            Guard.ArgumentNotNull(messengerService, nameof(messengerService));
             Guard.ArgumentNotNull(graphRepository, nameof(graphRepository));
             Guard.ArgumentNotNull(resiliencePolicies?.DatasetsRepository, nameof(resiliencePolicies.DatasetsRepository));
             Guard.ArgumentNotNull(resiliencePolicies?.JobsApiClient, nameof(resiliencePolicies.JobsApiClient));
@@ -104,6 +109,7 @@ namespace CalculateFunding.Services.Calcs
             _engineSettings = engineSettings;
             _sourceCodeService = sourceCodeService;
             _datasetRepository = datasetRepository;
+            _messengerService = messengerService;
             _jobManagement = jobManagement;
             _graphRepository = graphRepository;
             _datasetRepositoryPolicy = resiliencePolicies.DatasetsRepository;
@@ -240,24 +246,65 @@ namespace CalculateFunding.Services.Calcs
 
             if (!summariesExist || refreshCachedScopedProviders)
             {
-                ApiResponse<bool> refreshCacheFromApi = await _providersApiClient.RegenerateProviderSummariesForSpecification(specificationId, !summariesExist);
+                string corellationId = Guid.NewGuid().ToString();
 
-                if (!refreshCacheFromApi.StatusCode.IsSuccess() || refreshCacheFromApi?.Content == null)
+                bool isServiceBusService = _messengerService.GetType().GetInterfaces().Contains(typeof(IServiceBusService));
+
+                if (isServiceBusService)
                 {
-                    string errorMessage = $"Unable to re-generate scoped providers while building projects '{specificationId}' with status code: {refreshCacheFromApi.StatusCode}";
-                    _logger.Information(errorMessage);
-
-                    throw new RetriableException(errorMessage);
+                    await ((IServiceBusService)_messengerService).CreateSubscription(ServiceBusConstants.TopicNames.JobNotifications, corellationId);
                 }
 
-                // if the scoped providers are being re-generated then wait for the job to finish
-                if (Convert.ToBoolean(refreshCacheFromApi?.Content) && !await _jobManagement.WaitForJobsToComplete(new[] { DefinitionNames.PopulateScopedProvidersJob }, specificationId))
+                try
                 {
-                    string errorMessage = $"Unable to re-generate scoped providers while building projects '{specificationId}' job didn't complete successfully in time";
+                    ApiResponse<bool> refreshCacheFromApi = await _providersApiClient.RegenerateProviderSummariesForSpecification(specificationId, !summariesExist);
 
-                    _logger.Information(errorMessage);
+                    if (!refreshCacheFromApi.StatusCode.IsSuccess() || refreshCacheFromApi?.Content == null)
+                    {
+                        string errorMessage = $"Unable to re-generate scoped providers while building projects '{specificationId}' with status code: {refreshCacheFromApi.StatusCode}";
+                        _logger.Information(errorMessage);
 
-                    throw new RetriableException(errorMessage);
+                        throw new RetriableException(errorMessage);
+                    }
+
+                    // if the scoped providers are being re-generated then wait for the job to finish
+                    if (Convert.ToBoolean(refreshCacheFromApi?.Content))
+                    {
+                        bool jobCompletedSuccessfully;
+
+                        if (isServiceBusService)
+                        {
+                            Job scopedJob = await _messengerService.ReceiveMessage<Job>($"{ServiceBusConstants.TopicNames.JobNotifications}/Subscriptions/{corellationId}", _ =>
+                            {
+                                return _?.JobDefinitionId == DefinitionNames.PopulateScopedProvidersJob && 
+                                _.Properties.ContainsKey("specification-id") && 
+                                _.Properties["specification-id"] == specificationId && 
+                                (_.CompletionStatus == CompletionStatus.Succeeded || _.CompletionStatus == CompletionStatus.Failed);
+                            },
+                            TimeSpan.FromMinutes(10));
+                            jobCompletedSuccessfully = scopedJob?.CompletionStatus == CompletionStatus.Succeeded;
+                        }
+                        else
+                        {
+                            jobCompletedSuccessfully = await _jobManagement.WaitForJobsToComplete(new[] { DefinitionNames.PopulateScopedProvidersJob }, specificationId);
+                        }
+
+                        if (!jobCompletedSuccessfully)
+                        {
+                            string errorMessage = $"Unable to re-generate scoped providers while building projects '{specificationId}' job didn't complete successfully in time";
+
+                            _logger.Information(errorMessage);
+
+                            throw new RetriableException(errorMessage);
+                        }
+                    }
+                }
+                finally
+                {
+                    if (isServiceBusService)
+                    {
+                        await ((IServiceBusService)_messengerService).DeleteSubscription(ServiceBusConstants.TopicNames.JobNotifications, corellationId);
+                    }
                 }
 
                 totalCount = await _cacheProvider.ListLengthAsync<ProviderSummary>(cacheKey);

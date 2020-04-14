@@ -11,7 +11,7 @@ using Microsoft.Azure.ServiceBus.Core;
 
 namespace CalculateFunding.Services.Core.ServiceBus
 {
-    public class QueueMessengerService : IMessengerService, IQueueService
+    public class QueueMessengerService : BaseMessengerService, IMessengerService, IQueueService
     {
         CloudQueueClient _queueClient;
         CloudStorageAccount _storageAccount;
@@ -52,9 +52,8 @@ namespace CalculateFunding.Services.Core.ServiceBus
             await queue.DeleteAsync();
         }
 
-        public async Task<IEnumerable<T>> ReceiveMessages<T>(string entityPath, TimeSpan timeout) where T : class
+        protected async override Task ReceiveMessages<T>(string entityPath, Predicate<T> predicate, TimeSpan timeout)
         {
-            List<T> messages = new List<T>();
             CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
 
             CloudQueue queue = QueueClient.GetQueueReference(entityPath);
@@ -75,7 +74,10 @@ namespace CalculateFunding.Services.Core.ServiceBus
                 {
                     QueueMessage<T> queueMessage = JsonConvert.DeserializeObject<QueueMessage<T>>(message.AsString);
 
-                    messages.Add(queueMessage.Data);
+                    if (predicate(queueMessage.Data))
+                    {
+                        break;
+                    }
 
                     await queue.DeleteMessageAsync(message);
                 }
@@ -83,8 +85,6 @@ namespace CalculateFunding.Services.Core.ServiceBus
                 if (cancellationTokenSource.Token.IsCancellationRequested)
                     break;
             }
-
-            return messages;
         }
 
         private CloudQueueClient QueueClient

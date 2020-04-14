@@ -202,13 +202,13 @@ namespace CalculateFunding.Services.Datasets.Services
             ));
             AndTheRelationship(_relationshipId, NewRelationship(_ => _.WithDatasetDefinition(NewReference())
                 .WithDatasetVersion(NewRelationshipVersion())));
-            AndThePopulationOfProvierSummeriesForSpecification(false, false);
-            AndThePopulationOfProvierSummeriesForSpecification(false, false);
+            AndThePopulationOfProviderSummeriesForSpecification(false, false);
 
             await WhenTheProcessDatasetMessageIsProcessed();
 
             ThenTheErrorWasLogged($"Unable to find a data definition for id: {DataDefintionId}, for blob: {BlobPath}");
             AndAnExceptionWasLogged();
+            AndTheSubscriptionIsCreatedAndDeleted();
         }
 
         [TestMethod]
@@ -225,7 +225,7 @@ namespace CalculateFunding.Services.Datasets.Services
             AndTheRelationship(_relationshipId, NewRelationship(_ => _.WithDatasetDefinition(NewReference())
                 .WithDatasetVersion(NewRelationshipVersion())));
             AndTheDatasetDefinitions(NewDatasetDefinition());
-            AndThePopulationOfProvierSummeriesForSpecification(false, false);
+            AndThePopulationOfProviderSummeriesForSpecification(false, false);
 
             await WhenTheProcessDatasetMessageIsProcessed();
 
@@ -248,7 +248,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .WithDatasetVersion(NewRelationshipVersion())));
             AndTheDatasetDefinitions(NewDatasetDefinition());
             AndTheBuildProject(SpecificationId, NewBuildProject());
-            AndThePopulationOfProvierSummeriesForSpecification(false, false);
+            AndThePopulationOfProviderSummeriesForSpecification(false, false);
             AndTheCloudBlob(BlobPath, null);
 
             await WhenTheProcessDatasetMessageIsProcessed();
@@ -272,7 +272,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .WithDatasetVersion(NewRelationshipVersion())));
             AndTheDatasetDefinitions(NewDatasetDefinition());
             AndTheBuildProject(SpecificationId, NewBuildProject());
-            AndThePopulationOfProvierSummeriesForSpecification(false, false);
+            AndThePopulationOfProviderSummeriesForSpecification(false, false);
 
             ICloudBlob cloudBlob = NewCloudBlob();
 
@@ -300,7 +300,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .WithDatasetVersion(NewRelationshipVersion())));
             AndTheDatasetDefinitions(NewDatasetDefinition());
             AndTheBuildProject(SpecificationId, NewBuildProject());
-            AndThePopulationOfProvierSummeriesForSpecification(false, false);
+            AndThePopulationOfProviderSummeriesForSpecification(false, false);
 
             ICloudBlob cloudBlob = NewCloudBlob();
 
@@ -331,7 +331,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             AndTheDatasetDefinitions(datasetDefinition);
             AndTheBuildProject(SpecificationId, NewBuildProject());
-            AndThePopulationOfProvierSummeriesForSpecification(false, false);
+            AndThePopulationOfProviderSummeriesForSpecification(false, false);
 
             ICloudBlob cloudBlob = NewCloudBlob();
 
@@ -368,7 +368,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             AndTheDatasetDefinitions(datasetDefinition);
             AndTheBuildProject(SpecificationId, NewBuildProject(_ => _.WithRelationships(NewRelationshipSummary())));
-            AndThePopulationOfProvierSummeriesForSpecification(false, false);
+            AndThePopulationOfProviderSummeriesForSpecification(false, false);
 
             ICloudBlob cloudBlob = NewCloudBlob();
 
@@ -486,7 +486,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 summary.WithRelationship(NewReference(rf => rf.WithId(_relationshipId)
                     .WithName(_relationshipName)))
                     .WithDatasetDefinition(NewDatasetDefinition())))));
-            AndThePopulationOfProvierSummeriesForSpecification(false, false);
+            AndThePopulationOfProviderSummeriesForSpecification(false, false);
 
             ICloudBlob cloudBlob = NewCloudBlob();
 
@@ -544,7 +544,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 summary.WithRelationship(NewReference(rf => rf.WithId(_relationshipId)
                     .WithName(_relationshipName)))
                     .WithDatasetDefinition(NewDatasetDefinition())))));
-            AndThePopulationOfProvierSummeriesForSpecification(false, false);
+            AndThePopulationOfProviderSummeriesForSpecification(false, false);
 
             ICloudBlob cloudBlob = NewCloudBlob();
 
@@ -604,7 +604,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 summary.WithRelationship(NewReference(rf => rf.WithId(_relationshipId)
                     .WithName(_relationshipName)))
                     .WithDatasetDefinition(NewDatasetDefinition())))));
-            AndThePopulationOfProvierSummeriesForSpecification(false, false);
+            AndThePopulationOfProviderSummeriesForSpecification(false, false);
 
             ICloudBlob cloudBlob = NewCloudBlob();
 
@@ -664,7 +664,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 summary.WithRelationship(NewReference(rf => rf.WithId(_relationshipId)
                     .WithName(_relationshipName)))
                     .WithDatasetDefinition(NewDatasetDefinition())))));
-            AndThePopulationOfProvierSummeriesForSpecification(false, false);
+            AndThePopulationOfProviderSummeriesForSpecification(false, false);
 
             ICloudBlob cloudBlob = NewCloudBlob();
 
@@ -739,7 +739,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 summary.WithRelationship(NewReference(rf => rf.WithId(_relationshipId)
                     .WithName(_relationshipName)))
                     .WithDatasetDefinition(NewDatasetDefinition())))));
-            AndThePopulationOfProvierSummeriesForSpecification(false, false);
+            AndThePopulationOfProviderSummeriesForSpecification(false, false);
 
             ICloudBlob cloudBlob = NewCloudBlob();
 
@@ -821,7 +821,7 @@ namespace CalculateFunding.Services.Datasets.Services
             Stream tableStream = NewStream(new byte[1]);
 
             AndTheCloudStream(cloudBlob, tableStream);
-            AndThePopulationOfProvierSummeriesForSpecification(false, false);
+            AndThePopulationOfProviderSummeriesForSpecification(false, false);
 
             TableLoadResult tableLoadResult = NewTableLoadResult(_ => _.WithRows(NewRowLoadResult(
                 row => row.WithFields((Upin, _upin))),
@@ -866,7 +866,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 summary.WithRelationship(NewReference(rf => rf.WithId(_relationshipId)
                     .WithName(_relationshipName)))
                     .WithDatasetDefinition(NewDatasetDefinition())))));
-            AndThePopulationOfProvierSummeriesForSpecification(false, false);
+            AndThePopulationOfProviderSummeriesForSpecification(false, false);
 
             ICloudBlob cloudBlob = NewCloudBlob();
 
@@ -887,7 +887,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             AndTheJob(NewJob(_ => _.WithId(_jobId)
                 .WithDefinitionId(CreateInstructAllocationJob)), CreateInstructAllocationJob);
-            AndThePopulationOfProvierSummeriesForSpecification(false, false);
+            AndThePopulationOfProviderSummeriesForSpecification(false, false);
 
             await WhenTheProcessDatasetMessageIsProcessed();
 
@@ -973,7 +973,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 summary.WithRelationship(NewReference(rf => rf.WithId(_relationshipId)
                     .WithName(_relationshipName)))
                     .WithDatasetDefinition(NewDatasetDefinition())))));
-            AndThePopulationOfProvierSummeriesForSpecification(false, false);
+            AndThePopulationOfProviderSummeriesForSpecification(false, false);
 
             ICloudBlob cloudBlob = NewCloudBlob();
 
@@ -1042,7 +1042,7 @@ namespace CalculateFunding.Services.Datasets.Services
                     .WithRelationship(NewReference(rf => rf.WithId(_relationshipId)
                     .WithName(_relationshipName)))
                     .WithDatasetDefinition(NewDatasetDefinition())))));
-            AndThePopulationOfProvierSummeriesForSpecification(false, false);
+            AndThePopulationOfProviderSummeriesForSpecification(false, false);
             AndTheCompileResponse(HttpStatusCode.NoContent);
 
             ICloudBlob cloudBlob = NewCloudBlob();
@@ -1095,7 +1095,7 @@ namespace CalculateFunding.Services.Datasets.Services
                     .WithRelationship(NewReference(rf => rf.WithId(_relationshipId)
                     .WithName(_relationshipName)))
                     .WithDatasetDefinition(NewDatasetDefinition())))));
-            AndThePopulationOfProvierSummeriesForSpecification(false, false);
+            AndThePopulationOfProviderSummeriesForSpecification(false, false);
             AndTheCompileResponse(HttpStatusCode.NoContent);
             AndTheCalculations(NewCalculation(_ => _.WithSourceCode("return Sum(Calc1)")));
 
@@ -1151,7 +1151,7 @@ namespace CalculateFunding.Services.Datasets.Services
                     .WithName(_relationshipName)))
                     .WithDatasetDefinition(NewDatasetDefinition())))));
             AndTheCompileResponse(HttpStatusCode.NoContent);
-            AndThePopulationOfProvierSummeriesForSpecification(false, false);
+            AndThePopulationOfProviderSummeriesForSpecification(false, false);
 
             ICloudBlob cloudBlob = NewCloudBlob();
 
@@ -1209,7 +1209,7 @@ namespace CalculateFunding.Services.Datasets.Services
                     .WithRelationship(NewReference(rf => rf.WithId(_relationshipId)
                     .WithName(_relationshipName)))
                     .WithDatasetDefinition(NewDatasetDefinition())))));
-            AndThePopulationOfProvierSummeriesForSpecification(false, false);
+            AndThePopulationOfProviderSummeriesForSpecification(false, false);
             AndTheCompileResponse(HttpStatusCode.NoContent);
             AndTheCalculations(NewCalculation(_ => _.WithSourceCode("return Sum(Calc1)")));
 
@@ -1259,7 +1259,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .WithDatasetVersion(NewRelationshipVersion())
                 .WithIsSetAsProviderData(true)));
             var setCachedProviders = true;
-            AndThePopulationOfProvierSummeriesForSpecification(setCachedProviders, true);
+            AndThePopulationOfProviderSummeriesForSpecification(setCachedProviders, true);
 
             DatasetDefinition datasetDefinition = NewDatasetDefinition(_ => _.WithTableDefinitions(NewTableDefinition(tb =>
                 tb.WithFieldDefinitions(NewFieldDefinition(fld => fld.WithName(Upin)
@@ -1271,7 +1271,7 @@ namespace CalculateFunding.Services.Datasets.Services
                     .WithRelationship(NewReference(rf => rf.WithId(_relationshipId)
                     .WithName(_relationshipName)))
                     .WithDatasetDefinition(NewDatasetDefinition())))));
-            AndThePopulationOfProvierSummeriesForSpecification(setCachedProviders, false);
+            AndThePopulationOfProviderSummeriesForSpecification(setCachedProviders, false);
             AndTheCompileResponse(HttpStatusCode.NoContent);
 
             ICloudBlob cloudBlob = NewCloudBlob();
@@ -1360,7 +1360,9 @@ namespace CalculateFunding.Services.Datasets.Services
 
 
         [TestMethod]
-        public async Task ProcessDataset_GivenPayloadAndTableResultsWithRelationshipIsSetAsProviderDataAndTheJobFails_LogErrorThrowException()
+        [DataRow(true)]
+        [DataRow(false)]
+        public async Task ProcessDataset_GivenPayloadAndTableResultsWithRelationshipIsSetAsProviderDataAndTheJobFails_LogErrorThrowException(bool useServiceBus)
         {
             GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"),
                 ("user-id", UserId), ("user-name", Username));
@@ -1376,7 +1378,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .WithDatasetVersion(NewRelationshipVersion())
                 .WithIsSetAsProviderData(true)));
             var setCachedProviders = true;
-            AndThePopulationOfProvierSummeriesForSpecification(setCachedProviders, true);
+            AndThePopulationOfProviderSummeriesForSpecification(setCachedProviders, true);
 
             DatasetDefinition datasetDefinition = NewDatasetDefinition(_ => _.WithTableDefinitions(NewTableDefinition(tb =>
                 tb.WithFieldDefinitions(NewFieldDefinition(fld => fld.WithName(Upin)
@@ -1388,7 +1390,7 @@ namespace CalculateFunding.Services.Datasets.Services
                     .WithRelationship(NewReference(rf => rf.WithId(_relationshipId)
                     .WithName(_relationshipName)))
                     .WithDatasetDefinition(NewDatasetDefinition())))));
-            AndThePopulationOfProvierSummeriesForSpecification(false, false);
+            AndThePopulationOfProviderSummeriesForSpecification(false, false);
             AndTheCompileResponse(HttpStatusCode.NoContent);
 
             ICloudBlob cloudBlob = NewCloudBlob();
@@ -1711,6 +1713,18 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Error(Arg.Any<Exception>(), Arg.Any<string>());
         }
 
+        private void AndTheSubscriptionIsCreatedAndDeleted()
+        {
+            IServiceBusService serviceBusService = _messengerService as IServiceBusService;
+            serviceBusService
+                .Received(1)
+                .CreateSubscription(ServiceBusConstants.TopicNames.JobNotifications, Arg.Any<string>());
+
+            serviceBusService
+                .Received(1)
+                .DeleteSubscription(ServiceBusConstants.TopicNames.JobNotifications, Arg.Any<string>());
+        }
+
         private void AndTheCachedTableLoadResults(string cacheKey, params TableLoadResult[] tableLoadResults)
         {
             _cacheProvider
@@ -1739,11 +1753,15 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Returns(new ApiResponse<IEnumerable<ApiProviderSummary>>(HttpStatusCode.OK, providerSummaries));
         }
 
-        private void AndThePopulationOfProvierSummeriesForSpecification(bool setCachedProviders, bool regenerated)
+        private void AndThePopulationOfProviderSummeriesForSpecification(bool setCachedProviders, bool regenerated)
         {
             _providersApiClient
                 .RegenerateProviderSummariesForSpecification(SpecificationId, setCachedProviders)
                 .Returns(new ApiResponse<bool>(HttpStatusCode.OK, regenerated));
+
+            _messengerService
+                .ReceiveMessage(Arg.Any<string>(), Arg.Any<Predicate<Job>>(), Arg.Any<TimeSpan>())
+                .Returns(new Job { CompletionStatus = CompletionStatus.Succeeded });
         }
 
         private void AndThePopulationOfProvierSummeriesForSpecificationFails(bool setCachedProviders, bool regenerated)

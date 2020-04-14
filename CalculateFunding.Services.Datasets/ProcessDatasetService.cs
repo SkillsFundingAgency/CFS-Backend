@@ -44,6 +44,7 @@ using Microsoft.Azure.Storage.Blob;
 using Newtonsoft.Json;
 using Polly;
 using Serilog;
+using static CalculateFunding.Services.Core.Constants.JobConstants;
 using AggregatedField = CalculateFunding.Models.Datasets.AggregatedField;
 using AggregatedType = CalculateFunding.Models.Datasets.AggregatedTypes;
 using VersionReference = CalculateFunding.Models.VersionReference;
@@ -234,26 +235,64 @@ namespace CalculateFunding.Services.Datasets
                 return;
             }
 
-            ApiResponse<bool> refreshCacheFromApi = await _providersApiClientPolicy.ExecuteAsync(() =>
+            string corellationId = Guid.NewGuid().ToString();
+
+            bool isServiceBusService = _messengerService.GetType().GetInterfaces().Contains(typeof(IServiceBusService));
+
+            if (isServiceBusService)
+            {
+                await ((IServiceBusService)_messengerService).CreateSubscription(ServiceBusConstants.TopicNames.JobNotifications, corellationId);
+            }
+
+            try
+            {
+                ApiResponse<bool> refreshCacheFromApi = await _providersApiClientPolicy.ExecuteAsync(() =>
                                  _providersApiClient.RegenerateProviderSummariesForSpecification(specificationId, relationship.IsSetAsProviderData));
 
-            if (!refreshCacheFromApi.StatusCode.IsSuccess() || refreshCacheFromApi?.Content == null)
-            {
-                string errorMessage = $"Unable to re-generate providers while updating dataset '{relationshipId}' for specification '{specificationId}' with status code: {refreshCacheFromApi.StatusCode}";
+                if (!refreshCacheFromApi.StatusCode.IsSuccess() || refreshCacheFromApi?.Content == null)
+                {
+                    string errorMessage = $"Unable to re-generate providers while updating dataset '{relationshipId}' for specification '{specificationId}' with status code: {refreshCacheFromApi.StatusCode}";
 
-                _logger.Information(errorMessage);
+                    _logger.Information(errorMessage);
 
-                throw new RetriableException(errorMessage);
+                    throw new RetriableException(errorMessage);
+                }
+
+                // if the scoped providers are being re-generated then wait for the job to finish
+                if (Convert.ToBoolean(refreshCacheFromApi?.Content))
+                {
+                    bool jobCompletedSuccessfully;
+
+                    if (isServiceBusService)
+                    {
+                        Job scopedJob = await _messengerService.ReceiveMessage<Job>($"{ServiceBusConstants.TopicNames.JobNotifications}/Subscriptions/{corellationId}", _ =>
+                        {
+                            return _?.JobDefinitionId == DefinitionNames.PopulateScopedProvidersJob &&
+                            _.Properties.ContainsKey("specification-id") &&
+                            _.Properties["specification-id"] == specificationId &&
+                            (_.CompletionStatus == CompletionStatus.Succeeded || _.CompletionStatus == CompletionStatus.Failed);
+                        },
+                        TimeSpan.FromMinutes(10));
+                        jobCompletedSuccessfully = scopedJob?.CompletionStatus == CompletionStatus.Succeeded;
+                    }
+                    else
+                    {
+                        jobCompletedSuccessfully = await _jobManagement.WaitForJobsToComplete(new[] { DefinitionNames.PopulateScopedProvidersJob }, specificationId);
+                    }
+
+                    string errorMessage = $"Unable to re-generate providers while updating dataset '{relationshipId}' for specification '{specificationId}' job didn't complete successfully in time";
+
+                    _logger.Information(errorMessage);
+
+                    throw new RetriableException(errorMessage);
+                }
             }
-                
-            // if the scoped providers are being re-generated then wait for the job to finish
-            if (Convert.ToBoolean(refreshCacheFromApi?.Content) && !await _jobManagement.WaitForJobsToComplete(new[] { JobConstants.DefinitionNames.PopulateScopedProvidersJob }, specificationId))
+            finally
             {
-                string errorMessage = $"Unable to re-generate providers while updating dataset '{relationshipId}' for specification '{specificationId}' job didn't complete successfully in time";
-
-                _logger.Information(errorMessage);
-
-                throw new RetriableException(errorMessage);
+                if (isServiceBusService)
+                {
+                    await ((IServiceBusService)_messengerService).DeleteSubscription(ServiceBusConstants.TopicNames.JobNotifications, corellationId);
+                }
             }
 
             BuildProject buildProject = null;

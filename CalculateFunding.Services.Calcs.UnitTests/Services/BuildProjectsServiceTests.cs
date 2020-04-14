@@ -34,6 +34,7 @@ using Serilog;
 using GraphCalculation = CalculateFunding.Common.ApiClient.Graph.Models.Calculation;
 using CalculationEntity = CalculateFunding.Models.Graph.Entity<CalculateFunding.Common.ApiClient.Graph.Models.Calculation, CalculateFunding.Common.ApiClient.Graph.Models.Relationship>;
 using GraphRelationship = CalculateFunding.Common.ApiClient.Graph.Models.Relationship;
+using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 
 namespace CalculateFunding.Services.Calcs.Services
 {
@@ -2098,6 +2099,138 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Information(Arg.Is($"No scoped providers set for specification '{specificationId}'"));
         }
 
+
+        [TestMethod]
+        public async Task UpdateAllocations_GivenBuildProjectAndSummariesInCacheButDoesntMatchScopedProviderIdCountAndUsingServiceBus_CallsRegenerateScopedProviders()
+        {
+            //Arrange
+            EngineSettings engineSettings = CreateEngineSettings();
+            engineSettings.MaxPartitionSize = 1;
+
+            IEnumerable<ProviderSummary> providerSummaries = new[]
+            {
+                new ProviderSummary{ Id = "1" },
+                new ProviderSummary{ Id = "2" },
+                new ProviderSummary{ Id = "3" },
+                new ProviderSummary{ Id = "4" },
+                new ProviderSummary{ Id = "5" },
+                new ProviderSummary{ Id = "6" },
+                new ProviderSummary{ Id = "7" },
+                new ProviderSummary{ Id = "8" },
+                new ProviderSummary{ Id = "9" },
+            };
+
+            string specificationId = "test-spec1";
+            string parentJobId = "job-id-1";
+            string jobId = "job2";
+
+            string cacheKey = $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}";
+
+            BuildProject buildProject = new BuildProject
+            {
+                SpecificationId = specificationId,
+                Id = Guid.NewGuid().ToString(),
+                Name = specificationId
+            };
+
+            Message message = new Message(Encoding.UTF8.GetBytes(""));
+            message.UserProperties.Add("jobId", jobId);
+            message.UserProperties.Add("specification-id", specificationId);
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+            cacheProvider
+                .KeyExists<ProviderSummary>(Arg.Is(cacheKey))
+                .Returns(true);
+
+            cacheProvider
+                .ListLengthAsync<ProviderSummary>(cacheKey)
+                .Returns(10);
+
+            IEnumerable<string> providerIds = new[] { "1", "3", "2", "4", "5", "8", "7", "6", "9", "10", "11" };
+
+            cacheProvider
+                .ListRangeAsync<ProviderSummary>(Arg.Is(cacheKey), Arg.Is(0), Arg.Is(10))
+                .Returns(providerSummaries);
+
+            IProvidersApiClient providersApiClient = CreateProvidersApiClient();
+            providersApiClient
+                .GetScopedProviderIds(Arg.Is(specificationId))
+                .Returns(new ApiResponse<IEnumerable<string>>(HttpStatusCode.OK, providerIds));
+
+            providersApiClient
+                .RegenerateProviderSummariesForSpecification(Arg.Is(specificationId), Arg.Is(false))
+                .Returns(new ApiResponse<bool>(HttpStatusCode.OK, true));
+
+            ILogger logger = CreateLogger();
+
+            IJobManagement jobManagement = CreateJobManagement();
+
+            JobViewModel parentJob = new JobViewModel
+            {
+                Id = parentJobId,
+                InvokerUserDisplayName = "Username",
+                InvokerUserId = "UserId",
+                SpecificationId = specificationId,
+                CorrelationId = "correlation-id-1",
+                JobDefinitionId = JobConstants.DefinitionNames.CreateInstructGenerateAggregationsAllocationJob
+            };
+
+            ApiResponse<JobViewModel> parentJobViewModelResponse = new ApiResponse<JobViewModel>(HttpStatusCode.OK, parentJob);
+
+            JobViewModel childJob = new JobViewModel
+            {
+                Id = jobId,
+                InvokerUserDisplayName = "Username",
+                InvokerUserId = "UserId",
+                SpecificationId = specificationId,
+                CorrelationId = "correlation-id-1",
+                JobDefinitionId = JobConstants.DefinitionNames.CreateInstructGenerateAggregationsAllocationJob
+            };
+
+            ApiResponse<JobViewModel> jobViewModelResponse = new ApiResponse<JobViewModel>(HttpStatusCode.OK, childJob);
+
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
+                .GetJobById(Arg.Is(parentJobId))
+                .Returns(parentJobViewModelResponse);
+            jobsApiClient
+                .GetJobById(Arg.Is(jobId))
+                .Returns(jobViewModelResponse);
+            jobsApiClient
+                .CreateJobs(Arg.Any<IEnumerable<JobCreateModel>>())
+                .Returns(new List<Job> { new Job { SpecificationId = specificationId } });
+            jobManagement.WaitForJobsToComplete(Arg.Is<IEnumerable<string>>(_ => _.Single() == JobConstants.DefinitionNames.PopulateScopedProvidersJob), specificationId)
+                .Returns(true);
+
+            IMessengerService messengerService = CreateServiceBusMessengerService();
+
+            messengerService.ReceiveMessage(Arg.Any<string>(), 
+            Arg.Any<Predicate<Job>>(),
+            Arg.Any<TimeSpan>())
+                .Returns(new Job { CompletionStatus = CompletionStatus.Succeeded });
+
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(jobsApiClient: jobsApiClient,
+                logger: logger, cacheProvider: cacheProvider, providersApiClient: providersApiClient, jobManagement: jobManagement, messengerService: messengerService);
+
+            //Act
+            await buildProjectsService.UpdateAllocations(message);
+
+            //Assert
+            await ((IServiceBusService)messengerService)
+                .Received(1)
+                .CreateSubscription(Arg.Is(ServiceBusConstants.TopicNames.JobNotifications), Arg.Any<string>());
+
+            await ((IServiceBusService)messengerService)
+                .Received(1)
+                .DeleteSubscription(Arg.Is(ServiceBusConstants.TopicNames.JobNotifications), Arg.Any<string>());
+
+            await
+                providersApiClient
+                    .Received(1)
+                    .RegenerateProviderSummariesForSpecification(Arg.Is(specificationId), Arg.Is(false));
+        }
+
+
         [TestMethod]
         public async Task UpdateAllocations_GivenBuildProjectAndSummariesInCacheButDoesntMatchScopedProviderIdCount_CallsRegenerateScopedProviders()
         {
@@ -2462,6 +2595,7 @@ namespace CalculateFunding.Services.Calcs.Services
             IBuildProjectsRepository buildProjectsRepository = null,
             ICalculationEngineRunningChecker calculationEngineRunningChecker = null,
             IJobManagement jobManagement = null,
+            IMessengerService messengerService = null,
             IGraphRepository graphRepository = null)
         {
             return new BuildProjectsService(
@@ -2479,6 +2613,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 buildProjectsRepository ?? CreateBuildProjectRepository(),
                 calculationEngineRunningChecker ?? CreateCalculationEngineRunningChecker(),
                 jobManagement ?? CreateJobManagement(),
+                messengerService ?? CreateMessengerService(),
                 graphRepository ?? CreateGraphRepository());
         }
 
@@ -2490,6 +2625,16 @@ namespace CalculateFunding.Services.Calcs.Services
         private static IJobManagement CreateJobManagement()
         {
             return Substitute.For<IJobManagement>();
+        }
+
+        private static IMessengerService CreateMessengerService()
+        {
+            return Substitute.For<IMessengerService, IQueueService>();
+        }
+
+        private static IMessengerService CreateServiceBusMessengerService()
+        {
+            return Substitute.For<IMessengerService, IServiceBusService>();
         }
 
         private static IGraphRepository CreateGraphRepository()
