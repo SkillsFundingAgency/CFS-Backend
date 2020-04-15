@@ -62,28 +62,38 @@ namespace CalculateFunding.Services.Core.ServiceBus
 
             _ = Task.Run(() =>
             {
-                Thread.Sleep(timeout);
-                cancellationTokenSource.Cancel();
+                if (!cancellationTokenSource.Token.WaitHandle.WaitOne(timeout))
+                {
+                    cancellationTokenSource.Cancel();
+                }
             });
 
-            while (true)
+            try
             {
-                CloudQueueMessage message = await queue.GetMessageAsync();
-
-                if (message != null)
+                while (true)
                 {
-                    QueueMessage<T> queueMessage = JsonConvert.DeserializeObject<QueueMessage<T>>(message.AsString);
+                    CloudQueueMessage message = await queue.GetMessageAsync();
 
-                    if (predicate(queueMessage.Data))
+                    if (message != null)
                     {
-                        break;
+                        QueueMessage<T> queueMessage = JsonConvert.DeserializeObject<QueueMessage<T>>(message.AsString);
+
+                        if (predicate(queueMessage.Data))
+                        {
+                            break;
+                        }
+
+                        await queue.DeleteMessageAsync(message);
                     }
 
-                    await queue.DeleteMessageAsync(message);
+                    if (cancellationTokenSource.Token.IsCancellationRequested)
+                        break;
                 }
-
-                if (cancellationTokenSource.Token.IsCancellationRequested)
-                    break;
+            }
+            finally
+            {
+                // cancel timeout
+                cancellationTokenSource.Cancel();
             }
         }
 

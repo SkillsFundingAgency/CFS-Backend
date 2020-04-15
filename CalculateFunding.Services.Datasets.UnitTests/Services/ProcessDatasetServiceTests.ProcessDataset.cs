@@ -1761,7 +1761,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             _messengerService
                 .ReceiveMessage(Arg.Any<string>(), Arg.Any<Predicate<Job>>(), Arg.Any<TimeSpan>())
-                .Returns(new Job { CompletionStatus = CompletionStatus.Succeeded });
+                .Returns(new Job { CompletionStatus = CompletionStatus.Failed });
         }
 
         private void AndThePopulationOfProvierSummeriesForSpecificationFails(bool setCachedProviders, bool regenerated)

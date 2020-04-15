@@ -93,8 +93,10 @@ namespace CalculateFunding.Services.Core.ServiceBus
 
             _ = Task.Run(() =>
             {
-                Thread.Sleep(timeout);
-                cancellationTokenSource.Cancel();
+                if (!cancellationTokenSource.Token.WaitHandle.WaitOne(timeout))
+                {
+                    cancellationTokenSource.Cancel();
+                }
             });
 
             try
@@ -130,6 +132,8 @@ namespace CalculateFunding.Services.Core.ServiceBus
             }
             finally
             {
+                // cancel timeout
+                cancellationTokenSource.Cancel();
                 await receiver.CloseAsync();
             }
         }

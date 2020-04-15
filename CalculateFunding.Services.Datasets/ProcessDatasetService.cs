@@ -280,11 +280,14 @@ namespace CalculateFunding.Services.Datasets
                         jobCompletedSuccessfully = await _jobManagement.WaitForJobsToComplete(new[] { DefinitionNames.PopulateScopedProvidersJob }, specificationId);
                     }
 
-                    string errorMessage = $"Unable to re-generate providers while updating dataset '{relationshipId}' for specification '{specificationId}' job didn't complete successfully in time";
+                    if (!jobCompletedSuccessfully)
+                    {
+                        string errorMessage = $"Unable to re-generate providers while updating dataset '{relationshipId}' for specification '{specificationId}' job didn't complete successfully in time";
 
-                    _logger.Information(errorMessage);
+                        _logger.Information(errorMessage);
 
-                    throw new RetriableException(errorMessage);
+                        throw new RetriableException(errorMessage);
+                    }
                 }
             }
             finally
