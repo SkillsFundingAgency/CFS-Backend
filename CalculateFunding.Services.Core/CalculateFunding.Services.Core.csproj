@@ -1,9 +1,9 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <DebugType>full</DebugType>
-    <LangVersion>7.1</LangVersion>
+    <LangVersion>8</LangVersion>
     <UserSecretsId>3af9a93c-d2ff-407f-b154-9297ee036459</UserSecretsId>
   </PropertyGroup>
 

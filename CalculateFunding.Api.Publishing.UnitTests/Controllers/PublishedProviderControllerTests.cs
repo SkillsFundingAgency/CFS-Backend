@@ -7,12 +7,14 @@ using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.FeatureToggles;
 using CalculateFunding.Services.Publishing.Interfaces;
+using CalculateFunding.Services.Publishing.Profiling.Custom;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using NSubstitute;
 
 namespace CalculateFunding.Api.Publishing.UnitTests.Controllers
@@ -23,6 +25,7 @@ namespace CalculateFunding.Api.Publishing.UnitTests.Controllers
         private PublishedProvidersController _controller;
         private IDeletePublishedProvidersService _deletePublishedProvidersService;
         private IProfileTotalsService _profileTotalsService;
+        private Mock<ICustomProfileService> _customProfileService;
         private IPublishedProviderProfilingService _publishedProviderProfilingService;
         private IFeatureToggle _featureToggle;
 
@@ -43,6 +46,7 @@ namespace CalculateFunding.Api.Publishing.UnitTests.Controllers
             _featureToggle = Substitute.For<IFeatureToggle>();
             _deletePublishedProvidersService = Substitute.For<IDeletePublishedProvidersService>();
             _profileTotalsService = Substitute.For<IProfileTotalsService>();
+            _customProfileService = new Mock<ICustomProfileService>();
             _publishedProviderProfilingService = Substitute.For<IPublishedProviderProfilingService>();
 
             _controller = new PublishedProvidersController(Substitute.For<IProviderFundingPublishingService>(),
@@ -50,6 +54,7 @@ namespace CalculateFunding.Api.Publishing.UnitTests.Controllers
                 _deletePublishedProvidersService,
                 _profileTotalsService,
                 _publishedProviderProfilingService,
+                _customProfileService.Object,
                 _featureToggle);
 
             _fundingStreamId = NewRandomString();
@@ -145,6 +150,34 @@ namespace CalculateFunding.Api.Publishing.UnitTests.Controllers
                 .BeOfType<OkResult>();
         }
 
+        [TestMethod]
+        public async Task ApplyCustomProfileDelegatesToCustomProfileService()
+        {
+            IActionResult expectedResult = new Mock<IActionResult>().Object;
+            ApplyCustomProfileRequest request = new ApplyCustomProfileRequest();
+
+            GivenTheApplyCustomProfileResponse(request, expectedResult);
+
+            IActionResult actualResult = await WhenTheCustomProfileIsApplied(request);
+
+            actualResult
+                .Should()
+                .BeSameAs(expectedResult);
+        }
+
+        private void GivenTheApplyCustomProfileResponse(ApplyCustomProfileRequest request, IActionResult result)
+        {
+            _customProfileService.Setup(_ => _.ApplyCustomProfile(request,
+                    It.Is<Reference>(rf => rf.Id == _userId &&
+                                           rf.Name == _userName)))
+                .ReturnsAsync(result);
+        }
+
+        private async Task<IActionResult> WhenTheCustomProfileIsApplied(ApplyCustomProfileRequest request)
+        {
+            return await _controller.ApplyCustomProfilePattern(request);
+        }
+        
         [TestMethod]
         public async Task AssignProfilePatternKeyToPublishedProviderDelegatesToPublishedProviderProfilingService()
         {

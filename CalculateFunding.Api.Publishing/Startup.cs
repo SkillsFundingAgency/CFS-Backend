@@ -1,4 +1,6 @@
+using System;
 using AutoMapper;
+using CalculateFunding.Common.ApiClient;
 using CalculateFunding.Common.Config.ApiClient.Calcs;
 using CalculateFunding.Common.Config.ApiClient.Jobs;
 using CalculateFunding.Common.Config.ApiClient.Profiling;
@@ -24,8 +26,10 @@ using CalculateFunding.Services.Publishing.Helper;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.IoC;
 using CalculateFunding.Services.Publishing.Profiling;
+using CalculateFunding.Services.Publishing.Profiling.Custom;
 using CalculateFunding.Services.Publishing.Repositories;
 using CalculateFunding.Services.Publishing.Specifications;
+using FluentValidation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -33,6 +37,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.FeatureManagement;
 using Microsoft.OpenApi.Models;
+using Polly;
 using Polly.Bulkhead;
 using BlobClient = CalculateFunding.Common.Storage.BlobClient;
 using IBlobClient = CalculateFunding.Common.Storage.IBlobClient;
@@ -132,6 +137,45 @@ namespace CalculateFunding.Api.Publishing
             builder.AddScoped<IFundingStreamPaymentDatesQuery, FundingStreamPaymentDatesQuery>();
             builder.AddScoped<IFundingStreamPaymentDatesIngestion, FundingStreamPaymentDatesIngestion>();
             builder.AddSingleton<ICsvUtils, CsvUtils>();
+            builder.AddScoped<ICustomProfileService, CustomProfilingService>();
+            builder.AddScoped<IValidator<ApplyCustomProfileRequest>, ApplyCustomProfileRequestValidator>();
+            builder.AddSingleton<IPublishedProviderStatusUpdateService, PublishedProviderStatusUpdateService>();
+            builder.AddSingleton<IPublishedProviderVersioningService, PublishedProviderVersioningService>();
+            builder.AddSingleton<IJobTracker, JobTracker>();
+            builder.AddSingleton<IVersionRepository<PublishedProviderVersion>, VersionRepository<PublishedProviderVersion>>((ctx) =>
+            {
+                CosmosDbSettings settings = new CosmosDbSettings();
+
+                Configuration.Bind("CosmosDbSettings", settings);
+
+                settings.ContainerName = "publishedfunding";
+
+                CosmosRepository cosmos = new CosmosRepository(settings);
+
+                return new VersionRepository<PublishedProviderVersion>(cosmos);
+            }).AddSingleton<IHealthChecker, VersionRepository<PublishedProviderVersion>>();
+            builder
+                .AddSingleton<IPublishedProviderStatusUpdateSettings>(_ =>
+                    {
+                        PublishedProviderStatusUpdateSettings settings = new PublishedProviderStatusUpdateSettings();
+
+                        Configuration.Bind("PublishedProviderStatusUpdateSettings", settings);
+
+                        return settings;
+                    }
+                );
+            builder.AddHttpClient(HttpClientKeys.Profiling,
+                    c =>
+                    {
+                        ApiOptions apiOptions = new ApiOptions();
+
+                        Configuration.Bind("providerProfilingClient", apiOptions);
+
+                        Services.Core.Extensions.ServiceCollectionExtensions.SetDefaultApiClientConfigurationOptions(c, apiOptions, builder);
+                    })
+                .ConfigurePrimaryHttpMessageHandler(() => new ApiClientHandler())
+                .AddTransientHttpErrorPolicy(c => c.WaitAndRetryAsync(new[] { TimeSpan.FromMilliseconds(500), TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(5) }))
+                .AddTransientHttpErrorPolicy(c => c.CircuitBreakerAsync(100, TimeSpan.FromSeconds(30)));
 
             builder.AddSingleton<IFundingStreamPaymentDatesRepository>((ctx) =>
             {

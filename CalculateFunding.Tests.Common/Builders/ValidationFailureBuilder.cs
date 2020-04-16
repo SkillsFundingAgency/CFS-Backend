@@ -1,7 +1,7 @@
-﻿using CalculateFunding.Tests.Common.Helpers;
+using CalculateFunding.Tests.Common.Helpers;
 using FluentValidation.Results;
 
-namespace CalculateFunding.Services.Jobs
+namespace CalculateFunding.Tests.Common.Builders
 {
     public class ValidationFailureBuilder : TestEntityBuilder
     {

@@ -33,13 +33,25 @@ namespace CalculateFunding.Models.Publishing
         public string FundingPeriodId { get; set; }
         
         /// <summary>
-        /// The custom profiling patterns used for this provider
+        /// The none default profiling patterns used for this provider
         /// in this period and funding stream keyed by funding line
         /// </summary>
-        [JsonProperty("profilePatternKey")]
+        [JsonProperty("profilePatternKeys")]
         public ICollection<ProfilePatternKey> ProfilePatternKeys { get; set; }
         
-
+        /// <summary>
+        /// The custom profile periods used for this provider
+        /// in this period and funding stream keyed by funding line
+        /// </summary>
+        [JsonProperty("customProfiles")]
+        public IEnumerable<FundingLineProfileOverrides> CustomProfiles { get; set; }
+        
+        /// <summary>
+        /// Flag indicating whether this provider has any custom profiles 
+        /// </summary>
+        [JsonProperty("hasCustomProfiles")]
+        public bool HasCustomProfiles => CustomProfiles?.Any() == true;
+        
         /// <summary>
         /// Specification this ID is associated with
         /// </summary>
@@ -82,7 +94,7 @@ namespace CalculateFunding.Models.Publishing
         public IEnumerable<FundingLine> FundingLines { get; set; }
 
         /// <summary>
-        /// Calculations - used to store all calculatins.
+        /// Calculations - used to store all calculations.
         /// </summary>
         [JsonProperty("calculations")]
         public IEnumerable<FundingCalculation> Calculations { get; set; }

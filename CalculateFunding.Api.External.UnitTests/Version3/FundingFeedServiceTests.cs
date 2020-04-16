@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NSubstitute;
@@ -286,12 +287,23 @@ namespace CalculateFunding.Api.External.UnitTests.Version3
                 Entries = CreateFeedIndexes()
             };
 
-            IFundingFeedSearchService feedsSearchService = CreateSearchService();
-            feedsSearchService
-                .GetFeedsV3(Arg.Is(2), Arg.Is(2))
-                .ReturnsForAnyArgs(feeds);
+            Mock<IFundingFeedSearchService> feedsSearchService = new Mock<IFundingFeedSearchService>();
 
-            FundingFeedService service = CreateService(feedsSearchService);
+            feedsSearchService.Setup(_ => _
+                    .GetFeedsV3(It.IsAny<int?>(),
+                        It.IsAny<int>(),
+                        It.IsAny<IEnumerable<string>>(),
+                        It.IsAny<IEnumerable<string>>(),
+                        It.IsAny<IEnumerable<string>>()))
+                .ReturnsAsync(feeds);
+
+            Mock<IPublishedFundingRetrievalService> fundingRetrievalService = new Mock<IPublishedFundingRetrievalService>();
+
+            fundingRetrievalService.Setup(_ => _.GetFundingFeedDocument(It.IsAny<string>(), false))
+                .ReturnsAsync(string.Empty);
+            
+            FundingFeedService service = CreateService(feedsSearchService.Object,
+                fundingRetrievalService.Object);
 
             IHeaderDictionary headerDictionary = new HeaderDictionary();
             headerDictionary.Add("Accept", new StringValues("application/json"));

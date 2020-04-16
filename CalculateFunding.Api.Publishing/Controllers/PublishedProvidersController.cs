@@ -1,4 +1,3 @@
-﻿using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
@@ -8,6 +7,7 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.FeatureToggles;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Profiling;
+using CalculateFunding.Services.Publishing.Profiling.Custom;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CalculateFunding.Api.Publishing.Controllers
@@ -18,6 +18,7 @@ namespace CalculateFunding.Api.Publishing.Controllers
         private readonly IProviderFundingPublishingService _providerFundingPublishingService;
         private readonly IPublishedProviderVersionService _publishedProviderVersionService;
         private readonly IDeletePublishedProvidersService _deletePublishedProvidersService;
+        private readonly ICustomProfileService _customProfileService;
         private readonly IProfileTotalsService _profileTotalsService;
         private readonly IPublishedProviderProfilingService _publishedProviderProfilingService;
         private readonly IFeatureToggle _featureToggle;
@@ -27,11 +28,13 @@ namespace CalculateFunding.Api.Publishing.Controllers
             IDeletePublishedProvidersService deletePublishedProvidersService,
             IProfileTotalsService profileTotalsService,
             IPublishedProviderProfilingService publishedProviderProfilingService,
+            ICustomProfileService customProfileService,
             IFeatureToggle featureToggle)
         {
             Guard.ArgumentNotNull(providerFundingPublishingService, nameof(providerFundingPublishingService));
             Guard.ArgumentNotNull(publishedProviderVersionService, nameof(publishedProviderVersionService));
             Guard.ArgumentNotNull(deletePublishedProvidersService, nameof(deletePublishedProvidersService));
+            Guard.ArgumentNotNull(customProfileService, nameof(customProfileService));
             Guard.ArgumentNotNull(profileTotalsService, nameof(profileTotalsService));
             Guard.ArgumentNotNull(publishedProviderProfilingService, nameof(publishedProviderProfilingService));
             Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
@@ -40,6 +43,7 @@ namespace CalculateFunding.Api.Publishing.Controllers
             _publishedProviderVersionService = publishedProviderVersionService;
             _deletePublishedProvidersService = deletePublishedProvidersService;
             _featureToggle = featureToggle;
+            _customProfileService = customProfileService;
             _profileTotalsService = profileTotalsService;
             _publishedProviderProfilingService = publishedProviderProfilingService;
         }
@@ -126,6 +130,13 @@ namespace CalculateFunding.Api.Publishing.Controllers
         {
             return await _publishedProviderProfilingService.AssignProfilePatternKey(
                 fundingStreamId, fundingPeriodId, providerId, profilePatternKey, Request.GetUserOrDefault());
+        }
+
+        [HttpPost("api/publishedproviders/customprofiles")]
+        [ProducesResponseType(204)]
+        public async Task<IActionResult> ApplyCustomProfilePattern([FromBody] ApplyCustomProfileRequest request)
+        {
+            return await _customProfileService.ApplyCustomProfile(request, Request.GetUser());
         }
     }
 }
