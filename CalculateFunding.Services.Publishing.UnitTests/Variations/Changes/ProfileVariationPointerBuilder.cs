@@ -9,6 +9,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
         private string _typeValue;
         private int? _year;
         private int? _occurence;
+        public string _fundingStreamId;
+        public string _periodType;
 
         public ProfileVariationPointerBuilder WithFundingLineId(string fundingLineId)
         {
@@ -37,7 +39,21 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
 
             return this;
         }
-        
+
+        public ProfileVariationPointerBuilder WithFundingStreamId(string fundingStreamId)
+        {
+            _fundingStreamId = fundingStreamId;
+
+            return this;
+        }
+
+        public ProfileVariationPointerBuilder WithPeriodType(string periodType)
+        {
+            _periodType = periodType;
+
+            return this;
+        }
+
         public ProfileVariationPointer Build()
         {
             return new ProfileVariationPointer
@@ -45,7 +61,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
                 Year = _year.GetValueOrDefault(NewRandomDateTime().Year),
                 Occurrence = _occurence.GetValueOrDefault(NewRandomNumberBetween(0, 4)),
                 TypeValue = _typeValue ?? NewRandomMonth(),
-                FundingLineId = _fundingLineId ?? NewRandomString()
+                FundingLineId = _fundingLineId ?? NewRandomString(),
+                FundingStreamId = _fundingStreamId ?? NewRandomString(),
+                PeriodType = _periodType ?? NewRandomString()
             };
         }
     }

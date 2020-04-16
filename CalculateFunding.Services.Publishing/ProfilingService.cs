@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Profiling;
@@ -35,7 +33,7 @@ namespace CalculateFunding.Services.Publishing
         /// <param name="fundingStreamId">Funding Stream ID</param>
         /// <param name="fundingPeriodId">Funding Period ID</param>
         /// <returns></returns>
-        public async Task ProfileFundingLines(IEnumerable<FundingLine> fundingLineTotals, string fundingStreamId, string fundingPeriodId)
+        public async Task ProfileFundingLines(IEnumerable<FundingLine> fundingLineTotals, string fundingStreamId, string fundingPeriodId, string profilePatternKey = null)
         {
             Guard.ArgumentNotNull(fundingLineTotals, nameof(fundingLineTotals));
             Guard.IsNullOrWhiteSpace(fundingStreamId, nameof(fundingStreamId));
@@ -71,7 +69,8 @@ namespace CalculateFunding.Services.Publishing
                 ProviderProfilingRequestModel requestModel = ConstructProfilingRequest(fundingPeriodId,
                                                                 fundingStreamId,
                                                                 value.FundingLineCode,
-                                                                value.Value);
+                                                                value.Value,
+                                                                profilePatternKey);
                    
                 ValidatedApiResponse<ProviderProfilingResponseModel> publishedProvider = await GetProviderProfilePeriods(requestModel);
                     
@@ -94,8 +93,7 @@ namespace CalculateFunding.Services.Publishing
 
         private async Task<ValidatedApiResponse<ProviderProfilingResponseModel>> GetProviderProfilePeriods(ProviderProfilingRequestModel requestModel)
         {
-            ValidatedApiResponse<ProviderProfilingResponseModel> providerProfilingResponseModel = null;
-
+            ValidatedApiResponse<ProviderProfilingResponseModel> providerProfilingResponseModel;
             try
             {
                 providerProfilingResponseModel = await _profilingApiClient.GetProviderProfilePeriods(requestModel);
@@ -120,8 +118,10 @@ namespace CalculateFunding.Services.Publishing
             }
             else
             {
-                dict = new Dictionary<TKey, TValue>();
-                dict.Add(key, value);                
+                dict = new Dictionary<TKey, TValue>
+                {
+                    { key, value }
+                };
             }            
         }
 
@@ -170,23 +170,10 @@ namespace CalculateFunding.Services.Publishing
             }
         }
 
-        private List<string> GetPaymentFundingLineCodes(
-            Dictionary<string, IEnumerable<FundingLine>> fundingLineTotals)
-        {
-            var fundingLineCodes = fundingLineTotals.First().Value
-                .Where(x => x.Type == OrganisationGroupingReason.Payment)
-                .Select(x => x.FundingLineCode)
-                .Distinct()
-                .ToList();
-
-            return fundingLineCodes;
-        }
-
         private bool AddOrUpdateDictionaryProfilingResponses<TKey, TValue>(Dictionary<TKey, TValue> dict, TKey key, TValue value)
         {
             bool addedOrUpdated = false;
-            TValue oldValue;
-            if (!dict.TryGetValue(key, out oldValue) || !value.Equals(oldValue))
+            if (!dict.TryGetValue(key, out TValue oldValue) || !value.Equals(oldValue))
             {
                 dict[key] = value;
                 addedOrUpdated = true;
@@ -194,14 +181,15 @@ namespace CalculateFunding.Services.Publishing
             return addedOrUpdated;
         }
 
-        private ProviderProfilingRequestModel ConstructProfilingRequest(string fundingPeriodId,string fundingStreamId, string fundingLineCodes, decimal? fundingValue)
+        private ProviderProfilingRequestModel ConstructProfilingRequest(string fundingPeriodId,string fundingStreamId, string fundingLineCodes, decimal? fundingValue, string profilePatternKey)
         {
             ProviderProfilingRequestModel requestModel = new ProviderProfilingRequestModel
             {
                 FundingPeriodId = fundingPeriodId,
                 FundingStreamId = fundingStreamId,
                 FundingLineCode = fundingLineCodes,
-                FundingValue = fundingValue
+                FundingValue = fundingValue,
+                ProfilePatternKey = profilePatternKey
             };
 
             return requestModel;

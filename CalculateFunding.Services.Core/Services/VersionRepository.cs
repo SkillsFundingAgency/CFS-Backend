@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models.HealthCheck;
@@ -35,10 +36,10 @@ namespace CalculateFunding.Services.Core.Services
             return health;
         }
 
-        public async Task SaveVersion(T newVersion)
+        public async Task<HttpStatusCode> SaveVersion(T newVersion)
         {
             Guard.ArgumentNotNull(newVersion, nameof(newVersion));
-            await _cosmosRepository.UpsertAsync<T>(newVersion);
+            return await _cosmosRepository.UpsertAsync<T>(newVersion);
         }
 
         public async Task SaveVersion(T newVersion, string partitionKey)

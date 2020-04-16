@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Models.Versioning;
 
@@ -8,7 +9,7 @@ namespace CalculateFunding.Services.Core.Interfaces
     {
         Task<T> CreateVersion(T newVersion, T currentVersion = null, string partitionKey = null, bool incrementFromCurrentVersion = false);
 
-        Task SaveVersion(T newVersion);
+        Task<HttpStatusCode> SaveVersion(T newVersion);
 
         Task SaveVersion(T newVersion, string partitionKey);
 

@@ -53,5 +53,10 @@ namespace CalculateFunding.Models.Publishing
         /// </summary>
         [JsonProperty("distributionPeriods")]
         public IEnumerable<DistributionPeriod> DistributionPeriods { get; set; }
+
+        public FundingLine Clone()
+        {
+            return JsonConvert.DeserializeObject<FundingLine>(JsonConvert.SerializeObject(this));
+        }
     }
 }

@@ -25,6 +25,12 @@ namespace CalculateFunding.Api.Publishing.UnitTests
                 { "providersClient:ApiEndpoint", "https://localhost:7011/api/" },
                 { "providersClient:ApiKey", "Local" },
                 { "AzureStorageSettings:ConnectionString", "StorageConnection" },
+                { "providerProfilingClient:ApiEndpoint", "https://funding-profiling/" },
+                { "providerProfilingAzureBearerTokenOptions:Url", "https://wahetever-token" },
+                { "providerProfilingAzureBearerTokenOptions:GrantType", "client_credentials" },
+                { "providerProfilingAzureBearerTokenOptions:Scope", "https://wahetever-scope" },
+                { "providerProfilingAzureBearerTokenOptions:ClientId", "client-id" },
+                { "providerProfilingAzureBearerTokenOptions:ClientSecret", "client-secret"}
             };
         }
         

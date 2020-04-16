@@ -336,5 +336,37 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         {
             throw new NotImplementedException();
         }
+
+        public Task<HttpStatusCode> UpsertPublishedProvider(PublishedProvider publishedProvider)
+        {
+            List<HttpStatusCode> results = new List<HttpStatusCode>();
+            string specificationId = publishedProvider.Current.SpecificationId;
+            if (!_repo.PublishedProviders.ContainsKey(specificationId))
+            {
+                _repo.PublishedProviders.TryAdd(specificationId, new ConcurrentBag<PublishedProvider>());
+            }
+
+            var existingProvider = _repo.PublishedProviders[specificationId].FirstOrDefault(p => p.Id == publishedProvider.Id);
+            if (existingProvider != null)
+            {
+                existingProvider.Current = publishedProvider.Current;
+            }
+            else
+            {
+                _repo.PublishedProviders[specificationId].Add(publishedProvider);
+
+            }
+            return Task.FromResult(HttpStatusCode.OK);
+        }
+
+        public Task<PublishedProvider> GetPublishedProvider(string fundingStreamId, string fundingPeriodId, string providerId)
+        {
+            PublishedProvider publishedProvider = _repo.PublishedProviders.SelectMany(c => c.Value).Where(p =>
+                  p.Current.FundingStreamId == fundingStreamId
+                  && p.Current.FundingPeriodId == fundingPeriodId
+                  && p.Current.ProviderId == providerId).FirstOrDefault();
+
+            return Task.FromResult(publishedProvider);
+        }
     }
 }

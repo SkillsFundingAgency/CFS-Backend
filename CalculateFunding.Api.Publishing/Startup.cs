@@ -1,6 +1,7 @@
 using AutoMapper;
 using CalculateFunding.Common.Config.ApiClient.Calcs;
 using CalculateFunding.Common.Config.ApiClient.Jobs;
+using CalculateFunding.Common.Config.ApiClient.Profiling;
 using CalculateFunding.Common.Config.ApiClient.Providers;
 using CalculateFunding.Common.Config.ApiClient.Specifications;
 using CalculateFunding.Common.CosmosDb;
@@ -16,7 +17,9 @@ using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.Helpers;
 using CalculateFunding.Services.Core.Options;
+using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Services.Publishing;
+using CalculateFunding.Services.Publishing.Errors;
 using CalculateFunding.Services.Publishing.Helper;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.IoC;
@@ -25,7 +28,6 @@ using CalculateFunding.Services.Publishing.Repositories;
 using CalculateFunding.Services.Publishing.Specifications;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -182,7 +184,25 @@ namespace CalculateFunding.Api.Publishing
             builder
                 .AddSingleton<ISearchRepository<PublishedFundingIndex>, SearchRepository<PublishedFundingIndex>>();
 
-           
+            builder
+                .AddSingleton<IPublishedProviderProfilingService, PublishedProviderProfilingService>()
+                .AddSingleton<IPublishedProviderVersionErrorDetectionPipeline, PublishedProviderErrorDetection>()
+                .AddSingleton<IProfilingService, ProfilingService>()
+                .AddSingleton<IPublishedProviderVersioningService, PublishedProviderVersioningService>();
+
+            builder.AddSingleton<IVersionRepository<PublishedProviderVersion>, VersionRepository<PublishedProviderVersion>>((ctx) =>
+            {
+                CosmosDbSettings publishedProviderVersioningDbSettings = new CosmosDbSettings();
+
+                Configuration.Bind("CosmosDbSettings", publishedProviderVersioningDbSettings);
+
+                publishedProviderVersioningDbSettings.ContainerName = "publishedfunding";
+
+                CosmosRepository resultsRepostory = new CosmosRepository(publishedProviderVersioningDbSettings);
+
+                return new VersionRepository<PublishedProviderVersion>(resultsRepostory);
+            }).AddSingleton<IHealthChecker, VersionRepository<PublishedProviderVersion>>();
+
             builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Api.Publishing");
             builder.AddApplicationInsightsServiceName(Configuration, "CalculateFunding.Api.Publishing");
             builder.AddLogging("CalculateFunding.Api.Publishing");
@@ -195,6 +215,7 @@ namespace CalculateFunding.Api.Publishing
             builder.AddSpecificationsInterServiceClient(Configuration);
             builder.AddProvidersInterServiceClient(Configuration);
             builder.AddCalculationsInterServiceClient(Configuration);
+            builder.AddProfilingInterServiceClient(Configuration);
             builder.AddJobsInterServiceClient(Configuration);
             builder.AddFeatureToggling(Configuration);
             

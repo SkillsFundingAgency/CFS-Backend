@@ -48,5 +48,15 @@ namespace CalculateFunding.Models.Publishing
             Current.Predecessors ??= new List<string>();
             Current.Predecessors.Add(providerId);
         }
+
+        public override bool Equals(object obj)
+        {
+            return GetHashCode().Equals(obj?.GetHashCode());
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Current, Released);
+        }
     }
 }

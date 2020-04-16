@@ -1,8 +1,10 @@
+using System;
 using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using CalculateFunding.Api.Publishing.Controllers;
 using CalculateFunding.Common.Models;
+using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.FeatureToggles;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Tests.Common.Helpers;
@@ -21,6 +23,7 @@ namespace CalculateFunding.Api.Publishing.UnitTests.Controllers
         private PublishedProvidersController _controller;
         private IDeletePublishedProvidersService _deletePublishedProvidersService;
         private IProfileTotalsService _profileTotalsService;
+        private IPublishedProviderProfilingService _publishedProviderProfilingService;
         private IFeatureToggle _featureToggle;
 
         private string _fundingStreamId;
@@ -29,6 +32,8 @@ namespace CalculateFunding.Api.Publishing.UnitTests.Controllers
         private string _correlationId;
         private string _userId;
         private string _userName;
+        private ProfilePatternKey _profilePatternKey;
+        private Reference _author;
 
         private IActionResult _result;
 
@@ -38,11 +43,13 @@ namespace CalculateFunding.Api.Publishing.UnitTests.Controllers
             _featureToggle = Substitute.For<IFeatureToggle>();
             _deletePublishedProvidersService = Substitute.For<IDeletePublishedProvidersService>();
             _profileTotalsService = Substitute.For<IProfileTotalsService>();
+            _publishedProviderProfilingService = Substitute.For<IPublishedProviderProfilingService>();
 
             _controller = new PublishedProvidersController(Substitute.For<IProviderFundingPublishingService>(),
                 Substitute.For<IPublishedProviderVersionService>(),
                 _deletePublishedProvidersService,
                 _profileTotalsService,
+                _publishedProviderProfilingService,
                 _featureToggle);
 
             _fundingStreamId = NewRandomString();
@@ -51,6 +58,9 @@ namespace CalculateFunding.Api.Publishing.UnitTests.Controllers
             _correlationId = NewRandomString();
             _userId = NewRandomString();
             _userName = NewRandomString();
+            
+            _profilePatternKey = new ProfilePatternKey { FundingLineCode = NewRandomString(), Key = NewRandomString() };
+            _author = NewReference(_ => _.WithId(NewRandomString()).WithName(NewRandomString()));
 
             HttpContext context = Substitute.For<HttpContext>();
             HttpRequest request = Substitute.For<HttpRequest>();
@@ -135,6 +145,23 @@ namespace CalculateFunding.Api.Publishing.UnitTests.Controllers
                 .BeOfType<OkResult>();
         }
 
+        [TestMethod]
+        public async Task AssignProfilePatternKeyToPublishedProviderDelegatesToPublishedProviderProfilingService()
+        {
+            IActionResult expectedResult = Substitute.For<IActionResult>();
+
+            GivenAssignProfilePatternKeyToPublishedProvider(expectedResult);
+
+            IActionResult actualResult = await _controller.AssignProfilePatternKeyToPublishedProvider(_fundingStreamId,
+                _fundPeriodId,
+                _providerId,
+                _profilePatternKey);
+
+            actualResult
+                .Should()
+                .BeSameAs(expectedResult);
+        }
+
         private void GivenThatDeletingPublishedProvidersIsForbidden()
         {
             _featureToggle
@@ -160,6 +187,17 @@ namespace CalculateFunding.Api.Publishing.UnitTests.Controllers
                 .Returns(result);
         }
 
+        private void GivenAssignProfilePatternKeyToPublishedProvider(IActionResult result)
+        {
+            _publishedProviderProfilingService
+                .AssignProfilePatternKey(_fundingStreamId,
+                    _fundPeriodId,
+                    _providerId,
+                    _profilePatternKey,
+                    Arg.Any<Reference>())
+                .Returns(result);
+        }
+
         private async Task WhenThePublishedProvidersAreDeleted()
         {
             _result = await _controller.DeletePublishedProviders(_fundingStreamId,
@@ -169,6 +207,15 @@ namespace CalculateFunding.Api.Publishing.UnitTests.Controllers
         private string NewRandomString()
         {
             return new RandomString();
+        }
+
+        private Reference NewReference(Action<ReferenceBuilder> setUp = null)
+        {
+            ReferenceBuilder referenceBuilder = new ReferenceBuilder();
+
+            setUp?.Invoke(referenceBuilder);
+
+            return referenceBuilder.Build();
         }
     }
 }

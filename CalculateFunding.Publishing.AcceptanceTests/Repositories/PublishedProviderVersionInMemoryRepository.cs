@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Interfaces;
@@ -46,7 +47,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             throw new NotImplementedException();
         }
 
-        public Task SaveVersion(PublishedProviderVersion newVersion)
+        public Task<HttpStatusCode> SaveVersion(PublishedProviderVersion newVersion)
         {
             if (PublishedProviderVersions.ContainsKey(newVersion.Id))
             {
@@ -55,7 +56,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 
             PublishedProviderVersions[newVersion.Id] = newVersion;
 
-            return Task.FromResult(newVersion);
+            return Task.FromResult(HttpStatusCode.OK);
         }
 
         public Task SaveVersion(PublishedProviderVersion newVersion, string partitionKey)

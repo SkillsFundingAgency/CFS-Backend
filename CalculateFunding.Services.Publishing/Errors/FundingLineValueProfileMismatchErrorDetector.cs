@@ -1,9 +1,6 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices.ComTypes;
 using System.Threading.Tasks;
-using CalculateFunding.Common.Extensions;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Profiling;
 

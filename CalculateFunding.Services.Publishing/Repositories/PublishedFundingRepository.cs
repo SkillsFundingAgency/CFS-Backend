@@ -13,7 +13,6 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
-using Newtonsoft.Json.Linq;
 
 namespace CalculateFunding.Services.Publishing.Repositories
 {
@@ -32,11 +31,18 @@ namespace CalculateFunding.Services.Publishing.Repositories
             _publishedFundingQueryBuilder = publishedFundingQueryBuilder;
         }
 
+        public async Task<HttpStatusCode> UpsertPublishedProvider(PublishedProvider publishedProvider)
+        {
+            Guard.ArgumentNotNull(publishedProvider, nameof(publishedProvider));
+
+            return await _repository.UpsertAsync(publishedProvider, publishedProvider.PartitionKey);
+        }
+
         public async Task<IEnumerable<HttpStatusCode>> UpsertPublishedProviders(IEnumerable<PublishedProvider> publishedProviders)
         {
             Guard.ArgumentNotNull(publishedProviders, nameof(publishedProviders));
 
-            IEnumerable<Task<HttpStatusCode>> tasks = publishedProviders.Select(async (_) => await _repository.UpsertAsync(_, _.PartitionKey));
+            IEnumerable<Task<HttpStatusCode>> tasks = publishedProviders.Select(async (_) => await UpsertPublishedProvider(_));
 
             await TaskHelper.WhenAllAndThrow(tasks.ToArray());
 
@@ -81,7 +87,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
              });
         }
 
-        public async Task<PublishedProviderVersion> GetLatestPublishedProviderVersion(string fundingStreamId,
+        public async Task<PublishedProvider> GetPublishedProvider(string fundingStreamId,
             string fundingPeriodId,
             string providerId)
         {
@@ -92,7 +98,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
             return (await _repository
                 .QuerySql<PublishedProvider>(new CosmosDbQuery
                 {
-                    QueryText =@"SELECT *
+                    QueryText = @"SELECT *
                                  FROM c
                                  WHERE c.documentType = 'PublishedProvider'
                                  AND c.deleted = false
@@ -106,8 +112,14 @@ namespace CalculateFunding.Services.Publishing.Repositories
                         new CosmosDbQueryParameter("@providerId", providerId)
                     }
                 }))
-                .SingleOrDefault()
-                ?.Current;
+                .SingleOrDefault();
+        }
+
+        public async Task<PublishedProviderVersion> GetLatestPublishedProviderVersion(string fundingStreamId,
+            string fundingPeriodId,
+            string providerId)
+        {
+            return (await GetPublishedProvider(fundingStreamId, fundingPeriodId, providerId))?.Current;
         }
 
         public async Task<IEnumerable<PublishedProviderVersion>> GetPublishedProviderVersions(string fundingStreamId,

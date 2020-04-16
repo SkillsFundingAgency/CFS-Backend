@@ -191,5 +191,23 @@ namespace CalculateFunding.Models.Publishing
             string json = JsonConvert.SerializeObject(this);
             return JsonConvert.DeserializeObject<PublishedProviderVersion>(json);
         }
+
+        public override bool Equals(object obj)
+        {
+            return GetHashCode().Equals(obj?.GetHashCode());
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(
+                FundingStreamId, 
+                FundingPeriodId, 
+                SpecificationId, 
+                TemplateVersion, 
+                Status, 
+                ProviderId, 
+                MajorVersion, 
+                MinorVersion);
+        }
     }
 }

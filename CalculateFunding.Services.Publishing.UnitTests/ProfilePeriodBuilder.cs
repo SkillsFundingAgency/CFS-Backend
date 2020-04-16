@@ -10,6 +10,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private decimal? _profiledAmount;
         private int? _year;
         private int? _occurence;
+        private string _distributionPeriodId;
 
         public ProfilePeriodBuilder WithOccurence(int occurence)
         {
@@ -45,7 +46,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             return this;
         }
-        
+
+        public ProfilePeriodBuilder WithDistributionPeriodId(string distributionPeriodId)
+        {
+            _distributionPeriodId = distributionPeriodId;
+
+            return this;
+        }
+
         public ProfilePeriod Build()
         {
             return new ProfilePeriod
@@ -54,7 +62,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 TypeValue = _typeValue ?? NewRandomMonth(),
                 ProfiledValue = _profiledAmount.GetValueOrDefault(NewRandomNumberBetween(1900, 3000)),
                 Year = _year.GetValueOrDefault(NewRandomDateTime().Year),
-                Occurrence = _occurence.GetValueOrDefault(NewRandomNumberBetween(0, 2))
+                Occurrence = _occurence.GetValueOrDefault(NewRandomNumberBetween(0, 2)),
+                DistributionPeriodId = _distributionPeriodId ?? NewRandomString()
             };
         }
     }

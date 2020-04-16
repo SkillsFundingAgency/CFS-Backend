@@ -141,7 +141,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             IProfilingApiClient providerProfilingRepository = Substitute.For<IProfilingApiClient>();
             providerProfilingRepository
                 .GetProviderProfilePeriods(Arg.Any<ProviderProfilingRequestModel>())
-                .Returns(Task.FromResult<ValidatedApiResponse<ProviderProfilingResponseModel>>(profileResponse));
+                .Returns(Task.FromResult(profileResponse));
 
             ProfilingService serviceapi = CreateProfilingService(
             logger: logger,
@@ -177,7 +177,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             {
                 new FundingLine { Name="Abc",FundingLineCode = "FL1", Type = OrganisationGroupingReason.Payment,Value = 500, TemplateLineId = 123, DistributionPeriods = null},
                 new FundingLine { Name="Xyz",FundingLineCode = "AB1", Type = OrganisationGroupingReason.Payment,Value = 600, TemplateLineId = 123, DistributionPeriods = null}
-
             };
 
             ILogger logger = CreateLogger();
@@ -186,7 +185,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             IProfilingApiClient providerProfilingRepository = Substitute.For<IProfilingApiClient>();
             providerProfilingRepository
                 .GetProviderProfilePeriods(Arg.Any<ProviderProfilingRequestModel>())
-                .Returns(Task.FromResult<ValidatedApiResponse<ProviderProfilingResponseModel>>(profileResponse));
+                .Returns(Task.FromResult(profileResponse));
 
             ProfilingService serviceapi = CreateProfilingService(
             logger: logger,
@@ -225,7 +224,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             {
                 new FundingLine { Name="Abc",FundingLineCode = "FL1", Type = OrganisationGroupingReason.Payment,Value = 500, TemplateLineId = 123, DistributionPeriods = null},
                 new FundingLine { Name="Abc",FundingLineCode = "FL1", Type = OrganisationGroupingReason.Payment,Value = 500, TemplateLineId = 123, DistributionPeriods = null}
-
             };
 
             ILogger logger = CreateLogger();
@@ -234,7 +232,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             IProfilingApiClient providerProfilingRepository = Substitute.For<IProfilingApiClient>();
             providerProfilingRepository
                 .GetProviderProfilePeriods(Arg.Any<ProviderProfilingRequestModel>())
-                .Returns(Task.FromResult<ValidatedApiResponse<ProviderProfilingResponseModel>>(profileResponse));
+                .Returns(Task.FromResult(profileResponse));
 
             ProfilingService serviceapi = CreateProfilingService(
             logger: logger,
@@ -262,7 +260,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             List<FundingLine> fundingLines = new List<FundingLine>
             {
                 new FundingLine { Name="Abc",FundingLineCode = "FL1", Type = OrganisationGroupingReason.Payment,Value = 500, TemplateLineId = 123, DistributionPeriods = null}
-
             };
 
             return fundingLines;
@@ -276,7 +273,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             {
                  new ProfilePeriod { DistributionPeriodId = "2018-2019", Occurrence = 1, Type = ProfilePeriodType.CalendarMonth, TypeValue = "October", ProfiledValue = 82190.0M, Year = 2018},
                  new ProfilePeriod { DistributionPeriodId = "2018-2019", Occurrence = 1, Type = ProfilePeriodType.CalendarMonth, TypeValue = "April", ProfiledValue = 82190.0M, Year = 2019}
-
             };
 
             distributionPeriod.Add(new DistributionPeriod()
@@ -290,7 +286,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             {
                 new FundingLine { Name="Abc",FundingLineCode = "FL1", Type = OrganisationGroupingReason.Payment,Value = 500, TemplateLineId = 123,
                     DistributionPeriods = distributionPeriod}
-
             };
 
             return fundingLines;
@@ -299,14 +294,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         {
             return new ValidatedApiResponse<ProviderProfilingResponseModel>(HttpStatusCode.OK, new ProviderProfilingResponseModel()
             {
-                DeliveryProfilePeriods = new List<Common.ApiClient.Profiling.Models.ProfilingPeriod>
+                DeliveryProfilePeriods = new List<ProfilingPeriod>
                  {
-                    new Common.ApiClient.Profiling.Models.ProfilingPeriod { Period = "October", Occurrence = 1, Year = 2018, Type = "CalendarMonth", Value = 82190.0M, DistributionPeriod = "2018-2019" },
-                    new Common.ApiClient.Profiling.Models.ProfilingPeriod { Period = "April", Occurrence = 1, Year = 2019, Type = "CalendarMonth", Value = 82190.0M, DistributionPeriod = "2018-2019" }
+                    new ProfilingPeriod { Period = "October", Occurrence = 1, Year = 2018, Type = "CalendarMonth", Value = 82190.0M, DistributionPeriod = "2018-2019" },
+                    new ProfilingPeriod { Period = "April", Occurrence = 1, Year = 2019, Type = "CalendarMonth", Value = 82190.0M, DistributionPeriod = "2018-2019" }
                  },
-                DistributionPeriods = new List<Common.ApiClient.Profiling.Models.DistributionPeriods>
+                DistributionPeriods = new List<DistributionPeriods>
                  {
-                    new Common.ApiClient.Profiling.Models.DistributionPeriods { DistributionPeriodCode = "2018-2019",   Value = 82190.0M }
+                    new DistributionPeriods { DistributionPeriodCode = "2018-2019",   Value = 82190.0M }
                  }
             });
         }
@@ -325,9 +320,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         {
             return new ProfilingService(
                 logger ?? CreateLogger(),
-                profilingApiClient ?? CreateProfilingRepository()
-
-                );
+                profilingApiClient ?? CreateProfilingRepository());
         }
 
         static IProfilingApiClient CreateProfilingRepository()

@@ -7,6 +7,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
     public class DistributionPeriodBuilder : TestEntityBuilder
     {
         private IEnumerable<ProfilePeriod> _profilePeriods;
+        private string _distributionPeriodId;
 
         public DistributionPeriodBuilder WithProfilePeriods(params ProfilePeriod[] profilePeriods)
         {
@@ -14,11 +15,19 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             return this;
         }
-        
+
+        public DistributionPeriodBuilder WithDistributionPeriodId(string distributionPeriodId)
+        {
+            _distributionPeriodId = distributionPeriodId;
+
+            return this;
+        }
+
         public DistributionPeriod Build()
         {
             return new DistributionPeriod
             {
+                DistributionPeriodId = _distributionPeriodId ?? NewRandomString(),
                 ProfilePeriods = _profilePeriods,
             };
         }

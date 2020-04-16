@@ -2,12 +2,12 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
-using CalculateFunding.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Services.Core.Extensions;
@@ -120,6 +120,32 @@ namespace CalculateFunding.Services.Publishing
             return publishedProviderCreateVersionRequests;
         }
 
+        public async Task<PublishedProvider> CreateVersion(PublishedProviderCreateVersionRequest publishedProviderCreateVersionRequest)
+        {
+            Guard.ArgumentNotNull(publishedProviderCreateVersionRequest.PublishedProvider, nameof(publishedProviderCreateVersionRequest.PublishedProvider));
+            Guard.ArgumentNotNull(publishedProviderCreateVersionRequest.NewVersion, nameof(publishedProviderCreateVersionRequest.NewVersion));
+
+            PublishedProviderVersion currentVersion = publishedProviderCreateVersionRequest.PublishedProvider.Current;
+
+            PublishedProviderVersion newVersion = publishedProviderCreateVersionRequest.NewVersion;
+
+            string partitionKey = currentVersion != null ? publishedProviderCreateVersionRequest.PublishedProvider.PartitionKey : string.Empty;
+
+            try
+            {
+                publishedProviderCreateVersionRequest.PublishedProvider.Current =
+                    await _versionRepositoryPolicy.ExecuteAsync(() => _versionRepository.CreateVersion(newVersion, currentVersion, partitionKey));
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, $"Failed to create new version for published provider version id: {newVersion.Id}");
+
+                throw;
+            }
+
+            return publishedProviderCreateVersionRequest.PublishedProvider;
+        }
+
         public async Task<IEnumerable<PublishedProvider>> CreateVersions(IEnumerable<PublishedProviderCreateVersionRequest> publishedProviderCreateVersionRequests)
         {
             Guard.ArgumentNotNull(publishedProviderCreateVersionRequests, nameof(publishedProviderCreateVersionRequests));
@@ -136,26 +162,7 @@ namespace CalculateFunding.Services.Publishing
                     {
                         try
                         {
-                            Guard.ArgumentNotNull(publishedProviderCreateVersionRequest.PublishedProvider, nameof(publishedProviderCreateVersionRequest.PublishedProvider));
-                            Guard.ArgumentNotNull(publishedProviderCreateVersionRequest.NewVersion, nameof(publishedProviderCreateVersionRequest.NewVersion));
-
-                            PublishedProviderVersion currentVersion = publishedProviderCreateVersionRequest.PublishedProvider.Current;
-
-                            PublishedProviderVersion newVersion = publishedProviderCreateVersionRequest.NewVersion;
-
-                            string partitionKey = currentVersion != null ? publishedProviderCreateVersionRequest.PublishedProvider.PartitionKey : string.Empty;
-
-                            try
-                            {
-                                publishedProviderCreateVersionRequest.PublishedProvider.Current =
-                                    await _versionRepositoryPolicy.ExecuteAsync(() => _versionRepository.CreateVersion(newVersion, currentVersion, partitionKey));
-                            }
-                            catch (Exception ex)
-                            {
-                                _logger.Error(ex, $"Failed to create new version for published provider version id: {newVersion.Id}");
-
-                                throw;
-                            }
+                            await CreateVersion(publishedProviderCreateVersionRequest);
                         }
                         finally
                         {
@@ -166,6 +173,20 @@ namespace CalculateFunding.Services.Publishing
             await TaskHelper.WhenAllAndThrow(allTasks.ToArray());
 
             return publishedProviderCreateVersionRequests.Select(m => m.PublishedProvider);
+        }
+
+        public async Task<HttpStatusCode> SaveVersion(PublishedProviderVersion publishedProviderVersion)
+        {
+            try
+            {
+                return await _versionRepositoryPolicy.ExecuteAsync(() => _versionRepository.SaveVersion(publishedProviderVersion));
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "Failed to save new published provider versions");
+
+                throw;
+            }
         }
 
         public async Task SaveVersions(IEnumerable<PublishedProvider> publishedProviders)

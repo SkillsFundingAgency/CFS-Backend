@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Publishing
@@ -47,5 +48,21 @@ namespace CalculateFunding.Models.Publishing
         /// </summary>
         [JsonProperty("distributionPeriodId")]
         public string DistributionPeriodId { get; set; }
+
+        public override bool Equals(object obj)
+        {
+            return GetHashCode().Equals(obj?.GetHashCode());
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(
+                Type,
+                TypeValue,
+                Year,
+                Occurrence,
+                ProfiledValue,
+                DistributionPeriodId);
+        }
     }
 }
