@@ -85,16 +85,17 @@ namespace CalculateFunding.Services.Publishing
             Guard.ArgumentNotNull(updatedProvider, nameof(updatedProvider));
 
             bool shouldRunVariations = (await VariationsEnabled() &&
-                                        allPublishedProviderRefreshStates.AnyWithNullCheck() &&
-                                        variations.AnyWithNullCheck()&&
+                                        variations.AnyWithNullCheck() &&
                                         !string.IsNullOrWhiteSpace(snapshotId));
+
+            _logger.Information($"Variations enabled = {shouldRunVariations}");
 
             if (!shouldRunVariations || !_snapshots.TryGetValue(snapshotId, out IDictionary<string, PublishedProviderSnapShots> publishedProviderSnapshots))
             {
                 return null;
             }
 
-            _logger.Information($"Variations enabled = {shouldRunVariations}");
+            _logger.Information($"Number of snapshot providers = {publishedProviderSnapshots.Count}");
 
             if (shouldRunVariations)
             {

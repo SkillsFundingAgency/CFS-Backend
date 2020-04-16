@@ -586,6 +586,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             _publishedProviders = _scopedProviders.DeepCopy().Select(_ =>
                     NewPublishedProvider(pp => pp.WithCurrent(
                         NewPublishedProviderVersion(ppv => ppv.WithProvider(_.DeepCopy())
+                            .WithFundingStreamId(FundingStreamId)
                             .WithProviderId(_.ProviderId)
                             .WithTotalFunding(9)
                             .WithFundingLines(new[] { new FundingLine { FundingLineCode = _fundingLines[0].FundingLineCode, TemplateLineId  = _fundingLines[0].TemplateLineId, Value = 9} })

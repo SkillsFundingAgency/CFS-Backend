@@ -203,12 +203,11 @@ namespace CalculateFunding.Services.Datasets.Services
             AndTheRelationship(_relationshipId, NewRelationship(_ => _.WithDatasetDefinition(NewReference())
                 .WithDatasetVersion(NewRelationshipVersion())));
             AndThePopulationOfProviderSummeriesForSpecification(false, false);
-
+            
             await WhenTheProcessDatasetMessageIsProcessed();
 
             ThenTheErrorWasLogged($"Unable to find a data definition for id: {DataDefintionId}, for blob: {BlobPath}");
             AndAnExceptionWasLogged();
-            AndTheSubscriptionIsCreatedAndDeleted();
         }
 
         [TestMethod]
@@ -1289,6 +1288,7 @@ namespace CalculateFunding.Services.Datasets.Services
             AndTheTableLoadResultsFromExcel(tableStream, datasetDefinition, tableLoadResult);
             AndTheCoreProviderData(NewApiProviderSummary(_ => _.WithId(_providerId)
                 .WithUPIN(_upin)));
+            AndTheCoreProviderVersion(NewApiProviderVersion(_ => _.WithProviders(new ApiProvider[] { new ApiProvider { ProviderId = _providerId, UPIN = _upin } })));
             AndTheJob(NewJob(_ => _.WithId(_jobId)
                 .WithDefinitionId(CreateInstructAllocationJob)), CreateInstructAllocationJob);
 
@@ -1343,6 +1343,7 @@ namespace CalculateFunding.Services.Datasets.Services
             AndTheTableLoadResultsFromExcel(tableStream, datasetDefinition, tableLoadResult);
             AndTheCoreProviderData(NewApiProviderSummary(_ => _.WithId(_providerId)
                 .WithUPIN(_upin)));
+            AndTheCoreProviderVersion(NewApiProviderVersion(_ => _.WithProviders(new ApiProvider[] { new ApiProvider { ProviderId = _providerId, UPIN = _upin } })));
 
             Func<Task> invocation = WhenTheProcessDatasetMessageIsProcessed;
 
@@ -1408,7 +1409,8 @@ namespace CalculateFunding.Services.Datasets.Services
             AndTheTableLoadResultsFromExcel(tableStream, datasetDefinition, tableLoadResult);
             AndTheCoreProviderData(NewApiProviderSummary(_ => _.WithId(_providerId)
                 .WithUPIN(_upin)));
-            
+            AndTheCoreProviderVersion(NewApiProviderVersion(_ => _.WithProviders(new ApiProvider[] { new ApiProvider { ProviderId = _providerId, UPIN = _upin } })));
+
             Func<Task> invocation = WhenTheProcessDatasetMessageIsProcessed;
 
             invocation

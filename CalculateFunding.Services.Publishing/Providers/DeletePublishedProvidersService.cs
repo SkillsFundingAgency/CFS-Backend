@@ -153,7 +153,7 @@ namespace CalculateFunding.Services.Publishing.Providers
 
         private async Task DeletePublishedFundingVersions(string fundingStreamId, string fundingPeriodId)
         {
-            _logger.Information($"Deleting published funding for {fundingStreamId} {fundingPeriodId}");
+            _logger.Information($"Deleting published funding versions for {fundingStreamId} {fundingPeriodId}");
 
             await _publishedFundingRepositoryPolicy.ExecuteAsync(() =>
                 _publishedFundingRepository.DeleteAllPublishedFundingVersionsByFundingStreamAndPeriod(fundingStreamId, fundingPeriodId));

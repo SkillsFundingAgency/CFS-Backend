@@ -235,76 +235,15 @@ namespace CalculateFunding.Services.Datasets
                 return;
             }
 
-            string corellationId = Guid.NewGuid().ToString();
-
-            bool isServiceBusService = _messengerService.GetType().GetInterfaces().Contains(typeof(IServiceBusService));
-
-            if (isServiceBusService)
-            {
-                await ((IServiceBusService)_messengerService).CreateSubscription(ServiceBusConstants.TopicNames.JobNotifications, corellationId);
-            }
-
-            try
-            {
-                ApiResponse<bool> refreshCacheFromApi = await _providersApiClientPolicy.ExecuteAsync(() =>
-                                 _providersApiClient.RegenerateProviderSummariesForSpecification(specificationId, relationship.IsSetAsProviderData));
-
-                if (!refreshCacheFromApi.StatusCode.IsSuccess() || refreshCacheFromApi?.Content == null)
-                {
-                    string errorMessage = $"Unable to re-generate providers while updating dataset '{relationshipId}' for specification '{specificationId}' with status code: {refreshCacheFromApi.StatusCode}";
-
-                    _logger.Information(errorMessage);
-
-                    throw new RetriableException(errorMessage);
-                }
-
-                // if the scoped providers are being re-generated then wait for the job to finish
-                if (Convert.ToBoolean(refreshCacheFromApi?.Content))
-                {
-                    bool jobCompletedSuccessfully;
-
-                    if (isServiceBusService)
-                    {
-                        Job scopedJob = await _messengerService.ReceiveMessage<Job>($"{ServiceBusConstants.TopicNames.JobNotifications}/Subscriptions/{corellationId}", _ =>
-                        {
-                            return _?.JobDefinitionId == DefinitionNames.PopulateScopedProvidersJob &&
-                            _.Properties.ContainsKey("specification-id") &&
-                            _.Properties["specification-id"] == specificationId &&
-                            (_.CompletionStatus == CompletionStatus.Succeeded || _.CompletionStatus == CompletionStatus.Failed);
-                        },
-                        TimeSpan.FromMinutes(10));
-                        jobCompletedSuccessfully = scopedJob?.CompletionStatus == CompletionStatus.Succeeded;
-                    }
-                    else
-                    {
-                        jobCompletedSuccessfully = await _jobManagement.WaitForJobsToComplete(new[] { DefinitionNames.PopulateScopedProvidersJob }, specificationId);
-                    }
-
-                    if (!jobCompletedSuccessfully)
-                    {
-                        string errorMessage = $"Unable to re-generate providers while updating dataset '{relationshipId}' for specification '{specificationId}' job didn't complete successfully in time";
-
-                        _logger.Information(errorMessage);
-
-                        throw new RetriableException(errorMessage);
-                    }
-                }
-            }
-            finally
-            {
-                if (isServiceBusService)
-                {
-                    await ((IServiceBusService)_messengerService).DeleteSubscription(ServiceBusConstants.TopicNames.JobNotifications, corellationId);
-                }
-            }
-
             BuildProject buildProject = null;
 
             Reference user = message.GetUserDetails();
 
+            string correlationId = message.GetCorrelationId();
+
             try
             {
-                buildProject = await ProcessDataset(dataset, specification, relationshipId, relationship.DatasetVersion.Version, user);
+                buildProject = await ProcessDataset(dataset, specification, relationshipId, relationship.DatasetVersion.Version, user, relationship.IsSetAsProviderData, correlationId);
 
                 await _jobManagement.UpdateJobStatus(jobId, 100, true, "Processed Dataset");
             }
@@ -348,7 +287,6 @@ namespace CalculateFunding.Services.Datasets
                         EntityType = nameof(DefinitionSpecificationRelationship),
                         Message = $"Processed dataset relationship: '{relationshipId}' for specification: '{specificationId}'"
                     };
-                    string correlationId = message.GetCorrelationId();
 
                     IEnumerable<CalculationResponseModel> allCalculations = await _calcsRepository.GetCurrentCalculationsBySpecificationId(specificationId);
 
@@ -452,7 +390,13 @@ namespace CalculateFunding.Services.Datasets
             return datasetAggregations;
         }
 
-        private async Task<BuildProject> ProcessDataset(Dataset dataset, SpecificationSummary specification, string relationshipId, int version, Reference user)
+        private async Task<BuildProject> ProcessDataset(Dataset dataset, 
+            SpecificationSummary specification, 
+            string relationshipId, 
+            int version, 
+            Reference user, 
+            bool forceRefreshScopedProviders, 
+            string correlationId)
         {
             string dataDefinitionId = dataset.Definition.Id;
 
@@ -493,7 +437,16 @@ namespace CalculateFunding.Services.Datasets
                 throw new NonRetriableException($"Failed to load table result");
             }
 
-            await PersistDataset(loadResult, dataset, datasetDefinition, buildProject, specification, relationshipId, version, user);
+            await PersistDataset(loadResult, 
+                dataset, 
+                datasetDefinition, 
+                buildProject, 
+                specification, 
+                relationshipId, 
+                version, 
+                user, 
+                forceRefreshScopedProviders, 
+                correlationId);
 
             return buildProject;
         }
@@ -531,7 +484,16 @@ namespace CalculateFunding.Services.Datasets
             return tableLoadResults.FirstOrDefault();
         }
 
-        private async Task PersistDataset(TableLoadResult loadResult, Dataset dataset, DatasetDefinition datasetDefinition, BuildProject buildProject, SpecificationSummary specification, string relationshipId, int version, Reference user)
+        private async Task PersistDataset(TableLoadResult loadResult, 
+            Dataset dataset, 
+            DatasetDefinition datasetDefinition, 
+            BuildProject buildProject, 
+            SpecificationSummary specification, 
+            string relationshipId, 
+            int version, 
+            Reference user, 
+            bool forceRefreshScopedProviders, 
+            string correlationId)
         {
             Guard.IsNullOrWhiteSpace(relationshipId, nameof(relationshipId));
 
@@ -751,6 +713,67 @@ namespace CalculateFunding.Services.Datasets
 
             // need to remove all calculation result batches so that all calcs are created on calc run
             await _cacheProvider.RemoveByPatternAsync($"{CacheKeys.CalculationResults}{specification.Id}");
+
+            bool isServiceBusService = _messengerService.GetType().GetInterfaces().Contains(typeof(IServiceBusService));
+
+            if (isServiceBusService)
+            {
+                await ((IServiceBusService)_messengerService).CreateSubscription(ServiceBusConstants.TopicNames.JobNotifications, correlationId);
+            }
+
+            try
+            {
+                ApiResponse<bool> refreshCacheFromApi = await _providersApiClientPolicy.ExecuteAsync(() =>
+                                 _providersApiClient.RegenerateProviderSummariesForSpecification(specification.Id, forceRefreshScopedProviders));
+
+                if (!refreshCacheFromApi.StatusCode.IsSuccess() || refreshCacheFromApi?.Content == null)
+                {
+                    string errorMessage = $"Unable to re-generate providers while updating dataset '{relationshipId}' for specification '{specification.Id}' with status code: {refreshCacheFromApi.StatusCode}";
+
+                    _logger.Information(errorMessage);
+
+                    throw new RetriableException(errorMessage);
+                }
+
+                // if the scoped providers are being re-generated then wait for the job to finish
+                if (Convert.ToBoolean(refreshCacheFromApi?.Content))
+                {
+                    bool jobCompletedSuccessfully;
+
+                    if (isServiceBusService)
+                    {
+                        Job scopedJob = await _messengerService.ReceiveMessage<Job>($"{ServiceBusConstants.TopicNames.JobNotifications}/Subscriptions/{correlationId}", _ =>
+                        {
+                            return _?.JobDefinitionId == DefinitionNames.PopulateScopedProvidersJob &&
+                            _.Properties.ContainsKey("specification-id") &&
+                            _.Properties["specification-id"] == specification.Id &&
+                            (_.CompletionStatus == CompletionStatus.Succeeded || _.CompletionStatus == CompletionStatus.Failed);
+                        },
+                        TimeSpan.FromMinutes(10));
+                        jobCompletedSuccessfully = scopedJob?.CompletionStatus == CompletionStatus.Succeeded;
+                    }
+                    else
+                    {
+                        jobCompletedSuccessfully = await _jobManagement.WaitForJobsToComplete(new[] { DefinitionNames.PopulateScopedProvidersJob }, specification.Id);
+                    }
+
+                    if (!jobCompletedSuccessfully)
+                    {
+                        string errorMessage = $"Unable to re-generate providers while updating dataset '{relationshipId}' for specification '{specification.Id}' job didn't complete successfully in time";
+
+                        _logger.Information(errorMessage);
+
+                        throw new RetriableException(errorMessage);
+                    }
+                }
+            }
+            finally
+            {
+                if (isServiceBusService)
+                {
+                    await ((IServiceBusService)_messengerService).DeleteSubscription(ServiceBusConstants.TopicNames.JobNotifications, correlationId);
+                }
+            }
         }
 
         private static IEnumerable<string> GetProviderIdsForIdentifier(DatasetDefinition datasetDefinition, RowLoadResult row, IEnumerable<ProviderSummary> providerSummaries)

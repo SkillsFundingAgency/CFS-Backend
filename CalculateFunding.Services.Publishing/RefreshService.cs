@@ -15,6 +15,7 @@ using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
+using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.Azure.ServiceBus;
 using Polly;
 using Serilog;
@@ -203,11 +204,21 @@ namespace CalculateFunding.Services.Publishing
                 return;
             }
 
+            Dictionary<string, PublishedProvider> publishedProviders = new Dictionary<string, PublishedProvider>();
+            
             // Get existing published providers for this specification
             _logger.Information("Looking up existing published providers from cosmos for refresh job");
-            IDictionary<string, PublishedProvider> publishedProviders = (await _publishingResiliencePolicy.ExecuteAsync(() =>
-                _publishedFundingDataService.GetCurrentPublishedProviders(fundingStream.Id, specification.FundingPeriod.Id))).ToDictionary(_ => _.Current.ProviderId);
-            _logger.Information($"Found {publishedProviders.Count} existing published providers from cosmos for refresh job");
+            List<PublishedProvider> existingPublishedProviders = (await _publishingResiliencePolicy.ExecuteAsync(() =>
+                _publishedFundingDataService.GetCurrentPublishedProviders(fundingStream.Id, specification.FundingPeriod.Id))).ToList();
+            _logger.Information($"Found {existingPublishedProviders.Count} existing published providers from cosmos for refresh job");
+
+            foreach (PublishedProvider publishedProvider in existingPublishedProviders)
+            {
+                if (publishedProvider.Current.FundingStreamId == fundingStream.Id)
+                {
+                    publishedProviders.Add(publishedProvider.Current.ProviderId, publishedProvider);
+                }
+            }
 
             // Create PublishedProvider for providers which don't already have a record (eg ProviderID-FundingStreamId-FundingPeriodId)
             IDictionary<string, PublishedProvider> newProviders = _providerService.GenerateMissingPublishedProviders(scopedProviders.Values, specification, fundingStream, publishedProviders);
@@ -305,7 +316,7 @@ namespace CalculateFunding.Services.Publishing
                     specification.TemplateIds[fundingStream.Id],
                     newProviders.ContainsKey(publishedProvider.Key));
 
-                if (publishedProviderUpdated)
+                if (publishedProviderUpdated && existingPublishedProviders.AnyWithNullCheck())
                 {
                     FundingConfiguration fundingConfiguration = await _policiesService.GetFundingConfiguration(fundingStream.Id, specification.FundingPeriod.Id);
 
