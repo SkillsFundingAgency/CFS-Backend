@@ -299,18 +299,19 @@ namespace CalculateFunding.Api.Specs.Controllers
 
         [Route("api/specs/{specificationId}/report-metadata")]
         [HttpGet]
-        [Produces(typeof(IEnumerable<ReportMetadata>))]
+        [Produces(typeof(IEnumerable<SpecificationReport>))]
         public IActionResult GetReportMetadataForSpecifications([FromRoute] string specificationId)
         {
             return _specificationsReportService.GetReportMetadata(specificationId);
         }
 
-        [Route("api/specs/download-report/{fileName}/{type}")]
-        [HttpGet]
+        [Route("api/specs/download-report")]
+        [HttpPost]
         [Produces(typeof(SpecificationsDownloadModel))]
-        public IActionResult DownloadSpecificationReport([FromRoute] string fileName, [FromRoute] ReportType type)
+        [ProducesResponseType((int)HttpStatusCode.NotFound)]
+        public async Task<IActionResult> DownloadSpecificationReport([FromBody] SpecificationReportIdentifier id)
         {
-            return _specificationsReportService.DownloadReport(fileName, type);
+            return await _specificationsReportService.DownloadReport(id);
         }
     }
 }

@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
 using CalculateFunding.Common.Storage;
 using CalculateFunding.Models.Specs;
+using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Storage.Blob;
@@ -16,7 +19,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
     {
         private SpecificationsReportService _service;
         private IBlobClient _blobClient;
-        private const string specificationId = "test-spec-1";
 
         [TestInitialize]
         public void SetUp()
@@ -43,17 +45,36 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         [TestMethod]
         public void GetReportMetadata_GivenSpecificationIdWithBlobs_ReturnsReportMetadata()
         {
-            string fundingLineBlobName = "funding-line-file";
+            string fundingLineBlobName = NewRandomString();
             string fundingLineFileExtension = "csv";
             string fundingLineFileName = "Funding Lines";
 
-            string calcResultsBlobName = "calc-result-file";
+            string calcResultsBlobName = NewRandomString();
             string calcResultsFileExtension = "xlsx";
+
+            JobType jobType = JobType.Released;
+            string fundingLineCode = NewRandomString();
+            string fundingPeriodId = NewRandomString();
+            string fundingStreamId = NewRandomString();
+            string specificationId = NewRandomString();
 
             IDictionary<string, string> fundingLineFileMetadata = new Dictionary<string, string>
             {
-                {"job_type", ReportType.Released.ToString()},
-                {"file_name", fundingLineFileName}
+                {"job_type", jobType.ToString()},
+                {"file_name", fundingLineFileName},
+                {"funding_line_code", fundingLineCode},
+                {"funding_period_id", fundingPeriodId},
+                {"funding_stream_id", fundingStreamId},
+                {"specification_id", specificationId}
+            };
+
+            SpecificationReportIdentifier id = new SpecificationReportIdentifier
+            {
+                JobType = jobType,
+                FundingLineCode = fundingLineCode,
+                FundingPeriodId = fundingPeriodId,
+                FundingStreamId = fundingStreamId,
+                SpecificationId = specificationId
             };
 
             BlobProperties blobProperties = new BlobProperties();
@@ -95,34 +116,26 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             _blobClient
                 .ListBlobs(
                     $"funding-lines-{specificationId}",
-                    Arg.Any<string>(),
-                    Arg.Any<bool>(),
-                    Arg.Any<BlobListingDetails>())
+                    "publishedproviderversions",
+                    true,
+                    BlobListingDetails.Metadata)
                 .Returns(fundingLineListBlobItems);
 
             _blobClient
                 .ListBlobs(
                     $"calculation-results-{specificationId}",
-                    Arg.Any<string>(),
-                    Arg.Any<bool>(),
-                    Arg.Any<BlobListingDetails>())
+                    "calcresults",
+                    true,
+                    BlobListingDetails.Metadata)
                 .Returns(calcResultsListBlobItems);
 
             IActionResult result = _service.GetReportMetadata(specificationId);
-
-            _blobClient
-                .Received(1)
-                .ListBlobs($"funding-lines-{specificationId}", "publishedproviderversions", true, BlobListingDetails.Metadata);
-
-            _blobClient
-                .Received(1)
-                .ListBlobs($"calculation-results-{specificationId}", "calcresults", true, BlobListingDetails.Metadata);
 
             result
                 .Should()
                 .BeOfType<OkObjectResult>();
 
-            IEnumerable<ReportMetadata> reportMetadata = ((OkObjectResult) result).Value as IEnumerable<ReportMetadata>;
+            IEnumerable<SpecificationReport> reportMetadata = ((OkObjectResult) result).Value as IEnumerable<SpecificationReport>;
 
             reportMetadata
                 .Should()
@@ -133,32 +146,25 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .Should()
                 .Be(2);
 
-            ReportMetadata metadata = reportMetadata
+            SpecificationReport metadata = reportMetadata
                 .ElementAt(0);
 
             metadata
                 .Should()
-                .BeEquivalentTo(new ReportMetadata
-                    {
+                .BeEquivalentTo(new SpecificationReport
+                {
                         Name = fundingLineFileName,
-                        BlobName = "funding-line-file.csv",
-                        Type = ReportType.Released,
                         Category = "Live",
                         Format = "CSV",
-                        Size = "-1 B"
-                    },
-                    opt => opt.Excluding(_ => _.Identifier));
-
-            metadata
-                .Identifier["job_type"]
-                .Should()
-                .Be("Released");
+                        Size = "-1 B",
+                        Id = id
+                });
         }
 
         [TestMethod]
         public void DownloadReport_NullFileNamePassed_ThrowsException()
         {
-            Func<IActionResult> invocation = () => _service.DownloadReport(null, ReportType.CalcResult);
+            Func<Task<IActionResult>> invocation = async () => await _service.DownloadReport(null);
 
             invocation
                 .Should()
@@ -166,20 +172,75 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .Which
                 .ParamName
                 .Should()
-                .Be("fileName");
+                .Be("id");
         }
 
         [TestMethod]
-        public void DownloadReport_GivenFileNameAndType_ReturnsDownloadUrl()
+        public async Task DownloadReport_GivenNotExistingIdSent_ReturnsNotFound()
         {
-            string fileName = "test.csv";
-            string sasUrl = "http://www.test.com/test.csv";
+            JobType jobType = JobType.Released;
+            string fundingLineCode = NewRandomString();
+            string fundingPeriodId = NewRandomString();
+            string fundingStreamId = NewRandomString();
+            string specificationId = NewRandomString();
+
+            SpecificationReportIdentifier id = new SpecificationReportIdentifier
+            {
+                JobType = jobType,
+                FundingLineCode = fundingLineCode,
+                FundingPeriodId = fundingPeriodId,
+                FundingStreamId = fundingStreamId,
+                SpecificationId = specificationId
+            };
+
+            string expectedBlobName = $"funding-lines-{specificationId}-{jobType}-{fundingLineCode}-{fundingStreamId}.csv";
 
             _blobClient
-                .GetBlobSasUrl(Arg.Any<string>(), Arg.Any<DateTimeOffset>(), Arg.Any<SharedAccessBlobPermissions>(), Arg.Any<string>())
+                .BlobExistsAsync(expectedBlobName, "publishedproviderversions")
+                .Returns(Task.FromResult(false));
+
+            IActionResult result = await _service.DownloadReport(id);
+
+            result
+                .Should()
+                .BeOfType<StatusCodeResult>()
+                .Which
+                .StatusCode
+                .Should()
+                .Be((int)HttpStatusCode.NotFound);
+        }
+
+        [TestMethod]
+        public async Task DownloadReport_GivenFileNameAndType_ReturnsDownloadUrl()
+        {
+            string sasUrl = "http://www.test.com/test.csv";
+
+            JobType jobType = JobType.Released;
+            string fundingLineCode = NewRandomString();
+            string fundingPeriodId = NewRandomString();
+            string fundingStreamId = NewRandomString();
+            string specificationId = NewRandomString();
+
+            SpecificationReportIdentifier id = new SpecificationReportIdentifier
+            {
+                JobType = jobType,
+                FundingLineCode = fundingLineCode,
+                FundingPeriodId = fundingPeriodId,
+                FundingStreamId = fundingStreamId,
+                SpecificationId = specificationId
+            };
+
+            string expectedBlobName = $"funding-lines-{specificationId}-{jobType}-{fundingLineCode}-{fundingStreamId}.csv";
+
+            _blobClient
+                .GetBlobSasUrl(expectedBlobName, Arg.Any<DateTimeOffset>(), SharedAccessBlobPermissions.Read, "publishedproviderversions")
                 .Returns(sasUrl);
 
-            IActionResult result = _service.DownloadReport(fileName, ReportType.CurrentProfileValues);
+            _blobClient
+                .BlobExistsAsync(expectedBlobName, "publishedproviderversions")
+                .Returns(Task.FromResult(true));
+
+            IActionResult result = await _service.DownloadReport(id);
 
             result
                 .Should()
@@ -189,21 +250,19 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .Should()
                 .BeOfType<SpecificationsDownloadModel>();
 
-            SpecificationsDownloadModel downloadModel = (result as OkObjectResult).Value as SpecificationsDownloadModel;
+            SpecificationsDownloadModel downloadModel = ((OkObjectResult)result).Value as SpecificationsDownloadModel;
 
             downloadModel
                 .Url
                 .Should()
                 .Be(sasUrl);
-
-            _blobClient
-                .Received(1)
-                .GetBlobSasUrl(fileName, Arg.Any<DateTimeOffset>(), SharedAccessBlobPermissions.Read, "publishedproviderversions");
         }
 
         private Uri BuildUri(string fileName, string extension)
         {
             return new Uri($"http://www.test.com/{fileName}.{extension}");
         }
+
+        private static string NewRandomString() => new RandomString();
     }
 }

@@ -9,6 +9,8 @@ using System;
 using System.IO;
 using Microsoft.Azure.Storage.Blob;
 using ByteSizeLib;
+using System.Net;
+using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Specs
 {
@@ -19,6 +21,9 @@ namespace CalculateFunding.Services.Specs
         private const string CalcsResultsContainerName = "calcresults";
         private const string PublishedProviderVersionsContainerName = "publishedproviderversions";
 
+        private const string FundingLineReportFilePrefix = "funding-lines";
+        private const string CalculationResultsReportFilePrefix = "calculation-results";
+
         public SpecificationsReportService(IBlobClient blobClient)
         {
             Guard.ArgumentNotNull(blobClient, nameof(blobClient));
@@ -26,111 +31,184 @@ namespace CalculateFunding.Services.Specs
             _blobClient = blobClient;
         }
 
-        public IActionResult DownloadReport(string fileName, ReportType reportType)
+        public IActionResult GetReportMetadata(string specificationId)
         {
-            Guard.IsNullOrWhiteSpace(fileName, nameof(fileName));
+            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
 
+            IEnumerable<SpecificationReport> specificationReports =
+                GetReportMetadata($"{FundingLineReportFilePrefix}-{specificationId}", PublishedProviderVersionsContainerName)
+                .Concat(
+                    GetReportMetadata($"{CalculationResultsReportFilePrefix}-{specificationId}", CalcsResultsContainerName, JobType.CalcResult));
+
+            return new OkObjectResult(specificationReports);
+        }
+
+        public async Task<IActionResult> DownloadReport(SpecificationReportIdentifier id)
+        {
+            Guard.ArgumentNotNull(id, nameof(id));
+
+            ReportType reportType = GetReportType(id.JobType);
             string containerName = GetContainerName(reportType);
-            
+            string fileName = GenerateFileName(id);
+
+            bool blobExists = await _blobClient.BlobExistsAsync(fileName, containerName);
+            if (!blobExists)
+            {
+                return new StatusCodeResult((int)HttpStatusCode.NotFound);
+            }
+
             string blobUrl = _blobClient.GetBlobSasUrl(fileName, DateTimeOffset.Now.AddDays(1), SharedAccessBlobPermissions.Read, containerName);
             
             SpecificationsDownloadModel downloadModel = new SpecificationsDownloadModel { Url = blobUrl };
             return new OkObjectResult(downloadModel);
         }
 
-        public IActionResult GetReportMetadata(string specificationId)
+        private IEnumerable<SpecificationReport> GetReportMetadata(string fileNamePrefix, string containerName, JobType? reportType = null)
         {
-            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
-
-            IEnumerable<ReportMetadata> publishingMetadata = 
-                GetReportMetadata($"funding-lines-{specificationId}", PublishedProviderVersionsContainerName)
-                .Concat(
-                    GetReportMetadata($"calculation-results-{specificationId}", CalcsResultsContainerName, ReportType.CalcResult));
-
-            return new OkObjectResult(publishingMetadata);
-        }
-
-        private IEnumerable<ReportMetadata> GetReportMetadata(string fileNamePrefix, string containerName, ReportType? reportType = null)
-        {
-            IEnumerable<IListBlobItem> listBlobItems = _blobClient.ListBlobs(fileNamePrefix, containerName, true, BlobListingDetails.Metadata);
+            IEnumerable<IListBlobItem> listBlobItems = _blobClient.ListBlobs(fileNamePrefix, containerName, true, BlobListingDetails.Metadata).ToList();
             return GetReportMetadata(listBlobItems, reportType);
         }
 
-        private IEnumerable<ReportMetadata> GetReportMetadata(
+        private IEnumerable<SpecificationReport> GetReportMetadata(
             IEnumerable<IListBlobItem> listBlobItems, 
-            ReportType? reportType = null)
+            JobType? metadataJobType = null)
         {
             return listBlobItems.Select(b =>
             {
                 ICloudBlob cloudBlob = (ICloudBlob)b;
                 
                 cloudBlob.Metadata.TryGetValue("file_name", out string fileName);
-                cloudBlob.Metadata.TryGetValue("job_type", out string jobType);
-                
+                ByteSize fileLength = ByteSize.FromBytes(cloudBlob.Properties.Length);
                 string fileSuffix = Path.GetExtension(b.Uri.AbsolutePath).Replace(".", string.Empty);
+                
+                JobType jobType = metadataJobType.GetValueOrDefault();
 
-                if (!reportType.HasValue)
+                if (!metadataJobType.HasValue)
                 {
-                    Enum.TryParse(jobType, true, out ReportType parsedReportType);
-                    reportType = parsedReportType;
+                    cloudBlob.Metadata.TryGetValue("job_type", out string metadataJobTypeString);
+                    bool reportTypeParseResult = Enum.TryParse(metadataJobTypeString, true, out jobType);
+
+                    if (!reportTypeParseResult)
+                    {
+                        return null;
+                    }
                 }
 
-                ByteSize fileLength = ByteSize.FromBytes(cloudBlob.Properties.Length);
-
-                return new ReportMetadata
+                return new SpecificationReport
                 {
                     Name = fileName,
-                    BlobName = Path.GetFileName(b.Uri.AbsolutePath),
-                    Type = reportType.Value,
-                    Identifier = cloudBlob.Metadata,
-                    Category = GetReportCategory(reportType.Value).ToString(),
+                    Id = GetReportId(cloudBlob.Metadata, jobType),
+                    Category = GetReportCategory(jobType).ToString(),
                     LastModified = cloudBlob.Properties.LastModified,
                     Format = fileSuffix.ToUpperInvariant(),
                     Size = $"{fileLength.LargestWholeNumberDecimalValue:0.#} {fileLength.LargestWholeNumberDecimalSymbol}"
-            };
-            }).OrderByDescending(_ => _.LastModified);
+                };
+            }).Where(_ => _ != null).OrderByDescending(_ => _.LastModified);
         }
 
-        private ReportCategory GetReportCategory(ReportType reportType)
+        private ReportCategory GetReportCategory(JobType jobType)
         {
-            switch (reportType)
+            switch (jobType)
             {
-                case ReportType.CalcResult:
-                case ReportType.CurrentState:
-                case ReportType.Released:
-                case ReportType.CurrentProfileValues:
-                case ReportType.CurrentOrganisationGroupValues:
+                case JobType.CalcResult:
+                case JobType.CurrentState:
+                case JobType.Released:
+                case JobType.CurrentProfileValues:
+                case JobType.CurrentOrganisationGroupValues:
                     return ReportCategory.Live;
-                case ReportType.History:
-                case ReportType.HistoryProfileValues:
-                case ReportType.HistoryOrganisationGroupValues:
-                case ReportType.HistoryPublishedProviderEstate:
+                case JobType.History:
+                case JobType.HistoryProfileValues:
+                case JobType.HistoryOrganisationGroupValues:
+                case JobType.HistoryPublishedProviderEstate:
                     return ReportCategory.History;
-                case ReportType.Undefined:
+                case JobType.Undefined:
                 default:
                     return ReportCategory.Undefined;
             }
         }
 
-        private string GetContainerName(ReportType reportType)
+        private ReportType GetReportType(JobType jobType)
         {
-            switch (reportType)
+            switch (jobType)
             {
-                case ReportType.Undefined:
-                case ReportType.CurrentState:
-                case ReportType.Released:
-                case ReportType.History:
-                case ReportType.HistoryProfileValues:
-                case ReportType.CurrentProfileValues:
-                case ReportType.CurrentOrganisationGroupValues:
-                case ReportType.HistoryOrganisationGroupValues:
-                case ReportType.HistoryPublishedProviderEstate:
-                    return PublishedProviderVersionsContainerName;
-                case ReportType.CalcResult:
-                    return CalcsResultsContainerName;
+                case JobType.CurrentState:
+                case JobType.Released:
+                case JobType.History:
+                case JobType.HistoryProfileValues:
+                case JobType.CurrentProfileValues:
+                case JobType.CurrentOrganisationGroupValues:
+                case JobType.HistoryOrganisationGroupValues:
+                case JobType.HistoryPublishedProviderEstate:
+                    return ReportType.FundingLine;
+                case JobType.CalcResult:
+                    return ReportType.CalculationResult;
+                case JobType.Undefined:
                 default:
                     throw new ArgumentOutOfRangeException();
             }
         }
+
+        private string GetContainerName(ReportType reportType)
+        {
+            return reportType switch
+            {
+                ReportType.FundingLine => PublishedProviderVersionsContainerName,
+                ReportType.CalculationResult => CalcsResultsContainerName,
+                _ => throw new ArgumentOutOfRangeException(),
+            };
+        }
+
+        private SpecificationReportIdentifier GetReportId(IDictionary<string, string> blobMetadata, JobType jobType)
+        {
+            blobMetadata.TryGetValue("specification_id", out string specificationId);
+            blobMetadata.TryGetValue("funding_stream_id", out string fundingStreamId);
+            blobMetadata.TryGetValue("funding_period_id", out string fundingPeriodId);
+            blobMetadata.TryGetValue("funding_line_code", out string fundingLineCode);
+
+            return blobMetadata != null ? new SpecificationReportIdentifier
+            {
+                JobType = jobType,
+                FundingLineCode = fundingLineCode,
+                FundingPeriodId = fundingPeriodId,
+                FundingStreamId = fundingStreamId,
+                SpecificationId = specificationId
+            } : null;
+        }
+
+        private string GenerateFileName(SpecificationReportIdentifier id)
+        {
+            ReportType reportType = GetReportType(id.JobType);
+
+            switch (reportType)
+            {
+                case ReportType.FundingLine:
+                    string fundingLineCode = WithPrefixDelimiterOrEmpty(id.FundingLineCode);
+                    string fundingStreamId = WithPrefixDelimiterOrEmpty(id.FundingStreamId);
+
+                    switch (id.JobType)
+                    {
+                        case JobType.CurrentState:
+                        case JobType.Released:
+                        case JobType.History:
+                        case JobType.HistoryProfileValues:
+                        case JobType.CurrentProfileValues:
+                        case JobType.CurrentOrganisationGroupValues:
+                        case JobType.HistoryOrganisationGroupValues:
+                            return $"{FundingLineReportFilePrefix}-{id.SpecificationId}-{id.JobType}{fundingLineCode}{fundingStreamId}.csv";
+                        case JobType.HistoryPublishedProviderEstate:
+                            return $"{FundingLineReportFilePrefix}-{id.SpecificationId}-{id.JobType}-{id.FundingPeriodId}.csv";
+                        case JobType.CalcResult:
+                        case JobType.Undefined:
+                        default:
+                            throw new ArgumentOutOfRangeException();
+                    }
+                case ReportType.CalculationResult:
+                    return $"{CalculationResultsReportFilePrefix}-{id.SpecificationId}.csv";
+                default:
+                    return null; 
+            }
+        }
+
+        private string WithPrefixDelimiterOrEmpty(string literal) => literal.IsNullOrWhitespace() ? string.Empty : $"-{literal}";
     }
 }

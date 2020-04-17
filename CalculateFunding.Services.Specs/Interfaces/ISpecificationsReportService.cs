@@ -1,5 +1,6 @@
 ﻿using CalculateFunding.Models.Specs;
 using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Specs.Interfaces
 {
@@ -7,6 +8,6 @@ namespace CalculateFunding.Services.Specs.Interfaces
     {
         IActionResult GetReportMetadata(string specificationId);
 
-        IActionResult DownloadReport(string fileName, ReportType reportType);
+        Task<IActionResult> DownloadReport(SpecificationReportIdentifier id);
     }
 }
