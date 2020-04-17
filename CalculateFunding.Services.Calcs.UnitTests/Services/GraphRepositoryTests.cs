@@ -22,6 +22,8 @@ using GraphCalculation = CalculateFunding.Common.ApiClient.Graph.Models.Calculat
 using GraphEntity = CalculateFunding.Common.ApiClient.Graph.Models.Entity<CalculateFunding.Common.ApiClient.Graph.Models.Calculation>;
 using CalculationEntity = CalculateFunding.Models.Graph.Entity<CalculateFunding.Common.ApiClient.Graph.Models.Calculation, CalculateFunding.Common.ApiClient.Graph.Models.Relationship>;
 using GraphRelationship = CalculateFunding.Common.ApiClient.Graph.Models.Relationship;
+using DatasetReference = CalculateFunding.Models.Graph.DatasetReference;
+using AutoMapper;
 
 namespace CalculateFunding.Services.Calcs.UnitTests.Services
 {
@@ -32,6 +34,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
         IGraphApiClient _graphApiClient;
         IGraphRepository _graphRepository;
         ILogger _logger;
+        IMapper _mapper;
 
         [TestInitialize]
         public void SetUp()
@@ -40,7 +43,8 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
             _graphApiClient = Substitute.For<IGraphApiClient>();
             ResiliencePolicies resiliencePolicies = new ResiliencePolicies { GraphApiClientPolicy = Polly.Policy.NoOpAsync() };
             _logger = Substitute.For<ILogger>();
-            _graphRepository = new GraphRepository(_graphApiClient, resiliencePolicies, _logger, _calculationsFeatureFlag);
+            _mapper = Substitute.For<IMapper>();
+            _graphRepository = new GraphRepository(_graphApiClient, resiliencePolicies, _logger, _calculationsFeatureFlag, _mapper);
         }
 
         [TestMethod]
@@ -247,6 +251,77 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
                 .UpsertCalculations(Arg.Is<GraphModels.Calculation[]>(_ => _[0].CalculationId == calculation.Id && _.Length == 3));
         }
 
+        [TestMethod]
+        public async Task PersistToGraph_WhenFeatureEnabledAndCalculationsListSuppliedWithDatasetFieldReferences_CalculationsGraphPersisted()
+        {
+            Calculation calculation1 = NewCalculation(_ => _.WithCurrentVersion(NewCalculationVersion()));
+            Calculation calculation2 = NewCalculation(_ => _.WithCurrentVersion(NewCalculationVersion()));
+            Calculation calculation3 = NewCalculation(_ => _.WithCurrentVersion(NewCalculationVersion()));
+
+            IEnumerable<Calculation> calculations = new[] { calculation1, calculation2, calculation3 };               
+
+            SpecificationSummary specificationSummary = NewSpecification();
+
+            DatasetReference datasetReference1 = NewDataSetReference();
+            DatasetReference datasetReference2 = NewDataSetReference();
+
+            IEnumerable<DatasetReference> datasetReferences = new[] { datasetReference1, datasetReference2 };
+               
+
+            _calculationsFeatureFlag
+                .IsGraphEnabled()
+                .Returns(true);
+
+            await _graphRepository.PersistToGraph(calculations,
+                specificationSummary, null, false, datasetReferences);
+
+            await _graphApiClient
+                .Received(1)
+                .UpsertSpecifications(Arg.Is<GraphModels.Specification[]>(_ => _[0].SpecificationId == specificationSummary.Id && _.Length == 1));
+
+            await _graphApiClient
+                .Received(1)
+                .UpsertCalculations(Arg.Is<GraphModels.Calculation[]>(calcs =>  calcs.Length == 3 
+                && calcs.Any(_ => _.CalculationId == calculation1.Id)
+                && calcs.Any(_ => _.CalculationId == calculation2.Id)
+                && calcs.Any(_ => _.CalculationId == calculation3.Id)
+                ));
+
+            await _graphApiClient
+                .Received(1)
+                .UpsertDatasetFields(Arg.Is<GraphModels.DatasetField[]>(ds => ds.Length == 2));
+        }
+
+        [TestMethod]
+        public async Task PersistToGraph_WhenFeatureEnabledAndCalculationsListSuppliedWithDatasetFieldReferencesNoMatchingCalculation_DatasetFieldRelationshipNotPersisted()
+        {
+            Calculation calculation = NewCalculation(_ => _.WithCurrentVersion(NewCalculationVersion()));
+
+            IEnumerable<Calculation> calculations = new[] { calculation };
+
+            SpecificationSummary specificationSummary = NewSpecification();
+
+            DatasetReference datasetReference = NewDataSetReference();
+
+            IEnumerable<DatasetReference> datasetReferences = new[] { datasetReference };
+
+            datasetReference.DatasetField.CalculationId = calculation.Id;
+
+            _calculationsFeatureFlag
+                .IsGraphEnabled()
+                .Returns(true);
+
+            await _graphRepository.PersistToGraph(calculations,
+                specificationSummary, null, false, datasetReferences);
+            
+
+            await _graphApiClient
+                .Received(1)
+                .UpsertCalculationDatasetFieldsRelationships(calculation.Id, Arg.Is<string[]>(_ => _[0] == datasetReference.DatasetField.DatasetFieldId));                
+        }
+
+
+
         protected static SpecificationSummary NewSpecification(Action<SpecificationSummaryBuilder> setUp = null)
         {
             SpecificationSummaryBuilder specificationSummaryBuilder = new SpecificationSummaryBuilder();
@@ -288,6 +363,15 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
             return typeof(GraphRepositoryTests)
                 .Assembly
                 .GetEmbeddedResourceFileContents(resourceName);
+        }
+
+        protected static DatasetReference NewDataSetReference(Action<DatasetReferenceBuilder> setUp = null)
+        {
+            DatasetReferenceBuilder datasetReferenceBuilder = new DatasetReferenceBuilder();
+
+            setUp?.Invoke(datasetReferenceBuilder);
+
+            return datasetReferenceBuilder.Build();
         }
     }
 }

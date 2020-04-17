@@ -57,6 +57,7 @@ namespace CalculateFunding.Services.Calcs.MappingProfiles
             CreateMap<GraphCalculation, Common.ApiClient.Graph.Models.Calculation>();
             CreateMap<Models.Graph.CalculationType, Common.ApiClient.Graph.Models.CalculationType>();
             CreateMap<Models.Graph.Specification, Common.ApiClient.Graph.Models.Specification>();
+            CreateMap<Models.Graph.DatasetField, Common.ApiClient.Graph.Models.DatasetField>();
         }
     }
 }

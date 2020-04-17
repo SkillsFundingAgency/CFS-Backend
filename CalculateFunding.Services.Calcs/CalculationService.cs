@@ -39,10 +39,14 @@ using Newtonsoft.Json;
 using Serilog;
 using CalculateFunding.Services.Calcs;
 using Calculation = CalculateFunding.Models.Calcs.Calculation;
+using CalculationType = CalculateFunding.Models.Calcs.CalculationType;
 using CalculationResponseModel = CalculateFunding.Models.Calcs.CalculationResponseModel;
 using Job = CalculateFunding.Common.ApiClient.Jobs.Models.Job;
 using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
 using Trigger = CalculateFunding.Common.ApiClient.Jobs.Models.Trigger;
+using System.Text.RegularExpressions;
+using CalculateFunding.Models.Graph;
+
 
 namespace CalculateFunding.Services.Calcs
 {
@@ -77,12 +81,15 @@ namespace CalculateFunding.Services.Calcs
         private readonly IInstructionAllocationJobCreation _instructionAllocationJobCreation;
         private readonly ICreateCalculationService _createCalculationService;
         private readonly IGraphRepository _graphRepository;
+        private readonly IDatasetReferenceService _datasetReferenceService;
+        
 
         public CalculationService(
             ICalculationsRepository calculationsRepository,
             ILogger logger,
             ISearchRepository<CalculationIndex> searchRepository,
             IBuildProjectsService buildProjectsService,
+            IDatasetReferenceService datasetReferenceService,
             IPoliciesApiClient policiesApiClient,
             ICacheProvider cacheProvider,
             ICalcsResiliencePolicies resiliencePolicies,
@@ -125,6 +132,8 @@ namespace CalculateFunding.Services.Calcs
             Guard.ArgumentNotNull(resiliencePolicies?.PoliciesApiClient, nameof(resiliencePolicies.PoliciesApiClient));
             Guard.ArgumentNotNull(resiliencePolicies?.SpecificationsApiClient, nameof(resiliencePolicies.SpecificationsApiClient));
             Guard.ArgumentNotNull(graphRepository, nameof(graphRepository));
+            Guard.ArgumentNotNull(datasetReferenceService, nameof(datasetReferenceService)); 
+
 
             _calculationsRepository = calculationsRepository;
             _logger = logger;
@@ -152,6 +161,7 @@ namespace CalculateFunding.Services.Calcs
             _specificationsApiClientPolicy = resiliencePolicies.SpecificationsApiClient;
             _calculationEditModelValidator = calculationEditModelValidator;
             _graphRepository = graphRepository;
+            _datasetReferenceService = datasetReferenceService;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -1170,9 +1180,11 @@ namespace CalculateFunding.Services.Calcs
 
             return await UpdateBuildProject(specificationSummary, calculations, calculationId, buildProject);
         }
+               
 
         private async Task<BuildProject> UpdateBuildProject(SpecModel.SpecificationSummary specificationSummary, IEnumerable<Calculation> calculations, string calculationId, BuildProject buildProject = null)
-        {
+        {           
+
             if (buildProject == null)
             {
                 buildProject = await _buildProjectsService.GetBuildProjectForSpecificationId(specificationSummary.Id);
@@ -1199,10 +1211,13 @@ namespace CalculateFunding.Services.Calcs
                 await _buildProjectRepositoryPolicy.ExecuteAsync(() => _buildProjectsRepository.UpdateBuildProject(buildProject));
             }
 
+            //Get the dataset relationship in the calculation
+            IEnumerable<DatasetReference> datasetRelationships = _datasetReferenceService.GetDatasetRelationShips(calculations, buildProject.DatasetRelationships);            
+
             if (calculationId != null)
             {
                 // there are only changes to the calc which effect the graph if a calculationId is sent into this method
-                await _graphRepository.PersistToGraph(calculations, specificationSummary, calculationId, true);
+                await _graphRepository.PersistToGraph(calculations, specificationSummary, calculationId, true, datasetRelationships);
             }
 
             return buildProject;

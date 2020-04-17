@@ -6,6 +6,7 @@ using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Calcs.Interfaces;
@@ -16,6 +17,7 @@ using FluentValidation.Results;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
+using System.Collections.Generic;
 
 namespace CalculateFunding.Services.Calcs.Services
 {
@@ -51,7 +53,8 @@ namespace CalculateFunding.Services.Calcs.Services
             IValidator<CalculationCreateModel> calculationCreateModelValidator = null,
             IValidator<CalculationEditModel> calculationEditModelValidator = null,
             ISpecificationsApiClient specificationsApiClient = null,
-            IGraphRepository graphRepository = null)
+            IGraphRepository graphRepository = null,
+            IDatasetReferenceService datasetReferenceService = null)
         {
             CalculationNameInUseCheck calculationNameInUseCheck = new CalculationNameInUseCheck(calculationsRepository ?? CreateCalculationsRepository(),
                 specificationsApiClient ?? CreateSpecificationsApiClient(),
@@ -68,6 +71,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 logger ?? CreateLogger(),
                 searchRepository ?? CreateSearchRepository(),
                 buildProjectsService ?? CreateBuildProjectsService(),
+                datasetReferenceService ?? CreateDatasetReferenceService(),
                 policiesApiClient ?? CreatePoliciesApiClient(),
                 cacheProvider ?? CreateCacheProvider(),
                 resiliencePolicies ?? CalcsResilienceTestHelper.GenerateTestPolicies(),
@@ -126,6 +130,11 @@ namespace CalculateFunding.Services.Calcs.Services
         private static IBuildProjectsService CreateBuildProjectsService()
         {
             return Substitute.For<IBuildProjectsService>();
+        }
+
+        private static IDatasetReferenceService CreateDatasetReferenceService()
+        {
+            return Substitute.For<IDatasetReferenceService>();
         }
 
         private static ILogger CreateLogger()
@@ -270,6 +279,65 @@ namespace CalculateFunding.Services.Calcs.Services
             };
         }
 
+        private static DatasetDefinition CreateDatasetDefinitionWithTwoTableDefinitions()
+        {
+            return new DatasetDefinition
+            {
+                Id = "12345",
+                Name = "14/15",
+                TableDefinitions = new List<TableDefinition>
+                {
+                    new TableDefinition
+                    {
+                        Id = "1111",
+                        Name = "Test Table Def 1",
+                        FieldDefinitions = new List<FieldDefinition>
+                        {
+                            new FieldDefinition
+                            {
+                                Id = "FD111",
+                                Name = "APPupilPremium3YO",
+                                Description = "Test description 1",
+                                Type = FieldType.String,
+                                IdentifierFieldType = IdentifierFieldType.LACode
+                            },
+                            new FieldDefinition
+                            {
+                                Id = "FD222",
+                                Name = "Test field name 2",
+                                Description = "Test description 2",
+                                Type = FieldType.String,
+                                IdentifierFieldType = null
+                            },
+                        }
+                    },
+                    new TableDefinition
+                    {
+                        Id = "2222",
+                        Name = "Test Table Def 2",
+                        FieldDefinitions = new List<FieldDefinition>
+                        {
+                            new FieldDefinition
+                            {
+                                Id = "FD333",
+                                Name = "Test field name 3",
+                                Description = "Test description 3",
+                                Type = FieldType.String,
+                                IdentifierFieldType = IdentifierFieldType.LACode
+                            },
+                            new FieldDefinition
+                            {
+                                Id = "FD444",
+                                Name = "Test field name 4",
+                                Description = "Test description 4",
+                                Type = FieldType.String,
+                                IdentifierFieldType = null
+                            },
+                        }
+                    }
+                }
+            };
+        }
         private static Reference CreateAuthor()
         {
             return new Reference(UserId, Username);

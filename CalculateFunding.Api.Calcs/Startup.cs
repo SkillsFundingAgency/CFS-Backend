@@ -1,4 +1,5 @@
-﻿using CalculateFunding.Common.Config.ApiClient.Graph;
+﻿using AutoMapper;
+using CalculateFunding.Common.Config.ApiClient.Graph;
 using CalculateFunding.Common.Config.ApiClient.Jobs;
 using CalculateFunding.Common.Config.ApiClient.Policies;
 using CalculateFunding.Common.Config.ApiClient.Providers;
@@ -19,6 +20,7 @@ using CalculateFunding.Services.Calcs.Analysis;
 using CalculateFunding.Services.Calcs.CodeGen;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Calcs.Interfaces.CodeGen;
+using CalculateFunding.Services.Calcs.MappingProfiles;
 using CalculateFunding.Services.Calcs.Validators;
 using CalculateFunding.Services.CodeGeneration.VisualBasic;
 using CalculateFunding.Services.CodeMetadataGenerator;
@@ -45,6 +47,7 @@ using Microsoft.FeatureManagement;
 using Microsoft.OpenApi.Models;
 using Polly;
 using Polly.Bulkhead;
+using System;
 
 namespace CalculateFunding.Api.Calcs
 {
@@ -110,7 +113,6 @@ namespace CalculateFunding.Api.Calcs
         public void RegisterComponents(IServiceCollection builder)
         {
             builder.AddSingleton(Configuration);
-
             builder
                 .AddScoped<IHealthChecker, ControllerResolverHealthCheck>();
 
@@ -167,6 +169,9 @@ namespace CalculateFunding.Api.Calcs
                 .AddScoped<IHealthChecker, BuildProjectsService>();
 
             builder
+                .AddScoped<IDatasetReferenceService, DatasetReferenceService>();
+
+            builder
                   .AddSingleton<IBuildProjectsRepository, BuildProjectsRepository>()
                   .AddSingleton<IHealthChecker, BuildProjectsRepository>();
 
@@ -213,6 +218,14 @@ namespace CalculateFunding.Api.Calcs
                 .AddSingleton<ICancellationTokenProvider, HttpContextCancellationProvider>();
 
             builder.AddUserProviderFromRequest();
+
+            MapperConfiguration calcConfig = new MapperConfiguration(c =>
+            {
+                c.AddProfile<CalculationsMappingProfile>();               
+            });
+
+            builder
+                .AddSingleton(calcConfig.CreateMapper());
 
             builder.AddCosmosDb(Configuration);
 

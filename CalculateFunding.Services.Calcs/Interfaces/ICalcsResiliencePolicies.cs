@@ -29,5 +29,6 @@ namespace CalculateFunding.Services.Calcs.Interfaces
         AsyncPolicy PoliciesApiClient { get; set; }
 
         AsyncPolicy SpecificationsApiClient { get; set; }
+        
     }
 }

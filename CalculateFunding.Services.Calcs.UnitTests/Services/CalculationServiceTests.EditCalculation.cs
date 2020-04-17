@@ -18,6 +18,7 @@ using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces;
+using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using FluentValidation;
 using FluentValidation.Results;
@@ -26,6 +27,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
 using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
+using DatasetReference = CalculateFunding.Models.Graph.DatasetReference;
 
 namespace CalculateFunding.Services.Calcs.Services
 {

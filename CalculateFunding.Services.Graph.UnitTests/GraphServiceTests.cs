@@ -424,7 +424,58 @@ namespace CalculateFunding.Services.Graph.UnitTests
                 .Received(1)
                 .DeleteAllForSpecification(specificationId);
         }
-        
+
+        [TestMethod]
+        public async Task SaveDatasetFields_GivenValidDatasetFields_OkStatusCodeReturned()
+        {
+            DatasetField[] datasetFields = new[] { NewDatasetField(), NewDatasetField() };
+
+            IActionResult result = await _graphService.UpsertDatasetField(datasetFields);
+
+            await _datasetRepository
+                .Received(1)
+                .UpsertDatasetField(datasetFields);
+
+            result
+                .Should()
+                .BeOfType<OkResult>();
+        }
+
+        [TestMethod]
+        public async Task CreateCalculationDatasetFieldsRelationship_GivenValidRelationship_OkStatusCodeReturned()
+        {
+            string calculationId = NewRandomString();
+            string datasetFieldid = NewRandomString();
+
+            IActionResult result = await _graphService.UpsertCalculationDatasetFieldRelationship(calculationId,
+                datasetFieldid);
+
+            await _datasetRepository
+                .Received(1)
+                .UpsertCalculationDatasetFieldRelationship(calculationId, datasetFieldid);
+
+            result
+                .Should()
+                .BeOfType<OkResult>();
+        }
+
+        [TestMethod]
+        public async Task DeleteCalculationDatasetFieldRelationship_GivenValidRelationship_OkStatusCodeReturned()
+        {
+            string calculationId = NewRandomString();
+            string datasetFieldId = NewRandomString();
+
+            IActionResult result = await _graphService.DeleteCalculationDatasetFieldRelationship(calculationId, datasetFieldId);
+
+            await _datasetRepository
+                .Received(1)
+                .DeleteCalculationDatasetFieldRelationship(calculationId, datasetFieldId);
+
+            result
+                .Should()
+                .BeOfType<OkResult>();
+        }
+
         private string NewRandomString() => new RandomString();
 
         private Calculation NewCalculation(Action<CalculationBuilder> setUp = null)
@@ -443,6 +494,15 @@ namespace CalculateFunding.Services.Graph.UnitTests
             setUp?.Invoke(specificationBuilder);
 
             return specificationBuilder.Build();
+        }
+
+        private DatasetField NewDatasetField(Action<DatasetFieldBuilder> setUp = null)
+        {
+            DatasetFieldBuilder datasetFieldBuilder = new DatasetFieldBuilder();
+
+            setUp?.Invoke(datasetFieldBuilder);
+
+            return datasetFieldBuilder.Build();
         }
     }
 }

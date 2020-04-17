@@ -52,7 +52,14 @@ namespace CalculateFunding.Api.Graph.Controllers
         {
             return await _graphService.UpsertDataField(fields);
         }
-        
+
+        [HttpPost("api/graph/datasetfields")]
+        [ProducesResponseType(200)]
+        public async Task<IActionResult> UpsertDatasetFields([FromBody]DatasetField[] fields)
+        {
+            return await _graphService.UpsertDatasetField(fields);
+        }
+
         [HttpDelete("api/graph/datafields/{fieldId}")]
         [ProducesResponseType(200)]
         public async Task<IActionResult> DeleteDataField([FromRoute]string fieldId)
@@ -196,6 +203,34 @@ namespace CalculateFunding.Api.Graph.Controllers
         public async Task<IActionResult> DeleteAllForSpecification([FromRoute] string specificationId)
         {
             return await _graphService.DeleteAllForSpecification(specificationId);
+        }
+
+        [HttpPut("api/graph/calculation/{calculationId}/relationships/datasetfield/{datasetFieldId}")]
+        [ProducesResponseType(200)]
+        public async Task<IActionResult> UpsertCalculationDatasetFieldRelationship([FromRoute]string calculationId, [FromRoute]string datasetFieldId)
+        {
+            return await _graphService.UpsertCalculationDatasetFieldRelationship(calculationId, datasetFieldId);
+        }
+       
+        [HttpPost("api/graph/calculation/{calculationId}/relationships/datasetfields")]
+        [ProducesResponseType(200)]
+        public async Task<IActionResult> UpsertCalculationDatasetFieldsRelationships([FromRoute]string calculationId, [FromBody]string[] datasetFieldIds)
+        {
+            return await _graphService.UpsertCalculationDatasetFieldsRelationships(calculationId, datasetFieldIds);
+        }
+
+        [HttpDelete("api/graph/calculation/{calculationId}/relationships/datasetfield/{datasetFieldId}")]
+        [ProducesResponseType(200)]
+        public async Task<IActionResult> DeleteCalculationDatasetFieldRelationship([FromRoute]string calculationId, [FromRoute]string datasetFieldId)
+        {
+            return await _graphService.DeleteCalculationDatasetFieldRelationship(calculationId, datasetFieldId);
+        }
+
+        [HttpDelete("api/graph/datasetfield/{datasetFieldId}")]
+        [ProducesResponseType(200)]
+        public async Task<IActionResult> DeleteDatasetField([FromRoute]string datasetFieldId)
+        {
+            return await _graphService.DeleteDatasetField(datasetFieldId);
         }
     }
 }

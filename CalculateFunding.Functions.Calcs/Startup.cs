@@ -136,6 +136,9 @@ namespace CalculateFunding.Functions.Calcs
             builder.AddScoped<IValidator<CalculationCreateModel>, CalculationCreateModelValidator>();
 
             builder
+               .AddScoped<IDatasetReferenceService, DatasetReferenceService>();
+
+            builder
               .AddScoped<IValidator<CalculationEditModel>, CalculationEditModelValidator>();
             builder
                 .AddSingleton<IBlobContainerRepository, BlobContainerRepository>();
