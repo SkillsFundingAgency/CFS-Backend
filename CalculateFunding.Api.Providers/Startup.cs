@@ -64,6 +64,19 @@ namespace CalculateFunding.Api.Providers
                     Name = "Ocp-Apim-Subscription-Key",
                     In = ParameterLocation.Header,
                 });
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement {
+                   {
+                     new OpenApiSecurityScheme
+                     {
+                       Reference = new OpenApiReference
+                       {
+                         Type = ReferenceType.SecurityScheme,
+                         Id = "API Key"
+                       }
+                      },
+                      new string[] { }
+                    }
+                });
             });
         }
 
@@ -82,20 +95,6 @@ namespace CalculateFunding.Api.Providers
 
             app.UseHttpsRedirection();
 
-            app.UseHealthCheckMiddleware();
-
-            app.UseRouting();
-            app.UseAuthentication();
-            app.UseAuthorization();
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapControllers();
-            });
-
-            app.MapWhen(
-                    context => !context.Request.Path.Value.StartsWith("/swagger"),
-                    appBuilder => appBuilder.UseMiddleware<ApiKeyMiddleware>());
-
             app.UseSwagger();
 
             app.UseSwaggerUI(c =>
@@ -103,6 +102,21 @@ namespace CalculateFunding.Api.Providers
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "Provider Microservice API");
                 c.DocumentTitle = "Provider Microservice - Swagger";
             });
+
+            app.MapWhen(
+                    context => !context.Request.Path.Value.StartsWith("/swagger"),
+                    appBuilder => {
+                        appBuilder.UseMiddleware<ApiKeyMiddleware>();
+                        appBuilder.UseHealthCheckMiddleware();
+                        appBuilder.UseMiddleware<LoggedInUserMiddleware>();
+                        appBuilder.UseRouting();
+                        appBuilder.UseAuthentication();
+                        appBuilder.UseAuthorization();
+                        appBuilder.UseEndpoints(endpoints =>
+                        {
+                            endpoints.MapControllers();
+                        });
+                    });
         }
 
         public void RegisterComponents(IServiceCollection builder)

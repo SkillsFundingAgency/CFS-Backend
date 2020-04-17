@@ -27,6 +27,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using Polly.Bulkhead;
 using Serilog;
+using System.Collections.Generic;
 using TemplateMetadataSchema10 = CalculateFunding.Common.TemplateMetadata.Schema10;
 
 namespace CalculateFunding.Api.Policy
@@ -57,6 +58,19 @@ namespace CalculateFunding.Api.Policy
                     Name = "Ocp-Apim-Subscription-Key",
                     In = ParameterLocation.Header,
                 });
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement {
+                   {
+                     new OpenApiSecurityScheme
+                     {
+                       Reference = new OpenApiReference
+                       {
+                         Type = ReferenceType.SecurityScheme,
+                         Id = "API Key"
+                       }
+                      },
+                      new string[] { }
+                    }
+                });
             });
         }
 
@@ -75,22 +89,6 @@ namespace CalculateFunding.Api.Policy
 
             app.UseHttpsRedirection();
 
-            app.UseMiddleware<LoggedInUserMiddleware>();
-
-            app.UseRouting();
-            app.UseAuthentication();
-            app.UseAuthorization();
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapControllers();
-            });
-
-            app.UseHealthCheckMiddleware();
-
-            app.MapWhen(
-                    context => !context.Request.Path.Value.StartsWith("/swagger"),
-                    appBuilder => appBuilder.UseMiddleware<ApiKeyMiddleware>());
-
             app.UseSwagger();
 
             app.UseSwaggerUI(c =>
@@ -98,6 +96,21 @@ namespace CalculateFunding.Api.Policy
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "Policy Microservice API");
                 c.DocumentTitle = "Policy Microservice - Swagger";
             });
+
+            app.MapWhen(
+                    context => !context.Request.Path.Value.StartsWith("/swagger"),
+                    appBuilder => {
+                        appBuilder.UseMiddleware<ApiKeyMiddleware>();
+                        appBuilder.UseHealthCheckMiddleware();
+                        appBuilder.UseMiddleware<LoggedInUserMiddleware>();
+                        appBuilder.UseRouting();
+                        appBuilder.UseAuthentication();
+                        appBuilder.UseAuthorization();
+                        appBuilder.UseEndpoints(endpoints =>
+                        {
+                            endpoints.MapControllers();
+                        });
+                    });
         }
 
         public void RegisterComponents(IServiceCollection builder)

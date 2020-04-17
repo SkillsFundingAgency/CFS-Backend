@@ -73,9 +73,20 @@ namespace CalculateFunding.Api.Datasets
                     Name = "Ocp-Apim-Subscription-Key",
                     In = ParameterLocation.Header,
                 });
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement {
+                   {
+                     new OpenApiSecurityScheme
+                     {
+                       Reference = new OpenApiReference
+                       {
+                         Type = ReferenceType.SecurityScheme,
+                         Id = "API Key"
+                       }
+                      },
+                      new string[] { }
+                    }
+                });
             });
-
-
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -92,22 +103,6 @@ namespace CalculateFunding.Api.Datasets
 
             app.UseHttpsRedirection();
 
-            app.UseMiddleware<LoggedInUserMiddleware>();
-
-            app.UseRouting();
-            app.UseAuthentication();
-            app.UseAuthorization();
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapControllers();
-            });
-
-            app.UseHealthCheckMiddleware();
-
-            app.MapWhen(
-                context => !context.Request.Path.Value.StartsWith("/swagger"),
-                appBuilder => appBuilder.UseMiddleware<ApiKeyMiddleware>());
-
             app.UseSwagger();
 
             app.UseSwaggerUI(c =>
@@ -115,6 +110,21 @@ namespace CalculateFunding.Api.Datasets
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "Datasets Microservice API");
                 c.DocumentTitle = "Datasets Microservice - Swagger";
             });
+
+            app.MapWhen(
+                    context => !context.Request.Path.Value.StartsWith("/swagger"),
+                    appBuilder => {
+                        appBuilder.UseMiddleware<ApiKeyMiddleware>();
+                        appBuilder.UseHealthCheckMiddleware();
+                        appBuilder.UseMiddleware<LoggedInUserMiddleware>();
+                        appBuilder.UseRouting();
+                        appBuilder.UseAuthentication();
+                        appBuilder.UseAuthorization();
+                        appBuilder.UseEndpoints(endpoints =>
+                        {
+                            endpoints.MapControllers();
+                        });
+                    });
         }
 
         public void RegisterComponents(IServiceCollection builder)
