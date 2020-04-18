@@ -173,16 +173,6 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             throw new NotImplementedException();
         }
 
-        public Task<ApiResponse<IEnumerable<ReportMetadata>>> GetReportMetadataForSpecifications(string specificationId)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<ApiResponse<SpecificationsDownloadModel>> DownloadSpecificationReport(string fileName, string type)
-        {
-            throw new NotImplementedException();
-        }
-
         public Task<HttpStatusCode> SetProfileVariationPointer(string specificationId, ProfileVariationPointer profileVariationPointer)
         {
             throw new NotImplementedException();
@@ -193,7 +183,12 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             throw new NotImplementedException();
         }
 
-        public Task<ApiResponse<SpecificationsDownloadModel>> DownloadSpecificationReport(string fileName, ReportType type)
+        public Task<ApiResponse<IEnumerable<SpecificationReport>>> GetReportMetadataForSpecifications(string specificationId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ApiResponse<SpecificationsDownloadModel>> DownloadSpecificationReport(SpecificationReportIdentifier specificationReportIdentifier)
         {
             throw new NotImplementedException();
         }

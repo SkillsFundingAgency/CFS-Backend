@@ -20,6 +20,8 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         private SpecificationsReportService _service;
         private IBlobClient _blobClient;
 
+        private const string PublishedProviderVersionsContainerName = "publishingreports";
+
         [TestInitialize]
         public void SetUp()
         {
@@ -116,7 +118,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             _blobClient
                 .ListBlobs(
                     $"funding-lines-{specificationId}",
-                    "publishedproviderversions",
+                    PublishedProviderVersionsContainerName,
                     true,
                     BlobListingDetails.Metadata)
                 .Returns(fundingLineListBlobItems);
@@ -196,7 +198,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             string expectedBlobName = $"funding-lines-{specificationId}-{jobType}-{fundingLineCode}-{fundingStreamId}.csv";
 
             _blobClient
-                .BlobExistsAsync(expectedBlobName, "publishedproviderversions")
+                .BlobExistsAsync(expectedBlobName, PublishedProviderVersionsContainerName)
                 .Returns(Task.FromResult(false));
 
             IActionResult result = await _service.DownloadReport(id);
@@ -233,11 +235,11 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             string expectedBlobName = $"funding-lines-{specificationId}-{jobType}-{fundingLineCode}-{fundingStreamId}.csv";
 
             _blobClient
-                .GetBlobSasUrl(expectedBlobName, Arg.Any<DateTimeOffset>(), SharedAccessBlobPermissions.Read, "publishedproviderversions")
+                .GetBlobSasUrl(expectedBlobName, Arg.Any<DateTimeOffset>(), SharedAccessBlobPermissions.Read, PublishedProviderVersionsContainerName)
                 .Returns(sasUrl);
 
             _blobClient
-                .BlobExistsAsync(expectedBlobName, "publishedproviderversions")
+                .BlobExistsAsync(expectedBlobName, PublishedProviderVersionsContainerName)
                 .Returns(Task.FromResult(true));
 
             IActionResult result = await _service.DownloadReport(id);

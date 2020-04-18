@@ -4,7 +4,6 @@ using CalculateFunding.Services.Core.Caching.FileSystem;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces;
-using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.Publishing.Interfaces;
 using Microsoft.Azure.ServiceBus;
 using Polly;
@@ -15,6 +14,7 @@ using System.Threading.Tasks;
 using System.Linq;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Reporting.FundingLines;
+using CalculateFunding.Common.Storage;
 
 namespace CalculateFunding.Services.Publishing.Reporting.PublishedProviderEstate
 {

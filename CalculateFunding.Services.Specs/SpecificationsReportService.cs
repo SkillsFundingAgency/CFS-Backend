@@ -19,7 +19,7 @@ namespace CalculateFunding.Services.Specs
         private readonly IBlobClient _blobClient;
 
         private const string CalcsResultsContainerName = "calcresults";
-        private const string PublishedProviderVersionsContainerName = "publishedproviderversions";
+        private const string PublishedProviderVersionsContainerName = "publishingreports";
 
         private const string FundingLineReportFilePrefix = "funding-lines";
         private const string CalculationResultsReportFilePrefix = "calculation-results";

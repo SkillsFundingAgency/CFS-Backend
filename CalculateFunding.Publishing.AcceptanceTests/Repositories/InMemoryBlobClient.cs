@@ -103,5 +103,15 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         {
             throw new NotImplementedException();
         }
+
+        public Task UploadFileAsync(ICloudBlob blob, Stream data)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task AddMetadataAsync(ICloudBlob blob, IDictionary<string, string> metadata)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

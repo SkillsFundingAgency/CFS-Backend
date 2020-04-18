@@ -1,9 +1,9 @@
-﻿using CalculateFunding.Common.Utility;
+﻿using CalculateFunding.Common.Storage;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Caching.FileSystem;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces;
-using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.Publishing.Interfaces;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.Storage.Blob;
@@ -19,6 +19,8 @@ namespace CalculateFunding.Services.Publishing.Reporting
 {
     public abstract class BasePublishingCsvGenerator : IPublishedProviderEstateCsvGenerator
     {
+        private const string PublishedFundingReportContainerName = "publishingreports";
+
         private readonly IJobTracker _jobTracker;
         private readonly IFileSystemAccess _fileSystemAccess;
         private readonly IBlobClient _blobClient;
@@ -129,7 +131,7 @@ namespace CalculateFunding.Services.Publishing.Reporting
 
         private async Task UploadToBlob(string temporaryFilePath, string blobPath, string contentDisposition, IDictionary<string, string> metadata)
         {
-            ICloudBlob blob = _blobClient.GetBlockBlobReference(blobPath);
+            ICloudBlob blob = _blobClient.GetBlockBlobReference(blobPath, PublishedFundingReportContainerName);
             blob.Properties.ContentDisposition = contentDisposition;            
 
             using (Stream csvFileStream = _fileSystemAccess.OpenRead(temporaryFilePath))
@@ -140,7 +142,7 @@ namespace CalculateFunding.Services.Publishing.Reporting
 
         private async Task UploadBlob(ICloudBlob blob, Stream csvFileStream, IDictionary<string, string> metadata)
         {
-            await _blobClient.UploadAsync(blob, csvFileStream);
+            await _blobClient.UploadFileAsync(blob, csvFileStream);
             await _blobClient.AddMetadataAsync(blob, metadata);
         }
 

@@ -4,12 +4,12 @@ using System.Dynamic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Storage;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Caching.FileSystem;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Interfaces;
-using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Reporting.PublishedProviderEstate;
 using CalculateFunding.Tests.Common.Helpers;
@@ -43,7 +43,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
         private string _rootPath;
 
         private Message _message;
-        
+
+        private const string PublishedFundingReportContainerName = "publishingreports";
+
         [TestInitialize]
         public void SetUp()
         {
@@ -143,7 +145,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
                     Times.Never);
 
             _blobClient
-                .Verify(_ => _.UploadAsync(_cloudBlob.Object, It.IsAny<Stream>()),
+                .Verify(_ => _.UploadFileAsync(_cloudBlob.Object, It.IsAny<Stream>()),
                     Times.Never);
 
             _jobTracker.Verify(_ => _.CompleteTrackingJob(jobId),
@@ -194,7 +196,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
                 ("jobId", jobId),
                 ("funding-period-id", fundingPeriodId),
                 ("funding-stream-id", fundingStreamId));
-            AndTheCloudBlobForSpecificationId(fileName);
+            AndTheCloudBlobForSpecificationId(fileName, PublishedFundingReportContainerName);
             AndTheFileStream(expectedInterimFilePath, incrementalFileStream);
             AndTheFileExists(expectedInterimFilePath);
             AndTheTransformForJobDefinition(jobDefinitionName);
@@ -232,7 +234,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
                     Times.Exactly(3));
             
             _blobClient
-                .Verify(_ => _.UploadAsync(_cloudBlob.Object, incrementalFileStream),
+                .Verify(_ => _.UploadFileAsync(_cloudBlob.Object, incrementalFileStream),
                     Times.Once);
             
             _jobTracker.Verify(_ => _.CompleteTrackingJob(jobId),
@@ -281,7 +283,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
 
             GivenTheCsvRowTransformation(transformedRowsOne, expectedCsvOne, true);
             AndTheMessageProperties(("specification-id", specificationId), ("jobId", jobId), ("funding-period-id", fundingPeriodId));
-            AndTheCloudBlobForSpecificationId(fileName);
+            AndTheCloudBlobForSpecificationId(fileName, PublishedFundingReportContainerName);
             AndTheFileStream(expectedInterimFilePath, incrementalFileStream);
             AndTheFileExists(expectedInterimFilePath);
             AndTheTransformForJobDefinition(jobDefinitionName);
@@ -319,7 +321,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
                     Times.Exactly(3));
             
             _blobClient
-                .Verify(_ => _.UploadAsync(_cloudBlob.Object, incrementalFileStream),
+                .Verify(_ => _.UploadFileAsync(_cloudBlob.Object, incrementalFileStream),
                     Times.Once);
             
             _jobTracker.Verify(_ => _.CompleteTrackingJob(jobId));
@@ -337,10 +339,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
                 .Returns(_transformation.Object);
         }
 
-        private void AndTheCloudBlobForSpecificationId(string fileName)
+        private void AndTheCloudBlobForSpecificationId(string fileName, string containerName)
         {
             _blobClient
-                .Setup(_ => _.GetBlockBlobReference(fileName))
+                .Setup(_ => _.GetBlockBlobReference(fileName, containerName))
                 .Returns(_cloudBlob.Object);
         }
 
