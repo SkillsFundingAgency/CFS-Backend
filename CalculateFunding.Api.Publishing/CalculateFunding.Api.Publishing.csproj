@@ -23,7 +23,7 @@
     <PackageReference Include="Microsoft.Azure.AppConfiguration.AspNetCore" Version="2.0.0-preview-010060003-1250" />
     <PackageReference Include="Microsoft.FeatureManagement.AspNetCore" Version="2.0.0-preview-010610001-1263" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="2.2.3" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="5.0.0-rc4" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="5.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.1.2" />
 
   </ItemGroup>

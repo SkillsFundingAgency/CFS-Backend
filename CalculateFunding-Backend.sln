@@ -334,7 +334,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Services.G
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Functions.Providers", "CalculateFunding.Functions.Providers\CalculateFunding.Functions.Providers.csproj", "{B0A883BC-740A-4869-9EEB-385C7BD8E9EC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalculateFunding.Functions.Providers.UnitTests", "CalculateFunding.Functions.Providers.UnitTests\CalculateFunding.Functions.Providers.UnitTests.csproj", "{FAC58353-6A1A-456E-A849-E754DB5F3B9F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Functions.Providers.UnitTests", "CalculateFunding.Functions.Providers.UnitTests\CalculateFunding.Functions.Providers.UnitTests.csproj", "{FAC58353-6A1A-456E-A849-E754DB5F3B9F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

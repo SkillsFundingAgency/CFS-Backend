@@ -21,7 +21,7 @@
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.13.1" />
 
     <PackageReference Include="Neo4j.Driver.Signed" Version="4.0.0" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="5.0.0-rc4" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="5.0.0" />
   </ItemGroup>
 
   <ItemGroup>
