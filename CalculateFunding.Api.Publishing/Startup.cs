@@ -167,7 +167,7 @@ namespace CalculateFunding.Api.Publishing
                 CosmosRepository cosmos = new CosmosRepository(settings);
 
                 return new VersionRepository<PublishedProviderVersion>(cosmos);
-            }).AddSingleton<IHealthChecker, VersionRepository<PublishedProviderVersion>>();
+            });
             builder
                 .AddSingleton<IPublishedProviderStatusUpdateSettings>(_ =>
                     {
@@ -247,19 +247,6 @@ namespace CalculateFunding.Api.Publishing
                 .AddSingleton<IPublishedProviderErrorDetection, PublishedProviderErrorDetection>()
                 .AddSingleton<IProfilingService, ProfilingService>()
                 .AddSingleton<IPublishedProviderVersioningService, PublishedProviderVersioningService>();
-
-            builder.AddSingleton<IVersionRepository<PublishedProviderVersion>, VersionRepository<PublishedProviderVersion>>((ctx) =>
-            {
-                CosmosDbSettings publishedProviderVersioningDbSettings = new CosmosDbSettings();
-
-                Configuration.Bind("CosmosDbSettings", publishedProviderVersioningDbSettings);
-
-                publishedProviderVersioningDbSettings.ContainerName = "publishedfunding";
-
-                CosmosRepository resultsRepostory = new CosmosRepository(publishedProviderVersioningDbSettings);
-
-                return new VersionRepository<PublishedProviderVersion>(resultsRepostory);
-            }).AddSingleton<IHealthChecker, VersionRepository<PublishedProviderVersion>>();
 
             builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Api.Publishing");
             builder.AddApplicationInsightsServiceName(Configuration, "CalculateFunding.Api.Publishing");
