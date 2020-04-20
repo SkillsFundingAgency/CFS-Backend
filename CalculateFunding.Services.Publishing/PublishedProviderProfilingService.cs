@@ -23,14 +23,14 @@ namespace CalculateFunding.Services.Publishing
         private readonly ILogger _logger;
         private readonly AsyncPolicy _publishingResiliencePolicy;
         private readonly AsyncPolicy _specificationResiliencePolicy;
-        private readonly IPublishedProviderVersionErrorDetectionPipeline _publishedProviderVersionErrorDetectionPipeline;
+        private readonly IPublishedProviderErrorDetection _publishedProviderErrorDetection;
         private readonly IProfilingService _profilingService;
         private readonly IPublishedProviderVersioningService _publishedProviderVersioningService;
         private readonly ISpecificationsApiClient _specificationsApiClient;
 
         public PublishedProviderProfilingService(
             IPublishedFundingRepository publishedFundingRepository,
-            IPublishedProviderVersionErrorDetectionPipeline publishedProviderVersionErrorDetectionPipeline,
+            IPublishedProviderErrorDetection publishedProviderErrorDetection,
             IProfilingService profilingService,
             IPublishedProviderVersioningService publishedProviderVersioningService,
             ISpecificationsApiClient specificationsApiClient,
@@ -38,7 +38,7 @@ namespace CalculateFunding.Services.Publishing
             IPublishingResiliencePolicies publishingResiliencePolicies)
         {
             Guard.ArgumentNotNull(publishedFundingRepository, nameof(publishedFundingRepository));
-            Guard.ArgumentNotNull(publishedProviderVersionErrorDetectionPipeline, nameof(publishedProviderVersionErrorDetectionPipeline));
+            Guard.ArgumentNotNull(publishedProviderErrorDetection, nameof(publishedProviderErrorDetection));
             Guard.ArgumentNotNull(profilingService, nameof(profilingService));
             Guard.ArgumentNotNull(publishedProviderVersioningService, nameof(publishedProviderVersioningService));
             Guard.ArgumentNotNull(specificationsApiClient, nameof(specificationsApiClient));
@@ -47,7 +47,7 @@ namespace CalculateFunding.Services.Publishing
             Guard.ArgumentNotNull(publishingResiliencePolicies?.SpecificationsApiClient, nameof(publishingResiliencePolicies.SpecificationsApiClient));
 
             _publishedFundingRepository = publishedFundingRepository;
-            _publishedProviderVersionErrorDetectionPipeline = publishedProviderVersionErrorDetectionPipeline;
+            _publishedProviderErrorDetection = publishedProviderErrorDetection;
             _profilingService = profilingService;
             _publishedProviderVersioningService = publishedProviderVersioningService;
             _specificationsApiClient = specificationsApiClient;
@@ -94,7 +94,7 @@ namespace CalculateFunding.Services.Publishing
 
             await ProfileFundingLineValues(newPublishedProviderVersion, profilePatternKey);
 
-            await _publishedProviderVersionErrorDetectionPipeline.ProcessPublishedProvider(newPublishedProviderVersion);
+            await _publishedProviderErrorDetection.ProcessPublishedProvider(newPublishedProviderVersion);
 
             await SavePublishedProvider(publishedProvider, newPublishedProviderVersion);
 

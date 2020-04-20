@@ -21,6 +21,7 @@ using CalculateFunding.Publishing.AcceptanceTests.Repositories;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Publishing;
+using CalculateFunding.Services.Publishing.Errors;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Providers;
 using CalculateFunding.Services.Publishing.Reporting;
@@ -100,6 +101,8 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
             RegisterTypeAs<InMemoryFeatureManagerSnapshot, IFeatureManagerSnapshot>();
             RegisterTypeAs<PublishingFeatureFlag, IPublishingFeatureFlag>();
             RegisterTypeAs<PublishedProviderInMemorySearchRepository, ISearchRepository<PublishedProviderIndex>>();
+            RegisterTypeAs<ReApplyCustomProfiles, IReApplyCustomProfiles>();
+            RegisterInstanceAs<IPublishedProviderErrorDetection>(new PublishedProviderErrorDetection(ArraySegment<IDetectPublishedProviderErrors>.Empty));
 
             JobManagementResiliencePolicies jobManagementResiliencePolicies = new JobManagementResiliencePolicies()
             {

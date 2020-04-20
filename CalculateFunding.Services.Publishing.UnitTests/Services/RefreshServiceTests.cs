@@ -16,7 +16,6 @@ using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Interfaces;
-using CalculateFunding.Services.Publishing.Services.UnitTests;
 using CalculateFunding.Services.Publishing.Specifications;
 using CalculateFunding.Services.Publishing.Variations;
 using CalculateFunding.Services.Publishing.Variations.Strategies;
@@ -33,6 +32,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using Moq;
 using FundingLine = CalculateFunding.Models.Publishing.FundingLine;
 using TemplateCalculation = CalculateFunding.Common.TemplateMetadata.Models.Calculation;
 using TemplateFundingLine = CalculateFunding.Common.TemplateMetadata.Models.FundingLine;
@@ -90,6 +90,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         private const string JobId = "JobId";
         private const string FundingStreamId = "PSG";
         private const string Successor = "1234";
+        private Mock<IReApplyCustomProfiles> _reApplyCustomProfiles;
 
         [TestInitialize]
         public void Setup()
@@ -126,7 +127,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             _publishedProviderVersionService = Substitute.For<IPublishedProviderVersionService>();
             _generateCsvJobsLocator = Substitute.For<IGeneratePublishedFundingCsvJobsCreationLocator>();
             _policiesService = Substitute.For<IPoliciesService>();
+            _reApplyCustomProfiles = new Mock<IReApplyCustomProfiles>();
 
+            //should we be using the concrete variations code here? they are all individually under test already I think
             IVariationStrategy[] variationStrategies = typeof(IVariationStrategy).Assembly.GetTypes()
                 .Where(_ => _.Implements(typeof(IVariationStrategy)) &&
                             _.GetConstructors().Any(ci => !ci.GetParameters().Any()))
@@ -161,7 +164,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 _transactionFactory,
                 _publishedProviderVersionService,
                 _policiesService,
-                _generateCsvJobsLocator);
+                _generateCsvJobsLocator,
+                _reApplyCustomProfiles.Object);
         }
 
         [TestMethod]
@@ -220,6 +224,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                     Arg.Any<Reference>(),
                     Arg.Is(PublishedProviderStatus.Updated),
                     Arg.Is(JobId));
+            
+            AndTheCustomProfilesWereReApplied();
         }
 
         [TestMethod]
@@ -685,6 +691,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             Message message = NewMessage(_ => _.WithUserProperty("specification-id", SpecificationId).WithUserProperty("jobId", JobId));
 
             await _refreshService.RefreshResults(message);
+        }
+
+        private void AndTheCustomProfilesWereReApplied()
+        {
+            foreach (PublishedProvider publishedProvider in _publishedProviders)
+            {
+                _reApplyCustomProfiles.Verify(_ => _.ProcessPublishedProvider(publishedProvider.Current),
+                    Times.Once);
+            }
         }
     }
 }

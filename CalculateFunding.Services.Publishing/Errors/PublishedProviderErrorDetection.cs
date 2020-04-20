@@ -6,7 +6,7 @@ using CalculateFunding.Services.Publishing.Interfaces;
 
 namespace CalculateFunding.Services.Publishing.Errors
 {
-    public class PublishedProviderErrorDetection : IPublishedProviderVersionErrorDetectionPipeline
+    public class PublishedProviderErrorDetection : IPublishedProviderErrorDetection
     {
         private readonly IEnumerable<IDetectPublishedProviderErrors> _errorDetectors;
 

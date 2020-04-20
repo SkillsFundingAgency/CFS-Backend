@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
@@ -70,10 +69,9 @@ namespace CalculateFunding.Services.Publishing
 
             Guard.IsNullOrWhiteSpace(jobId, nameof(jobId));
 
-            JobViewModel currentJob;
             try
             {
-                currentJob = await _jobManagement.RetrieveJobAndCheckCanBeProcessed(jobId);
+                await _jobManagement.RetrieveJobAndCheckCanBeProcessed(jobId);
             }
             catch (Exception e)
             {
@@ -110,6 +108,12 @@ namespace CalculateFunding.Services.Publishing
 
             if (publishedProviders.IsNullOrEmpty())
                 throw new RetriableException($"Null or empty published providers returned for specification id : '{specificationId}' when setting status to approved.");
+            
+            if (publishedProviders.Any(_ => _.Current?.HasErrors == true))
+            {
+                throw new InvalidOperationException(
+                    $"There are published providers with errors that must be fixed before they can be approved under specification {specificationId}.");                             
+            }
 
             string correlationId = message.GetUserProperty<string>("correlation-id");
             

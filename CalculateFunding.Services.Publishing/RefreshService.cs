@@ -15,7 +15,6 @@ using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
-using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.Azure.ServiceBus;
 using Polly;
 using Serilog;
@@ -47,6 +46,7 @@ namespace CalculateFunding.Services.Publishing
         private readonly IPublishedProviderVersionService _publishedProviderVersionService;
         private readonly IPoliciesService _policiesService;
         private readonly IVariationService _variationService;
+        private readonly IReApplyCustomProfiles _reApplyCustomProfiles;
 
         public RefreshService(IPublishedProviderStatusUpdateService publishedProviderStatusUpdateService,
             IPublishedFundingDataService publishedFundingDataService,
@@ -68,7 +68,8 @@ namespace CalculateFunding.Services.Publishing
             ITransactionFactory transactionFactory,
             IPublishedProviderVersionService publishedProviderVersionService,
             IPoliciesService policiesService,
-            IGeneratePublishedFundingCsvJobsCreationLocator generateCsvJobsLocator)
+            IGeneratePublishedFundingCsvJobsCreationLocator generateCsvJobsLocator, 
+            IReApplyCustomProfiles reApplyCustomProfiles)
         {
             Guard.ArgumentNotNull(generateCsvJobsLocator, nameof(generateCsvJobsLocator));
             Guard.ArgumentNotNull(publishedProviderStatusUpdateService, nameof(publishedProviderStatusUpdateService));
@@ -91,6 +92,7 @@ namespace CalculateFunding.Services.Publishing
             Guard.ArgumentNotNull(policiesService, nameof(policiesService));
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(prerequisiteCheckerLocator, nameof(prerequisiteCheckerLocator));
+            Guard.ArgumentNotNull(reApplyCustomProfiles, nameof(reApplyCustomProfiles));
 
             _publishedProviderStatusUpdateService = publishedProviderStatusUpdateService;
             _publishedFundingDataService = publishedFundingDataService;
@@ -107,6 +109,7 @@ namespace CalculateFunding.Services.Publishing
             _fundingLineValueOverride = fundingLineValueOverride;
             _variationService = variationService;
             _generateCsvJobsLocator = generateCsvJobsLocator;
+            _reApplyCustomProfiles = reApplyCustomProfiles;
             _publishedProviderIndexerService = publishedProviderIndexerService;
 
             _publishingResiliencePolicy = publishingResiliencePolicies.PublishedFundingRepository;
@@ -256,8 +259,8 @@ namespace CalculateFunding.Services.Publishing
             Calculation[] flattedCalculations = flattenedTemplateFundingLines.SelectMany(_ => _.Calculations.Flatten(c => c.Calculations)).ToArray();
 
             _logger.Information("Profiling providers for refresh");
-
-            // Profile payment funding lines
+            
+            // Profile payment funding lines (that don't have custom profiles)
             try
             {
                 await _profilingService.ProfileFundingLines(generatedPublishedProviderData.SelectMany(c => c.Value.FundingLines.Where(f => f.Type == OrganisationGroupingReason.Payment)), fundingStream.Id, specification.FundingPeriod.Id);
@@ -299,7 +302,7 @@ namespace CalculateFunding.Services.Publishing
                     {
                         newProviders.Remove(publishedProvider.Key);
                     }
-
+                    
                     if (!_fundingLineValueOverride.TryOverridePreviousFundingLineValues(publishedProviderVersion, generatedProviderResult))
                     {
                         //there are no none null payment funding line values and we didn't have to override any previous
@@ -315,6 +318,9 @@ namespace CalculateFunding.Services.Publishing
                     scopedProviders[providerId],
                     specification.TemplateIds[fundingStream.Id],
                     newProviders.ContainsKey(publishedProvider.Key));
+
+                //reapply any custom profiles this provider has and internally check for errors
+                await _reApplyCustomProfiles.ProcessPublishedProvider(publishedProviderVersion);
 
                 if (publishedProviderUpdated && existingPublishedProviders.AnyWithNullCheck())
                 {

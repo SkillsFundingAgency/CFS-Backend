@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -12,7 +13,7 @@ namespace CalculateFunding.Services.Publishing.Errors
         {
             ErrorCheck errorCheck = new ErrorCheck();
 
-            foreach (FundingLine fundingLine in PaymentFundingLinesFor(publishedProviderVersion))
+            foreach (FundingLine fundingLine in CustomPaymentFundingLinesFor(publishedProviderVersion))
             {
                 decimal fundingLineValue = fundingLine.Value.GetValueOrDefault();
                 decimal profiledValue = GetProfiledSum(fundingLine);
@@ -31,10 +32,10 @@ namespace CalculateFunding.Services.Publishing.Errors
             return Task.FromResult(errorCheck);
         }
 
-        private static IEnumerable<FundingLine> PaymentFundingLinesFor(PublishedProviderVersion publishedProviderVersion)
+        private static IEnumerable<FundingLine> CustomPaymentFundingLinesFor(PublishedProviderVersion publishedProviderVersion)
         {
-            if (publishedProviderVersion.ProfilePatternKeys == null ||
-                !publishedProviderVersion.ProfilePatternKeys.Any())
+            if (publishedProviderVersion.ProfilePatternKeys.IsNullOrEmpty() &&
+                !publishedProviderVersion.HasCustomProfiles)
             {
                 return Enumerable.Empty<FundingLine>();
             }
@@ -42,6 +43,7 @@ namespace CalculateFunding.Services.Publishing.Errors
             HashSet<string> fundingLineCodes = publishedProviderVersion
                 .ProfilePatternKeys
                 .Select(_ => _.FundingLineCode)
+                .Union(publishedProviderVersion.CustomProfiles?.Select(_ => _.FundingLineCode) ?? ArraySegment<string>.Empty)
                 .ToHashSet();
 
             return publishedProviderVersion.FundingLines.Where(_ => _.Type == OrganisationGroupingReason.Payment

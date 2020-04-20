@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Publishing;
+using CalculateFunding.Services.Core;
 using CalculateFunding.Tests.Common.Helpers;
 
 namespace CalculateFunding.Services.Publishing.UnitTests
@@ -27,6 +28,22 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private string _templateVersion;
         private IEnumerable<VariationReason> _variationReasons;
         private IEnumerable<ProfilePatternKey> _profilePatternKeys;
+        private IEnumerable<FundingLineProfileOverrides> _customProfiles;
+        private IEnumerable<PublishedProviderError> _errors;
+
+        public PublishedProviderVersionBuilder WithErrors(params PublishedProviderError[] errors)
+        {
+            _errors = errors;
+
+            return this;
+        }
+
+        public PublishedProviderVersionBuilder WithCustomProfiles(params FundingLineProfileOverrides[] customProfiles)
+        {
+            _customProfiles = customProfiles;
+
+            return this;
+        }
 
         public PublishedProviderVersionBuilder WithProfilePatternKeys(params ProfilePatternKey[] profilePatternKeys)
         {
@@ -175,7 +192,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 Date = _date.GetValueOrDefault(NewRandomDateTime()),
                 TemplateVersion = _templateVersion ?? "1.0",
                 VariationReasons = _variationReasons,
-                ProfilePatternKeys = _profilePatternKeys?.ToList()
+                ProfilePatternKeys = _profilePatternKeys?.ToList(),
+                CustomProfiles = _customProfiles,
+                Errors = _errors?.ToList()
             };
         }
     }

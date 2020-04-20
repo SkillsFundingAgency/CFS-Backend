@@ -244,7 +244,7 @@ namespace CalculateFunding.Api.Publishing
 
             builder
                 .AddSingleton<IPublishedProviderProfilingService, PublishedProviderProfilingService>()
-                .AddSingleton<IPublishedProviderVersionErrorDetectionPipeline, PublishedProviderErrorDetection>()
+                .AddSingleton<IPublishedProviderErrorDetection, PublishedProviderErrorDetection>()
                 .AddSingleton<IProfilingService, ProfilingService>()
                 .AddSingleton<IPublishedProviderVersioningService, PublishedProviderVersioningService>();
 

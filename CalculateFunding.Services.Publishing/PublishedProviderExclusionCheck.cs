@@ -9,36 +9,6 @@ namespace CalculateFunding.Services.Publishing
     public class PublishedProviderExclusionCheck : IPublishProviderExclusionCheck
     {
         public PublishedProviderExclusionCheckResult ShouldBeExcluded(
-            GeneratedProviderResult generatedProviderResult,
-            TemplateFundingLine[] flattenedTemplateFundingLines)
-        {
-            var providerProviderId = generatedProviderResult.Provider.ProviderId;
-
-            IEnumerable<FundingLine> fundingLines = generatedProviderResult.FundingLines?
-                .Where(fundingLine => fundingLine.Value != null);
-
-            if (fundingLines != null)
-                foreach (FundingLine line in fundingLines)
-                {
-                    IEnumerable<uint> calculationTemplateIdsForFundingLine = flattenedTemplateFundingLines
-                        .Where(fundingLine => fundingLine.TemplateLineId == line.TemplateLineId)
-                        .SelectMany(fundingLine => fundingLine.Calculations.Flatten(cal => cal.Calculations))
-                        .Select(calculation => calculation.TemplateCalculationId)
-                        .Distinct()
-                        .ToArray();
-
-                    //if there are any none null totals for a payment funding line then we can NOT exclude this published provider
-                    if (generatedProviderResult.Calculations
-                        .Any(fundingCalculation => fundingCalculation.Value != null &&
-                                  calculationTemplateIdsForFundingLine.Contains(fundingCalculation.TemplateCalculationId)))
-                        return new PublishedProviderExclusionCheckResult(providerProviderId, false);
-                }
-
-            //All payment funding lines for this provider have null results
-            return new PublishedProviderExclusionCheckResult(providerProviderId, true);
-        }
-
-        public PublishedProviderExclusionCheckResult ShouldBeExcluded(
             ProviderCalculationResult providerCalculationResult, 
             TemplateMapping templateMapping, 
             Common.TemplateMetadata.Models.Calculation[] flattedCalculations)

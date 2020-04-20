@@ -26,7 +26,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private PublishedProviderProfilingService _service;
         private IPublishedFundingRepository _publishedFundingRepository;
         private ILogger _logger;
-        private IPublishedProviderVersionErrorDetectionPipeline _publishedProviderVersionErrorDetectionPipeline;
+        private IPublishedProviderErrorDetection _publishedProviderErrorDetection;
         private IProfilingService _profilingService;
         private IPublishedProviderVersioningService _publishedProviderVersioningService;
         private ISpecificationsApiClient _specificationsApiClient;
@@ -55,7 +55,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         public void SetUp()
         {
             _publishedFundingRepository = Substitute.For<IPublishedFundingRepository>();
-            _publishedProviderVersionErrorDetectionPipeline = Substitute.For<IPublishedProviderVersionErrorDetectionPipeline>();
+            _publishedProviderErrorDetection = Substitute.For<IPublishedProviderErrorDetection>();
             _profilingService = Substitute.For<IProfilingService>();
             _publishedProviderVersioningService = Substitute.For<IPublishedProviderVersioningService>();
             _specificationsApiClient = Substitute.For<ISpecificationsApiClient>();
@@ -83,7 +83,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             _service = new PublishedProviderProfilingService(
                 _publishedFundingRepository,
-                _publishedProviderVersionErrorDetectionPipeline,
+                _publishedProviderErrorDetection,
                 _profilingService,
                 _publishedProviderVersioningService,
                 _specificationsApiClient,
@@ -443,7 +443,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
         private void AndPublishedProviderProcessed(PublishedProviderVersion publishedProviderVersion)
         {
-            _publishedProviderVersionErrorDetectionPipeline
+            _publishedProviderErrorDetection
                 .Received(1)
                 .ProcessPublishedProvider(publishedProviderVersion);
         }

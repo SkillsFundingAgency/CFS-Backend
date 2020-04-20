@@ -200,6 +200,34 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         }
 
         [TestMethod]
+        public void ApproveResults_ExistsEarlyIfAnyOfThePublishedProvidersAreInError()
+        {
+            PublishedProvider[] expectedPublishedProviders =
+            {
+                NewPublishedProvider(_ => _.WithCurrent(NewPublishedProviderVersion(ppv =>
+                    ppv.WithErrors(NewPublishedProviderError())))),
+                NewPublishedProvider(),
+            };
+
+            string specificationId = NewRandomString();
+            string fundingLineCode = NewRandomString();
+
+            GivenTheMessageHasTheSpecificationId(specificationId);
+            GivenTheMessageHasTheFundingLineCode(fundingLineCode);
+            AndTheMessageIsOtherwiseValid();
+            AndTheSpecificationHasTheHeldUnApprovedPublishedProviders(specificationId, expectedPublishedProviders);
+
+            AndRetrieveJobAndCheckCanBeProcessedSuccessfully();
+            AndNumberOfApprovedPublishedProvidersIsReturned(expectedPublishedProviders);
+
+            Func<Task> invocation = WhenTheResultsAreApproved;
+
+            invocation
+                .Should()
+                .Throw<InvalidOperationException>();
+        }
+
+        [TestMethod]
         public async Task ApproveResults_SendsHeldAndUpdatedPublishedProvidersBySpecIdToBeApproved()
         {
             PublishedProvider[] expectedPublishedProviders =
@@ -345,9 +373,24 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 .AddJobLog(_jobId, Arg.Is<JobLogUpdateModel>(_ => _.CompletedSuccessfully == true));
         }
 
-        private PublishedProvider NewPublishedProvider()
+        private PublishedProvider NewPublishedProvider(Action<PublishedProviderBuilder> setUp = null)
         {
-            return new PublishedProvider();
+            PublishedProviderBuilder publishedProviderBuilder = new PublishedProviderBuilder();
+            
+            setUp?.Invoke(publishedProviderBuilder);
+
+            return publishedProviderBuilder.Build();
         }
+
+        private PublishedProviderVersion NewPublishedProviderVersion(Action<PublishedProviderVersionBuilder> setUp = null)
+        {
+            PublishedProviderVersionBuilder providerVersionBuilder = new PublishedProviderVersionBuilder();
+
+            setUp?.Invoke(providerVersionBuilder);
+            
+            return providerVersionBuilder.Build();
+        }
+        
+        private PublishedProviderError NewPublishedProviderError() => new PublishedProviderError();
     }
 }

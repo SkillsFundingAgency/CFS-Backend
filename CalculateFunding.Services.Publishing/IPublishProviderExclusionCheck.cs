@@ -6,9 +6,6 @@ namespace CalculateFunding.Services.Publishing
 {
     public interface IPublishProviderExclusionCheck
     {
-        PublishedProviderExclusionCheckResult ShouldBeExcluded(GeneratedProviderResult generatedProviderResult,
-            TemplateFundingLine[] flattenedTemplateFundingLines);
-
         PublishedProviderExclusionCheckResult ShouldBeExcluded(ProviderCalculationResult providerCalculationResult, TemplateMapping templateMapping, Common.TemplateMetadata.Models.Calculation[] flattedCalculations);
     }
 }

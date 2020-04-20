@@ -28,6 +28,7 @@ using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Services.DeadletterProcessor;
 using CalculateFunding.Services.Publishing;
+using CalculateFunding.Services.Publishing.Errors;
 using CalculateFunding.Services.Publishing.Helper;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.IoC;
@@ -153,6 +154,9 @@ namespace CalculateFunding.Functions.Publishing
             builder.AddSingleton<IFileSystemAccess, FileSystemAccess>();
             builder.AddSingleton<IFileSystemCacheSettings, FileSystemCacheSettings>();
             builder.AddSingleton<IPublishedFundingOrganisationGroupingService, PublishedFundingOrganisationGroupingService>();
+            builder.AddScoped<IReApplyCustomProfiles, ReApplyCustomProfiles>();
+            builder.AddScoped<IPublishedProviderErrorDetection, PublishedProviderErrorDetection>();
+            builder.AddScoped<IDetectPublishedProviderErrors, FundingLineValueProfileMismatchErrorDetector>();
 
             builder.AddScoped<IGeneratePublishedFundingCsvJobsCreationLocator, GeneratePublishedFundingCsvJobsCreationLocator>();
             builder.AddScoped<IGeneratePublishedFundingCsvJobsCreation, GenerateRefreshPublishedFundingCsvJobsCreation>();

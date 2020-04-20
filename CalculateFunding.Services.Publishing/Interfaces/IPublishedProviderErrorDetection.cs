@@ -3,7 +3,7 @@ using CalculateFunding.Models.Publishing;
 
 namespace CalculateFunding.Services.Publishing.Interfaces
 {
-    public interface IPublishedProviderVersionErrorDetectionPipeline
+    public interface IPublishedProviderErrorDetection
     {
         Task ProcessPublishedProvider(PublishedProviderVersion publishedProviderVersion);
     }
