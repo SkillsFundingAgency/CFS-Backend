@@ -1,4 +1,4 @@
-using CalculateFunding.Models.FundingPolicy;
+using CalculateFunding.Models.Policy.FundingPolicy;
 using CalculateFunding.Tests.Common.Helpers;
 
 namespace CalculateFunding.Services.Policy.Validators
@@ -7,6 +7,14 @@ namespace CalculateFunding.Services.Policy.Validators
     {
         private string _defaultTemplateVersion;
         private string _fundingStreamId;
+        private ApprovalMode? _approvalMode;
+        
+        public FundingConfigurationBuilder WithApprovalMode(ApprovalMode approvalMode)
+        {
+            _approvalMode = approvalMode;
+
+            return this;
+        }
 
         public FundingConfigurationBuilder WithFundingStreamId(string fundingStreamId)
         {
@@ -28,7 +36,8 @@ namespace CalculateFunding.Services.Policy.Validators
             {
                 FundingPeriodId = NewRandomString(),
                 FundingStreamId = _fundingStreamId ?? NewRandomString(),
-                DefaultTemplateVersion = _defaultTemplateVersion
+                DefaultTemplateVersion = _defaultTemplateVersion,
+                ApprovalMode = _approvalMode.GetValueOrDefault(NewRandomEnum(ApprovalMode.Undefined))
             };
         }
     }

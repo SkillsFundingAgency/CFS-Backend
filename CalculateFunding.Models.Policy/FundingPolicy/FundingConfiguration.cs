@@ -1,8 +1,8 @@
-﻿using CalculateFunding.Common.Models;
+﻿using System.Collections.Generic;
+using CalculateFunding.Common.Models;
 using Newtonsoft.Json;
-using System.Collections.Generic;
 
-namespace CalculateFunding.Models.FundingPolicy
+namespace CalculateFunding.Models.Policy.FundingPolicy
 {
     public class FundingConfiguration : IIdentifiable
     {
@@ -26,5 +26,8 @@ namespace CalculateFunding.Models.FundingPolicy
         
         [JsonProperty("variations")]
         public IEnumerable<VariationType> Variations { get; set; }
+        
+        [JsonProperty("approvalMode")]
+        public ApprovalMode ApprovalMode { get; set; }
     }
 }

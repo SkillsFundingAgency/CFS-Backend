@@ -2,7 +2,7 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
-namespace CalculateFunding.Models.FundingPolicy
+namespace CalculateFunding.Models.Policy.FundingPolicy
 {
     /// <summary>
     /// Valid list of organisation group types.

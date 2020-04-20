@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace CalculateFunding.Models.FundingPolicy
+namespace CalculateFunding.Models.Policy.FundingPolicy
 {
     public class ProviderTypeMatch
     {

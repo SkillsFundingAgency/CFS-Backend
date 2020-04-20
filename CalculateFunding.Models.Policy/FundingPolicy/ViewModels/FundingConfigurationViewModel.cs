@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace CalculateFunding.Models.FundingPolicy.ViewModels
+namespace CalculateFunding.Models.Policy.FundingPolicy.ViewModels
 {
     public class FundingConfigurationViewModel
     {
@@ -15,5 +15,10 @@ namespace CalculateFunding.Models.FundingPolicy.ViewModels
         /// Variation strategies
         /// </summary>
         public IEnumerable<VariationType> Variations { get; set; }
+        
+        /// <summary>
+        /// The mode this funding configuration will operate under during approve and refresh
+        /// </summary>
+        public ApprovalMode ApprovalMode { get; set; }
     }
 }

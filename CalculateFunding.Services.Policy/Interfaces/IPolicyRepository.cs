@@ -4,8 +4,8 @@ using System.Linq.Expressions;
 using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
-using CalculateFunding.Models.FundingPolicy;
 using CalculateFunding.Models.Policy;
+using CalculateFunding.Models.Policy.FundingPolicy;
 
 namespace CalculateFunding.Services.Policy.Interfaces
 {

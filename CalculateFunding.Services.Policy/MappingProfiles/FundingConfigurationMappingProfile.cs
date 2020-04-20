@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
-using CalculateFunding.Models.FundingPolicy;
-using CalculateFunding.Models.FundingPolicy.ViewModels;
+using CalculateFunding.Models.Policy.FundingPolicy;
+using CalculateFunding.Models.Policy.FundingPolicy.ViewModels;
 
 namespace CalculateFunding.Services.Policy.MappingProfiles
 {

@@ -1,5 +1,5 @@
 ﻿using System.Threading.Tasks;
-using CalculateFunding.Models.FundingPolicy.ViewModels;
+using CalculateFunding.Models.Policy.FundingPolicy.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CalculateFunding.Services.Policy.Interfaces

@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using CalculateFunding.Models.FundingPolicy;
 using CalculateFunding.Models.Policy;
+using CalculateFunding.Models.Policy.FundingPolicy;
 using CalculateFunding.Services.Policy.Interfaces;
 using CalculateFunding.Services.Providers.Validators;
 using CalculateFunding.Tests.Common.Helpers;
@@ -39,6 +39,22 @@ namespace CalculateFunding.Services.Policy.Validators
                 .Returns(new FundingStream());
             policyRepository.GetFundingPeriodById(Arg.Any<string>())
                 .Returns(new FundingPeriod());
+        }
+
+        [TestMethod]
+        public void FailsValidationIfNoApprovalModeSupplied()
+        {
+            string defaultTemplateVersion = NewRandomString();
+            string fundingStreamId = NewRandomString();
+
+            GivenTheFundingConfiguration(_ => _.WithApprovalMode(ApprovalMode.Undefined)
+                .WithFundingStreamId(fundingStreamId)
+                .WithDefaultTemplateVersion(defaultTemplateVersion));
+            AndTheTemplateExistsCheck(fundingStreamId, defaultTemplateVersion, true);
+            
+            WhenTheFundingConfigurationIsValidated();
+            
+            ThenTheValidationResultShouldBe(false);
         }
 
         [TestMethod]

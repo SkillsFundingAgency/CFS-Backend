@@ -10,7 +10,7 @@ namespace CalculateFunding.Tests.Common.Helpers
 
         protected bool NewRandomFlag() => new RandomBoolean();
         
-        protected TEnum NewRandomEnum<TEnum>() where TEnum : struct => new RandomEnum<TEnum>();
+        protected TEnum NewRandomEnum<TEnum>(params TEnum[] except) where TEnum : struct => new RandomEnum<TEnum>(except);
         
         protected int NewRandomNumberBetween(int min, int max) => new RandomNumberBetween(min, max);
         

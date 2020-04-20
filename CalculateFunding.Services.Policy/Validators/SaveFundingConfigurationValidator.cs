@@ -1,18 +1,15 @@
-﻿using CalculateFunding.Common.Utility;
-using CalculateFunding.Models.FundingPolicy;
+﻿using System.Data;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Policy;
+using CalculateFunding.Models.Policy.FundingPolicy;
 using CalculateFunding.Services.Policy.Interfaces;
 using FluentValidation;
 using ResiliencePolicy = Polly.AsyncPolicy;
 
-namespace CalculateFunding.Services.Providers.Validators
+namespace CalculateFunding.Services.Policy.Validators
 {
     public class SaveFundingConfigurationValidator : AbstractValidator<FundingConfiguration>
     {
-        private readonly IPolicyRepository _policyRepository;
-        private readonly ResiliencePolicy _policyRepositoryPolicy;
-        private readonly IFundingTemplateService _fundingTemplateService;
-
         public SaveFundingConfigurationValidator(IPolicyRepository policyRepository,
             IPolicyResiliencePolicies policyResiliencePolicies,
             IFundingTemplateService fundingTemplateService)
@@ -21,9 +18,11 @@ namespace CalculateFunding.Services.Providers.Validators
             Guard.ArgumentNotNull(fundingTemplateService, nameof(fundingTemplateService));
             Guard.ArgumentNotNull(policyResiliencePolicies?.PolicyRepository, nameof(policyResiliencePolicies.PolicyRepository));
 
-            _policyRepository = policyRepository;
-            _fundingTemplateService = fundingTemplateService;
-            _policyRepositoryPolicy = policyResiliencePolicies.PolicyRepository;
+            ResiliencePolicy policyRepositoryPolicy = policyResiliencePolicies.PolicyRepository;
+
+            RuleFor(_ => _.ApprovalMode)
+                .Must(_ => _ != ApprovalMode.Undefined)
+                .WithMessage("No valid approval mode was selected");
 
             RuleFor(model => model.FundingStreamId)
                 .NotEmpty()
@@ -33,7 +32,7 @@ namespace CalculateFunding.Services.Providers.Validators
                     FundingConfiguration model = context.ParentContext.InstanceToValidate as FundingConfiguration;
                     if (!string.IsNullOrWhiteSpace(model.FundingStreamId))
                     {
-                        FundingStream fundingStream = await _policyRepositoryPolicy.ExecuteAsync(() => _policyRepository.GetFundingStreamById(model.FundingStreamId));
+                        FundingStream fundingStream = await policyRepositoryPolicy.ExecuteAsync(() => policyRepository.GetFundingStreamById(model.FundingStreamId));
                         if (fundingStream == null) context.AddFailure("Funding stream not found");
                     }
                 });
@@ -46,7 +45,7 @@ namespace CalculateFunding.Services.Providers.Validators
                     FundingConfiguration model = context.ParentContext.InstanceToValidate as FundingConfiguration;
                     if (!string.IsNullOrWhiteSpace(model.FundingPeriodId))
                     {
-                        FundingPeriod fundingPeriod = await _policyRepositoryPolicy.ExecuteAsync(() => _policyRepository.GetFundingPeriodById(model.FundingPeriodId));
+                        FundingPeriod fundingPeriod = await policyRepositoryPolicy.ExecuteAsync(() => policyRepository.GetFundingPeriodById(model.FundingPeriodId));
                         if (fundingPeriod == null) context.AddFailure("Funding period not found");
                     }
                 });
@@ -62,7 +61,7 @@ namespace CalculateFunding.Services.Providers.Validators
                     string defaultTemplateVersion = model.DefaultTemplateVersion;
 
                     if (!string.IsNullOrWhiteSpace(fundingStreamId) && !string.IsNullOrWhiteSpace(defaultTemplateVersion))
-                        if (!await _fundingTemplateService.TemplateExists(fundingStreamId, defaultTemplateVersion))
+                        if (!await fundingTemplateService.TemplateExists(fundingStreamId, defaultTemplateVersion))
                             context.AddFailure("Default template not found");
                 });
         }

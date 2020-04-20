@@ -7,8 +7,8 @@ using AutoMapper;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
-using CalculateFunding.Models.FundingPolicy;
-using CalculateFunding.Models.FundingPolicy.ViewModels;
+using CalculateFunding.Models.Policy.FundingPolicy;
+using CalculateFunding.Models.Policy.FundingPolicy.ViewModels;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Policy.Interfaces;
@@ -92,7 +92,7 @@ namespace CalculateFunding.Services.Policy
             if (fundingConfiguration == null)
             {
                 fundingConfiguration = await _policyRepositoryPolicy.ExecuteAsync(() => _policyRepository.GetFundingConfiguration(configId));
-                await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync<FundingConfiguration>(cachKey, fundingConfiguration));
+                await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync(cachKey, fundingConfiguration));
             }
 
             if (fundingConfiguration == null)
@@ -132,7 +132,7 @@ namespace CalculateFunding.Services.Policy
                 return new NotFoundResult();
             }
 
-            await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync<List<FundingConfiguration>>(cacheKey, fundingConfigurations.ToList()));
+            await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync(cacheKey, fundingConfigurations.ToList()));
 
             return new OkObjectResult(fundingConfigurations);
         }

@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Utility;
-using CalculateFunding.Models.FundingPolicy;
-using CalculateFunding.Models.FundingPolicy.ViewModels;
+using CalculateFunding.Models.Policy.FundingPolicy;
+using CalculateFunding.Models.Policy.FundingPolicy.ViewModels;
 using CalculateFunding.Services.Policy.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
