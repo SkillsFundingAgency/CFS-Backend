@@ -138,7 +138,6 @@ namespace CalculateFunding.Functions.Publishing
             builder.AddTransient<IVariationStrategyServiceLocator, VariationStrategyServiceLocator>();
             builder.AddTransient<IVariationStrategy, ClosureVariationStrategy>();
             builder.AddTransient<IVariationStrategy, ClosureWithSuccessorVariationStrategy>();
-            builder.AddTransient<IVariationStrategy, NewOpenerVariationStrategy>();
             builder.AddTransient<IVariationStrategy, ProviderMetadataVariationStrategy>();
             builder.AddTransient<IVariationStrategy, PupilNumberSuccessorVariationStrategy>();
             builder.AddTransient<IVariationStrategy, FundingUpdatedVariationStrategy>();

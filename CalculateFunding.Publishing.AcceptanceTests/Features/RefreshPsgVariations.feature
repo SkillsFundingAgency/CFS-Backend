@@ -59,9 +59,8 @@ Background: Existing published funding
 	And the funding configuration has the following funding variations
 		| Name					| Order |
 		| ProviderMetadata		| 0     |
-		| NewOpener				| 1     |
-		| Closure				| 2     |
-		| ClosureWithSuccessor	| 3     |
+		| Closure				| 1     |
+		| ClosureWithSuccessor	| 2     |
 	And the funding configuration is available in the policies repository
 	And the funding configuration has the following organisation group
 		| Field                     | Value                |
