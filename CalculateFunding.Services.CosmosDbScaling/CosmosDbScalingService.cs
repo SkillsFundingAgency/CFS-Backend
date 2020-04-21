@@ -333,7 +333,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
             await ScaleCollection(cosmosDbScalingConfig.RepositoryType, settings.CurrentRequestUnits, settings.MaxRequestUnits);
 
-            int incrementalRequestUnitsValue = currentRequestUnits - settings.CurrentRequestUnits;
+            int incrementalRequestUnitsValue = settings.CurrentRequestUnits - currentRequestUnits;
 
             await UpdateCollectionSettings(settings, CosmosDbScalingDirection.Up, incrementalRequestUnitsValue);
         }

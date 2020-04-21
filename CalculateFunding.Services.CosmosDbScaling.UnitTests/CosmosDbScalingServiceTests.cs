@@ -485,7 +485,9 @@ namespace CalculateFunding.Services.CosmosDbScaling
             await
                 cosmosDbScalingConfigRepository
                 .Received(1)
-                .UpdateCollectionSettings(Arg.Is<CosmosDbScalingCollectionSettings>(m => m.CurrentRequestUnits == settings.MaxRequestUnits));
+                .UpdateCollectionSettings(Arg.Is<CosmosDbScalingCollectionSettings>(m => m.CurrentRequestUnits == settings.MaxRequestUnits
+                 && m.LastScalingIncrementValue == 20000
+                 && m.LastScalingIncrementDateTime.Value.Date == DateTimeOffset.Now.Date));
         }
 
         [TestMethod]
@@ -559,7 +561,8 @@ namespace CalculateFunding.Services.CosmosDbScaling
             await
                 cosmosDbScalingConfigRepository
                 .Received(1)
-                .UpdateCollectionSettings(Arg.Is<CosmosDbScalingCollectionSettings>(m => m.CurrentRequestUnits == settings.MaxRequestUnits));
+                .UpdateCollectionSettings(Arg.Is<CosmosDbScalingCollectionSettings>(m => m.CurrentRequestUnits == settings.MaxRequestUnits
+                && m.LastScalingIncrementValue == 0));
         }
 
         [TestMethod]
@@ -638,8 +641,82 @@ namespace CalculateFunding.Services.CosmosDbScaling
                  .Received(1)
                  .SetThroughput(Arg.Is(11000));
         }
-        
-        
+
+        [TestMethod]
+        public async Task ScaleUp_WhenCurrentRequestUnitsNotAtBaseLine_EnsuresCorrectScalingRequestUnitIsIncremented()
+        {
+            //Arrange
+            JobNotification jobNotification = new JobNotification
+            {
+                JobType = "job-def-1",
+                RunningStatus = RunningStatus.Queued
+            };
+
+            CosmosDbScalingRequestModel requestModel = new CosmosDbScalingRequestModel
+            {
+                RepositoryTypes = new[]
+                {
+                    CosmosCollectionType.CalculationProviderResults
+                },
+                JobDefinitionId = "job-def-1"
+            };
+
+            string json = JsonConvert.SerializeObject(jobNotification);
+
+            ICosmosDbScalingRequestModelBuilder modelBuilder = CreateReqestModelBuilder();
+            modelBuilder
+                .BuildRequestModel(Arg.Any<JobNotification>())
+                .Returns(requestModel);
+
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
+
+            CosmosDbScalingConfig scalingConfig = CreateCosmosScalingConfig(CosmosCollectionType.CalculationProviderResults);
+
+            CosmosDbScalingCollectionSettings settings = CreateCollectionSettings(CosmosCollectionType.CalculationProviderResults);
+            settings.CurrentRequestUnits = 100000;
+
+            ICosmosDbScalingConfigRepository cosmosDbScalingConfigRepository = CreateCosmosDbScalingConfigRepository();
+            cosmosDbScalingConfigRepository
+                .GetConfigByRepositoryType(Arg.Is(CosmosCollectionType.CalculationProviderResults))
+                .Returns(scalingConfig);
+            cosmosDbScalingConfigRepository
+                .GetCollectionSettingsByRepositoryType(Arg.Is(CosmosCollectionType.CalculationProviderResults))
+                .Returns(settings);
+            cosmosDbScalingConfigRepository
+                .UpdateCollectionSettings(Arg.Any<CosmosDbScalingCollectionSettings>())
+                .Returns(HttpStatusCode.OK);
+
+            ICosmosDbScalingRepository scalingRepository = CreateCosmosDbScalingRepository();
+
+            ICosmosDbScalingRepositoryProvider cosmosDbScalingRepositoryProvider = CreateCosmosDbScalingRepositoryProvider();
+            cosmosDbScalingRepositoryProvider
+                .GetRepository(Arg.Is(CosmosCollectionType.CalculationProviderResults))
+                .Returns(scalingRepository);
+
+            ILogger logger = CreateLogger();
+
+            CosmosDbScalingService cosmosDbScalingService = CreateScalingService(
+                logger,
+                cosmosDbScalingConfigRepository: cosmosDbScalingConfigRepository,
+                cosmosDbScalingRepositoryProvider: cosmosDbScalingRepositoryProvider,
+                cosmosDbScalingRequestModelBuilder: modelBuilder);
+
+            //Act
+            await cosmosDbScalingService.ScaleUp(message);
+
+            //Assert
+            await
+                scalingRepository
+                .Received(1)
+                .SetThroughput(Arg.Is(150000));
+
+            await
+                cosmosDbScalingConfigRepository
+                .Received(1)
+                .UpdateCollectionSettings(Arg.Is<CosmosDbScalingCollectionSettings>(m => m.CurrentRequestUnits == 150000 
+                        && m.LastScalingIncrementValue == 50000
+                        && m.LastScalingIncrementDateTime.Value.Date == DateTimeOffset.Now.Date));
+        }
 
         [TestMethod]
         public async Task ScaleUp_GivenEventsFilteredForProcessingAndIncreasingRequestUnitsWillExceedMaximum_ScalesCollectionToMaximumRequestUnits()
