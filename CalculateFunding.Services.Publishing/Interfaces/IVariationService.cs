@@ -1,10 +1,6 @@
 ﻿using CalculateFunding.Common.ApiClient.Policies.Models;
-using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
 using CalculateFunding.Models.Publishing;
-using CalculateFunding.Services.Publishing.Variations;
-using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Publishing.Interfaces
@@ -18,7 +14,8 @@ namespace CalculateFunding.Services.Publishing.Interfaces
             PublishedProvider existingPublishedProvider,
             Provider updatedProvider,
             IEnumerable<FundingVariation> variations,
-            string snapshotId);
+            string snapshotId,
+            string specificationProviderVersionId);
         Task<bool> ApplyVariations(IDictionary<string, PublishedProvider> publishedProvidersToUpdate, 
             IDictionary<string, PublishedProvider> newProviders, 
             string specificaitonId);

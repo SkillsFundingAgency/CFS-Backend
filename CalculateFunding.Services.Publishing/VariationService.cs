@@ -9,7 +9,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Publishing
@@ -28,7 +27,7 @@ namespace CalculateFunding.Services.Publishing
 
         public async Task<bool> VariationsEnabled()
         {
-            _variationsEnabled = _variationsEnabled ?? await _publishingFeatureFlag.IsVariationsEnabled();
+            _variationsEnabled ??= await _publishingFeatureFlag.IsVariationsEnabled();
 
             return _variationsEnabled.Value;
         }
@@ -77,7 +76,8 @@ namespace CalculateFunding.Services.Publishing
             PublishedProvider existingPublishedProvider, 
             Provider updatedProvider, 
             IEnumerable<FundingVariation> variations,
-            string snapshotId)
+            string snapshotId,
+            string specificationProviderVersionId)
         {
             Guard.ArgumentNotNull(updatedTotalFunding, nameof(updatedTotalFunding));
             Guard.ArgumentNotNull(allPublishedProviderRefreshStates, nameof(allPublishedProviderRefreshStates));
@@ -104,7 +104,8 @@ namespace CalculateFunding.Services.Publishing
                         updatedProvider,
                         variations,
                         publishedProviderSnapshots,
-                        allPublishedProviderRefreshStates);
+                        allPublishedProviderRefreshStates,
+                        specificationProviderVersionId);
 
                 if (variationContext.HasVariationChanges)
                 {

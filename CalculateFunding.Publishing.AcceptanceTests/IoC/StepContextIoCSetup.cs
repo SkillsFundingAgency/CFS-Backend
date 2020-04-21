@@ -59,7 +59,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
         private void RegisterInstanceAs<TType>(TType instance)
             where TType : class
         {
-            _objectContainer.RegisterInstanceAs<TType>(instance);
+            _objectContainer.RegisterInstanceAs(instance);
         }
 
         private TType ResolveInstance<TType>()
@@ -104,6 +104,13 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
             RegisterTypeAs<ReApplyCustomProfiles, IReApplyCustomProfiles>();
             RegisterInstanceAs<IPublishedProviderErrorDetection>(new PublishedProviderErrorDetection(ArraySegment<IDetectPublishedProviderErrors>.Empty));
 
+            var mapper = new MapperConfiguration(c =>
+            {
+                c.AddProfile<PublishingServiceMappingProfile>();
+            }).CreateMapper();
+
+            RegisterInstanceAs(mapper);
+
             JobManagementResiliencePolicies jobManagementResiliencePolicies = new JobManagementResiliencePolicies()
             {
                 JobsApiClient = Policy.NoOpAsync(),
@@ -115,7 +122,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
             RegisterTypeAs<InMemoryPublishedFundingRepository, IPublishedFundingRepository>();
             RegisterTypeAs<PoliciesInMemoryRepository, IPoliciesApiClient>();
 
-            var providersInMemoryClient = new ProvidersInMemoryClient();
+            var providersInMemoryClient = new ProvidersInMemoryClient(ResolveInstance<IMapper>());
             
             RegisterInstanceAs<IProvidersApiClient>(providersInMemoryClient);
             RegisterTypeAs<ProviderService, IProviderService>();
@@ -180,13 +187,6 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
             RegisterTypeAs<CalculationInMemoryRepository, ICalculationResultsRepository>();
             RegisterTypeAs<PublishedProviderStatusUpdateService, IPublishedProviderStatusUpdateService>();
             RegisterTypeAs<PublishedProviderStatusUpdateSettings, IPublishedProviderStatusUpdateSettings>();
-
-            var mapper = new MapperConfiguration(c =>
-            {
-                c.AddProfile<PublishingServiceMappingProfile>();
-            }).CreateMapper();
-
-            RegisterInstanceAs<IMapper>(mapper);
 
             IVariationStrategy[] variationStrategies = typeof(IVariationStrategy).Assembly.GetTypes()
                 .Where(_ => _.Implements(typeof(IVariationStrategy)))

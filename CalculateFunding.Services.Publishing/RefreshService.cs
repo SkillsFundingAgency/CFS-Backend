@@ -331,7 +331,8 @@ namespace CalculateFunding.Services.Publishing
                         publishedProvider.Value,
                         scopedProviders[providerId],
                         fundingConfiguration?.Variations,
-                        fundingStream.Id);
+                        fundingStream.Id,
+                        specification.ProviderVersionId);
 
                     if(!newPublishedProviders.IsNullOrEmpty())
                     {

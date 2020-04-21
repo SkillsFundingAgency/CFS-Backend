@@ -36,6 +36,7 @@ using Moq;
 using FundingLine = CalculateFunding.Models.Publishing.FundingLine;
 using TemplateCalculation = CalculateFunding.Common.TemplateMetadata.Models.Calculation;
 using TemplateFundingLine = CalculateFunding.Common.TemplateMetadata.Models.FundingLine;
+using CalculateFunding.Tests.Common.Helpers;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.Services
 {
@@ -91,10 +92,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         private const string FundingStreamId = "PSG";
         private const string Successor = "1234";
         private Mock<IReApplyCustomProfiles> _reApplyCustomProfiles;
+        private string providerVersionId;
 
         [TestInitialize]
         public void Setup()
         {
+            providerVersionId = NewRandomString();
+
             _publishedProviderStatusUpdateService = Substitute.For<IPublishedProviderStatusUpdateService>();
             _publishedFundingDataService = Substitute.For<IPublishedFundingDataService>();
             _publishingResiliencePolicies = new ResiliencePolicies { PublishedFundingRepository = Policy.NoOpAsync(), 
@@ -618,7 +622,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             missingProvider.Current.Provider.Status = "Open";
 
             _providerService
-                .CreateMissingPublishedProviderForPredecessor(Arg.Is<PublishedProvider>(_ => _.Current.ProviderId == predecessor.Current.ProviderId), Arg.Is(Successor))
+                .CreateMissingPublishedProviderForPredecessor(
+                    Arg.Is<PublishedProvider>(_ => _.Current.ProviderId == predecessor.Current.ProviderId), 
+                    Arg.Is(Successor),
+                    Arg.Is(providerVersionId))
                 .Returns(missingProvider);
         }
 
@@ -655,13 +662,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 .Throws(new Exception(error));
         }
 
-        private void ThenJobStatusUpdated()
-        {
-            _jobManagement
-                .Received(1)
-                .UpdateJobStatus(Arg.Is(JobId), 0, 0, null, null);
-        }
-
         private void GivenJobCanBeProcessed()
         {
             JobViewModel jobViewModel = NewJobViewModel();
@@ -680,7 +680,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
 
         private void AndSpecification()
         {
-            _specificationSummary = NewSpecificationSummary(_ => _.WithId(SpecificationId).WithFundingStreamIds(new[] { FundingStreamId }).WithTemplateIds((FundingStreamId, "1.0")));
+            _specificationSummary = NewSpecificationSummary(_ => _
+                .WithId(SpecificationId)
+                .WithFundingStreamIds(new[] { FundingStreamId })
+                .WithTemplateIds((FundingStreamId, "1.0"))
+                .WithProviderVersionId(providerVersionId));
 
             _specificationsApiClient.GetSpecificationSummaryById(SpecificationId)
                 .Returns(new ApiResponse<SpecificationSummary>(HttpStatusCode.OK, _specificationSummary));
@@ -701,5 +705,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                     Times.Once);
             }
         }
+
+        private static string NewRandomString() => new RandomString();
     }
 }

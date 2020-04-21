@@ -159,5 +159,10 @@ namespace CalculateFunding.Services.Publishing.Models
         public IEnumerable<IVariationChange> QueuedChanges => _variationChanges.ToArray();
 
         public bool HasVariationChanges => _variationChanges.AnyWithNullCheck();
+
+        /// <summary>
+        /// Provider version ID of the existing specificaton which will be used to search provider from core provider data
+        /// </summary>
+        public string ProviderVersionId { get; set; }
     }
 }

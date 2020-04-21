@@ -44,13 +44,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
             decimal updatedTotalFunding = new RandomNumberBetween(0, 1000);
             IDictionary<string, PublishedProviderSnapShots> allPublishedProviderSnapShots = new Dictionary<string, PublishedProviderSnapShots>();
             IDictionary<string, PublishedProvider> allPublishedProviderRefreshStates = new Dictionary<string, PublishedProvider>();
+            string providerVersionId = NewRandomString();
 
             ProviderVariationContext providerVariationContext = await _factory.CreateRequiredVariationChanges(existingPublishedProvider,
                 updatedTotalFunding,
                 updatedProvider,
                 fundingVariations, 
                 allPublishedProviderSnapShots,
-                allPublishedProviderRefreshStates);
+                allPublishedProviderRefreshStates,
+                providerVersionId);
 
             providerVariationContext
                 .UpdatedTotalFunding
@@ -66,7 +68,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
                 .UpdatedProvider
                 .Should()
                 .BeSameAs(updatedProvider);
-            
+
+            providerVariationContext
+                .ProviderVersionId
+                .Should()
+                .BeSameAs(providerVersionId);
+
             Received.InOrder(() =>
             {
                 foreach (FundingVariation fundingVariation in fundingVariations.OrderBy(_ => _.Order))
@@ -78,7 +85,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
                                ctx.ProviderId == existingPublishedProvider.Current.ProviderId &&
                                ReferenceEquals(ctx.UpdatedProvider, updatedProvider) &&
                                ReferenceEquals(ctx.AllPublishedProviderSnapShots, allPublishedProviderSnapShots) &&
-                               ReferenceEquals(ctx.AllPublishedProvidersRefreshStates, allPublishedProviderRefreshStates)), 
+                               ReferenceEquals(ctx.AllPublishedProvidersRefreshStates, allPublishedProviderRefreshStates) &&
+                               ctx.ProviderVersionId == providerVersionId), 
                         fundingVariation.FundingLineCodes);
                 }   
             });

@@ -25,7 +25,8 @@ namespace CalculateFunding.Services.Publishing.Variations
             Provider provider,
             IEnumerable<FundingVariation> variations,
             IDictionary<string, PublishedProviderSnapShots> allPublishedProviderSnapShots,
-            IDictionary<string, PublishedProvider> allPublishedProviderRefreshStates)
+            IDictionary<string, PublishedProvider> allPublishedProviderRefreshStates,
+            string providerVersionId)
         {
             Guard.ArgumentNotNull(existingPublishedProvider, nameof(existingPublishedProvider));
             Guard.ArgumentNotNull(updatedTotalFunding, nameof(updatedTotalFunding));
@@ -40,7 +41,8 @@ namespace CalculateFunding.Services.Publishing.Variations
                 UpdatedProvider = provider,
                 UpdatedTotalFunding = updatedTotalFunding,
                 AllPublishedProviderSnapShots = allPublishedProviderSnapShots,
-                AllPublishedProvidersRefreshStates = allPublishedProviderRefreshStates
+                AllPublishedProvidersRefreshStates = allPublishedProviderRefreshStates,
+                ProviderVersionId = providerVersionId
             };
 
             foreach (FundingVariation configuredVariation in variations.OrderBy(_ => _.Order))

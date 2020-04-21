@@ -40,6 +40,9 @@ namespace CalculateFunding.Services.Publishing
             CreateMap<Generators.OrganisationGroup.Models.OrganisationIdentifier, PublishedOrganisationGroupTypeIdentifier>();
 
             CreateMap<ProviderVersionSearchResult, Provider>();
+            CreateMap<Provider, ProviderVersionSearchResult>();
+            CreateMap<ProviderVersionSearchResult, ApiProvider>();
+            CreateMap<ApiProvider, ProviderVersionSearchResult>();
         }
     }
 }

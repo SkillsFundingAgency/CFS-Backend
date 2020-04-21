@@ -17,6 +17,6 @@ namespace CalculateFunding.Services.Publishing.Interfaces
                 Reference fundingStream,
                 IDictionary<string, PublishedProvider> publishedProviders);
         Task<PublishedProvider> CreateMissingPublishedProviderForPredecessor(PublishedProvider predecessor,
-            string successorId);
+            string successorId, string providerVersionId);
     }
 }

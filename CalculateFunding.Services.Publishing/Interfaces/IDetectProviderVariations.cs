@@ -14,6 +14,7 @@ namespace CalculateFunding.Services.Publishing.Interfaces
             Provider provider,
             IEnumerable<FundingVariation> variations,
             IDictionary<string, PublishedProviderSnapShots> allPublishedProviderSnapShots,
-            IDictionary<string, PublishedProvider> allPublishedProviderRefreshStates);
+            IDictionary<string, PublishedProvider> allPublishedProviderRefreshStates,
+            string providerVersionId);
     }
 }

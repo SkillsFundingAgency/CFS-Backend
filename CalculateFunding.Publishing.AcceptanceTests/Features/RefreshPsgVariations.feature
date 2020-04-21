@@ -556,7 +556,7 @@ Scenario: Providers close with successor but successor not in scope for specific
 		| TrustStatus        | Not Supported By A Trust |
 		| UKPRN              | 1000000                  |
 	And the provider with id '1000000' should be a scoped provider in the current specification in provider version 'psg-providers-1.0'
-	And the following provider exists within master provider data
+	And the following provider exists within core provider data in provider version 'psg-providers-1.0'
 		| Field              | Value                    |
 		| ProviderId         | 2000002                  |
 		| Status             | Open                     |

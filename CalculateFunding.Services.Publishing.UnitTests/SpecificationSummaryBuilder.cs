@@ -16,6 +16,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private IEnumerable<string> _fundingStreamIds = Enumerable.Empty<string>();
         private bool _withNoId;
         private IEnumerable<(string fundingId, string version)> _templateIds = Enumerable.Empty<(string fundingId, string version)>();
+        private string _providerVersionId;
 
         public SpecificationSummaryBuilder WithNoId()
         {
@@ -66,6 +67,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             return this;
         }
 
+        public SpecificationSummaryBuilder WithProviderVersionId(string providerVersionId)
+        {
+            _providerVersionId = providerVersionId;
+
+            return this;
+        }
+
         public SpecificationSummary Build()
         {
             return new SpecificationSummary
@@ -79,7 +87,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 {
                     Id = _
                 }).ToArray(),
-                TemplateIds = _templateIds.ToDictionary(_ => _.fundingId, _ => _.version)
+                TemplateIds = _templateIds.ToDictionary(_ => _.fundingId, _ => _.version),
+                ProviderVersionId = _providerVersionId ?? NewRandomString()
             };
         }
     }

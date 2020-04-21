@@ -191,10 +191,10 @@ namespace CalculateFunding.Services.Publishing.Providers
             return publishedProvidersForFundingStream;
         }
 
-        public async Task<PublishedProvider> CreateMissingPublishedProviderForPredecessor(PublishedProvider predecessor, string successorId)
+        public async Task<PublishedProvider> CreateMissingPublishedProviderForPredecessor(PublishedProvider predecessor, string successorId, string providerVersionId)
         {
             ApiResponse<ProviderVersionSearchResult> apiResponse = await _resiliencePolicy.ExecuteAsync(() =>
-                _providers.GetProviderByIdFromMaster(successorId));
+                _providers.GetProviderByIdFromProviderVersion(providerVersionId, successorId));
 
             ProviderVersionSearchResult providerVersionSearchResult = apiResponse?.Content;
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using AutoMapper;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Providers;
 using CalculateFunding.Common.ApiClient.Providers.Models;
@@ -15,10 +16,17 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 {
     public class ProvidersInMemoryClient : IProvidersApiClient
     {
+        private readonly IMapper _mapper;
+
         private Dictionary<string, Dictionary<string, Provider>> _providers = new Dictionary<string, Dictionary<string, Provider>>();
         private Dictionary<string, Dictionary<string, Provider>> _scopedProviders = new Dictionary<string, Dictionary<string, Provider>>();
         private Dictionary<string, ProviderVersion> _providerVersions = new Dictionary<string, ProviderVersion>();
         private Dictionary<string, ProviderVersionSearchResult> _masterProviderDataByProviderId = new Dictionary<string, ProviderVersionSearchResult>();
+
+        public ProvidersInMemoryClient(IMapper mapper)
+        {
+            _mapper = mapper;
+        }
 
         public Task<HttpStatusCode> DoesProviderVersionExist(string providerVersionId)
         {
@@ -50,7 +58,16 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 
         public Task<ApiResponse<ProviderVersionSearchResult>> GetProviderByIdFromProviderVersion(string providerVersionId, string providerId)
         {
-            throw new NotImplementedException();
+            if (_providerVersions.ContainsKey(providerVersionId))
+            {
+                if (_providerVersions[providerVersionId].Providers?.Any(_ => _.ProviderId == providerId) == true)
+                {
+                    Provider provider = _providerVersions[providerVersionId].Providers.Single(_ => _.ProviderId == providerId);
+
+                    return Task.FromResult(new ApiResponse<ProviderVersionSearchResult>(HttpStatusCode.OK, _mapper.Map<ProviderVersionSearchResult>(provider)));
+                }
+            }
+            return Task.FromResult(new ApiResponse<ProviderVersionSearchResult>(HttpStatusCode.NotFound));
         }
 
         public Task<ApiResponse<ProviderVersion>> GetProvidersByVersion(int year, int month, int day)

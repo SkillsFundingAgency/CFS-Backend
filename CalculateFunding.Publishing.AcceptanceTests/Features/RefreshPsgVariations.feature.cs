@@ -2304,7 +2304,8 @@ this.FeatureBackground();
                             "UKPRN",
                             "2000002"});
 #line 559
- testRunner.And("the following provider exists within master provider data", ((string)(null)), table463, "And ");
+ testRunner.And("the following provider exists within core provider data in provider version \'psg-" +
+                        "providers-1.0\'", ((string)(null)), table463, "And ");
 #line hidden
                 TechTalk.SpecFlow.Table table464 = new TechTalk.SpecFlow.Table(new string[] {
                             "Name",
