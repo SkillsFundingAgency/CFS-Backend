@@ -127,7 +127,8 @@ namespace CalculateFunding.Services.Core.Extensions
                 builder
                     .AddSingleton<IMessengerService, QueueMessengerService>((ctx) =>
                 {
-                    return new QueueMessengerService("UseDevelopmentStorage=true", serviceName);
+                    ServiceBus.QueueClient queueClient = new ServiceBus.QueueClient("UseDevelopmentStorage=true");
+                    return new QueueMessengerService(queueClient, serviceName);
                 });
             }
             else
@@ -142,7 +143,9 @@ namespace CalculateFunding.Services.Core.Extensions
                 builder
                     .AddSingleton<IMessengerService, MessengerService>((ctx) =>
                     {
-                        return new MessengerService(serviceBusSettings, serviceName);
+                        MessageReceiverFactory messageReceiverFactory = new MessageReceiverFactory(serviceBusSettings.ConnectionString);
+                        ManagementClient managementClient = new ManagementClient(serviceBusSettings.ConnectionString);
+                        return new MessengerService(serviceBusSettings, managementClient, messageReceiverFactory, serviceName);
                     });
             }
 

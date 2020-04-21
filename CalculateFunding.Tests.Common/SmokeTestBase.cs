@@ -220,7 +220,8 @@ namespace CalculateFunding.Tests.Common
         {
             if (IsDevelopment)
             {
-                return new QueueMessengerService("UseDevelopmentStorage=true", serviceName);
+                Services.Core.ServiceBus.QueueClient queueClient = new Services.Core.ServiceBus.QueueClient("UseDevelopmentStorage=true");
+                return new QueueMessengerService(queueClient, serviceName);
             }
             else
             {
@@ -228,7 +229,10 @@ namespace CalculateFunding.Tests.Common
 
                 configuration.Bind("ServiceBusSettings", serviceBusSettings);
 
-                return new MessengerService(serviceBusSettings, serviceName);
+                MessageReceiverFactory messageReceiverFactory = new MessageReceiverFactory(serviceBusSettings.ConnectionString);
+                ManagementClient managementClient = new ManagementClient(serviceBusSettings.ConnectionString);
+
+                return new MessengerService(serviceBusSettings, managementClient, messageReceiverFactory, serviceName);
             }
         }
     }

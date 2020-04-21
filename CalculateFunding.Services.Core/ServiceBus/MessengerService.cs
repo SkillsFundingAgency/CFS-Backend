@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
-using System.IO.Compression;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,24 +8,24 @@ using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Core.Options;
 using Microsoft.Azure.ServiceBus;
-using Microsoft.Azure.ServiceBus.Core;
-using Microsoft.Azure.ServiceBus.Management;
 using Newtonsoft.Json;
+using AzureCore = Microsoft.Azure.ServiceBus.Core;
+using AzureServiceBus = Microsoft.Azure.ServiceBus;
 
 namespace CalculateFunding.Services.Core.ServiceBus
 {
     public class MessengerService : BaseMessengerService, IMessengerService, IServiceBusService
     {
-        private static readonly ConcurrentDictionary<string, QueueClient> _queueClients = new ConcurrentDictionary<string, QueueClient>();
-        private static readonly ConcurrentDictionary<string, TopicClient> _topicClients = new ConcurrentDictionary<string, TopicClient>();
-        private static readonly ConcurrentDictionary<string, SubscriptionClient> _subscriptionClients = new ConcurrentDictionary<string, SubscriptionClient>();
-        private readonly string _connectionString;
+        private readonly IManagementClient _managementClient;
 
         public string ServiceName { get; }
 
-        public MessengerService(ServiceBusSettings settings, string serviceName = null)
+        private IMessageReceiverFactory _messageReceiverFactory;
+
+        public MessengerService(ServiceBusSettings settings, IManagementClient managementClient, IMessageReceiverFactory messageReceiverFactory, string serviceName = null)
         {
-            _connectionString = settings.ConnectionString;
+            _managementClient = managementClient;
+            _messageReceiverFactory = messageReceiverFactory;
             ServiceName = serviceName;
         }
 
@@ -38,7 +35,7 @@ namespace CalculateFunding.Services.Core.ServiceBus
             {
                 // Only way to check if connection string is correct is try receiving a message, 
                 // which isn't possible for topics as don't have a subscription
-                MessageReceiver receiver = new MessageReceiver(_connectionString, queueName);
+                AzureCore.IMessageReceiver receiver = _messageReceiverFactory.Receiver(queueName);
                 IList<Message> message = await receiver.PeekAsync(1);
                 await receiver.CloseAsync();
                 return await Task.FromResult((true, string.Empty));
@@ -51,50 +48,107 @@ namespace CalculateFunding.Services.Core.ServiceBus
 
         public async Task CreateSubscription(string topicName, string subscriptionName)
         {
-            ManagementClient managementClient = new ManagementClient(_connectionString);
-            await managementClient.CreateSubscriptionAsync(topicName, subscriptionName);
+            await _managementClient.CreateSubscription(topicName, subscriptionName);
         }
 
         public async Task DeleteSubscription(string topicName, string subscriptionName)
         {
-            ManagementClient managementClient = new ManagementClient(_connectionString);
-            await managementClient.DeleteSubscriptionAsync(topicName, subscriptionName);
+            await _managementClient.DeleteSubscription(topicName, subscriptionName);
         }
 
         public async Task CreateQueue(string queuePath)
         {
-            ManagementClient managementClient = new ManagementClient(_connectionString);
-            await managementClient.CreateQueueAsync(queuePath);
+            await _managementClient.CreateQueue(queuePath);
         }
 
         public async Task DeleteQueue(string queuePath)
         {
-            ManagementClient managementClient = new ManagementClient(_connectionString);
-            await managementClient.DeleteQueueAsync(queuePath);
+            await _managementClient.DeleteQueue(queuePath);
         }
 
         public async Task CreateTopic(string topicName)
         {
-            ManagementClient managementClient = new ManagementClient(_connectionString);
-            await managementClient.CreateTopicAsync(topicName);
+            await _managementClient.CreateTopic(topicName);
         }
 
         public async Task DeleteTopic(string topicName)
         {
-            ManagementClient managementClient = new ManagementClient(_connectionString);
-            await managementClient.DeleteTopicAsync(topicName);
+            await _managementClient.DeleteTopic(topicName);
+        }
+
+        public async Task SendToQueue<T>(string queueName, 
+            T data, 
+            IDictionary<string, string> properties, 
+            bool compressData = false, 
+            string sessionId = null) where T : class
+        {
+            string json = JsonConvert.SerializeObject(data);
+
+            await SendToQueueAsJson(queueName, json, properties, compressData, sessionId);
+        }
+
+        public async Task SendToQueueAsJson(string queueName, 
+            string data, 
+            IDictionary<string, string> properties, 
+            bool compressData = false, 
+            string sessionId = null)
+        {
+            Guard.IsNullOrWhiteSpace(queueName, nameof(queueName));
+
+            Message message = ConstructMessage(data, compressData, sessionId);
+
+            foreach (KeyValuePair<string, string> property in properties)
+            {
+                message.UserProperties.Add(property.Key, property.Value);
+            }
+
+            AzureServiceBus.IQueueClient queueClient = _managementClient.GetQueueClient(queueName);
+
+            await queueClient.SendAsync(message);
+        }
+
+        public async Task SendToTopic<T>(string topicName,
+            T data, 
+            IDictionary<string, string> properties, 
+            bool compressData = false, 
+            string sessionId = null) where T : class
+        {
+            string json = JsonConvert.SerializeObject(data);
+
+            await SendToTopicAsJson(topicName, json, properties, compressData, sessionId);
+        }
+
+        public async Task SendToTopicAsJson(string topicName, 
+            string data, 
+            IDictionary<string, string> properties, 
+            bool compressData = false, 
+            string sessionId = null)
+        {
+            Guard.IsNullOrWhiteSpace(topicName, nameof(topicName));
+
+            Message message = ConstructMessage(data, compressData, sessionId);
+
+            foreach (KeyValuePair<string, string> property in properties)
+            {
+                message.UserProperties.Add(property.Key, property.Value);
+            }
+
+            ITopicClient topicClient = _managementClient.GetTopicClient(topicName);
+
+            await topicClient.SendAsync(message);
         }
 
         protected async override Task ReceiveMessages<T>(string entityPath, Predicate<T> predicate, TimeSpan timeout)
         {
             List<T> messages = new List<T>();
             CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
-            MessageReceiver receiver = new MessageReceiver(_connectionString, entityPath);
+            AzureCore.IMessageReceiver receiver = _messageReceiverFactory.Receiver(entityPath);
 
             _ = Task.Run(() =>
             {
                 if (!cancellationTokenSource.Token.WaitHandle.WaitOne(timeout))
                 {
+                    _messageReceiverFactory.TimedOut();
                     cancellationTokenSource.Cancel();
                 }
             });
@@ -136,84 +190,6 @@ namespace CalculateFunding.Services.Core.ServiceBus
                 cancellationTokenSource.Cancel();
                 await receiver.CloseAsync();
             }
-        }
-
-        private QueueClient GetQueueClient(string queueName)
-        {
-            return _queueClients.GetOrAdd(queueName, (key) =>
-            {
-                return new QueueClient(_connectionString, key, ReceiveMode.PeekLock, RetryExponential.Default);
-            });
-        }
-
-        public async Task SendToQueue<T>(string queueName, 
-            T data, 
-            IDictionary<string, string> properties, 
-            bool compressData = false, 
-            string sessionId = null) where T : class
-        {
-            string json = JsonConvert.SerializeObject(data);
-
-            await SendToQueueAsJson(queueName, json, properties, compressData, sessionId);
-        }
-
-        public async Task SendToQueueAsJson(string queueName, 
-            string data, 
-            IDictionary<string, string> properties, 
-            bool compressData = false, 
-            string sessionId = null)
-        {
-            Guard.IsNullOrWhiteSpace(queueName, nameof(queueName));
-
-            Message message = ConstructMessage(data, compressData, sessionId);
-
-            foreach (KeyValuePair<string, string> property in properties)
-            {
-                message.UserProperties.Add(property.Key, property.Value);
-            }
-
-            QueueClient queueClient = GetQueueClient(queueName);
-
-            await queueClient.SendAsync(message);
-        }
-
-        private TopicClient GetTopicClient(string topicName)
-        {
-            return _topicClients.GetOrAdd(topicName, (key) =>
-            {
-                return new TopicClient(_connectionString, key, RetryPolicy.Default);
-            });
-        }
-
-        public async Task SendToTopic<T>(string topicName,
-            T data, 
-            IDictionary<string, string> properties, 
-            bool compressData = false, 
-            string sessionId = null) where T : class
-        {
-            string json = JsonConvert.SerializeObject(data);
-
-            await SendToTopicAsJson(topicName, json, properties, compressData, sessionId);
-        }
-
-        public async Task SendToTopicAsJson(string topicName, 
-            string data, 
-            IDictionary<string, string> properties, 
-            bool compressData = false, 
-            string sessionId = null)
-        {
-            Guard.IsNullOrWhiteSpace(topicName, nameof(topicName));
-
-            Message message = ConstructMessage(data, compressData, sessionId);
-
-            foreach (KeyValuePair<string, string> property in properties)
-            {
-                message.UserProperties.Add(property.Key, property.Value);
-            }
-
-            TopicClient topicClient = GetTopicClient(topicName);
-
-            await topicClient.SendAsync(message);
         }
 
         private static Message ConstructMessage(string data, bool compressData, string sessionId = null)

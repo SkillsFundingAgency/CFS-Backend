@@ -5,22 +5,19 @@ using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using Microsoft.WindowsAzure.Storage.Queue;
 using Newtonsoft.Json;
-using Microsoft.WindowsAzure.Storage;
 using System.Threading;
-using Microsoft.Azure.ServiceBus.Core;
 
 namespace CalculateFunding.Services.Core.ServiceBus
 {
     public class QueueMessengerService : BaseMessengerService, IMessengerService, IQueueService
     {
-        CloudQueueClient _queueClient;
-        CloudStorageAccount _storageAccount;
+        private IQueueClient _client;
 
         public string ServiceName { get; }
 
-        public QueueMessengerService(string connectionString, string serviceName = null)
+        public QueueMessengerService(IQueueClient client, string serviceName = null)
         {
-            _storageAccount = CloudStorageAccount.Parse(connectionString);
+            _client = client;
             ServiceName = serviceName;
         }
 
@@ -28,9 +25,8 @@ namespace CalculateFunding.Services.Core.ServiceBus
         {
             try
             {
-                CloudQueue queue = QueueClient.GetQueueReference(queueName);
-                bool result = await queue.ExistsAsync();
-                return (true, string.Empty);
+                bool result = await _client.Exists(queueName);
+                return (result, string.Empty);
             }
             catch (Exception ex)
             {
@@ -40,30 +36,23 @@ namespace CalculateFunding.Services.Core.ServiceBus
 
         public async Task CreateQueue(string entityPath)
         {
-            CloudQueue queue = QueueClient.GetQueueReference(entityPath);
-
-            await queue.CreateIfNotExistsAsync();
+            await _client.CreateQueue(entityPath);
         }
 
         public async Task DeleteQueue(string entityPath)
         {
-            CloudQueue queue = QueueClient.GetQueueReference(entityPath);
-
-            await queue.DeleteAsync();
+            await _client.DeleteQueue(entityPath);
         }
 
         protected async override Task ReceiveMessages<T>(string entityPath, Predicate<T> predicate, TimeSpan timeout)
         {
             CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
 
-            CloudQueue queue = QueueClient.GetQueueReference(entityPath);
-
-            await queue.CreateIfNotExistsAsync();
-
             _ = Task.Run(() =>
             {
                 if (!cancellationTokenSource.Token.WaitHandle.WaitOne(timeout))
                 {
+                    _client.TimedOut();
                     cancellationTokenSource.Cancel();
                 }
             });
@@ -72,18 +61,23 @@ namespace CalculateFunding.Services.Core.ServiceBus
             {
                 while (true)
                 {
-                    CloudQueueMessage message = await queue.GetMessageAsync();
+                    CloudQueueMessage message = await _client.GetMessage(entityPath);
 
                     if (message != null)
                     {
                         QueueMessage<T> queueMessage = JsonConvert.DeserializeObject<QueueMessage<T>>(message.AsString);
 
-                        if (predicate(queueMessage.Data))
+                        try
                         {
-                            break;
+                            if (predicate(queueMessage.Data))
+                            {
+                                break;
+                            }
                         }
-
-                        await queue.DeleteMessageAsync(message);
+                        finally
+                        {
+                            await _client.DeleteMessage(entityPath, message);
+                        }
                     }
 
                     if (cancellationTokenSource.Token.IsCancellationRequested)
@@ -94,19 +88,6 @@ namespace CalculateFunding.Services.Core.ServiceBus
             {
                 // cancel timeout
                 cancellationTokenSource.Cancel();
-            }
-        }
-
-        private CloudQueueClient QueueClient
-        {
-            get
-            {
-                if (_queueClient == null)
-                {
-                    _queueClient =  _storageAccount.CreateCloudQueueClient();
-                }
-
-                return _queueClient;
             }
         }
 
@@ -126,10 +107,6 @@ namespace CalculateFunding.Services.Core.ServiceBus
 
             string queueMessageJson = JsonConvert.SerializeObject(queueMessage);
 
-            CloudQueue queue = QueueClient.GetQueueReference(queueName);
-
-            await queue.CreateIfNotExistsAsync();
-
             CloudQueueMessage message = null;
 
             if (!compressData)
@@ -141,7 +118,7 @@ namespace CalculateFunding.Services.Core.ServiceBus
                 message = new CloudQueueMessage(CompressData(queueMessageJson));
             }
 
-            await queue.AddMessageAsync(message);
+            await _client.AddMessage(queueName, message);
         }
 
         public async Task SendToQueueAsJson(string queueName, 
@@ -161,13 +138,9 @@ namespace CalculateFunding.Services.Core.ServiceBus
 
             string queueMessageJson = $"{{\"Data\":{data},\"UserProperties\":{propertiesJson}}}";
 
-            CloudQueue queue = QueueClient.GetQueueReference(queueName);
-
-            await queue.CreateIfNotExistsAsync();
-
             CloudQueueMessage message = compressData ? new CloudQueueMessage(CompressData(queueMessageJson)) : new CloudQueueMessage(queueMessageJson);
 
-            await queue.AddMessageAsync(message);
+            await _client.AddMessage(queueName, message);
         }
 
         public async Task SendToTopic<T>(string topicName, 
@@ -176,7 +149,7 @@ namespace CalculateFunding.Services.Core.ServiceBus
             bool compressData = false, 
             string sessionId = null) where T : class
         {
-            await SendToQueue<T>(topicName, data, properties, compressData);
+            await SendToQueue(topicName, data, properties, compressData);
         }
 
         public async Task SendToTopicAsJson(string topicName, string data, IDictionary<string, string> properties, bool compressData = false, string sessionId = null)
