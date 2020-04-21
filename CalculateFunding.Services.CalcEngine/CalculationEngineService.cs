@@ -684,9 +684,14 @@ namespace CalculateFunding.Services.CalcEngine
 
             _logger.Information($"Sending message for test exceution for specification id {messageProperties.SpecificationId}");
 
-            Stopwatch saveQueueStopwatch = Stopwatch.StartNew();
-            await _messengerServicePolicy.ExecuteAsync(() => _messengerService.SendToQueue<string>(ServiceBusConstants.QueueNames.TestEngineExecuteTests, null, properties));
-            saveQueueStopwatch.Stop();
+            Stopwatch saveQueueStopwatch = null;
+                
+            if (_engineSettings.IsTestEngineEnabled)
+            { 
+                saveQueueStopwatch = Stopwatch.StartNew();
+                await _messengerServicePolicy.ExecuteAsync(() => _messengerService.SendToQueue<string>(ServiceBusConstants.QueueNames.TestEngineExecuteTests, null, properties));
+                saveQueueStopwatch.Stop();
+            }
 
             _logger.Information($"Message sent for test exceution for specification id {messageProperties.SpecificationId}");
 

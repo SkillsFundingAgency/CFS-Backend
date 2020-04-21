@@ -8,7 +8,7 @@ namespace CalculateFunding.Services.Core.Extensions
 {
     public static class ConfigHelper
     {
-        private static readonly string appConfigConnectionString = Environment.GetEnvironmentVariable("AzureConfiguration:ConnectionString");
+        private static readonly string AppConfigConnectionString = Environment.GetEnvironmentVariable("AzureConfiguration:ConnectionString");
 
         public static IConfigurationRoot AddConfig()
         {
@@ -48,11 +48,11 @@ namespace CalculateFunding.Services.Core.Extensions
 
         private static IConfigurationBuilder AddAppConfiguration(this IConfigurationBuilder configBuilder)
         {
-            if (!string.IsNullOrEmpty(appConfigConnectionString))
+            if (!string.IsNullOrEmpty(AppConfigConnectionString))
             {
                 configBuilder.AddAzureAppConfiguration(options =>
                 {
-                    options.Connect(appConfigConnectionString)
+                    options.Connect(AppConfigConnectionString)
                         .UseFeatureFlags()
                         .ConfigureRefresh(refresh =>
                         {

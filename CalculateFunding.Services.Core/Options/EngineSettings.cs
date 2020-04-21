@@ -32,5 +32,10 @@
         /// Number of providers to index into search for calculation results in a single batch
         /// </summary>
         public int CalculationResultSearchIndexBatchSize { get; set; } = 100;
+        
+        /// <summary>
+        /// Feature toggle to control queueing test engine run after calc batch completes
+        /// </summary>
+        public bool IsTestEngineEnabled { get; set; }
     }
 }

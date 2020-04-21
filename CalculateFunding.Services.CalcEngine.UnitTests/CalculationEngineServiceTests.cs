@@ -36,8 +36,14 @@ namespace CalculateFunding.Services.Calculator
         [TestInitialize]
         public void SetUp()
         {
-            _calculationEngineServiceTestsHelper = new CalculationEngineServiceTestsHelper();      
-            
+            _calculationEngineServiceTestsHelper = new CalculationEngineServiceTestsHelper
+            {
+                MockEngineSettings =
+                {
+                    IsTestEngineEnabled = true
+                }
+            };
+
             _specificationSummary = new ApiClientSpecificationSummary
             {
                 DataDefinitionRelationshipIds = new []
