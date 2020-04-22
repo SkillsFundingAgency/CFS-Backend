@@ -8,6 +8,6 @@ namespace CalculateFunding.Services.Specs.Interfaces
     {
         IActionResult GetReportMetadata(string specificationId);
 
-        Task<IActionResult> DownloadReport(SpecificationReportIdentifier id);
+        Task<IActionResult> DownloadReport(SpecificationReportIdentifier specificationReportIdentifier);
     }
 }

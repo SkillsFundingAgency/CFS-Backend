@@ -11,6 +11,7 @@ using Microsoft.Azure.Storage.Blob;
 using ByteSizeLib;
 using System.Net;
 using System.Threading.Tasks;
+using Microsoft.Azure.Storage;
 
 namespace CalculateFunding.Services.Specs
 {
@@ -43,23 +44,29 @@ namespace CalculateFunding.Services.Specs
             return new OkObjectResult(specificationReports);
         }
 
-        public async Task<IActionResult> DownloadReport(SpecificationReportIdentifier id)
+        public async Task<IActionResult> DownloadReport(SpecificationReportIdentifier specificationReportIdentifier)
         {
-            Guard.ArgumentNotNull(id, nameof(id));
+            Guard.ArgumentNotNull(specificationReportIdentifier, nameof(specificationReportIdentifier));
 
-            ReportType reportType = GetReportType(id.JobType);
+            ReportType reportType = GetReportType(specificationReportIdentifier.JobType);
             string containerName = GetContainerName(reportType);
-            string fileName = GenerateFileName(id);
+            string blobName = GenerateFileName(specificationReportIdentifier);
 
-            bool blobExists = await _blobClient.BlobExistsAsync(fileName, containerName);
-            if (!blobExists)
+            ICloudBlob cloudBlob;
+            try
+            {
+                cloudBlob = await _blobClient.GetBlobReferenceFromServerAsync(blobName, containerName);
+            }
+            catch (StorageException)
             {
                 return new StatusCodeResult((int)HttpStatusCode.NotFound);
             }
 
-            string blobUrl = _blobClient.GetBlobSasUrl(fileName, DateTimeOffset.Now.AddDays(1), SharedAccessBlobPermissions.Read, containerName);
+            cloudBlob.Metadata.TryGetValue("file_name", out string fileName);
+
+            string blobUrl = _blobClient.GetBlobSasUrl(blobName, DateTimeOffset.Now.AddDays(1), SharedAccessBlobPermissions.Read, containerName);
             
-            SpecificationsDownloadModel downloadModel = new SpecificationsDownloadModel { Url = blobUrl };
+            SpecificationsDownloadModel downloadModel = new SpecificationsDownloadModel { Url = blobUrl, FileName = fileName };
             return new OkObjectResult(downloadModel);
         }
 
@@ -97,7 +104,7 @@ namespace CalculateFunding.Services.Specs
                 return new SpecificationReport
                 {
                     Name = fileName,
-                    Id = GetReportId(cloudBlob.Metadata, jobType),
+                    SpecificationReportIdentifier = GetReportId(cloudBlob.Metadata, jobType),
                     Category = GetReportCategory(jobType).ToString(),
                     LastModified = cloudBlob.Properties.LastModified,
                     Format = fileSuffix.ToUpperInvariant(),

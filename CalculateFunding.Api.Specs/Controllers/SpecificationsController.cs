@@ -309,9 +309,9 @@ namespace CalculateFunding.Api.Specs.Controllers
         [HttpPost]
         [Produces(typeof(SpecificationsDownloadModel))]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
-        public async Task<IActionResult> DownloadSpecificationReport([FromBody] SpecificationReportIdentifier id)
+        public async Task<IActionResult> DownloadSpecificationReport([FromBody] SpecificationReportIdentifier specificationReportIdentifier)
         {
-            return await _specificationsReportService.DownloadReport(id);
+            return await _specificationsReportService.DownloadReport(specificationReportIdentifier);
         }
     }
 }

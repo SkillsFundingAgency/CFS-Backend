@@ -8,6 +8,7 @@ using CalculateFunding.Models.Specs;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.Storage;
 using Microsoft.Azure.Storage.Blob;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
@@ -159,14 +160,15 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                         Category = "Live",
                         Format = "CSV",
                         Size = "-1 B",
-                        Id = id
+                        SpecificationReportIdentifier = id
                 });
         }
 
         [TestMethod]
         public void DownloadReport_NullFileNamePassed_ThrowsException()
         {
-            Func<Task<IActionResult>> invocation = async () => await _service.DownloadReport(null);
+            SpecificationReportIdentifier specificationReportIdentifier = null;
+            Func<Task<IActionResult>> invocation = async () => await _service.DownloadReport(specificationReportIdentifier);
 
             invocation
                 .Should()
@@ -174,7 +176,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .Which
                 .ParamName
                 .Should()
-                .Be("id");
+                .Be(nameof(specificationReportIdentifier));
         }
 
         [TestMethod]
@@ -198,8 +200,8 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             string expectedBlobName = $"funding-lines-{specificationId}-{jobType}-{fundingLineCode}-{fundingStreamId}.csv";
 
             _blobClient
-                .BlobExistsAsync(expectedBlobName, PublishedProviderVersionsContainerName)
-                .Returns(Task.FromResult(false));
+                .When(_ => _.GetBlobReferenceFromServerAsync(expectedBlobName, PublishedProviderVersionsContainerName))
+                .Do(_ => { throw new StorageException(); });
 
             IActionResult result = await _service.DownloadReport(id);
 
@@ -238,9 +240,22 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .GetBlobSasUrl(expectedBlobName, Arg.Any<DateTimeOffset>(), SharedAccessBlobPermissions.Read, PublishedProviderVersionsContainerName)
                 .Returns(sasUrl);
 
+            string fundingLineFileName = "Funding Lines";
+
+            IDictionary<string, string> fundingLineFileMetadata = new Dictionary<string, string>
+            {
+                {"file_name", fundingLineFileName},
+            };
+
+            ICloudBlob fundingLineCloudBlob = Substitute.For<ICloudBlob>();
+
+            fundingLineCloudBlob
+                .Metadata
+                .Returns(fundingLineFileMetadata);
+
             _blobClient
-                .BlobExistsAsync(expectedBlobName, PublishedProviderVersionsContainerName)
-                .Returns(Task.FromResult(true));
+                .GetBlobReferenceFromServerAsync(expectedBlobName, PublishedProviderVersionsContainerName)
+                .Returns(Task.FromResult(fundingLineCloudBlob));
 
             IActionResult result = await _service.DownloadReport(id);
 
@@ -258,6 +273,11 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .Url
                 .Should()
                 .Be(sasUrl);
+
+            downloadModel
+                .FileName
+                .Should()
+                .Be(fundingLineFileName);
         }
 
         private Uri BuildUri(string fileName, string extension)
