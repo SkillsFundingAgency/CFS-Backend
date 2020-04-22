@@ -28,6 +28,10 @@ using Microsoft.OpenApi.Models;
 using Polly.Bulkhead;
 using Serilog;
 using System.Collections.Generic;
+using CalculateFunding.Models.Policy.TemplateBuilder;
+using CalculateFunding.Services.Core.Interfaces;
+using CalculateFunding.Services.Core.Services;
+using CalculateFunding.Services.Policy.TemplateBuilder;
 using TemplateMetadataSchema10 = CalculateFunding.Common.TemplateMetadata.Schema10;
 
 namespace CalculateFunding.Api.Policy
@@ -217,6 +221,8 @@ namespace CalculateFunding.Api.Policy
             builder.AddSingleton<IValidator<FundingConfiguration>, SaveFundingConfigurationValidator>();
             builder.AddSingleton<IValidator<FundingPeriodsJsonModel>, FundingPeriodJsonModelValidator>();
 
+            RegisterTemplateBuilderComponents(builder);
+
             builder.AddPolicySettings(Configuration);
 
             MapperConfiguration fundingConfMappingConfig = new MapperConfiguration(c =>
@@ -228,7 +234,6 @@ namespace CalculateFunding.Api.Policy
                 .AddSingleton(fundingConfMappingConfig.CreateMapper());
 
             builder.AddCaching(Configuration);
-
            
             builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Api.Policy");
             builder.AddApplicationInsightsServiceName(Configuration, "CalculateFunding.Api.Policy");
@@ -240,6 +245,19 @@ namespace CalculateFunding.Api.Policy
             builder.AddHttpContextAccessor();
 
             builder.AddHealthCheckMiddleware();
+        }
+
+        public void RegisterTemplateBuilderComponents(IServiceCollection builder)
+        {
+            CosmosDbSettings settings = new CosmosDbSettings { ContainerName = "templateBuilder" };
+            Configuration.Bind("CosmosDbSettings", settings);
+            CosmosRepository cosmos = new CosmosRepository(settings);
+            builder
+                .AddSingleton<ITemplateBuilderService, TemplateBuilderService>()
+                .AddSingleton<IHealthChecker, TemplateBuilderService>()
+                .AddSingleton<IValidator<TemplateCreateCommand>, TemplateCreateCommandValidator>()
+                .AddSingleton<ITemplateRepository, TemplateRepository>(ctx => new TemplateRepository(cosmos))
+                .AddSingleton<IVersionRepository<TemplateVersion>, VersionRepository<TemplateVersion>>(ctx => new VersionRepository<TemplateVersion>(cosmos));
         }
     }
 }

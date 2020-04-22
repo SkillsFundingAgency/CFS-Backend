@@ -12,4 +12,8 @@
 
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\CalculateFunding.Models.Versioning\CalculateFunding.Models.Versioning.csproj" />
+  </ItemGroup>
+
 </Project>

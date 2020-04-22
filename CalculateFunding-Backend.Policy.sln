@@ -43,6 +43,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Repositories", "Repositorie
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Repositories.Common.Search", "CalculateFunding.Repositories.Common.Search\CalculateFunding.Repositories.Common.Search.csproj", "{B2D754B4-8955-45C9-920A-AAAE0F6EB338}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalculateFunding.Models.Versioning", "CalculateFunding.Models.Versioning\CalculateFunding.Models.Versioning.csproj", "{EE04CCFF-100B-4B04-88E7-DC8A7E010F00}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -93,6 +95,10 @@ Global
 		{B2D754B4-8955-45C9-920A-AAAE0F6EB338}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B2D754B4-8955-45C9-920A-AAAE0F6EB338}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B2D754B4-8955-45C9-920A-AAAE0F6EB338}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EE04CCFF-100B-4B04-88E7-DC8A7E010F00}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EE04CCFF-100B-4B04-88E7-DC8A7E010F00}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EE04CCFF-100B-4B04-88E7-DC8A7E010F00}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EE04CCFF-100B-4B04-88E7-DC8A7E010F00}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -112,6 +118,7 @@ Global
 		{6C053A46-8299-4FFE-BDAA-A7D02D47F59C} = {6EA0DA7F-7D0F-4D53-A8C8-056E41286BA1}
 		{430EE9ED-639F-4171-B4F0-0C3E29DC9DED} = {5D1F85D8-AC66-4439-B9A6-25E85B7B1965}
 		{B2D754B4-8955-45C9-920A-AAAE0F6EB338} = {A23ABA3D-913A-4298-B017-CDBCB405D37C}
+		{EE04CCFF-100B-4B04-88E7-DC8A7E010F00} = {C83A174D-0E21-4C2E-8AF6-49653B5E006F}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {4022B40E-A4CC-42F4-8CD1-1A493F405714}
