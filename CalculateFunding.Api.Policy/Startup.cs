@@ -249,8 +249,9 @@ namespace CalculateFunding.Api.Policy
 
         public void RegisterTemplateBuilderComponents(IServiceCollection builder)
         {
-            CosmosDbSettings settings = new CosmosDbSettings { ContainerName = "templateBuilder" };
+            CosmosDbSettings settings = new CosmosDbSettings();
             Configuration.Bind("CosmosDbSettings", settings);
+            settings.ContainerName = "templatebuilder";
             CosmosRepository cosmos = new CosmosRepository(settings);
             builder
                 .AddSingleton<ITemplateBuilderService, TemplateBuilderService>()
