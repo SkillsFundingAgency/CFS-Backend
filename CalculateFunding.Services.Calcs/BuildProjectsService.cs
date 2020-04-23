@@ -274,11 +274,10 @@ namespace CalculateFunding.Services.Calcs
 
                         if (isServiceBusService)
                         {
-                            Job scopedJob = await _messengerService.ReceiveMessage<Job>($"{ServiceBusConstants.TopicNames.JobNotifications}/Subscriptions/{corellationId}", _ =>
+                            JobNotification scopedJob = await _messengerService.ReceiveMessage<JobNotification>($"{ServiceBusConstants.TopicNames.JobNotifications}/Subscriptions/{corellationId}", _ =>
                             {
-                                return _?.JobDefinitionId == DefinitionNames.PopulateScopedProvidersJob && 
-                                _.Properties.ContainsKey("specification-id") && 
-                                _.Properties["specification-id"] == specificationId && 
+                                return _?.JobType == DefinitionNames.PopulateScopedProvidersJob && 
+                                _.SpecificationId == specificationId && 
                                 (_.CompletionStatus == CompletionStatus.Succeeded || _.CompletionStatus == CompletionStatus.Failed);
                             },
                             TimeSpan.FromMinutes(10));

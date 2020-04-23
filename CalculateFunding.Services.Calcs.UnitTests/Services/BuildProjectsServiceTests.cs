@@ -2205,9 +2205,9 @@ namespace CalculateFunding.Services.Calcs.Services
             IMessengerService messengerService = CreateServiceBusMessengerService();
 
             messengerService.ReceiveMessage(Arg.Any<string>(), 
-            Arg.Any<Predicate<Job>>(),
+            Arg.Any<Predicate<JobNotification>>(),
             Arg.Any<TimeSpan>())
-                .Returns(new Job { CompletionStatus = CompletionStatus.Succeeded });
+                .Returns(new JobNotification { CompletionStatus = CompletionStatus.Succeeded });
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(jobsApiClient: jobsApiClient,
                 logger: logger, cacheProvider: cacheProvider, providersApiClient: providersApiClient, jobManagement: jobManagement, messengerService: messengerService);
