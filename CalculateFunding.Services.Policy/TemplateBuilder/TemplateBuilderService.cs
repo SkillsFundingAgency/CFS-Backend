@@ -81,17 +81,19 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
 
                 Template template = new Template
                 {
-                    Current = new TemplateVersion
-                    {
-                        FundingStreamId = command.FundingStreamId,
-                        Name = command.Name,
-                        Description = command.Description,
-                        Version = 1,
-                        PublishStatus = PublishStatus.Draft,
-                        SchemaVersion = command.SchemaVersion,
-                        Author = author,
-                        Date = DateTimeOffset.Now.ToLocalTime()
-                    }
+                    TemplateId = Guid.NewGuid().ToString()
+                };
+                template.Current = new TemplateVersion
+                {
+                    TemplateId = template.TemplateId,
+                    FundingStreamId = command.FundingStreamId,
+                    Name = command.Name,
+                    Description = command.Description,
+                    Version = 1,
+                    PublishStatus = PublishStatus.Draft,
+                    SchemaVersion = command.SchemaVersion,
+                    Author = author,
+                    Date = DateTimeOffset.Now.ToLocalTime()
                 };
 
                 HttpStatusCode result = await _templateRepository.CreateDraft(template);
@@ -103,7 +105,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
                     return new CreateTemplateResponse
                     {
                         Succeeded = true,
-                        TemplateId = template.Id
+                        TemplateId = template.TemplateId
                     };
                 }
 

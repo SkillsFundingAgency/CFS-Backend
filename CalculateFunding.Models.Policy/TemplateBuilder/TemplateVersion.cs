@@ -14,8 +14,11 @@ namespace CalculateFunding.Models.Policy.TemplateBuilder
         /// Cosmos ID for the document. This will be used as the document ID when saving to cosmos
         /// </summary>
         [JsonProperty("id")]
-        public override string Id => Guid.NewGuid().ToString();
+        public override string Id => $"templateVersion-{TemplateId}-{Version}";
 
+        [JsonProperty("templateId")]
+        public string TemplateId { get; set; }
+        
         /// <summary>
         /// Funding Stream ID. eg PSG, DSG
         /// </summary>

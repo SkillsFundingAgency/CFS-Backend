@@ -15,8 +15,11 @@ namespace CalculateFunding.Models.Policy.TemplateBuilder
         /// Cosmos document id
         /// </summary>
         [JsonProperty("id")]
-        public string Id => Guid.NewGuid().ToString();
+        public string Id => $"template-{TemplateId}";
 
+        [JsonProperty("templateId")]
+        public string TemplateId { get; set; }
+        
         /// <summary>
         /// Current version of the provider
         /// </summary>
