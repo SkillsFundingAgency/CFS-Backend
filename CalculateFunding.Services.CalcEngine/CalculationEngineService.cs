@@ -248,7 +248,7 @@ namespace CalculateFunding.Services.CalcEngine
                 long saveCosmosElapsedMs = -1;
                 long saveSearchElapsedMs = -1;
                 long saveRedisElapsedMs = 0;
-                long saveQueueElapsedMs = 0;
+                long? saveQueueElapsedMs = null;
                 int savedProviders = 0;
                 int percentageProvidersSaved = 0;
 
@@ -260,7 +260,7 @@ namespace CalculateFunding.Services.CalcEngine
                     }
                     else
                     {
-                        (long saveCosmosElapsedMs, long saveSearchElapsedMs, long saveRedisElapsedMs, long saveQueueElapsedMs, int savedProviders) processResultsMetrics =
+                        (long saveCosmosElapsedMs, long saveSearchElapsedMs, long saveRedisElapsedMs, long? saveQueueElapsedMs, int savedProviders) processResultsMetrics =
                             await ProcessProviderResults(calculationResults.ProviderResults, messageProperties, message);
 
                         saveCosmosElapsedMs = processResultsMetrics.saveCosmosElapsedMs;
@@ -290,11 +290,15 @@ namespace CalculateFunding.Services.CalcEngine
                     { "calculation-run-partitionSize", messageProperties.PartitionSize },
                     { "calculation-run-providerSourceDatasetQueryMs", providerSourceDatasetsStopwatch.ElapsedMilliseconds },
                     { "calculation-run-saveProviderResultsRedisMs", saveRedisElapsedMs },
-                    { "calculation-run-saveProviderResultsServiceBusMs", saveQueueElapsedMs },
                     { "calculation-run-runningCalculationMs",  calculationStopwatch.ElapsedMilliseconds },
                     { "calculation-run-savedProviders",  savedProviders },
                     { "calculation-run-savePercentage ",  percentageProvidersSaved },
                 };
+
+                if(saveQueueElapsedMs.HasValue)
+                {
+                    metrics.Add("calculation-run-saveProviderResultsServiceBusMs", saveQueueElapsedMs.Value);
+                }
 
                 if (saveCosmosElapsedMs > -1)
                 {
@@ -646,7 +650,7 @@ namespace CalculateFunding.Services.CalcEngine
             }
         }
 
-        private async Task<(long saveCosmosElapsedMs, long saveToSearchElapsedMs, long saveRedisElapsedMs, long saveQueueElapsedMs, int savedProviders)> ProcessProviderResults(
+        private async Task<(long saveCosmosElapsedMs, long saveToSearchElapsedMs, long saveRedisElapsedMs, long? saveQueueElapsedMs, int savedProviders)> ProcessProviderResults(
             IEnumerable<ProviderResult> providerResults,
             GenerateAllocationMessageProperties messageProperties,
             Message message)
@@ -698,7 +702,7 @@ namespace CalculateFunding.Services.CalcEngine
             return (saveProviderResultsTimings.saveToCosmosElapsedMs,
                 saveProviderResultsTimings.saveToSearchElapsedMs,
                 saveRedisStopwatch.ElapsedMilliseconds,
-                saveQueueStopwatch.ElapsedMilliseconds,
+                saveQueueStopwatch?.ElapsedMilliseconds,
                 saveProviderResultsTimings.savedProviders);
         }
 
