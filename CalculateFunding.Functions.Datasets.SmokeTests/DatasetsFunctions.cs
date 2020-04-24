@@ -61,7 +61,7 @@ namespace CalculateFunding.Functions.Datasets.SmokeTests
                 IsDevelopment);
 
             (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.ProcessDataset,
-                (Message smokeResponse) => onDatasetEvent.Run(smokeResponse));
+                (Message smokeResponse) => onDatasetEvent.Run(smokeResponse), useSession: true);
 
             responses
                 .Should()

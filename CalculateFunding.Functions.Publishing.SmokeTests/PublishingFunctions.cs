@@ -48,7 +48,7 @@ namespace CalculateFunding.Functions.Publishing.SmokeTests
                 IsDevelopment);
 
             (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.PublishingApproveFunding,
-                (Message smokeResponse) => onApproveFunding.Run(smokeResponse));
+                (Message smokeResponse) => onApproveFunding.Run(smokeResponse), useSession: true);
 
             responses
                 .Should()
@@ -64,7 +64,7 @@ namespace CalculateFunding.Functions.Publishing.SmokeTests
                 IsDevelopment);
 
             (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.PublishingPublishFunding,
-                (Message smokeResponse) => onPublishFunding.Run(smokeResponse));
+                (Message smokeResponse) => onPublishFunding.Run(smokeResponse), useSession: true);
 
             responses
                 .Should()
@@ -80,7 +80,7 @@ namespace CalculateFunding.Functions.Publishing.SmokeTests
                 IsDevelopment);
 
             (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.PublishingRefreshFunding,
-                (Message smokeResponse) => onRefreshFunding.Run(smokeResponse));
+                (Message smokeResponse) => onRefreshFunding.Run(smokeResponse), useSession: true);
 
             responses
                 .Should()

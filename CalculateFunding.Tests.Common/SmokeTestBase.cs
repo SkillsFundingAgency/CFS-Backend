@@ -60,7 +60,8 @@ namespace CalculateFunding.Tests.Common
 
         public async Task<(IEnumerable<SmokeResponse> responses, string uniqueId)> RunSmokeTest(string queueName,
             Action<Message> action,
-            string topicName = null)
+            string topicName = null,
+            bool useSession = false)
         {
             ServiceProvider serviceProvider = Services.BuildServiceProvider();
 
@@ -74,7 +75,8 @@ namespace CalculateFunding.Tests.Common
                     return await RunSmokeTest(serviceProvider.GetRequiredService<IMessengerService>(),
                     queueName,
                     action,
-                    topicName);
+                    topicName,
+                    useSession);
                 }
             }
             else
@@ -82,14 +84,16 @@ namespace CalculateFunding.Tests.Common
                 return await RunSmokeTest(serviceProvider.GetRequiredService<IMessengerService>(),
                     queueName,
                     action,
-                    topicName);
+                    topicName,
+                    useSession);
             }
         }
 
         private async Task<(IEnumerable<SmokeResponse> responses, string uniqueId)> RunSmokeTest(IMessengerService messengerService,
             string queueName,
             Action<Message> action,
-            string topicName)
+            string topicName,
+            bool useSession)
         {
             Guard.IsNullOrWhiteSpace(queueName, nameof(queueName));
             Guard.ArgumentNotNull(action, nameof(action));
@@ -114,16 +118,36 @@ namespace CalculateFunding.Tests.Common
 
                 if (!IsDevelopment && topicName != null)
                 {
-                    await messengerService.SendToTopic(topicName,
-                        uniqueId,
-                        properties);
+                    if (useSession)
+                    {
+                        await messengerService.SendToTopic(topicName,
+                            uniqueId,
+                            properties,
+                            sessionId: uniqueId);
+                    }
+                    else
+                    {
+                        await messengerService.SendToTopic(topicName,
+                            uniqueId,
+                            properties);
+                    }
                 }
                 else
                 {
-                    await messengerService.SendToQueue(queueName,
+                    if (useSession)
+                    {
+                        await messengerService.SendToQueue(queueName,
+                        uniqueId,
+                        properties,
+                        sessionId: uniqueId);
+                    }
+                    else
+                    {
+                        await messengerService.SendToQueue(queueName,
                         uniqueId,
                         properties);
-                }
+                    }
+            }
 
                 if (IsDevelopment)
                 {

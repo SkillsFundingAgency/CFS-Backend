@@ -49,7 +49,7 @@ namespace CalculateFunding.Functions.Calcs.SmokeTests
                 IsDevelopment);
 
             (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.ApplyTemplateCalculations,
-                (Message smokeResponse) => onApplyTemplateCalculations.Run(smokeResponse));
+                (Message smokeResponse) => onApplyTemplateCalculations.Run(smokeResponse), useSession: true);
 
             responses
                 .Should()
