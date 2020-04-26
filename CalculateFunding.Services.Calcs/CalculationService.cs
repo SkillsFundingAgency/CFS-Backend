@@ -502,52 +502,52 @@ namespace CalculateFunding.Services.Calcs
             calculationEditModel.SpecificationId = specificationId;
             calculationEditModel.CalculationId = calculationId;
 
-            BadRequestObjectResult validationResult = (await _calculationEditModelValidator.ValidateAsync(calculationEditModel)).PopulateModelState();
-
-            if (validationResult != null)
-            {
-                return validationResult;
-            }
-
-            Calculation calculation = await _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCalculationById(calculationId));
-
-            if (calculation == null)
-            {
-                _logger.Error($"A calculation was not found for calculation id {calculationId}");
-
-                return new NotFoundResult();
-            }
-
-            CalculationVersion calculationVersion = calculation.Current.Clone() as CalculationVersion;
-
-            if (setAdditional)
-            {
-                calculationVersion.WasTemplateCalculation = true;
-                calculationVersion.CalculationType = CalculationType.Additional;
-            }
-
-            calculationVersion.SourceCode = calculationEditModel.SourceCode;
-            calculationVersion.Name = calculationEditModel.Name;
-            calculationVersion.ValueType = calculationEditModel.ValueType.Value;
-            calculationVersion.SourceCodeName = VisualBasicTypeGenerator.GenerateIdentifier(calculationEditModel.Name);
-            calculationVersion.Description = calculationEditModel.Description;
-
-            UpdateCalculationResult result = await UpdateCalculation(calculation, calculationVersion, author);
-
-            string cacheKey = $"{CacheKeys.CalculationsMetadataForSpecification}{specificationId}";
-
-            await _cachePolicy.ExecuteAsync(() => _cacheProvider.RemoveAsync<List<CalculationMetadata>>(cacheKey));
-
-            Job job = null;
-
-            if(skipInstruct)
-            {
-                return new OkObjectResult(result.CurrentVersion);
-            }
-
             try
             {
-                job = await SendInstructAllocationsToJobService(result.BuildProject.SpecificationId, author.Id, author.Name, new Trigger
+                BadRequestObjectResult validationResult = (await _calculationEditModelValidator.ValidateAsync(calculationEditModel)).PopulateModelState();
+
+                if (validationResult != null)
+                {
+                    return validationResult;
+                }
+
+                Calculation calculation = await _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCalculationById(calculationId));
+
+                if (calculation == null)
+                {
+                    _logger.Error($"A calculation was not found for calculation id {calculationId}");
+
+                    return new NotFoundResult();
+                }
+
+                CalculationVersion calculationVersion = calculation.Current.Clone() as CalculationVersion;
+
+                if (setAdditional)
+                {
+                    calculationVersion.WasTemplateCalculation = true;
+                    calculationVersion.CalculationType = CalculationType.Additional;
+                }
+
+                calculationVersion.SourceCode = calculationEditModel.SourceCode;
+                calculationVersion.Name = calculationEditModel.Name;
+                calculationVersion.ValueType = calculationEditModel.ValueType.Value;
+                calculationVersion.SourceCodeName = VisualBasicTypeGenerator.GenerateIdentifier(calculationEditModel.Name);
+                calculationVersion.Description = calculationEditModel.Description;
+
+                UpdateCalculationResult result = await UpdateCalculation(calculation, calculationVersion, author);
+
+                string cacheKey = $"{CacheKeys.CalculationsMetadataForSpecification}{specificationId}";
+
+                await _cachePolicy.ExecuteAsync(() => _cacheProvider.RemoveAsync<List<CalculationMetadata>>(cacheKey));
+
+                Job job = null;
+
+                if(skipInstruct)
+                {
+                    return new OkObjectResult(result.CurrentVersion);
+                }
+
+               job = await SendInstructAllocationsToJobService(result.BuildProject.SpecificationId, author.Id, author.Name, new Trigger
                 {
                     EntityId = calculation.Id,
                     EntityType = nameof(Calculation),
@@ -571,6 +571,7 @@ namespace CalculateFunding.Services.Calcs
             }
             catch (Exception ex)
             {
+                _logger.Error(ex.Message, ex);
                 return new InternalServerErrorResult(ex.Message);
             }
         }
@@ -1146,7 +1147,17 @@ namespace CalculateFunding.Services.Calcs
 
             BuildProject buildProject = null;
 
-            SpecModel.SpecificationSummary specificationSummary = (await _specificationsApiClientPolicy.ExecuteAsync(() => _specificationsApiClient.GetSpecificationSummaryById(calculation.SpecificationId))).Content;
+            ApiResponse<SpecModel.SpecificationSummary> specificationResponse = await _specificationsApiClientPolicy.ExecuteAsync(() =>
+                _specificationsApiClient.GetSpecificationSummaryById(calculation.SpecificationId));
+
+            SpecModel.SpecificationSummary specificationSummary = specificationResponse?.Content;
+
+            if (!specificationResponse.StatusCode.IsSuccess() || specificationSummary == null)
+            {
+                string errorMsg = $"No specification with id {calculation.SpecificationId}. Unable to get Specification Summary for calculation";
+                _logger.Error(errorMsg);
+                throw new Exception(errorMsg);
+            }
 
             if (updateBuildProject)
             {

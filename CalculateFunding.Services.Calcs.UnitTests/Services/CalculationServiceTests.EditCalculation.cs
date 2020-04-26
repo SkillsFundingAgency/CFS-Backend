@@ -1354,7 +1354,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public void EditCalculation_GivenCalculationUpdateFails_ThenExceptionIsThrown()
+        public async Task EditCalculation_GivenCalculationUpdateFails_ThenExceptionIsThrown()
         {
             //Arrange
             string buildProjectId = Guid.NewGuid().ToString();
@@ -1416,14 +1416,15 @@ namespace CalculateFunding.Services.Calcs.Services
                 searchRepository: searchRepository,
                 specificationsApiClient: specificationsApiClient);
 
-            //Act
-            Func<Task<IActionResult>> resultFunc = async () => await service.EditCalculation(SpecificationId, CalculationId, calculationEditModel, author, CorrelationId);
+            //Act           
+            IActionResult result = await service.EditCalculation(SpecificationId, CalculationId, calculationEditModel, author, CorrelationId);
 
             //Assert
-            resultFunc
-                .Should().Throw<InvalidOperationException>()
+            result
+                .Should()
+                .BeOfType<InternalServerErrorResult>()
                 .Which
-                .Message
+                .Value
                 .Should()
                 .Be("Update calculation returned status code 'InternalServerError' instead of OK");
         }
@@ -1702,6 +1703,82 @@ namespace CalculateFunding.Services.Calcs.Services
             jobsApiClient
                     .DidNotReceive();
 
+        }
+
+        [TestMethod]
+        public async Task EditCalculation_GivenCalculationUpdateFailsWithNoSpecificationSummary_ThenExceptionIsThrown()
+        {
+            //Arrange
+            string buildProjectId = Guid.NewGuid().ToString();
+
+            string specificationId = Guid.NewGuid().ToString();
+
+            CalculationEditModel calculationEditModel = CreateCalculationEditModel();
+
+            Reference author = CreateAuthor();
+
+            BuildProject buildProject = new BuildProject
+            {
+                Id = buildProjectId,
+            };
+
+            Calculation calculation = CreateCalculation();
+            calculation.SpecificationId = specificationId;
+
+            calculation.Current.PublishStatus = PublishStatus.Updated;
+
+            ILogger logger = CreateLogger();
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository
+                .GetCalculationById(Arg.Is(CalculationId))
+                .Returns(calculation);
+
+            calculationsRepository
+                .UpdateCalculation(Arg.Any<Calculation>())
+                .Returns(HttpStatusCode.OK);
+
+            IBuildProjectsService buildProjectsService = CreateBuildProjectsService();
+            buildProjectsService
+                .GetBuildProjectForSpecificationId(Arg.Is(specificationId))
+                .Returns(buildProject);
+
+            CalculationIndex calcIndex = new CalculationIndex();
+
+            ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
+            searchRepository
+                .SearchById(Arg.Is(CalculationId))
+                .Returns(calcIndex);
+
+            SpecModel.SpecificationSummary specificationSummary = new SpecModel.SpecificationSummary()
+            {
+                Id = calculation.SpecificationId,
+                Name = "Test Spec Name",
+            };
+
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+            specificationsApiClient
+                .GetSpecificationSummaryById(Arg.Is(calculation.SpecificationId))
+                .Returns(new Common.ApiClient.Models.ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, null));
+
+            CalculationService service = CreateCalculationService(
+                logger: logger,
+                calculationsRepository: calculationsRepository,
+                 buildProjectsService: buildProjectsService,
+                searchRepository: searchRepository,
+                specificationsApiClient: specificationsApiClient);
+
+            //Act          
+            
+            IActionResult result = await service.EditCalculation(SpecificationId, CalculationId, calculationEditModel, author, CorrelationId);
+
+            //Assert
+            result
+                .Should().BeOfType<InternalServerErrorResult>()
+                .Which
+                .Value
+                .Should()
+                .Be($"No specification with id {calculation.SpecificationId}. Unable to get Specification Summary for calculation");
         }
     }
 }
