@@ -182,7 +182,7 @@ namespace CalculateFunding.Tests.Common
 
                 if (_useMocking)
                 {
-                    CheckServiceBusCalls(messengerService, uniqueId, queueName, topicName, entityPathBase);
+                    CheckServiceBusCalls(messengerService, uniqueId, queueName, topicName, entityPathBase, useSession);
                 }
             }
         }
@@ -198,23 +198,47 @@ namespace CalculateFunding.Tests.Common
                 .Returns(new SmokeResponse[] { new SmokeResponse { InvocationId = uniqueId } });
         }
 
-        private static void CheckServiceBusCalls(IMessengerService messengerService, string uniqueId, string queueName, string topicName, string entityPathBase)
+        private static void CheckServiceBusCalls(IMessengerService messengerService, string uniqueId, string queueName, string topicName, string entityPathBase, bool useSession)
         {
             if (!IsDevelopment && topicName != null)
             {
-                messengerService
+                if (useSession)
+                {
+                    messengerService
+                    .Received(1)
+                    .SendToTopic(topicName,
+                    uniqueId,
+                    Arg.Any<Dictionary<string, string>>(),
+                    sessionId: uniqueId);
+                }
+                else
+                {
+                    messengerService
                     .Received(1)
                     .SendToTopic(topicName,
                     uniqueId,
                     Arg.Any<Dictionary<string, string>>());
+                }
             }
             else
             {
-                messengerService
-                    .Received(1)
-                    .SendToQueue(queueName,
-                    uniqueId,
-                    Arg.Any<Dictionary<string, string>>());
+                if (useSession)
+                {
+                    messengerService
+                        .Received(1)
+                        .SendToQueue(queueName,
+                        uniqueId,
+                        Arg.Any<Dictionary<string, string>>(),
+                        sessionId:uniqueId);
+                }
+                else
+                {
+                    messengerService
+                        .Received(1)
+                        .SendToQueue(queueName,
+                        uniqueId,
+                        Arg.Any<Dictionary<string, string>>());
+                }
             }
 
             if (!IsDevelopment)
