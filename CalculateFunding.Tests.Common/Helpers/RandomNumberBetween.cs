@@ -7,6 +7,7 @@ namespace CalculateFunding.Tests.Common.Helpers
         private readonly int _value;
 
         public RandomNumberBetween(int min,
+            
             int max)
         {
             _value = new Random().Next(min, max);

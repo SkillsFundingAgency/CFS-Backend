@@ -181,7 +181,7 @@ namespace CalculateFunding.Services.Core.Services
             }
             else
             {
-                results = await _cosmosRepository.DynamicQueryPartitionedEntity<dynamic>(cosmosDbQuery, partitionKeyId);
+                results = await _cosmosRepository.DynamicQueryPartitionedEntity(cosmosDbQuery, partitionKeyId);
             }
 
             if (results.IsNullOrEmpty()) return 1;

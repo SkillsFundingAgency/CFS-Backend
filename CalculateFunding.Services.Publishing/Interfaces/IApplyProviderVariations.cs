@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.ApiClient.Specifications;
+using CalculateFunding.Common.Caching;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Models;
 
@@ -11,6 +13,10 @@ namespace CalculateFunding.Services.Publishing.Interfaces
         IPublishingResiliencePolicies ResiliencePolicies { get; }
         
         ISpecificationsApiClient SpecificationsApiClient { get; }
+        
+        IPoliciesApiClient PoliciesApiClient { get; }
+        
+        ICacheProvider CacheProvider { get; }
         
         void AddVariationContext(ProviderVariationContext variationContext);
         

@@ -1,7 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.ApiClient.Specifications;
+using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
@@ -15,19 +17,26 @@ namespace CalculateFunding.Services.Publishing.Variations
     public class ProviderVariationsApplication : IApplyProviderVariations
     {
         private readonly ICollection<PublishedProvider> _providersToUpdate = new HashSet<PublishedProvider>();
-        private readonly ICollection<PublishedProvider> _newProvidersToAdd = new HashSet<PublishedProvider>();
         private readonly ICollection<ProviderVariationContext> _variationContexts = new List<ProviderVariationContext>();
-        
-        //TODO; figure out which components are needed to successfully apply queue variations and then
-        //add them as constructor dependencies to this component and then also as Get accessors on the interface IApplyProviderVariations
+        private readonly ICollection<PublishedProvider> _newProvidersToAdd = new HashSet<PublishedProvider>();
+
         public ProviderVariationsApplication(IPublishingResiliencePolicies resiliencePolicies,
-            ISpecificationsApiClient specificationsApiClient)
+            ISpecificationsApiClient specificationsApiClient,
+            IPoliciesApiClient policiesApiClient,
+            ICacheProvider cacheProvider)
         {
             Guard.ArgumentNotNull(resiliencePolicies, nameof(resiliencePolicies));
+            Guard.ArgumentNotNull(resiliencePolicies.SpecificationsApiClient, "resiliencePolicies.SpecificationsApiClient");
+            Guard.ArgumentNotNull(resiliencePolicies.PoliciesApiClient, "resiliencePolicies.PoliciesApiClient");
+            Guard.ArgumentNotNull(resiliencePolicies.CacheProvider, "resiliencePolicies.CacheProvider");
             Guard.ArgumentNotNull(specificationsApiClient, nameof(specificationsApiClient));
-
+            Guard.ArgumentNotNull(policiesApiClient, nameof(policiesApiClient));
+            Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
+            
             SpecificationsApiClient = specificationsApiClient;
             ResiliencePolicies = resiliencePolicies;
+            PoliciesApiClient = policiesApiClient;
+            CacheProvider = cacheProvider;
         }
 
         public bool HasVariations => _variationContexts.AnyWithNullCheck();
@@ -35,6 +44,10 @@ namespace CalculateFunding.Services.Publishing.Variations
         public IPublishingResiliencePolicies ResiliencePolicies { get; }
         
         public ISpecificationsApiClient SpecificationsApiClient { get; }
+        
+        public IPoliciesApiClient PoliciesApiClient { get; }
+
+        public ICacheProvider CacheProvider { get; }
 
         public void AddVariationContext(ProviderVariationContext variationContext)
         {
@@ -45,8 +58,6 @@ namespace CalculateFunding.Services.Publishing.Variations
         {
             foreach (ProviderVariationContext variationContext in _variationContexts)
             {
-                //TODO; figure out what the context needs to be able to apply changes and push through this method sig
-                //by adding accessors to IApplyProviderVariations 
                 await variationContext.ApplyVariationChanges(this);
             }
         }
@@ -63,7 +74,7 @@ namespace CalculateFunding.Services.Publishing.Variations
         {
             _providersToUpdate.Add(publishedProvider);
         }
-
+        
         public void AddNewProviderToAdd(PublishedProvider publishedProvider)
         {
             _newProvidersToAdd.Add(publishedProvider);

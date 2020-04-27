@@ -33,8 +33,8 @@ namespace CalculateFunding.Services.Publishing.Repositories
 
         public async Task<ProviderCalculationResult> GetCalculationResultsBySpecificationAndProvider(string specificationId, string providerId)
         {
-            List<ProviderCalculationResult> providerResultSummaries = (await _cosmosRepository
-                .DynamicQueryPartitionedEntity<ProviderCalculationResult>(new CosmosDbQuery
+            List<dynamic> providerResultSummaries = (await _cosmosRepository
+                .DynamicQueryPartitionedEntity(new CosmosDbQuery
                 {
                     QueryText = @"SELECT
 	                                        doc.content.provider.id AS providerId,

@@ -1,13 +1,16 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.ApiClient.Specifications;
+using CalculateFunding.Common.Caching;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
 using CalculateFunding.Services.Publishing.Variations;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using Polly;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.Variations
 {
@@ -19,12 +22,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
         [TestInitialize]
         public void SetUp()
         {
-            //TODO; figure out which other components this one needs to 
-            //forward to each of the queued changes and then add them
-            //as constructor deps
-            
-            _variationsApplication = new ProviderVariationsApplication(Substitute.For<IPublishingResiliencePolicies>(),
-                Substitute.For<ISpecificationsApiClient>());
+            _variationsApplication = new ProviderVariationsApplication(new ResiliencePolicies
+                {
+                    CacheProvider = Policy.NoOpAsync(),
+                    SpecificationsApiClient = Policy.NoOpAsync(),
+                    PoliciesApiClient = Policy.NoOpAsync()
+                }, 
+                Substitute.For<ISpecificationsApiClient>(),
+                Substitute.For<IPoliciesApiClient>(),
+                Substitute.For<ICacheProvider>());
         }
 
         [TestMethod]

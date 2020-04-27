@@ -1,8 +1,7 @@
-using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Tests.Common.Helpers;
 
-namespace CalculateFunding.Services.Publishing
+namespace CalculateFunding.Services.Publishing.UnitTests
 {
     public class CalculationResultBuilder : TestEntityBuilder
     {

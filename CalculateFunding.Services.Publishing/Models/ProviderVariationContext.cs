@@ -8,6 +8,7 @@ using CalculateFunding.Services.Publishing.Variations;
 
 namespace CalculateFunding.Services.Publishing.Models
 {
+    // ReSharper disable once ClassWithVirtualMembersNeverInherited.Global
     public class ProviderVariationContext
     {
         private readonly Queue<IVariationChange> _variationChanges = new Queue<IVariationChange>();

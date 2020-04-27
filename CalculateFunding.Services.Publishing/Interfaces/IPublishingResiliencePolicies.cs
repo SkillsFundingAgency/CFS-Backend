@@ -7,7 +7,6 @@ namespace CalculateFunding.Services.Publishing.Interfaces
     {
         AsyncPolicy CalculationResultsRepository { get; set; }
         AsyncPolicy SpecificationsRepositoryPolicy { get; set; }
-        AsyncPolicy JobsApiClient { get; set; }
         AsyncPolicy ProvidersApiClient { get; set; }
         AsyncPolicy PublishedProviderVersionRepository { get; set; }
         AsyncPolicy PublishedFundingRepository { get; set; }
@@ -20,5 +19,6 @@ namespace CalculateFunding.Services.Publishing.Interfaces
         AsyncPolicy SpecificationsApiClient { get; set; }
         AsyncPolicy PublishedIndexSearchResiliencePolicy { get; set; }
         AsyncPolicy FundingStreamPaymentDatesRepository { get; set; }
+        AsyncPolicy CacheProvider { get; set; }
     }
 }

@@ -25,7 +25,7 @@ namespace CalculateFunding.Services.Publishing
 
         public int ErrorCount => _applyProviderVariations.ErrorMessages.Count();
 
-        public async Task<bool> VariationsEnabled()
+        private async Task<bool> VariationsEnabled()
         {
             _variationsEnabled ??= await _publishingFeatureFlag.IsVariationsEnabled();
 
@@ -58,7 +58,7 @@ namespace CalculateFunding.Services.Publishing
 
             if (await VariationsEnabled())
             {
-                snapshotId = snapshotId ?? Guid.NewGuid().ToString();
+                snapshotId ??= Guid.NewGuid().ToString();
 
                 IDictionary<string, PublishedProviderSnapShots> snapshots = publishedProviders
                         .ToDictionary(_ => _.Key, _ => new PublishedProviderSnapShots(_.Value));
@@ -97,24 +97,21 @@ namespace CalculateFunding.Services.Publishing
 
             _logger.Information($"Number of snapshot providers = {publishedProviderSnapshots.Count}");
 
-            if (shouldRunVariations)
+            ProviderVariationContext variationContext = await _detectProviderVariations.CreateRequiredVariationChanges(existingPublishedProvider,
+                updatedTotalFunding,
+                updatedProvider,
+                variations,
+                publishedProviderSnapshots,
+                allPublishedProviderRefreshStates,
+                specificationProviderVersionId);
+
+            if (variationContext.HasVariationChanges)
             {
-                ProviderVariationContext variationContext = await _detectProviderVariations.CreateRequiredVariationChanges(existingPublishedProvider,
-                        updatedTotalFunding,
-                        updatedProvider,
-                        variations,
-                        publishedProviderSnapshots,
-                        allPublishedProviderRefreshStates,
-                        specificationProviderVersionId);
+                _applyProviderVariations.AddVariationContext(variationContext);
 
-                if (variationContext.HasVariationChanges)
+                if (variationContext.NewProvidersToAdd.Any())
                 {
-                    _applyProviderVariations.AddVariationContext(variationContext);
-
-                    if (variationContext.NewProvidersToAdd.Any())
-                    {
-                        return variationContext.NewProvidersToAdd.ToDictionary(_ => _.Current.ProviderId);
-                    }
+                    return variationContext.NewProvidersToAdd.ToDictionary(_ => _.Current.ProviderId);
                 }
             }
 

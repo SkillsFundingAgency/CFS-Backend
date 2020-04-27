@@ -9,15 +9,11 @@ using CalculateFunding.Services.Publishing.Variations.Changes;
 
 namespace CalculateFunding.Services.Publishing.Variations.Strategies
 {
-    public class ClosureWithSuccessorVariationStrategy : Variation, IVariationStrategy
+    public class ClosureWithSuccessorVariationStrategy : SuccessorVariationStrategy, IVariationStrategy
     {
-        private readonly IProviderService _providerService;
-
-        public ClosureWithSuccessorVariationStrategy(IProviderService providerService)
+        public ClosureWithSuccessorVariationStrategy(IProviderService providerService) 
+            : base(providerService)
         {
-            Guard.ArgumentNotNull(providerService, nameof(providerService));
-
-            _providerService = providerService;
         }
         
         public string Name => "ClosureWithSuccessor";
@@ -39,7 +35,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
             
             if (providerVariationContext.UpdatedTotalFunding != providerVariationContext.PriorState.TotalFunding)
             {
-                providerVariationContext.ErrorMessages.Add("Unable to run Closure with Successor variation as TotalFunding has changed during the refresh funding");
+                providerVariationContext.RecordErrors("Unable to run Closure with Successor variation as TotalFunding has changed during the refresh funding");
 
                 return;
             }
@@ -48,7 +44,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
 
             if (successorProvider == null)
             {
-                providerVariationContext.ErrorMessages.Add($"Unable to run Closure with Successor variation as could not locate or create a successor provider with id:{successorId}");
+                providerVariationContext.RecordErrors($"Unable to run Closure with Successor variation as could not locate or create a successor provider with id:{successorId}");
 
                 return;
             }
@@ -69,15 +65,6 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
             providerVariationContext.QueueVariationChange(new ZeroRemainingProfilesChange(providerVariationContext));
             providerVariationContext.QueueVariationChange(new ReAdjustFundingValuesForProfileValuesChange(providerVariationContext));
 
-            return;
-        }
-
-        private async Task<PublishedProvider> GetOrCreateSuccessorProvider(ProviderVariationContext providerVariationContext,
-            string successorId)
-        {
-            return providerVariationContext.GetPublishedProviderRefreshState(successorId) ??  
-                providerVariationContext.AddMissingProvider(await _providerService.CreateMissingPublishedProviderForPredecessor(providerVariationContext.PublishedProvider,
-                                                                                                                            successorId, providerVariationContext.ProviderVersionId));
         }
     }
 }

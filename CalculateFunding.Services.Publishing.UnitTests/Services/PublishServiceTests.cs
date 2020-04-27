@@ -327,9 +327,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
 
         private void AndTemplateMetadataContents()
         {
-            _calculationTemplateIds = new[] { new TemplateCalcationBuilder().Build(), 
-                                              new TemplateCalcationBuilder().Build(), 
-                                              new TemplateCalcationBuilder().Build() };
+            _calculationTemplateIds = new[] { new TemplateCalculationBuilder().Build(), 
+                                              new TemplateCalculationBuilder().Build(), 
+                                              new TemplateCalculationBuilder().Build() };
 
             _fundingLines = new[] { NewTemplateFundingLine(fl => fl.WithCalculations(_calculationTemplateIds)) };
 

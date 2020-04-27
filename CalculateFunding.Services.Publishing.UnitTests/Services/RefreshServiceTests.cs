@@ -32,6 +32,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Policies;
+using CalculateFunding.Common.Caching;
 using Moq;
 using FundingLine = CalculateFunding.Models.Publishing.FundingLine;
 using TemplateCalculation = CalculateFunding.Common.TemplateMetadata.Models.Calculation;
@@ -92,6 +94,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         private const string FundingStreamId = "PSG";
         private const string Successor = "1234";
         private Mock<IReApplyCustomProfiles> _reApplyCustomProfiles;
+        private Mock<IPoliciesApiClient> _policiesApiClient;
+        private Mock<ICacheProvider> _cacheProvider;
         private string providerVersionId;
 
         [TestInitialize]
@@ -104,7 +108,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             _publishingResiliencePolicies = new ResiliencePolicies { PublishedFundingRepository = Policy.NoOpAsync(), 
                 CalculationsApiClient = Policy.NoOpAsync(),
                 SpecificationsApiClient = Policy.NoOpAsync(),
-                SpecificationsRepositoryPolicy = Policy.NoOpAsync()};
+                SpecificationsRepositoryPolicy = Policy.NoOpAsync(),
+                CacheProvider = Policy.NoOpAsync(),
+                PoliciesApiClient = Policy.NoOpAsync()
+            };
             _specificationsApiClient = Substitute.For<ISpecificationsApiClient>();
             _specificationService = new SpecificationService(_specificationsApiClient, _publishingResiliencePolicies);
             _providerService = Substitute.For<IProviderService>();
@@ -132,10 +139,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             _generateCsvJobsLocator = Substitute.For<IGeneratePublishedFundingCsvJobsCreationLocator>();
             _policiesService = Substitute.For<IPoliciesService>();
             _reApplyCustomProfiles = new Mock<IReApplyCustomProfiles>();
+            _policiesApiClient = new Mock<IPoliciesApiClient>();
+            _cacheProvider = new Mock<ICacheProvider>();
 
             //should we be using the concrete variations code here? they are all individually under test already I think
             IVariationStrategy[] variationStrategies = typeof(IVariationStrategy).Assembly.GetTypes()
                 .Where(_ => _.Implements(typeof(IVariationStrategy)) &&
+                            !_.IsAbstract &&
                             _.GetConstructors().Any(ci => !ci.GetParameters().Any()))
                 .Select(_ => (IVariationStrategy)Activator.CreateInstance(_))
                 .ToArray();
@@ -144,7 +154,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
 
             _variationStrategyServiceLocator = new VariationStrategyServiceLocator(variationStrategies);
             _detectProviderVariation = new ProviderVariationsDetection(_variationStrategyServiceLocator);
-            _applyProviderVariation = new ProviderVariationsApplication(_publishingResiliencePolicies, _specificationsApiClient);
+            _applyProviderVariation = new ProviderVariationsApplication(_publishingResiliencePolicies, _specificationsApiClient, _policiesApiClient.Object, _cacheProvider.Object);
             _recordVariationErrors = Substitute.For<IRecordVariationErrors>();
             _publishingFeatureFlag = Substitute.For<IPublishingFeatureFlag>();
             _variationService = new VariationService(_detectProviderVariation, _applyProviderVariation, _recordVariationErrors, _logger, _publishingFeatureFlag);
@@ -530,7 +540,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
 
         private void AndTemplateMetadataContents()
         {
-            _calculationTemplateIds = new[] { new TemplateCalcationBuilder().Build(), new TemplateCalcationBuilder().Build(), new TemplateCalcationBuilder().Build() };
+            _calculationTemplateIds = new[] { new TemplateCalculationBuilder().Build(), new TemplateCalculationBuilder().Build(), new TemplateCalculationBuilder().Build() };
             _fundingLines = new[] { NewTemplateFundingLine(fl => fl.WithCalculations(_calculationTemplateIds))};
             _templateMetadataContents = NewTemplateMetadataContents(_ => _.WithFundingLines(_fundingLines));
 

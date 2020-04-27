@@ -1,31 +1,55 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Utility;
+using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
+using CalculateFunding.Services.Publishing.Variations.Changes;
 
 namespace CalculateFunding.Services.Publishing.Variations.Strategies
 {
-    public class PupilNumberSuccessorVariationStrategy : IVariationStrategy
+    public class PupilNumberSuccessorVariationStrategy : SuccessorVariationStrategy, IVariationStrategy
     {
-        private const string Closed = "Closed";
+        public PupilNumberSuccessorVariationStrategy(IProviderService providerService) 
+            : base(providerService)
+        {
+        }
 
         public string Name => "PupilNumberSuccessor";
 
-        public Task DetermineVariations(ProviderVariationContext providerVariationContext, IEnumerable<string> fundingLineCodes)
+        public async Task DetermineVariations(ProviderVariationContext providerVariationContext, IEnumerable<string> fundingLineCodes)
         {
-            if (providerVariationContext.ReleasedState != null && providerVariationContext.ReleasedState.Provider.Status != Closed
-                && providerVariationContext.UpdatedProvider.Status == Closed
-                && string.IsNullOrWhiteSpace(providerVariationContext.UpdatedProvider.Successor))
+            Guard.ArgumentNotNull(providerVariationContext, nameof(providerVariationContext));
+            
+            Provider updatedProvider = providerVariationContext.UpdatedProvider;
+
+            string successorId = updatedProvider.Successor;
+            
+            if (providerVariationContext.PriorState.Provider.Status == Closed || 
+                updatedProvider.Status != Closed ||
+                successorId.IsNullOrWhitespace())
             {
-                // Lookup template calculations based on funding stream and template version (cache based on funding stream and version)
-                // Get all calculations with type = pupil number
-
-                // Foreach through all pupil number calculations
-                // Set the amount on the successor provider
-                // eg providerVariationContext.IncreaseCalculationValueForProvider()
-
+                return;
             }
-            return Task.CompletedTask;
+
+            PublishedProvider successorProvider = await GetOrCreateSuccessorProvider(providerVariationContext, successorId);
+
+            if (successorProvider == null)
+            {
+                providerVariationContext.RecordErrors(    
+                    $"Unable to run Pupil Number Successor variation as could not locate or create a successor provider with id:{successorId}");
+
+                return;
+            }
+
+            string providerId = providerVariationContext.ProviderId;
+
+            providerVariationContext.SuccessorRefreshState = successorProvider.Current;
+            
+            successorProvider.AddPredecessor(providerId);
+            
+            providerVariationContext.QueueVariationChange(new MovePupilNumbersToSuccessorChange(providerVariationContext));
         }
     }
 }

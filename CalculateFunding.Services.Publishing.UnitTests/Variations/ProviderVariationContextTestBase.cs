@@ -6,6 +6,7 @@ using CalculateFunding.Services.Publishing.UnitTests.Profiling;
 using CalculateFunding.Services.Publishing.Variations.Strategies;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
+using Microsoft.AspNetCore.DataProtection.XmlEncryption;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.Variations
@@ -23,7 +24,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
             VariationContext = NewVariationContext();
         }
 
-        protected ProviderVariationContext NewVariationContext(Action<ProviderVariationContextBuilder> setUp = null)
+        private ProviderVariationContext NewVariationContext(Action<ProviderVariationContextBuilder> setUp = null)
         {
             decimal totalFunding = new RandomNumberBetween(100, 100000);
             
@@ -36,15 +37,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
             setUp?.Invoke(variationContextBuilder);
 
             return variationContextBuilder.Build();
-        }
-
-        protected GeneratedProviderResult NewGeneratedProviderResult(Action<GeneratedProviderResultBuilder> setUp = null)
-        {
-            GeneratedProviderResultBuilder providerResultBuilder = new GeneratedProviderResultBuilder();
-
-            setUp?.Invoke(providerResultBuilder);
-
-            return providerResultBuilder.Build();
         }
 
         protected string NewRandomString() => new RandomString();
@@ -118,9 +110,19 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations
             VariationContext.RefreshState.FundingLines = fundingLines;
         }
 
-        protected void GivenTheCalcaulations(params FundingCalculation[] fundingCalculations)
+        protected void GivenTheCalculations(params FundingCalculation[] fundingCalculations)
         {
             VariationContext.RefreshState.Calculations = fundingCalculations;
+        }
+
+        protected void AndTheFundingCalculations(params FundingCalculation[] fundingCalculations)
+        {
+            GivenTheCalculations(fundingCalculations);
+        }
+
+        protected void AndTheSuccessorFundingCalculations(params FundingCalculation[] fundingCalculations)
+        {
+            VariationContext.SuccessorRefreshState.Calculations = fundingCalculations;
         }
     }
 }

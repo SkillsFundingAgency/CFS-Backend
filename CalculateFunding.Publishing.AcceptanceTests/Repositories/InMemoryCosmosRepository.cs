@@ -31,7 +31,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             PublishedProviderVersions = new ConcurrentDictionary<string, ConcurrentDictionary<string, PublishedProviderVersion>>();
         }
 
-        public Task<IEnumerable<dynamic>> DynamicQueryPartitionedEntity<dynamic>(CosmosDbQuery cosmosDbQuery, string partitionEntityId = null)
+        public Task<IEnumerable<dynamic>> DynamicQueryPartitionedEntity(CosmosDbQuery cosmosDbQuery, string partitionEntityId = null)
         {
             if (cosmosDbQuery.Parameters.Count() == 1)
             {
@@ -46,7 +46,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
                         int maxVersion = existingVersions
                             .Select(p => p.Version)
                             .Max();
-                        IEnumerable<dynamic> result = new[] { maxVersion } as IEnumerable<dynamic>;
+                        IEnumerable<dynamic> result = new[] { (dynamic)maxVersion };
 
                         return Task.FromResult(result);
                     }

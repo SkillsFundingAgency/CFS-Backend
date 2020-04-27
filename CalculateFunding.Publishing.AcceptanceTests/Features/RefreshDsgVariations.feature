@@ -152,6 +152,7 @@ Background:
 		| DsgTotalAllocationChange | 1     |
 		| FundingUpdated           | 2     |
 		| ProfilingUpdated         | 3     |
+		| PupilNumberSuccessor     | 4     |
 
 Scenario: When the total allocation increases
     Given the following variation pointers exist

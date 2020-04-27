@@ -35,5 +35,7 @@ namespace CalculateFunding.Services.Publishing
         public AsyncPolicy PublishedIndexSearchResiliencePolicy { get; set; }
         
         public AsyncPolicy FundingStreamPaymentDatesRepository { get; set; }
+        
+        public AsyncPolicy CacheProvider { get; set; }
     }
 }

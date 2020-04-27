@@ -10,7 +10,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
         
         protected void ThenTheDistributionPeriodValuesShouldHaveBeenAdjusted()
         {
-            foreach (var distributionPeriod in TargetPublishedProviderVersion.FundingLines.SelectMany(_ => _.DistributionPeriods))
+            foreach (DistributionPeriod distributionPeriod in TargetPublishedProviderVersion.FundingLines.SelectMany(_ => _.DistributionPeriods))
             {
                 distributionPeriod
                     .Value
@@ -21,7 +21,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
 
         protected void AndTheFundingLineValuesShouldHaveBeenAdjusted()
         {
-            foreach (var fundingLine in TargetPublishedProviderVersion.FundingLines)
+            foreach (FundingLine fundingLine in TargetPublishedProviderVersion.FundingLines)
             {
                 fundingLine
                     .Value

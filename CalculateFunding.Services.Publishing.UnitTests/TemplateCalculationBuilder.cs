@@ -1,22 +1,31 @@
 using System.Collections.Generic;
+using CalculateFunding.Common.TemplateMetadata.Enums;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Tests.Common.Helpers;
 
 namespace CalculateFunding.Services.Publishing.UnitTests
 {
-    public class TemplateCalcationBuilder : TestEntityBuilder
+    public class TemplateCalculationBuilder : TestEntityBuilder
     {
         private uint? _templateCalculationId;
         private IEnumerable<Calculation> _calculations;
+        private CalculationType? _type;
 
-        public TemplateCalcationBuilder WithTemplateCalculationId(uint templateCalculationId)
+        public TemplateCalculationBuilder WithType(CalculationType type)
+        {
+            _type = type;
+
+            return this;
+        }
+
+        public TemplateCalculationBuilder WithTemplateCalculationId(uint templateCalculationId)
         {
             _templateCalculationId = templateCalculationId;
 
             return this;
         }
 
-        public TemplateCalcationBuilder WithCalculations(params Calculation[] calculations)
+        public TemplateCalculationBuilder WithCalculations(params Calculation[] calculations)
         {
             _calculations = calculations;
 
@@ -28,7 +37,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             return new Calculation
             {
                 Calculations = _calculations ?? new Calculation[0],
-                TemplateCalculationId = _templateCalculationId.GetValueOrDefault((uint)NewRandomNumberBetween(1, int.MaxValue))
+                TemplateCalculationId = _templateCalculationId.GetValueOrDefault((uint)NewRandomNumberBetween(1, int.MaxValue)),
+                Type = _type.GetValueOrDefault()
             };
         }
     }

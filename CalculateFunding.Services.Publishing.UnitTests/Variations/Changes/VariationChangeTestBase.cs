@@ -20,21 +20,24 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
     {
         protected IVariationChange Change;
         protected IApplyProviderVariations VariationsApplication;
-        protected ISpecificationsApiClient SpecificationsApiClient;
+        private ISpecificationsApiClient _specificationsApiClient;
 
         [TestInitialize]
         public void VariationChangeTestBaseSetUp()
         {
-            SpecificationsApiClient = Substitute.For<ISpecificationsApiClient>();
+            _specificationsApiClient = Substitute.For<ISpecificationsApiClient>();
             VariationsApplication = Substitute.For<IApplyProviderVariations>();
 
             VariationsApplication.SpecificationsApiClient
-                .Returns(SpecificationsApiClient);
+                .Returns(_specificationsApiClient);
 
             VariationsApplication.ResiliencePolicies
                 .Returns(new ResiliencePolicies
                 {
-                    SpecificationsApiClient = Policy.NoOpAsync()
+                    SpecificationsApiClient = Policy.NoOpAsync(),
+                    CacheProvider = Policy.NoOpAsync(),
+                    PoliciesApiClient = Policy.NoOpAsync(),
+                    CalculationsApiClient = Policy.NoOpAsync()
                 });
         }
 
@@ -45,7 +48,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
 
         protected void GivenTheVariationPointersForTheSpecification(params ProfileVariationPointer[] variationPointers)
         {
-            SpecificationsApiClient
+            _specificationsApiClient
                 .GetProfileVariationPointers(VariationContext.RefreshState.SpecificationId)
                 .Returns(new ApiResponse<IEnumerable<ProfileVariationPointer>>(HttpStatusCode.OK, variationPointers));
         }

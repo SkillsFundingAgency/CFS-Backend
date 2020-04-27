@@ -9,6 +9,7 @@ using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.ApiClient.Profiling;
 using CalculateFunding.Common.ApiClient.Providers;
 using CalculateFunding.Common.ApiClient.Specifications;
+using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Storage;
@@ -86,7 +87,8 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
                 SpecificationsRepositoryPolicy = Policy.NoOpAsync(),
                 SpecificationsApiClient = Policy.NoOpAsync(),
                 PublishedProviderSearchRepository = Policy.NoOpAsync(),
-                PublishedIndexSearchResiliencePolicy = Policy.NoOpAsync()
+                PublishedIndexSearchResiliencePolicy = Policy.NoOpAsync(),
+                CacheProvider = Policy.NoOpAsync()
             };
 
             RegisterInstanceAs<ILogger>(new LoggerConfiguration().CreateLogger());
@@ -104,7 +106,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
             RegisterTypeAs<ReApplyCustomProfiles, IReApplyCustomProfiles>();
             RegisterInstanceAs<IPublishedProviderErrorDetection>(new PublishedProviderErrorDetection(ArraySegment<IDetectPublishedProviderErrors>.Empty));
 
-            var mapper = new MapperConfiguration(c =>
+            IMapper mapper = new MapperConfiguration(c =>
             {
                 c.AddProfile<PublishingServiceMappingProfile>();
             }).CreateMapper();
@@ -121,8 +123,9 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
             RegisterTypeAs<JobManagement, IJobManagement>();
             RegisterTypeAs<InMemoryPublishedFundingRepository, IPublishedFundingRepository>();
             RegisterTypeAs<PoliciesInMemoryRepository, IPoliciesApiClient>();
+            RegisterTypeAs<InMemoryCacheProvider, ICacheProvider>();
 
-            var providersInMemoryClient = new ProvidersInMemoryClient(ResolveInstance<IMapper>());
+            ProvidersInMemoryClient providersInMemoryClient = new ProvidersInMemoryClient(mapper);
             
             RegisterInstanceAs<IProvidersApiClient>(providersInMemoryClient);
             RegisterTypeAs<ProviderService, IProviderService>();
@@ -161,12 +164,13 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
             RegisterTypeAs<GeneratePublishedFundingCsvJobCreation, ICreateGeneratePublishedFundingCsvJobs>();
             RegisterTypeAs<CreateGeneratePublishedProviderEstateCsvJobs, ICreateGeneratePublishedProviderEstateCsvJobs>();
 
-
             IGeneratePublishedFundingCsvJobsCreation[] generatePublishedFundingCsvJobsCreations = 
                 typeof(IGeneratePublishedFundingCsvJobsCreation).Assembly.GetTypes()
                 .Where(_ => _.Implements(typeof(IGeneratePublishedFundingCsvJobsCreation)) &&
                             !_.IsAbstract)
-                .Select(_ => (IGeneratePublishedFundingCsvJobsCreation)Activator.CreateInstance(_, ResolveInstance<ICreateGeneratePublishedFundingCsvJobs>(), ResolveInstance<ICreateGeneratePublishedProviderEstateCsvJobs>()))
+                .Select(_ => (IGeneratePublishedFundingCsvJobsCreation)Activator.CreateInstance(_, 
+                    ResolveInstance<ICreateGeneratePublishedFundingCsvJobs>(), 
+                    ResolveInstance<ICreateGeneratePublishedProviderEstateCsvJobs>()))
                 .ToArray();
             RegisterInstanceAs<IGeneratePublishedFundingCsvJobsCreationLocator>(new GeneratePublishedFundingCsvJobsCreationLocator(generatePublishedFundingCsvJobsCreations));
 

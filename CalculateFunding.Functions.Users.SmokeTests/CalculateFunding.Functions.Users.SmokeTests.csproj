@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CalculateFunding.Functions.Users\CalculateFunding.Functions.USers.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Functions.Users\CalculateFunding.Functions.Users.csproj" />
     <ProjectReference Include="..\CalculateFunding.Tests.Common\CalculateFunding.Tests.Common.csproj" />
   </ItemGroup>
 

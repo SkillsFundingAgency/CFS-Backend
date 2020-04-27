@@ -61,6 +61,7 @@ Background: Existing published funding
 		| ProviderMetadata		| 0     |
 		| Closure				| 1     |
 		| ClosureWithSuccessor	| 2     |
+		| PupilNumberSuccessor	| 3     |
 	And the funding configuration is available in the policies repository
 	And the funding configuration has the following organisation group
 		| Field                     | Value                |

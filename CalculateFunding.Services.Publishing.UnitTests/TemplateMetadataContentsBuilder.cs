@@ -3,7 +3,7 @@ using System.Linq;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Tests.Common.Helpers;
 
-namespace CalculateFunding.Services.Publishing.UnitTests.Services
+namespace CalculateFunding.Services.Publishing.UnitTests
 {
     public class TemplateMetadataContentsBuilder : TestEntityBuilder
     {

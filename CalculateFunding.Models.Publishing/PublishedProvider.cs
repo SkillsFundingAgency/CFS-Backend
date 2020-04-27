@@ -46,7 +46,14 @@ namespace CalculateFunding.Models.Publishing
         public void AddPredecessor(string providerId)
         {
             Current.Predecessors ??= new List<string>();
-            Current.Predecessors.Add(providerId);
+            ICollection<string> currentPredecessors = Current.Predecessors;
+
+            if (currentPredecessors.Contains(providerId))
+            {
+                return;
+            }
+            
+            currentPredecessors.Add(providerId);
         }
 
         public override bool Equals(object obj)
