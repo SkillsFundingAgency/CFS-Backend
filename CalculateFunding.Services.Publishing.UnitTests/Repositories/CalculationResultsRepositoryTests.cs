@@ -96,7 +96,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
 
         private void GivenTheSqlQueryResultsForSpecificationResults(string specificationId, params ProviderCalculationResult[] results)
         {
-            _cosmosRepository.DynamicQueryPartitionedEntity(Arg.Is<CosmosDbQuery>(sql =>
+            _cosmosRepository.DynamicQueryPartitionedEntity<ProviderCalculationResult>(Arg.Is<CosmosDbQuery>(sql =>
                     sql.QueryText == @"SELECT
 	                                        doc.content.provider.id AS providerId,
 	                                        ARRAY(SELECT calcResult.calculation.id,

@@ -6,6 +6,7 @@ using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Interfaces;
+using Newtonsoft.Json.Linq;
 
 namespace CalculateFunding.Services.Publishing.Repositories
 {
@@ -33,8 +34,8 @@ namespace CalculateFunding.Services.Publishing.Repositories
 
         public async Task<ProviderCalculationResult> GetCalculationResultsBySpecificationAndProvider(string specificationId, string providerId)
         {
-            List<dynamic> providerResultSummaries = (await _cosmosRepository
-                .DynamicQueryPartitionedEntity(new CosmosDbQuery
+            List<ProviderCalculationResult> providerResultSummaries = (await _cosmosRepository
+                .DynamicQueryPartitionedEntity<ProviderCalculationResult>(new CosmosDbQuery
                 {
                     QueryText = @"SELECT
 	                                        doc.content.provider.id AS providerId,
@@ -48,8 +49,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
                          {
                              new CosmosDbQueryParameter("@specificationId", specificationId)
                          }
-                },
-                    partitionEntityId: providerId))
+                }))
                 .ToList();
 
             return await Task.FromResult(providerResultSummaries.FirstOrDefault());

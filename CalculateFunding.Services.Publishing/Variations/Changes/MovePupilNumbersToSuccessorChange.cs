@@ -49,7 +49,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
                     !successorCalculations.TryGetValue(templateCalculationId, out FundingCalculation successorCalculation))
                 {
                    throw new InvalidOperationException("Cannot move pupil numbers to successor.\n" +
-                                 $"Could locate both FundingCalculations for id {templateCalculationId}");
+                                 $"Could not locate both FundingCalculations for id {templateCalculationId}");
                 }
 
                 int totalPupilNumber = Convert.ToInt32(successorCalculation.Value) + Convert.ToInt32(predecessorCalculation.Value);
