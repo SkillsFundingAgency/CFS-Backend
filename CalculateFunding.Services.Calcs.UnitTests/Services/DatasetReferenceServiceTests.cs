@@ -6,7 +6,7 @@ using CalculationType = CalculateFunding.Models.Calcs.CalculationType;
 using DatasetReference = CalculateFunding.Models.Graph.DatasetReference;
 using Calculation = CalculateFunding.Models.Calcs.Calculation;
 using DatasetRelationshipSummary = CalculateFunding.Models.Calcs.DatasetRelationshipSummary;
-using DatasetField = CalculateFunding.Models.Graph.DatasetField;
+using DataField = CalculateFunding.Models.Graph.DataField;
 using NSubstitute;
 using Serilog;
 using FluentAssertions;
@@ -52,22 +52,6 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
 
             List<DatasetReference> datasetReferences = _service.GetDatasetRelationShips(calculations, null).ToList();
             
-            datasetReferences.Count.Should().Be(0);
-        }
-
-        [TestMethod]
-        public void GetGetDatasetRelationShips_WhenGivenADSGCalculationsOnlysWithDatasetFieldReferences_ReturnNoDatasetReferences()
-        {
-            string specificationId = Guid.NewGuid().ToString();
-
-            List<Calculation> calculations = CreatCalculations();
-            calculations[0].FundingStreamId = "DSG";
-            calculations[1].FundingStreamId = "DSG";
-            var datasetRelationshipSummaries = CreatDatasetRelationshipSummary();
-
-            List<DatasetReference> datasetReferences = _service.GetDatasetRelationShips(calculations, datasetRelationshipSummaries).ToList();
-
-            datasetReferences.Should().BeEmpty();
             datasetReferences.Count.Should().Be(0);
         }
 

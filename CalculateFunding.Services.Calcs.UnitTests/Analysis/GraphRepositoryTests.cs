@@ -13,6 +13,14 @@ using Polly;
 using Serilog;
 using ApiSpecification = CalculateFunding.Common.ApiClient.Graph.Models.Specification;
 using ApiCalculation = CalculateFunding.Common.ApiClient.Graph.Models.Calculation;
+using ApiDataField = CalculateFunding.Common.ApiClient.Graph.Models.DataField;
+using ApiDataSet = CalculateFunding.Common.ApiClient.Graph.Models.Dataset;
+using ApiDatasetDefinition = CalculateFunding.Common.ApiClient.Graph.Models.DatasetDefinition;
+using ApiEntitySpecification = CalculateFunding.Common.ApiClient.Graph.Models.Entity<CalculateFunding.Common.ApiClient.Graph.Models.Specification>;
+using ApiEntityCalculation = CalculateFunding.Common.ApiClient.Graph.Models.Entity<CalculateFunding.Common.ApiClient.Graph.Models.Calculation>;
+using ApiRelationship = CalculateFunding.Common.ApiClient.Graph.Models.Relationship;
+using CalculateFunding.Common.ApiClient.Models;
+using NSubstitute;
 
 namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
 {
@@ -60,8 +68,30 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
             string calculationIdThree = NewRandomString();
             string calculationIdFour = NewRandomString();
             string calculationIdFive = NewRandomString();
+            string datafieldId = NewRandomString();
 
             Specification specification = NewGraphSpecification(_ => _.WithId(specificationId));
+
+            IEnumerable<ApiEntitySpecification> existingEntities = new[] { 
+                new ApiEntitySpecification {
+                    Node = new ApiSpecification { SpecificationId = specificationId},
+                    Relationships = new[] { 
+                        new ApiRelationship { One = NewGraphCalculation(_ => _.WithId(calculationIdFive)), Type = "BelongsToSpecification", Two = specification } 
+                    } 
+                },
+                new ApiEntitySpecification
+                {
+                    Node = new ApiSpecification { SpecificationId = specificationId },
+                    Relationships = new[] { new ApiRelationship { One = NewGraphCalculation(_ => _.WithId(calculationIdFour)), Type = "CallsCalculation", Two = NewGraphCalculation(_ => _.WithId(calculationIdFive)) } } 
+                }
+            };
+
+            IEnumerable<ApiEntityCalculation> existingCalculationEntities = new[] { new ApiEntityCalculation
+            {
+                Node = new ApiCalculation { CalculationId = calculationIdFive },
+                Relationships = new[] { new ApiRelationship { One = NewGraphCalculation(_ => _.WithId(calculationIdOne)), Type = "ReferencesDataField", Two = NewDataField(_ => _.WithCalculationId(calculationIdOne).WithDataFieldId(datafieldId)) } } } 
+            };
+
             Calculation[] calculations = new[]
             {
                 NewGraphCalculation(_ => _.WithId(calculationIdOne)),
@@ -80,8 +110,6 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
                 NewCalculationRelationship(_ => _.WithCalculationOneId(calculationIdThree)
                     .WithCalculationTwoId(calculationIdTwo)),
                 NewCalculationRelationship(_ => _.WithCalculationOneId(calculationIdFour)
-                    .WithCalculationTwoId(calculationIdThree)),
-                NewCalculationRelationship(_ => _.WithCalculationOneId(calculationIdFour)
                     .WithCalculationTwoId(calculationIdThree))
             };
             CalculationRelationship[] unusedCalculationRelationships = new[]
@@ -90,15 +118,43 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
                     .WithCalculationTwoId(calculationIdFive))
             };
 
+            CalculationDataFieldRelationship[] dataFieldRelationships = calculations.Select(_ => new CalculationDataFieldRelationship
+            {
+                Calculation = _,
+                DataField = NewDataField(datafieldBuilder =>
+                    datafieldBuilder.WithCalculationId(_.CalculationId))
+            }).ToArray();
+
+            Dataset newDataset = NewDataset();
+
+            DatasetDataFieldRelationship[] datasetDataFieldRelationships = dataFieldRelationships.Select(_ => new DatasetDataFieldRelationship
+            {
+                DataField = _.DataField,
+                Dataset = newDataset
+            }).ToArray();
+
+            DatasetDefinition newDatasetDefinition = NewDatasetDefinition();
+
+            DatasetDatasetDefinitionRelationship[] datasetDatasetDefinitionRelationships = datasetDataFieldRelationships.Select(_ => new DatasetDatasetDefinitionRelationship
+            {
+                Dataset = _.Dataset,
+                DatasetDefinition = newDatasetDefinition
+            }).ToArray();
+
+            CalculationDataFieldRelationship[] unusedDataFieldRelationships = new[] {new CalculationDataFieldRelationship
+            {
+                Calculation = NewGraphCalculation(_ => _.WithId(calculationIdOne)),
+                DataField = NewDataField(datasetBuilder =>
+                    datasetBuilder.WithCalculationId(calculationIdOne).WithDataFieldId(datafieldId))
+            } };
+
             SpecificationCalculationRelationships specificationCalculationRelationships = NewSpecificationCalculationRelationships(_ =>
                 _.WithSpecification(specification)
                     .WithCalculations(calculations)
-                    .WithCalculationRelationships(calculationRelationships));
-
-            SpecificationCalculationRelationships specificationUnusedCalculationRelationships = NewSpecificationCalculationRelationships(_ =>
-                _.WithSpecification(specification)
-                    .WithCalculations(unusedCalculations)
-                    .WithCalculationRelationships(unusedCalculationRelationships));
+                    .WithCalculationRelationships(calculationRelationships)
+                    .WithCalculationDataFieldRelationships(dataFieldRelationships)
+                    .WithDatasetDataFieldRelationships(datasetDataFieldRelationships)
+                    .WithDatasetDatasetDefinitionRelationships(datasetDatasetDefinitionRelationships));
 
             ApiSpecification apiSpecification = NewApiSpecification();
             ApiCalculation[] apiCalculations = new[]
@@ -109,8 +165,31 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
             };
             
             GivenTheMapping(specification, apiSpecification);
+
+            foreach(CalculationDataFieldRelationship datFieldRelationship in dataFieldRelationships)
+            {
+                GivenTheMapping(datFieldRelationship.DataField, new ApiDataField
+                {
+                    CalculationId = datFieldRelationship.DataField.CalculationId,
+                    DataFieldId = datFieldRelationship.DataField.DataFieldId,
+                    DataFieldName = datFieldRelationship.DataField.DataFieldName
+                });
+            }
+
+            AndTheMapping(newDataset, new ApiDataSet
+            {
+                DatasetId = newDataset.DatasetId,
+                Name = newDataset.Name
+            });
+
+            AndTheMapping(newDatasetDefinition, new ApiDatasetDefinition
+            {
+                DatasetDefinitionId = newDatasetDefinition.DatasetDefinitionId,
+                Name = newDatasetDefinition.Name
+            });
+
             AndTheCollectionMapping(calculations, apiCalculations);
-            AndTheSpecificationRelationshipsAreDeleted(calculationIdFive, specificationId, unusedCalculationRelationships);
+            AndTheSpecificationRelationshipsAreDeleted(calculationIdFive, specificationId, unusedCalculationRelationships, unusedDataFieldRelationships);
             AndTheSpecificationIsCreated(apiSpecification);
             AndTheCalculationsAreCreated(apiCalculations);
             AndTheSpecificationCalculationRelationshipsWereCreated(specificationId, new []
@@ -120,14 +199,21 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
                 calculationIdThree,
                 calculationIdFour
             });
+            AndTheExistingRelationships(specificationId, existingEntities);
+            AndTheExistingCalculationRelationships(calculationIdOne, existingCalculationEntities);
             AndTheRelationshipsWereCreated(calculationRelationships);
-            
-            await WhenTheGraphIsRecreated(specificationCalculationRelationships, specificationUnusedCalculationRelationships);
+            AndTheDataFieldRelationshipsWereCreated(dataFieldRelationships);
+            AndTheDatasetDataFieldRelationshipsWereCreated(datasetDataFieldRelationships, specificationId);
+            AndTheDatasetDatasetDefinitionRelationshipsWereCreated(datasetDatasetDefinitionRelationships);
+
+            SpecificationCalculationRelationships specificationUnusedCalculationRelationships = await WhenTheUnusedRelationshipsAreReturned(specificationCalculationRelationships);
+
+            await AndTheGraphIsRecreated(specificationCalculationRelationships, specificationUnusedCalculationRelationships);
 
             _graphApiClient.VerifyAll();
         }
 
-        private void AndTheSpecificationRelationshipsAreDeleted(string calculationId, string specificationId, IEnumerable<CalculationRelationship> calculationRelationships)
+        private void AndTheSpecificationRelationshipsAreDeleted(string calculationId, string specificationId, IEnumerable<CalculationRelationship> calculationRelationships, IEnumerable<CalculationDataFieldRelationship> datasetFieldRelationships)
         {
             _graphApiClient.Setup(_ => _.DeleteCalculationSpecificationRelationship(calculationId, specificationId))
                 .ReturnsAsync(HttpStatusCode.OK)
@@ -136,6 +222,13 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
             foreach(CalculationRelationship calculationRelation in calculationRelationships)
             {
                 _graphApiClient.Setup(_ => _.DeleteCalculationCalculationRelationship(calculationRelation.CalculationOneId, calculationRelation.CalculationTwoId))
+                    .ReturnsAsync(HttpStatusCode.OK)
+                    .Verifiable();
+            }
+
+            foreach (CalculationDataFieldRelationship datasetFieldRelationship in datasetFieldRelationships)
+            {
+                _graphApiClient.Setup(_ => _.DeleteCalculationDataFieldRelationship(datasetFieldRelationship.Calculation.CalculationId, datasetFieldRelationship.DataField.DataFieldId))
                     .ReturnsAsync(HttpStatusCode.OK)
                     .Verifiable();
             }
@@ -157,6 +250,20 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
                 .Verifiable();
         }
 
+        private void AndTheExistingRelationships(string specificationId, IEnumerable<ApiEntitySpecification> entitities)
+        {
+            _graphApiClient.Setup(_ => _.GetAllEntitiesRelatedToSpecification(specificationId))
+                .ReturnsAsync(new ApiResponse<IEnumerable<ApiEntitySpecification>>(HttpStatusCode.OK, entitities))
+                .Verifiable();
+        }
+
+        private void AndTheExistingCalculationRelationships(string calculationId, IEnumerable<ApiEntityCalculation> entitities)
+        {
+            _graphApiClient.Setup(_ => _.GetAllEntitiesRelatedToCalculation(calculationId))
+                    .ReturnsAsync(new ApiResponse<IEnumerable<ApiEntityCalculation>>(HttpStatusCode.OK, entitities))
+                    .Verifiable();
+        }
+
         private void AndTheRelationshipsWereCreated(CalculationRelationship[] calculationRelationships)
         {
             IEnumerable<IGrouping<string, CalculationRelationship>> relationshipsPerCalculation =
@@ -171,6 +278,72 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
             }
         }
 
+        private void AndTheDataFieldRelationshipsWereCreated(CalculationDataFieldRelationship[] datafieldRelationships)
+        {
+            IEnumerable<IGrouping<string, CalculationDataFieldRelationship>> relationshipsPerCalculation =
+                datafieldRelationships.GroupBy(_ => _.Calculation.CalculationId);
+
+            foreach (IGrouping<string, CalculationDataFieldRelationship> relationships in relationshipsPerCalculation)
+            {
+                _graphApiClient.Setup(_ => _.UpsertDataFields(It.Is<ApiDataField[]>(datasetFields =>
+                        datasetFields.Select(_ => _.DataFieldId).SequenceEqual(relationships.Select(rel => rel.DataField.DataFieldId).Distinct().ToArray()))))
+                    .ReturnsAsync(HttpStatusCode.OK)
+                    .Verifiable();
+
+                _graphApiClient.Setup(_ => _.UpsertCalculationDataFieldsRelationships(relationships.Key, It.Is<string[]>(calcs =>
+                        calcs.SequenceEqual(relationships.Select(rel => rel.DataField.DataFieldId).ToArray()))))
+                    .ReturnsAsync(HttpStatusCode.OK)
+                    .Verifiable();
+            }
+        }
+
+        private void AndTheDatasetDataFieldRelationshipsWereCreated(DatasetDataFieldRelationship[] datasetDataFieldRelationship, string specificationId)
+        {
+            IEnumerable<IGrouping<string, DatasetDataFieldRelationship>> relationshipsPerDataset =
+                datasetDataFieldRelationship.GroupBy(_ => _.Dataset.DatasetId);
+
+            foreach (IGrouping<string, DatasetDataFieldRelationship> relationships in relationshipsPerDataset)
+            {
+                _graphApiClient.Setup(_ => _.UpsertDataset(It.Is<ApiDataSet>(dataset =>
+                        dataset.DatasetId == relationships.Select(rel => rel.Dataset.DatasetId).Distinct().First())))
+                    .ReturnsAsync(HttpStatusCode.OK)
+                    .Verifiable();
+
+                _graphApiClient.Setup(_ => _.UpsertSpecificationDatasetRelationship(specificationId, relationships.Key))
+                    .ReturnsAsync(HttpStatusCode.OK)
+                    .Verifiable();
+
+                foreach (string fieldid in relationships.Select(_ => _.DataField.DataFieldId))
+                {
+                    _graphApiClient.Setup(_ => _.UpsertDatasetDataFieldRelationship(relationships.Key, fieldid))
+                    .ReturnsAsync(HttpStatusCode.OK)
+                    .Verifiable();
+                }
+            }
+        }
+
+        private void AndTheDatasetDatasetDefinitionRelationshipsWereCreated(DatasetDatasetDefinitionRelationship[] datasetDatasetDefinitionRelationships)
+        {
+            IEnumerable<IGrouping<string, DatasetDatasetDefinitionRelationship>> relationshipsPerDataset =
+                datasetDatasetDefinitionRelationships.GroupBy(_ => _.Dataset.DatasetId);
+
+            foreach (IGrouping<string, DatasetDatasetDefinitionRelationship> relationships in relationshipsPerDataset)
+            {
+                _graphApiClient.Setup(_ => _.UpsertDatasetDefinitions(It.Is<ApiDatasetDefinition[]>(datasetDefinitions =>
+                        datasetDefinitions.Select(_ => _.DatasetDefinitionId).SequenceEqual(relationships.Select(rel => rel.DatasetDefinition.DatasetDefinitionId).Distinct().ToArray()))))
+                    .ReturnsAsync(HttpStatusCode.OK)
+                    .Verifiable();
+
+                foreach (string definitionid in relationships.Select(_ => _.DatasetDefinition.DatasetDefinitionId))
+                {
+                    _graphApiClient.Setup(_ => _.UpsertDataDefinitionDatasetRelationship(definitionid,
+                            relationships.Key))
+                    .ReturnsAsync(HttpStatusCode.OK)
+                    .Verifiable();
+                }
+            }
+        }
+
         private void AndTheSpecificationCalculationRelationshipsWereCreated(string specificationId, string[] calculationIds)
         {
             foreach (string calculationId in calculationIds)
@@ -180,7 +353,17 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
                     .Verifiable();
             }
         }
-        
+
+        private async Task<SpecificationCalculationRelationships> WhenTheUnusedRelationshipsAreReturned(SpecificationCalculationRelationships specificationCalculationRelationships)
+        {
+            return await _repository.GetUnusedRelationships(specificationCalculationRelationships);
+        }
+
+        private async Task AndTheGraphIsRecreated(SpecificationCalculationRelationships specificationCalculationRelationships, SpecificationCalculationRelationships specificationUnusedCalculationRelationships)
+        {
+            await WhenTheGraphIsRecreated(specificationCalculationRelationships, specificationUnusedCalculationRelationships);
+        }
+
         private async Task WhenTheGraphIsRecreated(SpecificationCalculationRelationships specificationCalculationRelationships, SpecificationCalculationRelationships specificationUnusedCalculationRelationships)
         {
             await _repository.RecreateGraph(specificationCalculationRelationships, specificationUnusedCalculationRelationships);

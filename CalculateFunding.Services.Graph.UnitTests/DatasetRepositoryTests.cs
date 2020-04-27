@@ -91,7 +91,7 @@ namespace CalculateFunding.Services.Graph.UnitTests
             string definitionId = NewRandomString();
             string datasetId = NewRandomString();
             
-            await _datasetRepository.CreateDataDefinitionDatasetRelationship(definitionId,
+            await _datasetRepository.UpsertDataDefinitionDatasetRelationship(definitionId,
                 datasetId);
 
             await ThenTheRelationshipWasCreated<DatasetDefinition, Dataset>(DatasetDefinitionDatasetRelationship,
@@ -127,7 +127,7 @@ namespace CalculateFunding.Services.Graph.UnitTests
             string datasetId = NewRandomString();
             string dataFieldId = NewRandomString();
             
-            await _datasetRepository.CreateDatasetDataFieldRelationship(datasetId,
+            await _datasetRepository.UpsertDatasetDataFieldRelationship(datasetId,
                 dataFieldId);
 
             await ThenTheRelationshipWasCreated<Dataset, DataField>(DatasetDataFieldRelationship,

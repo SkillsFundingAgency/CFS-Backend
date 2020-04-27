@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Graph;
 using CalculateFunding.Common.Graph.Interfaces;
 using CalculateFunding.Models.Graph;
 using CalculateFunding.Services.Graph.Interfaces;
@@ -11,15 +13,12 @@ namespace CalculateFunding.Services.Graph
         private const string DatasetId = Dataset.IdField;
         private const string DatasetDefinitionId = DatasetDefinition.IdField;
         private const string DataFieldId = DataField.IdField;
-        private const string DatasetFieldId = DatasetField.IdField;
         public const string CalculationId = "calculationid";
 
         public const string DatasetDatasetDefinitionRelationship = "IsForSchema";
         public const string DatasetDefinitionDatasetRelationship = "HasDataset";
         public const string DataFieldDatasetRelationship = "IsInDataset";
-        public const string DatasetDataFieldRelationship = "HasDataField";
-        public const string CalculationDatasetFieldRelationship = "ReferencesDatasetField";
-        public const string DatasetFieldCalculationRelationship = "IsReferencedInCalculation";
+        public const string DatasetDataFieldRelationship = "HasDatasetField";
 
 
         public DatasetRepository(IGraphRepository graphRepository) 
@@ -31,7 +30,12 @@ namespace CalculateFunding.Services.Graph
         {
             await UpsertNode(dataset, DatasetId);
         }
-        
+
+        public async Task UpsertDatasets(Dataset[] datasets)
+        {
+            await UpsertNodes(datasets, DatasetId);
+        }
+
         public async Task DeleteDataset(string datasetId)
         {
             await DeleteNode<Dataset>(DatasetId, datasetId);
@@ -41,7 +45,11 @@ namespace CalculateFunding.Services.Graph
         {
             await UpsertNode(datasetDefinition, DatasetDefinitionId);
         }
-        
+        public async Task UpsertDatasetDefinitions(DatasetDefinition[] datasetDefinitions)
+        {
+            await UpsertNodes(datasetDefinitions, DatasetDefinitionId);
+        }
+
         public async Task DeleteDatasetDefinition(string datasetDefinitionId)
         {
             await DeleteNode<DatasetDefinition>(DatasetDefinitionId, datasetDefinitionId);
@@ -57,12 +65,12 @@ namespace CalculateFunding.Services.Graph
             await DeleteNode<DataField>(DataFieldId, dataFieldId);
         }
 
-        public async Task UpsertDatasetField(IEnumerable<DatasetField> datasetFields) 
+        public async Task UpsertDataFields(IEnumerable<DataField> datasetFields) 
         {
-            await UpsertNodes(datasetFields, DatasetFieldId);
+            await UpsertNodes(datasetFields, DataFieldId);
         }
                 
-        public async Task CreateDataDefinitionDatasetRelationship(string datasetDefinitionId, string datasetId)
+        public async Task UpsertDataDefinitionDatasetRelationship(string datasetDefinitionId, string datasetId)
         {
             await UpsertRelationship<DatasetDefinition, Dataset>(DatasetDefinitionDatasetRelationship,
                 (DatasetDefinitionId, datasetDefinitionId),
@@ -84,7 +92,7 @@ namespace CalculateFunding.Services.Graph
                 (DatasetDefinitionId, datasetDefinitionId));
         }
 
-        public async Task CreateDatasetDataFieldRelationship(string datasetId, string dataFieldId)
+        public async Task UpsertDatasetDataFieldRelationship(string datasetId, string dataFieldId)
         {
             await UpsertRelationship<Dataset, DataField>(DatasetDataFieldRelationship,
                 (DatasetId, datasetId),
@@ -106,32 +114,14 @@ namespace CalculateFunding.Services.Graph
                 (DatasetId, datasetId));
         }
 
-        public async Task UpsertCalculationDatasetFieldRelationship(string calculationId, string datasetFieldId)
+        public async Task<IEnumerable<Entity<DataField, IRelationship>>> GetAllEntities(string datasetFieldId)
         {
-            await UpsertRelationship<Calculation, DatasetField>(CalculationDatasetFieldRelationship,
-                (CalculationId, calculationId),
-                (DatasetFieldId, datasetFieldId));
-
-            await UpsertRelationship<DatasetField, Calculation>(DatasetFieldCalculationRelationship,
-                (DatasetFieldId, datasetFieldId),
-                (CalculationId, calculationId));
-        }
-
-        public async Task DeleteCalculationDatasetFieldRelationship(string calculationId,
-            string datasetFieldId)
-        {
-            await DeleteRelationship<Calculation, DatasetField>(CalculationDatasetFieldRelationship,
-                (CalculationId, calculationId),
-                (DatasetFieldId, datasetFieldId));
-
-            await DeleteRelationship<DatasetField, Calculation>(DatasetFieldCalculationRelationship,
-                (DatasetFieldId, datasetFieldId),
-                (CalculationId, calculationId));
-        }
-
-        public async Task DeleteDatasetField(string datasetFieldId)
-        {
-            await DeleteNode<DatasetField>(DatasetFieldId, datasetFieldId);
+            IEnumerable<Entity<DataField>> entities = await GetAllEntities<DataField>(DataFieldId,
+                datasetFieldId,
+                new[] { CalculationRepository.DataFieldCalculationRelationship,
+                    CalculationRepository.CalculationDataFieldRelationship
+                });
+            return entities.Select(_ => new Entity<DataField, IRelationship> { Node = _.Node, Relationships = _.Relationships });
         }
     }
 }

@@ -7,11 +7,12 @@ using CalculationType = CalculateFunding.Models.Calcs.CalculationType;
 using DatasetReference = CalculateFunding.Models.Graph.DatasetReference;
 using Calculation = CalculateFunding.Models.Calcs.Calculation;
 using DatasetRelationshipSummary = CalculateFunding.Models.Calcs.DatasetRelationshipSummary;
-using DatasetField = CalculateFunding.Models.Graph.DatasetField;
+using DataField = CalculateFunding.Models.Graph.DataField;
 using System.Text.RegularExpressions;
 using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Common.Utility;
 using Serilog;
+using CalculateFunding.Common.ApiClient.Graph.Models;
 
 namespace CalculateFunding.Services.Calcs
 {
@@ -30,9 +31,7 @@ namespace CalculateFunding.Services.Calcs
         {
             List<DatasetReference> datasetReferences = new List<DatasetReference>();
 
-            calculations
-                .Where(x => x.FundingStreamId != "DSG" && x.Current?.CalculationType == CalculationType.Additional)
-                .Select(c => new { calculation = c, calcDatasetReferences = GetDataSetReferences(c.Current?.SourceCode) })
+            calculations.Select(c => new { calculation = c, calcDatasetReferences = GetDataSetReferences(c.Current?.SourceCode) })
                 .ForEach(x => x.calcDatasetReferences.ForEach(calcDatasetReference => AddDataSetReference(x.calculation, calcDatasetReference, datasetRelationShipSummaries, datasetReferences)));
 
             return datasetReferences;
@@ -42,7 +41,7 @@ namespace CalculateFunding.Services.Calcs
         {
             if (!string.IsNullOrWhiteSpace(calculationSourceCode))
             {
-                MatchCollection datasetReferenceMatches = Regex.Matches(calculationSourceCode, "\\bDatasets((\\W|_)+)(\\w+)((\\W|_)+)(\\w+)\\b", RegexOptions.Multiline | RegexOptions.Compiled);
+                MatchCollection datasetReferenceMatches = Regex.Matches(calculationSourceCode, "\\bdatasets((\\W|_)+)(\\w+)((\\W|_)+)(\\w+)\\b", RegexOptions.Multiline | RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
                 if (datasetReferenceMatches.Count > 0)
                 {
@@ -64,40 +63,51 @@ namespace CalculateFunding.Services.Calcs
             string[] parts = calcDatasetReference.Split(".", StringSplitOptions.RemoveEmptyEntries);
             if (parts.Count() == 3)
             {
-                string datasetRelationshipName = parts[1]?.Trim();
-                string fieldName = parts[2]?.Trim();
+                string datasetRelationshipName = parts[1]?.Trim().ToLowerInvariant();
+                string fieldName = parts[2]?.Trim().ToLowerInvariant();
 
                 if (datasetRelationShipSummaries != null)
                 {
-                    DatasetRelationshipSummary datasetRelationship = datasetRelationShipSummaries.FirstOrDefault(x => VisualBasicTypeGenerator.GenerateIdentifier(x.Name) == datasetRelationshipName ||
-                            VisualBasicTypeGenerator.GenerateIdentifier(x.Name).Replace("_", string.Empty) == datasetRelationshipName.Replace("_", string.Empty)); // vb line continuation or names have underscore 
+                    DatasetRelationshipSummary datasetRelationship = datasetRelationShipSummaries.FirstOrDefault(x => VisualBasicTypeGenerator.GenerateIdentifier(x.Name).ToLowerInvariant() == datasetRelationshipName ||
+                            VisualBasicTypeGenerator.GenerateIdentifier(x.Name).Replace("_", string.Empty).ToLowerInvariant() == datasetRelationshipName.Replace("_", string.Empty)); // vb line continuation or names have underscore 
 
                     if (datasetRelationship != null)
                     {
-                        FieldDefinition datasetField = datasetRelationship.DatasetDefinition.TableDefinitions.FirstOrDefault()?.
-                            FieldDefinitions.FirstOrDefault(x => VisualBasicTypeGenerator.GenerateIdentifier(x.Name) == fieldName ||
-                            VisualBasicTypeGenerator.GenerateIdentifier(x.Name).Replace("_", string.Empty) == fieldName.Replace("_", string.Empty));
+                        FieldDefinition dataField = datasetRelationship.DatasetDefinition.TableDefinitions.FirstOrDefault()?.
+                            FieldDefinitions.FirstOrDefault(x => VisualBasicTypeGenerator.GenerateIdentifier(x.Name).ToLowerInvariant() == fieldName ||
+                            VisualBasicTypeGenerator.GenerateIdentifier(x.Name).ToLowerInvariant().Replace("_", string.Empty) == fieldName.Replace("_", string.Empty));
 
-                        if (datasetField == null)
+                        if (dataField == null)
                         {
-                            _logger.Information($"A Datasetfield was not found: {datasetField}");
+                            _logger.Information($"A Datasetfield was not found: {dataField}");
                             return;
                         }
 
-                        DatasetReference dataSetReference = datasetReferences.FirstOrDefault(x => x.PropertyName == datasetRelationship.Name && x.DatasetField?.DatasetFieldName == datasetField.Name);
+                        DatasetReference dataSetReference = datasetReferences.FirstOrDefault(x => x.PropertyName == datasetRelationship.Name && x.DataField?.DataFieldName == dataField.Name);
 
                         if (dataSetReference == null)
                         {
                             dataSetReference = new DatasetReference
                             {
                                 PropertyName = datasetRelationship.Name,
-                                DatasetField = new DatasetField()
+                                Dataset = new CalculateFunding.Models.Graph.Dataset
                                 {
-                                    DatasetFieldName = datasetField.Name,
-                                    DatasetFieldId = datasetField.Id,
-                                    DatasetFieldIsAggregable = datasetField.IsAggregable,
+                                    DatasetId = datasetRelationship.DatasetId,
+                                    Name = datasetRelationship.DatasetName
+                                },
+                                DatasetDefinition = new CalculateFunding.Models.Graph.DatasetDefinition
+                                {
+                                    DatasetDefinitionId = datasetRelationship.DatasetDefinitionId,
+                                    Description = datasetRelationship.DatasetDefinition.Description,
+                                    Name = datasetRelationship.DatasetDefinition.Name
+                                },
+                                DataField = new DataField()
+                                {
+                                    DataFieldName = dataField.Name,
+                                    DataFieldId = dataField.Id,
+                                    DataFieldIsAggregable = dataField.IsAggregable,
                                     DatasetRelationshipId = datasetRelationship.Relationship?.Id,
-                                    DatasetFieldRelatioshipName = datasetRelationship.Relationship?.Name,
+                                    DataFieldRelatioshipName = datasetRelationship.Relationship?.Name,
                                     SpecificationId = calculation.SpecificationId,
                                     CalculationId = calculation.Current.CalculationId,
                                     PropertyName = datasetRelationship.Name

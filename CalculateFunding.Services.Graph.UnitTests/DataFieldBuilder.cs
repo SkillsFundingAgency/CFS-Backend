@@ -10,8 +10,8 @@ namespace CalculateFunding.Services.Graph.UnitTests
             return new DataField
             {
                 DataFieldId = NewRandomString(),
-                FieldName = NewRandomString(),
-                Name = NewRandomString()
+                DataFieldName = NewRandomString(),
+                DataFieldIsAggregable = true
             };
         }
     }

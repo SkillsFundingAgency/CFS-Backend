@@ -1345,18 +1345,10 @@ namespace CalculateFunding.Services.Datasets.Services
                 .WithUPIN(_upin)));
             AndTheCoreProviderVersion(NewApiProviderVersion(_ => _.WithProviders(new ApiProvider[] { new ApiProvider { ProviderId = _providerId, UPIN = _upin } })));
 
-            Func<Task> invocation = WhenTheProcessDatasetMessageIsProcessed;
-
-            invocation
-                .Should().ThrowExactly<RetriableException>()
-                .Which
-                .Message
-                .Should()
-                .Be($"Unable to re-generate providers while updating dataset '{_relationshipId}' for specification '{SpecificationId}' with status code: {HttpStatusCode.BadRequest}");
+            await WhenTheProcessDatasetMessageIsProcessed();
 
             await ThenTheRegenerateProviderSummariesForSpecificationInvoked(setCachedProviders);
             AndTheErrorWasLogged($"Unable to re-generate providers while updating dataset '{_relationshipId}' for specification '{SpecificationId}' with status code: {HttpStatusCode.BadRequest}");
-
         }
 
 

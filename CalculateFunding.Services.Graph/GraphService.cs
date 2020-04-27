@@ -42,6 +42,12 @@ namespace CalculateFunding.Services.Graph
                 $"Unable to create dataset {dataset.AsJson()}");
         }
 
+        public async Task<IActionResult> UpsertDatasets(Dataset[] datasets)
+        {
+            return await ExecuteRepositoryAction(() => _datasetRepository.UpsertDatasets(datasets),
+                $"Unable to create datasets {datasets.AsJson()}");
+        }
+
         public async Task<IActionResult> DeleteDataset(string datasetId)
         {
             return await ExecuteRepositoryAction(() => _datasetRepository.DeleteDataset(datasetId),
@@ -52,6 +58,12 @@ namespace CalculateFunding.Services.Graph
         {
             return await ExecuteRepositoryAction(() => _datasetRepository.UpsertDatasetDefinition(definition),
                 $"Unable to create dataset definition {definition.AsJson()}");
+        }
+
+        public async Task<IActionResult> UpsertDatasetDefinitions(DatasetDefinition[] definitions)
+        {
+            return await ExecuteRepositoryAction(() => _datasetRepository.UpsertDatasetDefinitions(definitions),
+                $"Unable to create dataset definitions {definitions.AsJson()}");
         }
 
         public async Task<IActionResult> DeleteDatasetDefinition(string definitionId)
@@ -74,7 +86,7 @@ namespace CalculateFunding.Services.Graph
 
         public async Task<IActionResult> UpsertDataDefinitionDatasetRelationship(string definitionId, string datasetId)
         {
-            return await ExecuteRepositoryAction(() => _datasetRepository.CreateDataDefinitionDatasetRelationship(definitionId, datasetId),
+            return await ExecuteRepositoryAction(() => _datasetRepository.UpsertDataDefinitionDatasetRelationship(definitionId, datasetId),
                 $"Unable to create dataset defition -> dataset relationship {definitionId} -> {datasetId}");
         }
         
@@ -86,7 +98,7 @@ namespace CalculateFunding.Services.Graph
 
         public async Task<IActionResult> UpsertDatasetDataFieldRelationship(string datasetId, string fieldId)
         {
-            return await ExecuteRepositoryAction(() => _datasetRepository.CreateDatasetDataFieldRelationship(datasetId, fieldId),
+            return await ExecuteRepositoryAction(() => _datasetRepository.UpsertDatasetDataFieldRelationship(datasetId, fieldId),
                 $"Unable to create dataset -> datafield relationship {datasetId} -> {fieldId}");
         }
         
@@ -96,7 +108,7 @@ namespace CalculateFunding.Services.Graph
                 $"Unable to delete dataset -> datafield relationship {datasetId} -> {fieldId}");
         }
 
-        public async Task<IActionResult> CreateSpecificationDatasetRelationship(string specificationId, string datasetId)
+        public async Task<IActionResult> UpsertSpecificationDatasetRelationship(string specificationId, string datasetId)
         {
             return await ExecuteRepositoryAction(() => _specRepository.CreateSpecificationDatasetRelationship(specificationId, datasetId),
                 $"Unable to create specification -> dataset relationship {specificationId} -> {datasetId}");   
@@ -108,9 +120,9 @@ namespace CalculateFunding.Services.Graph
                 $"Unable to delete specification -> dataset relationship {specificationId} -> {datasetId}");   
         }
         
-        public async Task<IActionResult> CreateCalculationDataFieldRelationship(string calculationId, string fieldId)
+        public async Task<IActionResult> UpsertCalculationDataFieldRelationship(string calculationId, string fieldId)
         {
-            return await ExecuteRepositoryAction(() => _calcRepository.CreateCalculationDataFieldRelationship(calculationId, fieldId),
+            return await ExecuteRepositoryAction(() => _calcRepository.UpsertCalculationDataFieldRelationship(calculationId, fieldId),
                 $"Unable to create calculation -> datafield relationship {calculationId} -> {fieldId}");   
         }
         
@@ -131,12 +143,12 @@ namespace CalculateFunding.Services.Graph
             return await ExecuteRepositoryAction(() => _specRepository.DeleteSpecification(specificationId),
                 $"Delete specification failed for specification:'{specificationId}'");
         }
-        public async Task<IActionResult> UpsertDatasetField(IEnumerable<DatasetField> datasetFields)
-        {
-            return await ExecuteRepositoryAction(() => _datasetRepository.UpsertDatasetField(datasetFields),
-                $"Save datasetfields failed for specifications:'{datasetFields.AsJson()}'");
-        }
 
+        public async Task<IActionResult> UpsertDataFields(IEnumerable<DataField> dataFields)
+        {
+            return await ExecuteRepositoryAction(() => _datasetRepository.UpsertDataFields(dataFields),
+                $"Save datasetfields failed for specifications:'{dataFields.AsJson()}'");
+        }
 
         public async Task<IActionResult> UpsertSpecifications(IEnumerable<Specification> specifications)
         {
@@ -174,6 +186,14 @@ namespace CalculateFunding.Services.Graph
             if(typeof(TNode).IsAssignableFrom(typeof(Specification)))
             {
                 return await ExecuteRepositoryAction(() => _specRepository.GetAllEntities(nodeId), $"Unable to retrieve all entities for {typeof(TNode).Name.ToLowerInvariant()}.");
+            }
+            else if(typeof(TNode).IsAssignableFrom(typeof(Calculation)))
+            {
+                return await ExecuteRepositoryAction(() => _calcRepository.GetAllEntities(nodeId), $"Unable to retrieve all entities for {typeof(TNode).Name.ToLowerInvariant()}.");
+            }
+            else if (typeof(TNode).IsAssignableFrom(typeof(DataField)))
+            {
+                return await ExecuteRepositoryAction(() => _datasetRepository.GetAllEntities(nodeId), $"Unable to retrieve all entities for {typeof(TNode).Name.ToLowerInvariant()}.");
             }
             else
             {
@@ -224,20 +244,13 @@ namespace CalculateFunding.Services.Graph
                 $" calling calculation:'{calculationIdB}'");
         }
 
-        public async Task<IActionResult> UpsertCalculationDatasetFieldRelationship(string calculationId, string datasetFieldId)
-        {
-            return await ExecuteRepositoryAction(() => _datasetRepository.UpsertCalculationDatasetFieldRelationship(calculationId, datasetFieldId),
-                $"Upsert datasetField relationship call to calculation failed for calculation:'{calculationId}'" +
-                $" calling calculation:'{datasetFieldId}'");
-        }
-
-        public async Task<IActionResult> UpsertCalculationDatasetFieldsRelationships(string calculationId, string[] datasetFieldIds)
+        public async Task<IActionResult> UpsertCalculationDataFieldsRelationships(string calculationId, string[] datasetFieldIds)
         {
             try
             {
                 IEnumerable<Task> tasks = datasetFieldIds.Select(async (_) =>
                 {
-                    await _datasetRepository.UpsertCalculationDatasetFieldRelationship(calculationId, _);
+                    await _calcRepository.UpsertCalculationDataFieldRelationship(calculationId, _);
                 });
 
                 await TaskHelper.WhenAllAndThrow(tasks.ToArray());
@@ -246,7 +259,7 @@ namespace CalculateFunding.Services.Graph
             }
             catch (Neo4jDriver.Neo4jException ex)
             {
-                _logger.Error(ex, $"Upsert datasetfield relationship call to calculation failed for calculation:'{calculationId}'" +
+                _logger.Error(ex, $"Upsert datafield relationship call to calculation failed for calculation:'{calculationId}'" +
                                   $" calling calculations:'{datasetFieldIds.AsJson()}'");
 
                 throw;
@@ -255,14 +268,14 @@ namespace CalculateFunding.Services.Graph
 
         public async Task<IActionResult> DeleteCalculationDatasetFieldRelationship(string calculationId, string datasetFieldId)
         {
-            return await ExecuteRepositoryAction(() => _datasetRepository.DeleteCalculationDatasetFieldRelationship(calculationId, datasetFieldId),
+            return await ExecuteRepositoryAction(() => _calcRepository.DeleteCalculationDataFieldRelationship(calculationId, datasetFieldId),
                 $"Delete calculation relationship call to datasetfield failed for calculation:'{calculationId}'" +
                 $" calling calculation:'{datasetFieldId}'");
         }
 
         public async Task<IActionResult> DeleteDatasetField(string datasetFieldId)
         {
-            return await ExecuteRepositoryAction(() => _datasetRepository.DeleteDatasetField(datasetFieldId),
+            return await ExecuteRepositoryAction(() => _datasetRepository.DeleteDataField(datasetFieldId),
                 $"Unable to delete datasetField {datasetFieldId}");
         }
 

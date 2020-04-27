@@ -18,13 +18,20 @@ namespace CalculateFunding.Api.Graph.Controllers
             _graphService = graphService;
         }
         
-        [HttpPost("api/graph/datasets")]
+        [HttpPost("api/graph/dataset")]
         [ProducesResponseType(200)]
         public async Task<IActionResult> UpsertDataset([FromBody]Dataset dataset)
         {
             return await _graphService.UpsertDataset(dataset);
         }
-        
+
+        [HttpPost("api/graph/datasets")]
+        [ProducesResponseType(200)]
+        public async Task<IActionResult> UpsertDatasets([FromBody]Dataset[] datasets)
+        {
+            return await _graphService.UpsertDatasets(datasets);
+        }
+
         [HttpDelete("api/graph/datasets/{datasetId}")]
         [ProducesResponseType(200)]
         public async Task<IActionResult> DeleteDataset([FromRoute]string definitionId)
@@ -32,13 +39,20 @@ namespace CalculateFunding.Api.Graph.Controllers
             return await _graphService.DeleteDataset(definitionId);
         }
         
-        [HttpPost("api/graph/datasetdefinitions")]
+        [HttpPost("api/graph/datasetdefinition")]
         [ProducesResponseType(200)]
         public async Task<IActionResult> UpsertDatasetDefinition([FromBody]DatasetDefinition definition)
         {
             return await _graphService.UpsertDatasetDefinition(definition);
         }
-        
+
+        [HttpPost("api/graph/datasetdefinitions")]
+        [ProducesResponseType(200)]
+        public async Task<IActionResult> UpsertDatasetDefinitions([FromBody]DatasetDefinition[] definitions)
+        {
+            return await _graphService.UpsertDatasetDefinitions(definitions);
+        }
+
         [HttpDelete("api/graph/datasetdefinitions/{definitionId}")]
         [ProducesResponseType(200)]
         public async Task<IActionResult> DeleteDatasetDefinition([FromRoute]string definitionId)
@@ -46,18 +60,18 @@ namespace CalculateFunding.Api.Graph.Controllers
             return await _graphService.DeleteDatasetDefinition(definitionId);
         }
         
-        [HttpPost("api/graph/datafields")]
+        [HttpPost("api/graph/datafield")]
         [ProducesResponseType(200)]
-        public async Task<IActionResult> UpsertDataFields([FromBody]DataField fields)
+        public async Task<IActionResult> UpsertDataField([FromBody]DataField field)
         {
-            return await _graphService.UpsertDataField(fields);
+            return await _graphService.UpsertDataField(field);
         }
 
-        [HttpPost("api/graph/datasetfields")]
+        [HttpPost("api/graph/datafields")]
         [ProducesResponseType(200)]
-        public async Task<IActionResult> UpsertDatasetFields([FromBody]DatasetField[] fields)
+        public async Task<IActionResult> UpsertDataFields([FromBody]DataField[] fields)
         {
-            return await _graphService.UpsertDatasetField(fields);
+            return await _graphService.UpsertDataFields(fields);
         }
 
         [HttpDelete("api/graph/datafields/{fieldId}")]
@@ -97,9 +111,9 @@ namespace CalculateFunding.Api.Graph.Controllers
         
         [HttpPut("api/graph/specifications/{specificationId}/relationships/datasets/{datasetId}")]
         [ProducesResponseType(200)]
-        public async Task<IActionResult> CreateSpecificationDatasetRelationship([FromRoute]string specificationId, [FromRoute]string datasetId)
+        public async Task<IActionResult> UpsertSpecificationDatasetRelationship([FromRoute]string specificationId, [FromRoute]string datasetId)
         {
-            return await _graphService.CreateSpecificationDatasetRelationship(specificationId, datasetId);
+            return await _graphService.UpsertSpecificationDatasetRelationship(specificationId, datasetId);
         }
         
         [HttpDelete("api/graph/specifications/{specificationId}/relationships/datasets/{datasetId}")]
@@ -111,9 +125,9 @@ namespace CalculateFunding.Api.Graph.Controllers
         
         [HttpPut("api/graph/calculations/{calculationId}/relationships/datafields/{fieldId}")]
         [ProducesResponseType(200)]
-        public async Task<IActionResult> CreateCalculationDataFieldRelationship([FromRoute]string calculationId, [FromRoute]string fieldId)
+        public async Task<IActionResult> UpsertCalculationDataFieldRelationship([FromRoute]string calculationId, [FromRoute]string fieldId)
         {
-            return await _graphService.CreateCalculationDataFieldRelationship(calculationId, fieldId);
+            return await _graphService.UpsertCalculationDataFieldRelationship(calculationId, fieldId);
         }
         
         [HttpDelete("api/graph/calculations/{calculationId}/relationships/datafields/{fieldId}")]
@@ -165,9 +179,15 @@ namespace CalculateFunding.Api.Graph.Controllers
         }
 
         [HttpGet("api/graph/specification/getallentities/{specificationId}")]
-        public async Task<IActionResult> GetAllEntities([FromRoute]string specificationId)
+        public async Task<IActionResult> GetAllEntitiesForSpecification([FromRoute]string specificationId)
         {
             return await _graphService.GetAllEntities<Specification>(specificationId);
+        }
+
+        [HttpGet("api/graph/calculation/getallentities/{calculationId}")]
+        public async Task<IActionResult> GetAllEntitiesForCalculation([FromRoute]string calculationId)
+        {
+            return await _graphService.GetAllEntities<Calculation>(calculationId);
         }
 
         [HttpPut("api/graph/calculation/{calculationIdA}/relationships/calculation/{calculationIdB}")]
@@ -204,33 +224,12 @@ namespace CalculateFunding.Api.Graph.Controllers
         {
             return await _graphService.DeleteAllForSpecification(specificationId);
         }
-
-        [HttpPut("api/graph/calculation/{calculationId}/relationships/datasetfield/{datasetFieldId}")]
-        [ProducesResponseType(200)]
-        public async Task<IActionResult> UpsertCalculationDatasetFieldRelationship([FromRoute]string calculationId, [FromRoute]string datasetFieldId)
-        {
-            return await _graphService.UpsertCalculationDatasetFieldRelationship(calculationId, datasetFieldId);
-        }
        
-        [HttpPost("api/graph/calculation/{calculationId}/relationships/datasetfields")]
+        [HttpPost("api/graph/calculation/{calculationId}/relationships/datafields")]
         [ProducesResponseType(200)]
-        public async Task<IActionResult> UpsertCalculationDatasetFieldsRelationships([FromRoute]string calculationId, [FromBody]string[] datasetFieldIds)
+        public async Task<IActionResult> UpsertCalculationDataFieldsRelationships([FromRoute]string calculationId, [FromBody]string[] dataFieldIds)
         {
-            return await _graphService.UpsertCalculationDatasetFieldsRelationships(calculationId, datasetFieldIds);
-        }
-
-        [HttpDelete("api/graph/calculation/{calculationId}/relationships/datasetfield/{datasetFieldId}")]
-        [ProducesResponseType(200)]
-        public async Task<IActionResult> DeleteCalculationDatasetFieldRelationship([FromRoute]string calculationId, [FromRoute]string datasetFieldId)
-        {
-            return await _graphService.DeleteCalculationDatasetFieldRelationship(calculationId, datasetFieldId);
-        }
-
-        [HttpDelete("api/graph/datasetfield/{datasetFieldId}")]
-        [ProducesResponseType(200)]
-        public async Task<IActionResult> DeleteDatasetField([FromRoute]string datasetFieldId)
-        {
-            return await _graphService.DeleteDatasetField(datasetFieldId);
+            return await _graphService.UpsertCalculationDataFieldsRelationships(calculationId, dataFieldIds);
         }
     }
 }

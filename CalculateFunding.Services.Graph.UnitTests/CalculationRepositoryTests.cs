@@ -177,7 +177,7 @@ namespace CalculateFunding.Services.Graph.UnitTests
             string calculationAId = NewRandomString();
             string dataFieldId = NewRandomString();
             
-            await _calculationRepository.CreateCalculationDataFieldRelationship(calculationAId,
+            await _calculationRepository.UpsertCalculationDataFieldRelationship(calculationAId,
                 dataFieldId);
 
             await ThenTheRelationshipWasCreated<Calculation, DataField>(CalculationDataFieldRelationship,

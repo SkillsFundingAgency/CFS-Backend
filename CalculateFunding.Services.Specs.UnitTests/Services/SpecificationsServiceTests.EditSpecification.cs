@@ -219,9 +219,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             _providersApiClient.RegenerateProviderSummariesForSpecification(_specification.Id, true)
                 .Returns(new ApiResponse<bool>(HttpStatusCode.OK, true));
 
-            _jobManagement.WaitForJobsToComplete(Arg.Is<IEnumerable<string>>(_ => _.Single() == JobConstants.DefinitionNames.PopulateScopedProvidersJob), _specification.Id)
-                .Returns(true);
-
             var service = CreateSpecificationsService(fundingStream, newSpecVersion);
 
             //Act

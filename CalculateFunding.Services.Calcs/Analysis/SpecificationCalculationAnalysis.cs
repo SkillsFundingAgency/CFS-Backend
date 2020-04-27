@@ -7,6 +7,7 @@ using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Utility;
+using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Graph;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Compiler.Interfaces;
@@ -23,12 +24,16 @@ namespace CalculateFunding.Services.Calcs.Analysis
         readonly ISpecificationsApiClient _specifications;
         private readonly ICalculationsRepository _calculations;
         private readonly ICalculationAnalysis _calculationAnalysis;
+        private readonly IBuildProjectsService _buildProjectsService;
+        private readonly IDatasetReferenceService _datasetReferenceService;
         private readonly IMapper _mapper;
 
         public SpecificationCalculationAnalysis(ICalcsResiliencePolicies policies, 
             ISpecificationsApiClient specifications, 
             ICalculationsRepository calculations, 
-            ICalculationAnalysis calculationAnalysis, 
+            ICalculationAnalysis calculationAnalysis,
+            IBuildProjectsService buildProjectsService,
+            IDatasetReferenceService datasetReferenceService,
             IMapper mapper)
         {
             Guard.ArgumentNotNull(policies?.CalculationsRepository, nameof(policies.CalculationsRepository));
@@ -36,6 +41,8 @@ namespace CalculateFunding.Services.Calcs.Analysis
             Guard.ArgumentNotNull(specifications, nameof(specifications));
             Guard.ArgumentNotNull(calculations, nameof(calculations));
             Guard.ArgumentNotNull(calculationAnalysis, nameof(calculationAnalysis));
+            Guard.ArgumentNotNull(buildProjectsService, nameof(buildProjectsService));
+            Guard.ArgumentNotNull(datasetReferenceService, nameof(datasetReferenceService));
             Guard.ArgumentNotNull(mapper, nameof(mapper));
             
             _specificationsResilience = policies.SpecificationsApiClient;
@@ -43,6 +50,8 @@ namespace CalculateFunding.Services.Calcs.Analysis
             _specifications = specifications;
             _calculations = calculations;
             _calculationAnalysis = calculationAnalysis;
+            _buildProjectsService = buildProjectsService;
+            _datasetReferenceService = datasetReferenceService;
             _mapper = mapper;
         }
 
@@ -71,12 +80,19 @@ namespace CalculateFunding.Services.Calcs.Analysis
             }
 
             IEnumerable<CalculationRelationship> calculationRelationships = _calculationAnalysis.DetermineRelationshipsBetweenCalculations(calculations);
-            
+
+            BuildProject buildProject = await _buildProjectsService.GetBuildProjectForSpecificationId(specificationId);
+
+            IEnumerable<DatasetReference> datasetReferences = _datasetReferenceService.GetDatasetRelationShips(calculations, buildProject.DatasetRelationships);
+
             return new SpecificationCalculationRelationships
             {
                 Specification = _mapper.Map<Specification>(specificationSummary),
                 Calculations = _mapper.Map<IEnumerable<GraphCalculation>>(calculations),
-                CalculationRelationships   = calculationRelationships
+                CalculationRelationships = calculationRelationships,
+                CalculationDataFieldRelationships = datasetReferences.SelectMany(_ => _.Calculations.Select(calc => new CalculationDataFieldRelationship { Calculation = calc, DataField = _.DataField })).Distinct(),
+                DatasetDataFieldRelationships = datasetReferences.Select(_ => new DatasetDataFieldRelationship { Dataset = _.Dataset, DataField = _.DataField }),
+                DatasetDatasetDefinitionRelationships = datasetReferences.Select(_ => new DatasetDatasetDefinitionRelationship { Dataset = _.Dataset, DatasetDefinition = _.DatasetDefinition })
             };
         }
     }

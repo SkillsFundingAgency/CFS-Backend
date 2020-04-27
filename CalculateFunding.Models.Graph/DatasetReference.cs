@@ -13,12 +13,14 @@ namespace CalculateFunding.Models.Graph
 
         public string PropertyName { get; set; }
         public List<Calculation> Calculations { get; set; }
-        public DatasetField DatasetField { get; set; }
+        public DataField DataField { get; set; }
+        public Dataset Dataset { get; set; }
+        public DatasetDefinition DatasetDefinition { get; set; }
 
         protected bool Equals(DatasetReference other)
         {
             return string.Equals(PropertyName, other.PropertyName, StringComparison.InvariantCultureIgnoreCase)
-                && DatasetField != null && DatasetField.Equals(other.DatasetField);
+                && DataField != null && DataField.Equals(other.DataField);
         }
 
         public override bool Equals(object obj)
@@ -31,7 +33,7 @@ namespace CalculateFunding.Models.Graph
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(PropertyName, DatasetField);
+            return HashCode.Combine(PropertyName, DataField);
         }
     }
 }

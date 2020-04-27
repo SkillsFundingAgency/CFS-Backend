@@ -13,5 +13,14 @@ namespace CalculateFunding.Models.Graph
         
         [JsonProperty("calculationrelationships")]
         public IEnumerable<CalculationRelationship> CalculationRelationships { get; set; }
+
+        [JsonProperty("calculationdatasetfieldrelationships")]
+        public IEnumerable<CalculationDataFieldRelationship> CalculationDataFieldRelationships { get; set; }
+
+        [JsonProperty("datasetdatafieldrelationships")]
+        public IEnumerable<DatasetDataFieldRelationship> DatasetDataFieldRelationships { get; set; }
+
+        [JsonProperty("datasetdatasetdefinitionrelationships")]
+        public IEnumerable<DatasetDatasetDefinitionRelationship> DatasetDatasetDefinitionRelationships { get; set; }
     }
 }

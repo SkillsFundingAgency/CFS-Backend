@@ -11,7 +11,9 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
     {
         private string _propertyName;
         private IEnumerable<Calculation> _calculations;
-        private DatasetField _datasetField;
+        private DataField _dataField;
+        private Dataset _dataset;
+        private DatasetDefinition _datasetDefinition;
 
         public DatasetReferenceBuilder WithPropertyName(string propertyName)
         {
@@ -27,9 +29,23 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
             return this;
         }
 
-        public DatasetReferenceBuilder WithDatasetField(DatasetField datasetField)
+        public DatasetReferenceBuilder WithDataField(DataField dataField)
         {
-            _datasetField = datasetField;
+            _dataField = dataField;
+
+            return this;
+        }
+
+        public DatasetReferenceBuilder WithDataset(Dataset dataset)
+        {
+            _dataset = dataset;
+
+            return this;
+        }
+
+        public DatasetReferenceBuilder WithDatasetDefinition(DatasetDefinition datasetDefinition)
+        {
+            _datasetDefinition = datasetDefinition;
 
             return this;
         }
@@ -40,10 +56,22 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
             {
                 PropertyName = _propertyName ?? NewRandomString(),
                 Calculations = _calculations?.ToList() ?? new List<Calculation>(),
-                DatasetField = _datasetField ?? new DatasetField()
+                DataField = _dataField ?? new DataField()
                 {
-                    DatasetFieldId = NewRandomString(),
-                    DatasetFieldName = NewRandomString()
+                    DataFieldId = NewRandomString(),
+                    DataFieldName = NewRandomString()
+                },
+                Dataset = _dataset ?? new Dataset
+                {
+                    DatasetId = NewRandomString(),
+                    Name = NewRandomString(),
+                    Description = NewRandomString()
+                },
+                DatasetDefinition = _datasetDefinition ?? new DatasetDefinition
+                {
+                    DatasetDefinitionId = NewRandomString(),
+                    Name = NewRandomString(),
+                    Description = NewRandomString()
                 }
             };
         }

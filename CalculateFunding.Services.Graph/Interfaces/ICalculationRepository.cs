@@ -16,15 +16,13 @@ namespace CalculateFunding.Services.Graph.Interfaces
         Task UpsertCalculations(IEnumerable<Calculation> calculations);        
         Task UpsertCalculationSpecificationRelationship(string calculationId, string specificationId);
         Task UpsertCalculationCalculationRelationship(string calculationIdA, string calculationIdB);
+        Task UpsertCalculationDataFieldRelationship(string calculationId, string datasetFieldId);
+        Task DeleteCalculationDataFieldRelationship(string calculationId, string datasetFieldId);
         Task DeleteCalculationSpecificationRelationship(string calculationId, string specificationId);
         Task DeleteCalculationCalculationRelationship(string calculationIdA, string calculationIdB);
 
-        Task CreateCalculationDataFieldRelationship(string calculationId,
-            string dataFieldId);
-
-        Task DeleteCalculationDataFieldRelationship(string calculationId,
-            string dataFieldId);
-
         Task<IEnumerable<Entity<Calculation, IRelationship>>> GetCalculationCircularDependencies(string specificationId);
+
+        Task<IEnumerable<Entity<Calculation, IRelationship>>> GetAllEntities(string calculationId);
     }
 }

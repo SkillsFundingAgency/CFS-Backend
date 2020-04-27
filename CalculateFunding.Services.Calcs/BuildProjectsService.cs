@@ -292,9 +292,9 @@ namespace CalculateFunding.Services.Calcs
                         {
                             string errorMessage = $"Unable to re-generate scoped providers while building projects '{specificationId}' job didn't complete successfully in time";
 
-                            _logger.Information(errorMessage);
+                            _logger.Error(errorMessage);
 
-                            throw new RetriableException(errorMessage);
+                            throw new NonRetriableException(errorMessage);
                         }
                     }
                 }
@@ -716,6 +716,7 @@ namespace CalculateFunding.Services.Calcs
                     {
                         DatasetDefinitionId = datasetRelationshipModel.Definition.Id,
                         DatasetId = datasetRelationshipModel.DatasetId,
+                        DatasetName = datasetRelationshipModel.DatasetName,
                         Relationship = new Common.Models.Reference(datasetRelationshipModel.Id, datasetRelationshipModel.Name),
                         DefinesScope = datasetRelationshipModel.IsProviderData,
                         Id = datasetRelationshipModel.Id,

@@ -289,7 +289,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
 
             await _graphApiClient
                 .Received(1)
-                .UpsertDatasetFields(Arg.Is<GraphModels.DatasetField[]>(ds => ds.Length == 2));
+                .UpsertDataFields(Arg.Is<GraphModels.DataField[]>(ds => ds.Length == 2));
         }
 
         [TestMethod]
@@ -305,7 +305,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
 
             IEnumerable<DatasetReference> datasetReferences = new[] { datasetReference };
 
-            datasetReference.DatasetField.CalculationId = calculation.Id;
+            datasetReference.DataField.CalculationId = calculation.Id;
 
             _calculationsFeatureFlag
                 .IsGraphEnabled()
@@ -313,11 +313,10 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
 
             await _graphRepository.PersistToGraph(calculations,
                 specificationSummary, null, false, datasetReferences);
-            
 
             await _graphApiClient
                 .Received(1)
-                .UpsertCalculationDatasetFieldsRelationships(calculation.Id, Arg.Is<string[]>(_ => _[0] == datasetReference.DatasetField.DatasetFieldId));                
+                .UpsertCalculationDataFieldsRelationships(calculation.Id, Arg.Is<string[]>(_ => _[0] == datasetReference.DataField.DataFieldId));                
         }
 
 

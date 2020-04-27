@@ -142,7 +142,7 @@ namespace CalculateFunding.Services.Graph.UnitTests
 
             await _datasetRepository
                 .Received(1)
-                .CreateDataDefinitionDatasetRelationship(definitionId, datasetId);
+                .UpsertDataDefinitionDatasetRelationship(definitionId, datasetId);
 
             result
                 .Should()
@@ -178,7 +178,7 @@ namespace CalculateFunding.Services.Graph.UnitTests
 
             await _datasetRepository
                 .Received(1)
-                .CreateDatasetDataFieldRelationship(datasetId, fieldId);
+                .UpsertDatasetDataFieldRelationship(datasetId, fieldId);
 
             result
                 .Should()
@@ -209,7 +209,7 @@ namespace CalculateFunding.Services.Graph.UnitTests
             string specificationId = NewRandomString();
             string datasetId = NewRandomString();
             
-            IActionResult result = await _graphService.CreateSpecificationDatasetRelationship(specificationId,
+            IActionResult result = await _graphService.UpsertSpecificationDatasetRelationship(specificationId,
                 datasetId);
 
             await _specificationRepository
@@ -245,12 +245,12 @@ namespace CalculateFunding.Services.Graph.UnitTests
             string calculationId = NewRandomString();
             string fieldId = NewRandomString();
             
-            IActionResult result = await _graphService.CreateCalculationDataFieldRelationship(calculationId,
+            IActionResult result = await _graphService.UpsertCalculationDataFieldRelationship(calculationId,
                 fieldId);
 
             await _calculationRepository
                 .Received(1)
-                .CreateCalculationDataFieldRelationship(calculationId, fieldId);
+                .UpsertCalculationDataFieldRelationship(calculationId, fieldId);
 
             result
                 .Should()
@@ -428,13 +428,13 @@ namespace CalculateFunding.Services.Graph.UnitTests
         [TestMethod]
         public async Task SaveDatasetFields_GivenValidDatasetFields_OkStatusCodeReturned()
         {
-            DatasetField[] datasetFields = new[] { NewDatasetField(), NewDatasetField() };
+            DataField[] datasetFields = new[] { NewDataField(), NewDataField() };
 
-            IActionResult result = await _graphService.UpsertDatasetField(datasetFields);
+            IActionResult result = await _graphService.UpsertDataFields(datasetFields);
 
             await _datasetRepository
                 .Received(1)
-                .UpsertDatasetField(datasetFields);
+                .UpsertDataFields(datasetFields);
 
             result
                 .Should()
@@ -447,12 +447,12 @@ namespace CalculateFunding.Services.Graph.UnitTests
             string calculationId = NewRandomString();
             string datasetFieldid = NewRandomString();
 
-            IActionResult result = await _graphService.UpsertCalculationDatasetFieldRelationship(calculationId,
+            IActionResult result = await _graphService.UpsertCalculationDataFieldRelationship(calculationId,
                 datasetFieldid);
 
-            await _datasetRepository
+            await _calculationRepository
                 .Received(1)
-                .UpsertCalculationDatasetFieldRelationship(calculationId, datasetFieldid);
+                .UpsertCalculationDataFieldRelationship(calculationId, datasetFieldid);
 
             result
                 .Should()
@@ -467,9 +467,9 @@ namespace CalculateFunding.Services.Graph.UnitTests
 
             IActionResult result = await _graphService.DeleteCalculationDatasetFieldRelationship(calculationId, datasetFieldId);
 
-            await _datasetRepository
+            await _calculationRepository
                 .Received(1)
-                .DeleteCalculationDatasetFieldRelationship(calculationId, datasetFieldId);
+                .DeleteCalculationDataFieldRelationship(calculationId, datasetFieldId);
 
             result
                 .Should()
@@ -496,9 +496,9 @@ namespace CalculateFunding.Services.Graph.UnitTests
             return specificationBuilder.Build();
         }
 
-        private DatasetField NewDatasetField(Action<DatasetFieldBuilder> setUp = null)
+        private DataField NewDataField(Action<DataFieldBuilder> setUp = null)
         {
-            DatasetFieldBuilder datasetFieldBuilder = new DatasetFieldBuilder();
+            DataFieldBuilder datasetFieldBuilder = new DataFieldBuilder();
 
             setUp?.Invoke(datasetFieldBuilder);
 

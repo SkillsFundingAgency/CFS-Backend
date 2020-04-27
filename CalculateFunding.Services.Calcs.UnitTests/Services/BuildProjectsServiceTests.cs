@@ -885,7 +885,7 @@ namespace CalculateFunding.Services.Calcs.Services
             //Assert
             invocation
                 .Should()
-                .Throw<RetriableException>()
+                .Throw<NonRetriableException>()
                 .WithMessage($"Unable to re-generate scoped providers while building projects '{specificationId}' job didn't complete successfully in time");
         }
 

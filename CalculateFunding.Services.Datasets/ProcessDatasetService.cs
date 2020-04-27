@@ -730,9 +730,9 @@ namespace CalculateFunding.Services.Datasets
                 {
                     string errorMessage = $"Unable to re-generate providers while updating dataset '{relationshipId}' for specification '{specification.Id}' with status code: {refreshCacheFromApi.StatusCode}";
 
-                    _logger.Information(errorMessage);
+                    _logger.Error(errorMessage);
 
-                    throw new RetriableException(errorMessage);
+                    throw new NonRetriableException(errorMessage);
                 }
 
                 // if the scoped providers are being re-generated then wait for the job to finish

@@ -49,7 +49,8 @@ namespace CalculateFunding.Services.Publishing.Repositories
                          {
                              new CosmosDbQueryParameter("@specificationId", specificationId)
                          }
-                }))
+                },
+                partitionEntityId: providerId))
                 .ToList();
 
             return await Task.FromResult(providerResultSummaries.FirstOrDefault());

@@ -19,7 +19,11 @@ using GraphEntity = CalculateFunding.Common.ApiClient.Graph.Models.Entity<Calcul
 using CalculationEntity = CalculateFunding.Models.Graph.Entity<CalculateFunding.Common.ApiClient.Graph.Models.Calculation, CalculateFunding.Common.ApiClient.Graph.Models.Relationship>;
 using Newtonsoft.Json.Linq;
 using DatasetReference = CalculateFunding.Models.Graph.DatasetReference;
-using GraphDatasetField = CalculateFunding.Common.ApiClient.Graph.Models.DatasetField;
+using GraphDataField = CalculateFunding.Common.ApiClient.Graph.Models.DataField;
+using GraphDataset = CalculateFunding.Common.ApiClient.Graph.Models.Dataset;
+using GraphDatasetDefinition = CalculateFunding.Common.ApiClient.Graph.Models.DatasetDefinition;
+using GraphDatasetDatasetDefinitionRelationship = CalculateFunding.Models.Graph.DatasetDatasetDefinitionRelationship;
+using GraphDatasetDataFieldRelationship = CalculateFunding.Models.Graph.DatasetDataFieldRelationship;
 using AutoMapper;
 
 namespace CalculateFunding.Services.Calcs
@@ -83,7 +87,6 @@ namespace CalculateFunding.Services.Calcs
                 return;
             }
 
-
             await _resilience.ExecuteAsync(() => _graphApiClient.UpsertSpecifications(new[] {new Common.ApiClient.Graph.Models.Specification
             {
                 SpecificationId = specification.Id,
@@ -138,17 +141,48 @@ namespace CalculateFunding.Services.Calcs
 
             if (datasetReferences != null)
             {
-                await _resilience.ExecuteAsync(() => _graphApiClient.UpsertDatasetFields(
-                    datasetReferences.Select(x => _mapper.Map<GraphDatasetField>(x.DatasetField)).ToArray()));
+                await _resilience.ExecuteAsync(() => _graphApiClient.UpsertDataFields(
+                    datasetReferences.Select(x => _mapper.Map<GraphDataField>(x.DataField)).ToArray()));
 
-                IEnumerable<Task> datasetFieldtasks = currentCalculations.Select(async (calculation) =>
+                await _resilience.ExecuteAsync(() => _graphApiClient.UpsertDatasets(
+                    datasetReferences.Select(x => _mapper.Map<GraphDataset>(x.Dataset)).Distinct().ToArray()));
+
+                await _resilience.ExecuteAsync(() => _graphApiClient.UpsertDatasetDefinitions(
+                    datasetReferences.Select(x => _mapper.Map<GraphDatasetDefinition>(x.DatasetDefinition)).Distinct().ToArray()));
+
+                IEnumerable <Task> datasetFieldtasks = currentCalculations.Select(async (calculation) =>
                 {
-                    IEnumerable<string> datasetFieldReferences = datasetReferences.Where(p => p.DatasetField.CalculationId == calculation.Id)
-                                                                                .Select(c => c.DatasetField.DatasetFieldId);
+                    IEnumerable<string> dataFieldCalculationReferences = datasetReferences.Where(p => p.DataField.CalculationId == calculation.Id)
+                                                                                .Select(c => c.DataField.DataFieldId);
 
-                    if (datasetFieldReferences.Any())
+                    IEnumerable<string> specificationDatasetReferences = datasetReferences.Where(p => p.DataField.CalculationId == calculation.Id)
+                                                                                .Select(c => c.Dataset.DatasetId);
+
+                    IEnumerable<GraphDatasetDatasetDefinitionRelationship> datasetDatasetDefinitionReferences = datasetReferences.Where(p => p.DataField.CalculationId == calculation.Id)
+                                                                                .Select(c => new GraphDatasetDatasetDefinitionRelationship { Dataset = c.Dataset, DatasetDefinition = c.DatasetDefinition });
+
+
+                    IEnumerable<GraphDatasetDataFieldRelationship> dataFieldDatasetReferences = datasetReferences.Where(p => p.DataField.CalculationId == calculation.Id)
+                                                                                .Select(c => new GraphDatasetDataFieldRelationship { Dataset = c.Dataset, DataField = c.DataField });
+
+                    foreach (string specificationDatasetReference in specificationDatasetReferences)
                     {
-                        await _resilience.ExecuteAsync(async () => await _graphApiClient.UpsertCalculationDatasetFieldsRelationships(calculation.Id, datasetFieldReferences.ToArray()));
+                        await _resilience.ExecuteAsync(async () => await _graphApiClient.UpsertSpecificationDatasetRelationship(specification.Id, specificationDatasetReference));
+                    }
+
+                    foreach (GraphDatasetDatasetDefinitionRelationship datasetDatasetDefinitionReference in datasetDatasetDefinitionReferences)
+                    {
+                        await _resilience.ExecuteAsync(async () => await _graphApiClient.UpsertDataDefinitionDatasetRelationship(datasetDatasetDefinitionReference.DatasetDefinition.DatasetDefinitionId, datasetDatasetDefinitionReference.Dataset.DatasetId));
+                    }
+
+                    foreach (GraphDatasetDataFieldRelationship dataFieldDatasetReference in dataFieldDatasetReferences)
+                    {
+                        await _resilience.ExecuteAsync(async () => await _graphApiClient.UpsertDatasetDataFieldRelationship(dataFieldDatasetReference.Dataset.DatasetId, dataFieldDatasetReference.DataField.DataFieldId));
+                    }
+
+                    if (dataFieldCalculationReferences.Any())
+                    {
+                        await _resilience.ExecuteAsync(async () => await _graphApiClient.UpsertCalculationDataFieldsRelationships(calculation.Id, dataFieldCalculationReferences.ToArray()));
                     }
                 });
                 calcSpecTasks = calcSpecTasks.Concat(datasetFieldtasks);

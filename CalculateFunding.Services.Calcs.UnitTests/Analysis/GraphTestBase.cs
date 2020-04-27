@@ -38,6 +38,33 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
             return builder.Build();
         }
 
+        protected DataField NewDataField(Action<DataFieldBuilder> setUp = null)
+        {
+            DataFieldBuilder builder = new DataFieldBuilder();
+
+            setUp?.Invoke(builder);
+
+            return builder.Build();
+        }
+
+        protected Dataset NewDataset(Action<DatasetBuilder> setUp = null)
+        {
+            DatasetBuilder builder = new DatasetBuilder();
+
+            setUp?.Invoke(builder);
+
+            return builder.Build();
+        }
+
+        protected DatasetDefinition NewDatasetDefinition(Action<DatasetDefinitionBuilder> setUp = null)
+        {
+            DatasetDefinitionBuilder builder = new DatasetDefinitionBuilder();
+
+            setUp?.Invoke(builder);
+
+            return builder.Build();
+        }
+
         protected Specification NewGraphSpecification(Action<GraphSpecificationBuilder> setUp = null)
         {
             GraphSpecificationBuilder builder = new GraphSpecificationBuilder();

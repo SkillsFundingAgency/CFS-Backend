@@ -1,10 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Calcs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
+using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Graph;
 using CalculateFunding.Services.Calcs.Analysis;
 using CalculateFunding.Services.Calcs.Interfaces;
@@ -25,6 +28,8 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
         private Mock<ICalculationsRepository> _calculations;
         private Mock<ICalculationAnalysis> _calculationsAnalysis;
         private Mock<ISpecificationsApiClient> _specifications;
+        private Mock<IDatasetReferenceService> _datasetReferenceService;
+        private Mock<IBuildProjectsService> _buildProjectsService;
 
         private SpecificationCalculationAnalysis _analysis;
 
@@ -34,6 +39,8 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
             _calculations = new Mock<ICalculationsRepository>();
             _calculationsAnalysis = new Mock<ICalculationAnalysis>();
             _specifications = new Mock<ISpecificationsApiClient>();
+            _buildProjectsService = new Mock<IBuildProjectsService>();
+            _datasetReferenceService = new Mock<IDatasetReferenceService>();
             
             _analysis = new SpecificationCalculationAnalysis(new ResiliencePolicies
             {
@@ -43,6 +50,8 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
                 _specifications.Object,
                 _calculations.Object,
                 _calculationsAnalysis.Object,
+                _buildProjectsService.Object,
+                _datasetReferenceService.Object,
                 Mapper.Object);
         }
 
@@ -99,15 +108,26 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
         public async Task DeterminesCalculationRelationsForAllCalculationsInTheSpecificationWithTheSuppliedId()
         {
             string specificationId = NewRandomString();
+            Calculation calculation = new Calculation();
             SpecificationSummary specificationSummary = new SpecificationSummary();
             Specification graphSpecification = NewGraphSpecification();
-            Calculation[] calculations = new[] {new Calculation(),};
+            Calculation[] calculations = new[] { calculation, };
             GraphCalculation[] graphCalculations = new GraphCalculation[0];
             CalculationRelationship[] calculationRelationships = new CalculationRelationship[0];
-            
+
+            List<Models.Calcs.DatasetRelationshipSummary> datasetRelationshipSummaries = new List<Models.Calcs.DatasetRelationshipSummary>();
+            DatasetReference[] datasetReferences = new[] { new DatasetReference { 
+                Calculations = graphCalculations.ToList(), 
+                DataField = new DataField(),
+                Dataset = new Models.Graph.Dataset(),
+                DatasetDefinition = new DatasetDefinition()
+            },  };
+
             GivenTheSpecification(specificationId, specificationSummary);   
             AndTheCalculations(specificationId, calculations);
             AndTheRelationshipsForTheCalculations(calculations, calculationRelationships);
+            AndTheBuildProjectForTheSpecification(specificationId, datasetRelationshipSummaries);
+            AndTheDatasetReferencesForTheCalculations(calculations, datasetRelationshipSummaries, datasetReferences);
             AndTheMapping(calculations, graphCalculations);
             AndTheMapping(specificationSummary, graphSpecification);
 
@@ -119,7 +139,10 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
                 {
                     Specification = graphSpecification,
                     Calculations = graphCalculations,
-                    CalculationRelationships = calculationRelationships
+                    CalculationRelationships = calculationRelationships,
+                    CalculationDataFieldRelationships = datasetReferences.SelectMany(_ => _.Calculations.Select(calculation => new CalculationDataFieldRelationship { Calculation = calculation, DataField = _.DataField })),
+                    DatasetDataFieldRelationships = datasetReferences.Select(_ => new DatasetDataFieldRelationship { Dataset = _.Dataset, DataField = _.DataField }),
+                    DatasetDatasetDefinitionRelationships = datasetReferences.Select(_ => new DatasetDatasetDefinitionRelationship { Dataset = _.Dataset, DatasetDefinition = _.DatasetDefinition })
                 });
         }
 
@@ -151,6 +174,21 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
         {
             _calculationsAnalysis.Setup(_ => _.DetermineRelationshipsBetweenCalculations(calculations))
                 .Returns(relationships);
+        }
+        private void AndTheBuildProjectForTheSpecification(string specificationId, List<Models.Calcs.DatasetRelationshipSummary> datasetRelationships)
+        {
+            _buildProjectsService
+                .Setup(_ => _.GetBuildProjectForSpecificationId(specificationId))
+                .ReturnsAsync(new Models.Calcs.BuildProject { DatasetRelationships = datasetRelationships });
+        }
+
+        private void AndTheDatasetReferencesForTheCalculations(IEnumerable<Calculation> calculations,
+            List<Models.Calcs.DatasetRelationshipSummary> datasetRelationships,
+            params DatasetReference[] references)
+        {
+            _datasetReferenceService
+                .Setup(_ => _.GetDatasetRelationShips(calculations, datasetRelationships))
+                .Returns(references);
         }
     }
 }

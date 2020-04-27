@@ -23,5 +23,8 @@ namespace CalculateFunding.Models.Calcs
 
         [JsonProperty("datasetId")]
         public string DatasetId { get; set; }
+
+        [JsonProperty("datasetName")]
+        public string DatasetName { get; set; }
     }
 }

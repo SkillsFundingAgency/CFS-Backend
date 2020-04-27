@@ -20,7 +20,7 @@ namespace CalculateFunding.Services.Graph
         public const string CalculationACalculationBRelationship = "CallsCalculation";
         public const string CalculationBCalculationARelationship = "CalledByCalculation";
         public const string CalculationDataFieldRelationship = "ReferencesDataField";
-        public const string DataFieldCalculationRelationship = "IsReferencedByCalculation";
+        public const string DataFieldCalculationRelationship = "IsReferencedInCalculation";
 
         public CalculationRepository(IGraphRepository graphRepository)
             : base(graphRepository)
@@ -89,28 +89,38 @@ namespace CalculateFunding.Services.Graph
                 (CalculationId, calculationIdA));
         }
 
-        public async Task CreateCalculationDataFieldRelationship(string calculationId,
-            string dataFieldId)
+        public async Task UpsertCalculationDataFieldRelationship(string calculationId, string dataFieldId)
         {
             await UpsertRelationship<Calculation, DataField>(CalculationDataFieldRelationship,
                 (CalculationId, calculationId),
                 (DataFieldId, dataFieldId));
-            
+
             await UpsertRelationship<DataField, Calculation>(DataFieldCalculationRelationship,
                 (DataFieldId, dataFieldId),
                 (CalculationId, calculationId));
         }
-        
+
         public async Task DeleteCalculationDataFieldRelationship(string calculationId,
-            string dataFieldId)
+            string datasetFieldId)
         {
             await DeleteRelationship<Calculation, DataField>(CalculationDataFieldRelationship,
                 (CalculationId, calculationId),
-                (DataFieldId, dataFieldId));
-            
+                (DataFieldId, datasetFieldId));
+
             await DeleteRelationship<DataField, Calculation>(DataFieldCalculationRelationship,
-                (DataFieldId, dataFieldId),
+                (DataFieldId, datasetFieldId),
                 (CalculationId, calculationId));
+        }
+
+        public async Task<IEnumerable<Entity<Calculation, IRelationship>>> GetAllEntities(string calculationId)
+        {
+            IEnumerable<Entity<Calculation>> entities = await GetAllEntities<Calculation>(CalculationId,
+                calculationId,
+                new[] { 
+                    DataFieldCalculationRelationship,
+                    CalculationDataFieldRelationship
+                });
+            return entities.Select(_ => new Entity<Calculation, IRelationship> { Node = _.Node, Relationships = _.Relationships });
         }
     }
 }
