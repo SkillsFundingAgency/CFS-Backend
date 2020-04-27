@@ -119,6 +119,10 @@ namespace CalculateFunding.Services.Users
                 CanEditSpecification = false,
                 CanMapDatasets = false,
                 CanReleaseFunding = false,
+                CanCreateTemplates = true,
+                CanEditTemplates = true,
+                CanDeleteTemplates = true,
+                CanApproveTemplates = true
             };
             
             IVersionRepository<FundingStreamPermissionVersion> versionRepository = CreateFundingStreamPermissionRepository();
@@ -153,6 +157,10 @@ namespace CalculateFunding.Services.Users
                     CanEditSpecification = false,
                     CanMapDatasets = false,
                     CanReleaseFunding = false,
+                    CanCreateTemplates = true,
+                    CanEditTemplates = true,
+                    CanDeleteTemplates = true,
+                    CanApproveTemplates = true
                 });
 
             await userRepository
@@ -166,7 +174,11 @@ namespace CalculateFunding.Services.Users
                     !p.CanEditCalculations &&
                     !p.CanEditSpecification &&
                     !p.CanMapDatasets &&
-                    !p.CanReleaseFunding
+                    !p.CanReleaseFunding &&
+                    p.CanCreateTemplates &&
+                    p.CanEditTemplates &&
+                    p.CanDeleteTemplates &&
+                    p.CanApproveTemplates
                 ));
 
             await cacheProvider
@@ -231,6 +243,7 @@ namespace CalculateFunding.Services.Users
                 CanEditSpecification = false,
                 CanMapDatasets = false,
                 CanReleaseFunding = false,
+                CanApproveTemplates = true
             };
 
             IVersionRepository<FundingStreamPermissionVersion> versionRepository = CreateFundingStreamPermissionRepository();
@@ -265,6 +278,7 @@ namespace CalculateFunding.Services.Users
                     CanEditSpecification = false,
                     CanMapDatasets = false,
                     CanReleaseFunding = false,
+                    CanApproveTemplates = true
                 });
 
             await userRepository
@@ -278,7 +292,11 @@ namespace CalculateFunding.Services.Users
                    !p.CanEditCalculations &&
                    !p.CanEditSpecification &&
                    !p.CanMapDatasets &&
-                   !p.CanReleaseFunding
+                   !p.CanReleaseFunding &&
+                   !p.CanCreateTemplates &&
+                   !p.CanEditTemplates &&
+                   !p.CanDeleteTemplates &&
+                   p.CanApproveTemplates
                ));
 
             await cacheProvider
@@ -319,6 +337,7 @@ namespace CalculateFunding.Services.Users
                 CanEditSpecification = false,
                 CanMapDatasets = false,
                 CanReleaseFunding = false,
+                CanApproveTemplates = true
             };
 
             userRepository
@@ -340,6 +359,7 @@ namespace CalculateFunding.Services.Users
                 CanEditSpecification = false,
                 CanMapDatasets = false,
                 CanReleaseFunding = false,
+                CanApproveTemplates = true
             };
 
             IVersionRepository<FundingStreamPermissionVersion> versionRepository = CreateFundingStreamPermissionRepository();
@@ -370,6 +390,7 @@ namespace CalculateFunding.Services.Users
                     CanEditSpecification = false,
                     CanMapDatasets = false,
                     CanReleaseFunding = false,
+                    CanApproveTemplates = true
                 });
 
             await userRepository

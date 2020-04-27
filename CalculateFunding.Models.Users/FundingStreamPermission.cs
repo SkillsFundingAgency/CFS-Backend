@@ -6,13 +6,7 @@ namespace CalculateFunding.Models.Users
     public class FundingStreamPermission : IIdentifiable
     {
         [JsonProperty("id")]
-        public string Id
-        {
-            get
-            {
-                return $"{UserId}_{FundingStreamId}";
-            }
-        }
+        public string Id => $"{UserId}_{FundingStreamId}";
 
         [JsonProperty("userId")]
         public string UserId { get; set; }
@@ -65,6 +59,18 @@ namespace CalculateFunding.Models.Users
         [JsonProperty("canDeleteQaTests")]
         public bool CanDeleteQaTests { get; set; }
 
+        [JsonProperty("canCreateTemplates")]
+        public bool CanCreateTemplates { get; set; }
+
+        [JsonProperty("canEditTemplates")]
+        public bool CanEditTemplates { get; set; }
+
+        [JsonProperty("canDeleteTemplates")]
+        public bool CanDeleteTemplates { get; set; }
+
+        [JsonProperty("canApproveTemplates")]
+        public bool CanApproveTemplates { get; set; }
+
         public bool HasSamePermissions(FundingStreamPermission fundingStreamPermission)
         {
             return fundingStreamPermission.CanCreateSpecification == CanCreateSpecification &&
@@ -80,7 +86,11 @@ namespace CalculateFunding.Models.Users
                 fundingStreamPermission.CanEditQaTests == CanEditQaTests &&
                 fundingStreamPermission.CanApproveSpecification == CanApproveSpecification &&
                 fundingStreamPermission.CanDeleteCalculations == CanDeleteCalculations &&
-                fundingStreamPermission.CanDeleteQaTests == CanDeleteQaTests;
+                fundingStreamPermission.CanDeleteQaTests == CanDeleteQaTests &&
+                fundingStreamPermission.CanCreateTemplates == CanCreateTemplates &&
+                fundingStreamPermission.CanEditTemplates == CanEditTemplates &&
+                fundingStreamPermission.CanDeleteTemplates == CanDeleteTemplates &&
+                fundingStreamPermission.CanApproveTemplates == CanApproveTemplates;
         }
     }
 }

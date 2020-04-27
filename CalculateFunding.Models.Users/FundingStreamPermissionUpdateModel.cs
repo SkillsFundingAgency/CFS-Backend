@@ -48,5 +48,17 @@ namespace CalculateFunding.Models.Users
 
         [JsonProperty("canDeleteQaTests")]
         public bool CanDeleteQaTests { get; set; }
+
+        [JsonProperty("canCreateTemplates")]
+        public bool CanCreateTemplates { get; set; }
+
+        [JsonProperty("canEditTemplates")]
+        public bool CanEditTemplates { get; set; }
+
+        [JsonProperty("canDeleteTemplates")]
+        public bool CanDeleteTemplates { get; set; }
+
+        [JsonProperty("canApproveTemplates")]
+        public bool CanApproveTemplates { get; set; }
     }
 }

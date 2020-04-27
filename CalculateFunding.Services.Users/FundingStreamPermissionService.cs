@@ -252,7 +252,7 @@ namespace CalculateFunding.Services.Users
                     else
                     {
                         // Add permission for this funding stream with no permissions - used further down to calculate permissions (required for pessimistic permissions)
-                        permissionsForUser.Add(new FundingStreamPermission()
+                        permissionsForUser.Add(new FundingStreamPermission
                         {
                             UserId = userId,
                             FundingStreamId = fundingStream.Id,
@@ -271,6 +271,10 @@ namespace CalculateFunding.Services.Users
                             CanDeleteQaTests = false,
                             CanEditQaTests = false,
                             CanRefreshFunding = false,
+                            CanCreateTemplates = false,
+                            CanEditTemplates = false,
+                            CanDeleteTemplates = false,
+                            CanApproveTemplates = false
                         });
                     }
                 }
@@ -318,7 +322,11 @@ namespace CalculateFunding.Services.Users
                     CanAdministerFundingStream = false,
                     CanDeleteSpecification = false,
                     CanDeleteCalculations = false,
-                    CanDeleteQaTests = false
+                    CanDeleteQaTests = false,
+                    CanCreateTemplates = false,
+                    CanEditTemplates = false,
+                    CanDeleteTemplates = false,
+                    CanApproveTemplates = false
                 };
             }
 
@@ -341,7 +349,11 @@ namespace CalculateFunding.Services.Users
                 CanRefreshFunding = permissionsForUser.All(p => p.CanRefreshFunding),
                 CanDeleteSpecification = permissionsForUser.All(p => p.CanDeleteSpecification),
                 CanDeleteCalculations = permissionsForUser.All(p => p.CanDeleteCalculations),
-                CanDeleteQaTests = permissionsForUser.All(p => p.CanDeleteQaTests)
+                CanDeleteQaTests = permissionsForUser.All(p => p.CanDeleteQaTests),
+                CanCreateTemplates = permissionsForUser.All(p => p.CanCreateTemplates),
+                CanEditTemplates = permissionsForUser.All(p => p.CanEditTemplates),
+                CanDeleteTemplates = permissionsForUser.All(p => p.CanDeleteTemplates),
+                CanApproveTemplates = permissionsForUser.All(p => p.CanApproveTemplates)
             };
         }
 
