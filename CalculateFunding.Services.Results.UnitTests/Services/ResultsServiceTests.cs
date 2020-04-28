@@ -999,7 +999,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                 messengerService: messengerService);
 
             //Act
-            await resultsService.QueueCsvGenerationMessage(specificationId, specificationName);
+            await resultsService.QueueCsvGenerationMessageIfNewCalculationResults(specificationId, specificationName);
 
             //Assert
             await calculationResultsRepository

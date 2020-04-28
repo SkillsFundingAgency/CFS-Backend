@@ -9,15 +9,14 @@ namespace CalculateFunding.Functions.Results.Timer
 {
     public class OnCalculationResultsCsvGenerationTimer
     {
-        private const string ThreeAMDaily = "0 3 * * *";
+        private const string Hourly = "0 0 * * * *";
 
         private readonly ILogger _logger;
         private readonly IResultsService _resultsService;
 
         public OnCalculationResultsCsvGenerationTimer(
             ILogger logger,
-            IResultsService resultsService
-            )
+            IResultsService resultsService)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(resultsService, nameof(resultsService));
@@ -27,7 +26,7 @@ namespace CalculateFunding.Functions.Results.Timer
         }
 
         [FunctionName("on-calculation-results-csv-generation-timer")]
-        public async Task Run([TimerTrigger(ThreeAMDaily)]TimerInfo myTimer)
+        public async Task Run([TimerTrigger(Hourly)]TimerInfo myTimer)
         {
             try
             {

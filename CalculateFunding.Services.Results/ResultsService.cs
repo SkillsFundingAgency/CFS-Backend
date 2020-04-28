@@ -450,14 +450,16 @@ namespace CalculateFunding.Services.Results
 
             ProviderResult providerResult = await _resultsRepositoryPolicy.ExecuteAsync(() => _resultsRepository.GetSingleProviderResultBySpecificationId(calculation.SpecificationId));
 
-            if (providerResult != null)
-            {
-                CalculationResult calculationResult = providerResult.CalculationResults?.FirstOrDefault(m => string.Equals(m.Calculation.Id, calculationId, StringComparison.InvariantCultureIgnoreCase));
+            CalculationResult calculationResult = providerResult?
+                .CalculationResults?
+                .FirstOrDefault(m => 
+                    string.Equals(m.Calculation.Id, 
+                        calculationId, 
+                        StringComparison.InvariantCultureIgnoreCase));
 
-                if (calculationResult != null)
-                {
-                    return new OkObjectResult(true);
-                }
+            if (calculationResult != null)
+            {
+                return new OkObjectResult(true);
             }
 
             return new OkObjectResult(false);
@@ -479,29 +481,37 @@ namespace CalculateFunding.Services.Results
 
             IEnumerable<SpecModel.SpecificationSummary> specificationSummaries = specificationApiResponse.Content;
 
-            foreach (SpecModel.SpecificationSummary specificationSummary in specificationSummaries)
-            {
-                await QueueCsvGenerationMessage(specificationSummary.Id, specificationSummary.Name);
-            }
+            Task[] queueCsvJobTasks = specificationSummaries.Select(_ => 
+                QueueCsvGenerationMessageIfNewCalculationResults(_.Id, _.Name))
+                .ToArray();
+
+            await TaskHelper.WhenAllAndThrow(queueCsvJobTasks);
         }
 
-        public async Task QueueCsvGenerationMessage(string specificationId, string specificationName)
+        public async Task QueueCsvGenerationMessageIfNewCalculationResults(string specificationId, string specificationName)
         {
             bool hasNewResults = await _resultsRepositoryPolicy.ExecuteAsync(
-                () => _resultsRepository.CheckHasNewResultsForSpecificationIdAndTimePeriod(specificationId, DateTimeOffset.UtcNow.AddDays(-1), DateTimeOffset.UtcNow.AddDays(1)));
+                () => _resultsRepository.CheckHasNewResultsForSpecificationIdAndTimePeriod(specificationId, 
+                    DateTimeOffset.UtcNow.AddDays(-1), 
+                    DateTimeOffset.UtcNow.AddDays(1)));
 
-            if (hasNewResults)
+            if (!hasNewResults)
             {
-                _logger.Information($"Found new calculation results for specification id '{specificationId}'");
-
-                await _messengerService.SendToQueue(ServiceBusConstants.QueueNames.CalculationResultsCsvGeneration,
-                    string.Empty,
-                    new Dictionary<string, string>
-                    {
-                        { "specification-id", specificationId },
-                        { "specification-name", specificationName }
-                    });
+                _logger.Information(
+                    $"No new calculation results for specification id '{specificationId}'. Not queueing report job");
+                
+                return;
             }
+
+            _logger.Information($"Found new calculation results for specification id '{specificationId}'");
+
+            await _messengerService.SendToQueue(ServiceBusConstants.QueueNames.CalculationResultsCsvGeneration,
+                string.Empty,
+                new Dictionary<string, string>
+                {
+                    { "specification-id", specificationId },
+                    { "specification-name", specificationName }
+                });
         }
     }
 }

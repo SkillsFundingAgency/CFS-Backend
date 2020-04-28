@@ -112,7 +112,7 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
                 ICloudBlob blob = _blobClient.GetBlockBlobReference(fileInfo.FileName, PublishedFundingReportContainerName);
                 blob.Properties.ContentDisposition = fileInfo.ContentDisposition;
 
-                using (Stream csvFileStream = _fileSystemAccess.OpenRead(temporaryPath))
+                await using (Stream csvFileStream = _fileSystemAccess.OpenRead(temporaryPath))
                 {
                     await _blobClientPolicy.ExecuteAsync(() => UploadBlob(blob, csvFileStream, parameters.ToDictionary()));
                 }
@@ -238,28 +238,18 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
             string fundingPeriodId)
         {
             string utcNow = DateTimeOffset.UtcNow.ToString("s").Replace(":", null);
-            
-            switch (jobType)
+
+            return jobType switch
             {
-                case FundingLineCsvGeneratorJobType.CurrentState:
-                    return $"{fundingStreamId} {fundingPeriodId} Provider Funding Lines Current State {utcNow}.csv";
-                case FundingLineCsvGeneratorJobType.Released:
-                    return $"{fundingStreamId} {fundingPeriodId} Provider Funding Lines Released Only {utcNow}.csv";
-                case FundingLineCsvGeneratorJobType.History:
-                    return $"{fundingStreamId} {fundingPeriodId} Provider Funding Lines All Versions {utcNow}.csv";
-                case FundingLineCsvGeneratorJobType.HistoryProfileValues:
-                    return $"{fundingStreamId} {fundingPeriodId} {fundingLineCode} Profile All Versions {utcNow}.csv";
-                case FundingLineCsvGeneratorJobType.CurrentProfileValues:
-                    return $"{fundingStreamId} {fundingPeriodId} {fundingLineCode} Profile Current State {utcNow}.csv";
-                case FundingLineCsvGeneratorJobType.CurrentOrganisationGroupValues:
-                    return $"{fundingStreamId} {fundingPeriodId} Funding Lines Current State {utcNow}.csv";
-                case FundingLineCsvGeneratorJobType.HistoryOrganisationGroupValues:
-                    return $"{fundingStreamId} {fundingPeriodId} Funding Lines All Versions {utcNow}.csv";
-                case FundingLineCsvGeneratorJobType.Undefined:
-                case FundingLineCsvGeneratorJobType.HistoryPublishedProviderEstate:
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
+                FundingLineCsvGeneratorJobType.CurrentState => $"{fundingStreamId} {fundingPeriodId} Provider Funding Lines Current State {utcNow}.csv",
+                FundingLineCsvGeneratorJobType.Released => $"{fundingStreamId} {fundingPeriodId} Provider Funding Lines Released Only {utcNow}.csv",
+                FundingLineCsvGeneratorJobType.History => $"{fundingStreamId} {fundingPeriodId} Provider Funding Lines All Versions {utcNow}.csv",
+                FundingLineCsvGeneratorJobType.HistoryProfileValues => $"{fundingStreamId} {fundingPeriodId} {fundingLineCode} Profile All Versions {utcNow}.csv",
+                FundingLineCsvGeneratorJobType.CurrentProfileValues => $"{fundingStreamId} {fundingPeriodId} {fundingLineCode} Profile Current State {utcNow}.csv",
+                FundingLineCsvGeneratorJobType.CurrentOrganisationGroupValues => $"{fundingStreamId} {fundingPeriodId} Funding Lines Current State {utcNow}.csv",
+                FundingLineCsvGeneratorJobType.HistoryOrganisationGroupValues => $"{fundingStreamId} {fundingPeriodId} Funding Lines All Versions {utcNow}.csv",
+                _ => throw new ArgumentOutOfRangeException()
+            };
         }
     }
 }
