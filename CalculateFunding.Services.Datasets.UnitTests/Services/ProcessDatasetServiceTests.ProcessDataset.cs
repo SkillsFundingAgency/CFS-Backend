@@ -1181,6 +1181,56 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
+        public async Task ProcessDataset_GivenPayloadAndTableResultsWithProviderIdsButSaveAndCompileThrowsError_LogsErrorAndCompletes()
+        {
+            GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"),
+                ("user-id", UserId), ("user-name", Username));
+            AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
+                .WithDefinition(NewReference(rf => rf.WithId(DataDefintionId)))
+                .WithHistory(NewDatasetVersion())));
+            AndTheSpecification(SpecificationId, NewSpecification(_ =>
+            _.WithId(SpecificationId)
+            .WithProviderVersionId(ProviderVersionId)
+            ));
+            AndTheRelationship(_relationshipId, NewRelationship(_ => _.WithDatasetDefinition(NewReference(
+                    rf => rf.WithId(DataDefintionId)))
+                .WithDatasetVersion(NewRelationshipVersion())));
+
+            DatasetDefinition datasetDefinition = NewDatasetDefinition(_ => _.WithTableDefinitions(NewTableDefinition(tb =>
+                tb.WithFieldDefinitions(NewFieldDefinition(fld => fld.WithName(Upin)
+                    .WithIdentifierFieldType(IdentifierFieldType.UPIN))))));
+
+            AndTheDatasetDefinitions(datasetDefinition);
+            AndTheBuildProject(SpecificationId, NewBuildProject(_ => _.WithRelationships(NewRelationshipSummary(summary =>
+                summary.WithDefinesScope(true)
+                    .WithRelationship(NewReference(rf => rf.WithId(_relationshipId)
+                    .WithName(_relationshipName)))
+                    .WithDatasetDefinition(NewDatasetDefinition())))));
+            AndTheCompileResponse(HttpStatusCode.BadRequest);
+            AndThePopulationOfProviderSummeriesForSpecification(false, false);
+
+            ICloudBlob cloudBlob = NewCloudBlob();
+
+            AndTheCloudBlob(BlobPath, cloudBlob);
+
+            Stream tableStream = NewStream(new byte[1]);
+
+            AndTheCloudStream(cloudBlob, tableStream);
+
+            TableLoadResult tableLoadResult = NewTableLoadResult(_ => _.WithRows(NewRowLoadResult(
+                row => row.WithFields((Upin, _upin)))));
+
+            AndTheCachedTableLoadResults(_datasetCacheKey, tableLoadResult);
+            AndTheTableLoadResultsFromExcel(tableStream, datasetDefinition, tableLoadResult);
+            AndTheCoreProviderData(NewApiProviderSummary(_ => _.WithId(_providerId)
+                .WithUPIN(_upin)));
+
+            await WhenTheProcessDatasetMessageIsProcessed();
+
+            AndTheErrorWasLogged($"Failed to create job of type '{CreateInstructAllocationJob}' on specification '{SpecificationId}'");
+        }
+
+        [TestMethod]
         public async Task ProcessDataset_GivenRunningAsAJob_ThenUpdateJobStatus()
         {
             string invokedByJobId = "job1";

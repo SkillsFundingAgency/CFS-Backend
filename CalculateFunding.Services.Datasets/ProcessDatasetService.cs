@@ -245,6 +245,54 @@ namespace CalculateFunding.Services.Datasets
             {
                 buildProject = await ProcessDataset(dataset, specification, relationshipId, relationship.DatasetVersion.Version, user, relationship.IsSetAsProviderData, correlationId);
 
+                await _datasetVersionKeyProvider.AddOrUpdateProviderSourceDatasetVersionKey(relationshipId, Guid.NewGuid());
+
+                if (buildProject != null && !buildProject.DatasetRelationships.IsNullOrEmpty() && buildProject.DatasetRelationships.Any(m => m.DefinesScope))
+                {
+                    string userId = user != null ? user.Id : "";
+                    string userName = user != null ? user.Name : "";
+
+                    try
+                    {
+                        HttpStatusCode statusCode = await _calcsRepository.CompileAndSaveAssembly(specificationId);
+
+                        if (!statusCode.IsSuccess())
+                        {
+                            string errorMessage = $"Failed to compile and save assembly for specification id '{specificationId}' with status code '{statusCode}'";
+
+                            _logger.Error(errorMessage);
+
+                            throw new NonRetriableException(errorMessage);
+                        }
+
+                        Trigger trigger = new Trigger
+                        {
+                            EntityId = relationshipId,
+                            EntityType = nameof(DefinitionSpecificationRelationship),
+                            Message = $"Processed dataset relationship: '{relationshipId}' for specification: '{specificationId}'"
+                        };
+
+                        IEnumerable<CalculationResponseModel> allCalculations = await _calcsRepository.GetCurrentCalculationsBySpecificationId(specificationId);
+
+                        bool generateCalculationAggregations = !allCalculations.IsNullOrEmpty() &&
+                                                               SourceCodeHelpers.HasCalculationAggregateFunctionParameters(allCalculations.Select(m => m.SourceCode));
+
+                        await SendInstructAllocationsToJobService($"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}", specificationId, userId, userName, trigger, correlationId, generateCalculationAggregations);
+                    }
+                    catch (NonRetriableException argEx)
+                    {
+                        _logger.Error(argEx, $"Failed to create job of type '{DefinitionNames.CreateInstructAllocationJob}' on specification '{specificationId}'");
+                        throw new NonRetriableException($"Failed to create job of type '{DefinitionNames.CreateInstructAllocationJob}' on specification '{specificationId}'", argEx);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.Error(ex, $"Failed to create job of type '{DefinitionNames.CreateInstructAllocationJob}' on specification '{specificationId}'");
+
+                        throw new Exception($"Failed to create job of type '{DefinitionNames.CreateInstructAllocationJob}' on specification '{specificationId}'", ex);
+                    }
+                }
+
+                // don't complete the job until the allocation jobs have been created
                 await _jobManagement.UpdateJobStatus(jobId, 100, true, "Processed Dataset");
             }
             catch (NonRetriableException argEx)
@@ -259,48 +307,6 @@ namespace CalculateFunding.Services.Datasets
                 // Unknown exception occurred so allow it to be retried
                 _logger.Error(exception, $"Failed to run ProcessDataset with exception: {exception.Message} for relationship ID '{relationshipId}'");
                 throw;
-            }
-
-            await _datasetVersionKeyProvider.AddOrUpdateProviderSourceDatasetVersionKey(relationshipId, Guid.NewGuid());
-
-            if (buildProject != null && !buildProject.DatasetRelationships.IsNullOrEmpty() && buildProject.DatasetRelationships.Any(m => m.DefinesScope))
-            {
-                string userId = user != null ? user.Id : "";
-                string userName = user != null ? user.Name : "";
-
-                try
-                {
-                    HttpStatusCode statusCode = await _calcsRepository.CompileAndSaveAssembly(specificationId);
-
-                    if (!statusCode.IsSuccess())
-                    {
-                        string errorMessage = $"Failed to compile and save assembly for specification id '{specificationId}' with status code '{statusCode}'";
-
-                        _logger.Error(errorMessage);
-
-                        throw new NonRetriableException(errorMessage);
-                    }
-
-                    Trigger trigger = new Trigger
-                    {
-                        EntityId = relationshipId,
-                        EntityType = nameof(DefinitionSpecificationRelationship),
-                        Message = $"Processed dataset relationship: '{relationshipId}' for specification: '{specificationId}'"
-                    };
-
-                    IEnumerable<CalculationResponseModel> allCalculations = await _calcsRepository.GetCurrentCalculationsBySpecificationId(specificationId);
-
-                    bool generateCalculationAggregations = !allCalculations.IsNullOrEmpty() &&
-                                                           SourceCodeHelpers.HasCalculationAggregateFunctionParameters(allCalculations.Select(m => m.SourceCode));
-
-                    await SendInstructAllocationsToJobService($"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}", specificationId, userId, userName, trigger, correlationId, generateCalculationAggregations);
-                }
-                catch (Exception ex)
-                {
-                    _logger.Error(ex, $"Failed to create job of type '{JobConstants.DefinitionNames.CreateInstructAllocationJob}' on specification '{specificationId}'");
-
-                    throw new Exception($"Failed to create job of type '{JobConstants.DefinitionNames.CreateInstructAllocationJob}' on specification '{specificationId}'", ex);
-                }
             }
         }
 
