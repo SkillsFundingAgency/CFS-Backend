@@ -18,9 +18,13 @@
 
             public const string RefreshFundingJob = "RefreshFundingJob";
 
-            public const string PublishProviderFundingJob = "PublishProviderFundingJob";
+            public const string PublishAllProviderFundingJob = nameof(PublishAllProviderFundingJob);
 
-            public const string ApproveFunding = "ApproveFunding";
+            public const string PublishBatchProviderFundingJob = nameof(PublishBatchProviderFundingJob);
+
+            public const string ApproveAllProviderFundingJob = nameof(ApproveAllProviderFundingJob);
+
+            public const string ApproveBatchProviderFundingJob = nameof(ApproveBatchProviderFundingJob);
 
             public const string CreateSpecificationJob = nameof(CreateSpecificationJob);
 
@@ -54,6 +58,12 @@
             public const string SpecificationPrefix = "spec";
 
             public const string ParentJobs = "parentjobs";
+        }
+
+        public static class MessagePropertyNames
+        {
+            public const string ApproveProvidersRequest = "approve-providers-request";
+            public const string PublishProvidersRequest = "publish-providers-request";
         }
 
         public const string NotificationsHubName = "notifications";

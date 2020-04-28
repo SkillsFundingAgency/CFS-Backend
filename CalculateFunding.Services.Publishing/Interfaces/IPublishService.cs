@@ -5,6 +5,8 @@ namespace CalculateFunding.Services.Publishing.Interfaces
 {
     public interface IPublishService
     {
-        Task PublishResults(Message message);
+        Task PublishAllProviderFundingResults(Message message);
+        Task PublishBatchProviderFundingResults(Message message);
+
     }
 }

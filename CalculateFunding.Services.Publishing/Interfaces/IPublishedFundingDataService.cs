@@ -6,9 +6,9 @@ namespace CalculateFunding.Services.Publishing.Interfaces
 {
     public interface IPublishedFundingDataService
     {
-        Task<IEnumerable<PublishedProvider>> GetPublishedProvidersForApproval(string specificationId);
+        Task<IEnumerable<PublishedProvider>> GetPublishedProvidersForApproval(string specificationId, string[] providerIds = null);
 
-        Task<IEnumerable<PublishedProvider>> GetCurrentPublishedProviders(string fundingStreamId, string fundingPeriodId);
+        Task<IEnumerable<PublishedProvider>> GetCurrentPublishedProviders(string fundingStreamId, string fundingPeriodId, string[] providerIds = null);
 
         Task<IEnumerable<PublishedFunding>> GetCurrentPublishedFunding(string fundingStreamId, string fundingPeriodId);
 

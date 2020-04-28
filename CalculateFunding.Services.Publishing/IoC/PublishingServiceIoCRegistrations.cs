@@ -28,11 +28,12 @@ namespace CalculateFunding.Services.Publishing.IoC
 
         private static void RegisterSpecificationServiceComponents(IServiceCollection serviceCollection, IConfiguration configuration)
         {
-            serviceCollection.AddSingleton<IConfiguration>(ctx => configuration);
+            serviceCollection.AddSingleton(ctx => configuration);
             serviceCollection.AddScoped<ISpecificationPublishingService, SpecificationPublishingService>();
             serviceCollection.AddSingleton<IProviderFundingPublishingService, ProviderFundingPublishingService>();
             serviceCollection.AddSingleton<IHealthChecker, ProviderFundingPublishingService>();
             serviceCollection.AddSingleton<ISpecificationIdServiceRequestValidator, PublishSpecificationValidator>();
+            serviceCollection.AddSingleton<IProviderIdsServiceRequestValidator, PublishProvidersValidator>();
             serviceCollection.AddSingleton<IPublishedProviderFundingService, PublishedProviderFundingService>();
             serviceCollection.AddSingleton<ISpecificationService, SpecificationService>();
             serviceCollection.AddSingleton<IProviderService, ProviderService>();
@@ -43,8 +44,10 @@ namespace CalculateFunding.Services.Publishing.IoC
             serviceCollection.AddSingleton<IPublishedFundingDataService, PublishedFundingDataService>();
             serviceCollection.AddSingleton<IPublishedProviderContentPersistanceService, PublishedProviderContentPersistanceService>();
             serviceCollection.AddSingleton<ICreateRefreshFundingJobs, RefreshFundingJobCreation>();
-            serviceCollection.AddSingleton<ICreateApproveFundingJobs, ApproveFundingJobCreation>();
-            serviceCollection.AddSingleton<ICreatePublishProviderFundingJobs, PublishProviderFundingJobCreation>();
+            serviceCollection.AddSingleton<ICreateApproveAllFundingJobs, ApproveAllFundingJobCreation>();
+            serviceCollection.AddSingleton<ICreateApproveBatchFundingJobs, ApproveBatchFundingJobCreation>();
+            serviceCollection.AddSingleton<ICreateAllPublishProviderFundingJobs, AllPublishProviderFundingJobCreation>();
+            serviceCollection.AddSingleton<ICreateBatchPublishProviderFundingJobs, BatchPublishProviderFundingJobCreation>();
             serviceCollection.AddSingleton<ICreateDeleteSpecificationJobs, DeleteSpecificationJobCreation>();
             serviceCollection.AddSingleton<ICreateDeletePublishedProvidersJobs, DeletePublishedProvidersJobCreation>();
             serviceCollection.AddSingleton<IPublishedFundingStatusUpdateService, PublishedFundingStatusUpdateService>();
@@ -63,8 +66,10 @@ namespace CalculateFunding.Services.Publishing.IoC
 
             serviceCollection.AddScoped<IPrerequisiteCheckerLocator, PrerequisiteCheckerLocator>();
             serviceCollection.AddScoped<IPrerequisiteChecker, RefreshPrerequisiteChecker>();
-            serviceCollection.AddScoped<IPrerequisiteChecker, PublishPrerequisiteChecker>();
-            serviceCollection.AddScoped<IPrerequisiteChecker, ApprovePrerequisiteChecker>();
+            serviceCollection.AddScoped<IPrerequisiteChecker, PublishAllPrerequisiteChecker>();
+            serviceCollection.AddScoped<IPrerequisiteChecker, PublishBatchPrerequisiteChecker>();
+            serviceCollection.AddScoped<IPrerequisiteChecker, ApproveAllProvidersPrerequisiteChecker>();
+            serviceCollection.AddScoped<IPrerequisiteChecker, ApproveBatchProvidersPrerequisiteChecker>();
 
             serviceCollection.AddSingleton<IPublishedFundingChangeDetectorService, PublishedFundingChangeDetectorService>();
 

@@ -1,8 +1,13 @@
 ﻿using System.Threading.Tasks;
 using CalculateFunding.Publishing.AcceptanceTests.Contexts;
+using CalculateFunding.Publishing.AcceptanceTests.Extensions;
+using CalculateFunding.Services.Core.Constants;
+using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Interfaces;
+using CalculateFunding.Services.Publishing.Models;
 using Microsoft.Azure.ServiceBus;
 using TechTalk.SpecFlow;
+using TechTalk.SpecFlow.Assist;
 
 namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
 {
@@ -38,7 +43,25 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
             message.UserProperties.Add("specification-id", _currentSpecificationStepContext.SpecificationId);
             message.UserProperties.Add("jobId", _currentJobStepContext.JobId);
 
-            await _approveService.ApproveResults(message);
+            await _approveService.ApproveAllResults(message);
+        }
+
+        [When(@"partial funding is approved")]
+        public async Task WhenPartialFundingIsApproved(Table table)
+        {
+            Message message = new Message();
+
+            string[] providerIds = table.AsStrings();
+            ApproveProvidersRequest approveProvidersRequest = new ApproveProvidersRequest { Providers = providerIds };
+            string approveProvidersRequestJson = JsonExtensions.AsJson(approveProvidersRequest);
+
+            message.UserProperties.Add("user-id", _currentUserStepContext.UserId);
+            message.UserProperties.Add("user-name", _currentUserStepContext.UserName);
+            message.UserProperties.Add("specification-id", _currentSpecificationStepContext.SpecificationId);
+            message.UserProperties.Add("jobId", _currentJobStepContext.JobId);
+            message.UserProperties.Add(JobConstants.MessagePropertyNames.ApproveProvidersRequest, approveProvidersRequestJson);
+
+            await _approveService.ApproveBatchResults(message);
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿Feature: ApproveFundingPsg
+﻿Feature: ApproveAllFundingPsg
 	In order to approve funding for PE and Sport
 	As a funding approver
 	I want to approve funding for all providers within a specification

@@ -6,8 +6,6 @@ using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Primitives;
-using Newtonsoft.Json;
 
 namespace CalculateFunding.Services.Core.Extensions
 {

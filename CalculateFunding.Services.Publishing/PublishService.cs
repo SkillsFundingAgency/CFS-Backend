@@ -2,10 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AutoMapper;
 using CalculateFunding.Common.ApiClient.Calcs;
 using CalculateFunding.Common.ApiClient.Calcs.Models;
-using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.JobManagement;
@@ -14,6 +12,7 @@ using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core;
+using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
@@ -113,29 +112,64 @@ namespace CalculateFunding.Services.Publishing
             _publishedFundingService = publishedFundingService;
         }
 
-        public async Task PublishResults(Message message)
+        public async Task PublishBatchProviderFundingResults(Message message)
         {
             Guard.ArgumentNotNull(message, nameof(message));
 
-            _logger.Information("Starting PublishFunding job");
+            _logger.Information("Starting PublishBatchProviderFundingResults job");
 
             Reference author = message.GetUserDetails();
 
             string specificationId = message.UserProperties["specification-id"] as string;
             string jobId = message.UserProperties["jobId"]?.ToString();
 
-            JobViewModel currentJob;
-            try
-            {
-                currentJob = await _jobManagement.RetrieveJobAndCheckCanBeProcessed(jobId);
-            }
-            catch (Exception e)
-            {
-                string errorMessage = "Job can not be run";
-                _logger.Error(errorMessage);
+            await EnsureJobCanBeProcessed(jobId);
 
-                throw new NonRetriableException(errorMessage);
+            // Update job to set status to processing
+            await _jobManagement.UpdateJobStatus(jobId, 0, 0, null, null);
+
+            SpecificationSummary specification = await _specificationService.GetSpecificationSummaryById(specificationId);
+
+            if (specification == null)
+            {
+                throw new NonRetriableException($"Could not find specification with id '{specificationId}'");
             }
+
+            string correlationId = message.GetUserProperty<string>("correlation-id");
+
+            string publishProvidersRequestJson = message.GetUserProperty<string>(JobConstants.MessagePropertyNames.PublishProvidersRequest);
+            PublishProvidersRequest publishProvidersRequest = JsonExtensions.AsPoco<PublishProvidersRequest>(publishProvidersRequestJson);
+
+            foreach (Reference fundingStream in specification.FundingStreams)
+            {
+                await PublishFundingStream(fundingStream, specification, jobId, author, correlationId, 
+                    PrerequisiteCheckerType.ReleaseBatchProviders, publishProvidersRequest?.Providers.ToArray());
+            }
+
+            _logger.Information($"Running search reindexer for published funding");
+            await _publishedIndexSearchResiliencePolicy.ExecuteAsync(() => _publishedFundingSearchRepository.RunIndexer());
+
+            await GenerateCsvJobs(specificationId, correlationId, specification, author);
+
+            // Mark job as complete
+            _logger.Information($"Marking publish funding job complete");
+
+            await _jobManagement.UpdateJobStatus(jobId, 0, 0, true, null);
+            _logger.Information($"Publish funding job complete");
+        }
+
+        public async Task PublishAllProviderFundingResults(Message message)
+        {
+            Guard.ArgumentNotNull(message, nameof(message));
+
+            _logger.Information("Starting PublishAllProviderFundingResults job");
+
+            Reference author = message.GetUserDetails();
+
+            string specificationId = message.UserProperties["specification-id"] as string;
+            string jobId = message.UserProperties["jobId"]?.ToString();
+
+            await EnsureJobCanBeProcessed(jobId);
 
             // Update job to set status to processing
             await _jobManagement.UpdateJobStatus(jobId, 0, 0, null, null);
@@ -151,19 +185,13 @@ namespace CalculateFunding.Services.Publishing
 
             foreach (Reference fundingStream in specification.FundingStreams)
             {
-                await PublishFundingStream(fundingStream, specification, jobId, author, correlationId);
+                await PublishFundingStream(fundingStream, specification, jobId, author, correlationId, PrerequisiteCheckerType.ReleaseAllProviders);
             }
 
             _logger.Information($"Running search reindexer for published funding");
             await _publishedIndexSearchResiliencePolicy.ExecuteAsync(() => _publishedFundingSearchRepository.RunIndexer());
-            
-            _logger.Information("Creating generate Csv jobs");
 
-            IGeneratePublishedFundingCsvJobsCreation generateCsvJobs = _generateCsvJobsLocator
-                .GetService(GeneratePublishingCsvJobsCreationAction.Release);
-            IEnumerable<string> fundingLineCodes = await _publishedFundingDataService.GetPublishedProviderFundingLines(specificationId);
-            IEnumerable<string> fundingStreamIds = specification.FundingStreams.Select(fs => fs.Id); //this will only ever be a single I think
-            await generateCsvJobs.CreateJobs(specificationId, correlationId, author, fundingLineCodes, fundingStreamIds, specification.FundingPeriod?.Id);
+            await GenerateCsvJobs(specificationId, correlationId, specification, author);
 
             // Mark job as complete
             _logger.Information($"Marking publish funding job complete");
@@ -172,12 +200,24 @@ namespace CalculateFunding.Services.Publishing
             _logger.Information($"Publish funding job complete");
         }
 
+        private async Task GenerateCsvJobs(string specificationId, string correlationId, SpecificationSummary specification, Reference author)
+        {
+            _logger.Information("Creating generate Csv jobs");
+
+            IGeneratePublishedFundingCsvJobsCreation generateCsvJobs = _generateCsvJobsLocator
+                .GetService(GeneratePublishingCsvJobsCreationAction.Release);
+            IEnumerable<string> fundingLineCodes = await _publishedFundingDataService.GetPublishedProviderFundingLines(specificationId);
+            IEnumerable<string> fundingStreamIds = specification.FundingStreams.Select(fs => fs.Id); //this will only ever be a single I think
+            await generateCsvJobs.CreateJobs(specificationId, correlationId, author, fundingLineCodes, fundingStreamIds, specification.FundingPeriod?.Id);
+        }
 
         private async Task PublishFundingStream(Reference fundingStream,
             SpecificationSummary specification,
             string jobId,
             Reference author,
-            string correlationId)
+            string correlationId,
+            PrerequisiteCheckerType prerequisiteCheckerType,
+            string[] providerIds = null)
         {
             _logger.Information($"Processing Publish Funding for {fundingStream.Id} in specification {specification.Id}");
 
@@ -190,11 +230,11 @@ namespace CalculateFunding.Services.Publishing
 
             (IDictionary<string, PublishedProvider> publishedProvidersForFundingStream, 
                 IDictionary<string, PublishedProvider> scopedPublishedProviders) = await _providerService.GetPublishedProviders(fundingStream,
-                        specification);
+                        specification, providerIds);
 
             _logger.Information($"Verifying prerequisites for funding publish");
 
-            IPrerequisiteChecker prerequisiteChecker = _prerequisiteCheckerLocator.GetPreReqChecker(PrerequisiteCheckerType.Release);
+            IPrerequisiteChecker prerequisiteChecker = _prerequisiteCheckerLocator.GetPreReqChecker(prerequisiteCheckerType);
             await prerequisiteChecker.PerformChecks(specification, jobId, publishedProvidersForFundingStream?.Values.ToList());
             _logger.Information($"Prerequisites for publish passed");
 
@@ -257,6 +297,21 @@ namespace CalculateFunding.Services.Publishing
 
                     throw;
                 }
+            }
+        }
+
+        private async Task EnsureJobCanBeProcessed(string jobId)
+        {
+            try
+            {
+                await _jobManagement.RetrieveJobAndCheckCanBeProcessed(jobId);
+            }
+            catch
+            {
+                string errorMessage = "Job can not be run";
+                _logger.Error(errorMessage);
+
+                throw new NonRetriableException(errorMessage);
             }
         }
 

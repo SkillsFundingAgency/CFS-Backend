@@ -6,22 +6,30 @@ namespace CalculateFunding.Services.Publishing.Specifications
 {
     public abstract class SpecificationPublishingBase
     {
-        protected readonly ISpecificationIdServiceRequestValidator Validator;
+        protected readonly ISpecificationIdServiceRequestValidator SpecificationIdValidator;
+        protected readonly IProviderIdsServiceRequestValidator ProviderIdsValidator;
         protected readonly ISpecificationsApiClient Specifications;
-
+        protected readonly IFundingConfigurationService _fundingConfigurationService;
         private readonly IPublishingResiliencePolicies _resiliencePolicies;
 
-        protected SpecificationPublishingBase(ISpecificationIdServiceRequestValidator validator,
+        protected SpecificationPublishingBase(
+            ISpecificationIdServiceRequestValidator specificationIdValidator,
+            IProviderIdsServiceRequestValidator providerIdsValidator,
             ISpecificationsApiClient specifications,
-            IPublishingResiliencePolicies resiliencePolicies)
+            IPublishingResiliencePolicies resiliencePolicies,
+            IFundingConfigurationService fundingConfigurationService)
         {
-            Guard.ArgumentNotNull(validator, nameof(validator));
+            Guard.ArgumentNotNull(specificationIdValidator, nameof(specificationIdValidator));
+            Guard.ArgumentNotNull(providerIdsValidator, nameof(providerIdsValidator));
             Guard.ArgumentNotNull(specifications, nameof(specifications));
             Guard.ArgumentNotNull(resiliencePolicies?.SpecificationsRepositoryPolicy, nameof(resiliencePolicies.SpecificationsRepositoryPolicy));
+            Guard.ArgumentNotNull(fundingConfigurationService, nameof(fundingConfigurationService));
 
-            Validator = validator;
+            SpecificationIdValidator = specificationIdValidator;
+            ProviderIdsValidator = providerIdsValidator;
             Specifications = specifications;
             _resiliencePolicies = resiliencePolicies;
+            _fundingConfigurationService = fundingConfigurationService;
         }
 
         protected Polly.AsyncPolicy ResiliencePolicy => _resiliencePolicies.SpecificationsRepositoryPolicy;

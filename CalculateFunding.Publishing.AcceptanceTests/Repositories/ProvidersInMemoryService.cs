@@ -82,7 +82,8 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             return Task.FromResult(_scopedProviders[specificationId].Keys.AsEnumerable());
         }
 
-        public Task<(IDictionary<string, PublishedProvider> PublishedProvidersForFundingStream, IDictionary<string, PublishedProvider> ScopedPublishedProviders)> GetPublishedProviders(Reference fundingStream, SpecificationSummary specification)
+        public Task<(IDictionary<string, PublishedProvider> PublishedProvidersForFundingStream, IDictionary<string, PublishedProvider> ScopedPublishedProviders)> 
+            GetPublishedProviders(Reference fundingStream, SpecificationSummary specification, string[] providerIds = null)
         {
             throw new NotImplementedException();
         }

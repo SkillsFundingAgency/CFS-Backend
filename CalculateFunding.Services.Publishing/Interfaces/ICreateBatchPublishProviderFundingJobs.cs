@@ -1,6 +1,6 @@
 namespace CalculateFunding.Services.Publishing.Interfaces
 {
-    public interface ICreatePublishProviderFundingJobs 
+    public interface ICreateBatchPublishProviderFundingJobs
         : ICreateJobsForSpecifications
     {
     }

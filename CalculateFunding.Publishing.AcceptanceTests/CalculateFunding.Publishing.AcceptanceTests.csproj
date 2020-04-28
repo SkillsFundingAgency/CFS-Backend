@@ -27,6 +27,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <SpecFlowObsoleteCodeBehindFiles Remove="Features\ApproveFundingDsg - Copy.feature.cs" />
+    <SpecFlowObsoleteCodeBehindFiles Remove="Features\ApproveFundingPsg - Copy.feature.cs" />
+    <SpecFlowObsoleteCodeBehindFiles Remove="Features\PublishingAllFundingDsg - Copy.feature.cs" />
+    <SpecFlowObsoleteCodeBehindFiles Remove="Features\PublishingAllFundingPsg - Copy.feature.cs" />
     <SpecFlowObsoleteCodeBehindFiles Remove="Features\PublishingPsg - Copy.feature.cs" />
     <SpecFlowObsoleteCodeBehindFiles Remove="Features\RefreshDsg - Copy.feature.cs" />
     <SpecFlowObsoleteCodeBehindFiles Remove="Features\RefreshPsg - Copy.feature.cs" />
@@ -74,8 +78,20 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="Features\PublishingDsg.feature.cs">
-      <DependentUpon>PublishingDsg.feature</DependentUpon>
+    <Compile Update="Features\ApproveBatchFundingDsg.feature.cs">
+      <DependentUpon>ApproveBatchFundingDsg.feature</DependentUpon>
+    </Compile>
+    <Compile Update="Features\ApproveBatchFundingPsg.feature.cs">
+      <DependentUpon>ApproveBatchFundingPsg.feature</DependentUpon>
+    </Compile>
+    <Compile Update="Features\PublishingBatchFundingPsg.feature.cs">
+      <DependentUpon>PublishingBatchFundingPsg.feature</DependentUpon>
+    </Compile>
+    <Compile Update="Features\PublishingBatchFundingDsg.feature.cs">
+      <DependentUpon>PublishingBatchFundingDsg.feature</DependentUpon>
+    </Compile>
+    <Compile Update="Features\PublishingAllFundingDsg.feature.cs">
+      <DependentUpon>PublishingAllFundingDsg.feature</DependentUpon>
     </Compile>
     <Compile Update="Features\RefreshDsgVariations.feature.cs">
       <DependentUpon>RefreshDsgVariations.feature</DependentUpon>
@@ -98,7 +114,23 @@
   </ItemGroup>
 
   <ItemGroup>
-    <SpecFlowFeatureFiles Update="Features\PublishingDsg.feature">
+    <SpecFlowFeatureFiles Update="Features\ApproveBatchFundingDsg.feature">
+      <Visible>$(UsingMicrosoftNETSdk)</Visible>
+      <CodeBehindFile>%(RelativeDir)%(Filename).feature$(DefaultLanguageSourceExtension)</CodeBehindFile>
+    </SpecFlowFeatureFiles>
+    <SpecFlowFeatureFiles Update="Features\ApproveBatchFundingPsg.feature">
+      <Visible>$(UsingMicrosoftNETSdk)</Visible>
+      <CodeBehindFile>%(RelativeDir)%(Filename).feature$(DefaultLanguageSourceExtension)</CodeBehindFile>
+    </SpecFlowFeatureFiles>
+    <SpecFlowFeatureFiles Update="Features\PublishingBatchFundingPsg.feature">
+      <Visible>$(UsingMicrosoftNETSdk)</Visible>
+      <CodeBehindFile>%(RelativeDir)%(Filename).feature$(DefaultLanguageSourceExtension)</CodeBehindFile>
+    </SpecFlowFeatureFiles>
+    <SpecFlowFeatureFiles Update="Features\PublishingBatchFundingDsg.feature">
+      <Visible>$(UsingMicrosoftNETSdk)</Visible>
+      <CodeBehindFile>%(RelativeDir)%(Filename).feature$(DefaultLanguageSourceExtension)</CodeBehindFile>
+    </SpecFlowFeatureFiles>
+    <SpecFlowFeatureFiles Update="Features\PublishingAllFundingDsg.feature">
       <Visible>$(UsingMicrosoftNETSdk)</Visible>
       <CodeBehindFile>%(RelativeDir)%(Filename).feature$(DefaultLanguageSourceExtension)</CodeBehindFile>
     </SpecFlowFeatureFiles>

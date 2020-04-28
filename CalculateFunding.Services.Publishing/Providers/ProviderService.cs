@@ -144,9 +144,10 @@ namespace CalculateFunding.Services.Publishing.Providers
                 .ToDictionary(_ => _.Current.ProviderId, _ => _);
         }
 
-        public async Task<(IDictionary<string, PublishedProvider> PublishedProvidersForFundingStream, IDictionary<string, PublishedProvider> ScopedPublishedProviders)> GetPublishedProviders(Reference fundingStream, SpecificationSummary specification)
+        public async Task<(IDictionary<string, PublishedProvider> PublishedProvidersForFundingStream, IDictionary<string, PublishedProvider> ScopedPublishedProviders)> 
+            GetPublishedProviders(Reference fundingStream, SpecificationSummary specification, string[] providerIds = null)
         {
-            IDictionary<string, PublishedProvider> publishedProvidersForFundingStream = await GetPublishedProvidersForFundingStream(fundingStream, specification);
+            IDictionary<string, PublishedProvider> publishedProvidersForFundingStream = await GetPublishedProvidersForFundingStream(fundingStream, specification, providerIds);
 
             IDictionary<string, Provider> scopedProviders =
                 await GetScopedProvidersForSpecification(specification.Id, specification.ProviderVersionId);
@@ -173,12 +174,13 @@ namespace CalculateFunding.Services.Publishing.Providers
             return scopedPublishedProviders;
         }
 
-        private async Task<IDictionary<string, PublishedProvider>> GetPublishedProvidersForFundingStream(Reference fundingStream, SpecificationSummary specification)
+        private async Task<IDictionary<string, PublishedProvider>> GetPublishedProvidersForFundingStream(
+            Reference fundingStream, SpecificationSummary specification, string[] providerIds = null)
         {
             _logger.Information($"Retrieving published provider results for {fundingStream.Id} in specification {specification.Id}");
 
             IEnumerable<PublishedProvider> publishedProvidersResult =
-                await _publishedFundingDataService.GetCurrentPublishedProviders(fundingStream.Id, specification.FundingPeriod.Id);
+                await _publishedFundingDataService.GetCurrentPublishedProviders(fundingStream.Id, specification.FundingPeriod.Id, providerIds);
 
             // Ensure linq query evaluates only once
             Dictionary<string, PublishedProvider> publishedProvidersForFundingStream = publishedProvidersResult.ToDictionary(_ => _.Current.ProviderId);

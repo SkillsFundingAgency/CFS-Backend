@@ -8,6 +8,7 @@ using CalculateFunding.Models.Publishing;
 using CalculateFunding.Repositories.Common.Search.Results;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Interfaces;
+using CalculateFunding.Services.Publishing.Models;
 using CalculateFunding.Services.Publishing.Profiling;
 using Microsoft.AspNetCore.Mvc;
 
@@ -122,33 +123,60 @@ namespace CalculateFunding.Api.Publishing.Controllers
         /// <returns></returns>
         [HttpPost("api/specifications/{specificationId}/approve")]
         [ProducesResponseType(200, Type = typeof(JobCreationResponse))]
-        public async Task<IActionResult> ApproveSpecification([FromRoute] string specificationId)
+        public async Task<IActionResult> ApproveAllProviderFunding([FromRoute] string specificationId)
         {
-            var controllerName = string.Empty;
-
-            if (ControllerContext.RouteData.Values.ContainsKey("controller"))
-                controllerName = (string)ControllerContext.RouteData.Values["controller"];
-
-            return await _specificationPublishingService.ApproveSpecification(
-                nameof(ApproveSpecification),
-                controllerName,
+            return await _specificationPublishingService.ApproveAllProviderFunding(
                 specificationId,
                 Request.GetUser(),
                 Request.GetCorrelationId());
         }
 
         /// <summary>
-        /// Publish provider funding
+        /// Approve funding for batch providers within given specification
+        /// </summary>
+        /// <param name="specificationId">The specification id</param>
+        /// <param name="approveProvidersRequest"></param>
+        /// <returns></returns>
+        [HttpPost("api/specifications/{specificationId}/approve-providers")]
+        [ProducesResponseType(200, Type = typeof(JobCreationResponse))]
+        public async Task<IActionResult> ApproveBatchProviderFunding([FromRoute] string specificationId, [FromBody] ApproveProvidersRequest approveProvidersRequest)
+        {
+            return await _specificationPublishingService.ApproveBatchProviderFunding(
+                specificationId,
+                approveProvidersRequest,
+                Request.GetUser(),
+                Request.GetCorrelationId());
+        }
+
+        /// <summary>
+        /// Publish all provider funding
         /// </summary>
         /// <param name="specificationId">The specification id</param>
         /// <returns></returns>
         [HttpPost("api/specifications/{specificationId}/publish")]
         [ProducesResponseType(200, Type = typeof(JobCreationResponse))]
-        public async Task<IActionResult> PublishProviderFunding([FromRoute] string specificationId)
+        public async Task<IActionResult> PublishAllProviderFunding([FromRoute] string specificationId)
         {
-            return await _providerFundingPublishingService.PublishProviderFunding(specificationId,
+            return await _providerFundingPublishingService.PublishAllProvidersFunding(specificationId,
                 GetUser(),
                 GetCorrelationId());
+        }
+
+        /// <summary>
+        /// Publish funding for batch providers within given specification
+        /// </summary>
+        /// <param name="specificationId">The specification id</param>
+        /// <param name="publishProvidersRequest"></param>
+        /// <returns></returns>
+        [HttpPost("api/specifications/{specificationId}/publish-providers")]
+        [ProducesResponseType(200, Type = typeof(JobCreationResponse))]
+        public async Task<IActionResult> PublishBatchProvidersFunding([FromRoute] string specificationId, [FromBody] PublishProvidersRequest publishProvidersRequest)
+        {
+            return await _providerFundingPublishingService.PublishBatchProvidersFunding(
+                specificationId,
+                publishProvidersRequest,
+                Request.GetUser(),
+                Request.GetCorrelationId());
         }
 
         [HttpGet("api/specifications/{specificationId}/publishedproviders")]

@@ -1,37 +1,48 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Specifications;
-using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
+using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Interfaces;
+using CalculateFunding.Services.Publishing.Models;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
+using ApiSpecificationSummary = CalculateFunding.Common.ApiClient.Specifications.Models.SpecificationSummary;
+using ApiJob = CalculateFunding.Common.ApiClient.Jobs.Models.Job;
+using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
+using CalculateFunding.Common.ApiClient.Policies.Models;
 
 namespace CalculateFunding.Services.Publishing.Specifications
 {
     public class ProviderFundingPublishingService : SpecificationPublishingBase, IProviderFundingPublishingService
     {
-        private readonly ICreatePublishProviderFundingJobs _jobs;
+        private readonly ICreateAllPublishProviderFundingJobs _createAllPublishProviderFundingJobs;
+        private readonly ICreateBatchPublishProviderFundingJobs _createBatchPublishProviderFundingJobs;
         private readonly IPublishedFundingRepository _publishedFundingRepository;
 
-        public ProviderFundingPublishingService(ISpecificationIdServiceRequestValidator validator,
+        public ProviderFundingPublishingService(
+            ISpecificationIdServiceRequestValidator specificationIdValidator,
+            IProviderIdsServiceRequestValidator providerIdsValidator,
             ISpecificationsApiClient specifications,
             IPublishingResiliencePolicies resiliencePolicies,
-            ICreatePublishProviderFundingJobs jobs,
-            IPublishedFundingRepository publishedFundingRepository) : base(validator, specifications,
-            resiliencePolicies)
+            ICreateAllPublishProviderFundingJobs createAllPublishProviderFundingJobs,
+            ICreateBatchPublishProviderFundingJobs createBatchPublishProviderFundingJobs,
+            IPublishedFundingRepository publishedFundingRepository,
+            IFundingConfigurationService fundingConfigurationService) : 
+            base(specificationIdValidator, providerIdsValidator, specifications,resiliencePolicies, fundingConfigurationService)
         {
-            Guard.ArgumentNotNull(jobs, nameof(jobs));
+            Guard.ArgumentNotNull(createAllPublishProviderFundingJobs, nameof(createAllPublishProviderFundingJobs));
+            Guard.ArgumentNotNull(createBatchPublishProviderFundingJobs, nameof(createBatchPublishProviderFundingJobs));
             Guard.ArgumentNotNull(publishedFundingRepository, nameof(publishedFundingRepository));
 
-            _jobs = jobs;
+            _createAllPublishProviderFundingJobs = createAllPublishProviderFundingJobs;
+            _createBatchPublishProviderFundingJobs = createBatchPublishProviderFundingJobs;
             _publishedFundingRepository = publishedFundingRepository;
         }
 
@@ -47,35 +58,57 @@ namespace CalculateFunding.Services.Publishing.Specifications
             return health;
         }
 
-        public async Task<IActionResult> PublishProviderFunding(string specificationId,
+        public async Task<IActionResult> PublishAllProvidersFunding(string specificationId,
             Reference user,
             string correlationId)
         {
-            ValidationResult validationResult = Validator.Validate(specificationId);
+            ValidationResult validationResult = SpecificationIdValidator.Validate(specificationId);
 
-            if (!validationResult.IsValid) return validationResult.AsBadRequest();
-
-            var specificationIdResponse =
-                await ResiliencePolicy.ExecuteAsync(() => Specifications.GetSpecificationSummaryById(specificationId));
-
-            SpecificationSummary specificationSummary = specificationIdResponse.Content;
-
-            if (specificationSummary == null) return new NotFoundResult();
-
-            if (!specificationSummary.IsSelectedForFunding)
-                return new PreconditionFailedResult("The Specification must be selected for funding");
-
-            Job publishProviderFundingJob = await _jobs.CreateJob(specificationId, user, correlationId);
-
-            Guard.ArgumentNotNull(publishProviderFundingJob, nameof(publishProviderFundingJob),
-                "Failed to create PublishProviderFundingJob");
-
-            JobCreationResponse jobCreationResponse = new JobCreationResponse()
+            if (!validationResult.IsValid)
             {
-                JobId = publishProviderFundingJob.Id,
+                return validationResult.AsBadRequest();
+            }
+
+            IActionResult actionResult = await IsSpecificationReadyForPublish(specificationId, ApprovalMode.All);
+            if (!actionResult.IsOk())
+            {
+                return actionResult;
+            }
+
+            ApiJob job = await _createAllPublishProviderFundingJobs.CreateJob(specificationId, user, correlationId);
+            return ProcessJobResponse(job, specificationId, JobConstants.DefinitionNames.PublishAllProviderFundingJob);
+        }
+
+        public async Task<IActionResult> PublishBatchProvidersFunding(string specificationId,
+            PublishProvidersRequest publishProvidersRequest,
+            Reference user,
+            string correlationId)
+        {
+            ValidationResult specificationIdValidationResult = SpecificationIdValidator.Validate(specificationId);
+            if (!specificationIdValidationResult.IsValid)
+            {
+                return specificationIdValidationResult.AsBadRequest();
+            }
+
+            ValidationResult providerIdsValidationResult = ProviderIdsValidator.Validate(publishProvidersRequest.Providers.ToArray());
+            if (!providerIdsValidationResult.IsValid)
+            {
+                return providerIdsValidationResult.AsBadRequest();
+            }
+
+            IActionResult actionResult = await IsSpecificationReadyForPublish(specificationId, ApprovalMode.Batches);
+            if (!actionResult.IsOk())
+            {
+                return actionResult;
+            }
+
+            Dictionary<string, string> messageProperties = new Dictionary<string, string>
+            {
+                { JobConstants.MessagePropertyNames.PublishProvidersRequest, JsonExtensions.AsJson(publishProvidersRequest) }
             };
 
-            return new OkObjectResult(jobCreationResponse);
+            ApiJob job = await _createBatchPublishProviderFundingJobs.CreateJob(specificationId, user, correlationId, messageProperties);
+            return ProcessJobResponse(job, specificationId, JobConstants.DefinitionNames.PublishBatchProviderFundingJob);
         }
 
         public async Task<IActionResult> GetPublishedProviderTransactions(string specificationId,
@@ -116,6 +149,50 @@ namespace CalculateFunding.Services.Publishing.Specifications
             if (providerVersion == null) return new NotFoundResult();
 
             return new OkObjectResult(providerVersion);
+        }
+
+        private IActionResult ProcessJobResponse(ApiJob job, string specificationId, string jobType)
+        {
+            if (job != null)
+            {
+                JobCreationResponse jobCreationResponse = new JobCreationResponse()
+                {
+                    JobId = job.Id,
+                };
+
+                return new OkObjectResult(jobCreationResponse);
+            }
+            else
+            {
+                string errorMessage = $"Failed to create job of type '{jobType}' on specification '{specificationId}'";
+
+                return new InternalServerErrorResult(errorMessage);
+            }
+        }
+
+        private async Task<IActionResult> IsSpecificationReadyForPublish(string specificationId, ApprovalMode expectedApprovalMode)
+        {
+            ApiResponse<ApiSpecificationSummary> specificationIdResponse = await Specifications.GetSpecificationSummaryById(specificationId);
+            ApiSpecificationSummary specificationSummary = specificationIdResponse.Content;
+
+            if (specificationSummary == null)
+            {
+                return new NotFoundResult();
+            }
+
+            if (!specificationSummary.IsSelectedForFunding)
+            {
+                return new PreconditionFailedResult($"Specification with id : {specificationId} has not been selected for funding");
+            }
+
+            IDictionary<string, FundingConfiguration> fundingConfigurations = await _fundingConfigurationService.GetFundingConfigurations(specificationSummary);
+
+            if (fundingConfigurations.Values.Any(_ => _.ApprovalMode != expectedApprovalMode))
+            {
+                return new PreconditionFailedResult($"Specification with id : {specificationId} has funding configurations which does not match required approval mode={expectedApprovalMode}");
+            }
+
+            return new OkObjectResult(null);
         }
     }
 }

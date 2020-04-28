@@ -44,11 +44,17 @@
 
             public const string UpdateBuildProjectRelationships = "calc-events-add-relationship-to-buildproject";
 
-            public const string PublishingApproveFunding = "publishing-approvefunding";
+            public const string PublishingApproveAllProviderFunding = "publishing-approve-all-provider-funding";
 
-            public const string PublishingApproveFundingPoisoned = "publishing-approvefunding/$DeadLetterQueue";
+            public const string PublishingApproveAllProviderFundingPoisoned = "publishing-approve-all-provider-funding/$DeadLetterQueue";
 
-            public const string PublishingApproveFundingPoisonedLocal = "publishing-approvefunding-poisoned";
+            public const string PublishingApproveAllProviderFundingPoisonedLocal = "publishing-approve-all-provider-funding-poisoned";
+
+            public const string PublishingApproveBatchProviderFunding = "publishing-approve-batch-provider-funding";
+                                                 
+            public const string PublishingApproveBatchProviderFundingPoisoned = "publishing-approve-batch-provider-funding/$DeadLetterQueue";
+
+            public const string PublishingApproveBatchProviderFundingPoisonedLocal = "publishing-approve-batch-provider-funding-poisoned";
 
             public const string PublishingRefreshFunding = "publishing-refreshfunding";
 
@@ -56,11 +62,17 @@
 
             public const string PublishingRefreshFundingPoisonedLocal = "publishing-refreshfunding-poisoned";
 
-            public const string PublishingPublishFunding = "publishing-publishfunding";
+            public const string PublishingPublishAllProviderFunding = "publishing-publish-all-provider-funding";
 
-            public const string PublishingPublishFundingPoisoned = "publishing-publishfunding/$DeadLetterQueue";
+            public const string PublishingPublishAllProviderFundingPoisoned = "publishing-publish-all-provider-funding/$DeadLetterQueue";
 
-            public const string PublishingPublishFundingPoisonedLocal = "publishing-publishfunding-poisoned";
+            public const string PublishingPublishAllProviderFundingPoisonedLocal = "publishing-publish-all-provider-funding-poisoned";
+
+            public const string PublishingPublishBatchProviderFunding = "publishing-publish-batch-provider-funding";
+
+            public const string PublishingPublishBatchProviderFundingPoisoned = "publishing-publish-batch-provider-funding/$DeadLetterQueue";
+
+            public const string PublishingPublishBatchProviderFundingPoisonedLocal = "publishing-publish-batch-provider-funding-poisoned";
 
             public const string ReIndexCalculationResultsIndex = "reindex-calculation-results-index";
 

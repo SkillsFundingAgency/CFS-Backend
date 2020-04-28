@@ -63,6 +63,8 @@ namespace CalculateFunding.Services.Core.ServiceBus
         {
             CloudQueue queue = GetQueueClient(entityPath).GetQueueReference(entityPath);
 
+            await queue.CreateIfNotExistsAsync();
+
             await queue.AddMessageAsync(message);
         }
 

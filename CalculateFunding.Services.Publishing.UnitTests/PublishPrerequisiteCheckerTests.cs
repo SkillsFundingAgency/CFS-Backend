@@ -17,7 +17,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
     [TestClass]
     public class PublishPrerequisiteCheckerTests
     {
-        private PublishPrerequisiteChecker _publishPrerequisiteChecker;
+        private PublishAllPrerequisiteChecker _publishPrerequisiteChecker;
         private ISpecificationFundingStatusService _specificationFundingStatusService;
         private IJobsRunning _jobsRunning;
         private IJobManagement _jobManagement;
@@ -34,7 +34,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             _jobsRunning = Substitute.For<IJobsRunning>();
             _jobManagement = Substitute.For<IJobManagement>();
 
-            _publishPrerequisiteChecker = new PublishPrerequisiteChecker(_specificationFundingStatusService, _jobsRunning, _jobManagement, _logger);
+            _publishPrerequisiteChecker = new PublishAllPrerequisiteChecker(_specificationFundingStatusService, _jobsRunning, _jobManagement, _logger);
 
             _publishedFundingPeriod = new PublishedFundingPeriod { Type = PublishedFundingPeriodType.AY, Period = "123" };
 

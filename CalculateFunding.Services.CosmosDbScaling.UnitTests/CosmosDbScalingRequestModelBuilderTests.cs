@@ -44,9 +44,9 @@ namespace CalculateFunding.Services.CosmosDbScaling
             new CosmosCollectionType[] { CosmosCollectionType.ProviderSourceDatasets })]
         [DataRow(JobConstants.DefinitionNames.RefreshFundingJob,
             new CosmosCollectionType[] { CosmosCollectionType.PublishedFunding, CosmosCollectionType.CalculationProviderResults })]
-        [DataRow(JobConstants.DefinitionNames.PublishProviderFundingJob,
+        [DataRow(JobConstants.DefinitionNames.PublishAllProviderFundingJob,
             new CosmosCollectionType[] { CosmosCollectionType.PublishedFunding })]
-        [DataRow(JobConstants.DefinitionNames.ApproveFunding,
+        [DataRow(JobConstants.DefinitionNames.ApproveAllProviderFundingJob,
             new CosmosCollectionType[] { CosmosCollectionType.PublishedFunding })]
         public void BuildRequestModel_GivenJobWithDefinitions_EnsuresCorrectRepositoryTypes(string jobDefinitionId,
             CosmosCollectionType[] cosmosRepositoryTypes)

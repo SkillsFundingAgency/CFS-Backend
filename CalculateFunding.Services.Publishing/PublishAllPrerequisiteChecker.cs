@@ -12,12 +12,12 @@ using Serilog;
 
 namespace CalculateFunding.Services.Publishing
 {
-    public class PublishPrerequisiteChecker : BasePrerequisiteChecker, IPrerequisiteChecker
+    public class PublishAllPrerequisiteChecker : BasePrerequisiteChecker, IPrerequisiteChecker
     {
         private readonly ISpecificationFundingStatusService _specificationFundingStatusService;
         private readonly ILogger _logger;
 
-        public PublishPrerequisiteChecker(
+        public PublishAllPrerequisiteChecker(
             ISpecificationFundingStatusService specificationFundingStatusService,
             IJobsRunning jobsRunning,
             IJobManagement jobManagement,
@@ -30,13 +30,20 @@ namespace CalculateFunding.Services.Publishing
             _logger = logger;
         }
 
-        public async Task PerformChecks<TSpecification>(TSpecification prereqObject, string jobId, IEnumerable<PublishedProvider> publishedProviders = null)
+        public async Task PerformChecks<TSpecification>(TSpecification prereqObject, string jobId, IEnumerable<PublishedProvider> publishedProviders = null, IEnumerable<string> providerIds = null)
         {
             Guard.ArgumentNotNull(publishedProviders, nameof(publishedProviders));
             SpecificationSummary specification = prereqObject as SpecificationSummary;
             Guard.ArgumentNotNull(specification, nameof(specification));
 
-            await BasePerformChecks(prereqObject, specification.Id, jobId, new string[] { JobConstants.DefinitionNames.RefreshFundingJob, JobConstants.DefinitionNames.ApproveFunding, JobConstants.DefinitionNames.ReIndexPublishedProvidersJob }, publishedProviders);
+            await BasePerformChecks(prereqObject, specification.Id, jobId, new string[]
+            { 
+                JobConstants.DefinitionNames.RefreshFundingJob, 
+                JobConstants.DefinitionNames.ApproveAllProviderFundingJob,
+                JobConstants.DefinitionNames.ApproveBatchProviderFundingJob,
+                JobConstants.DefinitionNames.ReIndexPublishedProvidersJob,
+                JobConstants.DefinitionNames.PublishBatchProviderFundingJob
+            }, publishedProviders);
         }
 
         protected async override Task<IEnumerable<string>> PerformChecks<TSpecification>(TSpecification prereqObject, IEnumerable<PublishedProvider> publishedProviders = null)
@@ -71,7 +78,7 @@ namespace CalculateFunding.Services.Publishing
     
         public override bool IsCheckerType(PrerequisiteCheckerType type)
         {
-            return type == PrerequisiteCheckerType.Release;
+            return type == PrerequisiteCheckerType.ReleaseAllProviders;
         }
     }
 }

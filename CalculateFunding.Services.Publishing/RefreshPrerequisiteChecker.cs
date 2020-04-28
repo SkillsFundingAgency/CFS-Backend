@@ -39,13 +39,21 @@ namespace CalculateFunding.Services.Publishing
             _logger = logger;
         }
 
-        public async Task PerformChecks<T>(T prereqObject, string jobId, IEnumerable<PublishedProvider> publishedProviders = null)
+        public async Task PerformChecks<T>(T prereqObject, string jobId, IEnumerable<PublishedProvider> publishedProviders = null, IEnumerable<string> providerIds = null)
         {
             SpecificationSummary specification = prereqObject as SpecificationSummary;
             
             Guard.ArgumentNotNull(specification, nameof(specification));
 
-            await BasePerformChecks(specification, specification.Id, jobId, new string[] { JobConstants.DefinitionNames.CreateInstructAllocationJob, JobConstants.DefinitionNames.ApproveFunding, JobConstants.DefinitionNames.PublishProviderFundingJob, JobConstants.DefinitionNames.ReIndexPublishedProvidersJob });
+            await BasePerformChecks(specification, specification.Id, jobId, new string[]
+            { 
+                JobConstants.DefinitionNames.CreateInstructAllocationJob, 
+                JobConstants.DefinitionNames.ApproveAllProviderFundingJob,
+                JobConstants.DefinitionNames.ApproveBatchProviderFundingJob,
+                JobConstants.DefinitionNames.PublishAllProviderFundingJob,
+                JobConstants.DefinitionNames.PublishBatchProviderFundingJob,
+                JobConstants.DefinitionNames.ReIndexPublishedProvidersJob 
+            });
         }
 
         protected override async Task<IEnumerable<string>> PerformChecks<T>(T prereqObject, IEnumerable<PublishedProvider> publishedProviders)

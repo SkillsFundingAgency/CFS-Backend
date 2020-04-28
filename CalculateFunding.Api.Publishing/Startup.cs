@@ -3,6 +3,7 @@ using AutoMapper;
 using CalculateFunding.Common.ApiClient;
 using CalculateFunding.Common.Config.ApiClient.Calcs;
 using CalculateFunding.Common.Config.ApiClient.Jobs;
+using CalculateFunding.Common.Config.ApiClient.Policies;
 using CalculateFunding.Common.Config.ApiClient.Profiling;
 using CalculateFunding.Common.Config.ApiClient.Providers;
 using CalculateFunding.Common.Config.ApiClient.Specifications;
@@ -145,6 +146,7 @@ namespace CalculateFunding.Api.Publishing
                     .AddSingleton<IHealthChecker, PublishedSearchService>();
             builder.AddSingleton<IPublishedProviderStatusService, PublishedProviderStatusService>();
             builder.AddScoped<IProfileTotalsService, ProfileTotalsService>();
+            builder.AddSingleton<IFundingConfigurationService, FundingConfigurationService>();
 
             builder.AddScoped<IPublishingFeatureFlag, PublishingFeatureFlag>();
 
@@ -262,8 +264,8 @@ namespace CalculateFunding.Api.Publishing
             builder.AddCalculationsInterServiceClient(Configuration);
             builder.AddProfilingInterServiceClient(Configuration);
             builder.AddJobsInterServiceClient(Configuration);
+            builder.AddPoliciesInterServiceClient(Configuration);
             builder.AddFeatureToggling(Configuration);
-            
 
             builder
                 .AddSingleton<LocalIBlobClient, LocalBlobClient>((ctx) =>

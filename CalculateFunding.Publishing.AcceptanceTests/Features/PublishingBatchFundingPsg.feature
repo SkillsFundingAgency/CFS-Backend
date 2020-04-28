@@ -1,7 +1,7 @@
-﻿Feature: PublishingPsg
+﻿Feature: PublishingBatchFundingPsg
 	In order to publish funding for PE and Sport
 	As a funding approvder
-	I want to publish funding for all approved providers within a specification
+	I want to publish funding for given approved providers within a specification
 
 Scenario Outline: Successful publishing of funding
 	Given a funding configuration exists for funding stream '<FundingStreamId>' in funding period '<FundingPeriodId>'
@@ -612,7 +612,11 @@ Scenario Outline: Successful publishing of funding
 		| 500   | calculation3 |
 		| 1000  | calculation4 |
 		| 20    | calculation5 |
-	When funding is published
+	When batch funding is published
+		| Ids |
+		| 1000000 |
+		| 1000002 |
+		| 1000101 |
 	Then the following published funding is produced
 		| Field                            | Value             |
 		| GroupingReason                   | Payment           |
@@ -640,62 +644,18 @@ Scenario Outline: Successful publishing of funding
 		| OrganisationGroupIdentifierValue | 8000001           |
 		| FundingPeriodId                  | <FundingPeriodId> |
 		| FundingStreamId                  | <FundingStreamId> |
-	And the total funding is '48000'
+	And the total funding is '24000'
 	And the published funding contains the following published provider ids
 		| FundingIds                                      |
 		| <FundingStreamId>-<FundingPeriodId>-1000101-1_0 |
-		| <FundingStreamId>-<FundingPeriodId>-1000102-1_0 |
-	And the published funding contains a distribution period in funding line 'TotalAllocation' with id of 'FY-1920' has the value of '28000'
-	And the published funding contains a distribution period in funding line 'TotalAllocation' with id of 'FY-2021' has the value of '20000'
+	And the published funding contains a distribution period in funding line 'TotalAllocation' with id of 'FY-1920' has the value of '14000'
+	And the published funding contains a distribution period in funding line 'TotalAllocation' with id of 'FY-2021' has the value of '10000'
 	And the published funding contains a distribution period in funding line 'TotalAllocation' with id of 'FY-1920' has the following profiles
 		| DistributionPeriodId | Type          | TypeValue | Year | Occurrence | ProfiledValue |
-		| FY-1920              | CalendarMonth | October   | 1920 | 1          | 28000         |
+		| FY-1920              | CalendarMonth | October   | 1920 | 1          | 14000         |
 	And the published funding contains a distribution period in funding line 'TotalAllocation' with id of 'FY-2021' has the following profiles
 		| DistributionPeriodId | Type          | TypeValue | Year | Occurrence | ProfiledValue |
-		| FY-2021              | CalendarMonth | April     | 2021 | 1          | 20000         |
-	And the following published funding is produced
-		| Field                            | Value             |
-		| GroupingReason                   | Information       |
-		| OrganisationGroupTypeCode        | Provider          |
-		| OrganisationGroupIdentifierValue | 1000201           |
-		| FundingPeriodId                  | <FundingPeriodId> |
-		| FundingStreamId                  | <FundingStreamId> |
-	And the total funding is '44000'
-	And the published funding contains the following published provider ids
-		| FundingIds                                      |
-		| <FundingStreamId>-<FundingPeriodId>-1000201-1_0 |
-	And the published funding contains a distribution period in funding line 'TotalAllocation' with id of 'FY-1920' has the value of '24000'
-	And the published funding contains a distribution period in funding line 'TotalAllocation' with id of 'FY-2021' has the value of '20000'
-	And the published funding contains a distribution period in funding line 'TotalAllocation' with id of 'FY-1920' has the following profiles
-		| DistributionPeriodId | Type          | TypeValue | Year | Occurrence | ProfiledValue |
-		| FY-1920              | CalendarMonth | October   | 1920 | 1          | 24000         |
-	And the published funding contains a distribution period in funding line 'TotalAllocation' with id of 'FY-2021' has the following profiles
-		| DistributionPeriodId | Type          | TypeValue | Year | Occurrence | ProfiledValue |
-		| FY-2021              | CalendarMonth | April     | 2021 | 1          | 20000         |
-	And  the published funding contains a calculations in published provider with following calculation results
-		| Id | Value |
-		| 3  | 120   |
-		| 5  | 1000  |
-		| 6  | 20    |
-	And the following published funding is produced
-		| Field                            | Value             |
-		| GroupingReason                   | Information       |
-		| OrganisationGroupTypeCode        | Provider          |
-		| OrganisationGroupIdentifierValue | 1000202           |
-		| FundingPeriodId                  | <FundingPeriodId> |
-		| FundingStreamId                  | <FundingStreamId> |
-	And the total funding is '44000'
-	And the published funding contains the following published provider ids
-		| FundingIds                                      |
-		| <FundingStreamId>-<FundingPeriodId>-1000202-1_0 |
-	And the published funding contains a distribution period in funding line 'TotalAllocation' with id of 'FY-1920' has the value of '24000'
-	And the published funding contains a distribution period in funding line 'TotalAllocation' with id of 'FY-2021' has the value of '20000'
-	And the published funding contains a distribution period in funding line 'TotalAllocation' with id of 'FY-1920' has the following profiles
-		| DistributionPeriodId | Type          | TypeValue | Year | Occurrence | ProfiledValue |
-		| FY-1920              | CalendarMonth | October   | 1920 | 1          | 24000         |
-	And the published funding contains a distribution period in funding line 'TotalAllocation' with id of 'FY-2021' has the following profiles
-		| DistributionPeriodId | Type          | TypeValue | Year | Occurrence | ProfiledValue |
-		| FY-2021              | CalendarMonth | April     | 2021 | 1          | 20000         |
+		| FY-2021              | CalendarMonth | April     | 2021 | 1          | 10000         |
 	And  the published funding contains a calculations in published provider with following calculation results
 		| Id | Value |
 		| 3  | 120   |
@@ -717,11 +677,8 @@ Scenario Outline: Successful publishing of funding
 		| <FundingStreamId>-<FundingPeriodId>-1000202-1_0.json |
 	And the following published provider search index items is produced for providerid with '<FundingStreamId>' and '<FundingPeriodId>'
 		| ID                  | ProviderType          | LocalAuthority    | FundingStatus | ProviderName            | UKPRN   | FundingValue | SpecificationId   | FundingStreamId   | FundingPeriodId   |
-		| 1000102-AY-1920-PSG | Academies             | Local Authority 1 | Released      | Academy 2               | 1000102 | 24000        | specForPublishing | <FundingStreamId> | <FundingPeriodId> |
-		| 1000201-AY-1920-PSG | Special schools       | Local Authority 1 | Released      | Non-Maintained School 1 | 1000201 | 44000        | specForPublishing | <FundingStreamId> | <FundingPeriodId> |
 		| 1000101-AY-1920-PSG | Academies             | Local Authority 1 | Released      | Academy 1               | 1000101 | 24000        | specForPublishing | <FundingStreamId> | <FundingPeriodId> |
 		| 1000002-AY-1920-PSG | LA maintained schools | Local Authority 1 | Released      | Maintained School 2     | 1000002 | 24000        | specForPublishing | <FundingStreamId> | <FundingPeriodId> |
-		| 1000202-AY-1920-PSG | Special schools       | Local Authority 1 | Released      | Non-Maintained School 1 | 1000202 | 44000        | specForPublishing | <FundingStreamId> | <FundingPeriodId> |
 	And the following job is requested is completed for the current specification
 		| Field                  | Value             |
 		| JobDefinitionId        | PublishFundingJob |
@@ -733,9 +690,9 @@ Scenario Outline: Successful publishing of funding
 		| publishedprovider-1000000-<FundingPeriodId>-<FundingStreamId> | Released |
 		| publishedprovider-1000002-<FundingPeriodId>-<FundingStreamId> | Released |
 		| publishedprovider-1000101-<FundingPeriodId>-<FundingStreamId> | Released |
-		| publishedprovider-1000102-<FundingPeriodId>-<FundingStreamId> | Released |
-		| publishedprovider-1000201-<FundingPeriodId>-<FundingStreamId> | Released |
-		| publishedprovider-1000202-<FundingPeriodId>-<FundingStreamId> | Released |
+		| publishedprovider-1000102-<FundingPeriodId>-<FundingStreamId> | Approved |
+		| publishedprovider-1000201-<FundingPeriodId>-<FundingStreamId> | Approved |
+		| publishedprovider-1000202-<FundingPeriodId>-<FundingStreamId> | Approved |
 
 	Examples:
 		| FundingStreamId | FundingPeriodId | FundingPeriodName     | TemplateVersion | ProviderVersionId |

@@ -1,12 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Policies.Models;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Models.Publishing;
+using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Interfaces;
+using CalculateFunding.Services.Publishing.Models;
 using CalculateFunding.Services.Publishing.Specifications;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
@@ -17,21 +21,30 @@ using ApiJob = CalculateFunding.Common.ApiClient.Jobs.Models.Job;
 namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
 {
     [TestClass]
-    public class ProviderFundingPublishingServiceTests : SpecificationPublishingServiceTestsBase<ICreatePublishProviderFundingJobs>
+    public class ProviderFundingPublishingServiceTests : SpecificationPublishingServiceTestsBase<ICreateAllPublishProviderFundingJobs>
     {
         private ProviderFundingPublishingService _service;
         private IPublishedFundingRepository _publishedFundingRepository;
+        private ICreateBatchPublishProviderFundingJobs _createBatchPublishProviderFundingJobs;
+        private PublishProvidersRequest _publishProvidersRequest;
 
         [TestInitialize]
         public void SetUp()
         {
             _publishedFundingRepository = Substitute.For<IPublishedFundingRepository>();
+            _createBatchPublishProviderFundingJobs = Substitute.For<ICreateBatchPublishProviderFundingJobs>();
 
-            _service = new ProviderFundingPublishingService(Validator,
+            _service = new ProviderFundingPublishingService(
+                SpecificationIdValidator,
+                ProviderIdsValidator,
                 Specifications,
                 ResiliencePolicies,
                 Jobs,
-                _publishedFundingRepository);
+                _createBatchPublishProviderFundingJobs,
+                _publishedFundingRepository,
+                FundingConfigurationService);
+
+            _publishProvidersRequest = BuildPublishProvidersRequest(_ => _.WithProviders(ProviderIds));
         }
 
         [TestMethod]
@@ -63,41 +76,103 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
         }
 
         [TestMethod]
-        public async Task ReturnsBadRequestWhenSuppliedSpecificationIdFailsValidation()
+        public async Task ReturnsBadRequestWhenSuppliedSpecificationIdFailsValidationForPublishAllProvidersFunding()
         {
             string[] expectedErrors = { NewRandomString(), NewRandomString() };
 
             GivenTheValidationErrors(expectedErrors);
 
-            await WhenTheProviderFundingIsPublished();
+            await WhenAllProvidersFundingIsPublished();
 
             ThenTheResponseShouldBe<BadRequestObjectResult>();
         }
 
         [TestMethod]
-        public async Task ReturnsNotFoundResultIfNoSpecificationLocatedWithTheSuppliedId()
+        public async Task ReturnsBadRequestWhenSuppliedSpecificationIdFailsValidationForPublishBatchProvidersFunding()
+        {
+            string[] expectedErrors = { NewRandomString(), NewRandomString() };
+
+            GivenTheValidationErrors(expectedErrors);
+
+            await WhenBatchProvidersFundingIsPublished();
+
+            ThenTheResponseShouldBe<BadRequestObjectResult>();
+        }
+
+        [TestMethod]
+        public async Task ReturnsNotFoundResultIfNoSpecificationLocatedWithTheSuppliedIdForPublishAllProvidersFunding()
         {
             GivenTheApiResponseDetailsForTheSuppliedId(null, HttpStatusCode.NotFound);
 
-            await WhenTheProviderFundingIsPublished();
+            await WhenAllProvidersFundingIsPublished();
 
             ThenTheResponseShouldBe<NotFoundResult>();
         }
 
         [TestMethod]
-        public async Task ReturnsStatusCode412IfTheSpecificationIsNotSelectedForPublishing()
+        public async Task ReturnsNotFoundResultIfNoSpecificationLocatedWithTheSuppliedIdForPublishBatchProvidersFunding()
+        {
+            GivenTheApiResponseDetailsForTheSuppliedId(null, HttpStatusCode.NotFound);
+
+            await WhenBatchProvidersFundingIsPublished();
+
+            ThenTheResponseShouldBe<NotFoundResult>();
+        }
+
+        [TestMethod]
+        public async Task ReturnsStatusCode412IfTheSpecificationIsNotSelectedForPublishingForPublishAllProvidersFunding()
         {
             GivenTheApiResponseDetailsForTheSuppliedId(NewApiSpecificationSummary(_ =>
                 _.WithIsSelectedForFunding(false)));
 
-            await WhenTheProviderFundingIsPublished();
+            await WhenAllProvidersFundingIsPublished();
 
             ThenTheResponseShouldBe<PreconditionFailedResult>(_ =>
-                _.Value.Equals("The Specification must be selected for funding"));
+                _.Value.Equals($"Specification with id : {SpecificationId} has not been selected for funding"));
         }
 
         [TestMethod]
-        public async Task CreatesPublishFundingJobForSpecificationWithSuppliedId()
+        public async Task ReturnsStatusCode412IfTheSpecificationIsNotSelectedForPublishingForPublishBatchProvidersFunding()
+        {
+            GivenTheApiResponseDetailsForTheSuppliedId(NewApiSpecificationSummary(_ =>
+                _.WithIsSelectedForFunding(false)));
+            
+            await WhenBatchProvidersFundingIsPublished();
+
+            ThenTheResponseShouldBe<PreconditionFailedResult>(_ =>
+                _.Value.Equals($"Specification with id : {SpecificationId} has not been selected for funding"));
+        }
+
+        [TestMethod]
+        public async Task ReturnsStatusCode412IfTheFundingConfigurationDoesNotAllowAllApprovaModeForPublishAllProvidersFunding()
+        {
+            GivenTheApiResponseDetailsForTheSuppliedId(NewApiSpecificationSummary(_ =>
+                _.WithIsSelectedForFunding(true)
+                .WithId(SpecificationId)));
+            AndTheFundingConfigurationsForSpecificationSummary(NewApiFundingConfiguration(_ => _.WithApprovalMode(ApprovalMode.Batches)));
+
+            await WhenAllProvidersFundingIsPublished();
+
+            ThenTheResponseShouldBe<PreconditionFailedResult>(_ =>
+                _.Value.Equals($"Specification with id : {SpecificationId} has funding configurations which does not match required approval mode={ApprovalMode.All}"));
+        }
+
+        [TestMethod]
+        public async Task ReturnsStatusCode412IfTheFundingConfigurationDoesNotAllowBatchesApprovaModeForPublishBatchProvidersFunding()
+        {
+            GivenTheApiResponseDetailsForTheSuppliedId(NewApiSpecificationSummary(_ =>
+                _.WithIsSelectedForFunding(true)
+                .WithId(SpecificationId)));
+            AndTheFundingConfigurationsForSpecificationSummary(NewApiFundingConfiguration(_ => _.WithApprovalMode(ApprovalMode.All)));
+
+            await WhenBatchProvidersFundingIsPublished();
+
+            ThenTheResponseShouldBe<PreconditionFailedResult>(_ =>
+                _.Value.Equals($"Specification with id : {SpecificationId} has funding configurations which does not match required approval mode={ApprovalMode.Batches}"));
+        }
+
+        [TestMethod]
+        public async Task CreatesPublishAllFundingJobForSpecificationWithSuppliedId()
         {
             string publishFundingJobId = NewRandomString();
             ApiJob publishFundingJob = NewJob(_ => _.WithId(publishFundingJobId));
@@ -106,7 +181,36 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
                 _.WithIsSelectedForFunding(true)));
             AndTheApiResponseDetailsForSpecificationsJob(publishFundingJob);
 
-            await WhenTheProviderFundingIsPublished();
+            await WhenAllProvidersFundingIsPublished();
+
+            JobCreationResponse expectedJobCreationResponse = NewJobCreationResponse(_ => _.WithJobId(publishFundingJobId));
+
+            ActionResult
+                .Should()
+                .BeOfType<OkObjectResult>()
+                .Which
+                .Value
+                .Should()
+                .BeEquivalentTo(expectedJobCreationResponse);
+        }
+
+        [TestMethod]
+        public async Task CreatesPublishBatchFundingJobForSpecificationWithSuppliedId()
+        {
+            string publishFundingJobId = NewRandomString();
+            ApiJob publishFundingJob = NewJob(_ => _.WithId(publishFundingJobId));
+
+            GivenTheApiResponseDetailsForTheSuppliedId(NewApiSpecificationSummary(_ =>
+                _.WithIsSelectedForFunding(true)));
+
+            Dictionary<string, string> messageProperties = new Dictionary<string, string>
+            {
+                {JobConstants.MessagePropertyNames.PublishProvidersRequest, JsonExtensions.AsJson(_publishProvidersRequest) }
+            };
+
+            AndTheApiResponseDetailsForSpecificationsBatchProvidersJob(publishFundingJob, messageProperties);
+
+            await WhenBatchProvidersFundingIsPublished();
 
             JobCreationResponse expectedJobCreationResponse = NewJobCreationResponse(_ => _.WithJobId(publishFundingJobId));
 
@@ -174,7 +278,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
                     publishedProviderVersion?.Version.ToString())
                 .Returns(publishedProviderVersion);
         }
-
         
         private void AndThePublishedFundingRepositoryReturnsPublishedProviderVersions(PublishedProviderVersion publishedProviderVersion)
         {
@@ -217,9 +320,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
             return publishedProviderTransactionBuilder.Build();
         }
 
-        private async Task WhenTheProviderFundingIsPublished()
+        private async Task WhenAllProvidersFundingIsPublished()
         {
-            ActionResult = await _service.PublishProviderFunding(SpecificationId, User, CorrelationId);
+            ActionResult = await _service.PublishAllProvidersFunding(SpecificationId, User, CorrelationId);
+        }
+
+        private async Task WhenBatchProvidersFundingIsPublished()
+        {
+            ActionResult = await _service.PublishBatchProvidersFunding(SpecificationId, _publishProvidersRequest, User, CorrelationId);
         }
 
         private void GivenTheRepositoryServiceHealth(params DependencyHealth[] dependencies)
@@ -229,6 +337,21 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
             serviceHealth.Dependencies.AddRange(dependencies);
 
             _publishedFundingRepository.IsHealthOk().Returns(serviceHealth);
+        }
+
+        private PublishProvidersRequest BuildPublishProvidersRequest(Action<PublishProvidersRequestBuilder> setUp = null)
+        {
+            PublishProvidersRequestBuilder publishProvidersRequestBuilder = new PublishProvidersRequestBuilder();
+
+            setUp?.Invoke(publishProvidersRequestBuilder);
+
+            return publishProvidersRequestBuilder.Build();
+        }
+
+        protected void AndTheApiResponseDetailsForSpecificationsBatchProvidersJob(ApiJob job, Dictionary<string, string> messageProperties)
+        {
+            _createBatchPublishProviderFundingJobs.CreateJob(SpecificationId, User, CorrelationId, Arg.Is<Dictionary<string, string>>(_ => _.SequenceEqual(messageProperties)))
+                .Returns(job);
         }
     }
 }

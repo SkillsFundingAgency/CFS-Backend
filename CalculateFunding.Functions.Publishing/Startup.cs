@@ -111,17 +111,21 @@ namespace CalculateFunding.Functions.Publishing
             if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
             {
                 builder.AddScoped<OnRefreshFunding>();
-                builder.AddScoped<OnApproveFunding>();
-                builder.AddScoped<OnPublishFunding>();
+                builder.AddScoped<OnApproveAllProviderFunding>();
+                builder.AddScoped<OnPublishAllProviderFunding>();
                 builder.AddScoped<OnRefreshFundingFailure>();
-                builder.AddScoped<OnApproveFundingFailure>();
-                builder.AddScoped<OnPublishFundingFailure>();
+                builder.AddScoped<OnApproveAllProviderFundingFailure>();
+                builder.AddScoped<OnPublishAllProviderFundingFailure>();
                 builder.AddScoped<OnDeletePublishedProviders>();
                 builder.AddScoped<OnReIndexPublishedProviders>();
                 builder.AddScoped<OnGeneratePublishedFundingCsv>();
                 builder.AddScoped<OnGeneratePublishedFundingCsvFailure>();
                 builder.AddScoped<OnGeneratePublishedProviderEstateCsv>();
                 builder.AddScoped<OnGeneratePublishedProviderEstateCsvFailure>();
+                builder.AddScoped<OnApproveBatchProviderFunding>();
+                builder.AddScoped<OnApproveBatchProviderFundingFailure>();
+                builder.AddScoped<OnPublishBatchProviderFunding>();
+                builder.AddScoped<OnPublishBatchProviderFundingFailure>();
             }
 
             builder.AddSingleton<ISpecificationService, SpecificationService>();

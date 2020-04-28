@@ -40,7 +40,7 @@ namespace CalculateFunding.Services.Publishing
             _specificationsRepositoryPolicy = publishingResiliencePolicies.SpecificationsRepositoryPolicy;
         }
 
-        public async Task<IEnumerable<PublishedProvider>> GetPublishedProvidersForApproval(string specificationId)
+        public async Task<IEnumerable<PublishedProvider>> GetPublishedProvidersForApproval(string specificationId, string[] providerIds = null)
         {
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
 
@@ -52,7 +52,7 @@ namespace CalculateFunding.Services.Publishing
             foreach (Common.Models.Reference fundingStream in specificationSummary.FundingStreams)
             {
                 IEnumerable<KeyValuePair<string, string>> publishedProviderIds = await _publishedFundingRepositoryPolicy.ExecuteAsync(
-                                    () => _publishedFundingRepository.GetPublishedProviderIdsForApproval(fundingStream.Id, specificationSummary.FundingPeriod.Id));
+                                    () => _publishedFundingRepository.GetPublishedProviderIdsForApproval(fundingStream.Id, specificationSummary.FundingPeriod.Id, providerIds));
 
                 List<Task> allTasks = new List<Task>();
                 SemaphoreSlim throttler = new SemaphoreSlim(initialCount: _publishingEngineOptions.GetPublishedProvidersForApprovalConcurrencyCount);
@@ -125,7 +125,7 @@ namespace CalculateFunding.Services.Publishing
             return results;
         }
 
-        public async Task<IEnumerable<PublishedProvider>> GetCurrentPublishedProviders(string fundingStreamId, string fundingPeriodId)
+        public async Task<IEnumerable<PublishedProvider>> GetCurrentPublishedProviders(string fundingStreamId, string fundingPeriodId, string[] providerIds = null)
         {
             Guard.IsNullOrWhiteSpace(fundingStreamId, nameof(fundingStreamId));
             Guard.IsNullOrWhiteSpace(fundingPeriodId, nameof(fundingPeriodId));
@@ -133,7 +133,7 @@ namespace CalculateFunding.Services.Publishing
             ConcurrentBag<PublishedProvider> results = new ConcurrentBag<PublishedProvider>();
 
             IEnumerable<KeyValuePair<string, string>> publishedProviderIds = await _publishedFundingRepositoryPolicy.ExecuteAsync(
-                                () => _publishedFundingRepository.GetPublishedProviderIds(fundingStreamId, fundingPeriodId));
+                                () => _publishedFundingRepository.GetPublishedProviderIds(fundingStreamId, fundingPeriodId, providerIds));
 
             List<Task> allTasks = new List<Task>();
             SemaphoreSlim throttler = new SemaphoreSlim(initialCount: _publishingEngineOptions.GetCurrentPublishedProvidersConcurrencyCount);

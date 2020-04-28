@@ -2,8 +2,6 @@
 using System.Reflection;
 using CalculateFunding.Functions.Publishing.ServiceBus;
 using CalculateFunding.Tests.Common;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CalculateFunding.Functions.Publishing.UnitTests
@@ -39,7 +37,7 @@ namespace CalculateFunding.Functions.Publishing.UnitTests
             return configData;
         }
         
-        protected override Assembly EntryAssembly => typeof(OnApproveFunding).Assembly;
+        protected override Assembly EntryAssembly => typeof(OnApproveAllProviderFunding).Assembly;
 
         protected override void RegisterDependencies()
         {           

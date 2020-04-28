@@ -40,15 +40,15 @@ namespace CalculateFunding.Functions.Publishing.SmokeTests
         }
 
         [TestMethod]
-        public async Task OnApproveFunding_SmokeTestSucceeds()
+        public async Task OnApproveAllProviderFunding_SmokeTestSucceeds()
         {
-            OnApproveFunding onApproveFunding = new OnApproveFunding(_logger,
+            OnApproveAllProviderFunding onApproveSpecificationFunding = new OnApproveAllProviderFunding(_logger,
                 _approveService,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
                 IsDevelopment);
 
-            (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.PublishingApproveFunding,
-                (Message smokeResponse) => onApproveFunding.Run(smokeResponse), useSession: true);
+            (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.PublishingApproveAllProviderFunding,
+                (Message smokeResponse) => onApproveSpecificationFunding.Run(smokeResponse), useSession: true);
 
             responses
                 .Should()
@@ -56,14 +56,46 @@ namespace CalculateFunding.Functions.Publishing.SmokeTests
         }
 
         [TestMethod]
-        public async Task OnPublishFunding_SmokeTestSucceeds()
+        public async Task OnApproveBatchProviderFunding_SmokeTestSucceeds()
         {
-            OnPublishFunding onPublishFunding = new OnPublishFunding(_logger,
+            OnApproveBatchProviderFunding onApproveProviderFunding = new OnApproveBatchProviderFunding(_logger,
+                _approveService,
+                Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                IsDevelopment);
+
+            (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.PublishingApproveBatchProviderFunding,
+                (Message smokeResponse) => onApproveProviderFunding.Run(smokeResponse));
+
+            responses
+                .Should()
+                .Contain(_ => _.InvocationId == uniqueId);
+        }
+
+        [TestMethod]
+        public async Task OnPublishAllProviderFunding_SmokeTestSucceeds()
+        {
+            OnPublishAllProviderFunding onPublishFunding = new OnPublishAllProviderFunding(_logger,
                 _publishService,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
                 IsDevelopment);
 
-            (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.PublishingPublishFunding,
+            (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.PublishingPublishAllProviderFunding,
+                (Message smokeResponse) => onPublishFunding.Run(smokeResponse));
+
+            responses
+                .Should()
+                .Contain(_ => _.InvocationId == uniqueId);
+        }
+
+        [TestMethod]
+        public async Task OnPublishBatchProviderFunding_SmokeTestSucceeds()
+        {
+            OnPublishBatchProviderFunding onPublishFunding = new OnPublishBatchProviderFunding(_logger,
+                _publishService,
+                Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                IsDevelopment);
+
+            (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.PublishingPublishBatchProviderFunding,
                 (Message smokeResponse) => onPublishFunding.Run(smokeResponse), useSession: true);
 
             responses

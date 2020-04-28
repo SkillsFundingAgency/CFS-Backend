@@ -164,15 +164,21 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             return Task.FromResult(publishedProvider);
         }
 
-        public Task<IEnumerable<KeyValuePair<string, string>>> GetPublishedProviderIdsForApproval(string fundingStreamId, string fundingPeriodId)
+        public Task<IEnumerable<KeyValuePair<string, string>>> GetPublishedProviderIdsForApproval(string fundingStreamId, string fundingPeriodId, string[] providerIds = null)
         {
-            IEnumerable<KeyValuePair<string, string>> results = _repo.PublishedProviders
+            IEnumerable<PublishedProvider> publishedProviders = _repo.PublishedProviders
                 .SelectMany(c => c.Value)
                 .Where(p =>
                     (p.Current.Status == PublishedProviderStatus.Draft || p.Current.Status == PublishedProviderStatus.Updated)
                 && p.Current.FundingStreamId == fundingStreamId
-                && p.Current.FundingPeriodId == fundingPeriodId)
-                .Select(r => new KeyValuePair<string, string>(r.Id, r.PartitionKey));
+                && p.Current.FundingPeriodId == fundingPeriodId);
+
+            if (providerIds != null && providerIds.Any())
+            {
+                publishedProviders = publishedProviders.Where(_ => providerIds.Contains(_.Current.ProviderId));
+            }
+
+            IEnumerable<KeyValuePair<string, string>> results = publishedProviders.Select(r => new KeyValuePair<string, string>(r.Id, r.PartitionKey));
 
             return Task.FromResult(results);
         }
@@ -184,13 +190,19 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             return Task.FromResult(result);
         }
 
-        public Task<IEnumerable<KeyValuePair<string, string>>> GetPublishedProviderIds(string fundingStreamId, string fundingPeriodId)
+        public Task<IEnumerable<KeyValuePair<string, string>>> GetPublishedProviderIds(string fundingStreamId, string fundingPeriodId, string[] providerIds = null)
         {
-            IEnumerable<KeyValuePair<string, string>> results = _repo.PublishedProviders
-                            .SelectMany(c => c.Value)
-                            .Where(p => p.Current.FundingStreamId == fundingStreamId
-                                && p.Current.FundingPeriodId == fundingPeriodId)
-                            .Select(r => new KeyValuePair<string, string>(r.Id, r.PartitionKey));
+            IEnumerable<PublishedProvider> publishedProviders = _repo.PublishedProviders
+                .SelectMany(c => c.Value)
+                .Where(p => p.Current.FundingStreamId == fundingStreamId
+                    && p.Current.FundingPeriodId == fundingPeriodId);
+
+            if (providerIds != null && providerIds.Any())
+            {
+                publishedProviders = publishedProviders.Where(_ => providerIds.Contains(_.Current.ProviderId));
+            }
+
+            IEnumerable<KeyValuePair<string, string>> results = publishedProviders.Select(r => new KeyValuePair<string, string>(r.Id, r.PartitionKey));
 
             return Task.FromResult(results);
         }

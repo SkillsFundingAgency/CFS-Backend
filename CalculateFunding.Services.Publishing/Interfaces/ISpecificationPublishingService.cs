@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
-using Microsoft.AspNetCore.Http;
+using CalculateFunding.Services.Publishing.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CalculateFunding.Services.Publishing.Interfaces
@@ -11,12 +11,15 @@ namespace CalculateFunding.Services.Publishing.Interfaces
             Reference user,
             string correlationId);
 
-        Task<IActionResult> ApproveSpecification(string action,
-            string controller,
-            string specificationId,
+        Task<IActionResult> ApproveAllProviderFunding(string specificationId,
             Reference user,
             string correlationId);
 
         Task<IActionResult> CanChooseForFunding(string specificationId);
+
+        Task<IActionResult> ApproveBatchProviderFunding(string specificationId,
+            ApproveProvidersRequest approveProvidersRequest, 
+            Reference user, 
+            string correlationId);
     }
 }

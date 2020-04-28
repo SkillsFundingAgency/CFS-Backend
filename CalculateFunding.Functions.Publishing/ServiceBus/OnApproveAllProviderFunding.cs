@@ -12,28 +12,29 @@ using Serilog;
 
 namespace CalculateFunding.Functions.Publishing.ServiceBus
 {
-    public class OnPublishFunding : SmokeTest
+    public class OnApproveAllProviderFunding : SmokeTest
     {
         private readonly ILogger _logger;
-        private readonly IPublishService _publishService;
-        public const string FunctionName = "on-publishing-publish-funding";
+        private readonly IApproveService _approveService;
+        public const string FunctionName = FunctionConstants.PublishingApproveAllProviderFunding;
+        public const string QueueName = ServiceBusConstants.QueueNames.PublishingApproveAllProviderFunding;
 
-        public OnPublishFunding(
+        public OnApproveAllProviderFunding(
             ILogger logger,
-            IPublishService publishService,
+            IApproveService approveService,
             IMessengerService messegerService,
             bool useAzureStorage = false) : base(logger, messegerService, FunctionName, useAzureStorage)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
-            Guard.ArgumentNotNull(publishService, nameof(publishService));
+            Guard.ArgumentNotNull(approveService, nameof(approveService));
 
             _logger = logger;
-            _publishService = publishService;
+            _approveService = approveService;
         }
 
         [FunctionName(FunctionName)]
         public async Task Run([ServiceBusTrigger(
-            ServiceBusConstants.QueueNames.PublishingPublishFunding,
+            QueueName,
             Connection = ServiceBusConstants.ConnectionStringConfigurationKey,
             IsSessionsEnabled = true)] Message message)
         {
@@ -41,15 +42,15 @@ namespace CalculateFunding.Functions.Publishing.ServiceBus
             {
                 try
                 {
-                    await _publishService.PublishResults(message);
+                    await _approveService.ApproveAllResults(message);
                 }
                 catch (NonRetriableException ex)
                 {
-                    _logger.Error(ex, $"Job threw non retriable exception: {ServiceBusConstants.QueueNames.PublishingPublishFunding}");
+                    _logger.Error(ex, $"Job threw non retriable exception: {QueueName}");
                 }
                 catch (Exception exception)
                 {
-                    _logger.Error(exception, $"An error occurred getting message from topic: {ServiceBusConstants.QueueNames.PublishingPublishFunding}");
+                    _logger.Error(exception, $"An error occurred getting message from queue: {QueueName}");
                     throw;
                 }
             },

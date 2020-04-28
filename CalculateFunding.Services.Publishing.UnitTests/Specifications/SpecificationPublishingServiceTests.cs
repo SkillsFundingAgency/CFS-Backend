@@ -1,11 +1,16 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.ApiClient.Policies.Models;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Models.Publishing;
+using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Interfaces;
+using CalculateFunding.Services.Publishing.Models;
 using CalculateFunding.Services.Publishing.Specifications;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
@@ -20,24 +25,33 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
     public class SpecificationPublishingServiceTests : SpecificationPublishingServiceTestsBase<ICreateRefreshFundingJobs>
     {
         private SpecificationPublishingService _service;
-        private ICreateApproveFundingJobs _approvalJobs;
+        private ICreateApproveAllFundingJobs _approveSpecificationFundingJobs;
+        private ICreateApproveBatchFundingJobs _approveProviderFundingJobs;
         private ICacheProvider _cacheProvider;
         private ISpecificationFundingStatusService _specificationFundingStatusService;
+        private ApproveProvidersRequest _approveProvidersRequest;
 
         [TestInitialize]
         public void SetUp()
         {
-            _approvalJobs = Substitute.For<ICreateApproveFundingJobs>();
+            _approveSpecificationFundingJobs = Substitute.For<ICreateApproveAllFundingJobs>();
+            _approveProviderFundingJobs = Substitute.For<ICreateApproveBatchFundingJobs>();
             _cacheProvider = Substitute.For<ICacheProvider>();
             _specificationFundingStatusService = Substitute.For<ISpecificationFundingStatusService>();
 
-            _service = new SpecificationPublishingService(Validator,
+            _service = new SpecificationPublishingService(
+                SpecificationIdValidator,
+                ProviderIdsValidator,
                 Specifications,
                 ResiliencePolicies,
                 _cacheProvider,
                 Jobs,
-                _approvalJobs,
-                _specificationFundingStatusService);
+                _approveSpecificationFundingJobs,
+                _approveProviderFundingJobs,
+                _specificationFundingStatusService,
+                FundingConfigurationService);
+
+            _approveProvidersRequest = BuildApproveProvidersRequest(_ => _.WithProviders(ProviderIds));
         }
 
         [TestMethod]
@@ -126,29 +140,51 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
         }
 
         [TestMethod]
-        public async Task ReturnsBadRequestWhenSuppliedSpecificationIdFailsValidationForApproval()
+        public async Task ReturnsBadRequestWhenSuppliedSpecificationIdFailsValidationForSpecificationApproval()
         {
             string[] expectedErrors = { NewRandomString(), NewRandomString() };
 
             GivenTheValidationErrors(expectedErrors);
 
-            await WhenTheSpecificationIsApproved();
+            await WhenAllProvidersAreApproved();
 
             ThenTheResponseShouldBe<BadRequestObjectResult>();
         }
 
         [TestMethod]
-        public async Task ReturnsNotFoundResultIfNoSpecificationLocatedWithTheSuppliedIdForApproval()
+        public async Task ReturnsBadRequestWhenSuppliedSpecificationIdFailsValidationForProvidersApproval()
+        {
+            string[] expectedErrors = { NewRandomString(), NewRandomString() };
+
+            GivenTheValidationErrors(expectedErrors);
+
+            await WhenBatchProvidersAreApproved();
+
+            ThenTheResponseShouldBe<BadRequestObjectResult>();
+        }
+
+        [TestMethod]
+        public async Task ReturnsNotFoundResultIfNoSpecificationLocatedWithTheSuppliedIdForSpecificationApproval()
         {
             GivenTheApiResponseDetailsForTheSuppliedId(null, HttpStatusCode.NotFound);
 
-            await WhenTheSpecificationIsApproved();
+            await WhenAllProvidersAreApproved();
 
             ThenTheResponseShouldBe<NotFoundResult>();
         }
 
         [TestMethod]
-        public async Task ReturnsPreConditionFailedResultIfNotSelectedForFundingForSuppliedSpecificationId()
+        public async Task ReturnsNotFoundResultIfNoSpecificationLocatedWithTheSuppliedIdForProvidersApproval()
+        {
+            GivenTheApiResponseDetailsForTheSuppliedId(null, HttpStatusCode.NotFound);
+
+            await WhenBatchProvidersAreApproved();
+
+            ThenTheResponseShouldBe<NotFoundResult>();
+        }
+
+        [TestMethod]
+        public async Task ReturnsPreConditionFailedResultIfNotSelectedForFundingForSuppliedSpecificationIdForSpecificationApproval()
         {
             ApiSpecificationSummary specificationSummary = NewApiSpecificationSummary(_ =>
                 _.WithIsSelectedForFunding(false));
@@ -157,15 +193,60 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
             ApiJob approveFundingJob = NewJob(_ => _.WithId(approveFundingJobId));
 
             GivenTheApiResponseDetailsForTheSuppliedId(specificationSummary);
-            AndTheApiResponseDetailsForApprovalJob(approveFundingJob);
+            AndTheApiResponseDetailsForApproveSpecificationJob(approveFundingJob);
 
-            await WhenTheSpecificationIsApproved();
+            await WhenAllProvidersAreApproved();
 
             ThenTheResponseShouldBe<PreconditionFailedResult>();
         }
 
         [TestMethod]
-        public async Task ReturnsInternalServerErrorResultIfJobNotCreatedForSuppliedSpecificationId()
+        public async Task ReturnsPreConditionFailedResultIfNotSelectedForFundingForSuppliedSpecificationIdForProvidersApproval()
+        {
+            ApiSpecificationSummary specificationSummary = NewApiSpecificationSummary(_ =>
+                _.WithIsSelectedForFunding(false));
+
+            string approveFundingJobId = NewRandomString();
+            ApiJob approveFundingJob = NewJob(_ => _.WithId(approveFundingJobId));
+
+            GivenTheApiResponseDetailsForTheSuppliedId(specificationSummary);
+            AndTheApiResponseDetailsForApproveSpecificationJob(approveFundingJob);
+
+            await WhenBatchProvidersAreApproved();
+
+            ThenTheResponseShouldBe<PreconditionFailedResult>();
+        }
+
+        [TestMethod]
+        public async Task ReturnsStatusCode412IfTheFundingConfigurationDoesNotAllowAllApprovaModeForPublishAllProvidersFunding()
+        {
+            GivenTheApiResponseDetailsForTheSuppliedId(NewApiSpecificationSummary(_ =>
+                _.WithIsSelectedForFunding(true)
+                .WithId(SpecificationId)));
+            AndTheFundingConfigurationsForSpecificationSummary(NewApiFundingConfiguration(_ => _.WithApprovalMode(ApprovalMode.Batches)));
+
+            await WhenAllProvidersAreApproved();
+
+            ThenTheResponseShouldBe<PreconditionFailedResult>(_ =>
+                _.Value.Equals($"Specification with id : {SpecificationId} has funding configurations which does not match required approval mode={ApprovalMode.All}"));
+        }
+
+        [TestMethod]
+        public async Task ReturnsStatusCode412IfTheFundingConfigurationDoesNotAllowBatchesApprovaModeForPublishBatchProvidersFunding()
+        {
+            GivenTheApiResponseDetailsForTheSuppliedId(NewApiSpecificationSummary(_ =>
+                _.WithIsSelectedForFunding(true)
+                .WithId(SpecificationId)));
+            AndTheFundingConfigurationsForSpecificationSummary(NewApiFundingConfiguration(_ => _.WithApprovalMode(ApprovalMode.All)));
+
+            await WhenBatchProvidersAreApproved();
+
+            ThenTheResponseShouldBe<PreconditionFailedResult>(_ =>
+                _.Value.Equals($"Specification with id : {SpecificationId} has funding configurations which does not match required approval mode={ApprovalMode.Batches}"));
+        }
+
+        [TestMethod]
+        public async Task ReturnsInternalServerErrorResultIfJobNotCreatedForSuppliedSpecificationIdForSpecificationApproval()
         {
             ApiSpecificationSummary specificationSummary = NewApiSpecificationSummary(_ =>
                 _.WithIsSelectedForFunding(true));
@@ -174,13 +255,28 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
 
             GivenTheApiResponseDetailsForTheSuppliedId(specificationSummary);
 
-            await WhenTheSpecificationIsApproved();
+            await WhenAllProvidersAreApproved();
 
             ThenTheResponseShouldBe<InternalServerErrorResult>();
         }
 
         [TestMethod]
-        public async Task ApproveFundingJobForSuppliedSpecificationId()
+        public async Task ReturnsInternalServerErrorResultIfJobNotCreatedForSuppliedSpecificationIdForProvidersApproval()
+        {
+            ApiSpecificationSummary specificationSummary = NewApiSpecificationSummary(_ =>
+                _.WithIsSelectedForFunding(true));
+
+            string approveFundingJobId = NewRandomString();
+
+            GivenTheApiResponseDetailsForTheSuppliedId(specificationSummary);
+
+            await WhenBatchProvidersAreApproved();
+
+            ThenTheResponseShouldBe<InternalServerErrorResult>();
+        }
+
+        [TestMethod]
+        public async Task ApproveAllProvidersFundingJobForSuppliedSpecificationId()
         {
             ApiSpecificationSummary specificationSummary = NewApiSpecificationSummary(_ =>
                 _.WithIsSelectedForFunding(true));
@@ -189,9 +285,39 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
             ApiJob approveFundingJob = NewJob(_ => _.WithId(approveFundingJobId));
 
             GivenTheApiResponseDetailsForTheSuppliedId(specificationSummary);
-            AndTheApiResponseDetailsForApprovalJob(approveFundingJob);
+            AndTheApiResponseDetailsForApproveSpecificationJob(approveFundingJob);
 
-            await WhenTheSpecificationIsApproved();
+            await WhenAllProvidersAreApproved();
+
+            JobCreationResponse expectedJobCreationResponse = NewJobCreationResponse(_ => _.WithJobId(approveFundingJobId));
+
+            ActionResult
+                .Should()
+                .BeOfType<OkObjectResult>()
+                .Which
+                .Value
+                .Should()
+                .BeEquivalentTo(expectedJobCreationResponse);
+        }
+
+        [TestMethod]
+        public async Task ApproveProvidersFundingJobForSuppliedSpecificationId()
+        {
+            ApiSpecificationSummary specificationSummary = NewApiSpecificationSummary(_ =>
+                _.WithIsSelectedForFunding(true));
+
+            string approveFundingJobId = NewRandomString();
+            ApiJob approveFundingJob = NewJob(_ => _.WithId(approveFundingJobId));
+
+            Dictionary<string, string> messageProperties = new Dictionary<string, string>
+            {
+                {JobConstants.MessagePropertyNames.ApproveProvidersRequest, JsonExtensions.AsJson(_approveProvidersRequest) }
+            };
+
+            GivenTheApiResponseDetailsForTheSuppliedId(specificationSummary);
+            AndTheApiResponseDetailsForApproveProviderJob(approveFundingJob, messageProperties);
+
+            await WhenBatchProvidersAreApproved();
 
             JobCreationResponse expectedJobCreationResponse = NewJobCreationResponse(_ => _.WithJobId(approveFundingJobId));
 
@@ -254,15 +380,25 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
             ActionResult = await _service.CreateRefreshFundingJob(SpecificationId, User, CorrelationId);
         }
 
-        private void AndTheApiResponseDetailsForApprovalJob(ApiJob job)
+        private void AndTheApiResponseDetailsForApproveSpecificationJob(ApiJob job)
         {
-            _approvalJobs.CreateJob(SpecificationId, User, CorrelationId, null, null)
+            _approveSpecificationFundingJobs.CreateJob(SpecificationId, User, CorrelationId, null, null)
                 .Returns(job);
         }
 
-        private async Task WhenTheSpecificationIsApproved()
+        private void AndTheApiResponseDetailsForApproveProviderJob(ApiJob job, Dictionary<string, string> messageProperties)
         {
-            ActionResult = await _service.ApproveSpecification("", "", SpecificationId, User, CorrelationId);
+            _ = _approveProviderFundingJobs.CreateJob(SpecificationId, User, CorrelationId, Arg.Is<Dictionary<string, string>>(_ => _.SequenceEqual(messageProperties)), null)
+                .Returns(job);
+        }
+
+        private async Task WhenAllProvidersAreApproved()
+        {
+            ActionResult = await _service.ApproveAllProviderFunding(SpecificationId, User, CorrelationId);
+        }
+        private async Task WhenBatchProvidersAreApproved()
+        {
+            ActionResult = await _service.ApproveBatchProviderFunding(SpecificationId, _approveProvidersRequest, User, CorrelationId);
         }
 
         private void AndTheApiResponseDetailsForTheFundingPeriodId(string fundingPeriodId,
@@ -270,6 +406,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
         {
             Specifications.GetSpecificationsSelectedForFundingByPeriod(fundingPeriodId)
                 .Returns(new ApiResponse<IEnumerable<ApiSpecificationSummary>>(HttpStatusCode.OK, specificationSummaries));
+        }
+
+        private ApproveProvidersRequest BuildApproveProvidersRequest(Action<ApproveProvidersRequestBuilder> setUp = null)
+        {
+            ApproveProvidersRequestBuilder approveProvidersRequestBuilder = new ApproveProvidersRequestBuilder();
+
+            setUp?.Invoke(approveProvidersRequestBuilder);
+
+            return approveProvidersRequestBuilder.Build();
         }
     }
 }

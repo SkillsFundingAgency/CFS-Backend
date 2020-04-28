@@ -9,12 +9,14 @@ using Serilog;
 
 namespace CalculateFunding.Functions.Publishing.ServiceBus
 {
-    public class OnApproveFundingFailure
+    public class OnApproveAllProviderFundingFailure
     {
         private readonly ILogger _logger;
         private readonly IJobHelperService _jobHelperService;
+        public const string FunctionName = FunctionConstants.PublishingApproveAllProviderFundingPoisoned;
+        public const string QueueName = ServiceBusConstants.QueueNames.PublishingApproveAllProviderFundingPoisoned;
 
-        public OnApproveFundingFailure(
+        public OnApproveAllProviderFundingFailure(
             ILogger logger,
             IJobHelperService jobHelperService)
         {
@@ -25,12 +27,12 @@ namespace CalculateFunding.Functions.Publishing.ServiceBus
             _jobHelperService = jobHelperService;
         }
 
-        [FunctionName("on-publishing-approve-funding-poisoned")]
+        [FunctionName(FunctionName)]
         public async Task Run([ServiceBusTrigger(
-            ServiceBusConstants.QueueNames.PublishingApproveFundingPoisoned,
+            QueueName,
             Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
         {
-            _logger.Information("Starting to process dead letter message for approving funding.");
+            _logger.Information("Starting to process dead letter message for approving specification funding.");
 
             try
             {
@@ -38,7 +40,7 @@ namespace CalculateFunding.Functions.Publishing.ServiceBus
             }
             catch (Exception exception)
             {
-                _logger.Error(exception, $"An error occurred getting message from queue: {ServiceBusConstants.QueueNames.PublishingApproveFundingPoisoned}");
+                _logger.Error(exception, $"An error occurred getting message from queue: {QueueName}");
                 throw;
             }
         }

@@ -21,7 +21,7 @@ namespace CalculateFunding.Services.Publishing.Interfaces
 
         Task<HttpStatusCode> UpsertPublishedFunding(PublishedFunding publishedFunding);
 
-        Task<IEnumerable<KeyValuePair<string, string>>> GetPublishedProviderIdsForApproval(string fundingStreamId, string fundingPeriodId);
+        Task<IEnumerable<KeyValuePair<string, string>>> GetPublishedProviderIdsForApproval(string fundingStreamId, string fundingPeriodId, string[] providerIds = null);
 
         Task<IEnumerable<dynamic>> GetFundings(string publishedProviderVersion);
 
@@ -32,7 +32,7 @@ namespace CalculateFunding.Services.Publishing.Interfaces
 
         Task<PublishedProvider> GetPublishedProviderById(string cosmosId, string partitionKey);
 
-        Task<IEnumerable<KeyValuePair<string, string>>> GetPublishedProviderIds(string fundingStreamId, string fundingPeriodId);
+        Task<IEnumerable<KeyValuePair<string, string>>> GetPublishedProviderIds(string fundingStreamId, string fundingPeriodId, string[] providerIds = null);
 
         Task<IEnumerable<KeyValuePair<string, string>>> GetPublishedFundingIds(string fundingStreamId, string fundingPeriodId);
 

@@ -11,6 +11,7 @@ using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Constants;
+using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
 using CalculateFunding.Tests.Common.Helpers;
@@ -55,8 +56,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             _jobManagement = new JobManagement(_jobsApiClient, _logger, new JobManagementResiliencePolicies { JobsApiClient = Policy.NoOpAsync() });
             _jobsRunning = Substitute.For<IJobsRunning>();
             _prerequisiteCheckerLocator = Substitute.For<IPrerequisiteCheckerLocator>();
-            _prerequisiteCheckerLocator.GetPreReqChecker(PrerequisiteCheckerType.Approve)
-                .Returns(new ApprovePrerequisiteChecker(_jobsRunning, _jobManagement, _logger));
+            _prerequisiteCheckerLocator.GetPreReqChecker(PrerequisiteCheckerType.ApproveAllProviders)
+                .Returns(new ApproveAllProvidersPrerequisiteChecker(_jobsRunning, _jobManagement, _logger));
+            _prerequisiteCheckerLocator.GetPreReqChecker(PrerequisiteCheckerType.ApproveBatchProviders)
+                .Returns(new ApproveBatchProvidersPrerequisiteChecker(_jobsRunning, _jobManagement, _logger));
             _publishedFundingDataService = Substitute.For<IPublishedFundingDataService>();
             _publishedProviderStatusUpdateService = Substitute.For<IPublishedProviderStatusUpdateService>();
             _publishedProviderIndexerService = Substitute.For<IPublishedProviderIndexerService>();
@@ -88,7 +91,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             SetUserProperty("user-id", _userId);
             SetUserProperty("user-name", _userName);
 
-            _publishedFundingDataService.GetPublishedProvidersForApproval(Arg.Any<string>())
+            _publishedFundingDataService.GetPublishedProvidersForApproval(Arg.Any<string>(), Arg.Any<string[]>())
                 .Returns(new[] { new PublishedProvider() });
         }
 
@@ -98,16 +101,16 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         }
 
         [TestMethod]
-        public void CheckPrerequisitesForSpecificationToBeApproved_WhenPreReqsValidationErrors_ThrowsException()
+        public void CheckPrerequisitesForApproveSpecificationToBeApproved_WhenPreReqsValidationErrors_ThrowsException()
         {
             string specificationId = NewRandomString();
 
             GivenTheMessageHasTheSpecificationId(specificationId);
             AndTheMessageIsOtherwiseValid();
-            AndCalculationEngineRunning(specificationId);
+            AndCalculationEngineApproveSpecificationRunning(specificationId);
             AndRetrieveJobAndCheckCanBeProcessedSuccessfully();
 
-            Func<Task> invocation = WhenTheResultsAreApproved;
+            Func<Task> invocation = WhenAllProvidersResultsAreApproved;
 
             invocation
                 .Should()
@@ -127,7 +130,39 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         }
 
         [TestMethod]
-        public async Task ApproveResults_IfUpdateProviderStatusExceptionsTransactionCompensates()
+        public void CheckPrerequisitesForApproveProvidersSpecificationToBeApproved_WhenPreReqsValidationErrors_ThrowsException()
+        {
+            string specificationId = NewRandomString();
+            string providerId = NewRandomString();
+            string[] providers = new[] { providerId };
+
+            GivenTheMessageHasTheSpecificationId(specificationId);
+            GivenTheMessageHasTheApproveProvidersRequest(BuildApproveProvidersRequest(_=>_.WithProviders(providers)));
+            AndTheMessageIsOtherwiseValid();
+            AndCalculationEngineApproveProviderRunning(specificationId);
+            AndRetrieveJobAndCheckCanBeProcessedSuccessfully();
+
+            Func<Task> invocation = WhenBatchProvidersResultsAreApproved;
+
+            invocation
+                .Should()
+                .Throw<Exception>()
+                .And
+                .Message
+                .Should()
+                .Be($"Specification with id: '{specificationId} has prerequisites which aren't complete.");
+
+            string[] prereqValidationErrors = new string[] { $"{JobConstants.DefinitionNames.RefreshFundingJob} is still running" };
+
+            _logger.Received(1)
+                .Error($"{JobConstants.DefinitionNames.RefreshFundingJob} is still running");
+
+            _jobsApiClient.Received(1)
+                .AddJobLog(Arg.Is(_jobId), Arg.Is<JobLogUpdateModel>(_ => _.CompletedSuccessfully == false && _.Outcome == string.Join(", ", prereqValidationErrors)));
+        }
+
+        [TestMethod]
+        public async Task ApproveAllProvidersResults_IfUpdateProviderStatusExceptionsTransactionCompensates()
         {
             PublishedProvider[] expectedPublishedProviders =
             {
@@ -143,11 +178,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
 
             GivenTheMessageHasTheSpecificationId(specificationId);
             AndTheMessageIsOtherwiseValid();
-            AndTheSpecificationHasTheHeldUnApprovedPublishedProviders(specificationId, expectedPublishedProviders);
+            AndTheSpecificationHasTheHeldUnApprovedPublishedProviders(specificationId, null, expectedPublishedProviders);
             AndRetrieveJobAndCheckCanBeProcessedSuccessfully();
             AndNumberOfApprovedPublishedProvidersThrowsException(expectedPublishedProviders);
 
-            Func<Task> invocation = WhenTheResultsAreApproved;
+            Func<Task> invocation = WhenAllProvidersResultsAreApproved;
 
             invocation
                 .Should()
@@ -159,9 +194,44 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         }
 
         [TestMethod]
-        public void ApproveResults_ThrowsExceptionIfNoJobIdInMessage()
+        public async Task ApproveBatchProvidersResults_IfUpdateProviderStatusExceptionsTransactionCompensates()
         {
-            Func<Task> invocation = WhenTheResultsAreApproved;
+            PublishedProvider[] expectedPublishedProviders =
+            {
+                NewPublishedProvider(),
+                NewPublishedProvider(),
+                NewPublishedProvider(),
+                NewPublishedProvider(),
+                NewPublishedProvider(),
+                NewPublishedProvider()
+            };
+
+            string specificationId = NewRandomString();
+            string providerId = NewRandomString();
+            string[] providerIds = new[] { providerId };
+
+            GivenTheMessageHasTheSpecificationId(specificationId);
+            GivenTheMessageHasTheApproveProvidersRequest(BuildApproveProvidersRequest(_ => _.WithProviders(providerIds)));
+            AndTheMessageIsOtherwiseValid();
+            AndTheSpecificationHasTheHeldUnApprovedPublishedProviders(specificationId, providerIds, expectedPublishedProviders);
+            AndRetrieveJobAndCheckCanBeProcessedSuccessfully();
+            AndNumberOfApprovedPublishedProvidersThrowsException(expectedPublishedProviders);
+
+            Func<Task> invocation = WhenBatchProvidersResultsAreApproved;
+
+            invocation
+                .Should()
+                .Throw<Exception>();
+
+            await _publishedProviderVersionService
+                .Received(1)
+                .CreateReIndexJob(Arg.Any<Reference>(), Arg.Any<string>());
+        }
+
+        [TestMethod]
+        public void ApproveAllProvidersResults_ThrowsExceptionIfNoJobIdInMessage()
+        {
+            Func<Task> invocation = WhenAllProvidersResultsAreApproved;
 
             invocation
                 .Should()
@@ -173,7 +243,21 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         }
 
         [TestMethod]
-        public async Task ApproveResults_TracksStartAndCompletionOfJobByJobIdInMessageProperties()
+        public void ApproveBatchProvidersResults_ThrowsExceptionIfNoJobIdInMessage()
+        {
+            Func<Task> invocation = WhenBatchProvidersResultsAreApproved;
+
+            invocation
+                .Should()
+                .Throw<ArgumentNullException>()
+                .And
+                .ParamName
+                .Should()
+                .Be("jobId");
+        }
+
+        [TestMethod]
+        public async Task ApproveAllProvidersResults_TracksStartAndCompletionOfJobByJobIdInMessageProperties()
         {
             string specificationId = NewRandomString();
 
@@ -181,17 +265,33 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             GivenTheMessageHasTheSpecificationId(specificationId);
             AndRetrieveJobAndCheckCanBeProcessedSuccessfully();
 
-            await WhenTheResultsAreApproved();
+            await WhenAllProvidersResultsAreApproved();
             AndTheJobEndWasTracked();
         }
 
         [TestMethod]
-        public void ApproveResults_ExitsEarlyIfUnableToStartTrackingJob()
+        public async Task ApproveBatchProvidersResults_TracksStartAndCompletionOfJobByJobIdInMessageProperties()
+        {
+            string specificationId = NewRandomString();
+            string providerId = NewRandomString();
+            string[] providerIds = new[] { providerId };
+
+            GivenTheMessageHasAJobId();
+            GivenTheMessageHasTheSpecificationId(specificationId);
+            GivenTheMessageHasTheApproveProvidersRequest(BuildApproveProvidersRequest(_ => _.WithProviders(providerIds)));
+            AndRetrieveJobAndCheckCanBeProcessedSuccessfully();
+
+            await WhenBatchProvidersResultsAreApproved();
+            AndTheJobEndWasTracked();
+        }
+
+        [TestMethod]
+        public void ApproveAllProvidersResults_ExitsEarlyIfUnableToStartTrackingJob()
         {
             GivenTheMessageHasAJobId();
             AndRetrieveJobAndCheckCannotBeProcessedSuccessfully();
 
-            Func<Task> invocation = WhenTheResultsAreApproved;
+            Func<Task> invocation = WhenAllProvidersResultsAreApproved;
 
             invocation
                 .Should()
@@ -200,7 +300,21 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         }
 
         [TestMethod]
-        public void ApproveResults_ExistsEarlyIfAnyOfThePublishedProvidersAreInError()
+        public void ApproveBatchProvidersResults_ExitsEarlyIfUnableToStartTrackingJob()
+        {
+            GivenTheMessageHasAJobId();
+            AndRetrieveJobAndCheckCannotBeProcessedSuccessfully();
+
+            Func<Task> invocation = WhenBatchProvidersResultsAreApproved;
+
+            invocation
+                .Should()
+                .Throw<NonRetriableException>()
+                .WithMessage("Job can not be run");
+        }
+
+        [TestMethod]
+        public void ApproveAllProvidersResults_ExistsEarlyIfAnyOfThePublishedProvidersAreInError()
         {
             PublishedProvider[] expectedPublishedProviders =
             {
@@ -215,12 +329,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             GivenTheMessageHasTheSpecificationId(specificationId);
             GivenTheMessageHasTheFundingLineCode(fundingLineCode);
             AndTheMessageIsOtherwiseValid();
-            AndTheSpecificationHasTheHeldUnApprovedPublishedProviders(specificationId, expectedPublishedProviders);
+            AndTheSpecificationHasTheHeldUnApprovedPublishedProviders(specificationId, null, expectedPublishedProviders);
 
             AndRetrieveJobAndCheckCanBeProcessedSuccessfully();
             AndNumberOfApprovedPublishedProvidersIsReturned(expectedPublishedProviders);
 
-            Func<Task> invocation = WhenTheResultsAreApproved;
+            Func<Task> invocation = WhenAllProvidersResultsAreApproved;
 
             invocation
                 .Should()
@@ -228,7 +342,38 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         }
 
         [TestMethod]
-        public async Task ApproveResults_SendsHeldAndUpdatedPublishedProvidersBySpecIdToBeApproved()
+        public void ApproveBatchProvidersResults_ExistsEarlyIfAnyOfThePublishedProvidersAreInError()
+        {
+            PublishedProvider[] expectedPublishedProviders =
+            {
+                NewPublishedProvider(_ => _.WithCurrent(NewPublishedProviderVersion(ppv =>
+                    ppv.WithErrors(NewPublishedProviderError())))),
+                NewPublishedProvider(),
+            };
+
+            string specificationId = NewRandomString();
+            string fundingLineCode = NewRandomString();
+            string providerId = NewRandomString();
+            string[] providerIds = new[] { providerId };
+
+            GivenTheMessageHasTheSpecificationId(specificationId);
+            GivenTheMessageHasTheApproveProvidersRequest(BuildApproveProvidersRequest(_ => _.WithProviders(providerIds)));
+            GivenTheMessageHasTheFundingLineCode(fundingLineCode);
+            AndTheMessageIsOtherwiseValid();
+            AndTheSpecificationHasTheHeldUnApprovedPublishedProviders(specificationId, providerIds, expectedPublishedProviders);
+
+            AndRetrieveJobAndCheckCanBeProcessedSuccessfully();
+            AndNumberOfApprovedPublishedProvidersIsReturned(expectedPublishedProviders);
+
+            Func<Task> invocation = WhenBatchProvidersResultsAreApproved;
+
+            invocation
+                .Should()
+                .Throw<InvalidOperationException>();
+        }
+
+        [TestMethod]
+        public async Task ApproveAllProvidersResults_SendsHeldAndUpdatedPublishedProvidersBySpecIdToBeApproved()
         {
             PublishedProvider[] expectedPublishedProviders =
             {
@@ -246,12 +391,45 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             GivenTheMessageHasTheSpecificationId(specificationId);
             GivenTheMessageHasTheFundingLineCode(fundingLineCode);
             AndTheMessageIsOtherwiseValid();
-            AndTheSpecificationHasTheHeldUnApprovedPublishedProviders(specificationId, expectedPublishedProviders);
+            AndTheSpecificationHasTheHeldUnApprovedPublishedProviders(specificationId, null, expectedPublishedProviders);
 
             AndRetrieveJobAndCheckCanBeProcessedSuccessfully();
             AndNumberOfApprovedPublishedProvidersIsReturned(expectedPublishedProviders);
 
-            await WhenTheResultsAreApproved();
+            await WhenAllProvidersResultsAreApproved();
+
+            ThenThePublishedProvidersWereApproved(expectedPublishedProviders);
+            AndTheCsvGenerationJobsWereCreated();
+        }
+
+        [TestMethod]
+        public async Task ApproveBatchProvidersResults_SendsHeldAndUpdatedPublishedProvidersBySpecIdToBeApproved()
+        {
+            PublishedProvider[] expectedPublishedProviders =
+            {
+                NewPublishedProvider(),
+                NewPublishedProvider(),
+                NewPublishedProvider(),
+                NewPublishedProvider(),
+                NewPublishedProvider(),
+                NewPublishedProvider()
+            };
+
+            string specificationId = NewRandomString();
+            string fundingLineCode = NewRandomString();
+            string providerId = NewRandomString();
+            string[] providerIds = new[] { providerId };
+
+            GivenTheMessageHasTheSpecificationId(specificationId);
+            GivenTheMessageHasTheApproveProvidersRequest(BuildApproveProvidersRequest(_ => _.WithProviders(providerIds)));
+            GivenTheMessageHasTheFundingLineCode(fundingLineCode);
+            AndTheMessageIsOtherwiseValid();
+            AndTheSpecificationHasTheHeldUnApprovedPublishedProviders(specificationId, providerIds, expectedPublishedProviders);
+
+            AndRetrieveJobAndCheckCanBeProcessedSuccessfully();
+            AndNumberOfApprovedPublishedProvidersIsReturned(expectedPublishedProviders);
+
+            await WhenBatchProvidersResultsAreApproved();
 
             ThenThePublishedProvidersWereApproved(expectedPublishedProviders);
             AndTheCsvGenerationJobsWereCreated();
@@ -263,11 +441,30 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 .GetService(Arg.Any<GeneratePublishingCsvJobsCreationAction>());
         }
 
-        private void AndCalculationEngineRunning(string specificationId)
+        private void AndCalculationEngineApproveProviderRunning(string specificationId)
         {
-            string[] jobTypes = new string[] { JobConstants.DefinitionNames.RefreshFundingJob,
-                JobConstants.DefinitionNames.PublishProviderFundingJob,
-                JobConstants.DefinitionNames.ReIndexPublishedProvidersJob };
+            string[] jobTypes = new string[] {
+                JobConstants.DefinitionNames.RefreshFundingJob,
+                JobConstants.DefinitionNames.PublishAllProviderFundingJob,
+                JobConstants.DefinitionNames.PublishBatchProviderFundingJob,
+                JobConstants.DefinitionNames.ReIndexPublishedProvidersJob,
+                JobConstants.DefinitionNames.ApproveAllProviderFundingJob
+            };
+
+            _jobsRunning
+                .GetJobTypes(Arg.Is(specificationId), Arg.Is<IEnumerable<string>>(_ => _.All(jt => jobTypes.Contains(jt))))
+                .Returns(new[] { JobConstants.DefinitionNames.RefreshFundingJob });
+        }
+
+        private void AndCalculationEngineApproveSpecificationRunning(string specificationId)
+        {
+            string[] jobTypes = new string[] { 
+                JobConstants.DefinitionNames.RefreshFundingJob,
+                JobConstants.DefinitionNames.PublishAllProviderFundingJob,
+                JobConstants.DefinitionNames.PublishBatchProviderFundingJob,
+                JobConstants.DefinitionNames.ReIndexPublishedProvidersJob,
+                JobConstants.DefinitionNames.ApproveBatchProviderFundingJob
+            };
 
             _jobsRunning
                 .GetJobTypes(Arg.Is(specificationId), Arg.Is<IEnumerable<string>>(_ => _.All(jt => jobTypes.Contains(jt))))
@@ -294,6 +491,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             GivenTheUserProperty("specification-id", specificationId);
         }
 
+        private void GivenTheMessageHasTheApproveProvidersRequest(ApproveProvidersRequest approveProvidersRequest)
+        {
+            GivenTheUserProperty(JobConstants.MessagePropertyNames.ApproveProvidersRequest, JsonExtensions.AsJson(approveProvidersRequest));
+        }
+
         private void GivenTheMessageHasTheFundingLineCode(string fundingLineCode)
         {
             GivenTheUserProperty("funding-line-code", fundingLineCode);
@@ -304,9 +506,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             GivenTheMessageHasAJobId();
         }
 
-        private void AndTheSpecificationHasTheHeldUnApprovedPublishedProviders(string specificationId, params PublishedProvider[] publishedProviders)
+        private void AndTheSpecificationHasTheHeldUnApprovedPublishedProviders(string specificationId, string[] providerIds = null, params PublishedProvider[] publishedProviders)
         {
-            _publishedFundingDataService.GetPublishedProvidersForApproval(specificationId)
+            _publishedFundingDataService.GetPublishedProvidersForApproval(specificationId, Arg.Is<string[]>(_ => _ == null || _.SequenceEqual(providerIds)))
                 .Returns(publishedProviders);
         }
 
@@ -332,9 +534,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 .Throws(new Exception());
         }
 
-        private async Task WhenTheResultsAreApproved()
+        private async Task WhenBatchProvidersResultsAreApproved()
         {
-            await _approveService.ApproveResults(_message);
+            await _approveService.ApproveBatchResults(_message);
+        }
+
+        private async Task WhenAllProvidersResultsAreApproved()
+        {
+            await _approveService.ApproveAllResults(_message);
         }
 
         private void ThenThePublishedProvidersWereApproved(IEnumerable<PublishedProvider> publishedProviders)
@@ -358,6 +565,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
 
             _jobsApiClient.GetJobById(_jobId)
                 .Returns(new ApiResponse<JobViewModel>(HttpStatusCode.OK, _job));
+        }
+
+        private ApproveProvidersRequest BuildApproveProvidersRequest(Action<ApproveProvidersRequestBuilder> setUp = null)
+        {
+            ApproveProvidersRequestBuilder approveProvidersRequestBuilder = new ApproveProvidersRequestBuilder();
+
+            setUp?.Invoke(approveProvidersRequestBuilder);
+
+            return approveProvidersRequestBuilder.Build();
         }
 
         private void AndRetrieveJobAndCheckCannotBeProcessedSuccessfully(Action<JobViewModelBuilder> setUp = null)

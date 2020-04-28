@@ -209,8 +209,10 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
             RegisterTypeAs<SpecificationFundingStatusService, ISpecificationFundingStatusService>();
             RegisterTypeAs<CalculationPrerequisiteCheckerService, ICalculationPrerequisiteCheckerService>();
             RegisterTypeAs<RefreshPrerequisiteChecker, IPrerequisiteChecker>();
-            RegisterTypeAs<PublishPrerequisiteChecker, IPrerequisiteChecker>();
-            RegisterTypeAs<ApprovePrerequisiteChecker, IPrerequisiteChecker>();
+            RegisterTypeAs<PublishAllPrerequisiteChecker, IPrerequisiteChecker>();
+            RegisterTypeAs<PublishBatchPrerequisiteChecker, IPrerequisiteChecker>();
+            RegisterTypeAs<ApproveAllProvidersPrerequisiteChecker, IPrerequisiteChecker>();
+            RegisterTypeAs<ApproveBatchProvidersPrerequisiteChecker, IPrerequisiteChecker>();
 
             IPrerequisiteChecker[] prerequisiteCheckers = typeof(IPrerequisiteChecker).Assembly.GetTypes()
                 .Where(_ => _.Implements(typeof(IPrerequisiteChecker)))

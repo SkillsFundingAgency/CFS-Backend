@@ -6,7 +6,11 @@ using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Calcs.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Publishing.AcceptanceTests.Contexts;
+using CalculateFunding.Publishing.AcceptanceTests.Extensions;
+using CalculateFunding.Services.Core.Constants;
+using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Interfaces;
+using CalculateFunding.Services.Publishing.Models;
 using Microsoft.Azure.ServiceBus;
 using TechTalk.SpecFlow;
 using TechTalk.SpecFlow.Assist;
@@ -117,7 +121,25 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
             message.UserProperties.Add("specification-id", _currentSpecificationStepContext.SpecificationId);
             message.UserProperties.Add("jobId", _currentJobStepContext.JobId);
 
-            await _publishService.PublishResults(message);
+            await _publishService.PublishAllProviderFundingResults(message);
+        }
+
+        [When(@"batch funding is published")]
+        public async Task WhenBatchFundingIsPublished(Table table)
+        {
+            Message message = new Message();
+
+            string[] providerIds = table.AsStrings();
+            PublishProvidersRequest publishProvidersRequest = new PublishProvidersRequest { Providers = providerIds };
+            string publishProvidersRequestJson = JsonExtensions.AsJson(publishProvidersRequest);
+
+            message.UserProperties.Add("user-id", _currentUserStepContext.UserId);
+            message.UserProperties.Add("user-name", _currentUserStepContext.UserName);
+            message.UserProperties.Add("specification-id", _currentSpecificationStepContext.SpecificationId);
+            message.UserProperties.Add("jobId", _currentJobStepContext.JobId);
+            message.UserProperties.Add(JobConstants.MessagePropertyNames.PublishProvidersRequest, publishProvidersRequestJson);
+
+            await _publishService.PublishBatchProviderFundingResults(message);
         }
     }
 }

@@ -648,9 +648,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
 
         private void AndJobsRunning()
         {
-            string[] jobTypes = new string[] { JobConstants.DefinitionNames.CreateInstructAllocationJob, JobConstants.DefinitionNames.ApproveFunding,
-                JobConstants.DefinitionNames.PublishProviderFundingJob,
-                JobConstants.DefinitionNames.ReIndexPublishedProvidersJob };
+            string[] jobTypes = new string[] 
+            { 
+                JobConstants.DefinitionNames.CreateInstructAllocationJob, 
+                JobConstants.DefinitionNames.ApproveAllProviderFundingJob,
+                JobConstants.DefinitionNames.ApproveBatchProviderFundingJob,
+                JobConstants.DefinitionNames.PublishAllProviderFundingJob,
+                JobConstants.DefinitionNames.PublishBatchProviderFundingJob,
+                JobConstants.DefinitionNames.ReIndexPublishedProvidersJob 
+            };
 
             _jobsRunning
                 .GetJobTypes(Arg.Is(SpecificationId), Arg.Is<IEnumerable<string>>(_ => _.All(jt => jobTypes.Contains(jt))))

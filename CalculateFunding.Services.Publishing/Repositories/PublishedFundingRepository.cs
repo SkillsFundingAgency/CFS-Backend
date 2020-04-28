@@ -207,28 +207,40 @@ namespace CalculateFunding.Services.Publishing.Repositories
             return await _repository.UpsertAsync(publishedFunding, publishedFunding.ParitionKey);
         }
 
-        public async Task<IEnumerable<KeyValuePair<string, string>>> GetPublishedProviderIdsForApproval(string fundingStreamId, string fundingPeriodId)
+        public async Task<IEnumerable<KeyValuePair<string, string>>> GetPublishedProviderIdsForApproval(string fundingStreamId, string fundingPeriodId, string[] providerIds = null)
         {
             Guard.IsNullOrWhiteSpace(fundingStreamId, nameof(fundingStreamId));
             Guard.IsNullOrWhiteSpace(fundingPeriodId, nameof(fundingPeriodId));
 
-
-            Dictionary<string, string> results = new Dictionary<string, string>();
-            IEnumerable<dynamic> queryResults = await _repository
-             .DynamicQuery(new CosmosDbQuery
-             {
-                 QueryText = @"
+            StringBuilder queryTextBuilder = new StringBuilder(@"
                                 SELECT c.id as id, c.content.partitionKey as partitionKey FROM c
                                 WHERE c.documentType = 'PublishedProvider'
                                 AND c.content.current.fundingStreamId = @fundingStreamId
                                 AND c.content.current.fundingPeriodId = @fundingPeriodId
-                                AND (c.content.current.status = 'Draft' OR c.content.current.status = 'Updated')",
-                 Parameters = new[]
-                 {
-                    new CosmosDbQueryParameter("@fundingStreamId", fundingStreamId),
-                    new CosmosDbQueryParameter("@fundingPeriodId", fundingPeriodId)
-                 }
-             });
+                                AND (c.content.current.status = 'Draft' OR c.content.current.status = 'Updated')");
+
+            List<CosmosDbQueryParameter> cosmosDbQueryParameters = new List<CosmosDbQueryParameter>{
+                new CosmosDbQueryParameter("@fundingStreamId", fundingStreamId),
+                new CosmosDbQueryParameter("@fundingPeriodId", fundingPeriodId)
+            };
+
+            if (providerIds != null && providerIds.Any())
+            {
+                string providerIdQueryText = string.Join(',', providerIds.Select((_, index) => $"@providerId_{index}"));
+                queryTextBuilder.Append($" AND c.content.current.providerId IN ({providerIdQueryText})");
+
+                cosmosDbQueryParameters.AddRange(providerIds.Select((_, index) => new CosmosDbQueryParameter($"@providerId_{index}", _)));
+            }
+
+            CosmosDbQuery cosmosDbQuery = new CosmosDbQuery
+            {
+                QueryText = queryTextBuilder.ToString(),
+                Parameters = cosmosDbQueryParameters
+            };
+
+            Dictionary<string, string> results = new Dictionary<string, string>();
+            IEnumerable<dynamic> queryResults = await _repository
+             .DynamicQuery(cosmosDbQuery);
 
             foreach (dynamic item in queryResults)
             {
@@ -246,27 +258,38 @@ namespace CalculateFunding.Services.Publishing.Repositories
             return (await _repository.ReadDocumentByIdPartitionedAsync<PublishedProvider>(cosmosId, partitionKey))?.Content;
         }
 
-        public async Task<IEnumerable<KeyValuePair<string, string>>> GetPublishedProviderIds(string fundingStreamId, string fundingPeriodId)
+        public async Task<IEnumerable<KeyValuePair<string, string>>> GetPublishedProviderIds(string fundingStreamId, string fundingPeriodId, string[] providerIds = null)
         {
             Guard.IsNullOrWhiteSpace(fundingStreamId, nameof(fundingStreamId));
             Guard.IsNullOrWhiteSpace(fundingPeriodId, nameof(fundingPeriodId));
 
-
-            Dictionary<string, string> results = new Dictionary<string, string>();
-            IEnumerable<dynamic> queryResults = await _repository
-             .DynamicQuery(new CosmosDbQuery
-             {
-                 QueryText = @"
+            StringBuilder queryTextBuilder = new StringBuilder(@"
                                 SELECT c.id as id, c.content.partitionKey as partitionKey FROM c
                                 WHERE c.documentType = 'PublishedProvider'
                                 AND c.content.current.fundingStreamId = @fundingStreamId
-                                AND c.content.current.fundingPeriodId = @fundingPeriodId",
-                 Parameters = new[]
-                 {
-                                    new CosmosDbQueryParameter("@fundingStreamId", fundingStreamId),
-                                    new CosmosDbQueryParameter("@fundingPeriodId", fundingPeriodId)
-                 }
-             });
+                                AND c.content.current.fundingPeriodId = @fundingPeriodId");
+
+            List<CosmosDbQueryParameter> cosmosDbQueryParameters = new List<CosmosDbQueryParameter>{
+                new CosmosDbQueryParameter("@fundingStreamId", fundingStreamId),
+                new CosmosDbQueryParameter("@fundingPeriodId", fundingPeriodId)
+            };
+
+            if (providerIds != null && providerIds.Any())
+            {
+                string providerIdQueryText = string.Join(',', providerIds.Select((_, index) => $"@providerId_{index}"));
+                queryTextBuilder.Append($" AND c.content.current.providerId IN ({providerIdQueryText})");
+
+                cosmosDbQueryParameters.AddRange(providerIds.Select((_, index) => new CosmosDbQueryParameter($"@providerId_{index}", _)));
+            }
+
+            CosmosDbQuery cosmosDbQuery = new CosmosDbQuery
+            {
+                QueryText = queryTextBuilder.ToString(),
+                Parameters = cosmosDbQueryParameters
+            };
+
+            Dictionary<string, string> results = new Dictionary<string, string>();
+            IEnumerable<dynamic> queryResults = await _repository.DynamicQuery(cosmosDbQuery);
 
             foreach (dynamic item in queryResults)
             {

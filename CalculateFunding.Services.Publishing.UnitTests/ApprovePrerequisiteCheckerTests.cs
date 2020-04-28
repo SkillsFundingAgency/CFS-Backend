@@ -19,7 +19,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private IJobsRunning _jobsRunning;
         private ILogger _logger;
         private IJobManagement _jobManagement;
-        private ApprovePrerequisiteChecker _approvePrerequisiteChecker;
+        private ApproveAllProvidersPrerequisiteChecker _approvePrerequisiteChecker;
 
         [TestInitialize]
         public void SetUp()
@@ -28,7 +28,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             _jobManagement = Substitute.For<IJobManagement>();
             _logger = Substitute.For<ILogger>();
 
-            _approvePrerequisiteChecker = new ApprovePrerequisiteChecker(
+            _approvePrerequisiteChecker = new ApproveAllProvidersPrerequisiteChecker(
                 _jobsRunning,
                 _jobManagement,
                 _logger);

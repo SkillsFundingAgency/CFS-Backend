@@ -14,8 +14,11 @@ using CalculateFunding.Models.Publishing;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Constants;
+using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Interfaces;
+using CalculateFunding.Services.Publishing.Models;
 using CalculateFunding.Services.Publishing.Specifications;
+using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -73,13 +76,21 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         private IPublishedFundingDateService _publishedFundingDateService;
         private ISpecificationFundingStatusService _specificationFundingStatusService;
         private IJobsRunning _jobsRunning;
+        private PublishProvidersRequest _publishProvidersRequest;
+        
         private const string SpecificationId = "SpecificationId";
         private const string JobId = "JobId";
         private const string FundingStreamId = "PSG";
 
+        private string _providerId;
+        private string[] _providerIds;
+
         [TestInitialize]
         public void Setup()
         {
+            _providerId = NewRandomString();
+            _providerIds = new[] { _providerId };
+
             _publishedFundingStatusUpdateService = Substitute.For<IPublishedFundingStatusUpdateService>();
             _publishingResiliencePolicies = new ResiliencePolicies
             {
@@ -106,8 +117,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             _jobsApiClient = Substitute.For<IJobsApiClient>();
             _jobManagement = new JobManagement(_jobsApiClient, _logger, new JobManagementResiliencePolicies { JobsApiClient = Policy.NoOpAsync() });
             _prerequisiteCheckerLocator = Substitute.For<IPrerequisiteCheckerLocator>();
-            _prerequisiteCheckerLocator.GetPreReqChecker(PrerequisiteCheckerType.Release)
-                .Returns(new PublishPrerequisiteChecker(_specificationFundingStatusService, _jobsRunning, _jobManagement, _logger));
+            _prerequisiteCheckerLocator.GetPreReqChecker(PrerequisiteCheckerType.ReleaseAllProviders)
+                .Returns(new PublishAllPrerequisiteChecker(_specificationFundingStatusService, _jobsRunning, _jobManagement, _logger));
+            _prerequisiteCheckerLocator.GetPreReqChecker(PrerequisiteCheckerType.ReleaseBatchProviders)
+                .Returns(new PublishBatchPrerequisiteChecker(_specificationFundingStatusService, _jobsRunning, _jobManagement, _logger));
             _generateCsvJobsLocator = Substitute.For<IGeneratePublishedFundingCsvJobsCreationLocator>();
             _mapper = Substitute.For<IMapper>();
             _transactionFactory = new TransactionFactory(_logger, new TransactionResiliencePolicies { TransactionPolicy = Policy.NoOpAsync() });
@@ -152,7 +165,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         }
 
         [TestMethod]
-        public async Task PublishResults_WhenAnUpdatePublishStatusThrowsException_TransactionCompensates()
+        public async Task PublishAllProviderFundingResults_WhenAnUpdatePublishStatusThrowsException_TransactionCompensates()
         {
             string error = "Unable to update status.";
 
@@ -164,7 +177,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             AndUpdateStatusThrowsAnError(error);
             AndTemplateMapping();
 
-            Func<Task> invocation = WhenMessageReceivedWithJobId;
+            Func<Task> invocation = WhenPublishAllProvidersMessageReceivedWithJobId;
 
             invocation
                 .Should()
@@ -184,7 +197,39 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         }
 
         [TestMethod]
-        public async Task PublishResults_WhenAnUpdatePublishFundingStatusThrowsException_TransactionCompensates()
+        public async Task PublishBatchProviderFundingResults_WhenAnUpdatePublishStatusThrowsException_TransactionCompensates()
+        {
+            string error = "Unable to update status.";
+
+            GivenJobCanBeProcessed();
+            AndSpecification();
+            AndCalculationResultsBySpecificationId();
+            AndTemplateMetadataContents();
+            AndPublishedProviders(_providerIds);
+            AndUpdateStatusThrowsAnError(error);
+            AndTemplateMapping();
+
+            Func<Task> invocation = () => WhenPublishBatchProvidersMessageReceivedWithJobId(BuildPublishProvidersRequest(_ => _.WithProviders(_providerIds)));
+
+            invocation
+                .Should()
+                .Throw<Exception>()
+                .And
+                .Message
+                .Should()
+                .Be(error);
+
+            await _publishedProviderVersionService
+                .Received(1)
+                .CreateReIndexJob(Arg.Any<Reference>(), Arg.Any<string>());
+
+            await _publishedFundingSearchRepository
+                .Received(0)
+                .RunIndexer();
+        }
+
+        [TestMethod]
+        public async Task PublishAllProviderFundingResults_WhenAnUpdatePublishFundingStatusThrowsException_TransactionCompensates()
         {
             string error = "Unable to update status.";
 
@@ -196,7 +241,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             AndUpdateFundingStatusThrowsAnError(error);
             AndTemplateMapping();
 
-            Func<Task> invocation = WhenMessageReceivedWithJobId;
+            Func<Task> invocation = WhenPublishAllProvidersMessageReceivedWithJobId;
 
             invocation
                 .Should()
@@ -216,7 +261,39 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         }
 
         [TestMethod]
-        public void PublishResults_WhenNoTemplateMappingExists_ExceptionThrown()
+        public async Task PublishBatchProviderFundingResults_WhenAnUpdatePublishFundingStatusThrowsException_TransactionCompensates()
+        {
+            string error = "Unable to update status.";
+
+            GivenJobCanBeProcessed();
+            AndSpecification();
+            AndCalculationResultsBySpecificationId();
+            AndTemplateMetadataContents();
+            AndPublishedProviders(_providerIds);
+            AndUpdateFundingStatusThrowsAnError(error);
+            AndTemplateMapping();
+
+            Func<Task> invocation = () => WhenPublishBatchProvidersMessageReceivedWithJobId(BuildPublishProvidersRequest(_ => _.WithProviders(_providerIds)));
+
+            invocation
+                .Should()
+                .Throw<Exception>()
+                .And
+                .Message
+                .Should()
+                .Be(error);
+
+            await _publishedProviderVersionService
+                .Received(1)
+                .CreateReIndexJob(Arg.Any<Reference>(), Arg.Any<string>());
+
+            await _publishedFundingSearchRepository
+                .Received(1)
+                .RunIndexer();
+        }
+
+        [TestMethod]
+        public void PublishAllProviderFundingResults_WhenNoTemplateMappingExists_ExceptionThrown()
         {
             GivenJobCanBeProcessed();
             AndSpecification();
@@ -224,7 +301,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             AndTemplateMetadataContents();
             AndPublishedProviders();
 
-            Func<Task> invocation = WhenMessageReceivedWithJobId;
+            Func<Task> invocation = WhenPublishAllProvidersMessageReceivedWithJobId;
 
             invocation
                 .Should()
@@ -236,11 +313,31 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         }
 
         [TestMethod]
-        public void PublishResults_GivenSpecificationDoesNotExist_ThrowsException()
+        public void PublishBatchProviderFundingResults_WhenNoTemplateMappingExists_ExceptionThrown()
+        {
+            GivenJobCanBeProcessed();
+            AndSpecification();
+            AndCalculationResultsBySpecificationId();
+            AndTemplateMetadataContents();
+            AndPublishedProviders(_providerIds);
+
+            Func<Task> invocation = () => WhenPublishBatchProvidersMessageReceivedWithJobId(BuildPublishProvidersRequest(_ => _.WithProviders(_providerIds)));
+
+            invocation
+                .Should()
+                .Throw<Exception>()
+                .And
+                .Message
+                .Should()
+                .Be($"calculationMappingResult returned null for funding stream {FundingStreamId}");
+        }
+
+        [TestMethod]
+        public void PublishAllProviderFundingResults_GivenSpecificationDoesNotExist_ThrowsException()
         {
             GivenJobCanBeProcessed();
 
-            Func<Task> invocation = WhenMessageReceivedWithJobId;
+            Func<Task> invocation = WhenPublishAllProvidersMessageReceivedWithJobId;
 
             invocation
                 .Should()
@@ -252,9 +349,25 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         }
 
         [TestMethod]
-        public void PublishResults_GivenJobCannotBeProcessed_ThrowsException()
+        public void PublishBatchProviderFundingResults_GivenSpecificationDoesNotExist_ThrowsException()
         {
-            Func<Task> invocation = WhenMessageReceivedWithJobId;
+            GivenJobCanBeProcessed();
+
+            Func<Task> invocation = () => WhenPublishBatchProvidersMessageReceivedWithJobId(BuildPublishProvidersRequest(_ => _.WithProviders(_providerIds)));
+
+            invocation
+                .Should()
+                .Throw<NonRetriableException>()
+                .And
+                .Message
+                .Should()
+                .Be($"Could not find specification with id '{SpecificationId}'");
+        }
+
+        [TestMethod]
+        public void PublishAllProviderFundingResults_GivenJobCannotBeProcessed_ThrowsException()
+        {
+            Func<Task> invocation = WhenPublishAllProvidersMessageReceivedWithJobId;
 
             invocation
                 .Should()
@@ -266,16 +379,57 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         }
 
         [TestMethod]
-        public void CheckPrerequisitesForSpecificationToBePublished_WhenPreReqsValidationErrors_ThrowsException()
+        public void PublishBatchProviderFundingResults_GivenJobCannotBeProcessed_ThrowsException()
+        {
+            Func<Task> invocation = () => WhenPublishBatchProvidersMessageReceivedWithJobId(BuildPublishProvidersRequest(_ => _.WithProviders(_providerIds)));
+
+            invocation
+                .Should()
+                .Throw<NonRetriableException>()
+                .And
+                .Message
+                .Should()
+                .Be("Job can not be run");
+        }
+
+        [TestMethod]
+        public void CheckPrerequisitesForAllProvidersToBePublished_WhenPreReqsValidationErrors_ThrowsException()
         {
             GivenJobCanBeProcessed();
             AndSpecification();
             AndCalculationResultsBySpecificationId();
             AndTemplateMetadataContents();
             AndPublishedProviders();
-            AndCalculationEngineRunning();
+            AndCalculationEngineRunningForPublishAllProviders();
 
-            Func<Task> invocation = WhenMessageReceivedWithJobId;
+            Func<Task> invocation = WhenPublishAllProvidersMessageReceivedWithJobId;
+
+            invocation
+                .Should()
+                .Throw<Exception>()
+                .And
+                .Message
+                .Should()
+                .Be($"Specification with id: '{SpecificationId} has prerequisites which aren't complete.");
+
+            string[] prereqValidationErrors = new string[] { $"{JobConstants.DefinitionNames.RefreshFundingJob} is still running" };
+
+            _jobsApiClient.Received(1)
+                .AddJobLog(Arg.Is(JobId),
+                           Arg.Is<JobLogUpdateModel>(_ => _.CompletedSuccessfully == false && _.Outcome == string.Join(", ", prereqValidationErrors)));
+        }
+
+        [TestMethod]
+        public void CheckPrerequisitesForBatchProvidersToBePublished_WhenPreReqsValidationErrors_ThrowsException()
+        {
+            GivenJobCanBeProcessed();
+            AndSpecification();
+            AndCalculationResultsBySpecificationId();
+            AndTemplateMetadataContents();
+            AndPublishedProviders(_providerIds);
+            AndCalculationEngineRunningForPublishBatchProviders();
+
+            Func<Task> invocation = () => WhenPublishBatchProvidersMessageReceivedWithJobId(BuildPublishProvidersRequest(_ => _.WithProviders(_providerIds)));
 
             invocation
                 .Should()
@@ -355,7 +509,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 .GetTemplateMapping(_specificationSummary.Id, FundingStreamId)
                 .Returns(new ApiResponse<TemplateMapping>(HttpStatusCode.OK, _templateMapping));
         }
-        private void AndPublishedProviders()
+        private void AndPublishedProviders(string[] providerIds = null)
         {
             Provider[] providers = new[] { NewProvider(), 
                 NewProvider(), 
@@ -380,16 +534,36 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
 
             _providerService
                 .GetPublishedProviders(Arg.Is<Reference>(_ => _.Id == FundingStreamId),
-                                                         _specificationSummary)
+                                                         _specificationSummary,
+                                                         Arg.Is<string[]>(_ => _ == null || _.SequenceEqual(providerIds)))
                 .Returns((_publishedProviders.ToDictionary(_ => _.Current.ProviderId),
                                                            _publishedProviders.ToDictionary(_ => _.Current.ProviderId)));
         }
 
-        private void AndCalculationEngineRunning()
+        private void AndCalculationEngineRunningForPublishAllProviders()
         {
-            string[] jobTypes = new string[] { JobConstants.DefinitionNames.RefreshFundingJob, 
-                JobConstants.DefinitionNames.ApproveFunding,
-                JobConstants.DefinitionNames.ReIndexPublishedProvidersJob };
+            string[] jobTypes = new string[] { 
+                JobConstants.DefinitionNames.RefreshFundingJob, 
+                JobConstants.DefinitionNames.ApproveAllProviderFundingJob,
+                JobConstants.DefinitionNames.ApproveBatchProviderFundingJob,
+                JobConstants.DefinitionNames.ReIndexPublishedProvidersJob,
+                JobConstants.DefinitionNames.PublishBatchProviderFundingJob
+            };
+
+            _jobsRunning
+                .GetJobTypes(Arg.Is(SpecificationId), Arg.Is<IEnumerable<string>>(_ => _.All(jt => jobTypes.Contains(jt))))
+                .Returns(new[] { JobConstants.DefinitionNames.RefreshFundingJob });
+        }
+
+        private void AndCalculationEngineRunningForPublishBatchProviders()
+        {
+            string[] jobTypes = new string[] {
+                JobConstants.DefinitionNames.RefreshFundingJob,
+                JobConstants.DefinitionNames.ApproveAllProviderFundingJob,
+                JobConstants.DefinitionNames.ApproveBatchProviderFundingJob,
+                JobConstants.DefinitionNames.ReIndexPublishedProvidersJob,
+                JobConstants.DefinitionNames.PublishAllProviderFundingJob
+            };
 
             _jobsRunning
                 .GetJobTypes(Arg.Is(SpecificationId), Arg.Is<IEnumerable<string>>(_ => _.All(jt => jobTypes.Contains(jt))))
@@ -403,13 +577,38 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             _calculationResults = results.Select(res => NewCalculationResult(cr => cr.WithValue(res))).ToArray();
         }
 
-        private async Task WhenMessageReceivedWithJobId()
+        private async Task WhenPublishAllProvidersMessageReceivedWithJobId()
         {
             Message message = NewMessage(_ => _.WithUserProperty("specification-id", 
                                                                  SpecificationId).WithUserProperty("jobId",
                                                                                                    JobId));
 
-            await _publishService.PublishResults(message);
+            await _publishService.PublishAllProviderFundingResults(message);
+        }
+
+        private async Task WhenPublishBatchProvidersMessageReceivedWithJobId(PublishProvidersRequest publishProvidersRequest)
+        {
+            Message message = NewMessage(_ => _
+                .WithUserProperty("specification-id",SpecificationId)
+                .WithUserProperty("jobId",JobId)
+                .WithUserProperty(
+                    JobConstants.MessagePropertyNames.PublishProvidersRequest, JsonExtensions.AsJson(publishProvidersRequest)));
+
+            await _publishService.PublishBatchProviderFundingResults(message);
+        }
+
+        private PublishProvidersRequest BuildPublishProvidersRequest(Action<PublishProvidersRequestBuilder> setUp = null)
+        {
+            PublishProvidersRequestBuilder publishProvidersRequestBuilder = new PublishProvidersRequestBuilder();
+
+            setUp?.Invoke(publishProvidersRequestBuilder);
+
+            return publishProvidersRequestBuilder.Build();
+        }
+
+        private static RandomString NewRandomString()
+        {
+            return new RandomString();
         }
     }
 }

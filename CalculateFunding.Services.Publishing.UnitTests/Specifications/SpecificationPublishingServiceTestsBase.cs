@@ -1,8 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Net;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Models;
@@ -26,10 +29,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
         protected TJobCreation Jobs { get; private set; }
         protected IActionResult ActionResult { get; set; }
         protected string SpecificationId { get; private set; }
+        protected string[] ProviderIds { get; private set; }
         protected string CorrelationId { get; private set; }
+        protected string FundingStreamId { get; private set; }
+        protected string FundingPeriodId { get; private set; }
         protected Reference User { get; private set; }
-        protected ISpecificationIdServiceRequestValidator Validator { get; private set; }
+        protected ISpecificationIdServiceRequestValidator SpecificationIdValidator { get; private set; }
+        protected IProviderIdsServiceRequestValidator ProviderIdsValidator { get; private set; }
         protected ResiliencePolicies ResiliencePolicies { get; private set; }
+        protected IFundingConfigurationService FundingConfigurationService { get; private set; }
 
         [TestInitialize]
         public void TestBaseSetUp()
@@ -37,12 +45,20 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
             _validationResult = new ValidationResult();
             
             SpecificationId = NewRandomString();
+            string providerId = NewRandomString();
+            ProviderIds = new[] { providerId };
+
+            FundingStreamId = NewRandomString();
+            FundingPeriodId = NewRandomString();
             CorrelationId = NewRandomString();
             User = NewUser();
             Jobs = Substitute.For<TJobCreation>();
-            Validator = Substitute.For<ISpecificationIdServiceRequestValidator>();
+            SpecificationIdValidator = Substitute.For<ISpecificationIdServiceRequestValidator>();
+            ProviderIdsValidator = Substitute.For<IProviderIdsServiceRequestValidator>();
 
-            Validator.Validate(SpecificationId)
+            SpecificationIdValidator.Validate(SpecificationId)
+                .Returns(_validationResult);
+            ProviderIdsValidator.Validate(Arg.Is<string[]>(_=>_.SequenceEqual(ProviderIds)) )
                 .Returns(_validationResult);
 
             Specifications = Substitute.For<ISpecificationsApiClient>();
@@ -51,6 +67,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
             {
                 SpecificationsRepositoryPolicy = Polly.Policy.NoOpAsync()
             };
+
+            FundingConfigurationService = Substitute.For<IFundingConfigurationService>();
         }
 
         protected string NewRandomString()
@@ -93,9 +111,28 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
                     specificationSummary));
         }
 
+        protected void AndTheFundingConfigurationsForSpecificationSummary(FundingConfiguration fundingConfiguration)
+        {
+            FundingConfigurationService
+                .GetFundingConfigurations(Arg.Is<SpecificationSummary>(_ => _.Id == SpecificationId))
+                .Returns(new Dictionary<string, FundingConfiguration>
+                {
+                    { NewRandomString(), fundingConfiguration }
+                });
+        }
+
         protected SpecificationSummary NewApiSpecificationSummary(Action<SpecificationSummaryBuilder> setUp = null)
         {
             SpecificationSummaryBuilder builder = new SpecificationSummaryBuilder();
+
+            setUp?.Invoke(builder);
+
+            return builder.Build();
+        }
+
+        protected FundingConfiguration NewApiFundingConfiguration(Action<FundingConfigurationBuilder> setUp = null)
+        {
+            FundingConfigurationBuilder builder = new FundingConfigurationBuilder();
 
             setUp?.Invoke(builder);
 
