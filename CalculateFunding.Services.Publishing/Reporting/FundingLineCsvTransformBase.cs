@@ -59,6 +59,6 @@ namespace CalculateFunding.Services.Publishing.Reporting
             }
         }
 
-        protected abstract PublishedProviderVersion GetPublishedProviderVersion(IEnumerable<dynamic> documents, int resultCount);
+        protected virtual PublishedProviderVersion GetPublishedProviderVersion(IEnumerable<dynamic> documents, int resultCount) => null;
     }
 }

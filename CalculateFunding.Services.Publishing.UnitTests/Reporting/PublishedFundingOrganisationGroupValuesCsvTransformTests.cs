@@ -46,7 +46,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
         }
 
         [TestMethod]
-        public void FlattensTemplateCalculationsAndProviderMetaDataIntoRows()
+        [DataRow(CalculateFunding.Models.Publishing.GroupingReason.Contracting)]
+        [DataRow(CalculateFunding.Models.Publishing.GroupingReason.Payment)]
+        [DataRow(CalculateFunding.Models.Publishing.GroupingReason.Information)]
+        public void FlattensTemplateCalculationsAndProviderMetaDataIntoRows(
+            CalculateFunding.Models.Publishing.GroupingReason expectedGroupingReason)
         {
             IEnumerable<PublishedFundingOrganisationGrouping> publishedFundingOrganisationGroupings =
                 NewPublishedFundingOrganisationGroupings(_ =>
@@ -54,6 +58,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
                     NewPublishedFundingVersions(pfv =>
                            pfv.WithOrganisationGroupTypeCode(OrganisationGroupTypeCode.LocalAuthority)
                            .WithOrganisationGroupName("Enfield")
+                           .WithGroupReason(expectedGroupingReason)
                            .WithPublishedProviderStatus(PublishedFundingStatus.Released)
                            .WithMajor(1)
                            .WithAuthor(new Reference { Name = "system" })
@@ -74,11 +79,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
                             p.WithName("p2")))))));
 
             dynamic[] expectedCsvRows =
-{
+            {
                 new Dictionary<string, object>
                 {
                     {"Grouping Code", "LocalAuthority"},
                     {"Grouping Name", "Enfield"},
+                    {"Grouping Reason", expectedGroupingReason},
                     {"Allocation Status", "Released"},
                     {"Allocation Major Version", "1"},
                     {"Allocation Author", "system"},
