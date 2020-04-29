@@ -107,7 +107,7 @@ namespace CalculateFunding.Services.Calcs
                                     DataFieldId = dataField.Id,
                                     DataFieldIsAggregable = dataField.IsAggregable,
                                     DatasetRelationshipId = datasetRelationship.Relationship?.Id,
-                                    DataFieldRelatioshipName = datasetRelationship.Relationship?.Name,
+                                    DataFieldRelationshipName = datasetRelationship.Relationship?.Name,
                                     SpecificationId = calculation.SpecificationId,
                                     CalculationId = calculation.Current.CalculationId,
                                     PropertyName = datasetRelationship.Name

@@ -9,8 +9,8 @@ namespace CalculateFunding.Models.Graph
     {
         public const string IdField = "datafieldid";
 
-        [JsonProperty("datafieldrelatioshipname")]
-        public string DataFieldRelatioshipName { get; set; }
+        [JsonProperty("datafieldrelationshipname")]
+        public string DataFieldRelationshipName { get; set; }
         [JsonProperty("specificationid")]
         public string SpecificationId { get; set; }
 
@@ -26,7 +26,7 @@ namespace CalculateFunding.Models.Graph
         public string SchemaId { get; set; }
         [JsonProperty("schemafieldid")]
         public string SchemaFieldId { get; set; }
-        [JsonProperty("datasetfieldname")]
+        [JsonProperty("datafieldname")]
         public string DataFieldName { get; set; }
         [JsonProperty(IdField)]
         public string DataFieldId { get; set; }
