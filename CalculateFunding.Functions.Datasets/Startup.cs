@@ -83,7 +83,7 @@ namespace CalculateFunding.Functions.Datasets
                 new ProviderSourceDatasetRepository(CreateCosmosDbSettings(config, "providerdatasets")));
 
             builder
-                .AddScoped<IDatasetService, DatasetService>();
+                .AddSingleton<IDatasetService, DatasetService>();
 
             builder
                 .AddSingleton<IJobManagement, JobManagement>();
