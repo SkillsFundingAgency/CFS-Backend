@@ -12,7 +12,6 @@ using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
 using CalculateFunding.Common.ApiClient.Providers;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.CosmosDb;
-using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
@@ -32,7 +31,6 @@ using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Specs.Interfaces;
 using FluentValidation;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Extensions.Primitives;
@@ -65,7 +63,6 @@ namespace CalculateFunding.Services.Specs
         private readonly Polly.AsyncPolicy _calcsApiClientPolicy;
         private readonly IFeatureToggle _featureToggle;
         private readonly IProvidersApiClient _providersApiClient;
-        private readonly IJobManagement _jobManagement;
         private readonly Polly.AsyncPolicy _providersApiClientPolicy;
 
         public SpecificationsService(
@@ -86,8 +83,7 @@ namespace CalculateFunding.Services.Specs
             IQueueDeleteSpecificationJobActions queueDeleteSpecificationJobAction,
             ICalculationsApiClient calcsApiClient,
             IFeatureToggle featureToggle,
-            IProvidersApiClient providersApiClient,
-            IJobManagement jobManagement)
+            IProvidersApiClient providersApiClient)
         {
             Guard.ArgumentNotNull(mapper, nameof(mapper));
             Guard.ArgumentNotNull(specificationsRepository, nameof(specificationsRepository));
@@ -111,7 +107,6 @@ namespace CalculateFunding.Services.Specs
             Guard.ArgumentNotNull(calcsApiClient, nameof(calcsApiClient));
             Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
             Guard.ArgumentNotNull(providersApiClient, nameof(providersApiClient));
-            Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
 
             _mapper = mapper;
             _specificationsRepository = specificationsRepository;
@@ -133,7 +128,6 @@ namespace CalculateFunding.Services.Specs
             _calcsApiClientPolicy = resiliencePolicies.CalcsApiClient;
             _providersApiClient = providersApiClient;
             _providersApiClientPolicy = resiliencePolicies.ProvidersApiClient;
-            _jobManagement = jobManagement;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -1119,7 +1113,7 @@ WHERE   s.documentType = @DocumentType",
             IEnumerable<string> fundingStreams)
         {
             return specificationsInFundingPeriod.Any(_ =>
-                fundingStreams.Intersect(_.Current?.FundingStreams?.Select(fs => fs.Id)).Any());
+                fundingStreams.Intersect(_.Current?.FundingStreams?.Select(fs => fs.Id) ?? ArraySegment<string>.Empty ).Any());
         }
 
         public async Task<IActionResult> SetAssignedTemplateVersion(string specificationId, string fundingStreamId,
@@ -1220,24 +1214,6 @@ WHERE   s.documentType = @DocumentType",
             );
         }
 
-        private IDictionary<string, string> CreateMessageProperties(HttpRequest request)
-        {
-            Reference user = request.GetUser();
-
-            IDictionary<string, string> properties = new Dictionary<string, string>
-            {
-                {"sfa-correlationId", request.GetCorrelationId()}
-            };
-
-            if (user != null)
-            {
-                properties.Add("user-id", user.Id);
-                properties.Add("user-name", user.Name);
-            }
-
-            return properties;
-        }
-
         private SpecificationIndex CreateSpecificationIndex(Specification specification)
         {
             Models.Specs.SpecificationVersion specificationVersion =
@@ -1324,10 +1300,9 @@ WHERE   s.documentType = @DocumentType",
         }
 
         public async Task<IActionResult> SetPublishDates(string specificationId,
-            SpecificationPublishDateModel specificationPublishDateModel
-        )
+            SpecificationPublishDateModel specificationPublishDateModel)
         {
-            Guard.ArgumentNotNull(specificationId, nameof(specificationId));
+            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
             Guard.ArgumentNotNull(specificationPublishDateModel, nameof(specificationPublishDateModel));
 
             Specification specification = await _specificationsRepository.GetSpecificationById(specificationId);
@@ -1345,9 +1320,9 @@ WHERE   s.documentType = @DocumentType",
                 specification.Current.Clone() as Models.Specs.SpecificationVersion;
 
             newSpecificationVersion.Version++;
-            newSpecificationVersion.ExternalPublicationDate = specificationPublishDateModel.ExternalPublicationDate;
+            newSpecificationVersion.ExternalPublicationDate = specificationPublishDateModel.ExternalPublicationDate.TrimToTheMinute();
             newSpecificationVersion.EarliestPaymentAvailableDate =
-                specificationPublishDateModel.EarliestPaymentAvailableDate;
+                specificationPublishDateModel.EarliestPaymentAvailableDate.TrimToTheMinute();
 
             HttpStatusCode updateSpecificationResult =
                 await UpdateSpecification(specification, newSpecificationVersion, currentSpecificationVersion);
@@ -1518,7 +1493,7 @@ WHERE   s.documentType = @DocumentType",
             if (string.IsNullOrEmpty(deletionTypeProperty))
                 return new BadRequestObjectResult("Null or empty deletion type provided");
 
-            var deletionType = deletionTypeProperty.ToDeletionType();
+            DeletionType deletionType = deletionTypeProperty.ToDeletionType();
 
             await _specificationsRepository.DeleteSpecifications(specificationId, deletionType);
 

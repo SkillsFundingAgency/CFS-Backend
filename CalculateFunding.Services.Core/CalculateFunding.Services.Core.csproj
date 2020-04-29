@@ -17,7 +17,7 @@
     <PackageReference Include="CalculateFunding.Common.ApiClient.Specifications" Version="3.0.0" />
     <PackageReference Include="CalculateFunding.Common.Caching" Version="2.0.0" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Providers" Version="2.0.4" />
-    <PackageReference Include="CalculateFunding.Common.CosmosDb" Version="5.0.0" />
+    <PackageReference Include="CalculateFunding.Common.CosmosDb" Version="3.0.1" />
     <PackageReference Include="CalculateFunding.Common.Models" Version="2.0.0" />
     <PackageReference Include="CalculateFunding.Common.WebApi" Version="2.0.0" />
 

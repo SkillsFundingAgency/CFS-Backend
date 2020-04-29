@@ -27,14 +27,15 @@ namespace CalculateFunding.Services.Publishing
             _mapper = mapper;
             _publishedFundingIdGeneratorResolver = publishedFundingIdGeneratorResolver;
         }
+
         /// <summary>
         /// Generate instances of the PublishedFundingVersion to save into cosmos for the Organisation Group Results
         /// </summary>
-        /// <param name="organisationGroupsToSave"></param>
-        /// <param name="templateMetadataContents"></param>
+        /// <param name="publishedFundingInput"></param>
         /// <param name="publishedProviders"></param>
         /// <returns></returns>
-        public IEnumerable<(PublishingModels.PublishedFunding, PublishingModels.PublishedFundingVersion)> GeneratePublishedFunding(PublishedFundingInput publishedFundingInput, IEnumerable<PublishedProvider> publishedProviders)
+        public IEnumerable<(PublishedFunding, PublishedFundingVersion)> GeneratePublishedFunding(PublishedFundingInput publishedFundingInput, 
+            IEnumerable<PublishedProvider> publishedProviders)
         {
             Guard.ArgumentNotNull(publishedFundingInput, nameof(publishedFundingInput));
             Guard.ArgumentNotNull(publishedFundingInput.FundingPeriod, nameof(publishedFundingInput.FundingPeriod));
@@ -46,7 +47,7 @@ namespace CalculateFunding.Services.Publishing
             Guard.IsNullOrWhiteSpace(publishedFundingInput.TemplateVersion, nameof(publishedFundingInput.TemplateVersion));
             Guard.IsNullOrWhiteSpace(publishedFundingInput.SpecificationId, nameof(publishedFundingInput.SpecificationId));
 
-            IEnumerable<(PublishingModels.PublishedFunding PublishedFunding, OrganisationGroupResult OrganisationGroupResult)> organisationGroupsToSave = publishedFundingInput.OrganisationGroupsToSave;
+            IEnumerable<(PublishedFunding PublishedFunding, OrganisationGroupResult OrganisationGroupResult)> organisationGroupsToSave = publishedFundingInput.OrganisationGroupsToSave;
 
             TemplateMetadataContents templateMetadataContents = publishedFundingInput.TemplateMetadataContents;
             string templateVersion = publishedFundingInput.TemplateVersion;
@@ -54,14 +55,16 @@ namespace CalculateFunding.Services.Publishing
 
             FundingValueAggregator fundingValueAggregator = new FundingValueAggregator();
 
-            foreach (var organisationGroup in organisationGroupsToSave)
+            foreach ((PublishedFunding PublishedFunding, OrganisationGroupResult OrganisationGroupResult) organisationGroup in organisationGroupsToSave)
             {
                 // TODO: extract interface
                 IEnumerable<string> providerIds = organisationGroup.OrganisationGroupResult.Providers.Select(p => p.ProviderId);
                 IEnumerable<string> publishedProvidersIds = publishedProviders.Select(p => p.Current.ProviderId);
 
-                List<PublishedProvider> publishedProvidersForOrganisationGroup = new List<PublishedProvider>(publishedProviders.Where(p => providerIds.Contains(p.Current.ProviderId)));
-                List<PublishedProviderVersion> publishedProviderVersionsForOrganisationGroup = new List<PublishedProviderVersion>(publishedProvidersForOrganisationGroup.Select(p => p.Current));
+                List<PublishedProvider> publishedProvidersForOrganisationGroup = new List<PublishedProvider>(publishedProviders.Where(p 
+                    => providerIds.Contains(p.Current.ProviderId)));
+                List<PublishedProviderVersion> publishedProviderVersionsForOrganisationGroup = new List<PublishedProviderVersion>(
+                    publishedProvidersForOrganisationGroup.Select(p => p.Current));
 
                 IEnumerable<string> missingProviders = providerIds.Except(publishedProvidersIds);
 
@@ -71,26 +74,26 @@ namespace CalculateFunding.Services.Publishing
                     throw new Exception($"Missing PublishedProvider result for organisation group '{organisationGroup.OrganisationGroupResult.GroupReason}' '{organisationGroup.OrganisationGroupResult.GroupTypeCode}' '{organisationGroup.OrganisationGroupResult.GroupTypeIdentifier}' '{organisationGroup.OrganisationGroupResult.IdentifierValue}'. Provider IDs={providerIdsString}");
                 }
 
-                List<AggregateFundingLine> fundingLineAggregates = new List<AggregateFundingLine>(fundingValueAggregator.GetTotals(templateMetadataContents, publishedProviderVersionsForOrganisationGroup));
+                List<AggregateFundingLine> fundingLineAggregates = new List<AggregateFundingLine>(
+                    fundingValueAggregator.GetTotals(templateMetadataContents, publishedProviderVersionsForOrganisationGroup));
 
-                IEnumerable<Common.TemplateMetadata.Models.FundingLine> fundingLineDefinitons = templateMetadataContents.RootFundingLines.Flatten(_ => _.FundingLines) ?? Enumerable.Empty<Common.TemplateMetadata.Models.FundingLine>();
+                IEnumerable<Common.TemplateMetadata.Models.FundingLine> fundingLineDefinitions = templateMetadataContents.RootFundingLines.Flatten(_ => _.FundingLines) ?? 
+                                                                                                 Enumerable.Empty<Common.TemplateMetadata.Models.FundingLine>();
 
-                List<PublishingModels.FundingLine> fundingLines = GenerateFundingLines(fundingLineAggregates, fundingLineDefinitons);
-                List<PublishingModels.FundingCalculation> calculations = GenerateCalculations(fundingLineAggregates.Flatten(_ => _.FundingLines).SelectMany(c => c.Calculations ?? Enumerable.Empty<AggregateFundingCalculation>()));
+                List<PublishingModels.FundingLine> fundingLines = GenerateFundingLines(fundingLineAggregates, fundingLineDefinitions);
+                List<FundingCalculation> calculations = GenerateCalculations(fundingLineAggregates.Flatten(_ => _.FundingLines)
+                    .SelectMany(c => c.Calculations ?? Enumerable.Empty<AggregateFundingCalculation>()));
 
-                // IEnumerable<Common.TemplateMetadata.Models.Calculation> calculationDefinitions = fundingLineDefinitons.SelectMany(_ => _.Calculations.Flatten(calculation => calculation.Calculations)) ?? new Calculation[0];
-                //IEnumerable<TemplateModels.ReferenceData> refernceData = calculations.Where(_ => _.ReferenceData != null)?.SelectMany(_ => _.ReferenceData) ?? new ReferenceData[0];
+                decimal? totalFunding = publishedProviderVersionsForOrganisationGroup.Sum(_ => _.TotalFunding);
 
-                decimal? totalFunding = publishedProviderVersionsForOrganisationGroup.Sum(c => c.TotalFunding);
-
-                PublishingModels.PublishedFundingVersion publishedFundingVersion = new PublishingModels.PublishedFundingVersion
+                PublishedFundingVersion publishedFundingVersion = new PublishedFundingVersion
                 {
                     FundingStreamId = publishedFundingInput.FundingStream.Id,
                     FundingStreamName = publishedFundingInput.FundingStream.Name,
                     TotalFunding = totalFunding,
-                    FundingPeriod = new PublishingModels.PublishedFundingPeriod
+                    FundingPeriod = new PublishedFundingPeriod
                     {
-                        Type = Enum.Parse<PublishingModels.PublishedFundingPeriodType>(fundingPeriod.Type.ToString()),
+                        Type = Enum.Parse<PublishedFundingPeriodType>(fundingPeriod.Type.GetValueOrDefault().ToString()),
                         Period = fundingPeriod.Period,
                         EndDate = fundingPeriod.EndDate,
                         StartDate = fundingPeriod.StartDate,
@@ -103,17 +106,17 @@ namespace CalculateFunding.Services.Publishing
                     OrganisationGroupTypeClassification = organisationGroup.OrganisationGroupResult.GroupTypeClassification.ToString(),
                     OrganisationGroupName = organisationGroup.OrganisationGroupResult.Name,
                     OrganisationGroupSearchableName = organisationGroup.OrganisationGroupResult.SearchableName,
-                    OrganisationGroupIdentifiers = _mapper.Map<IEnumerable<PublishingModels.PublishedOrganisationGroupTypeIdentifier>>(organisationGroup.OrganisationGroupResult.Identifiers),
+                    OrganisationGroupIdentifiers = _mapper.Map<IEnumerable<PublishedOrganisationGroupTypeIdentifier>>(organisationGroup.OrganisationGroupResult.Identifiers),
                     FundingLines = fundingLines,
                     Calculations = calculations,
                     SchemaVersion = templateMetadataContents.SchemaVersion,
-                    Status = PublishingModels.PublishedFundingStatus.Approved,
+                    Status = PublishedFundingStatus.Approved,
                     GroupingReason = organisationGroup.OrganisationGroupResult.GroupReason.AsMatchingEnum<PublishingModels.GroupingReason>(),
                     ProviderFundings = publishedProviderVersionsForOrganisationGroup.Select(_ => _.FundingId),
                     TemplateVersion = templateVersion,
-                    StatusChangedDate = publishedFundingInput.PublishingDates.StatusChangedDate,
-                    EarliestPaymentAvailableDate = publishedFundingInput.PublishingDates.EarliestPaymentAvailableDate,
-                    ExternalPublicationDate = publishedFundingInput.PublishingDates.ExternalPublicationDate,
+                    StatusChangedDate = publishedFundingInput.PublishingDates.StatusChangedDate.TrimToTheSecond(),
+                    EarliestPaymentAvailableDate = publishedFundingInput.PublishingDates.EarliestPaymentAvailableDate.TrimToTheMinute(),
+                    ExternalPublicationDate = publishedFundingInput.PublishingDates.ExternalPublicationDate.TrimToTheMinute(),
                 };
 
                 publishedFundingVersion.FundingId = _publishedFundingIdGeneratorResolver.GetService(templateMetadataContents.SchemaVersion).GetFundingId(publishedFundingVersion);
@@ -122,7 +125,7 @@ namespace CalculateFunding.Services.Publishing
 
                 if (publishedFundingResult == null)
                 {
-                    publishedFundingResult = new PublishingModels.PublishedFunding()
+                    publishedFundingResult = new PublishedFunding()
                     {
                         Current = publishedFundingVersion,
                     };
@@ -134,7 +137,7 @@ namespace CalculateFunding.Services.Publishing
 
         private List<FundingCalculation> GenerateCalculations(IEnumerable<AggregateFundingCalculation> aggregateCalculations)
         {
-            List<PublishingModels.FundingCalculation> calculations = new List<PublishingModels.FundingCalculation>();
+            List<FundingCalculation> calculations = new List<FundingCalculation>();
 
             foreach (AggregateFundingCalculation aggregateFundingCalculation in aggregateCalculations)
             {
@@ -153,7 +156,8 @@ namespace CalculateFunding.Services.Publishing
             return calculations;
         }
 
-        private List<PublishingModels.FundingLine> GenerateFundingLines(IEnumerable<AggregateFundingLine> fundingLineAggregates, IEnumerable<Common.TemplateMetadata.Models.FundingLine> fundingLineDefinitons)
+        private List<PublishingModels.FundingLine> GenerateFundingLines(IEnumerable<AggregateFundingLine> fundingLineAggregates, 
+            IEnumerable<Common.TemplateMetadata.Models.FundingLine> fundingLineDefinitions)
         {
             List<PublishingModels.FundingLine> fundingLines = new List<PublishingModels.FundingLine>();
 
@@ -164,28 +168,29 @@ namespace CalculateFunding.Services.Publishing
                     throw new InvalidOperationException("Null aggregate funding line");
                 }
 
-                Common.TemplateMetadata.Models.FundingLine fundingLineDefinition = fundingLineDefinitons.FirstOrDefault(c => c.TemplateLineId == aggregateFundingLine.TemplateLineId);
+                Common.TemplateMetadata.Models.FundingLine fundingLineDefinition = fundingLineDefinitions.FirstOrDefault(_ 
+                    => _.TemplateLineId == aggregateFundingLine.TemplateLineId);
                 if (fundingLineDefinition == null)
                 {
                     throw new InvalidOperationException($"Unable to find funding line with TemplateLineId '{aggregateFundingLine.TemplateLineId}'");
                 }
 
-                PublishingModels.FundingLine fundingline = new PublishingModels.FundingLine()
+                PublishingModels.FundingLine fundingLine = new PublishingModels.FundingLine()
                 {
                     FundingLineCode = fundingLineDefinition.FundingLineCode,
                     Name = fundingLineDefinition.Name,
                     TemplateLineId = fundingLineDefinition.TemplateLineId,
-                    Type = fundingLineDefinition.Type.AsMatchingEnum<PublishingModels.OrganisationGroupingReason>(),
+                    Type = fundingLineDefinition.Type.AsMatchingEnum<OrganisationGroupingReason>(),
                     Value = aggregateFundingLine.Value ?? 0,
                 };
 
-                fundingLines.Add(fundingline);
+                fundingLines.Add(fundingLine);
 
-                fundingline.DistributionPeriods = aggregateFundingLine.DistributionPeriods?.ToList();
+                fundingLine.DistributionPeriods = aggregateFundingLine.DistributionPeriods?.ToList();
 
                 if (aggregateFundingLine.FundingLines.AnyWithNullCheck())
                 {
-                    fundingLines.AddRange(GenerateFundingLines(aggregateFundingLine.FundingLines, fundingLineDefinitons));
+                    fundingLines.AddRange(GenerateFundingLines(aggregateFundingLine.FundingLines, fundingLineDefinitions));
                 }
             }
 

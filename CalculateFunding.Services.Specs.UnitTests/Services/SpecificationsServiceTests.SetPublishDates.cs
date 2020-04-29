@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Net;
 using System.Threading.Tasks;
-using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces;
-using CalculateFunding.Services.Specs.Interfaces;
+using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -21,12 +20,11 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         {
             //Arrange
             ILogger logger = CreateLogger();
-            string specificationId = null;
 
             SpecificationsService service = CreateService(logs: logger);
 
             // Act
-            Func<Task<IActionResult>> func = () => service.SetPublishDates(specificationId, null);
+            Func<Task<IActionResult>> func = () => service.SetPublishDates(null, null);
 
             //Assert
             func
@@ -40,8 +38,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             //Arrange
             ILogger logger = CreateLogger();
             string specificationId = "test";
-            DateTimeOffset externalPublishDate = DateTimeOffset.Now.Date;
-            DateTimeOffset earliestPaymentAvailableDate = DateTimeOffset.Now.Date;
 
             SpecificationsService service = CreateService(logs: logger);
 
@@ -60,8 +56,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             //Arrange
             ILogger logger = CreateLogger();
             string specificationId = "test";
-            DateTimeOffset externalPublishDate = DateTimeOffset.Now.Date;
-            DateTimeOffset earliestPaymentAvailableDate = DateTimeOffset.Now.Date;
 
             SpecificationPublishDateModel specificationPublishDateModel = new SpecificationPublishDateModel()
             {
@@ -71,7 +65,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 
             string expectedErrorMessage = $"No specification ID {specificationId} were returned from the repository, result came back null";
 
-            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
             specificationsRepository
                 .GetSpecificationById(specificationId)
                 .Returns<Specification>(x => null);
@@ -101,8 +94,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             //Arrange
             ILogger logger = CreateLogger();
             string specificationId = "test";
-            DateTimeOffset externalPublishDate = DateTimeOffset.Now.Date;
-            DateTimeOffset earliestPaymentAvailableDate = DateTimeOffset.Now.Date;
 
             Specification specification = new Specification
             {
@@ -119,19 +110,14 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 ExternalPublicationDate = DateTimeOffset.Now.Date
             };
 
-            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();
             IVersionRepository<SpecificationVersion> specificationVersionRepository = CreateSpecificationVersionRepository();
 
             specificationsRepository
                 .GetSpecificationById(specificationId)
                 .Returns(specification);
 
-            SpecificationVersion clonedSpecificationVersion = null;
-
             specificationVersionRepository.CreateVersion(Arg.Any<SpecificationVersion>(), Arg.Any<SpecificationVersion>())
-                .Returns(_ => (SpecificationVersion)_[0])
-                .AndDoes(_ => clonedSpecificationVersion = _.ArgAt<SpecificationVersion>(0));
+                .Returns(_ => (SpecificationVersion) _[0]);
 
             specificationsRepository
                 .UpdateSpecification(Arg.Any<Specification>())
@@ -162,26 +148,25 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             //Arrange
             ILogger logger = CreateLogger();
             string specificationId = "test";
-            DateTimeOffset externalPublishDate = DateTimeOffset.Now.Date;
-            DateTimeOffset earliestPaymentAvailableDate = DateTimeOffset.Now.Date;
+
+            DateTimeOffset? earliestPublicationDateInput = NewRandomDateTimeOffset(); 
+            DateTimeOffset? earliestPaymentDateInput = NewRandomDateTimeOffset(); 
 
             Specification specification = new Specification
             {                
                 Current = new SpecificationVersion
                 {
-                    ExternalPublicationDate = DateTimeOffset.Now.Date,
-                    EarliestPaymentAvailableDate = DateTimeOffset.Now.Date
+                    ExternalPublicationDate = DateTimeOffset.Now,
+                    EarliestPaymentAvailableDate = DateTimeOffset.Now
                 }                
             };
 
             SpecificationPublishDateModel specificationPublishDateModel = new SpecificationPublishDateModel()
             {
-                EarliestPaymentAvailableDate = DateTimeOffset.Now.Date,
-                ExternalPublicationDate = DateTimeOffset.Now.Date
+                EarliestPaymentAvailableDate = earliestPaymentDateInput,
+                ExternalPublicationDate = earliestPublicationDateInput
             };
 
-            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();
             IVersionRepository<SpecificationVersion> specificationVersionRepository = CreateSpecificationVersionRepository();
 
             specificationsRepository
@@ -219,21 +204,17 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             specificationsRepository
                 .Received(1);
 
-            var externalPublicationDateResult = clonedSpecificationVersion?
-                .ExternalPublicationDate;
-
-            var earliestPaymentAvailableDateResult = clonedSpecificationVersion?
-               .EarliestPaymentAvailableDate;
-
-            externalPublicationDateResult
+            (clonedSpecificationVersion?
+                    .ExternalPublicationDate)
                 .Should()
-                .NotBeNull()
-                .Equals(DateTimeOffset.Now.Date);
+                .Be(earliestPublicationDateInput.TrimToTheMinute());
 
-            earliestPaymentAvailableDateResult
+            (clonedSpecificationVersion?
+                    .EarliestPaymentAvailableDate)
                 .Should()
-                .NotBeNull()
-                .Equals(DateTimeOffset.Now.Date);
+                .Be(earliestPaymentDateInput.TrimToTheMinute());
         }
+
+        private DateTimeOffset NewRandomDateTimeOffset() => new DateTimeOffset(new RandomDateTime());
     }
 }

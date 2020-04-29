@@ -24,17 +24,22 @@ namespace CalculateFunding.Services.Specs
             _repository = cosmosRepository;
         }
 
-        public async Task<ServiceHealth> IsHealthOk()
+        public Task<ServiceHealth> IsHealthOk()
         {
-            var (Ok, Message) = _repository.IsHealthOk();
+            (bool ok, string message) = _repository.IsHealthOk();
 
             ServiceHealth health = new ServiceHealth()
             {
                 Name = nameof(SpecificationsRepository)
             };
-            health.Dependencies.Add(new DependencyHealth { HealthOk = Ok, DependencyName = _repository.GetType().GetFriendlyName(), Message = Message });
+            health.Dependencies.Add(new DependencyHealth
+            {
+                HealthOk = ok, 
+                DependencyName = _repository.GetType().GetFriendlyName(), 
+                Message = message
+            });
 
-            return health;
+            return Task.FromResult(health);
         }
 
         public Task<DocumentEntity<Specification>> CreateSpecification(Specification specification)
@@ -73,7 +78,7 @@ namespace CalculateFunding.Services.Specs
             }
             else
             {
-                specifications = (await _repository.Query<Specification>(query));
+                specifications = (await _repository.Query(query));
             }
 
             return specifications;
@@ -97,17 +102,14 @@ namespace CalculateFunding.Services.Specs
 
         public async Task<IEnumerable<T>> GetSpecificationsByRawQuery<T>(CosmosDbQuery cosmosDbQuery)
         {
-            var specifications = await _repository.RawQuery<T>(cosmosDbQuery);
-
-            return specifications;
+            return await _repository.RawQuery<T>(cosmosDbQuery);
         }
 
         public async Task<DocumentEntity<Specification>> GetSpecificationDocumentEntityById(string specificationId)
         {
             return (await _repository
-                .QueryDocuments<Specification>())
-                .Where(c => c.Id == specificationId)
-                .FirstOrDefault();
+                    .QueryDocuments<Specification>())
+                .FirstOrDefault(c => c.Id == specificationId);
         }
 
         public async Task DeleteSpecifications(string specificationId, DeletionType deletionType)
