@@ -1,12 +1,10 @@
 ﻿using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Utility;
-using CalculateFunding.Generators.OrganisationGroup.Enums;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Caching.FileSystem;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Publishing.Interfaces;
 using Polly;
-using System;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
@@ -63,7 +61,7 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
                 await _publishedFundingOrganisationGroupingService.GeneratePublishedFundingOrganisationGrouping(true, fundingStreamId, specification, publishedFundingVersions);
 
             IEnumerable<PublishedFundingOrganisationGrouping> publishingOrganisationGroupings = organisationGroupings
-                .OrderBy(_ => Enum.GetName(typeof(OrganisationGroupTypeCode), _.OrganisationGroupResult.GroupTypeCode));
+                .OrderBy(_ => _.OrganisationGroupResult.GroupTypeCode.ToString());
 
             foreach (PublishedFundingOrganisationGrouping publishedFundingOrganisationGrouping in publishingOrganisationGroupings)
             {
@@ -71,8 +69,14 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
             }
 
             IEnumerable<ExpandoObject> csvRows = fundingLineCsvTransform.Transform(publishingOrganisationGroupings);
-            AppendCsvFragment(temporaryFilePath, csvRows, outputHeaders:true);
 
+            if (!csvRows.Any())
+            {
+                return false;
+            }
+
+            AppendCsvFragment(temporaryFilePath, csvRows, outputHeaders: true);
+            
             return true;
         }
     }

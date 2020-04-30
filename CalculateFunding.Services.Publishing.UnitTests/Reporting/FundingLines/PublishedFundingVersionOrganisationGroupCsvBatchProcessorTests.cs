@@ -60,6 +60,49 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
         }
         
         [TestMethod]
+        public async Task ReturnsFalseIfNoResultsProcessed()
+        { 
+            string specificationId = NewRandomString();
+            string fundingLineCode = NewRandomString();
+            string fundingStreamId = NewRandomString();
+            string fundingPeriodId = NewRandomString();
+
+            SpecificationSummary specificationSummary = NewSpecificationSummary(_ => _.WithFundingPeriodId(fundingPeriodId));
+
+            IEnumerable<PublishedFundingVersion> publishedFundingVersions = new List<PublishedFundingVersion>();
+            IEnumerable<PublishedFundingOrganisationGrouping> publishedFundingOrganisationGroupings = new List<PublishedFundingOrganisationGrouping>();
+            
+            string expectedCsvOne = NewRandomString();
+
+            GivenSpecificationSummaryRetrieved(specificationSummary);
+            AndTheCurrentPublishedFundingVersionRetrieved(publishedFundingVersions);
+            AndThePublishedFundingOrganisationGroupingGenerated(publishedFundingOrganisationGroupings);
+
+            IEnumerable<PublishedFundingOrganisationGrouping> publishedFundingOrganisationGroupings1 = publishedFundingOrganisationGroupings
+                    .OrderBy(_ => _.OrganisationGroupResult.GroupTypeCode.ToString());
+
+            foreach (PublishedFundingOrganisationGrouping publishedFundingOrganisationGrouping in publishedFundingOrganisationGroupings1)
+            {
+                publishedFundingOrganisationGrouping.PublishedFundingVersions = publishedFundingOrganisationGrouping.PublishedFundingVersions.OrderByDescending(_ => _.Date);
+            }
+
+            GivenTheCsvRowTransformation(publishedFundingOrganisationGroupings1, 
+                    new ExpandoObject[0], 
+                    expectedCsvOne, 
+                    true);
+
+            bool processedResults = await WhenTheCsvIsGenerated(FundingLineCsvGeneratorJobType.HistoryOrganisationGroupValues,
+                specificationId,
+                NewRandomString(),
+                fundingLineCode,
+                fundingStreamId);
+
+            processedResults
+                .Should()
+                .BeFalse();
+        }
+        
+        [TestMethod]
         [DataRow(FundingLineCsvGeneratorJobType.HistoryOrganisationGroupValues)]
         public async Task TransformsPublishedProvidersForSpecificationInBatchesAndCreatesCsvWithResults(
             FundingLineCsvGeneratorJobType jobType)
@@ -114,15 +157,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
             
             string expectedCsvOne = NewRandomString();
 
-            string predicate = NewRandomString();
-            string joinPredicate = NewRandomString();
-
             GivenSpecificationSummaryRetrieved(specificationSummary);
-            GivenCurrentPublishedFundingVersionRetrieved(publishedFundingVersions);
-            GivenPublishedFundingOrganisationGroupingGenerated(publishedFundingOrganisationGroupings);
+            AndTheCurrentPublishedFundingVersionRetrieved(publishedFundingVersions);
+            AndThePublishedFundingOrganisationGroupingGenerated(publishedFundingOrganisationGroupings);
 
             IEnumerable<PublishedFundingOrganisationGrouping> publishedFundingOrganisationGroupings1 = publishedFundingOrganisationGroupings
-                    .OrderBy(_ => Enum.GetName(typeof(OrganisationGroupTypeCode), _.OrganisationGroupResult.GroupTypeCode));
+                    .OrderBy(_ => _.OrganisationGroupResult.GroupTypeCode.ToString());
 
             foreach (PublishedFundingOrganisationGrouping publishedFundingOrganisationGrouping in publishedFundingOrganisationGroupings1)
             {
@@ -154,14 +194,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
                 .Returns(Task.FromResult(specificationSummary));
         }
 
-        private void GivenCurrentPublishedFundingVersionRetrieved(IEnumerable<PublishedFundingVersion> publishedFundingVersions)
+        private void AndTheCurrentPublishedFundingVersionRetrieved(IEnumerable<PublishedFundingVersion> publishedFundingVersions)
         {
             PublishedFundingVersionDataService
                 .Setup(_ => _.GetPublishedFundingVersion(It.IsAny<string>(), It.IsAny<string>()))
                 .Returns(Task.FromResult(publishedFundingVersions));
         }
 
-        private void GivenPublishedFundingOrganisationGroupingGenerated(IEnumerable<PublishedFundingOrganisationGrouping> organisationGroupings)
+        private void AndThePublishedFundingOrganisationGroupingGenerated(IEnumerable<PublishedFundingOrganisationGrouping> organisationGroupings)
         {
             PublishedFundingOrganisationGroupingService
                 .Setup(_ => _.GeneratePublishedFundingOrganisationGrouping(It.IsAny<bool>(), It.IsAny<string>(), It.IsAny<SpecificationSummary>(), It.IsAny<IEnumerable<PublishedFundingVersion>>()))

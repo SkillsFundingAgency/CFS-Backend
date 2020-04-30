@@ -97,7 +97,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
             string predicate = NewRandomString();
             string joinPredicate = NewRandomString();
 
-            GivenTheCsvRowTransformation(publishProviderVersionsOne, transformedRowsOne, expectedCsvOne, true);
+            GivenTheCsvRowTransformation(publishProviderVersionsOne, (IEnumerable<ExpandoObject>) transformedRowsOne, expectedCsvOne, true);
             AndTheCsvRowTransformation(publishedProviderVersionTwo, transformedRowsTwo, expectedCsvTwo,  false);
             AndThePredicate(jobType, predicate);
             AndTheJoinPredicate(jobType, joinPredicate);
