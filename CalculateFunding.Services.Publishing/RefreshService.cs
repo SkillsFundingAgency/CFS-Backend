@@ -260,7 +260,6 @@ namespace CalculateFunding.Services.Publishing
 
             _logger.Information("Profiling providers for refresh");
             
-            // Profile payment funding lines (that don't have custom profiles)
             try
             {
                 await _profilingService.ProfileFundingLines(generatedPublishedProviderData.SelectMany(c => c.Value.FundingLines.Where(f => f.Type == OrganisationGroupingReason.Payment)), fundingStream.Id, specification.FundingPeriod.Id);
