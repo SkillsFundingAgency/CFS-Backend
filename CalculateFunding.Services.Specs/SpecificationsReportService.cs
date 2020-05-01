@@ -12,6 +12,8 @@ using ByteSizeLib;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.Azure.Storage;
+using System.Text;
+using CalculateFunding.Services.Core.Extensions;
 
 namespace CalculateFunding.Services.Specs
 {
@@ -44,9 +46,11 @@ namespace CalculateFunding.Services.Specs
             return new OkObjectResult(specificationReports);
         }
 
-        public async Task<IActionResult> DownloadReport(SpecificationReportIdentifier specificationReportIdentifier)
+        public async Task<IActionResult> DownloadReport(string reportId)
         {
-            Guard.ArgumentNotNull(specificationReportIdentifier, nameof(specificationReportIdentifier));
+            Guard.ArgumentNotNull(reportId, nameof(reportId));
+
+            SpecificationReportIdentifier specificationReportIdentifier = DecodeReportId(reportId);
 
             ReportType reportType = GetReportType(specificationReportIdentifier.JobType);
             string containerName = GetContainerName(reportType);
@@ -104,7 +108,7 @@ namespace CalculateFunding.Services.Specs
                 return new SpecificationReport
                 {
                     Name = fileName,
-                    SpecificationReportIdentifier = GetReportId(cloudBlob.Metadata, jobType),
+                    SpecificationReportIdentifier = EncodeReportId(GetReportId(cloudBlob.Metadata)),
                     Category = GetReportCategory(jobType).ToString(),
                     LastModified = cloudBlob.Properties.LastModified,
                     Format = fileSuffix.ToUpperInvariant(),
@@ -165,12 +169,29 @@ namespace CalculateFunding.Services.Specs
             };
         }
 
-        private SpecificationReportIdentifier GetReportId(IDictionary<string, string> blobMetadata, JobType jobType)
+        private string EncodeReportId(SpecificationReportIdentifier specificationReportIdentifier)
+        {
+            string idJson = JsonExtensions.AsJson(specificationReportIdentifier);
+            byte[] idBytes = Encoding.UTF8.GetBytes(idJson);
+            return Convert.ToBase64String(idBytes);
+        }
+
+        private SpecificationReportIdentifier DecodeReportId(string encodedReportId)
+        {
+            byte[]  base64EncodedBytes = Convert.FromBase64String(encodedReportId);
+            string decodedText = Encoding.UTF8.GetString(base64EncodedBytes);
+            return JsonExtensions.AsPoco<SpecificationReportIdentifier>(decodedText);
+        }
+
+        private SpecificationReportIdentifier GetReportId(IDictionary<string, string> blobMetadata)
         {
             blobMetadata.TryGetValue("specification_id", out string specificationId);
             blobMetadata.TryGetValue("funding_stream_id", out string fundingStreamId);
             blobMetadata.TryGetValue("funding_period_id", out string fundingPeriodId);
             blobMetadata.TryGetValue("funding_line_code", out string fundingLineCode);
+            blobMetadata.TryGetValue("job_type", out string jobTypeString);
+
+            Enum.TryParse(jobTypeString, out JobType jobType);
 
             return blobMetadata != null ? new SpecificationReportIdentifier
             {

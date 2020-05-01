@@ -4,7 +4,7 @@ namespace CalculateFunding.Models.Specs
 {
     public class SpecificationReport
     {
-        public SpecificationReportIdentifier SpecificationReportIdentifier { get; set; }
+        public string SpecificationReportIdentifier { get; set; }
         public string Name { get; set; }
         public string Category { get; set; }
         public DateTimeOffset? LastModified { get; set; }

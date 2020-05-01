@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Storage;
 using CalculateFunding.Models.Specs;
+using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
@@ -160,15 +162,15 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                         Category = "Live",
                         Format = "CSV",
                         Size = "-1 B",
-                        SpecificationReportIdentifier = id
+                        SpecificationReportIdentifier = EncodeSpecificationReportIdentifier(id)
                 });
         }
 
         [TestMethod]
         public void DownloadReport_NullFileNamePassed_ThrowsException()
         {
-            SpecificationReportIdentifier specificationReportIdentifier = null;
-            Func<Task<IActionResult>> invocation = async () => await _service.DownloadReport(specificationReportIdentifier);
+            string reportId = null;
+            Func<Task<IActionResult>> invocation = async () => await _service.DownloadReport(reportId);
 
             invocation
                 .Should()
@@ -176,7 +178,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .Which
                 .ParamName
                 .Should()
-                .Be(nameof(specificationReportIdentifier));
+                .Be(nameof(reportId));
         }
 
         [TestMethod]
@@ -203,7 +205,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .When(_ => _.GetBlobReferenceFromServerAsync(expectedBlobName, PublishedProviderVersionsContainerName))
                 .Do(_ => { throw new StorageException(); });
 
-            IActionResult result = await _service.DownloadReport(id);
+            IActionResult result = await _service.DownloadReport(EncodeSpecificationReportIdentifier(id));
 
             result
                 .Should()
@@ -257,7 +259,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .GetBlobReferenceFromServerAsync(expectedBlobName, PublishedProviderVersionsContainerName)
                 .Returns(Task.FromResult(fundingLineCloudBlob));
 
-            IActionResult result = await _service.DownloadReport(id);
+            IActionResult result = await _service.DownloadReport(EncodeSpecificationReportIdentifier(id));
 
             result
                 .Should()
@@ -286,5 +288,19 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         }
 
         private static string NewRandomString() => new RandomString();
+
+        private static string EncodeSpecificationReportIdentifier(SpecificationReportIdentifier specificationReportIdentifier)
+        {
+            string idJson = JsonExtensions.AsJson(specificationReportIdentifier);
+            byte[] idBytes = Encoding.UTF8.GetBytes(idJson);
+            return Convert.ToBase64String(idBytes);
+        }
+
+        private static SpecificationReportIdentifier DecodeSpecificationReportIdentifier(string encodedSpecificationReportIdentifier)
+        {
+            byte[] base64EncodedBytes = Convert.FromBase64String(encodedSpecificationReportIdentifier);
+            string decodedText = Encoding.UTF8.GetString(base64EncodedBytes);
+            return JsonExtensions.AsPoco<SpecificationReportIdentifier>(decodedText);
+        }
     }
 }

@@ -305,13 +305,13 @@ namespace CalculateFunding.Api.Specs.Controllers
             return _specificationsReportService.GetReportMetadata(specificationId);
         }
 
-        [Route("api/specs/download-report")]
-        [HttpPost]
+        [Route("api/specs/download-report/{reportId}")]
+        [HttpGet]
         [Produces(typeof(SpecificationsDownloadModel))]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
-        public async Task<IActionResult> DownloadSpecificationReport([FromBody] SpecificationReportIdentifier specificationReportIdentifier)
+        public async Task<IActionResult> DownloadSpecificationReport([FromRoute] string reportId)
         {
-            return await _specificationsReportService.DownloadReport(specificationReportIdentifier);
+            return await _specificationsReportService.DownloadReport(reportId);
         }
     }
 }
