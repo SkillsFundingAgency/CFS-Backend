@@ -20,6 +20,9 @@ namespace CalculateFunding.Models.Publishing
         [JsonProperty("author")]
         public Reference Author { get; set; }
 
+        [JsonProperty("fundinglines")]
+        public IEnumerable<FundingLine> FundingLines { get; set; }
+
         /// <summary>
         /// Total funding for this provider in pounds and pence
         /// </summary>

@@ -250,7 +250,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
         [TestMethod]
         public async Task GetsPublishedProviderTransactionForSuppliedSpecificationAndProvider()
         {
-            PublishedProviderVersion publishedProviderVersion = NewPublishedProviderVersion(_ => _.WithAuthor(new Reference { Id = Guid.NewGuid().ToString() }));
+            PublishedProviderVersion publishedProviderVersion = NewPublishedProviderVersion(_ => 
+                _.WithAuthor(new Reference { Id = Guid.NewGuid().ToString() })
+                .WithFundingLines(NewFundingLine()));
 
             AndThePublishedFundingRepositoryReturnsPublishedProviderVersions(publishedProviderVersion);
 
@@ -258,7 +260,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
 
             PublishedProviderTransaction[] expectedPublishedProviderTransaction = new[] { NewPublishedProviderTransaction(_ => _.WithAuthor(publishedProviderVersion.Author)
             .WithDate(publishedProviderVersion.Date)
-            .WithPublishedProviderStatus(publishedProviderVersion.Status)) };
+            .WithPublishedProviderStatus(publishedProviderVersion.Status)
+            .WithTotalFunding(publishedProviderVersion.TotalFunding)
+            .WithFundingLines(publishedProviderVersion.FundingLines.ToArray())) };
 
             ActionResult
                 .Should()
@@ -298,6 +302,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
         {
             ActionResult = await _service.GetPublishedProviderTransactions(publishedProviderVersion.SpecificationId,
                 publishedProviderVersion.ProviderId);
+        }
+
+        private FundingLine NewFundingLine(Action<FundingLineBuilder> setUp = null)
+        {
+            FundingLineBuilder fundingLineBuilder = new FundingLineBuilder();
+
+            setUp?.Invoke(fundingLineBuilder);
+
+            return fundingLineBuilder.Build();
         }
 
         private PublishedProviderVersion NewPublishedProviderVersion(

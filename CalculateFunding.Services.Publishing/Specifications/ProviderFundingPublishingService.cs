@@ -126,7 +126,8 @@ namespace CalculateFunding.Services.Publishing.Specifications
                 Author = _.Author,
                 Date = _.Date,
                 Status = _.Status,
-                TotalFunding = _.TotalFunding
+                TotalFunding = _.TotalFunding,
+                FundingLines = _.FundingLines
             }));
         }
 
