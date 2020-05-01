@@ -42,9 +42,9 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
 
                     IDictionary<string, object> row = resultsBatch[itemCount] ?? (resultsBatch[itemCount] = new ExpandoObject());
 
+                    row["Grouping Reason"] = publishedFundingVersion.GroupingReason.ToString();
                     row["Grouping Code"] = publishedFundingVersion.OrganisationGroupTypeCode;
                     row["Grouping Name"] = publishedFundingVersion.OrganisationGroupName;
-                    row["Grouping Reason"] = publishedFundingVersion.GroupingReason;
                     row["Allocation Status"] = publishedFundingVersion.Status.ToString();
                     row["Allocation Major Version"] = publishedFundingVersion.MajorVersion.ToString();
                     row["Allocation Author"] = publishedFundingVersion.Author?.Name;

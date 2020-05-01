@@ -82,9 +82,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
             {
                 new Dictionary<string, object>
                 {
+                    {"Grouping Reason", expectedGroupingReason.ToString()},
                     {"Grouping Code", "LocalAuthority"},
                     {"Grouping Name", "Enfield"},
-                    {"Grouping Reason", expectedGroupingReason},
                     {"Allocation Status", "Released"},
                     {"Allocation Major Version", "1"},
                     {"Allocation Author", "system"},
@@ -99,8 +99,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
 
             transformProviderResultsIntoCsvRows
             .Should()
-            .BeEquivalentTo(expectedCsvRows,
-                cfg => cfg.WithStrictOrdering());
+            .BeEquivalentTo(expectedCsvRows);
         }
 
     }
