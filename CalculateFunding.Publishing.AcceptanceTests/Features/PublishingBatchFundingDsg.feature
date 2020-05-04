@@ -948,130 +948,131 @@ Scenario Outline: Successful publishing of funding
 		| OrganisationGroupIdentifierValue | 9000000           |
 		| FundingPeriodId                  | <FundingPeriodId> |
 		| FundingStreamId                  | <FundingStreamId> |
-	And the total funding is '12000'
+	And the total funding is '24000'
 	And the published funding contains the following published provider ids
 		| FundingIds                                      |
+		| <FundingStreamId>-<FundingPeriodId>-1000002-0_1 |
 		| <FundingStreamId>-<FundingPeriodId>-1000000-1_0 |
-	And the published funding contains a distribution period in funding line 'DSG-002' with id of 'FY-1920' has the value of '7000'
-	And the published funding contains a distribution period in funding line 'DSG-002' with id of 'FY-2021' has the value of '5000'
+	And the published funding contains a distribution period in funding line 'DSG-002' with id of 'FY-1920' has the value of '14000'
+	And the published funding contains a distribution period in funding line 'DSG-002' with id of 'FY-2021' has the value of '10000'
 	And the published funding contains a distribution period in funding line 'DSG-002' with id of 'FY-1920' has the following profiles
 		| DistributionPeriodId | Type          | TypeValue | Year | Occurrence | ProfiledValue |
-		| FY-1920              | CalendarMonth | October   | 1920 | 1          | 7000         |
+		| FY-1920              | CalendarMonth | October   | 1920 | 1          | 14000         |
 	And the published funding contains a distribution period in funding line 'DSG-002' with id of 'FY-2021' has the following profiles
 		| DistributionPeriodId | Type          | TypeValue | Year | Occurrence | ProfiledValue |
-		| FY-2021              | CalendarMonth | April     | 2021 | 1          | 5000         |
+		| FY-2021              | CalendarMonth | April     | 2021 | 1          | 10000         |
 	And  the published funding contains a calculations in published provider with following calculation results
 		| Id				    | Value |		
-		| 238                   | 320   |
-		| 15                    | 320   |
-		| 17                    | 320   |
-		| 13                    | 320   |
-		| 14                    | 320   |
-		| 19                    | 320   |
-		| 20                    | 320   |
-		| 26                    | 320   |
-		| 24                    | 320   |
-		| 28                    | 320   |
+		| 238                   | 640   |
+		| 15                    | 640   |
+		| 17                    | 640   |
+		| 13                    | 640   |
+		| 14                    | 640   |
+		| 19                    | 640   |
+		| 20                    | 640   |
+		| 26                    | 640   |
+		| 24                    | 640   |
+		| 28                    | 640   |
 		| 133                   | 320   |
-		| 131                   | 320   |
+		| 131                   | 640   |
 		| 138                   | 320   |
-		| 136                   | 320   |
-		| 143                   | 320   |
-		| 141                   | 320   |
-		| 148                   | 320   |
-		| 146                   | 320   |
-		| 153                   | 320   |
-		| 151                   | 320   |
-		| 32                    | 320   |
-		| 34                    | 320   |
-		| 37                    | 320   |
-		| 29                    | 320   |
-		| 237                   | 320   |
-		| 30                    | 320   |
-		| 33                    | 320   |
+		| 136                   | 640   |
+		| 143                   | 640   |
+		| 141                   | 640   |
+		| 148                   | 640   |
+		| 146                   | 640   |
+		| 153                   | 640   |
+		| 151                   | 640   |
+		| 32                    | 640   |
+		| 34                    | 640   |
+		| 37                    | 640   |
+		| 29                    | 640   |
+		| 237                   | 640   |
+		| 30                    | 640   |
+		| 33                    | 640   |
 		| 36                    | 320   |
-		| 65                    | 320   |
-		| 66                    | 320   |
-		| 64                    | 320   |
-		| 70                    | 320   |
-		| 71                    | 320   |
-		| 69                    | 320   |
-		| 75                    | 320   |
-		| 76                    | 320   |
-		| 74                    | 320   |
-		| 80                    | 320   |
-		| 81                    | 320   |
-		| 79                    | 320   |
-		| 50                    | 320   |
-		| 51                    | 320   |
-		| 52                    | 320   |
-		| 53                    | 320   |
-		| 163                   | 320   |
-		| 164                   | 320   |
-		| 162                   | 320   |
-		| 90                    | 320   |
-		| 91                    | 320   |
-		| 89                    | 320   |
-		| 95                    | 320   |
-		| 96                    | 320   |
-		| 94                    | 320   |
-		| 158                   | 320   |
-		| 175                   | 320   |
-		| 174                   | 320   |
-		| 168                   | 320   |
-		| 169                   | 320   |
-		| 167                   | 320   |
-		| 176                   | 320   |
-		| 177                   | 320   |
-		| 232                   | 320   |
-		| 182                   | 320   |
-		| 183                   | 320   |
-		| 234                   | 320   |
-		| 159                   | 320   |
-		| 161                   | 320   |
-		| 233                   | 320   |
-		| 189                   | 320   |
-		| 190                   | 320   |
-		| 186                   | 320   |
-		| 195                   | 320   |
-		| 196                   | 320   |
-		| 192                   | 320   |
-		| 185                   | 320   |
-		| 191                   | 320   |
-		| 202                   | 320   |
-		| 203                   | 320   |
-		| 199                   | 320   |
-		| 198                   | 320   |
-		| 209                   | 320   |
-		| 210                   | 320   |
-		| 206                   | 320   |
-		| 205                   | 320   |
-		| 214                   | 320   |
-		| 215                   | 320   |
-		| 213                   | 320   |
-		| 223                   | 320   |
-		| 224                   | 320   |
-		| 220                   | 320   |
-		| 212                   | 320   |
-		| 128                   | 320   |
-		| 129                   | 320   |
-		| 227                   | 320   |
-		| 226                   | 320   |
-		| 42                    | 320   |
-		| 156                   | 320   |
-		| 157                   | 320   |
-		| 184                   | 320   |
-		| 197                   | 320   |
-		| 204                   | 320   |
-		| 211                   | 320   |
-		| 218                   | 320   |
-		| 225                   | 320   |
-		| 40                    | 320   |
-		| 41                    | 320   |
-		| 39                    | 320   |
-		| 21                    | 320   |
-		| 22                    | 320   |
-		| 219                   | 320   |
+		| 65                    | 640   |
+		| 66                    | 640   |
+		| 64                    | 640   |
+		| 70                    | 640   |
+		| 71                    | 640   |
+		| 69                    | 640   |
+		| 75                    | 640   |
+		| 76                    | 640   |
+		| 74                    | 640   |
+		| 80                    | 640   |
+		| 81                    | 640   |
+		| 79                    | 640   |
+		| 50                    | 640   |
+		| 51                    | 640   |
+		| 52                    | 640   |
+		| 53                    | 640   |
+		| 163                   | 640   |
+		| 164                   | 640   |
+		| 162                   | 640   |
+		| 90                    | 640   |
+		| 91                    | 640   |
+		| 89                    | 640   |
+		| 95                    | 640   |
+		| 96                    | 640   |
+		| 94                    | 640   |
+		| 158                   | 640   |
+		| 175                   | 640   |
+		| 174                   | 640   |
+		| 168                   | 640   |
+		| 169                   | 640   |
+		| 167                   | 640   |
+		| 176                   | 640   |
+		| 177                   | 640   |
+		| 232                   | 640   |
+		| 182                   | 640   |
+		| 183                   | 640   |
+		| 234                   | 640   |
+		| 159                   | 640   |
+		| 161                   | 640   |
+		| 233                   | 640   |
+		| 189                   | 640   |
+		| 190                   | 640   |
+		| 186                   | 640   |
+		| 195                   | 640   |
+		| 196                   | 640   |
+		| 192                   | 640   |
+		| 185                   | 640   |
+		| 191                   | 640   |
+		| 202                   | 640   |
+		| 203                   | 640   |
+		| 199                   | 640   |
+		| 198                   | 640   |
+		| 209                   | 640   |
+		| 210                   | 640   |
+		| 206                   | 640   |
+		| 205                   | 640   |
+		| 214                   | 640   |
+		| 215                   | 640   |
+		| 213                   | 640   |
+		| 223                   | 640   |
+		| 224                   | 640   |
+		| 220                   | 640   |
+		| 212                   | 640   |
+		| 128                   | 640   |
+		| 129                   | 640   |
+		| 227                   | 640   |
+		| 226                   | 640   |
+		| 42                    | 640   |
+		| 156                   | 640   |
+		| 157                   | 640   |
+		| 184                   | 640   |
+		| 197                   | 640   |
+		| 204                   | 640   |
+		| 211                   | 640   |
+		| 218                   | 640   |
+		| 225                   | 640   |
+		| 40                    | 640   |
+		| 41                    | 640   |
+		| 39                    | 640   |
+		| 21                    | 640   |
+		| 22                    | 640   |
+		| 219                   | 640   |
 	And the published funding document produced is saved to blob storage for following file name
 		| PublishedFundingFiles												   |
 		| <FundingStreamId>-<FundingPeriodId>-Information-LocalAuthority-200-1_0.json |

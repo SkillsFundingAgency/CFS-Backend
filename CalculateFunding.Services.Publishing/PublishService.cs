@@ -143,7 +143,7 @@ namespace CalculateFunding.Services.Publishing
             foreach (Reference fundingStream in specification.FundingStreams)
             {
                 await PublishFundingStream(fundingStream, specification, jobId, author, correlationId, 
-                    PrerequisiteCheckerType.ReleaseBatchProviders, publishProvidersRequest?.Providers.ToArray());
+                    PrerequisiteCheckerType.ReleaseBatchProviders, publishProvidersRequest?.Providers?.ToArray());
             }
 
             _logger.Information($"Running search reindexer for published funding");
@@ -217,7 +217,7 @@ namespace CalculateFunding.Services.Publishing
             Reference author,
             string correlationId,
             PrerequisiteCheckerType prerequisiteCheckerType,
-            string[] providerIds = null)
+            string[] batchProviderIds = null)
         {
             _logger.Information($"Processing Publish Funding for {fundingStream.Id} in specification {specification.Id}");
 
@@ -228,14 +228,21 @@ namespace CalculateFunding.Services.Publishing
                 return;
             }
 
+            // we always need to get every provider in scope whether it is released or otherwise so that we always genarate the contents
+            // this is just in case an error has occurred during a release so we never get a case where we don't get blobs generated for the published providers
             (IDictionary<string, PublishedProvider> publishedProvidersForFundingStream, 
                 IDictionary<string, PublishedProvider> scopedPublishedProviders) = await _providerService.GetPublishedProviders(fundingStream,
-                        specification, providerIds);
+                        specification);
+
+            IEnumerable<PublishedProvider> selectedPublishedProviders =
+                batchProviderIds.IsNullOrEmpty() ?
+                publishedProvidersForFundingStream.Values :
+                publishedProvidersForFundingStream.Values.Where(_ => batchProviderIds.Contains(_.Current.ProviderId));
 
             _logger.Information($"Verifying prerequisites for funding publish");
 
             IPrerequisiteChecker prerequisiteChecker = _prerequisiteCheckerLocator.GetPreReqChecker(prerequisiteCheckerType);
-            await prerequisiteChecker.PerformChecks(specification, jobId, publishedProvidersForFundingStream?.Values.ToList());
+            await prerequisiteChecker.PerformChecks(specification, jobId, selectedPublishedProviders?.ToList());
             _logger.Information($"Prerequisites for publish passed");
 
             TemplateMapping templateMapping = await GetTemplateMapping(fundingStream, specification.Id);
@@ -244,59 +251,55 @@ namespace CalculateFunding.Services.Publishing
                 scopedPublishedProviders?.Values.Select(_ => _.Current.Provider), 
                 fundingStream, 
                 specification);
-            
-            using (Transaction transaction = _transactionFactory.NewTransaction<PublishService>())
+
+            using Transaction transaction = _transactionFactory.NewTransaction<PublishService>();
+            try
             {
-                try
+                // if any error occurs while updating or indexing then we need to re-index all published providers for consistency
+                transaction.Enroll(async () =>
                 {
-                    // if any error occurs while updating or indexing then we need to re-index all published providers for consistency
-                    transaction.Enroll(async () =>
-                    {
-                        await _publishedProviderVersionService.CreateReIndexJob(author, correlationId);
-                    });
+                    await _publishedProviderVersionService.CreateReIndexJob(author, correlationId);
+                });
 
-                    // we always need to get every provider in scope whether it is released or otherwise so that we always genarate the contents
-                    // this is just in case an error has occurred during a release so we never get a case where we don't get blobs generated for the published providers
-                    await SavePublishedProvidersAsPublishedReleased(jobId, author, publishedProvidersForFundingStream.Values);
+                await SavePublishedProvidersAsReleased(jobId, author, selectedPublishedProviders);
 
-                    _logger.Information($"Generating published funding");
-                    IEnumerable<(PublishedFunding PublishedFunding, PublishedFundingVersion PublishedFundingVersion)> publishedFundingToSave =
-                        _publishedFundingGenerator.GeneratePublishedFunding(publishedFundingInput, publishedProvidersForFundingStream?.Values).ToList();
-                    _logger.Information($"A total of {publishedFundingToSave.Count()} published funding versions created to save.");
+                _logger.Information($"Generating published funding");
+                IEnumerable<(PublishedFunding PublishedFunding, PublishedFundingVersion PublishedFundingVersion)> publishedFundingToSave =
+                    _publishedFundingGenerator.GeneratePublishedFunding(publishedFundingInput, publishedProvidersForFundingStream?.Values).ToList();
+                _logger.Information($"A total of {publishedFundingToSave.Count()} published funding versions created to save.");
 
-                    // if any error occurs while updating then we still need to run the indexer to be consistent
-                    transaction.Enroll(async () =>
-                    {
-                        await _publishedIndexSearchResiliencePolicy.ExecuteAsync(() => _publishedFundingSearchRepository.RunIndexer());
-                    });
-
-                    // Save a version of published funding and set this version to current
-                    _logger.Information($"Saving published funding");
-                    await _publishedFundingStatusUpdateService.UpdatePublishedFundingStatus(publishedFundingToSave, author, PublishedFundingStatus.Released);
-                    _logger.Information($"Finished saving published funding");
-
-                    // Save contents to blob storage and search for the feed
-                    _logger.Information($"Saving published funding contents");
-                    await _publishedFundingContentsPersistanceService.SavePublishedFundingContents(publishedFundingToSave.Select(_ => _.PublishedFundingVersion),
-                        publishedFundingInput.TemplateMetadataContents);
-                    _logger.Information($"Finished saving published funding contents");
-
-                    if (!publishedProvidersForFundingStream.IsNullOrEmpty())
-                    {
-                        // Generate contents JSON for provider and save to blob storage
-                        IPublishedProviderContentsGenerator generator = _publishedProviderContentsGeneratorResolver.GetService(publishedFundingInput.TemplateMetadataContents.SchemaVersion);
-                        await _publishedProviderContentsPersistanceService.SavePublishedProviderContents(publishedFundingInput.TemplateMetadataContents, templateMapping,
-                            publishedProvidersForFundingStream.Values, generator);
-                    }
-
-                    transaction.Complete();
-                }
-                catch
+                // if any error occurs while updating then we still need to run the indexer to be consistent
+                transaction.Enroll(async () =>
                 {
-                    await transaction.Compensate();
+                    await _publishedIndexSearchResiliencePolicy.ExecuteAsync(() => _publishedFundingSearchRepository.RunIndexer());
+                });
 
-                    throw;
+                // Save a version of published funding and set this version to current
+                _logger.Information($"Saving published funding");
+                await _publishedFundingStatusUpdateService.UpdatePublishedFundingStatus(publishedFundingToSave, author, PublishedFundingStatus.Released);
+                _logger.Information($"Finished saving published funding");
+
+                // Save contents to blob storage and search for the feed
+                _logger.Information($"Saving published funding contents");
+                await _publishedFundingContentsPersistanceService.SavePublishedFundingContents(publishedFundingToSave.Select(_ => _.PublishedFundingVersion),
+                    publishedFundingInput.TemplateMetadataContents);
+                _logger.Information($"Finished saving published funding contents");
+
+                if (!selectedPublishedProviders.IsNullOrEmpty())
+                {
+                    // Generate contents JSON for provider and save to blob storage
+                    IPublishedProviderContentsGenerator generator = _publishedProviderContentsGeneratorResolver.GetService(publishedFundingInput.TemplateMetadataContents.SchemaVersion);
+                    await _publishedProviderContentsPersistanceService.SavePublishedProviderContents(publishedFundingInput.TemplateMetadataContents, templateMapping,
+                        selectedPublishedProviders, generator);
                 }
+
+                transaction.Complete();
+            }
+            catch
+            {
+                await transaction.Compensate();
+
+                throw;
             }
         }
 
@@ -315,7 +318,7 @@ namespace CalculateFunding.Services.Publishing
             }
         }
 
-        private async Task SavePublishedProvidersAsPublishedReleased(string jobId, Reference author, IEnumerable<PublishedProvider> publishedProviders)
+        private async Task SavePublishedProvidersAsReleased(string jobId, Reference author, IEnumerable<PublishedProvider> publishedProviders)
         {
             IEnumerable<PublishedProvider> publishedProvidersToSaveAsReleased = publishedProviders.Where(p => p.Current.Status != PublishedProviderStatus.Released);
 

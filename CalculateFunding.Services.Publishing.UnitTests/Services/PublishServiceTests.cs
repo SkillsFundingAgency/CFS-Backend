@@ -205,7 +205,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             AndSpecification();
             AndCalculationResultsBySpecificationId();
             AndTemplateMetadataContents();
-            AndPublishedProviders(_providerIds);
+            AndPublishedProviders();
             AndUpdateStatusThrowsAnError(error);
             AndTemplateMapping();
 
@@ -269,7 +269,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             AndSpecification();
             AndCalculationResultsBySpecificationId();
             AndTemplateMetadataContents();
-            AndPublishedProviders(_providerIds);
+            AndPublishedProviders();
             AndUpdateFundingStatusThrowsAnError(error);
             AndTemplateMapping();
 
@@ -319,7 +319,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             AndSpecification();
             AndCalculationResultsBySpecificationId();
             AndTemplateMetadataContents();
-            AndPublishedProviders(_providerIds);
+            AndPublishedProviders();
 
             Func<Task> invocation = () => WhenPublishBatchProvidersMessageReceivedWithJobId(BuildPublishProvidersRequest(_ => _.WithProviders(_providerIds)));
 
@@ -426,7 +426,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             AndSpecification();
             AndCalculationResultsBySpecificationId();
             AndTemplateMetadataContents();
-            AndPublishedProviders(_providerIds);
+            AndPublishedProviders();
             AndCalculationEngineRunningForPublishBatchProviders();
 
             Func<Task> invocation = () => WhenPublishBatchProvidersMessageReceivedWithJobId(BuildPublishProvidersRequest(_ => _.WithProviders(_providerIds)));
@@ -509,7 +509,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 .GetTemplateMapping(_specificationSummary.Id, FundingStreamId)
                 .Returns(new ApiResponse<TemplateMapping>(HttpStatusCode.OK, _templateMapping));
         }
-        private void AndPublishedProviders(string[] providerIds = null)
+        private void AndPublishedProviders()
         {
             Provider[] providers = new[] { NewProvider(), 
                 NewProvider(), 
@@ -534,8 +534,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
 
             _providerService
                 .GetPublishedProviders(Arg.Is<Reference>(_ => _.Id == FundingStreamId),
-                                                         _specificationSummary,
-                                                         Arg.Is<string[]>(_ => _ == null || _.SequenceEqual(providerIds)))
+                                                         _specificationSummary)
                 .Returns((_publishedProviders.ToDictionary(_ => _.Current.ProviderId),
                                                            _publishedProviders.ToDictionary(_ => _.Current.ProviderId)));
         }

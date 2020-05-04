@@ -145,9 +145,9 @@ namespace CalculateFunding.Services.Publishing.Providers
         }
 
         public async Task<(IDictionary<string, PublishedProvider> PublishedProvidersForFundingStream, IDictionary<string, PublishedProvider> ScopedPublishedProviders)> 
-            GetPublishedProviders(Reference fundingStream, SpecificationSummary specification, string[] providerIds = null)
+            GetPublishedProviders(Reference fundingStream, SpecificationSummary specification)
         {
-            IDictionary<string, PublishedProvider> publishedProvidersForFundingStream = await GetPublishedProvidersForFundingStream(fundingStream, specification, providerIds);
+            IDictionary<string, PublishedProvider> publishedProvidersForFundingStream = await GetPublishedProvidersForFundingStream(fundingStream, specification);
 
             IDictionary<string, Provider> scopedProviders =
                 await GetScopedProvidersForSpecification(specification.Id, specification.ProviderVersionId);
@@ -175,12 +175,12 @@ namespace CalculateFunding.Services.Publishing.Providers
         }
 
         private async Task<IDictionary<string, PublishedProvider>> GetPublishedProvidersForFundingStream(
-            Reference fundingStream, SpecificationSummary specification, string[] providerIds = null)
+            Reference fundingStream, SpecificationSummary specification)
         {
             _logger.Information($"Retrieving published provider results for {fundingStream.Id} in specification {specification.Id}");
 
             IEnumerable<PublishedProvider> publishedProvidersResult =
-                await _publishedFundingDataService.GetCurrentPublishedProviders(fundingStream.Id, specification.FundingPeriod.Id, providerIds);
+                await _publishedFundingDataService.GetCurrentPublishedProviders(fundingStream.Id, specification.FundingPeriod.Id);
 
             // Ensure linq query evaluates only once
             Dictionary<string, PublishedProvider> publishedProvidersForFundingStream = publishedProvidersResult.ToDictionary(_ => _.Current.ProviderId);

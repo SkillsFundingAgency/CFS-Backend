@@ -83,7 +83,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         }
 
         public Task<(IDictionary<string, PublishedProvider> PublishedProvidersForFundingStream, IDictionary<string, PublishedProvider> ScopedPublishedProviders)> 
-            GetPublishedProviders(Reference fundingStream, SpecificationSummary specification, string[] providerIds = null)
+            GetPublishedProviders(Reference fundingStream, SpecificationSummary specification)
         {
             throw new NotImplementedException();
         }

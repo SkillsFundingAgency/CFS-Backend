@@ -3506,22 +3506,24 @@ this.ScenarioInitialize(scenarioInfo);
  testRunner.Then("the following published funding is produced", ((string)(null)), table384, "Then ");
 #line hidden
 #line 951
- testRunner.And("the total funding is \'12000\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+ testRunner.And("the total funding is \'24000\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
                 TechTalk.SpecFlow.Table table385 = new TechTalk.SpecFlow.Table(new string[] {
                             "FundingIds"});
+                table385.AddRow(new string[] {
+                            string.Format("{0}-{1}-1000002-0_1", fundingStreamId, fundingPeriodId)});
                 table385.AddRow(new string[] {
                             string.Format("{0}-{1}-1000000-1_0", fundingStreamId, fundingPeriodId)});
 #line 952
  testRunner.And("the published funding contains the following published provider ids", ((string)(null)), table385, "And ");
 #line hidden
-#line 955
- testRunner.And("the published funding contains a distribution period in funding line \'DSG-002\' wi" +
-                        "th id of \'FY-1920\' has the value of \'7000\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
-#line hidden
 #line 956
  testRunner.And("the published funding contains a distribution period in funding line \'DSG-002\' wi" +
-                        "th id of \'FY-2021\' has the value of \'5000\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+                        "th id of \'FY-1920\' has the value of \'14000\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+#line 957
+ testRunner.And("the published funding contains a distribution period in funding line \'DSG-002\' wi" +
+                        "th id of \'FY-2021\' has the value of \'10000\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
                 TechTalk.SpecFlow.Table table386 = new TechTalk.SpecFlow.Table(new string[] {
                             "DistributionPeriodId",
@@ -3536,8 +3538,8 @@ this.ScenarioInitialize(scenarioInfo);
                             "October",
                             "1920",
                             "1",
-                            "7000"});
-#line 957
+                            "14000"});
+#line 958
  testRunner.And("the published funding contains a distribution period in funding line \'DSG-002\' wi" +
                         "th id of \'FY-1920\' has the following profiles", ((string)(null)), table386, "And ");
 #line hidden
@@ -3554,8 +3556,8 @@ this.ScenarioInitialize(scenarioInfo);
                             "April",
                             "2021",
                             "1",
-                            "5000"});
-#line 960
+                            "10000"});
+#line 961
  testRunner.And("the published funding contains a distribution period in funding line \'DSG-002\' wi" +
                         "th id of \'FY-2021\' has the following profiles", ((string)(null)), table387, "And ");
 #line hidden
@@ -3564,335 +3566,335 @@ this.ScenarioInitialize(scenarioInfo);
                             "Value"});
                 table388.AddRow(new string[] {
                             "238",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "15",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "17",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "13",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "14",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "19",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "20",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "26",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "24",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "28",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "133",
                             "320"});
                 table388.AddRow(new string[] {
                             "131",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "138",
                             "320"});
                 table388.AddRow(new string[] {
                             "136",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "143",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "141",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "148",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "146",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "153",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "151",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "32",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "34",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "37",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "29",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "237",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "30",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "33",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "36",
                             "320"});
                 table388.AddRow(new string[] {
                             "65",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "66",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "64",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "70",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "71",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "69",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "75",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "76",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "74",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "80",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "81",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "79",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "50",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "51",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "52",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "53",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "163",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "164",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "162",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "90",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "91",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "89",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "95",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "96",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "94",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "158",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "175",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "174",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "168",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "169",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "167",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "176",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "177",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "232",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "182",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "183",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "234",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "159",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "161",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "233",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "189",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "190",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "186",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "195",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "196",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "192",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "185",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "191",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "202",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "203",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "199",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "198",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "209",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "210",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "206",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "205",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "214",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "215",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "213",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "223",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "224",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "220",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "212",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "128",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "129",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "227",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "226",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "42",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "156",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "157",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "184",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "197",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "204",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "211",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "218",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "225",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "40",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "41",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "39",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "21",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "22",
-                            "320"});
+                            "640"});
                 table388.AddRow(new string[] {
                             "219",
-                            "320"});
-#line 963
+                            "640"});
+#line 964
  testRunner.And("the published funding contains a calculations in published provider with followin" +
                         "g calculation results", ((string)(null)), table388, "And ");
 #line hidden
@@ -3902,7 +3904,7 @@ this.ScenarioInitialize(scenarioInfo);
                             string.Format("{0}-{1}-Information-LocalAuthority-200-1_0.json", fundingStreamId, fundingPeriodId)});
                 table389.AddRow(new string[] {
                             string.Format("{0}-{1}-Payment-LocalAuthority-9000000-1_0.json", fundingStreamId, fundingPeriodId)});
-#line 1075
+#line 1076
  testRunner.And("the published funding document produced is saved to blob storage for following fi" +
                         "le name", ((string)(null)), table389, "And ");
 #line hidden
@@ -3910,7 +3912,7 @@ this.ScenarioInitialize(scenarioInfo);
                             "PublishedProviderFiles"});
                 table390.AddRow(new string[] {
                             string.Format("{0}-{1}-1000000-1_0.json", fundingStreamId, fundingPeriodId)});
-#line 1079
+#line 1080
  testRunner.And("the published provider document produced is saved to blob storage for following f" +
                         "ile name", ((string)(null)), table390, "And ");
 #line hidden
@@ -3936,7 +3938,7 @@ this.ScenarioInitialize(scenarioInfo);
                             "specForPublishing",
                             string.Format("{0}", fundingStreamId),
                             string.Format("{0}", fundingPeriodId)});
-#line 1082
+#line 1083
  testRunner.And(string.Format("the following published provider search index items is produced for providerid wi" +
                             "th \'{0}\' and \'{1}\'", fundingStreamId, fundingPeriodId), ((string)(null)), table391, "And ");
 #line hidden
@@ -3955,7 +3957,7 @@ this.ScenarioInitialize(scenarioInfo);
                 table392.AddRow(new string[] {
                             "ParentJobId",
                             ""});
-#line 1085
+#line 1086
  testRunner.And("the following job is requested is completed for the current specification", ((string)(null)), table392, "And ");
 #line hidden
                 TechTalk.SpecFlow.Table table393 = new TechTalk.SpecFlow.Table(new string[] {
@@ -3967,7 +3969,7 @@ this.ScenarioInitialize(scenarioInfo);
                 table393.AddRow(new string[] {
                             string.Format("publishedprovider-1000002-{0}-{1}", fundingPeriodId, fundingStreamId),
                             "Approved"});
-#line 1091
+#line 1092
  testRunner.And("the following released published provider ids are upserted", ((string)(null)), table393, "And ");
 #line hidden
             }
