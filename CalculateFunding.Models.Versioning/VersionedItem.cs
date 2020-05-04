@@ -38,7 +38,6 @@ namespace CalculateFunding.Models.Versioning
         [JsonProperty("publishStatus")]
         public PublishStatus PublishStatus { get; set; }
 
-
         public abstract VersionedItem Clone();
     }
 }

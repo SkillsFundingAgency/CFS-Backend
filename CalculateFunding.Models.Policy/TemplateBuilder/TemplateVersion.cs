@@ -20,6 +20,12 @@ namespace CalculateFunding.Models.Policy.TemplateBuilder
         public string TemplateId { get; set; }
         
         /// <summary>
+        /// contains template itself in its full JSON glory (theoretically any schema supported)
+        /// </summary>
+        [JsonProperty("TemplateJson")]
+        public string TemplateJson { get; set; }
+        
+        /// <summary>
         /// Funding Stream ID. eg PSG, DSG
         /// </summary>
         [JsonProperty("fundingStreamId")]

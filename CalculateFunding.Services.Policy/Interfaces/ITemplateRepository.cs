@@ -8,5 +8,7 @@ namespace CalculateFunding.Services.Policy.Interfaces
     {
         Task<HttpStatusCode> CreateDraft(Template template);
         Task<bool> IsTemplateNameInUse(string templateName);
+        Task<Template> GetTemplate(string templateId);
+        Task<HttpStatusCode> Update(Template template);
     }
 }

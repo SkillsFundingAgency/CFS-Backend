@@ -181,207 +181,6 @@ namespace CalculateFunding.Services.Policy.UnitTests
         }
 
         [TestMethod]
-        public async Task ValidateFundingTemplate_GivenTemplateWithValidSchemaVersionButNoFundingPropertyToValidate_ReturnsValidationResultWithErrors()
-        {
-            //Arrange
-            const string schemaVersion = "1.0";
-
-            JSchemaGenerator generator = new JSchemaGenerator();
-
-            JSchema schema = generator.Generate(typeof(TestClassWithNoFundingProperty));
-
-            TestClassWithNoFundingProperty testClassWithNoFunding = new TestClassWithNoFundingProperty
-            {
-                Test = "Whatever",
-                SchemaVersion = "1.0"
-            };
-
-            string fundingTemplate = JsonConvert.SerializeObject(testClassWithNoFunding);
-
-            string fundingSchema = schema.ToString();
-
-            string blobName = $"{fundingSchemaFolder}/{schemaVersion}.json";
-
-            IFundingSchemaRepository fundingSchemaRepository = CreateFundingSchemaRepository();
-            fundingSchemaRepository
-                .SchemaVersionExists(Arg.Is(blobName))
-                .Returns(true);
-            fundingSchemaRepository
-                .GetFundingSchemaVersion(Arg.Is(blobName))
-                .Returns(fundingSchema);
-
-            FundingTemplateValidationService fundingTemplateValidationService = CreateFundingTemplateValidationService(fundingSchemaRepository: fundingSchemaRepository);
-
-            //Act
-            FundingTemplateValidationResult result = await fundingTemplateValidationService.ValidateFundingTemplate(fundingTemplate);
-
-            //Assert
-            result
-                .ValidationState
-                .Errors[0]
-                .ErrorMessage
-                .Should()
-                .Be("No funding property found");
-
-            result
-               .IsValid
-               .Should()
-               .BeFalse();
-        }
-
-        [TestMethod]
-        public async Task ValidateFundingTemplate_GivenTemplateWithValidSchemaVersionAndFundingPropertyButNoFundingStreamProperty_ReturnsValidationResultWithErrors()
-        {
-            //Arrange
-            const string schemaVersion = "1.0";
-
-            JSchemaGenerator generator = new JSchemaGenerator();
-
-            JSchema schema = generator.Generate(typeof(TestClassWithFundingProperty));
-
-            TestClassWithFundingProperty testClassWithFunding = new TestClassWithFundingProperty
-            {
-                SchemaVersion = "1.0",
-                Funding = new { }
-            };
-
-            string fundingTemplate = JsonConvert.SerializeObject(testClassWithFunding);
-
-            string fundingSchema = schema.ToString();
-
-            string blobName = $"{fundingSchemaFolder}/{schemaVersion}.json";
-
-            IFundingSchemaRepository fundingSchemaRepository = CreateFundingSchemaRepository();
-            fundingSchemaRepository
-                .SchemaVersionExists(Arg.Is(blobName))
-                .Returns(true);
-            fundingSchemaRepository
-                .GetFundingSchemaVersion(Arg.Is(blobName))
-                .Returns(fundingSchema);
-
-            FundingTemplateValidationService fundingTemplateValidationService = CreateFundingTemplateValidationService(fundingSchemaRepository: fundingSchemaRepository);
-
-            //Act
-            FundingTemplateValidationResult result = await fundingTemplateValidationService.ValidateFundingTemplate(fundingTemplate);
-
-            //Assert
-            result
-                .ValidationState
-                .Errors[0]
-                .ErrorMessage
-                .Should()
-                .Be("No funding stream property found");
-
-            result
-               .IsValid
-               .Should()
-               .BeFalse();
-
-            result
-                .SchemaVersion
-                .Should()
-                .Be("1.0");
-        }
-
-        [TestMethod]
-        public async Task ValidateFundingTemplate_GivenTemplateWIthValidSchemaVersionAndFundingPropertyButNoFundingStreamCodeProperty_ReturnsValidationResultWithErrors()
-        {
-            //Arrange
-            const string schemaVersion = "1.0";
-
-            JSchemaGenerator generator = new JSchemaGenerator();
-
-            JSchema schema = generator.Generate(typeof(TestClassWithFundingProperty));
-
-            TestClassWithFundingProperty testClassWithFunding = new TestClassWithFundingProperty
-            {
-                SchemaVersion = "1.0",
-                Funding = new { fundingStream = new { } }
-            };
-
-            string fundingTemplate = JsonConvert.SerializeObject(testClassWithFunding);
-
-            string fundingSchema = schema.ToString();
-
-            string blobName = $"{fundingSchemaFolder}/{schemaVersion}.json";
-
-            IFundingSchemaRepository fundingSchemaRepository = CreateFundingSchemaRepository();
-            fundingSchemaRepository
-                .SchemaVersionExists(Arg.Is(blobName))
-                .Returns(true);
-            fundingSchemaRepository
-                .GetFundingSchemaVersion(Arg.Is(blobName))
-                .Returns(fundingSchema);
-
-            FundingTemplateValidationService fundingTemplateValidationService = CreateFundingTemplateValidationService(fundingSchemaRepository: fundingSchemaRepository);
-
-            //Act
-            FundingTemplateValidationResult result = await fundingTemplateValidationService.ValidateFundingTemplate(fundingTemplate);
-
-            //Assert
-            result
-                .ValidationState
-                .Errors[0]
-                .ErrorMessage
-                .Should()
-                .Be("No funding stream code property found");
-
-            result
-               .IsValid
-               .Should()
-               .BeFalse();
-        }
-
-        [TestMethod]
-        public async Task ValidateFundingTemplate_GivenTemplateWIthValidSchemaVersionAndFundingPropertyButNoTemplateVersionProperty_ReturnsValidationResultWithErrors()
-        {
-            //Arrange
-            const string schemaVersion = "1.0";
-
-            JSchemaGenerator generator = new JSchemaGenerator();
-
-            JSchema schema = generator.Generate(typeof(TestClassWithFundingProperty));
-
-            TestClassWithFundingProperty testClassWithFunding = new TestClassWithFundingProperty
-            {
-                SchemaVersion = "1.0",
-                Funding = new { fundingStream = new { code = "" } }
-            };
-
-            string fundingTemplate = JsonConvert.SerializeObject(testClassWithFunding);
-
-            string fundingSchema = schema.ToString();
-
-            string blobName = $"{fundingSchemaFolder}/{schemaVersion}.json";
-
-            IFundingSchemaRepository fundingSchemaRepository = CreateFundingSchemaRepository();
-            fundingSchemaRepository
-                .SchemaVersionExists(Arg.Is(blobName))
-                .Returns(true);
-            fundingSchemaRepository
-                .GetFundingSchemaVersion(Arg.Is(blobName))
-                .Returns(fundingSchema);
-
-            FundingTemplateValidationService fundingTemplateValidationService = CreateFundingTemplateValidationService(fundingSchemaRepository: fundingSchemaRepository);
-
-            //Act
-            FundingTemplateValidationResult result = await fundingTemplateValidationService.ValidateFundingTemplate(fundingTemplate);
-
-            //Assert
-            result
-                .ValidationState
-                .Errors[0]
-                .ErrorMessage
-                .Should()
-                .Be("No template version property found");
-
-            result
-               .IsValid
-               .Should()
-               .BeFalse();
-        }
-
-        [TestMethod]
         public async Task ValidateFundingTemplate_GivenTemplateWIthValidSchemaVersionAndFundingPropertyButCodeValueIsMissing_ReturnsValidationResultWithErrors()
         {
             //Arrange
@@ -389,9 +188,9 @@ namespace CalculateFunding.Services.Policy.UnitTests
 
             JSchemaGenerator generator = new JSchemaGenerator();
 
-            JSchema schema = generator.Generate(typeof(TestClassWithFundingProperty));
+            JSchema schema = generator.Generate(typeof(TestTemplate_schema_1_0));
 
-            TestClassWithFundingProperty testClassWithFunding = new TestClassWithFundingProperty
+            TestTemplate_schema_1_0 testClassWithFunding = new TestTemplate_schema_1_0
             {
                 SchemaVersion = "1.0",
                 Funding = new { templateVersion = "1.2", fundingStream = new { code = "" } }
@@ -438,9 +237,9 @@ namespace CalculateFunding.Services.Policy.UnitTests
 
             JSchemaGenerator generator = new JSchemaGenerator();
 
-            JSchema schema = generator.Generate(typeof(TestClassWithFundingProperty));
+            JSchema schema = generator.Generate(typeof(TestTemplate_schema_1_0));
 
-            TestClassWithFundingProperty testClassWithFunding = new TestClassWithFundingProperty
+            TestTemplate_schema_1_0 testClassWithFunding = new TestTemplate_schema_1_0
             {
                 SchemaVersion = "1.0",
                 Funding = new { templateVersion = "1.2", fundingStream = new { code = "PSG" } }
@@ -496,9 +295,9 @@ namespace CalculateFunding.Services.Policy.UnitTests
 
             JSchemaGenerator generator = new JSchemaGenerator();
 
-            JSchema schema = generator.Generate(typeof(TestClassWithFundingProperty));
+            JSchema schema = generator.Generate(typeof(TestTemplate_schema_1_0));
 
-            TestClassWithFundingProperty testClassWithFunding = new TestClassWithFundingProperty
+            TestTemplate_schema_1_0 testClassWithFunding = new TestTemplate_schema_1_0
             {
                 SchemaVersion = "1.0",
                 Funding = new { templateVersion = "", fundingStream = new { code = "PES" } }
@@ -545,7 +344,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
         }
 
         [TestMethod]
-        public async Task ValidateFundingTemplate_GivenTemplateIsValidAndValuesExtracted_ReturnsValidationResultWithNoErrors()
+        public async Task ValidateFundingTemplate_Schema_1_0_GivenTemplateIsValidAndValuesExtracted_ReturnsValidationResultWithNoErrors()
         {
             //Arrange
             const string schemaVersion = "1.0";
@@ -554,9 +353,9 @@ namespace CalculateFunding.Services.Policy.UnitTests
 
             JSchemaGenerator generator = new JSchemaGenerator();
 
-            JSchema schema = generator.Generate(typeof(TestClassWithFundingProperty));
+            JSchema schema = generator.Generate(typeof(TestTemplate_schema_1_0));
 
-            TestClassWithFundingProperty testClassWithFunding = new TestClassWithFundingProperty
+            TestTemplate_schema_1_0 testClassWithFunding = new TestTemplate_schema_1_0
             {
                 SchemaVersion = schemaVersion,
                 Funding = new { templateVersion = "2.1", fundingStream = new { code = "PES" } }
@@ -616,6 +415,78 @@ namespace CalculateFunding.Services.Policy.UnitTests
                 .BeTrue();
         }
 
+        [TestMethod]
+        public async Task ValidateFundingTemplate_Schema_1_1_GivenTemplateIsValidAndValuesExtracted_ReturnsValidationResultWithNoErrors()
+        {
+            //Arrange
+            const string schemaVersion = "1.1";
+
+            FundingStream fundingStream = new FundingStream();
+
+            JSchemaGenerator generator = new JSchemaGenerator();
+
+            JSchema schema = generator.Generate(typeof(TestTemplate_schema_1_1));
+
+            var template = new TestTemplate_schema_1_1
+            {
+                SchemaVersion = schemaVersion,
+                FundingStreamTemplate = new { templateVersion = "56.4", fundingStream = new { code = "XXX" } }
+            };
+
+            string fundingTemplate = JsonConvert.SerializeObject(template);
+
+            string fundingSchema = schema.ToString();
+
+            string blobName = $"{fundingSchemaFolder}/{schemaVersion}.json";
+
+            IFundingSchemaRepository fundingSchemaRepository = CreateFundingSchemaRepository();
+            fundingSchemaRepository
+                .SchemaVersionExists(Arg.Is(blobName))
+                .Returns(true);
+            fundingSchemaRepository
+                .GetFundingSchemaVersion(Arg.Is(blobName))
+                .Returns(fundingSchema);
+
+            IPolicyRepository policyRepository = CreatePolicyRepository();
+            policyRepository
+                .GetFundingStreamById(Arg.Is("XXX"))
+                .Returns(fundingStream);
+
+            FundingTemplateValidationService fundingTemplateValidationService = CreateFundingTemplateValidationService(
+                fundingSchemaRepository: fundingSchemaRepository,
+                policyRepository: policyRepository);
+
+            //Act
+            FundingTemplateValidationResult result = await fundingTemplateValidationService.ValidateFundingTemplate(fundingTemplate);
+
+            //Assert
+            result
+                .ValidationState
+                .Errors
+                .Should()
+                .BeEmpty();
+
+            result
+                .TemplateVersion
+                .Should()
+                .Be("56.4");
+
+            result
+                .SchemaVersion
+                .Should()
+                .Be("1.1");
+
+            result
+                .FundingStreamId
+                .Should()
+                .Be("XXX");
+
+            result
+                .IsValid
+                .Should()
+                .BeTrue();
+        }
+
         private static FundingTemplateValidationService CreateFundingTemplateValidationService(
             IFundingSchemaRepository fundingSchemaRepository = null,
             IPolicyRepository policyRepository = null)
@@ -649,22 +520,22 @@ namespace CalculateFunding.Services.Policy.UnitTests
             }
         }
 
-        private class TestClassWithNoFundingProperty
-        {
-            [JsonProperty("test")]
-            public string Test { get; set; }
-
-            [JsonProperty("schemaVersion")]
-            public string SchemaVersion { get; set; }
-        }
-
-        private class TestClassWithFundingProperty
+        private class TestTemplate_schema_1_0
         {
             [JsonProperty("schemaVersion")]
             public string SchemaVersion { get; set; }
 
             [JsonProperty("funding")]
             public dynamic Funding { get; set; }
+        }
+
+        private class TestTemplate_schema_1_1
+        {
+            [JsonProperty("schemaVersion")]
+            public string SchemaVersion { get; set; }
+
+            [JsonProperty("fundingStreamTemplate")]
+            public dynamic FundingStreamTemplate { get; set; }
         }
     }
 }

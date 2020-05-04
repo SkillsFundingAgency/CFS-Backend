@@ -10,8 +10,10 @@ namespace CalculateFunding.Services.Policy.Interfaces
     {
         Task<ServiceHealth> IsHealthOk();
 
-        Task<CreateTemplateResponse> CreateTemplate(
-            TemplateCreateCommand command,
-            Reference author);
+        Task<CreateTemplateResponse> CreateTemplate(TemplateCreateCommand command, Reference author);
+
+        Task<UpdateTemplateContentResponse> UpdateTemplateContent(TemplateContentUpdateCommand command, Reference author);
+
+        Task<UpdateTemplateMetadataResponse> UpdateTemplateMetadata(TemplateMetadataUpdateCommand command, Reference author);
     }
 }

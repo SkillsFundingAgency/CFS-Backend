@@ -9,13 +9,13 @@ namespace CalculateFunding.Models.Policy.TemplateBuilder
     /// <summary>
     /// A version of a template. Used to track changes while a template is built.
     /// </summary>
-    public class Template : IIdentifiable
+    public class Template : Reference, IIdentifiable
     {
         /// <summary>
         /// Cosmos document id
         /// </summary>
         [JsonProperty("id")]
-        public string Id => $"template-{TemplateId}";
+        public new string Id => base.Id = $"template-{TemplateId}";
 
         [JsonProperty("templateId")]
         public string TemplateId { get; set; }

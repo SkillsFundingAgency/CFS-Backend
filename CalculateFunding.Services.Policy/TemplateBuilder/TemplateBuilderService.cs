@@ -1,16 +1,17 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
-using CalculateFunding.Common.Utility;
+using CalculateFunding.Common.TemplateMetadata;
 using CalculateFunding.Models.Policy.TemplateBuilder;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Policy.Interfaces;
 using CalculateFunding.Services.Policy.Models;
-using FluentValidation;
+using CalculateFunding.Services.Policy.Validators;
 using FluentValidation.Results;
 using Serilog;
 
@@ -18,18 +19,24 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
 {
     public class TemplateBuilderService : ITemplateBuilderService, IHealthChecker
     {
-        private readonly IValidator<TemplateCreateCommand> _templateCreateCommandValidator;
+        private readonly IIoCValidatorFactory _validatorFactory;
+        private readonly IFundingTemplateValidationService _fundingTemplateValidationService;
+        private readonly ITemplateMetadataResolver _templateMetadataResolver;
         private readonly IVersionRepository<TemplateVersion> _templateVersionRepository;
         private readonly ILogger _logger;
         private readonly ITemplateRepository _templateRepository;
 
         public TemplateBuilderService(
-            IValidator<TemplateCreateCommand> templateCreateCommandValidator,
+            IIoCValidatorFactory validatorFactory,
+            IFundingTemplateValidationService fundingTemplateValidationService,
+            ITemplateMetadataResolver templateMetadataResolver,
             IVersionRepository<TemplateVersion> templateVersionRepository,
             ITemplateRepository templateRepository,
             ILogger logger)
         {
-            _templateCreateCommandValidator = templateCreateCommandValidator;
+            _validatorFactory = validatorFactory;
+            _fundingTemplateValidationService = fundingTemplateValidationService;
+            _templateMetadataResolver = templateMetadataResolver;
             _templateVersionRepository = templateVersionRepository;
             _templateRepository = templateRepository;
             _logger = logger;
@@ -37,13 +44,15 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
         
         public async Task<ServiceHealth> IsHealthOk()
         {
-            ServiceHealth repoHealth = await ((IHealthChecker)_templateRepository).IsHealthOk();
+            ServiceHealth templateRepoHealth = await ((IHealthChecker)_templateRepository).IsHealthOk();
+            ServiceHealth templateVersionRepoHealth = await ((IHealthChecker)_templateVersionRepository).IsHealthOk();
 
             ServiceHealth health = new ServiceHealth
             {
                 Name = GetType().Name
             };
-            health.Dependencies.AddRange(repoHealth.Dependencies);
+            health.Dependencies.AddRange(templateRepoHealth.Dependencies);
+            health.Dependencies.AddRange(templateVersionRepoHealth.Dependencies);
 
             return health;
         }
@@ -52,16 +61,12 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             TemplateCreateCommand command,
             Reference author)
         {
-            Guard.ArgumentNotNull(command, nameof(command));
-            Guard.ArgumentNotNull(author, nameof(author));
-
-            ValidationResult validationResult = await _templateCreateCommandValidator.ValidateAsync(command);
-
-            if (!validationResult.IsValid)
+            ValidationResult validatorResult = _validatorFactory.Validate(command).And(_validatorFactory.Validate(author));
+            if (!validatorResult.IsValid)
             {
                 return new CreateTemplateResponse
                 {
-                    ValidationResult = validationResult
+                    ValidationResult = validatorResult
                 };
             }
 
@@ -71,6 +76,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
                 {
                     string validationErrorMessage = $"Template name [{command.Name}] already in use";
                     _logger.Error(validationErrorMessage);
+                    ValidationResult validationResult = new ValidationResult();
                     validationResult.Errors.Add(new ValidationFailure(nameof(command.Name), validationErrorMessage));
                     return new CreateTemplateResponse
                     {
@@ -89,7 +95,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
                     FundingStreamId = command.FundingStreamId,
                     Name = command.Name,
                     Description = command.Description,
-                    Version = 1,
+                    Version = 0,
                     PublishStatus = PublishStatus.Draft,
                     SchemaVersion = command.SchemaVersion,
                     Author = author,
@@ -124,6 +130,130 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
                     Exception = ex
                 };
             }
+        }
+
+        public async Task<UpdateTemplateContentResponse> UpdateTemplateContent(TemplateContentUpdateCommand command, Reference author)
+        {
+            // input parameter validation
+            var validatorResult = _validatorFactory.Validate(command).And(_validatorFactory.Validate(author));
+            if (!validatorResult.IsValid)
+            {
+                return UpdateTemplateContentResponse.ValidationFail(validatorResult);
+            }
+            
+            var template = await _templateRepository.GetTemplate(command.TemplateId);
+            if (template == null)
+            {
+                return UpdateTemplateContentResponse.ValidationFail(nameof(command.TemplateId), "Template doesn't exist");
+            }
+
+            if (template.Current.TemplateJson == command.TemplateJson)
+                return UpdateTemplateContentResponse.Success();
+
+            UpdateTemplateContentResponse validationError = await ValidateTemplateContent(command);
+            if (validationError != null)
+                return validationError;
+
+            await UpdateTemplateContent(command, author, template);
+
+            return UpdateTemplateContentResponse.Success();
+        }
+
+        public async Task<UpdateTemplateMetadataResponse> UpdateTemplateMetadata(TemplateMetadataUpdateCommand command, Reference author)
+        {
+            var validatorResult = _validatorFactory.Validate(command).And(_validatorFactory.Validate(author));
+            if (!validatorResult.IsValid)
+            {
+                return UpdateTemplateMetadataResponse.ValidationFail(validatorResult);
+            }
+            
+            var template = await _templateRepository.GetTemplate(command.TemplateId);
+            if (template == null)
+            {
+                return UpdateTemplateMetadataResponse.ValidationFail(nameof(command.TemplateId), "Template doesn't exist");
+            }
+
+            if (template.Current.Name == command.Name && template.Current.Description == command.Description)
+                return UpdateTemplateMetadataResponse.Success();
+
+            // validate template name is unique if it is changing
+            if (template.Current.Name != command.Name)
+            {
+                if (await _templateRepository.IsTemplateNameInUse(command.Name))
+                {
+                    string validationErrorMessage = $"Template name [{command.Name}] already in use";
+                    _logger.Error(validationErrorMessage);
+                    ValidationResult validationResult = new ValidationResult();
+                    validationResult.Errors.Add(new ValidationFailure(nameof(command.Name), validationErrorMessage));
+                    return new UpdateTemplateMetadataResponse
+                    {
+                        ErrorMessage = validationErrorMessage,
+                        ValidationResult = validationResult
+                    };
+                }
+            }
+
+            await UpdateTemplateMetadata(command, author, template);
+
+            return UpdateTemplateMetadataResponse.Success();
+        }
+
+        private async Task UpdateTemplateContent(TemplateContentUpdateCommand command, Reference author, Template template)
+        {
+            // create new version and save it
+            TemplateVersion newVersion = template.Current.Clone() as TemplateVersion;
+            newVersion.Author = author;
+            newVersion.TemplateJson = command.TemplateJson;
+            newVersion.Version++;
+            newVersion.Predecessors ??= new List<string>();
+            newVersion.Predecessors.Add(template.Current.Id);
+            await _templateVersionRepository.SaveVersion(newVersion);
+            
+            // update template
+            template.AddPredecessor(template.Current.Id);
+            template.Current = newVersion;
+            await _templateRepository.Update(template);
+        }
+
+        private async Task UpdateTemplateMetadata(TemplateMetadataUpdateCommand command, Reference author, Template template)
+        {
+            // create new version and save it
+            TemplateVersion newVersion = template.Current.Clone() as TemplateVersion;
+            newVersion.Author = author;
+            newVersion.Name = command.Name;
+            newVersion.Description = command.Description;
+            newVersion.Version++;
+            newVersion.Predecessors ??= new List<string>();
+            newVersion.Predecessors.Add(template.Current.Id);
+            await _templateVersionRepository.SaveVersion(newVersion);
+            
+            // update template
+            template.AddPredecessor(template.Current.Id);
+            template.Current = newVersion;
+            await _templateRepository.Update(template);
+        }
+
+        private async Task<UpdateTemplateContentResponse> ValidateTemplateContent(TemplateContentUpdateCommand command)
+        {
+            // template json validation
+            FundingTemplateValidationResult validationResult = await _fundingTemplateValidationService.ValidateFundingTemplate(command.TemplateJson);
+
+            if (!validationResult.IsValid)
+            {
+                return UpdateTemplateContentResponse.ValidationFail(validationResult.ValidationState);
+            }
+
+            // schema specific validation
+            ITemplateMetadataGenerator templateMetadataGenerator = _templateMetadataResolver.GetService(validationResult.SchemaVersion);
+
+            ValidationResult validationGeneratorResult = templateMetadataGenerator.Validate(command.TemplateJson);
+
+            if (!validationGeneratorResult.IsValid)
+            {
+                return UpdateTemplateContentResponse.ValidationFail(validationGeneratorResult);
+            }
+
+            return null;
         }
     }
 }

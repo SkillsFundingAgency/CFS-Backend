@@ -32,5 +32,28 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
 
             return existing.Any();
         }
+
+        public async Task<Template> GetTemplate(string templateId)
+        {
+            Guard.IsNullOrWhiteSpace(templateId, nameof(templateId));
+
+            IEnumerable<Template> templateMatches = await _cosmosRepository
+                .Query<Template>(x => x.Content.TemplateId == templateId);
+
+            if (templateMatches != null && templateMatches.Any())
+            {
+                if (templateMatches.Count() == 1)
+                    return templateMatches.First();
+                
+                throw new ApplicationException($"Duplicate templates with TemplateId={templateId}");
+            }
+
+            return null;
+        }
+
+        public async Task<HttpStatusCode> Update(Template template)
+        {
+            return await _cosmosRepository.UpdateAsync(template);
+        }
     }
 }

@@ -40,7 +40,7 @@ namespace CalculateFunding.Services.Policy
 
         public async Task<ServiceHealth> IsHealthOk()
         {
-            (bool Ok, string Message) fundingSchemaRepoHealth = await ((BlobClient)_fundingSchemaRepository).IsHealthOk();
+            (bool Ok, string Message) fundingSchemaRepoHealth = await ((BlobClient) _fundingSchemaRepository).IsHealthOk();
 
             ServiceHealth health = new ServiceHealth()
             {
@@ -93,7 +93,8 @@ namespace CalculateFunding.Services.Policy
 
             if (!schemaExists)
             {
-                fundingTemplateValidationResult.ValidationState.Errors.Add($"A valid schema could not be found for schema version '{schemaVersion}'.");
+                fundingTemplateValidationResult.ValidationState.Errors.Add(
+                    $"A valid schema could not be found for schema version '{schemaVersion}'.");
 
                 return fundingTemplateValidationResult;
             }
@@ -110,9 +111,11 @@ namespace CalculateFunding.Services.Policy
             return fundingTemplateValidationResult;
         }
 
-        private async Task ValidateAgainstSchema(string blobName, JObject parsedFundingTemplate, FundingTemplateValidationResult fundingTemplateValidationResult)
+        private async Task ValidateAgainstSchema(string blobName, JObject parsedFundingTemplate,
+            FundingTemplateValidationResult fundingTemplateValidationResult)
         {
-            string fundingSchemaJson = await _fundingSchemaRepositoryPolicy.ExecuteAsync(() => _fundingSchemaRepository.GetFundingSchemaVersion(blobName));
+            string fundingSchemaJson =
+                await _fundingSchemaRepositoryPolicy.ExecuteAsync(() => _fundingSchemaRepository.GetFundingSchemaVersion(blobName));
 
             JSchema fundingSchema = JSchema.Parse(fundingSchemaJson);
 
@@ -127,55 +130,31 @@ namespace CalculateFunding.Services.Policy
             }
         }
 
-        private async Task ExtractFundingStreamAndVersion(FundingTemplateValidationResult fundingTemplateValidationResult, JObject parsedFundingTemplate)
+        private async Task ExtractFundingStreamAndVersion(FundingTemplateValidationResult fundingTemplateValidationResult,
+            JObject parsedFundingTemplate)
         {
-            if (parsedFundingTemplate["funding"] == null)
-            {
-                fundingTemplateValidationResult.ValidationState.Errors.Add("No funding property found");
-
-                return;
-            }
-
-            if (parsedFundingTemplate["funding"]["fundingStream"] == null)
-            {
-                fundingTemplateValidationResult.ValidationState.Errors.Add("No funding stream property found");
-
-                return;
-            }
-
-            if (parsedFundingTemplate["funding"]["fundingStream"]["code"] == null)
-            {
-                fundingTemplateValidationResult.ValidationState.Errors.Add("No funding stream code property found");
-
-                return;
-            }
-
-            if (parsedFundingTemplate["funding"]["templateVersion"] == null)
-            {
-                fundingTemplateValidationResult.ValidationState.Errors.Add("No template version property found");
-
-                return;
-            }
-
-            if (string.IsNullOrWhiteSpace(parsedFundingTemplate["funding"]["fundingStream"]["code"].Value<string>()))
+            var fundingStreamCode = parsedFundingTemplate.SelectToken("$..fundingStream.code")?.Value<string>();
+            if (fundingStreamCode.IsNullOrEmpty())
             {
                 fundingTemplateValidationResult.ValidationState.Errors.Add("Funding stream id is missing from the template");
             }
             else
             {
-                fundingTemplateValidationResult.FundingStreamId = parsedFundingTemplate["funding"]["fundingStream"]["code"].Value<string>();
+                fundingTemplateValidationResult.FundingStreamId = fundingStreamCode;
 
-                FundingStream fundingStream = await _policyRepositoryPolicy.ExecuteAsync(() => _policyRepository.GetFundingStreamById(fundingTemplateValidationResult.FundingStreamId));
+                FundingStream fundingStream = await _policyRepositoryPolicy.ExecuteAsync(() =>
+                    _policyRepository.GetFundingStreamById(fundingTemplateValidationResult.FundingStreamId));
 
                 if (fundingStream == null)
                 {
-                    fundingTemplateValidationResult.ValidationState.Errors.Add($"A funding stream could not be found for funding stream id '{fundingTemplateValidationResult.FundingStreamId}'");
+                    fundingTemplateValidationResult.ValidationState.Errors
+                        .Add($"A funding stream could not be found for funding stream id '{fundingTemplateValidationResult.FundingStreamId}'");
                 }
             }
 
-            string templateVersion = parsedFundingTemplate["funding"]["templateVersion"].Value<string>();
+            var templateVersion = parsedFundingTemplate.SelectToken("$..templateVersion")?.Value<string>();
 
-            if (string.IsNullOrWhiteSpace(templateVersion))
+            if (templateVersion.IsNullOrEmpty())
             {
                 fundingTemplateValidationResult.ValidationState.Errors.Add("Funding template version is missing from the template");
             }
@@ -184,11 +163,15 @@ namespace CalculateFunding.Services.Policy
                 fundingTemplateValidationResult.TemplateVersion = templateVersion;
             }
 
-            if (parsedFundingTemplate["schemaVersion"] == null)
+            var schemaVersionToken = parsedFundingTemplate.SelectToken("$..schemaVersion")?.Value<string>();
+
+            if (schemaVersionToken.IsNullOrEmpty())
             {
                 fundingTemplateValidationResult.ValidationState.Errors.Add("No schemaVersion property found");
-
-                return;
+            }
+            else
+            {
+                fundingTemplateValidationResult.SchemaVersion = schemaVersionToken;
             }
         }
     }

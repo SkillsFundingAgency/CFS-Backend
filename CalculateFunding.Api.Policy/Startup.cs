@@ -7,7 +7,6 @@ using CalculateFunding.Common.WebApi.Extensions;
 using CalculateFunding.Common.WebApi.Middleware;
 using CalculateFunding.Models.Policy;
 using CalculateFunding.Models.Policy.FundingPolicy;
-using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.AspNet.HealthChecks;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
@@ -20,19 +19,19 @@ using CalculateFunding.Services.Providers.Validators;
 using FluentValidation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using Polly.Bulkhead;
 using Serilog;
-using System.Collections.Generic;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Policy.TemplateBuilder;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Services.Policy.TemplateBuilder;
 using TemplateMetadataSchema10 = CalculateFunding.Common.TemplateMetadata.Schema10;
+using TemplateMetadataSchema11 = CalculateFunding.Common.TemplateMetadata.Schema11;
 
 namespace CalculateFunding.Api.Policy
 {
@@ -119,6 +118,8 @@ namespace CalculateFunding.Api.Policy
 
         public void RegisterComponents(IServiceCollection builder)
         {
+            builder.AddSingleton<IIoCValidatorFactory, ValidatorFactory>()
+                .AddSingleton<IValidator<Reference>, AuthorValidator>();
             builder
                 .AddSingleton<IHealthChecker, ControllerResolverHealthCheck>();
 
@@ -256,9 +257,25 @@ namespace CalculateFunding.Api.Policy
             builder
                 .AddSingleton<ITemplateBuilderService, TemplateBuilderService>()
                 .AddSingleton<IHealthChecker, TemplateBuilderService>()
-                .AddSingleton<IValidator<TemplateCreateCommand>, TemplateCreateCommandValidator>()
+                .AddSingleton<AbstractValidator<TemplateCreateCommand>, TemplateCreateCommandValidator>()
+                .AddSingleton<AbstractValidator<TemplateContentUpdateCommand>, TemplateContentUpdateCommandValidator>()
+                .AddSingleton<AbstractValidator<TemplateMetadataUpdateCommand>, TemplateMetadataUpdateCommandValidator>()
+                .AddSingleton<AbstractValidator<Reference>, AuthorValidator>()
                 .AddSingleton<ITemplateRepository, TemplateRepository>(ctx => new TemplateRepository(cosmos))
-                .AddSingleton<IVersionRepository<TemplateVersion>, VersionRepository<TemplateVersion>>(ctx => new VersionRepository<TemplateVersion>(cosmos));
+                .AddSingleton<IVersionRepository<TemplateVersion>, VersionRepository<TemplateVersion>>(ctx => new VersionRepository<TemplateVersion>(cosmos))
+                .AddSingleton<ITemplateMetadataResolver>(ctx =>
+                {
+                    var resolver = new TemplateMetadataResolver();
+                    var logger = ctx.GetService<ILogger>();
+                    
+                    var schema10Generator = new TemplateMetadataSchema10.TemplateMetadataGenerator(logger);
+                    resolver.Register("1.0", schema10Generator);
+
+                    var schema11Generator = new TemplateMetadataSchema11.TemplateMetadataGenerator(logger);
+                    resolver.Register("1.1", schema11Generator);
+
+                    return resolver;
+                });
         }
     }
 }

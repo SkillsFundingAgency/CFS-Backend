@@ -1,7 +1,7 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Net;
 using CalculateFunding.Common.Models;
+using CalculateFunding.Common.TemplateMetadata;
 using CalculateFunding.Models.Policy.TemplateBuilder;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Services.Core.Interfaces;
@@ -10,6 +10,7 @@ using CalculateFunding.Services.Policy.Models;
 using CalculateFunding.Services.Policy.TemplateBuilder;
 using CalculateFunding.Services.Policy.Validators;
 using FluentAssertions;
+using FluentValidation.Results;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
@@ -27,6 +28,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
             CreateTemplateResponse _result;
             private IVersionRepository<TemplateVersion> _versionRepository;
             private ITemplateRepository _templateRepository;
+            private IIoCValidatorFactory _validatorFactory;
 
             public When_i_create_initial_draft_template_without_content()
             {
@@ -42,7 +44,9 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
                 SetupMocks();
                 
                 _service = new TemplateBuilderService(
-                    new TemplateCreateCommandValidator(),
+                    _validatorFactory,
+                    Substitute.For<IFundingTemplateValidationService>(),
+                    Substitute.For<ITemplateMetadataResolver>(),
                     _versionRepository,
                     _templateRepository,
                     Substitute.For<ILogger>());
@@ -52,6 +56,8 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
 
             private void SetupMocks()
             {
+                _validatorFactory = Substitute.For<IIoCValidatorFactory>();
+                _validatorFactory.Validate(Arg.Any<object>()).Returns(new ValidationResult());
                 _templateRepository = Substitute.For<ITemplateRepository>();
                 _templateRepository.IsTemplateNameInUse(Arg.Is(_command.Name)).Returns(false);
                 _templateRepository.CreateDraft(Arg.Any<Template>()).Returns(HttpStatusCode.OK);
@@ -66,6 +72,12 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
                 _result.Succeeded.Should().BeTrue();
                 _result.Exception.Should().BeNull();
                 _result.ValidationResult.Should().BeNull();
+            }
+
+            [TestMethod]
+            public void Validated_template_command()
+            {
+                _validatorFactory.Received(1).Validate(Arg.Is(_command));
             }
 
             [TestMethod]
@@ -149,7 +161,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
             [TestMethod]
             public void Saved_current_version_with_correct_version_number()
             {
-                _templateRepository.Received(1).CreateDraft(Arg.Is<Template>(x => x.Current.Version == 1));
+                _templateRepository.Received(1).CreateDraft(Arg.Is<Template>(x => x.Current.Version == 0));
             }
 
             [TestMethod]
@@ -166,7 +178,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
         }
         
         [TestClass]
-        public class When_i_create_initial_draft_template_with_invalid_data
+        public class When_i_create_initial_draft_template_with_duplicate_name
         {
             TemplateCreateCommand _command;
             TemplateBuilderService _service;
@@ -174,14 +186,15 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
             CreateTemplateResponse _result;
             private IVersionRepository<TemplateVersion> _versionRepository;
             private ITemplateRepository _templateRepository;
+            private IIoCValidatorFactory _validatorFactory;
 
-            public When_i_create_initial_draft_template_with_invalid_data()
+            public When_i_create_initial_draft_template_with_duplicate_name()
             {
                 _command = new TemplateCreateCommand
                 {
                     Name = "Test Template",
                     Description = "Lorem ipsum",
-                    FundingStreamId = null, // missing
+                    FundingStreamId = "XXX",
                     SchemaVersion = "9.9"
                 };
                 _author = new Reference("111", "TestUser");
@@ -189,7 +202,9 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
                 SetupMocks();
                 
                 _service = new TemplateBuilderService(
-                    new TemplateCreateCommandValidator(),
+                    _validatorFactory,
+                    Substitute.For<IFundingTemplateValidationService>(),
+                    Substitute.For<ITemplateMetadataResolver>(),
                     _versionRepository,
                     _templateRepository,
                     Substitute.For<ILogger>());
@@ -199,24 +214,46 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
 
             private void SetupMocks()
             {
+                _validatorFactory = Substitute.For<IIoCValidatorFactory>();
+                _validatorFactory.Validate(Arg.Any<object>()).Returns(new ValidationResult());
                 _templateRepository = Substitute.For<ITemplateRepository>();
+                _templateRepository.IsTemplateNameInUse(Arg.Is(_command.Name)).Returns(true);
+                _templateRepository.CreateDraft(Arg.Any<Template>()).Returns(HttpStatusCode.OK);
+
                 _versionRepository = Substitute.For<IVersionRepository<TemplateVersion>>();
+                _versionRepository.SaveVersion(Arg.Any<TemplateVersion>()).Returns(HttpStatusCode.OK);
             }
 
             [TestMethod]
-            public void Results_in_fail()
+            public void Results_in_failure()
             {
                 _result.Succeeded.Should().BeFalse();
+                _result.Exception.Should().BeNull();
+                _result.ValidationResult.Should().NotBeNull();
             }
 
             [TestMethod]
-            public void Results_in_validation_error()
+            public void Validated_template_command()
             {
-                _result.ValidationResult?.Errors.Should()
-                    .NotBeNull()
-                    .And.HaveCount(1)
-                    .And.Match(x => x.Any(error => 
-                        error.ErrorMessage.Contains("'Funding Stream Id' must not be empty")));
+                _validatorFactory.Received(1).Validate(Arg.Is(_command));
+            }
+
+            [TestMethod]
+            public void Checked_for_duplicate_existing_template_name()
+            {
+                _templateRepository.Received(1).IsTemplateNameInUse(Arg.Is(_command.Name));
+            }
+
+            [TestMethod]
+            public void Did_not_save_template()
+            {
+                _templateRepository.Received(0).CreateDraft(Arg.Any<Template>());
+            }
+
+            [TestMethod]
+            public void Did_not_save_version()
+            {
+                _versionRepository.Received(0).SaveVersion(Arg.Any<TemplateVersion>());
             }
         }
     }
