@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.TemplateMetadata;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Policy.TemplateBuilder;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Services.Core.Extensions;
@@ -196,6 +198,28 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             await UpdateTemplateMetadata(command, author, template);
 
             return UpdateTemplateMetadataResponse.Success();
+        }
+
+        public async Task<IEnumerable<TemplateVersionResponse>> GetTemplateVersions(string templateId, List<TemplateStatus> statuses)
+        {
+            Guard.ArgumentNotNull(templateId, nameof(templateId));
+
+            IEnumerable<TemplateVersion> templateVersions = await _templateVersionRepository.GetVersions(templateId);
+
+            if (statuses.Any())
+            {
+                templateVersions = templateVersions.Where(v => statuses.Contains(v.Status));
+            }
+
+            return templateVersions.Select(s => new TemplateVersionResponse
+            {
+                Date = s.Date,
+                AuthorId = s.Author?.Id,
+                AuthorName = s.Author?.Name,
+                Comment = s.Comment,
+                Status = s.Status,
+                Version = s.Version
+            }).ToList();
         }
 
         private async Task UpdateTemplateContent(TemplateContentUpdateCommand command, Reference author, Template template)

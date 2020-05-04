@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Models.Policy.TemplateBuilder;
@@ -15,5 +16,6 @@ namespace CalculateFunding.Services.Policy.Interfaces
         Task<UpdateTemplateContentResponse> UpdateTemplateContent(TemplateContentUpdateCommand command, Reference author);
 
         Task<UpdateTemplateMetadataResponse> UpdateTemplateMetadata(TemplateMetadataUpdateCommand command, Reference author);
+        Task<IEnumerable<TemplateVersionResponse>> GetTemplateVersions(string templateId, List<TemplateStatus> statuses);
     }
 }

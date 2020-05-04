@@ -1,4 +1,8 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Policy.TemplateBuilder;
 using CalculateFunding.Services.Policy.Interfaces;
@@ -18,13 +22,13 @@ namespace CalculateFunding.Api.Policy.Controllers
         private readonly IIoCValidatorFactory _validatorFactory;
 
         public TemplateBuildController(
-            ITemplateBuilderService templateBuilderService, 
+            ITemplateBuilderService templateBuilderService,
             IIoCValidatorFactory validatorFactory)
         {
             _templateBuilderService = templateBuilderService;
             _validatorFactory = validatorFactory;
         }
-        
+
         [HttpPost("api/templates/build")]
         [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(string))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -37,7 +41,7 @@ namespace CalculateFunding.Api.Policy.Controllers
             {
                 return validationResult.AsBadRequest();
             }
-            
+
             Reference author = ControllerContext.HttpContext.Request?.GetUserOrDefault();
 
             CreateTemplateResponse result = await _templateBuilderService.CreateTemplate(command, author);
@@ -54,7 +58,7 @@ namespace CalculateFunding.Api.Policy.Controllers
 
             return new InternalServerErrorResult(result.ErrorMessage ?? result.Exception?.Message ?? "Unknown error occurred");
         }
-        
+
         [HttpPut("api/templates/build/content")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(string))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -67,7 +71,7 @@ namespace CalculateFunding.Api.Policy.Controllers
             {
                 return validationResult.AsBadRequest();
             }
-            
+
             Reference author = ControllerContext.HttpContext.Request?.GetUserOrDefault();
 
             UpdateTemplateContentResponse result = await _templateBuilderService.UpdateTemplateContent(command, author);
@@ -84,7 +88,7 @@ namespace CalculateFunding.Api.Policy.Controllers
 
             return new InternalServerErrorResult(result.ErrorMessage ?? result.Exception?.Message ?? "Unknown error occurred");
         }
-        
+
         [HttpPut("api/templates/build/metadata")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(string))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -97,7 +101,7 @@ namespace CalculateFunding.Api.Policy.Controllers
             {
                 return validationResult.AsBadRequest();
             }
-            
+
             Reference author = ControllerContext.HttpContext.Request?.GetUserOrDefault();
 
             UpdateTemplateMetadataResponse result = await _templateBuilderService.UpdateTemplateMetadata(command, author);
@@ -113,6 +117,22 @@ namespace CalculateFunding.Api.Policy.Controllers
             }
 
             return new InternalServerErrorResult(result.ErrorMessage ?? result.Exception?.Message ?? "Unknown error occurred");
+        }
+
+        [HttpGet("api/templates/build/{templateId}/versions")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> GetTemplateVersions([FromRoute] string templateId, [FromQuery] string statuses)
+        {
+            List<TemplateStatus> templateStatuses = !string.IsNullOrWhiteSpace(statuses) ? statuses.Split(',')
+                .Select(s => (TemplateStatus)Enum.Parse(typeof(TemplateStatus), s))
+                .ToList() : new List<TemplateStatus>();
+
+            IEnumerable<TemplateVersionResponse> templateVersionResponses =
+                await _templateBuilderService.GetTemplateVersions(templateId, templateStatuses);
+
+            return Ok(templateVersionResponses);
         }
     }
 }

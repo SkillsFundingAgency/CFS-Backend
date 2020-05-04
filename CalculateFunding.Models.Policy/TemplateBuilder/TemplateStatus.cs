@@ -6,7 +6,8 @@ namespace CalculateFunding.Models.Policy.TemplateBuilder
     [JsonConverter(typeof(StringEnumConverter))]
     public enum TemplateStatus
     {
-        Draft,
-        Approved
+        Draft = 0,
+        Approved = 1,
+        Updated = 2
     }
 }
