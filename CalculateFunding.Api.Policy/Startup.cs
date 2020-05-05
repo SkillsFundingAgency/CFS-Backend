@@ -262,7 +262,7 @@ namespace CalculateFunding.Api.Policy
                 .AddSingleton<AbstractValidator<TemplateMetadataUpdateCommand>, TemplateMetadataUpdateCommandValidator>()
                 .AddSingleton<AbstractValidator<Reference>, AuthorValidator>()
                 .AddSingleton<ITemplateRepository, TemplateRepository>(ctx => new TemplateRepository(cosmos))
-                .AddSingleton<IVersionRepository<TemplateVersion>, VersionRepository<TemplateVersion>>(ctx => new VersionRepository<TemplateVersion>(cosmos))
+                .AddSingleton<ITemplateVersionRepository, TemplateVersionRepository>(ctx => new TemplateVersionRepository(cosmos))
                 .AddSingleton<ITemplateMetadataResolver>(ctx =>
                 {
                     var resolver = new TemplateMetadataResolver();

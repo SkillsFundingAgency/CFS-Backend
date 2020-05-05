@@ -11,11 +11,15 @@ namespace CalculateFunding.Services.Policy.Interfaces
     {
         Task<ServiceHealth> IsHealthOk();
 
+        Task<TemplateResponse> GetTemplate(string templateId);
+        
         Task<CreateTemplateResponse> CreateTemplate(TemplateCreateCommand command, Reference author);
 
         Task<UpdateTemplateContentResponse> UpdateTemplateContent(TemplateContentUpdateCommand command, Reference author);
 
         Task<UpdateTemplateMetadataResponse> UpdateTemplateMetadata(TemplateMetadataUpdateCommand command, Reference author);
         Task<IEnumerable<TemplateVersionResponse>> GetTemplateVersions(string templateId, List<TemplateStatus> statuses);
+
+        Task<TemplateResponse> GetTemplateVersion(string templateId, string version);
     }
 }

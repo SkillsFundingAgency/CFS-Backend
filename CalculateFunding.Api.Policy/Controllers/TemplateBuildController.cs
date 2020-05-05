@@ -29,6 +29,46 @@ namespace CalculateFunding.Api.Policy.Controllers
             _validatorFactory = validatorFactory;
         }
 
+        [HttpGet("api/templates/build/{templateId}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetTemplate([FromRoute] string templateId)
+        {
+            if (string.IsNullOrWhiteSpace(templateId))
+            {
+                return new BadRequestObjectResult("Null or empty template id");
+            }
+            
+            TemplateResponse result = await _templateBuilderService.GetTemplate(templateId);
+
+            if (result == null)
+                return NotFound();
+
+            return Ok(result);
+        }
+
+        [HttpGet("api/templates/build/{templateId}/versions/{version}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetTemplateVersion([FromRoute] string templateId, [FromRoute] string version)
+        {
+            if (string.IsNullOrWhiteSpace(templateId))
+            {
+                return new BadRequestObjectResult("Null or empty template id");
+            }
+            if (string.IsNullOrWhiteSpace(version))
+            {
+                return new BadRequestObjectResult("Null or empty template version");
+            }
+            
+            TemplateResponse result = await _templateBuilderService.GetTemplateVersion(templateId, version);
+
+            if (result == null)
+                return NotFound();
+
+            return Ok(result);
+        }
+
         [HttpPost("api/templates/build")]
         [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(string))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]

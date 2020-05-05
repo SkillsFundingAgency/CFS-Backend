@@ -26,7 +26,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
             TemplateBuilderService _service;
             Reference _author;
             UpdateTemplateMetadataResponse _result;
-            private IVersionRepository<TemplateVersion> _versionRepository;
+            private ITemplateVersionRepository _versionRepository;
             private ITemplateRepository _templateRepository;
             private IIoCValidatorFactory _validatorFactory;
             private Template _templateBeforeUpdate;
@@ -80,7 +80,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
                 _templateRepository.GetTemplate(Arg.Is(_command.TemplateId)).Returns(_templateBeforeUpdate);
                 _templateRepository.Update(Arg.Any<Template>()).Returns(HttpStatusCode.OK);
 
-                _versionRepository = Substitute.For<IVersionRepository<TemplateVersion>>();
+                _versionRepository = Substitute.For<ITemplateVersionRepository>();
                 _versionRepository.SaveVersion(Arg.Any<TemplateVersion>()).Returns(HttpStatusCode.OK);
             }
 
@@ -178,7 +178,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
             TemplateBuilderService _service;
             Reference _author;
             UpdateTemplateContentResponse _result;
-            private IVersionRepository<TemplateVersion> _versionRepository;
+            private ITemplateVersionRepository _versionRepository;
             private ITemplateRepository _templateRepository;
             private IIoCValidatorFactory _validatorFactory;
             private Template _templateBeforeUpdate;
@@ -241,7 +241,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
                 _templateRepository.GetTemplate(Arg.Is(_command.TemplateId)).Returns(_templateBeforeUpdate);
                 _templateRepository.Update(Arg.Any<Template>()).Returns(HttpStatusCode.OK);
 
-                _versionRepository = Substitute.For<IVersionRepository<TemplateVersion>>();
+                _versionRepository = Substitute.For<ITemplateVersionRepository>();
                 _versionRepository.SaveVersion(Arg.Any<TemplateVersion>()).Returns(HttpStatusCode.OK);
             }
 

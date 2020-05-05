@@ -14,7 +14,7 @@ namespace CalculateFunding.Services.Core.Services
 {
     public class VersionRepository<T> : IHealthChecker, IVersionRepository<T> where T : VersionedItem
     {
-        private readonly ICosmosRepository _cosmosRepository;
+        protected readonly ICosmosRepository _cosmosRepository;
 
         public VersionRepository(ICosmosRepository cosmosRepository)
         {

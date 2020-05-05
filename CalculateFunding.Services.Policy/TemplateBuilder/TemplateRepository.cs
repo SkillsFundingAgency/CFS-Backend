@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Policy.TemplateBuilder;
 using CalculateFunding.Services.Core;
@@ -15,22 +16,6 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
     {
         public TemplateRepository(ICosmosRepository cosmosRepository) : base(cosmosRepository)
         {
-        }
-
-        public async Task<HttpStatusCode> CreateDraft(Template template)
-        {
-            return await _cosmosRepository.CreateAsync(template);
-        }
-
-        public async Task<bool> IsTemplateNameInUse(string templateName)
-        {
-            Guard.IsNullOrWhiteSpace(templateName, nameof(templateName));
-
-            IEnumerable<Template> existing = await _cosmosRepository.Query<Template>(x =>
-                x.Content.Current != null &&
-                x.Content.Current.Name.ToLower() == templateName.ToLower());
-
-            return existing.Any();
         }
 
         public async Task<Template> GetTemplate(string templateId)
@@ -49,6 +34,22 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             }
 
             return null;
+        }
+
+        public async Task<HttpStatusCode> CreateDraft(Template template)
+        {
+            return await _cosmosRepository.CreateAsync(template);
+        }
+
+        public async Task<bool> IsTemplateNameInUse(string templateName)
+        {
+            Guard.IsNullOrWhiteSpace(templateName, nameof(templateName));
+
+            IEnumerable<Template> existing = await _cosmosRepository.Query<Template>(x =>
+                x.Content.Current != null &&
+                x.Content.Current.Name.ToLower() == templateName.ToLower());
+
+            return existing.Any();
         }
 
         public async Task<HttpStatusCode> Update(Template template)

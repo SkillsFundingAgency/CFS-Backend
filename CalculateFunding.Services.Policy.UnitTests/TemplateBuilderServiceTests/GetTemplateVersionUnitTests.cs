@@ -37,7 +37,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
 
         private TemplateBuilderService GetTemplateBuilderService()
         {
-            IVersionRepository<TemplateVersion> versionRepository = Substitute.For<IVersionRepository<TemplateVersion>>();
+            ITemplateVersionRepository versionRepository = Substitute.For<ITemplateVersionRepository>();
             versionRepository.GetVersions(_templateId).Returns(new List<TemplateVersion>
             {
                 new TemplateVersion

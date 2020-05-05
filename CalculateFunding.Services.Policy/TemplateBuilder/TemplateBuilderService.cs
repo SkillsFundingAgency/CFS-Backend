@@ -10,7 +10,6 @@ using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Policy.TemplateBuilder;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Policy.Interfaces;
 using CalculateFunding.Services.Policy.Models;
 using CalculateFunding.Services.Policy.Validators;
@@ -24,7 +23,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
         private readonly IIoCValidatorFactory _validatorFactory;
         private readonly IFundingTemplateValidationService _fundingTemplateValidationService;
         private readonly ITemplateMetadataResolver _templateMetadataResolver;
-        private readonly IVersionRepository<TemplateVersion> _templateVersionRepository;
+        private readonly ITemplateVersionRepository _templateVersionRepository;
         private readonly ILogger _logger;
         private readonly ITemplateRepository _templateRepository;
 
@@ -32,7 +31,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             IIoCValidatorFactory validatorFactory,
             IFundingTemplateValidationService fundingTemplateValidationService,
             ITemplateMetadataResolver templateMetadataResolver,
-            IVersionRepository<TemplateVersion> templateVersionRepository,
+            ITemplateVersionRepository templateVersionRepository,
             ITemplateRepository templateRepository,
             ILogger logger)
         {
@@ -57,6 +56,56 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             health.Dependencies.AddRange(templateVersionRepoHealth.Dependencies);
 
             return health;
+        }
+
+        public async Task<TemplateResponse> GetTemplate(string templateId)
+        {
+            Guard.IsNotEmpty(templateId, nameof(templateId));
+            
+            var template = await _templateRepository.GetTemplate(templateId);
+            if (template == null)
+            {
+                return null;
+            }
+
+            return Map(template.Current);
+        }
+
+        public async Task<TemplateResponse> GetTemplateVersion(string templateId, string version)
+        {
+            Guard.IsNotEmpty(templateId, nameof(templateId));
+            if (!int.TryParse(version, out int versionNumber))
+                return null;
+            
+            var templateVersion = await _templateVersionRepository.GetTemplateVersion(templateId, versionNumber);
+            if (templateVersion == null)
+            {
+                return null;
+            }
+
+            return Map(templateVersion);
+        }
+
+        public async Task<IEnumerable<TemplateVersionResponse>> GetTemplateVersions(string templateId, List<TemplateStatus> statuses)
+        {
+            Guard.ArgumentNotNull(templateId, nameof(templateId));
+
+            IEnumerable<TemplateVersion> templateVersions = await _templateVersionRepository.GetVersions(templateId);
+
+            if (statuses.Any())
+            {
+                templateVersions = templateVersions.Where(v => statuses.Contains(v.Status));
+            }
+
+            return templateVersions.Select(s => new TemplateVersionResponse
+            {
+                Date = s.Date,
+                AuthorId = s.Author?.Id,
+                AuthorName = s.Author?.Name,
+                Comment = s.Comment,
+                Status = s.Status,
+                Version = s.Version
+            }).ToList();
         }
 
         public async Task<CreateTemplateResponse> CreateTemplate(
@@ -200,26 +249,24 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             return UpdateTemplateMetadataResponse.Success();
         }
 
-        public async Task<IEnumerable<TemplateVersionResponse>> GetTemplateVersions(string templateId, List<TemplateStatus> statuses)
+        private static TemplateResponse Map(TemplateVersion template)
         {
-            Guard.ArgumentNotNull(templateId, nameof(templateId));
-
-            IEnumerable<TemplateVersion> templateVersions = await _templateVersionRepository.GetVersions(templateId);
-
-            if (statuses.Any())
+            return new TemplateResponse
             {
-                templateVersions = templateVersions.Where(v => statuses.Contains(v.Status));
-            }
-
-            return templateVersions.Select(s => new TemplateVersionResponse
-            {
-                Date = s.Date,
-                AuthorId = s.Author?.Id,
-                AuthorName = s.Author?.Name,
-                Comment = s.Comment,
-                Status = s.Status,
-                Version = s.Version
-            }).ToList();
+                TemplateId = template.TemplateId,
+                TemplateJson = template.TemplateJson,
+                Name = template.Name,
+                Description = template.Description,
+                FundingStreamId = template.FundingStreamId,
+                Version = template.Version,
+                SchemaVersion = template.SchemaVersion,
+                Status = template.Status,
+                AuthorId = template.Author.Id,
+                AuthorName = template.Author.Name,
+                LastModificationDate = template.Date.DateTime,
+                PublishStatus = template.PublishStatus,
+                Comments = template.Comment
+            };
         }
 
         private async Task UpdateTemplateContent(TemplateContentUpdateCommand command, Reference author, Template template)
