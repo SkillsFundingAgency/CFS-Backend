@@ -8,6 +8,7 @@ namespace CalculateFunding.Models.Policy.TemplateBuilder
     {
         Draft = 0,
         Approved = 1,
-        Updated = 2
+        Updated = 2,
+        Published = 3
     }
 }

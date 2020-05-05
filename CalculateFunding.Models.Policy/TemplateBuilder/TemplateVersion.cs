@@ -31,6 +31,24 @@ namespace CalculateFunding.Models.Policy.TemplateBuilder
         [JsonProperty("fundingStreamId")]
         public string FundingStreamId { get; set; }
 
+        /// <summary>
+        /// Funding Period ID
+        /// </summary>
+        [JsonProperty("fundingPeriodId")]
+        public string FundingPeriodId { get; set; }
+
+        /// <summary>
+        /// Major version
+        /// </summary>
+        [JsonProperty("majorVersion")]
+        public int MajorVersion { get; set; }
+
+        /// <summary>
+        /// Minor version
+        /// </summary>
+        [JsonProperty("minorVersion")]
+        public int MinorVersion { get; set; }
+
         [JsonProperty("schemaVersion")]
         public string SchemaVersion { get; set; }
 
