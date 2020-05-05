@@ -56,6 +56,7 @@ namespace CalculateFunding.Functions.Providers
             if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
             {
                 builder.AddScoped<OnPopulateScopedProvidersEventTrigger>();
+                builder.AddScoped<OnPopulateScopedProvidersEventTriggerFailure>();
             }
 
             builder.AddSingleton<IConfiguration>(config);

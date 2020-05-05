@@ -15,7 +15,8 @@ namespace CalculateFunding.Functions.Providers.ServiceBus
     {
         private readonly ILogger _logger;
         private readonly IScopedProvidersService _scopedProviderService;
-        public const string FunctionName = "on-populate-scopedproviders-event";
+        public const string FunctionName = FunctionConstants.PopulateScopedProviders;
+        public const string QueueName = ServiceBusConstants.QueueNames.PopulateScopedProviders;
 
         public OnPopulateScopedProvidersEventTrigger(
             ILogger logger,
@@ -32,7 +33,7 @@ namespace CalculateFunding.Functions.Providers.ServiceBus
 
         [FunctionName(FunctionName)]
         public async Task Run([ServiceBusTrigger(
-            ServiceBusConstants.QueueNames.PopulateScopedProviders,
+            QueueName,
             Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
         { 
             Guard.ArgumentNotNull(message, nameof(message));

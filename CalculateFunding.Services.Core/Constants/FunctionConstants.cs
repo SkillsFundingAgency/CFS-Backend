@@ -18,5 +18,8 @@
 
         public const string PublishingPublishBatchProviderFundingPoisoned = "on-publishing-publish-batch-provider-funding-poisoned";
 
+        public const string PopulateScopedProviders = "on-populate-scopedproviders-event";
+
+        public const string PopulateScopedProvidersPoisoned = "on-populate-scopedproviders-event-poisoned";
     }
 }

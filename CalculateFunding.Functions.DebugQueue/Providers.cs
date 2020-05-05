@@ -11,13 +11,28 @@ namespace CalculateFunding.Functions.DebugQueue
     public static class Providers
     {
         [FunctionName("on-populate-scopedproviders-event")]
-        public static async Task RunOnReIndexSpecificationCalculationRelationships([QueueTrigger(ServiceBusConstants.QueueNames.PopulateScopedProviders, Connection = "AzureConnectionString")] string item, ILogger log)
+        public static async Task RunOnPopulateScopedProvidersEventTrigger([QueueTrigger(ServiceBusConstants.QueueNames.PopulateScopedProviders, Connection = "AzureConnectionString")] string item, ILogger log)
         {
             using (IServiceScope scope = Functions.Providers.Startup.RegisterComponents(new ServiceCollection()).CreateScope())
             {
                 Message message = Helpers.ConvertToMessage<string>(item);
 
                 OnPopulateScopedProvidersEventTrigger function = scope.ServiceProvider.GetService<OnPopulateScopedProvidersEventTrigger>();
+
+                await function.Run(message);
+
+                log.LogInformation($"C# Queue trigger function processed: {item}");
+            }
+        }
+
+        [FunctionName("on-populate-scopedproviders-event-failure")]
+        public static async Task RunOnPopulateScopedProvidersEventTriggerFailure([QueueTrigger(ServiceBusConstants.QueueNames.PopulateScopedProvidersPoisonedLocal, Connection = "AzureConnectionString")] string item, ILogger log)
+        {
+            using (IServiceScope scope = Functions.Providers.Startup.RegisterComponents(new ServiceCollection()).CreateScope())
+            {
+                Message message = Helpers.ConvertToMessage<string>(item);
+
+                OnPopulateScopedProvidersEventTriggerFailure function = scope.ServiceProvider.GetService<OnPopulateScopedProvidersEventTriggerFailure>();
 
                 await function.Run(message);
 
