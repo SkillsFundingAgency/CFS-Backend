@@ -141,6 +141,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
             _publishedProviderVersionCreation.Verify(_ => _.UpdatePublishedProviderStatus(new [] { publishedProvider },
                 author,
                 newStatus,
+                null,
                 null),
                 Times.Once);
         }
@@ -170,6 +171,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
             _publishedProviderVersionCreation.Verify(_ => _.UpdatePublishedProviderStatus(It.IsAny<IEnumerable<PublishedProvider>>(),
                 It.IsAny<Reference>(),
                 It.IsAny<PublishedProviderStatus>(),
+                It.IsAny<string>(),
                 It.IsAny<string>()),
                 Times.Never);
         }

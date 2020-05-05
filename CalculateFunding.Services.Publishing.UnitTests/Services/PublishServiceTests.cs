@@ -81,6 +81,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         private const string SpecificationId = "SpecificationId";
         private const string JobId = "JobId";
         private const string FundingStreamId = "PSG";
+        private const string CorrelationId = "CorrelationId";
 
         private string _providerId;
         private string[] _providerIds;
@@ -209,7 +210,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             AndUpdateStatusThrowsAnError(error);
             AndTemplateMapping();
 
-            Func<Task> invocation = () => WhenPublishBatchProvidersMessageReceivedWithJobId(BuildPublishProvidersRequest(_ => _.WithProviders(_providerIds)));
+            Func<Task> invocation = () => WhenPublishBatchProvidersMessageReceivedWithJobIdAndCorrelationId(BuildPublishProvidersRequest(_ => _.WithProviders(_providerIds)));
 
             invocation
                 .Should()
@@ -273,7 +274,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             AndUpdateFundingStatusThrowsAnError(error);
             AndTemplateMapping();
 
-            Func<Task> invocation = () => WhenPublishBatchProvidersMessageReceivedWithJobId(BuildPublishProvidersRequest(_ => _.WithProviders(_providerIds)));
+            Func<Task> invocation = () => WhenPublishBatchProvidersMessageReceivedWithJobIdAndCorrelationId(BuildPublishProvidersRequest(_ => _.WithProviders(_providerIds)));
 
             invocation
                 .Should()
@@ -321,7 +322,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             AndTemplateMetadataContents();
             AndPublishedProviders();
 
-            Func<Task> invocation = () => WhenPublishBatchProvidersMessageReceivedWithJobId(BuildPublishProvidersRequest(_ => _.WithProviders(_providerIds)));
+            Func<Task> invocation = () => WhenPublishBatchProvidersMessageReceivedWithJobIdAndCorrelationId(BuildPublishProvidersRequest(_ => _.WithProviders(_providerIds)));
 
             invocation
                 .Should()
@@ -353,7 +354,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         {
             GivenJobCanBeProcessed();
 
-            Func<Task> invocation = () => WhenPublishBatchProvidersMessageReceivedWithJobId(BuildPublishProvidersRequest(_ => _.WithProviders(_providerIds)));
+            Func<Task> invocation = () => WhenPublishBatchProvidersMessageReceivedWithJobIdAndCorrelationId(BuildPublishProvidersRequest(_ => _.WithProviders(_providerIds)));
 
             invocation
                 .Should()
@@ -381,7 +382,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         [TestMethod]
         public void PublishBatchProviderFundingResults_GivenJobCannotBeProcessed_ThrowsException()
         {
-            Func<Task> invocation = () => WhenPublishBatchProvidersMessageReceivedWithJobId(BuildPublishProvidersRequest(_ => _.WithProviders(_providerIds)));
+            Func<Task> invocation = () => WhenPublishBatchProvidersMessageReceivedWithJobIdAndCorrelationId(BuildPublishProvidersRequest(_ => _.WithProviders(_providerIds)));
 
             invocation
                 .Should()
@@ -429,7 +430,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             AndPublishedProviders();
             AndCalculationEngineRunningForPublishBatchProviders();
 
-            Func<Task> invocation = () => WhenPublishBatchProvidersMessageReceivedWithJobId(BuildPublishProvidersRequest(_ => _.WithProviders(_providerIds)));
+            Func<Task> invocation = () => WhenPublishBatchProvidersMessageReceivedWithJobIdAndCorrelationId(BuildPublishProvidersRequest(_ => _.WithProviders(_providerIds)));
 
             invocation
                 .Should()
@@ -459,7 +460,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             _publishedProviderStatusUpdateService.UpdatePublishedProviderStatus(Arg.Any<IEnumerable<PublishedProvider>>(),
                     Arg.Any<Reference>(),
                     Arg.Any<PublishedProviderStatus>(),
-                    Arg.Any<string>())
+                    Arg.Is(JobId),
+                    Arg.Is(CorrelationId))
                 .Throws(new Exception(error));
         }
 
@@ -467,7 +469,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         {
             _publishedFundingStatusUpdateService.UpdatePublishedFundingStatus(Arg.Any<IEnumerable<(PublishedFunding, PublishedFundingVersion)>>(),
                     Arg.Any<Reference>(),
-                    Arg.Is(PublishedFundingStatus.Released))
+                    Arg.Is(PublishedFundingStatus.Released),
+                    Arg.Is(JobId),
+                    Arg.Is(CorrelationId))
                 .Throws(new Exception(error));
         }
 
@@ -580,16 +584,17 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         {
             Message message = NewMessage(_ => _.WithUserProperty("specification-id", 
                                                                  SpecificationId).WithUserProperty("jobId",
-                                                                                                   JobId));
+                                                                                                   JobId).WithUserProperty("correlation-id", CorrelationId));
 
             await _publishService.PublishAllProviderFundingResults(message);
         }
 
-        private async Task WhenPublishBatchProvidersMessageReceivedWithJobId(PublishProvidersRequest publishProvidersRequest)
+        private async Task WhenPublishBatchProvidersMessageReceivedWithJobIdAndCorrelationId(PublishProvidersRequest publishProvidersRequest)
         {
             Message message = NewMessage(_ => _
                 .WithUserProperty("specification-id",SpecificationId)
                 .WithUserProperty("jobId",JobId)
+                .WithUserProperty("correlation-id", CorrelationId)
                 .WithUserProperty(
                     JobConstants.MessagePropertyNames.PublishProvidersRequest, JsonExtensions.AsJson(publishProvidersRequest)));
 

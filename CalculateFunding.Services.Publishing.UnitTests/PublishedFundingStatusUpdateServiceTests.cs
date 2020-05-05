@@ -62,6 +62,23 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         }
 
         [TestMethod]
+        public async Task UpdatePublishedFundingStatus_GivenExistingPublishedFundingAndNewPublishedFundingVersionWithJobIdanCorrelationIdAndSaveSucceeds_NewVersionSaved()
+        {
+            var jobId = "JobId-123-abc";
+            var correlationId = "CorrelationId-xyz-123";
+
+            GivenPublishedFunding();
+
+            GivenNewVersionCreated();
+
+            GivenPublishedFundingUpserted();
+
+            await WhenStatusUpdated(jobId,correlationId);
+
+            await ThenNewVersionSavedWithJobIdAndCorrelationId(jobId, correlationId);
+        }
+
+        [TestMethod]
         public void UpdatePublishedFundingStatus_GivenExistingPublishedFundingAndNewPublishedFundingVersionAndSaveFails_ExceptionThrown()
         {
             // Arrange
@@ -104,9 +121,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .Returns(HttpStatusCode.OK);
         }
 
-        private async Task WhenStatusUpdated()
+        private async Task WhenStatusUpdated(string jobId = null, string correlationId = null)
         {
-            await _publishedFundingStatusUpdateService.UpdatePublishedFundingStatus(new List<(PublishedFunding PublishedFunding, PublishedFundingVersion PublishedFundingVersion)> { (_publishedFunding, _publishedFundingVersion) }, _author, PublishedFundingStatus.Released);
+            await _publishedFundingStatusUpdateService.UpdatePublishedFundingStatus(new List<(PublishedFunding PublishedFunding, PublishedFundingVersion PublishedFundingVersion)> { (_publishedFunding, _publishedFundingVersion) }, _author, PublishedFundingStatus.Released, jobId, correlationId);
         }
 
         private void ThenExceptionShouldBeThrown(string message, Func<Task> invocation)
@@ -122,6 +139,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             await _publishedFundingVersionRepository
                 .Received(1)
                 .SaveVersion(Arg.Is(_publishedFundingVersion), Arg.Is(_publishedFundingVersion.PartitionKey));
+        }
+
+        private async Task ThenNewVersionSavedWithJobIdAndCorrelationId(string expectedJobId, string expectedCorrelationId)
+        {
+            await ThenNewVersionSaved();
+            _publishedFundingVersion.JobId.Should().Be(expectedJobId);
+            _publishedFundingVersion.CorrelationId.Should().Be(expectedCorrelationId);
         }
 
         private PublishedFunding NewPublishedFunding(Action<PublishedFundingBuilder> setUp = null)

@@ -42,6 +42,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         private ILogger _logger;
         private Message _message;
         private string _jobId;
+        private string _correlationId;
         private JobViewModel _job;
         private string _userId;
         private string _userName;
@@ -83,6 +84,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 _generateCsvJobsLocator);
 
             _jobId = NewRandomString();
+            _correlationId = NewRandomString();
             _userId = NewRandomString();
             _userName = NewRandomString();
 
@@ -176,6 +178,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
 
             string specificationId = NewRandomString();
 
+            GivenTheMessageHasACorrelationId();
             GivenTheMessageHasTheSpecificationId(specificationId);
             AndTheMessageIsOtherwiseValid();
             AndTheSpecificationHasTheHeldUnApprovedPublishedProviders(specificationId, null, expectedPublishedProviders);
@@ -210,6 +213,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             string providerId = NewRandomString();
             string[] providerIds = new[] { providerId };
 
+            GivenTheMessageHasACorrelationId();
             GivenTheMessageHasTheSpecificationId(specificationId);
             GivenTheMessageHasTheApproveProvidersRequest(BuildApproveProvidersRequest(_ => _.WithProviders(providerIds)));
             AndTheMessageIsOtherwiseValid();
@@ -277,6 +281,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             string[] providerIds = new[] { providerId };
 
             GivenTheMessageHasAJobId();
+            GivenTheMessageHasACorrelationId();
             GivenTheMessageHasTheSpecificationId(specificationId);
             GivenTheMessageHasTheApproveProvidersRequest(BuildApproveProvidersRequest(_ => _.WithProviders(providerIds)));
             AndRetrieveJobAndCheckCanBeProcessedSuccessfully();
@@ -302,7 +307,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         [TestMethod]
         public void ApproveBatchProvidersResults_ExitsEarlyIfUnableToStartTrackingJob()
         {
-            GivenTheMessageHasAJobId();
+            GivenTheMessageHasAJobId();            
             AndRetrieveJobAndCheckCannotBeProcessedSuccessfully();
 
             Func<Task> invocation = WhenBatchProvidersResultsAreApproved;
@@ -388,6 +393,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             string specificationId = NewRandomString();
             string fundingLineCode = NewRandomString();
 
+            GivenTheMessageHasACorrelationId();
             GivenTheMessageHasTheSpecificationId(specificationId);
             GivenTheMessageHasTheFundingLineCode(fundingLineCode);
             AndTheMessageIsOtherwiseValid();
@@ -419,7 +425,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             string fundingLineCode = NewRandomString();
             string providerId = NewRandomString();
             string[] providerIds = new[] { providerId };
-
+            
+            GivenTheMessageHasACorrelationId();
             GivenTheMessageHasTheSpecificationId(specificationId);
             GivenTheMessageHasTheApproveProvidersRequest(BuildApproveProvidersRequest(_ => _.WithProviders(providerIds)));
             GivenTheMessageHasTheFundingLineCode(fundingLineCode);
@@ -476,6 +483,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             GivenTheUserProperty("jobId", _jobId);
         }
 
+        private void GivenTheMessageHasACorrelationId()
+        {
+            GivenTheUserProperty("correlation-id", _correlationId);
+        }
+
         private void GivenTheUserProperty(string key, string value)
         {
             _message.UserProperties.Add(key, value);
@@ -519,7 +531,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                     Arg.Is<Reference>(auth => auth.Id == _userId &&
                                               auth.Name == _userName),
                     PublishedProviderStatus.Approved,
-                    _jobId)
+                    _jobId,
+                    _correlationId)
                 .Returns(publishedProviders.Count());
         }
 
@@ -530,7 +543,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                     Arg.Is<Reference>(auth => auth.Id == _userId &&
                                               auth.Name == _userName),
                     PublishedProviderStatus.Approved,
-                    _jobId)
+                    _jobId,
+                    _correlationId)
                 .Throws(new Exception());
         }
 
@@ -552,7 +566,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                     Arg.Is<Reference>(auth => auth.Id == _userId &&
                                               auth.Name == _userName),
                     PublishedProviderStatus.Approved,
-                    _jobId);
+                    _jobId,
+                    _correlationId);
         }
 
         private void AndRetrieveJobAndCheckCanBeProcessedSuccessfully(Action<JobViewModelBuilder> setUp = null)

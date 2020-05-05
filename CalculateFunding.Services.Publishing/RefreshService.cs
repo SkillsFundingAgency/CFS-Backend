@@ -379,7 +379,7 @@ namespace CalculateFunding.Services.Publishing
                             if (existingPublishedProvidersToUpdate.Count > 0)
                             {
                                 _logger.Information($"Saving updates to existing published providers. Total={existingPublishedProvidersToUpdate.Count}");
-                                await _publishedProviderStatusUpdateService.UpdatePublishedProviderStatus(existingPublishedProvidersToUpdate.Values, author, PublishedProviderStatus.Updated, jobId);
+                                await _publishedProviderStatusUpdateService.UpdatePublishedProviderStatus(existingPublishedProvidersToUpdate.Values, author, PublishedProviderStatus.Updated, jobId, correlationId);
 
                                 _logger.Information($"Indexing existing PublishedProviders");
                                 await _publishedProviderIndexerService.IndexPublishedProviders(existingPublishedProvidersToUpdate.Values.Select(_ => _.Current));
@@ -388,7 +388,7 @@ namespace CalculateFunding.Services.Publishing
                             if (newProviders.Count > 0)
                             {
                                 _logger.Information($"Saving new published providers. Total={newProviders.Count}");
-                                await _publishedProviderStatusUpdateService.UpdatePublishedProviderStatus(newProviders.Values, author, PublishedProviderStatus.Draft, jobId);
+                                await _publishedProviderStatusUpdateService.UpdatePublishedProviderStatus(newProviders.Values, author, PublishedProviderStatus.Draft, jobId, correlationId);
 
                                 _logger.Information($"Indexing newly added PublishedProviders");
                                 await _publishedProviderIndexerService.IndexPublishedProviders(newProviders.Values.Select(_ => _.Current));

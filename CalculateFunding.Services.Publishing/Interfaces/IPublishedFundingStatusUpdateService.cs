@@ -7,6 +7,6 @@ namespace CalculateFunding.Services.Publishing.Interfaces
 {
     public interface IPublishedFundingStatusUpdateService
     {
-        Task UpdatePublishedFundingStatus(IEnumerable<(PublishedFunding PublishedFunding, PublishedFundingVersion PublishedFundingVersion)> publishedFundingToSave, Reference author, PublishedFundingStatus released);
+        Task UpdatePublishedFundingStatus(IEnumerable<(PublishedFunding PublishedFunding, PublishedFundingVersion PublishedFundingVersion)> publishedFundingToSave, Reference author, PublishedFundingStatus released, string jobId, string correlationId);
     }
 }

@@ -34,6 +34,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 .ToList();
 
             string jobId = new RandomString();
+            string correlationId = new RandomString();
 
             Mock<ILogger> logger = CreateLogger();
             Mock<IPublishedProviderVersioningService> providerVersioningService = CreateVersioningService();
@@ -44,7 +45,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                     x.AssemblePublishedProviderCreateVersionRequests(
                     It.IsAny<IEnumerable<PublishedProvider>>(), 
                     It.Is<Reference>(_ => _ == author),
-                    It.Is<PublishedProviderStatus>(_ => _ == PublishedProviderStatus.Approved)))
+                    It.Is<PublishedProviderStatus>(_ => _ == PublishedProviderStatus.Approved),
+                    It.Is<string>(_ => _ == jobId),
+                    It.Is<string>(_ => _ == correlationId)))
                 .Returns(publishedProviderCreateVersionRequests);
 
             providerVersioningService
@@ -81,7 +84,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
 
 
             //Act
-            await publishedProviderStatusUpdateService.UpdatePublishedProviderStatus(publishedProviders, author, PublishedProviderStatus.Approved, jobId);
+            await publishedProviderStatusUpdateService.UpdatePublishedProviderStatus(publishedProviders, author, PublishedProviderStatus.Approved, jobId, correlationId);
 
             //Assert
             // TODO - fix due to further batching because of optmisation
@@ -122,13 +125,18 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
 
             Mock<ILogger> logger = CreateLogger();
 
+            string jobId = new RandomString();
+            string correlationId = new RandomString();
+
             Mock<IPublishedProviderVersioningService> providerVersioningService = CreateVersioningService();
             providerVersioningService
                 .Setup(x => 
                     x.AssemblePublishedProviderCreateVersionRequests(
                         It.Is<IEnumerable<PublishedProvider>>(_ => _ == publishedProviders), 
                         It.Is<Reference>(_ => _ == author), 
-                        It.Is<PublishedProviderStatus>(_ => _ == PublishedProviderStatus.Approved)))
+                        It.Is<PublishedProviderStatus>(_ => _ == PublishedProviderStatus.Approved),
+                        It.Is<string>(_ => _ == jobId),
+                        It.Is<string>(_ => _ == correlationId)))
                 .Returns(publishedProviderCreateVersionRequests);
             
             PublishedProviderStatusUpdateService publishedProviderStatusUpdateService =
@@ -143,9 +151,49 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         }
 
         [TestMethod]
+        public async Task UpdatePublishedProviderStatus_GivenPublishedProviderCreateVersionRequestsWithJobIdAndCorrelationId_AssemblePublishedProviderRequestsWithJobIdAndCorrelationId()
+        {
+            //Arrange
+            const string jobId = "JobId-abc-123";
+            const string correlationId = "CorrelationId-xyz-123";
+            IEnumerable<PublishedProvider> publishedProviders = new[] { new PublishedProvider() };
+
+            IEnumerable<PublishedProviderCreateVersionRequest> publishedProviderCreateVersionRequests =
+                new[] { new PublishedProviderCreateVersionRequest() };
+
+            Mock<ILogger> logger = CreateLogger();
+
+            Mock<IPublishedProviderVersioningService> providerVersioningService = CreateVersioningService();
+            providerVersioningService
+                .Setup(x =>
+                    x.AssemblePublishedProviderCreateVersionRequests(
+                        It.IsAny<IEnumerable<PublishedProvider>>(),
+                        It.Is<Reference>(_ => _ == author),
+                        It.Is<PublishedProviderStatus>(_ => _ == PublishedProviderStatus.Approved),
+                        It.Is<string>(_ => _ == jobId),
+                        It.Is<string>(_ => _ == correlationId)))
+                .Returns(publishedProviderCreateVersionRequests);
+
+            PublishedProviderStatusUpdateService publishedProviderStatusUpdateService =
+                CreatePublishedProviderStatusUpdateService(providerVersioningService.Object, logger.Object);
+
+            //Assert
+            int updateCount = await publishedProviderStatusUpdateService.UpdatePublishedProviderStatus(publishedProviders, author, PublishedProviderStatus.Approved, jobId, correlationId);
+
+            providerVersioningService.Verify(x => x.AssemblePublishedProviderCreateVersionRequests(
+                        It.IsAny<IEnumerable<PublishedProvider>>(),
+                        It.Is<Reference>(_ => _ == author),
+                        It.Is<PublishedProviderStatus>(_ => _ == PublishedProviderStatus.Approved),
+                        It.Is<string>(_ => _ == jobId),
+                        It.Is<string>(_ => _ == correlationId)), Times.Once);
+        }
+
+        [TestMethod]
         public void UpdatePublishedProviderStatus_GivenAssembledPublishedProviderCreateVersionRequestButCreateVersionCausesException_ThrowsRetriableException()
         {
             //Arrange
+            const string jobId = null;
+            const string correlationId = null;
             IEnumerable<PublishedProvider> publishedProviders = Enumerable.Empty<PublishedProvider>();
 
             IEnumerable<PublishedProviderCreateVersionRequest> publishedProviderCreateVersionRequests = new[]
@@ -161,7 +209,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                     x.AssemblePublishedProviderCreateVersionRequests(
                         It.IsAny<IEnumerable<PublishedProvider>>(), 
                         It.Is<Reference>(_ => _ == author), 
-                        It.Is<PublishedProviderStatus>(_ => _ == PublishedProviderStatus.Approved)))
+                        It.Is<PublishedProviderStatus>(_ => _ == PublishedProviderStatus.Approved),
+                        It.Is<string>(_ => _ == jobId),
+                        It.Is<string>(_ => _ == correlationId)))
                 .Returns(publishedProviderCreateVersionRequests);
 
             providerVersioningService.Setup(x => 
@@ -174,7 +224,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             string errorMessage = $"Failed to create versions when updating status:' {PublishedProviderStatus.Approved}' on published providers.";
 
             //Assert
-            Func<Task> test = async () => await publishedProviderStatusUpdateService.UpdatePublishedProviderStatus(publishedProviders, author, PublishedProviderStatus.Approved);
+            Func<Task> test = async () => await publishedProviderStatusUpdateService.UpdatePublishedProviderStatus(publishedProviders, author, PublishedProviderStatus.Approved, jobId, correlationId);
 
             test
                 .Should()
@@ -193,6 +243,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         public void UpdatePublishedProviderStatus_GivenVersionsCreatedButSavingCausesException_ThrowsRetriableException()
         {
             //Arrange
+            const string jobId = null;
+            const string correlationId = null;
             IEnumerable<PublishedProvider> publishedProviders = new[]
             {
                 new PublishedProvider()
@@ -212,7 +264,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                     x.AssemblePublishedProviderCreateVersionRequests(
                         It.IsAny<IEnumerable<PublishedProvider>>(), 
                         It.Is<Reference>(_ => _ == author), 
-                        It.Is<PublishedProviderStatus>(_ => _ == PublishedProviderStatus.Approved)))
+                        It.Is<PublishedProviderStatus>(_ => _ == PublishedProviderStatus.Approved),
+                         It.Is<string>(_ => _ == jobId),
+                        It.Is<string>(_ => _ == correlationId)))
                 .Returns(publishedProviderCreateVersionRequests);
             providerVersioningService
                 .Setup(x => 
@@ -232,7 +286,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             string errorMessage = $"Failed to save versions when updating status:' {PublishedProviderStatus.Approved}' on published providers.";
 
             //Assert
-            Func<Task> test = async () => await publishedProviderStatusUpdateService.UpdatePublishedProviderStatus(publishedProviders, author, PublishedProviderStatus.Approved);
+            Func<Task> test = async () => await publishedProviderStatusUpdateService.UpdatePublishedProviderStatus(publishedProviders, author, PublishedProviderStatus.Approved, jobId, correlationId);
 
             test
                 .Should()
@@ -252,6 +306,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         public async Task UpdatePublishedProviderStatus_GivenNoVersionsCreated_DoesNotSave()
         {
             //Arrange
+            const string jobId = null;
+            const string correlationId = null;
             IEnumerable<PublishedProvider> publishedProviders = Enumerable.Empty<PublishedProvider>();
 
             IEnumerable<PublishedProviderCreateVersionRequest> publishedProviderCreateVersionRequests = new[]
@@ -267,7 +323,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                     x.AssemblePublishedProviderCreateVersionRequests(
                         It.IsAny<IEnumerable<PublishedProvider>>(), 
                         It.Is<Reference>(_ => _ == author), 
-                        It.Is<PublishedProviderStatus>(_ => _ == PublishedProviderStatus.Approved)))
+                        It.Is<PublishedProviderStatus>(_ => _ == PublishedProviderStatus.Approved),
+                          It.Is<string>(_ => _ == jobId),
+                        It.Is<string>(_ => _ == correlationId)))
                 .Returns(publishedProviderCreateVersionRequests);
             providerVersioningService.Setup(x => 
                     x.CreateVersions(It.Is<IEnumerable<PublishedProviderCreateVersionRequest>>(_ => _ == publishedProviderCreateVersionRequests)))
@@ -279,7 +337,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             string errorMessage = $"Failed to save versions when updating status:' {PublishedProviderStatus.Approved}' on published providers.";
 
             //Assert
-            await publishedProviderStatusUpdateService.UpdatePublishedProviderStatus(publishedProviders, author, PublishedProviderStatus.Approved);
+            await publishedProviderStatusUpdateService.UpdatePublishedProviderStatus(publishedProviders, author, PublishedProviderStatus.Approved,jobId,correlationId);
 
             providerVersioningService
                 .Verify(x => x.SaveVersions(It.IsAny<IEnumerable<PublishedProvider>>()),

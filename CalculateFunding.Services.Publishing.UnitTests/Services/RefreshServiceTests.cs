@@ -91,6 +91,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         private string _providerIdVaried;
         private const string SpecificationId = "SpecificationId";
         private const string JobId = "JobId";
+        private const string CorrelationId = "CorrelationId";
         private const string FundingStreamId = "PSG";
         private const string Successor = "1234";
         private Mock<IReApplyCustomProfiles> _reApplyCustomProfiles;
@@ -200,7 +201,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             AndPublishedProviders();
             AndUpdateStatusThrowsAnError(error);
 
-            Func<Task> invocation = WhenMessageReceivedWithJobId;
+            Func<Task> invocation = WhenMessageReceivedWithJobIdAndCorrelationId;
  
             invocation
                 .Should()
@@ -218,7 +219,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         [TestMethod]
         public async Task RefreshResults_WhenAnUpdatePublishStatusCompletesWithoutError_PublishedProviderUpdated()
         {
-            GivenJobCanBeProcessed();
+            GivenJobCanBeProcessed();            
             AndSpecification();
             AndCalculationResultsBySpecificationId();
             AndTemplateMetadataContents();
@@ -230,14 +231,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             AndTemplateMapping();
             AndPublishedProviders();
 
-            await WhenMessageReceivedWithJobId();
+            await WhenMessageReceivedWithJobIdAndCorrelationId();
 
             await _publishedProviderStatusUpdateService
                 .Received(1)
-                .UpdatePublishedProviderStatus(Arg.Is<IEnumerable<PublishedProvider>>(_ => _.Single().Current.ProviderId == _publishedProviders.Last().Current.ProviderId), 
+                .UpdatePublishedProviderStatus(Arg.Is<IEnumerable<PublishedProvider>>(_ => _.Single().Current.ProviderId == _publishedProviders.Last().Current.ProviderId),
                     Arg.Any<Reference>(),
                     Arg.Is(PublishedProviderStatus.Updated),
-                    Arg.Is(JobId));
+                    Arg.Is(JobId),
+                    Arg.Is(CorrelationId));
             
             AndTheCustomProfilesWereReApplied();
         }
@@ -259,14 +261,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             GivenVariationsEnabled();
             GivenFundingConfiguration(new ProviderMetadataVariationStrategy());
 
-            await WhenMessageReceivedWithJobId();
+            await WhenMessageReceivedWithJobIdAndCorrelationId();
 
             await _publishedProviderStatusUpdateService
                 .Received(1)
                 .UpdatePublishedProviderStatus(Arg.Is<IEnumerable<PublishedProvider>>(_ => _.Single().Current.ProviderId == _publishedProviders.Last().Current.ProviderId && _.Single().Current.VariationReasons.Single().Equals(VariationReason.NameFieldUpdated)),
                     Arg.Any<Reference>(),
                     Arg.Is(PublishedProviderStatus.Updated),
-                    Arg.Is(JobId));
+                    Arg.Is(JobId),
+                    Arg.Is(CorrelationId));
         }
 
         [TestMethod]
@@ -288,7 +291,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             GivenVariationsEnabled();
             GivenFundingConfiguration(new ClosureWithSuccessorVariationStrategy(_providerService));
 
-            Func<Task> invocation = WhenMessageReceivedWithJobId;
+            Func<Task> invocation = WhenMessageReceivedWithJobIdAndCorrelationId;
 
             invocation
                 .Should()
@@ -308,7 +311,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         {
             GivenJobCannotBeProcessed();
 
-            Func<Task> invocation = WhenMessageReceivedWithJobId;
+            Func<Task> invocation = WhenMessageReceivedWithJobIdAndCorrelationId;
 
             invocation
                 .Should()
@@ -324,7 +327,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         {
             GivenJobCanBeProcessed();
 
-            Func<Task> invocation = WhenMessageReceivedWithJobId;
+            Func<Task> invocation = WhenMessageReceivedWithJobIdAndCorrelationId;
 
             invocation
                 .Should()
@@ -345,7 +348,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             AndScopedProviders();
             GivenCalculationResultsBySpecificationIdThrowsException();
 
-            Func<Task> invocation = WhenMessageReceivedWithJobId;
+            Func<Task> invocation = WhenMessageReceivedWithJobIdAndCorrelationId;
 
             Exception ex = invocation
                 .Should()
@@ -367,7 +370,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             AndScopedProviders();
             AndScopedProviderCalculationResults();
 
-            Func<Task> invocation = WhenMessageReceivedWithJobId;
+            Func<Task> invocation = WhenMessageReceivedWithJobIdAndCorrelationId;
 
             invocation
                 .Should()
@@ -391,7 +394,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             AndPublishedProviders();
             AndJobsRunning();
 
-            Func<Task> invocation = WhenMessageReceivedWithJobId;
+            Func<Task> invocation = WhenMessageReceivedWithJobIdAndCorrelationId;
 
             invocation
                 .Should()
@@ -418,7 +421,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             AndNoScopedProviderCalculationResults();
             AndTemplateMapping();
 
-            Func<Task> invocation = WhenMessageReceivedWithJobId;
+            Func<Task> invocation = WhenMessageReceivedWithJobIdAndCorrelationId;
 
             Exception ex = invocation
                 .Should()
@@ -437,7 +440,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             AndSpecification();
             AndCalculationResultsBySpecificationId();
 
-            await WhenMessageReceivedWithJobId();
+            await WhenMessageReceivedWithJobIdAndCorrelationId();
 
             _logger
                 .Received(1)
@@ -456,7 +459,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             AndTemplateMapping();
             AndProfilingThrowsExeption();
 
-            Func<Task> invocation = WhenMessageReceivedWithJobId;
+            Func<Task> invocation = WhenMessageReceivedWithJobIdAndCorrelationId;
 
             Exception ex = invocation
                 .Should()
@@ -481,7 +484,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             AndPublishedProviders();
             AndPublishedProviderExcluded();
 
-            await WhenMessageReceivedWithJobId();
+            await WhenMessageReceivedWithJobIdAndCorrelationId();
 
             _fundingLineValueOverride
                 .Received(1)
@@ -494,7 +497,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         {
             GivenJobCanBeProcessed();
 
-            Func<Task> invocation = WhenMessageReceivedWithJobId;
+            Func<Task> invocation = WhenMessageReceivedWithJobIdAndCorrelationId;
 
             invocation
                 .Should()
@@ -508,7 +511,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         [TestMethod]
         public void PublishResults_GivenJobCannotBeProcessed_ThrowsException()
         {
-            Func<Task> invocation = WhenMessageReceivedWithJobId;
+            Func<Task> invocation = WhenMessageReceivedWithJobIdAndCorrelationId;
 
             invocation
                 .Should()
@@ -674,6 +677,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             _publishedProviderStatusUpdateService.UpdatePublishedProviderStatus(Arg.Any<IEnumerable<PublishedProvider>>(),
                     Arg.Any<Reference>(),
                     Arg.Any<PublishedProviderStatus>(),
+                    Arg.Any<string>(),
                     Arg.Any<string>())
                 .Throws(new Exception(error));
         }
@@ -685,7 +689,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             _jobsApiClient.GetJobById(JobId)
                 .Returns(new ApiResponse<JobViewModel>(HttpStatusCode.OK, jobViewModel));
         }
-
+        
+        
         private void GivenJobCannotBeProcessed()
         {
             JobViewModel jobViewModel = NewJobViewModel(_ => _.WithCompletionStatus(CompletionStatus.Superseded));
@@ -706,9 +711,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 .Returns(new ApiResponse<SpecificationSummary>(HttpStatusCode.OK, _specificationSummary));
         }
 
-        private async Task WhenMessageReceivedWithJobId()
+        private async Task WhenMessageReceivedWithJobIdAndCorrelationId()
         {
-            Message message = NewMessage(_ => _.WithUserProperty("specification-id", SpecificationId).WithUserProperty("jobId", JobId));
+            Message message = NewMessage(_ => _.WithUserProperty("specification-id", SpecificationId).WithUserProperty("jobId", JobId).WithUserProperty("correlation-id", CorrelationId));
 
             await _refreshService.RefreshResults(message);
         }

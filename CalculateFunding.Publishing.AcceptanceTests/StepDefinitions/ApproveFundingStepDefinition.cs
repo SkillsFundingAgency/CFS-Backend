@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using CalculateFunding.Publishing.AcceptanceTests.Contexts;
 using CalculateFunding.Publishing.AcceptanceTests.Extensions;
 using CalculateFunding.Services.Core.Constants;
@@ -18,19 +19,22 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
         private readonly CurrentSpecificationStepContext _currentSpecificationStepContext;
         private readonly CurrentJobStepContext _currentJobStepContext;
         private readonly CurrentUserStepContext _currentUserStepContext;
+        private readonly ICurrentCorrelationStepContext _currentCorrelationStepContext;
         private readonly IApproveService _approveService;
 
         public ApproveFundingStepDefinition(IPublishFundingStepContext publishFundingStepContext,
             CurrentSpecificationStepContext currentSpecificationStepContext,
             CurrentJobStepContext currentJobStepContext,
             CurrentUserStepContext currentUserStepContext, 
-            IApproveService approveService)
+            IApproveService approveService,
+            ICurrentCorrelationStepContext currentCorrelationStepContext)
         {
             _publishFundingStepContext = publishFundingStepContext;
             _currentSpecificationStepContext = currentSpecificationStepContext;
             _currentJobStepContext = currentJobStepContext;
             _currentUserStepContext = currentUserStepContext;
             _approveService = approveService;
+            _currentCorrelationStepContext = currentCorrelationStepContext;
         }
 
         [When(@"funding is approved")]
@@ -42,6 +46,8 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
             message.UserProperties.Add("user-name", _currentUserStepContext.UserName);
             message.UserProperties.Add("specification-id", _currentSpecificationStepContext.SpecificationId);
             message.UserProperties.Add("jobId", _currentJobStepContext.JobId);
+            _currentCorrelationStepContext.CorrelationId = Guid.NewGuid().ToString();
+            message.UserProperties.Add("correlation-id", _currentCorrelationStepContext.CorrelationId);
 
             await _approveService.ApproveAllResults(message);
         }

@@ -46,7 +46,7 @@ namespace CalculateFunding.Services.Publishing
             _publishingEngineOptions = publishingEngineOptions;
         }
 
-        public async Task UpdatePublishedFundingStatus(IEnumerable<(PublishedFunding PublishedFunding, PublishedFundingVersion PublishedFundingVersion)> publishedFundingToSave, Reference author, PublishedFundingStatus released)
+        public async Task UpdatePublishedFundingStatus(IEnumerable<(PublishedFunding PublishedFunding, PublishedFundingVersion PublishedFundingVersion)> publishedFundingToSave, Reference author, PublishedFundingStatus status, string jobId, string correlationId)
         {
             List<Task> allTasks = new List<Task>();
             SemaphoreSlim throttler = new SemaphoreSlim(initialCount: _publishingEngineOptions.UpdatePublishedFundingStatusConcurrencyCount);
@@ -65,8 +65,10 @@ namespace CalculateFunding.Services.Publishing
                             PublishedFundingVersion publishedFundingVersion = await _publishedFundingVersionRepository
                                 .CreateVersion(_.PublishedFundingVersion, currentVersion, currentVersion.PartitionKey);
 
-                            publishedFundingVersion.Status = released;
+                            publishedFundingVersion.Status = status;
                             publishedFundingVersion.Author = author;
+                            publishedFundingVersion.JobId = jobId;
+                            publishedFundingVersion.CorrelationId = correlationId;
                             publishedFundingVersion.MajorVersion = publishedFundingVersion.Version;
 
                             publishedFunding.Current = publishedFundingVersion;
@@ -79,7 +81,7 @@ namespace CalculateFunding.Services.Publishing
                             }
                             catch (Exception ex)
                             {
-                                string errorMessage = $"Failed to save version when updating status:' {released}' on published funding: {publishedFundingVersion.FundingId}.";
+                                string errorMessage = $"Failed to save version when updating status:' {status}' on published funding: {publishedFundingVersion.FundingId}.";
 
                                 _logger.Error(ex, errorMessage);
 

@@ -56,7 +56,7 @@ namespace CalculateFunding.Services.Publishing
             return health;
         }
 
-        public IEnumerable<PublishedProviderCreateVersionRequest> AssemblePublishedProviderCreateVersionRequests(IEnumerable<PublishedProvider> publishedProviders, Reference author, PublishedProviderStatus publishedProviderStatus)
+        public IEnumerable<PublishedProviderCreateVersionRequest> AssemblePublishedProviderCreateVersionRequests(IEnumerable<PublishedProvider> publishedProviders, Reference author, PublishedProviderStatus publishedProviderStatus, string jobId = null, string correlationId = null)
         {
             Guard.ArgumentNotNull(publishedProviders, nameof(publishedProviders));
             Guard.ArgumentNotNull(author, nameof(author));
@@ -75,6 +75,8 @@ namespace CalculateFunding.Services.Publishing
                 PublishedProviderVersion newVersion = publishedProvider.Current.Clone() as PublishedProviderVersion;
                 newVersion.Author = author;
                 newVersion.Status = publishedProviderStatus;
+                newVersion.JobId = jobId;
+                newVersion.CorrelationId = correlationId;
                 int minorVersion = publishedProvider.Current.MinorVersion;
                 int majorVersion = publishedProvider.Current.MajorVersion;
 

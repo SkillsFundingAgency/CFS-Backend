@@ -161,7 +161,7 @@ namespace CalculateFunding.Services.Publishing
                 });
 
                 _logger.Information($"Persisting new versions of published providers");
-                if ((await _publishedProviderStatusUpdateService.UpdatePublishedProviderStatus(publishedProviders, author, PublishedProviderStatus.Approved, jobId)) > 0)
+                if ((await _publishedProviderStatusUpdateService.UpdatePublishedProviderStatus(publishedProviders, author, PublishedProviderStatus.Approved, jobId, correlationId)) > 0)
                 {
                     _logger.Information($"Indexing published providers");
                     await _publishedProviderIndexerService.IndexPublishedProviders(publishedProviders.Select(_ => _.Current));

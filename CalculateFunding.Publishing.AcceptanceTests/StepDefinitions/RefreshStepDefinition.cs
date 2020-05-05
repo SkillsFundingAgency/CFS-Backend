@@ -29,6 +29,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
         private readonly CurrentJobStepContext _currentJobStepContext;
         private readonly CurrentUserStepContext _currentUserStepContext;
         private readonly IRefreshService _refreshService;
+        private readonly ICurrentCorrelationStepContext _currentCorrelationStepContext;
         private readonly PublishedProviderVersionInMemoryRepository _providerVersionInMemoryRepository;
         private readonly SpecificationsInMemoryClient _specificationsInMemoryClient;
 
@@ -39,7 +40,8 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
             IVariationServiceStepContext variationServiceStepContext,
             IRefreshService refreshService,
             IVersionRepository<PublishedProviderVersion> publishedProviderVersionRepository,
-            ISpecificationsApiClient specificationsApiClient)
+            ISpecificationsApiClient specificationsApiClient,
+            ICurrentCorrelationStepContext currentCorrelationStepContext)
         {
             _publishFundingStepContext = publishFundingStepContext;
             _currentSpecificationStepContext = currentSpecificationStepContext;
@@ -47,6 +49,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
             _currentUserStepContext = currentUserStepContext;
             _variationServiceStepContext = variationServiceStepContext;
             _refreshService = refreshService;
+            _currentCorrelationStepContext = currentCorrelationStepContext;
             _providerVersionInMemoryRepository =
                 (PublishedProviderVersionInMemoryRepository) publishedProviderVersionRepository;
             _specificationsInMemoryClient = (SpecificationsInMemoryClient) specificationsApiClient;
@@ -81,6 +84,9 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
             message.UserProperties.Add("user-name", _currentUserStepContext.UserName);
             message.UserProperties.Add("specification-id", _currentSpecificationStepContext.SpecificationId);
             message.UserProperties.Add("jobId", _currentJobStepContext.JobId);
+
+            _currentCorrelationStepContext.CorrelationId = Guid.NewGuid().ToString();
+            message.UserProperties.Add("correlation-id", _currentCorrelationStepContext.CorrelationId);
 
             await _refreshService.RefreshResults(message);
         }

@@ -24,11 +24,15 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
         private readonly IPublishedFundingRepositoryStepContext _publishedFundingRepositoryStepContext;
         private readonly IPublishedFundingResultStepContext _publishedFundingResultStepContext;
         private readonly ICurrentSpecificationStepContext _currentSpecificationStepContext;
+        private readonly CurrentJobStepContext _currentJobStepContext;
+        private readonly ICurrentCorrelationStepContext _currentCorrelationStepContext;
 
         public PublishedFundingStepDefinitions(IPublishFundingStepContext publishFundingStepContext,
             IPublishedFundingRepositoryStepContext publishedFundingRepositoryStepContext,
             IPublishedFundingResultStepContext publishedFundingResultStepContext,
-            ICurrentSpecificationStepContext currentSpecificationStepContext)
+            ICurrentSpecificationStepContext currentSpecificationStepContext,
+            CurrentJobStepContext currentJobStepContext,
+            ICurrentCorrelationStepContext currentCorrelationStepContext)
         {
             Guard.ArgumentNotNull(publishedFundingRepositoryStepContext, nameof(publishedFundingRepositoryStepContext));
             Guard.ArgumentNotNull(publishedFundingResultStepContext, nameof(publishedFundingResultStepContext));
@@ -38,6 +42,8 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
             _publishedFundingRepositoryStepContext = publishedFundingRepositoryStepContext;
             _publishedFundingResultStepContext = publishedFundingResultStepContext;
             _currentSpecificationStepContext = currentSpecificationStepContext;
+            _currentJobStepContext = currentJobStepContext;
+            _currentCorrelationStepContext = currentCorrelationStepContext;
         }
 
         [Then(@"the following published funding is produced")]
@@ -129,6 +135,13 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
                     .BeEquivalentTo(providerCalculationResults.ContainsKey(_.Current.ProviderId) ? 
                         providerCalculationResults[_.Current.ProviderId] : 
                         calculationsInMemoryRepository.Results);
+
+                    // Already approved one's will not be re-approved / saved, so jobid or correleationid will not be populated for them
+                    if (_.Current.JobId != null)
+                    {
+                        _.Current.JobId.Should().Be(_currentJobStepContext.JobId);
+                        _.Current.CorrelationId.Should().Be(_currentCorrelationStepContext.CorrelationId);
+                    }
                 });
             //TODO: replace the branching in an assertion with a different step definition
         }

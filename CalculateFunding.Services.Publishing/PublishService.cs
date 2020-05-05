@@ -261,7 +261,7 @@ namespace CalculateFunding.Services.Publishing
                     await _publishedProviderVersionService.CreateReIndexJob(author, correlationId);
                 });
 
-                await SavePublishedProvidersAsReleased(jobId, author, selectedPublishedProviders);
+                await SavePublishedProvidersAsReleased(jobId, author, selectedPublishedProviders, correlationId);
 
                 _logger.Information($"Generating published funding");
                 IEnumerable<(PublishedFunding PublishedFunding, PublishedFundingVersion PublishedFundingVersion)> publishedFundingToSave =
@@ -276,7 +276,7 @@ namespace CalculateFunding.Services.Publishing
 
                 // Save a version of published funding and set this version to current
                 _logger.Information($"Saving published funding");
-                await _publishedFundingStatusUpdateService.UpdatePublishedFundingStatus(publishedFundingToSave, author, PublishedFundingStatus.Released);
+                await _publishedFundingStatusUpdateService.UpdatePublishedFundingStatus(publishedFundingToSave, author, PublishedFundingStatus.Released,jobId,correlationId);
                 _logger.Information($"Finished saving published funding");
 
                 // Save contents to blob storage and search for the feed
@@ -318,14 +318,15 @@ namespace CalculateFunding.Services.Publishing
             }
         }
 
-        private async Task SavePublishedProvidersAsReleased(string jobId, Reference author, IEnumerable<PublishedProvider> publishedProviders)
+
+        private async Task SavePublishedProvidersAsReleased(string jobId, Reference author, IEnumerable<PublishedProvider> publishedProviders,string correlationId)
         {
             IEnumerable<PublishedProvider> publishedProvidersToSaveAsReleased = publishedProviders.Where(p => p.Current.Status != PublishedProviderStatus.Released);
 
             _logger.Information($"Saving published providers. Total = '{publishedProvidersToSaveAsReleased.Count()}'");
 
             await _publishedProviderStatusUpdateService.UpdatePublishedProviderStatus(publishedProvidersToSaveAsReleased, author, PublishedProviderStatus.Released,
-                jobId);
+                jobId, correlationId);
 
             _logger.Information($"Finished saving published funding contents");
         }

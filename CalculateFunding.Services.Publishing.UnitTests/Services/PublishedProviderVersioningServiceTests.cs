@@ -554,6 +554,84 @@ namespace CalculateFunding.Services.Publishing.Services.UnitTests
         }
 
         [TestMethod]
+        public void AssemblePublishedProviderCreateVersionRequests_GivenPublishedProvidersWithJobIdandCorrelationId_PopulatesCreateVersionRequestsWithJobIdandCorrelationId()
+        {
+            //Arrange
+            const string providerId = "123";
+            const string fundingPeriodId = "456";
+            const string fundingStreamId = "789";
+            const string jobId = "JobId-abc-133";
+            const string correlationId = "CorrelationId-xyz-123";
+
+            string partitionKey = $"publishedprovider-{providerId}-{fundingPeriodId}-{fundingStreamId}";
+
+            IEnumerable<PublishedProvider> publishedProviders = new[]
+            {
+                new PublishedProvider
+                {
+                    Current = new PublishedProviderVersion
+                    {
+                        Status = PublishedProviderStatus.Updated,
+                        ProviderId = providerId,
+                        FundingPeriodId = fundingPeriodId,
+                        FundingStreamId = fundingStreamId
+                    }
+                }
+            };
+
+            PublishedProviderVersioningService service = CreateVersioningService();
+
+            //Act
+            IEnumerable<PublishedProviderCreateVersionRequest> results = service.AssemblePublishedProviderCreateVersionRequests(
+                publishedProviders, new Reference("id1", "Joe Bloggs"), PublishedProviderStatus.Approved, jobId, correlationId);
+
+            IEnumerable<PublishedProviderCreateVersionRequest> expectedproviders = new List<PublishedProviderCreateVersionRequest>()
+            {
+                new PublishedProviderCreateVersionRequest()
+                {
+                    NewVersion = new PublishedProviderVersion()
+                    {
+                        FundingPeriodId = fundingPeriodId,
+                        FundingStreamId = fundingStreamId,
+                        ProviderId = providerId,
+                        Status = PublishedProviderStatus.Approved,
+                        PublishStatus = PublishStatus.Approved,
+                        Author = new Reference()
+                        {
+                            Id = "id1",
+                            Name = "Joe Bloggs"
+                        },
+                        JobId = jobId,
+                        CorrelationId = correlationId                        
+                    },
+                    PublishedProvider = new PublishedProvider()
+                    {
+                        Current = new PublishedProviderVersion()
+                        {
+                            FundingPeriodId = fundingPeriodId,
+                            FundingStreamId = fundingStreamId,
+                            ProviderId = providerId,
+                            Status = PublishedProviderStatus.Updated,
+                            PublishStatus = PublishStatus.Draft
+                        }
+                    }
+                }
+            };
+
+
+            //Assert
+            results
+                .Should()
+                .HaveCount(1);
+
+
+            results
+                .Should()
+                .BeEquivalentTo(expectedproviders);
+            
+        }
+
+        [TestMethod]
         public void AssemblePublishedProviderCreateVersionRequests_GivenReleasedPublishedProvidersForUpdateRequest_ReturnsCreateVersionRequestWithVersionUpgrade()
         {
             //Arrange
