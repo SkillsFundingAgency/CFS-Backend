@@ -76,7 +76,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         private IPublishedFundingDateService _publishedFundingDateService;
         private ISpecificationFundingStatusService _specificationFundingStatusService;
         private IJobsRunning _jobsRunning;
-        private PublishProvidersRequest _publishProvidersRequest;
         
         private const string SpecificationId = "SpecificationId";
         private const string JobId = "JobId";
@@ -586,7 +585,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                                                                  SpecificationId).WithUserProperty("jobId",
                                                                                                    JobId).WithUserProperty("correlation-id", CorrelationId));
 
-            await _publishService.PublishAllProviderFundingResults(message);
+            await _publishService.PublishProviderFundingResults(message);
         }
 
         private async Task WhenPublishBatchProvidersMessageReceivedWithJobIdAndCorrelationId(PublishProvidersRequest publishProvidersRequest)
@@ -598,7 +597,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 .WithUserProperty(
                     JobConstants.MessagePropertyNames.PublishProvidersRequest, JsonExtensions.AsJson(publishProvidersRequest)));
 
-            await _publishService.PublishBatchProviderFundingResults(message);
+            await _publishService.PublishProviderFundingResults(message, batched: true);
         }
 
         private PublishProvidersRequest BuildPublishProvidersRequest(Action<PublishProvidersRequestBuilder> setUp = null)

@@ -550,12 +550,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
 
         private async Task WhenBatchProvidersResultsAreApproved()
         {
-            await _approveService.ApproveBatchResults(_message);
+            await _approveService.ApproveResults(_message, batched: true);
         }
 
         private async Task WhenAllProvidersResultsAreApproved()
         {
-            await _approveService.ApproveAllResults(_message);
+            await _approveService.ApproveResults(_message);
         }
 
         private void ThenThePublishedProvidersWereApproved(IEnumerable<PublishedProvider> publishedProviders)

@@ -62,7 +62,7 @@ namespace CalculateFunding.Services.Publishing
             _publishedProviderVersionService = publishedProviderVersionService;
         }
 
-        public async Task ApproveBatchResults(Message message)
+        public async Task ApproveResults(Message message, bool batched = false)
         {
             Guard.ArgumentNotNull(message, nameof(message));
             _logger.Information("Starting approve provider funding job");
@@ -77,15 +77,28 @@ namespace CalculateFunding.Services.Publishing
 
             string specificationId = message.GetUserProperty<string>("specification-id");
 
-            string approveProvidersRequestJson = message.GetUserProperty<string>(JobConstants.MessagePropertyNames.ApproveProvidersRequest);
-            ApproveProvidersRequest approveProvidersRequest = JsonExtensions.AsPoco<ApproveProvidersRequest>(approveProvidersRequestJson);
+            ApproveProvidersRequest approveProvidersRequest = null;
 
-            await PerformPrerequisiteChecks(specificationId, jobId, PrerequisiteCheckerType.ApproveBatchProviders, approveProvidersRequest?.Providers);
+            string logApproveProcessingMessage = $"Processing approve specification funding job. JobId='{jobId}'. SpecificationId='{specificationId}'.";
+
+            if (batched)
+            {
+                string approveProvidersRequestJson = message.GetUserProperty<string>(JobConstants.MessagePropertyNames.ApproveProvidersRequest);
+                logApproveProcessingMessage += $" Request = {approveProvidersRequestJson}.";
+                approveProvidersRequest = JsonExtensions.AsPoco<ApproveProvidersRequest>(approveProvidersRequestJson);
+            }
+
+            await PerformPrerequisiteChecks(specificationId, 
+                jobId, 
+                batched == true ? PrerequisiteCheckerType.ApproveBatchProviders : PrerequisiteCheckerType.ApproveAllProviders, 
+                approveProvidersRequest?.Providers);
+
+            _logger.Information(logApproveProcessingMessage);
+
+            _logger.Information("Fetching published providers for specification funding approval");
             
-            _logger.Information($"Processing approve provider funding job. JobId='{jobId}'. SpecificationId='{specificationId}' Request={approveProvidersRequestJson}");
-
-            IEnumerable<PublishedProvider> publishedProviders = await GetPublishedProvidersForApproval(specificationId, approveProvidersRequest.Providers.ToArray());
-
+            IEnumerable<PublishedProvider> publishedProviders = await GetPublishedProvidersForApproval(specificationId, approveProvidersRequest?.Providers?.ToArray());
+            
             CheckPublishedProviderForErrors(specificationId, publishedProviders);
 
             Reference author = message.GetUserDetails();
@@ -96,41 +109,6 @@ namespace CalculateFunding.Services.Publishing
             _logger.Information($"Completing approve provider funding job. JobId='{jobId}'");
             await _jobManagement.UpdateJobStatus(jobId, 0, 0, true, null);
             _logger.Information($"Approve provider funding job complete. JobId='{jobId}'");
-        }
-
-        public async Task ApproveAllResults(Message message)
-        {
-            Guard.ArgumentNotNull(message, nameof(message));
-            _logger.Information("Starting approve specification funding job");
-            string jobId = message.GetUserProperty<string>("jobId");
-
-            Guard.IsNullOrWhiteSpace(jobId, nameof(jobId));
-
-            await EnsureJobCanBeProcessed(jobId);
-
-            // Update job to set status to processing
-            await _jobManagement.UpdateJobStatus(jobId, 0, 0, null, null);
-
-            string specificationId = message.GetUserProperty<string>("specification-id");
-
-            await PerformPrerequisiteChecks(specificationId, jobId, PrerequisiteCheckerType.ApproveAllProviders);
-
-            _logger.Information($"Processing approve specification funding job. JobId='{jobId}'. SpecificationId='{specificationId}'");
-
-            _logger.Information("Fetching published providers for specification funding approval");
-
-            IEnumerable<PublishedProvider> publishedProviders = await GetPublishedProvidersForApproval(specificationId);
-
-            CheckPublishedProviderForErrors(specificationId, publishedProviders);
-
-            Reference author = message.GetUserDetails();
-            string correlationId = message.GetUserProperty<string>("correlation-id");
-
-            await ApproveProviders(publishedProviders, specificationId, jobId, author, correlationId);
-
-            _logger.Information($"Completing approve specification funding job. JobId='{jobId}'");
-            await _jobManagement.UpdateJobStatus(jobId, 0, 0, true, null);
-            _logger.Information($"Approve specification funding job complete. JobId='{jobId}'");
         }
 
         private async Task<IEnumerable<PublishedProvider>> GetPublishedProvidersForApproval(string specificationId, string[] providerIds = null)

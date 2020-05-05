@@ -30,7 +30,7 @@ namespace CalculateFunding.Services.Publishing
             _logger = logger;
         }
 
-        public async Task PerformChecks<TSpecification>(TSpecification prereqObject, string jobId, IEnumerable<PublishedProvider> publishedProviders = null, IEnumerable<string> providerIds = null)
+        public virtual async Task PerformChecks<TSpecification>(TSpecification prereqObject, string jobId, IEnumerable<PublishedProvider> publishedProviders = null, IEnumerable<string> providerIds = null)
         {
             Guard.ArgumentNotNull(publishedProviders, nameof(publishedProviders));
             SpecificationSummary specification = prereqObject as SpecificationSummary;

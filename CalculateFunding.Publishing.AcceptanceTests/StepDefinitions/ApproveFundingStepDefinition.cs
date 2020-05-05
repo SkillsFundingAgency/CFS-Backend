@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using System.Threading.Tasks.Dataflow;
 using CalculateFunding.Publishing.AcceptanceTests.Contexts;
 using CalculateFunding.Publishing.AcceptanceTests.Extensions;
 using CalculateFunding.Services.Core.Constants;
@@ -49,7 +50,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
             _currentCorrelationStepContext.CorrelationId = Guid.NewGuid().ToString();
             message.UserProperties.Add("correlation-id", _currentCorrelationStepContext.CorrelationId);
 
-            await _approveService.ApproveAllResults(message);
+            await _approveService.ApproveResults(message);
         }
 
         [When(@"partial funding is approved")]
@@ -67,7 +68,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
             message.UserProperties.Add("jobId", _currentJobStepContext.JobId);
             message.UserProperties.Add(JobConstants.MessagePropertyNames.ApproveProvidersRequest, approveProvidersRequestJson);
 
-            await _approveService.ApproveBatchResults(message);
+            await _approveService.ApproveResults(message, batched: true);
         }
     }
 }

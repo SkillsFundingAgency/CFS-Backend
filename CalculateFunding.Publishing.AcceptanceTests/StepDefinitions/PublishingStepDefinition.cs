@@ -121,7 +121,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
             message.UserProperties.Add("specification-id", _currentSpecificationStepContext.SpecificationId);
             message.UserProperties.Add("jobId", _currentJobStepContext.JobId);
 
-            await _publishService.PublishAllProviderFundingResults(message);
+            await _publishService.PublishProviderFundingResults(message);
         }
 
         [When(@"batch funding is published")]
@@ -139,7 +139,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
             message.UserProperties.Add("jobId", _currentJobStepContext.JobId);
             message.UserProperties.Add(JobConstants.MessagePropertyNames.PublishProvidersRequest, publishProvidersRequestJson);
 
-            await _publishService.PublishBatchProviderFundingResults(message);
+            await _publishService.PublishProviderFundingResults(message, batched: true);
         }
     }
 }

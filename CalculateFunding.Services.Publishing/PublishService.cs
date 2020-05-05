@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Threading.Tasks.Dataflow;
 using CalculateFunding.Common.ApiClient.Calcs;
 using CalculateFunding.Common.ApiClient.Calcs.Models;
 using CalculateFunding.Common.ApiClient.Models;
@@ -112,7 +113,7 @@ namespace CalculateFunding.Services.Publishing
             _publishedFundingService = publishedFundingService;
         }
 
-        public async Task PublishBatchProviderFundingResults(Message message)
+        public async Task PublishProviderFundingResults(Message message, bool batched = false)
         {
             Guard.ArgumentNotNull(message, nameof(message));
 
@@ -137,55 +138,23 @@ namespace CalculateFunding.Services.Publishing
 
             string correlationId = message.GetUserProperty<string>("correlation-id");
 
-            string publishProvidersRequestJson = message.GetUserProperty<string>(JobConstants.MessagePropertyNames.PublishProvidersRequest);
-            PublishProvidersRequest publishProvidersRequest = JsonExtensions.AsPoco<PublishProvidersRequest>(publishProvidersRequestJson);
+            PublishProvidersRequest publishProvidersRequest = null;
+
+            if(batched)
+            {
+                string publishProvidersRequestJson = message.GetUserProperty<string>(JobConstants.MessagePropertyNames.PublishProvidersRequest);
+                publishProvidersRequest = JsonExtensions.AsPoco<PublishProvidersRequest>(publishProvidersRequestJson);
+            }
 
             foreach (Reference fundingStream in specification.FundingStreams)
             {
-                await PublishFundingStream(fundingStream, specification, jobId, author, correlationId, 
-                    PrerequisiteCheckerType.ReleaseBatchProviders, publishProvidersRequest?.Providers?.ToArray());
-            }
-
-            _logger.Information($"Running search reindexer for published funding");
-            await _publishedIndexSearchResiliencePolicy.ExecuteAsync(() => _publishedFundingSearchRepository.RunIndexer());
-
-            await GenerateCsvJobs(specificationId, correlationId, specification, author);
-
-            // Mark job as complete
-            _logger.Information($"Marking publish funding job complete");
-
-            await _jobManagement.UpdateJobStatus(jobId, 0, 0, true, null);
-            _logger.Information($"Publish funding job complete");
-        }
-
-        public async Task PublishAllProviderFundingResults(Message message)
-        {
-            Guard.ArgumentNotNull(message, nameof(message));
-
-            _logger.Information("Starting PublishAllProviderFundingResults job");
-
-            Reference author = message.GetUserDetails();
-
-            string specificationId = message.UserProperties["specification-id"] as string;
-            string jobId = message.UserProperties["jobId"]?.ToString();
-
-            await EnsureJobCanBeProcessed(jobId);
-
-            // Update job to set status to processing
-            await _jobManagement.UpdateJobStatus(jobId, 0, 0, null, null);
-
-            SpecificationSummary specification = await _specificationService.GetSpecificationSummaryById(specificationId);
-
-            if (specification == null)
-            {
-                throw new NonRetriableException($"Could not find specification with id '{specificationId}'");
-            }
-
-            string correlationId = message.GetUserProperty<string>("correlation-id");
-
-            foreach (Reference fundingStream in specification.FundingStreams)
-            {
-                await PublishFundingStream(fundingStream, specification, jobId, author, correlationId, PrerequisiteCheckerType.ReleaseAllProviders);
+                await PublishFundingStream(fundingStream, 
+                    specification, 
+                    jobId, 
+                    author, 
+                    correlationId,
+                    batched == true ? PrerequisiteCheckerType.ReleaseBatchProviders : PrerequisiteCheckerType.ReleaseAllProviders, 
+                    publishProvidersRequest?.Providers?.ToArray());
             }
 
             _logger.Information($"Running search reindexer for published funding");
@@ -237,7 +206,7 @@ namespace CalculateFunding.Services.Publishing
             IEnumerable<PublishedProvider> selectedPublishedProviders =
                 batchProviderIds.IsNullOrEmpty() ?
                 publishedProvidersForFundingStream.Values :
-                publishedProvidersForFundingStream.Values.Where(_ => batchProviderIds.Contains(_.Current.ProviderId));
+                batchProviderIds.Where(_ => publishedProvidersForFundingStream.ContainsKey(_)).Select(_ => publishedProvidersForFundingStream[_]);
 
             _logger.Information($"Verifying prerequisites for funding publish");
 

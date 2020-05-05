@@ -42,7 +42,7 @@ namespace CalculateFunding.Functions.Publishing.ServiceBus
             {
                 try
                 {
-                    await _publishService.PublishBatchProviderFundingResults(message);
+                    await _publishService.PublishProviderFundingResults(message, batched: true);
                 }
                 catch (NonRetriableException ex)
                 {

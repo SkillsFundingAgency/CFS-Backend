@@ -5,8 +5,6 @@ namespace CalculateFunding.Services.Publishing.Interfaces
 {
     public interface IApproveService
     {
-        Task ApproveAllResults(Message message);
-        Task ApproveBatchResults(Message message);
-
+        Task ApproveResults(Message message, bool batched = false);
     }
 }
