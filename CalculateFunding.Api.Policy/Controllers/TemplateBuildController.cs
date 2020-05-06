@@ -168,7 +168,7 @@ namespace CalculateFunding.Api.Policy.Controllers
                 .Select(s => (TemplateStatus)Enum.Parse(typeof(TemplateStatus), s))
                 .ToList() : new List<TemplateStatus>();
 
-            IEnumerable<TemplateVersionResponse> templateVersionResponses =
+            IEnumerable<TemplateResponse> templateVersionResponses =
                 await _templateBuilderService.GetTemplateVersions(templateId, templateStatuses);
 
             return Ok(templateVersionResponses);

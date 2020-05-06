@@ -18,7 +18,7 @@ namespace CalculateFunding.Services.Policy.Interfaces
         Task<UpdateTemplateContentResponse> UpdateTemplateContent(TemplateContentUpdateCommand command, Reference author);
 
         Task<UpdateTemplateMetadataResponse> UpdateTemplateMetadata(TemplateMetadataUpdateCommand command, Reference author);
-        Task<IEnumerable<TemplateVersionResponse>> GetTemplateVersions(string templateId, List<TemplateStatus> statuses);
+        Task<IEnumerable<TemplateResponse>> GetTemplateVersions(string templateId, List<TemplateStatus> statuses);
 
         Task<TemplateResponse> GetTemplateVersion(string templateId, string version);
     }

@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
-using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Policy.TemplateBuilder;
 using CalculateFunding.Services.Core.Services;
@@ -21,36 +19,36 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
         {
             Guard.IsNullOrWhiteSpace(templateId, nameof(templateId));
 
-            IEnumerable<TemplateVersion> templateMatches = await _cosmosRepository.Query<TemplateVersion>(x => 
+            IEnumerable<TemplateVersion> templateMatches = await _cosmosRepository.Query<TemplateVersion>(x =>
                 x.Content.TemplateId == templateId && x.Content.Version == versionNumber);
 
-            if (templateMatches != null && templateMatches.Any())
+            if (templateMatches == null || !templateMatches.Any())
             {
-                if (templateMatches.Count() == 1)
-                    return templateMatches.First();
-                
-                throw new ApplicationException($"Duplicate templates with TemplateId={templateId}");
+                return null;
             }
 
-            return null;
+            if (templateMatches.Count() == 1)
+            {
+                return templateMatches.First();
+            }
+
+            throw new ApplicationException($"Duplicate templates with TemplateId={templateId}");
+
         }
 
-        public async Task<TemplateVersion> GetTemplateVersions(string templateId, int versionNumber)
+        public async Task<IEnumerable<TemplateVersion>> GetTemplateVersions(string templateId, IEnumerable<TemplateStatus> statuses)
         {
             Guard.IsNullOrWhiteSpace(templateId, nameof(templateId));
 
-            IEnumerable<TemplateVersion> templateMatches = await _cosmosRepository.Query<TemplateVersion>(x => 
-                x.Content.TemplateId == templateId && x.Content.Version == versionNumber);
-
-            if (templateMatches != null && templateMatches.Any())
+            List<TemplateStatus> templateStatuses = statuses.ToList();
+            if (templateStatuses.Any())
             {
-                if (templateMatches.Count() == 1)
-                    return templateMatches.First();
-                
-                throw new ApplicationException($"Duplicate templates with TemplateId={templateId}");
+                return await _cosmosRepository.Query<TemplateVersion>(x =>
+                    x.Content.TemplateId == templateId && templateStatuses.Contains(x.Content.Status));
             }
 
-            return null;
+            return await _cosmosRepository.Query<TemplateVersion>(x =>
+                x.Content.TemplateId == templateId);
         }
     }
 }

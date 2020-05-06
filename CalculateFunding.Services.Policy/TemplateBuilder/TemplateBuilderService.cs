@@ -86,28 +86,13 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             return Map(templateVersion);
         }
 
-        public async Task<IEnumerable<TemplateVersionResponse>> GetTemplateVersions(string templateId, List<TemplateStatus> statuses)
+        public async Task<IEnumerable<TemplateResponse>> GetTemplateVersions(string templateId, List<TemplateStatus> statuses)
         {
             Guard.ArgumentNotNull(templateId, nameof(templateId));
 
-            IEnumerable<TemplateVersion> templateVersions = await _templateVersionRepository.GetVersions(templateId);
+            IEnumerable<TemplateVersion> templateVersions = await _templateVersionRepository.GetTemplateVersions(templateId, statuses);
 
-            if (statuses.Any())
-            {
-                templateVersions = templateVersions.Where(v => statuses.Contains(v.Status));
-            }
-
-            return templateVersions.Select(s => new TemplateVersionResponse
-            {
-                Date = s.Date,
-                AuthorId = s.Author?.Id,
-                AuthorName = s.Author?.Name,
-                Comment = s.Comment,
-                Status = s.Status,
-                Version = s.Version,
-                MinorVersion = s.MinorVersion,
-                MajorVersion = s.MajorVersion
-            }).ToList();
+            return templateVersions.Select(Map).ToList();
         }
 
         public async Task<CreateTemplateResponse> CreateTemplate(
