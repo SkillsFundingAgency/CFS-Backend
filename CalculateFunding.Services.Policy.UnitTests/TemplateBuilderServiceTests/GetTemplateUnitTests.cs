@@ -37,7 +37,8 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
                     Version = 0,
                     SchemaVersion = "1.1",
                     Status = TemplateStatus.Draft,
-                    Author = new Reference("111", "FirstTestUser")
+                    Author = new Reference("111", "FirstTestUser"),
+                    FundingPeriodId = "12345"
                 };
                 _template = new Template
                 {
@@ -93,6 +94,12 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
             public void Returns_correct_Version()
             {
                 _result.Version.Should().Be(_templateVersion.Version);
+            }
+
+            [TestMethod]
+            public void Returns_correct_FundingPeriodId()
+            {
+                _result.FundingPeriodId.Should().Be(_templateVersion.FundingPeriodId);
             }
 
             [TestMethod]
@@ -165,6 +172,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
                     TemplateJson = null,
                     Version = 0,
                     SchemaVersion = "1.1",
+                    FundingPeriodId = "12345",
                     Status = TemplateStatus.Draft,
                     Author = new Reference("111", "FirstTestUser")
                 };
@@ -176,6 +184,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
                     TemplateJson = "{ \"Lorem\": \"ipsum\" }",
                     Version = 1,
                     SchemaVersion = "1.1",
+                    FundingPeriodId = "12345",
                     Status = TemplateStatus.Approved,
                     Author = new Reference("222", "SecondTestUser")
                 };
@@ -238,6 +247,12 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
             public void Returns_correct_Version()
             {
                 _result.Version.Should().Be(_templateVersionPrevious.Version);
+            }
+
+            [TestMethod]
+            public void Returns_correct_FundingPeriodId()
+            {
+                _result.FundingPeriodId.Should().Be(_templateVersionPrevious.FundingPeriodId);
             }
 
             [TestMethod]

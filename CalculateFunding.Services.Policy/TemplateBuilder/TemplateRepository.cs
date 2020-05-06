@@ -4,7 +4,6 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
-using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Policy.TemplateBuilder;
 using CalculateFunding.Services.Core;
@@ -55,6 +54,19 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
         public async Task<HttpStatusCode> Update(Template template)
         {
             return await _cosmosRepository.UpdateAsync(template);
+        }
+
+        public async Task<bool> IsFundingStreamAndPeriodInUse(string fundingStreamId, string fundingPeriodId)
+        {
+            Guard.IsNullOrWhiteSpace(fundingStreamId, nameof(fundingStreamId));
+            Guard.IsNullOrWhiteSpace(fundingPeriodId, nameof(fundingPeriodId));
+
+            IEnumerable<Template> existing = await _cosmosRepository.Query<Template>(x =>
+                x.Content.Current != null &&
+                x.Content.Current.FundingStreamId == fundingStreamId &&
+                x.Content.Current.FundingPeriodId == fundingPeriodId);
+
+            return existing.Any();
         }
     }
 }

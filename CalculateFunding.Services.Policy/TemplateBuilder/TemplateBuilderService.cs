@@ -138,6 +138,20 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
                     };
                 }
 
+                if (await _templateRepository.IsFundingStreamAndPeriodInUse(command.FundingStreamId, command.FundingPeriodId))
+                {
+                    string validationErrorMessage = $"Template with FundingStreamId [{command.FundingStreamId}] and FundingPeriodId [{command.FundingPeriodId}] already in use";
+                    _logger.Error(validationErrorMessage);
+                    ValidationResult validationResult = new ValidationResult();
+                    validationResult.Errors.Add(new ValidationFailure(nameof(command.FundingStreamId), validationErrorMessage));
+                    validationResult.Errors.Add(new ValidationFailure(nameof(command.FundingPeriodId), validationErrorMessage));
+                    return new CreateTemplateResponse
+                    {
+                        ErrorMessage = validationErrorMessage,
+                        ValidationResult = validationResult
+                    };
+                }
+
                 Template template = new Template
                 {
                     TemplateId = Guid.NewGuid().ToString()
@@ -146,11 +160,12 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
                 {
                     TemplateId = template.TemplateId,
                     FundingStreamId = command.FundingStreamId,
+                    FundingPeriodId = command.FundingPeriodId,
                     Name = command.Name,
                     Description = command.Description,
                     Version = 1,
-                    MinorVersion = 1,
                     MajorVersion = 0,
+                    MinorVersion = 1,
                     PublishStatus = PublishStatus.Draft,
                     SchemaVersion = command.SchemaVersion,
                     Author = author,
@@ -262,6 +277,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
                 Name = template.Name,
                 Description = template.Description,
                 FundingStreamId = template.FundingStreamId,
+                FundingPeriodId = template.FundingPeriodId,
                 Version = template.Version,
                 MinorVersion = template.MinorVersion,
                 MajorVersion = template.MajorVersion,

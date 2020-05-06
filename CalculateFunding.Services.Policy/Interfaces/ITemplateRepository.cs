@@ -10,5 +10,6 @@ namespace CalculateFunding.Services.Policy.Interfaces
         Task<bool> IsTemplateNameInUse(string templateName);
         Task<Template> GetTemplate(string templateId);
         Task<HttpStatusCode> Update(Template template);
+        Task<bool> IsFundingStreamAndPeriodInUse(string fundingStreamId, string fundingPeriodId);
     }
 }

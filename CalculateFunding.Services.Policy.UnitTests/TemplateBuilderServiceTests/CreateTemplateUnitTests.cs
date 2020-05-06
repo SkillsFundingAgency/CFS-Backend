@@ -1,10 +1,8 @@
-﻿using System.Linq;
-using System.Net;
+﻿using System.Net;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.TemplateMetadata;
 using CalculateFunding.Models.Policy.TemplateBuilder;
 using CalculateFunding.Models.Versioning;
-using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Policy.Interfaces;
 using CalculateFunding.Services.Policy.Models;
 using CalculateFunding.Services.Policy.TemplateBuilder;
@@ -37,6 +35,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
                     Name = "Test Template",
                     Description = "Lorem ipsum",
                     FundingStreamId = "XXX",
+                    FundingPeriodId = "12345",
                     SchemaVersion = "9.9"
                 };
                 _author = new Reference("111", "TestUser");
@@ -87,6 +86,12 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
             }
 
             [TestMethod]
+            public void Checked_for_duplicate_funding_stream_funding_period()
+            {
+                _templateRepository.Received(1).IsFundingStreamAndPeriodInUse(Arg.Is(_command.FundingStreamId), Arg.Is(_command.FundingPeriodId));
+            }
+
+            [TestMethod]
             public void Saved_version_with_correct_name()
             {
                 _versionRepository.Received(1).SaveVersion(Arg.Is<TemplateVersion>(x => x.Name == _command.Name));
@@ -102,6 +107,12 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
             public void Saved_version_with_correct_FundingStreamId()
             {
                 _versionRepository.Received(1).SaveVersion(Arg.Is<TemplateVersion>(x => x.FundingStreamId == _command.FundingStreamId));
+            }
+
+            [TestMethod]
+            public void Saved_version_with_correct_FundingPeriodId()
+            {
+                _versionRepository.Received(1).SaveVersion(Arg.Is<TemplateVersion>(x => x.FundingPeriodId == _command.FundingPeriodId));
             }
 
             [TestMethod]
@@ -144,6 +155,12 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
             public void Saved_current_version_with_correct_FundingStreamId()
             {
                 _templateRepository.Received(1).CreateDraft(Arg.Is<Template>(x => x.Current.FundingStreamId == _command.FundingStreamId));
+            }
+
+            [TestMethod]
+            public void Saved_current_version_with_correct_FundingPeriodId()
+            {
+                _templateRepository.Received(1).CreateDraft(Arg.Is<Template>(x => x.Current.FundingPeriodId == _command.FundingPeriodId));
             }
 
             [TestMethod]
@@ -207,6 +224,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
                     Name = "Test Template",
                     Description = "Lorem ipsum",
                     FundingStreamId = "XXX",
+                    FundingPeriodId = "12345",
                     SchemaVersion = "9.9"
                 };
                 _author = new Reference("111", "TestUser");

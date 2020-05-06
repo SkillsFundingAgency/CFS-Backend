@@ -19,6 +19,11 @@ namespace CalculateFunding.Services.Policy.Models
         /// </summary>
         public string FundingStreamId { get; set; }
 
+        /// <summary>
+        /// Funding Period Id (foreign key)
+        /// </summary>
+        public string FundingPeriodId { get; set; }
+
         public string SchemaVersion { get; set; }
 
         public string Name { get; set; }

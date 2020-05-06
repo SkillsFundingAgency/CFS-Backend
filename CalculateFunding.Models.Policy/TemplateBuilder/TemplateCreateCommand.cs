@@ -4,6 +4,8 @@
     {
         public string FundingStreamId { get; set; }
 
+        public string FundingPeriodId { get; set; }
+
         public string SchemaVersion { get; set; }
         
         public string Name { get; set; }
