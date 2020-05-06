@@ -218,14 +218,21 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             }
 
             if (template.Current.TemplateJson == command.TemplateJson)
+            {
                 return UpdateTemplateContentResponse.Success();
+            }
 
             UpdateTemplateContentResponse validationError = await ValidateTemplateContent(command);
             if (validationError != null)
                 return validationError;
 
-            await UpdateTemplateContent(command, author, template);
+            var updated = await UpdateTemplateContent(command, author, template);
 
+            if (!updated.IsSuccess())
+            {
+                return UpdateTemplateContentResponse.Fail($"Failed to update template: {updated}");
+            }
+            
             return UpdateTemplateContentResponse.Success();
         }
 
@@ -244,7 +251,9 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             }
 
             if (template.Current.Name == command.Name && template.Current.Description == command.Description)
+            {
                 return UpdateTemplateMetadataResponse.Success();
+            }
 
             // validate template name is unique if it is changing
             if (template.Current.Name != command.Name)
@@ -263,8 +272,13 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
                 }
             }
 
-            await UpdateTemplateMetadata(command, author, template);
+            var updated = await UpdateTemplateMetadata(command, author, template);
 
+            if (!updated.IsSuccess())
+            {
+                return UpdateTemplateMetadataResponse.Fail($"Failed to update template: {updated}");
+            }
+            
             return UpdateTemplateMetadataResponse.Success();
         }
 
@@ -291,7 +305,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             };
         }
 
-        private async Task UpdateTemplateContent(TemplateContentUpdateCommand command, Reference author, Template template)
+        private async Task<HttpStatusCode> UpdateTemplateContent(TemplateContentUpdateCommand command, Reference author, Template template)
         {
             // create new version and save it
             TemplateVersion newVersion = template.Current.Clone() as TemplateVersion;
@@ -304,12 +318,13 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             await _templateVersionRepository.SaveVersion(newVersion);
             
             // update template
+            template.Name = template.Current.Name;
             template.AddPredecessor(template.Current.Id);
             template.Current = newVersion;
-            await _templateRepository.Update(template);
+            return await _templateRepository.Update(template);
         }
 
-        private async Task UpdateTemplateMetadata(TemplateMetadataUpdateCommand command, Reference author, Template template)
+        private async Task<HttpStatusCode> UpdateTemplateMetadata(TemplateMetadataUpdateCommand command, Reference author, Template template)
         {
             // create new version and save it
             TemplateVersion newVersion = template.Current.Clone() as TemplateVersion;
@@ -320,12 +335,15 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             newVersion.MinorVersion++;
             newVersion.Predecessors ??= new List<string>();
             newVersion.Predecessors.Add(template.Current.Id);
-            await _templateVersionRepository.SaveVersion(newVersion);
+            var result = await _templateVersionRepository.SaveVersion(newVersion);
+            if (!result.IsSuccess())
+                return result;
             
             // update template
+            template.Name = template.Current.Name;
             template.AddPredecessor(template.Current.Id);
             template.Current = newVersion;
-            await _templateRepository.Update(template);
+            return await _templateRepository.Update(template);
         }
 
         private async Task<UpdateTemplateContentResponse> ValidateTemplateContent(TemplateContentUpdateCommand command)

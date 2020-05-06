@@ -53,6 +53,8 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
 
         public async Task<HttpStatusCode> Update(Template template)
         {
+            Guard.ArgumentNotNull(template, nameof(template));
+            Guard.ArgumentNotNull(template.Id, nameof(template.Id));
             return await _cosmosRepository.UpdateAsync(template);
         }
 
