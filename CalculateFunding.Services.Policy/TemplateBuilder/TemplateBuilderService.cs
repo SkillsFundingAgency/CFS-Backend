@@ -104,7 +104,9 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
                 AuthorName = s.Author?.Name,
                 Comment = s.Comment,
                 Status = s.Status,
-                Version = s.Version
+                Version = s.Version,
+                MinorVersion = s.MinorVersion,
+                MajorVersion = s.MajorVersion
             }).ToList();
         }
 
@@ -146,7 +148,9 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
                     FundingStreamId = command.FundingStreamId,
                     Name = command.Name,
                     Description = command.Description,
-                    Version = 0,
+                    Version = 1,
+                    MinorVersion = 1,
+                    MajorVersion = 0,
                     PublishStatus = PublishStatus.Draft,
                     SchemaVersion = command.SchemaVersion,
                     Author = author,
@@ -259,6 +263,8 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
                 Description = template.Description,
                 FundingStreamId = template.FundingStreamId,
                 Version = template.Version,
+                MinorVersion = template.MinorVersion,
+                MajorVersion = template.MajorVersion,
                 SchemaVersion = template.SchemaVersion,
                 Status = template.Status,
                 AuthorId = template.Author.Id,
@@ -276,6 +282,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             newVersion.Author = author;
             newVersion.TemplateJson = command.TemplateJson;
             newVersion.Version++;
+            newVersion.MinorVersion++;
             newVersion.Predecessors ??= new List<string>();
             newVersion.Predecessors.Add(template.Current.Id);
             await _templateVersionRepository.SaveVersion(newVersion);
@@ -294,6 +301,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             newVersion.Name = command.Name;
             newVersion.Description = command.Description;
             newVersion.Version++;
+            newVersion.MinorVersion++;
             newVersion.Predecessors ??= new List<string>();
             newVersion.Predecessors.Add(template.Current.Id);
             await _templateVersionRepository.SaveVersion(newVersion);

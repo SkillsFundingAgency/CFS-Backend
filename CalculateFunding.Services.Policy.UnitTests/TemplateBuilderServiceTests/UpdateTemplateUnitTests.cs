@@ -66,7 +66,9 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
                     Name = "Old Test Name",
                     Description = "Old Description",
                     TemplateId = _command.TemplateId,
-                    Version = 0,
+                    Version = 1,
+                    MinorVersion = 1,
+                    MajorVersion = 0,
                     SchemaVersion = "1.1",
                     Status = TemplateStatus.Draft,
                     Author = new Reference("111", "FirstTestUser")
@@ -132,6 +134,18 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
             public void Saved_current_version_with_correct_version_number()
             {
                 _templateRepository.Received(1).Update(Arg.Is<Template>(x => x.Current.Version == _templateVersionFirst.Version + 1));
+            }
+
+            [TestMethod]
+            public void Saved_current_version_with_correct_minor_version_number()
+            {
+                _templateRepository.Received(1).Update(Arg.Is<Template>(x => x.Current.MinorVersion == _templateVersionFirst.MinorVersion + 1));
+            }
+
+            [TestMethod]
+            public void Saved_current_version_with_correct_major_version_number()
+            {
+                _templateRepository.Received(1).Update(Arg.Is<Template>(x => x.Current.MajorVersion == _templateVersionFirst.MajorVersion));
             }
 
             [TestMethod]
@@ -220,7 +234,9 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
                     Description = "Description",
                     TemplateId = _command.TemplateId,
                     TemplateJson = null,
-                    Version = 0,
+                    Version = 1,
+                    MinorVersion = 1,
+                    MajorVersion = 0,
                     SchemaVersion = "1.1",
                     Status = TemplateStatus.Draft,
                     Author = new Reference("111", "FirstTestUser")
@@ -293,6 +309,18 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
             public void Saved_current_version_with_correct_version_number()
             {
                 _templateRepository.Received(1).Update(Arg.Is<Template>(x => x.Current.Version == _templateVersionFirst.Version + 1));
+            }
+
+            [TestMethod]
+            public void Saved_current_version_with_correct_minor_version_number()
+            {
+                _templateRepository.Received(1).Update(Arg.Is<Template>(x => x.Current.MinorVersion == _templateVersionFirst.MinorVersion + 1));
+            }
+
+            [TestMethod]
+            public void Saved_current_version_with_correct_major_version_number()
+            {
+                _templateRepository.Received(1).Update(Arg.Is<Template>(x => x.Current.MajorVersion == _templateVersionFirst.MajorVersion));
             }
 
             [TestMethod]

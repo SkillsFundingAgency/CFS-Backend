@@ -103,7 +103,7 @@ namespace CalculateFunding.Api.Policy.Controllers
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(string))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> CreateTemplate(TemplateContentUpdateCommand command)
+        public async Task<IActionResult> UpdateTemplateContent(TemplateContentUpdateCommand command)
         {
             ValidationResult validationResult = _validatorFactory.Validate(command);
 
@@ -133,7 +133,7 @@ namespace CalculateFunding.Api.Policy.Controllers
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(string))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> CreateTemplate(TemplateMetadataUpdateCommand command)
+        public async Task<IActionResult> UpdateTemplateMetadata(TemplateMetadataUpdateCommand command)
         {
             ValidationResult validationResult = _validatorFactory.Validate(command);
 

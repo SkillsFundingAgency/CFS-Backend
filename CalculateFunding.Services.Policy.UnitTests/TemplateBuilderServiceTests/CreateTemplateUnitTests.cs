@@ -161,7 +161,19 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
             [TestMethod]
             public void Saved_current_version_with_correct_version_number()
             {
-                _templateRepository.Received(1).CreateDraft(Arg.Is<Template>(x => x.Current.Version == 0));
+                _templateRepository.Received(1).CreateDraft(Arg.Is<Template>(x => x.Current.Version == 1));
+            }
+
+            [TestMethod]
+            public void Saved_current_version_with_correct_minor_version_number()
+            {
+                _templateRepository.Received(1).CreateDraft(Arg.Is<Template>(x => x.Current.MinorVersion == 1));
+            }
+
+            [TestMethod]
+            public void Saved_current_version_with_correct_major_version_number()
+            {
+                _templateRepository.Received(1).CreateDraft(Arg.Is<Template>(x => x.Current.MajorVersion == 0));
             }
 
             [TestMethod]

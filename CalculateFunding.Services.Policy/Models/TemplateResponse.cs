@@ -36,6 +36,10 @@ namespace CalculateFunding.Services.Policy.Models
         
         public int Version { get; set; }
         
+        public int MinorVersion { get; set; }
+        
+        public int MajorVersion { get; set; }
+        
         public string AuthorId { get; set; }
         
         public string AuthorName { get; set; }
