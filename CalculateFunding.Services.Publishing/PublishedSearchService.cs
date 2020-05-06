@@ -20,7 +20,7 @@ using Serilog;
 
 namespace CalculateFunding.Services.Publishing
 {
-    public class PublishedSearchService : SearchService<PublishedProviderIndex>, IPublishedSearchService, IHealthChecker
+    public class PublishedSearchService : SearchService<PublishedProviderIndex>, IPublishedSearchService
     {
         private static readonly FacetFilterType[] Facets = {
             new FacetFilterType("providerType"),

@@ -12,7 +12,7 @@ using CalculateFunding.Services.Core.Interfaces;
 
 namespace CalculateFunding.Services.Core.Services
 {
-    public class VersionRepository<T> : IHealthChecker, IVersionRepository<T> where T : VersionedItem
+    public class VersionRepository<T> : IVersionRepository<T> where T : VersionedItem
     {
         protected readonly ICosmosRepository _cosmosRepository;
 

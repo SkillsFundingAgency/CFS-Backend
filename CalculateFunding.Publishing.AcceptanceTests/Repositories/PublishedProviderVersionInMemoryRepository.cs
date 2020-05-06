@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Services;
@@ -90,6 +91,11 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         }
 
         public Task DeleteVersions(IEnumerable<KeyValuePair<string, PublishedProviderVersion>> newVersions, int maxDegreesOfParallelism = 30)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ServiceHealth> IsHealthOk()
         {
             throw new NotImplementedException();
         }

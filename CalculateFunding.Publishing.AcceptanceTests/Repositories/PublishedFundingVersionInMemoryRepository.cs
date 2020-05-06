@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Services;
@@ -39,6 +40,11 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         }
 
         public Task<IEnumerable<PublishedFundingVersion>> GetVersions(string entityId, string partitionKeyId = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ServiceHealth> IsHealthOk()
         {
             throw new NotImplementedException();
         }

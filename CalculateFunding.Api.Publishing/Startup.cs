@@ -143,7 +143,7 @@ namespace CalculateFunding.Api.Publishing
             builder.AddSingleton<IPublishedProviderVersionService, PublishedProviderVersionService>();
             builder.AddSingleton<ISpecificationFundingStatusService, SpecificationFundingStatusService>();
             builder.AddSingleton<IPublishedSearchService, PublishedSearchService>()
-                    .AddSingleton<IHealthChecker, PublishedSearchService>();
+                    .AddSingleton<IHealthChecker>(ctx => { return ctx.GetService<IPublishedSearchService>(); });
             builder.AddSingleton<IPublishedProviderStatusService, PublishedProviderStatusService>();
             builder.AddScoped<IProfileTotalsService, ProfileTotalsService>();
             builder.AddSingleton<IFundingConfigurationService, FundingConfigurationService>();
@@ -169,7 +169,7 @@ namespace CalculateFunding.Api.Publishing
                 CosmosRepository cosmos = new CosmosRepository(settings);
 
                 return new VersionRepository<PublishedProviderVersion>(cosmos);
-            });
+            }).AddSingleton<IHealthChecker>(ctx => { return ctx.GetService<IVersionRepository<PublishedProviderVersion>>(); });
             builder
                 .AddSingleton<IPublishedProviderStatusUpdateSettings>(_ =>
                     {

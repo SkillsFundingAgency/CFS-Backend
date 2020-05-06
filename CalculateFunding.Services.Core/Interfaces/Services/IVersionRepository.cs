@@ -1,11 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Models.Versioning;
 
 namespace CalculateFunding.Services.Core.Interfaces
 {
-    public interface IVersionRepository<T> where T : VersionedItem
+    public interface IVersionRepository<T> : IHealthChecker where T : VersionedItem
     {
         public Task<T> CreateVersion(T newVersion, T currentVersion = null, string partitionKey = null, bool incrementFromCurrentVersion = false);
 
