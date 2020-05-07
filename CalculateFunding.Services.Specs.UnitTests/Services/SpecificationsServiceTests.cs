@@ -7,6 +7,8 @@ using CalculateFunding.Common.ApiClient.Providers;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
+using CalculateFunding.Common.ServiceBus.Interfaces;
+using CalculateFunding.Common.ServiceBus.Options;
 using CalculateFunding.Common.TemplateMetadata;
 
 using CalculateFunding.Models.Messages;
@@ -14,7 +16,6 @@ using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.FeatureToggles;
 using CalculateFunding.Services.Core.Interfaces;
-using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Specs.Interfaces;
 using CalculateFunding.Services.Specs.MappingProfiles;

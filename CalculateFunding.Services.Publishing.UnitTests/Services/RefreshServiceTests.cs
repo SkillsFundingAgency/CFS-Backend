@@ -39,6 +39,7 @@ using FundingLine = CalculateFunding.Models.Publishing.FundingLine;
 using TemplateCalculation = CalculateFunding.Common.TemplateMetadata.Models.Calculation;
 using TemplateFundingLine = CalculateFunding.Common.TemplateMetadata.Models.FundingLine;
 using CalculateFunding.Tests.Common.Helpers;
+using CalculateFunding.Common.ServiceBus.Interfaces;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.Services
 {
@@ -77,6 +78,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         private TemplateCalculation[] _calculationTemplateIds;
         private IEnumerable<PublishedProvider> _publishedProviders;
         private IJobsApiClient _jobsApiClient;
+        private IMessengerService _messengerService;
         private ISpecificationsApiClient _specificationsApiClient;
         private IVariationStrategyServiceLocator _variationStrategyServiceLocator;
         private IDetectProviderVariations _detectProviderVariation;
@@ -131,7 +133,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             _fundingLineValueOverride = Substitute.For<IFundingLineValueOverride>();
             _publishedProviderIndexerService = Substitute.For<IPublishedProviderIndexerService>();
             _jobsApiClient = Substitute.For<IJobsApiClient>();
-            _jobManagement = new JobManagement(_jobsApiClient, _logger, new JobManagementResiliencePolicies { JobsApiClient = Policy.NoOpAsync() });
+            _messengerService = Substitute.For<IMessengerService>();
+            _jobManagement = new JobManagement(_jobsApiClient, _logger, new JobManagementResiliencePolicies { JobsApiClient = Policy.NoOpAsync() }, _messengerService);
             _prerequisiteCheckerLocator = Substitute.For<IPrerequisiteCheckerLocator>();
             _prerequisiteCheckerLocator.GetPreReqChecker(PrerequisiteCheckerType.Refresh)
                 .Returns(new RefreshPrerequisiteChecker(_specificationFundingStatusService, _specificationService, _jobsRunning, _calculationApprovalCheckerService, _jobManagement, _logger));

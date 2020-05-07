@@ -6,17 +6,18 @@ using CalculateFunding.Common.ApiClient.Providers;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.JobManagement;
+using CalculateFunding.Common.ServiceBus.Interfaces;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.FeatureToggles;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.Core.Interfaces.Logging;
-using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.DataImporter;
 using CalculateFunding.Services.Datasets.Interfaces;
 using CalculateFunding.Services.Datasets.MappingProfiles;
 using NSubstitute;
+using Polly.NoOp;
 using Serilog;
 
 namespace CalculateFunding.Services.Datasets.Services
@@ -85,9 +86,15 @@ namespace CalculateFunding.Services.Datasets.Services
             return providerSourceDatasetVersionKeyProvider;
         }
 
-        protected static IJobManagement CreateJobManagement()
+        protected static IJobManagement CreateJobManagement(
+            IJobsApiClient jobsApiClient = null,
+            ILogger logger = null, 
+            IMessengerService messengerService = null)
         {
-            return Substitute.For<IJobManagement>();
+            return new JobManagement(jobsApiClient ?? CreateJobsApiClient(),
+                logger ?? CreateLogger(),
+                new JobManagementResiliencePolicies { JobsApiClient = NoOpPolicy.NoOpAsync() },
+                messengerService ?? CreateMessengerService());
         }
 
         protected static IFeatureToggle CreateFeatureToggle()

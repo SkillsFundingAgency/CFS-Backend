@@ -12,6 +12,8 @@ using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.JobManagement;
+using CalculateFunding.Common.ServiceBus;
+using CalculateFunding.Common.ServiceBus.Interfaces;
 using CalculateFunding.Common.Storage;
 using CalculateFunding.Generators.OrganisationGroup;
 using CalculateFunding.Generators.OrganisationGroup.Interfaces;
@@ -124,6 +126,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
             RegisterTypeAs<InMemoryPublishedFundingRepository, IPublishedFundingRepository>();
             RegisterTypeAs<PoliciesInMemoryRepository, IPoliciesApiClient>();
             RegisterTypeAs<InMemoryCacheProvider, ICacheProvider>();
+            RegisterTypeAs<InMemoryMessengerService, IMessengerService>();
 
             ProvidersInMemoryClient providersInMemoryClient = new ProvidersInMemoryClient(mapper);
             

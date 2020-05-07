@@ -231,7 +231,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
                 .Verify(_ => _.Append(expectedInterimFilePath, 
                         It.IsAny<string>(), 
                         default),
-                    Times.Exactly(3));
+                    Times.Exactly(2));
             
             _blobClient
                 .Verify(_ => _.UploadFileAsync(_cloudBlob.Object, incrementalFileStream),
@@ -318,7 +318,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
                 .Verify(_ => _.Append(expectedInterimFilePath, 
                         It.IsAny<string>(), 
                         default),
-                    Times.Exactly(3));
+                    Times.Exactly(2));
             
             _blobClient
                 .Verify(_ => _.UploadFileAsync(_cloudBlob.Object, incrementalFileStream),

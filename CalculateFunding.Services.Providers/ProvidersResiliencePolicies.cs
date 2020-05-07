@@ -1,9 +1,11 @@
-﻿using CalculateFunding.Services.Providers.Interfaces;
+﻿using CalculateFunding.Common.JobManagement;
+using CalculateFunding.Services.DeadletterProcessor;
+using CalculateFunding.Services.Providers.Interfaces;
 using Polly;
 
 namespace CalculateFunding.Services.Providers
 {
-    public class ProvidersResiliencePolicies : IProvidersResiliencePolicies
+    public class ProvidersResiliencePolicies : IProvidersResiliencePolicies, IJobManagementResiliencePolicies, IJobHelperResiliencePolicies
     {
         public AsyncPolicy ProviderVersionsSearchRepository { get; set; }
 

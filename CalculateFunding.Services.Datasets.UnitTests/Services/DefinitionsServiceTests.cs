@@ -11,7 +11,6 @@ using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
-using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.DataImporter;
 using CalculateFunding.Services.Datasets.Interfaces;
 using FluentAssertions;
@@ -20,6 +19,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.Azure.Storage.Blob;
 using NSubstitute;
 using Serilog;
+using CalculateFunding.Common.ServiceBus.Interfaces;
 
 namespace CalculateFunding.Services.Datasets.Services
 {

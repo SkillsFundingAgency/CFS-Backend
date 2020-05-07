@@ -1,5 +1,5 @@
-﻿using CalculateFunding.Models.Jobs;
-using CalculateFunding.Services.Core.Interfaces.ServiceBus;
+﻿using CalculateFunding.Common.ServiceBus.Interfaces;
+using CalculateFunding.Models.Jobs;
 using CalculateFunding.Services.Jobs;
 using CalculateFunding.Services.Jobs.Interfaces;
 using FluentValidation;

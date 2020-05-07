@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
-using CalculateFunding.Services.Core.Interfaces.ServiceBus;
+using CalculateFunding.Common.ServiceBus.Interfaces;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.Azure.ServiceBus;

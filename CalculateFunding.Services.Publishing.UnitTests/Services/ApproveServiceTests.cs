@@ -8,6 +8,7 @@ using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
+using CalculateFunding.Common.ServiceBus.Interfaces;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Constants;
@@ -39,6 +40,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         private ITransactionResiliencePolicies _transactionResiliencePolicies;
         private IJobsRunning _jobsRunning;
         private IJobsApiClient _jobsApiClient;
+        private IMessengerService _messengerService;
         private ILogger _logger;
         private Message _message;
         private string _jobId;
@@ -54,7 +56,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         {
             _logger = Substitute.For<ILogger>();
             _jobsApiClient = Substitute.For<IJobsApiClient>();
-            _jobManagement = new JobManagement(_jobsApiClient, _logger, new JobManagementResiliencePolicies { JobsApiClient = Policy.NoOpAsync() });
+            _messengerService = Substitute.For<IMessengerService>();
+            _jobManagement = new JobManagement(_jobsApiClient, _logger, new JobManagementResiliencePolicies { JobsApiClient = Policy.NoOpAsync() }, _messengerService);
             _jobsRunning = Substitute.For<IJobsRunning>();
             _prerequisiteCheckerLocator = Substitute.For<IPrerequisiteCheckerLocator>();
             _prerequisiteCheckerLocator.GetPreReqChecker(PrerequisiteCheckerType.ApproveAllProviders)

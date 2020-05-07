@@ -1,6 +1,7 @@
 ﻿using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.ServiceBus;
+using CalculateFunding.Common.ServiceBus.Interfaces;
 using CalculateFunding.Services.Core.Constants;
-using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.WindowsAzure.Storage.Queue;

@@ -1,8 +1,6 @@
 ﻿using CalculateFunding.Common.Models;
 using CalculateFunding.Services.Core.Constants;
-using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Core.Options;
-using CalculateFunding.Services.Core.ServiceBus;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Extensions.Configuration;
 using System;
@@ -15,6 +13,9 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Diagnostics;
 using CalculateFunding.Service.Core.Extensions;
 using NSubstitute;
+using CalculateFunding.Common.ServiceBus.Interfaces;
+using CalculateFunding.Common.ServiceBus.Options;
+using CalculateFunding.Common.ServiceBus;
 
 namespace CalculateFunding.Tests.Common
 {
@@ -268,7 +269,7 @@ namespace CalculateFunding.Tests.Common
         {
             if (IsDevelopment)
             {
-                Services.Core.ServiceBus.QueueClient queueClient = new Services.Core.ServiceBus.QueueClient("UseDevelopmentStorage=true");
+                CalculateFunding.Common.ServiceBus.QueueClient queueClient = new CalculateFunding.Common.ServiceBus.QueueClient("UseDevelopmentStorage=true");
                 return new QueueMessengerService(queueClient, serviceName);
             }
             else

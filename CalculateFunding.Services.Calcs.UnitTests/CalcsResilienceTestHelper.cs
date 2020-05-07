@@ -16,6 +16,7 @@ namespace CalculateFunding.Services.Calcs
                 SpecificationsRepositoryPolicy = Policy.NoOpAsync(),
                 MessagePolicy = Policy.NoOpAsync(),
                 JobsApiClient = Policy.NoOpAsync(),
+                ProvidersApiClient = Policy.NoOpAsync(),
                 SourceFilesRepository = Policy.NoOpAsync(),
                 DatasetsRepository = Policy.NoOpAsync(),
                 BuildProjectRepositoryPolicy = Policy.NoOpAsync(),

@@ -1,9 +1,9 @@
 using CalculateFunding.Common.Models;
+using CalculateFunding.Common.ServiceBus.Interfaces;
 using CalculateFunding.Functions.Calcs.ServiceBus;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Functions;
-using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Tests.Common;
 using FluentAssertions;
 using Microsoft.Azure.ServiceBus;

@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ServiceBus.Interfaces;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Jobs;
 using CalculateFunding.Services.Core.Constants;
-using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Jobs.Interfaces;
 using Polly;
 using Serilog;

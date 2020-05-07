@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.Models;
+using CalculateFunding.Common.ServiceBus.Interfaces;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Calcs;
 
@@ -12,7 +13,6 @@ using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.FeatureToggles;
-using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Results.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;

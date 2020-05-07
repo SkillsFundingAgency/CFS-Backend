@@ -34,7 +34,8 @@ using Serilog;
 using GraphCalculation = CalculateFunding.Common.ApiClient.Graph.Models.Calculation;
 using CalculationEntity = CalculateFunding.Models.Graph.Entity<CalculateFunding.Common.ApiClient.Graph.Models.Calculation, CalculateFunding.Common.ApiClient.Graph.Models.Relationship>;
 using GraphRelationship = CalculateFunding.Common.ApiClient.Graph.Models.Relationship;
-using CalculateFunding.Services.Core.Interfaces.ServiceBus;
+using CalculateFunding.Common.ServiceBus.Interfaces;
+using Polly.NoOp;
 
 namespace CalculateFunding.Services.Calcs.Services
 {
@@ -691,8 +692,6 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ApiResponse<JobViewModel> jobViewModelResponse = new ApiResponse<JobViewModel>(HttpStatusCode.OK, parentJob);
 
-            IJobManagement jobManagement = CreateJobManagement();
-
             IJobsApiClient jobsApiClient = CreateJobsApiClient();
             jobsApiClient
                 .GetJobById(Arg.Is(parentJobId))
@@ -703,8 +702,14 @@ namespace CalculateFunding.Services.Calcs.Services
             jobsApiClient
                 .CreateJobs(Arg.Any<IEnumerable<JobCreateModel>>())
                 .Returns(new List<Job> { new Job { SpecificationId = specificationId } });
-            jobManagement.WaitForJobsToComplete(Arg.Is<IEnumerable<string>>(_ => _.Single() == JobConstants.DefinitionNames.PopulateScopedProvidersJob), specificationId)
-                .Returns(true);
+            jobsApiClient
+                .GetLatestJobForSpecification(Arg.Is(specificationId), Arg.Is<IEnumerable<string>>(_ => _.First() == JobConstants.DefinitionNames.PopulateScopedProvidersJob))
+                .Returns(new ApiResponse<JobSummary>(HttpStatusCode.OK, new JobSummary { CompletionStatus = CompletionStatus.Succeeded, RunningStatus = RunningStatus.Completed }));
+
+            IMessengerService messengerService = CreateMessengerService();
+
+            IJobManagement jobManagement = new JobManagement(jobsApiClient, logger, new JobManagementResiliencePolicies { JobsApiClient = NoOpPolicy.NoOpAsync() }, messengerService);
+
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(jobsApiClient: jobsApiClient,
                 logger: logger, providersApiClient: providersApiClient, cacheProvider: cacheProvider, jobManagement: jobManagement);
@@ -776,8 +781,6 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ApiResponse<JobViewModel> jobViewModelResponse = new ApiResponse<JobViewModel>(HttpStatusCode.OK, parentJob);
 
-            IJobManagement jobManagement = CreateJobManagement();
-
             IJobsApiClient jobsApiClient = CreateJobsApiClient();
             jobsApiClient
                 .GetJobById(Arg.Is(parentJobId))
@@ -788,8 +791,13 @@ namespace CalculateFunding.Services.Calcs.Services
             jobsApiClient
                 .CreateJobs(Arg.Any<IEnumerable<JobCreateModel>>())
                 .Returns(new List<Job> { new Job { SpecificationId = specificationId } });
-            jobManagement.WaitForJobsToComplete(Arg.Is<IEnumerable<string>>(_ => _.Single() == JobConstants.DefinitionNames.PopulateScopedProvidersJob), specificationId)
-                .Returns(true);
+            jobsApiClient
+                .GetLatestJobForSpecification(Arg.Is(specificationId), Arg.Is<IEnumerable<string>>(_ => _.First() == JobConstants.DefinitionNames.PopulateScopedProvidersJob))
+                .Returns(new ApiResponse<JobSummary>(HttpStatusCode.OK, new JobSummary { CompletionStatus = CompletionStatus.Succeeded, RunningStatus = RunningStatus.Completed }));
+
+            IMessengerService messengerService = CreateMessengerService();
+
+            IJobManagement jobManagement = new JobManagement(jobsApiClient, logger, new JobManagementResiliencePolicies { JobsApiClient = NoOpPolicy.NoOpAsync() }, messengerService);
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(jobsApiClient: jobsApiClient,
                 logger: logger, providersApiClient: providersApiClient, cacheProvider: cacheProvider, jobManagement: jobManagement);
@@ -800,7 +808,7 @@ namespace CalculateFunding.Services.Calcs.Services
             //Assert
             invocation
                 .Should()
-                .Throw<RetriableException>()
+                .Throw<NonRetriableException>()
                 .WithMessage($"Unable to re-generate scoped providers while building projects '{specificationId}' with status code: {HttpStatusCode.BadRequest}");
         }
 
@@ -873,7 +881,7 @@ namespace CalculateFunding.Services.Calcs.Services
             jobsApiClient
                 .CreateJobs(Arg.Any<IEnumerable<JobCreateModel>>())
                 .Returns(new List<Job> { new Job { SpecificationId = specificationId } });
-            jobManagement.WaitForJobsToComplete(Arg.Is<IEnumerable<string>>(_ => _.Single() == JobConstants.DefinitionNames.PopulateScopedProvidersJob), specificationId)
+            jobManagement.QueueJobAndWait(Arg.Any<Func<Task<bool>>>(), Arg.Is<string>(JobConstants.DefinitionNames.PopulateScopedProvidersJob), specificationId, "correlationId", "topic")
                 .Returns(false);
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(jobsApiClient: jobsApiClient,
@@ -2163,8 +2171,6 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ILogger logger = CreateLogger();
 
-            IJobManagement jobManagement = CreateJobManagement();
-
             JobViewModel parentJob = new JobViewModel
             {
                 Id = parentJobId,
@@ -2199,31 +2205,21 @@ namespace CalculateFunding.Services.Calcs.Services
             jobsApiClient
                 .CreateJobs(Arg.Any<IEnumerable<JobCreateModel>>())
                 .Returns(new List<Job> { new Job { SpecificationId = specificationId } });
-            jobManagement.WaitForJobsToComplete(Arg.Is<IEnumerable<string>>(_ => _.Single() == JobConstants.DefinitionNames.PopulateScopedProvidersJob), specificationId)
-                .Returns(true);
+            jobsApiClient
+                .GetLatestJobForSpecification(Arg.Is(specificationId), Arg.Is<IEnumerable<string>>(_ => _.First() == JobConstants.DefinitionNames.PopulateScopedProvidersJob))
+                .Returns(new ApiResponse<JobSummary>(HttpStatusCode.OK, new JobSummary { CompletionStatus = CompletionStatus.Succeeded, RunningStatus = RunningStatus.Completed }));
 
-            IMessengerService messengerService = CreateServiceBusMessengerService();
+            IMessengerService messengerService = CreateMessengerService();
 
-            messengerService.ReceiveMessage(Arg.Any<string>(), 
-            Arg.Any<Predicate<JobNotification>>(),
-            Arg.Any<TimeSpan>())
-                .Returns(new JobNotification { CompletionStatus = CompletionStatus.Succeeded });
+            IJobManagement jobManagement = new JobManagement(jobsApiClient, logger, new JobManagementResiliencePolicies { JobsApiClient = NoOpPolicy.NoOpAsync() }, messengerService);
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(jobsApiClient: jobsApiClient,
-                logger: logger, cacheProvider: cacheProvider, providersApiClient: providersApiClient, jobManagement: jobManagement, messengerService: messengerService);
+                logger: logger, cacheProvider: cacheProvider, providersApiClient: providersApiClient, jobManagement: jobManagement);
 
             //Act
             await buildProjectsService.UpdateAllocations(message);
 
             //Assert
-            await ((IServiceBusService)messengerService)
-                .Received(1)
-                .CreateSubscription(Arg.Is(ServiceBusConstants.TopicNames.JobNotifications), Arg.Any<string>());
-
-            await ((IServiceBusService)messengerService)
-                .Received(1)
-                .DeleteSubscription(Arg.Is(ServiceBusConstants.TopicNames.JobNotifications), Arg.Any<string>());
-
             await
                 providersApiClient
                     .Received(1)
@@ -2294,8 +2290,6 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ILogger logger = CreateLogger();
 
-            IJobManagement jobManagement = CreateJobManagement();
-
             JobViewModel parentJob = new JobViewModel
             {
                 Id = parentJobId,
@@ -2330,8 +2324,13 @@ namespace CalculateFunding.Services.Calcs.Services
             jobsApiClient
                 .CreateJobs(Arg.Any<IEnumerable<JobCreateModel>>())
                 .Returns(new List<Job> { new Job { SpecificationId = specificationId } });
-            jobManagement.WaitForJobsToComplete(Arg.Is<IEnumerable<string>>(_ => _.Single() == JobConstants.DefinitionNames.PopulateScopedProvidersJob), specificationId)
-                .Returns(true);
+            jobsApiClient
+                .GetLatestJobForSpecification(Arg.Is(specificationId), Arg.Is<IEnumerable<string>>(_ => _.First() == JobConstants.DefinitionNames.PopulateScopedProvidersJob))
+                .Returns(new ApiResponse<JobSummary>(HttpStatusCode.OK, new JobSummary { CompletionStatus = CompletionStatus.Succeeded, RunningStatus = RunningStatus.Completed }));
+
+            IMessengerService messengerService = CreateMessengerService();
+
+            IJobManagement jobManagement = new JobManagement(jobsApiClient, logger, new JobManagementResiliencePolicies { JobsApiClient = NoOpPolicy.NoOpAsync() }, messengerService);
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(jobsApiClient: jobsApiClient,
                 logger: logger, cacheProvider: cacheProvider, providersApiClient: providersApiClient, jobManagement: jobManagement);
@@ -2595,7 +2594,6 @@ namespace CalculateFunding.Services.Calcs.Services
             IBuildProjectsRepository buildProjectsRepository = null,
             ICalculationEngineRunningChecker calculationEngineRunningChecker = null,
             IJobManagement jobManagement = null,
-            IMessengerService messengerService = null,
             IGraphRepository graphRepository = null)
         {
             return new BuildProjectsService(
@@ -2613,7 +2611,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 buildProjectsRepository ?? CreateBuildProjectRepository(),
                 calculationEngineRunningChecker ?? CreateCalculationEngineRunningChecker(),
                 jobManagement ?? CreateJobManagement(),
-                messengerService ?? CreateMessengerService(),
                 graphRepository ?? CreateGraphRepository());
         }
 
@@ -2630,11 +2627,6 @@ namespace CalculateFunding.Services.Calcs.Services
         private static IMessengerService CreateMessengerService()
         {
             return Substitute.For<IMessengerService, IQueueService>();
-        }
-
-        private static IMessengerService CreateServiceBusMessengerService()
-        {
-            return Substitute.For<IMessengerService, IServiceBusService>();
         }
 
         private static IGraphRepository CreateGraphRepository()

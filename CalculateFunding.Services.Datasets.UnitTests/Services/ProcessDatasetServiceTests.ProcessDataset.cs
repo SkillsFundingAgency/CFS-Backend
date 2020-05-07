@@ -12,6 +12,7 @@ using CalculateFunding.Common.ApiClient.Providers;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Caching;
+using CalculateFunding.Common.ServiceBus.Interfaces;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Aggregations;
@@ -27,7 +28,6 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.FeatureToggles;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
-using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.DataImporter;
 using CalculateFunding.Services.Datasets.Builders;
 using CalculateFunding.Services.Datasets.Interfaces;
@@ -104,9 +104,8 @@ namespace CalculateFunding.Services.Datasets.Services
             _datasetsAggregationsRepository = CreateDatasetsAggregationsRepository();
             _versionRepository = CreateVersionRepository();
             _jobsApiClient = CreateJobsApiClient();
-            _jobManagement = CreateJobManagement();
             _logger = CreateLogger();
-
+            _jobManagement = CreateJobManagement(_jobsApiClient, _logger, _messengerService);
             _service = CreateProcessDatasetService(datasetRepository: _datasetRepository,
                 calcsRepository: _calculationsRepository,
                 blobClient: _blobClient,
@@ -1282,13 +1281,13 @@ namespace CalculateFunding.Services.Datasets.Services
 
             await WhenTheProcessDatasetMessageIsProcessed();
 
-            await _jobManagement
+            await _jobsApiClient
                 .Received(1)
-                .UpdateJobStatus(Arg.Is(invokedByJobId), 0, null, null);
+                .AddJobLog(Arg.Is(invokedByJobId), Arg.Is<JobLogUpdateModel>(_ => _.ItemsProcessed == 0 && _.CompletedSuccessfully == null && _.Outcome == null));
 
-            await _jobManagement
+            await _jobsApiClient
                 .Received(1)
-                .UpdateJobStatus(Arg.Is(invokedByJobId), 100, true, "Processed Dataset");
+                .AddJobLog(Arg.Is(invokedByJobId), Arg.Is<JobLogUpdateModel>(_ => _.ItemsProcessed == 100 && _.CompletedSuccessfully == true && _.Outcome == "Processed Dataset" ));
         }
 
         [TestMethod]

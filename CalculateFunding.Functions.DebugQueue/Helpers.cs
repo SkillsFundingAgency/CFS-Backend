@@ -1,4 +1,4 @@
-﻿using CalculateFunding.Services.Core.ServiceBus;
+﻿using CalculateFunding.Common.ServiceBus;
 using Microsoft.Azure.ServiceBus;
 using Newtonsoft.Json;
 using System;

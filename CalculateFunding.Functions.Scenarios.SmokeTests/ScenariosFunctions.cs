@@ -1,7 +1,7 @@
 using CalculateFunding.Common.Models;
+using CalculateFunding.Common.ServiceBus.Interfaces;
 using CalculateFunding.Functions.Scenarios.ServiceBus;
 using CalculateFunding.Services.Core.Constants;
-using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Scenarios.Interfaces;
 using CalculateFunding.Tests.Common;
 using FluentAssertions;

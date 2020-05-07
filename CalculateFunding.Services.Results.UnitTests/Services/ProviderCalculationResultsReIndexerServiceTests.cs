@@ -5,7 +5,6 @@ using CalculateFunding.Models.Calcs;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Constants;
-using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Results.Interfaces;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
@@ -23,6 +22,7 @@ using System.Threading.Tasks;
 using CalculateFunding.Services.Core.FeatureToggles;
 using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Models.ProviderLegacy;
+using CalculateFunding.Common.ServiceBus.Interfaces;
 
 namespace CalculateFunding.Services.Results.UnitTests.Services
 {

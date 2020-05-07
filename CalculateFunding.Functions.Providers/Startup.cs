@@ -26,6 +26,7 @@ using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Caching.FileSystem;
 using CalculateFunding.Models.Providers;
 using System.Threading;
+using CalculateFunding.Services.DeadletterProcessor;
 
 [assembly: FunctionsStartup(typeof(CalculateFunding.Functions.Providers.Startup))]
 
@@ -78,6 +79,7 @@ namespace CalculateFunding.Functions.Providers
             builder.AddJobsInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
             builder.AddSpecificationsInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
             builder.AddResultsInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
+            builder.AddSingleton<IJobHelperService, JobHelperService>();
 
             builder.AddCaching(config);
 
@@ -127,26 +129,13 @@ namespace CalculateFunding.Functions.Providers
 
             PolicySettings policySettings = builder.GetPolicySettings(config);
             AsyncBulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
+            ProvidersResiliencePolicies resiliencePolicies = CreateResiliencePolicies(totalNetworkRequestsPolicy);
 
-            builder.AddSingleton<IJobManagementResiliencePolicies>((ctx) =>
-            {
-                return new JobManagementResiliencePolicies()
-                {
-                    JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
-                };
+            builder.AddSingleton<IJobManagementResiliencePolicies>(resiliencePolicies);
 
-            });
+            builder.AddSingleton<IJobHelperResiliencePolicies>(resiliencePolicies);
 
-            builder.AddSingleton<IProvidersResiliencePolicies>((ctx) =>
-            {
-                return new ProvidersResiliencePolicies()
-                {
-                    ProviderVersionsSearchRepository = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
-                    ProviderVersionMetadataRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
-                    BlobRepositoryPolicy = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-                    JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
-                };
-            });
+            builder.AddSingleton<IProvidersResiliencePolicies>(resiliencePolicies);
 
             builder.AddSingleton<IValidator<ProviderVersionViewModel>, UploadProviderVersionValidator>();
 
@@ -179,6 +168,17 @@ namespace CalculateFunding.Functions.Providers
             builder.AddServiceBus(config, "providers");
 
             return builder.BuildServiceProvider();
+        }
+
+        private static ProvidersResiliencePolicies CreateResiliencePolicies(AsyncBulkheadPolicy totalNetworkRequestsPolicy)
+        {
+            return new ProvidersResiliencePolicies
+            {
+                ProviderVersionsSearchRepository = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
+                ProviderVersionMetadataRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
+                BlobRepositoryPolicy = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
+            };
         }
     }
 }

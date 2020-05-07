@@ -1,6 +1,8 @@
 ﻿using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.ServiceBus;
+using CalculateFunding.Common.ServiceBus.Interfaces;
+using CalculateFunding.Common.ServiceBus.Options;
 using CalculateFunding.Services.Core.Constants;
-using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Core.UnitTests;
 using FluentAssertions;
 using Microsoft.Azure.ServiceBus;
@@ -37,7 +39,7 @@ namespace CalculateFunding.Services.Core.ServiceBus
             _messageReceiverFactory = new Mock<IMessageReceiverFactory>();
             _topicClient = new Mock<ITopicClient>();
             _queueClient = new Mock<AzureServiceBus.IQueueClient>();
-            _messengerService = new MessengerService(new Options.ServiceBusSettings { ConnectionString = "ConnectionString" },
+            _messengerService = new MessengerService(new ServiceBusSettings { ConnectionString = "ConnectionString" },
                 _managementClient.Object,
                 _messageReceiverFactory.Object);
         }

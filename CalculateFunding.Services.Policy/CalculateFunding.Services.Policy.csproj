@@ -12,7 +12,7 @@
 
     <PackageReference Include="CalculateFunding.Common" Version="2.0.0" />
 
-    <PackageReference Include="CalculateFunding.Common.Storage" Version="2.0.0" />
+    <PackageReference Include="CalculateFunding.Common.Storage" Version="2.0.1" />
     <PackageReference Include="CalculateFunding.Common.TemplateMetadata" Version="2.0.0" />
     <PackageReference Include="CalculateFunding.Common.TemplateMetadata.Schema10" Version="2.0.0" />
     <PackageReference Include="CalculateFunding.Common.TemplateMetadata.Schema11" Version="2.0.0" />

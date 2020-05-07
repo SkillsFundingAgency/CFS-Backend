@@ -1,4 +1,4 @@
-﻿using CalculateFunding.Services.Core.Interfaces.ServiceBus;
+﻿using CalculateFunding.Common.ServiceBus.Interfaces;
 using Microsoft.Azure.ServiceBus;
 using Serilog;
 using System;

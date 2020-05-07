@@ -1,7 +1,7 @@
 using CalculateFunding.Common.Models;
+using CalculateFunding.Common.ServiceBus.Interfaces;
 using CalculateFunding.Functions.Publishing.ServiceBus;
 using CalculateFunding.Services.Core.Constants;
-using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Tests.Common;

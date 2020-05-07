@@ -8,6 +8,7 @@ using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
+using CalculateFunding.Common.ServiceBus.Interfaces;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Generators.OrganisationGroup.Interfaces;
 using CalculateFunding.Models.Publishing;
@@ -56,6 +57,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         private ICalculationsApiClient _calculationsApiClient;
         private IProviderService _providerService;
         private IJobManagement _jobManagement;
+        private IMessengerService _messengerService;
         private IGeneratePublishedFundingCsvJobsCreationLocator _generateCsvJobsLocator;
         private IMapper _mapper;
         private ITransactionFactory _transactionFactory;
@@ -115,7 +117,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             _calculationsApiClient = Substitute.For<ICalculationsApiClient>();
             _providerService = Substitute.For<IProviderService>();
             _jobsApiClient = Substitute.For<IJobsApiClient>();
-            _jobManagement = new JobManagement(_jobsApiClient, _logger, new JobManagementResiliencePolicies { JobsApiClient = Policy.NoOpAsync() });
+            _messengerService = Substitute.For<IMessengerService>();
+            _jobManagement = new JobManagement(_jobsApiClient, _logger, new JobManagementResiliencePolicies { JobsApiClient = Policy.NoOpAsync() }, _messengerService);
             _prerequisiteCheckerLocator = Substitute.For<IPrerequisiteCheckerLocator>();
             _prerequisiteCheckerLocator.GetPreReqChecker(PrerequisiteCheckerType.ReleaseAllProviders)
                 .Returns(new PublishAllPrerequisiteChecker(_specificationFundingStatusService, _jobsRunning, _jobManagement, _logger));

@@ -21,6 +21,7 @@ using FluentValidation.Results;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Internal;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.ServiceBus;
 using Microsoft.Extensions.Primitives;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
@@ -276,7 +277,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             _providersApiClient.RegenerateProviderSummariesForSpecification(_specification.Id, true)
                 .Returns(new ApiResponse<bool>(HttpStatusCode.BadRequest));
 
-            _jobManagement.WaitForJobsToComplete(Arg.Is<IEnumerable<string>>(_ => _.Single() == JobConstants.DefinitionNames.PopulateScopedProvidersJob), _specification.Id)
+            _jobManagement.QueueJobAndWait(Arg.Any<Func<Task<bool>>>() , Arg.Is<string>(JobConstants.DefinitionNames.PopulateScopedProvidersJob), _specification.Id, "correlationId", "topic")
                 .Returns(false);
 
             var service = CreateSpecificationsService(fundingStream, newSpecVersion);

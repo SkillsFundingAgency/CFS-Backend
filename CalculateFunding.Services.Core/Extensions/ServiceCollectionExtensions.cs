@@ -5,18 +5,19 @@ using System.Net.Http.Headers;
 using System.Security.Claims;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Common.ServiceBus.Interfaces;
 using CalculateFunding.Common.Models;
+using CalculateFunding.Common.ServiceBus;
+using CalculateFunding.Common.ServiceBus.Options;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.FeatureToggles;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.Core.Interfaces.Proxies;
-using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Core.Logging;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Core.Proxies;
-using CalculateFunding.Services.Core.ServiceBus;
 using CalculateFunding.Services.Core.Services;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.AspNetCore.Extensions;
@@ -127,7 +128,7 @@ namespace CalculateFunding.Services.Core.Extensions
                 builder
                     .AddSingleton<IMessengerService, QueueMessengerService>((ctx) =>
                 {
-                    ServiceBus.QueueClient queueClient = new ServiceBus.QueueClient("UseDevelopmentStorage=true");
+                    Common.ServiceBus.QueueClient queueClient = new Common.ServiceBus.QueueClient("UseDevelopmentStorage=true");
                     return new QueueMessengerService(queueClient, serviceName);
                 });
             }

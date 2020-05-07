@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ServiceBus.Interfaces;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Functions;
-using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Results.Interfaces;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;

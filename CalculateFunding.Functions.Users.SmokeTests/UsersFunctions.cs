@@ -1,6 +1,5 @@
 using CalculateFunding.Common.Models;
 using CalculateFunding.Services.Core.Constants;
-using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Users.Interfaces;
 using CalculateFunding.Tests.Common;
 using FluentAssertions;
@@ -12,6 +11,7 @@ using Serilog;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using CalculateFunding.Functions.Users.ServiceBus;
+using CalculateFunding.Common.ServiceBus.Interfaces;
 
 namespace CalculateFunding.Functions.Users.SmokeTests
 {

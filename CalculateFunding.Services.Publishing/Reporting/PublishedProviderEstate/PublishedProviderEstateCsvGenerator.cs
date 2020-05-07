@@ -55,20 +55,10 @@ namespace CalculateFunding.Services.Publishing.Reporting.PublishedProviderEstate
 
             string specificationId = message.GetUserProperty<string>("specification-id");
 
-            IGrouping<string, PublishedProviderVersion> lastGroupInBatch = null;
-
             await _publishedFundingRepositoryPolicy.ExecuteAsync(() => _publishedFundingRepository.RefreshedProviderVersionBatchProcessing(specificationId,
                 publishedProviderVersions =>
                 {
-                    if (lastGroupInBatch != null)
-                    {
-                        publishedProviderVersions.AddRange(lastGroupInBatch);
-                    }
-
                     List<IGrouping<string, PublishedProviderVersion>> providerVersionGroups = publishedProviderVersions.GroupBy(v => v.ProviderId).ToList();
-
-                    lastGroupInBatch = providerVersionGroups.Last();
-                    providerVersionGroups.Remove(lastGroupInBatch);
 
                     GenerateGroupedPublishedProviderEstateCsv(providerVersionGroups, publishedProviderCsvTransform, temporaryFilePath, outputHeaders);
 
@@ -77,11 +67,6 @@ namespace CalculateFunding.Services.Publishing.Reporting.PublishedProviderEstate
                     return Task.CompletedTask;
                 }, BatchSize)
             );
-
-            if (lastGroupInBatch != null)
-            {
-                GenerateGroupedPublishedProviderEstateCsv(new[] { lastGroupInBatch }, publishedProviderCsvTransform, temporaryFilePath, outputHeaders);
-            }
 
             return processedResults;
         }
