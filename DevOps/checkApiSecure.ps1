@@ -32,7 +32,7 @@ catch {
     
     if ($statusCode -eq 401)
     {
-        Write-Host "##vso[task.logdetail] # No auth header supplied: $uri received 401 response" -ForegroundColor Green
+        Write-Host "##[section]No auth header supplied: $uri received 401 response"
     }
     else
     {
@@ -54,7 +54,7 @@ catch {
     
     if ($statusCode -eq 401)
     {
-        Write-Host "##vso[task.logdetail] # Incorrect API key supplied: $uri received 401 response" -ForegroundColor Green
+        Write-Host "##[section]Incorrect API key supplied: $uri received 401 response"
     }
     else
     {
@@ -68,7 +68,7 @@ $headers["Ocp-Apim-Subscription-Key"] = $apiKey;
 try {
     $responseData = Invoke-WebRequest -Uri "$url/healthcheck" -Method GET -Headers $headers -DisableKeepAlive -UseBasicParsing
     
-    Write-Host "##vso[task.logdetail] # Correct API key supplied: $uri access granted with the correct ApiKey" -ForegroundColor Green
+    Write-Host "##[section]Correct API key supplied: $uri access granted with the correct ApiKey"
 }
 catch {
     $statusCode = $_.Exception.Response.StatusCode.value__
