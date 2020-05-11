@@ -122,7 +122,12 @@ namespace CalculateFunding.Services.Users
                 CanCreateTemplates = true,
                 CanEditTemplates = true,
                 CanDeleteTemplates = true,
-                CanApproveTemplates = true
+                CanApproveTemplates = true,
+                CanCreateProfilePattern = true,
+                CanEditProfilePattern = true,
+                CanDeleteProfilePattern = true,
+                CanAssignProfilePattern = false,
+                CanApplyCustomProfilePattern = false
             };
             
             IVersionRepository<FundingStreamPermissionVersion> versionRepository = CreateFundingStreamPermissionRepository();
@@ -160,7 +165,12 @@ namespace CalculateFunding.Services.Users
                     CanCreateTemplates = true,
                     CanEditTemplates = true,
                     CanDeleteTemplates = true,
-                    CanApproveTemplates = true
+                    CanApproveTemplates = true,
+                    CanCreateProfilePattern = true,
+                    CanEditProfilePattern = true,
+                    CanDeleteProfilePattern = true,
+                    CanAssignProfilePattern = false,
+                    CanApplyCustomProfilePattern = false
                 });
 
             await userRepository
@@ -178,7 +188,12 @@ namespace CalculateFunding.Services.Users
                     p.CanCreateTemplates &&
                     p.CanEditTemplates &&
                     p.CanDeleteTemplates &&
-                    p.CanApproveTemplates
+                    p.CanApproveTemplates &&
+                    p.CanCreateProfilePattern &&
+                    p.CanEditProfilePattern &&
+                    p.CanDeleteProfilePattern &&
+                    !p.CanAssignProfilePattern &&
+                    !p.CanApplyCustomProfilePattern
                 ));
 
             await cacheProvider
@@ -222,6 +237,11 @@ namespace CalculateFunding.Services.Users
                 CanEditSpecification = false,
                 CanMapDatasets = false,
                 CanReleaseFunding = false,
+                CanCreateProfilePattern = false,
+                CanEditProfilePattern = false,
+                CanDeleteProfilePattern = false,
+                CanAssignProfilePattern = false,
+                CanApplyCustomProfilePattern = false
             };
 
             userRepository
@@ -243,7 +263,12 @@ namespace CalculateFunding.Services.Users
                 CanEditSpecification = false,
                 CanMapDatasets = false,
                 CanReleaseFunding = false,
-                CanApproveTemplates = true
+                CanApproveTemplates = true,
+                CanCreateProfilePattern = false,
+                CanEditProfilePattern = false,
+                CanDeleteProfilePattern = false,
+                CanAssignProfilePattern = false,
+                CanApplyCustomProfilePattern = false
             };
 
             IVersionRepository<FundingStreamPermissionVersion> versionRepository = CreateFundingStreamPermissionRepository();
@@ -278,7 +303,12 @@ namespace CalculateFunding.Services.Users
                     CanEditSpecification = false,
                     CanMapDatasets = false,
                     CanReleaseFunding = false,
-                    CanApproveTemplates = true
+                    CanApproveTemplates = true,
+                    CanCreateProfilePattern = false,
+                    CanEditProfilePattern = false,
+                    CanDeleteProfilePattern = false,
+                    CanAssignProfilePattern = false,
+                    CanApplyCustomProfilePattern = false
                 });
 
             await userRepository
@@ -296,7 +326,12 @@ namespace CalculateFunding.Services.Users
                    !p.CanCreateTemplates &&
                    !p.CanEditTemplates &&
                    !p.CanDeleteTemplates &&
-                   p.CanApproveTemplates
+                   p.CanApproveTemplates &&
+                   !p.CanCreateProfilePattern &&
+                   !p.CanEditProfilePattern &&
+                   !p.CanDeleteProfilePattern &&
+                   !p.CanAssignProfilePattern &&
+                   !p.CanApplyCustomProfilePattern
                ));
 
             await cacheProvider
@@ -337,7 +372,12 @@ namespace CalculateFunding.Services.Users
                 CanEditSpecification = false,
                 CanMapDatasets = false,
                 CanReleaseFunding = false,
-                CanApproveTemplates = true
+                CanApproveTemplates = true,
+                CanCreateProfilePattern = false,
+                CanEditProfilePattern = false,
+                CanDeleteProfilePattern = false,
+                CanAssignProfilePattern = false,
+                CanApplyCustomProfilePattern = false
             };
 
             userRepository
@@ -359,7 +399,12 @@ namespace CalculateFunding.Services.Users
                 CanEditSpecification = false,
                 CanMapDatasets = false,
                 CanReleaseFunding = false,
-                CanApproveTemplates = true
+                CanApproveTemplates = true,
+                CanCreateProfilePattern = false,
+                CanEditProfilePattern = false,
+                CanDeleteProfilePattern = false,
+                CanAssignProfilePattern = false,
+                CanApplyCustomProfilePattern = false
             };
 
             IVersionRepository<FundingStreamPermissionVersion> versionRepository = CreateFundingStreamPermissionRepository();
@@ -390,7 +435,12 @@ namespace CalculateFunding.Services.Users
                     CanEditSpecification = false,
                     CanMapDatasets = false,
                     CanReleaseFunding = false,
-                    CanApproveTemplates = true
+                    CanApproveTemplates = true,
+                    CanCreateProfilePattern = false,
+                    CanEditProfilePattern = false,
+                    CanDeleteProfilePattern = false,
+                    CanAssignProfilePattern = false,
+                    CanApplyCustomProfilePattern = false
                 });
 
             await userRepository
@@ -435,6 +485,11 @@ namespace CalculateFunding.Services.Users
                 CanEditSpecification = false,
                 CanMapDatasets = false,
                 CanReleaseFunding = false,
+                CanCreateProfilePattern = false,
+                CanEditProfilePattern = false,
+                CanDeleteProfilePattern = false,
+                CanAssignProfilePattern = false,
+                CanApplyCustomProfilePattern = false
             };
 
             userRepository
@@ -456,6 +511,11 @@ namespace CalculateFunding.Services.Users
                 CanEditSpecification = false,
                 CanMapDatasets = false,
                 CanReleaseFunding = false,
+                CanCreateProfilePattern = false,
+                CanEditProfilePattern = false,
+                CanDeleteProfilePattern = false,
+                CanAssignProfilePattern = false,
+                CanApplyCustomProfilePattern = false
             };
 
             FundingStreamPermissionService service = CreateService(userRepository, cacheProvider: cacheProvider);

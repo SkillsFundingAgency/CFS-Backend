@@ -66,5 +66,20 @@ namespace CalculateFunding.Models.Users
 
         [JsonProperty("canApproveTemplates")]
         public bool CanApproveTemplates { get; set; }
+
+        [JsonProperty("canCreateProfilePattern")]
+        public bool CanCreateProfilePattern { get; set; }
+
+        [JsonProperty("canEditProfilePattern")]
+        public bool CanEditProfilePattern { get; set; }
+
+        [JsonProperty("canDeleteProfilePattern")]
+        public bool CanDeleteProfilePattern { get; set; }
+
+        [JsonProperty("canAssignProfilePattern")]
+        public bool CanAssignProfilePattern { get; set; }
+
+        [JsonProperty("canApplyCustomProfilePattern")]
+        public bool CanApplyCustomProfilePattern { get; set; }
     }
 }

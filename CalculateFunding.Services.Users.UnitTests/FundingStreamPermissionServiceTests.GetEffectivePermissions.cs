@@ -220,7 +220,12 @@ namespace CalculateFunding.Services.Users
                 CanCreateQaTests = false,
                 CanEditQaTests = false,
                 CanRefreshFunding = false,
-                CanDeleteSpecification = true
+                CanDeleteSpecification = true,
+                CanCreateProfilePattern = false,
+                CanEditProfilePattern = false,
+                CanDeleteProfilePattern = false,
+                CanAssignProfilePattern = false,
+                CanApplyCustomProfilePattern = false
             };
 
             userRepository
@@ -339,6 +344,11 @@ namespace CalculateFunding.Services.Users
                 CanCreateQaTests = false,
                 CanEditQaTests = false,
                 CanRefreshFunding = false,
+                CanCreateProfilePattern = false ,
+                CanEditProfilePattern = false,
+                CanDeleteProfilePattern = false,
+                CanAssignProfilePattern = false,
+                CanApplyCustomProfilePattern = false
             };
 
             userRepository
@@ -453,6 +463,11 @@ namespace CalculateFunding.Services.Users
                 CanCreateQaTests = false,
                 CanEditQaTests = false,
                 CanRefreshFunding = false,
+                CanCreateProfilePattern = false,
+                CanEditProfilePattern = false,
+                CanDeleteProfilePattern = false,
+                CanAssignProfilePattern = false,
+                CanApplyCustomProfilePattern = false
             };
 
             FundingStreamPermission fs2Permission = new FundingStreamPermission()
@@ -668,6 +683,11 @@ namespace CalculateFunding.Services.Users
                 CanCreateQaTests = false,
                 CanEditQaTests = false,
                 CanRefreshFunding = false,
+                CanCreateProfilePattern = false,
+                CanEditProfilePattern = false,
+                CanDeleteProfilePattern = false,
+                CanAssignProfilePattern = false,
+                CanApplyCustomProfilePattern = false
             };
 
             FundingStreamPermission fs2Permission = new FundingStreamPermission()
@@ -686,6 +706,11 @@ namespace CalculateFunding.Services.Users
                 CanCreateQaTests = false,
                 CanEditQaTests = false,
                 CanRefreshFunding = false,
+                CanCreateProfilePattern = false,
+                CanEditProfilePattern = false,
+                CanDeleteProfilePattern = false,
+                CanAssignProfilePattern = false,
+                CanApplyCustomProfilePattern = false
             };
 
             userRepository

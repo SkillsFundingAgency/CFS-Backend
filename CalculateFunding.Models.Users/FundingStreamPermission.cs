@@ -71,6 +71,21 @@ namespace CalculateFunding.Models.Users
         [JsonProperty("canApproveTemplates")]
         public bool CanApproveTemplates { get; set; }
 
+        [JsonProperty("canCreateProfilePattern")]
+        public bool CanCreateProfilePattern { get; set; }
+
+        [JsonProperty("canEditProfilePattern")]
+        public bool CanEditProfilePattern { get; set; }
+
+        [JsonProperty("canDeleteProfilePattern")]
+        public bool CanDeleteProfilePattern { get; set; }
+
+        [JsonProperty("canAssignProfilePattern")]
+        public bool CanAssignProfilePattern { get; set; }
+
+        [JsonProperty("canApplyCustomProfilePattern")]
+        public bool CanApplyCustomProfilePattern { get; set; }
+
         public bool HasSamePermissions(FundingStreamPermission fundingStreamPermission)
         {
             return fundingStreamPermission.CanCreateSpecification == CanCreateSpecification &&
@@ -90,7 +105,12 @@ namespace CalculateFunding.Models.Users
                 fundingStreamPermission.CanCreateTemplates == CanCreateTemplates &&
                 fundingStreamPermission.CanEditTemplates == CanEditTemplates &&
                 fundingStreamPermission.CanDeleteTemplates == CanDeleteTemplates &&
-                fundingStreamPermission.CanApproveTemplates == CanApproveTemplates;
+                fundingStreamPermission.CanApproveTemplates == CanApproveTemplates &&
+                fundingStreamPermission.CanCreateProfilePattern == CanCreateProfilePattern &&
+                fundingStreamPermission.CanEditProfilePattern == CanEditProfilePattern &&
+                fundingStreamPermission.CanDeleteProfilePattern == CanDeleteProfilePattern &&
+                fundingStreamPermission.CanAssignProfilePattern == CanAssignProfilePattern &&
+                fundingStreamPermission.CanApplyCustomProfilePattern == CanApplyCustomProfilePattern;
         }
     }
 }

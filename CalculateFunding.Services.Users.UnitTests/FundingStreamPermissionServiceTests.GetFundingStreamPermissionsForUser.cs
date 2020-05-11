@@ -79,6 +79,11 @@ namespace CalculateFunding.Services.Users
                     CanEditSpecification = false,
                     CanMapDatasets = false,
                     CanReleaseFunding = true,
+                    CanCreateProfilePattern = true,
+                    CanEditProfilePattern = true,
+                    CanDeleteProfilePattern = true,
+                    CanAssignProfilePattern = false,
+                    CanApplyCustomProfilePattern = false,
                     FundingStreamId = FundingStreamId,
                     UserId = UserId
                 },
@@ -91,6 +96,11 @@ namespace CalculateFunding.Services.Users
                     CanEditSpecification = false,
                     CanMapDatasets = false,
                     CanReleaseFunding = true,
+                    CanCreateProfilePattern = false,
+                    CanEditProfilePattern = false,
+                    CanDeleteProfilePattern = false,
+                    CanAssignProfilePattern = true,
+                    CanApplyCustomProfilePattern = false,
                     FundingStreamId = "fs2",
                     UserId = UserId
                 }
@@ -125,6 +135,11 @@ namespace CalculateFunding.Services.Users
                         CanEditSpecification = false,
                         CanMapDatasets = false,
                         CanReleaseFunding = true,
+                        CanCreateProfilePattern = true ,
+                        CanEditProfilePattern = true,
+                        CanDeleteProfilePattern = true,
+                        CanAssignProfilePattern = false,
+                        CanApplyCustomProfilePattern = false,
                         FundingStreamId = FundingStreamId,
                         UserId = UserId
                     },
@@ -137,6 +152,11 @@ namespace CalculateFunding.Services.Users
                         CanEditSpecification = false,
                         CanMapDatasets = false,
                         CanReleaseFunding = true,
+                        CanCreateProfilePattern = false ,
+                        CanEditProfilePattern = false,
+                        CanDeleteProfilePattern = false,
+                        CanAssignProfilePattern = true,
+                        CanApplyCustomProfilePattern = false,
                         FundingStreamId = "fs2",
                         UserId = UserId
                     }
