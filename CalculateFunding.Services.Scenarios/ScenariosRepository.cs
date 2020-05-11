@@ -15,9 +15,9 @@ namespace CalculateFunding.Services.Scenarios
 {
     public class ScenariosRepository : IScenariosRepository, IHealthChecker
     {
-        private readonly CosmosRepository _cosmosRepository;
+        private readonly ICosmosRepository _cosmosRepository;
 
-        public ScenariosRepository(CosmosRepository cosmosRepository)
+        public ScenariosRepository(ICosmosRepository cosmosRepository)
         {
             Guard.ArgumentNotNull(cosmosRepository, nameof(cosmosRepository));
             _cosmosRepository = cosmosRepository;

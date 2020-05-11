@@ -3,16 +3,18 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Api.External.V3.Interfaces;
+using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Storage;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Core.Caching.FileSystem;
+using CalculateFunding.Services.Core.Extensions;
 using Microsoft.Azure.Storage.Blob;
 using Polly;
 using Serilog;
 
 namespace CalculateFunding.Api.External.V3.Services
 {
-    public class PublishedFundingRetrievalService : IPublishedFundingRetrievalService
+    public class PublishedFundingRetrievalService : IPublishedFundingRetrievalService, IHealthChecker
     {
         private readonly IBlobClient _blobClient;
         private readonly AsyncPolicy _publishedFundingRepositoryPolicy;
@@ -127,6 +129,22 @@ namespace CalculateFunding.Api.External.V3.Services
             }
 
             return documentPath;
+        }
+
+        public async Task<ServiceHealth> IsHealthOk()
+        {
+            (bool Ok, string Message) = await _blobClient.IsHealthOk();
+
+            ServiceHealth health = new ServiceHealth()
+            {
+                Name = nameof(ProviderFundingVersionService),
+                Dependencies =
+                {
+                    new DependencyHealth { HealthOk = Ok, DependencyName = _blobClient.GetType().GetFriendlyName(), Message = Message },
+                }
+            };
+
+            return health;
         }
     }
 }

@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Api.External.V3.Interfaces;
@@ -18,7 +16,7 @@ using Serilog;
 
 namespace CalculateFunding.Api.External.V3.Services
 {
-    public class ProviderFundingVersionService : IProviderFundingVersionService
+    public class ProviderFundingVersionService : IProviderFundingVersionService, IHealthChecker
     {
         private readonly IExternalApiFileSystemCacheSettings _cacheSettings;
         private readonly IFileSystemCache _fileSystemCache;

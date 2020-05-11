@@ -36,30 +36,6 @@ namespace CalculateFunding.Services.Core.Extensions
 {
     public static class ServiceCollectionExtensions
     {
-        private static readonly TimeSpan[] retryTimeSpans = new[] { TimeSpan.FromMilliseconds(500), TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(5) };
-        private static readonly int numberOfExceptionsBeforeCircuitBreaker = 100;
-        private static TimeSpan circuitBreakerFailurePeriod = TimeSpan.FromMinutes(1);
-
-        [Obsolete("Change to register per repository, instead of per microservice")]
-        public static IServiceCollection AddCosmosDb(this IServiceCollection builder, IConfiguration config, string collectionNameOverride = null)
-        {
-            CosmosDbSettings cosmosDbSettings = new CosmosDbSettings();
-
-            config.Bind("CosmosDbSettings", cosmosDbSettings);
-
-            if (!string.IsNullOrWhiteSpace(collectionNameOverride))
-            {
-                cosmosDbSettings.ContainerName = collectionNameOverride;
-            }
-
-            builder.AddSingleton<CosmosDbSettings>(cosmosDbSettings);
-
-            builder
-                .AddSingleton<CosmosRepository>();
-
-            return builder;
-        }
-
         [Obsolete]
         public static IServiceCollection AddDatasetsInterServiceClient(this IServiceCollection builder, IConfiguration config)
         {

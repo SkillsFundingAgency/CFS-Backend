@@ -11,7 +11,6 @@ using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Messages;
 using CalculateFunding.Services.Calcs.Interfaces;
-using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using Newtonsoft.Json;
 
@@ -19,9 +18,9 @@ namespace CalculateFunding.Services.Calcs
 {
     public class CalculationsRepository : ICalculationsRepository, IHealthChecker
     {
-        private readonly CosmosRepository _cosmosRepository;
+        private readonly ICosmosRepository _cosmosRepository;
 
-        public CalculationsRepository(CosmosRepository cosmosRepository)
+        public CalculationsRepository(ICosmosRepository cosmosRepository)
         {
             _cosmosRepository = cosmosRepository;
         }

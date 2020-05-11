@@ -1,4 +1,5 @@
-﻿using CalculateFunding.Common.Storage;
+﻿using CalculateFunding.Common.Models.HealthCheck;
+using CalculateFunding.Common.Storage;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Caching.FileSystem;
@@ -17,7 +18,7 @@ using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Publishing.Reporting
 {
-    public abstract class BasePublishingCsvGenerator : IPublishedProviderEstateCsvGenerator
+    public abstract class BasePublishingCsvGenerator : IPublishedProviderEstateCsvGenerator, IHealthChecker
     {
         private const string PublishedFundingReportContainerName = "publishingreports";
 
@@ -59,6 +60,19 @@ namespace CalculateFunding.Services.Publishing.Reporting
             _fileSystemCacheSettings = fileSystemCacheSettings;
             _publishedProviderCsvTransformServiceLocator = publishedProviderCsvTransformServiceLocator;
             _logger = logger;
+        }
+
+        public async Task<ServiceHealth> IsHealthOk()
+        {
+            (bool Ok, string Message) blobHealth = await _blobClient.IsHealthOk();
+
+            ServiceHealth health = new ServiceHealth()
+            {
+                Name = nameof(PublishedProviderVersionService)
+            };
+            health.Dependencies.Add(new DependencyHealth { HealthOk = blobHealth.Ok, DependencyName = _blobClient.GetType().GetFriendlyName(), Message = blobHealth.Message });
+
+            return health;
         }
 
         public async Task Run(Message message)

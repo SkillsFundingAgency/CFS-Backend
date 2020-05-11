@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading;
 using AutoMapper;
-using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Config.ApiClient.Calcs;
 using CalculateFunding.Common.Config.ApiClient.Providers;
 using CalculateFunding.Common.Config.ApiClient.Specifications;
@@ -11,7 +10,6 @@ using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.CodeMetadataGenerator;
 using CalculateFunding.Services.CodeMetadataGenerator.Interfaces;
-using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Logging;
@@ -27,6 +25,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Polly;
 using Polly.Bulkhead;
+using Serilog;
 
 [assembly: FunctionsStartup(typeof(CalculateFunding.Functions.TestEngine.Startup))]
 
@@ -76,14 +75,27 @@ namespace CalculateFunding.Functions.TestEngine
             builder
                 .AddSingleton<IStepParserFactory, StepParserFactory>();
 
-            builder
-                .AddSingleton<ITestResultsRepository, TestResultsRepository>();
+            builder.AddSingleton<ITestResultsRepository, TestResultsRepository>((ctx) =>
+            {
+                CosmosDbSettings testResultsDbSettings = new CosmosDbSettings();
+
+                config.Bind("CosmosDbSettings", testResultsDbSettings);
+
+                testResultsDbSettings.ContainerName = "testresults";
+
+                CosmosRepository providersCosmosRepostory = new CosmosRepository(testResultsDbSettings);
+
+                EngineSettings engineSettings = ctx.GetService<EngineSettings>();
+                ILogger logger = ctx.GetService<ILogger>();
+
+                return new TestResultsRepository(providersCosmosRepostory, logger, engineSettings);
+            });
 
             builder
                 .AddSingleton<IScenariosRepository, ScenariosRepository>();
 
             builder
-                .AddScoped<ITestEngineService, Services.TestRunner.Services.TestEngineService>();
+                .AddScoped<ITestEngineService, TestEngineService>();
 
             builder
                 .AddSingleton<ITestEngine, Services.TestRunner.TestEngine>();
@@ -93,12 +105,6 @@ namespace CalculateFunding.Functions.TestEngine
 
             builder
                 .AddSingleton<ICalculationsRepository, CalculationsRepository>();
-
-            builder.AddSingleton<ICosmosRepository, CosmosRepository>();
-
-            builder.AddSingleton<ICosmosRepository, CosmosRepository>();
-
-            builder.AddSingleton<ICosmosRepository, CosmosRepository>();
 
             builder.AddSingleton<ICosmosRepository, CosmosRepository>();
 
@@ -127,8 +133,6 @@ namespace CalculateFunding.Functions.TestEngine
 
                 CosmosRepository providersCosmosRepostory = new CosmosRepository(providersDbSettings);
 
-                ICacheProvider cacheProvider = ctx.GetService<ICacheProvider>();
-
                 return new ProviderResultsRepository(providersCosmosRepostory);
             });
 
@@ -145,15 +149,6 @@ namespace CalculateFunding.Functions.TestEngine
                 .AddSingleton(mappingConfiguration.CreateMapper());
 
             builder.AddScoped<ITestResultsService, TestResultsService>();
-
-            if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
-            {
-                builder.AddCosmosDb(config, "testresults");
-            }
-            else
-            {
-                builder.AddCosmosDb(config);
-            }
 
             builder.AddSearch(config);
             builder

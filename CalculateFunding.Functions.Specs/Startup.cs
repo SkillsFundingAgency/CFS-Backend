@@ -11,11 +11,9 @@ using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.TemplateMetadata;
 using CalculateFunding.Common.TemplateMetadata.Schema10;
 using CalculateFunding.Functions.Specs.ServiceBus;
-
 using CalculateFunding.Models.Messages;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Search;
-using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.AzureStorage;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
@@ -29,8 +27,6 @@ using CalculateFunding.Services.Specs.MappingProfiles;
 using CalculateFunding.Services.Specs.Validators;
 using CalculateFunding.Services.Validators;
 using FluentValidation;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Hosting.Internal;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -71,15 +67,25 @@ namespace CalculateFunding.Functions.Specs
                 builder.AddScoped<OnAddRelationshipEvent>();
             }
 
-            builder.AddSingleton<ISpecificationsRepository, SpecificationsRepository>();
+            builder.AddSingleton<ISpecificationsRepository, SpecificationsRepository>((ctx) =>
+            {
+                CosmosDbSettings specsVersioningDbSettings = new CosmosDbSettings();
+
+                config.Bind("CosmosDbSettings", specsVersioningDbSettings);
+
+                specsVersioningDbSettings.ContainerName = "specs";
+
+                CosmosRepository resultsRepostory = new CosmosRepository(specsVersioningDbSettings);
+
+                return new SpecificationsRepository(resultsRepostory);
+            });
+
             builder.AddSingleton<ISpecificationsService, SpecificationsService>();
             builder.AddSingleton<IValidator<SpecificationCreateModel>, SpecificationCreateModelValidator>();
             builder.AddSingleton<IValidator<SpecificationEditModel>, SpecificationEditModelValidator>();
             builder.AddSingleton<IValidator<AssignDefinitionRelationshipMessage>, AssignDefinitionRelationshipMessageValidator>();
             builder.AddSingleton<ISpecificationsSearchService, SpecificationsSearchService>();
             builder.AddSingleton<IResultsRepository, ResultsRepository>();            
-
-            builder.AddSingleton<ICosmosRepository, CosmosRepository>();
 
             builder.AddSingleton<ITemplateMetadataResolver>((ctx) =>
             {
@@ -152,15 +158,6 @@ namespace CalculateFunding.Functions.Specs
             });
 
             builder.AddSingleton(mappingConfig.CreateMapper());
-
-            if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
-            {
-                builder.AddCosmosDb(config, "specs");
-            }
-            else
-            {
-                builder.AddCosmosDb(config);
-            }
 
             builder.AddServiceBus(config, "specs");
 

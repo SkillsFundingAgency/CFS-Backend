@@ -17,7 +17,8 @@ using CalculateFunding.Common.Models.HealthCheck;
 
 namespace CalculateFunding.Services.Specs
 {
-    public class SpecificationsSearchService : SearchService<SpecificationIndex>,  ISpecificationsSearchService, IHealthChecker
+    public class SpecificationsSearchService : 
+        SearchService<SpecificationIndex>,  ISpecificationsSearchService, IHealthChecker
     {
         private readonly ILogger _logger;
 

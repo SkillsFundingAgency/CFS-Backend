@@ -13,13 +13,12 @@ namespace CalculateFunding.Services.Users
 {
     public class UserRepository : IUserRepository, IHealthChecker
     {
-        private readonly CosmosRepository _cosmosRepository;
+        private readonly ICosmosRepository _cosmosRepository;
 
-        public UserRepository(CosmosRepository cosmosRepository)
+        public UserRepository(ICosmosRepository cosmosRepository)
         {
             _cosmosRepository = cosmosRepository;
         }
-
 
         public async Task<ServiceHealth> IsHealthOk()
         {

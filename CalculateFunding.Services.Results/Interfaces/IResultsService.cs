@@ -1,7 +1,6 @@
 ﻿using System.Threading.Tasks;
 using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Models.Calcs;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
 

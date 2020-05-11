@@ -188,8 +188,7 @@ namespace CalculateFunding.Api.Policy
                  CosmosRepository cosmosRepostory = new CosmosRepository(cosmosDbSettings);
 
                  return new PolicyRepository(cosmosRepostory);
-             })
-             .AddSingleton<IHealthChecker, FundingStreamService>();
+             });
 
             builder.AddSingleton<IPolicyResiliencePolicies>((ctx) =>
             {

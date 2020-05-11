@@ -13,7 +13,6 @@ using CalculateFunding.Common.WebApi.Extensions;
 using CalculateFunding.Common.WebApi.Http;
 using CalculateFunding.Common.WebApi.Middleware;
 using CalculateFunding.Models.Calcs;
-
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Calcs;
 using CalculateFunding.Services.Calcs.Analysis;
@@ -28,7 +27,6 @@ using CalculateFunding.Services.CodeMetadataGenerator.Interfaces;
 using CalculateFunding.Services.Compiler;
 using CalculateFunding.Services.Compiler.Interfaces;
 using CalculateFunding.Services.Compiler.Languages;
-using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.AspNet.HealthChecks;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
@@ -39,7 +37,6 @@ using CalculateFunding.Services.DeadletterProcessor;
 using FluentValidation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -47,7 +44,6 @@ using Microsoft.FeatureManagement;
 using Microsoft.OpenApi.Models;
 using Polly;
 using Polly.Bulkhead;
-using System;
 
 namespace CalculateFunding.Api.Calcs
 {
@@ -116,7 +112,18 @@ namespace CalculateFunding.Api.Calcs
                 .AddScoped<IHealthChecker, ControllerResolverHealthCheck>();
 
             builder
-                .AddSingleton<ICalculationsRepository, CalculationsRepository>();
+                .AddSingleton<ICalculationsRepository, CalculationsRepository>((ctx) =>
+                {
+                    CosmosDbSettings calcsVersioningDbSettings = new CosmosDbSettings();
+
+                    Configuration.Bind("CosmosDbSettings", calcsVersioningDbSettings);
+
+                    calcsVersioningDbSettings.ContainerName = "calcs";
+
+                    CosmosRepository resultsRepostory = new CosmosRepository(calcsVersioningDbSettings);
+
+                    return new CalculationsRepository(resultsRepostory);
+                });
 
             builder
                .AddScoped<ICalculationService, CalculationService>()
@@ -133,8 +140,8 @@ namespace CalculateFunding.Api.Calcs
                 .AddSingleton<ITokenChecker, TokenChecker>();
 
             builder
-               .AddSingleton<ICalculationsSearchService, CalculationSearchService>()
-               .AddSingleton<IHealthChecker, CalculationSearchService>();
+                .AddSingleton<ICalculationsSearchService, CalculationSearchService>()
+                .AddSingleton<IHealthChecker, CalculationSearchService>();
 
             builder
                 .AddSingleton<IValidator<Calculation>, CalculationModelValidator>();
@@ -171,8 +178,18 @@ namespace CalculateFunding.Api.Calcs
                 .AddScoped<IDatasetReferenceService, DatasetReferenceService>();
 
             builder
-                  .AddSingleton<IBuildProjectsRepository, BuildProjectsRepository>()
-                  .AddSingleton<IHealthChecker, BuildProjectsRepository>();
+                .AddSingleton<IBuildProjectsRepository, BuildProjectsRepository>((ctx) =>
+                {
+                    CosmosDbSettings calcsVersioningDbSettings = new CosmosDbSettings();
+
+                    Configuration.Bind("CosmosDbSettings", calcsVersioningDbSettings);
+
+                    calcsVersioningDbSettings.ContainerName = "calcs";
+
+                    CosmosRepository resultsRepostory = new CosmosRepository(calcsVersioningDbSettings);
+
+                    return new BuildProjectsRepository(resultsRepostory);
+                });
 
             builder
                 .AddSingleton<ICodeMetadataGeneratorService, ReflectionCodeMetadataGenerator>();
@@ -200,7 +217,8 @@ namespace CalculateFunding.Api.Calcs
                 return new SourceFileRepository(blobStorageOptions, ctx.GetService<IBlobContainerRepository>());
             });
 
-            builder.AddSingleton<IVersionRepository<CalculationVersion>, VersionRepository<CalculationVersion>>((ctx) =>
+            builder
+                .AddSingleton<IVersionRepository<CalculationVersion>, VersionRepository<CalculationVersion>>((ctx) =>
             {
                 CosmosDbSettings calcsVersioningDbSettings = new CosmosDbSettings();
 
@@ -225,8 +243,6 @@ namespace CalculateFunding.Api.Calcs
 
             builder
                 .AddSingleton(calcConfig.CreateMapper());
-
-            builder.AddCosmosDb(Configuration);
 
             builder.AddSearch(Configuration);
             builder

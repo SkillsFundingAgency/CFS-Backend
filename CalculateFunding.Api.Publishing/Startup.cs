@@ -140,10 +140,13 @@ namespace CalculateFunding.Api.Publishing
 
             builder.AddSingleton<IProfileHistoryService, ProfileHistoryService>();
             builder.AddSingleton<IDateTimeProvider, DateTimeProvider>();
-            builder.AddSingleton<IPublishedProviderVersionService, PublishedProviderVersionService>();
+            builder
+                .AddSingleton<IPublishedProviderVersionService, PublishedProviderVersionService>()
+                .AddSingleton<IHealthChecker, PublishedProviderVersionService>();
             builder.AddSingleton<ISpecificationFundingStatusService, SpecificationFundingStatusService>();
-            builder.AddSingleton<IPublishedSearchService, PublishedSearchService>()
-                    .AddSingleton<IHealthChecker>(ctx => { return ctx.GetService<IPublishedSearchService>(); });
+            builder
+                .AddSingleton<IPublishedSearchService, PublishedSearchService>()
+                .AddSingleton<IHealthChecker, PublishedSearchService>();
             builder.AddSingleton<IPublishedProviderStatusService, PublishedProviderStatusService>();
             builder.AddScoped<IProfileTotalsService, ProfileTotalsService>();
             builder.AddSingleton<IFundingConfigurationService, FundingConfigurationService>();
@@ -169,7 +172,7 @@ namespace CalculateFunding.Api.Publishing
                 CosmosRepository cosmos = new CosmosRepository(settings);
 
                 return new VersionRepository<PublishedProviderVersion>(cosmos);
-            }).AddSingleton<IHealthChecker>(ctx => { return ctx.GetService<IVersionRepository<PublishedProviderVersion>>(); });
+            });
             builder
                 .AddSingleton<IPublishedProviderStatusUpdateSettings>(_ =>
                     {
@@ -203,7 +206,7 @@ namespace CalculateFunding.Api.Publishing
 
                 return new FundingStreamPaymentDatesRepository(new CosmosRepository(cosmosSettings));
             });
-            
+
             builder
                 .AddSingleton<IPublishedFundingQueryBuilder, PublishedFundingQueryBuilder>();
 
@@ -248,6 +251,7 @@ namespace CalculateFunding.Api.Publishing
                 .AddSingleton<IPublishedProviderProfilingService, PublishedProviderProfilingService>()
                 .AddSingleton<IPublishedProviderErrorDetection, PublishedProviderErrorDetection>()
                 .AddSingleton<IProfilingService, ProfilingService>()
+                .AddSingleton<IHealthChecker, ProfilingService>()
                 .AddSingleton<IPublishedProviderVersioningService, PublishedProviderVersioningService>();
 
             builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Api.Publishing");

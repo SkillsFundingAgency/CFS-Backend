@@ -9,6 +9,7 @@ using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Config.ApiClient.Calcs;
 using CalculateFunding.Common.Config.ApiClient.Jobs;
 using CalculateFunding.Common.Config.ApiClient.Policies;
+using CalculateFunding.Common.Config.ApiClient.Profiling;
 using CalculateFunding.Common.Config.ApiClient.Providers;
 using CalculateFunding.Common.Config.ApiClient.Specifications;
 using CalculateFunding.Common.CosmosDb;
@@ -44,7 +45,6 @@ using CalculateFunding.Services.Publishing.Variations.Strategies;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Http;
 using Microsoft.FeatureManagement;
 using Polly;
 using Polly.Bulkhead;
@@ -183,7 +183,8 @@ namespace CalculateFunding.Functions.Publishing
             builder.AddScoped<IFundingLineCsvBatchProcessor, PublishedFundingVersionOrganisationGroupCsvBatchProcessor>();
 
             builder.AddTransient<ICreateGeneratePublishedFundingCsvJobs, GeneratePublishedFundingCsvJobCreation>();
-            builder.AddScoped<IPublishedProviderEstateCsvGenerator, PublishedProviderEstateCsvGenerator>();
+            builder.AddScoped<IPublishedProviderEstateCsvGenerator, PublishedProviderEstateCsvGenerator>()
+                .AddSingleton<IHealthChecker, PublishedProviderEstateCsvGenerator>();
             builder.AddScoped<IPublishedProviderCsvTransformServiceLocator, PublishedProviderCsvTransformServiceLocator>();
             builder.AddScoped<IPublishedProviderCsvTransform, PublishedProviderEstateCsvTransform>();
             builder.AddScoped<ICreateGeneratePublishedProviderEstateCsvJobs, CreateGeneratePublishedProviderEstateCsvJobs>();
@@ -196,11 +197,13 @@ namespace CalculateFunding.Functions.Publishing
                 .AddSingleton<IPublishedProviderStatusUpdateService, PublishedProviderStatusUpdateService>()
                 .AddSingleton<IHealthChecker, PublishedProviderStatusUpdateService>();
 
-            builder.AddSingleton<IPublishedProviderVersionService, PublishedProviderVersionService>()
-                .AddSingleton<IHealthChecker, PublishedProviderStatusUpdateService>();
+            builder
+                .AddSingleton<IPublishedProviderVersionService, PublishedProviderVersionService>()
+                .AddSingleton<IHealthChecker, PublishedProviderVersionService>();
 
-            builder.AddSingleton<IPublishedSearchService, PublishedSearchService>()
-                    .AddSingleton<IHealthChecker, PublishedSearchService>();
+            builder
+                .AddSingleton<IPublishedSearchService, PublishedSearchService>()
+                .AddSingleton<IHealthChecker, PublishedSearchService>();
             builder
                 .AddSingleton<IPublishedProviderStatusUpdateSettings>(_ =>
                     {
@@ -253,7 +256,7 @@ namespace CalculateFunding.Functions.Publishing
                 CosmosRepository resultsRepostory = new CosmosRepository(publishedProviderVersioningDbSettings);
 
                 return new VersionRepository<PublishedProviderVersion>(resultsRepostory);
-            }).AddSingleton<IHealthChecker, VersionRepository<PublishedProviderVersion>>();
+            });
 
             builder.AddSingleton<IVersionRepository<PublishedFundingVersion>, VersionRepository<PublishedFundingVersion>>((ctx) =>
             {
@@ -288,7 +291,9 @@ namespace CalculateFunding.Functions.Publishing
 
             builder.AddSingleton<IFundingLineTotalAggregator, FundingLineTotalAggregator>();
 
-            builder.AddSingleton<IProfilingService, ProfilingService>();
+            builder
+                .AddSingleton<IProfilingService, ProfilingService>()
+                .AddSingleton<IHealthChecker, ProfilingService>();
 
             builder.AddSingleton(new MapperConfiguration(_ =>
             {
@@ -384,39 +389,8 @@ namespace CalculateFunding.Functions.Publishing
 
             builder.AddSingleton<ITransactionFactory, TransactionFactory>();
 
-            builder.AddHttpClient(HttpClientKeys.Profiling,
-                   c =>
-                   {
-                       ApiOptions apiOptions = new ApiOptions();
-
-                       config.Bind("providerProfilingClient", apiOptions);
-
-                       Services.Core.Extensions.ServiceCollectionExtensions.SetDefaultApiClientConfigurationOptions(c, apiOptions, builder);
-                   })
-                   .ConfigurePrimaryHttpMessageHandler(() => new ApiClientHandler())
-                   .AddTransientHttpErrorPolicy(c => c.WaitAndRetryAsync(new[] { TimeSpan.FromMilliseconds(500), TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(5) }))
-                   .AddTransientHttpErrorPolicy(c => c.CircuitBreakerAsync(100, TimeSpan.FromSeconds(30)));
-
-            builder.AddSingleton<ICancellationTokenProvider, InactiveCancellationTokenProvider>();
-
-            builder.AddSingleton<IAzureBearerTokenProxy, AzureBearerTokenProxy>();
-
-            builder.AddSingleton<IProfilingApiClient>((ctx) =>
-            {
-                IHttpClientFactory httpClientFactory = ctx.GetService<IHttpClientFactory>();
-                ILogger logger = ctx.GetService<ILogger>();
-                ICancellationTokenProvider cancellationTokenProvider = ctx.GetService<ICancellationTokenProvider>();
-
-                IAzureBearerTokenProxy azureBearerTokenProxy = ctx.GetService<IAzureBearerTokenProxy>();
-                ICacheProvider cacheProvider = ctx.GetService<ICacheProvider>();
-
-                AzureBearerTokenOptions azureBearerTokenOptions = new AzureBearerTokenOptions();
-                config.Bind("providerProfilingAzureBearerTokenOptions", azureBearerTokenOptions);
-
-                AzureBearerTokenProvider bearerTokenProvider = new AzureBearerTokenProvider(azureBearerTokenProxy, cacheProvider, azureBearerTokenOptions);
-
-                return new ProfilingApiClient(httpClientFactory, HttpClientKeys.Profiling, logger, bearerTokenProvider, cancellationTokenProvider);
-            });
+            builder
+                .AddProfilingInterServiceClient(config);
 
             return builder.BuildServiceProvider();
         }

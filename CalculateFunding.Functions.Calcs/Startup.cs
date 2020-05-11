@@ -86,7 +86,19 @@ namespace CalculateFunding.Functions.Calcs
             }
 
             builder.AddScoped<IApplyTemplateCalculationsService, ApplyTemplateCalculationsService>();
-            builder.AddSingleton<ICalculationsRepository, CalculationsRepository>();
+            builder.AddSingleton<ICalculationsRepository, CalculationsRepository>((ctx) =>
+            {
+                CosmosDbSettings calcsVersioningDbSettings = new CosmosDbSettings();
+
+                config.Bind("CosmosDbSettings", calcsVersioningDbSettings);
+
+                calcsVersioningDbSettings.ContainerName = "calcs";
+
+                CosmosRepository resultsRepostory = new CosmosRepository(calcsVersioningDbSettings);
+
+                return new CalculationsRepository(resultsRepostory);
+            });
+
             builder.AddSingleton<ITemplateContentsCalculationQuery, TemplateContentsCalculationQuery>();
             builder.AddSingleton<IApplyTemplateCalculationsJobTrackerFactory, ApplyTemplateCalculationsJobTrackerFactory>();
             builder.AddScoped<ICalculationService, CalculationService>()
@@ -108,7 +120,19 @@ namespace CalculateFunding.Functions.Calcs
             builder.AddSingleton<ISourceFileGeneratorProvider, SourceFileGeneratorProvider>();
             builder.AddSingleton<IValidator<PreviewRequest>, PreviewRequestModelValidator>();
             builder.AddScoped<IBuildProjectsService, BuildProjectsService>();
-            builder.AddSingleton<IBuildProjectsRepository, BuildProjectsRepository>();
+            builder.AddSingleton<IBuildProjectsRepository, BuildProjectsRepository>((ctx) =>
+            {
+                CosmosDbSettings calcsVersioningDbSettings = new CosmosDbSettings();
+
+                config.Bind("CosmosDbSettings", calcsVersioningDbSettings);
+
+                calcsVersioningDbSettings.ContainerName = "calcs";
+
+                CosmosRepository resultsRepostory = new CosmosRepository(calcsVersioningDbSettings);
+
+                return new BuildProjectsRepository(resultsRepostory);
+            });
+
             builder.AddSingleton<ICodeMetadataGeneratorService, ReflectionCodeMetadataGenerator>();
             builder.AddSingleton<ICancellationTokenProvider, InactiveCancellationTokenProvider>();
             builder.AddSingleton<ISourceCodeService, SourceCodeService>();
@@ -166,15 +190,6 @@ namespace CalculateFunding.Functions.Calcs
 
                 return new VersionRepository<CalculationVersion>(resultsRepostory);
             });
-
-            if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
-            {
-                builder.AddCosmosDb(config, "calcs");
-            }
-            else
-            {
-                builder.AddCosmosDb(config);
-            }
 
             builder.AddFeatureToggling(config);
 

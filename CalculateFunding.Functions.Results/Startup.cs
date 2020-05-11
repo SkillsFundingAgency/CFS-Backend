@@ -8,6 +8,7 @@ using CalculateFunding.Common.Config.ApiClient.Specifications;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Interfaces;
 using CalculateFunding.Common.JobManagement;
+using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Functions.Results.ServiceBus;
 using CalculateFunding.Functions.Results.Timer;
 using CalculateFunding.Models.Calcs;
@@ -35,10 +36,6 @@ namespace CalculateFunding.Functions.Results
 {
     public class Startup : FunctionsStartup
     {
-        private static TimeSpan[] retryTimeSpans = new[] { TimeSpan.FromMilliseconds(500), TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(5) };
-        private static int numberOfExceptionsBeforeCircuitBreaker = 100;
-        private static TimeSpan circuitBreakerFailurePeriod = TimeSpan.FromMinutes(1);
-
         public override void Configure(IFunctionsHostBuilder builder)
         {
             RegisterComponents(builder.Services);
@@ -75,12 +72,13 @@ namespace CalculateFunding.Functions.Results
             builder.AddSingleton<IJobHelperService, JobHelperService>();
             builder.AddSingleton<IProviderCalculationResultsReIndexerService, ProviderCalculationResultsReIndexerService>();
             builder.AddTransient<ICsvUtils, CsvUtils>();
-            builder.AddTransient<IProviderResultsCsvGeneratorService, ProviderResultsCsvGeneratorService>();
+            builder
+                .AddTransient<IProviderResultsCsvGeneratorService, ProviderResultsCsvGeneratorService>()
+                .AddTransient<IHealthChecker, ProviderResultsCsvGeneratorService>();
+
             builder.AddTransient<IProverResultsToCsvRowsTransformation, ProverResultsToCsvRowsTransformation>();
             builder.AddSingleton<IFileSystemAccess, FileSystemAccess>();
             builder.AddSingleton<IFileSystemCacheSettings, FileSystemCacheSettings>();
-
-
 
             builder.AddCaching(config);
 

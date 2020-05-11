@@ -26,7 +26,7 @@ using Serilog;
 
 namespace CalculateFunding.Services.Providers
 {
-    public class ProviderVersionService : IProviderVersionService, IHealthChecker
+    public class ProviderVersionService : IProviderVersionService
     {
         private const int CACHE_DURATION = 7;
 

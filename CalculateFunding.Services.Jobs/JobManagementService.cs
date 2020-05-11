@@ -15,7 +15,6 @@ using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Jobs.Interfaces;
 using FluentValidation;
 using FluentValidation.Results;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
 using Polly;

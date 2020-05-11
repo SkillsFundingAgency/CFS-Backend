@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
-using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Services.Publishing.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CalculateFunding.Services.Publishing.Interfaces
 {
-    public interface IProviderFundingPublishingService : IHealthChecker
+    public interface IProviderFundingPublishingService
     {
         Task<IActionResult> PublishAllProvidersFunding(string specificationId,
             Reference user,

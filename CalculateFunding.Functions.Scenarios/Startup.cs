@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading;
-using AutoMapper;
 using CalculateFunding.Common.ApiClient;
 using CalculateFunding.Common.Config.ApiClient.Calcs;
 using CalculateFunding.Common.Config.ApiClient.Jobs;
@@ -10,7 +9,6 @@ using CalculateFunding.Common.Interfaces;
 using CalculateFunding.Functions.Scenarios.ServiceBus;
 using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Repositories.Common.Search;
-using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
@@ -59,7 +57,20 @@ namespace CalculateFunding.Functions.Scenarios
                 builder.AddScoped<OnEditSpecificationEvent>();
             }
 
-            builder.AddSingleton<IScenariosRepository, ScenariosRepository>();
+            builder.AddSingleton<IScenariosRepository, ScenariosRepository>((ctx) =>
+            {
+                CosmosDbSettings scenariosVersioningDbSettings = new CosmosDbSettings();
+
+                config.Bind("CosmosDbSettings", scenariosVersioningDbSettings);
+
+                scenariosVersioningDbSettings.ContainerName = "tests";
+
+                CosmosRepository resultsRepostory = new CosmosRepository(scenariosVersioningDbSettings);
+
+                return new ScenariosRepository(resultsRepostory);
+            });
+
+
             builder.AddSingleton<IScenariosService, ScenariosService>();
             builder.AddSingleton<IScenariosSearchService, ScenariosSearchService>();
             builder
@@ -93,15 +104,6 @@ namespace CalculateFunding.Functions.Scenarios
             builder.AddCalculationsInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
             builder.AddSpecificationsInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
             builder.AddDatasetsInterServiceClient(config);
-
-            if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
-            {
-                builder.AddCosmosDb(config, "tests");
-            }
-            else
-            {
-                builder.AddCosmosDb(config);
-            }
 
             builder.AddJobsInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
 

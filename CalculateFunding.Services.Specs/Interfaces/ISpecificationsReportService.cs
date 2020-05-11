@@ -1,5 +1,4 @@
-﻿using CalculateFunding.Models.Specs;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Specs.Interfaces

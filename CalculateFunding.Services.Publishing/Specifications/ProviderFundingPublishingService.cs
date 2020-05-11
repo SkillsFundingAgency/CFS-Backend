@@ -20,7 +20,7 @@ using CalculateFunding.Common.ApiClient.Policies.Models;
 
 namespace CalculateFunding.Services.Publishing.Specifications
 {
-    public class ProviderFundingPublishingService : SpecificationPublishingBase, IProviderFundingPublishingService
+    public class ProviderFundingPublishingService : SpecificationPublishingBase, IProviderFundingPublishingService, IHealthChecker
     {
         private readonly ICreateAllPublishProviderFundingJobs _createAllPublishProviderFundingJobs;
         private readonly ICreateBatchPublishProviderFundingJobs _createBatchPublishProviderFundingJobs;

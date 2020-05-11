@@ -5,7 +5,6 @@ using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Functions.Users.ServiceBus;
 using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Models.Users;
-using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
@@ -107,8 +106,6 @@ namespace CalculateFunding.Functions.Users
                     UserRepositoryPolicy = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
                 };
             });
-
-            builder.AddCosmosDb(config);
 
             builder.AddCaching(config);
 

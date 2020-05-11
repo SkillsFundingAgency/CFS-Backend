@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Results;
-using CalculateFunding.Services.Core.Interfaces.Proxies;
 using CalculateFunding.Services.Specs.Interfaces;
 
 namespace CalculateFunding.Services.Specs

@@ -4,7 +4,6 @@ using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.WebApi.Extensions;
 using CalculateFunding.Common.WebApi.Middleware;
 using CalculateFunding.Models.CosmosDbScaling;
-using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.AspNet.HealthChecks;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
@@ -16,7 +15,6 @@ using CalculateFunding.Services.CosmosDbScaling.Validators;
 using FluentValidation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -133,7 +131,6 @@ namespace CalculateFunding.API.CosmosDbScaling
 
             builder.AddFeatureToggling(Configuration);
             builder.AddUserProviderFromRequest();
-            builder.AddCosmosDb(Configuration);
             builder.AddServiceBus(Configuration);
             builder.AddSearch(Configuration);
             builder.AddCaching(Configuration);          

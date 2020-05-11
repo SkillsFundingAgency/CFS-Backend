@@ -129,7 +129,7 @@ namespace CalculateFunding.Api.Results
             builder
                 .AddSingleton<IProviderCalculationResultsSearchService, ProviderCalculationResultsSearchService>()
                 .AddSingleton<IHealthChecker, ProviderCalculationResultsSearchService>();
-           
+
 
             builder.AddSingleton<ICalculationResultsRepository, CalculationResultsRepository>((ctx) =>
                            {

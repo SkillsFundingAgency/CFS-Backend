@@ -1,7 +1,6 @@
 ﻿using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Datasets.ViewModels;
 using CalculateFunding.Models.Scenarios;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
 using System.Collections.Generic;

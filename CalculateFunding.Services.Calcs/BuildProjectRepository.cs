@@ -11,9 +11,9 @@ namespace CalculateFunding.Services.Calcs
 {
     public class BuildProjectsRepository : IBuildProjectsRepository, IHealthChecker
     {
-        private readonly CosmosRepository _cosmosRepository;
+        private readonly ICosmosRepository _cosmosRepository;
 
-        public BuildProjectsRepository(CosmosRepository cosmosRepository)
+        public BuildProjectsRepository(ICosmosRepository cosmosRepository)
         {
             _cosmosRepository = cosmosRepository;
         }
@@ -22,9 +22,9 @@ namespace CalculateFunding.Services.Calcs
         {
             ServiceHealth health = new ServiceHealth();
 
-            var cosmosHealth = _cosmosRepository.IsHealthOk();
+            (bool Ok, string Message) cosmosHealth = _cosmosRepository.IsHealthOk();
 
-            health.Name = this.GetType().Name;
+            health.Name = GetType().Name;
             health.Dependencies.Add(new DependencyHealth { HealthOk = cosmosHealth.Ok, DependencyName = typeof(CosmosRepository).Name, Message = cosmosHealth.Message });
 
             return health;

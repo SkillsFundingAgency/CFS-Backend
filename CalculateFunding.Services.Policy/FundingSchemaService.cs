@@ -4,13 +4,11 @@ using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Policy.Interfaces;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Schema;
 using Serilog;
 using System;
-using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 

@@ -131,7 +131,19 @@ namespace CalculateFunding.Api.Specs
             builder.AddSingleton<IQueueCreateSpecificationJobActions, QueueCreateSpecificationJobAction>();
             builder.AddSingleton<IQueueDeleteSpecificationJobActions, QueueDeleteSpecificationJobAction>();
 
-            builder.AddSingleton<ISpecificationsRepository, SpecificationsRepository>();
+            builder.AddSingleton<ISpecificationsRepository, SpecificationsRepository>((ctx) =>
+            {
+                CosmosDbSettings specsVersioningDbSettings = new CosmosDbSettings();
+
+                Configuration.Bind("CosmosDbSettings", specsVersioningDbSettings);
+
+                specsVersioningDbSettings.ContainerName = "specs";
+
+                CosmosRepository resultsRepostory = new CosmosRepository(specsVersioningDbSettings);
+
+                return new SpecificationsRepository(resultsRepostory);
+            });
+
             builder
                 .AddSingleton<ISpecificationsService, SpecificationsService>()
                 .AddSingleton<IHealthChecker, SpecificationsService>();
@@ -146,7 +158,9 @@ namespace CalculateFunding.Api.Specs
                 .AddSingleton<ISpecificationsSearchService, SpecificationsSearchService>()
                 .AddSingleton<IHealthChecker, SpecificationsSearchService>();
             builder.AddSingleton<IResultsRepository, ResultsRepository>();
-            builder.AddSingleton<ISpecificationsReportService, SpecificationsReportService>();
+            builder
+                .AddSingleton<ISpecificationsReportService, SpecificationsReportService>()
+                .AddSingleton<IHealthChecker, SpecificationsReportService>();
 
             builder.AddSingleton<ITemplateMetadataResolver>((ctx) =>
             {
@@ -186,8 +200,6 @@ namespace CalculateFunding.Api.Specs
                     return new BlobClient(storageSettings, ctx.GetService<IBlobContainerRepository>());
                 });
 
-            builder.AddSingleton<ICosmosRepository, CosmosRepository>();
-
             builder.AddSingleton<IVersionRepository<Models.Specs.SpecificationVersion>, VersionRepository<Models.Specs.SpecificationVersion>>((ctx) =>
             {
                 CosmosDbSettings specsVersioningDbSettings = new CosmosDbSettings();
@@ -213,8 +225,6 @@ namespace CalculateFunding.Api.Specs
             builder.AddSingleton(mappingConfig.CreateMapper());
 
             builder.AddUserProviderFromRequest();
-
-            builder.AddCosmosDb(Configuration);
 
             builder.AddServiceBus(Configuration);
 

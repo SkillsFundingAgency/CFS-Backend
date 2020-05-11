@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;

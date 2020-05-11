@@ -14,10 +14,11 @@ using System.Threading.Tasks;
 using Microsoft.Azure.Storage;
 using System.Text;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Common.Models.HealthCheck;
 
 namespace CalculateFunding.Services.Specs
 {
-    public class SpecificationsReportService : ISpecificationsReportService
+    public class SpecificationsReportService : ISpecificationsReportService, IHealthChecker
     {
         private readonly IBlobClient _blobClient;
 
@@ -72,6 +73,19 @@ namespace CalculateFunding.Services.Specs
             
             SpecificationsDownloadModel downloadModel = new SpecificationsDownloadModel { Url = blobUrl, FileName = fileName };
             return new OkObjectResult(downloadModel);
+        }
+
+        public async Task<ServiceHealth> IsHealthOk()
+        {
+            (bool Ok, string Message) = await _blobClient.IsHealthOk();
+
+            ServiceHealth health = new ServiceHealth()
+            {
+                Name = nameof(SpecificationsReportService)
+            };
+            health.Dependencies.Add(new DependencyHealth { HealthOk = Ok, DependencyName = _blobClient.GetType().GetFriendlyName(), Message = Message });
+
+            return health;
         }
 
         private IEnumerable<SpecificationReport> GetReportMetadata(string fileNamePrefix, string containerName, JobType? reportType = null)

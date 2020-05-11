@@ -24,7 +24,6 @@ using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Datasets.Interfaces;
 using FluentValidation;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Serilog;
@@ -32,7 +31,8 @@ using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
 
 namespace CalculateFunding.Services.Datasets
 {
-    public class DefinitionSpecificationRelationshipService : IDefinitionSpecificationRelationshipService, IHealthChecker
+    public class DefinitionSpecificationRelationshipService : 
+        IDefinitionSpecificationRelationshipService, IHealthChecker
     {
         private readonly IDatasetRepository _datasetRepository;
         private readonly ILogger _logger;

@@ -5,15 +5,17 @@ using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Profiling;
 using CalculateFunding.Common.ApiClient.Profiling.Models;
+using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core;
+using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Interfaces;
 using Serilog;
 
 namespace CalculateFunding.Services.Publishing
 {
-    public class ProfilingService : IProfilingService
+    public class ProfilingService : IProfilingService, IHealthChecker
     {
         protected readonly IProfilingApiClient _profilingApiClient;
         private readonly ILogger _logger;
@@ -193,6 +195,24 @@ namespace CalculateFunding.Services.Publishing
             };
 
             return requestModel;
+        }
+
+        public async Task<ServiceHealth> IsHealthOk()
+        {
+            (bool Ok, string Message) = await _profilingApiClient.IsHealthOk();
+
+            ServiceHealth health = new ServiceHealth()
+            {
+                Name = nameof(ProfilingService)
+            };
+            health.Dependencies.Add(new DependencyHealth 
+            { 
+                HealthOk = Ok, 
+                DependencyName = _profilingApiClient.GetType().GetFriendlyName(), 
+                Message = Message 
+            });
+
+            return health;
         }
     }
 }

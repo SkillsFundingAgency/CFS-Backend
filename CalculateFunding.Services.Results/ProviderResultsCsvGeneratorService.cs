@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Dynamic;
 using System.IO;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Caching.FileSystem;
@@ -17,7 +18,7 @@ using Serilog;
 
 namespace CalculateFunding.Services.Results
 {
-    public class ProviderResultsCsvGeneratorService : IProviderResultsCsvGeneratorService
+    public class ProviderResultsCsvGeneratorService : IProviderResultsCsvGeneratorService, IHealthChecker
     {
         public const int BatchSize = 100;
         
@@ -133,6 +134,19 @@ namespace CalculateFunding.Services.Results
         private string GetPrettyFileName(string specificationName)
         {
             return $"Calculation Results {specificationName} {DateTimeOffset.UtcNow:s}.csv";
+        }
+
+        public async Task<ServiceHealth> IsHealthOk()
+        {
+            (bool Ok, string Message) blobHealth = await _blobClient.IsHealthOk();
+
+            ServiceHealth health = new ServiceHealth()
+            {
+                Name = nameof(ProviderResultsCsvGeneratorService)
+            };
+            health.Dependencies.Add(new DependencyHealth { HealthOk = blobHealth.Ok, DependencyName = _blobClient.GetType().GetFriendlyName(), Message = blobHealth.Message });
+
+            return health;
         }
 
         private class CsvFilePath

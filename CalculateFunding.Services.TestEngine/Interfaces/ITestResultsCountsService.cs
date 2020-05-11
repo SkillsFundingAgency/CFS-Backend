@@ -1,6 +1,5 @@
 ﻿using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Models.Scenarios;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 

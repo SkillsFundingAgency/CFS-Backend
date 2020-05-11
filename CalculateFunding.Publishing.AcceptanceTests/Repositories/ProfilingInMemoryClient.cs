@@ -78,5 +78,10 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         {
             throw new NotImplementedException();
         }
+
+        public Task<(bool Ok, string Message)> IsHealthOk()
+        {
+            return Task.FromResult((true, string.Empty));
+        }
     }
 }

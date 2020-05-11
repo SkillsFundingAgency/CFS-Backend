@@ -1,9 +1,4 @@
-﻿using CalculateFunding.Common.Models.HealthCheck;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Policy.Interfaces
 {

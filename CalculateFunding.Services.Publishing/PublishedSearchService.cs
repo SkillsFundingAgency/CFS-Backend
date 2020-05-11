@@ -11,16 +11,14 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Filtering;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Publishing.Interfaces;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Search.Models;
-using Newtonsoft.Json;
 using Serilog;
 
 
 namespace CalculateFunding.Services.Publishing
 {
-    public class PublishedSearchService : SearchService<PublishedProviderIndex>, IPublishedSearchService
+    public class PublishedSearchService : SearchService<PublishedProviderIndex>, IPublishedSearchService, IHealthChecker
     {
         private static readonly FacetFilterType[] Facets = {
             new FacetFilterType("providerType"),

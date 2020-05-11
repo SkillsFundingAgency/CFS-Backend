@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using CalculateFunding.Common.Models.HealthCheck;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 

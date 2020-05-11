@@ -118,7 +118,19 @@ namespace CalculateFunding.Api.Scenarios
             builder
                 .AddSingleton<IHealthChecker, ControllerResolverHealthCheck>();
 
-            builder.AddSingleton<IScenariosRepository, ScenariosRepository>();
+            builder.AddSingleton<IScenariosRepository, ScenariosRepository>((ctx) =>
+            {
+                CosmosDbSettings scenariosVersioningDbSettings = new CosmosDbSettings();
+
+                Configuration.Bind("CosmosDbSettings", scenariosVersioningDbSettings);
+
+                scenariosVersioningDbSettings.ContainerName = "tests";
+
+                CosmosRepository resultsRepostory = new CosmosRepository(scenariosVersioningDbSettings);
+
+                return new ScenariosRepository(resultsRepostory);
+            });
+
             builder
                 .AddSingleton<IScenariosService, ScenariosService>()
                 .AddSingleton<IHealthChecker, ScenariosService>();
@@ -163,8 +175,6 @@ namespace CalculateFunding.Api.Scenarios
             builder.AddSpecificationsInterServiceClient(Configuration);
             builder.AddDatasetsInterServiceClient(Configuration);
             builder.AddJobsInterServiceClient(Configuration);
-
-            builder.AddCosmosDb(Configuration);
 
             builder.AddSearch(Configuration);
             builder

@@ -173,8 +173,6 @@ namespace CalculateFunding.Api.Users
 
             builder.AddUserProviderFromRequest();
 
-            builder.AddCosmosDb(Configuration);
-
             builder.AddCaching(Configuration);
 
            

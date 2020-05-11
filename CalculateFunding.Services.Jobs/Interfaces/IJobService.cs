@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
 using CalculateFunding.Models.Jobs;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CalculateFunding.Services.Jobs.Interfaces

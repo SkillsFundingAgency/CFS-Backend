@@ -1,6 +1,5 @@
 ﻿using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Datasets;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 

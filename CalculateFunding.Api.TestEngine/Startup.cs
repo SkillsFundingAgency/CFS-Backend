@@ -11,7 +11,6 @@ using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.CodeMetadataGenerator;
 using CalculateFunding.Services.CodeMetadataGenerator.Interfaces;
-using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.AspNet.HealthChecks;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
@@ -24,13 +23,13 @@ using CalculateFunding.Services.TestRunner.Repositories;
 using CalculateFunding.Services.TestRunner.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using Polly;
 using Polly.Bulkhead;
+using Serilog;
 
 namespace CalculateFunding.Api.TestRunner
 {
@@ -136,8 +135,22 @@ namespace CalculateFunding.Api.TestRunner
             builder
                 .AddSingleton<IStepParserFactory, StepParserFactory>();
 
-            builder
-                .AddSingleton<ITestResultsRepository, TestResultsRepository>();
+            builder.AddSingleton<ITestResultsRepository, TestResultsRepository>((ctx) =>
+            {
+                CosmosDbSettings providersDbSettings = new CosmosDbSettings();
+
+                Configuration.Bind("CosmosDbSettings", providersDbSettings);
+
+                providersDbSettings.ContainerName = "testresults";
+
+                CosmosRepository providersCosmosRepostory = new CosmosRepository(providersDbSettings);
+                
+                ILogger logger = ctx.GetService<ILogger>();
+
+                EngineSettings engineSettings = ctx.GetService<EngineSettings>();
+
+                return new TestResultsRepository(providersCosmosRepostory, logger, engineSettings);
+            });
 
             builder
                 .AddSingleton<IScenariosRepository, ScenariosRepository>();
@@ -154,8 +167,6 @@ namespace CalculateFunding.Api.TestRunner
 
             builder
                 .AddSingleton<ICalculationsRepository, CalculationsRepository>();
-
-            builder.AddSingleton<ICosmosRepository, CosmosRepository>();
 
             builder.AddSingleton<IProviderSourceDatasetsRepository, ProviderSourceDatasetsRepository>((ctx) =>
             {
@@ -208,8 +219,6 @@ namespace CalculateFunding.Api.TestRunner
                 .AddScoped<IHealthChecker, TestResultsService>();
 
             builder.AddUserProviderFromRequest();
-
-            builder.AddCosmosDb(Configuration);
 
             builder.AddSearch(Configuration);
             builder

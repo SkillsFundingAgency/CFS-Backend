@@ -11,10 +11,8 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Filtering;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Datasets.Interfaces;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Search.Models;
-using Newtonsoft.Json;
 using Serilog;
 
 namespace CalculateFunding.Services.Datasets

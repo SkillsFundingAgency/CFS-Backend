@@ -204,7 +204,8 @@ namespace CalculateFunding.Api.Datasets
             builder.AddSingleton<IDatasetRepository, DataSetsRepository>(ctx =>
                 new DataSetsRepository(CreateCosmosDbSettings("datasets")));
 
-            builder.AddSingleton<IDatasetSearchService, DatasetSearchService>()
+            builder
+                .AddSingleton<IDatasetSearchService, DatasetSearchService>()
                 .AddSingleton<IHealthChecker, DatasetSearchService>();
 
             builder.AddSingleton<IDatasetDefinitionSearchService, DatasetDefinitionSearchService>();
