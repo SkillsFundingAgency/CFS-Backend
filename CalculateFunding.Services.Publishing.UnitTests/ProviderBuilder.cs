@@ -1,6 +1,5 @@
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Tests.Common.Helpers;
-using Microsoft.AspNetCore.Mvc;
 using System;
 
 namespace CalculateFunding.Services.Publishing.UnitTests

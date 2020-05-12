@@ -12,7 +12,6 @@ namespace CalculateFunding.Services.Publishing.Interfaces
         IEnumerable<PublishedFundingOrganisationGrouping> GenerateOrganisationGroupings(
             IEnumerable<OrganisationGroupResult> organisationGroups, 
             IEnumerable<PublishedFundingVersion> existingPublishedFunding, 
-            IDictionary<string, PublishedProvider> currentPublishedProviders,
             bool includeHistory);
     }
 }

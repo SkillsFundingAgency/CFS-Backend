@@ -9,7 +9,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private string _defaultTemplateVersion;
         private string _fundingStreamId;
         private string _fundingPeriodId;
+        private string _id;
         private ApprovalMode? _approvalMode;
+
+        public FundingConfigurationBuilder WithId(string id)
+        {
+            _id = id;
+
+            return this;
+        }
 
         public FundingConfigurationBuilder WithFundingPeriodId(string fundingPeriodId)
         {
@@ -43,6 +51,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         {
             return new FundingConfiguration
             {
+                Id = _id ?? NewRandomString(),
                 FundingPeriodId = _fundingPeriodId ?? NewRandomString(),
                 FundingStreamId = _fundingStreamId ?? NewRandomString(),
                 ApprovalMode = _approvalMode ?? NewRandomEnum<ApprovalMode>(),

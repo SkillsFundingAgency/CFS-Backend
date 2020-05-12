@@ -66,7 +66,6 @@ namespace CalculateFunding.Services.Publishing
         public IEnumerable<PublishedFundingOrganisationGrouping> GenerateOrganisationGroupings(
             IEnumerable<OrganisationGroupResult> organisationGroups, 
             IEnumerable<PublishedFundingVersion> existingPublishedFunding, 
-            IDictionary<string, PublishedProvider> currentPublishedProviders,
             bool includeNonCurrent)
         {
             ConcurrentBag<PublishedFundingOrganisationGrouping> results = new ConcurrentBag<PublishedFundingOrganisationGrouping>();

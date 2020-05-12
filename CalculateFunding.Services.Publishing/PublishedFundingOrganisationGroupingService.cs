@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
-using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Generators.OrganisationGroup.Interfaces;
 using CalculateFunding.Generators.OrganisationGroup.Models;
@@ -9,7 +8,6 @@ using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Reporting.FundingLines;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using ApiProvider = CalculateFunding.Common.ApiClient.Providers.Models.Provider;
 
@@ -52,17 +50,17 @@ namespace CalculateFunding.Services.Publishing
         {
             FundingConfiguration fundingConfiguration = await _policiesService.GetFundingConfiguration(fundingStreamId, specification.FundingPeriod.Id);
 
-            Reference fundingStream = new Reference { Id = fundingStreamId };
-            (IDictionary<string, PublishedProvider> publishedProvidersForFundingStream, IDictionary<string, PublishedProvider> scopedPublishedProviders) =
-                await _providerService.GetPublishedProviders(fundingStream, specification);
-
-            IEnumerable<Provider> scopedProviders = scopedPublishedProviders?.Values.Select(_ => _.Current.Provider);
+            IDictionary<string, Provider> scopedProviders =
+                await _providerService.GetScopedProvidersForSpecification(specification.Id, specification.ProviderVersionId);
 
             IEnumerable<OrganisationGroupResult> organisationGroups =
-                await _organisationGroupGenerator.GenerateOrganisationGroup(fundingConfiguration, _mapper.Map<IEnumerable<ApiProvider>>(scopedProviders), specification.ProviderVersionId);
+                await _organisationGroupGenerator.GenerateOrganisationGroup(
+                    fundingConfiguration, 
+                    _mapper.Map<IEnumerable<ApiProvider>>(scopedProviders?.Values), 
+                    specification.ProviderVersionId);
 
             IEnumerable<PublishedFundingOrganisationGrouping> organisationGroupings =
-                _publishedFundingChangeDetectorService.GenerateOrganisationGroupings(organisationGroups, publishedFundingVersions, publishedProvidersForFundingStream, includeHistory);
+                _publishedFundingChangeDetectorService.GenerateOrganisationGroupings(organisationGroups, publishedFundingVersions, includeHistory);
 
             return organisationGroupings;
         }

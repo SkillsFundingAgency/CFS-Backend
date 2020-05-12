@@ -1,13 +1,13 @@
 ﻿using AutoMapper;
 using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
-using CalculateFunding.Common.Models;
 using CalculateFunding.Generators.OrganisationGroup.Enums;
 using CalculateFunding.Generators.OrganisationGroup.Interfaces;
 using CalculateFunding.Generators.OrganisationGroup.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Reporting.FundingLines;
+using CalculateFunding.Tests.Common.Helpers;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using System;
@@ -29,20 +29,31 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private IPublishedFundingChangeDetectorService _publishedFundingChangeDetectorService;
 
         private FundingConfiguration _fundingConfiguration;
-        private IDictionary<string, PublishedProvider> _publishedProvidersForFundingStream;
-        private IDictionary<string, PublishedProvider> _scopedPublishedProviders;
+        private IDictionary<string, Provider> _scopedProviders;
         private IEnumerable<OrganisationGroupResult> _organisationGroupResults;
         private IEnumerable<PublishedFundingOrganisationGrouping> _publishedFundingOrganisationGrouping;
 
         private bool _includeHistory;
         private string _fundingStreamId;
         private string _fundingPeriodId;
+        private string _providerVersionId;
+        private string _providerId;
+        private string _fundingConfigurationId;
         private SpecificationSummary _specificationSummary;
         private IEnumerable<PublishedFundingVersion> _publishedFundingVersions;
+        private OrganisationGroupTypeCode _organisationGroupTypeCode;
 
         [TestInitialize]
         public void SetUp()
         {
+            _fundingStreamId = NewRandomString();
+            _fundingPeriodId = NewRandomString();
+            _providerVersionId = NewRandomString();
+            _includeHistory = NewRandomBoolean();
+            _providerId = NewRandomString();
+            _fundingConfigurationId = NewRandomString();
+            _organisationGroupTypeCode = NewRandomOrganisationGroupTypeCode();
+
             _policiesService = Substitute.For<IPoliciesService>();
             _providerService = Substitute.For<IProviderService>();
             _organisationGroupGenerator = Substitute.For<IOrganisationGroupGenerator>();
@@ -61,84 +72,98 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         [TestMethod]
         public async Task GeneratePublishedFundingOrganisationGrouping_Succeed_GroupingReturned()
         {
-            _fundingStreamId = "fundingStream1";
-            _fundingPeriodId = "fundingPeriod1";
-
             GivenSpecificationSummary();
+            AndPublishedFundingVersions();
 
-            GivenFundingConfiguration();
-            GivenFundingConfigurationRetrieved();
+            AndFundingConfiguration();
+            AndFundingConfigurationRetrieved();
 
-            GivenPublishedProvidersForFundingStream();
-            GivenScopedPublishedProviders();
-            GivenPublishedProvidersRetrieved();
+            AndScopedPublishedProviders();
+            AndScopedProvidersForSpecificationRetrieved();
 
-            GivenOrganisationGroupResults();
-            GivenGenerateOrganisationGroup();
+            AndMapperConfiguration();
+            AndOrganisationGroupResults();
+            AndGenerateOrganisationGroup();
 
-            GivenPublishedFundingOrganisationGrouping();
-            GivenGenerateOrganisationGroupings();
+            AndPublishedFundingOrganisationGrouping();
+            AndGenerateOrganisationGroupings();
 
-            await WhenPublishedFundingOrganisationGroupingGenerated();
+            IEnumerable<PublishedFundingOrganisationGrouping> organisationGroupings = 
+                await WhenPublishedFundingOrganisationGroupingGenerated();
+
+            ThenOrganisationGroupingsGenerated(organisationGroupings);
+        }
+
+        private void ThenOrganisationGroupingsGenerated(IEnumerable<PublishedFundingOrganisationGrouping> organisationGroupings)
+        {
+            Assert.AreEqual(organisationGroupings.Count(), _publishedFundingOrganisationGrouping.Count());
         }
 
         private void GivenSpecificationSummary()
         {
-            _specificationSummary = NewSpecificationSummary(_=>_.WithFundingPeriodId(_fundingPeriodId));
+            _specificationSummary = NewSpecificationSummary(_=>_
+                .WithFundingPeriodId(_fundingPeriodId)
+                .WithProviderVersionId(_providerVersionId));
         }
 
-        private void GivenFundingConfiguration()
+        private void AndFundingConfiguration()
         {
-            _fundingConfiguration = NewFundingConfiguration();
+            _fundingConfiguration = NewFundingConfiguration(_=>_.WithId(_fundingConfigurationId));
         }
 
-        private void GivenFundingConfigurationRetrieved()
+        private void AndMapperConfiguration()
+        {
+            _mapper
+                .Map<IEnumerable<ApiProvider>>(
+                Arg.Is<ICollection<Provider>>(_ => _.Count() == 1 && _.FirstOrDefault().ProviderId == _providerId))
+                .Returns(new List<ApiProvider> 
+                { 
+                    NewApiProvider(_ => _.WithProviderId(_providerId)) 
+                });
+        }
+
+        private void AndFundingConfigurationRetrieved()
         {
             _policiesService
-                .GetFundingConfiguration(Arg.Is(_fundingStreamId), Arg.Is(_fundingPeriodId))
+                .GetFundingConfiguration(_fundingStreamId, _fundingPeriodId)
                 .Returns(_fundingConfiguration);
         }
 
-        private void GivenPublishedProvidersForFundingStream()
+        private void AndScopedPublishedProviders()
         {
-            _publishedProvidersForFundingStream = new Dictionary<string, PublishedProvider>
+            _scopedProviders = new Dictionary<string, Provider>
             {
-                { "key1", NewPublishedProvider() }
+                { "key2", NewProvider(_ => _.WithProviderId(_providerId)) }
             };
         }
 
-        private void GivenScopedPublishedProviders()
-        {
-            _scopedPublishedProviders = new Dictionary<string, PublishedProvider>
-            {
-                { "key2", NewPublishedProvider(_ => 
-                _.WithCurrent(
-                    NewPublishedProviderVersion(ppv => 
-                    ppv.WithVersion(1)))) }
-            };
-        }
-
-        private void GivenPublishedProvidersRetrieved()
+        private void AndScopedProvidersForSpecificationRetrieved()
         {
             _providerService
-                .GetPublishedProviders(Arg.Any<Reference>(), Arg.Any<SpecificationSummary>())
-                .Returns((_publishedProvidersForFundingStream, _scopedPublishedProviders));
+                .GetScopedProvidersForSpecification(_specificationSummary.Id, _specificationSummary.ProviderVersionId)
+                .Returns(Task.FromResult(_scopedProviders));
         }
 
-        private void GivenOrganisationGroupResults()
+        private void AndOrganisationGroupResults()
         {
             _organisationGroupResults = NewOrganisationGroupResults(_ =>
-                _.WithGroupTypeCode(OrganisationGroupTypeCode.LocalAuthority));
+                _.WithGroupTypeCode(_organisationGroupTypeCode));
         }
         
-        private void GivenGenerateOrganisationGroup()
+        private void AndGenerateOrganisationGroup()
         {
             _organisationGroupGenerator
-                .GenerateOrganisationGroup(Arg.Any<FundingConfiguration>(), Arg.Any<IEnumerable<ApiProvider>>(), Arg.Any<string>())
+                .GenerateOrganisationGroup(
+                Arg.Is<FundingConfiguration>(_ => _.Id == _fundingConfigurationId), 
+                Arg.Is<IEnumerable<ApiProvider>>(_ => 
+                    _.Count() == 1 && 
+                    _.FirstOrDefault() != null && 
+                    _.FirstOrDefault().ProviderId == _providerId ), 
+                _providerVersionId)
                 .Returns(_organisationGroupResults);
         }
 
-        private void GivenPublishedFundingOrganisationGrouping()
+        private void AndPublishedFundingOrganisationGrouping()
         {
             _publishedFundingOrganisationGrouping = NewPublishedFundingOrganisationGroupings(_ =>
             _.WithOrganisationGroupResult(
@@ -147,14 +172,28 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 )));
         }
 
-        private void GivenGenerateOrganisationGroupings()
+        private void AndPublishedFundingVersions()
+        {
+            _publishedFundingVersions = NewPublishedFundingVersions(_ =>
+                _.WithFundingStreamId(_fundingStreamId)
+                .WithSpecificationId(_specificationSummary.Id)
+                );
+        }
+
+        private void AndGenerateOrganisationGroupings()
         {
             _publishedFundingChangeDetectorService
                 .GenerateOrganisationGroupings(
-                Arg.Any<IEnumerable<OrganisationGroupResult>>(), 
-                Arg.Any<IEnumerable<PublishedFundingVersion>>(), 
-                Arg.Any<IDictionary<string, PublishedProvider>>(), 
-                Arg.Any<bool>())
+                Arg.Is<IEnumerable<OrganisationGroupResult>>(_ => 
+                    _.Count() == _organisationGroupResults.Count() && 
+                    _.FirstOrDefault() != null && 
+                    _.FirstOrDefault().GroupTypeCode == _organisationGroupTypeCode),
+                Arg.Is<IEnumerable<PublishedFundingVersion>>(_ =>
+                    _.Count() == _publishedFundingVersions.Count() &&
+                    _.FirstOrDefault() != null &&
+                    _.FirstOrDefault().FundingStreamId == _fundingStreamId &&
+                    _.FirstOrDefault().SpecificationId == _specificationSummary.Id),
+                _includeHistory)
                 .Returns(_publishedFundingOrganisationGrouping);
         }
 
@@ -173,22 +212,22 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             return fundingConfigurationBuilder.Build();
         }
 
-        private PublishedProvider NewPublishedProvider(Action<PublishedProviderBuilder> setUp = null)
+        private Provider NewProvider(Action<ProviderBuilder> setUp = null)
         {
-            PublishedProviderBuilder publishedProviderBuilder = new PublishedProviderBuilder();
+            ProviderBuilder providerBuilder = new ProviderBuilder();
 
-            setUp?.Invoke(publishedProviderBuilder);
+            setUp?.Invoke(providerBuilder);
 
-            return publishedProviderBuilder.Build();
+            return providerBuilder.Build();
         }
 
-        private PublishedProviderVersion NewPublishedProviderVersion(Action<PublishedProviderVersionBuilder> setUp = null)
+        private ApiProvider NewApiProvider(Action<ApiProviderBuilder> setUp = null)
         {
-            PublishedProviderVersionBuilder publishedProviderVersionBuilder = new PublishedProviderVersionBuilder();
+            ApiProviderBuilder apiProviderBuilder = new ApiProviderBuilder();
 
-            setUp?.Invoke(publishedProviderVersionBuilder);
+            setUp?.Invoke(apiProviderBuilder);
 
-            return publishedProviderVersionBuilder.Build();
+            return apiProviderBuilder.Build();
         }
 
         private OrganisationGroupResult NewOrganisationGroupResult(Action<OrganisationGroupResultBuilder> setUp = null)
@@ -227,5 +266,26 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             return specificationSummaryBuilder.Build();
         }
+
+        private PublishedFundingVersion NewPublishedFundingVersion(Action<PublishedFundingVersionBuilder> setUp = null)
+        {
+            PublishedFundingVersionBuilder publishedFundingVersionBuilder = new PublishedFundingVersionBuilder();
+
+            setUp?.Invoke(publishedFundingVersionBuilder);
+
+            return publishedFundingVersionBuilder.Build();
+        }
+
+        private IEnumerable<PublishedFundingVersion> NewPublishedFundingVersions(params Action<PublishedFundingVersionBuilder>[] setUp)
+        {
+            return setUp.Select(NewPublishedFundingVersion);
+        }
+
+
+        private bool NewRandomBoolean() => new RandomBoolean();
+
+        private string NewRandomString() => new RandomString();
+
+        private OrganisationGroupTypeCode NewRandomOrganisationGroupTypeCode() => new RandomEnum<OrganisationGroupTypeCode>();
     }
 }
