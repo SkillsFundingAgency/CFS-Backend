@@ -83,7 +83,7 @@ namespace CalculateFunding.Api.Policy.Controllers
 
             Reference author = ControllerContext.HttpContext.Request?.GetUserOrDefault();
 
-            CreateTemplateResponse result = await _templateBuilderService.CreateTemplate(command, author);
+            CommandResult result = await _templateBuilderService.CreateTemplate(command, author);
 
             if (result.Succeeded)
             {
@@ -113,7 +113,7 @@ namespace CalculateFunding.Api.Policy.Controllers
 
             Reference author = ControllerContext.HttpContext.Request?.GetUserOrDefault();
 
-            UpdateTemplateContentResponse result = await _templateBuilderService.UpdateTemplateContent(command, author);
+            CommandResult result = await _templateBuilderService.UpdateTemplateContent(command, author);
 
             if (result.Succeeded)
             {
@@ -143,7 +143,7 @@ namespace CalculateFunding.Api.Policy.Controllers
 
             Reference author = ControllerContext.HttpContext.Request?.GetUserOrDefault();
 
-            UpdateTemplateMetadataResponse result = await _templateBuilderService.UpdateTemplateMetadata(command, author);
+            CommandResult result = await _templateBuilderService.UpdateTemplateMetadata(command, author);
 
             if (result.Succeeded)
             {
@@ -172,6 +172,27 @@ namespace CalculateFunding.Api.Policy.Controllers
                 await _templateBuilderService.GetTemplateVersions(templateId, templateStatuses);
 
             return Ok(templateVersionResponses);
+        }
+
+        [HttpPost("api/templates/build/{templateId}/approve")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> ApproveTemplate([FromRoute] string templateId, [FromQuery] string comment = null, [FromQuery] string version = null)
+        {
+            Reference author = ControllerContext.HttpContext.Request?.GetUserOrDefault();
+            
+            CommandResult response = await _templateBuilderService.ApproveTemplate(author, templateId, comment, version);
+
+            if (response.Succeeded)
+                return Ok(response);
+
+            if (response.ValidationResult != null)
+            {
+                return response.ValidationResult.AsBadRequest();
+            }
+
+            return new InternalServerErrorResult(response.ErrorMessage ?? response.Exception?.Message ?? "Unknown error occurred");
         }
     }
 }

@@ -207,17 +207,6 @@ namespace CalculateFunding.Api.Policy
                 };
             });
 
-            builder.AddSingleton<ITemplateMetadataResolver>((ctx) =>
-            {
-                TemplateMetadataResolver resolver = new TemplateMetadataResolver();
-
-                TemplateMetadataSchema10.TemplateMetadataGenerator schema10Generator = new TemplateMetadataSchema10.TemplateMetadataGenerator(ctx.GetService<ILogger>());
-
-                resolver.Register("1.0", schema10Generator);
-
-                return resolver;
-            });
-
             builder.AddSingleton<IValidator<FundingConfiguration>, SaveFundingConfigurationValidator>();
             builder.AddSingleton<IValidator<FundingPeriodsJsonModel>, FundingPeriodJsonModelValidator>();
 

@@ -185,7 +185,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
                     Version = 1,
                     SchemaVersion = "1.1",
                     FundingPeriodId = "12345",
-                    Status = TemplateStatus.Approved,
+                    Status = TemplateStatus.Published,
                     Author = new Reference("222", "SecondTestUser")
                 };
                 _template = new Template

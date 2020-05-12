@@ -1,9 +1,12 @@
 ﻿using System;
+using System.Web.Mvc;
+using CalculateFunding.Services.Core.Extensions;
 using FluentValidation.Results;
+using ModelStateDictionary = Microsoft.AspNetCore.Mvc.ModelBinding.ModelStateDictionary;
 
 namespace CalculateFunding.Services.Policy.Models
 {
-    public class UpdateTemplateMetadataResponse
+    public class CommandResult
     {
         public bool Succeeded { get; set; }
         
@@ -14,38 +17,49 @@ namespace CalculateFunding.Services.Policy.Models
         public Exception Exception { get; set; }
         
         public ValidationResult ValidationResult { get; set; }
+        
+        public ModelStateDictionary ValidationModelState { get; set; }
 
-        public static UpdateTemplateMetadataResponse Success()
+        public static CommandResult Success()
         {
-            return new UpdateTemplateMetadataResponse
+            return new CommandResult
             {
                 Succeeded = true
             };
         }
         
-        public static UpdateTemplateMetadataResponse ValidationFail(ValidationResult errors)
+        public static CommandResult ValidationFail(ModelState errors)
         {
-            return new UpdateTemplateMetadataResponse
+            return new CommandResult
+            {
+                Succeeded = false,
+                ValidationModelState = errors.ToModelStateDictionary()
+            };
+        }
+        
+        public static CommandResult ValidationFail(ValidationResult errors)
+        {
+            return new CommandResult
             {
                 Succeeded = false,
                 ValidationResult = errors
             };
         }
 
-        public static UpdateTemplateMetadataResponse Fail(string errorMessage)
+        public static CommandResult Fail(string errorMessage)
         {
-            return new UpdateTemplateMetadataResponse
+            return new CommandResult
             {
                 Succeeded = false,
                 ErrorMessage = errorMessage
             };
         }
         
-        public static UpdateTemplateMetadataResponse ValidationFail(string propertyName, string error)
+        public static CommandResult ValidationFail(string propertyName, string error)
         {
             var validationResult = new ValidationResult();
             validationResult.Errors.Add(new ValidationFailure(propertyName, error));
-            return new UpdateTemplateMetadataResponse
+            return new CommandResult
             {
                 Succeeded = false,
                 ValidationResult = validationResult

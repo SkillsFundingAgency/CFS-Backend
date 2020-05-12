@@ -23,7 +23,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
             TemplateCreateCommand _command;
             TemplateBuilderService _service;
             Reference _author;
-            CreateTemplateResponse _result;
+            CommandResult _result;
             private ITemplateVersionRepository _versionRepository;
             private ITemplateRepository _templateRepository;
             private IIoCValidatorFactory _validatorFactory;
@@ -212,7 +212,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
             TemplateCreateCommand _command;
             TemplateBuilderService _service;
             Reference _author;
-            CreateTemplateResponse _result;
+            CommandResult _result;
             private ITemplateVersionRepository _versionRepository;
             private ITemplateRepository _templateRepository;
             private IIoCValidatorFactory _validatorFactory;

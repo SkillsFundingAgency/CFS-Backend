@@ -25,7 +25,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
             TemplateMetadataUpdateCommand _command;
             TemplateBuilderService _service;
             Reference _author;
-            UpdateTemplateMetadataResponse _result;
+            CommandResult _result;
             private ITemplateVersionRepository _versionRepository;
             private ITemplateRepository _templateRepository;
             private IIoCValidatorFactory _validatorFactory;
@@ -65,12 +65,14 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
                 {
                     Name = "Old Test Name",
                     Description = "Old Description",
+                    Comment = "Old comments",
                     TemplateId = _command.TemplateId,
+                    TemplateJson = "{'json': 'original'}",
                     Version = 1,
                     MinorVersion = 1,
                     MajorVersion = 0,
                     SchemaVersion = "1.1",
-                    Status = TemplateStatus.Draft,
+                    Status = TemplateStatus.Published,
                     Author = new Reference("111", "FirstTestUser")
                 };
                 _templateBeforeUpdate = new Template
@@ -183,6 +185,24 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
             {
                 _versionRepository.Received(1).SaveVersion(Arg.Is<TemplateVersion>(x => x.Status == TemplateStatus.Draft));
             }
+
+            [TestMethod]
+            public void Saved_version_with_recent_date()
+            {
+                _versionRepository.Received(1).SaveVersion(Arg.Is<TemplateVersion>(x => x.Date > DateTimeOffset.Now.AddMinutes(-1)));
+            }
+
+            [TestMethod]
+            public void Saved_version_with_correct_TemplateJson()
+            {
+                _versionRepository.Received(1).SaveVersion(Arg.Is<TemplateVersion>(x => x.TemplateJson == _templateVersionFirst.TemplateJson));
+            }
+
+            [TestMethod]
+            public void Saved_version_without_copying_across_comment()
+            {
+                _versionRepository.Received(1).SaveVersion(Arg.Is<TemplateVersion>(x => x.Comment == null));
+            }
         }
         
         [TestClass]
@@ -191,7 +211,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
             TemplateContentUpdateCommand _command;
             TemplateBuilderService _service;
             Reference _author;
-            UpdateTemplateContentResponse _result;
+            CommandResult _result;
             private ITemplateVersionRepository _versionRepository;
             private ITemplateRepository _templateRepository;
             private IIoCValidatorFactory _validatorFactory;
@@ -238,7 +258,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
                     MinorVersion = 1,
                     MajorVersion = 0,
                     SchemaVersion = "1.1",
-                    Status = TemplateStatus.Draft,
+                    Status = TemplateStatus.Published,
                     Author = new Reference("111", "FirstTestUser")
                 };
                 _templateBeforeUpdate = new Template
@@ -357,6 +377,18 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
             public void Saved_version_with_correct_status()
             {
                 _versionRepository.Received(1).SaveVersion(Arg.Is<TemplateVersion>(x => x.Status == TemplateStatus.Draft));
+            }
+
+            [TestMethod]
+            public void Saved_version_with_blank_comment()
+            {
+                _versionRepository.Received(1).SaveVersion(Arg.Is<TemplateVersion>(x => x.Comment == null));
+            }
+
+            [TestMethod]
+            public void Saved_version_with_recent_date()
+            {
+                _versionRepository.Received(1).SaveVersion(Arg.Is<TemplateVersion>(x => x.Date > DateTimeOffset.Now.AddMinutes(-1)));
             }
         }
     }
