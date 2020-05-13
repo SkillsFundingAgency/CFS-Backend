@@ -169,7 +169,20 @@ namespace CalculateFunding.Api.Policy.Controllers
                 .ToList() : new List<TemplateStatus>();
 
             IEnumerable<TemplateResponse> templateVersionResponses =
-                await _templateBuilderService.GetTemplateVersions(templateId, templateStatuses);
+                await _templateBuilderService.GetVersionsByTemplate(templateId, templateStatuses);
+
+            return Ok(templateVersionResponses);
+        }
+
+        [HttpPost("api/templates/build/versions/search")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> GetTemplateVersions(FindTemplateVersionQuery query)
+        {
+            ValidationResult validationResult = _validatorFactory.Validate(query);
+
+            IEnumerable<TemplateResponse> templateVersionResponses =
+                await _templateBuilderService.FindVersionsByFundingStreamAndPeriod(query);
 
             return Ok(templateVersionResponses);
         }

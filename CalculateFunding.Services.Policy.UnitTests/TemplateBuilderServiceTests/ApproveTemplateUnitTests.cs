@@ -206,6 +206,12 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
             {
                 _versionRepository.Received(1).SaveVersion(Arg.Is<TemplateVersion>(x => x.Date > DateTimeOffset.Now.AddMinutes(-1)));
             }
+
+            [TestMethod]
+            public void Saved_version_with_correct_FundingPeriodId()
+            {
+                _versionRepository.Received(1).SaveVersion(Arg.Is<TemplateVersion>(x => x.FundingPeriodId == _templateVersionBeforeUpdate.FundingPeriodId));
+            }
         }
         
         [TestClass]
@@ -408,6 +414,12 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
             public void Saved_version_with_recent_date()
             {
                 _versionRepository.Received(1).SaveVersion(Arg.Is<TemplateVersion>(x => x.Date > DateTimeOffset.Now.AddMinutes(-1)));
+            }
+
+            [TestMethod]
+            public void Saved_version_with_correct_FundingPeriodId()
+            {
+                _versionRepository.Received(1).SaveVersion(Arg.Is<TemplateVersion>(x => x.FundingPeriodId == _templateVersionPrevious.FundingPeriodId));
             }
         }
     }

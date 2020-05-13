@@ -1,8 +1,6 @@
-﻿using System.Net;
-using CalculateFunding.Common.Models;
+﻿using CalculateFunding.Common.Models;
 using CalculateFunding.Common.TemplateMetadata;
 using CalculateFunding.Models.Policy.TemplateBuilder;
-using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Policy.Interfaces;
 using CalculateFunding.Services.Policy.Models;
 using CalculateFunding.Services.Policy.TemplateBuilder;
@@ -48,7 +46,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
                 };
                 _templateRepository = Substitute.For<ITemplateRepository>();
                 _templateRepository.GetTemplate(Arg.Is(_template.TemplateId)).Returns(_template);
-                
+
                 _service = new TemplateBuilderService(
                     Substitute.For<IIoCValidatorFactory>(),
                     Substitute.For<IFundingTemplateValidationService>(),
@@ -56,7 +54,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
                     Substitute.For<ITemplateVersionRepository>(),
                     _templateRepository,
                     Substitute.For<ILogger>());
-                
+
                 _result = _service.GetTemplate(_template.TemplateId).GetAwaiter().GetResult();
             }
 
@@ -150,7 +148,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
                 _result.AuthorId.Should().Be(_templateVersion.Author.Id);
             }
         }
-        
+
         [TestClass]
         public class When_i_request_previous_version_of_template
         {
@@ -196,9 +194,9 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
                 };
                 _templateVersionRepository = Substitute.For<ITemplateVersionRepository>();
                 _templateVersionRepository.GetTemplateVersion(
-                    Arg.Is(_templateVersionPrevious.TemplateId), 
+                    Arg.Is(_templateVersionPrevious.TemplateId),
                     Arg.Is(_templateVersionPrevious.Version)).Returns(_templateVersionPrevious);
-                
+
                 _service = new TemplateBuilderService(
                     Substitute.For<IIoCValidatorFactory>(),
                     Substitute.For<IFundingTemplateValidationService>(),
@@ -206,7 +204,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
                     _templateVersionRepository,
                     Substitute.For<ITemplateRepository>(),
                     Substitute.For<ILogger>());
-                
+
                 _result = _service
                     .GetTemplateVersion(_templateVersionPrevious.TemplateId, _templateVersionPrevious.Version.ToString())
                     .GetAwaiter()

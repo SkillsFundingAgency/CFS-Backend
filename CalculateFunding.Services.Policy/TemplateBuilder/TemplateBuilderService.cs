@@ -42,11 +42,11 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             _templateRepository = templateRepository;
             _logger = logger;
         }
-        
+
         public async Task<ServiceHealth> IsHealthOk()
         {
-            ServiceHealth templateRepoHealth = await ((IHealthChecker)_templateRepository).IsHealthOk();
-            ServiceHealth templateVersionRepoHealth = await ((IHealthChecker)_templateVersionRepository).IsHealthOk();
+            ServiceHealth templateRepoHealth = await ((IHealthChecker) _templateRepository).IsHealthOk();
+            ServiceHealth templateVersionRepoHealth = await _templateVersionRepository.IsHealthOk();
 
             ServiceHealth health = new ServiceHealth
             {
@@ -61,7 +61,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
         public async Task<TemplateResponse> GetTemplate(string templateId)
         {
             Guard.IsNotEmpty(templateId, nameof(templateId));
-            
+
             var template = await _templateRepository.GetTemplate(templateId);
             if (template == null)
             {
@@ -76,7 +76,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             Guard.IsNotEmpty(templateId, nameof(templateId));
             if (!int.TryParse(version, out int versionNumber))
                 return null;
-            
+
             var templateVersion = await _templateVersionRepository.GetTemplateVersion(templateId, versionNumber);
             if (templateVersion == null)
             {
@@ -86,11 +86,19 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             return Map(templateVersion);
         }
 
-        public async Task<IEnumerable<TemplateResponse>> GetTemplateVersions(string templateId, List<TemplateStatus> statuses)
+        public async Task<IEnumerable<TemplateResponse>> GetVersionsByTemplate(string templateId, List<TemplateStatus> statuses)
         {
             Guard.ArgumentNotNull(templateId, nameof(templateId));
 
-            IEnumerable<TemplateVersion> templateVersions = await _templateVersionRepository.GetTemplateVersions(templateId, statuses);
+            IEnumerable<TemplateVersion> templateVersions = await _templateVersionRepository.GetByTemplate(templateId, statuses);
+
+            return templateVersions.Select(Map).ToList();
+        }
+
+        public async Task<IEnumerable<TemplateResponse>> FindVersionsByFundingStreamAndPeriod(FindTemplateVersionQuery query)
+        {
+            IEnumerable<TemplateVersion> templateVersions = await _templateVersionRepository
+                .FindByFundingStreamAndPeriod(query);
 
             return templateVersions.Select(Map).ToList();
         }
@@ -125,7 +133,8 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
 
                 if (await _templateRepository.IsFundingStreamAndPeriodInUse(command.FundingStreamId, command.FundingPeriodId))
                 {
-                    string validationErrorMessage = $"Template with FundingStreamId [{command.FundingStreamId}] and FundingPeriodId [{command.FundingPeriodId}] already in use";
+                    string validationErrorMessage =
+                        $"Template with FundingStreamId [{command.FundingStreamId}] and FundingPeriodId [{command.FundingPeriodId}] already in use";
                     _logger.Error(validationErrorMessage);
                     ValidationResult validationResult = new ValidationResult();
                     validationResult.Errors.Add(new ValidationFailure(nameof(command.FundingStreamId), validationErrorMessage));
@@ -195,7 +204,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             {
                 return CommandResult.ValidationFail(validatorResult);
             }
-            
+
             var template = await _templateRepository.GetTemplate(command.TemplateId);
             if (template == null)
             {
@@ -217,7 +226,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             {
                 return CommandResult.Fail($"Failed to update template: {updated}");
             }
-            
+
             return CommandResult.Success();
         }
 
@@ -228,7 +237,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             {
                 return CommandResult.ValidationFail(validatorResult);
             }
-            
+
             var template = await _templateRepository.GetTemplate(command.TemplateId);
             if (template == null)
             {
@@ -263,7 +272,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             {
                 return CommandResult.Fail($"Failed to update template: {updated}");
             }
-            
+
             return CommandResult.Success();
         }
 
@@ -271,7 +280,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
         {
             Guard.IsNotEmpty(templateId, nameof(templateId));
             Guard.ArgumentNotNull(author, nameof(author));
-            
+
             var template = await _templateRepository.GetTemplate(templateId);
             if (template == null)
             {
@@ -285,6 +294,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
                 {
                     return CommandResult.ValidationFail(nameof(version), $"Invalid version '{version}'");
                 }
+
                 templateVersion = await _templateVersionRepository.GetTemplateVersion(templateId, versionNumber);
                 if (templateVersion == null)
                 {
@@ -326,7 +336,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             {
                 return CommandResult.Fail($"Failed to approve template: {templateUpdateResult}");
             }
-            
+
             return CommandResult.Success();
         }
 
@@ -361,6 +371,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             {
                 newVersion.Status = TemplateStatus.Draft;
             }
+
             newVersion.Author = author;
             newVersion.Name = template.Current.Name;
             newVersion.Comment = null;
@@ -373,7 +384,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             newVersion.Predecessors ??= new List<string>();
             newVersion.Predecessors.Add(template.Current.Id);
             await _templateVersionRepository.SaveVersion(newVersion);
-            
+
             // update template
             template.Name = template.Current.Name;
             template.AddPredecessor(template.Current.Id);
@@ -399,7 +410,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             var result = await _templateVersionRepository.SaveVersion(newVersion);
             if (!result.IsSuccess())
                 return result;
-            
+
             // update template
             template.Name = template.Current.Name;
             template.AddPredecessor(template.Current.Id);
