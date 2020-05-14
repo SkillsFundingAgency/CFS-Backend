@@ -2,10 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using CalculateFunding.Common.Utility;
-using CalculateFunding.Services.Publishing.Undo;
+using CalculateFunding.Services.Publishing.Interfaces.Undo;
 using Serilog;
 
-namespace CalculateFunding.Services.Publishing.Interfaces.Undo
+namespace CalculateFunding.Services.Publishing.Undo
 {
     public class PublishedFundingUndoTaskFactoryLocator : IPublishedFundingUndoTaskFactoryLocator
     {
