@@ -1,0 +1,131 @@
+using System;
+using System.Threading.Tasks;
+using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Models.Publishing;
+using CalculateFunding.Services.Publishing.Undo.Tasks;
+using FluentAssertions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
+
+namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Tasks
+{
+    [TestClass]
+    public class PublishedProviderUndoTaskTests : UndoTaskTestBase
+    {
+        private bool _isHardDelete;
+        
+        [TestInitialize]
+        public void PublishedProviderUndoTaskBaseTestBaseSetUp()
+        {
+            _isHardDelete = NewRandomFlag();
+            
+            TaskContext = NewPublishedFundingUndoTaskContext(_ => 
+                _.WithPublishedProviderDetails(NewCorrelationIdDetails()));
+
+            TaskDetails = TaskContext.PublishedProviderDetails;
+            
+            Task = new PublishedProviderUndoTask(Cosmos.Object,
+                BlobStore.Object,
+                ProducerConsumerFactory,
+                Logger,
+                JobTracker.Object,
+                _isHardDelete);
+        }
+        
+        [TestMethod]
+        public async Task ExitsEarlyIfErrorWhenPagingFeed()
+        {
+            await WhenTheTaskIsRun();
+            
+            ThenNothingWasDeleted<PublishedProvider>();
+            AndNothingWasUpdated<PublishedProvider>();
+        }
+
+        [TestMethod]
+        public async Task ExitsEarlyIfFeedHasNoRecords()
+        {
+            GivenThePublishedProviderFeed(NewFeedIterator<PublishedProvider>());
+            
+            await WhenTheTaskIsRun();
+            
+            ThenNothingWasDeleted<PublishedProvider>();
+            AndNothingWasUpdated<PublishedProvider>();
+        }
+        
+        [TestMethod]
+        public async Task SetsCurrentToLatestPreviousVersionAndDeletesIfInitialVersion()
+        {
+            PublishedProvider publishedProviderOne = NewPublishedProvider();
+            PublishedProvider publishedProviderTwo = NewPublishedProvider();
+            PublishedProvider publishedProviderThree = NewPublishedProvider();
+            PublishedProvider publishedProviderFour = NewPublishedProvider();
+            PublishedProvider publishedProviderFive = NewPublishedProvider();
+            
+            PublishedProviderVersion previousVersionTwo = NewPublishedProviderVersion();
+            PublishedProviderVersion previousVersionThree = NewPublishedProviderVersion();
+            PublishedProviderVersion previousVersionFive = NewPublishedProviderVersion();
+
+            GivenThePublishedProviderFeed(NewFeedIterator(WithPages(Page(publishedProviderOne, publishedProviderTwo),
+                Page(publishedProviderThree, publishedProviderFour),
+                Page(publishedProviderFive))));
+            AndThePreviousLatestVersion(publishedProviderTwo.Current, previousVersionTwo);
+            AndThePreviousLatestVersion(publishedProviderThree.Current, previousVersionThree);
+            AndThePreviousLatestVersion(publishedProviderFive.Current, previousVersionFive);
+
+            await WhenTheTaskIsRun();
+            
+            ThenTheDocumentsWereDeleted(new [] { publishedProviderOne}, 
+                new [] { publishedProviderOne.PartitionKey }, 
+                _isHardDelete);
+            ThenTheDocumentsWereDeleted(new [] { publishedProviderFour}, 
+                new [] { publishedProviderFour.PartitionKey }, 
+                _isHardDelete);
+            AndTheDocumentsWereUpdated(new [] { publishedProviderTwo },
+                new [] {publishedProviderTwo.PartitionKey} );
+            AndTheDocumentsWereUpdated(new [] { publishedProviderThree },
+                new [] {publishedProviderThree.PartitionKey} );
+            AndTheDocumentsWereUpdated(new [] { publishedProviderFive },
+                new [] {publishedProviderFive.PartitionKey} );
+            AndThePublishedProviderHasCurrent((publishedProviderFive, previousVersionFive), 
+                (publishedProviderTwo, previousVersionTwo),
+                (publishedProviderThree, previousVersionThree));
+        }
+
+        protected void AndThePublishedProviderHasCurrent(params (PublishedProvider funding, PublishedProviderVersion current)[] expectedMatches)
+        {
+            foreach ((PublishedProvider funding, PublishedProviderVersion current) expectedMatch in expectedMatches)
+            {
+                expectedMatch.funding.Current
+                    .Should()
+                    .BeSameAs(expectedMatch.current);
+            }
+        }
+        
+        protected void GivenThePublishedProviderFeed(ICosmosDbFeedIterator<PublishedProvider> feed)
+        {
+            Cosmos.Setup(_ => _.GetPublishedProviders(TaskDetails.FundingStreamId,
+                    TaskDetails.FundingPeriodId,
+                    TaskDetails.TimeStamp))
+                .Returns(feed);
+        }
+
+        protected void AndThePreviousLatestVersion(PublishedProviderVersion current, PublishedProviderVersion previous)
+        {
+            Cosmos.Setup(_ => _.GetLatestEarlierPublishedProviderVersion(TaskDetails.FundingStreamId,
+                    TaskDetails.FundingPeriodId,
+                    TaskDetails.TimeStamp,
+                    current.ProviderId))
+                .ReturnsAsync(previous);
+        }
+
+        protected PublishedProvider NewPublishedProvider(Action<PublishedProviderBuilder> setUp = null)
+        {
+            PublishedProviderBuilder fundingBuilder = new PublishedProviderBuilder()
+                .WithCurrent(NewPublishedProviderVersion());
+
+            setUp?.Invoke(fundingBuilder);
+            
+            return fundingBuilder.Build();
+        }
+    }
+}

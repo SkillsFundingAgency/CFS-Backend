@@ -42,14 +42,14 @@ namespace CalculateFunding.Services.Publishing
                 throw new NonRetriableException(message);
             }
 
-            JobViewModel applyTemplateCalculationsJob = jobResponse.Content;
+            JobViewModel jobResponseContent = jobResponse.Content;
 
-            if (applyTemplateCalculationsJob.CompletionStatus.HasValue)
+            if (jobResponseContent.CompletionStatus.HasValue)
             {
                 _logger.Information("{0} job with id: '{1}' is already  in a completed state with status {2}",
                     jobType,
-                    applyTemplateCalculationsJob.Id,
-                    applyTemplateCalculationsJob.CompletionStatus.Value.ToString());
+                    jobResponseContent.Id,
+                    jobResponseContent.CompletionStatus.Value.ToString());
 
                 return false;
             }

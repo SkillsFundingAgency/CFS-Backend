@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
@@ -98,7 +99,7 @@ namespace CalculateFunding.Api.Publishing.Controllers
         {
             await _deleteSpecifications.QueueDeleteSpecificationJob(specificationId,
                 Request.GetUser(),
-                Request.GetCorrelationId());
+                GetCorrelationId());
 
             return NoContent();
         }
@@ -113,7 +114,7 @@ namespace CalculateFunding.Api.Publishing.Controllers
         {
             return await _specificationPublishingService.CreateRefreshFundingJob(specificationId,
                 Request.GetUser(),
-                Request.GetCorrelationId());
+                GetCorrelationId());
         }
 
         /// <summary>
@@ -128,7 +129,7 @@ namespace CalculateFunding.Api.Publishing.Controllers
             return await _specificationPublishingService.ApproveAllProviderFunding(
                 specificationId,
                 Request.GetUser(),
-                Request.GetCorrelationId());
+                GetCorrelationId());
         }
 
         /// <summary>
@@ -145,7 +146,7 @@ namespace CalculateFunding.Api.Publishing.Controllers
                 specificationId,
                 approveProvidersRequest,
                 Request.GetUser(),
-                Request.GetCorrelationId());
+                GetCorrelationId());
         }
 
         /// <summary>
@@ -176,7 +177,7 @@ namespace CalculateFunding.Api.Publishing.Controllers
                 specificationId,
                 publishProvidersRequest,
                 Request.GetUser(),
-                Request.GetCorrelationId());
+                GetCorrelationId());
         }
 
         [HttpGet("api/specifications/{specificationId}/publishedproviders")]

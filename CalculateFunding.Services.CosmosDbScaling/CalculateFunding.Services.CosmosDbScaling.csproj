@@ -9,6 +9,11 @@
   <ItemGroup>
 
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Jobs" Version="2.0.3" />
+
+
+    <PackageReference Include="CalculateFunding.Common" Version="2.0.1" />
+
+
     <PackageReference Include="Microsoft.Azure.EventHubs" Version="4.1.0" />
   </ItemGroup>
 

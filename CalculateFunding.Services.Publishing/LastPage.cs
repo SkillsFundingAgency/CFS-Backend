@@ -6,9 +6,9 @@ namespace CalculateFunding.Services.Publishing
     {
         private readonly int _value;
 
-        public LastPage(int totalCount, int top)
+        public LastPage(int totalCount, int top, int minPageCount = 1)
         {
-            _value = Math.Max((int)Math.Ceiling((decimal) totalCount/ top), 1);
+            _value = Math.Max((int)Math.Ceiling((decimal) totalCount/ top), minPageCount);
         }
         
         public static implicit operator int(LastPage lastPage)

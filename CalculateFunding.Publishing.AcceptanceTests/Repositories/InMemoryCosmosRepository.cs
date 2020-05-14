@@ -239,6 +239,21 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             throw new NotImplementedException();
         }
 
+        public ICosmosDbFeedIterator<T> GetFeedIterator<T>(CosmosDbQuery cosmosDbQuery, int itemsPerPage = -1, int? maxItemCount = null) where T : IIdentifiable
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task BulkSetContentsToNull<T>(IEnumerable<KeyValuePair<string, string>> identifiers, int degreeOfParallelism = 5) where T : class, IIdentifiable
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<HttpStatusCode> SetContentsToNull<T>(string id, string partitionKey) where T : class, IIdentifiable
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<DocumentEntity<T>> ReadDocumentByIdAsync<T>(string id) where T : IIdentifiable
         {
             throw new NotImplementedException();

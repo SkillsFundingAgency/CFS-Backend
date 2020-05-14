@@ -6,6 +6,10 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <DefineConstants></DefineConstants>
+  </PropertyGroup>
+
   <ItemGroup>
     <None Remove="Resources\exampleFundingLineTemplate1.json" />
     <None Remove="Resources\exampleProvider1Calculations.json" />

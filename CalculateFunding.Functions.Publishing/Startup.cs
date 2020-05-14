@@ -1,11 +1,6 @@
 ﻿using System;
-using System.Net.Http;
 using System.Threading;
 using AutoMapper;
-using CalculateFunding.Common.ApiClient;
-using CalculateFunding.Common.ApiClient.Bearer;
-using CalculateFunding.Common.ApiClient.Profiling;
-using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Config.ApiClient.Calcs;
 using CalculateFunding.Common.Config.ApiClient.Jobs;
 using CalculateFunding.Common.Config.ApiClient.Policies;
@@ -13,7 +8,6 @@ using CalculateFunding.Common.Config.ApiClient.Profiling;
 using CalculateFunding.Common.Config.ApiClient.Providers;
 using CalculateFunding.Common.Config.ApiClient.Specifications;
 using CalculateFunding.Common.CosmosDb;
-using CalculateFunding.Common.Interfaces;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Storage;
@@ -25,13 +19,16 @@ using CalculateFunding.Services.Core.Caching.FileSystem;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
+using CalculateFunding.Services.Core.Interfaces.Threading;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Core.Services;
+using CalculateFunding.Services.Core.Threading;
 using CalculateFunding.Services.DeadletterProcessor;
 using CalculateFunding.Services.Publishing;
 using CalculateFunding.Services.Publishing.Errors;
 using CalculateFunding.Services.Publishing.Helper;
 using CalculateFunding.Services.Publishing.Interfaces;
+using CalculateFunding.Services.Publishing.Interfaces.Undo;
 using CalculateFunding.Services.Publishing.IoC;
 using CalculateFunding.Services.Publishing.Providers;
 using CalculateFunding.Services.Publishing.Reporting;
@@ -39,6 +36,8 @@ using CalculateFunding.Services.Publishing.Reporting.FundingLines;
 using CalculateFunding.Services.Publishing.Reporting.PublishedProviderEstate;
 using CalculateFunding.Services.Publishing.Repositories;
 using CalculateFunding.Services.Publishing.Specifications;
+using CalculateFunding.Services.Publishing.Undo;
+using CalculateFunding.Services.Publishing.Undo.Repositories;
 using CalculateFunding.Services.Publishing.Variations;
 using CalculateFunding.Services.Publishing.Variations.Errors;
 using CalculateFunding.Services.Publishing.Variations.Strategies;
@@ -46,11 +45,11 @@ using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.FeatureManagement;
-using Polly;
 using Polly.Bulkhead;
 using Serilog;
 using BlobClient = CalculateFunding.Services.Core.AzureStorage.BlobClient;
 using IBlobClient = CalculateFunding.Services.Core.Interfaces.AzureStorage.IBlobClient;
+using CommonBlobClient = CalculateFunding.Common.Storage.BlobClient;
 
 [assembly: FunctionsStartup(typeof(Startup))]
 
@@ -391,6 +390,38 @@ namespace CalculateFunding.Functions.Publishing
 
             builder
                 .AddProfilingInterServiceClient(config);
+            
+            builder.AddScoped<IPublishedFundingUndoJobService, PublishedFundingUndoJobService>();
+            builder.AddScoped<IPublishedFundingUndoJobCreation, PublishedFundingUndoJobCreation>();
+            builder.AddScoped<IPublishedFundingUndoTaskFactoryLocator, PublishedFundingUndoTaskFactoryLocator>();
+            builder.AddSingleton<IPublishedFundingUndoTaskFactory, SoftDeletePublishedFundingUndoTaskFactory>();
+            builder.AddSingleton<IPublishedFundingUndoTaskFactory, HardDeletePublishedFundingUndoTaskFactory>();
+            builder.AddSingleton<IPublishedFundingUndoCosmosRepository>(ctx =>
+            {
+                CosmosDbSettings settings = new CosmosDbSettings();
+
+                config.Bind("CosmosDbSettings", settings);
+
+                settings.ContainerName = "publishedfunding";
+
+                return new PublishedFundingUndoCosmosRepository(ctx.GetService<IPublishingResiliencePolicies>(),
+                    new CosmosRepository(settings));
+            });
+            builder.AddSingleton<IPublishedFundingUndoBlobStoreRepository>(ctx =>
+            {
+                BlobStorageOptions settings = new BlobStorageOptions();
+
+                config.Bind("AzureStorageSettings", settings);
+
+                settings.ContainerName = "publishedproviderversions";
+                
+                return new PublishedFundingUndoBlobStoreRepository(new CommonBlobClient(settings, 
+                        ctx.GetService<IBlobContainerRepository>()),
+                    ctx.GetService<IPublishingResiliencePolicies>(),
+                    ctx.GetService<ILogger>());
+            });
+            
+            builder.AddSingleton<IProducerConsumerFactory, ProducerConsumerFactory>();
 
             return builder.BuildServiceProvider();
         }

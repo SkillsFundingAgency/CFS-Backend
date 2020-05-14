@@ -6,15 +6,15 @@ namespace CalculateFunding.Services.Core.Helpers
     {
         public static async Task WhenAllAndThrow(params Task[] tasks)
         {
+            if (tasks == null) return;
+            
             await Task.WhenAll(tasks);
-            if (tasks != null)
+            
+            foreach (Task task in tasks)
             {
-                foreach (Task task in tasks)
+                if (task.Exception != null)
                 {
-                    if (task.Exception != null)
-                    {
-                        throw task.Exception;
-                    }
+                    throw task.Exception;
                 }
             }
         }

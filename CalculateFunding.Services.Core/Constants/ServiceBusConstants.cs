@@ -126,6 +126,8 @@
             public const string GeneratePublishedProviderEstateCsvPoisoned = "publishing-generate-published-provider-estate-csv/$DeadLetterQueue";
                                                  
             public const string GeneratePublishedProviderEstateCsvPoisonedLocal = "publishing-generate-published-provider-estate-csv-poisoned";
+            
+            public const string PublishedFundingUndo = "publishing-published-funding-undo";
         }
 
         public static class TopicNames
