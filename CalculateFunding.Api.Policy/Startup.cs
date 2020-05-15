@@ -27,6 +27,7 @@ using Polly.Bulkhead;
 using Serilog;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Policy.TemplateBuilder;
+using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Services.Policy.TemplateBuilder;
@@ -221,6 +222,14 @@ namespace CalculateFunding.Api.Policy
 
             builder
                 .AddSingleton(fundingConfMappingConfig.CreateMapper());
+
+            builder.AddSearch(Configuration);
+
+            builder.AddSingleton<TemplateSearchService>()
+                .AddSingleton<IHealthChecker, TemplateSearchService>();
+
+            builder
+                .AddSingleton<ISearchRepository<TemplateIndex>, SearchRepository<TemplateIndex>>();
 
             builder.AddCaching(Configuration);
            

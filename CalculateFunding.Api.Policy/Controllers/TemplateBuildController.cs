@@ -3,10 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
+using CalculateFunding.Models;
 using CalculateFunding.Models.Policy.TemplateBuilder;
+using CalculateFunding.Repositories.Common.Search.Results;
 using CalculateFunding.Services.Policy.Interfaces;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Policy.Models;
+using CalculateFunding.Services.Policy.TemplateBuilder;
 using CalculateFunding.Services.Policy.Validators;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Http;
@@ -19,13 +22,16 @@ namespace CalculateFunding.Api.Policy.Controllers
     {
         private readonly ITemplateBuilderService _templateBuilderService;
         private readonly IIoCValidatorFactory _validatorFactory;
+        private readonly TemplateSearchService _templateSearchService;
 
         public TemplateBuildController(
             ITemplateBuilderService templateBuilderService,
-            IIoCValidatorFactory validatorFactory)
+            IIoCValidatorFactory validatorFactory,
+            TemplateSearchService templateSearchService)
         {
             _templateBuilderService = templateBuilderService;
             _validatorFactory = validatorFactory;
+            _templateSearchService = templateSearchService;
         }
 
         [HttpGet("api/templates/build/{templateId}")]
@@ -206,6 +212,17 @@ namespace CalculateFunding.Api.Policy.Controllers
             }
 
             return new InternalServerErrorResult(response.ErrorMessage ?? response.Exception?.Message ?? "Unknown error occurred");
+        }
+
+        [Route("api/templates/templates-search")]
+        [HttpPost]
+        [Produces(typeof(TemplateSearchResults))]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> TemplatesSearch([FromBody] SearchModel searchModel)
+        {
+            return await _templateSearchService.SearchTemplates(searchModel);
         }
     }
 }

@@ -7,8 +7,10 @@ using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.TemplateMetadata;
 using CalculateFunding.Common.Utility;
+using CalculateFunding.Models.Policy;
 using CalculateFunding.Models.Policy.TemplateBuilder;
 using CalculateFunding.Models.Versioning;
+using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Policy.Interfaces;
 using CalculateFunding.Services.Policy.Models;
@@ -26,6 +28,8 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
         private readonly ITemplateVersionRepository _templateVersionRepository;
         private readonly ILogger _logger;
         private readonly ITemplateRepository _templateRepository;
+        private readonly ISearchRepository<TemplateIndex> _searchRepository;
+        private readonly IPolicyRepository _policyRepository;
 
         public TemplateBuilderService(
             IIoCValidatorFactory validatorFactory,
@@ -33,6 +37,8 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             ITemplateMetadataResolver templateMetadataResolver,
             ITemplateVersionRepository templateVersionRepository,
             ITemplateRepository templateRepository,
+            ISearchRepository<TemplateIndex> searchRepository,
+            IPolicyRepository policyRepository,
             ILogger logger)
         {
             _validatorFactory = validatorFactory;
@@ -40,6 +46,8 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             _templateMetadataResolver = templateMetadataResolver;
             _templateVersionRepository = templateVersionRepository;
             _templateRepository = templateRepository;
+            _searchRepository = searchRepository;
+            _policyRepository = policyRepository;
             _logger = logger;
         }
 
@@ -47,6 +55,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
         {
             ServiceHealth templateRepoHealth = await ((IHealthChecker) _templateRepository).IsHealthOk();
             ServiceHealth templateVersionRepoHealth = await _templateVersionRepository.IsHealthOk();
+            (bool Ok, string Message) searchRepoHealth = await _searchRepository.IsHealthOk();
 
             ServiceHealth health = new ServiceHealth
             {
@@ -54,6 +63,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             };
             health.Dependencies.AddRange(templateRepoHealth.Dependencies);
             health.Dependencies.AddRange(templateVersionRepoHealth.Dependencies);
+            health.Dependencies.Add(new DependencyHealth { HealthOk = searchRepoHealth.Ok, DependencyName = _searchRepository.GetType().GetFriendlyName(), Message = searchRepoHealth.Message });
 
             return health;
         }
@@ -171,6 +181,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
                 if (result.IsSuccess())
                 {
                     await _templateVersionRepository.SaveVersion(template.Current);
+                    await CreateTemplateIndexItem(template, author);
 
                     return new CommandResult
                     {
@@ -194,6 +205,36 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
                     Exception = ex
                 };
             }
+        }
+
+        private async Task CreateTemplateIndexItem(Template template, Reference author)
+        {
+            var fundingPeriod = await _policyRepository.GetFundingPeriodById(template.Current.FundingPeriodId);
+            var fundingStream = await _policyRepository.GetFundingStreamById(template.Current.FundingStreamId);
+
+            TemplateIndex templateIndex = new TemplateIndex
+            {
+                Id = template.TemplateId,
+                Name = template.Current.Name,
+                FundingStreamId = template.Current.FundingStreamId,
+                FundingStreamName = fundingStream.ShortName,
+                FundingPeriodId = template.Current.FundingPeriodId,
+                FundingPeriodName = fundingPeriod.Name,
+                LastUpdatedAuthorId = author.Id,
+                LastUpdatedAuthorName = author.Name,
+                LastUpdatedDate = DateTimeOffset.Now,
+                Version = template.Current.Version,
+                CurrentMajorVersion = template.Current.MajorVersion,
+                CurrentMinorVersion = template.Current.MinorVersion,
+                PublishedMajorVersion = template.Released?.MajorVersion ?? 0,
+                PublishedMinorVersion = template.Released?.MinorVersion ?? 0,
+                HasReleasedVersion = template.Released != null ? "Yes" : "No"
+            };
+
+            await _searchRepository.Index(new List<TemplateIndex>
+            {
+                templateIndex
+            });
         }
 
         public async Task<CommandResult> UpdateTemplateContent(TemplateContentUpdateCommand command, Reference author)
@@ -389,7 +430,14 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             template.Name = template.Current.Name;
             template.AddPredecessor(template.Current.Id);
             template.Current = newVersion;
-            return await _templateRepository.Update(template);
+            
+            HttpStatusCode updateResult = await _templateRepository.Update(template);
+            if (updateResult == HttpStatusCode.OK)
+            {
+                await CreateTemplateIndexItem(template, author);
+            }
+
+            return updateResult;
         }
 
         private async Task<HttpStatusCode> UpdateTemplateMetadata(TemplateMetadataUpdateCommand command, Reference author, Template template)
@@ -415,7 +463,14 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             template.Name = template.Current.Name;
             template.AddPredecessor(template.Current.Id);
             template.Current = newVersion;
-            return await _templateRepository.Update(template);
+
+            HttpStatusCode updateResult = await _templateRepository.Update(template);
+            if (updateResult == HttpStatusCode.OK)
+            {
+                await CreateTemplateIndexItem(template, author);
+            }
+
+            return updateResult;
         }
 
         private async Task<CommandResult> ValidateTemplateContent(TemplateContentUpdateCommand command)

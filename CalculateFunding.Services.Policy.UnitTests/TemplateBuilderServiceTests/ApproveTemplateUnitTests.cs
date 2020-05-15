@@ -3,8 +3,10 @@ using System.Linq;
 using System.Net;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.TemplateMetadata;
+using CalculateFunding.Models.Policy;
 using CalculateFunding.Models.Policy.TemplateBuilder;
 using CalculateFunding.Models.Versioning;
+using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Policy.Interfaces;
 using CalculateFunding.Services.Policy.Models;
 using CalculateFunding.Services.Policy.TemplateBuilder;
@@ -47,6 +49,8 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
                     Substitute.For<ITemplateMetadataResolver>(),
                     _versionRepository,
                     _templateRepository,
+                    Substitute.For<ISearchRepository<TemplateIndex>>(),
+                    Substitute.For<IPolicyRepository>(),
                     Substitute.For<ILogger>());
 
                 _result = _service.ApproveTemplate(_author, _templateId, _comment).GetAwaiter().GetResult();
@@ -243,6 +247,8 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
                     Substitute.For<ITemplateMetadataResolver>(),
                     _versionRepository,
                     _templateRepository,
+                    Substitute.For<ISearchRepository<TemplateIndex>>(),
+                    Substitute.For<IPolicyRepository>(),
                     Substitute.For<ILogger>());
 
                 _result = _service.ApproveTemplate(_author, _templateId, _comment, _templateVersionPrevious.Version.ToString()).GetAwaiter().GetResult();

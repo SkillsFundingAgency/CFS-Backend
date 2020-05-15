@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using CalculateFunding.Models.Datasets.Schema;
+using CalculateFunding.Models.Policy;
 using CalculateFunding.Models.Providers;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Models.Specs;
@@ -85,6 +86,7 @@ namespace CalculateFunding.Models.UnitTests
             PublishedFundingIndex publishedfundingindex = new PublishedFundingIndex();
             PublishedProviderIndex publishedProviderIndex = new PublishedProviderIndex();
             SpecificationIndex specificationindex = new SpecificationIndex();
+            TemplateIndex templateIndex = new TemplateIndex();
 
             IEnumerable<Type> searchIndexTypes = GetTypesWithSearchIndexAttribute();
 
@@ -177,6 +179,7 @@ namespace CalculateFunding.Models.UnitTests
             PublishedFundingIndex publishedfundingindex = new PublishedFundingIndex();
             PublishedProviderIndex publishedProviderIndex = new PublishedProviderIndex();
             SpecificationIndex specificationindex = new SpecificationIndex();
+            TemplateIndex templateIndex = new TemplateIndex();
 
             IEnumerable<Type> searchIndexTypes = GetTypesWithSearchIndexAttribute();
 

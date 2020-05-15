@@ -14,7 +14,9 @@ namespace CalculateFunding.Api.Policy.UnitTests
             var configData = new Dictionary<string, string>
             {
                 { "CosmosDbSettings:DatabaseName", "calculate-funding" },
-                { "CosmosDbSettings:ConnectionString", "AccountEndpoint=https://test.documents.azure.com:443/;AccountKey=dGVzdA==;" }
+                { "CosmosDbSettings:ConnectionString", "AccountEndpoint=https://test.documents.azure.com:443/;AccountKey=dGVzdA==;" },
+                { "SearchServiceName", "ss-t1te-cfs"},
+                { "SearchServiceKey", "test" },
             };
 
             return configData;

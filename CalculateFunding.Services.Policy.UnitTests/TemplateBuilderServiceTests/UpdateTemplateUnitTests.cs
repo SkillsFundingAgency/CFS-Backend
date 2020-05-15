@@ -1,9 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.TemplateMetadata;
+using CalculateFunding.Models.Policy;
 using CalculateFunding.Models.Policy.TemplateBuilder;
 using CalculateFunding.Models.Versioning;
+using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Policy.Interfaces;
 using CalculateFunding.Services.Policy.Models;
@@ -31,6 +35,8 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
             private IIoCValidatorFactory _validatorFactory;
             private Template _templateBeforeUpdate;
             private TemplateVersion _templateVersionFirst;
+            private IPolicyRepository _policyRepository;
+            private ISearchRepository<TemplateIndex> _searchRepository;
 
             public When_i_update_template_metadata()
             {
@@ -50,6 +56,8 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
                     Substitute.For<ITemplateMetadataResolver>(),
                     _versionRepository,
                     _templateRepository,
+                    _searchRepository,
+                    _policyRepository,
                     Substitute.For<ILogger>());
                 
                 _result = _service.UpdateTemplateMetadata(_command, _author).GetAwaiter().GetResult();
@@ -86,6 +94,13 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
 
                 _versionRepository = Substitute.For<ITemplateVersionRepository>();
                 _versionRepository.SaveVersion(Arg.Any<TemplateVersion>()).Returns(HttpStatusCode.OK);
+
+                _searchRepository = Substitute.For<ISearchRepository<TemplateIndex>>();
+                _searchRepository.Index(Arg.Any<IEnumerable<TemplateIndex>>()).Returns(Enumerable.Empty<IndexError>());
+
+                _policyRepository = Substitute.For<IPolicyRepository>();
+                _policyRepository.GetFundingPeriodById(Arg.Any<string>()).Returns(new FundingPeriod { Name = "FundingPeriod" });
+                _policyRepository.GetFundingStreamById(Arg.Any<string>()).Returns(new FundingStream { Name = "FundingSteam" });
             }
 
             [TestMethod]
@@ -226,6 +241,8 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
             private IFundingTemplateValidationService _templateValidationService;
             private ITemplateMetadataGenerator _templateMetadataGenerator;
             private ITemplateMetadataResolver _templateMetadataResolver;
+            private IPolicyRepository _policyRepository;
+            private ISearchRepository<TemplateIndex> _searchRepository;
 
             public When_i_update_template_content()
             {
@@ -244,6 +261,8 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
                     _templateMetadataResolver,
                     _versionRepository,
                     _templateRepository,
+                    _searchRepository,
+                    _policyRepository,
                     Substitute.For<ILogger>());
                 
                 _result = _service.UpdateTemplateContent(_command, _author).GetAwaiter().GetResult();
@@ -285,6 +304,13 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
 
                 _versionRepository = Substitute.For<ITemplateVersionRepository>();
                 _versionRepository.SaveVersion(Arg.Any<TemplateVersion>()).Returns(HttpStatusCode.OK);
+
+                _searchRepository = Substitute.For<ISearchRepository<TemplateIndex>>();
+                _searchRepository.Index(Arg.Any<IEnumerable<TemplateIndex>>()).Returns(Enumerable.Empty<IndexError>());
+
+                _policyRepository = Substitute.For<IPolicyRepository>();
+                _policyRepository.GetFundingPeriodById(Arg.Any<string>()).Returns(new FundingPeriod { Name = "FundingPeriod" });
+                _policyRepository.GetFundingStreamById(Arg.Any<string>()).Returns(new FundingStream { Name = "FundingSteam" });
             }
 
             [TestMethod]

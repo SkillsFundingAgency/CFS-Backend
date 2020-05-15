@@ -1,8 +1,12 @@
-﻿using System.Net;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Net;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.TemplateMetadata;
+using CalculateFunding.Models.Policy;
 using CalculateFunding.Models.Policy.TemplateBuilder;
 using CalculateFunding.Models.Versioning;
+using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Policy.Interfaces;
 using CalculateFunding.Services.Policy.Models;
 using CalculateFunding.Services.Policy.TemplateBuilder;
@@ -27,6 +31,8 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
             private ITemplateVersionRepository _versionRepository;
             private ITemplateRepository _templateRepository;
             private IIoCValidatorFactory _validatorFactory;
+            private IPolicyRepository _policyRepository;
+            private ISearchRepository<TemplateIndex> _searchRepository;
 
             public When_i_create_initial_draft_template_without_content()
             {
@@ -48,6 +54,8 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
                     Substitute.For<ITemplateMetadataResolver>(),
                     _versionRepository,
                     _templateRepository,
+                    _searchRepository,
+                    _policyRepository,
                     Substitute.For<ILogger>());
                 
                 _result = _service.CreateTemplate(_command, _author).GetAwaiter().GetResult();
@@ -63,6 +71,13 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
 
                 _versionRepository = Substitute.For<ITemplateVersionRepository>();
                 _versionRepository.SaveVersion(Arg.Any<TemplateVersion>()).Returns(HttpStatusCode.OK);
+
+                _searchRepository = Substitute.For<ISearchRepository<TemplateIndex>>();
+                _searchRepository.Index(Arg.Any<IEnumerable<TemplateIndex>>()).Returns(Enumerable.Empty<IndexError>());
+
+                _policyRepository = Substitute.For<IPolicyRepository>();
+                _policyRepository.GetFundingPeriodById(Arg.Any<string>()).Returns(new FundingPeriod {Name = "FundingPeriod"});
+                _policyRepository.GetFundingStreamById(Arg.Any<string>()).Returns(new FundingStream {Name = "FundingSteam"});
             }
 
             [TestMethod]
@@ -237,6 +252,8 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
                     Substitute.For<ITemplateMetadataResolver>(),
                     _versionRepository,
                     _templateRepository,
+                    Substitute.For<ISearchRepository<TemplateIndex>>(),
+                    Substitute.For<IPolicyRepository>(),
                     Substitute.For<ILogger>());
                 
                 _result = _service.CreateTemplate(_command, _author).GetAwaiter().GetResult();
