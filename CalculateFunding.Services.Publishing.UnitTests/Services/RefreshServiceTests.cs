@@ -716,7 +716,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
 
         private async Task WhenMessageReceivedWithJobIdAndCorrelationId()
         {
-            Message message = NewMessage(_ => _.WithUserProperty("specification-id", SpecificationId).WithUserProperty("jobId", JobId).WithUserProperty("correlation-id", CorrelationId));
+            Message message = NewMessage(_ => _.WithUserProperty("specification-id", SpecificationId)
+                .WithUserProperty("jobId", JobId)
+                .WithUserProperty("sfa-correlationId", CorrelationId));
 
             await _refreshService.RefreshResults(message);
         }

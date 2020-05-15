@@ -25,6 +25,8 @@ namespace CalculateFunding.Services.Publishing
 {
     public class PublishService : IPublishService
     {
+        private const string SfaCorrelationId = "sfa-correlationId";
+        
         private readonly IPublishedFundingStatusUpdateService _publishedFundingStatusUpdateService;
         private readonly ISpecificationService _specificationService;
 
@@ -136,7 +138,7 @@ namespace CalculateFunding.Services.Publishing
                 throw new NonRetriableException($"Could not find specification with id '{specificationId}'");
             }
 
-            string correlationId = message.GetUserProperty<string>("correlation-id");
+            string correlationId = message.GetUserProperty<string>(SfaCorrelationId);
 
             PublishProvidersRequest publishProvidersRequest = null;
 

@@ -585,8 +585,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         private async Task WhenPublishAllProvidersMessageReceivedWithJobId()
         {
             Message message = NewMessage(_ => _.WithUserProperty("specification-id", 
-                                                                 SpecificationId).WithUserProperty("jobId",
-                                                                                                   JobId).WithUserProperty("correlation-id", CorrelationId));
+                                                                 SpecificationId)
+                .WithUserProperty("jobId", JobId)
+                .WithUserProperty("sfa-correlationId", CorrelationId));
 
             await _publishService.PublishProviderFundingResults(message);
         }
@@ -596,7 +597,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             Message message = NewMessage(_ => _
                 .WithUserProperty("specification-id",SpecificationId)
                 .WithUserProperty("jobId",JobId)
-                .WithUserProperty("correlation-id", CorrelationId)
+                .WithUserProperty("sfa-correlationId", CorrelationId)
                 .WithUserProperty(
                     JobConstants.MessagePropertyNames.PublishProvidersRequest, JsonExtensions.AsJson(publishProvidersRequest)));
 

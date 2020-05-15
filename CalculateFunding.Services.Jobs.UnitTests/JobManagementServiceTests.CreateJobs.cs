@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design.Serialization;
 using System.Linq;
 using System.Net;
 using System.Security.Claims;
@@ -9,6 +10,7 @@ using CalculateFunding.Common.ServiceBus.Interfaces;
 using CalculateFunding.Models.Jobs;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Jobs.Interfaces;
+using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using FluentValidation;
 using FluentValidation.Results;
@@ -22,8 +24,10 @@ namespace CalculateFunding.Services.Jobs.Services
 {
     public partial class JobManagementServiceTests
     {
+        private const string SfaCorrelationId = "sfa-correlationId";
+
         [TestMethod]
-        public async Task CreateJobs_GivenEmptyArrayOfJobCreateModels_ReturnsBadrequest()
+        public async Task CreateJobs_GivenEmptyArrayOfJobCreateModels_ReturnsBadRequest()
         {
             //Arrange
             IEnumerable<JobCreateModel> jobs = Enumerable.Empty<JobCreateModel>();
@@ -1165,7 +1169,8 @@ namespace CalculateFunding.Services.Jobs.Services
         public async Task CreateJobs_GivenCreateJobForQueueing_EnsuresMessageIsPlacedOnQueue()
         {
             //Arrange
-            string jobId = Guid.NewGuid().ToString();
+            string jobId = NewRandomString();
+            string correlationId = NewRandomString();
 
             IEnumerable<JobCreateModel> jobs = new[]
             {
@@ -1176,6 +1181,7 @@ namespace CalculateFunding.Services.Jobs.Services
                     InvokerUserId = "authorId",
                     InvokerUserDisplayName = "authorname",
                     SpecificationId = "spec-id-1",
+                    CorrelationId = correlationId,
                     Properties = new Dictionary<string, string>
                     {
                         { "user-id", "authorId" },
@@ -1202,6 +1208,7 @@ namespace CalculateFunding.Services.Jobs.Services
                 ItemCount = 1000,
                 InvokerUserId = "authorId",
                 InvokerUserDisplayName = "authorname",
+                CorrelationId = correlationId,
                 Trigger = new Trigger
                 {
                     EntityId = "e-1",
@@ -1297,7 +1304,9 @@ namespace CalculateFunding.Services.Jobs.Services
                             m => m.ContainsKey("specificationId") &&
                             m["specificationId"] == "spec-id-1" &&
                             m.ContainsKey("jobId") &&
-                            m["jobId"] == jobId
+                            m["jobId"] == jobId &&
+                            m.ContainsKey(SfaCorrelationId) &&
+                            m[SfaCorrelationId] == correlationId
                 ));
         }
 
@@ -1305,7 +1314,8 @@ namespace CalculateFunding.Services.Jobs.Services
         public async Task CreateJobs_GivenCreateJobForQueueing_DoesNotTryToPlacedOnQueueIfNoQueueOrTopicInDefinition()
         {
             //Arrange
-            string jobId = Guid.NewGuid().ToString();
+            string jobId = NewRandomString();
+            string correlationId = NewRandomString();
 
             IEnumerable<JobCreateModel> jobs = new[]
             {
@@ -1316,6 +1326,7 @@ namespace CalculateFunding.Services.Jobs.Services
                     InvokerUserId = "authorId",
                     InvokerUserDisplayName = "authorname",
                     SpecificationId = "spec-id-1",
+                    CorrelationId = correlationId,
                     Properties = new Dictionary<string, string>
                     {
                         { "user-id", "authorId" },
@@ -1350,7 +1361,8 @@ namespace CalculateFunding.Services.Jobs.Services
                 {
                     { "specificationId", "spec-id-1" }
                 },
-                MessageBody = "a message"
+                MessageBody = "a message",
+                CorrelationId = correlationId
             };
 
             IJobDefinitionsService jobDefinitionsService = CreateJobDefinitionsService();
@@ -1393,7 +1405,9 @@ namespace CalculateFunding.Services.Jobs.Services
                             m => m.ContainsKey("specificationId") &&
                             m["specificationId"] == "spec-id-1" &&
                             m.ContainsKey("jobId") &&
-                            m["jobId"] == jobId
+                            m["jobId"] == jobId &&
+                            m.ContainsKey(SfaCorrelationId) &&
+                            m[SfaCorrelationId] == correlationId
                 ));
         }
         
@@ -1403,7 +1417,8 @@ namespace CalculateFunding.Services.Jobs.Services
             //Arrange
             const string specificationId = "spec-id-1";
 
-            string jobId = Guid.NewGuid().ToString();
+            string jobId = NewRandomString();
+            string correlationId = NewRandomString();
 
             IEnumerable<JobCreateModel> jobs = new[]
             {
@@ -1414,6 +1429,7 @@ namespace CalculateFunding.Services.Jobs.Services
                     InvokerUserId = "authorId",
                     InvokerUserDisplayName = "authorname",
                     SpecificationId =specificationId,
+                    CorrelationId = correlationId,
                     Properties = new Dictionary<string, string>
                     {
                         { "user-id", "authorId" },
@@ -1442,6 +1458,7 @@ namespace CalculateFunding.Services.Jobs.Services
                 ItemCount = 1000,
                 InvokerUserId = "authorId",
                 InvokerUserDisplayName = "authorname",
+                CorrelationId = correlationId,
                 Trigger = new Trigger
                 {
                     EntityId = "e-1",
@@ -1537,6 +1554,8 @@ namespace CalculateFunding.Services.Jobs.Services
                         Arg.Is<Dictionary<string, string>>(
                             m => m.ContainsKey("specificationId") &&
                             m["specificationId"] == specificationId &&
+                            m.ContainsKey(SfaCorrelationId) &&
+                            m[SfaCorrelationId] == correlationId &&
                             m.ContainsKey("jobId") &&
                             m["jobId"] == jobId), Arg.Is(false), Arg.Is(specificationId));
         }
@@ -1643,8 +1662,9 @@ namespace CalculateFunding.Services.Jobs.Services
         public async Task CreateJobs_GivenCreateJobForQueueingOnTopic_EnsuresMessageIsPlacedOnTopicQueue()
         {
             //Arrange
-            string jobId = Guid.NewGuid().ToString();
-
+            string jobId = NewRandomString();
+            string correlationId = NewRandomString();
+            
             IEnumerable<JobCreateModel> jobs = new[]
             {
                 new JobCreateModel
@@ -1654,6 +1674,7 @@ namespace CalculateFunding.Services.Jobs.Services
                     InvokerUserId = "authorId",
                     InvokerUserDisplayName = "authorname",
                     SpecificationId = "spec-id-1",
+                    CorrelationId = correlationId,
                     Properties = new Dictionary<string, string>
                     {
                         { "user-id", "authorId" },
@@ -1680,6 +1701,7 @@ namespace CalculateFunding.Services.Jobs.Services
                 ItemCount = 1000,
                 InvokerUserId = "authorId",
                 InvokerUserDisplayName = "authorname",
+                CorrelationId = correlationId,
                 Trigger = new Trigger
                 {
                     EntityId = "e-1",
@@ -1764,7 +1786,11 @@ namespace CalculateFunding.Services.Jobs.Services
                 messengerService
                     .Received(1)
                     .SendToTopicAsJson(Arg.Is("TestTopic"), Arg.Any<string>(),
-                            Arg.Is<Dictionary<string, string>>(m => m.ContainsKey("jobId") && m["jobId"] == jobId));
+                            Arg.Is<Dictionary<string, string>>(m => 
+                                m.ContainsKey("jobId") && 
+                                m["jobId"] == jobId &&
+                                m.ContainsKey(SfaCorrelationId) &&
+                                m[SfaCorrelationId] == correlationId));
         }
 
         [TestMethod]
@@ -1896,5 +1922,7 @@ namespace CalculateFunding.Services.Jobs.Services
                 .Received(1)
                 .Error(Arg.Is<Exception>(m => m.Message == "Failed to send to topic"), Arg.Is($"Failed to queue job with id: {jobId} on Queue/topic TestTopic"));
         }
+
+        private string NewRandomString() => new RandomString();
     }
 }

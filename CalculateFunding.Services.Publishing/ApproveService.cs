@@ -19,6 +19,8 @@ namespace CalculateFunding.Services.Publishing
 {
     public class ApproveService : IApproveService
     {
+        private const string SfaCorrelationId = "sfa-correlationId";
+        
         private readonly IJobManagement _jobManagement;
         private readonly ILogger _logger;
         private readonly IPublishedProviderStatusUpdateService _publishedProviderStatusUpdateService;
@@ -102,7 +104,7 @@ namespace CalculateFunding.Services.Publishing
             CheckPublishedProviderForErrors(specificationId, publishedProviders);
 
             Reference author = message.GetUserDetails();
-            string correlationId = message.GetUserProperty<string>("correlation-id");
+            string correlationId = message.GetUserProperty<string>(SfaCorrelationId);
 
             await ApproveProviders(publishedProviders, specificationId, jobId, author, correlationId);
 

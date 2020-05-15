@@ -24,6 +24,7 @@ namespace CalculateFunding.Services.Jobs
 {
     public class JobManagementService : IJobManagementService, IHealthChecker
     {
+        private const string SfaCorrelationId = "sfa-correlationId";
         private readonly IJobRepository _jobRepository;
         private readonly INotificationService _notificationService;
         private readonly IJobDefinitionsService _jobDefinitionsService;
@@ -670,15 +671,26 @@ namespace CalculateFunding.Services.Jobs
 
             string sessionId = null;
 
+            const string jobId = "jobId";
+            
             if (messageProperties == null)
             {
-                messageProperties = new Dictionary<string, string> { { "jobId", job.Id } };
+                messageProperties = new Dictionary<string, string>
+                {
+                    { jobId, job.Id },
+                    { SfaCorrelationId, job.CorrelationId }
+                };
             }
             else
             {
-                if (!messageProperties.ContainsKey("jobId"))
+                if (!messageProperties.ContainsKey(jobId))
                 {
-                    messageProperties.Add("jobId", job.Id);
+                    messageProperties.Add(jobId, job.Id);
+                }
+
+                if (!messageProperties.ContainsKey(SfaCorrelationId))
+                {
+                    messageProperties.Add(SfaCorrelationId, job.CorrelationId);
                 }
 
                 if (!string.IsNullOrWhiteSpace(jobDefinition.SessionMessageProperty))

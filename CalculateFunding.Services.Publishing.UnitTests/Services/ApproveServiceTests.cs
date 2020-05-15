@@ -488,7 +488,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
 
         private void GivenTheMessageHasACorrelationId()
         {
-            GivenTheUserProperty("correlation-id", _correlationId);
+            GivenTheUserProperty("sfa-correlationId", _correlationId);
         }
 
         private void GivenTheUserProperty(string key, string value)

@@ -24,6 +24,8 @@ namespace CalculateFunding.Services.Publishing
 {
     public class RefreshService : IRefreshService
     {
+        private const string SfaCorrelationId = "sfa-correlationId";
+        
         private readonly IPublishedProviderStatusUpdateService _publishedProviderStatusUpdateService;
         private readonly IPublishedFundingDataService _publishedFundingDataService;
         private readonly ISpecificationService _specificationService;
@@ -177,7 +179,7 @@ namespace CalculateFunding.Services.Publishing
 
             _logger.Information($"Found calculation results for {allCalculationResults?.Count} providers from cosmos for refresh job");
 
-            string correlationId = message.GetUserProperty<string>("correlation-id");
+            string correlationId = message.GetUserProperty<string>(SfaCorrelationId);
 
             try
             {

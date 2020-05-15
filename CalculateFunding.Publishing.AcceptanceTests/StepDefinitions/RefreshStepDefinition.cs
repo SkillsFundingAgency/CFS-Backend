@@ -86,7 +86,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
             message.UserProperties.Add("jobId", _currentJobStepContext.JobId);
 
             _currentCorrelationStepContext.CorrelationId = Guid.NewGuid().ToString();
-            message.UserProperties.Add("correlation-id", _currentCorrelationStepContext.CorrelationId);
+            message.UserProperties.Add("sfa-correlationId", _currentCorrelationStepContext.CorrelationId);
 
             await _refreshService.RefreshResults(message);
         }
