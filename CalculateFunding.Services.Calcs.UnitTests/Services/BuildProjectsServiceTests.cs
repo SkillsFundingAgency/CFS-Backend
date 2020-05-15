@@ -36,6 +36,9 @@ using CalculationEntity = CalculateFunding.Models.Graph.Entity<CalculateFunding.
 using GraphRelationship = CalculateFunding.Common.ApiClient.Graph.Models.Relationship;
 using CalculateFunding.Common.ServiceBus.Interfaces;
 using Polly.NoOp;
+using CalculateFunding.Common.ApiClient.DataSets;
+using AutoMapper;
+using CalculateFunding.Services.Calcs.MappingProfiles;
 
 namespace CalculateFunding.Services.Calcs.Services
 {
@@ -152,42 +155,36 @@ namespace CalculateFunding.Services.Calcs.Services
             message
                .UserProperties.Add("specification-id", SpecificationId);
 
-            DatasetSpecificationRelationshipViewModel datasetSpecificationRelationshipViewModel = new DatasetSpecificationRelationshipViewModel
-            {
-                DatasetId = "ds-1",
-                DatasetName = "ds 1",
-                Definition = new DatasetDefinitionViewModel
-                {
-                    Id = "111",
-                    Name = "def 1"
-                },
-                IsProviderData = true,
-                Id = "rel-1",
-                Name = "test--name"
-            };
-
-            DatasetDefinition datasetDefinition = new DatasetDefinition
-            {
-                Id = "111"
-            };
-
-            IEnumerable<DatasetSpecificationRelationshipViewModel> datasetSpecificationRelationshipViewModels = new[]
-            {
-                    datasetSpecificationRelationshipViewModel
-            };
-
-            IDatasetRepository datasetRepository = CreateDatasetRepository();
-            datasetRepository
+            IDatasetsApiClient datasetsApiClient = CreateDatasetsApiClient();
+            datasetsApiClient
                 .GetCurrentRelationshipsBySpecificationId(Arg.Is(SpecificationId))
-                .Returns(datasetSpecificationRelationshipViewModels);
+                .Returns(new ApiResponse<IEnumerable<Common.ApiClient.DataSets.Models.DatasetSpecificationRelationshipViewModel>>(HttpStatusCode.OK,
+                new[]
+            {
+                new Common.ApiClient.DataSets.Models.DatasetSpecificationRelationshipViewModel
+                {
+                     DatasetId = "ds-1",
+                    DatasetName = "ds 1",
+                    Definition = new Common.ApiClient.DataSets.Models.DatasetDefinitionViewModel
+                    {
+                        Id = "111",
+                        Name = "def 1"
+                    },
+                    IsProviderData = true,
+                    Id = "rel-1",
+                    Name = relationshipName
+                }
+            }));
 
-            datasetRepository
+            datasetsApiClient
                 .GetDatasetDefinitionById(Arg.Is("111"))
-                .Returns(datasetDefinition);
+                .Returns(new ApiResponse<Common.ApiClient.DataSets.Models.DatasetDefinition>(HttpStatusCode.OK, CreateDatsetDefinition()));
+
+            IMapper mapper = CreateMapper();
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
 
-            BuildProjectsService buildProjectsService = CreateBuildProjectsService(sourceCodeService: sourceCodeService, datasetRepository: datasetRepository);
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(sourceCodeService: sourceCodeService, datasetsApiClient: datasetsApiClient, mapper: mapper);
 
             //Act
             await buildProjectsService.UpdateBuildProjectRelationships(message);
@@ -229,28 +226,42 @@ namespace CalculateFunding.Services.Calcs.Services
                 Name = "rel 1"
             };
 
-            DatasetDefinition datasetDefinition = new DatasetDefinition
+            Common.ApiClient.DataSets.Models.DatasetDefinition datasetDefinition = new Common.ApiClient.DataSets.Models.DatasetDefinition
             {
                 Id = "111"
             };
 
-            IEnumerable<DatasetSpecificationRelationshipViewModel> datasetSpecificationRelationshipViewModels = new[]
+            IEnumerable<Common.ApiClient.DataSets.Models.DatasetSpecificationRelationshipViewModel> datasetSpecificationRelationshipViewModels = new[]
             {
-                    datasetSpecificationRelationshipViewModel
+                new Common.ApiClient.DataSets.Models.DatasetSpecificationRelationshipViewModel
+                {
+                     DatasetId = "ds-1",
+                    DatasetName = "ds 1",
+                    Definition = new Common.ApiClient.DataSets.Models.DatasetDefinitionViewModel
+                    {
+                        Id = "111",
+                        Name = "def 1"
+                    },
+                    IsProviderData = true,
+                    Id = "rel-1",
+                    Name = "rel-1"
+                }
             };
 
-            IDatasetRepository datasetRepository = CreateDatasetRepository();
-            datasetRepository
+            IDatasetsApiClient datasetsApiClient = CreateDatasetsApiClient();
+            datasetsApiClient
                 .GetCurrentRelationshipsBySpecificationId(Arg.Is(SpecificationId))
-                .Returns(datasetSpecificationRelationshipViewModels);
+                .Returns(new ApiResponse<IEnumerable<Common.ApiClient.DataSets.Models.DatasetSpecificationRelationshipViewModel>>(HttpStatusCode.OK, datasetSpecificationRelationshipViewModels));
 
-            datasetRepository
+            datasetsApiClient
                 .GetDatasetDefinitionById(Arg.Is("111"))
-                .Returns(datasetDefinition);
+                .Returns(new ApiResponse<Common.ApiClient.DataSets.Models.DatasetDefinition>(HttpStatusCode.OK, datasetDefinition));
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
 
-            BuildProjectsService buildProjectsService = CreateBuildProjectsService(sourceCodeService: sourceCodeService, datasetRepository: datasetRepository);
+            IMapper mapper = CreateMapper();
+
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(sourceCodeService: sourceCodeService, datasetsApiClient: datasetsApiClient, mapper: mapper);
 
             //Act
             await buildProjectsService.UpdateBuildProjectRelationships(message);
@@ -292,24 +303,36 @@ namespace CalculateFunding.Services.Calcs.Services
                 Name = "rel 1"
             };
 
-            DatasetDefinition datasetDefinition = new DatasetDefinition
+            Common.ApiClient.DataSets.Models.DatasetDefinition datasetDefinition = new Common.ApiClient.DataSets.Models.DatasetDefinition
             {
                 Id = "111"
             };
 
-            IEnumerable<DatasetSpecificationRelationshipViewModel> datasetSpecificationRelationshipViewModels = new[]
+            IEnumerable<Common.ApiClient.DataSets.Models.DatasetSpecificationRelationshipViewModel> datasetSpecificationRelationshipViewModels = new[]
             {
-                    datasetSpecificationRelationshipViewModel
+                new Common.ApiClient.DataSets.Models.DatasetSpecificationRelationshipViewModel
+                {
+                     DatasetId = "ds-1",
+                    DatasetName = "ds 1",
+                    Definition = new Common.ApiClient.DataSets.Models.DatasetDefinitionViewModel
+                    {
+                        Id = "111",
+                        Name = "def 1"
+                    },
+                    IsProviderData = true,
+                    Id = "rel-1",
+                    Name = "rel-1"
+                }
             };
 
-            IDatasetRepository datasetRepository = CreateDatasetRepository();
-            datasetRepository
+            IDatasetsApiClient datasetsApiClient = CreateDatasetsApiClient();
+            datasetsApiClient
                 .GetCurrentRelationshipsBySpecificationId(Arg.Is(SpecificationId))
-                .Returns(datasetSpecificationRelationshipViewModels);
+                .Returns(new ApiResponse<IEnumerable<Common.ApiClient.DataSets.Models.DatasetSpecificationRelationshipViewModel>>(HttpStatusCode.OK, datasetSpecificationRelationshipViewModels));
 
-            datasetRepository
+            datasetsApiClient
                 .GetDatasetDefinitionById(Arg.Is("111"))
-                .Returns(datasetDefinition);
+                .Returns(new ApiResponse<Common.ApiClient.DataSets.Models.DatasetDefinition>(HttpStatusCode.OK, datasetDefinition));
 
             IFeatureToggle featureToggle = CreateFeatureToggle();
             featureToggle
@@ -317,8 +340,12 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Returns(false);
 
             IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectRepository();
+            IMapper mapper = CreateMapper();
 
-            BuildProjectsService buildProjectsService = CreateBuildProjectsService(datasetRepository: datasetRepository, buildProjectsRepository: buildProjectsRepository, featureToggle: featureToggle);
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(datasetsApiClient: datasetsApiClient,
+                buildProjectsRepository: buildProjectsRepository,
+                featureToggle: featureToggle,
+                mapper: mapper);
 
             //Act
             await buildProjectsService.UpdateBuildProjectRelationships(message);
@@ -361,30 +388,44 @@ namespace CalculateFunding.Services.Calcs.Services
                 Name = "rel-1"
             };
 
-            DatasetDefinition datasetDefinition = new DatasetDefinition
+            Common.ApiClient.DataSets.Models.DatasetDefinition datasetDefinition = new Common.ApiClient.DataSets.Models.DatasetDefinition
             {
                 Id = "111"
             };
 
-            IEnumerable<DatasetSpecificationRelationshipViewModel> datasetSpecificationRelationshipViewModels = new[]
+            IEnumerable<Common.ApiClient.DataSets.Models.DatasetSpecificationRelationshipViewModel> datasetSpecificationRelationshipViewModels = new[]
             {
-                    datasetSpecificationRelationshipViewModel
+                new Common.ApiClient.DataSets.Models.DatasetSpecificationRelationshipViewModel
+                {
+                     DatasetId = "ds-1",
+                    DatasetName = "ds 1",
+                    Definition = new Common.ApiClient.DataSets.Models.DatasetDefinitionViewModel
+                    {
+                        Id = "111",
+                        Name = "def 1"
+                    },
+                    IsProviderData = true,
+                    Id = "rel-1",
+                    Name = "rel-1"
+                }
             };
 
-            IDatasetRepository datasetRepository = CreateDatasetRepository();
-            datasetRepository
+            IDatasetsApiClient datasetsApiClient = CreateDatasetsApiClient();
+            datasetsApiClient
                 .GetCurrentRelationshipsBySpecificationId(Arg.Is(SpecificationId))
-                .Returns(datasetSpecificationRelationshipViewModels);
+                .Returns(new ApiResponse<IEnumerable<Common.ApiClient.DataSets.Models.DatasetSpecificationRelationshipViewModel>>(HttpStatusCode.OK, datasetSpecificationRelationshipViewModels));
 
-            datasetRepository
+            datasetsApiClient
                 .GetDatasetDefinitionById(Arg.Is("111"))
-                .Returns(datasetDefinition);
+                .Returns(new ApiResponse<Common.ApiClient.DataSets.Models.DatasetDefinition>(HttpStatusCode.OK, datasetDefinition));
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService.When(x => x.SaveAssembly(Arg.Any<BuildProject>()))
                                         .Do(x => throw new Exception());
 
-            BuildProjectsService buildProjectsService = CreateBuildProjectsService(sourceCodeService: sourceCodeService, datasetRepository: datasetRepository);
+            IMapper mapper = CreateMapper();
+
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(sourceCodeService: sourceCodeService, datasetsApiClient: datasetsApiClient, mapper: mapper);
 
             //Act
             Func<Task> test = () => buildProjectsService.UpdateBuildProjectRelationships(message);
@@ -419,7 +460,13 @@ namespace CalculateFunding.Services.Calcs.Services
         public async Task GetBuildProjectBySpecificationId_GivenBuildProjectGeneratedButNoDatasetRelationshipsFound_ReturnsOKResult()
         {
             //Arrange
-            BuildProjectsService buildProjectsService = CreateBuildProjectsService();
+            IDatasetsApiClient datasetsApiClient = CreateDatasetsApiClient();
+            datasetsApiClient
+                .GetCurrentRelationshipsBySpecificationId(Arg.Is(SpecificationId))
+                .Returns(new ApiResponse<IEnumerable<Common.ApiClient.DataSets.Models.DatasetSpecificationRelationshipViewModel>>(HttpStatusCode.OK, Enumerable.Empty<Common.ApiClient.DataSets.Models.DatasetSpecificationRelationshipViewModel>()));
+
+            IMapper mapper = CreateMapper();
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(datasetsApiClient: datasetsApiClient, mapper: mapper);
 
             //Act
             IActionResult result = await buildProjectsService.GetBuildProjectBySpecificationId(SpecificationId);
@@ -442,41 +489,19 @@ namespace CalculateFunding.Services.Calcs.Services
         public async Task GetBuildProjectBySpecificationId_GivenBuildProjectGeneratedAndDatasetRelationshipsFound_ReturnsOKResult()
         {
             //Arrange
-            DatasetSpecificationRelationshipViewModel datasetSpecificationRelationshipViewModel = new DatasetSpecificationRelationshipViewModel
-            {
-                DatasetId = "ds-1",
-                DatasetName = "ds 1",
-                Definition = new DatasetDefinitionViewModel
-                {
-                    Id = "111",
-                    Name = "def 1"
-                },
-                IsProviderData = true,
-                Id = "rel-1",
-                Name = "rel 1"
-            };
-
-            DatasetDefinition datasetDefinition = new DatasetDefinition
-            {
-                Id = "111"
-            };
-
-            IEnumerable<DatasetSpecificationRelationshipViewModel> datasetSpecificationRelationshipViewModels = new[]
-            {
-                    datasetSpecificationRelationshipViewModel
-            };
-
-            IDatasetRepository datasetRepository = CreateDatasetRepository();
-            datasetRepository
+            IDatasetsApiClient datasetsApiClient = CreateDatasetsApiClient();
+            datasetsApiClient
                 .GetCurrentRelationshipsBySpecificationId(Arg.Is(SpecificationId))
-                .Returns(datasetSpecificationRelationshipViewModels);
+                .Returns(new ApiResponse<IEnumerable<Common.ApiClient.DataSets.Models.DatasetSpecificationRelationshipViewModel>>(HttpStatusCode.OK, CreateDatasetSpecificationRelationshipViewModels()));
 
-            datasetRepository
+            Common.ApiClient.DataSets.Models.DatasetDefinition datasetDefinition = CreateDatsetDefinition();
+            datasetsApiClient
                 .GetDatasetDefinitionById(Arg.Is("111"))
-                .Returns(datasetDefinition);
+                .Returns(new ApiResponse<Common.ApiClient.DataSets.Models.DatasetDefinition>(HttpStatusCode.OK, datasetDefinition));
 
+            IMapper mapper = CreateMapper();
 
-            BuildProjectsService buildProjectsService = CreateBuildProjectsService(datasetRepository: datasetRepository);
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(datasetsApiClient: datasetsApiClient, mapper: mapper);
 
             //Act
             IActionResult result = await buildProjectsService.GetBuildProjectBySpecificationId(SpecificationId);
@@ -494,10 +519,10 @@ namespace CalculateFunding.Services.Calcs.Services
             buildProject.Id.Should().NotBeEmpty();
             buildProject.DatasetRelationships.Should().HaveCount(1);
             buildProject.DatasetRelationships.First().Id.Should().Be("rel-1");
-            buildProject.DatasetRelationships.First().Name.Should().Be("rel 1");
+            buildProject.DatasetRelationships.First().Name.Should().Be("rel-1");
             buildProject.DatasetRelationships.First().DatasetId.Should().Be("ds-1");
             buildProject.DatasetRelationships.First().DatasetDefinitionId.Should().Be("111");
-            buildProject.DatasetRelationships.First().DatasetDefinition.Should().Be(datasetDefinition);
+            buildProject.DatasetRelationships.First().DatasetDefinition.Id.Should().Be(datasetDefinition.Id);
         }
 
         [TestMethod]
@@ -541,7 +566,22 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetBuildProjectBySpecificationId(Arg.Is(SpecificationId))
                 .Returns((BuildProject)null);
 
-            BuildProjectsService buildProjectsService = CreateBuildProjectsService(featureToggle: featureToggle, buildProjectsRepository: buildProjectsRepository);
+            IDatasetsApiClient datasetsApiClient = CreateDatasetsApiClient();
+            datasetsApiClient
+                .GetCurrentRelationshipsBySpecificationId(Arg.Is(SpecificationId))
+                .Returns(new ApiResponse<IEnumerable<Common.ApiClient.DataSets.Models.DatasetSpecificationRelationshipViewModel>>(HttpStatusCode.OK, CreateDatasetSpecificationRelationshipViewModels()));
+
+            datasetsApiClient
+                .GetDatasetDefinitionById(Arg.Is("111"))
+                .Returns(new ApiResponse<Common.ApiClient.DataSets.Models.DatasetDefinition>(HttpStatusCode.OK, CreateDatsetDefinition()));
+
+            IMapper mapper = CreateMapper();
+
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(
+                featureToggle: featureToggle,
+                buildProjectsRepository: buildProjectsRepository,
+                datasetsApiClient: datasetsApiClient,
+                mapper: mapper);
 
             //Act
             IActionResult result = await buildProjectsService.GetBuildProjectBySpecificationId(SpecificationId);
@@ -592,7 +632,22 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetAssembly(Arg.Any<BuildProject>())
                 .Returns(new byte[0]);
 
-            BuildProjectsService buildProjectsService = CreateBuildProjectsService(logger: logger, sourceCodeService: sourceCodeService);
+            IDatasetsApiClient datasetsApiClient = CreateDatasetsApiClient();
+            datasetsApiClient
+                .GetCurrentRelationshipsBySpecificationId(Arg.Is(specificationId))
+                .Returns(new ApiResponse<IEnumerable<Common.ApiClient.DataSets.Models.DatasetSpecificationRelationshipViewModel>>(HttpStatusCode.OK, CreateDatasetSpecificationRelationshipViewModels()));
+
+            datasetsApiClient
+                .GetDatasetDefinitionById(Arg.Is("111"))
+                .Returns(new ApiResponse<Common.ApiClient.DataSets.Models.DatasetDefinition>(HttpStatusCode.OK, CreateDatsetDefinition()));
+
+            IMapper mapper = CreateMapper();
+
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(
+                logger: logger,
+                sourceCodeService: sourceCodeService,
+                datasetsApiClient: datasetsApiClient,
+                mapper: mapper);
 
             //Act
             IActionResult result = await buildProjectsService.GetAssemblyBySpecificationId(specificationId);
@@ -623,8 +678,18 @@ namespace CalculateFunding.Services.Calcs.Services
             sourceCodeService
                 .GetAssembly(Arg.Any<BuildProject>(), Arg.Is(false))
                 .Returns(new byte[100]);
+            IDatasetsApiClient datasetsApiClient = CreateDatasetsApiClient();
+            datasetsApiClient
+                .GetCurrentRelationshipsBySpecificationId(Arg.Is(specificationId))
+                .Returns(new ApiResponse<IEnumerable<Common.ApiClient.DataSets.Models.DatasetSpecificationRelationshipViewModel>>(HttpStatusCode.OK, CreateDatasetSpecificationRelationshipViewModels()));
 
-            BuildProjectsService buildProjectsService = CreateBuildProjectsService(logger: logger, sourceCodeService: sourceCodeService);
+            datasetsApiClient
+                .GetDatasetDefinitionById(Arg.Is("111"))
+                .Returns(new ApiResponse<Common.ApiClient.DataSets.Models.DatasetDefinition>(HttpStatusCode.OK, CreateDatsetDefinition()));
+
+            IMapper mapper = CreateMapper();
+
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(logger: logger, sourceCodeService: sourceCodeService, datasetsApiClient: datasetsApiClient, mapper: mapper);
 
             //Act
             IActionResult result = await buildProjectsService.GetAssemblyBySpecificationId(specificationId);
@@ -710,9 +775,20 @@ namespace CalculateFunding.Services.Calcs.Services
 
             IJobManagement jobManagement = new JobManagement(jobsApiClient, logger, new JobManagementResiliencePolicies { JobsApiClient = NoOpPolicy.NoOpAsync() }, messengerService);
 
+            IDatasetsApiClient datasetsApiClient = CreateDatasetsApiClient();
+            datasetsApiClient
+                .GetCurrentRelationshipsBySpecificationId(Arg.Is(specificationId))
+                .Returns(new ApiResponse<IEnumerable<Common.ApiClient.DataSets.Models.DatasetSpecificationRelationshipViewModel>>(HttpStatusCode.OK, CreateDatasetSpecificationRelationshipViewModels()));
+
+            datasetsApiClient
+                .GetDatasetDefinitionById(Arg.Is("111"))
+                .Returns(new ApiResponse<Common.ApiClient.DataSets.Models.DatasetDefinition>(HttpStatusCode.OK, CreateDatsetDefinition()));
+
+            IMapper mapper = CreateMapper();
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(jobsApiClient: jobsApiClient,
-                logger: logger, providersApiClient: providersApiClient, cacheProvider: cacheProvider, jobManagement: jobManagement);
+                logger: logger, providersApiClient: providersApiClient, cacheProvider: cacheProvider, jobManagement: jobManagement,
+                datasetsApiClient: datasetsApiClient, mapper: mapper);
 
             //Act
             await buildProjectsService.UpdateAllocations(message);
@@ -723,7 +799,7 @@ namespace CalculateFunding.Services.Calcs.Services
                     .Received(1)
                     .RegenerateProviderSummariesForSpecification(Arg.Is(specificationId), Arg.Is(true));
         }
-        
+
         [TestMethod]
         public void UpdateAllocations_GivenBuildProjectButNoSummariesInCacheRegeneratePopulateScopedProvidersFails_ExceptionThrown()
         {
@@ -799,11 +875,23 @@ namespace CalculateFunding.Services.Calcs.Services
 
             IJobManagement jobManagement = new JobManagement(jobsApiClient, logger, new JobManagementResiliencePolicies { JobsApiClient = NoOpPolicy.NoOpAsync() }, messengerService);
 
+            IDatasetsApiClient datasetsApiClient = CreateDatasetsApiClient();
+            datasetsApiClient
+                .GetCurrentRelationshipsBySpecificationId(Arg.Is(specificationId))
+                .Returns(new ApiResponse<IEnumerable<Common.ApiClient.DataSets.Models.DatasetSpecificationRelationshipViewModel>>(HttpStatusCode.OK, CreateDatasetSpecificationRelationshipViewModels()));
+
+            datasetsApiClient
+                .GetDatasetDefinitionById(Arg.Is("111"))
+                .Returns(new ApiResponse<Common.ApiClient.DataSets.Models.DatasetDefinition>(HttpStatusCode.OK, CreateDatsetDefinition()));
+
+            IMapper mapper = CreateMapper();
+
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(jobsApiClient: jobsApiClient,
-                logger: logger, providersApiClient: providersApiClient, cacheProvider: cacheProvider, jobManagement: jobManagement);
+                logger: logger, providersApiClient: providersApiClient, cacheProvider: cacheProvider, jobManagement: jobManagement,
+                datasetsApiClient: datasetsApiClient, mapper: mapper);
 
             //Act
-            Func<Task> invocation = async() => await buildProjectsService.UpdateAllocations(message);
+            Func<Task> invocation = async () => await buildProjectsService.UpdateAllocations(message);
 
             //Assert
             invocation
@@ -884,8 +972,20 @@ namespace CalculateFunding.Services.Calcs.Services
             jobManagement.QueueJobAndWait(Arg.Any<Func<Task<bool>>>(), Arg.Is<string>(JobConstants.DefinitionNames.PopulateScopedProvidersJob), specificationId, "correlationId", "topic")
                 .Returns(false);
 
+            IDatasetsApiClient datasetsApiClient = CreateDatasetsApiClient();
+            datasetsApiClient
+                .GetCurrentRelationshipsBySpecificationId(Arg.Is(specificationId))
+                .Returns(new ApiResponse<IEnumerable<Common.ApiClient.DataSets.Models.DatasetSpecificationRelationshipViewModel>>(HttpStatusCode.OK, CreateDatasetSpecificationRelationshipViewModels()));
+
+            datasetsApiClient
+                .GetDatasetDefinitionById(Arg.Is("111"))
+                .Returns(new ApiResponse<Common.ApiClient.DataSets.Models.DatasetDefinition>(HttpStatusCode.OK, CreateDatsetDefinition()));
+
+            IMapper mapper = CreateMapper();
+
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(jobsApiClient: jobsApiClient,
-                logger: logger, providersApiClient: providersApiClient, cacheProvider: cacheProvider, jobManagement: jobManagement);
+                logger: logger, providersApiClient: providersApiClient, cacheProvider: cacheProvider, jobManagement: jobManagement,
+                datasetsApiClient: datasetsApiClient, mapper: mapper);
 
             //Act
             Func<Task> invocation = async () => await buildProjectsService.UpdateAllocations(message);
@@ -1071,9 +1171,25 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetScopedProviderIds(Arg.Is(specificationId))
                 .Returns(new ApiResponse<IEnumerable<string>>(HttpStatusCode.OK, providerIds));
 
+            IDatasetsApiClient datasetsApiClient = CreateDatasetsApiClient();
+            datasetsApiClient
+                .GetCurrentRelationshipsBySpecificationId(Arg.Is(specificationId))
+                .Returns(new ApiResponse<IEnumerable<Common.ApiClient.DataSets.Models.DatasetSpecificationRelationshipViewModel>>(HttpStatusCode.OK, CreateDatasetSpecificationRelationshipViewModels()));
+
+            datasetsApiClient
+                .GetDatasetDefinitionById(Arg.Is("111"))
+                .Returns(new ApiResponse<Common.ApiClient.DataSets.Models.DatasetDefinition>(HttpStatusCode.OK, CreateDatsetDefinition()));
+
+            IMapper mapper = CreateMapper();
+
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(
-                logger: logger, cacheProvider: cacheProvider,
-                jobsApiClient: jobsApiClient, engineSettings: engineSettings, providersApiClient: providersApiClient);
+                logger: logger,
+                cacheProvider: cacheProvider,
+                jobsApiClient: jobsApiClient,
+                engineSettings: engineSettings,
+                providersApiClient: providersApiClient,
+                datasetsApiClient: datasetsApiClient,
+                mapper: mapper);
 
             //Act
             await buildProjectsService.UpdateAllocations(message);
@@ -1190,9 +1306,21 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ILogger logger = CreateLogger();
 
+            IDatasetsApiClient datasetsApiClient = CreateDatasetsApiClient();
+            datasetsApiClient
+                .GetCurrentRelationshipsBySpecificationId(Arg.Is(specificationId))
+                .Returns(new ApiResponse<IEnumerable<Common.ApiClient.DataSets.Models.DatasetSpecificationRelationshipViewModel>>(HttpStatusCode.OK, CreateDatasetSpecificationRelationshipViewModels()));
+
+            datasetsApiClient
+                .GetDatasetDefinitionById(Arg.Is("111"))
+                .Returns(new ApiResponse<Common.ApiClient.DataSets.Models.DatasetDefinition>(HttpStatusCode.OK, CreateDatsetDefinition()));
+
+            IMapper mapper = CreateMapper();
+
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(
                 logger: logger, providersApiClient: providersApiClient, cacheProvider: cacheProvider,
-                jobsApiClient: jobsApiClient, engineSettings: engineSettings);
+                jobsApiClient: jobsApiClient, engineSettings: engineSettings,
+                datasetsApiClient: datasetsApiClient, mapper: mapper);
 
             IEnumerable<JobCreateModel> jobModelsToTest = null;
 
@@ -1297,9 +1425,21 @@ namespace CalculateFunding.Services.Calcs.Services
 
             EngineSettings engineSettings = CreateEngineSettings(1);
 
+            IDatasetsApiClient datasetsApiClient = CreateDatasetsApiClient();
+            datasetsApiClient
+                .GetCurrentRelationshipsBySpecificationId(Arg.Is(specificationId))
+                .Returns(new ApiResponse<IEnumerable<Common.ApiClient.DataSets.Models.DatasetSpecificationRelationshipViewModel>>(HttpStatusCode.OK, CreateDatasetSpecificationRelationshipViewModels()));
+
+            datasetsApiClient
+                .GetDatasetDefinitionById(Arg.Is("111"))
+                .Returns(new ApiResponse<Common.ApiClient.DataSets.Models.DatasetDefinition>(HttpStatusCode.OK, CreateDatsetDefinition()));
+
+            IMapper mapper = CreateMapper();
+
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(
                 logger: logger, providersApiClient: providersApiClient, cacheProvider: cacheProvider,
-                jobsApiClient: jobsApiClient, engineSettings: engineSettings);
+                jobsApiClient: jobsApiClient, engineSettings: engineSettings,
+                datasetsApiClient: datasetsApiClient, mapper: mapper);
 
             IEnumerable<JobCreateModel> jobModelsToTest = null;
 
@@ -1403,9 +1543,21 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ILogger logger = CreateLogger();
 
+            IDatasetsApiClient datasetsApiClient = CreateDatasetsApiClient();
+            datasetsApiClient
+                .GetCurrentRelationshipsBySpecificationId(Arg.Is(specificationId))
+                .Returns(new ApiResponse<IEnumerable<Common.ApiClient.DataSets.Models.DatasetSpecificationRelationshipViewModel>>(HttpStatusCode.OK, CreateDatasetSpecificationRelationshipViewModels()));
+
+            datasetsApiClient
+                .GetDatasetDefinitionById(Arg.Is("111"))
+                .Returns(new ApiResponse<Common.ApiClient.DataSets.Models.DatasetDefinition>(HttpStatusCode.OK, CreateDatsetDefinition()));
+
+            IMapper mapper = CreateMapper();
+
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(
                 logger: logger, providersApiClient: providersApiClient, cacheProvider: cacheProvider,
-                jobsApiClient: jobsApiClient, engineSettings: engineSettings);
+                jobsApiClient: jobsApiClient, engineSettings: engineSettings,
+                datasetsApiClient: datasetsApiClient, mapper: mapper);
 
             //Act
             Func<Task> test = async () => await buildProjectsService.UpdateAllocations(message);
@@ -1641,7 +1793,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 }});
 
             //Act
-            Func<Task> invocation = async() => await buildProjectsService.UpdateAllocations(message);
+            Func<Task> invocation = async () => await buildProjectsService.UpdateAllocations(message);
 
             //Assert
             invocation
@@ -1758,9 +1910,25 @@ namespace CalculateFunding.Services.Calcs.Services
                     }
                 });
 
+            IDatasetsApiClient datasetsApiClient = CreateDatasetsApiClient();
+            datasetsApiClient
+                .GetCurrentRelationshipsBySpecificationId(Arg.Is(specificationId))
+                .Returns(new ApiResponse<IEnumerable<Common.ApiClient.DataSets.Models.DatasetSpecificationRelationshipViewModel>>(HttpStatusCode.OK, CreateDatasetSpecificationRelationshipViewModels()));
+
+            datasetsApiClient
+                .GetDatasetDefinitionById(Arg.Is("111"))
+                .Returns(new ApiResponse<Common.ApiClient.DataSets.Models.DatasetDefinition>(HttpStatusCode.OK, CreateDatsetDefinition()));
+
+            IMapper mapper = CreateMapper();
+
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(
                 logger: logger, cacheProvider: cacheProvider,
-                jobsApiClient: jobsApiClient, calculationsRepository: calculationsRepository, engineSettings: engineSettings, providersApiClient: providersApiClient);
+                jobsApiClient: jobsApiClient,
+                calculationsRepository: calculationsRepository,
+                engineSettings: engineSettings,
+                providersApiClient: providersApiClient,
+                datasetsApiClient: datasetsApiClient,
+                mapper: mapper);
 
             //Act
             await buildProjectsService.UpdateAllocations(message);
@@ -1933,9 +2101,26 @@ namespace CalculateFunding.Services.Calcs.Services
                     }
                 });
 
+            IDatasetsApiClient datasetsApiClient = CreateDatasetsApiClient();
+            datasetsApiClient
+                .GetCurrentRelationshipsBySpecificationId(Arg.Is(specificationId))
+                .Returns(new ApiResponse<IEnumerable<Common.ApiClient.DataSets.Models.DatasetSpecificationRelationshipViewModel>>(HttpStatusCode.OK, CreateDatasetSpecificationRelationshipViewModels()));
+
+            datasetsApiClient
+                .GetDatasetDefinitionById(Arg.Is("111"))
+                .Returns(new ApiResponse<Common.ApiClient.DataSets.Models.DatasetDefinition>(HttpStatusCode.OK, CreateDatsetDefinition()));
+
+            IMapper mapper = CreateMapper();
+
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(
-                logger: logger, cacheProvider: cacheProvider,
-                jobsApiClient: jobsApiClient, calculationsRepository: calculationsRepository, engineSettings: engineSettings, providersApiClient: providersApiClient);
+                logger: logger,
+                cacheProvider: cacheProvider,
+                jobsApiClient: jobsApiClient,
+                calculationsRepository: calculationsRepository,
+                engineSettings: engineSettings,
+                providersApiClient: providersApiClient,
+                datasetsApiClient: datasetsApiClient,
+                mapper: mapper);
 
             //Act
             await buildProjectsService.UpdateAllocations(message);
@@ -2084,9 +2269,25 @@ namespace CalculateFunding.Services.Calcs.Services
                     }
                 });
 
+            IDatasetsApiClient datasetsApiClient = CreateDatasetsApiClient();
+            datasetsApiClient
+                .GetCurrentRelationshipsBySpecificationId(Arg.Is(specificationId))
+                .Returns(new ApiResponse<IEnumerable<Common.ApiClient.DataSets.Models.DatasetSpecificationRelationshipViewModel>>(HttpStatusCode.OK, CreateDatasetSpecificationRelationshipViewModels()));
+
+            datasetsApiClient
+                .GetDatasetDefinitionById(Arg.Is("111"))
+                .Returns(new ApiResponse<Common.ApiClient.DataSets.Models.DatasetDefinition>(HttpStatusCode.OK, CreateDatsetDefinition()));
+
+            IMapper mapper = CreateMapper();
+
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(
-                logger: logger, cacheProvider: cacheProvider,
-                jobsApiClient: jobsApiClient, calculationsRepository: calculationsRepository, providersApiClient: providersApiClient);
+                logger: logger,
+                cacheProvider: cacheProvider,
+                jobsApiClient: jobsApiClient,
+                calculationsRepository: calculationsRepository,
+                providersApiClient: providersApiClient,
+                datasetsApiClient: datasetsApiClient,
+                mapper: mapper);
 
             //Act
             await buildProjectsService.UpdateAllocations(message);
@@ -2213,8 +2414,24 @@ namespace CalculateFunding.Services.Calcs.Services
 
             IJobManagement jobManagement = new JobManagement(jobsApiClient, logger, new JobManagementResiliencePolicies { JobsApiClient = NoOpPolicy.NoOpAsync() }, messengerService);
 
+            IDatasetsApiClient datasetsApiClient = CreateDatasetsApiClient();
+            datasetsApiClient
+                .GetCurrentRelationshipsBySpecificationId(Arg.Is(specificationId))
+                .Returns(new ApiResponse<IEnumerable<Common.ApiClient.DataSets.Models.DatasetSpecificationRelationshipViewModel>>(HttpStatusCode.OK, CreateDatasetSpecificationRelationshipViewModels()));
+
+            datasetsApiClient
+                .GetDatasetDefinitionById(Arg.Is("111"))
+                .Returns(new ApiResponse<Common.ApiClient.DataSets.Models.DatasetDefinition>(HttpStatusCode.OK, CreateDatsetDefinition()));
+
+            IMapper mapper = CreateMapper();
+
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(jobsApiClient: jobsApiClient,
-                logger: logger, cacheProvider: cacheProvider, providersApiClient: providersApiClient, jobManagement: jobManagement);
+                logger: logger,
+                cacheProvider: cacheProvider,
+                providersApiClient: providersApiClient,
+                jobManagement: jobManagement,
+                datasetsApiClient: datasetsApiClient,
+                mapper: mapper);
 
             //Act
             await buildProjectsService.UpdateAllocations(message);
@@ -2332,8 +2549,24 @@ namespace CalculateFunding.Services.Calcs.Services
 
             IJobManagement jobManagement = new JobManagement(jobsApiClient, logger, new JobManagementResiliencePolicies { JobsApiClient = NoOpPolicy.NoOpAsync() }, messengerService);
 
+            IDatasetsApiClient datasetsApiClient = CreateDatasetsApiClient();
+            datasetsApiClient
+                .GetCurrentRelationshipsBySpecificationId(Arg.Is(specificationId))
+                .Returns(new ApiResponse<IEnumerable<Common.ApiClient.DataSets.Models.DatasetSpecificationRelationshipViewModel>>(HttpStatusCode.OK, CreateDatasetSpecificationRelationshipViewModels()));
+
+            datasetsApiClient
+                .GetDatasetDefinitionById(Arg.Is("111"))
+                .Returns(new ApiResponse<Common.ApiClient.DataSets.Models.DatasetDefinition>(HttpStatusCode.OK, CreateDatsetDefinition()));
+
+            IMapper mapper = CreateMapper();
+
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(jobsApiClient: jobsApiClient,
-                logger: logger, cacheProvider: cacheProvider, providersApiClient: providersApiClient, jobManagement: jobManagement);
+                logger: logger,
+                cacheProvider: cacheProvider,
+                providersApiClient: providersApiClient,
+                jobManagement: jobManagement,
+                datasetsApiClient: datasetsApiClient,
+                mapper: mapper);
 
             //Act
             await buildProjectsService.UpdateAllocations(message);
@@ -2432,11 +2665,24 @@ namespace CalculateFunding.Services.Calcs.Services
 
             IJobManagement jobManagement = CreateJobManagement();
 
+            IDatasetsApiClient datasetsApiClient = CreateDatasetsApiClient();
+            datasetsApiClient
+                .GetCurrentRelationshipsBySpecificationId(Arg.Is(specificationId))
+                .Returns(new ApiResponse<IEnumerable<Common.ApiClient.DataSets.Models.DatasetSpecificationRelationshipViewModel>>(HttpStatusCode.OK, CreateDatasetSpecificationRelationshipViewModels()));
+
+            datasetsApiClient
+                .GetDatasetDefinitionById(Arg.Is("111"))
+                .Returns(new ApiResponse<Common.ApiClient.DataSets.Models.DatasetDefinition>(HttpStatusCode.OK, CreateDatsetDefinition()));
+
+            IMapper mapper = CreateMapper();
+
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(
                 logger: logger, cacheProvider: cacheProvider,
                 jobsApiClient: jobsApiClient, engineSettings: engineSettings, providersApiClient: providersApiClient,
                 calculationEngineRunningChecker: calculationEngineRunningChecker,
-                jobManagement: jobManagement);
+                jobManagement: jobManagement,
+                datasetsApiClient: datasetsApiClient,
+                mapper: mapper);
 
             //Act
             Func<Task> test = async () => await buildProjectsService.UpdateAllocations(message);
@@ -2472,6 +2718,17 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetCalculationsBySpecificationId(Arg.Is(SpecificationId))
                     .Returns(calculations);
 
+            IDatasetsApiClient datasetsApiClient = CreateDatasetsApiClient();
+            datasetsApiClient
+                .GetCurrentRelationshipsBySpecificationId(Arg.Is(SpecificationId))
+                .Returns(new ApiResponse<IEnumerable<Common.ApiClient.DataSets.Models.DatasetSpecificationRelationshipViewModel>>(HttpStatusCode.OK, CreateDatasetSpecificationRelationshipViewModels()));
+
+            datasetsApiClient
+                .GetDatasetDefinitionById(Arg.Is("111"))
+                .Returns(new ApiResponse<Common.ApiClient.DataSets.Models.DatasetDefinition>(HttpStatusCode.OK, CreateDatsetDefinition()));
+
+            IMapper mapper = CreateMapper();
+
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
                 .Compile(Arg.Any<BuildProject>(), Arg.Is(calculations), Arg.Any<CompilerOptions>())
@@ -2488,7 +2745,9 @@ namespace CalculateFunding.Services.Calcs.Services
                calculationsRepository: calculationsRepository,
                sourceCodeService: sourceCodeService,
                buildProjectsRepository: buildProjectsRepository,
-               featureToggle: featureToggle);
+               featureToggle: featureToggle,
+               datasetsApiClient: datasetsApiClient,
+               mapper: mapper);
 
             //Act
             IActionResult actionResult = await buildProjectsService.CompileAndSaveAssembly(SpecificationId);
@@ -2528,6 +2787,17 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetCalculationsBySpecificationId(Arg.Is(SpecificationId))
                 .Returns(calculations);
 
+            IDatasetsApiClient datasetsApiClient = CreateDatasetsApiClient();
+            datasetsApiClient
+                .GetCurrentRelationshipsBySpecificationId(Arg.Is(SpecificationId))
+                .Returns(new ApiResponse<IEnumerable<Common.ApiClient.DataSets.Models.DatasetSpecificationRelationshipViewModel>>(HttpStatusCode.OK, CreateDatasetSpecificationRelationshipViewModels()));
+
+            datasetsApiClient
+                .GetDatasetDefinitionById(Arg.Is("111"))
+                .Returns(new ApiResponse<Common.ApiClient.DataSets.Models.DatasetDefinition>(HttpStatusCode.OK, CreateDatsetDefinition()));
+
+            IMapper mapper = CreateMapper();
+
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
                 .Compile(Arg.Any<BuildProject>(), Arg.Is(calculations), Arg.Any<CompilerOptions>())
@@ -2544,7 +2814,9 @@ namespace CalculateFunding.Services.Calcs.Services
                calculationsRepository: calculationsRepository,
                sourceCodeService: sourceCodeService,
                buildProjectsRepository: buildProjectsRepository,
-               featureToggle: featureToggle);
+               featureToggle: featureToggle,
+               datasetsApiClient: datasetsApiClient,
+               mapper: mapper);
 
             //Act
             IActionResult actionResult = await buildProjectsService.CompileAndSaveAssembly(SpecificationId);
@@ -2590,11 +2862,12 @@ namespace CalculateFunding.Services.Calcs.Services
             IJobsApiClient jobsApiClient = null,
             EngineSettings engineSettings = null,
             ISourceCodeService sourceCodeService = null,
-            IDatasetRepository datasetRepository = null,
+            IDatasetsApiClient datasetsApiClient = null,
             IBuildProjectsRepository buildProjectsRepository = null,
             ICalculationEngineRunningChecker calculationEngineRunningChecker = null,
             IJobManagement jobManagement = null,
-            IGraphRepository graphRepository = null)
+            IGraphRepository graphRepository = null,
+            IMapper mapper = null)
         {
             return new BuildProjectsService(
                 logger ?? CreateLogger(),
@@ -2607,11 +2880,12 @@ namespace CalculateFunding.Services.Calcs.Services
                 CalcsResilienceTestHelper.GenerateTestPolicies(),
                 engineSettings ?? CreateEngineSettings(),
                 sourceCodeService ?? CreateSourceCodeService(),
-                datasetRepository ?? CreateDatasetRepository(),
+                datasetsApiClient ?? CreateDatasetsApiClient(),
                 buildProjectsRepository ?? CreateBuildProjectRepository(),
                 calculationEngineRunningChecker ?? CreateCalculationEngineRunningChecker(),
                 jobManagement ?? CreateJobManagement(),
-                graphRepository ?? CreateGraphRepository());
+                graphRepository ?? CreateGraphRepository(),
+                 mapper ?? CreateMapper());
         }
 
         private static ISourceCodeService CreateSourceCodeService()
@@ -2696,9 +2970,9 @@ namespace CalculateFunding.Services.Calcs.Services
             return Substitute.For<IJobsApiClient>();
         }
 
-        private static IDatasetRepository CreateDatasetRepository()
+        private static IDatasetsApiClient CreateDatasetsApiClient()
         {
-            return Substitute.For<IDatasetRepository>();
+            return Substitute.For<IDatasetsApiClient>();
         }
 
         private static IBuildProjectsRepository CreateBuildProjectRepository()
@@ -2714,6 +2988,44 @@ namespace CalculateFunding.Services.Calcs.Services
         private static IProvidersApiClient CreateProvidersApiClient()
         {
             return Substitute.For<IProvidersApiClient>();
+        }
+
+        private static IMapper CreateMapper()
+        {
+            MapperConfiguration mapperConfig = new MapperConfiguration(c =>
+            {
+                c.AddProfile<CalculationsMappingProfile>();
+            });
+
+            return mapperConfig.CreateMapper();
+        }
+
+        private static IEnumerable<Common.ApiClient.DataSets.Models.DatasetSpecificationRelationshipViewModel> CreateDatasetSpecificationRelationshipViewModels()
+        {
+            return new[]
+            {
+                new Common.ApiClient.DataSets.Models.DatasetSpecificationRelationshipViewModel
+                {
+                     DatasetId = "ds-1",
+                    DatasetName = "ds 1",
+                    Definition = new Common.ApiClient.DataSets.Models.DatasetDefinitionViewModel
+                    {
+                        Id = "111",
+                        Name = "def 1"
+                    },
+                    IsProviderData = true,
+                    Id = "rel-1",
+                    Name = "rel-1"
+                }
+            };
+        }
+
+        private static Common.ApiClient.DataSets.Models.DatasetDefinition CreateDatsetDefinition()
+        {
+            return new Common.ApiClient.DataSets.Models.DatasetDefinition
+            {
+                Id = "111"
+            };
         }
     }
 }

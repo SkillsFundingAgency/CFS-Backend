@@ -1,12 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
+using AutoMapper;
+using CalculateFunding.Common.ApiClient.DataSets;
+using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Services.Calcs.Interfaces;
+using CalculateFunding.Services.Calcs.MappingProfiles;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.FeatureToggles;
@@ -883,11 +888,11 @@ End Class";
                 .GetCalculationFunctions(Arg.Any<IEnumerable<SourceFile>>())
                 .Returns(sourceCodes);
 
-            IDatasetRepository datasetRepository = CreateDatasetRepository();
+            IDatasetsApiClient datasetsApiClient = CreateDatasetsApiClient();
 
             PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository,
                 buildProjectsService: buildProjectsService,
-                datasetRepository: datasetRepository, sourceCodeService: sourceCodeService);
+                datasetsApiClient: datasetsApiClient, sourceCodeService: sourceCodeService);
 
             //Act
             IActionResult result = await service.Compile(model);
@@ -1001,11 +1006,11 @@ End Class";
                 .GetCalculationFunctions(Arg.Any<IEnumerable<SourceFile>>())
                 .Returns(sourceCodes);
 
-            IDatasetRepository datasetRepository = CreateDatasetRepository();
+            IDatasetsApiClient datasetsApiClient = CreateDatasetsApiClient();
 
             PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository,
                 buildProjectsService: buildProjectsService,
-                datasetRepository: datasetRepository, sourceCodeService: sourceCodeService);
+                datasetsApiClient: datasetsApiClient, sourceCodeService: sourceCodeService);
 
             //Act
             IActionResult result = await service.Compile(model);
@@ -1131,7 +1136,7 @@ End Class";
                 CompilerMessages = new List<CompilerMessage>()
             };
 
-            IDatasetRepository datasetRepository = CreateDatasetRepository();
+            IDatasetsApiClient datasetsApiClient = CreateDatasetsApiClient();
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
@@ -1144,7 +1149,7 @@ End Class";
 
             PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository,
                 buildProjectsService: buildProjectsService,
-                datasetRepository: datasetRepository, sourceCodeService: sourceCodeService);
+                datasetsApiClient: datasetsApiClient, sourceCodeService: sourceCodeService);
 
             //Act
             IActionResult result = await service.Compile(model);
@@ -1209,25 +1214,27 @@ End Class";
                 .GetBuildProjectForSpecificationId(Arg.Is(calculation.SpecificationId))
                 .Returns(buildProject);
 
-            IEnumerable<DatasetSchemaRelationshipModel> relationshipModels = new[]
+            IEnumerable<Common.ApiClient.DataSets.Models.DatasetSchemaRelationshipModel> relationshipModels = new[]
             {
-                new DatasetSchemaRelationshipModel
+                new Common.ApiClient.DataSets.Models.DatasetSchemaRelationshipModel
                 {
                     Fields = new[]
                     {
-                        new DatasetSchemaRelationshipField{ Name = "field Def 1", SourceName = "FieldDef1", SourceRelationshipName = "Rel1" }
+                        new Common.ApiClient.DataSets.Models.DatasetSchemaRelationshipField{ Name = "field Def 1", SourceName = "FieldDef1", SourceRelationshipName = "Rel1" }
                     }
                 }
             };
 
-            IDatasetRepository datasetRepository = CreateDatasetRepository();
-            datasetRepository
+            IMapper mapper = CreateMapper();
+            IDatasetsApiClient datasetsApiClient = CreateDatasetsApiClient();
+            datasetsApiClient
                 .GetDatasetSchemaRelationshipModelsForSpecificationId(Arg.Is(SpecificationId))
-                .Returns(relationshipModels);
+                .Returns(new ApiResponse<IEnumerable<Common.ApiClient.DataSets.Models.DatasetSchemaRelationshipModel>>(HttpStatusCode.OK, relationshipModels));
 
             PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository,
                 buildProjectsService: buildProjectsService,
-                datasetRepository: datasetRepository);
+                datasetsApiClient: datasetsApiClient,
+                mapper: mapper);
 
             //Act
             IActionResult result = await service.Compile(model);
@@ -1314,26 +1321,27 @@ End Class";
                 new SourceFile { FileName = "ExampleClass.vb", SourceCode = "Public Class ExampleClass\nPublic Property ProviderType() As String\nEnd Class" },
                 new SourceFile { FileName = "Calculation.vb", SourceCode = model.SourceCode }
             };
+                      
 
-            IEnumerable<DatasetSchemaRelationshipModel> relationshipModels = new[]
-             {
-                new DatasetSchemaRelationshipModel
+            IEnumerable<Common.ApiClient.DataSets.Models.DatasetSchemaRelationshipModel> relationshipModels = new[]
+            {
+                new Common.ApiClient.DataSets.Models.DatasetSchemaRelationshipModel
                 {
                     Fields = new[]
                     {
-                        new DatasetSchemaRelationshipField{ Name = "field Def 1", SourceName = "FieldDef1", SourceRelationshipName = "Rel1" }
+                        new Common.ApiClient.DataSets.Models.DatasetSchemaRelationshipField{ Name = "field Def 1", SourceName = "FieldDef1", SourceRelationshipName = "Rel1" }
                     }
                 }
             };
 
-            IDatasetRepository datasetRepository = CreateDatasetRepository();
-            datasetRepository
+            IDatasetsApiClient datasetsApiClient = CreateDatasetsApiClient();
+            datasetsApiClient
                 .GetDatasetSchemaRelationshipModelsForSpecificationId(Arg.Is(SpecificationId))
-                .Returns(relationshipModels);
+                .Returns(new ApiResponse<IEnumerable<Common.ApiClient.DataSets.Models.DatasetSchemaRelationshipModel>>(HttpStatusCode.OK, relationshipModels));
 
             PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository,
                 buildProjectsService: buildProjectsService,
-                datasetRepository: datasetRepository);
+                datasetsApiClient: datasetsApiClient);
 
             //Act
             IActionResult result = await service.Compile(model);
@@ -1421,27 +1429,28 @@ End Class";
                 .GetBuildProjectForSpecificationId(Arg.Is(calculation.SpecificationId))
                 .Returns(buildProject);
 
-            IEnumerable<DatasetSchemaRelationshipModel> relationshipModels = new[]
+            IEnumerable<Common.ApiClient.DataSets.Models.DatasetSchemaRelationshipModel> relationshipModels = new[]
             {
-                new DatasetSchemaRelationshipModel
+                new Common.ApiClient.DataSets.Models.DatasetSchemaRelationshipModel
                 {
                     Fields = new[]
                     {
-                        new DatasetSchemaRelationshipField{ Name = "field Def 1", SourceName = "FieldDef1", SourceRelationshipName = "Rel1" }
+                        new Common.ApiClient.DataSets.Models.DatasetSchemaRelationshipField{ Name = "field Def 1", SourceName = "FieldDef1", SourceRelationshipName = "Rel1" }
                     }
                 }
             };
 
-            IDatasetRepository datasetRepository = CreateDatasetRepository();
-            datasetRepository
-                .GetDatasetSchemaRelationshipModelsForSpecificationId(Arg.Is(SpecificationId))
-                .Returns(relationshipModels);
+            IDatasetsApiClient datasetsApiClient = CreateDatasetsApiClient();
+            datasetsApiClient
+                .GetDatasetSchemaRelationshipModelsForSpecificationId(Arg.Is(SpecificationId))               
+                .Returns(new ApiResponse<IEnumerable<Common.ApiClient.DataSets.Models.DatasetSchemaRelationshipModel>>(HttpStatusCode.OK, relationshipModels));
+
 
             ICacheProvider cacheProvider = CreateCacheProvider();
 
             PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository,
                 buildProjectsService: buildProjectsService,
-                datasetRepository: datasetRepository, cacheProvider: cacheProvider);
+                datasetsApiClient: datasetsApiClient, cacheProvider: cacheProvider);
 
             //Act
             IActionResult result = await service.Compile(model);
@@ -1558,11 +1567,11 @@ End Class";
                 .GetAsync<List<DatasetSchemaRelationshipModel>>(Arg.Is($"{CacheKeys.DatasetRelationshipFieldsForSpecification}{SpecificationId}"))
                 .Returns(relationshipModels.ToList());
 
-            IDatasetRepository datasetRepository = CreateDatasetRepository();
+            IDatasetsApiClient datasetsApiClient = CreateDatasetsApiClient();
 
             PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository,
                 buildProjectsService: buildProjectsService,
-                datasetRepository: datasetRepository, cacheProvider: cacheProvider);
+                datasetsApiClient: datasetsApiClient, cacheProvider: cacheProvider);
 
             //Act
             IActionResult result = await service.Compile(model);
@@ -1601,7 +1610,7 @@ End Class";
               .Be("Datasets.whatever is not an aggregable field");
 
             await
-                datasetRepository
+                datasetsApiClient
                 .DidNotReceive()
                 .GetDatasetSchemaRelationshipModelsForSpecificationId(Arg.Any<string>());
         }
@@ -1686,7 +1695,7 @@ End Class";
                 { "Calculations.Calc1", "return 1" }
             };
 
-            IDatasetRepository datasetRepository = CreateDatasetRepository();
+            IDatasetsApiClient datasetsApiClient = CreateDatasetsApiClient();
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
@@ -1698,7 +1707,7 @@ End Class";
                 .Returns(sourceCodes);
 
             PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository,
-                buildProjectsService: buildProjectsService, datasetRepository: datasetRepository, sourceCodeService: sourceCodeService);
+                buildProjectsService: buildProjectsService, datasetsApiClient: datasetsApiClient, sourceCodeService: sourceCodeService);
 
             //Act
             IActionResult result = await service.Compile(model);
@@ -1814,11 +1823,11 @@ End Class";
                 .GetCalculationFunctions(Arg.Any<IEnumerable<SourceFile>>())
                 .Returns(sourceCodes);
 
-            IDatasetRepository datasetRepository = CreateDatasetRepository();
+            IDatasetsApiClient datasetsApiClient = CreateDatasetsApiClient();
 
             PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository,
                 buildProjectsService: buildProjectsService,
-                datasetRepository: datasetRepository, sourceCodeService: sourceCodeService);
+                datasetsApiClient: datasetsApiClient, sourceCodeService: sourceCodeService);
 
             //Act
             IActionResult result = await service.Compile(model);
@@ -1937,11 +1946,11 @@ End Class";
                 .GetCalculationFunctions(Arg.Any<IEnumerable<SourceFile>>())
                 .Returns(sourceCodes);
 
-            IDatasetRepository datasetRepository = CreateDatasetRepository();
+            IDatasetsApiClient datasetsApiClient = CreateDatasetsApiClient();
 
             PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository,
                 buildProjectsService: buildProjectsService,
-                datasetRepository: datasetRepository, sourceCodeService: sourceCodeService);
+                datasetsApiClient: datasetsApiClient, sourceCodeService: sourceCodeService);
 
             //Act
             IActionResult result = await service.Compile(model);
@@ -2608,21 +2617,24 @@ Calculation Name: {{calculationName}}").ToArray()
             IBuildProjectsService buildProjectsService = null,
             IValidator<PreviewRequest> previewRequestValidator = null,
             ICalculationsRepository calculationsRepository = null,
-            IDatasetRepository datasetRepository = null,
+            IDatasetsApiClient datasetsApiClient = null,
             IFeatureToggle featureToggle = null,
             ICacheProvider cacheProvider = null,
             ISourceCodeService sourceCodeService = null,
-            ITokenChecker tokenChecker = null)
+            ITokenChecker tokenChecker = null,
+            IMapper mapper = null)
         {
             return new PreviewService(
                 logger ?? CreateLogger(),
                 buildProjectsService ?? CreateBuildProjectsService(),
                 previewRequestValidator ?? CreatePreviewRequestValidator(),
                 calculationsRepository ?? CreateCalculationsRepository(),
-                datasetRepository ?? CreateDatasetRepository(),
+                datasetsApiClient ?? CreateDatasetsApiClient(),
                 cacheProvider ?? CreateCacheProvider(),
                 sourceCodeService ?? CreateSourceCodeService(),
-                tokenChecker ?? CreateTokenChecker());
+                tokenChecker ?? CreateTokenChecker(),
+                CalcsResilienceTestHelper.GenerateTestPolicies(),
+                mapper ?? CreateMapper());
         }
 
         static ISourceCodeService CreateSourceCodeService()
@@ -2673,14 +2685,24 @@ Calculation Name: {{calculationName}}").ToArray()
             return Substitute.For<ICalculationsRepository>();
         }
 
-        static IDatasetRepository CreateDatasetRepository()
+        static IDatasetsApiClient CreateDatasetsApiClient()
         {
-            return Substitute.For<IDatasetRepository>();
+            return Substitute.For<IDatasetsApiClient>();
         }
 
         static ITokenChecker CreateTokenChecker()
         {
             return Substitute.For<ITokenChecker>();
+        }
+
+        private static IMapper CreateMapper()
+        {
+            MapperConfiguration mapperConfig = new MapperConfiguration(c =>
+            {
+                c.AddProfile<CalculationsMappingProfile>();
+            });
+
+            return mapperConfig.CreateMapper();
         }
     }
 }

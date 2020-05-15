@@ -1,6 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
+using CalculateFunding.Common.ApiClient.DataSets;
+using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets;
@@ -19,37 +22,41 @@ namespace CalculateFunding.Services.Calcs
     public class DatasetDefinitionFieldChangesProcessor : IDatasetDefinitionFieldChangesProcessor
     {
         private readonly IFeatureToggle _featureToggle;
-        private readonly IDatasetRepository _datasetRepository;
-        private readonly Polly.AsyncPolicy _datasetRepositoryPolicy;
+        private readonly IDatasetsApiClient _datasetsApiClient;
+        private readonly Polly.AsyncPolicy _datasetsApiClientPolicy;
         private readonly Polly.AsyncPolicy _calculationsRepositoryPolicy;
         private readonly ILogger _logger;
         private readonly ICalculationService _calculationService;
         private readonly ICalculationsRepository _calculationsRepository;
+        private readonly IMapper _mapper;
 
         public DatasetDefinitionFieldChangesProcessor(
             IFeatureToggle featureToggle,
-            IDatasetRepository datasetRepository,
+            IDatasetsApiClient datasetsApiClient,
             ICalcsResiliencePolicies resiliencePolicies,
             ILogger logger,
             ICalculationService calculationService,
-            ICalculationsRepository calculationsRepository)
+            ICalculationsRepository calculationsRepository,
+            IMapper mapper)
         {
             Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
-            Guard.ArgumentNotNull(datasetRepository, nameof(datasetRepository));
+            Guard.ArgumentNotNull(datasetsApiClient, nameof(datasetsApiClient));
             Guard.ArgumentNotNull(resiliencePolicies, nameof(resiliencePolicies));
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(calculationService, nameof(calculationService));
             Guard.ArgumentNotNull(calculationsRepository, nameof(calculationsRepository));
             Guard.ArgumentNotNull(resiliencePolicies?.CalculationsRepository, nameof(resiliencePolicies.CalculationsRepository));
-            Guard.ArgumentNotNull(resiliencePolicies?.DatasetsRepository, nameof(resiliencePolicies.DatasetsRepository));
+            Guard.ArgumentNotNull(resiliencePolicies?.DatasetsApiClient, nameof(resiliencePolicies.DatasetsApiClient));
+            Guard.ArgumentNotNull(mapper, nameof(mapper));
 
             _featureToggle = featureToggle;
-            _datasetRepository = datasetRepository;
-            _datasetRepositoryPolicy = resiliencePolicies.DatasetsRepository;
+            _datasetsApiClient = datasetsApiClient;
+            _datasetsApiClientPolicy = resiliencePolicies.DatasetsApiClient;
             _logger = logger;
             _calculationService = calculationService;
             _calculationsRepository = calculationsRepository;
             _calculationsRepositoryPolicy = resiliencePolicies.CalculationsRepository;
+            _mapper = mapper;
         }
 
         public async Task ProcessChanges(Message message)
@@ -86,7 +93,17 @@ namespace CalculateFunding.Services.Calcs
                 return;
             }
 
-            IEnumerable<string> relationshipSpecificationIds = await _datasetRepositoryPolicy.ExecuteAsync(() => _datasetRepository.GetRelationshipSpecificationIdsByDatasetDefinitionId(datasetDefinitionChanges.Id));
+            ApiResponse<IEnumerable<string>> datasetsApiClientResponse = await _datasetsApiClientPolicy.ExecuteAsync(() => _datasetsApiClient.GetSpecificationIdsForRelationshipDefinitionId(datasetDefinitionChanges.Id));
+
+            if(!datasetsApiClientResponse.StatusCode.IsSuccess())
+            {
+                string errorMessage = $"No Specification ids for relationship definition id {datasetDefinitionChanges.Id} were returned from the repository, result came back null";
+                _logger.Error(errorMessage);
+
+                throw new RetriableException(errorMessage);
+            }
+
+            IEnumerable<string> relationshipSpecificationIds = datasetsApiClientResponse.Content;
 
             if (relationshipSpecificationIds.IsNullOrEmpty())
             {
@@ -130,12 +147,15 @@ namespace CalculateFunding.Services.Calcs
 
             foreach (string specificationId in relationshipSpecificationIds)
             {
-                IEnumerable<DatasetSpecificationRelationshipViewModel> relationships = await _datasetRepositoryPolicy.ExecuteAsync(() => _datasetRepository.GetCurrentRelationshipsBySpecificationIdAndDatasetDefinitionId(specificationId, datasetDefinitionId));
+                ApiResponse<IEnumerable<Common.ApiClient.DataSets.Models.DatasetSpecificationRelationshipViewModel>> datasetsApiClientResponse = await _datasetsApiClientPolicy.ExecuteAsync(() => _datasetsApiClient.GetCurrentRelationshipsBySpecificationIdAndDatasetDefinitionId(specificationId, datasetDefinitionId));
 
-                if (relationships.IsNullOrEmpty())
+                if (!datasetsApiClientResponse.StatusCode.IsSuccess() || datasetsApiClientResponse.Content.IsNullOrEmpty())
                 {
                     throw new RetriableException($"No relationships found for specificationId '{specificationId}' and dataset definition id '{datasetDefinitionId}'");
                 }
+
+                IEnumerable<DatasetSpecificationRelationshipViewModel> relationships 
+                    = _mapper.Map<IEnumerable<DatasetSpecificationRelationshipViewModel>>(datasetsApiClientResponse.Content);
 
                 IEnumerable<Calculation> calculations = (await _calculationsRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCalculationsBySpecificationId(specificationId))).ToList();
 

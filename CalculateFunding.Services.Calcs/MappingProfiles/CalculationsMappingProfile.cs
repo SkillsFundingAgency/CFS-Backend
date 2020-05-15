@@ -6,7 +6,6 @@ using GraphCalculation = CalculateFunding.Models.Graph.Calculation;
 
 namespace CalculateFunding.Services.Calcs.MappingProfiles
 {
-    [Obsolete("Move mapping profile into services, rather than models. Models common project shouldn't have API clients in it")]
     public class CalculationsMappingProfile : Profile
     {
         public CalculationsMappingProfile()
@@ -32,8 +31,22 @@ namespace CalculateFunding.Services.Calcs.MappingProfiles
             CreateMap<Common.ApiClient.Calcs.Models.Schema.FieldDefinition, FieldDefinition>();
             CreateMap<Common.ApiClient.Calcs.Models.Schema.FieldType, FieldType>();
             CreateMap<Common.ApiClient.Calcs.Models.Schema.IdentifierFieldType, IdentifierFieldType>();
-            
+
+            CreateDatasetsMappingProfiles();
             CreateGraphMappingProfiles();
+        }
+
+        private void CreateDatasetsMappingProfiles()
+        {
+            CreateMap<Common.ApiClient.DataSets.Models.DatasetSpecificationRelationshipViewModel, Models.Datasets.ViewModels.DatasetSpecificationRelationshipViewModel>();
+            CreateMap<Common.ApiClient.DataSets.Models.DatasetDefinitionViewModel, Models.Datasets.ViewModels.DatasetDefinitionViewModel>();
+            CreateMap<Common.ApiClient.DataSets.Models.DatasetSchemaRelationshipModel, Models.Datasets.DatasetSchemaRelationshipModel>();
+            CreateMap<Common.ApiClient.DataSets.Models.DatasetSchemaRelationshipField, Models.Datasets.DatasetSchemaRelationshipField>();
+            CreateMap<Common.ApiClient.DataSets.Models.DatasetDefinition, DatasetDefinition>();
+            CreateMap<Common.ApiClient.DataSets.Models.TableDefinition, TableDefinition>();
+            CreateMap<Common.ApiClient.DataSets.Models.FieldDefinition, FieldDefinition>();
+            CreateMap<Common.ApiClient.DataSets.Models.FieldType, FieldType>();
+            CreateMap<Common.ApiClient.DataSets.Models.IdentifierFieldType, IdentifierFieldType>();
         }
 
         private void CreateGraphMappingProfiles()

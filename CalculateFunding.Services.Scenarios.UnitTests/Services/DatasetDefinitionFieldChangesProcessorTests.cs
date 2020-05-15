@@ -26,6 +26,12 @@ using Microsoft.AspNetCore.Mvc;
 using Polly;
 using IScenariosRepository = CalculateFunding.Services.Scenarios.Interfaces.IScenariosRepository;
 using CalculateFunding.Models.Messages;
+using CalculateFunding.Common.ApiClient.DataSets;
+using AutoMapper;
+using CalculateFunding.Common.ApiClient.Models;
+using System.Net;
+using System.Collections;
+using CalculateFunding.Services.Scenarios.MappingProfiles;
 
 namespace CalculateFunding.Services.Scenarios.Services
 {
@@ -157,10 +163,11 @@ namespace CalculateFunding.Services.Scenarios.Services
 
             ILogger logger = CreateLogger();
 
-            IDatasetRepository datasetRepository = CreateDatasetRepository();
+            IDatasetsApiClient datasetRepository = CreateDatasetRepository();
             datasetRepository
-                .GetRelationshipSpecificationIdsByDatasetDefinitionId(Arg.Is(definitionId))
-                .Returns(Enumerable.Empty<string>());
+                .GetSpecificationIdsForRelationshipDefinitionId(Arg.Is(definitionId))
+                //.Returns(Enumerable.Empty<string>());
+                .Returns(new ApiResponse<IEnumerable<string>>(HttpStatusCode.OK, Enumerable.Empty<string>()));
 
             DatasetDefinitionFieldChangesProcessor processor = CreateProcessor(logger: logger, datasetRepository: datasetRepository);
 
@@ -208,13 +215,13 @@ namespace CalculateFunding.Services.Scenarios.Services
 
             IEnumerable<string> relationshipSpecificationIds = new[] { specificationId };
 
-            IDatasetRepository datasetRepository = CreateDatasetRepository();
+            IDatasetsApiClient datasetRepository = CreateDatasetRepository();
             datasetRepository
-                .GetRelationshipSpecificationIdsByDatasetDefinitionId(Arg.Is(definitionId))
-                .Returns(relationshipSpecificationIds);
+                .GetSpecificationIdsForRelationshipDefinitionId(Arg.Is(definitionId))
+                .Returns(new ApiResponse<IEnumerable<string>>(HttpStatusCode.OK, relationshipSpecificationIds));
             datasetRepository
-                .GetCurrentRelationshipsBySpecificationIdAndDatasetDefinitionId(Arg.Is(specificationId), Arg.Is(definitionId))
-                .Returns(Enumerable.Empty<DatasetSpecificationRelationshipViewModel>());
+                .GetCurrentRelationshipsBySpecificationIdAndDatasetDefinitionId(Arg.Is(specificationId), Arg.Is(definitionId))               
+                .Returns(new ApiResponse<IEnumerable<Common.ApiClient.DataSets.Models.DatasetSpecificationRelationshipViewModel>>(HttpStatusCode.OK, Enumerable.Empty<Common.ApiClient.DataSets.Models.DatasetSpecificationRelationshipViewModel>()));
 
             DatasetDefinitionFieldChangesProcessor processor = CreateProcessor(logger: logger, datasetRepository: datasetRepository);
 
@@ -270,26 +277,28 @@ namespace CalculateFunding.Services.Scenarios.Services
             ILogger logger = CreateLogger();
 
             IEnumerable<string> relationshipSpecificationIds = new[] { specificationId };
-
-            IEnumerable<DatasetSpecificationRelationshipViewModel> relationshipViewModels = new[]
+            
+            IEnumerable<Common.ApiClient.DataSets.Models.DatasetSpecificationRelationshipViewModel> relationshipViewModels = new[]
             {
-                new DatasetSpecificationRelationshipViewModel()
+                new Common.ApiClient.DataSets.Models.DatasetSpecificationRelationshipViewModel() {Id = "rel-1"}
             };
 
-            IDatasetRepository datasetRepository = CreateDatasetRepository();
+            IDatasetsApiClient datasetRepository = CreateDatasetRepository();
             datasetRepository
-                .GetRelationshipSpecificationIdsByDatasetDefinitionId(Arg.Is(definitionId))
-                .Returns(relationshipSpecificationIds);
+                .GetSpecificationIdsForRelationshipDefinitionId(Arg.Is(definitionId))
+                .Returns(new ApiResponse<IEnumerable<string>>(HttpStatusCode.OK, relationshipSpecificationIds));
             datasetRepository
                 .GetCurrentRelationshipsBySpecificationIdAndDatasetDefinitionId(Arg.Is(specificationId), Arg.Is(definitionId))
-                .Returns(relationshipViewModels);
+                .Returns(new ApiResponse<IEnumerable<Common.ApiClient.DataSets.Models.DatasetSpecificationRelationshipViewModel>>(HttpStatusCode.OK, relationshipViewModels));
 
             IScenariosService scenariosService = CreateScenariosService();
+            IMapper mapper = CreateMapper();
 
             DatasetDefinitionFieldChangesProcessor processor = CreateProcessor(
                 logger: logger,
                 datasetRepository: datasetRepository,
-                scenariosService: scenariosService);
+                scenariosService: scenariosService,
+                mapper: mapper);
 
             //Act
             await processor.ProcessChanges(message);
@@ -298,7 +307,8 @@ namespace CalculateFunding.Services.Scenarios.Services
             await
                 scenariosService
                 .Received(1)
-                .ResetScenarioForFieldDefinitionChanges(Arg.Is(relationshipViewModels), Arg.Is(specificationId), Arg.Is<IEnumerable<string>>(m => m.First() == "test field 1"));
+                .ResetScenarioForFieldDefinitionChanges(Arg.Is<IEnumerable<Models.Datasets.ViewModels.DatasetSpecificationRelationshipViewModel>>(_ => _.First().Id == relationshipViewModels.First().Id), 
+                Arg.Is(specificationId), Arg.Is<IEnumerable<string>>(m => m.First() == "test field 1"));
         }
 
         [TestMethod]
@@ -347,18 +357,18 @@ namespace CalculateFunding.Services.Scenarios.Services
 
             IEnumerable<string> relationshipSpecificationIds = new[] { specificationId };
 
-            IEnumerable<DatasetSpecificationRelationshipViewModel> relationshipViewModels = new[]
-            {
-                new DatasetSpecificationRelationshipViewModel()
+            IEnumerable<Common.ApiClient.DataSets.Models.DatasetSpecificationRelationshipViewModel> relationshipViewModels = new[]
+             {
+                new Common.ApiClient.DataSets.Models.DatasetSpecificationRelationshipViewModel()
             };
-
-            IDatasetRepository datasetRepository = CreateDatasetRepository();
+            
+            IDatasetsApiClient datasetRepository = CreateDatasetRepository();
             datasetRepository
-                .GetRelationshipSpecificationIdsByDatasetDefinitionId(Arg.Is(definitionId))
-                .Returns(relationshipSpecificationIds);
+                .GetSpecificationIdsForRelationshipDefinitionId(Arg.Is(definitionId))
+                .Returns(new ApiResponse<IEnumerable<string>>(HttpStatusCode.OK, relationshipSpecificationIds));
             datasetRepository
                 .GetCurrentRelationshipsBySpecificationIdAndDatasetDefinitionId(Arg.Is(specificationId), Arg.Is(definitionId))
-                .Returns(relationshipViewModels);
+                .Returns(new ApiResponse<IEnumerable<Common.ApiClient.DataSets.Models.DatasetSpecificationRelationshipViewModel>>(HttpStatusCode.OK, relationshipViewModels));
 
             IScenariosService scenariosService = CreateScenariosService();
 
@@ -374,7 +384,8 @@ namespace CalculateFunding.Services.Scenarios.Services
             await
                 scenariosService
                 .Received(1)
-                .ResetScenarioForFieldDefinitionChanges(Arg.Is(relationshipViewModels), Arg.Is(specificationId), 
+                .ResetScenarioForFieldDefinitionChanges(Arg.Is<IEnumerable<Models.Datasets.ViewModels.DatasetSpecificationRelationshipViewModel>>(_ => _.First().Id == relationshipViewModels.First().Id),
+                    Arg.Is(specificationId), 
                     Arg.Is<IEnumerable<string>>(
                         m => 
                         m.Count() == 2 && 
@@ -422,16 +433,18 @@ namespace CalculateFunding.Services.Scenarios.Services
 
         private static DatasetDefinitionFieldChangesProcessor CreateProcessor(
             IFeatureToggle featureToggle = null,
-            IDatasetRepository datasetRepository = null,
+            IDatasetsApiClient datasetRepository = null,
             ILogger logger = null,
-            IScenariosService scenariosService = null)
+            IScenariosService scenariosService = null,
+            IMapper mapper = null)
         {
             return new DatasetDefinitionFieldChangesProcessor(
                 featureToggle ?? CreateFeatureToggle(),
                 logger ?? CreateLogger(),
                 datasetRepository ?? CreateDatasetRepository(),
                 ScenariosResilienceTestHelper.GenerateTestPolicies(),
-                scenariosService ?? CreateScenariosService());
+                scenariosService ?? CreateScenariosService(),
+                mapper ?? CreateMapper());
         }
 
         private static IFeatureToggle CreateFeatureToggle(bool featureToggleOn = true)
@@ -444,9 +457,9 @@ namespace CalculateFunding.Services.Scenarios.Services
             return featureToggle;
         }
 
-        private static IDatasetRepository CreateDatasetRepository()
+        private static IDatasetsApiClient CreateDatasetRepository()
         {
-            return Substitute.For<IDatasetRepository>();
+            return Substitute.For<IDatasetsApiClient>();
         }
 
         private static ILogger CreateLogger()
@@ -457,6 +470,16 @@ namespace CalculateFunding.Services.Scenarios.Services
         private static IScenariosService CreateScenariosService()
         {
             return Substitute.For<IScenariosService>();
+        }
+
+        private static IMapper CreateMapper()
+        {
+            MapperConfiguration mapperConfig = new MapperConfiguration(c =>
+            {
+                c.AddProfile<DatasetsMappingProfile>();
+            });
+
+            return mapperConfig.CreateMapper();
         }
     }
 }

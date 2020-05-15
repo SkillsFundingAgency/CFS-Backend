@@ -4,6 +4,7 @@ using AutoMapper;
 using CalculateFunding.Common.ApiClient;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.Config.ApiClient.Calcs;
+using CalculateFunding.Common.Config.ApiClient.Dataset;
 using CalculateFunding.Common.Config.ApiClient.Jobs;
 using CalculateFunding.Common.Config.ApiClient.Specifications;
 using CalculateFunding.Common.CosmosDb;
@@ -15,6 +16,7 @@ using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.CalcEngine;
 using CalculateFunding.Services.CalcEngine.Caching;
 using CalculateFunding.Services.CalcEngine.Interfaces;
+using CalculateFunding.Services.CalcEngine.MappingProfiles;
 using CalculateFunding.Services.CalcEngine.Validators;
 using CalculateFunding.Services.Calcs;
 using CalculateFunding.Services.Calcs.Interfaces;
@@ -161,6 +163,7 @@ namespace CalculateFunding.Functions.CalcEngine
             MapperConfiguration calculationsConfig = new MapperConfiguration(c =>
             {
                 c.AddProfile<CalculationsMappingProfile>();
+                c.AddProfile<CalcEngineMappingProfile>();
             });
 
             builder

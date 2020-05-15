@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AutoMapper;
+using CalculateFunding.Common.ApiClient.DataSets;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
@@ -50,13 +52,14 @@ namespace CalculateFunding.Services.Calcs
         private readonly Polly.AsyncPolicy _jobsApiClientPolicy;
         private readonly EngineSettings _engineSettings;
         private readonly ISourceCodeService _sourceCodeService;
-        private readonly IDatasetRepository _datasetRepository;
+        private readonly IDatasetsApiClient _datasetsApiClient;
         private readonly IJobManagement _jobManagement;
-        private readonly Polly.AsyncPolicy _datasetRepositoryPolicy;
+        private readonly Polly.AsyncPolicy _datasetsApiClientPolicy;
         private readonly IBuildProjectsRepository _buildProjectsRepository;
         private readonly Polly.AsyncPolicy _buildProjectsRepositoryPolicy;
         private readonly ICalculationEngineRunningChecker _calculationEngineRunningChecker;
         private readonly IGraphRepository _graphRepository;
+        private readonly IMapper _mapper;
 
         public BuildProjectsService(
             ILogger logger,
@@ -69,11 +72,12 @@ namespace CalculateFunding.Services.Calcs
             ICalcsResiliencePolicies resiliencePolicies,
             EngineSettings engineSettings,
             ISourceCodeService sourceCodeService,
-            IDatasetRepository datasetRepository,
+            IDatasetsApiClient datasetsApiClient,
             IBuildProjectsRepository buildProjectsRepository,
             ICalculationEngineRunningChecker calculationEngineRunningChecker,
             IJobManagement jobManagement,
-            IGraphRepository graphRepository)
+            IGraphRepository graphRepository,
+            IMapper mapper)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(telemetry, nameof(telemetry));
@@ -84,16 +88,17 @@ namespace CalculateFunding.Services.Calcs
             Guard.ArgumentNotNull(resiliencePolicies, nameof(resiliencePolicies));
             Guard.ArgumentNotNull(engineSettings, nameof(engineSettings));
             Guard.ArgumentNotNull(sourceCodeService, nameof(sourceCodeService));
-            Guard.ArgumentNotNull(datasetRepository, nameof(datasetRepository));
+            Guard.ArgumentNotNull(datasetsApiClient, nameof(datasetsApiClient));
             Guard.ArgumentNotNull(buildProjectsRepository, nameof(buildProjectsRepository));
             Guard.ArgumentNotNull(providersApiClient, nameof(providersApiClient));
             Guard.ArgumentNotNull(calculationEngineRunningChecker, nameof(calculationEngineRunningChecker));
             Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
             Guard.ArgumentNotNull(graphRepository, nameof(graphRepository));
-            Guard.ArgumentNotNull(resiliencePolicies?.DatasetsRepository, nameof(resiliencePolicies.DatasetsRepository));
+            Guard.ArgumentNotNull(resiliencePolicies?.DatasetsApiClient, nameof(resiliencePolicies.DatasetsApiClient));
             Guard.ArgumentNotNull(resiliencePolicies?.JobsApiClient, nameof(resiliencePolicies.JobsApiClient));
             Guard.ArgumentNotNull(resiliencePolicies?.ProvidersApiClient, nameof(resiliencePolicies.ProvidersApiClient));
             Guard.ArgumentNotNull(resiliencePolicies?.BuildProjectRepositoryPolicy, nameof(resiliencePolicies.BuildProjectRepositoryPolicy));
+            Guard.ArgumentNotNull(mapper, nameof(mapper));
 
             _logger = logger;
             _telemetry = telemetry;
@@ -106,13 +111,14 @@ namespace CalculateFunding.Services.Calcs
             _jobsApiClientPolicy = resiliencePolicies.JobsApiClient;
             _engineSettings = engineSettings;
             _sourceCodeService = sourceCodeService;
-            _datasetRepository = datasetRepository;
+            _datasetsApiClient = datasetsApiClient;
             _jobManagement = jobManagement;
             _graphRepository = graphRepository;
-            _datasetRepositoryPolicy = resiliencePolicies.DatasetsRepository;
+            _datasetsApiClientPolicy = resiliencePolicies.DatasetsApiClient;
             _buildProjectsRepository = buildProjectsRepository;
             _buildProjectsRepositoryPolicy = resiliencePolicies.BuildProjectRepositoryPolicy;
             _calculationEngineRunningChecker = calculationEngineRunningChecker;
+            _mapper = mapper;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -654,7 +660,16 @@ namespace CalculateFunding.Services.Calcs
                 Build = new Build()
             };
 
-            IEnumerable<DatasetSpecificationRelationshipViewModel> datasetRelationshipModels = await _datasetRepositoryPolicy.ExecuteAsync(() => _datasetRepository.GetCurrentRelationshipsBySpecificationId(specificationId));
+            ApiResponse<IEnumerable<Common.ApiClient.DataSets.Models.DatasetSpecificationRelationshipViewModel>> datasetsApiClientResponse = await _datasetsApiClientPolicy.ExecuteAsync(() => _datasetsApiClient.GetCurrentRelationshipsBySpecificationId(specificationId));
+
+            if(!datasetsApiClientResponse.StatusCode.IsSuccess())
+            {
+                string message = $"No current dataset relationships found for specificationId '{specificationId}'.";
+                _logger.Error(message);
+                throw new RetriableException(message);
+            }
+
+            IEnumerable<DatasetSpecificationRelationshipViewModel> datasetRelationshipModels = _mapper.Map<IEnumerable<DatasetSpecificationRelationshipViewModel>>(datasetsApiClientResponse.Content);
 
             if (!datasetRelationshipModels.IsNullOrEmpty())
             {
@@ -668,8 +683,16 @@ namespace CalculateFunding.Services.Calcs
                 {
                     Task task = Task.Run(async () =>
                     {
-                        DatasetDefinition datasetDefinition = await _datasetRepositoryPolicy.ExecuteAsync(() => _datasetRepository.GetDatasetDefinitionById(definitionId));
+                        ApiResponse<Common.ApiClient.DataSets.Models.DatasetDefinition> datasetDefinitionResponse = await _datasetsApiClientPolicy.ExecuteAsync(() => _datasetsApiClient.GetDatasetDefinitionById(definitionId));
 
+                        if (!datasetDefinitionResponse.StatusCode.IsSuccess())
+                        {
+                            string message = $"No DatasetDefinition found for definition id '{definitionId}'.";
+                            _logger.Error(message);
+                            throw new RetriableException(message);
+                        }
+
+                        DatasetDefinition datasetDefinition = _mapper.Map<DatasetDefinition>(datasetDefinitionResponse.Content);
                         if (datasetDefinition != null)
                         {
                             datasetDefinitions.Add(datasetDefinition);

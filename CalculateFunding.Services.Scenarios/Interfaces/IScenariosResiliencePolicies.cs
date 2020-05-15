@@ -8,7 +8,7 @@ namespace CalculateFunding.Services.Scenarios.Interfaces
 
         AsyncPolicy JobsApiClient { get; set; }
 
-        AsyncPolicy DatasetRepository { get; set; }
+        AsyncPolicy DatasetsApiClient { get; set; }
 
         AsyncPolicy ScenariosRepository { get; set; }
 

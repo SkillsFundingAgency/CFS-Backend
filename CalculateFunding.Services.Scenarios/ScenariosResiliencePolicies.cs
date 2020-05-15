@@ -9,10 +9,12 @@ namespace CalculateFunding.Services.Scenarios
 
         public AsyncPolicy JobsApiClient { get; set; }
 
-        public AsyncPolicy DatasetRepository { get; set; }
+        public AsyncPolicy DatasetsApiClient { get; set; }
 
         public AsyncPolicy ScenariosRepository { get; set; }
 
         public AsyncPolicy SpecificationsApiClient { get; set; }
+
+        public AsyncPolicy ScenariosApiClient { get; set; }
     }
 }

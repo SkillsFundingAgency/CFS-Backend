@@ -19,7 +19,6 @@ using CalculateFunding.Models.Providers;
 
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Caching.FileSystem;
-using CalculateFunding.Services.Core.Interfaces.Proxies;
 using CalculateFunding.Services.Providers.Caching;
 using CalculateFunding.Services.Providers.Interfaces;
 using FluentAssertions;

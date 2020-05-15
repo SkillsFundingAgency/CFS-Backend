@@ -4,7 +4,6 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Security.Claims;
 using CalculateFunding.Common.Caching;
-using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.ServiceBus.Interfaces;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.ServiceBus;
@@ -12,12 +11,9 @@ using CalculateFunding.Common.ServiceBus.Options;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.FeatureToggles;
-using CalculateFunding.Services.Core.Interfaces.Logging;
-using CalculateFunding.Services.Core.Interfaces.Proxies;
 using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Core.Logging;
 using CalculateFunding.Services.Core.Options;
-using CalculateFunding.Services.Core.Proxies;
 using CalculateFunding.Services.Core.Services;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.AspNetCore.Extensions;
@@ -36,42 +32,6 @@ namespace CalculateFunding.Services.Core.Extensions
 {
     public static class ServiceCollectionExtensions
     {
-        [Obsolete]
-        public static IServiceCollection AddDatasetsInterServiceClient(this IServiceCollection builder, IConfiguration config)
-        {
-            builder
-                .AddSingleton<IDatasetsApiClientProxy, DatasetsApiProxy>((ctx) =>
-                {
-                    ApiOptions apiOptions = new ApiOptions();
-
-                    config.Bind("datasetsClient", apiOptions);
-
-                    ILogger logger = ctx.GetService<ILogger>();
-
-                    return new DatasetsApiProxy(apiOptions, logger);
-                });
-
-            return builder;
-        }
-
-        [Obsolete]
-        public static IServiceCollection AddScenariosInterServiceClient(this IServiceCollection builder, IConfiguration config)
-        {
-            builder
-                 .AddSingleton<IScenariosApiClientProxy, ScenariosApiProxy>((ctx) =>
-                 {
-                     ApiOptions apiOptions = new ApiOptions();
-
-                     config.Bind("scenariosClient", apiOptions);
-
-                     ILogger logger = ctx.GetService<ILogger>();
-
-                     return new ScenariosApiProxy(apiOptions, logger);
-                 });
-
-            return builder;
-        }
-
         public static IServiceCollection AddFeatureToggling(this IServiceCollection builder, IConfiguration config)
         {
             builder

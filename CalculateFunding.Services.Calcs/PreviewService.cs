@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
+using CalculateFunding.Common.ApiClient.DataSets;
+using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
@@ -10,6 +13,7 @@ using CalculateFunding.Models.Datasets;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.CodeGeneration.VisualBasic;
 using CalculateFunding.Services.Compiler;
+using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
@@ -32,38 +36,46 @@ namespace CalculateFunding.Services.Calcs
         private readonly IBuildProjectsService _buildProjectsService;
         private readonly IValidator<PreviewRequest> _previewRequestValidator;
         private readonly ICalculationsRepository _calculationsRepository;
-        private readonly IDatasetRepository _datasetRepository;
+        private readonly IDatasetsApiClient _datasetsApiClient;
         private readonly ICacheProvider _cacheProvider;
         private readonly ISourceCodeService _sourceCodeService;
         private readonly ITokenChecker _tokenChecker;
+        private readonly Polly.AsyncPolicy _datasetsApiClientPolicy;
+        private readonly IMapper _mapper;
 
         public PreviewService(
             ILogger logger,
             IBuildProjectsService buildProjectsService,
             IValidator<PreviewRequest> previewRequestValidator,
             ICalculationsRepository calculationsRepository,
-            IDatasetRepository datasetRepository,
+            IDatasetsApiClient datasetsApiClient,
             ICacheProvider cacheProvider,
             ISourceCodeService sourceCodeService,
-            ITokenChecker tokenChecker)
+            ITokenChecker tokenChecker,
+            ICalcsResiliencePolicies resiliencePolicies,
+            IMapper mapper)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(buildProjectsService, nameof(buildProjectsService));
             Guard.ArgumentNotNull(previewRequestValidator, nameof(previewRequestValidator));
             Guard.ArgumentNotNull(calculationsRepository, nameof(calculationsRepository));
-            Guard.ArgumentNotNull(datasetRepository, nameof(datasetRepository));
+            Guard.ArgumentNotNull(datasetsApiClient, nameof(datasetsApiClient));
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
             Guard.ArgumentNotNull(sourceCodeService, nameof(sourceCodeService));
             Guard.ArgumentNotNull(tokenChecker, nameof(tokenChecker));
+            Guard.ArgumentNotNull(resiliencePolicies, nameof(resiliencePolicies));
+            Guard.ArgumentNotNull(mapper, nameof(mapper));
 
             _logger = logger;
             _buildProjectsService = buildProjectsService;
             _previewRequestValidator = previewRequestValidator;
             _calculationsRepository = calculationsRepository;
-            _datasetRepository = datasetRepository;
+            _datasetsApiClient = datasetsApiClient;
             _cacheProvider = cacheProvider;
             _sourceCodeService = sourceCodeService;
             _tokenChecker = tokenChecker;
+            _datasetsApiClientPolicy = resiliencePolicies.DatasetsApiClient;
+            _mapper = mapper;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -346,7 +358,19 @@ Calculation Name: {{calculationName}}";
 
             if (datasetSchemaRelationshipModels.IsNullOrEmpty())
             {
-                datasetSchemaRelationshipModels = await _datasetRepository.GetDatasetSchemaRelationshipModelsForSpecificationId(previewRequest.SpecificationId);
+                ApiResponse<IEnumerable<Common.ApiClient.DataSets.Models.DatasetSchemaRelationshipModel>> datasetsApiClientResponse = await _datasetsApiClientPolicy.ExecuteAsync(() => _datasetsApiClient.GetDatasetSchemaRelationshipModelsForSpecificationId(previewRequest.SpecificationId));
+
+                if (!datasetsApiClientResponse.StatusCode.IsSuccess())
+                {
+                    string message = $"No dataset schema relationship found for specificationId '{previewRequest.SpecificationId}'.";
+                    _logger.Error(message);
+                    throw new RetriableException(message);
+                }
+
+                if (datasetsApiClientResponse.Content != null)
+                {
+                    datasetSchemaRelationshipModels = _mapper.Map<IEnumerable<DatasetSchemaRelationshipModel>>(datasetsApiClientResponse.Content);
+                }
 
                 await _cacheProvider.SetAsync<List<DatasetSchemaRelationshipModel>>(cacheKey, datasetSchemaRelationshipModels.ToList());
             }

@@ -45,6 +45,8 @@ namespace CalculateFunding.Services.TestEngine.MappingProfiles
             CreateMap<Common.ApiClient.Calcs.Models.Schema.FieldDefinition, FieldDefinition>();
             CreateMap<Common.ApiClient.Calcs.Models.Schema.FieldType, FieldType>();
             CreateMap<Common.ApiClient.Calcs.Models.Schema.IdentifierFieldType, IdentifierFieldType>();
+            CreateMap<Common.ApiClient.Scenarios.Models.TestScenario, TestScenario>();
+            CreateMap<Common.ApiClient.Scenarios.Models.TestScenarioVersion, TestScenarioVersion>();           
         }
     }
 }

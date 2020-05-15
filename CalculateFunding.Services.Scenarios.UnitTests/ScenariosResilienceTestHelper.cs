@@ -12,7 +12,7 @@ namespace CalculateFunding.Services.Scenarios
             {
                 CalcsRepository = Policy.NoOpAsync(),
                 JobsApiClient = Policy.NoOpAsync(),
-                DatasetRepository = Policy.NoOpAsync(),
+                DatasetsApiClient = Policy.NoOpAsync(),
                 ScenariosRepository = Policy.NoOpAsync(),
                 SpecificationsApiClient = Policy.NoOpAsync()
             };

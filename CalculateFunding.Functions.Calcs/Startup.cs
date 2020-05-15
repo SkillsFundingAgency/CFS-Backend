@@ -2,6 +2,7 @@
 using System.Threading;
 using AutoMapper;
 using CalculateFunding.Common.ApiClient;
+using CalculateFunding.Common.Config.ApiClient.Dataset;
 using CalculateFunding.Common.Config.ApiClient.Graph;
 using CalculateFunding.Common.Config.ApiClient.Jobs;
 using CalculateFunding.Common.Config.ApiClient.Policies;
@@ -111,7 +112,7 @@ namespace CalculateFunding.Functions.Calcs
             builder.AddSingleton<IValidator<Calculation>, CalculationModelValidator>();
             builder.AddScoped<IPreviewService, PreviewService>();
             builder.AddSingleton<ICompilerFactory, CompilerFactory>();
-            builder.AddSingleton<IDatasetRepository, DatasetRepository>();
+            //builder.AddSingleton<IDatasetRepository, DatasetRepository>();
             builder.AddSingleton<IJobService, JobService>();
             builder
                 .AddSingleton<CSharpCompiler>()
@@ -253,7 +254,7 @@ namespace CalculateFunding.Functions.Calcs
                 ProvidersApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                 SpecificationsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                 SourceFilesRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-                DatasetsRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                DatasetsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                 PoliciesApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                 GraphApiClientPolicy = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
             };

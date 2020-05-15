@@ -26,11 +26,10 @@ namespace CalculateFunding.Services.Calcs.Interfaces
 
         AsyncPolicy SourceFilesRepository { get; set; }
 
-        AsyncPolicy DatasetsRepository { get; set; }
-
         AsyncPolicy PoliciesApiClient { get; set; }
 
         AsyncPolicy SpecificationsApiClient { get; set; }
         
+        AsyncPolicy DatasetsApiClient { get; set; }
     }
 }

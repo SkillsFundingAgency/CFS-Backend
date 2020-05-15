@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using CalculateFunding.Services.CodeGeneration.VisualBasic;
-using CalculationType = CalculateFunding.Models.Calcs.CalculationType;
 using DatasetReference = CalculateFunding.Models.Graph.DatasetReference;
 using Calculation = CalculateFunding.Models.Calcs.Calculation;
 using DatasetRelationshipSummary = CalculateFunding.Models.Calcs.DatasetRelationshipSummary;
@@ -12,7 +11,6 @@ using System.Text.RegularExpressions;
 using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Common.Utility;
 using Serilog;
-using CalculateFunding.Common.ApiClient.Graph.Models;
 
 namespace CalculateFunding.Services.Calcs
 {
