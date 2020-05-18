@@ -134,17 +134,22 @@ namespace CalculateFunding.Services.Jobs
                 return new BadRequestObjectResult(validationResults);
             }
 
+            return new OkObjectResult(await CreateAllJobs(jobs, user, jobDefinitions));
+        }
+
+        private async Task<IList<Job>> CreateAllJobs(IEnumerable<JobCreateModel> jobs, Reference user, IEnumerable<JobDefinition> jobDefinitions)
+        {
             IList<Job> createdJobs = new List<Job>();
 
             foreach (JobCreateModel job in jobs)
             {
-                Job newJobResult = await JobFromJobCreateModel(job, jobDefinitions, user);
+                Job newJobResult = await JobFromJobCreateModel(job, user);
 
                 if (newJobResult == null)
                 {
                     string message = $"Failed to create a job for job definition id: {job.JobDefinitionId}";
                     _logger.Error(message);
-                    return new InternalServerErrorResult(message);
+                    throw new Exception(message);
                 }
 
                 createdJobs.Add(newJobResult);
@@ -154,14 +159,12 @@ namespace CalculateFunding.Services.Jobs
 
             await QueueNotifications(createdJobs, jobDefinitionsToSupersede);
 
-            return new OkObjectResult(createdJobs);
+            return createdJobs;
         }
 
-        private async Task<Job> JobFromJobCreateModel(JobCreateModel job, IEnumerable<JobDefinition> jobDefinitions, Reference user)
+        private async Task<Job> JobFromJobCreateModel(JobCreateModel job, Reference user)
         {
             Guard.ArgumentNotNull(job.Trigger, nameof(job.Trigger));
-
-            JobDefinition jobDefinition = jobDefinitions.First(m => m.Id == job.JobDefinitionId);
 
             if (string.IsNullOrWhiteSpace(job.InvokerUserId) || string.IsNullOrWhiteSpace(job.InvokerUserDisplayName))
             {
@@ -371,10 +374,18 @@ namespace CalculateFunding.Services.Jobs
                         {
                             Job parentJob = await _jobsRepositoryPolicy.ExecuteAsync(() => _jobRepository.GetJobById(job.ParentJobId));
 
-                            var preCompletionJobs = await CompletePreCompletionJobs(parentJob, childJobs, job, jobId);
+                            IEnumerable<JobDefinition> jobDefinitions = await _jobDefinitionsService.GetAllJobDefinitions();
 
-                            if (CompletedAll(preCompletionJobs))
+                            JobDefinition jobDefinition = jobDefinitions.FirstOrDefault(j => j.Id == parentJob.JobDefinitionId);
+
+                            // if the parent job has pre-completion jobs and is not completing then we need to queue the pre-completion jobs
+                            if (jobDefinition != null && jobDefinition.PreCompletionJobs.AnyWithNullCheck() && parentJob.RunningStatus != RunningStatus.Completing)
                             {
+                                await QueuePreCompletionJobs(parentJob);
+                            }
+                            else
+                            {
+                                // the pre-completion jobs must have completed at this point as the child jobs have completed
                                 await CompleteParentJob(parentJob, childJobs, job, jobId);
                             }
 
@@ -396,7 +407,7 @@ namespace CalculateFunding.Services.Jobs
             }
         }
 
-        private async Task<IEnumerable<Job>> CompletePreCompletionJobs(Job parentJob, IEnumerable<Job> childJobs, Job job, string jobId)
+        private async Task QueuePreCompletionJobs(Job parentJob)
         {
             IEnumerable<JobDefinition> jobDefinitions = await _jobDefinitionsService.GetAllJobDefinitions();
 
@@ -404,20 +415,27 @@ namespace CalculateFunding.Services.Jobs
 
             if (jobDefinition != null && jobDefinition.PreCompletionJobs.AnyWithNullCheck())
             {
+                IEnumerable<JobCreateModel> jobModels = jobDefinition.PreCompletionJobs.Select(_ =>
+                {
+                    return new JobCreateModel {
+                        CorrelationId = parentJob.CorrelationId,
+                        InvokerUserId = parentJob.InvokerUserId,
+                        InvokerUserDisplayName = parentJob.InvokerUserDisplayName,
+                        JobDefinitionId = _,
+                        MessageBody = parentJob.MessageBody,
+                        Properties = parentJob.Properties,
+                        ParentJobId = parentJob.JobId,
+                        SpecificationId = parentJob.SpecificationId,
+                        Trigger = parentJob.Trigger };
+
+                });
+
+                await CreateAllJobs(jobModels, new Reference { Id = parentJob.InvokerUserId, Name = parentJob.InvokerUserDisplayName }, jobDefinitions);
+
                 parentJob.RunningStatus = RunningStatus.Completing;
 
-                List<Job> preCompletionJobs = new List<Job>();
-
-                foreach (var preCompletionJobId in jobDefinition.PreCompletionJobs)
-                {
-                    preCompletionJobs.Add(
-                        await _jobsRepositoryPolicy.ExecuteAsync(() => _jobRepository.GetJobById(preCompletionJobId)));
-                }
-
-                return preCompletionJobs;
+                await _jobsRepositoryPolicy.ExecuteAsync(() => _jobRepository.UpdateJob(parentJob));
             }
-
-            return null;
         }
 
         private static bool CompletedAll(IEnumerable<Job> jobs) =>

@@ -84,6 +84,7 @@ namespace CalculateFunding.Functions.Calcs
                 builder.AddScoped<OnApplyTemplateCalculations>();
                 builder.AddScoped<OnApplyTemplateCalculationsFailure>();
                 builder.AddScoped<OnReIndexSpecificationCalculationRelationships>();
+                builder.AddScoped<OnReIndexSpecificationCalculationRelationshipsFailure>();
             }
 
             builder.AddScoped<IApplyTemplateCalculationsService, ApplyTemplateCalculationsService>();

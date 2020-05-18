@@ -22,18 +22,22 @@ namespace CalculateFunding.Services.Calcs
         private readonly ICalculationsRepository _calculationsRepository;
         private readonly IJobsApiClient _jobsApiClient;
         private readonly ILogger _logger;
-        
+        private ICalculationsFeatureFlag _calculationsFeatureFlag;
+        private bool? _graphEnabled;
         public InstructionAllocationJobCreation(ICalculationsRepository calculationsRepository, 
             ICalcsResiliencePolicies calculationsResiliencePolicies,
             ILogger logger, 
-            IJobsApiClient jobsApiClient)
+            IJobsApiClient jobsApiClient,
+            ICalculationsFeatureFlag calculationsFeatureFlag)
         {
             Guard.ArgumentNotNull(calculationsRepository, nameof(calculationsRepository));
+            Guard.ArgumentNotNull(calculationsFeatureFlag, nameof(calculationsFeatureFlag));
             Guard.ArgumentNotNull(jobsApiClient, nameof(jobsApiClient));
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(calculationsResiliencePolicies?.JobsApiClient, nameof(calculationsResiliencePolicies.JobsApiClient));
             Guard.ArgumentNotNull(calculationsResiliencePolicies?.CalculationsRepository, nameof(calculationsResiliencePolicies.CalculationsRepository));
-            
+
+            _calculationsFeatureFlag = calculationsFeatureFlag;
             _calculationsRepository = calculationsRepository;
             _logger = logger;
             _jobsApiClient = jobsApiClient;
@@ -43,17 +47,27 @@ namespace CalculateFunding.Services.Calcs
 
         public async Task<Job> SendInstructAllocationsToJobService(string specificationId, string userId, string userName, Trigger trigger, string correlationId, bool initiateCalcRUn = true)
         {
+            Job parentJob = null;
+            
             IEnumerable<Calculation> allCalculations = await _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCalculationsBySpecificationId(specificationId));
 
             bool generateCalculationAggregations = SourceCodeHelpers.HasCalculationAggregateFunctionParameters(allCalculations.Select(m => m.Current.SourceCode));
+            
+            string jobDefinitionId = generateCalculationAggregations ?
+                    JobConstants.DefinitionNames.CreateInstructGenerateAggregationsAllocationJob :
+                    JobConstants.DefinitionNames.CreateInstructAllocationJob;
+
+            if (await GraphEnabled())
+            {
+                // if the graph is enabled then we need to queue a reindex of the graph
+                jobDefinitionId = JobConstants.DefinitionNames.ReIndexSpecificationCalculationRelationshipsJob;
+            }
 
             JobCreateModel job = new JobCreateModel
-            {
+            { 
                 InvokerUserDisplayName = userName,
                 InvokerUserId = userId,
-                JobDefinitionId = generateCalculationAggregations ?
-                    JobConstants.DefinitionNames.CreateInstructGenerateAggregationsAllocationJob :
-                    JobConstants.DefinitionNames.CreateInstructAllocationJob,
+                JobDefinitionId = jobDefinitionId,
                 SpecificationId = specificationId,
                 Properties = new Dictionary<string, string>
                 {
@@ -63,6 +77,45 @@ namespace CalculateFunding.Services.Calcs
                 CorrelationId = correlationId
             };
 
+            if (await GraphEnabled())
+            {
+                string parentJobDefinition = generateCalculationAggregations ?
+                            JobConstants.DefinitionNames.GenerateGraphAndInstructGenerateAggregationAllocationJob :
+                            JobConstants.DefinitionNames.GenerateGraphAndInstructAllocationJob;
+
+                try
+                {
+                    parentJob = await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.CreateJob(new JobCreateModel
+                    {
+                        InvokerUserDisplayName = userName,
+                        InvokerUserId = userId,
+                        JobDefinitionId = parentJobDefinition,
+                        SpecificationId = specificationId,
+                        Properties = new Dictionary<string, string>
+                        {
+                            { "specification-id", specificationId }
+                        },
+                        Trigger = trigger,
+                        CorrelationId = correlationId
+                    }));
+
+                    _logger.Information($"New job of type '{parentJob.JobDefinitionId}' created with id: '{parentJob.Id}'");
+                }
+                catch (Exception ex)
+                {
+                    string errorMessage = $"Failed to create job of type '{parentJobDefinition}' on specification '{specificationId}'";
+
+                    _logger.Error(ex, errorMessage);
+
+                    throw new RetriableException(errorMessage, ex);
+                }
+            }
+
+            if (parentJob != null)
+            {
+                job.ParentJobId = parentJob.Id;
+            }
+
             try
             {
                 return await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.CreateJob(job));
@@ -70,11 +123,18 @@ namespace CalculateFunding.Services.Calcs
             catch (Exception ex)
             {
                 string errorMessage = $"Failed to create job of type '{job.JobDefinitionId}' on specification '{specificationId}'";
-
+                
                 _logger.Error(ex, errorMessage);
 
                 throw new RetriableException(errorMessage, ex);
             }
-        }    
+        }
+
+        private async Task<bool> GraphEnabled()
+        {
+            _graphEnabled = _graphEnabled ?? await _calculationsFeatureFlag.IsGraphEnabled();
+
+            return _graphEnabled.Value;
+        }
     }
 }

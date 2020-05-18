@@ -100,7 +100,7 @@ namespace CalculateFunding.Services.Specs
                 ItemCount = itemCount
             };
 
-        private async Task<Job> CreateJob(JobCreateModel createModel, string parentJobId = null)
+        private async Task<Job> CreateJob(JobCreateModel createModel)
         {
             try
             {

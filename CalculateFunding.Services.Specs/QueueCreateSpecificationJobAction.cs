@@ -188,9 +188,9 @@ namespace CalculateFunding.Services.Specs
 
                 return job;
             }
-            catch
+            catch(Exception ex)
             {
-                _logger.Error(errorMessage);
+                _logger.Error(ex, errorMessage);
 
                 throw new Exception(errorMessage);
             }

@@ -78,7 +78,6 @@ namespace CalculateFunding.Services.Calcs
         private readonly IInstructionAllocationJobCreation _instructionAllocationJobCreation;
         private readonly ICreateCalculationService _createCalculationService;
         private readonly IGraphRepository _graphRepository;
-        private readonly IDatasetReferenceService _datasetReferenceService;
         
 
         public CalculationService(
@@ -86,7 +85,6 @@ namespace CalculateFunding.Services.Calcs
             ILogger logger,
             ISearchRepository<CalculationIndex> searchRepository,
             IBuildProjectsService buildProjectsService,
-            IDatasetReferenceService datasetReferenceService,
             IPoliciesApiClient policiesApiClient,
             ICacheProvider cacheProvider,
             ICalcsResiliencePolicies resiliencePolicies,
@@ -129,7 +127,6 @@ namespace CalculateFunding.Services.Calcs
             Guard.ArgumentNotNull(resiliencePolicies?.PoliciesApiClient, nameof(resiliencePolicies.PoliciesApiClient));
             Guard.ArgumentNotNull(resiliencePolicies?.SpecificationsApiClient, nameof(resiliencePolicies.SpecificationsApiClient));
             Guard.ArgumentNotNull(graphRepository, nameof(graphRepository));
-            Guard.ArgumentNotNull(datasetReferenceService, nameof(datasetReferenceService)); 
 
 
             _calculationsRepository = calculationsRepository;
@@ -158,7 +155,6 @@ namespace CalculateFunding.Services.Calcs
             _specificationsApiClientPolicy = resiliencePolicies.SpecificationsApiClient;
             _calculationEditModelValidator = calculationEditModelValidator;
             _graphRepository = graphRepository;
-            _datasetReferenceService = datasetReferenceService;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -395,8 +391,6 @@ namespace CalculateFunding.Services.Calcs
             if (createCalculationResponse.Succeeded)
             {
                 IEnumerable<Calculation> calculations = await _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCalculationsBySpecificationId(specificationId));
-
-                await _graphRepository.PersistToGraph(calculations, specificationApiResponse.Content, createCalculationResponse.Calculation.Current.CalculationId);
 
                 return new OkObjectResult(createCalculationResponse.Calculation.ToResponseModel());
             }
@@ -1217,15 +1211,6 @@ namespace CalculateFunding.Services.Calcs
             if (!_featureToggle.IsDynamicBuildProjectEnabled())
             {
                 await _buildProjectRepositoryPolicy.ExecuteAsync(() => _buildProjectsRepository.UpdateBuildProject(buildProject));
-            }
-
-            //Get the dataset relationship in the calculation
-            IEnumerable<DatasetReference> datasetRelationships = _datasetReferenceService.GetDatasetRelationShips(calculations, buildProject.DatasetRelationships);            
-
-            if (calculationId != null)
-            {
-                // there are only changes to the calc which effect the graph if a calculationId is sent into this method
-                await _graphRepository.PersistToGraph(calculations, specificationSummary, calculationId, true, datasetRelationships);
             }
 
             return buildProject;

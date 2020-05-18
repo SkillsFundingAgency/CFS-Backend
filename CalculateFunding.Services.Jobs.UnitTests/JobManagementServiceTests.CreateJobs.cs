@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.ComponentModel.Design.Serialization;
 using System.Linq;
 using System.Net;
-using System.Security.Claims;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.ServiceBus.Interfaces;
@@ -14,7 +13,6 @@ using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using FluentValidation;
 using FluentValidation.Results;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
@@ -177,9 +175,13 @@ namespace CalculateFunding.Services.Jobs.Services
             JobManagementService jobManagementService = CreateJobManagementService(jobDefinitionsService: jobDefinitionsService, jobRepository: jobRepository);
 
             //Act
-            IActionResult actionResult = await jobManagementService.CreateJobs(jobs, user);
+            Func<Task> invocation = async() => await jobManagementService.CreateJobs(jobs, user);
 
             //Assert
+            invocation
+                .Should()
+                .ThrowExactly<Exception>();
+
             await
                 jobRepository
                     .Received(1)
@@ -229,16 +231,13 @@ namespace CalculateFunding.Services.Jobs.Services
             JobManagementService jobManagementService = CreateJobManagementService(jobDefinitionsService: jobDefinitionsService, jobRepository: jobRepository, logger: logger);
 
             //Act
-            IActionResult actionResult = await jobManagementService.CreateJobs(jobs, null);
+            Func<Task> invocation = async () => await jobManagementService.CreateJobs(jobs, null);
 
             //Assert
-            actionResult
+            invocation
                 .Should()
-                .BeOfType<InternalServerErrorResult>()
-                .Which
-                .Value
-                .Should()
-                .Be($"Failed to create a job for job definition id: {jobDefinitionId}");
+                .ThrowExactly<Exception>()
+                .WithMessage($"Failed to create a job for job definition id: {jobDefinitionId}");
 
             logger
                 .Received(1)
@@ -288,16 +287,13 @@ namespace CalculateFunding.Services.Jobs.Services
             JobManagementService jobManagementService = CreateJobManagementService(jobDefinitionsService: jobDefinitionsService, jobRepository: jobRepository, logger: logger);
 
             //Act
-            IActionResult actionResult = await jobManagementService.CreateJobs(jobs, null);
+            Func<Task> invocation = async () => await jobManagementService.CreateJobs(jobs, null);
 
             //Assert
-            actionResult
+            invocation
                 .Should()
-                .BeOfType<InternalServerErrorResult>()
-                .Which
-                .Value
-                .Should()
-                .Be($"Failed to create a job for job definition id: {jobDefinitionId}");
+                .ThrowExactly<Exception>()
+                .WithMessage($"Failed to create a job for job definition id: {jobDefinitionId}");
 
             logger
                 .Received(1)

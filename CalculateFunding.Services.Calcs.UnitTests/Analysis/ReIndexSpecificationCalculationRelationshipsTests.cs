@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Models.Graph;
 using CalculateFunding.Services.Calcs.Analysis;
 using CalculateFunding.Services.Calcs.Interfaces;
@@ -17,6 +18,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
     {
         private Mock<ISpecificationCalculationAnalysis> _analysis;
         private Mock<IReIndexGraphRepository> _relationships;
+        private Mock<IJobManagement> _jobManagement;
 
         private Message _message;
         
@@ -27,12 +29,14 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
         {
             _analysis = new Mock<ISpecificationCalculationAnalysis>();
             _relationships = new Mock<IReIndexGraphRepository>();
-        
+            _jobManagement = new Mock<IJobManagement>();
+
             _message = new Message();
             
             _reIndexer = new ReIndexSpecificationCalculationRelationships(_analysis.Object,
                 _relationships.Object,
-                new Mock<ILogger>().Object);
+                new Mock<ILogger>().Object,
+                _jobManagement.Object);
         }
 
         [TestMethod]
@@ -69,10 +73,12 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
         public async Task UpsertsRelationshipsFoundForSpecificationId()
         {
             string specificationId = new RandomString();
+            string jobId = new RandomString();
             SpecificationCalculationRelationships specificationCalculationRelationships = new SpecificationCalculationRelationships();
             SpecificationCalculationRelationships specificationCalculationUnusedRelationships = new SpecificationCalculationRelationships();
 
             GivenTheMessageProperties(("specification-id", specificationId));
+            GivenTheMessageProperties(("jobid", jobId));
             AndTheRelationshipsForSpecificationId(specificationId, specificationCalculationRelationships);
             AndTheUnusedRelationshipsForSpecificationId(specificationCalculationRelationships, specificationCalculationUnusedRelationships);
 

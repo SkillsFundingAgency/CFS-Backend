@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using CalculateFunding.Common.ApiClient.Graph;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.ApiClient.Specifications;
@@ -54,7 +53,7 @@ namespace CalculateFunding.Services.Calcs.Services
             IValidator<CalculationEditModel> calculationEditModelValidator = null,
             ISpecificationsApiClient specificationsApiClient = null,
             IGraphRepository graphRepository = null,
-            IDatasetReferenceService datasetReferenceService = null)
+            ICalculationsFeatureFlag calculationsFeatureFlag = null)
         {
             CalculationNameInUseCheck calculationNameInUseCheck = new CalculationNameInUseCheck(calculationsRepository ?? CreateCalculationsRepository(),
                 specificationsApiClient ?? CreateSpecificationsApiClient(),
@@ -63,7 +62,8 @@ namespace CalculateFunding.Services.Calcs.Services
             InstructionAllocationJobCreation instructionAllocationJobCreation = new InstructionAllocationJobCreation(calculationsRepository ?? CreateCalculationsRepository(),
                 resiliencePolicies ?? CalcsResilienceTestHelper.GenerateTestPolicies(),
                 logger ?? CreateLogger(),
-                jobsApiClient ?? CreateJobsApiClient());
+                jobsApiClient ?? CreateJobsApiClient(),
+                calculationsFeatureFlag ?? CreateCalculationsFeatureFlag());
 
             return new CalculationService
                 (
@@ -71,7 +71,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 logger ?? CreateLogger(),
                 searchRepository ?? CreateSearchRepository(),
                 buildProjectsService ?? CreateBuildProjectsService(),
-                datasetReferenceService ?? CreateDatasetReferenceService(),
                 policiesApiClient ?? CreatePoliciesApiClient(),
                 cacheProvider ?? CreateCacheProvider(),
                 resiliencePolicies ?? CalcsResilienceTestHelper.GenerateTestPolicies(),
@@ -132,11 +131,6 @@ namespace CalculateFunding.Services.Calcs.Services
             return Substitute.For<IBuildProjectsService>();
         }
 
-        private static IDatasetReferenceService CreateDatasetReferenceService()
-        {
-            return Substitute.For<IDatasetReferenceService>();
-        }
-
         private static ILogger CreateLogger()
         {
             return Substitute.For<ILogger>();
@@ -161,9 +155,15 @@ namespace CalculateFunding.Services.Calcs.Services
             return Substitute.For<IGraphRepository>();
         }
 
-        private static ICalculationsFeatureFlag CreateCalculationsFeatureFlag()
+        private static ICalculationsFeatureFlag CreateCalculationsFeatureFlag(bool graphEnabled = false)
         {
-            return Substitute.For<ICalculationsFeatureFlag>();
+            ICalculationsFeatureFlag calculationsFeatureFlag = Substitute.For<ICalculationsFeatureFlag>();
+
+            calculationsFeatureFlag
+                .IsGraphEnabled()
+                .Returns(graphEnabled);
+
+            return calculationsFeatureFlag;
         }
 
         private static IPoliciesApiClient CreatePoliciesApiClient()

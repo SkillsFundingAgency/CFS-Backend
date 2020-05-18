@@ -39,7 +39,10 @@ namespace CalculateFunding.Api.Jobs
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers()
-                .AddNewtonsoftJson();
+                .AddNewtonsoftJson(options => {
+                        options.SerializerSettings.ReferenceLoopHandling =
+                            Newtonsoft.Json.ReferenceLoopHandling.Ignore;
+                    });
 
             RegisterComponents(services);
 

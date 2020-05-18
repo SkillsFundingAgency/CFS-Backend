@@ -100,5 +100,20 @@ namespace CalculateFunding.Functions.DebugQueue
                 log.LogInformation($"C# Queue trigger function processed: {item}");
             }
         }
+
+        [FunctionName("on-reindex-specification-calculation-relationships-poisoned")]
+        public static async Task RunOnReIndexSpecificationCalculationRelationshipsFailure([QueueTrigger(ServiceBusConstants.QueueNames.ReIndexSpecificationCalculationRelationshipsPoisonedLocal, Connection = "AzureConnectionString")] string item, ILogger log)
+        {
+            using (IServiceScope scope = Functions.Calcs.Startup.RegisterComponents(new ServiceCollection()).CreateScope())
+            {
+                Message message = Helpers.ConvertToMessage<string>(item);
+
+                OnReIndexSpecificationCalculationRelationshipsFailure function = scope.ServiceProvider.GetService<OnReIndexSpecificationCalculationRelationshipsFailure>();
+
+                await function.Run(message);
+
+                log.LogInformation($"C# Queue trigger function processed: {item}");
+            }
+        }
     }
 }

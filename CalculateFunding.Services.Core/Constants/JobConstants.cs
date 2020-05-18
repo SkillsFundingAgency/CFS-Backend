@@ -44,6 +44,10 @@
 
             public const string ReIndexSpecificationCalculationRelationshipsJob = nameof(ReIndexSpecificationCalculationRelationshipsJob);
 
+            public const string GenerateGraphAndInstructAllocationJob = nameof(GenerateGraphAndInstructAllocationJob);
+
+            public const string GenerateGraphAndInstructGenerateAggregationAllocationJob = nameof(GenerateGraphAndInstructGenerateAggregationAllocationJob);
+
             public const string GeneratePublishedFundingCsvJob = nameof(GeneratePublishedFundingCsvJob);
 
             public const string GeneratePublishedProviderEstateCsvJob = nameof(GeneratePublishedProviderEstateCsvJob);

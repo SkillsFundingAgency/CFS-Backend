@@ -271,8 +271,6 @@ namespace CalculateFunding.Services.Calcs
 
                 if ((calculationCount + 1) % 10 == 0) await jobTracker.NotifyProgress(startingItemCount + calculationCount + 1);
             }
-
-            await _graphRepository.PersistToGraph(calculations, specification);
         }
 
         private Func<TemplateMappingItem, Task<bool>> IsMissingCalculation(string specificationId, Reference author, string correlationId, IEnumerable<TemplateMappingItem> missingMappings)

@@ -33,8 +33,6 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
         ICalculationsFeatureFlag _calculationsFeatureFlag;
         IGraphApiClient _graphApiClient;
         IGraphRepository _graphRepository;
-        ILogger _logger;
-        IMapper _mapper;
 
         [TestInitialize]
         public void SetUp()
@@ -42,9 +40,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
             _calculationsFeatureFlag = Substitute.For<ICalculationsFeatureFlag>();
             _graphApiClient = Substitute.For<IGraphApiClient>();
             ResiliencePolicies resiliencePolicies = new ResiliencePolicies { GraphApiClientPolicy = Polly.Policy.NoOpAsync() };
-            _logger = Substitute.For<ILogger>();
-            _mapper = Substitute.For<IMapper>();
-            _graphRepository = new GraphRepository(_graphApiClient, resiliencePolicies, _logger, _calculationsFeatureFlag, _mapper);
+            _graphRepository = new GraphRepository(_graphApiClient, resiliencePolicies, _calculationsFeatureFlag);
         }
 
         [TestMethod]
@@ -129,197 +125,6 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
                 .Should()
                 .Be(2);
         }
-
-        [TestMethod]
-        public async Task PersistToGraph_WhenFeatureNotEnabledAndCalculationsListSuppliedWithCalculation_CalculationGraphNotPersisted()
-        {
-            Calculation calculation = NewCalculation(_ => _.WithCurrentVersion(NewCalculationVersion()));
-
-            IEnumerable<Calculation> calculations = new[] { calculation, 
-                NewCalculation(_ => _.WithCurrentVersion(NewCalculationVersion())), 
-                NewCalculation(_ => _.WithCurrentVersion(NewCalculationVersion()))};
-
-            SpecificationSummary specificationSummary = NewSpecification();
-
-            _calculationsFeatureFlag
-                .IsGraphEnabled()
-                .Returns(false);
-
-            await _graphRepository.PersistToGraph(calculations, specificationSummary, calculation.Id);
-
-            await _graphApiClient
-                .DidNotReceive()
-                .UpsertSpecifications(Arg.Any<GraphModels.Specification[]> ());
-
-            await _graphApiClient
-                .DidNotReceive()
-                .UpsertCalculations(Arg.Any<GraphModels.Calculation[]>());
-        }
-
-        [TestMethod]
-        public async Task PersistToGraph_WhenFeatureNotEnabledAndCalculationsListSuppliedWithNoCalculation_CalculationsGraphNotPersisted()
-        {
-            Calculation calculation = NewCalculation(_ => _.WithCurrentVersion(NewCalculationVersion()));
-
-            IEnumerable<Calculation> calculations = new[] { calculation, 
-                NewCalculation(_ => _.WithCurrentVersion(NewCalculationVersion())), 
-                NewCalculation(_ => _.WithCurrentVersion(NewCalculationVersion()))};
-
-            SpecificationSummary specificationSummary = NewSpecification();
-
-            _calculationsFeatureFlag
-                .IsGraphEnabled()
-                .Returns(false);
-
-            await _graphRepository.PersistToGraph(calculations, 
-                specificationSummary, 
-                calculation.Current.CalculationId);
-
-            await _graphApiClient
-                .DidNotReceive()
-                .UpsertSpecifications(Arg.Any<GraphModels.Specification[]>());
-
-            await _graphApiClient
-                .DidNotReceive()
-                .UpsertCalculations(Arg.Any<GraphModels.Calculation[]>());
-
-        }
-
-        [TestMethod]
-        public async Task PersistToGraph_WhenFeatureEnabledAndCalculationsListSuppliedWithCalculation_CalculationGraphPersisted()
-        {
-            Calculation calcChildReference = NewCalculation(_ => _.WithCurrentVersion(NewCalculationVersion()));
-            string functionName = $"{calcChildReference.Namespace}.{VisualBasicTypeGenerator.GenerateIdentifier(calcChildReference.Name)}";
-            Calculation calculation = NewCalculation(_ => _.WithCurrentVersion(NewCalculationVersion(version => version.WithSourceCode($"return {functionName}()"))));
-
-            IEnumerable<Calculation> calculations = new[] { calculation,
-                calcChildReference, 
-                NewCalculation(_ => _.WithCurrentVersion(NewCalculationVersion()))};
-
-            SpecificationSummary specificationSummary = NewSpecification();
-
-            _calculationsFeatureFlag
-                .IsGraphEnabled()
-                .Returns(true);
-
-            await _graphRepository.PersistToGraph(calculations, 
-                specificationSummary, 
-                calculation.Id,
-                true);
-
-            await _graphApiClient
-                .Received(1)
-                .UpsertSpecifications(Arg.Is<GraphModels.Specification[]>(_ => _[0].SpecificationId == specificationSummary.Id && _.Length == 1));
-
-            await _graphApiClient
-                .Received(1)
-                .DeleteCalculation(Arg.Is<string>(calculation.Id));
-
-            await _graphApiClient
-                .Received(1)
-                .UpsertCalculations(Arg.Is<GraphModels.Calculation[]>(_ => _[0].CalculationId == calculation.Id && _.Length == 1));
-
-            await _graphApiClient
-                .Received(1)
-                .UpsertCalculationCalculationsRelationships(calculation.Id, Arg.Is<string[]>(_ => _[0] == calcChildReference.Id));
-        }
-
-        [TestMethod]
-        public async Task PersistToGraph_WhenFeatureEnabledAndCalculationsListSuppliedWithNoCalculation_CalculationsGraphPersisted()
-        {
-            Calculation calculation = NewCalculation(_ => _.WithCurrentVersion(NewCalculationVersion()));
-
-            IEnumerable<Calculation> calculations = new[] { calculation, 
-                NewCalculation(_ => _.WithCurrentVersion(NewCalculationVersion())), 
-                NewCalculation(_ => _.WithCurrentVersion(NewCalculationVersion()))};
-
-            SpecificationSummary specificationSummary = NewSpecification();
-
-            _calculationsFeatureFlag
-                .IsGraphEnabled()
-                .Returns(true);
-
-            await _graphRepository.PersistToGraph(calculations,
-                specificationSummary);
-
-            await _graphApiClient
-                .Received(1)
-                .UpsertSpecifications(Arg.Is<GraphModels.Specification[]>(_ => _[0].SpecificationId == specificationSummary.Id && _.Length == 1));
-
-            await _graphApiClient
-                .Received(1)
-                .UpsertCalculations(Arg.Is<GraphModels.Calculation[]>(_ => _[0].CalculationId == calculation.Id && _.Length == 3));
-        }
-
-        [TestMethod]
-        public async Task PersistToGraph_WhenFeatureEnabledAndCalculationsListSuppliedWithDatasetFieldReferences_CalculationsGraphPersisted()
-        {
-            Calculation calculation1 = NewCalculation(_ => _.WithCurrentVersion(NewCalculationVersion()));
-            Calculation calculation2 = NewCalculation(_ => _.WithCurrentVersion(NewCalculationVersion()));
-            Calculation calculation3 = NewCalculation(_ => _.WithCurrentVersion(NewCalculationVersion()));
-
-            IEnumerable<Calculation> calculations = new[] { calculation1, calculation2, calculation3 };               
-
-            SpecificationSummary specificationSummary = NewSpecification();
-
-            DatasetReference datasetReference1 = NewDataSetReference();
-            DatasetReference datasetReference2 = NewDataSetReference();
-
-            IEnumerable<DatasetReference> datasetReferences = new[] { datasetReference1, datasetReference2 };
-               
-
-            _calculationsFeatureFlag
-                .IsGraphEnabled()
-                .Returns(true);
-
-            await _graphRepository.PersistToGraph(calculations,
-                specificationSummary, null, false, datasetReferences);
-
-            await _graphApiClient
-                .Received(1)
-                .UpsertSpecifications(Arg.Is<GraphModels.Specification[]>(_ => _[0].SpecificationId == specificationSummary.Id && _.Length == 1));
-
-            await _graphApiClient
-                .Received(1)
-                .UpsertCalculations(Arg.Is<GraphModels.Calculation[]>(calcs =>  calcs.Length == 3 
-                && calcs.Any(_ => _.CalculationId == calculation1.Id)
-                && calcs.Any(_ => _.CalculationId == calculation2.Id)
-                && calcs.Any(_ => _.CalculationId == calculation3.Id)
-                ));
-
-            await _graphApiClient
-                .Received(1)
-                .UpsertDataFields(Arg.Is<GraphModels.DataField[]>(ds => ds.Length == 2));
-        }
-
-        [TestMethod]
-        public async Task PersistToGraph_WhenFeatureEnabledAndCalculationsListSuppliedWithDatasetFieldReferencesNoMatchingCalculation_DatasetFieldRelationshipNotPersisted()
-        {
-            Calculation calculation = NewCalculation(_ => _.WithCurrentVersion(NewCalculationVersion()));
-
-            IEnumerable<Calculation> calculations = new[] { calculation };
-
-            SpecificationSummary specificationSummary = NewSpecification();
-
-            DatasetReference datasetReference = NewDataSetReference();
-
-            IEnumerable<DatasetReference> datasetReferences = new[] { datasetReference };
-
-            datasetReference.DataField.CalculationId = calculation.Id;
-
-            _calculationsFeatureFlag
-                .IsGraphEnabled()
-                .Returns(true);
-
-            await _graphRepository.PersistToGraph(calculations,
-                specificationSummary, null, false, datasetReferences);
-
-            await _graphApiClient
-                .Received(1)
-                .UpsertCalculationDataFieldsRelationships(calculation.Id, Arg.Is<string[]>(_ => _[0] == datasetReference.DataField.DataFieldId));                
-        }
-
-
 
         protected static SpecificationSummary NewSpecification(Action<SpecificationSummaryBuilder> setUp = null)
         {

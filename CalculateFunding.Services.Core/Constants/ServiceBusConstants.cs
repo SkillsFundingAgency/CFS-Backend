@@ -113,7 +113,11 @@
             
             public const string DeletePublishedProviders = "publishing-delete-published-providers";
 
-            public const string ReIndexSpecificationCalculationRelationships = "calculations-reindex-specification-calculation-relationships";
+            public const string ReIndexSpecificationCalculationRelationships = "calculations-reindex-specification-calculation-rels";
+
+            public const string ReIndexSpecificationCalculationRelationshipsPoisoned = "calculations-reindex-specification-calculation-rels/$DeadLetterQueue";
+            
+            public const string ReIndexSpecificationCalculationRelationshipsPoisonedLocal = "calculations-reindex-specification-calculation-rels-poisoned";
 
             public const string GeneratePublishedFundingCsv = "publishing-generate-published-funding-csv";
             
