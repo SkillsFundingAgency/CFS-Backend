@@ -23,5 +23,7 @@ namespace CalculateFunding.Services.Policy.Interfaces
         Task<CommandResult> UpdateTemplateMetadata(TemplateMetadataUpdateCommand command, Reference author);
         
         Task<CommandResult> ApproveTemplate(Reference author, string templateId, string comment, string version = null);
+        
+        Task<CommandResult> CreateTemplateAsClone(TemplateCreateAsCloneCommand command, Reference author);
     }
 }

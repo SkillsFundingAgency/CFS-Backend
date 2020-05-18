@@ -255,6 +255,7 @@ namespace CalculateFunding.Api.Policy
                 .AddSingleton<ITemplateBuilderService, TemplateBuilderService>()
                 .AddSingleton<IHealthChecker, TemplateBuilderService>()
                 .AddSingleton<AbstractValidator<TemplateCreateCommand>, TemplateCreateCommandValidator>()
+                .AddSingleton<AbstractValidator<TemplateCreateAsCloneCommand>, TemplateCreateAsCloneCommandValidator>()
                 .AddSingleton<AbstractValidator<TemplateContentUpdateCommand>, TemplateContentUpdateCommandValidator>()
                 .AddSingleton<AbstractValidator<TemplateMetadataUpdateCommand>, TemplateMetadataUpdateCommandValidator>()
                 .AddSingleton<AbstractValidator<Reference>, AuthorValidator>()

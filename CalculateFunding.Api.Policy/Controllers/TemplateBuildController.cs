@@ -104,6 +104,36 @@ namespace CalculateFunding.Api.Policy.Controllers
             return new InternalServerErrorResult(result.ErrorMessage ?? result.Exception?.Message ?? "Unknown error occurred");
         }
 
+        [HttpPost("api/templates/build/clone")]
+        [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(string))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> CreateTemplateAsClone(TemplateCreateAsCloneCommand command)
+        {
+            ValidationResult validationResult = _validatorFactory.Validate(command);
+
+            if (!validationResult.IsValid)
+            {
+                return validationResult.AsBadRequest();
+            }
+
+            Reference author = ControllerContext.HttpContext.Request?.GetUserOrDefault();
+
+            CommandResult result = await _templateBuilderService.CreateTemplateAsClone(command, author);
+
+            if (result.Succeeded)
+            {
+                return new CreatedResult($"api/templates/build/{result.TemplateId}", result.TemplateId);
+            }
+
+            if (result.ValidationResult != null)
+            {
+                return result.ValidationResult.AsBadRequest();
+            }
+
+            return new InternalServerErrorResult(result.ErrorMessage ?? result.Exception?.Message ?? "Unknown error occurred");
+        }
+
         [HttpPut("api/templates/build/content")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(string))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]

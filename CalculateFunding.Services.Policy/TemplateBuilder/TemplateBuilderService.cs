@@ -158,7 +158,8 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
 
                 Template template = new Template
                 {
-                    TemplateId = Guid.NewGuid().ToString()
+                    TemplateId = Guid.NewGuid().ToString(),
+                    Name = command.Name
                 };
                 template.Current = new TemplateVersion
                 {
@@ -183,6 +184,130 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
                     await _templateVersionRepository.SaveVersion(template.Current);
                     await CreateTemplateIndexItem(template, author);
 
+                    return new CommandResult
+                    {
+                        Succeeded = true,
+                        TemplateId = template.TemplateId
+                    };
+                }
+
+                string errorMessage = $"Failed to create a new template with name {command.Name} in Cosmos. Status code {(int) result}";
+                _logger.Error(errorMessage);
+
+                return new CommandResult
+                {
+                    ErrorMessage = errorMessage
+                };
+            }
+            catch (Exception ex)
+            {
+                return new CommandResult
+                {
+                    Exception = ex
+                };
+            }
+        }
+
+        public async Task<CommandResult> CreateTemplateAsClone(TemplateCreateAsCloneCommand command, Reference author)
+        {
+            ValidationResult validatorResult = _validatorFactory.Validate(command).And(_validatorFactory.Validate(author));
+            if (!validatorResult.IsValid)
+            {
+                return new CommandResult
+                {
+                    ValidationResult = validatorResult
+                };
+            }
+
+            try
+            {
+                var sourceTemplate = await _templateRepository.GetTemplate(command.CloneFromTemplateId);
+                if (sourceTemplate == null)
+                {
+                    return CommandResult.ValidationFail(nameof(command.CloneFromTemplateId), "Template doesn't exist");
+                }
+
+                var sourceVersion = sourceTemplate.Current;
+                if (command.Version != null)
+                {
+                    if (!int.TryParse(command.Version, out int versionNumber))
+                    {
+                        return CommandResult.ValidationFail(nameof(command.Version), $"Invalid version '{command.Version}'");
+                    }
+
+                    sourceVersion = await _templateVersionRepository.GetTemplateVersion(command.CloneFromTemplateId, versionNumber);
+                    if (sourceVersion == null)
+                    {
+                        return CommandResult.ValidationFail(nameof(command.Version),
+                            $"Version '{command.Version}' could not be found for template '{command.CloneFromTemplateId}'");
+                    }
+                }
+
+                if (await _templateRepository.IsTemplateNameInUse(command.Name))
+                {
+                    string validationErrorMessage = $"Template name [{command.Name}] already in use";
+                    _logger.Error(validationErrorMessage);
+                    ValidationResult validationResult = new ValidationResult();
+                    validationResult.Errors.Add(new ValidationFailure(nameof(command.Name), validationErrorMessage));
+                    return new CommandResult
+                    {
+                        ErrorMessage = validationErrorMessage,
+                        ValidationResult = validationResult
+                    };
+                }
+
+                if (await _templateRepository.IsFundingStreamAndPeriodInUse(command.FundingStreamId, command.FundingPeriodId))
+                {
+                    string validationErrorMessage =
+                        $"Template with FundingStreamId [{command.FundingStreamId}] and FundingPeriodId [{command.FundingPeriodId}] already in use";
+                    _logger.Error(validationErrorMessage);
+                    ValidationResult validationResult = new ValidationResult();
+                    validationResult.Errors.Add(new ValidationFailure(nameof(command.FundingStreamId), validationErrorMessage));
+                    validationResult.Errors.Add(new ValidationFailure(nameof(command.FundingPeriodId), validationErrorMessage));
+                    return new CommandResult
+                    {
+                        ErrorMessage = validationErrorMessage,
+                        ValidationResult = validationResult
+                    };
+                }
+
+                Guid templateId = Guid.NewGuid();
+                Template template = new Template
+                {
+                    TemplateId = templateId.ToString(), 
+                    Name = command.Name,
+                    Current = new TemplateVersion
+                    {
+                        TemplateId = templateId.ToString(),
+                        SchemaVersion = sourceVersion.SchemaVersion,
+                        Author = author,
+                        Name = command.Name,
+                        Description = command.Description,
+                        FundingStreamId = command.FundingStreamId,
+                        FundingPeriodId = command.FundingPeriodId,
+                        Comment = null,
+                        TemplateJson = sourceVersion.TemplateJson,
+                        Status = TemplateStatus.Draft,
+                        Version = 1,
+                        MajorVersion = 0,
+                        MinorVersion = 1,
+                        Date = DateTimeOffset.Now
+                    }
+                };
+                
+                // create new version and save it
+                HttpStatusCode templateVersionUpdateResult = await _templateVersionRepository.SaveVersion(template.Current);
+                if (!templateVersionUpdateResult.IsSuccess())
+                {
+                    return CommandResult.ValidationFail(nameof(command.Version), $"Template version failed to save: {templateVersionUpdateResult}");
+                }
+
+                HttpStatusCode result = await _templateRepository.CreateDraft(template);
+
+                if (result.IsSuccess())
+                {
+                    await CreateTemplateIndexItem(template, author);
+                    
                     return new CommandResult
                     {
                         Succeeded = true,
