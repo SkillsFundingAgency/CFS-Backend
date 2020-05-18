@@ -1,0 +1,43 @@
+﻿name: $(Rev:r)
+
+pool:
+  vmImage: windows-2019
+
+resources:
+  repositories:
+  - repository: self
+  - repository: funding-blocks
+    type: github
+    name: SkillsFundingAgency/funding-platform-building-blocks
+    ref: refs/heads/master
+    endpoint: 'Github (ESFA)'
+
+trigger:
+  batch: true
+  branches:
+    include:
+    - master
+    - providers
+    - fdps
+  paths:
+    include:
+    - CalculateFunding.Services.Core
+    - CalculateFunding.Services.Core.AspNet
+    - CalculateFunding.Services.Graph
+    - CalculateFunding.Models.Users
+    - CalculateFunding.Repositories.Common.Search
+    - CalculateFunding.Api.Graph
+    - CalculateFunding.Api.Graph.UnitTests
+
+
+variables:
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+  DOTNET_CLI_TELEMETRY_OPTOUT: 1
+
+
+steps:
+- template: azure-pipelines-templates/cfs/standard-service-build.yml@funding-blocks
+  parameters:
+    ProjectName: Graph
+    BuildFunction: false
+
