@@ -63,7 +63,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             IPoliciesApiClient policiesApiClient = null,
             ILogger logs = null,
             IValidator<SpecificationCreateModel> specificationCreateModelvalidator = null,
-            IMessengerService messengerService = null, ServiceBusSettings EventHubSettings = null,
+            IMessengerService messengerService = null,
             ISearchRepository<SpecificationIndex> searchRepository = null,
             IValidator<AssignDefinitionRelationshipMessage> assignDefinitionRelationshipMessageValidator = null,
             ICacheProvider cacheProvider = null,
@@ -74,8 +74,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             IQueueDeleteSpecificationJobActions queueDeleteSpecificationJobActions = null,
             IFeatureToggle featureToggle = null,
             ICalculationsApiClient calcsApiClient = null,
-            IProvidersApiClient providersApiClient = null,
-            IJobManagement jobManagement = null)
+            IProvidersApiClient providersApiClient = null)
         {
             return new SpecificationsService(mapper ?? CreateMapper(),
                 specificationsRepository ?? CreateSpecificationsRepository(),

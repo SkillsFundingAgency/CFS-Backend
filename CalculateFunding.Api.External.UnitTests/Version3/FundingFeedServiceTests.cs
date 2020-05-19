@@ -36,7 +36,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version3
             HttpRequest request = Substitute.For<HttpRequest>();
 
             //Act
-            IActionResult result = await service.GetFunding(request, pageRef: 3);
+            await service.GetFunding(request, pageRef: 3);
 
             //Assert
             await
@@ -305,8 +305,10 @@ namespace CalculateFunding.Api.External.UnitTests.Version3
             FundingFeedService service = CreateService(feedsSearchService.Object,
                 fundingRetrievalService.Object);
 
-            IHeaderDictionary headerDictionary = new HeaderDictionary();
-            headerDictionary.Add("Accept", new StringValues("application/json"));
+            IHeaderDictionary headerDictionary = new HeaderDictionary
+            {
+                { "Accept", new StringValues("application/json") }
+            };
 
             HttpRequest request = Substitute.For<HttpRequest>();
             request.Scheme.Returns("https");

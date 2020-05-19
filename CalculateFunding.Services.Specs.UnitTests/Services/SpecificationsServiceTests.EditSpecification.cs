@@ -218,7 +218,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             _providersApiClient.RegenerateProviderSummariesForSpecification(_specification.Id, true)
                 .Returns(new ApiResponse<bool>(HttpStatusCode.OK, true));
 
-            var service = CreateSpecificationsService(fundingStream, newSpecVersion);
+            var service = CreateSpecificationsService(newSpecVersion);
 
             //Act
             IActionResult result = await service.EditSpecification(SpecificationId, specificationEditModel, null, null);
@@ -278,7 +278,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             _jobManagement.QueueJobAndWait(Arg.Any<Func<Task<bool>>>() , Arg.Is<string>(JobConstants.DefinitionNames.PopulateScopedProvidersJob), _specification.Id, "correlationId", "topic")
                 .Returns(false);
 
-            var service = CreateSpecificationsService(fundingStream, newSpecVersion);
+            var service = CreateSpecificationsService(newSpecVersion);
 
             //Act
             Func<Task> invocation = async () => await service.EditSpecification(SpecificationId, specificationEditModel, null, null);
@@ -310,7 +310,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             newSpecVersion.FundingPeriod.Id = specificationEditModel.FundingPeriodId;
             newSpecVersion.FundingStreams = new[] { new Reference { Id = "fs11" } };
 
-            var service = CreateSpecificationsService(fundingStream, newSpecVersion);
+            var service = CreateSpecificationsService(newSpecVersion);
 
             //Act
             IActionResult result = await service.EditSpecification(SpecificationId, specificationEditModel, null, null);
@@ -344,7 +344,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                .SaveVersion(Arg.Is(newSpecVersion));
         }
 
-        private SpecificationsService CreateSpecificationsService(PolicyModels.FundingStream fundingStream, Models.Specs.SpecificationVersion newSpecVersion)
+        private SpecificationsService CreateSpecificationsService(Models.Specs.SpecificationVersion newSpecVersion)
         {
             _specificationsRepository
                 .GetSpecificationById(Arg.Is(SpecificationId))
@@ -363,7 +363,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 policiesApiClient: _policiesApiClient, searchRepository: _searchRepository,
                 cacheProvider: _cacheProvider, messengerService: _messengerService,
                 specificationVersionRepository: _versionRepository,
-                providersApiClient: _providersApiClient, jobManagement: _jobManagement);
+                providersApiClient: _providersApiClient);
             return service;
         }
 
@@ -391,7 +391,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             _versionRepository
                 .CreateVersion(Arg.Any<Models.Specs.SpecificationVersion>(), Arg.Any<Models.Specs.SpecificationVersion>())
                 .Returns(newSpecVersion);
-            var service = CreateSpecificationsService(fundingStream, newSpecVersion);
+            var service = CreateSpecificationsService(newSpecVersion);
 
             //Act
             IActionResult result = await service.EditSpecification(SpecificationId, specificationEditModel, null, null);
@@ -447,7 +447,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             _versionRepository
                 .CreateVersion(Arg.Any<Models.Specs.SpecificationVersion>(), Arg.Any<Models.Specs.SpecificationVersion>())
                 .Returns(newSpecVersion);
-            var service = CreateSpecificationsService(fundingStream, newSpecVersion);
+            var service = CreateSpecificationsService(newSpecVersion);
 
             //Act
             IActionResult result = await service.EditSpecification(SpecificationId, specificationEditModel, null, null);
@@ -504,7 +504,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             _searchRepository
                 .Index(Arg.Any<IEnumerable<SpecificationIndex>>())
                 .Returns(new[] { new IndexError() { ErrorMessage = errorMessage } });
-            var service = CreateSpecificationsService(fundingStream, newSpecVersion);
+            var service = CreateSpecificationsService(newSpecVersion);
 
             //Act
             Func<Task<IActionResult>> editSpecification = async () => await service.EditSpecification(SpecificationId, specificationEditModel, null, null);

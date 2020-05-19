@@ -42,12 +42,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         public async Task GetSpecificationsSelectedForFundingByPeriod_GivenSpecificationWasNotFound_ReturnsNotFound()
         {
             //Arrange
-            SpecificationVersion sv1 = new SpecificationVersion { SpecificationId = "spec1", FundingPeriod = new Reference { Id = "18/19", Name = "18/19" } };
-            SpecificationVersion sv2 = new SpecificationVersion { SpecificationId = "spec2", FundingPeriod = new Reference { Id = "17/18", Name = "17/18" } };
-
-            Specification spec1 = new Specification { Id = "spec1", IsSelectedForFunding = true, Current = sv1 };
-            Specification spec2 = new Specification { Id = "spec2", IsSelectedForFunding = true, Current = sv2 };
-
             ILogger logger = CreateLogger();
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
@@ -76,11 +70,9 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             //Arrange
 
             SpecificationVersion sv1 = new SpecificationVersion { SpecificationId = "spec1", FundingPeriod = new Reference { Id = "18/19", Name = "18/19" } };
-            SpecificationVersion sv2 = new SpecificationVersion { SpecificationId = "spec2", FundingPeriod = new Reference { Id = "17/18", Name = "17/18" } };
-
+            
             Specification spec1 = new Specification { Id = "spec1", IsSelectedForFunding = true, Current = sv1 };
-            Specification spec2 = new Specification { Id = "spec2", IsSelectedForFunding = true, Current = sv2 };
-
+            
             ILogger logger = CreateLogger();
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();

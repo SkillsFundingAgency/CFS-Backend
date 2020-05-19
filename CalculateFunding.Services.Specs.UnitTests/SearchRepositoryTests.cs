@@ -379,11 +379,6 @@ namespace CalculateFunding.Services.Specs.UnitTests
 
             SpecificationIndex specificationIndexSearchResult = new SpecificationIndex { Id = existingId };
 
-            List<Microsoft.Azure.Search.Models.SearchResult<SpecificationIndex>> results = new List<Microsoft.Azure.Search.Models.SearchResult<SpecificationIndex>>()
-            {
-                new Microsoft.Azure.Search.Models.SearchResult<SpecificationIndex>(specificationIndexSearchResult, 1, null)
-            };
-
             AzureOperationResponse<SpecificationIndex> getResult =
                 new AzureOperationResponse<SpecificationIndex> { Body = specificationIndexSearchResult };
 

@@ -5,7 +5,6 @@ using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Services.CodeGeneration.VisualBasic;
 using FluentAssertions;
-using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CalculateFunding.Services.CodeMetadataGenerator.Vb.UnitTests

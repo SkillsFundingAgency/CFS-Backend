@@ -34,7 +34,7 @@ namespace CalculateFunding.Services.Policy.Validators
                         FundingStream fundingStream = await policyRepositoryPolicy.ExecuteAsync(() => policyRepository.GetFundingStreamById(command.FundingStreamId));
                         return fundingStream != null;
                     }
-                    catch (Exception e)
+                    catch
                     {
                         return false;
                     }
@@ -51,7 +51,7 @@ namespace CalculateFunding.Services.Policy.Validators
                         FundingPeriod fundingPeriod = await policyRepositoryPolicy.ExecuteAsync(() => policyRepository.GetFundingPeriodById(command.FundingPeriodId));
                         return fundingPeriod != null;
                     }
-                    catch (Exception e)
+                    catch
                     {
                         return false;
                     }

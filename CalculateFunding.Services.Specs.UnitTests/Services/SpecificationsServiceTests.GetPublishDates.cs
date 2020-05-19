@@ -42,8 +42,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         public async Task GetPublishDates_GivenNoSpecificationId_ReturnsBadRequestObject()
         {
             //Arrange
-            HttpRequest request = Substitute.For<HttpRequest>();
-
             ILogger logger = CreateLogger();
 
             SpecificationsService service = CreateService(logs: logger);

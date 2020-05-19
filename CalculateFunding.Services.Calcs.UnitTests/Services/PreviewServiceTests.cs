@@ -1313,15 +1313,7 @@ End Class";
             IBuildProjectsService buildProjectsService = CreateBuildProjectsService();
             buildProjectsService
                 .GetBuildProjectForSpecificationId(Arg.Is(calculation.SpecificationId))
-                .Returns(buildProject);
-
-            List<SourceFile> sourceFiles = new List<SourceFile>
-            {
-                new SourceFile { FileName = "project.vbproj", SourceCode = "<Project Sdk=\"Microsoft.NET.Sdk\"><PropertyGroup><TargetFramework>netcoreapp2.0</TargetFramework></PropertyGroup></Project>" },
-                new SourceFile { FileName = "ExampleClass.vb", SourceCode = "Public Class ExampleClass\nPublic Property ProviderType() As String\nEnd Class" },
-                new SourceFile { FileName = "Calculation.vb", SourceCode = model.SourceCode }
-            };
-                      
+                .Returns(buildProject);   
 
             IEnumerable<Common.ApiClient.DataSets.Models.DatasetSchemaRelationshipModel> relationshipModels = new[]
             {
@@ -1616,10 +1608,7 @@ End Class";
         }
 
         [TestMethod]
-        [DataRow("Calculations.Calc1")]
-        [DataRow("Calculations.calc1")]
-        [DataRow("Calculations.cAlC1")]
-        public async Task Compile_GivenStringCompareInCodeAndAggregatesIsEnabledAndCalculationAggregateFunctionsFoundInAnyCase_CompilesCodeAndReturnsOk(string calcReference)
+        public async Task Compile_GivenStringCompareInCodeAndAggregatesIsEnabledAndCalculationAggregateFunctionsFoundInAnyCase_CompilesCodeAndReturnsOk()
         {
             //Arrange
             const string stringCompareCode = @"Public Class TestClass
@@ -2347,7 +2336,7 @@ End Class";
             bool codeContainsName,
             int? isToken)
         {
-            string BuildCalcName(Calculation calc, string name)
+            static string BuildCalcName(Calculation calc, string name)
             {
                 return $"{calc.Namespace}.{name}";
             }
@@ -2618,7 +2607,6 @@ Calculation Name: {{calculationName}}").ToArray()
             IValidator<PreviewRequest> previewRequestValidator = null,
             ICalculationsRepository calculationsRepository = null,
             IDatasetsApiClient datasetsApiClient = null,
-            IFeatureToggle featureToggle = null,
             ICacheProvider cacheProvider = null,
             ISourceCodeService sourceCodeService = null,
             ITokenChecker tokenChecker = null,

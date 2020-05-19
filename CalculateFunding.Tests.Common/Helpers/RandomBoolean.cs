@@ -21,7 +21,7 @@ namespace CalculateFunding.Tests.Common.Helpers
 
         public override int GetHashCode()
         {
-            return _value.GetHashCode();
+            return System.HashCode.Combine(_value);
         }
 
         public override string ToString()
