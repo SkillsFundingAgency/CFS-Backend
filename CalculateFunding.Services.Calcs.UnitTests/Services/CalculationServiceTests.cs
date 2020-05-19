@@ -3,6 +3,7 @@ using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.Caching;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets.Schema;
@@ -42,7 +43,7 @@ namespace CalculateFunding.Services.Calcs.Services
             ICacheProvider cacheProvider = null,
             ICalcsResiliencePolicies resiliencePolicies = null,
             IVersionRepository<CalculationVersion> calculationVersionRepository = null,
-            IJobsApiClient jobsApiClient = null,
+            IJobManagement jobManagement = null,
             ISourceCodeService sourceCodeService = null,
             IFeatureToggle featureToggle = null,
             IBuildProjectsRepository buildProjectsRepository = null,
@@ -57,11 +58,13 @@ namespace CalculateFunding.Services.Calcs.Services
                 specificationsApiClient ?? CreateSpecificationsApiClient(),
                 resiliencePolicies ?? CalcsResilienceTestHelper.GenerateTestPolicies());
 
-            InstructionAllocationJobCreation instructionAllocationJobCreation = new InstructionAllocationJobCreation(calculationsRepository ?? CreateCalculationsRepository(),
-                resiliencePolicies ?? CalcsResilienceTestHelper.GenerateTestPolicies(),
-                logger ?? CreateLogger(),
-                jobsApiClient ?? CreateJobsApiClient(),
-                calculationsFeatureFlag ?? CreateCalculationsFeatureFlag());
+            InstructionAllocationJobCreation instructionAllocationJobCreation = 
+                new InstructionAllocationJobCreation(
+                    calculationsRepository ?? CreateCalculationsRepository(),
+                    resiliencePolicies ?? CalcsResilienceTestHelper.GenerateTestPolicies(),
+                    logger ?? CreateLogger(),
+                    calculationsFeatureFlag ?? CreateCalculationsFeatureFlag(),
+                    jobManagement ?? CreateJobManagement());
 
             return new CalculationService
                 (
@@ -109,9 +112,9 @@ namespace CalculateFunding.Services.Calcs.Services
             return Substitute.For<ISourceCodeService>();
         }
 
-        private static IJobsApiClient CreateJobsApiClient()
+        private static IJobManagement CreateJobManagement()
         {
-            return Substitute.For<IJobsApiClient>();
+            return Substitute.For<IJobManagement>();
         }
 
         private static IVersionRepository<CalculationVersion> CreateCalculationVersionRepository()

@@ -4,6 +4,7 @@ using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
@@ -23,27 +24,24 @@ namespace CalculateFunding.Services.Publishing
     {
         private readonly ILogger _logger;
         private readonly IBlobClient _blobClient;
-        private readonly IJobsApiClient _jobs;
+        private readonly IJobManagement _jobManagement;
         private readonly AsyncPolicy _blobClientPolicy;
-        private readonly AsyncPolicy _jobsClientPolicy;
 
         public PublishedProviderVersionService(
             ILogger logger,
             IBlobClient blobClient,
             IPublishingResiliencePolicies resiliencePolicies, 
-            IJobsApiClient jobs)
+            IJobManagement jobManagement)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(blobClient, nameof(blobClient));
             Guard.ArgumentNotNull(resiliencePolicies, nameof(resiliencePolicies));
             Guard.ArgumentNotNull(resiliencePolicies?.BlobClient, nameof(resiliencePolicies.BlobClient));
-            Guard.ArgumentNotNull(jobs, nameof(jobs));
-            Guard.ArgumentNotNull(resiliencePolicies?.JobsApiClient, nameof(resiliencePolicies.JobsApiClient));
+            Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
 
             _logger = logger;
             _blobClient = blobClient;
-            _jobs = jobs;
-            _jobsClientPolicy = resiliencePolicies.JobsApiClient;
+            _jobManagement = jobManagement;
             _blobClientPolicy = resiliencePolicies.BlobClient;
         }
 
@@ -139,7 +137,7 @@ namespace CalculateFunding.Services.Publishing
         {
             try
             {
-                Job job = await _jobsClientPolicy.ExecuteAsync(() => _jobs.CreateJob(new JobCreateModel
+                Job job = await _jobManagement.QueueJob(new JobCreateModel
                 {
                     JobDefinitionId = JobConstants.DefinitionNames.ReIndexPublishedProvidersJob,
                     InvokerUserId = user.Id,
@@ -150,7 +148,7 @@ namespace CalculateFunding.Services.Publishing
                         Message = "ReIndexing PublishedProviders",
                         EntityType = nameof(PublishedProviderIndex),
                     }
-                }));
+                });
 
                 if (job != null)
                 {

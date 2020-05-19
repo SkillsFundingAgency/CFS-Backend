@@ -1,6 +1,5 @@
 using System.Threading.Tasks;
-using CalculateFunding.Common.ApiClient.Jobs;
-using Polly;
+using CalculateFunding.Common.JobManagement;
 using Serilog;
 
 namespace CalculateFunding.Services.Calcs
@@ -15,8 +14,7 @@ namespace CalculateFunding.Services.Calcs
         
         Task FailJob(string outcome);
         string JobId { get; }
-        IJobsApiClient Jobs { get; }
-        AsyncPolicy JobsResiliencePolicy { get; }
+        IJobManagement Jobs { get; }
         ILogger Logger { get; }
     }
 }

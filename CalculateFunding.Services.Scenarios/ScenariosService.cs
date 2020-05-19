@@ -32,6 +32,7 @@ using Microsoft.Azure.ServiceBus;
 using Serilog;
 using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
 using JobsModels = CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.JobManagement;
 
 namespace CalculateFunding.Services.Scenarios
 {
@@ -44,9 +45,8 @@ namespace CalculateFunding.Services.Scenarios
         private readonly ISearchRepository<ScenarioIndex> _searchRepository;
         private readonly ICacheProvider _cacheProvider;
         private readonly IVersionRepository<TestScenarioVersion> _versionRepository;
-        private readonly IJobsApiClient _jobsApiClient;
+        private readonly IJobManagement _jobManagement;
         private readonly ICalcsRepository _calcsRepository;
-        private readonly Polly.AsyncPolicy _jobsApiClientPolicy;
         private readonly Polly.AsyncPolicy _calcsRepositoryPolicy;
         private readonly Polly.AsyncPolicy _scenariosRepositoryPolicy;
         private readonly Polly.AsyncPolicy _specificationsApiClientPolicy;
@@ -59,7 +59,7 @@ namespace CalculateFunding.Services.Scenarios
             ISearchRepository<ScenarioIndex> searchRepository,
             ICacheProvider cacheProvider,         
             IVersionRepository<TestScenarioVersion> versionRepository,
-            IJobsApiClient jobsApiClient,
+            IJobManagement jobManagement,
             ICalcsRepository calcsRepository,
             IScenariosResiliencePolicies scenariosResiliencePolicies)
         {
@@ -70,9 +70,8 @@ namespace CalculateFunding.Services.Scenarios
             Guard.ArgumentNotNull(searchRepository, nameof(searchRepository));
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));        
             Guard.ArgumentNotNull(versionRepository, nameof(versionRepository));
-            Guard.ArgumentNotNull(jobsApiClient, nameof(jobsApiClient));
+            Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
             Guard.ArgumentNotNull(calcsRepository, nameof(calcsRepository));
-            Guard.ArgumentNotNull(scenariosResiliencePolicies?.JobsApiClient, nameof(scenariosResiliencePolicies.JobsApiClient));
             Guard.ArgumentNotNull(scenariosResiliencePolicies?.CalcsRepository, nameof(scenariosResiliencePolicies.CalcsRepository));
             Guard.ArgumentNotNull(scenariosResiliencePolicies?.ScenariosRepository, nameof(scenariosResiliencePolicies.ScenariosRepository));
             Guard.ArgumentNotNull(scenariosResiliencePolicies?.SpecificationsApiClient, nameof(scenariosResiliencePolicies.SpecificationsApiClient));
@@ -85,9 +84,8 @@ namespace CalculateFunding.Services.Scenarios
             _cacheProvider = cacheProvider;          
             _cacheProvider = cacheProvider;
             _versionRepository = versionRepository;
-            _jobsApiClient = jobsApiClient;
+            _jobManagement = jobManagement;
             _calcsRepository = calcsRepository;
-            _jobsApiClientPolicy = scenariosResiliencePolicies.JobsApiClient;
             _calcsRepositoryPolicy = scenariosResiliencePolicies.CalcsRepository;
             _scenariosRepositoryPolicy = scenariosResiliencePolicies.ScenariosRepository;
             _specificationsApiClientPolicy = scenariosResiliencePolicies.SpecificationsApiClient;
@@ -520,7 +518,7 @@ namespace CalculateFunding.Services.Scenarios
                 CorrelationId = correlationId
             };
 
-            return await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.CreateJob(job));
+            return await _jobManagement.QueueJob(job);
         }
 
         private ScenarioIndex CreateScenarioIndexFromScenario(TestScenario testScenario, SpecModel.SpecificationSummary specification)

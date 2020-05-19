@@ -77,8 +77,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         private CalculationResult[] _calculationResults;
         private TemplateCalculation[] _calculationTemplateIds;
         private IEnumerable<PublishedProvider> _publishedProviders;
-        private IJobsApiClient _jobsApiClient;
-        private IMessengerService _messengerService;
         private ISpecificationsApiClient _specificationsApiClient;
         private IVariationStrategyServiceLocator _variationStrategyServiceLocator;
         private IDetectProviderVariations _detectProviderVariation;
@@ -132,9 +130,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             _providerExclusionCheck = Substitute.For<IPublishProviderExclusionCheck>();
             _fundingLineValueOverride = Substitute.For<IFundingLineValueOverride>();
             _publishedProviderIndexerService = Substitute.For<IPublishedProviderIndexerService>();
-            _jobsApiClient = Substitute.For<IJobsApiClient>();
-            _messengerService = Substitute.For<IMessengerService>();
-            _jobManagement = new JobManagement(_jobsApiClient, _logger, new JobManagementResiliencePolicies { JobsApiClient = Policy.NoOpAsync() }, _messengerService);
+            _jobManagement = Substitute.For<IJobManagement>();
             _prerequisiteCheckerLocator = Substitute.For<IPrerequisiteCheckerLocator>();
             _prerequisiteCheckerLocator.GetPreReqChecker(PrerequisiteCheckerType.Refresh)
                 .Returns(new RefreshPrerequisiteChecker(_specificationFundingStatusService, _specificationService, _jobsRunning, _calculationApprovalCheckerService, _jobManagement, _logger));
@@ -409,8 +405,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
 
             string[] prereqValidationErrors = new string[] { $"{JobConstants.DefinitionNames.CreateInstructAllocationJob} is still running" };
 
-            _jobsApiClient.Received(1)
-                .AddJobLog(Arg.Is(JobId), Arg.Is<JobLogUpdateModel>(_ => _.CompletedSuccessfully == false && _.Outcome == string.Join(", ", prereqValidationErrors)));
+            _jobManagement
+                .Received(1)
+                .UpdateJobStatus(JobId, 0, false, string.Join(", ", prereqValidationErrors));
         }
 
         [TestMethod]
@@ -514,6 +511,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         [TestMethod]
         public void PublishResults_GivenJobCannotBeProcessed_ThrowsException()
         {
+            GivenJobNotFound();
+
             Func<Task> invocation = WhenMessageReceivedWithJobIdAndCorrelationId;
 
             invocation
@@ -689,17 +688,25 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         {
             JobViewModel jobViewModel = NewJobViewModel();
 
-            _jobsApiClient.GetJobById(JobId)
-                .Returns(new ApiResponse<JobViewModel>(HttpStatusCode.OK, jobViewModel));
+            _jobManagement.RetrieveJobAndCheckCanBeProcessed(JobId)
+                .Returns(jobViewModel);
         }
-        
+
+        private void GivenJobNotFound()
+        {
+            _jobManagement
+                .RetrieveJobAndCheckCanBeProcessed(JobId)
+                .Throws(new JobNotFoundException($"Could not find the job with id: '{JobId}'", JobId));
+        }
         
         private void GivenJobCannotBeProcessed()
         {
             JobViewModel jobViewModel = NewJobViewModel(_ => _.WithCompletionStatus(CompletionStatus.Superseded));
 
-            _jobsApiClient.GetJobById(JobId)
-                .Returns(new ApiResponse<JobViewModel>(HttpStatusCode.OK, jobViewModel));
+            _jobManagement.RetrieveJobAndCheckCanBeProcessed(JobId)
+                .Throws(
+                new JobAlreadyCompletedException(
+                    $"Received job with id: 'JobId' is already in a completed state with status {jobViewModel.CompletionStatus}", jobViewModel));
         }
 
         private void AndSpecification()

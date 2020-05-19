@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Messages;
@@ -20,9 +21,8 @@ namespace CalculateFunding.Services.Specs
 {
     public class QueueDeleteSpecificationJobAction : IQueueDeleteSpecificationJobActions
     {
-        private readonly IJobsApiClient _jobsApiClient;
+        private readonly IJobManagement _jobManagement;
         private readonly ILogger _logger;
-        private readonly AsyncPolicy _jobClientResiliencePolicy;
         private readonly Dictionary<string, string> _specificationChildJobDefinitions = new Dictionary<string, string>
         {
             [JobConstants.DefinitionNames.DeleteCalculationResultsJob] = "Deleting Calculation Results",
@@ -34,18 +34,14 @@ namespace CalculateFunding.Services.Specs
         };
 
         public QueueDeleteSpecificationJobAction(
-            IJobsApiClient jobs,
-            ISpecificationsResiliencePolicies resiliencePolicies,
+            IJobManagement jobManagement,
             ILogger logger)
         {
-            Guard.ArgumentNotNull(jobs, nameof(jobs));
-            Guard.ArgumentNotNull(resiliencePolicies, nameof(resiliencePolicies));
-            Guard.ArgumentNotNull(resiliencePolicies.JobsApiClient, nameof(resiliencePolicies.JobsApiClient));
+            Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
             Guard.ArgumentNotNull(logger, nameof(logger));
 
-            _jobsApiClient = jobs;
+            _jobManagement = jobManagement;
             _logger = logger;
-            _jobClientResiliencePolicy = resiliencePolicies.JobsApiClient;
         }
 
         public async Task Run(string specificationId, Reference user, string correlationId, DeletionType deletionType)
@@ -104,7 +100,7 @@ namespace CalculateFunding.Services.Specs
         {
             try
             {
-                var job = await _jobClientResiliencePolicy.ExecuteAsync(() => _jobsApiClient.CreateJob(createModel));
+                var job = await _jobManagement.QueueJob(createModel);
                 
                 GuardAgainstNullJob(job, createModel);
 

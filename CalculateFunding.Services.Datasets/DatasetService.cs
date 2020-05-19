@@ -7,7 +7,6 @@ using System.Net;
 using System.Threading.Tasks;
 using System.Web;
 using AutoMapper;
-using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Providers;
 using CalculateFunding.Common.ApiClient.Specifications;
@@ -63,8 +62,6 @@ namespace CalculateFunding.Services.Datasets
         private readonly ICacheProvider _cacheProvider;
         private readonly IValidator<ExcelPackage> _dataWorksheetValidator;
         private readonly IValidator<DatasetUploadValidationModel> _datasetUploadValidator;
-        private readonly AsyncPolicy _jobsApiClientPolicy;
-        private readonly IJobsApiClient _jobsApiClient;
         private readonly AsyncPolicy _providersApiClientPolicy;
         private readonly IJobManagement _jobManagement;
         private readonly IProviderSourceDatasetRepository _providerSourceDatasetRepository;
@@ -84,7 +81,6 @@ namespace CalculateFunding.Services.Datasets
             IValidator<ExcelPackage> dataWorksheetValidator,
             IValidator<DatasetUploadValidationModel> datasetUploadValidator,
             IDatasetsResiliencePolicies datasetsResiliencePolicies,
-            IJobsApiClient jobsApiClient,
             ISearchRepository<DatasetVersionIndex> datasetVersionIndexRepository,
             IProvidersApiClient providersApiClient,
             IJobManagement jobManagement,
@@ -104,9 +100,7 @@ namespace CalculateFunding.Services.Datasets
             Guard.ArgumentNotNull(dataWorksheetValidator, nameof(dataWorksheetValidator));
             Guard.ArgumentNotNull(datasetUploadValidator, nameof(datasetUploadValidator));
             Guard.ArgumentNotNull(datasetsResiliencePolicies, nameof(datasetsResiliencePolicies));
-            Guard.ArgumentNotNull(jobsApiClient, nameof(jobsApiClient));
             Guard.ArgumentNotNull(providersApiClient, nameof(providersApiClient));
-            Guard.ArgumentNotNull(datasetsResiliencePolicies?.JobsApiClient, nameof(datasetsResiliencePolicies.JobsApiClient));
             Guard.ArgumentNotNull(datasetsResiliencePolicies?.ProvidersApiClient, nameof(datasetsResiliencePolicies.ProvidersApiClient));
             Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
             Guard.ArgumentNotNull(providerSourceDatasetRepository, nameof(providerSourceDatasetRepository));
@@ -123,15 +117,12 @@ namespace CalculateFunding.Services.Datasets
             _cacheProvider = cacheProvider;
             _dataWorksheetValidator = dataWorksheetValidator;
             _datasetUploadValidator = datasetUploadValidator;
-            _jobsApiClient = jobsApiClient;
             _datasetVersionIndexRepository = datasetVersionIndexRepository;
             _providersApiClient = providersApiClient;
-            _jobsApiClientPolicy = datasetsResiliencePolicies.JobsApiClient;
             _providersApiClientPolicy = datasetsResiliencePolicies.ProvidersApiClient;
             _jobManagement = jobManagement;
             _providerSourceDatasetRepository = providerSourceDatasetRepository;
             _specificationsApiClient = specificationsApiClient;
-            
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -396,7 +387,7 @@ namespace CalculateFunding.Services.Datasets
                 CorrelationId = correlationId
             };
 
-            await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.CreateJob(job));
+            await _jobManagement.QueueJob(job);
 
             await _cacheProvider.SetAsync($"{CacheKeys.DatasetValidationStatus}:{responseModel.OperationId}", responseModel);
 
@@ -868,7 +859,7 @@ namespace CalculateFunding.Services.Datasets
                     CorrelationId = correlationId
                 };
 
-                await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.CreateJob(job));
+                await _jobManagement.QueueJob(job);
             }
 
             return new OkObjectResult(relationships);

@@ -491,14 +491,14 @@ namespace CalculateFunding.Services.Datasets.Services
 
             ICacheProvider cacheProvider = CreateCacheProvider();
 
-            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            IJobManagement jobManagement = CreateJobManagement();
 
             DatasetService service = CreateDatasetService(
                 logger: logger,
                 blobClient: blobClient,
                 datasetRepository: datasetRepository,
                 cacheProvider: cacheProvider,
-                jobsApiClient: jobsApiClient);
+                jobManagement: jobManagement);
 
             // Act
             IActionResult result = await service.ValidateDataset(model, null, null);
@@ -519,9 +519,9 @@ namespace CalculateFunding.Services.Datasets.Services
                 .SetAsync<DatasetValidationStatusModel>(Arg.Is<string>(c => c.StartsWith(CacheKeys.DatasetValidationStatus) && c.Length > 40),
                 Arg.Is<DatasetValidationStatusModel>(s => !string.IsNullOrWhiteSpace(s.OperationId) && s.CurrentOperation == DatasetValidationStatus.Queued));
 
-            await jobsApiClient
+            await jobManagement
                 .Received(1)
-                .CreateJob(Arg.Is<JobCreateModel>(j => j.JobDefinitionId == JobConstants.DefinitionNames.ValidateDatasetJob));
+                .QueueJob(Arg.Is<JobCreateModel>(j => j.JobDefinitionId == JobConstants.DefinitionNames.ValidateDatasetJob));
         }
 
         [TestMethod]
@@ -573,14 +573,14 @@ namespace CalculateFunding.Services.Datasets.Services
 
             ICacheProvider cacheProvider = CreateCacheProvider();
 
-            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            IJobManagement jobManagement = CreateJobManagement();
 
             DatasetService service = CreateDatasetService(
                 logger: logger,
                 blobClient: blobClient,
                 datasetRepository: datasetRepository,
                 cacheProvider: cacheProvider,
-                jobsApiClient: jobsApiClient);
+                jobManagement: jobManagement);
 
             // Act
             IActionResult result = await service.ValidateDataset(model, null, null);
@@ -601,9 +601,9 @@ namespace CalculateFunding.Services.Datasets.Services
                 .SetAsync<DatasetValidationStatusModel>(Arg.Is<string>(c => c.StartsWith(CacheKeys.DatasetValidationStatus) && c.Length > 40),
                 Arg.Is<DatasetValidationStatusModel>(s => !string.IsNullOrWhiteSpace(s.OperationId) && s.CurrentOperation == DatasetValidationStatus.Queued));
 
-            await jobsApiClient
+            await jobManagement
                 .Received(1)
-                .CreateJob(Arg.Is<JobCreateModel>(
+                .QueueJob(Arg.Is<JobCreateModel>(
                     j =>
                     j.JobDefinitionId == JobConstants.DefinitionNames.ValidateDatasetJob &&
                     j.InvokerUserId == authorId &&
@@ -2674,8 +2674,6 @@ namespace CalculateFunding.Services.Datasets.Services
 
             ICacheProvider cacheProvider = CreateCacheProvider();
 
-            IJobsApiClient jobsApiClient = CreateJobsApiClient();
-
             ApiResponse<ProviderVersion> providerVersionResponse = new ApiResponse<ProviderVersion>(HttpStatusCode.OK, new ProviderVersion
             {
                 Providers = new[]
@@ -2696,7 +2694,6 @@ namespace CalculateFunding.Services.Datasets.Services
                 datasetRepository: datasetRepository,
                 searchRepository: searchRepository,
                 cacheProvider: cacheProvider,
-                jobsApiClient: jobsApiClient,
                 jobManagement: jobManagement,
                 providersApiClient: providersApiClient);
 

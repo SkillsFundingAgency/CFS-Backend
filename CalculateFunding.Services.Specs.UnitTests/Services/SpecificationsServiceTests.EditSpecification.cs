@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Messages;
-using CalculateFunding.Models.ProviderLegacy;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core;
@@ -54,7 +53,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             _messengerService = CreateMessengerService();
             _versionRepository = CreateVersionRepository();
             _providersApiClient = CreateProvidersApiClient();
-            _jobManagement = CreateJobManagement();
             _fundingPeriodResponse = new ApiResponse<PolicyModels.FundingPeriod>(
                 HttpStatusCode.OK, _fundingPeriod);
         }
@@ -274,9 +272,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             _providersApiClient.RegenerateProviderSummariesForSpecification(_specification.Id, true)
                 .Returns(new ApiResponse<bool>(HttpStatusCode.BadRequest));
-
-            _jobManagement.QueueJobAndWait(Arg.Any<Func<Task<bool>>>() , Arg.Is<string>(JobConstants.DefinitionNames.PopulateScopedProvidersJob), _specification.Id, "correlationId", "topic")
-                .Returns(false);
 
             var service = CreateSpecificationsService(newSpecVersion);
 

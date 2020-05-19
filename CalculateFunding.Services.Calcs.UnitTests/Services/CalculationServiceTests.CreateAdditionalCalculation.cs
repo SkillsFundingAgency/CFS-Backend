@@ -8,6 +8,7 @@ using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Caching;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Versioning;
@@ -129,9 +130,9 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
 
-            IJobsApiClient jobsApiClient = CreateJobsApiClient();
-            jobsApiClient
-                .CreateJob(Arg.Any<JobCreateModel>())
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement
+                .QueueJob(Arg.Any<JobCreateModel>())
                 .Returns(new Job { Id = "job-id-1" });
 
             ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
@@ -150,7 +151,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 calculationsRepository: calculationsRepository,
                 calculationVersionRepository: versionRepository,
                 searchRepository: searchRepository,
-                jobsApiClient: jobsApiClient,
+                jobManagement: jobManagement,
                 logger: logger,
                 cacheProvider: cacheProvider,
                 specificationsApiClient: specificationsApiClient);
@@ -180,9 +181,9 @@ namespace CalculateFunding.Services.Calcs.Services
             Calculation calculation = (result as OkObjectResult).Value as Calculation;
 
             await
-               jobsApiClient
+               jobManagement
                    .Received(1)
-                   .CreateJob(Arg.Is<JobCreateModel>(
+                   .QueueJob(Arg.Is<JobCreateModel>(
                        m =>
                            m.InvokerUserDisplayName == Username &&
                            m.InvokerUserId == UserId &&
@@ -277,9 +278,9 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
 
-            IJobsApiClient jobsApiClient = CreateJobsApiClient();
-            jobsApiClient
-                .CreateJob(Arg.Any<JobCreateModel>())
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement
+                .QueueJob(Arg.Any<JobCreateModel>())
                 .Returns((Job)null);
 
             ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
@@ -296,7 +297,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 calculationsRepository: calculationsRepository,
                 calculationVersionRepository: versionRepository,
                 searchRepository: searchRepository,
-                jobsApiClient: jobsApiClient,
+                jobManagement: jobManagement,
                 logger: logger,
                 specificationsApiClient: specificationsApiClient);
 

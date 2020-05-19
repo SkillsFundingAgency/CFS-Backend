@@ -96,11 +96,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 providersApiClient ?? Substitute.For<IProvidersApiClient>());
         }
 
-        protected IJobsApiClient CreateJobsApiClient()
-        {
-            return Substitute.For<IJobsApiClient>();
-        }
-
         protected IVersionRepository<Models.Specs.SpecificationVersion> CreateVersionRepository()
         {
             return Substitute.For<IVersionRepository<Models.Specs.SpecificationVersion>>();

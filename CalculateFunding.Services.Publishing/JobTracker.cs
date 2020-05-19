@@ -1,56 +1,35 @@
 using System.Threading.Tasks;
-using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
-using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Publishing.Interfaces;
-using Polly;
-using Serilog;
 
 namespace CalculateFunding.Services.Publishing
 {
     public class JobTracker : IJobTracker
     {
-        private readonly IJobsApiClient _jobs;
-        private readonly AsyncPolicy _resiliencePolicy;
-        private readonly ILogger _logger;
+        private readonly IJobManagement _jobs;
 
-        public JobTracker(IJobsApiClient jobs,
-            IPublishingResiliencePolicies resiliencePolicies,
-            ILogger logger)
+        public JobTracker(IJobManagement jobs)
         {
             Guard.ArgumentNotNull(jobs, nameof(jobs));
-            Guard.ArgumentNotNull(resiliencePolicies?.JobsApiClient, nameof(resiliencePolicies.JobsApiClient));
-            Guard.ArgumentNotNull(logger, nameof(logger));
 
             _jobs = jobs;
-            _resiliencePolicy = resiliencePolicies.JobsApiClient;
-            _logger = logger;
         }
 
         public async Task<bool> TryStartTrackingJob(string jobId, string jobType)
         {
-            ApiResponse<JobViewModel> jobResponse = await _resiliencePolicy.ExecuteAsync(() => _jobs.GetJobById(jobId));
-
-            if (jobResponse?.Content == null)
+            try
             {
-                string message = $"Could not find the job with job id: '{jobId}'";
-
-                _logger.Error(message);
-
-                throw new NonRetriableException(message);
+                await _jobs.RetrieveJobAndCheckCanBeProcessed(jobId);
             }
-
-            JobViewModel jobResponseContent = jobResponse.Content;
-
-            if (jobResponseContent.CompletionStatus.HasValue)
+            catch(JobNotFoundException ex)
             {
-                _logger.Information("{0} job with id: '{1}' is already  in a completed state with status {2}",
-                    jobType,
-                    jobResponseContent.Id,
-                    jobResponseContent.CompletionStatus.Value.ToString());
-
+                throw new NonRetriableException(ex.Message);
+            }
+            catch(JobAlreadyCompletedException ex)
+            {
                 return false;
             }
 
@@ -94,7 +73,7 @@ namespace CalculateFunding.Services.Publishing
 
         private async Task AddJobLog(JobLogUpdateModel jobLog, string jobId)
         {
-            await _resiliencePolicy.ExecuteAsync(() => _jobs.AddJobLog(jobId, jobLog));
+            await _jobs.AddJobLog(jobId, jobLog);
         }
     }
 }

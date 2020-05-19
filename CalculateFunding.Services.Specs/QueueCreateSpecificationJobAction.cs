@@ -7,6 +7,7 @@ using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Common.Utility;
@@ -23,26 +24,23 @@ namespace CalculateFunding.Services.Specs
     public class QueueCreateSpecificationJobAction : IQueueCreateSpecificationJobActions
     {
         private readonly IPoliciesApiClient _policies;
-        private readonly IJobsApiClient _jobs;
-        private readonly AsyncPolicy _jobClientResiliencePolicy;
+        private readonly IJobManagement _jobManagement;
         private readonly AsyncPolicy _policyResiliencePolicy;
         private readonly ILogger _logger;
 
         public QueueCreateSpecificationJobAction(IPoliciesApiClient policies,
-            IJobsApiClient jobs,
+            IJobManagement jobManagement,
             ISpecificationsResiliencePolicies resiliencePolicies,
             ILogger logger)
         {
             Guard.ArgumentNotNull(policies, nameof(policies));
-            Guard.ArgumentNotNull(jobs, nameof(jobs));
-            Guard.ArgumentNotNull(resiliencePolicies?.JobsApiClient, nameof(resiliencePolicies.JobsApiClient));
+            Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
             Guard.ArgumentNotNull(resiliencePolicies?.PoliciesApiClient, nameof(resiliencePolicies.PoliciesApiClient));
             Guard.ArgumentNotNull(logger, nameof(logger));
 
             _policies = policies;
-            _jobs = jobs;
+            _jobManagement = jobManagement;
             _logger = logger;
-            _jobClientResiliencePolicy = resiliencePolicies.JobsApiClient;
             _policyResiliencePolicy = resiliencePolicies.PoliciesApiClient;
         }
 
@@ -184,7 +182,7 @@ namespace CalculateFunding.Services.Specs
         {
             try
             {
-                Job job = await _jobClientResiliencePolicy.ExecuteAsync(() => _jobs.CreateJob(createModel));
+                Job job = await _jobManagement.QueueJob(createModel);
 
                 return job;
             }

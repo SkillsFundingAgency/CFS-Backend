@@ -1,6 +1,6 @@
-﻿using CalculateFunding.Common.ApiClient.Jobs;
-using CalculateFunding.Common.ApiClient.Specifications;
+﻿using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.Caching;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.ServiceBus.Interfaces;
 using CalculateFunding.Services.CalcEngine.Interfaces;
 using CalculateFunding.Services.Core.FeatureToggles;
@@ -46,7 +46,7 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
                     MockCalculatorResiliencePolicies,
                     MockCalculatorResiliencePoliciesValidator,
                     DatasetAggregationsRepository,
-                    MockJobsApiClient,
+                    MockJobManagement,
                     MockSpecificationsApiClient
                     );
 
@@ -66,7 +66,7 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
         public IValidator<ICalculatorResiliencePolicies> MockCalculatorResiliencePoliciesValidator { get; set; } = Substitute.For<IValidator<ICalculatorResiliencePolicies>>();
         public IDatasetAggregationsRepository DatasetAggregationsRepository { get; set; } = Substitute.For<IDatasetAggregationsRepository>();
         public IFeatureToggle FeatureToggle { get; set; } = Substitute.For<IFeatureToggle>();
-        public IJobsApiClient MockJobsApiClient { get; set; } = Substitute.For<IJobsApiClient>();
+        public IJobManagement MockJobManagement { get; set; } = Substitute.For<IJobManagement>();
         public ISpecificationsApiClient MockSpecificationsApiClient { get; set; } = Substitute.For<ISpecificationsApiClient>();
         public AsyncPolicy MockCacheProviderPolicy { get; set; } = Policy.NoOpAsync();
         public AsyncPolicy MockMessengerPolicy { get; set; } = Policy.NoOpAsync();

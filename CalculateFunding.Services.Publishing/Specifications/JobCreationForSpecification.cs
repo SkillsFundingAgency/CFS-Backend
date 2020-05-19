@@ -1,35 +1,29 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
-using CalculateFunding.Services.Publishing.Interfaces;
 using Serilog;
-using Policy = Polly.AsyncPolicy;
 
 namespace CalculateFunding.Services.Publishing.Specifications
 {
     public abstract class JobCreationForSpecification
     {
-        private readonly IJobsApiClient _jobs;
-        private readonly IPublishingResiliencePolicies _resiliencePolicies;
+        private readonly IJobManagement _jobManagement;
         private readonly ILogger _logger;
 
-        protected JobCreationForSpecification(IJobsApiClient jobs,
-            IPublishingResiliencePolicies resiliencePolicies,
+        protected JobCreationForSpecification(IJobManagement jobManagement,
             ILogger logger,
             string jobDefinitionId,
             string triggerMessage)
         {
-            Guard.ArgumentNotNull(jobs, nameof(jobs));
-            Guard.ArgumentNotNull(resiliencePolicies?.JobsApiClient, nameof(resiliencePolicies.JobsApiClient));
+            Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.IsNullOrWhiteSpace(jobDefinitionId, nameof(jobDefinitionId));
 
-            _jobs = jobs;
-            _resiliencePolicies = resiliencePolicies;
+            _jobManagement = jobManagement;
             _logger = logger;
             JobDefinitionId = jobDefinitionId;
             TriggerMessage = triggerMessage;
@@ -38,8 +32,6 @@ namespace CalculateFunding.Services.Publishing.Specifications
         public string JobDefinitionId { get; }
                                                      
         public string TriggerMessage { get; }
-
-        private Policy JobsPolicy => _resiliencePolicies.JobsApiClient;
 
         public async Task<Job> CreateJob(string specificationId,
             Reference user,
@@ -58,7 +50,7 @@ namespace CalculateFunding.Services.Publishing.Specifications
 
             try
             {
-                Job job = await JobsPolicy.ExecuteAsync(() => _jobs.CreateJob(new JobCreateModel
+                Job job = await _jobManagement.QueueJob(new JobCreateModel
                 {
                     InvokerUserDisplayName = user.Name,
                     InvokerUserId = user.Id,
@@ -73,7 +65,7 @@ namespace CalculateFunding.Services.Publishing.Specifications
                         Message = TriggerMessage
                     },
                     CorrelationId = correlationId
-                }));
+                });
 
                 if (job != null)
                 {

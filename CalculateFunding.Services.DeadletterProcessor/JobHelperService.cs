@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
-using CalculateFunding.Common.ApiClient.Jobs;
-using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Utility;
 using Microsoft.Azure.ServiceBus;
 using Serilog;
@@ -10,18 +9,15 @@ namespace CalculateFunding.Services.DeadletterProcessor
 {
     public class JobHelperService : IJobHelperService
     {
-        private readonly IJobsApiClient _jobsApiClient;
-        private readonly Polly.AsyncPolicy _jobsApiClientPolicy;
+        private readonly IJobManagement _jobManagement;
         private readonly ILogger _logger;
 
-        public JobHelperService(IJobsApiClient jobsApiClient, IJobHelperResiliencePolicies resiliencePolicies, ILogger logger)
+        public JobHelperService(IJobManagement jobManagement, ILogger logger)
         {
-            Guard.ArgumentNotNull(jobsApiClient, nameof(jobsApiClient));
-            Guard.ArgumentNotNull(resiliencePolicies, nameof(resiliencePolicies));
+            Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
             Guard.ArgumentNotNull(logger, nameof(logger));
 
-            _jobsApiClient = jobsApiClient;
-            _jobsApiClientPolicy = resiliencePolicies.JobsApiClient;
+            _jobManagement = jobManagement;
             _logger = logger;
         }
 
@@ -45,15 +41,15 @@ namespace CalculateFunding.Services.DeadletterProcessor
 
             try
             {
-                ApiResponse<Common.ApiClient.Jobs.Models.JobLog> jobLogResponse = await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.AddJobLog(jobId, jobLogUpdateModel));
+                Common.ApiClient.Jobs.Models.JobLog jobLog = await _jobManagement.AddJobLog(jobId, jobLogUpdateModel);
 
-                if (jobLogResponse == null || jobLogResponse.Content == null)
+                if (jobLog == null)
                 {
                     _logger.Error($"Failed to add a job log for job id '{jobId}'");
                 }
                 else
                 {
-                    _logger.Information($"A new job log was added to inform of a dead lettered message with job log id '{jobLogResponse.Content.Id}' on job with id '{jobId}'");
+                    _logger.Information($"A new job log was added to inform of a dead lettered message with job log id '{jobLog.Id}' on job with id '{jobId}'");
                 }
             }
             catch (Exception exception)

@@ -28,6 +28,7 @@ using NSubstitute;
 using Serilog;
 using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
 using DatasetReference = CalculateFunding.Models.Graph.DatasetReference;
+using CalculateFunding.Common.JobManagement;
 
 namespace CalculateFunding.Services.Calcs.Services
 {
@@ -123,9 +124,9 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>())
                 .Returns(build);
 
-            IJobsApiClient jobsApiClient = CreateJobsApiClient();
-            jobsApiClient
-                .CreateJob(Arg.Any<JobCreateModel>())
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement
+                .QueueJob(Arg.Any<JobCreateModel>())
                 .Returns(new Job { Id = "job-id-1" });
 
             CalculationService service = CreateCalculationService(
@@ -136,7 +137,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 specificationsApiClient: specificationsApiClient,
                 calculationVersionRepository: versionRepository,
                 sourceCodeService: sourceCodeService,
-                jobsApiClient: jobsApiClient);
+                jobManagement: jobManagement);
 
             //Act
             IActionResult result = await service.EditCalculation(SpecificationId, CalculationId, calculationEditModel, author, CorrelationId);
@@ -255,9 +256,9 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>())
                 .Returns(build);
 
-            IJobsApiClient jobsApiClient = CreateJobsApiClient();
-            jobsApiClient
-                .CreateJob(Arg.Any<JobCreateModel>())
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement
+                .QueueJob(Arg.Any<JobCreateModel>())
                 .Returns(new Job { Id = "job-id-1" });
 
             CalculationService service = CreateCalculationService(
@@ -267,7 +268,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 specificationsApiClient: specificationsApiClient,
                 calculationVersionRepository: versionRepository,
                 sourceCodeService: sourceCodeService,
-                jobsApiClient: jobsApiClient,
+                jobManagement: jobManagement,
                 buildProjectsService: buildProjectsService,
                 cacheProvider: cacheProvider);
 
@@ -369,9 +370,9 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>())
                 .Returns(build);
 
-            IJobsApiClient jobsApiClient = CreateJobsApiClient();
-            jobsApiClient
-                .CreateJob(Arg.Any<JobCreateModel>())
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement
+                .QueueJob(Arg.Any<JobCreateModel>())
                 .Returns(new Job { Id = "job-id-1" });
 
             CalculationService service = CreateCalculationService(
@@ -382,7 +383,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 specificationsApiClient: specificationsApiClient,
                 calculationVersionRepository: versionRepository,
                 sourceCodeService: sourceCodeService,
-                jobsApiClient: jobsApiClient);
+                jobManagement: jobManagement);
 
             //Act
             IActionResult result = await service.EditCalculation(SpecificationId, CalculationId, calculationEditModel, author, CorrelationId);
@@ -495,9 +496,9 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>())
                 .Returns(build);
 
-            IJobsApiClient jobsApiClient = CreateJobsApiClient();
-            jobsApiClient
-                .CreateJob(Arg.Any<JobCreateModel>())
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement
+                .QueueJob(Arg.Any<JobCreateModel>())
                 .Returns(new Job { Id = "job-id-1" });
 
             CalculationService service = CreateCalculationService(
@@ -508,7 +509,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 searchRepository: searchRepository,
                 calculationVersionRepository: versionRepository,
                 sourceCodeService: sourceCodeService,
-                jobsApiClient: jobsApiClient);
+                jobManagement: jobManagement);
 
             //Act
             IActionResult result = await service.EditCalculation(SpecificationId, CalculationId, calculationEditModel, author, CorrelationId);
@@ -629,9 +630,9 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>())
                 .Returns(build);
 
-            IJobsApiClient jobsApiClient = CreateJobsApiClient();
-            jobsApiClient
-                .CreateJob(Arg.Any<JobCreateModel>())
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement
+                .QueueJob(Arg.Any<JobCreateModel>())
                 .Returns(new Job { Id = "job-id-1" });
 
             CalculationService service = CreateCalculationService(
@@ -642,7 +643,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 searchRepository: searchRepository,
                 calculationVersionRepository: versionRepository,
                 sourceCodeService: sourceCodeService,
-                jobsApiClient: jobsApiClient);
+                jobManagement: jobManagement);
 
             //Act
             IActionResult result = await service.EditCalculation(SpecificationId, CalculationId, calculationEditModel, author, CorrelationId);
@@ -728,9 +729,9 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>())
                 .Returns(build);
 
-            IJobsApiClient jobsApiClient = CreateJobsApiClient();
-            jobsApiClient
-                .CreateJob(Arg.Any<JobCreateModel>())
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement
+                .QueueJob(Arg.Any<JobCreateModel>())
                 .Returns(new Job { Id = "job-id-1" });
 
             CalculationService service = CreateCalculationService(
@@ -741,7 +742,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 specificationsApiClient: specificationsApiClient,
                 calculationVersionRepository: versionRepository,
                 sourceCodeService: sourceCodeService,
-                jobsApiClient: jobsApiClient);
+                jobManagement: jobManagement);
 
             //Act
             IActionResult result = await service.EditCalculation(SpecificationId, CalculationId, calculationEditModel, author, CorrelationId);
@@ -838,9 +839,9 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>())
                 .Returns(build);
 
-            IJobsApiClient jobsApiClient = CreateJobsApiClient();
-            jobsApiClient
-                .CreateJob(Arg.Any<JobCreateModel>())
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement
+                .QueueJob(Arg.Any<JobCreateModel>())
                 .Returns(new Job { Id = "job-id-1" });
 
             CalculationService service = CreateCalculationService(logger: logger,
@@ -850,7 +851,7 @@ namespace CalculateFunding.Services.Calcs.Services
                specificationsApiClient: specificationsApiClient,
                calculationVersionRepository: versionRepository,
                sourceCodeService: sourceCodeService,
-               jobsApiClient: jobsApiClient);
+               jobManagement: jobManagement);
 
             //Act
             IActionResult result = await service.EditCalculation(SpecificationId, CalculationId, calculationEditModel, author, CorrelationId);
@@ -947,9 +948,9 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>())
                 .Returns(build);
 
-            IJobsApiClient jobsApiClient = CreateJobsApiClient();
-            jobsApiClient
-                .CreateJob(Arg.Any<JobCreateModel>())
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement
+                .QueueJob(Arg.Any<JobCreateModel>())
                 .Returns(new Job { Id = "job-id-1" });
 
             CalculationService service = CreateCalculationService(
@@ -960,7 +961,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 specificationsApiClient: specificationsApiClient,
                 calculationVersionRepository: versionRepository,
                 sourceCodeService: sourceCodeService,
-                jobsApiClient: jobsApiClient);
+                jobManagement: jobManagement);
 
             //Act
             IActionResult result = await service.EditCalculation(SpecificationId, CalculationId, calculationEditModel, author, CorrelationId);
@@ -1062,9 +1063,9 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>())
                 .Returns(build);
 
-            IJobsApiClient jobsApiClient = CreateJobsApiClient();
-            jobsApiClient
-                .CreateJob(Arg.Any<JobCreateModel>())
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement
+                .QueueJob(Arg.Any<JobCreateModel>())
                 .Returns(new Job { Id = "job-id-1" });
 
             CalculationService service = CreateCalculationService(
@@ -1075,7 +1076,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 specificationsApiClient: specificationsApiClient,
                 calculationVersionRepository: versionRepository,
                 sourceCodeService: sourceCodeService,
-                jobsApiClient: jobsApiClient);
+                jobManagement: jobManagement);
 
             //Act
             IActionResult result = await service.EditCalculation(SpecificationId, CalculationId, calculationEditModel, author, CorrelationId);
@@ -1171,9 +1172,9 @@ namespace CalculateFunding.Services.Calcs.Services
                 .CreateVersion(Arg.Any<CalculationVersion>(), Arg.Any<CalculationVersion>())
                 .Returns(calculationVersion);
 
-            IJobsApiClient jobsApiClient = CreateJobsApiClient();
-            jobsApiClient
-                .CreateJob(Arg.Any<JobCreateModel>())
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement
+                .QueueJob(Arg.Any<JobCreateModel>())
                 .Returns(new Job { Id = "job-id-1" });
 
             Build build = new Build();
@@ -1190,7 +1191,7 @@ namespace CalculateFunding.Services.Calcs.Services
                searchRepository: searchRepository,
                specificationsApiClient: specificationsApiClient,
                calculationVersionRepository: versionRepository,
-               jobsApiClient: jobsApiClient,
+               jobManagement: jobManagement,
                sourceCodeService: sourceCodeService);
 
             //Act
@@ -1208,9 +1209,9 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Be(PublishStatus.Updated);
 
             await
-                jobsApiClient
+                jobManagement
                     .Received(1)
-                    .CreateJob(Arg.Is<JobCreateModel>(
+                    .QueueJob(Arg.Is<JobCreateModel>(
                         m =>
                             m.InvokerUserDisplayName == Username &&
                             m.InvokerUserId == UserId &&
@@ -1300,9 +1301,9 @@ namespace CalculateFunding.Services.Calcs.Services
                 .CreateVersion(Arg.Any<CalculationVersion>(), Arg.Any<CalculationVersion>())
                 .Returns(calculationVersion);
 
-            IJobsApiClient jobsApiClient = CreateJobsApiClient();
-            jobsApiClient
-                .CreateJob(Arg.Any<JobCreateModel>())
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement
+                .QueueJob(Arg.Any<JobCreateModel>())
                 .Returns((Job)null);
 
             Build build = new Build();
@@ -1319,7 +1320,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 searchRepository: searchRepository,
                 specificationsApiClient: specificationsApiClient,
                 calculationVersionRepository: versionRepository,
-                jobsApiClient: jobsApiClient,
+                jobManagement: jobManagement,
                 sourceCodeService: sourceCodeService);
 
             //Act
@@ -1335,9 +1336,9 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Be($"Failed to create job of type '{JobConstants.DefinitionNames.CreateInstructAllocationJob}' on specification '{specificationId}'");
 
             await
-                jobsApiClient
+                jobManagement
                     .Received(1)
-                    .CreateJob(Arg.Is<JobCreateModel>(
+                    .QueueJob(Arg.Is<JobCreateModel>(
                         m =>
                             m.InvokerUserDisplayName == Username &&
                             m.InvokerUserId == UserId &&
@@ -1511,9 +1512,9 @@ namespace CalculateFunding.Services.Calcs.Services
                 .CreateVersion(Arg.Any<CalculationVersion>(), Arg.Any<CalculationVersion>())
                 .Returns(calculationVersion);
 
-            IJobsApiClient jobsApiClient = CreateJobsApiClient();
-            jobsApiClient
-                .CreateJob(Arg.Any<JobCreateModel>())
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement
+                .QueueJob(Arg.Any<JobCreateModel>())
                 .Returns(new Job { Id = "job-id-1" });
 
             Build build = new Build
@@ -1533,7 +1534,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 searchRepository: searchRepository,
                 specificationsApiClient: specificationsApiClient,
                 calculationVersionRepository: versionRepository,
-                jobsApiClient: jobsApiClient,
+                jobManagement: jobManagement,
                 sourceCodeService: sourceCodeService);
 
             //Act
@@ -1551,9 +1552,9 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Be(PublishStatus.Updated);
 
             await
-                jobsApiClient
+                jobManagement
                     .Received(1)
-                    .CreateJob(Arg.Is<JobCreateModel>(
+                    .QueueJob(Arg.Is<JobCreateModel>(
                         m =>
                             m.InvokerUserDisplayName == Username &&
                             m.InvokerUserId == UserId &&
@@ -1661,9 +1662,9 @@ namespace CalculateFunding.Services.Calcs.Services
                 .CreateVersion(Arg.Any<CalculationVersion>(), Arg.Any<CalculationVersion>())
                 .Returns(calculationVersion);
 
-            IJobsApiClient jobsApiClient = CreateJobsApiClient();
-            jobsApiClient
-                .CreateJob(Arg.Any<JobCreateModel>())
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement
+                .QueueJob(Arg.Any<JobCreateModel>())
                 .Returns(new Job { Id = "job-id-1" });
 
             Build build = new Build
@@ -1683,7 +1684,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 searchRepository: searchRepository,
                 specificationsApiClient: specificationsApiClient,
                 calculationVersionRepository: versionRepository,
-                jobsApiClient: jobsApiClient,
+                jobManagement: jobManagement,
                 sourceCodeService: sourceCodeService);
 
             //Act
@@ -1700,7 +1701,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Should()
                 .Be(PublishStatus.Updated);
 
-            jobsApiClient
+            jobManagement
                     .DidNotReceive();
 
         }

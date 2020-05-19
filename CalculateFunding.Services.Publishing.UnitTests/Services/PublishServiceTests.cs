@@ -57,14 +57,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         private ICalculationsApiClient _calculationsApiClient;
         private IProviderService _providerService;
         private IJobManagement _jobManagement;
-        private IMessengerService _messengerService;
         private IGeneratePublishedFundingCsvJobsCreationLocator _generateCsvJobsLocator;
         private IMapper _mapper;
         private ITransactionFactory _transactionFactory;
         private IPublishedProviderVersionService _publishedProviderVersionService;
         private IPublishedFundingService _publishedFundingService;
         private ILogger _logger;
-        private IJobsApiClient _jobsApiClient;
         private ISpecificationsApiClient _specificationsApiClient;
         private TemplateMetadataContents _templateMetadataContents;
         private TemplateMapping _templateMapping;
@@ -116,9 +114,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             _publishedFundingSearchRepository = Substitute.For<ISearchRepository<PublishedFundingIndex>>();
             _calculationsApiClient = Substitute.For<ICalculationsApiClient>();
             _providerService = Substitute.For<IProviderService>();
-            _jobsApiClient = Substitute.For<IJobsApiClient>();
-            _messengerService = Substitute.For<IMessengerService>();
-            _jobManagement = new JobManagement(_jobsApiClient, _logger, new JobManagementResiliencePolicies { JobsApiClient = Policy.NoOpAsync() }, _messengerService);
+            _jobManagement = Substitute.For<IJobManagement>();
             _prerequisiteCheckerLocator = Substitute.For<IPrerequisiteCheckerLocator>();
             _prerequisiteCheckerLocator.GetPreReqChecker(PrerequisiteCheckerType.ReleaseAllProviders)
                 .Returns(new PublishAllPrerequisiteChecker(_specificationFundingStatusService, _jobsRunning, _jobManagement, _logger));
@@ -370,6 +366,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         [TestMethod]
         public void PublishAllProviderFundingResults_GivenJobCannotBeProcessed_ThrowsException()
         {
+            _jobManagement
+                .RetrieveJobAndCheckCanBeProcessed(JobId)
+                .Throws(new JobNotFoundException(string.Empty, JobId));
+
             Func<Task> invocation = WhenPublishAllProvidersMessageReceivedWithJobId;
 
             invocation
@@ -384,6 +384,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         [TestMethod]
         public void PublishBatchProviderFundingResults_GivenJobCannotBeProcessed_ThrowsException()
         {
+            _jobManagement
+                .RetrieveJobAndCheckCanBeProcessed(JobId)
+                .Throws(new JobNotFoundException(string.Empty, JobId));
+
             Func<Task> invocation = () => WhenPublishBatchProvidersMessageReceivedWithJobIdAndCorrelationId(BuildPublishProvidersRequest(_ => _.WithProviders(_providerIds)));
 
             invocation
@@ -417,9 +421,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
 
             string[] prereqValidationErrors = new string[] { $"{JobConstants.DefinitionNames.RefreshFundingJob} is still running" };
 
-            _jobsApiClient.Received(1)
-                .AddJobLog(Arg.Is(JobId),
-                           Arg.Is<JobLogUpdateModel>(_ => _.CompletedSuccessfully == false && _.Outcome == string.Join(", ", prereqValidationErrors)));
+            _jobManagement
+                .Received(1)
+                .UpdateJobStatus(JobId, 0, false, string.Join(", ", prereqValidationErrors));
         }
 
         [TestMethod]
@@ -444,17 +448,17 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
 
             string[] prereqValidationErrors = new string[] { $"{JobConstants.DefinitionNames.RefreshFundingJob} is still running" };
 
-            _jobsApiClient.Received(1)
-                .AddJobLog(Arg.Is(JobId),
-                           Arg.Is<JobLogUpdateModel>(_ => _.CompletedSuccessfully == false && _.Outcome == string.Join(", ", prereqValidationErrors)));
+            _jobManagement
+                .Received(1)
+                .UpdateJobStatus(JobId, 0, false, string.Join(", ", prereqValidationErrors));
         }
 
         private void GivenJobCanBeProcessed()
         {
             JobViewModel jobViewModel = NewJobViewModel();
 
-            _jobsApiClient.GetJobById(JobId)
-                .Returns(new ApiResponse<JobViewModel>(HttpStatusCode.OK, jobViewModel));
+            _jobManagement.RetrieveJobAndCheckCanBeProcessed(JobId)
+                .Returns(jobViewModel);
         }
 
         private void AndUpdateStatusThrowsAnError(string error)

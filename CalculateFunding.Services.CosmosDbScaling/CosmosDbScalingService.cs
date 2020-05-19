@@ -3,10 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
-using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.Caching;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.CosmosDbScaling;
 using CalculateFunding.Services.Core;
@@ -29,8 +28,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
         private readonly ICacheProvider _cacheProvider;
         private readonly ICosmosDbScalingConfigRepository _cosmosDbScalingConfigRepository;
         private readonly ICosmosDbScalingRequestModelBuilder _cosmosDbScalingRequestModelBuilder;
-        private readonly IJobsApiClient _jobsApiClient;
-        private readonly AsyncPolicy _jobsApiClientPolicy;
+        private readonly IJobManagement _jobManagement;
         private readonly AsyncPolicy _scalingRepositoryPolicy;
         private readonly AsyncPolicy _cacheProviderPolicy;
         private readonly AsyncPolicy _scalingConfigRepositoryPolicy;
@@ -43,7 +41,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
         public CosmosDbScalingService(
             ILogger logger,
             ICosmosDbScalingRepositoryProvider cosmosDbScalingRepositoryProvider,
-            IJobsApiClient jobsApiClient,
+            IJobManagement jobManagement,
             ICacheProvider cacheProvider,
             ICosmosDbScalingConfigRepository cosmosDbScalingConfigRepository,
             ICosmosDbScalingResiliencePolicies cosmosDbScalingResiliencePolicies,
@@ -53,7 +51,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(cosmosDbScalingRepositoryProvider, nameof(cosmosDbScalingRepositoryProvider));
-            Guard.ArgumentNotNull(jobsApiClient, nameof(jobsApiClient));
+            Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
             Guard.ArgumentNotNull(cosmosDbScalingRepositoryProvider, nameof(cosmosDbScalingRepositoryProvider));
             Guard.ArgumentNotNull(cosmosDbScalingResiliencePolicies, nameof(cosmosDbScalingResiliencePolicies));
@@ -63,18 +61,16 @@ namespace CalculateFunding.Services.CosmosDbScaling
             Guard.ArgumentNotNull(cosmosDbScalingResiliencePolicies?.ScalingRepository, nameof(cosmosDbScalingResiliencePolicies.ScalingRepository));
             Guard.ArgumentNotNull(cosmosDbScalingResiliencePolicies?.CacheProvider, nameof(cosmosDbScalingResiliencePolicies.CacheProvider));
             Guard.ArgumentNotNull(cosmosDbScalingResiliencePolicies?.ScalingConfigRepository, nameof(cosmosDbScalingResiliencePolicies.ScalingConfigRepository));
-            Guard.ArgumentNotNull(cosmosDbScalingResiliencePolicies?.JobsApiClient, nameof(cosmosDbScalingResiliencePolicies.JobsApiClient));
 
             _logger = logger;
             _cosmosDbScalingRepositoryProvider = cosmosDbScalingRepositoryProvider;
             _cacheProvider = cacheProvider;
             _cosmosDbScalingConfigRepository = cosmosDbScalingConfigRepository;
             _cosmosDbScalingRequestModelBuilder = cosmosDbScalingRequestModelBuilder;
-            _jobsApiClient = jobsApiClient;
+            _jobManagement = jobManagement;
             _scalingRepositoryPolicy = cosmosDbScalingResiliencePolicies.ScalingRepository;
             _cacheProviderPolicy = cosmosDbScalingResiliencePolicies.CacheProvider;
             _scalingConfigRepositoryPolicy = cosmosDbScalingResiliencePolicies.ScalingConfigRepository;
-            _jobsApiClientPolicy = cosmosDbScalingResiliencePolicies.JobsApiClient;
             _cosmosDbThrottledEventsFilter = cosmosDbThrottledEventsFilter;
             _scalingConfigurationUpdateModelValidator = scalingConfigurationUpdateModelValidator;
         }
@@ -187,10 +183,9 @@ namespace CalculateFunding.Services.CosmosDbScaling
             DateTimeOffset now = DateTimeOffset.UtcNow;
             DateTimeOffset hourAgo = now.AddHours(-1);
 
-            ApiResponse<IEnumerable<JobSummary>> jobSummariesResponse = await _jobsApiClientPolicy.ExecuteAsync(
-                () => _jobsApiClient.GetNonCompletedJobsWithinTimeFrame(hourAgo, now));
+            IEnumerable<JobSummary> jobSummaries = await _jobManagement.GetNonCompletedJobsWithinTimeFrame(hourAgo, now);
 
-            if (!jobSummariesResponse.StatusCode.IsSuccess())
+            if (jobSummaries == null)
             {
                 string errorMessage = "Failed to fetch job summaries that are still running within the last hour";
 
@@ -199,7 +194,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 throw new RetriableException(errorMessage);
             }
 
-            List<string> jobDefinitionIdsStillActive = jobSummariesResponse.Content?.Select(m => m.JobType).Distinct().ToList();
+            List<string> jobDefinitionIdsStillActive = jobSummaries.Select(m => m.JobType).Distinct().ToList();
 
             IEnumerable<CosmosDbScalingConfig> cosmosDbScalingConfigs = await GetAllConfigs();
 

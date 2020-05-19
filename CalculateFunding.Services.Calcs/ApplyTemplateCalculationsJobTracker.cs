@@ -1,10 +1,9 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
-using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
-using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Core;
-using Polly;
 using Serilog;
 
 namespace CalculateFunding.Services.Calcs
@@ -12,49 +11,43 @@ namespace CalculateFunding.Services.Calcs
     public class ApplyTemplateCalculationsJobTracker : IApplyTemplateCalculationsJobTracker
     {
         public ApplyTemplateCalculationsJobTracker(string jobId,
-            IJobsApiClient jobs,
-            AsyncPolicy jobsResiliencePolicy,
+            IJobManagement jobs,
             ILogger logger)
         {
             Guard.IsNullOrWhiteSpace(jobId, nameof(jobId));
             Guard.ArgumentNotNull(jobs, nameof(jobs));
-            Guard.ArgumentNotNull(jobsResiliencePolicy, nameof(jobsResiliencePolicy));
             Guard.ArgumentNotNull(logger, nameof(logger));
 
             JobId = jobId;
             Jobs = jobs;
-            JobsResiliencePolicy = jobsResiliencePolicy;
             Logger = logger;
         }
 
         public string JobId { get; }
 
-        public IJobsApiClient Jobs { get; }
-
-        public AsyncPolicy JobsResiliencePolicy { get; }
+        public IJobManagement Jobs { get; }
 
         public ILogger Logger { get; }
 
         public async Task<bool> TryStartTrackingJob()
         {
-            ApiResponse<JobViewModel> jobResponse = await JobsResiliencePolicy.ExecuteAsync(() => Jobs.GetJobById(JobId));
-
-            if (jobResponse?.Content == null)
+            try
             {
-                string message = $"Could not find the job with job id: '{JobId}'";
+                await Jobs.RetrieveJobAndCheckCanBeProcessed(JobId);
+            }
+            catch(JobNotFoundException ex)
+            {
+                string message = $"Could not find the job with job id: '{ex.JobId}'";
 
                 Logger.Error(message);
 
                 throw new NonRetriableException(message);
             }
-
-            JobViewModel applyTemplateCalculationsJob = jobResponse.Content;
-
-            if (applyTemplateCalculationsJob.CompletionStatus.HasValue)
+            catch (JobAlreadyCompletedException ex)
             {
-                Logger.Information("ApplyTemplateCalculations job with id: '{0}' is already  in a completed state with status {1}",
-                    applyTemplateCalculationsJob.Id,
-                    applyTemplateCalculationsJob.CompletionStatus.Value.ToString());
+                Logger.Information("ApplyTemplateCalculations job with id: '{0}' is already in a completed state with status {1}",
+                    ex.Job.Id,
+                    ex.Job.CompletionStatus.Value.ToString());
 
                 return false;
             }
@@ -92,7 +85,7 @@ namespace CalculateFunding.Services.Calcs
 
         private async Task AddJobLog(JobLogUpdateModel jobLog)
         {
-            await JobsResiliencePolicy.ExecuteAsync(() => Jobs.AddJobLog(JobId, jobLog));
+            await Jobs.AddJobLog(JobId, jobLog);
         }
     }
 }

@@ -1,10 +1,7 @@
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
-using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
-using CalculateFunding.Common.ApiClient.Models;
-using CalculateFunding.Common.Models;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core;
@@ -25,14 +22,13 @@ namespace CalculateFunding.Services.Publishing.Providers
         private readonly IDeselectSpecificationForFundingService _deselectSpecificationForFundingService;
         private readonly IPublishedFundingRepository _publishedFundingRepository;
         private readonly AsyncPolicy _publishedFundingRepositoryPolicy;
-        private readonly AsyncPolicy _jobsApiPolicy;
-        private readonly IJobsApiClient _jobsApiClient;
+        private readonly IJobManagement _jobManagement;
         private readonly ILogger _logger;
 
         public DeletePublishedProvidersService(ICreateDeletePublishedProvidersJobs jobs,
             IPublishedFundingRepository publishedFundingRepository,
             IPublishingResiliencePolicies publishedFundingResilience,
-            IJobsApiClient jobsApiClient,
+            IJobManagement jobManagement,
             IDeleteFundingSearchDocumentsService deleteFundingSearchDocumentsService,
             IDeletePublishedFundingBlobDocumentsService deletePublishedFundingBlobDocumentsService,
             IDeselectSpecificationForFundingService deselectSpecificationForFundingService,
@@ -41,10 +37,9 @@ namespace CalculateFunding.Services.Publishing.Providers
             Guard.ArgumentNotNull(jobs, nameof(jobs));
             Guard.ArgumentNotNull(publishedFundingRepository, nameof(publishedFundingRepository));
             Guard.ArgumentNotNull(publishedFundingResilience?.PublishedFundingRepository, nameof(publishedFundingResilience.PublishedFundingRepository));
-            Guard.ArgumentNotNull(publishedFundingResilience?.JobsApiClient, nameof(publishedFundingResilience.JobsApiClient));
             Guard.ArgumentNotNull(publishedFundingResilience?.BlobClient, nameof(publishedFundingResilience.BlobClient));
             Guard.ArgumentNotNull(logger, nameof(logger));
-            Guard.ArgumentNotNull(jobsApiClient, nameof(jobsApiClient));
+            Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
             Guard.ArgumentNotNull(deletePublishedFundingBlobDocumentsService, nameof(deletePublishedFundingBlobDocumentsService));
             Guard.ArgumentNotNull(deleteFundingSearchDocumentsService, nameof(deleteFundingSearchDocumentsService));
             Guard.ArgumentNotNull(deselectSpecificationForFundingService, nameof(deleteFundingSearchDocumentsService));
@@ -55,9 +50,8 @@ namespace CalculateFunding.Services.Publishing.Providers
             _deselectSpecificationForFundingService = deselectSpecificationForFundingService;
             _deleteFundingSearchDocumentsService = deleteFundingSearchDocumentsService;
             _deletePublishedFundingBlobDocumentsService = deletePublishedFundingBlobDocumentsService;
-            _jobsApiClient = jobsApiClient;
+            _jobManagement = jobManagement;
             _publishedFundingRepositoryPolicy = publishedFundingResilience.PublishedFundingRepository;
-            _jobsApiPolicy = publishedFundingResilience.JobsApiClient;
         }
 
         public async Task QueueDeletePublishedProvidersJob(string fundingStreamId,
@@ -175,17 +169,7 @@ namespace CalculateFunding.Services.Publishing.Providers
 
         private async Task CheckJobStatus(string jobId)
         {
-            ApiResponse<JobViewModel> job = await _jobsApiPolicy.ExecuteAsync(() => _jobsApiClient.GetJobById(jobId));
-
-            if (job?.Content == null)
-            {
-                throw new ArgumentOutOfRangeException(jobId);
-            }
-
-            if ((RunningStatus?) job.Content.RunningStatus == RunningStatus.Completed)
-            {
-                throw new InvalidOperationException($"Job {jobId} already completed");
-            }
+            await _jobManagement.RetrieveJobAndCheckCanBeProcessed(jobId);
         }
 
         private async Task TrackJobFailed(string jobId, Exception exception)
@@ -207,7 +191,7 @@ namespace CalculateFunding.Services.Publishing.Providers
 
         private async Task AddJobTracking(string jobId, JobLogUpdateModel tracking)
         {
-            await _jobsApiPolicy.ExecuteAsync(() => _jobsApiClient.AddJobLog(jobId, tracking));
+            await _jobManagement.AddJobLog(jobId, tracking);
         }
     }
 }

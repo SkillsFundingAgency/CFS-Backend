@@ -10,7 +10,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
         public void SetUp()
         {
             JobCreation = new RefreshFundingJobCreation(Jobs,
-                ResiliencePolicies,
                 Logger);
         }
     }

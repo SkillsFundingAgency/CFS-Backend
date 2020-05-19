@@ -8,6 +8,7 @@ using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.Caching;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.ServiceBus.Interfaces;
@@ -43,8 +44,7 @@ namespace CalculateFunding.Services.Datasets
         private readonly ICalcsRepository _calcsRepository;
         private readonly IDefinitionsService _definitionService;
         private readonly ICacheProvider _cacheProvider;
-        private readonly Polly.AsyncPolicy _jobsApiClientPolicy;
-        private readonly IJobsApiClient _jobsApiClient;
+        private readonly IJobManagement _jobManagement;
         private readonly Polly.AsyncPolicy _specificationsApiClientPolicy;
 
         public DefinitionSpecificationRelationshipService(IDatasetRepository datasetRepository,
@@ -57,7 +57,7 @@ namespace CalculateFunding.Services.Datasets
             IDefinitionsService definitionService,
             ICacheProvider cacheProvider,
             IDatasetsResiliencePolicies datasetsResiliencePolicies,
-            IJobsApiClient jobsApiClient)
+            IJobManagement jobManagement)
         {
             Guard.ArgumentNotNull(datasetRepository, nameof(datasetRepository));
             Guard.ArgumentNotNull(logger, nameof(logger));
@@ -68,8 +68,7 @@ namespace CalculateFunding.Services.Datasets
             Guard.ArgumentNotNull(calcsRepository, nameof(calcsRepository));
             Guard.ArgumentNotNull(definitionService, nameof(definitionService));
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
-            Guard.ArgumentNotNull(jobsApiClient, nameof(jobsApiClient));
-            Guard.ArgumentNotNull(datasetsResiliencePolicies?.JobsApiClient, nameof(datasetsResiliencePolicies.JobsApiClient));
+            Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
             Guard.ArgumentNotNull(datasetsResiliencePolicies?.SpecificationsApiClient, nameof(datasetsResiliencePolicies.SpecificationsApiClient));
 
             _datasetRepository = datasetRepository;
@@ -81,8 +80,7 @@ namespace CalculateFunding.Services.Datasets
             _calcsRepository = calcsRepository;
             _definitionService = definitionService;
             _cacheProvider = cacheProvider;
-            _jobsApiClient = jobsApiClient;
-            _jobsApiClientPolicy = datasetsResiliencePolicies.JobsApiClient;
+            _jobManagement = jobManagement;
             _specificationsApiClientPolicy = datasetsResiliencePolicies.SpecificationsApiClient;
         }
 
@@ -345,7 +343,7 @@ namespace CalculateFunding.Services.Datasets
                 CorrelationId = correlationId
             };
 
-            await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.CreateJob(job));
+            await _jobManagement.QueueJob(job);
 
             return new NoContentResult();
         }

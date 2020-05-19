@@ -1,24 +1,21 @@
 using System;
 using System.Linq.Expressions;
-using System.Net;
 using System.Threading.Tasks;
-using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
-using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
-using Polly;
-using Serilog;
+using NSubstitute.ExceptionExtensions;
 
 namespace CalculateFunding.Services.Publishing.UnitTests
 {
     [TestClass]
     public class JobTrackerTests
     {
-        private IJobsApiClient _jobs;
+        private IJobManagement _jobs;
         private JobViewModel _job;
         private string _jobId;
 
@@ -27,20 +24,17 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         [TestInitialize]
         public void SetUp()
         {
-            _jobs = Substitute.For<IJobsApiClient>();
+            _jobs = Substitute.For<IJobManagement>();
             _jobId = NewRandomString();
 
-            _tracker = new JobTracker(_jobs,
-                new ResiliencePolicies
-                {
-                    JobsApiClient = Policy.NoOpAsync()
-                }, 
-                Substitute.For<ILogger>());
+            _tracker = new JobTracker(_jobs);
         }
 
         [TestMethod]
         public void TryStartThrowsNonRetriableExceptionIfNoJobFoundWithJobId()
         {
+            GivenTheJobNotFound();
+
             Func<Task<bool>> invocation = WhenTheJobTrackingIsStarted;
 
             invocation
@@ -70,7 +64,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         [TestMethod]
         public async Task TryStartExitsEarlyIfTheJobAlreadyHasAStatus()
         {
-            GivenTheJobForTheJobId(_ => _.WithCompletionStatus(CompletionStatus.Superseded));
+            GivenTheJobAlreadyCompleted(_ => _.WithCompletionStatus(CompletionStatus.Superseded));
 
             bool trackingStarted = await WhenTheJobTrackingIsStarted();
 
@@ -148,8 +142,26 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             _job = jobViewModelBuilder.Build();
 
-            _jobs.GetJobById(_jobId)
-                .Returns(new ApiResponse<JobViewModel>(HttpStatusCode.OK, _job));
+            _jobs.RetrieveJobAndCheckCanBeProcessed(_jobId)
+                .Returns(_job);
+        }
+
+        private void GivenTheJobAlreadyCompleted(Action<JobViewModelBuilder> setUp = null)
+        {
+            JobViewModelBuilder jobViewModelBuilder = new JobViewModelBuilder();
+
+            setUp?.Invoke(jobViewModelBuilder);
+
+            _job = jobViewModelBuilder.Build();
+
+            _jobs.RetrieveJobAndCheckCanBeProcessed(_jobId)
+                .Throws(new JobAlreadyCompletedException(string.Empty, _job));
+        }
+
+        private void GivenTheJobNotFound()
+        {
+            _jobs.RetrieveJobAndCheckCanBeProcessed(_jobId)
+                .Throws(new JobNotFoundException($"Could not find the job with job id: '{_jobId}'", _jobId));
         }
 
         private void AndTheJobWasNotAddedForTheJobId(Expression<Predicate<JobLogUpdateModel>> jobLogMatching)

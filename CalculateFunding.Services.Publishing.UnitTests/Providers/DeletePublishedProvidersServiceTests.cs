@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
@@ -24,7 +25,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Providers
     {
         private ICreateDeletePublishedProvidersJobs _deletePublishedProviders;
         private IPublishedFundingRepository _publishedFundingRepository;
-        private IJobsApiClient _jobsApiClient;
+        private IJobManagement _jobManagement;
         private IDeselectSpecificationForFundingService _deselectSpecificationForFundingService;
         private IDeletePublishedFundingBlobDocumentsService _deletePublishedFundingBlobDocumentsService;
         private IDeleteFundingSearchDocumentsService _deleteFundingSearchDocumentsService;
@@ -46,7 +47,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Providers
         {
             _deletePublishedProviders = Substitute.For<ICreateDeletePublishedProvidersJobs>();
             _publishedFundingRepository = Substitute.For<IPublishedFundingRepository>();
-            _jobsApiClient = Substitute.For<IJobsApiClient>();
+            _jobManagement = Substitute.For<IJobManagement>();
             _deletePublishedFundingBlobDocumentsService = Substitute.For<IDeletePublishedFundingBlobDocumentsService>();
             _deselectSpecificationForFundingService = Substitute.For<IDeselectSpecificationForFundingService>();
             _deleteFundingSearchDocumentsService = Substitute.For<IDeleteFundingSearchDocumentsService>();
@@ -55,13 +56,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Providers
                 _publishedFundingRepository,
                 new ResiliencePolicies
                 {
-                    JobsApiClient = Policy.NoOpAsync(),
                     PublishedProviderSearchRepository = Policy.NoOpAsync(),
                     BlobClient = Policy.NoOpAsync(),
                     PublishedFundingRepository = Policy.NoOpAsync(),
                     SpecificationsApiClient = Policy.NoOpAsync()
                 },
-                _jobsApiClient,
+                _jobManagement,
                 _deleteFundingSearchDocumentsService,
                 _deletePublishedFundingBlobDocumentsService,
                 _deselectSpecificationForFundingService,
@@ -230,9 +230,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Providers
 
         private void AndTheJobExistsForTheJobId()
         {
-            _jobsApiClient
-                .GetJobById(_jobId)
-                .Returns(new ApiResponse<JobViewModel>(HttpStatusCode.OK, new JobViewModel()));
+            _jobManagement
+                .RetrieveJobAndCheckCanBeProcessed(_jobId)
+                .Returns(new JobViewModel());
         }
 
         private async Task WhenThePublishedProvidersAreDeleted()

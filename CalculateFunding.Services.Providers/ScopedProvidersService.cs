@@ -46,16 +46,13 @@ namespace CalculateFunding.Services.Providers
         private readonly IMapper _mapper;
         private readonly IScopedProvidersServiceSettings _scopedProvidersServiceSettings;
         private readonly IFileSystemCache _fileSystemCache;
-        private readonly IJobsApiClient _jobsApiClient;
         private readonly IJobManagement _jobManagement;
-        private readonly AsyncPolicy _jobApiClientPolicy;
         private readonly ILogger _logger;
         private const string SpecificationId = "specification-id";
         private const string JobId = "jobId";
 
         public ScopedProvidersService(ICacheProvider cacheProvider,
             IResultsApiClient resultsApiClient,
-            IJobsApiClient jobsApiClient,
             ISpecificationsApiClient specificationsApiClient,
             IProviderVersionService providerVersionService,
             IMapper mapper,
@@ -72,10 +69,8 @@ namespace CalculateFunding.Services.Providers
             Guard.ArgumentNotNull(mapper, nameof(mapper));
             Guard.ArgumentNotNull(scopedProvidersServiceSettings, nameof(scopedProvidersServiceSettings));
             Guard.ArgumentNotNull(fileSystemCache, nameof(fileSystemCache));
-            Guard.ArgumentNotNull(jobsApiClient, nameof(jobsApiClient));
             Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
             Guard.ArgumentNotNull(providersResiliencePolicies, nameof(providersResiliencePolicies));
-            Guard.ArgumentNotNull(providersResiliencePolicies.JobsApiClient, nameof(providersResiliencePolicies.JobsApiClient));
             Guard.ArgumentNotNull(logger, nameof(logger));
 
             _cacheProvider = cacheProvider;
@@ -85,9 +80,7 @@ namespace CalculateFunding.Services.Providers
             _mapper = mapper;
             _fileSystemCache = fileSystemCache;
             _scopedProvidersServiceSettings = scopedProvidersServiceSettings;
-            _jobsApiClient = jobsApiClient;
             _jobManagement = jobManagement;
-            _jobApiClientPolicy = providersResiliencePolicies.JobsApiClient;
             _logger = logger;
         }
 
@@ -317,15 +310,15 @@ namespace CalculateFunding.Services.Providers
 
             if (string.IsNullOrWhiteSpace(currentProviderCount) || int.Parse(currentProviderCount) != scopedProviderRedisListCount || setCachedProviders)
             {
-                ApiResponse<JobSummary> latestJob = await _jobApiClientPolicy.ExecuteAsync(() => _jobsApiClient.GetLatestJobForSpecification(specificationId, new[] { JobConstants.DefinitionNames.PopulateScopedProvidersJob }));
+                JobSummary latestJob = await _jobManagement.GetLatestJobForSpecification(specificationId, new[] { JobConstants.DefinitionNames.PopulateScopedProvidersJob });
 
                 // the populate scoped providers job is already running so don't need to queue another job
-                if(latestJob?.Content != null && latestJob?.Content.RunningStatus == RunningStatus.InProgress)
+                if(latestJob != null && latestJob?.RunningStatus == RunningStatus.InProgress)
                 {
                     return true;
                 }
 
-                await _jobApiClientPolicy.ExecuteAsync(() => _jobsApiClient.CreateJob(new JobCreateModel
+                await _jobManagement.QueueJob(new JobCreateModel
                 {
                     JobDefinitionId = JobConstants.DefinitionNames.PopulateScopedProvidersJob,
                     SpecificationId = specificationId,
@@ -339,7 +332,7 @@ namespace CalculateFunding.Services.Providers
                 {
                     {"specification-id", specificationId}
                 }
-                }));
+                });
 
                 return true;
             }

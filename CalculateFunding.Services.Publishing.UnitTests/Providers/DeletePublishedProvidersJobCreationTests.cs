@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Publishing.Interfaces;
@@ -11,7 +12,6 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
-using Polly;
 using Serilog;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.Providers
@@ -20,7 +20,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Providers
     public class DeletePublishedProvidersJobCreationTests
     {
         private const string DeletePublishedProvidersJob = JobConstants.DefinitionNames.DeletePublishedProvidersJob;
-        private IJobsApiClient _jobs;
+        private IJobManagement _jobs;
         private DeletePublishedProvidersJobCreation _jobCreation;
         private IPublishingResiliencePolicies _resiliencePolicies;
         private ILogger _logger;
@@ -28,16 +28,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Providers
         [TestInitialize]
         public void SetUp()
         {
-            _jobs = Substitute.For<IJobsApiClient>();
+            _jobs = Substitute.For<IJobManagement>();
             _logger = Substitute.For<ILogger>();
 
-            _resiliencePolicies = new ResiliencePolicies
-            {
-                JobsApiClient = Policy.NoOpAsync()
-            };
-            
             _jobCreation = new DeletePublishedProvidersJobCreation(_jobs,
-                _resiliencePolicies,
                 _logger);
         }
 
@@ -85,7 +79,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Providers
 
         private void GivenTheCreateJobThrowsException(Exception exception)
         {
-            _jobs.CreateJob(Arg.Any<JobCreateModel>())
+            _jobs.QueueJob(Arg.Any<JobCreateModel>())
                 .Throws(exception);
         }
 
@@ -94,7 +88,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Providers
             string correlationId,
             Job job)
         {
-            _jobs.CreateJob(Arg.Is<JobCreateModel>(_ =>
+            _jobs.QueueJob(Arg.Is<JobCreateModel>(_ =>
                     _.CorrelationId == correlationId &&
                     _.SpecificationId == null &&
                     _.JobDefinitionId == DeletePublishedProvidersJob &&

@@ -1,9 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Reflection;
 using CalculateFunding.Api.Publishing.Controllers;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Tests.Common;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-
+using NSubstitute;
 
 namespace CalculateFunding.Api.Publishing.UnitTests
 {
@@ -40,6 +42,11 @@ namespace CalculateFunding.Api.Publishing.UnitTests
         {
             new Startup(CreateTestConfiguration())
                 .ConfigureServices(ServiceCollection);
+        }
+
+        protected override void AddExtraRegistrations()
+        {
+            ServiceCollection.AddSingleton(Substitute.For<IJobManagement>());
         }
     }
 }

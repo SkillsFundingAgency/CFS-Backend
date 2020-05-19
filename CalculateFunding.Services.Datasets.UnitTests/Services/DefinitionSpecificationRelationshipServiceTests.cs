@@ -12,6 +12,7 @@ using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.Caching;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.ServiceBus.Interfaces;
 using CalculateFunding.Models.Datasets;
@@ -1566,11 +1567,11 @@ namespace CalculateFunding.Services.Datasets.Services
                 .UpdateDefinitionSpecificationRelationship(Arg.Any<DefinitionSpecificationRelationship>())
                 .Returns(HttpStatusCode.OK);
 
-            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            IJobManagement jobManagement = CreateJobManagement();
 
             IMessengerService messengerService = CreateMessengerService();
 
-            DefinitionSpecificationRelationshipService service = CreateService(logger: logger, datasetRepository: datasetRepository, jobsApiClient: jobsApiClient, messengerService: messengerService);
+            DefinitionSpecificationRelationshipService service = CreateService(logger: logger, datasetRepository: datasetRepository, jobManagement: jobManagement, messengerService: messengerService);
 
             //Act
             IActionResult result = await service.AssignDatasourceVersionToRelationship(model, user, null);
@@ -1580,9 +1581,9 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Should()
                 .BeOfType<NoContentResult>();
 
-            await jobsApiClient
+            await jobManagement
                 .Received(1)
-                .CreateJob(Arg.Is<JobCreateModel>(j => j.JobDefinitionId == "MapDatasetJob" && 
+                .QueueJob(Arg.Is<JobCreateModel>(j => j.JobDefinitionId == "MapDatasetJob" && 
                                                        j.SpecificationId == relationship.Specification.Id &&
                                                        j.Properties.ContainsKey("user-id") &&
                                                        j.Properties["user-id"] == "user-id-1" &&
@@ -1770,16 +1771,30 @@ namespace CalculateFunding.Services.Datasets.Services
                             m.ElementAt(1).DatasetDefinition.Name == "name-1"));
         }
 
-        private static DefinitionSpecificationRelationshipService CreateService(IDatasetRepository datasetRepository = null,
-            ILogger logger = null, IMapper mapper = null, ISpecificationsApiClient specificationsApiClient = null, IValidator<CreateDefinitionSpecificationRelationshipModel> relationshipModelValidator = null,
-            IMessengerService messengerService = null, IDatasetService datasetService = null, ICalcsRepository calcsRepository = null,
-            IDefinitionsService definitionsService = null, ICacheProvider cacheProvider = null, IJobsApiClient jobsApiClient = null)
+        private static DefinitionSpecificationRelationshipService CreateService(
+            IDatasetRepository datasetRepository = null,
+            ILogger logger = null, 
+            ISpecificationsApiClient specificationsApiClient = null, 
+            IValidator<CreateDefinitionSpecificationRelationshipModel> relationshipModelValidator = null,
+            IMessengerService messengerService = null, 
+            IDatasetService datasetService = null, 
+            ICalcsRepository calcsRepository = null,
+            IDefinitionsService definitionsService = null, 
+            ICacheProvider cacheProvider = null, 
+            IJobManagement jobManagement = null)
         {
-            return new DefinitionSpecificationRelationshipService(datasetRepository ?? CreateDatasetRepository(), logger ?? CreateLogger(),
-                specificationsApiClient ?? CreateSpecificationsApiClient(), relationshipModelValidator ?? CreateRelationshipModelValidator(),
-                messengerService ?? CreateMessengerService(), datasetService ?? CreateDatasetService(),
-                calcsRepository ?? CreateCalcsRepository(), definitionsService ?? CreateDefinitionService(), cacheProvider ?? CreateCacheProvider(),
-                DatasetsResilienceTestHelper.GenerateTestPolicies(), jobsApiClient ?? CreateJobsApiClient());
+            return new DefinitionSpecificationRelationshipService(
+                datasetRepository ?? CreateDatasetRepository(), 
+                logger ?? CreateLogger(),
+                specificationsApiClient ?? CreateSpecificationsApiClient(), 
+                relationshipModelValidator ?? CreateRelationshipModelValidator(),
+                messengerService ?? CreateMessengerService(), 
+                datasetService ?? CreateDatasetService(),
+                calcsRepository ?? CreateCalcsRepository(), 
+                definitionsService ?? CreateDefinitionService(), 
+                cacheProvider ?? CreateCacheProvider(),
+                DatasetsResilienceTestHelper.GenerateTestPolicies(), 
+                jobManagement ?? CreateJobManagement());
         }
 
         private static IValidator<CreateDefinitionSpecificationRelationshipModel> CreateRelationshipModelValidator(ValidationResult validationResult = null)
@@ -1847,9 +1862,9 @@ namespace CalculateFunding.Services.Datasets.Services
             return Substitute.For<ICacheProvider>();
         }
 
-        private static IJobsApiClient CreateJobsApiClient()
+        private static IJobManagement CreateJobManagement()
         {
-            return Substitute.For<IJobsApiClient>();
+            return Substitute.For<IJobManagement>();
         }
     }
 }

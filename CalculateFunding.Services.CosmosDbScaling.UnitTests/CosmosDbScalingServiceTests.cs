@@ -8,6 +8,7 @@ using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.Caching;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Models.CosmosDbScaling;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Caching;
@@ -888,16 +889,14 @@ namespace CalculateFunding.Services.CosmosDbScaling
         public void ScaleDownForJobConfiguration_WhenFailingToFecthJobSummaries_ThrowsNewRetriableException()
         {
             //Arrange
-            ApiResponse<IEnumerable<JobSummary>> jobSummariesResponse = new ApiResponse<IEnumerable<JobSummary>>(HttpStatusCode.BadRequest);
-
-            IJobsApiClient jobsApiClient = CreateJobsApiClient();
-            jobsApiClient
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement
                 .GetNonCompletedJobsWithinTimeFrame(Arg.Any<DateTimeOffset>(), Arg.Any<DateTimeOffset>())
-                .Returns(jobSummariesResponse);
+                .Returns((IEnumerable<JobSummary>)null);
 
             ILogger logger = CreateLogger();
 
-            CosmosDbScalingService cosmosDbScalingService = CreateScalingService(logger, jobsApiClient: jobsApiClient);
+            CosmosDbScalingService cosmosDbScalingService = CreateScalingService(logger, jobManagement: jobManagement);
 
             //Act
             Func<Task> test = async () => await cosmosDbScalingService.ScaleDownForJobConfiguration();
@@ -932,12 +931,10 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
             IEnumerable<CosmosDbScalingConfig> configs = new[] { cosmosDbScalingConfig };
 
-            ApiResponse<IEnumerable<JobSummary>> jobSummariesResponse = new ApiResponse<IEnumerable<JobSummary>>(HttpStatusCode.OK, jobSummaries);
-
-            IJobsApiClient jobsApiClient = CreateJobsApiClient();
-            jobsApiClient
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement
                 .GetNonCompletedJobsWithinTimeFrame(Arg.Any<DateTimeOffset>(), Arg.Any<DateTimeOffset>())
-                .Returns(jobSummariesResponse);
+                .Returns(jobSummaries);
 
             ILogger logger = CreateLogger();
 
@@ -956,7 +953,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
             CosmosDbScalingService cosmosDbScalingService = CreateScalingService(
                 logger,
-                jobsApiClient: jobsApiClient,
+                jobManagement: jobManagement,
                 cosmosDbScalingConfigRepository: cosmosDbScalingConfigRepository,
                 cacheProvider: cacheProvider);
 
@@ -981,10 +978,10 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
             IEnumerable<CosmosDbScalingConfig> configs = new[] { cosmosDbScalingConfig };
 
-            ApiResponse<IEnumerable<JobSummary>> jobSummariesResponse = new ApiResponse<IEnumerable<JobSummary>>(HttpStatusCode.OK, Enumerable.Empty<JobSummary>());
+            IEnumerable<JobSummary> jobSummariesResponse = Enumerable.Empty<JobSummary>();
 
-            IJobsApiClient jobsApiClient = CreateJobsApiClient();
-            jobsApiClient
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement
                 .GetNonCompletedJobsWithinTimeFrame(Arg.Any<DateTimeOffset>(), Arg.Any<DateTimeOffset>())
                 .Returns(jobSummariesResponse);
 
@@ -1012,7 +1009,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
             CosmosDbScalingService cosmosDbScalingService = CreateScalingService(
                 logger,
-                jobsApiClient: jobsApiClient,
+                jobManagement: jobManagement,
                 cosmosDbScalingConfigRepository: cosmosDbScalingConfigRepository,
                 cacheProvider: cacheProvider,
                 cosmosDbScalingRepositoryProvider: cosmosDbScalingRepositoryProvider);
@@ -1041,10 +1038,10 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
             IEnumerable<CosmosDbScalingConfig> configs = new[] { cosmosDbScalingConfig };
 
-            ApiResponse<IEnumerable<JobSummary>> jobSummariesResponse = new ApiResponse<IEnumerable<JobSummary>>(HttpStatusCode.OK, Enumerable.Empty<JobSummary>());
+            IEnumerable<JobSummary> jobSummariesResponse = Enumerable.Empty<JobSummary>();
 
-            IJobsApiClient jobsApiClient = CreateJobsApiClient();
-            jobsApiClient
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement
                 .GetNonCompletedJobsWithinTimeFrame(Arg.Any<DateTimeOffset>(), Arg.Any<DateTimeOffset>())
                 .Returns(jobSummariesResponse);
 
@@ -1072,7 +1069,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
             CosmosDbScalingService cosmosDbScalingService = CreateScalingService(
                 logger,
-                jobsApiClient: jobsApiClient,
+                jobManagement: jobManagement,
                 cosmosDbScalingConfigRepository: cosmosDbScalingConfigRepository,
                 cacheProvider: cacheProvider,
                 cosmosDbScalingRepositoryProvider: cosmosDbScalingRepositoryProvider);
@@ -1114,12 +1111,10 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
             IEnumerable<CosmosDbScalingConfig> configs = new[] { cosmosDbScalingConfig };
 
-            ApiResponse<IEnumerable<JobSummary>> jobSummariesResponse = new ApiResponse<IEnumerable<JobSummary>>(HttpStatusCode.OK, jobSummaries);
-
-            IJobsApiClient jobsApiClient = CreateJobsApiClient();
-            jobsApiClient
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement
                 .GetNonCompletedJobsWithinTimeFrame(Arg.Any<DateTimeOffset>(), Arg.Any<DateTimeOffset>())
-                .Returns(jobSummariesResponse);
+                .Returns(jobSummaries);
 
             ICacheProvider cacheProvider = CreateCacheProvider();
             cacheProvider
@@ -1142,7 +1137,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
             CosmosDbScalingService cosmosDbScalingService = CreateScalingService(
                 logger,
-                jobsApiClient: jobsApiClient,
+                jobManagement: jobManagement,
                 cosmosDbScalingConfigRepository: cosmosDbScalingConfigRepository,
                 cacheProvider: cacheProvider,
                 cosmosDbScalingRepositoryProvider: cosmosDbScalingRepositoryProvider);
@@ -1168,10 +1163,10 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
             IEnumerable<CosmosDbScalingConfig> configs = new[] { cosmosDbScalingConfig };
 
-            ApiResponse<IEnumerable<JobSummary>> jobSummariesResponse = new ApiResponse<IEnumerable<JobSummary>>(HttpStatusCode.OK, Enumerable.Empty<JobSummary>());
+            IEnumerable<JobSummary> jobSummariesResponse = Enumerable.Empty<JobSummary>();
 
-            IJobsApiClient jobsApiClient = CreateJobsApiClient();
-            jobsApiClient
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement
                 .GetNonCompletedJobsWithinTimeFrame(Arg.Any<DateTimeOffset>(), Arg.Any<DateTimeOffset>())
                 .Returns(jobSummariesResponse);
 
@@ -1200,7 +1195,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
             CosmosDbScalingService cosmosDbScalingService = CreateScalingService(
                 logger,
-                jobsApiClient: jobsApiClient,
+                jobManagement: jobManagement,
                 cosmosDbScalingConfigRepository: cosmosDbScalingConfigRepository,
                 cacheProvider: cacheProvider,
                 cosmosDbScalingRepositoryProvider: cosmosDbScalingRepositoryProvider);
@@ -1250,12 +1245,10 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
             IEnumerable<CosmosDbScalingConfig> configs = CreateCosmosScalingConfigs();
 
-            ApiResponse<IEnumerable<JobSummary>> jobSummariesResponse = new ApiResponse<IEnumerable<JobSummary>>(HttpStatusCode.OK, jobSummaries);
-
-            IJobsApiClient jobsApiClient = CreateJobsApiClient();
-            jobsApiClient
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement
                 .GetNonCompletedJobsWithinTimeFrame(Arg.Any<DateTimeOffset>(), Arg.Any<DateTimeOffset>())
-                .Returns(jobSummariesResponse);
+                .Returns(jobSummaries);
 
             ICacheProvider cacheProvider = CreateCacheProvider();
             cacheProvider
@@ -1285,7 +1278,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
             CosmosDbScalingService cosmosDbScalingService = CreateScalingService(
                 logger,
-                jobsApiClient: jobsApiClient,
+                jobManagement: jobManagement,
                 cosmosDbScalingConfigRepository: cosmosDbScalingConfigRepository,
                 cacheProvider: cacheProvider,
                 cosmosDbScalingRepositoryProvider: cosmosDbScalingRepositoryProvider);
@@ -1306,10 +1299,10 @@ namespace CalculateFunding.Services.CosmosDbScaling
             //Arrange
             IEnumerable<CosmosDbScalingConfig> configs = CreateCosmosScalingConfigs();
 
-            ApiResponse<IEnumerable<JobSummary>> jobSummariesResponse = new ApiResponse<IEnumerable<JobSummary>>(HttpStatusCode.OK, Enumerable.Empty<JobSummary>());
+            IEnumerable<JobSummary> jobSummariesResponse = Enumerable.Empty<JobSummary>();
 
-            IJobsApiClient jobsApiClient = CreateJobsApiClient();
-            jobsApiClient
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement
                 .GetNonCompletedJobsWithinTimeFrame(Arg.Any<DateTimeOffset>(), Arg.Any<DateTimeOffset>())
                 .Returns(jobSummariesResponse);
 
@@ -1347,7 +1340,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
             CosmosDbScalingService cosmosDbScalingService = CreateScalingService(
                 logger,
-                jobsApiClient: jobsApiClient,
+                jobManagement: jobManagement,
                 cosmosDbScalingConfigRepository: cosmosDbScalingConfigRepository,
                 cacheProvider: cacheProvider,
                 cosmosDbScalingRepositoryProvider: cosmosDbScalingRepositoryProvider);
@@ -1422,10 +1415,10 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 }
             };
 
-            ApiResponse<IEnumerable<JobSummary>> jobSummariesResponse = new ApiResponse<IEnumerable<JobSummary>>(HttpStatusCode.OK, Enumerable.Empty<JobSummary>());
+            IEnumerable<JobSummary> jobSummariesResponse = Enumerable.Empty<JobSummary>();
 
-            IJobsApiClient jobsApiClient = CreateJobsApiClient();
-            jobsApiClient
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement
                 .GetNonCompletedJobsWithinTimeFrame(Arg.Any<DateTimeOffset>(), Arg.Any<DateTimeOffset>())
                 .Returns(jobSummariesResponse);
 
@@ -1463,7 +1456,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
             CosmosDbScalingService cosmosDbScalingService = CreateScalingService(
                 logger,
-                jobsApiClient: jobsApiClient,
+                jobManagement: jobManagement,
                 cosmosDbScalingConfigRepository: cosmosDbScalingConfigRepository,
                 cacheProvider: cacheProvider,
                 cosmosDbScalingRepositoryProvider: cosmosDbScalingRepositoryProvider);
@@ -1481,7 +1474,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
             DateTimeOffset hourAgo = now.AddHours(-1);
 
             await
-                jobsApiClient
+                jobManagement
                 .Received(1)
                 .GetNonCompletedJobsWithinTimeFrame(Arg.Is<DateTimeOffset>(x => x.AddHours(-1) < DateTimeOffset.Now), Arg.Any<DateTimeOffset>());
         }
@@ -2050,7 +2043,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
         private CosmosDbScalingService CreateScalingService(
             ILogger logger = null,
             ICosmosDbScalingRepositoryProvider cosmosDbScalingRepositoryProvider = null,
-            IJobsApiClient jobsApiClient = null,
+            IJobManagement jobManagement = null,
             ICacheProvider cacheProvider = null,
             ICosmosDbScalingConfigRepository cosmosDbScalingConfigRepository = null,
             ICosmosDbScalingRequestModelBuilder cosmosDbScalingRequestModelBuilder = null,
@@ -2060,7 +2053,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
             return new CosmosDbScalingService(
                 logger ?? CreateLogger(),
                 cosmosDbScalingRepositoryProvider ?? CreateCosmosDbScalingRepositoryProvider(),
-                jobsApiClient ?? CreateJobsApiClient(),
+                jobManagement ?? CreateJobManagement(),
                 cacheProvider ?? CreateCacheProvider(),
                 cosmosDbScalingConfigRepository ?? CreateCosmosDbScalingConfigRepository(),
                 CosmosDbScalingResilienceTestHelper.GenerateTestPolicies(),
@@ -2117,9 +2110,9 @@ namespace CalculateFunding.Services.CosmosDbScaling
             return Substitute.For<ICosmosDbScalingConfigRepository>();
         }
 
-        private static IJobsApiClient CreateJobsApiClient()
+        private static IJobManagement CreateJobManagement()
         {
-            return Substitute.For<IJobsApiClient>();
+            return Substitute.For<IJobManagement>();
         }
 
         private static ICosmosDbScalingRepository CreateCosmosDbScalingRepository()

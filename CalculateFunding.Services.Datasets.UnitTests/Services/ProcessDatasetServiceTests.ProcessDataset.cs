@@ -119,7 +119,6 @@ namespace CalculateFunding.Services.Datasets.Services
                 featureToggle: _featureToggle,
                 datasetsAggregationsRepository: _datasetsAggregationsRepository,
                 versionRepository: _versionRepository,
-                jobsApiClient: _jobsApiClient,
                 jobManagement: _jobManagement,
                 logger: _logger);
 

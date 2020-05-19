@@ -3,8 +3,9 @@ using System.Reflection;
 using CalculateFunding.Functions.CalcEngine.ServiceBus;
 using CalculateFunding.Tests.Common;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NSubstitute;
+using CalculateFunding.Common.JobManagement;
 
 namespace CalculateFunding.Functions.CalcEngine.UnitTests
 {
@@ -38,6 +39,11 @@ namespace CalculateFunding.Functions.CalcEngine.UnitTests
         protected override void RegisterDependencies()
         {            
             Startup.RegisterComponents(ServiceCollection, CreateTestConfiguration());
+        }
+
+        protected override void AddExtraRegistrations()
+        {
+            ServiceCollection.AddSingleton(Substitute.For<IJobManagement>());
         }
     }
 }

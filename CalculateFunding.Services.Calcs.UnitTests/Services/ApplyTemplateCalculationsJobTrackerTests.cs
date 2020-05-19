@@ -2,15 +2,14 @@ using System;
 using System.Linq.Expressions;
 using System.Net;
 using System.Threading.Tasks;
-using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
-using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
-using Polly;
+using NSubstitute.ExceptionExtensions;
 using Serilog;
 
 namespace CalculateFunding.Services.Calcs.Services
@@ -18,7 +17,7 @@ namespace CalculateFunding.Services.Calcs.Services
     [TestClass]
     public class ApplyTemplateCalculationsJobTrackerTests
     {
-        private IJobsApiClient _jobs;
+        private IJobManagement _jobs;
         private JobViewModel _job;
         private string _jobId;
 
@@ -27,18 +26,19 @@ namespace CalculateFunding.Services.Calcs.Services
         [TestInitialize]
         public void SetUp()
         {
-            _jobs = Substitute.For<IJobsApiClient>();
+            _jobs = Substitute.For<IJobManagement>();
             _jobId = NewRandomString();
 
             _tracker = new ApplyTemplateCalculationsJobTracker(_jobId,
                 _jobs,
-                Policy.NoOpAsync(),
                 Substitute.For<ILogger>());
         }
 
         [TestMethod]
         public void TryStartThrowsNonRetriableExceptionIfNoJobFoundWithJobId()
         {
+            GivenTheJobForTheJobId();
+
             Func<Task<bool>> invocation = WhenTheJobTrackingIsStarted;
 
             invocation
@@ -48,27 +48,9 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task TryStartDoesNotLogsAnInitialJobUpdate()
-        {
-            GivenTheJobForTheJobId();
-
-            bool trackingStarted = await WhenTheJobTrackingIsStarted();
-
-            trackingStarted
-                .Should()
-                .BeTrue();
-
-            AndTheJobWasNotAddedForTheJobId(_ => _.Outcome.IsNullOrWhitespace() &&
-                                              _.CompletedSuccessfully == null &&
-                                              _.ItemsFailed == null &&
-                                              _.ItemsSucceeded == null &&
-                                              _.ItemsProcessed == null);
-        }
-
-        [TestMethod]
         public async Task TryStartExitsEarlyIfTheJobAlreadyHasAStatus()
         {
-            GivenTheJobForTheJobId(_ => _.WithCompletionStatus(CompletionStatus.Superseded));
+            GivenTheJobAlreadyCompleted(_ => _.WithCompletionStatus(CompletionStatus.Superseded));
 
             bool trackingStarted = await WhenTheJobTrackingIsStarted();
 
@@ -141,7 +123,14 @@ namespace CalculateFunding.Services.Calcs.Services
             return await _tracker.TryStartTrackingJob();
         }
 
-        private void GivenTheJobForTheJobId(Action<JobViewModelBuilder> setUp = null)
+        private void GivenTheJobForTheJobId()
+        {
+            _jobs
+                .RetrieveJobAndCheckCanBeProcessed(_jobId)
+                .Throws(new JobNotFoundException(string.Empty, _jobId));
+        }
+
+        private void GivenTheJobAlreadyCompleted(Action<JobViewModelBuilder> setUp = null)
         {
             JobViewModelBuilder jobViewModelBuilder = new JobViewModelBuilder();
 
@@ -149,8 +138,8 @@ namespace CalculateFunding.Services.Calcs.Services
 
             _job = jobViewModelBuilder.Build();
 
-            _jobs.GetJobById(_jobId)
-                .Returns(new ApiResponse<JobViewModel>(HttpStatusCode.OK, _job));
+            _jobs.RetrieveJobAndCheckCanBeProcessed(_jobId)
+                .Throws(new JobAlreadyCompletedException(string.Empty, _job));
         }
 
         private void AndTheJobWasNotAddedForTheJobId(Expression<Predicate<JobLogUpdateModel>> jobLogMatching)

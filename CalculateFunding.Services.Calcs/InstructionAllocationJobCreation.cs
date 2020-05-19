@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Services.Calcs.Interfaces;
@@ -18,31 +19,29 @@ namespace CalculateFunding.Services.Calcs
     public class InstructionAllocationJobCreation : IInstructionAllocationJobCreation
     {
         private readonly AsyncPolicy _calculationRepositoryPolicy;
-        private readonly AsyncPolicy _jobsApiClientPolicy;
         private readonly ICalculationsRepository _calculationsRepository;
-        private readonly IJobsApiClient _jobsApiClient;
+        private readonly IJobManagement _jobManagement;
         private readonly ILogger _logger;
         private readonly ICalculationsFeatureFlag _calculationsFeatureFlag;
         private bool? _graphEnabled;
         public InstructionAllocationJobCreation(ICalculationsRepository calculationsRepository, 
             ICalcsResiliencePolicies calculationsResiliencePolicies,
-            ILogger logger, 
-            IJobsApiClient jobsApiClient,
-            ICalculationsFeatureFlag calculationsFeatureFlag)
+            ILogger logger,
+            ICalculationsFeatureFlag calculationsFeatureFlag,
+            IJobManagement jobManagement)
         {
             Guard.ArgumentNotNull(calculationsRepository, nameof(calculationsRepository));
             Guard.ArgumentNotNull(calculationsFeatureFlag, nameof(calculationsFeatureFlag));
-            Guard.ArgumentNotNull(jobsApiClient, nameof(jobsApiClient));
+            Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
+
             Guard.ArgumentNotNull(logger, nameof(logger));
-            Guard.ArgumentNotNull(calculationsResiliencePolicies?.JobsApiClient, nameof(calculationsResiliencePolicies.JobsApiClient));
             Guard.ArgumentNotNull(calculationsResiliencePolicies?.CalculationsRepository, nameof(calculationsResiliencePolicies.CalculationsRepository));
 
             _calculationsFeatureFlag = calculationsFeatureFlag;
             _calculationsRepository = calculationsRepository;
             _logger = logger;
-            _jobsApiClient = jobsApiClient;
+            _jobManagement = jobManagement;
             _calculationRepositoryPolicy = calculationsResiliencePolicies.CalculationsRepository;
-            _jobsApiClientPolicy = calculationsResiliencePolicies.JobsApiClient;
         }
 
         public async Task<Job> SendInstructAllocationsToJobService(string specificationId, string userId, string userName, Trigger trigger, string correlationId, bool initiateCalcRUn = true)
@@ -85,7 +84,7 @@ namespace CalculateFunding.Services.Calcs
 
                 try
                 {
-                    parentJob = await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.CreateJob(new JobCreateModel
+                    parentJob = await _jobManagement.QueueJob(new JobCreateModel
                     {
                         InvokerUserDisplayName = userName,
                         InvokerUserId = userId,
@@ -97,7 +96,7 @@ namespace CalculateFunding.Services.Calcs
                         },
                         Trigger = trigger,
                         CorrelationId = correlationId
-                    }));
+                    });
 
                     _logger.Information($"New job of type '{parentJob.JobDefinitionId}' created with id: '{parentJob.Id}'");
                 }
@@ -118,7 +117,7 @@ namespace CalculateFunding.Services.Calcs
 
             try
             {
-                return await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.CreateJob(job));
+                return await _jobManagement.QueueJob(job);
             }
             catch (Exception ex)
             {

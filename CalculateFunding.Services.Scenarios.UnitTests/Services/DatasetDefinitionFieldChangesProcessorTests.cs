@@ -14,7 +14,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Models.Scenarios;
@@ -30,8 +29,8 @@ using CalculateFunding.Common.ApiClient.DataSets;
 using AutoMapper;
 using CalculateFunding.Common.ApiClient.Models;
 using System.Net;
-using System.Collections;
 using CalculateFunding.Services.Scenarios.MappingProfiles;
+using CalculateFunding.Common.JobManagement;
 
 namespace CalculateFunding.Services.Scenarios.Services
 {
@@ -420,7 +419,7 @@ namespace CalculateFunding.Services.Scenarios.Services
                 Substitute.For<ISearchRepository<ScenarioIndex>>(),
                 Substitute.For<ICacheProvider>(),
                 Substitute.For<IVersionRepository<TestScenarioVersion>>(),
-                Substitute.For<IJobsApiClient>(),
+                Substitute.For<IJobManagement>(),
                 Substitute.For<ICalcsRepository>(),
                 scenariosResiliencePolicies
             );

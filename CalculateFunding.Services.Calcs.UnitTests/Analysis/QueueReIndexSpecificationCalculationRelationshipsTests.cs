@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Calcs.Analysis;
 using CalculateFunding.Services.Core.Constants;
@@ -19,18 +20,14 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
     {
         private const string SpecificationId = "specification-id";
         private QueueReIndexSpecificationCalculationRelationships _queue;
-        private Mock<IJobsApiClient> _jobs;
+        private Mock<IJobManagement> _jobs;
 
         [TestInitialize]
         public void SetUp()
         {
-            _jobs = new Mock<IJobsApiClient>();
+            _jobs = new Mock<IJobManagement>();
 
-            _queue = new QueueReIndexSpecificationCalculationRelationships(_jobs.Object,
-                new ResiliencePolicies
-                {
-                    JobsApiClient = Policy.NoOpAsync()
-                });
+            _queue = new QueueReIndexSpecificationCalculationRelationships(_jobs.Object);
         }
 
         [TestMethod]
@@ -59,7 +56,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
                 .BeOfType<OkResult>();
 
             _jobs
-                .Verify(_ => _.CreateJob(It.Is<JobCreateModel>(job =>
+                .Verify(_ => _.QueueJob(It.Is<JobCreateModel>(job =>
                         job.Properties.ContainsKey(SpecificationId) &&
                         job.Properties[SpecificationId] == specificationId &&
                         job.JobDefinitionId == JobConstants.DefinitionNames.ReIndexSpecificationCalculationRelationshipsJob &&

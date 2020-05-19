@@ -758,7 +758,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             IMapper mapper = CreateMapper();
 
-            BuildProjectsService buildProjectsService = CreateBuildProjectsService(jobsApiClient: jobsApiClient,
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(
                 logger: logger, providersApiClient: providersApiClient, cacheProvider: cacheProvider, jobManagement: jobManagement,
                 datasetsApiClient: datasetsApiClient, mapper: mapper);
 
@@ -858,7 +858,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             IMapper mapper = CreateMapper();
 
-            BuildProjectsService buildProjectsService = CreateBuildProjectsService(jobsApiClient: jobsApiClient,
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(
                 logger: logger, providersApiClient: providersApiClient, cacheProvider: cacheProvider, jobManagement: jobManagement,
                 datasetsApiClient: datasetsApiClient, mapper: mapper);
 
@@ -955,7 +955,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             IMapper mapper = CreateMapper();
 
-            BuildProjectsService buildProjectsService = CreateBuildProjectsService(jobsApiClient: jobsApiClient,
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(
                 logger: logger, providersApiClient: providersApiClient, cacheProvider: cacheProvider, jobManagement: jobManagement,
                 datasetsApiClient: datasetsApiClient, mapper: mapper);
 
@@ -979,7 +979,11 @@ namespace CalculateFunding.Services.Calcs.Services
 
             IJobsApiClient jobsApiClient = CreateJobsApiClient();
 
-            BuildProjectsService buildProjectsService = CreateBuildProjectsService(logger: logger, jobsApiClient: jobsApiClient);
+            IMessengerService messengerService = CreateMessengerService();
+
+            IJobManagement jobManagement = new JobManagement(jobsApiClient, logger, new JobManagementResiliencePolicies { JobsApiClient = NoOpPolicy.NoOpAsync() }, messengerService);
+
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(logger: logger, jobManagement: jobManagement);
 
             //Act
             await buildProjectsService.UpdateAllocations(message);
@@ -1154,10 +1158,14 @@ namespace CalculateFunding.Services.Calcs.Services
 
             IMapper mapper = CreateMapper();
 
+            IMessengerService messengerService = CreateMessengerService();
+
+            IJobManagement jobManagement = new JobManagement(jobsApiClient, logger, new JobManagementResiliencePolicies { JobsApiClient = NoOpPolicy.NoOpAsync() }, messengerService);
+
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(
                 logger: logger,
                 cacheProvider: cacheProvider,
-                jobsApiClient: jobsApiClient,
+                jobManagement: jobManagement,
                 engineSettings: engineSettings,
                 providersApiClient: providersApiClient,
                 datasetsApiClient: datasetsApiClient,
@@ -1278,6 +1286,10 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ILogger logger = CreateLogger();
 
+            IMessengerService messengerService = CreateMessengerService();
+
+            IJobManagement jobManagement = new JobManagement(jobsApiClient, logger, new JobManagementResiliencePolicies { JobsApiClient = NoOpPolicy.NoOpAsync() }, messengerService);
+
             IDatasetsApiClient datasetsApiClient = CreateDatasetsApiClient();
             datasetsApiClient
                 .GetCurrentRelationshipsBySpecificationId(Arg.Is(specificationId))
@@ -1291,7 +1303,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(
                 logger: logger, providersApiClient: providersApiClient, cacheProvider: cacheProvider,
-                jobsApiClient: jobsApiClient, engineSettings: engineSettings,
+                jobManagement: jobManagement, engineSettings: engineSettings,
                 datasetsApiClient: datasetsApiClient, mapper: mapper);
 
             IEnumerable<JobCreateModel> jobModelsToTest = null;
@@ -1395,6 +1407,10 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ILogger logger = CreateLogger();
 
+            IMessengerService messengerService = CreateMessengerService();
+
+            IJobManagement jobManagement = new JobManagement(jobsApiClient, logger, new JobManagementResiliencePolicies { JobsApiClient = NoOpPolicy.NoOpAsync() }, messengerService);
+
             EngineSettings engineSettings = CreateEngineSettings(1);
 
             IDatasetsApiClient datasetsApiClient = CreateDatasetsApiClient();
@@ -1410,7 +1426,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(
                 logger: logger, providersApiClient: providersApiClient, cacheProvider: cacheProvider,
-                jobsApiClient: jobsApiClient, engineSettings: engineSettings,
+                jobManagement: jobManagement, engineSettings: engineSettings,
                 datasetsApiClient: datasetsApiClient, mapper: mapper);
 
             IEnumerable<JobCreateModel> jobModelsToTest = null;
@@ -1515,6 +1531,10 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ILogger logger = CreateLogger();
 
+            IMessengerService messengerService = CreateMessengerService();
+
+            IJobManagement jobManagement = new JobManagement(jobsApiClient, logger, new JobManagementResiliencePolicies { JobsApiClient = NoOpPolicy.NoOpAsync() }, messengerService);
+
             IDatasetsApiClient datasetsApiClient = CreateDatasetsApiClient();
             datasetsApiClient
                 .GetCurrentRelationshipsBySpecificationId(Arg.Is(specificationId))
@@ -1528,7 +1548,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(
                 logger: logger, providersApiClient: providersApiClient, cacheProvider: cacheProvider,
-                jobsApiClient: jobsApiClient, engineSettings: engineSettings,
+                jobManagement: jobManagement, engineSettings: engineSettings,
                 datasetsApiClient: datasetsApiClient, mapper: mapper);
 
             //Act
@@ -1615,9 +1635,13 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ILogger logger = CreateLogger();
 
+            IMessengerService messengerService = CreateMessengerService();
+
+            IJobManagement jobManagement = new JobManagement(jobsApiClient, logger, new JobManagementResiliencePolicies { JobsApiClient = NoOpPolicy.NoOpAsync() }, messengerService);
+
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(
                 logger: logger, cacheProvider: cacheProvider,
-                jobsApiClient: jobsApiClient);
+                jobManagement: jobManagement);
 
             //Act
             Func<Task> test = async () => await buildProjectsService.UpdateAllocations(message);
@@ -1625,15 +1649,11 @@ namespace CalculateFunding.Services.Calcs.Services
             //Assert
             test
                 .Should()
-                .ThrowExactly<Exception>()
+                .ThrowExactly<JobNotFoundException>()
                 .Which
                 .Message
                 .Should()
-                .Be($"Could not find the parent job with job id: '{parentJobId}'");
-
-            logger
-                .Received(1)
-                .Error($"Could not find the parent job with job id: '{parentJobId}'");
+                .Be($"Could not find the job with id: '{parentJobId}'");
 
             await
                 jobsApiClient
@@ -1662,6 +1682,13 @@ namespace CalculateFunding.Services.Calcs.Services
 
             string cacheKey = $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}";
 
+            BuildProject buildProject = new BuildProject
+            {
+                SpecificationId = specificationId,
+                Id = Guid.NewGuid().ToString(),
+                Name = specificationId
+            };
+
             Message message = new Message(Encoding.UTF8.GetBytes(""));
             message.UserProperties.Add("jobId", "job-id-1");
             message.UserProperties.Add("specification-id", specificationId);
@@ -1676,19 +1703,23 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetJobById(Arg.Is(jobId))
                 .Returns(jobResponse);
 
+            IMessengerService messengerService = CreateMessengerService();
             ILogger logger = CreateLogger();
+
+            IJobManagement jobManagement = new JobManagement(jobsApiClient, logger, new JobManagementResiliencePolicies { JobsApiClient = NoOpPolicy.NoOpAsync() }, messengerService);
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(
                 logger: logger, cacheProvider: cacheProvider,
-                jobsApiClient: jobsApiClient);
+                jobManagement: jobManagement);
 
             //Act
-            await buildProjectsService.UpdateAllocations(message);
+            Func<Task> invocation = async () => await buildProjectsService.UpdateAllocations(message);
 
             //Assert
-            logger
-                .Received(1)
-                .Information($"Received job with id: '{jobId}' is already in a completed state with status {job.CompletionStatus}");
+            invocation
+                .Should()
+                .Throw<JobAlreadyCompletedException>()
+                .WithMessage($"Received job with id: '{jobId}' is already in a completed state with status {job.CompletionStatus}");
 
             await
                 jobsApiClient
@@ -1746,10 +1777,14 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ILogger logger = CreateLogger();
 
+            IMessengerService messengerService = CreateMessengerService();
+
+            IJobManagement jobManagement = new JobManagement(jobsApiClient, logger, new JobManagementResiliencePolicies { JobsApiClient = NoOpPolicy.NoOpAsync() }, messengerService);
+
             IGraphRepository graphRepository = CreateGraphRepository();
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(
-                logger: logger, jobsApiClient: jobsApiClient, graphRepository: graphRepository);
+                logger: logger, jobManagement: jobManagement, graphRepository: graphRepository);
 
             graphRepository.GetCircularDependencies(specificationId)
                 .Returns(new[] { new CalculationEntity {
@@ -1852,6 +1887,10 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ILogger logger = CreateLogger();
 
+            IMessengerService messengerService = CreateMessengerService();
+
+            IJobManagement jobManagement = new JobManagement(jobsApiClient, logger, new JobManagementResiliencePolicies { JobsApiClient = NoOpPolicy.NoOpAsync() }, messengerService);
+
             ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
             calculationsRepository
                 .GetCalculationsBySpecificationId(Arg.Is(specificationId))
@@ -1888,12 +1927,12 @@ namespace CalculateFunding.Services.Calcs.Services
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(
                 logger: logger, cacheProvider: cacheProvider,
-                jobsApiClient: jobsApiClient,
                 calculationsRepository: calculationsRepository,
                 engineSettings: engineSettings,
                 providersApiClient: providersApiClient,
                 datasetsApiClient: datasetsApiClient,
-                mapper: mapper);
+                mapper: mapper,
+                jobManagement: jobManagement);
 
             //Act
             await buildProjectsService.UpdateAllocations(message);
@@ -2027,6 +2066,10 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ILogger logger = CreateLogger();
 
+            IMessengerService messengerService = CreateMessengerService();
+
+            IJobManagement jobManagement = new JobManagement(jobsApiClient, logger, new JobManagementResiliencePolicies { JobsApiClient = NoOpPolicy.NoOpAsync() }, messengerService);
+
             ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
             calculationsRepository
                 .GetCalculationsBySpecificationId(Arg.Is(specificationId))
@@ -2080,7 +2123,7 @@ namespace CalculateFunding.Services.Calcs.Services
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(
                 logger: logger,
                 cacheProvider: cacheProvider,
-                jobsApiClient: jobsApiClient,
+                jobManagement: jobManagement,
                 calculationsRepository: calculationsRepository,
                 engineSettings: engineSettings,
                 providersApiClient: providersApiClient,
@@ -2195,6 +2238,10 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ILogger logger = CreateLogger();
 
+            IMessengerService messengerService = CreateMessengerService();
+
+            IJobManagement jobManagement = new JobManagement(jobsApiClient, logger, new JobManagementResiliencePolicies { JobsApiClient = NoOpPolicy.NoOpAsync() }, messengerService);
+
             ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
             calculationsRepository
                 .GetCalculationsBySpecificationId(Arg.Is(specificationId))
@@ -2248,7 +2295,7 @@ namespace CalculateFunding.Services.Calcs.Services
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(
                 logger: logger,
                 cacheProvider: cacheProvider,
-                jobsApiClient: jobsApiClient,
+                jobManagement: jobManagement,
                 calculationsRepository: calculationsRepository,
                 providersApiClient: providersApiClient,
                 datasetsApiClient: datasetsApiClient,
@@ -2390,7 +2437,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             IMapper mapper = CreateMapper();
 
-            BuildProjectsService buildProjectsService = CreateBuildProjectsService(jobsApiClient: jobsApiClient,
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(
                 logger: logger,
                 cacheProvider: cacheProvider,
                 providersApiClient: providersApiClient,
@@ -2525,7 +2572,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             IMapper mapper = CreateMapper();
 
-            BuildProjectsService buildProjectsService = CreateBuildProjectsService(jobsApiClient: jobsApiClient,
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(
                 logger: logger,
                 cacheProvider: cacheProvider,
                 providersApiClient: providersApiClient,
@@ -2628,7 +2675,9 @@ namespace CalculateFunding.Services.Calcs.Services
                 .IsCalculationEngineRunning(specificationId, Arg.Any<IEnumerable<string>>())
                 .Returns(true);
 
-            IJobManagement jobManagement = CreateJobManagement();
+            IMessengerService messengerService = CreateMessengerService();
+
+            IJobManagement jobManagement = new JobManagement(jobsApiClient, logger, new JobManagementResiliencePolicies { JobsApiClient = NoOpPolicy.NoOpAsync() }, messengerService);
 
             IDatasetsApiClient datasetsApiClient = CreateDatasetsApiClient();
             datasetsApiClient
@@ -2643,7 +2692,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(
                 logger: logger, cacheProvider: cacheProvider,
-                jobsApiClient: jobsApiClient, engineSettings: engineSettings, providersApiClient: providersApiClient,
+                engineSettings: engineSettings, providersApiClient: providersApiClient,
                 calculationEngineRunningChecker: calculationEngineRunningChecker,
                 jobManagement: jobManagement,
                 datasetsApiClient: datasetsApiClient,
@@ -2659,9 +2708,9 @@ namespace CalculateFunding.Services.Calcs.Services
                 .ThrowExactly<NonRetriableException>()
                 .WithMessage("Can not create job for specification: test-spec1 as there is an existing Refresh Funding Job running for it. Please wait for that job to finish.");
 
-            await jobManagement
+            await jobsApiClient
                     .Received(1)
-                    .UpdateJobStatus(Arg.Is(parentJobId), Arg.Is<JobLogUpdateModel>(c => c.CompletedSuccessfully == false));
+                    .AddJobLog(Arg.Is(parentJobId), Arg.Is<JobLogUpdateModel>(c => c.CompletedSuccessfully == false));
         }
 
         [TestMethod]
@@ -2824,7 +2873,6 @@ namespace CalculateFunding.Services.Calcs.Services
             ICacheProvider cacheProvider = null,
             ICalculationsRepository calculationsRepository = null,
             IFeatureToggle featureToggle = null,
-            IJobsApiClient jobsApiClient = null,
             EngineSettings engineSettings = null,
             ISourceCodeService sourceCodeService = null,
             IDatasetsApiClient datasetsApiClient = null,
@@ -2841,7 +2889,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 cacheProvider ?? CreateCacheProvider(),
                 calculationsRepository ?? CreateCalculationsRepository(),
                 featureToggle ?? CreateFeatureToggle(),
-                jobsApiClient ?? CreateJobsApiClient(),
                 CalcsResilienceTestHelper.GenerateTestPolicies(),
                 engineSettings ?? CreateEngineSettings(),
                 sourceCodeService ?? CreateSourceCodeService(),

@@ -4,6 +4,7 @@ using System.Linq.Expressions;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Services.Datasets.Interfaces;
@@ -36,17 +37,17 @@ namespace CalculateFunding.Services.Datasets.Services
                     new Dataset { Id = "DS1"}
                 });
 
-            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            IJobManagement jobManagement = CreateJobManagement();
 
-            DatasetService service = CreateDatasetService(datasetRepository: datasetRepository, jobsApiClient: jobsApiClient);
+            DatasetService service = CreateDatasetService(datasetRepository: datasetRepository, jobManagement: jobManagement);
 
             // Act
             await service.RegenerateProviderSourceDatasets(SpecificationId, null, null);
 
             // Assert
-            await jobsApiClient
+            await jobManagement
                 .Received(1)
-                .CreateJob(Arg.Is<JobCreateModel>(j => 
+                .QueueJob(Arg.Is<JobCreateModel>(j => 
                 j.JobDefinitionId == "MapDatasetJob" && 
                 j.Properties.ContainsKey("session-id") && 
                 j.Properties["session-id"] == SpecificationId));

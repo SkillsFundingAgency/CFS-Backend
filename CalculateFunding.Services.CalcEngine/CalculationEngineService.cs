@@ -6,12 +6,12 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
-using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Caching;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.ServiceBus.Interfaces;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Aggregations;
@@ -56,8 +56,7 @@ namespace CalculateFunding.Services.CalcEngine
         private readonly AsyncPolicy _specificationsApiPolicy;
         private readonly IValidator<ICalculatorResiliencePolicies> _calculatorResiliencePoliciesValidator;
         private readonly IDatasetAggregationsRepository _datasetAggregationsRepository;
-        private readonly IJobsApiClient _jobsApiClient;
-        private readonly AsyncPolicy _jobsApiClientPolicy;
+        private readonly IJobManagement _jobManagement;
 
         public CalculationEngineService(
             ILogger logger,
@@ -72,7 +71,7 @@ namespace CalculateFunding.Services.CalcEngine
             ICalculatorResiliencePolicies resiliencePolicies,
             IValidator<ICalculatorResiliencePolicies> calculatorResiliencePoliciesValidator,
             IDatasetAggregationsRepository datasetAggregationsRepository,
-            IJobsApiClient jobsApiClient,
+            IJobManagement jobManagement,
             ISpecificationsApiClient specificationsApiClient)
         {
             _calculatorResiliencePoliciesValidator = calculatorResiliencePoliciesValidator;
@@ -100,10 +99,9 @@ namespace CalculateFunding.Services.CalcEngine
             _providerResultsRepositoryPolicy = resiliencePolicies.ProviderResultsRepository;
             _calculationsRepositoryPolicy = resiliencePolicies.CalculationsRepository;
             _datasetAggregationsRepository = datasetAggregationsRepository;
-            _jobsApiClient = jobsApiClient;
+            _jobManagement = jobManagement;
             _specificationsApiClient = specificationsApiClient;
             _specificationsApiPolicy = resiliencePolicies.SpecificationsApiClient;
-            _jobsApiClientPolicy = resiliencePolicies.JobsApiClient;
         }
 
         public async Task<IActionResult> GenerateAllocations(HttpRequest request)
@@ -466,25 +464,22 @@ namespace CalculateFunding.Services.CalcEngine
                 throw new NonRetriableException("No Job Id given");
             }
 
-            ApiResponse<JobViewModel> jobResponse = await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.GetJobById(jobId));
+            JobViewModel job;
 
-            if (jobResponse == null || jobResponse.Content == null)
+            try
             {
-                _logger.Error($"Could not find the parent job with job id: '{jobId}'");
-
+                job = await _jobManagement.RetrieveJobAndCheckCanBeProcessed(jobId);
+            }
+            catch(JobNotFoundException ex)
+            {
                 throw new NonRetriableException($"Could not find the parent job with job id: '{jobId}'");
             }
-
-            JobViewModel job = jobResponse.Content;
-
-            if (job.CompletionStatus.HasValue)
+            catch(JobAlreadyCompletedException ex)
             {
-                _logger.Information($"Received job with id: '{job.Id}' is already in a completed state with status {job.CompletionStatus}");
-
                 return null;
             }
 
-            await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.AddJobLog(jobId, new JobLogUpdateModel()));
+            await _jobManagement.AddJobLog(jobId, new JobLogUpdateModel());
 
             return job;
         }
@@ -613,14 +608,14 @@ namespace CalculateFunding.Services.CalcEngine
                 outcome = $"{itemsSucceeded} provider result calculation aggregations were generated successfully from {itemsProcessed} providers";
             }
 
-            await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.AddJobLog(messageProperties.JobId, new JobLogUpdateModel
+            await _jobManagement.AddJobLog(messageProperties.JobId, new JobLogUpdateModel
             {
                 CompletedSuccessfully = true,
                 ItemsSucceeded = itemsSucceeded,
                 ItemsFailed = itemsFailed,
                 ItemsProcessed = itemsProcessed,
                 Outcome = outcome
-            }));
+            });
         }
 
         private void PopulateCachedCalculationAggregationsBatch(IEnumerable<ProviderResult> providerResults, Dictionary<string, List<decimal>> cachedCalculationAggregationsBatch, GenerateAllocationMessageProperties messageProperties)
@@ -719,9 +714,9 @@ namespace CalculateFunding.Services.CalcEngine
                 Outcome = outcome
             };
 
-            ApiResponse<JobLog> jobLogResponse = await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.AddJobLog(jobId, jobLogUpdateModel));
+            JobLog jobLog = await _jobManagement.AddJobLog(jobId, jobLogUpdateModel);
 
-            if (jobLogResponse == null || jobLogResponse.Content == null)
+            if (jobLog == null)
             {
                 _logger.Error($"Failed to add a job log for job id '{jobId}'");
             }

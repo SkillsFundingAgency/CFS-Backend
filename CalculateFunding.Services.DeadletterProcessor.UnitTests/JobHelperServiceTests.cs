@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Services.DeadletterProcessor;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -21,11 +22,11 @@ namespace CalculateFunding.Services.Core.Services
             // Arrange
             Message message = new Message();
 
-            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            IJobManagement jobManagement = CreateJobManagement();
 
             ILogger logger = CreateLogger();
 
-            IJobHelperService service = CreateJobHelperService(jobsApiClient, logger);
+            IJobHelperService service = CreateJobHelperService(jobManagement, logger);
 
             // Act
             await service.ProcessDeadLetteredMessage(message);
@@ -36,7 +37,7 @@ namespace CalculateFunding.Services.Core.Services
                 .Error(Arg.Is("Missing job id from dead lettered message"));
 
             await
-                jobsApiClient
+                jobManagement
                     .DidNotReceive()
                     .AddJobLog(Arg.Any<string>(), Arg.Any<JobLogUpdateModel>());
         }
@@ -50,14 +51,14 @@ namespace CalculateFunding.Services.Core.Services
             Message message = new Message();
             message.UserProperties.Add("jobId", jobId);
 
-            IJobsApiClient jobsApiClient = CreateJobsApiClient();
-            jobsApiClient
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement
                     .When(x => x.AddJobLog(Arg.Is(jobId), Arg.Any<JobLogUpdateModel>()))
                     .Do(x => { throw new Exception(); });
 
             ILogger logger = CreateLogger();
 
-            IJobHelperService service = CreateJobHelperService(jobsApiClient, logger);
+            IJobHelperService service = CreateJobHelperService(jobManagement, logger);
 
             // Act
             await service.ProcessDeadLetteredMessage(message);
@@ -79,19 +80,17 @@ namespace CalculateFunding.Services.Core.Services
                 Id = "job-log-id-1"
             };
 
-            ApiResponse<JobLog> jobLogResponse = new ApiResponse<JobLog>(HttpStatusCode.OK, jobLog);
-
             Message message = new Message();
             message.UserProperties.Add("jobId", jobId);
 
-            IJobsApiClient jobsApiClient = CreateJobsApiClient();
-            jobsApiClient
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement
                 .AddJobLog(Arg.Is(jobId), Arg.Any<JobLogUpdateModel>())
-                .Returns(jobLogResponse);
+                .Returns(jobLog);
 
             ILogger logger = CreateLogger();
 
-            IJobHelperService service = CreateJobHelperService(jobsApiClient, logger);
+            IJobHelperService service = CreateJobHelperService(jobManagement, logger);
 
             // Act
             await service.ProcessDeadLetteredMessage(message);
@@ -102,18 +101,12 @@ namespace CalculateFunding.Services.Core.Services
                 .Information(Arg.Is($"A new job log was added to inform of a dead lettered message with job log id '{jobLog.Id}' on job with id '{jobId}'"));
         }
 
-        private IJobHelperService CreateJobHelperService(IJobsApiClient jobsApiClient, ILogger logger = null)
+        private IJobHelperService CreateJobHelperService(IJobManagement jobManagement, ILogger logger = null)
         {
-            IJobHelperResiliencePolicies resiliencePolicies = Substitute.For<IJobHelperResiliencePolicies>();
-            resiliencePolicies.JobsApiClient.Returns(Polly.Policy.NoOpAsync());
-
-            return new JobHelperService(jobsApiClient ?? CreateJobsApiClient(), resiliencePolicies, logger ?? CreateLogger());
+            return new JobHelperService(jobManagement ?? CreateJobManagement(), logger ?? CreateLogger());
         }
 
-        private IJobsApiClient CreateJobsApiClient()
-        {
-            return Substitute.For<IJobsApiClient>();
-        }
+        private IJobManagement CreateJobManagement() => Substitute.For<IJobManagement>();
 
         private ILogger CreateLogger()
         {

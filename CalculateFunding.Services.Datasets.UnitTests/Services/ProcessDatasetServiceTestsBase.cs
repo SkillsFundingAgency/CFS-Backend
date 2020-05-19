@@ -48,7 +48,6 @@ namespace CalculateFunding.Services.Datasets.Services
             IVersionRepository<ProviderSourceDatasetVersion> versionRepository = null,
             IDatasetsAggregationsRepository datasetsAggregationsRepository = null,
             IFeatureToggle featureToggle = null,
-            IJobsApiClient jobsApiClient = null,
             IMapper mapper = null,
             IJobManagement jobManagement = null,
             IProviderSourceDatasetVersionKeyProvider versionKeyProvider = null)
@@ -70,7 +69,6 @@ namespace CalculateFunding.Services.Datasets.Services
                 datasetsResiliencePolicies ?? DatasetsResilienceTestHelper.GenerateTestPolicies(),
                 datasetsAggregationsRepository ?? CreateDatasetsAggregationsRepository(),
                 featureToggle ?? CreateFeatureToggle(),
-                jobsApiClient ?? CreateJobsApiClient(),
                 mapper ?? CreateMapper(),
                 jobManagement ?? CreateJobManagement(),
                 versionKeyProvider ?? CreateDatasetVersionKeyProvider());
@@ -108,7 +106,6 @@ namespace CalculateFunding.Services.Datasets.Services
         {
             return Substitute.For<IJobsApiClient>();
         }
-
 
         protected static ISpecificationsApiClient CreateSpecificationsApiClient()
         {

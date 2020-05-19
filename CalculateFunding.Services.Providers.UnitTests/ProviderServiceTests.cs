@@ -490,7 +490,6 @@ namespace CalculateFunding.Services.Providers.UnitTests
 
         private IScopedProvidersService CreateProviderService(IProviderVersionService providerVersionService = null,
             ISpecificationsApiClient specificationsApiClient = null,
-            IJobsApiClient jobsApiClient = null,
             ICacheProvider cacheProvider = null,
             IFileSystemCache fileSystemCache = null,
             IScopedProvidersServiceSettings settings = null,
@@ -501,7 +500,6 @@ namespace CalculateFunding.Services.Providers.UnitTests
             return new ScopedProvidersService(
                 cacheProvider ?? CreateCacheProvider(),
                 resultsApiClient ?? CreateResultsApiClient(),
-                jobsApiClient ?? CreateJobsApiClient(),
                 specificationsApiClient ?? CreateSpecificationsApiClient(),
                 providerVersionService ?? CreateProviderVersionService(),
                 CreateMapper(),
@@ -525,11 +523,6 @@ namespace CalculateFunding.Services.Providers.UnitTests
         private IResultsApiClient CreateResultsApiClient()
         {
             return Substitute.For<IResultsApiClient>();
-        }
-
-        private IJobsApiClient CreateJobsApiClient()
-        {
-            return Substitute.For<IJobsApiClient>();
         }
 
         static ISpecificationsApiClient CreateSpecificationsApiClient()

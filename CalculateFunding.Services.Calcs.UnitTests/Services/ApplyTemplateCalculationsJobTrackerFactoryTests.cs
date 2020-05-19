@@ -1,11 +1,10 @@
 using System;
-using CalculateFunding.Common.ApiClient.Jobs;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
-using Polly;
 using Serilog;
 
 namespace CalculateFunding.Services.Calcs.Services
@@ -14,8 +13,7 @@ namespace CalculateFunding.Services.Calcs.Services
     public class ApplyTemplateCalculationsJobTrackerFactoryTests
     {
         private ILogger _logger;
-        private IJobsApiClient _jobs;
-        private AsyncPolicy _resiliencePolicy;
+        private IJobManagement _jobs;
         private Message _message;
 
         private ApplyTemplateCalculationsJobTrackerFactory _factory;
@@ -24,15 +22,10 @@ namespace CalculateFunding.Services.Calcs.Services
         public void SetUp()
         {
             _logger = Substitute.For<ILogger>();
-            _resiliencePolicy = Policy.NoOpAsync();
             _message = new Message();
-            _jobs = Substitute.For<IJobsApiClient>();
+            _jobs = Substitute.For<IJobManagement>();
 
             _factory = new ApplyTemplateCalculationsJobTrackerFactory(_jobs,
-                new ResiliencePolicies
-                {
-                    JobsApiClient = _resiliencePolicy
-                },
                 _logger);
         }
 
@@ -69,11 +62,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Logger
                 .Should()
                 .BeSameAs(_logger);
-            
-            jobTracker
-                .JobsResiliencePolicy
-                .Should()
-                .BeSameAs(_resiliencePolicy);
             
             jobTracker
                 .JobId

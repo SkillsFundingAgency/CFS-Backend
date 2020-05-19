@@ -69,8 +69,6 @@ namespace CalculateFunding.Services.Datasets
         private readonly IDatasetsAggregationsRepository _datasetsAggregationsRepository;
         private readonly AsyncPolicy _providersApiClientPolicy;
         private readonly IFeatureToggle _featureToggle;
-        private readonly AsyncPolicy _jobsApiClientPolicy;
-        private readonly IJobsApiClient _jobsApiClient;
         private readonly IMapper _mapper;
         private readonly IJobManagement _jobManagement;
         private readonly IProviderSourceDatasetVersionKeyProvider _datasetVersionKeyProvider;
@@ -91,7 +89,6 @@ namespace CalculateFunding.Services.Datasets
             IDatasetsResiliencePolicies datasetsResiliencePolicies,
             IDatasetsAggregationsRepository datasetsAggregationsRepository,
             IFeatureToggle featureToggle,
-            IJobsApiClient jobsApiClient,
             IMapper mapper,
             IJobManagement jobManagement,
             IProviderSourceDatasetVersionKeyProvider datasetVersionKeyProvider)
@@ -108,10 +105,8 @@ namespace CalculateFunding.Services.Datasets
             Guard.ArgumentNotNull(telemetry, nameof(telemetry));
             Guard.ArgumentNotNull(datasetsAggregationsRepository, nameof(datasetsAggregationsRepository));
             Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
-            Guard.ArgumentNotNull(jobsApiClient, nameof(jobsApiClient));
             Guard.ArgumentNotNull(mapper, nameof(mapper));
             Guard.ArgumentNotNull(datasetsResiliencePolicies?.ProviderResultsRepository, nameof(datasetsResiliencePolicies.ProviderResultsRepository));
-            Guard.ArgumentNotNull(datasetsResiliencePolicies?.JobsApiClient, nameof(datasetsResiliencePolicies.JobsApiClient));
             Guard.ArgumentNotNull(datasetsResiliencePolicies?.ProvidersApiClient, nameof(datasetsResiliencePolicies.ProvidersApiClient));
             Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
             Guard.ArgumentNotNull(datasetVersionKeyProvider, nameof(datasetVersionKeyProvider));
@@ -131,8 +126,6 @@ namespace CalculateFunding.Services.Datasets
             _datasetsAggregationsRepository = datasetsAggregationsRepository;
             _providersApiClientPolicy = datasetsResiliencePolicies.ProvidersApiClient;
             _featureToggle = featureToggle;
-            _jobsApiClient = jobsApiClient;
-            _jobsApiClientPolicy = datasetsResiliencePolicies.JobsApiClient;
             _messengerService = messengerService;
             _mapper = mapper;
             _jobManagement = jobManagement;
@@ -856,7 +849,7 @@ namespace CalculateFunding.Services.Datasets
                 CorrelationId = correlationId
             };
 
-            Job createdJob = await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.CreateJob(job));
+            Job createdJob = await _jobManagement.QueueJob(job);
             _logger.Information($"New job of type '{createdJob.JobDefinitionId}' created with id: '{createdJob.Id}'");
             return;
         }

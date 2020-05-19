@@ -7,6 +7,7 @@ using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Models.Specs;
@@ -30,7 +31,7 @@ namespace CalculateFunding.Services.Specs.UnitTests
         private const string TemplateVersion = "template-version";
         
         private IPoliciesApiClient _policies;
-        private IJobsApiClient _jobs;
+        private IJobManagement _jobs;
 
         private QueueCreateSpecificationJobAction _action;
         private Reference _user;
@@ -42,7 +43,7 @@ namespace CalculateFunding.Services.Specs.UnitTests
         public void SetUp()
         {
             _policies = Substitute.For<IPoliciesApiClient>();
-            _jobs = Substitute.For<IJobsApiClient>();
+            _jobs = Substitute.For<IJobManagement>();
 
             _userId = NewRandomString();
             _userName = NewRandomString();
@@ -61,7 +62,7 @@ namespace CalculateFunding.Services.Specs.UnitTests
                 },
                 Substitute.For<ILogger>());
 
-            _jobs.CreateJob(Arg.Any<JobCreateModel>())
+            _jobs.QueueJob(Arg.Any<JobCreateModel>())
                 .Returns(new Job());//default instance as we assert was called but have null checks in the test now
         }
 
@@ -200,13 +201,13 @@ namespace CalculateFunding.Services.Specs.UnitTests
 
         private void AndTheJobIsCreateForARequestModelMatching(Expression<Predicate<JobCreateModel>> jobCreateModelMatching, Job job)
         {
-            _jobs.CreateJob(Arg.Is(jobCreateModelMatching))
+            _jobs.QueueJob(Arg.Is(jobCreateModelMatching))
                 .Returns(job);
         }
 
         private async Task ThenTheAssignTemplateCalculationJobWasCreated(Expression<Predicate<JobCreateModel>> expectedJob)
         {
-            await _jobs.Received(1).CreateJob(
+            await _jobs.Received(1).QueueJob(
                 Arg.Is(expectedJob));
         }
 
@@ -217,7 +218,7 @@ namespace CalculateFunding.Services.Specs.UnitTests
 
         private async Task AndTheAssignTemplateCalculationJobWasNotCreated(Expression<Predicate<JobCreateModel>> expectedJob)
         {
-            await _jobs.Received(0).CreateJob(
+            await _jobs.Received(0).QueueJob(
                 Arg.Is(expectedJob));
         }
 

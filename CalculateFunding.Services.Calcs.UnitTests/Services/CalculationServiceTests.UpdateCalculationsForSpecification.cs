@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Messages;
@@ -170,30 +171,25 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetBuildProjectForSpecificationId(Arg.Is(specificationId))
                 .Returns(buildProject);
 
-            ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
-
-            IJobsApiClient jobsApiClient = CreateJobsApiClient();
-            jobsApiClient
-                .CreateJob(Arg.Any<JobCreateModel>())
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement
+                .QueueJob(Arg.Any<JobCreateModel>())
                 .Returns(new Job { Id = "job-id-1", JobDefinitionId = JobConstants.DefinitionNames.CreateInstructAllocationJob });
-
-            IMapper mapper = Substitute.For<IMapper>();
 
             CalculationService service = CreateCalculationService(
                 calculationsRepository,
                 logger,
                 buildProjectsService: buildProjectsService,
-                searchRepository: searchRepository,
-                jobsApiClient: jobsApiClient);
+                jobManagement: jobManagement);
 
             // Act
             await service.UpdateCalculationsForSpecification(message);
 
             // Assert
             await
-                 jobsApiClient
+                 jobManagement
                      .Received(1)
-                     .CreateJob(Arg.Is<JobCreateModel>(
+                     .QueueJob(Arg.Is<JobCreateModel>(
                          m =>
                              m.InvokerUserDisplayName == Username &&
                              m.InvokerUserId == UserId &&
@@ -274,13 +270,13 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
 
-            IJobsApiClient jobsApiClient = CreateJobsApiClient();
-            jobsApiClient
-                .CreateJob(Arg.Is<JobCreateModel>(_ => _.JobDefinitionId == JobConstants.DefinitionNames.GenerateGraphAndInstructAllocationJob))
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement
+                .QueueJob(Arg.Is<JobCreateModel>(_ => _.JobDefinitionId == JobConstants.DefinitionNames.GenerateGraphAndInstructAllocationJob))
                 .Returns(new Job { Id = "job-id-1", JobDefinitionId = JobConstants.DefinitionNames.GenerateGraphAndInstructAllocationJob });
-            
-            jobsApiClient
-                .CreateJob(Arg.Is<JobCreateModel>(_ => _.JobDefinitionId == JobConstants.DefinitionNames.ReIndexSpecificationCalculationRelationshipsJob))
+
+            jobManagement
+                .QueueJob(Arg.Is<JobCreateModel>(_ => _.JobDefinitionId == JobConstants.DefinitionNames.ReIndexSpecificationCalculationRelationshipsJob))
                 .Returns(new Job { Id = "job-id-2", JobDefinitionId = JobConstants.DefinitionNames.ReIndexSpecificationCalculationRelationshipsJob });
 
             IMapper mapper = Substitute.For<IMapper>();
@@ -292,7 +288,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 logger,
                 buildProjectsService: buildProjectsService,
                 searchRepository: searchRepository,
-                jobsApiClient: jobsApiClient,
+                jobManagement: jobManagement,
                 calculationsFeatureFlag: calculationsFeatureFlag);
 
             // Act
@@ -300,9 +296,9 @@ namespace CalculateFunding.Services.Calcs.Services
 
             // Assert
             await
-                 jobsApiClient
+                 jobManagement
                      .Received(1)
-                     .CreateJob(Arg.Is<JobCreateModel>(
+                     .QueueJob(Arg.Is<JobCreateModel>(
                          m =>
                              m.InvokerUserDisplayName == Username &&
                              m.InvokerUserId == UserId &&
@@ -314,9 +310,9 @@ namespace CalculateFunding.Services.Calcs.Services
                          ));
 
             await
-                 jobsApiClient
+                 jobManagement
                      .Received(1)
-                     .CreateJob(Arg.Is<JobCreateModel>(
+                     .QueueJob(Arg.Is<JobCreateModel>(
                          m =>
                              m.InvokerUserDisplayName == Username &&
                              m.InvokerUserId == UserId &&
@@ -399,21 +395,17 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetBuildProjectForSpecificationId(Arg.Is(specificationId))
                 .Returns(buildProject);
 
-            ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
-
-            IJobsApiClient jobsApiClient = CreateJobsApiClient();
-            jobsApiClient
-                .CreateJob(Arg.Any<JobCreateModel>())
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement
+                .QueueJob(Arg.Any<JobCreateModel>())
                 .Returns((Job)null);
 
-            IMapper mapper = Substitute.For<IMapper>();
 
             CalculationService service = CreateCalculationService(
                 calculationsRepository,
                 logger,
                 buildProjectsService: buildProjectsService,
-                searchRepository: searchRepository,
-                jobsApiClient: jobsApiClient);
+                jobManagement: jobManagement);
 
             // Act
             Func<Task> test = async () => await service.UpdateCalculationsForSpecification(message);
@@ -428,9 +420,9 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Be($"Failed to create job: '{JobConstants.DefinitionNames.CreateInstructAllocationJob} for specification id '{specificationId}'");
 
             await
-                 jobsApiClient
+                 jobManagement
                      .Received(1)
-                     .CreateJob(Arg.Is<JobCreateModel>(
+                     .QueueJob(Arg.Is<JobCreateModel>(
                          m =>
                              m.InvokerUserDisplayName == Username &&
                              m.InvokerUserId == UserId &&
@@ -509,30 +501,26 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetBuildProjectForSpecificationId(Arg.Is(specificationId))
                 .Returns(buildProject);
 
-            ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
-
-            IJobsApiClient jobsApiClient = CreateJobsApiClient();
-            jobsApiClient
-                .CreateJob(Arg.Any<JobCreateModel>())
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement
+                .QueueJob(Arg.Any<JobCreateModel>())
                 .Returns(new Job { Id = "job-id-1", JobDefinitionId = JobConstants.DefinitionNames.CreateInstructGenerateAggregationsAllocationJob });
 
-            IMapper mapper = Substitute.For<IMapper>();
 
             CalculationService service = CreateCalculationService(
                 calculationsRepository,
                 logger,
                 buildProjectsService: buildProjectsService,
-                searchRepository: searchRepository,
-                jobsApiClient: jobsApiClient);
+                jobManagement: jobManagement);
 
             // Act
             await service.UpdateCalculationsForSpecification(message);
 
             // Assert
             await
-                 jobsApiClient
+                 jobManagement
                      .Received(1)
-                     .CreateJob(Arg.Is<JobCreateModel>(
+                     .QueueJob(Arg.Is<JobCreateModel>(
                          m =>
                              m.InvokerUserDisplayName == Username &&
                              m.InvokerUserId == UserId &&

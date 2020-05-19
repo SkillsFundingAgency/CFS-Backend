@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Graph;
 using CalculateFunding.Services.Calcs.Interfaces;
@@ -13,24 +13,20 @@ namespace CalculateFunding.Services.Calcs.Analysis
 {
     public class QueueReIndexSpecificationCalculationRelationships : IQueueReIndexSpecificationCalculationRelationships
     {
-        private readonly AsyncPolicy _resilience;
-        private readonly IJobsApiClient _jobs;
+        private readonly IJobManagement _jobManagement;
 
-        public QueueReIndexSpecificationCalculationRelationships(IJobsApiClient jobs,
-            ICalcsResiliencePolicies resiliencePolicies)
+        public QueueReIndexSpecificationCalculationRelationships(IJobManagement jobManagement)
         {
-            Guard.ArgumentNotNull(jobs, nameof(jobs));
-            Guard.ArgumentNotNull(resiliencePolicies?.JobsApiClient, nameof(resiliencePolicies.JobsApiClient));
-            
-            _jobs = jobs;
-            _resilience = resiliencePolicies.JobsApiClient;
+            Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
+
+            _jobManagement = jobManagement;
         }
 
         public async Task<IActionResult> QueueForSpecification(string specificationId)
         {
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
 
-            await _resilience.ExecuteAsync(() => _jobs.CreateJob(new JobCreateModel
+            await _jobManagement.QueueJob(new JobCreateModel
             {
                 JobDefinitionId = JobConstants.DefinitionNames.ReIndexSpecificationCalculationRelationshipsJob,
                 SpecificationId = specificationId,
@@ -44,7 +40,7 @@ namespace CalculateFunding.Services.Calcs.Analysis
                 {
                     {"specification-id", specificationId}
                 }
-            }));
+            });
             
             return new OkResult();
         }

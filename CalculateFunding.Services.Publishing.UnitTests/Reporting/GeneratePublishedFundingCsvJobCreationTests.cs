@@ -11,7 +11,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
         public void SetUp()
         {
             JobCreation = new GeneratePublishedFundingCsvJobCreation(Jobs,
-                ResiliencePolicies,
                 Logger);
         }
     }

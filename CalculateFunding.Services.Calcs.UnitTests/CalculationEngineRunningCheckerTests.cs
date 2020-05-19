@@ -1,16 +1,13 @@
-﻿using CalculateFunding.Common.ApiClient.Jobs;
-using CalculateFunding.Common.ApiClient.Jobs.Models;
-using CalculateFunding.Common.ApiClient.Models;
+﻿using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
-using Polly;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Calcs.UnitTests
@@ -19,7 +16,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests
     public class CalculationEngineRunningCheckerTests
 
     {
-        private IJobsApiClient _jobs;
+        private IJobManagement _jobs;
         private JobSummary _job;
         private string _specificationId;
         private string[] _jobTypes;
@@ -29,15 +26,11 @@ namespace CalculateFunding.Services.Calcs.UnitTests
         [TestInitialize]
         public void SetUp()
         {
-            _jobs = Substitute.For<IJobsApiClient>();
+            _jobs = Substitute.For<IJobManagement>();
             _specificationId = NewRandomString();
             _jobTypes = new string[] { JobConstants.DefinitionNames.CreateInstructAllocationJob };
 
-            _calculationEngineRunningChecker = new CalculationEngineRunningChecker(_jobs,
-                new ResiliencePolicies
-                {
-                    JobsApiClient = Policy.NoOpAsync()
-                });
+            _calculationEngineRunningChecker = new CalculationEngineRunningChecker(_jobs);
         }
 
         [TestMethod]
@@ -99,7 +92,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests
             _job = jobSummaryBuilder.Build();
 
             _jobs.GetLatestJobForSpecification(_specificationId, Arg.Is<IEnumerable<string>>(_ => _.Single() == JobConstants.DefinitionNames.CreateInstructAllocationJob))
-                .Returns(new ApiResponse<JobSummary>(HttpStatusCode.OK, _job));
+                .Returns(_job);
         }
 
         private async Task<bool> WhenTheCalculationEngineRunningStatusIsChecked()

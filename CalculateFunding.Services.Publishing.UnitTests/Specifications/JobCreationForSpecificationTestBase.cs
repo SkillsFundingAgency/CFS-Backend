@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Tests.Common.Helpers;
@@ -17,7 +18,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
     public abstract class JobCreationForSpecificationTestBase<TJobCreation> 
         where TJobCreation : ICreateJobsForSpecifications
     {
-        protected IJobsApiClient Jobs;
+        protected IJobManagement Jobs;
         protected TJobCreation JobCreation;
         protected IPublishingResiliencePolicies ResiliencePolicies;
         protected ILogger Logger;
@@ -25,13 +26,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
         [TestInitialize]
         public void JobCreationForSpecificationTestBaseSetUp()
         {
-            Jobs = Substitute.For<IJobsApiClient>();
+            Jobs = Substitute.For<IJobManagement>();
             Logger = Substitute.For<ILogger>();
-
-            ResiliencePolicies = new ResiliencePolicies
-            {
-                JobsApiClient = Policy.NoOpAsync()
-            };
         }
 
         [TestMethod]
@@ -78,7 +74,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
 
         private void GivenTheCreateJobThrowsException(Exception exception)
         {
-            Jobs.CreateJob(Arg.Any<JobCreateModel>())
+            Jobs.QueueJob(Arg.Any<JobCreateModel>())
                 .Throws(exception);
         }
 
@@ -87,7 +83,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
             Reference user,
             Job job)
         {
-            Jobs.CreateJob(Arg.Is<JobCreateModel>(_ =>
+            Jobs.QueueJob(Arg.Is<JobCreateModel>(_ =>
                     _.CorrelationId == correlationId &&
                     _.SpecificationId == specificationId &&
                     _.JobDefinitionId == JobCreation.JobDefinitionId &&

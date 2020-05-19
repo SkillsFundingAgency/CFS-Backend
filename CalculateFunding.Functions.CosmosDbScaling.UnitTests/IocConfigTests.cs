@@ -4,7 +4,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Reflection;
 using CalculateFunding.Functions.CosmosDbScaling.EventHubs;
-using Microsoft.AspNetCore.Hosting;
+using NSubstitute;
+using CalculateFunding.Common.JobManagement;
 
 namespace CalculateFunding.Functions.CosmosDbScaling.UnitTests
 {
@@ -37,6 +38,11 @@ namespace CalculateFunding.Functions.CosmosDbScaling.UnitTests
         protected override void RegisterDependencies()
         {            
             Startup.RegisterComponents(ServiceCollection, CreateTestConfiguration());
+        }
+
+        protected override void AddExtraRegistrations()
+        {
+            ServiceCollection.AddSingleton(Substitute.For<IJobManagement>());
         }
     }
 }

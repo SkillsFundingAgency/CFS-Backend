@@ -4,6 +4,7 @@ using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
@@ -29,14 +30,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
 
         private PublishedProviderVersionService _service;
         private IBlobClient _blobClient;
-        private IJobsApiClient _jobsApiClient;
+        private IJobManagement _jobManagement;
         private ILogger _logger;
 
         [TestInitialize]
         public void SetUp()
         {
             _blobClient = Substitute.For<IBlobClient>();
-            _jobsApiClient = Substitute.For<IJobsApiClient>();
+            _jobManagement = Substitute.For<IJobManagement>();
             _logger = Substitute.For<ILogger>();
 
             _service = new PublishedProviderVersionService(_logger,
@@ -44,9 +45,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 new ResiliencePolicies
                 {
                     BlobClient = Policy.NoOpAsync(),
-                    JobsApiClient = Policy.NoOpAsync()
                 },
-                _jobsApiClient);
+                _jobManagement);
         }
 
         [TestMethod]
@@ -263,9 +263,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 .Should()
                 .BeOfType<NoContentResult>();
 
-            await _jobsApiClient
+            await _jobManagement
                 .Received(1)
-                .CreateJob(Arg.Is<JobCreateModel>(_ =>
+                .QueueJob(Arg.Is<JobCreateModel>(_ =>
                     _.CorrelationId == correlationId &&
                     _.InvokerUserId == user.Id &&
                     _.InvokerUserDisplayName == user.Name &&

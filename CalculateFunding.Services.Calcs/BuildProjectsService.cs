@@ -48,8 +48,6 @@ namespace CalculateFunding.Services.Calcs
         private readonly ICacheProvider _cacheProvider;
         private readonly ICalculationsRepository _calculationsRepository;
         private readonly IFeatureToggle _featureToggle;
-        private readonly IJobsApiClient _jobsApiClient;
-        private readonly Polly.AsyncPolicy _jobsApiClientPolicy;
         private readonly EngineSettings _engineSettings;
         private readonly ISourceCodeService _sourceCodeService;
         private readonly IDatasetsApiClient _datasetsApiClient;
@@ -68,7 +66,6 @@ namespace CalculateFunding.Services.Calcs
             ICacheProvider cacheProvider,
             ICalculationsRepository calculationsRepository,
             IFeatureToggle featureToggle,
-            IJobsApiClient jobsApiClient,
             ICalcsResiliencePolicies resiliencePolicies,
             EngineSettings engineSettings,
             ISourceCodeService sourceCodeService,
@@ -84,7 +81,6 @@ namespace CalculateFunding.Services.Calcs
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
             Guard.ArgumentNotNull(calculationsRepository, nameof(calculationsRepository));
             Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
-            Guard.ArgumentNotNull(jobsApiClient, nameof(jobsApiClient));
             Guard.ArgumentNotNull(resiliencePolicies, nameof(resiliencePolicies));
             Guard.ArgumentNotNull(engineSettings, nameof(engineSettings));
             Guard.ArgumentNotNull(sourceCodeService, nameof(sourceCodeService));
@@ -95,7 +91,6 @@ namespace CalculateFunding.Services.Calcs
             Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
             Guard.ArgumentNotNull(graphRepository, nameof(graphRepository));
             Guard.ArgumentNotNull(resiliencePolicies?.DatasetsApiClient, nameof(resiliencePolicies.DatasetsApiClient));
-            Guard.ArgumentNotNull(resiliencePolicies?.JobsApiClient, nameof(resiliencePolicies.JobsApiClient));
             Guard.ArgumentNotNull(resiliencePolicies?.ProvidersApiClient, nameof(resiliencePolicies.ProvidersApiClient));
             Guard.ArgumentNotNull(resiliencePolicies?.BuildProjectRepositoryPolicy, nameof(resiliencePolicies.BuildProjectRepositoryPolicy));
             Guard.ArgumentNotNull(mapper, nameof(mapper));
@@ -107,8 +102,6 @@ namespace CalculateFunding.Services.Calcs
             _cacheProvider = cacheProvider;
             _calculationsRepository = calculationsRepository;
             _featureToggle = featureToggle;
-            _jobsApiClient = jobsApiClient;
-            _jobsApiClientPolicy = resiliencePolicies.JobsApiClient;
             _engineSettings = engineSettings;
             _sourceCodeService = sourceCodeService;
             _datasetsApiClient = datasetsApiClient;
@@ -151,26 +144,9 @@ namespace CalculateFunding.Services.Calcs
 
             string jobId = message.UserProperties["jobId"].ToString();
 
-            ApiResponse<JobViewModel> response = await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.GetJobById(jobId));
+            job = await _jobManagement.RetrieveJobAndCheckCanBeProcessed(jobId);
 
-            if (response == null || response.Content == null)
-            {
-                _logger.Error($"Could not find the parent job with job id: '{jobId}'");
-
-                throw new Exception($"Could not find the parent job with job id: '{jobId}'");
-            }
-
-            job = response.Content;
-
-            if (job.CompletionStatus.HasValue)
-            {
-                _logger.Information($"Received job with id: '{job.Id}' is already in a completed state with status {job.CompletionStatus}");
-
-                return;
-            }
-
-
-            await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.AddJobLog(jobId, new Common.ApiClient.Jobs.Models.JobLogUpdateModel()));
+            await _jobManagement.AddJobLog(jobId, new JobLogUpdateModel());
 
             IDictionary<string, string> properties = message.BuildMessageProperties();
 
@@ -330,7 +306,7 @@ namespace CalculateFunding.Services.Calcs
                         CompletedSuccessfully = true,
                         Outcome = "Calculations not run as no scoped providers set for specification"
                     };
-                    await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.AddJobLog(job.Id, jobCompletedLog));
+                    await _jobManagement.AddJobLog(job.Id, jobCompletedLog);
 
                     return;
                 }
@@ -646,7 +622,7 @@ namespace CalculateFunding.Services.Calcs
                 jobCreateModels.Add(jobCreateModel);
             }
 
-            return await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.CreateJobs(jobCreateModels));
+            return await _jobManagement.QueueJobs(jobCreateModels);
         }
 
         private async Task<BuildProject> GenerateBuildProject(string specificationId)

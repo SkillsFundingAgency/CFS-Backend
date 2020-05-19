@@ -39,8 +39,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         private IPublishedProviderVersionService _publishedProviderVersionService;
         private ITransactionResiliencePolicies _transactionResiliencePolicies;
         private IJobsRunning _jobsRunning;
-        private IJobsApiClient _jobsApiClient;
-        private IMessengerService _messengerService;
         private ILogger _logger;
         private Message _message;
         private string _jobId;
@@ -55,9 +53,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         public void SetUp()
         {
             _logger = Substitute.For<ILogger>();
-            _jobsApiClient = Substitute.For<IJobsApiClient>();
-            _messengerService = Substitute.For<IMessengerService>();
-            _jobManagement = new JobManagement(_jobsApiClient, _logger, new JobManagementResiliencePolicies { JobsApiClient = Policy.NoOpAsync() }, _messengerService);
+            _jobManagement = Substitute.For<IJobManagement>();
             _jobsRunning = Substitute.For<IJobsRunning>();
             _prerequisiteCheckerLocator = Substitute.For<IPrerequisiteCheckerLocator>();
             _prerequisiteCheckerLocator.GetPreReqChecker(PrerequisiteCheckerType.ApproveAllProviders)
@@ -130,8 +126,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             _logger.Received(1)
                 .Error($"{JobConstants.DefinitionNames.RefreshFundingJob} is still running");
 
-            _jobsApiClient.Received(1)
-                .AddJobLog(Arg.Is(_jobId), Arg.Is<JobLogUpdateModel>(_ => _.CompletedSuccessfully == false && _.Outcome == string.Join(", ", prereqValidationErrors)));
+            _jobManagement
+                .Received(1)
+                .UpdateJobStatus(_jobId, 0, false, string.Join(", ", prereqValidationErrors));
         }
 
         [TestMethod]
@@ -162,8 +159,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             _logger.Received(1)
                 .Error($"{JobConstants.DefinitionNames.RefreshFundingJob} is still running");
 
-            _jobsApiClient.Received(1)
-                .AddJobLog(Arg.Is(_jobId), Arg.Is<JobLogUpdateModel>(_ => _.CompletedSuccessfully == false && _.Outcome == string.Join(", ", prereqValidationErrors)));
+            _jobManagement
+                .Received(1)
+                .UpdateJobStatus(_jobId, 0, false, string.Join(", ", prereqValidationErrors));
         }
 
         [TestMethod]
@@ -581,8 +579,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
 
             _job = jobViewModelBuilder.Build();
 
-            _jobsApiClient.GetJobById(_jobId)
-                .Returns(new ApiResponse<JobViewModel>(HttpStatusCode.OK, _job));
+            _jobManagement.RetrieveJobAndCheckCanBeProcessed(_jobId)
+                .Returns(_job);
         }
 
         private ApproveProvidersRequest BuildApproveProvidersRequest(Action<ApproveProvidersRequestBuilder> setUp = null)
@@ -594,17 +592,17 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             return approveProvidersRequestBuilder.Build();
         }
 
-        private void AndRetrieveJobAndCheckCannotBeProcessedSuccessfully(Action<JobViewModelBuilder> setUp = null)
+        private void AndRetrieveJobAndCheckCannotBeProcessedSuccessfully()
         {
-            _jobsApiClient.GetJobById(_jobId)
-                .Returns(new ApiResponse<JobViewModel>(HttpStatusCode.OK, null));
+            _jobManagement.RetrieveJobAndCheckCanBeProcessed(_jobId)
+                .Throws(new JobNotFoundException(string.Empty, string.Empty));
         }
 
         private void AndTheJobEndWasTracked()
         {
-            _jobsApiClient
+            _jobManagement
                 .Received(1)
-                .AddJobLog(_jobId, Arg.Is<JobLogUpdateModel>(_ => _.CompletedSuccessfully == true));
+                .UpdateJobStatus(_jobId, 0, 0, true, null);
         }
 
         private PublishedProvider NewPublishedProvider(Action<PublishedProviderBuilder> setUp = null)

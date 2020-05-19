@@ -48,7 +48,6 @@ namespace CalculateFunding.Services.Datasets.Services
             ICalcsRepository calcsRepository = null,
             IValidator<ExcelPackage> datasetWorksheetValidator = null,
             IValidator<DatasetUploadValidationModel> datasetUploadValidator = null,
-            IJobsApiClient jobsApiClient = null,
             IProvidersApiClient providersApiClient = null,
             IJobManagement jobManagement = null,
             IProviderSourceDatasetRepository providerSourceDatasetRepository = null,
@@ -68,10 +67,9 @@ namespace CalculateFunding.Services.Datasets.Services
                 datasetWorksheetValidator ?? CreateDataWorksheetValidator(),
                 datasetUploadValidator ?? CreateDatasetUploadValidator(),
                 DatasetsResilienceTestHelper.GenerateTestPolicies(),
-                jobsApiClient ?? CreateJobsApiClient(),
                 datasetVersionIndex ?? CreateDatasetVersionRepository(),
                 providersApiClient ?? CreateProvidersApiClient(),
-                jobManagement ?? CreateJobManagement(),
+                jobManagement ?? this.CreateJobManagement(),
                 providerSourceDatasetRepository ?? CreateProviderSourceDatasetRepository(),
                 specificationsApiClient ?? CreateSpecificationsApiClient());
         }
@@ -274,11 +272,6 @@ namespace CalculateFunding.Services.Datasets.Services
 
                 return package.GetAsByteArray();
             }
-        }
-
-        protected IJobsApiClient CreateJobsApiClient()
-        {
-            return Substitute.For<IJobsApiClient>();
         }
 
         protected IProvidersApiClient CreateProvidersApiClient()

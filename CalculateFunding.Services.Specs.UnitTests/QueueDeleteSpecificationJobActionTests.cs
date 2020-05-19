@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Messages;
 using CalculateFunding.Services.Core.Constants;
@@ -31,7 +32,7 @@ namespace CalculateFunding.Services.Specs.UnitTests
             [JobConstants.DefinitionNames.DeleteTestsJob] = "Deleting Tests",
             [JobConstants.DefinitionNames.DeleteJobsJob] = "Deleting Jobs"
         };
-        private IJobsApiClient _jobs;
+        private IJobManagement _jobs;
         private QueueDeleteSpecificationJobAction _action;
         private Reference _user;
         private string _userId;
@@ -41,7 +42,7 @@ namespace CalculateFunding.Services.Specs.UnitTests
         [TestInitialize]
         public void SetUp()
         {
-            _jobs = Substitute.For<IJobsApiClient>();
+            _jobs = Substitute.For<IJobManagement>();
 
             _userId = NewRandomString();
             _userName = NewRandomString();
@@ -53,14 +54,9 @@ namespace CalculateFunding.Services.Specs.UnitTests
 
             _action = new QueueDeleteSpecificationJobAction(
                 _jobs,
-                new SpecificationsResiliencePolicies
-                {
-                    JobsApiClient = Policy.NoOpAsync(),
-                    PoliciesApiClient = Policy.NoOpAsync()
-                },
                 Substitute.For<ILogger>());
 
-            _jobs.CreateJob(Arg.Any<JobCreateModel>())
+            _jobs.QueueJob(Arg.Any<JobCreateModel>())
                 .Returns(new Job());//default instance as we assert was called but have null checks in the test now
         }
 
@@ -117,7 +113,7 @@ namespace CalculateFunding.Services.Specs.UnitTests
 
         private async Task ThenTheDeleteSpecificationJobIsCreated(Expression<Predicate<JobCreateModel>> expectedJob)
         {
-            await _jobs.Received(1).CreateJob(
+            await _jobs.Received(1).QueueJob(
                 Arg.Is(expectedJob));
         }
 
@@ -154,7 +150,7 @@ namespace CalculateFunding.Services.Specs.UnitTests
 
         private void WhenJobIsCreateForARequestModelMatching(Expression<Predicate<JobCreateModel>> jobCreateModelMatching, Job job)
         {
-            _jobs.CreateJob(Arg.Is(jobCreateModelMatching))
+            _jobs.QueueJob(Arg.Is(jobCreateModelMatching))
                 .Returns(job);
         }
 

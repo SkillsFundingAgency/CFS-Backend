@@ -1,10 +1,8 @@
 using System;
-using CalculateFunding.Common.ApiClient.Jobs;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Utility;
-using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Core.Extensions;
 using Microsoft.Azure.ServiceBus;
-using Polly;
 using Serilog;
 
 namespace CalculateFunding.Services.Calcs
@@ -12,20 +10,16 @@ namespace CalculateFunding.Services.Calcs
     public class ApplyTemplateCalculationsJobTrackerFactory : IApplyTemplateCalculationsJobTrackerFactory
     {
         private readonly ILogger _logger;
-        private readonly AsyncPolicy _jobsResiliencePolicy;
-        private readonly IJobsApiClient _jobs;
+        private readonly IJobManagement _jobs;
 
-        public ApplyTemplateCalculationsJobTrackerFactory(IJobsApiClient jobs,
-            ICalcsResiliencePolicies calculationsResiliencePolicies,
+        public ApplyTemplateCalculationsJobTrackerFactory(IJobManagement jobs,
             ILogger logger)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(jobs, nameof(jobs));
-            Guard.ArgumentNotNull(calculationsResiliencePolicies?.JobsApiClient, nameof(calculationsResiliencePolicies.JobsApiClient));
 
             _logger = logger;
             _jobs = jobs;
-            _jobsResiliencePolicy = calculationsResiliencePolicies.JobsApiClient;
         }
 
         public IApplyTemplateCalculationsJobTracker CreateJobTracker(Message message)
@@ -43,7 +37,6 @@ namespace CalculateFunding.Services.Calcs
 
             return new ApplyTemplateCalculationsJobTracker(jobId,
                 _jobs,
-                _jobsResiliencePolicy,
                 _logger);
         }
     }
