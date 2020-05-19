@@ -80,7 +80,7 @@ namespace CalculateFunding.Api.Policy.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> CreateTemplate(TemplateCreateCommand command)
         {
-            ValidationResult validationResult = _validatorFactory.Validate(command);
+            ValidationResult validationResult = await _validatorFactory.Validate(command);
 
             if (!validationResult.IsValid)
             {
@@ -110,7 +110,7 @@ namespace CalculateFunding.Api.Policy.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> CreateTemplateAsClone(TemplateCreateAsCloneCommand command)
         {
-            ValidationResult validationResult = _validatorFactory.Validate(command);
+            ValidationResult validationResult = await _validatorFactory.Validate(command);
 
             if (!validationResult.IsValid)
             {
@@ -140,7 +140,7 @@ namespace CalculateFunding.Api.Policy.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> UpdateTemplateContent(TemplateContentUpdateCommand command)
         {
-            ValidationResult validationResult = _validatorFactory.Validate(command);
+            ValidationResult validationResult = await _validatorFactory.Validate(command);
 
             if (!validationResult.IsValid)
             {
@@ -170,7 +170,7 @@ namespace CalculateFunding.Api.Policy.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> UpdateTemplateMetadata(TemplateMetadataUpdateCommand command)
         {
-            ValidationResult validationResult = _validatorFactory.Validate(command);
+            ValidationResult validationResult = await _validatorFactory.Validate(command);
 
             if (!validationResult.IsValid)
             {
@@ -215,7 +215,11 @@ namespace CalculateFunding.Api.Policy.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetTemplateVersions(FindTemplateVersionQuery query)
         {
-            ValidationResult validationResult = _validatorFactory.Validate(query);
+            ValidationResult validationResult = await _validatorFactory.Validate(query);
+            if (!validationResult.IsValid)
+            {
+                return validationResult.AsBadRequest();
+            }
 
             IEnumerable<TemplateResponse> templateVersionResponses =
                 await _templateBuilderService.FindVersionsByFundingStreamAndPeriod(query);
@@ -234,7 +238,9 @@ namespace CalculateFunding.Api.Policy.Controllers
             CommandResult response = await _templateBuilderService.ApproveTemplate(author, templateId, comment, version);
 
             if (response.Succeeded)
+            {
                 return Ok(response);
+            }
 
             if (response.ValidationResult != null)
             {

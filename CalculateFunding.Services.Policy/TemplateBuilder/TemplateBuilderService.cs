@@ -117,28 +117,19 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             TemplateCreateCommand command,
             Reference author)
         {
-            ValidationResult validatorResult = _validatorFactory.Validate(command).And(_validatorFactory.Validate(author));
+            ValidationResult validatorResult = await _validatorFactory.Validate(command);
+            validatorResult.Errors.AddRange((await _validatorFactory.Validate(author))?.Errors);
+            
             if (!validatorResult.IsValid)
             {
-                return new CommandResult
-                {
-                    ValidationResult = validatorResult
-                };
+                return CommandResult.ValidationFail(validatorResult);
             }
 
             try
             {
                 if (await _templateRepository.IsTemplateNameInUse(command.Name))
                 {
-                    string validationErrorMessage = $"Template name [{command.Name}] already in use";
-                    _logger.Error(validationErrorMessage);
-                    ValidationResult validationResult = new ValidationResult();
-                    validationResult.Errors.Add(new ValidationFailure(nameof(command.Name), validationErrorMessage));
-                    return new CommandResult
-                    {
-                        ErrorMessage = validationErrorMessage,
-                        ValidationResult = validationResult
-                    };
+                    return CommandResult.ValidationFail(nameof(command.Name), $"Template name [{command.Name}] already in use");
                 }
 
                 if (await _templateRepository.IsFundingStreamAndPeriodInUse(command.FundingStreamId, command.FundingPeriodId))
@@ -147,8 +138,8 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
                         $"Template with FundingStreamId [{command.FundingStreamId}] and FundingPeriodId [{command.FundingPeriodId}] already in use";
                     _logger.Error(validationErrorMessage);
                     ValidationResult validationResult = new ValidationResult();
-                    validationResult.Errors.Add(new ValidationFailure(nameof(command.FundingStreamId), validationErrorMessage));
-                    validationResult.Errors.Add(new ValidationFailure(nameof(command.FundingPeriodId), validationErrorMessage));
+                    validationResult.WithError(nameof(command.FundingPeriodId), validationErrorMessage);
+                    validationResult.WithError(nameof(command.FundingStreamId), validationErrorMessage);
                     return new CommandResult
                     {
                         ErrorMessage = validationErrorMessage,
@@ -210,13 +201,12 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
 
         public async Task<CommandResult> CreateTemplateAsClone(TemplateCreateAsCloneCommand command, Reference author)
         {
-            ValidationResult validatorResult = _validatorFactory.Validate(command).And(_validatorFactory.Validate(author));
+            ValidationResult validatorResult = await _validatorFactory.Validate(command);
+            validatorResult.Errors.AddRange((await _validatorFactory.Validate(author))?.Errors);
+            
             if (!validatorResult.IsValid)
             {
-                return new CommandResult
-                {
-                    ValidationResult = validatorResult
-                };
+                return CommandResult.ValidationFail(validatorResult);
             }
 
             try
@@ -245,15 +235,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
 
                 if (await _templateRepository.IsTemplateNameInUse(command.Name))
                 {
-                    string validationErrorMessage = $"Template name [{command.Name}] already in use";
-                    _logger.Error(validationErrorMessage);
-                    ValidationResult validationResult = new ValidationResult();
-                    validationResult.Errors.Add(new ValidationFailure(nameof(command.Name), validationErrorMessage));
-                    return new CommandResult
-                    {
-                        ErrorMessage = validationErrorMessage,
-                        ValidationResult = validationResult
-                    };
+                    return CommandResult.ValidationFail(nameof(command.Name), $"Template name [{command.Name}] already in use");
                 }
 
                 if (await _templateRepository.IsFundingStreamAndPeriodInUse(command.FundingStreamId, command.FundingPeriodId))
@@ -317,11 +299,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
 
                 string errorMessage = $"Failed to create a new template with name {command.Name} in Cosmos. Status code {(int) result}";
                 _logger.Error(errorMessage);
-
-                return new CommandResult
-                {
-                    ErrorMessage = errorMessage
-                };
+                return CommandResult.Fail(errorMessage);
             }
             catch (Exception ex)
             {
@@ -365,7 +343,9 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
         public async Task<CommandResult> UpdateTemplateContent(TemplateContentUpdateCommand command, Reference author)
         {
             // input parameter validation
-            var validatorResult = _validatorFactory.Validate(command).And(_validatorFactory.Validate(author));
+            ValidationResult validatorResult = await _validatorFactory.Validate(command);
+            validatorResult.Errors.AddRange((await _validatorFactory.Validate(author))?.Errors);
+            
             if (!validatorResult.IsValid)
             {
                 return CommandResult.ValidationFail(validatorResult);
@@ -398,7 +378,9 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
 
         public async Task<CommandResult> UpdateTemplateMetadata(TemplateMetadataUpdateCommand command, Reference author)
         {
-            var validatorResult = _validatorFactory.Validate(command).And(_validatorFactory.Validate(author));
+            ValidationResult validatorResult = await _validatorFactory.Validate(command);
+            validatorResult.Errors.AddRange((await _validatorFactory.Validate(author))?.Errors);
+            
             if (!validatorResult.IsValid)
             {
                 return CommandResult.ValidationFail(validatorResult);
@@ -420,15 +402,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             {
                 if (await _templateRepository.IsTemplateNameInUse(command.Name))
                 {
-                    string validationErrorMessage = $"Template name [{command.Name}] already in use";
-                    _logger.Error(validationErrorMessage);
-                    ValidationResult validationResult = new ValidationResult();
-                    validationResult.Errors.Add(new ValidationFailure(nameof(command.Name), validationErrorMessage));
-                    return new CommandResult
-                    {
-                        ErrorMessage = validationErrorMessage,
-                        ValidationResult = validationResult
-                    };
+                    return CommandResult.ValidationFail(nameof(command.Name), $"Template name [{command.Name}] already in use");
                 }
             }
 

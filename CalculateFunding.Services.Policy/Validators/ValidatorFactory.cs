@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Core.Extensions;
 using FluentValidation;
@@ -45,22 +46,22 @@ namespace CalculateFunding.Services.Policy.Validators
             }
         }
         
-        public void ValidateAndThrow<T>(T model)
+        public async Task ValidateAndThrow<T>(T model)
         {
             Guard.ArgumentNotNull(model, typeof(T).Name);
             var validator = CreateInstance<T>();
             if (validator == null)
                 throw new ArgumentNullException("Please register missing validator for type " + typeof(T).Name);
-            validator.ValidateAndThrow(model);
+            await validator.ValidateAndThrowAsync(model);
         }
 
-        public ValidationResult Validate<T>(T model)
+        public async Task<ValidationResult> Validate<T>(T model)
         {
             Guard.ArgumentNotNull(model, typeof(T).Name);
             var validator = CreateInstance<T>();
             if (validator == null)
                 throw new ArgumentNullException("Please register missing validator for type " + typeof(T).Name);
-            return validator.Validate(model);
+            return await validator.ValidateAsync(model);
         }
     }
 

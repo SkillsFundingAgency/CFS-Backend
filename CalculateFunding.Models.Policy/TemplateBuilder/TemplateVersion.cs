@@ -22,7 +22,7 @@ namespace CalculateFunding.Models.Policy.TemplateBuilder
         /// <summary>
         /// contains template itself in its full JSON glory (theoretically any schema supported)
         /// </summary>
-        [JsonProperty("TemplateJson")]
+        [JsonProperty("templateJson")]
         public string TemplateJson { get; set; }
         
         /// <summary>

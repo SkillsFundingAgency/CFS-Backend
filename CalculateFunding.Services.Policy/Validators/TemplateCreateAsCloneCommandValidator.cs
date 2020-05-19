@@ -1,15 +1,17 @@
-﻿using CalculateFunding.Common.Utility;
-using CalculateFunding.Models.Policy;
+﻿using System;
+using CalculateFunding.Common.Utility;
+using CalculateFunding.Models.Policy.FundingPolicy;
 using CalculateFunding.Models.Policy.TemplateBuilder;
 using CalculateFunding.Services.Policy.Interfaces;
+using CalculateFunding.Models.Policy;
 using FluentValidation;
 using Polly;
 
 namespace CalculateFunding.Services.Policy.Validators
 {
-    public class TemplateCreateCommandValidator : AbstractValidator<TemplateCreateCommand>
+    public class TemplateCreateAsCloneCommandValidator : AbstractValidator<TemplateCreateAsCloneCommand>
     {
-        public TemplateCreateCommandValidator(
+        public TemplateCreateAsCloneCommandValidator(
             IPolicyRepository policyRepository,
             IPolicyResiliencePolicies policyResiliencePolicies)
         {
@@ -17,19 +19,25 @@ namespace CalculateFunding.Services.Policy.Validators
             Guard.ArgumentNotNull(policyResiliencePolicies?.PolicyRepository, nameof(policyResiliencePolicies.PolicyRepository));
 
             AsyncPolicy policyRepositoryPolicy = policyResiliencePolicies.PolicyRepository;
-
-            RuleFor(x => x.Name).NotNull();
+            
+            RuleFor(x => x.CloneFromTemplateId).NotNull();
             RuleFor(x => x.Name).Length(3, 200);
             RuleFor(x => x.Description).Length(0, 1000);
-            
-            
+
             RuleFor(x => x.FundingStreamId)
                 .NotEmpty()
                 .WithMessage("Missing funding stream id")
                 .MustAsync(async (command, propertyValue, context, cancellationToken) =>
                 {
-                    FundingStream fundingStream = await policyRepositoryPolicy.ExecuteAsync(() => policyRepository.GetFundingStreamById(command.FundingStreamId));
-                    return fundingStream != null;
+                    try
+                    {
+                        FundingStream fundingStream = await policyRepositoryPolicy.ExecuteAsync(() => policyRepository.GetFundingStreamById(command.FundingStreamId));
+                        return fundingStream != null;
+                    }
+                    catch (Exception e)
+                    {
+                        return false;
+                    }
                 })
                 .WithMessage("Funding stream id does not exist");
 
@@ -38,8 +46,15 @@ namespace CalculateFunding.Services.Policy.Validators
                 .WithMessage("Missing funding period id")
                 .MustAsync(async (command, propertyValue, context, cancellationToken) =>
                 {
-                    FundingPeriod fundingPeriod = await policyRepositoryPolicy.ExecuteAsync(() => policyRepository.GetFundingPeriodById(command.FundingPeriodId));
-                    return fundingPeriod != null;
+                    try
+                    {
+                        FundingPeriod fundingPeriod = await policyRepositoryPolicy.ExecuteAsync(() => policyRepository.GetFundingPeriodById(command.FundingPeriodId));
+                        return fundingPeriod != null;
+                    }
+                    catch (Exception e)
+                    {
+                        return false;
+                    }
                 })
                 .WithMessage("Funding period id does not exist");
         }
