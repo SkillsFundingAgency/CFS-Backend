@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Web.Mvc;
 using CalculateFunding.Services.Core.Extensions;
 using FluentValidation.Results;
 using ModelStateDictionary = Microsoft.AspNetCore.Mvc.ModelBinding.ModelStateDictionary;
@@ -30,7 +29,7 @@ namespace CalculateFunding.Services.Policy.Models
             };
         }
         
-        public static UpdateTemplateContentResponse ValidationFail(ModelState errors)
+        public static UpdateTemplateContentResponse ValidationFail(string[] errors)
         {
             return new UpdateTemplateContentResponse
             {

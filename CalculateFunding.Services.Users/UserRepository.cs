@@ -20,16 +20,16 @@ namespace CalculateFunding.Services.Users
             _cosmosRepository = cosmosRepository;
         }
 
-        public async Task<ServiceHealth> IsHealthOk()
+        public Task<ServiceHealth> IsHealthOk()
         {
             ServiceHealth health = new ServiceHealth();
 
-            var cosmosHealth = _cosmosRepository.IsHealthOk();
+            (bool Ok, string Message) = _cosmosRepository.IsHealthOk();
 
             health.Name = nameof(UserRepository);
-            health.Dependencies.Add(new DependencyHealth { HealthOk = cosmosHealth.Ok, DependencyName = this.GetType().Name, Message = cosmosHealth.Message });
+            health.Dependencies.Add(new DependencyHealth { HealthOk = Ok, DependencyName = this.GetType().Name, Message = Message });
 
-            return health;
+            return Task.FromResult(health);
         }
 
         public async Task<User> GetUserById(string id)

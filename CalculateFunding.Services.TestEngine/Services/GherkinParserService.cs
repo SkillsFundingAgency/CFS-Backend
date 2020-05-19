@@ -1,5 +1,7 @@
 ﻿using System.Net;
 using System.Threading.Tasks;
+using AutoMapper;
+using CalculateFunding.Common.ApiClient.Calcs;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Gherkin;
@@ -18,25 +20,28 @@ namespace CalculateFunding.Services.TestRunner.Services
     {
         private readonly IGherkinParser _gherkinParser;
         private readonly ILogger _logger;
-        private readonly IBuildProjectRepository _buildProjectRepository;
-        private readonly AsyncPolicy _buildProjectRepositoryPolicy;
+        private readonly ICalculationsApiClient _calcsApiClient;
+        private readonly AsyncPolicy _calcsApiClientPolicy;
+        private readonly IMapper _mapper;
 
         public GherkinParserService(
             IGherkinParser gherkinParser,
             ILogger logger,
-            IBuildProjectRepository buildProjectRepository,
-            ITestRunnerResiliencePolicies resiliencePolicies)
+            ICalculationsApiClient calcsApiClient,
+            ITestRunnerResiliencePolicies resiliencePolicies,
+            IMapper mapper)
         {
-            Guard.ArgumentNotNull(resiliencePolicies?.BuildProjectRepository, nameof(resiliencePolicies.BuildProjectRepository));
+            Guard.ArgumentNotNull(resiliencePolicies?.CalculationsApiClient, nameof(resiliencePolicies.CalculationsApiClient));
             Guard.ArgumentNotNull(gherkinParser, nameof(gherkinParser));
             Guard.ArgumentNotNull(logger, nameof(logger));
-            Guard.ArgumentNotNull(buildProjectRepository, nameof(buildProjectRepository));
+            Guard.ArgumentNotNull(calcsApiClient, nameof(calcsApiClient));
 
             _gherkinParser = gherkinParser;
             _logger = logger;
-            _buildProjectRepository = buildProjectRepository;
+            _calcsApiClient = calcsApiClient;
+            _mapper = mapper;
 
-            _buildProjectRepositoryPolicy = resiliencePolicies.BuildProjectRepository;
+            _calcsApiClientPolicy = resiliencePolicies.CalculationsApiClient;
         }
 
         public async Task<IActionResult> ValidateGherkin(ValidateGherkinRequestModel model)
@@ -59,7 +64,7 @@ namespace CalculateFunding.Services.TestRunner.Services
                 return new BadRequestObjectResult("Null or empty gherkin name provided");
             }
 
-            BuildProject buildProject = await _buildProjectRepositoryPolicy.ExecuteAsync(() => _buildProjectRepository.GetBuildProjectBySpecificationId(model.SpecificationId));
+            BuildProject buildProject = _mapper.Map<BuildProject>(await _calcsApiClientPolicy.ExecuteAsync(() => _calcsApiClient.GetBuildProjectBySpecificationId(model.SpecificationId)));
 
             if (buildProject == null || buildProject.Build == null)
             {

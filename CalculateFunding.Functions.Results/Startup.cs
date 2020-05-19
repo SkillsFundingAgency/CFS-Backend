@@ -29,6 +29,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Polly.Bulkhead;
 using AzureStorage = CalculateFunding.Services.Core.AzureStorage;
+using ServiceCollectionExtensions = CalculateFunding.Services.Core.Extensions.ServiceCollectionExtensions;
 
 [assembly: FunctionsStartup(typeof(CalculateFunding.Functions.Results.Startup))]
 
@@ -142,7 +143,7 @@ namespace CalculateFunding.Functions.Results
 
             builder.AddSingleton<ICancellationTokenProvider, InactiveCancellationTokenProvider>();
 
-            PolicySettings policySettings = builder.GetPolicySettings(config);
+            PolicySettings policySettings = ServiceCollectionExtensions.GetPolicySettings(config);
             ResiliencePolicies resultsResiliencePolicies = CreateResiliencePolicies(policySettings);
 
             builder.AddSingleton<IResultsResiliencePolicies>(resultsResiliencePolicies);

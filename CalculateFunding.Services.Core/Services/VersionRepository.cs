@@ -23,7 +23,7 @@ namespace CalculateFunding.Services.Core.Services
             _cosmosRepository = cosmosRepository;
         }
 
-        public async Task<ServiceHealth> IsHealthOk()
+        public Task<ServiceHealth> IsHealthOk()
         {
             (bool Ok, string Message) = _cosmosRepository.IsHealthOk();
 
@@ -33,7 +33,7 @@ namespace CalculateFunding.Services.Core.Services
             };
             health.Dependencies.Add(new DependencyHealth { HealthOk = Ok, DependencyName = _cosmosRepository.GetType().GetFriendlyName(), Message = Message });
 
-            return health;
+            return Task.FromResult(health);
         }
 
         public async Task<HttpStatusCode> SaveVersion(T newVersion)
@@ -138,8 +138,7 @@ namespace CalculateFunding.Services.Core.Services
                 return currentVersion + 1;
             }
 
-            CosmosDbQuery cosmosDbQuery = null;
-
+            CosmosDbQuery cosmosDbQuery;
             if (string.IsNullOrWhiteSpace(partitionKeyId))
             {
                 string entityId = version.EntityId;

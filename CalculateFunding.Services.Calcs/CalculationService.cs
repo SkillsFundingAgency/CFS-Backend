@@ -1152,7 +1152,7 @@ namespace CalculateFunding.Services.Calcs
 
             if (updateBuildProject)
             {
-                buildProject = await UpdateBuildProject(specificationSummary, calculation.Current.CalculationId);
+                buildProject = await UpdateBuildProject(specificationSummary);
             }
 
             string fundingStreamName = specificationSummary.FundingStreams.FirstOrDefault(_ => _.Id == calculation.FundingStreamId)?.Name;
@@ -1170,7 +1170,7 @@ namespace CalculateFunding.Services.Calcs
             };
         }
 
-        private async Task<BuildProject> UpdateBuildProject(SpecModel.SpecificationSummary specificationSummary, string calculationId = null)
+        private async Task<BuildProject> UpdateBuildProject(SpecModel.SpecificationSummary specificationSummary)
         {
             Task<IEnumerable<Calculation>> calculationsRequest = _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCalculationsBySpecificationId(specificationSummary.Id));
             Task<BuildProject> buildProjectRequest = _buildProjectsService.GetBuildProjectForSpecificationId(specificationSummary.Id);
@@ -1180,11 +1180,11 @@ namespace CalculateFunding.Services.Calcs
             List<Calculation> calculations = new List<Calculation>(calculationsRequest.Result);
             BuildProject buildProject = buildProjectRequest.Result;
 
-            return await UpdateBuildProject(specificationSummary, calculations, calculationId, buildProject);
+            return await UpdateBuildProject(specificationSummary, calculations, buildProject);
         }
                
 
-        private async Task<BuildProject> UpdateBuildProject(SpecModel.SpecificationSummary specificationSummary, IEnumerable<Calculation> calculations, string calculationId, BuildProject buildProject = null)
+        private async Task<BuildProject> UpdateBuildProject(SpecModel.SpecificationSummary specificationSummary, IEnumerable<Calculation> calculations, BuildProject buildProject = null)
         {           
 
             if (buildProject == null)

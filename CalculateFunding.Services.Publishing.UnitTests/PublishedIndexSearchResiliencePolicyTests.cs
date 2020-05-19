@@ -34,7 +34,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             IPublishingResiliencePolicies resiliencePolicies = GenerateTestPolicies();
 
             //Act
-            Func<Task> test = async () => await resiliencePolicies.PublishedIndexSearchResiliencePolicy.ExecuteAsync(async () => CreateValidSearchCloudException());
+            Func<Task> test = async () => await resiliencePolicies.PublishedIndexSearchResiliencePolicy.ExecuteAsync(async () => await CreateValidSearchCloudException());
 
             //Assert          
             test
@@ -56,8 +56,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
         public static IPublishingResiliencePolicies GenerateTestPolicies()
         {
-
-            AsyncPolicy circuitBreakerRequestException = Policy.Handle<Exception>().CircuitBreakerAsync(100, TimeSpan.FromMinutes(1));
 
             return new ResiliencePolicies()
             {

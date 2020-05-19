@@ -51,7 +51,7 @@ namespace CalculateFunding.Services.Jobs
         public async Task<ServiceHealth> IsHealthOk()
         {
             ServiceHealth jobsDefinitionsRepoHealth = await ((IHealthChecker)_jobDefinitionsRepository).IsHealthOk();
-            (bool Ok, string Message) cacheHealth = await _cacheProvider.IsHealthOk();
+            (bool Ok, string Message) = await _cacheProvider.IsHealthOk();
 
             ServiceHealth health = new ServiceHealth
             {
@@ -61,9 +61,9 @@ namespace CalculateFunding.Services.Jobs
             health.Dependencies.AddRange(jobsDefinitionsRepoHealth.Dependencies);
             health.Dependencies.Add(new DependencyHealth
             {
-                HealthOk = cacheHealth.Ok, 
+                HealthOk = Ok, 
                 DependencyName = _cacheProvider.GetType().GetFriendlyName(), 
-                Message = cacheHealth.Message
+                Message = Message
             });
             
             return health;

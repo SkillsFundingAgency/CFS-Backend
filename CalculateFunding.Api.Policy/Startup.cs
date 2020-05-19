@@ -180,9 +180,10 @@ namespace CalculateFunding.Api.Policy
             builder
              .AddSingleton<IPolicyRepository, PolicyRepository>((ctx) =>
              {
-                 CosmosDbSettings cosmosDbSettings = new CosmosDbSettings();
-
-                 cosmosDbSettings.ContainerName = "policy";
+                 CosmosDbSettings cosmosDbSettings = new CosmosDbSettings
+                 {
+                     ContainerName = "policy"
+                 };
 
                  Configuration.Bind("CosmosDbSettings", cosmosDbSettings);
 

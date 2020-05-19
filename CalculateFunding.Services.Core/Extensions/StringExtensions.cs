@@ -15,12 +15,10 @@ namespace System
         [EditorBrowsable(EditorBrowsableState.Advanced)]
         public static string ComputeSHA1Hash(this string text)
         {
-            using (SHA1Managed sha1 = new SHA1Managed())
-            {
-                byte[] hash = sha1.ComputeHash(text.AsUTF8Bytes());
+            using SHA1Managed sha1 = new SHA1Managed();
+            byte[] hash = sha1.ComputeHash(text.AsUTF8Bytes());
 
-                return string.Concat(hash.Select(_ => _.ToString("X2")));
-            }
+            return string.Concat(hash.Select(_ => _.ToString("X2")));
         }
 
         public static int AsInt(this string literal)
@@ -95,16 +93,12 @@ namespace System
 
         public static Stream ToStream(this string text)
         {
-            using (MemoryStream stream = new MemoryStream())
-            {
-                using (StreamWriter writer = new StreamWriter(stream))
-                {
-                    writer.Write(text);
-                    writer.Flush();
-                    stream.Position = 0;
-                    return stream;
-                }
-            }
+            using MemoryStream stream = new MemoryStream();
+            using StreamWriter writer = new StreamWriter(stream);
+            writer.Write(text);
+            writer.Flush();
+            stream.Position = 0;
+            return stream;
         }
 
         public static bool IsBase64(this string base64String)
@@ -135,18 +129,14 @@ namespace System
 
             byte[] zippedBytes;
 
-            using (MemoryStream outputStream = new MemoryStream())
-            {
-                using (GZipStream gZipStream = new GZipStream(outputStream, CompressionMode.Compress, false))
-                {
-                    gZipStream.Write(data, 0, data.Length);
+            using MemoryStream outputStream = new MemoryStream();
+            using GZipStream gZipStream = new GZipStream(outputStream, CompressionMode.Compress, false);
+            gZipStream.Write(data, 0, data.Length);
 
-                    gZipStream.Flush();
+            gZipStream.Flush();
 
-                    outputStream.Flush();
-                    zippedBytes = outputStream.ToArray();
-                }
-            }
+            outputStream.Flush();
+            zippedBytes = outputStream.ToArray();
 
             return zippedBytes;
         }

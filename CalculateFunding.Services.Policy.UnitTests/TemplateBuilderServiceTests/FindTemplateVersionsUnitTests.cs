@@ -21,13 +21,12 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
         [TestClass]
         public class When_i_request_published_versions_of_templates_by_funding_stream_and_period
         {
-            private TemplateBuilderService _service;
-            private ITemplateVersionRepository _templateVersionRepository;
-            private IIoCValidatorFactory _validatorFactory;
-            private IEnumerable<TemplateResponse> _result;
-            private TemplateVersion _templateVersionPrevious;
-            private TemplateVersion _templateVersionCurrent;
-            private Template _template;
+            private readonly TemplateBuilderService _service;
+            private readonly ITemplateVersionRepository _templateVersionRepository;
+            private readonly IEnumerable<TemplateResponse> _result;
+            private readonly TemplateVersion _templateVersionPrevious;
+            private readonly TemplateVersion _templateVersionCurrent;
+            private readonly Template _template;
 
             public When_i_request_published_versions_of_templates_by_funding_stream_and_period()
             {

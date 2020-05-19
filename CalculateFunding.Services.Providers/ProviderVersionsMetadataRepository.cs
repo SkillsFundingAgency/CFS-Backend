@@ -23,7 +23,7 @@ namespace CalculateFunding.Services.Providers
             _repository = cosmosRepository;
         }
 
-        public async Task<ServiceHealth> IsHealthOk()
+        public Task<ServiceHealth> IsHealthOk()
         {
             (bool Ok, string Message) = _repository.IsHealthOk();
 
@@ -38,7 +38,7 @@ namespace CalculateFunding.Services.Providers
                 Message = Message
             });
 
-            return health;
+            return Task.FromResult(health);
         }
 
         public async Task<HttpStatusCode> UpsertProviderVersionByDate(ProviderVersionByDate providerVersionByDate)

@@ -35,6 +35,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Polly.Bulkhead;
 using Serilog;
+using ServiceCollectionExtensions = CalculateFunding.Services.Core.Extensions.ServiceCollectionExtensions;
 
 [assembly: FunctionsStartup(typeof(CalculateFunding.Functions.CalcEngine.Startup))]
 
@@ -196,7 +197,7 @@ namespace CalculateFunding.Functions.CalcEngine
 
             builder.AddFeatureToggling(config);
 
-            PolicySettings policySettings = builder.GetPolicySettings(config);
+            PolicySettings policySettings = ServiceCollectionExtensions.GetPolicySettings(config);
             CalculatorResiliencePolicies calcResiliencePolicies = CreateResiliencePolicies(policySettings);
 
             builder.AddSingleton<ICalculatorResiliencePolicies>(calcResiliencePolicies);

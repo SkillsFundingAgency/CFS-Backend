@@ -110,10 +110,10 @@ namespace CalculateFunding.Generators.Schema10
                         FundingLines = templateMetadataContents.RootFundingLines?.Select(_ => BuildSchemaJsonFundingLines(publishedFundingVersion.ReferenceData, publishedFundingVersion.Calculations, publishedFundingVersion.FundingLines, _, publishedFundingVersion.OrganisationGroupTypeIdentifier, publishedFundingVersion.OrganisationGroupIdentifierValue))
                     },
                     ProviderFundings = publishedFundingVersion.ProviderFundings?.ToArray(),
-                    GroupingReason = publishedFundingVersion.GroupingReason,
-                    StatusChangedDate = publishedFundingVersion.StatusChangedDate,
-                    ExternalPublicationDate = publishedFundingVersion.ExternalPublicationDate,
-                    EarliestPaymentAvailableDate = publishedFundingVersion.EarliestPaymentAvailableDate
+                    publishedFundingVersion.GroupingReason,
+                    publishedFundingVersion.StatusChangedDate,
+                    publishedFundingVersion.ExternalPublicationDate,
+                    publishedFundingVersion.EarliestPaymentAvailableDate
                 }
             };
 

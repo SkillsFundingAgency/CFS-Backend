@@ -40,7 +40,6 @@ namespace CalculateFunding.Services.Providers
         private readonly IMapper _mapper;
         private readonly IFileSystemCache _fileSystemCache;
         private readonly IProviderVersionServiceSettings _providerVersionServiceSettings;
-        private static volatile bool _haveCheckedFileSystemCacheFolder;
         private readonly ISearchRepository<ProvidersIndex> _searchRepository;
 
 
@@ -197,7 +196,7 @@ namespace CalculateFunding.Services.Providers
 
             bool fileSystemCacheEnabled = _providerVersionServiceSettings.IsFileSystemCacheEnabled;
 
-            if (fileSystemCacheEnabled && !_haveCheckedFileSystemCacheFolder)
+            if (fileSystemCacheEnabled)
             {
                 _fileSystemCache.EnsureFoldersExist(ProviderVersionFileSystemCacheKey.Folder);
             }
@@ -207,10 +206,9 @@ namespace CalculateFunding.Services.Providers
 
             if (fileSystemCacheEnabled && _fileSystemCache.Exists(cacheKey))
             {
-                using (Stream cachedStream = _fileSystemCache.Get(cacheKey))
-                {
-                    return GetActionResultForStream(cachedStream, providerVersionId);
-                }
+                using Stream cachedStream = _fileSystemCache.Get(cacheKey);
+
+                return GetActionResultForStream(cachedStream, providerVersionId);
             }
 
             ICloudBlob blob = _blobClient.GetBlockBlobReference(blobName);
@@ -223,15 +221,14 @@ namespace CalculateFunding.Services.Providers
 
             }
 
-            using (Stream blobClientStream = await _blobClient.DownloadToStreamAsync(blob))
+            using Stream blobClientStream = await _blobClient.DownloadToStreamAsync(blob);
+            
+            if (fileSystemCacheEnabled)
             {
-                if (fileSystemCacheEnabled)
-                {
-                    _fileSystemCache.Add(cacheKey, blobClientStream);
-                }
-
-                return GetActionResultForStream(blobClientStream, providerVersionId);
+                _fileSystemCache.Add(cacheKey, blobClientStream);
             }
+
+            return GetActionResultForStream(blobClientStream, providerVersionId);
         }
 
         private IActionResult GetActionResultForStream(Stream stream, string providerVersionId)
@@ -244,22 +241,21 @@ namespace CalculateFunding.Services.Providers
 
             stream.Position = 0;
 
-            using (StreamReader reader = new StreamReader(stream))
+            using StreamReader reader = new StreamReader(stream);
+            
+            string providerVersionString = reader.ReadToEnd();
+
+            if (!string.IsNullOrWhiteSpace(providerVersionString))
             {
-                string providerVersionString = reader.ReadToEnd();
-
-                if (!string.IsNullOrWhiteSpace(providerVersionString))
+                return new ContentResult
                 {
-                    return new ContentResult
-                    {
-                        Content = providerVersionString,
-                        ContentType = "application/json",
-                        StatusCode = (int)HttpStatusCode.OK
-                    };
-                }
-
-                return new NoContentResult();
+                    Content = providerVersionString,
+                    ContentType = "application/json",
+                    StatusCode = (int)HttpStatusCode.OK
+                };
             }
+
+            return new NoContentResult();
         }
 
         public async Task<bool> Exists(string providerVersionId)
@@ -378,10 +374,9 @@ namespace CalculateFunding.Services.Providers
             // convert string to stream
             byte[] byteArray = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(providerVersion));
 
-            using (MemoryStream stream = new MemoryStream(byteArray))
-            {
-                await _blobRepositoryPolicy.ExecuteAsync(() => blob.UploadFromStreamAsync(stream));
-            }
+            using MemoryStream stream = new MemoryStream(byteArray);
+            
+            await _blobRepositoryPolicy.ExecuteAsync(() => blob.UploadFromStreamAsync(stream));
         }
 
         private async Task<IActionResult> UploadProviderVersionValidate(ProviderVersionViewModel providerVersionModel,

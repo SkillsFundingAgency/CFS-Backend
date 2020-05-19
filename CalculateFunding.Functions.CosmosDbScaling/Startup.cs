@@ -239,7 +239,7 @@ namespace CalculateFunding.Functions.CosmosDbScaling
 
             builder.AddSingleton<ICosmosDbScalingResiliencePolicies>(m =>
             {
-                PolicySettings policySettings = builder.GetPolicySettings(config);
+                PolicySettings policySettings = ServiceCollectionExtensions.GetPolicySettings(config);
 
                 AsyncBulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
 

@@ -18,16 +18,16 @@ namespace CalculateFunding.Services.Calcs
             _cosmosRepository = cosmosRepository;
         }
 
-        public async Task<ServiceHealth> IsHealthOk()
+        public Task<ServiceHealth> IsHealthOk()
         {
             ServiceHealth health = new ServiceHealth();
 
-            (bool Ok, string Message) cosmosHealth = _cosmosRepository.IsHealthOk();
+            (bool Ok, string Message) = _cosmosRepository.IsHealthOk();
 
             health.Name = GetType().Name;
-            health.Dependencies.Add(new DependencyHealth { HealthOk = cosmosHealth.Ok, DependencyName = typeof(CosmosRepository).Name, Message = cosmosHealth.Message });
+            health.Dependencies.Add(new DependencyHealth { HealthOk = Ok, DependencyName = typeof(CosmosRepository).Name, Message = Message });
 
-            return health;
+            return Task.FromResult(health);
         }
 
         public async Task<BuildProject> GetBuildProjectBySpecificationId(string specificiationId)

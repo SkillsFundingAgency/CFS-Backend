@@ -45,7 +45,6 @@ namespace CalculateFunding.Services.Providers
         private readonly IProviderVersionService _providerVersionService;
         private readonly IMapper _mapper;
         private readonly IScopedProvidersServiceSettings _scopedProvidersServiceSettings;
-        private static volatile bool _haveCheckedFileSystemCacheFolder;
         private readonly IFileSystemCache _fileSystemCache;
         private readonly IJobsApiClient _jobsApiClient;
         private readonly IJobManagement _jobManagement;
@@ -219,7 +218,7 @@ namespace CalculateFunding.Services.Providers
         {
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
             
-            return new OkObjectResult(await RegenerateScopedProvidersForSpecification(specificationId, setCachedProviders, correlationId, user));
+            return new OkObjectResult(await RegenerateScopedProvidersForSpecification(specificationId, setCachedProviders));
         }
 
         public async Task<IActionResult> FetchCoreProviderData(string specificationId)
@@ -228,7 +227,7 @@ namespace CalculateFunding.Services.Providers
 
             bool fileSystemCacheEnabled = _scopedProvidersServiceSettings.IsFileSystemCacheEnabled;
 
-            if (fileSystemCacheEnabled && !_haveCheckedFileSystemCacheFolder)
+            if (fileSystemCacheEnabled)
             {
                 _fileSystemCache.EnsureFoldersExist(ScopedProvidersFileSystemCacheKey.Folder);
             }
@@ -246,10 +245,8 @@ namespace CalculateFunding.Services.Providers
 
             if (fileSystemCacheEnabled && _fileSystemCache.Exists(cacheKey))
             {
-                using (Stream cachedStream = _fileSystemCache.Get(cacheKey))
-                {
-                    return GetActionResultForStream(cachedStream, specificationId);
-                }
+                using Stream cachedStream = _fileSystemCache.Get(cacheKey);
+                return GetActionResultForStream(cachedStream, specificationId);
             }
 
             IEnumerable<ProviderSummary> providerSummaries = await this.GetScopedProvidersForSpecification(specificationId);
@@ -258,17 +255,17 @@ namespace CalculateFunding.Services.Providers
                 return new NoContentResult();
             }
 
-            using (MemoryStream stream = new MemoryStream(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(providerSummaries))))
+            using MemoryStream stream = new MemoryStream(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(providerSummaries)))
             {
-                stream.Position = 0;
+                Position = 0
+            };
 
-                if (fileSystemCacheEnabled)
-                {
-                    _fileSystemCache.Add(cacheKey, stream);
-                }
-
-                return GetActionResultForStream(stream, specificationId);
+            if (fileSystemCacheEnabled)
+            {
+                _fileSystemCache.Add(cacheKey, stream);
             }
+
+            return GetActionResultForStream(stream, specificationId);
         }
 
         public async Task<IActionResult> GetScopedProviderIds(string specificationId)
@@ -310,7 +307,7 @@ namespace CalculateFunding.Services.Providers
             return await _cacheProvider.ListRangeAsync<ProviderSummary>(cacheKeyScopedListCacheKey, 0, (int)scopedProviderRedisListCount);
         }
 
-        private async Task<bool> RegenerateScopedProvidersForSpecification(string specificationId, bool setCachedProviders, string correlationId, Reference user)
+        private async Task<bool> RegenerateScopedProvidersForSpecification(string specificationId, bool setCachedProviders)
         {
             string scopedProviderSummariesCountCacheKey = $"{CacheKeys.ScopedProviderSummariesCount}{specificationId}";
             string currentProviderCount = await _cacheProvider.GetAsync<string>(scopedProviderSummariesCountCacheKey);
@@ -361,22 +358,20 @@ namespace CalculateFunding.Services.Providers
 
             stream.Position = 0;
 
-            using (StreamReader reader = new StreamReader(stream))
+            using StreamReader reader = new StreamReader(stream);
+            string providerVersionString = reader.ReadToEnd();
+
+            if (!string.IsNullOrWhiteSpace(providerVersionString))
             {
-                string providerVersionString = reader.ReadToEnd();
-
-                if (!string.IsNullOrWhiteSpace(providerVersionString))
+                return new ContentResult
                 {
-                    return new ContentResult
-                    {
-                        Content = providerVersionString,
-                        ContentType = "application/json",
-                        StatusCode = (int)HttpStatusCode.OK
-                    };
-                }
-
-                return new NoContentResult();
+                    Content = providerVersionString,
+                    ContentType = "application/json",
+                    StatusCode = (int)HttpStatusCode.OK
+                };
             }
+
+            return new NoContentResult();
         }
     }
 }

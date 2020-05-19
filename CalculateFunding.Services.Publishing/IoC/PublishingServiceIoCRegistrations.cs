@@ -57,7 +57,7 @@ namespace CalculateFunding.Services.Publishing.IoC
             serviceCollection.AddSingleton<IDeselectSpecificationForFundingService, DeselectSpecificationForFundingService>();
             serviceCollection.AddSingleton<IDeletePublishedFundingBlobDocumentsService, DeletePublishedFundingBlobDocumentsService>();
 
-            PolicySettings policySettings = serviceCollection.GetPolicySettings(configuration);
+            PolicySettings policySettings = ServiceCollectionExtensions.GetPolicySettings(configuration);
             OrganisationGroupResiliencePolicies organisationResiliencePolicies = CreateResiliencePolicies(policySettings);
 
             serviceCollection.AddSingleton<IOrganisationGroupResiliencePolicies>(organisationResiliencePolicies);

@@ -4,7 +4,6 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
-using System.Web.Mvc;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.TemplateMetadata;
 using CalculateFunding.Common.TemplateMetadata.Models;
@@ -17,8 +16,10 @@ using CalculateFunding.Services.Policy.Models;
 using CalculateFunding.Services.Policy.UnitTests;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
+using FluentValidation.Results;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
@@ -83,8 +84,8 @@ namespace CalculateFunding.Services.Policy
             const string template = "a template";
 
             FundingTemplateValidationResult validationResult = new FundingTemplateValidationResult();
-            validationResult.ValidationState.Errors.Add("an error");
-            validationResult.ValidationState.Errors.Add("another error");
+            validationResult.Errors.Add(new ValidationFailure("prop1", "an error"));
+            validationResult.Errors.Add(new ValidationFailure("prop2", "another error"));
 
             IFundingTemplateValidationService fundingTemplateValidationService = CreateFundingTemplateValidationService();
             fundingTemplateValidationService
@@ -103,10 +104,19 @@ namespace CalculateFunding.Services.Policy
 
             BadRequestObjectResult badRequestObjectResult = result as BadRequestObjectResult;
 
-            ModelState validationState = badRequestObjectResult.Value as ModelState;
+            badRequestObjectResult
+                .Value
+                .Should()
+                .BeOfType<SerializableError>();
 
-            validationState
-                .Errors
+            SerializableError modelState = badRequestObjectResult.Value as SerializableError;
+
+            modelState
+                .Should()
+                .NotBeNull();
+
+            modelState
+                .Values
                 .Should()
                 .HaveCount(2);
         }
@@ -181,8 +191,6 @@ namespace CalculateFunding.Services.Policy
             };
 
             string cacheKey = $"{CacheKeys.FundingTemplatePrefix}{validationResult.FundingStreamId}-{validationResult.TemplateVersion}".ToLowerInvariant();
-
-            string blobName = $"{validationResult.FundingStreamId}/{validationResult.TemplateVersion}.json";
 
             ITemplateMetadataResolver templateMetadataResolver = CreateMetadataResolver("1.0");
 
@@ -261,10 +269,6 @@ namespace CalculateFunding.Services.Policy
                 FundingStreamId = "PES",
                 SchemaVersion = "1.0",
             };
-
-            string cacheKey = $"{CacheKeys.FundingTemplatePrefix}{validationResult.FundingStreamId}-{validationResult.TemplateVersion}";
-
-            string blobName = $"{validationResult.FundingStreamId}/{validationResult.TemplateVersion}.json";
 
             ITemplateMetadataResolver templateMetadataResolver = CreateMetadataResolver("1.0");
 
@@ -614,12 +618,10 @@ namespace CalculateFunding.Services.Policy
         {
             Assembly assembly = Assembly.GetExecutingAssembly();
 
-            using (Stream stream = assembly.GetManifestResourceStream(resourceName))
-            {
-                StreamReader reader = new StreamReader(stream);
+            using Stream stream = assembly.GetManifestResourceStream(resourceName);
+            StreamReader reader = new StreamReader(stream);
 
-                return reader.ReadToEnd();
-            }
+            return reader.ReadToEnd();
         }
 
         private static ITemplateMetadataGenerator CreateMetadataGenerator()

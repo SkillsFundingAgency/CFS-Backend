@@ -63,10 +63,8 @@ namespace CalculateFunding.Api.External.V3.Services
 
                 if (_cacheSettings.IsEnabled && _fileSystemCache.Exists(cacheKey))
                 {
-                    using (Stream cachedStream = _fileSystemCache.Get(cacheKey))
-                    {
-                        return await GetContentResultForStream(cachedStream);
-                    }
+                    using Stream cachedStream = _fileSystemCache.Get(cacheKey);
+                    return await GetContentResultForStream(cachedStream);
                 }
 
                 bool exists = await _blobClientPolicy.ExecuteAsync(() => _blobClient.BlobExistsAsync(blobName));
@@ -80,15 +78,14 @@ namespace CalculateFunding.Api.External.V3.Services
 
                 ICloudBlob blob = await _blobClientPolicy.ExecuteAsync(() => _blobClient.GetBlobReferenceFromServerAsync(blobName));
 
-                using (Stream blobStream = await _blobClientPolicy.ExecuteAsync(() => _blobClient.DownloadToStreamAsync(blob)))
+                using Stream blobStream = await _blobClientPolicy.ExecuteAsync(() => _blobClient.DownloadToStreamAsync(blob));
+                
+                if (_cacheSettings.IsEnabled)
                 {
-                    if (_cacheSettings.IsEnabled)
-                    {
-                        _fileSystemCache.Add(cacheKey, blobStream);
-                    }
-
-                    return await GetContentResultForStream(blobStream);
+                    _fileSystemCache.Add(cacheKey, blobStream);
                 }
+
+                return await GetContentResultForStream(blobStream);
             }
             catch (Exception ex)
             {
@@ -111,29 +108,28 @@ namespace CalculateFunding.Api.External.V3.Services
         {
             stream.Position = 0;
 
-            using (StreamReader streamReader = new StreamReader(stream))
-            {
-                string template = await streamReader.ReadToEndAsync();
+            using StreamReader streamReader = new StreamReader(stream);
+            
+            string template = await streamReader.ReadToEndAsync();
 
-                return new ContentResult
-                {
-                    Content = template,
-                    ContentType = "application/json",
-                    StatusCode = (int)HttpStatusCode.OK
-                };
-            }
+            return new ContentResult
+            {
+                Content = template,
+                ContentType = "application/json",
+                StatusCode = (int)HttpStatusCode.OK
+            };
         }
 
         public async Task<ServiceHealth> IsHealthOk()
         {
-            (bool Ok, string Message) blobHealth = await _blobClient.IsHealthOk();
+            (bool Ok, string Message) = await _blobClient.IsHealthOk();
 
             ServiceHealth health = new ServiceHealth()
             {
                 Name = nameof(ProviderFundingVersionService),
                 Dependencies =
                 {
-                    new DependencyHealth { HealthOk = blobHealth.Ok, DependencyName = _blobClient.GetType().GetFriendlyName(), Message = blobHealth.Message },
+                    new DependencyHealth { HealthOk = Ok, DependencyName = _blobClient.GetType().GetFriendlyName(), Message = Message },
                 }
             };
 

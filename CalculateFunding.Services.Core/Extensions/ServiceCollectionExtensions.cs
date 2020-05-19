@@ -227,7 +227,7 @@ namespace CalculateFunding.Services.Core.Extensions
                 new ServiceNameLogEnricher(serviceName)
             })
             .Enrich.FromLogContext()
-            .WriteTo.ApplicationInsights(TelemetryConfiguration.Active, TelemetryConverter.Traces);
+            .WriteTo.ApplicationInsights(TelemetryConverter.Traces);
         }
 
         public static IServiceCollection AddCaching(this IServiceCollection builder, IConfiguration config)
@@ -293,14 +293,14 @@ namespace CalculateFunding.Services.Core.Extensions
 
         public static IServiceCollection AddPolicySettings(this IServiceCollection builder, IConfiguration config)
         {
-            PolicySettings policySettings = GetPolicySettings(builder, config);
+            PolicySettings policySettings = GetPolicySettings(config);
 
             builder.AddSingleton<PolicySettings>(policySettings);
 
             return builder;
         }
 
-        public static PolicySettings GetPolicySettings(this IServiceCollection builder, IConfiguration config)
+        public static PolicySettings GetPolicySettings(IConfiguration config)
         {
             PolicySettings policySettings = new PolicySettings();
 
@@ -309,7 +309,7 @@ namespace CalculateFunding.Services.Core.Extensions
             return policySettings;
         }
 
-        public static IFeatureToggle CreateFeatureToggles(this IServiceCollection builder, IConfiguration config)
+        public static IFeatureToggle CreateFeatureToggles(IConfiguration config)
         {
             IConfigurationSection featuresConfig = config.GetSection("features");
             return new Features(featuresConfig);
@@ -331,8 +331,6 @@ namespace CalculateFunding.Services.Core.Extensions
             {
                 baseAddress = $"{baseAddress}/";
             }
-
-            IServiceProvider serviceProvider = services.BuildServiceProvider();
 
             httpClient.BaseAddress = new Uri(baseAddress, UriKind.Absolute);
             httpClient.DefaultRequestHeaders?.Add("Ocp-Apim-Subscription-Key", options.ApiKey);

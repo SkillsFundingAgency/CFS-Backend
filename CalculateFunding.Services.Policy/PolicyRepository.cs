@@ -24,7 +24,7 @@ namespace CalculateFunding.Services.Policy
             _cosmosRepository = cosmosRepository;
         }
 
-        public async Task<ServiceHealth> IsHealthOk()
+        public Task<ServiceHealth> IsHealthOk()
         {
             var (Ok, Message) = _cosmosRepository.IsHealthOk();
 
@@ -35,7 +35,7 @@ namespace CalculateFunding.Services.Policy
 
             health.Dependencies.Add(new DependencyHealth { HealthOk = Ok, DependencyName = _cosmosRepository.GetType().GetFriendlyName(), Message = Message });
 
-            return health;
+            return Task.FromResult(health);
         }
 
         public async Task<FundingStream> GetFundingStreamById(string fundingStreamId)

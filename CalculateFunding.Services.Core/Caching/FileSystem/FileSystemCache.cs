@@ -119,7 +119,7 @@ namespace CalculateFunding.Services.Core.Caching.FileSystem
                         .GetResult();
                 }
             }
-            catch (IOException ioException) when (_fileSystemAccess.Exists(cachePathForKey))
+            catch (IOException) when (_fileSystemAccess.Exists(cachePathForKey))
             {
                 _logger.Warning("Detected file collision for CachePathForKey(key). Swallowing exception");
             }

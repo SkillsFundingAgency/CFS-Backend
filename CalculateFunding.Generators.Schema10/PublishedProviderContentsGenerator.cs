@@ -81,8 +81,10 @@ namespace CalculateFunding.Generators.Schema10
                 publishedProviderVersion.Predecessors
             };
 
-            JsonSerializerSettings serializerSettings = new JsonSerializerSettings();
-            serializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
+            JsonSerializerSettings serializerSettings = new JsonSerializerSettings
+            {
+                ContractResolver = new CamelCasePropertyNamesContractResolver()
+            };
 
             return JsonConvert.SerializeObject(contents, serializerSettings);
         }

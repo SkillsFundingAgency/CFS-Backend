@@ -19,7 +19,7 @@ namespace CalculateFunding.Services.Results.Repositories
             _cosmosRepository = cosmosRepository;
         }
 
-        public async Task<ServiceHealth> IsHealthOk()
+        public Task<ServiceHealth> IsHealthOk()
         {
             (bool Ok, string Message) = _cosmosRepository.IsHealthOk();
 
@@ -29,7 +29,7 @@ namespace CalculateFunding.Services.Results.Repositories
             };
             health.Dependencies.Add(new DependencyHealth { HealthOk = Ok, DependencyName = _cosmosRepository.GetType().GetFriendlyName(), Message = Message });
 
-            return health;
+            return Task.FromResult(health);
         }
 
         public Task<IEnumerable<ProviderSourceDataset>> GetProviderSourceDatasets(string providerId, string specificationId)

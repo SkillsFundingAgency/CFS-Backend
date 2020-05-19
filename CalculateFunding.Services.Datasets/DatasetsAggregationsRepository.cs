@@ -17,16 +17,16 @@ namespace CalculateFunding.Services.Datasets
             _cosmosRepository = cosmosRepository;
         }
 
-        public async Task<ServiceHealth> IsHealthOk()
+        public Task<ServiceHealth> IsHealthOk()
         {
             ServiceHealth health = new ServiceHealth();
 
-            var cosmosHealth = _cosmosRepository.IsHealthOk();
+            var (Ok, Message) = _cosmosRepository.IsHealthOk();
 
             health.Name = nameof(DatasetsAggregationsRepository);
-            health.Dependencies.Add(new DependencyHealth { HealthOk = cosmosHealth.Ok, DependencyName = this.GetType().Name, Message = cosmosHealth.Message });
+            health.Dependencies.Add(new DependencyHealth { HealthOk = Ok, DependencyName = this.GetType().Name, Message = Message });
 
-            return health;
+            return Task.FromResult(health);
         }
 
         public async Task CreateDatasetAggregations(DatasetAggregations datasetAggregations)

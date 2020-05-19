@@ -36,11 +36,6 @@ namespace CalculateFunding.Functions.Specs.UnitTests
             return configData;
         }
 
-        protected override void AddExtraRegistrations()
-        {
-            ServiceCollection.AddSingleton(Substitute.For<IHostingEnvironment>());
-        }
-
         protected override Assembly EntryAssembly => typeof(OnDeleteSpecifications).Assembly;
 
         protected override void RegisterDependencies()

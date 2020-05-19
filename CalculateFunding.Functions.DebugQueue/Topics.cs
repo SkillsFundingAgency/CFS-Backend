@@ -158,22 +158,18 @@ namespace CalculateFunding.Functions.DebugQueue
                 {
                     if (jobNotification.CompletionStatus == CompletionStatus.Succeeded && jobNotification.JobType == JobConstants.DefinitionNames.CreateInstructGenerateAggregationsAllocationJob)
                     {
-                        using (IServiceScope scope = Functions.Calcs.Startup.RegisterComponents(new ServiceCollection()).CreateScope())
-                        {
-                            OnCalculationAggregationsJobCompleted function = scope.ServiceProvider.GetService<OnCalculationAggregationsJobCompleted>();
+                    using IServiceScope scope = Functions.Calcs.Startup.RegisterComponents(new ServiceCollection()).CreateScope();
+                    OnCalculationAggregationsJobCompleted function = scope.ServiceProvider.GetService<OnCalculationAggregationsJobCompleted>();
 
-                            await function.Run(message);
-                        }
-                    }
+                    await function.Run(message);
+                }
                     else
                     {
-                        using (IServiceScope scope = Jobs.Startup.RegisterComponents(new ServiceCollection()).CreateScope())
-                        {
-                            Jobs.ServiceBus.OnJobNotification function = scope.ServiceProvider.GetService<Jobs.ServiceBus.OnJobNotification>();
+                    using IServiceScope scope = Jobs.Startup.RegisterComponents(new ServiceCollection()).CreateScope();
+                    Jobs.ServiceBus.OnJobNotification function = scope.ServiceProvider.GetService<Jobs.ServiceBus.OnJobNotification>();
 
-                            await function.Run(message);
-                        }
-                    }
+                    await function.Run(message);
+                }
                 }
                 catch (Exception ex)
                 {

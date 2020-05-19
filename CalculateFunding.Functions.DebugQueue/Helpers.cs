@@ -19,18 +19,12 @@ namespace CalculateFunding.Functions.DebugQueue
             {
                 byte[] zippedBytes = Convert.FromBase64String(body);
 
-                using (MemoryStream inputStream = new MemoryStream(zippedBytes))
-                {
-                    using (GZipStream gZipStream = new GZipStream(inputStream, CompressionMode.Decompress))
-                    {
-                        using (StreamReader streamReader = new StreamReader(gZipStream))
-                        {
-                            string decompressed = streamReader.ReadToEnd();
+                using MemoryStream inputStream = new MemoryStream(zippedBytes);
+                using GZipStream gZipStream = new GZipStream(inputStream, CompressionMode.Decompress);
+                using StreamReader streamReader = new StreamReader(gZipStream);
+                string decompressed = streamReader.ReadToEnd();
 
-                            queueMessage = JsonConvert.DeserializeObject<QueueMessage<T>>(decompressed);
-                        }
-                    }
-                }
+                queueMessage = JsonConvert.DeserializeObject<QueueMessage<T>>(decompressed);
             }
             else
             {

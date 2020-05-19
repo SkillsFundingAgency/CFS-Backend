@@ -10,10 +10,7 @@ using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Specs.Interfaces;
 using FluentAssertions;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Internal;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Primitives;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
@@ -23,7 +20,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
     public partial class SpecificationsServiceTests
     {
         [TestMethod]
-        public async Task SelectSpecificationForFunding_GivenNoFundingPeriodOnSpecification_ThrowsException()
+        public void SelectSpecificationForFunding_GivenNoFundingPeriodOnSpecification_ThrowsException()
         {
             ILogger logger = CreateLogger();
             Specification specification = CreateSpecification();

@@ -49,9 +49,9 @@ namespace CalculateFunding.Services.Publishing.Repositories
             return tasks.Select(_ => _.Result);
         }
 
-        public async Task<ServiceHealth> IsHealthOk()
+        public Task<ServiceHealth> IsHealthOk()
         {
-            (bool Ok, string Message) cosmosRepoHealth = _repository.IsHealthOk();
+            (bool Ok, string Message) = _repository.IsHealthOk();
 
             ServiceHealth health = new ServiceHealth
             {
@@ -60,12 +60,12 @@ namespace CalculateFunding.Services.Publishing.Repositories
 
             health.Dependencies.Add(new DependencyHealth
             {
-                HealthOk = cosmosRepoHealth.Ok,
+                HealthOk = Ok,
                 DependencyName = _repository.GetType().GetFriendlyName(),
-                Message = cosmosRepoHealth.Message
+                Message = Message
             });
 
-            return health;
+            return Task.FromResult(health);
         }
 
         public async Task<IEnumerable<dynamic>> GetFundings(string publishedProviderVersion)
@@ -703,9 +703,8 @@ namespace CalculateFunding.Services.Publishing.Repositories
 
             StringBuilder additionalFilter = new StringBuilder();
             
-            List<CosmosDbQueryParameter> cosmosDbQueryParameters = new List<CosmosDbQueryParameter>();
-            cosmosDbQueryParameters.Add(new CosmosDbQueryParameter("@specificationId", specificationId));
-
+            List<CosmosDbQueryParameter> cosmosDbQueryParameters = new List<CosmosDbQueryParameter> { new CosmosDbQueryParameter("@specificationId", specificationId) };
+            
             if (!string.IsNullOrWhiteSpace(providerType))
             {
                 additionalFilter.Append($" and f.content.current.provider.providerType = @providerType ");
@@ -728,7 +727,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
             {
                 QueryText = $@"SELECT COUNT(1) AS count, f.content.current.fundingStreamId, f.content.current.status, SUM(f.content.current.totalFunding) AS totalFundingSum
                                 FROM f
-                                where f.documentType = 'PublishedProvider' and f.content.current.specificationId = @specificationId and f.deleted = false {additionalFilter.ToString()}
+                                where f.documentType = 'PublishedProvider' and f.content.current.specificationId = @specificationId and f.deleted = false {additionalFilter}
                                 GROUP BY f.content.current.fundingStreamId, f.content.current.status",
                 Parameters = cosmosDbQueryParameters
             };

@@ -45,6 +45,7 @@ using Microsoft.FeatureManagement;
 using Microsoft.OpenApi.Models;
 using Polly;
 using Polly.Bulkhead;
+using ServiceCollectionExtensions = CalculateFunding.Services.Core.Extensions.ServiceCollectionExtensions;
 
 namespace CalculateFunding.Api.Calcs
 {
@@ -272,7 +273,7 @@ namespace CalculateFunding.Api.Calcs
 
             builder.AddFeatureToggling(Configuration);
 
-            PolicySettings policySettings = builder.GetPolicySettings(Configuration);
+            PolicySettings policySettings = ServiceCollectionExtensions.GetPolicySettings(Configuration);
             AsyncBulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
 
             ResiliencePolicies resiliencePolicies = CreateResiliencePolicies(totalNetworkRequestsPolicy);

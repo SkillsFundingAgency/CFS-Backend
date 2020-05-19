@@ -29,7 +29,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
         public async Task TracksConfiguredPropertiesForVariationReasons(ProviderVariationContext variationContext,
             VariationReason[] expectedVariationReasons)
         {
-            expectedVariationReasons = expectedVariationReasons ?? new VariationReason[0];
+            expectedVariationReasons ??= new VariationReason[0];
             
             await _metadataVariationStrategy.DetermineVariations(variationContext, null);
 

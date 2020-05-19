@@ -27,8 +27,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private ILogger _logger;
         private RefreshPrerequisiteChecker _refreshPrerequisiteChecker;
 
-        private IEnumerable<string> _validationErrors;
-
         [TestInitialize]
         public void SetUp()
         {

@@ -7,6 +7,7 @@ using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Policy;
 using CalculateFunding.Services.Policy.Interfaces;
 using CalculateFunding.Services.Policy.Models;
+using FluentValidation.Results;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Schema;
@@ -71,7 +72,7 @@ namespace CalculateFunding.Services.Policy
             }
             catch (JsonReaderException jre)
             {
-                fundingTemplateValidationResult.ValidationState.Errors.Add(jre.Message);
+                fundingTemplateValidationResult.Errors.Add(new ValidationFailure("", jre.Message));
 
                 return fundingTemplateValidationResult;
             }
@@ -79,7 +80,7 @@ namespace CalculateFunding.Services.Policy
             if (parsedFundingTemplate["schemaVersion"] == null ||
                 string.IsNullOrWhiteSpace(parsedFundingTemplate["schemaVersion"].Value<string>()))
             {
-                fundingTemplateValidationResult.ValidationState.Errors.Add("Missing schema version from funding template.");
+                fundingTemplateValidationResult.Errors.Add(new ValidationFailure("", "Missing schema version from funding template."));
 
                 return fundingTemplateValidationResult;
             }
@@ -93,8 +94,8 @@ namespace CalculateFunding.Services.Policy
 
             if (!schemaExists)
             {
-                fundingTemplateValidationResult.ValidationState.Errors.Add(
-                    $"A valid schema could not be found for schema version '{schemaVersion}'.");
+                fundingTemplateValidationResult.Errors.Add(new ValidationFailure("",
+                    $"A valid schema could not be found for schema version '{schemaVersion}'."));
 
                 return fundingTemplateValidationResult;
             }
@@ -125,7 +126,7 @@ namespace CalculateFunding.Services.Policy
             {
                 foreach (string message in validationMessages)
                 {
-                    fundingTemplateValidationResult.ValidationState.Errors.Add(message);
+                    fundingTemplateValidationResult.Errors.Add(new ValidationFailure("", message));
                 }
             }
         }
@@ -136,7 +137,7 @@ namespace CalculateFunding.Services.Policy
             var fundingStreamCode = parsedFundingTemplate.SelectToken("$..fundingStream.code")?.Value<string>();
             if (fundingStreamCode.IsNullOrEmpty())
             {
-                fundingTemplateValidationResult.ValidationState.Errors.Add("Funding stream id is missing from the template");
+                fundingTemplateValidationResult.Errors.Add(new ValidationFailure("", "Funding stream id is missing from the template"));
             }
             else
             {
@@ -147,8 +148,8 @@ namespace CalculateFunding.Services.Policy
 
                 if (fundingStream == null)
                 {
-                    fundingTemplateValidationResult.ValidationState.Errors
-                        .Add($"A funding stream could not be found for funding stream id '{fundingTemplateValidationResult.FundingStreamId}'");
+                    fundingTemplateValidationResult.Errors
+                        .Add(new ValidationFailure("", $"A funding stream could not be found for funding stream id '{fundingTemplateValidationResult.FundingStreamId}'"));
                 }
             }
 
@@ -156,7 +157,7 @@ namespace CalculateFunding.Services.Policy
 
             if (templateVersion.IsNullOrEmpty())
             {
-                fundingTemplateValidationResult.ValidationState.Errors.Add("Funding template version is missing from the template");
+                fundingTemplateValidationResult.Errors.Add(new ValidationFailure("", "Funding template version is missing from the template"));
             }
             else
             {
@@ -167,7 +168,7 @@ namespace CalculateFunding.Services.Policy
 
             if (schemaVersionToken.IsNullOrEmpty())
             {
-                fundingTemplateValidationResult.ValidationState.Errors.Add("No schemaVersion property found");
+                fundingTemplateValidationResult.Errors.Add(new ValidationFailure("", "No schemaVersion property found"));
             }
             else
             {

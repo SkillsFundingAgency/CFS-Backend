@@ -6,7 +6,7 @@ namespace CalculateFunding.Models.Providers
     public class ProviderVersionByDate : ProviderVersionMetadata, IIdentifiable
     {
         [JsonProperty("id")]
-        public string Id { get; set; }
+        public new string Id { get; set; }
 
         [JsonProperty("day")]
         public int Day { get; set; }

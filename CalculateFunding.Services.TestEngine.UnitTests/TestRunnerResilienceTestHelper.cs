@@ -9,7 +9,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
         {
             return new ResiliencePolicies()
             {
-                BuildProjectRepository = Policy.NoOpAsync(),
+                CalculationsApiClient = Policy.NoOpAsync(),
                 CacheProviderRepository = Policy.NoOpAsync(),
                 ProviderResultsRepository = Policy.NoOpAsync(),
                 ProviderSourceDatasetsRepository = Policy.NoOpAsync(),

@@ -71,13 +71,13 @@ namespace CalculateFunding.Services.Publishing
 
         public async Task<ServiceHealth> IsHealthOk()
         {
-            var searchRepoHealth = await SearchRepository.IsHealthOk();
+            (bool Ok, string Message) = await SearchRepository.IsHealthOk();
 
             ServiceHealth health = new ServiceHealth()
             {
                 Name = nameof(PublishedSearchService)
             };
-            health.Dependencies.Add(new DependencyHealth { HealthOk = searchRepoHealth.Ok, DependencyName = SearchRepository.GetType().GetFriendlyName(), Message = searchRepoHealth.Message });
+            health.Dependencies.Add(new DependencyHealth { HealthOk = Ok, DependencyName = SearchRepository.GetType().GetFriendlyName(), Message = Message });
 
             return health;
         }

@@ -7,7 +7,7 @@ namespace CalculateFunding.Models.Providers
     public class ProviderVersion: ProviderVersionMetadata, IIdentifiable
     {
         [JsonProperty("id")]
-        public string Id { get; set; }
+        public new string Id { get; set; }
 
         [JsonProperty("providers")]
         public IEnumerable<Provider> Providers { get; set; }

@@ -40,14 +40,14 @@ namespace CalculateFunding.Services.Users
         public async Task<ServiceHealth> IsHealthOk()
         {
             ServiceHealth userRepoHealth = await ((IHealthChecker)_userRepository).IsHealthOk();
-            var cacheHealth = await _cacheProvider.IsHealthOk();
+            (bool Ok, string Message) = await _cacheProvider.IsHealthOk();
 
             ServiceHealth health = new ServiceHealth()
             {
                 Name = nameof(UserService)
             };
             health.Dependencies.AddRange(userRepoHealth.Dependencies);
-            health.Dependencies.Add(new DependencyHealth { HealthOk = cacheHealth.Ok, DependencyName = _cacheProvider.GetType().GetFriendlyName(), Message = cacheHealth.Message });
+            health.Dependencies.Add(new DependencyHealth { HealthOk = Ok, DependencyName = _cacheProvider.GetType().GetFriendlyName(), Message = Message });
 
             return health;
         }
@@ -113,7 +113,7 @@ namespace CalculateFunding.Services.Users
 
             if (!statusCode.IsSuccess())
             {
-                _logger.Error($"Failed to confirm skills in database with status code: {statusCode.ToString()}");
+                _logger.Error($"Failed to confirm skills in database with status code: {statusCode}");
 
                 return new InternalServerErrorResult("Failed to confirm skills");
             }

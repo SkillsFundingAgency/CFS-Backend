@@ -34,7 +34,7 @@ namespace CalculateFunding.Services.TestRunner.Repositories
             _engineSettings = engineSettings;
         }
 
-        public async Task<ServiceHealth> IsHealthOk()
+        public Task<ServiceHealth> IsHealthOk()
         {
             ServiceHealth health = new ServiceHealth();
 
@@ -43,7 +43,7 @@ namespace CalculateFunding.Services.TestRunner.Repositories
             health.Name = nameof(TestResultsRepository);
             health.Dependencies.Add(new DependencyHealth { HealthOk = Ok, DependencyName = GetType().Name, Message = Message });
 
-            return health;
+            return Task.FromResult(health);
         }
 
         public async Task DeleteCurrentTestScenarioTestResults(IEnumerable<TestScenarioResult> testScenarioResults)

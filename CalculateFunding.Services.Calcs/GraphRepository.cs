@@ -22,7 +22,7 @@ namespace CalculateFunding.Services.Calcs
 
         public async Task<bool> GraphEnabled()
         {
-            _graphEnabled = _graphEnabled ?? await _calculationsFeatureFlag.IsGraphEnabled();
+            _graphEnabled ??= await _calculationsFeatureFlag.IsGraphEnabled();
 
             return _graphEnabled.Value;
         }

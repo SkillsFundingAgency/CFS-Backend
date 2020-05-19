@@ -22,7 +22,7 @@ namespace CalculateFunding.Services.Calcs
         private readonly ICalculationsRepository _calculationsRepository;
         private readonly IJobsApiClient _jobsApiClient;
         private readonly ILogger _logger;
-        private ICalculationsFeatureFlag _calculationsFeatureFlag;
+        private readonly ICalculationsFeatureFlag _calculationsFeatureFlag;
         private bool? _graphEnabled;
         public InstructionAllocationJobCreation(ICalculationsRepository calculationsRepository, 
             ICalcsResiliencePolicies calculationsResiliencePolicies,
@@ -132,7 +132,7 @@ namespace CalculateFunding.Services.Calcs
 
         private async Task<bool> GraphEnabled()
         {
-            _graphEnabled = _graphEnabled ?? await _calculationsFeatureFlag.IsGraphEnabled();
+            _graphEnabled ??= await _calculationsFeatureFlag.IsGraphEnabled();
 
             return _graphEnabled.Value;
         }

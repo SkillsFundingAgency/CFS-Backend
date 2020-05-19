@@ -1040,7 +1040,7 @@ WHERE   s.documentType = @DocumentType",
                 if (!statusCode.IsSuccess())
                 {
                     var error =
-                        $"Failed to set IsSelectedForFunding on specification for id: {specificationId} with status code: {statusCode.ToString()}";
+                        $"Failed to set IsSelectedForFunding on specification for id: {specificationId} with status code: {statusCode}";
                     _logger.Error(error);
                     return new InternalServerErrorResult(error);
                 }

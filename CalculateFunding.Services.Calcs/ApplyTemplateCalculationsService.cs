@@ -39,7 +39,6 @@ namespace CalculateFunding.Services.Calcs
         private readonly ICacheProvider _cacheProvider;
         private readonly ISpecificationsApiClient _specificationsApiClient;
         private readonly AsyncPolicy _specificationsApiClientPolicy;
-        private readonly IGraphRepository _graphRepository;
 
         public ApplyTemplateCalculationsService(ICreateCalculationService createCalculationService,
             IPoliciesApiClient policiesApiClient,
@@ -83,7 +82,6 @@ namespace CalculateFunding.Services.Calcs
             _cacheProvider = cacheProvider;
             _specificationsApiClient = specificationsApiClient;
             _specificationsApiClientPolicy = calculationsResiliencePolicies.SpecificationsApiClient;
-            _graphRepository = graphRepository;
         }
 
         public async Task ApplyTemplateCalculation(Message message)

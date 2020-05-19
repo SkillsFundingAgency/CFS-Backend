@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Web.Mvc;
 using CalculateFunding.Services.Core.Extensions;
 using FluentValidation.Results;
 using ModelStateDictionary = Microsoft.AspNetCore.Mvc.ModelBinding.ModelStateDictionary;
@@ -28,7 +27,7 @@ namespace CalculateFunding.Services.Policy.Models
             };
         }
         
-        public static CommandResult ValidationFail(ModelState errors)
+        public static CommandResult ValidationFail(string[] errors)
         {
             return new CommandResult
             {

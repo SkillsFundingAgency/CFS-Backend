@@ -32,6 +32,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Polly.Bulkhead;
 using Serilog;
+using ServiceCollectionExtensions = CalculateFunding.Services.Core.Extensions.ServiceCollectionExtensions;
 
 [assembly: FunctionsStartup(typeof(CalculateFunding.Functions.Specs.Startup))]
 
@@ -126,7 +127,7 @@ namespace CalculateFunding.Functions.Specs
             builder
                 .AddSingleton<IJobManagement, JobManagement>();
 
-            PolicySettings policySettings = builder.GetPolicySettings(config);
+            PolicySettings policySettings = ServiceCollectionExtensions.GetPolicySettings(config);
 
             AsyncBulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
 

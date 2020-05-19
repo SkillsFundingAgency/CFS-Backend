@@ -34,7 +34,7 @@ namespace CalculateFunding.Services.Jobs
         private readonly ILogger _logger;
         private readonly IValidator<CreateJobValidationModel> _createJobValidator;
         private readonly IMessengerService _messengerService;
-        private static SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1, 1);
+        private readonly static SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1, 1);
 
         public JobManagementService(
             IJobRepository jobRepository,

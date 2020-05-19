@@ -35,18 +35,17 @@ namespace CalculateFunding.Tests.Common
             RegisterEntryPoints(EntryPoints);
             RegisterDependencies();
             AddExtraRegistrations();
-            
-            using (IServiceScope scope = CreateServiceScope())
-            {
-                IServiceProvider serviceProvider = scope.ServiceProvider;
+
+            using IServiceScope scope = CreateServiceScope();
+
+            IServiceProvider serviceProvider = scope.ServiceProvider;
                 
-                foreach (Type entryPoint in EntryPoints)
-                {
-                    serviceProvider
-                        .GetService(entryPoint)
-                        .Should()
-                        .NotBeNull(entryPoint.Name);
-                }
+            foreach (Type entryPoint in EntryPoints)
+            {
+                serviceProvider
+                    .GetService(entryPoint)
+                    .Should()
+                    .NotBeNull(entryPoint.Name);
             }
         }
 

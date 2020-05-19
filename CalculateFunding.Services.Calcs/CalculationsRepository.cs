@@ -29,12 +29,12 @@ namespace CalculateFunding.Services.Calcs
         {
             ServiceHealth health = new ServiceHealth();
 
-            (bool Ok, string Message) cosmosHealth = _cosmosRepository.IsHealthOk();
+            (bool Ok, string Message) = _cosmosRepository.IsHealthOk();
 
             health.Name = nameof(CalculationsRepository);
-            health.Dependencies.Add(new DependencyHealth { HealthOk = cosmosHealth.Ok, DependencyName = GetType().Name, Message = cosmosHealth.Message });
+            health.Dependencies.Add(new DependencyHealth { HealthOk = Ok, DependencyName = GetType().Name, Message = Message });
 
-            return health;
+            return await Task.FromResult(health);
         }
 
         public async Task<TemplateMapping> GetTemplateMapping(string specificationId, string fundingStreamId)

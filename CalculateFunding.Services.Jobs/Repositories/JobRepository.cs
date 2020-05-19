@@ -24,16 +24,16 @@ namespace CalculateFunding.Services.Jobs.Repositories
             _cosmosRepository = cosmosRepository;
         }
 
-        public async Task<ServiceHealth> IsHealthOk()
+        public Task<ServiceHealth> IsHealthOk()
         {
             ServiceHealth health = new ServiceHealth();
 
-            (bool Ok, string Message) cosmosHealth = _cosmosRepository.IsHealthOk();
+            (bool Ok, string Message) = _cosmosRepository.IsHealthOk();
 
             health.Name = nameof(JobDefinitionsRepository);
-            health.Dependencies.Add(new DependencyHealth { HealthOk = cosmosHealth.Ok, DependencyName = this.GetType().Name, Message = cosmosHealth.Message });
+            health.Dependencies.Add(new DependencyHealth { HealthOk = Ok, DependencyName = this.GetType().Name, Message = Message });
 
-            return health;
+            return Task.FromResult(health);
         }
 
         public async Task<Job> CreateJob(Job job)
@@ -137,8 +137,10 @@ namespace CalculateFunding.Services.Jobs.Repositories
                                     AND r.deleted = false 
                                     AND r.content.specificationId = @SpecificationId";
 
-            List<CosmosDbQueryParameter> cosmosDbQueryParameters = new List<CosmosDbQueryParameter>();
-            cosmosDbQueryParameters.Add(new CosmosDbQueryParameter("@SpecificationId", specificationId));
+            List<CosmosDbQueryParameter> cosmosDbQueryParameters = new List<CosmosDbQueryParameter>
+            {
+                new CosmosDbQueryParameter("@SpecificationId", specificationId)
+            };
 
             string[] jobDefinitionIdsArray = jobDefinitionIds.ToArray();
 

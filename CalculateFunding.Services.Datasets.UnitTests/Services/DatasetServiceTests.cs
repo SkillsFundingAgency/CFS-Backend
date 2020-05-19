@@ -33,7 +33,6 @@ using Serilog;
 using BadRequestObjectResult = Microsoft.AspNetCore.Mvc.BadRequestObjectResult;
 using ValidationResult = FluentValidation.Results.ValidationResult;
 using CalculateFunding.Models.Messages;
-using Microsoft.AspNetCore.Http.Internal;
 
 namespace CalculateFunding.Services.Datasets.Services
 {

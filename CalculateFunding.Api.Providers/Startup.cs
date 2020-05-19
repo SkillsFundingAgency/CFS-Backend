@@ -32,6 +32,7 @@ using Microsoft.OpenApi.Models;
 using Polly.Bulkhead;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Services.DeadletterProcessor;
+using ServiceCollectionExtensions = CalculateFunding.Services.Core.Extensions.ServiceCollectionExtensions;
 
 namespace CalculateFunding.Api.Providers
 {
@@ -195,7 +196,7 @@ namespace CalculateFunding.Api.Providers
 
             builder.AddServiceBus(Configuration);
 
-            PolicySettings policySettings = builder.GetPolicySettings(Configuration);
+            PolicySettings policySettings = ServiceCollectionExtensions.GetPolicySettings(Configuration);
 
             AsyncBulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
             ProvidersResiliencePolicies resiliencePolicies = CreateResiliencePolicies(totalNetworkRequestsPolicy);

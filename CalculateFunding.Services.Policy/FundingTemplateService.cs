@@ -87,7 +87,7 @@ namespace CalculateFunding.Services.Policy
 
             if (!validationResult.IsValid)
             {
-                return new BadRequestObjectResult(validationResult.ValidationState);
+                return validationResult.AsBadRequest();
             }
 
             ITemplateMetadataGenerator templateMetadataGenerator = _templateMetadataResolver.GetService(validationResult.SchemaVersion);

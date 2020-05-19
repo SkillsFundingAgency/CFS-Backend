@@ -28,9 +28,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
         private IPublishedFundingRepository _publishedFundingRepository;
 
         private string _specificationId;
-        private string _providerType;
-        private string _localAuthority;
-        private string _status;
 
         private IActionResult _actionResult;
 
@@ -169,13 +166,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
 
         private void GivenThePublishedProvidersForTheSpecificationId(params PublishedProviderFundingStreamStatus[] publishedProviderFundingStreamStatuses )
         {
-            _publishedFundingRepository.GetPublishedProviderStatusCounts(_specificationId, _providerType, _localAuthority, _status)
+            _publishedFundingRepository.GetPublishedProviderStatusCounts(_specificationId, string.Empty, string.Empty, string.Empty)
                 .Returns(publishedProviderFundingStreamStatuses);
         }
 
         private async Task WhenThePublishedProvidersStatusAreQueried()
         {
-            _actionResult = await _service.GetProviderStatusCounts(_specificationId, _providerType, _localAuthority, _status);
+            _actionResult = await _service.GetProviderStatusCounts(_specificationId, string.Empty, string.Empty, string.Empty);
         }
 
         private void GivenTheValidationErrors(params string[] errors)

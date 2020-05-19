@@ -31,7 +31,6 @@ namespace CalculateFunding.Services.Policy.UnitTests
 
             //Assert
             result
-                .ValidationState
                 .Errors
                 .Should()
                 .HaveCount(1);
@@ -55,13 +54,11 @@ namespace CalculateFunding.Services.Policy.UnitTests
 
             //Assert
             result
-                .ValidationState
                 .Errors
                 .Should()
                 .HaveCount(1);
 
             result
-               .ValidationState
                .Errors[0]
                .ErrorMessage
                .Should()
@@ -86,13 +83,11 @@ namespace CalculateFunding.Services.Policy.UnitTests
 
             //Assert
             result
-                .ValidationState
                 .Errors
                 .Should()
                 .HaveCount(1);
 
             result
-               .ValidationState
                .Errors[0]
                .ErrorMessage
                .Should()
@@ -125,13 +120,11 @@ namespace CalculateFunding.Services.Policy.UnitTests
 
             //Assert
             result
-                .ValidationState
                 .Errors
                 .Should()
                 .HaveCount(1);
 
             result
-               .ValidationState
                .Errors[0]
                .ErrorMessage
                .Should()
@@ -169,7 +162,6 @@ namespace CalculateFunding.Services.Policy.UnitTests
 
             //Assert
             result
-                .ValidationState
                 .Errors
                 .Should()
                 .HaveCount(11);
@@ -217,7 +209,6 @@ namespace CalculateFunding.Services.Policy.UnitTests
 
             //Assert
             result
-                .ValidationState
                 .Errors[0]
                 .ErrorMessage
                 .Should()
@@ -273,7 +264,6 @@ namespace CalculateFunding.Services.Policy.UnitTests
 
             //Assert
             result
-                .ValidationState
                 .Errors[0]
                 .ErrorMessage
                 .Should()
@@ -331,7 +321,6 @@ namespace CalculateFunding.Services.Policy.UnitTests
 
             //Assert
             result
-                .ValidationState
                 .Errors[0]
                 .ErrorMessage
                 .Should()
@@ -389,7 +378,6 @@ namespace CalculateFunding.Services.Policy.UnitTests
 
             //Assert
             result
-                .ValidationState
                 .Errors
                 .Should()
                 .BeEmpty();
@@ -461,7 +449,6 @@ namespace CalculateFunding.Services.Policy.UnitTests
 
             //Assert
             result
-                .ValidationState
                 .Errors
                 .Should()
                 .BeEmpty();
@@ -512,12 +499,10 @@ namespace CalculateFunding.Services.Policy.UnitTests
         {
             Assembly assembly = Assembly.GetExecutingAssembly();
 
-            using (Stream stream = assembly.GetManifestResourceStream(resourceName))
-            {
-                StreamReader reader = new StreamReader(stream);
+            using Stream stream = assembly.GetManifestResourceStream(resourceName);
+            StreamReader reader = new StreamReader(stream);
 
-                return reader.ReadToEnd();
-            }
+            return reader.ReadToEnd();
         }
 
         private class TestTemplate_schema_1_0

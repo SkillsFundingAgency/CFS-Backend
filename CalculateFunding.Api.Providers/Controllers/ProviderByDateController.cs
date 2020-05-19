@@ -92,7 +92,7 @@ namespace CalculateFunding.Api.Providers.Controllers
         /// <returns></returns>
         [HttpGet("api/providers/date/{year}/{month}")]
         [ProducesResponseType(200, Type = typeof(ProviderVersionSearchResults))]
-        public async Task<IActionResult> GetAvailableProvidersByMonth([FromRoute]int year, [FromRoute]int month)
+        public IActionResult GetAvailableProvidersByMonth([FromRoute]int year, [FromRoute]int month)
         {
             return Ok(Enumerable.Empty<ProviderVersionSearchResults>());
         }

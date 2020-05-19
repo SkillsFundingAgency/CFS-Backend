@@ -221,6 +221,11 @@ namespace CalculateFunding.Api.Policy.Controllers
                 return validationResult.AsBadRequest();
             }
 
+            if(!validationResult.IsValid)
+            {
+                return validationResult.AsBadRequest();
+            }
+
             IEnumerable<TemplateResponse> templateVersionResponses =
                 await _templateBuilderService.FindVersionsByFundingStreamAndPeriod(query);
 

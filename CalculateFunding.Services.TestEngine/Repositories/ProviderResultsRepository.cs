@@ -20,7 +20,7 @@ namespace CalculateFunding.Services.TestRunner.Repositories
             _cosmosRepository = cosmosRepository;
         }
 
-        public async Task<ServiceHealth> IsHealthOk()
+        public Task<ServiceHealth> IsHealthOk()
         {
             ServiceHealth health = new ServiceHealth();
 
@@ -29,7 +29,7 @@ namespace CalculateFunding.Services.TestRunner.Repositories
             health.Name = GetType().Name;
             health.Dependencies.Add(new DependencyHealth { HealthOk = Ok, DependencyName = typeof(CosmosRepository).Name, Message = Message });
 
-            return health;
+            return Task.FromResult(health);
         }
 
         public async Task<ProviderResult> GetProviderResultByProviderIdAndSpecificationId(string providerId, string specificationId)

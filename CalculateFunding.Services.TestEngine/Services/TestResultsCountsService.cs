@@ -48,13 +48,13 @@ namespace CalculateFunding.Services.TestRunner.Services
             return health;
         }
 
-        public async Task<IActionResult> GetResultCounts(TestScenariosResultsCountsRequestModel requestModel)
+        public Task<IActionResult> GetResultCounts(TestScenariosResultsCountsRequestModel requestModel)
         {
             if (requestModel == null || requestModel.TestScenarioIds.IsNullOrEmpty())
             {
                 _logger.Error("Null or empty test scenario ids provided");
 
-                return new BadRequestObjectResult("Null or empty test scenario ids provided");
+                return Task.FromResult<IActionResult>(new BadRequestObjectResult("Null or empty test scenario ids provided"));
             }
 
             ConcurrentBag<TestScenarioResultCounts> resultCounts = new ConcurrentBag<TestScenarioResultCounts>();
@@ -95,7 +95,7 @@ namespace CalculateFunding.Services.TestRunner.Services
                 }
             });
 
-            return new OkObjectResult(resultCounts);
+            return Task.FromResult<IActionResult>(new OkObjectResult(resultCounts));
         }
 
         public async Task<IActionResult> GetTestScenarioCountsForProvider(string providerId)

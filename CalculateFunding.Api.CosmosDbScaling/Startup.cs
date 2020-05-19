@@ -20,6 +20,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using Polly.Bulkhead;
+using ServiceCollectionExtensions = CalculateFunding.Services.Core.Extensions.ServiceCollectionExtensions;
 
 namespace CalculateFunding.API.CosmosDbScaling
 {
@@ -138,7 +139,7 @@ namespace CalculateFunding.API.CosmosDbScaling
             builder.AddPolicySettings(Configuration);
             builder.AddSingleton<ICosmosDbScalingResiliencePolicies>(m =>
             {
-                PolicySettings policySettings = builder.GetPolicySettings(Configuration);
+                PolicySettings policySettings = ServiceCollectionExtensions.GetPolicySettings(Configuration);
 
                 AsyncBulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
 

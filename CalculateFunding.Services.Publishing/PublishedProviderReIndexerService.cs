@@ -70,7 +70,7 @@ namespace CalculateFunding.Services.Publishing
             {
                 currentJob = await _jobManagement.RetrieveJobAndCheckCanBeProcessed(jobId);
             }
-            catch (Exception e)
+            catch
             {
                 string errorMessage = "Job cannot be run";
                 _logger.Error(errorMessage);

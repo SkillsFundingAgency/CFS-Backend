@@ -70,9 +70,9 @@ namespace CalculateFunding.Services.Datasets.Services
 
         private Message _message;
 
-        private string _datasetCacheKey = $"ds-table-rows:{ProcessDatasetService.GetBlobNameCacheKey(BlobPath)}:{DataDefintionId}";
-        private string _datasetAggregationsCacheKey = $"{CacheKeys.DatasetAggregationsForSpecification}{SpecificationId}";
-        private string _calculationResultsCacheKey = $"{CacheKeys.CalculationResults}{SpecificationId}";
+        private readonly string _datasetCacheKey = $"ds-table-rows:{ProcessDatasetService.GetBlobNameCacheKey(BlobPath)}:{DataDefintionId}";
+        private readonly string _datasetAggregationsCacheKey = $"{CacheKeys.DatasetAggregationsForSpecification}{SpecificationId}";
+        private readonly string _calculationResultsCacheKey = $"{CacheKeys.CalculationResults}{SpecificationId}";
 
         private string _relationshipId;
         private string _relationshipName;
@@ -1363,7 +1363,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .WithDatasetVersion(NewRelationshipVersion())
                 .WithIsSetAsProviderData(true)));
             var setCachedProviders = true;
-            AndThePopulationOfProvierSummeriesForSpecificationFails(setCachedProviders, true);
+            AndThePopulationOfProvierSummeriesForSpecificationFails(setCachedProviders);
 
             DatasetDefinition datasetDefinition = NewDatasetDefinition(_ => _.WithTableDefinitions(NewTableDefinition(tb =>
                 tb.WithFieldDefinitions(NewFieldDefinition(fld => fld.WithName(Upin)
@@ -1402,9 +1402,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
 
         [TestMethod]
-        [DataRow(true)]
-        [DataRow(false)]
-        public async Task ProcessDataset_GivenPayloadAndTableResultsWithRelationshipIsSetAsProviderDataAndTheJobFails_LogErrorThrowException(bool useServiceBus)
+        public async Task ProcessDataset_GivenPayloadAndTableResultsWithRelationshipIsSetAsProviderDataAndTheJobFails_LogErrorThrowException()
         {
             GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"),
                 ("user-id", UserId), ("user-name", Username));
@@ -1463,7 +1461,6 @@ namespace CalculateFunding.Services.Datasets.Services
 
             await ThenTheRegenerateProviderSummariesForSpecificationInvoked(setCachedProviders);
             AndTheErrorWasLogged($"Unable to re-generate providers while updating dataset '{_relationshipId}' for specification '{SpecificationId}' job didn't complete successfully in time");
-
         }
 
         private CalculationResponseModel NewCalculation(Action<CalculationResponseBuilder> setUp = null)
@@ -1807,7 +1804,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Returns(new JobNotification { CompletionStatus = CompletionStatus.Failed });
         }
 
-        private void AndThePopulationOfProvierSummeriesForSpecificationFails(bool setCachedProviders, bool regenerated)
+        private void AndThePopulationOfProvierSummeriesForSpecificationFails(bool setCachedProviders)
         {
             _providersApiClient
                 .RegenerateProviderSummariesForSpecification(SpecificationId, setCachedProviders)

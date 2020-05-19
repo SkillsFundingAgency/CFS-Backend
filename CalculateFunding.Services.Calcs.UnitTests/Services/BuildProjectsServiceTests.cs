@@ -212,20 +212,6 @@ namespace CalculateFunding.Services.Calcs.Services
             message
                .UserProperties.Add("specification-id", SpecificationId);
 
-            DatasetSpecificationRelationshipViewModel datasetSpecificationRelationshipViewModel = new DatasetSpecificationRelationshipViewModel
-            {
-                DatasetId = "ds-1",
-                DatasetName = "ds 1",
-                Definition = new DatasetDefinitionViewModel
-                {
-                    Id = "111",
-                    Name = "def 1"
-                },
-                IsProviderData = true,
-                Id = "rel-1",
-                Name = "rel 1"
-            };
-
             Common.ApiClient.DataSets.Models.DatasetDefinition datasetDefinition = new Common.ApiClient.DataSets.Models.DatasetDefinition
             {
                 Id = "111"
@@ -288,20 +274,6 @@ namespace CalculateFunding.Services.Calcs.Services
             Message message = new Message(Encoding.UTF8.GetBytes(json));
             message
                .UserProperties.Add("specification-id", SpecificationId);
-
-            DatasetSpecificationRelationshipViewModel datasetSpecificationRelationshipViewModel = new DatasetSpecificationRelationshipViewModel
-            {
-                DatasetId = "ds-1",
-                DatasetName = "ds 1",
-                Definition = new DatasetDefinitionViewModel
-                {
-                    Id = "111",
-                    Name = "def 1"
-                },
-                IsProviderData = true,
-                Id = "rel-1",
-                Name = "rel 1"
-            };
 
             Common.ApiClient.DataSets.Models.DatasetDefinition datasetDefinition = new Common.ApiClient.DataSets.Models.DatasetDefinition
             {
@@ -1690,13 +1662,6 @@ namespace CalculateFunding.Services.Calcs.Services
 
             string cacheKey = $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}";
 
-            BuildProject buildProject = new BuildProject
-            {
-                SpecificationId = specificationId,
-                Id = Guid.NewGuid().ToString(),
-                Name = specificationId
-            };
-
             Message message = new Message(Encoding.UTF8.GetBytes(""));
             message.UserProperties.Add("jobId", "job-id-1");
             message.UserProperties.Add("specification-id", specificationId);
@@ -1723,7 +1688,7 @@ namespace CalculateFunding.Services.Calcs.Services
             //Assert
             logger
                 .Received(1)
-                .Information($"Received job with id: '{jobId}' is already in a completed state with status {job.CompletionStatus.ToString()}");
+                .Information($"Received job with id: '{jobId}' is already in a completed state with status {job.CompletionStatus}");
 
             await
                 jobsApiClient

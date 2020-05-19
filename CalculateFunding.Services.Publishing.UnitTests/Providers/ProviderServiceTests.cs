@@ -146,21 +146,21 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Providers
             AndTheApiResponseScopedProviderIdsContainsProviderIds(specificationId, apiproviders.Select(_ => _.ProviderId));
 
             (IDictionary<string, PublishedProvider> PublishedProvidersForFundingStream,
-             IDictionary<string, PublishedProvider> ScopedPublishedProviders) allPublishedProviders = await WhenPublishedProvidersAreReturned(specification);
+             IDictionary<string, PublishedProvider> ScopedPublishedProviders) = await WhenPublishedProvidersAreReturned(specification);
 
-            allPublishedProviders.PublishedProvidersForFundingStream.Count()
+            PublishedProvidersForFundingStream.Count()
                 .Should()
                 .Be(4);
 
-            allPublishedProviders.PublishedProvidersForFundingStream.Keys
+            PublishedProvidersForFundingStream.Keys
                 .Should()
                 .BeEquivalentTo(publishedProviders.Select(_ => _.Current.ProviderId));
 
-            allPublishedProviders.ScopedPublishedProviders.Count()
+            ScopedPublishedProviders.Count()
                 .Should()
                 .Be(4);
 
-            allPublishedProviders.ScopedPublishedProviders.Keys
+            ScopedPublishedProviders.Keys
                 .Should()
                 .BeEquivalentTo(publishedProviders.Select(_ => _.Current.ProviderId));
         }

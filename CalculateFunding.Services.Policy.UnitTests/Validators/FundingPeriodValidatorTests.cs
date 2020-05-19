@@ -16,24 +16,12 @@ namespace CalculateFunding.Services.Policy.Validators
     [TestClass]
     public class FundingPeriodValidatorTests
     {
-        private FundingPeriod _fundingPeriod;
-        private FundingPeriodJsonModelValidator _validator;
-
-        private ValidationResult _validationResult;
-
-        [TestInitialize]
-        public void SetUp()
-        {
-            _validator = new FundingPeriodJsonModelValidator();
-        }
-
         [TestMethod]
         public async Task ValidateAsync_WhenNameIsEmpty_ValidIsFalse()
         {
             //Arrange
             List<FundingPeriod> fundingPeriods = CreateModel();
-            FundingPeriodsJsonModel model = new FundingPeriodsJsonModel();
-            model.FundingPeriods = fundingPeriods.ToArray();
+            FundingPeriodsJsonModel model = new FundingPeriodsJsonModel { FundingPeriods = fundingPeriods.ToArray() };
             model.FundingPeriods[0].Name = string.Empty;
 
             IValidator<FundingPeriodsJsonModel> validator = CreateValidator();
@@ -59,9 +47,7 @@ namespace CalculateFunding.Services.Policy.Validators
         {
             //Arrange
             List<FundingPeriod> fundingPeriods = CreateModel();
-            FundingPeriodsJsonModel model = new FundingPeriodsJsonModel();
-            model.FundingPeriods = fundingPeriods.ToArray();
-
+            FundingPeriodsJsonModel model = new FundingPeriodsJsonModel { FundingPeriods = fundingPeriods.ToArray() };
             
             model.FundingPeriods[0].Name = string.Empty;
             model.FundingPeriods[0].Period = string.Empty;           
@@ -116,9 +102,8 @@ namespace CalculateFunding.Services.Policy.Validators
             fundingPeriods.Add(nullStartDatefundingPeriod);
             fundingPeriods.Add(nullEndDatefundingPeriod);
 
-            FundingPeriodsJsonModel model = new FundingPeriodsJsonModel();
-            model.FundingPeriods = fundingPeriods.ToArray();
-
+            FundingPeriodsJsonModel model = new FundingPeriodsJsonModel { FundingPeriods = fundingPeriods.ToArray() };
+            
             model.FundingPeriods[0].Name = null;
             model.FundingPeriods[0].Period = null;
             model.FundingPeriods[1].Type = null;
@@ -162,10 +147,8 @@ namespace CalculateFunding.Services.Policy.Validators
         {
             //Arrange
             List<FundingPeriod> fundingPeriods = CreateModel();
-            FundingPeriodsJsonModel model = new FundingPeriodsJsonModel();
-            model.FundingPeriods = fundingPeriods.ToArray();
-          
-
+            FundingPeriodsJsonModel model = new FundingPeriodsJsonModel { FundingPeriods = fundingPeriods.ToArray() };
+            
             IValidator<FundingPeriodsJsonModel> validator = CreateValidator();
 
             //Act
@@ -205,23 +188,6 @@ namespace CalculateFunding.Services.Policy.Validators
             };      
 
             return periods;
-        }
-
-        private  IValidator<FundingPeriodsJsonModel> CreateFundingPeriodValidator()
-        {
-            ValidationResult validationResult = null;
-            if (validationResult == null)
-            {
-                validationResult = new ValidationResult();
-            }
-
-            IValidator<FundingPeriodsJsonModel> validator = Substitute.For<IValidator<FundingPeriodsJsonModel>>();
-
-            validator
-               .ValidateAsync(Arg.Any<FundingPeriodsJsonModel>())
-               .Returns(validationResult);
-
-            return validator;
         }
 
         private static FundingPeriodJsonModelValidator CreateValidator()

@@ -49,13 +49,13 @@ namespace CalculateFunding.Services.Publishing
 
         public async Task<ServiceHealth> IsHealthOk()
         {
-            (bool Ok, string Message) blobHealth = await _blobClient.IsHealthOk();
+            (bool Ok, string Message) = await _blobClient.IsHealthOk();
          
             ServiceHealth health = new ServiceHealth()
             {
                 Name = nameof(PublishedProviderVersionService)
             };
-            health.Dependencies.Add(new DependencyHealth { HealthOk = blobHealth.Ok, DependencyName = _blobClient.GetType().GetFriendlyName(), Message = blobHealth.Message });
+            health.Dependencies.Add(new DependencyHealth { HealthOk = Ok, DependencyName = _blobClient.GetType().GetFriendlyName(), Message = Message });
          
             return health;
         }
@@ -84,13 +84,11 @@ namespace CalculateFunding.Services.Publishing
             {
                 ICloudBlob blob = await _blobClientPolicy.ExecuteAsync(() => _blobClient.GetBlobReferenceFromServerAsync(blobName));
 
-                using (Stream blobStream = await _blobClientPolicy.ExecuteAsync(() => _blobClient.DownloadToStreamAsync(blob)))
-                {
-                    using (StreamReader streamReader = new StreamReader(blobStream))
-                    {
-                        template = await streamReader.ReadToEndAsync();
-                    }
-                }
+                using Stream blobStream = await _blobClientPolicy.ExecuteAsync(() => _blobClient.DownloadToStreamAsync(blob));
+
+                using StreamReader streamReader = new StreamReader(blobStream);
+
+                template = await streamReader.ReadToEndAsync();
             }
             catch(Exception ex)
             {

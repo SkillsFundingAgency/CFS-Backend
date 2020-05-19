@@ -70,7 +70,6 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
         public void ThenThePublishedFundingContainsTheFollowingPublishedProviderIds(Table table)
         {
             PublishedFunding publishedFunding = _publishedFundingResultStepContext.CurrentPublishedFunding;
-            var json = JsonConvert.SerializeObject(publishedFunding);
 
             publishedFunding.Should()
                 .NotBeNull();
@@ -303,7 +302,6 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
             {
                 string fileName = table.Rows[i][0];
 
-                var content = Resources.ResourceManager.GetObject(fileName, Resources.Culture);
                 string expected = GetResourceContent(fileName);
 
                 publishedFunding.TryGetValue(fileName, out string actual);

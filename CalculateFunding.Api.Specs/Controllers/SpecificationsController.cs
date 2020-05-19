@@ -11,6 +11,7 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Specs.Interfaces;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Hosting;
 
 namespace CalculateFunding.Api.Specs.Controllers
 {
@@ -19,12 +20,12 @@ namespace CalculateFunding.Api.Specs.Controllers
         private readonly ISpecificationsService _specService;
         private readonly ISpecificationsSearchService _specSearchService;
         private readonly ISpecificationsReportService _specificationsReportService;
-        private readonly IHostingEnvironment _hostingEnvironment;
+        private readonly IWebHostEnvironment _hostingEnvironment;
 
         public SpecificationsController(
             ISpecificationsService specService,
             ISpecificationsSearchService specSearchService,
-            IHostingEnvironment hostingEnvironment,
+            IWebHostEnvironment hostingEnvironment,
             ISpecificationsReportService specificationsReportService
             )
         {

@@ -122,9 +122,6 @@ namespace CalculateFunding.Api.TestRunner
             builder.AddApiKeyMiddlewareSettings((IConfigurationRoot)Configuration);
 
             builder
-                .AddSingleton<IBuildProjectRepository, BuildProjectRepository>();
-
-            builder
                 .AddSingleton<IGherkinParserService, GherkinParserService>();
 
             builder
@@ -257,7 +254,7 @@ namespace CalculateFunding.Api.TestRunner
 
                 return new ResiliencePolicies()
                 {
-                    BuildProjectRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                    CalculationsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                     CacheProviderRepository = redisPolicy,
                     ProviderResultsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
                     ProviderSourceDatasetsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),

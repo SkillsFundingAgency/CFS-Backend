@@ -50,6 +50,7 @@ using Serilog;
 using BlobClient = CalculateFunding.Services.Core.AzureStorage.BlobClient;
 using IBlobClient = CalculateFunding.Services.Core.Interfaces.AzureStorage.IBlobClient;
 using CommonBlobClient = CalculateFunding.Common.Storage.BlobClient;
+using ServiceCollectionExtensions = CalculateFunding.Services.Core.Extensions.ServiceCollectionExtensions;
 
 [assembly: FunctionsStartup(typeof(Startup))]
 
@@ -350,7 +351,7 @@ namespace CalculateFunding.Functions.Publishing
 
             builder.AddTelemetry();
 
-            PolicySettings policySettings = builder.GetPolicySettings(config);
+            PolicySettings policySettings = ServiceCollectionExtensions.GetPolicySettings(config);
             ResiliencePolicies publishingResiliencePolicies = CreateResiliencePolicies(policySettings);
 
             builder.AddSingleton<IJobManagementResiliencePolicies>((ctx) =>

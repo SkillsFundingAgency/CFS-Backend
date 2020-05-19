@@ -174,14 +174,6 @@ namespace CalculateFunding.Repositories.Common.Search
         {
             var client = await GetOrCreateIndex();
 
-            string idField = string.IsNullOrWhiteSpace(IdFieldOverride) ? "id" : IdFieldOverride;
-
-            SearchParameters searchParameters = new SearchParameters
-            {
-                Filter = $"{idField} eq '{id}'",
-                Top = 1
-            };
-
             try
             {
                 IEnumerable<string> retrievableFieldNames = GetRetrievableFields();

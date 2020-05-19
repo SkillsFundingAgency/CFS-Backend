@@ -36,6 +36,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using OfficeOpenXml;
 using Polly.Bulkhead;
+using ServiceCollectionExtensions = CalculateFunding.Services.Core.Extensions.ServiceCollectionExtensions;
 
 [assembly: FunctionsStartup(typeof(CalculateFunding.Functions.Datasets.Startup))]
 
@@ -199,7 +200,7 @@ namespace CalculateFunding.Functions.Datasets
 
             builder.AddFeatureToggling(config);
 
-            PolicySettings policySettings = builder.GetPolicySettings(config);
+            PolicySettings policySettings = ServiceCollectionExtensions.GetPolicySettings(config);
 
             DatasetsResiliencePolicies resiliencePolicies = CreateResiliencePolicies(policySettings);
 

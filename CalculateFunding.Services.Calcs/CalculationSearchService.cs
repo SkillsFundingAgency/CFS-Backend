@@ -22,13 +22,13 @@ namespace CalculateFunding.Services.Calcs
         private readonly ILogger _logger;
         private readonly ISearchRepository<CalculationIndex> _searchRepository;
 
-        private FacetFilterType[] Facets = {
+        private readonly FacetFilterType[] Facets = {
             new FacetFilterType("status"),
             new FacetFilterType("specificationName"),
             new FacetFilterType("fundingStreamName")
         };
 
-        private IEnumerable<string> DefaultOrderBy = new[] { "lastUpdatedDate desc" };
+        private readonly IEnumerable<string> DefaultOrderBy = new[] { "lastUpdatedDate desc" };
 
         public CalculationSearchService(ILogger logger,
             ISearchRepository<CalculationIndex> searchRepository)
@@ -39,7 +39,7 @@ namespace CalculateFunding.Services.Calcs
 
         public async Task<ServiceHealth> IsHealthOk()
         {
-            var searchRepoHealth = await _searchRepository.IsHealthOk();
+            (bool Ok, string Message) = await _searchRepository.IsHealthOk();
 
             ServiceHealth health = new ServiceHealth()
             {
@@ -47,9 +47,9 @@ namespace CalculateFunding.Services.Calcs
             };
             health.Dependencies.Add(new DependencyHealth 
             { 
-                HealthOk = searchRepoHealth.Ok, 
+                HealthOk = Ok, 
                 DependencyName = _searchRepository.GetType().GetFriendlyName(),
-                Message = searchRepoHealth.Message 
+                Message = Message 
             });
 
             return health;

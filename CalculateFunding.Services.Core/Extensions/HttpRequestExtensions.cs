@@ -15,15 +15,13 @@ namespace CalculateFunding.Services.Core.Extensions
         {
             if (request.Body == null) return string.Empty;
 
-            using (StreamReader reader = new StreamReader(request.Body, encoding ?? Encoding.UTF8))
+            using StreamReader reader = new StreamReader(request.Body, encoding ?? Encoding.UTF8);
+            if (request.Body.CanSeek)
             {
-                if (request.Body.CanSeek)
-                {
-                    request.Body.Seek(0, SeekOrigin.Begin);
-                }
-
-                return await reader.ReadToEndAsync();
+                request.Body.Seek(0, SeekOrigin.Begin);
             }
+
+            return await reader.ReadToEndAsync();
         }
 
         public static string GetYamlFileNameFromRequest(this HttpRequest request)

@@ -61,7 +61,6 @@ namespace CalculateFunding.Api.Policy.Controllers
 
         /// <summary>
         /// Saves (creates or updates) a funding template based off a schema version for a funding stream.
-        /// </summary>
         /// There is an assumption that the following json will be populated to get the schema version and funding stream in the body content:
         /// {
         ///      "schemaVersion: "1.0"
@@ -69,7 +68,7 @@ namespace CalculateFunding.Api.Policy.Controllers
         ///            "code": "PSG"
         ///      }
         /// }
-        /// </param>
+        /// </summary>
         /// <returns></returns>
         [HttpPost("api/templates")]
         [ProducesResponseType(201)]

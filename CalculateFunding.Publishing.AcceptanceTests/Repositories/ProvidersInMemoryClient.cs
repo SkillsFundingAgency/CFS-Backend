@@ -18,10 +18,10 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
     {
         private readonly IMapper _mapper;
 
-        private Dictionary<string, Dictionary<string, Provider>> _providers = new Dictionary<string, Dictionary<string, Provider>>();
-        private Dictionary<string, Dictionary<string, Provider>> _scopedProviders = new Dictionary<string, Dictionary<string, Provider>>();
-        private Dictionary<string, ProviderVersion> _providerVersions = new Dictionary<string, ProviderVersion>();
-        private Dictionary<string, ProviderVersionSearchResult> _masterProviderDataByProviderId = new Dictionary<string, ProviderVersionSearchResult>();
+        private readonly Dictionary<string, Dictionary<string, Provider>> _providers = new Dictionary<string, Dictionary<string, Provider>>();
+        private readonly Dictionary<string, Dictionary<string, Provider>> _scopedProviders = new Dictionary<string, Dictionary<string, Provider>>();
+        private readonly Dictionary<string, ProviderVersion> _providerVersions = new Dictionary<string, ProviderVersion>();
+        private readonly Dictionary<string, ProviderVersionSearchResult> _masterProviderDataByProviderId = new Dictionary<string, ProviderVersionSearchResult>();
 
         public ProvidersInMemoryClient(IMapper mapper)
         {
@@ -33,7 +33,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             throw new NotImplementedException();
         }
 
-        public async Task<ApiResponse<IEnumerable<string>>> GetProviderNames()
+        public Task<ApiResponse<IEnumerable<string>>> GetProviderNames()
         {
             throw new NotImplementedException();
         }
@@ -48,12 +48,12 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             throw new NotImplementedException();
         }
 
-        public async Task<ApiResponse<ProviderVersionSearchResult>> GetProviderByIdFromMaster(string providerId)
+        public Task<ApiResponse<ProviderVersionSearchResult>> GetProviderByIdFromMaster(string providerId)
         {
-            return _masterProviderDataByProviderId.TryGetValue(providerId,
+            return Task.FromResult(_masterProviderDataByProviderId.TryGetValue(providerId,
                 out ProviderVersionSearchResult providerVersionSearchResult)
                 ? new ApiResponse<ProviderVersionSearchResult>(HttpStatusCode.OK, providerVersionSearchResult)
-                : new ApiResponse<ProviderVersionSearchResult>(HttpStatusCode.NotFound);
+                : new ApiResponse<ProviderVersionSearchResult>(HttpStatusCode.NotFound));
         }
 
         public Task<ApiResponse<ProviderVersionSearchResult>> GetProviderByIdFromProviderVersion(string providerVersionId, string providerId)
@@ -203,14 +203,12 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
             Guard.IsNullOrWhiteSpace(providerId, nameof(providerId));
 
-            Dictionary<string, Provider> providerVersionProviders;
-            if (!_providers.TryGetValue(providerVersionId, out providerVersionProviders))
+            if (!_providers.TryGetValue(providerVersionId, out Dictionary<string, Provider> providerVersionProviders))
             {
                 throw new InvalidOperationException($"Provider Version not found. '{providerVersionId}'");
             }
 
-            Provider provider;
-            if (!providerVersionProviders.TryGetValue(providerId, out provider))
+            if (!providerVersionProviders.TryGetValue(providerId, out Provider provider))
             {
                 throw new InvalidOperationException($"Provider Version not found. Provider ID '{providerId}' in '{providerVersionId}'");
             }

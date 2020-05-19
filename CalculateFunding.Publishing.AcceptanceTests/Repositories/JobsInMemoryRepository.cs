@@ -11,8 +11,8 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 {
     public class JobsInMemoryRepository : IJobsApiClient
     {
-        Dictionary<string, Job> _jobs = new Dictionary<string, Job>();
-        Dictionary<string, List<JobLog>> _jobLogs = new Dictionary<string, List<JobLog>>();
+        private readonly Dictionary<string, Job> _jobs = new Dictionary<string, Job>();
+        private readonly Dictionary<string, List<JobLog>> _jobLogs = new Dictionary<string, List<JobLog>>();
 
         public Task<ApiResponse<JobLog>> AddJobLog(string jobId, JobLogUpdateModel jobLogUpdateModel)
         {
@@ -115,9 +115,8 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         {
             Guard.IsNullOrWhiteSpace(jobId, nameof(jobId));
 
-            Job job = null;
-            ApiResponse<JobViewModel> result = null;
-            if (_jobs.TryGetValue(jobId, out job))
+            ApiResponse<JobViewModel> result;
+            if (_jobs.TryGetValue(jobId, out Job job))
             {
                 JobViewModel jobViewModel = new JobViewModel()
                 {

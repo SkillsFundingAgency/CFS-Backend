@@ -15,7 +15,7 @@ namespace CalculateFunding.Services.Jobs.Validators
             Guard.ArgumentNotNull(resiliencePolicies?.JobDefinitionsRepository, nameof(resiliencePolicies.JobDefinitionsRepository));
 
             RuleFor(_ => _)
-                .CustomAsync(async (jobDefinition, ctx, ct) =>
+                .Custom((jobDefinition, ctx) =>
                 {
                     string jobDefinitionId = jobDefinition.Id;
 

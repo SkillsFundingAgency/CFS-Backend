@@ -16,17 +16,6 @@ namespace CalculateFunding.Services.Policy.Validators
     [TestClass]
     public class FundingStreamValidatorTests
     {
-        private FundingStream _fundingStream;
-        private FundingStreamSaveModelValidator _validator;
-
-        private ValidationResult _validationResult;
-
-        [TestInitialize]
-        public void SetUp()
-        {
-            _validator = new FundingStreamSaveModelValidator();
-        }
-
         [TestMethod]
         public async Task ValidateAsync_WhenNameIsEmpty_ValidIsFalse()
         {
@@ -153,23 +142,6 @@ namespace CalculateFunding.Services.Policy.Validators
             };
 
             return fundingStream;
-        }
-
-        private IValidator<FundingStreamSaveModel> CreateFundingStreamSaveModelValidator()
-        {
-            ValidationResult validationResult = null;
-            if (validationResult == null)
-            {
-                validationResult = new ValidationResult();
-            }
-
-            IValidator<FundingStreamSaveModel> validator = Substitute.For<IValidator<FundingStreamSaveModel>>();
-
-            validator
-               .ValidateAsync(Arg.Any<FundingStreamSaveModel>())
-               .Returns(validationResult);
-
-            return validator;
         }
 
         private static FundingStreamSaveModelValidator CreateValidator()

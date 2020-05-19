@@ -80,7 +80,7 @@ namespace CalculateFunding.Services.Jobs.Services
             await jobManagementService.ProcessJobNotification(message);
 
             // Assert
-            jobRepository
+            await jobRepository
                 .DidNotReceive()
                 .GetJobById(Arg.Is(jobId));
         }
@@ -108,7 +108,7 @@ namespace CalculateFunding.Services.Jobs.Services
                 .Received(1)
                 .Error(Arg.Is("Job Notification message has no JobId"));
 
-            jobRepository
+            await jobRepository
                 .DidNotReceive()
                 .GetJobById(Arg.Any<string>());
         }
@@ -179,7 +179,7 @@ namespace CalculateFunding.Services.Jobs.Services
                 .Received(1)
                 .Information(Arg.Is("Completed Job {JobId} has no parent"), Arg.Is(jobId));
 
-            jobRepository
+            await jobRepository
                 .DidNotReceive()
                 .GetChildJobsForParent(Arg.Any<string>());
         }

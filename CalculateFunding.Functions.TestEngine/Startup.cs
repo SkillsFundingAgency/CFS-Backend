@@ -62,9 +62,6 @@ namespace CalculateFunding.Functions.TestEngine
             }
 
             builder
-               .AddSingleton<IBuildProjectRepository, BuildProjectRepository>();
-
-            builder
                 .AddSingleton<IGherkinParserService, GherkinParserService>();
 
             builder
@@ -186,7 +183,7 @@ namespace CalculateFunding.Functions.TestEngine
 
                 ResiliencePolicies resiliencePolicies = new ResiliencePolicies()
                 {
-                    BuildProjectRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                    CalculationsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                     CacheProviderRepository = redisPolicy,
                     ProviderResultsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
                     ProviderSourceDatasetsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),

@@ -15,31 +15,27 @@ namespace CalculateFunding.Functions.DebugQueue
         public static async Task RunOnCalcsCreateDraftEvent(
             [QueueTrigger(ServiceBusConstants.QueueNames.CalcEngineGenerateAllocationResults, Connection = "AzureConnectionString")] string item, ILogger log)
         {
-            using (IServiceScope scope = Functions.CalcEngine.Startup.RegisterComponents(new ServiceCollection()).CreateScope())
-            {
-                Message message = Helpers.ConvertToMessage<string>(item);
+            using IServiceScope scope = Functions.CalcEngine.Startup.RegisterComponents(new ServiceCollection()).CreateScope();
+            Message message = Helpers.ConvertToMessage<string>(item);
 
-                OnCalcsGenerateAllocationResults function = scope.ServiceProvider.GetService<OnCalcsGenerateAllocationResults>();
+            OnCalcsGenerateAllocationResults function = scope.ServiceProvider.GetService<OnCalcsGenerateAllocationResults>();
 
-                await function.Run(message);
+            await function.Run(message);
 
-                log.LogInformation($"C# Queue trigger function processed: {item}");
-            }
+            log.LogInformation($"C# Queue trigger function processed: {item}");
         }
 
         [FunctionName("on-calcs-generate-allocations-event-poisoned")]
         public static async Task RunOnCalculationGenerateFailure([QueueTrigger(ServiceBusConstants.QueueNames.CalcEngineGenerateAllocationResultsPoisonedLocal, Connection = "AzureConnectionString")] string item, ILogger log)
         {
-            using (IServiceScope scope = Functions.CalcEngine.Startup.RegisterComponents(new ServiceCollection()).CreateScope())
-            {
-                Message message = Helpers.ConvertToMessage<string>(item);
+            using IServiceScope scope = Functions.CalcEngine.Startup.RegisterComponents(new ServiceCollection()).CreateScope();
+            Message message = Helpers.ConvertToMessage<string>(item);
 
-                OnCalculationGenerateFailure function = scope.ServiceProvider.GetService<OnCalculationGenerateFailure>();
+            OnCalculationGenerateFailure function = scope.ServiceProvider.GetService<OnCalculationGenerateFailure>();
 
-                await function.Run(message);
+            await function.Run(message);
 
-                log.LogInformation($"C# Queue trigger function processed: {item}");
-            }
+            log.LogInformation($"C# Queue trigger function processed: {item}");
         }
     }
 }

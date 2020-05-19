@@ -12,8 +12,8 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 {
     public class ProvidersInMemoryService : IProviderService
     {
-        private Dictionary<string, Dictionary<string, Provider>> _providers = new Dictionary<string, Dictionary<string, Provider>>();
-        private Dictionary<string, Dictionary<string, Provider>> _scopedProviders = new Dictionary<string, Dictionary<string, Provider>>();
+        private readonly Dictionary<string, Dictionary<string, Provider>> _providers = new Dictionary<string, Dictionary<string, Provider>>();
+        private readonly Dictionary<string, Dictionary<string, Provider>> _scopedProviders = new Dictionary<string, Dictionary<string, Provider>>();
 
         public Task<IEnumerable<Provider>> GetProvidersByProviderVersionsId(string providerVersionId)
         {
@@ -57,14 +57,12 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
             Guard.IsNullOrWhiteSpace(providerId, nameof(providerId));
 
-            Dictionary<string, Provider> providerVersionProviders;
-            if (!_providers.TryGetValue(providerVersionId, out providerVersionProviders))
+            if (!_providers.TryGetValue(providerVersionId, out Dictionary<string, Provider> providerVersionProviders))
             {
                 throw new InvalidOperationException($"Provider Version not found. '{providerVersionId}'");
             }
 
-            Provider provider;
-            if (!providerVersionProviders.TryGetValue(providerId, out provider))
+            if (!providerVersionProviders.TryGetValue(providerId, out Provider provider))
             {
                 throw new InvalidOperationException($"Provider Version not found. Provider ID '{providerId}' in '{providerVersionId}'");
             }

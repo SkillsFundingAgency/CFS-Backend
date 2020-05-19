@@ -96,9 +96,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetCalculationsBySpecificationId(Arg.Is(specificationId))
                 .Returns((IEnumerable<Calculation>)null);
 
-            IMapper mapper = Substitute.For<IMapper>();
-
-            CalculationService service = CreateCalculationService(mapper, calculationsRepository, logger);
+            CalculationService service = CreateCalculationService(calculationsRepository, logger);
 
             //Act
             await service.UpdateCalculationsForSpecification(message);
@@ -182,7 +180,6 @@ namespace CalculateFunding.Services.Calcs.Services
             IMapper mapper = Substitute.For<IMapper>();
 
             CalculationService service = CreateCalculationService(
-                mapper,
                 calculationsRepository,
                 logger,
                 buildProjectsService: buildProjectsService,
@@ -291,7 +288,6 @@ namespace CalculateFunding.Services.Calcs.Services
             ICalculationsFeatureFlag calculationsFeatureFlag = CreateCalculationsFeatureFlag(true);
 
             CalculationService service = CreateCalculationService(
-                mapper,
                 calculationsRepository,
                 logger,
                 buildProjectsService: buildProjectsService,
@@ -413,7 +409,6 @@ namespace CalculateFunding.Services.Calcs.Services
             IMapper mapper = Substitute.For<IMapper>();
 
             CalculationService service = CreateCalculationService(
-                mapper,
                 calculationsRepository,
                 logger,
                 buildProjectsService: buildProjectsService,
@@ -524,7 +519,6 @@ namespace CalculateFunding.Services.Calcs.Services
             IMapper mapper = Substitute.For<IMapper>();
 
             CalculationService service = CreateCalculationService(
-                mapper,
                 calculationsRepository,
                 logger,
                 buildProjectsService: buildProjectsService,

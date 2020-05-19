@@ -196,7 +196,7 @@ namespace CalculateFunding.Services.Scenarios
 
             if (!statusCode.IsSuccess())
             {
-                _logger.Error($"Failed to save test scenario with status code: {statusCode.ToString()}");
+                _logger.Error($"Failed to save test scenario with status code: {statusCode}");
 
                 return new StatusCodeResult((int)statusCode);
             }

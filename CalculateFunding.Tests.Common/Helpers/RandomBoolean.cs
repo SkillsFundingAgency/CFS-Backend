@@ -6,7 +6,7 @@ namespace CalculateFunding.Tests.Common.Helpers
 
         public RandomBoolean()
         {
-            _value = new RandomNumberBetween(0, 1) == 0;
+            _value = new RandomNumberBetween(0, 2) == 0;
         }
 
         public static implicit operator bool(RandomBoolean randomNumberBetween)

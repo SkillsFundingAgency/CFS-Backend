@@ -34,11 +34,9 @@ namespace CalculateFunding.Services.Calcs.Services
         private const string CorrelationId = "4abc2782-e8cb-4643-8803-951d715fci29";
 
         private static CalculationService CreateCalculationService(
-            IMapper mapper = null,
             ICalculationsRepository calculationsRepository = null,
             ILogger logger = null,
             ISearchRepository<CalculationIndex> searchRepository = null,
-            IValidator<Calculation> calcValidator = null,
             IBuildProjectsService buildProjectsService = null,
             IPoliciesApiClient policiesApiClient = null,
             ICacheProvider cacheProvider = null,

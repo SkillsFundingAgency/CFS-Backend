@@ -22,7 +22,7 @@ namespace CalculateFunding.Services.Specs
     {
         private readonly ILogger _logger;
 
-        private FacetFilterType[] Facets = {
+        private readonly FacetFilterType[] Facets = {
             new FacetFilterType("status"),
             new FacetFilterType("fundingPeriodName"),
             new FacetFilterType("fundingStreamNames", true)
@@ -36,13 +36,13 @@ namespace CalculateFunding.Services.Specs
 
         public async Task<ServiceHealth> IsHealthOk()
         {
-            var searchRepoHealth = await SearchRepository.IsHealthOk();
+            (bool Ok, string Message) = await SearchRepository.IsHealthOk();
 
             ServiceHealth health = new ServiceHealth()
             {
                 Name = nameof(SpecificationsService)
             };
-            health.Dependencies.Add(new DependencyHealth { HealthOk = searchRepoHealth.Ok, DependencyName = SearchRepository.GetType().GetFriendlyName(), Message = searchRepoHealth.Message });
+            health.Dependencies.Add(new DependencyHealth { HealthOk = Ok, DependencyName = SearchRepository.GetType().GetFriendlyName(), Message = Message });
 
             return health;
         }

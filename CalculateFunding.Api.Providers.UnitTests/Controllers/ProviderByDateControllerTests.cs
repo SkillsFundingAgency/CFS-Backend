@@ -45,8 +45,6 @@ namespace CalculateFunding.Api.Results.UnitTests.Controllers
                 providerVersionService,
                 providerVersionSearchService);
 
-            SearchModel searchModel = new SearchModel();
-
             await controller.GetProvidersByVersion(year, month, day);
 
             await providerVersionService
@@ -94,7 +92,7 @@ namespace CalculateFunding.Api.Results.UnitTests.Controllers
 
         [TestMethod]
         [DataRow(2019, 05)]
-        public async Task GetAvailableProvidersByMonth_CallsCorrectly(int year, int month)
+        public void GetAvailableProvidersByMonth_CallsCorrectly(int year, int month)
         {
             IProviderVersionService providerVersionService = Substitute.For<IProviderVersionService>();
             IProviderVersionSearchService providerVersionSearchService = Substitute.For<IProviderVersionSearchService>();
@@ -103,7 +101,7 @@ namespace CalculateFunding.Api.Results.UnitTests.Controllers
                 providerVersionService,
                 providerVersionSearchService);
 
-            await controller.GetAvailableProvidersByMonth(year, month);
+            controller.GetAvailableProvidersByMonth(year, month);
 
             controller
                 .Received(1)

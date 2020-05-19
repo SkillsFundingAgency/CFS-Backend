@@ -20,12 +20,11 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
         [TestClass]
         public class When_i_request_current_version_of_template
         {
-            private TemplateBuilderService _service;
-            private ITemplateRepository _templateRepository;
-            private IIoCValidatorFactory _validatorFactory;
-            private TemplateResponse _result;
-            private TemplateVersion _templateVersion;
-            private Template _template;
+            private readonly TemplateBuilderService _service;
+            private readonly ITemplateRepository _templateRepository;
+            private readonly TemplateResponse _result;
+            private readonly TemplateVersion _templateVersion;
+            private readonly Template _template;
 
             public When_i_request_current_version_of_template()
             {
@@ -157,13 +156,10 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
         [TestClass]
         public class When_i_request_previous_version_of_template
         {
-            private TemplateBuilderService _service;
-            private ITemplateVersionRepository _templateVersionRepository;
-            private IIoCValidatorFactory _validatorFactory;
-            private TemplateResponse _result;
-            private TemplateVersion _templateVersionPrevious;
-            private TemplateVersion _templateVersionCurrent;
-            private Template _template;
+            private readonly TemplateBuilderService _service;
+            private readonly ITemplateVersionRepository _templateVersionRepository;
+            private readonly TemplateResponse _result;
+            private readonly TemplateVersion _templateVersionPrevious;
 
             public When_i_request_previous_version_of_template()
             {
@@ -178,24 +174,6 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
                     FundingPeriodId = "12345",
                     Status = TemplateStatus.Draft,
                     Author = new Reference("111", "FirstTestUser")
-                };
-                _templateVersionCurrent = new TemplateVersion
-                {
-                    Name = "Test Name 2",
-                    Description = "Description 2",
-                    TemplateId = "123",
-                    TemplateJson = "{ \"Lorem\": \"ipsum\" }",
-                    Version = 1,
-                    SchemaVersion = "1.1",
-                    FundingPeriodId = "12345",
-                    Status = TemplateStatus.Published,
-                    Author = new Reference("222", "SecondTestUser")
-                };
-                _template = new Template
-                {
-                    TemplateId = _templateVersionCurrent.TemplateId,
-                    Name = _templateVersionCurrent.Name,
-                    Current = _templateVersionCurrent
                 };
                 _templateVersionRepository = Substitute.For<ITemplateVersionRepository>();
                 _templateVersionRepository.GetTemplateVersion(

@@ -27,6 +27,7 @@ using CalculateFunding.Services.Core.Caching.FileSystem;
 using CalculateFunding.Models.Providers;
 using System.Threading;
 using CalculateFunding.Services.DeadletterProcessor;
+using ServiceCollectionExtensions = CalculateFunding.Services.Core.Extensions.ServiceCollectionExtensions;
 
 [assembly: FunctionsStartup(typeof(CalculateFunding.Functions.Providers.Startup))]
 
@@ -127,7 +128,7 @@ namespace CalculateFunding.Functions.Providers
                    return settings;
                });
 
-            PolicySettings policySettings = builder.GetPolicySettings(config);
+            PolicySettings policySettings = ServiceCollectionExtensions.GetPolicySettings(config);
             AsyncBulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
             ProvidersResiliencePolicies resiliencePolicies = CreateResiliencePolicies(totalNetworkRequestsPolicy);
 

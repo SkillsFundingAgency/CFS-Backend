@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Linq;
-using System.Web.Mvc;
 using ModelStateDictionary = Microsoft.AspNetCore.Mvc.ModelBinding.ModelStateDictionary;
 
 namespace CalculateFunding.Services.Core.Extensions
@@ -34,14 +33,14 @@ namespace CalculateFunding.Services.Core.Extensions
             return null;
         }
         
-        public static ModelStateDictionary ToModelStateDictionary(this ModelState mvcModelState)
+        public static ModelStateDictionary ToModelStateDictionary(this string[] errors)
         {
-            if (mvcModelState?.Errors != null && mvcModelState.Errors.Any())
+            if (!errors.IsNullOrEmpty())
             {
                 ModelStateDictionary modelStateDictionary = new ModelStateDictionary();
 
-                foreach (var error in mvcModelState.Errors)
-                    modelStateDictionary.AddModelError("", error.ErrorMessage);
+                foreach (string error in errors)
+                    modelStateDictionary.AddModelError("", error);
 
                 return modelStateDictionary;
             }

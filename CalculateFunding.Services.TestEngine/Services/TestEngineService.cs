@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Net;
-using System.Threading.Tasks;
+﻿using AutoMapper;
+using CalculateFunding.Common.ApiClient.Calcs;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.Caching;
@@ -22,6 +18,12 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
 using Polly;
 using Serilog;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
 using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
 
 namespace CalculateFunding.Services.TestRunner.Services
@@ -36,15 +38,16 @@ namespace CalculateFunding.Services.TestRunner.Services
         private readonly IProviderSourceDatasetsRepository _providerSourceDatasetsRepository;
         private readonly ITestResultsService _testResultsService;
         private readonly ITestResultsRepository _testResultsRepository;
-        private readonly IBuildProjectRepository _buildProjectRepository;
+        private readonly ICalculationsApiClient _calcsApiClient;
         private readonly ITelemetry _telemetry;
         private readonly ICalculationsRepository _calculationsRepository;
+        private readonly IMapper _mapper;
 
         private readonly AsyncPolicy _cacheProviderPolicy;
         private readonly AsyncPolicy _scenariosRepositoryPolicy;
         private readonly AsyncPolicy _providerSourceDatasetsRepositoryPolicy;
         private readonly AsyncPolicy _testResultsRepositoryPolicy;
-        private readonly AsyncPolicy _builProjectsRepositoryPolicy;
+        private readonly AsyncPolicy _calcsApiClientPolicy;
         private readonly AsyncPolicy _specificationsApiClientPolicy;
 
         public TestEngineService(
@@ -56,10 +59,11 @@ namespace CalculateFunding.Services.TestRunner.Services
             IProviderSourceDatasetsRepository providerSourceDatasetsRepository,
             ITestResultsService testResultsService,
             ITestResultsRepository testResultsRepository,
-            IBuildProjectRepository buildProjectRepository,
+            ICalculationsApiClient calcsApiClient,
             ITelemetry telemetry,
             ITestRunnerResiliencePolicies resiliencePolicies,
-            ICalculationsRepository calculationsRepository)
+            ICalculationsRepository calculationsRepository,
+            IMapper mapper)
         {
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
             Guard.ArgumentNotNull(specificationsApiClient, nameof(specificationsApiClient));
@@ -75,10 +79,11 @@ namespace CalculateFunding.Services.TestRunner.Services
             Guard.ArgumentNotNull(resiliencePolicies?.ScenariosRepository, nameof(resiliencePolicies.ScenariosRepository));
             Guard.ArgumentNotNull(resiliencePolicies?.ProviderSourceDatasetsRepository, nameof(resiliencePolicies.ProviderSourceDatasetsRepository));
             Guard.ArgumentNotNull(resiliencePolicies?.TestResultsRepository, nameof(resiliencePolicies.TestResultsRepository));
-            Guard.ArgumentNotNull(resiliencePolicies?.BuildProjectRepository, nameof(resiliencePolicies.BuildProjectRepository));
+            Guard.ArgumentNotNull(resiliencePolicies?.CalculationsApiClient, nameof(resiliencePolicies.CalculationsApiClient)); ;
             Guard.ArgumentNotNull(resiliencePolicies?.SpecificationsApiClient, nameof(resiliencePolicies.SpecificationsApiClient));
-            Guard.ArgumentNotNull(buildProjectRepository, nameof(buildProjectRepository));
+            Guard.ArgumentNotNull(calcsApiClient, nameof(calcsApiClient));
             Guard.ArgumentNotNull(calculationsRepository, nameof(calculationsRepository));
+            Guard.ArgumentNotNull(mapper, nameof(mapper));
             
             _cacheProvider = cacheProvider;
             _specificationsApiClient = specificationsApiClient;
@@ -89,13 +94,14 @@ namespace CalculateFunding.Services.TestRunner.Services
             _testResultsService = testResultsService;
             _testResultsRepository = testResultsRepository;
             _telemetry = telemetry;
+            _mapper = mapper;
 
             _cacheProviderPolicy = resiliencePolicies.CacheProviderRepository;
             _scenariosRepositoryPolicy = resiliencePolicies.ScenariosRepository;
             _providerSourceDatasetsRepositoryPolicy = resiliencePolicies.ProviderSourceDatasetsRepository;
             _testResultsRepositoryPolicy = resiliencePolicies.TestResultsRepository;
-            _builProjectsRepositoryPolicy = resiliencePolicies.BuildProjectRepository;
-            _buildProjectRepository = buildProjectRepository;
+            _calcsApiClientPolicy = resiliencePolicies.CalculationsApiClient;
+            _calcsApiClient = calcsApiClient;
             _calculationsRepository = calculationsRepository;
             _specificationsApiClientPolicy = resiliencePolicies.SpecificationsApiClient;
         }
@@ -133,7 +139,7 @@ namespace CalculateFunding.Services.TestRunner.Services
                 return;
             }
 
-            BuildProject buildProject = await _builProjectsRepositoryPolicy.ExecuteAsync(() => _buildProjectRepository.GetBuildProjectBySpecificationId(specificationId));
+            BuildProject buildProject = _mapper.Map<BuildProject>(await _calcsApiClientPolicy.ExecuteAsync(() => _calcsApiClient.GetBuildProjectBySpecificationId(specificationId)));
 
             if (buildProject == null)
             {
@@ -225,7 +231,7 @@ namespace CalculateFunding.Services.TestRunner.Services
 
                 if (!status.IsSuccess())
                 {
-                    _logger.Error($"Failed to save test results with status code: {status.ToString()}");
+                    _logger.Error($"Failed to save test results with status code: {status}");
                 }
             }
 
@@ -323,7 +329,7 @@ namespace CalculateFunding.Services.TestRunner.Services
 
                 if (!status.IsSuccess())
                 {
-                    _logger.Error($"Failed to save test results with status code: {status.ToString()}");
+                    _logger.Error($"Failed to save test results with status code: {status}");
                 }
             }
 

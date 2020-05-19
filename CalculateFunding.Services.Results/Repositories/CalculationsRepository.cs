@@ -10,7 +10,6 @@ namespace CalculateFunding.Services.Results.Repositories
 {
     public class CalculationsRepository : ICalculationsRepository
     {
-        private readonly IMapper _mapper;
         private readonly ICalculationsApiClient _calcsApiClient;
 
         public CalculationsRepository(ICalculationsApiClient calcsApiClient)

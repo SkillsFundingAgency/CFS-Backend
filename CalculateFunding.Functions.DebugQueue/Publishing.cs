@@ -14,64 +14,56 @@ namespace CalculateFunding.Functions.DebugQueue
         public static async Task RunGeneratePublishedFundingCsv([QueueTrigger(ServiceBusConstants.QueueNames.GeneratePublishedFundingCsv, 
             Connection = "AzureConnectionString")] string item, ILogger log)
         {
-            using (IServiceScope scope = Functions.Publishing.Startup.RegisterComponents(new ServiceCollection()).CreateScope())
-            {
-                Message message = Helpers.ConvertToMessage<string>(item);
+            using IServiceScope scope = Functions.Publishing.Startup.RegisterComponents(new ServiceCollection()).CreateScope();
+            Message message = Helpers.ConvertToMessage<string>(item);
 
-                OnGeneratePublishedFundingCsv function = scope.ServiceProvider.GetService<OnGeneratePublishedFundingCsv>();
-                
-                await function.Run(message);
+            OnGeneratePublishedFundingCsv function = scope.ServiceProvider.GetService<OnGeneratePublishedFundingCsv>();
 
-                log.LogInformation($"C# Queue trigger function processed: {item}");
-            }
+            await function.Run(message);
+
+            log.LogInformation($"C# Queue trigger function processed: {item}");
         }
         
         [FunctionName("on-publishing-generate-published-funding-csv-failure")]
         public static async Task RunGeneratePublishedFundingCsvFailure([QueueTrigger(ServiceBusConstants.QueueNames.GeneratePublishedFundingCsvPoisonedLocal, 
             Connection = "AzureConnectionString")] string item, ILogger log)
         {
-            using (IServiceScope scope = Functions.Publishing.Startup.RegisterComponents(new ServiceCollection()).CreateScope())
-            {
-                Message message = Helpers.ConvertToMessage<string>(item);
+            using IServiceScope scope = Functions.Publishing.Startup.RegisterComponents(new ServiceCollection()).CreateScope();
+            Message message = Helpers.ConvertToMessage<string>(item);
 
-                OnGeneratePublishedFundingCsvFailure function = scope.ServiceProvider.GetService<OnGeneratePublishedFundingCsvFailure>();
+            OnGeneratePublishedFundingCsvFailure function = scope.ServiceProvider.GetService<OnGeneratePublishedFundingCsvFailure>();
 
-                await function.Run(message);
+            await function.Run(message);
 
-                log.LogInformation($"C# Queue trigger function processed: {item}");
-            }
+            log.LogInformation($"C# Queue trigger function processed: {item}");
         }
         
         [FunctionName("on-publishing-delete-published-providers")]
         public static async Task RunDeletePublishedProviders([QueueTrigger(ServiceBusConstants.QueueNames.DeletePublishedProviders, 
             Connection = "AzureConnectionString")] string item, ILogger log)
         {
-            using (IServiceScope scope = Functions.Publishing.Startup.RegisterComponents(new ServiceCollection()).CreateScope())
-            {
-                Message message = Helpers.ConvertToMessage<string>(item);
+            using IServiceScope scope = Functions.Publishing.Startup.RegisterComponents(new ServiceCollection()).CreateScope();
+            Message message = Helpers.ConvertToMessage<string>(item);
 
-                OnDeletePublishedProviders function = scope.ServiceProvider.GetService<OnDeletePublishedProviders>();
+            OnDeletePublishedProviders function = scope.ServiceProvider.GetService<OnDeletePublishedProviders>();
 
-                await function.Run(message);
+            await function.Run(message);
 
-                log.LogInformation($"C# Queue trigger function processed: {item}");
-            }
+            log.LogInformation($"C# Queue trigger function processed: {item}");
         }
         
         [FunctionName("on-publishing-reindex-published-providers")]
         public static async Task RunReIndexPublishedProviders([QueueTrigger(ServiceBusConstants.QueueNames.PublishingReIndexPublishedProviders, 
             Connection = "AzureConnectionString")] string item, ILogger log)
         {
-            using (IServiceScope scope = Functions.Publishing.Startup.RegisterComponents(new ServiceCollection()).CreateScope())
-            {
-                Message message = Helpers.ConvertToMessage<string>(item);
+            using IServiceScope scope = Functions.Publishing.Startup.RegisterComponents(new ServiceCollection()).CreateScope();
+            Message message = Helpers.ConvertToMessage<string>(item);
 
-                OnReIndexPublishedProviders function = scope.ServiceProvider.GetService<OnReIndexPublishedProviders>();
+            OnReIndexPublishedProviders function = scope.ServiceProvider.GetService<OnReIndexPublishedProviders>();
 
-                await function.Run(message);
+            await function.Run(message);
 
-                log.LogInformation($"C# Queue trigger function processed: {item}");
-            }
+            log.LogInformation($"C# Queue trigger function processed: {item}");
         }
 
         [FunctionName("on-publishing-reindex-published-providers-poisoned")]
@@ -79,16 +71,14 @@ namespace CalculateFunding.Functions.DebugQueue
                 Connection = "AzureConnectionString")]
             string item, ILogger log)
         {
-            using (IServiceScope scope = Functions.Publishing.Startup.RegisterComponents(new ServiceCollection()).CreateScope())
-            {
-                Message message = Helpers.ConvertToMessage<string>(item);
+            using IServiceScope scope = Functions.Publishing.Startup.RegisterComponents(new ServiceCollection()).CreateScope();
+            Message message = Helpers.ConvertToMessage<string>(item);
 
-                OnReIndexPublishedProvidersFailure function = scope.ServiceProvider.GetService<OnReIndexPublishedProvidersFailure>();
+            OnReIndexPublishedProvidersFailure function = scope.ServiceProvider.GetService<OnReIndexPublishedProvidersFailure>();
 
-                await function.Run(message);
+            await function.Run(message);
 
-                log.LogInformation($"C# Queue trigger function processed: {item}");
-            }
+            log.LogInformation($"C# Queue trigger function processed: {item}");
         }
         
         [FunctionName(FunctionConstants.PublishingApproveAllProviderFunding)]
@@ -146,31 +136,27 @@ namespace CalculateFunding.Functions.DebugQueue
         [FunctionName("on-publishing-refresh-funding")]
         public static async Task RunRefreshFunding([QueueTrigger(ServiceBusConstants.QueueNames.PublishingRefreshFunding, Connection = "AzureConnectionString")] string item, ILogger log)
         {
-            using (IServiceScope scope = Functions.Publishing.Startup.RegisterComponents(new ServiceCollection()).CreateScope())
-            {
-                Message message = Helpers.ConvertToMessage<string>(item);
+            using IServiceScope scope = Functions.Publishing.Startup.RegisterComponents(new ServiceCollection()).CreateScope();
+            Message message = Helpers.ConvertToMessage<string>(item);
 
-                OnRefreshFunding function = scope.ServiceProvider.GetService<OnRefreshFunding>();
+            OnRefreshFunding function = scope.ServiceProvider.GetService<OnRefreshFunding>();
 
-                await function.Run(message);
+            await function.Run(message);
 
-                log.LogInformation($"C# Queue trigger function processed: {item}");
-            }
+            log.LogInformation($"C# Queue trigger function processed: {item}");
         }
 
         [FunctionName("on-publishing-refresh-funding-poisoned")]
         public static async Task RunRefreshFundingFailure([QueueTrigger(ServiceBusConstants.QueueNames.PublishingRefreshFundingPoisonedLocal, Connection = "AzureConnectionString")] string item, ILogger log)
         {
-            using (IServiceScope scope = Functions.Publishing.Startup.RegisterComponents(new ServiceCollection()).CreateScope())
-            {
-                Message message = Helpers.ConvertToMessage<string>(item);
+            using IServiceScope scope = Functions.Publishing.Startup.RegisterComponents(new ServiceCollection()).CreateScope();
+            Message message = Helpers.ConvertToMessage<string>(item);
 
-                OnRefreshFundingFailure function = scope.ServiceProvider.GetService<OnRefreshFundingFailure>();
+            OnRefreshFundingFailure function = scope.ServiceProvider.GetService<OnRefreshFundingFailure>();
 
-                await function.Run(message);
+            await function.Run(message);
 
-                log.LogInformation($"C# Queue trigger function processed: {item}");
-            }
+            log.LogInformation($"C# Queue trigger function processed: {item}");
         }
 
         [FunctionName(FunctionConstants.PublishingPublishAllProviderFunding)]
@@ -229,32 +215,28 @@ namespace CalculateFunding.Functions.DebugQueue
         public static async Task RunGeneratePublishedProviderEstateCsv([QueueTrigger(ServiceBusConstants.QueueNames.GeneratePublishedProviderEstateCsv,
             Connection = "AzureConnectionString")] string item, ILogger log)
         {
-            using (IServiceScope scope = Functions.Publishing.Startup.RegisterComponents(new ServiceCollection()).CreateScope())
-            {
-                Message message = Helpers.ConvertToMessage<string>(item);
+            using IServiceScope scope = Functions.Publishing.Startup.RegisterComponents(new ServiceCollection()).CreateScope();
+            Message message = Helpers.ConvertToMessage<string>(item);
 
-                OnGeneratePublishedProviderEstateCsv function = scope.ServiceProvider.GetService<OnGeneratePublishedProviderEstateCsv>();
+            OnGeneratePublishedProviderEstateCsv function = scope.ServiceProvider.GetService<OnGeneratePublishedProviderEstateCsv>();
 
-                await function.Run(message);
+            await function.Run(message);
 
-                log.LogInformation($"C# Queue trigger function processed: {item}");
-            }
+            log.LogInformation($"C# Queue trigger function processed: {item}");
         }
 
         [FunctionName("on-publishing-generate-published-provider-estate-csv-failure")]
         public static async Task RunGeneratePublishedProviderEstateCsvFailure([QueueTrigger(ServiceBusConstants.QueueNames.GeneratePublishedProviderEstateCsvPoisonedLocal,
             Connection = "AzureConnectionString")] string item, ILogger log)
         {
-            using (IServiceScope scope = Functions.Publishing.Startup.RegisterComponents(new ServiceCollection()).CreateScope())
-            {
-                Message message = Helpers.ConvertToMessage<string>(item);
+            using IServiceScope scope = Functions.Publishing.Startup.RegisterComponents(new ServiceCollection()).CreateScope();
+            Message message = Helpers.ConvertToMessage<string>(item);
 
-                OnGeneratePublishedFundingCsvFailure function = scope.ServiceProvider.GetService<OnGeneratePublishedFundingCsvFailure>();
+            OnGeneratePublishedFundingCsvFailure function = scope.ServiceProvider.GetService<OnGeneratePublishedFundingCsvFailure>();
 
-                await function.Run(message);
+            await function.Run(message);
 
-                log.LogInformation($"C# Queue trigger function processed: {item}");
-            }
+            log.LogInformation($"C# Queue trigger function processed: {item}");
         }
     }
 }

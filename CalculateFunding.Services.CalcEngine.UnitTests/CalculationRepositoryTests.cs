@@ -21,7 +21,6 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
         {
             // Arrange 
             ICalculationsApiClient apiClientProxy = Substitute.For<ICalculationsApiClient>();
-            IMapper mapper = CreateMapper();
             CalculationsRepository calculationsRepository = new CalculationsRepository(apiClientProxy, CreateMapper());
             ArgumentNullException exception = null;
 
@@ -62,7 +61,6 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
                 .Returns(new ApiResponse<IEnumerable<Common.ApiClient.Calcs.Models.CalculationSummary>>(HttpStatusCode.OK, summaryModels));
 
             CalculationsRepository calculationsRepository = new CalculationsRepository(mockApi, CreateMapper());
-            ArgumentNullException exception = null;
 
             // Act
             var configuredTaskAwaiter = calculationsRepository.GetCalculationSummariesForSpecification("Test").ConfigureAwait(false).GetAwaiter();
@@ -109,7 +107,6 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
                 .Returns(new ApiResponse<Common.ApiClient.Calcs.Models.BuildProject>(HttpStatusCode.OK, new Common.ApiClient.Calcs.Models.BuildProject()));
 
             CalculationsRepository calculationsRepository = new CalculationsRepository(mockApi, CreateMapper());
-            ArgumentNullException exception = null;
 
             // Act
             var configuredTaskAwaiter = calculationsRepository.GetBuildProjectBySpecificationId("Test").ConfigureAwait(false).GetAwaiter();

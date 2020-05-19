@@ -9,8 +9,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
     [TestClass]
     public class DsgTotalAllocationChangeVariationStrategyTests : VariationStrategyTestBase
     {
-        private const string Closed = "Closed";
-        
         private DsgTotalAllocationChangeVariationStrategy _variationStrategy;
         
         [TestInitialize]

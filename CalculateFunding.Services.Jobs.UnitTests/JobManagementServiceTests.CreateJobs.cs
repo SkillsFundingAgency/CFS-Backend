@@ -189,7 +189,7 @@ namespace CalculateFunding.Services.Jobs.Services
         }
 
         [TestMethod]
-        public async Task CreateJobs_GivenCreateJobReturnsNull_ReturnsNewInternalServerError()
+        public void CreateJobs_GivenCreateJobReturnsNull_ReturnsNewInternalServerError()
         {
             //Arrange
             IEnumerable<JobCreateModel> jobs = new[]
@@ -245,7 +245,7 @@ namespace CalculateFunding.Services.Jobs.Services
         }
 
         [TestMethod]
-        public async Task CreateJobs_GivenCreateJobReturnsThrowsException_ReturnsNewInternalServerError()
+        public void CreateJobs_GivenCreateJobReturnsThrowsException_ReturnsNewInternalServerError()
         {
             //Arrange
             IEnumerable<JobCreateModel> jobs = new[]

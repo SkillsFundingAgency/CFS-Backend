@@ -112,15 +112,19 @@ namespace CalculateFunding.Services.CalcEngine
 
             byte[] body = Encoding.ASCII.GetBytes(json);
 
-            IDictionary<string, object> properties = new Dictionary<string, object>();
-            properties.Add("sfa-correlationId", Guid.NewGuid().ToString());
-            properties.Add("provider-summaries-partition-size", 1000);
-            properties.Add("provider-summaries-partition-index", 5000);
-            properties.Add("provider-cache-key", "add key here");
-            properties.Add("specification-id", "add spec id here");
+            IDictionary<string, object> properties = new Dictionary<string, object>
+            {
+                { "sfa-correlationId", Guid.NewGuid().ToString() },
+                { "provider-summaries-partition-size", 1000 },
+                { "provider-summaries-partition-index", 5000 },
+                { "provider-cache-key", "add key here" },
+                { "specification-id", "add spec id here" }
+            };
 
-            Message message = new Message(body);
-            message.PartitionKey = Guid.NewGuid().ToString();
+            Message message = new Message(body)
+            {
+                PartitionKey = Guid.NewGuid().ToString()
+            };
 
             foreach (KeyValuePair<string, object> property in properties)
             {
@@ -475,7 +479,7 @@ namespace CalculateFunding.Services.CalcEngine
 
             if (job.CompletionStatus.HasValue)
             {
-                _logger.Information($"Received job with id: '{job.Id}' is already in a completed state with status {job.CompletionStatus.ToString()}");
+                _logger.Information($"Received job with id: '{job.Id}' is already in a completed state with status {job.CompletionStatus}");
 
                 return null;
             }
@@ -643,7 +647,7 @@ namespace CalculateFunding.Services.CalcEngine
 
                     if (!string.IsNullOrWhiteSpace(calcNameFromCalcsToAggregate) && cachedCalculationAggregationsBatch.ContainsKey(calculationReferenceName))
                     {
-                        cachedCalculationAggregationsBatch[calcNameFromCalcsToAggregate].Add(calculationResult.Value.HasValue ? calculationResult.Value.Value : 0);
+                        cachedCalculationAggregationsBatch[calcNameFromCalcsToAggregate].Add(calculationResult.Value ?? 0);
                     }
 
                 }

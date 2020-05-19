@@ -164,7 +164,7 @@ namespace CalculateFunding.Services.Calcs
 
             if (job.CompletionStatus.HasValue)
             {
-                _logger.Information($"Received job with id: '{job.Id}' is already in a completed state with status {job.CompletionStatus.ToString()}");
+                _logger.Information($"Received job with id: '{job.Id}' is already in a completed state with status {job.CompletionStatus}");
 
                 return;
             }

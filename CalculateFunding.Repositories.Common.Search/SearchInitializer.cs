@@ -77,7 +77,7 @@ namespace CalculateFunding.Repositories.Common.Search
             switch (attribute.IndexerType)
             {
                 case IndexerType.DocumentDb:
-                    type = DataSourceType.DocumentDb;
+                    type = DataSourceType.CosmosDb;
                     break;
             }
             var dataSourceDefinition = new DataSource

@@ -43,6 +43,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using OfficeOpenXml;
 using Polly.Bulkhead;
+using ServiceCollectionExtensions = CalculateFunding.Services.Core.Extensions.ServiceCollectionExtensions;
 
 namespace CalculateFunding.Api.Datasets
 {
@@ -268,7 +269,7 @@ namespace CalculateFunding.Api.Datasets
 
             builder.AddHttpContextAccessor();
 
-            PolicySettings policySettings = builder.GetPolicySettings(Configuration);
+            PolicySettings policySettings = ServiceCollectionExtensions.GetPolicySettings(Configuration);
 
             DatasetsResiliencePolicies resiliencePolicies = CreateResiliencePolicies(policySettings);
 

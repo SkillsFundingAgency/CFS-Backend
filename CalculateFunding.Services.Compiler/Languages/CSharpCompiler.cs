@@ -11,12 +11,9 @@ namespace CalculateFunding.Services.Compiler.Languages
 {
     public class CSharpCompiler : RoslynCompiler
     {
-        private readonly ILogger _logger;
-
         public CSharpCompiler(ILogger logger) : base(logger)
         {
         }
-
 
         protected override EmitResult Compile(MetadataReference[] references, MemoryStream ms, List<SourceFile> sourceFiles)
         {

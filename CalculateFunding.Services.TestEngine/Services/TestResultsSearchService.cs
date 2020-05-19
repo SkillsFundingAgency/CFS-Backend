@@ -36,7 +36,7 @@ namespace CalculateFunding.Services.TestRunner.Services
             new FacetFilterType("localAuthority")
         };
 
-        private IEnumerable<string> DefaultOrderBy = new[] { "lastUpdatedDate desc" };
+        private readonly IEnumerable<string> DefaultOrderBy = new[] { "lastUpdatedDate desc" };
 
         public TestResultsSearchService(ILogger logger,
             ISearchRepository<TestScenarioResultIndex> searchRepository,

@@ -15,7 +15,7 @@ namespace CalculateFunding.Tests.Common
     {
         protected override void AddExtraRegistrations()
         {
-            ServiceCollection.AddScoped(_ => Substitute.For<IHostingEnvironment>());
+            ServiceCollection.AddScoped(_ => Substitute.For<IWebHostEnvironment>());
 
             ReplaceAllRegistrationsWith(Substitute.For<ITelemetry>(), ServiceLifetime.Scoped);
             ReplaceAllRegistrationsWith(Substitute.For<ITelemetryInitializer>(), ServiceLifetime.Singleton);

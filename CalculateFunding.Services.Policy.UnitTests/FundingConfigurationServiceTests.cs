@@ -25,7 +25,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
     {
         private const string fundingStreamId = "fs-1";
 
-        private string fundingConfigurationsCacheKey = $"{CacheKeys.FundingConfig}{fundingStreamId}";
+        private readonly string fundingConfigurationsCacheKey = $"{CacheKeys.FundingConfig}{fundingStreamId}";
 
         [TestMethod]
         [DataRow("1234", "5678")]

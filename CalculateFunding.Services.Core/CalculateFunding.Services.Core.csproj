@@ -11,7 +11,6 @@
 
     <PackageReference Include="CalculateFunding.Common" Version="2.0.1" />
     <PackageReference Include="CalculateFunding.Common.ServiceBus" Version="1.0.0" />
-    <PackageReference Include="Microsoft.AspNet.Mvc" Version="5.2.7" />
     <PackageReference Include="CalculateFunding.Common.Caching" Version="2.0.0" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Providers" Version="2.0.4" />
     <PackageReference Include="CalculateFunding.Common.CosmosDb" Version="5.1.0" />

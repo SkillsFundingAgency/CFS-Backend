@@ -8,6 +8,7 @@
     "jobsClient:ApiEndpoint": "https://localhost:7010/api/",
     "jobsClient:ApiKey": "Local",
     "features:jobServiceEnabled": "true",
-    "features:jobServiceForMainActionsEnabled": "true"
+    "features:jobServiceForMainActionsEnabled": "true",
+    "ServiceBusSettings:ConnectionString": ""
   }
 }

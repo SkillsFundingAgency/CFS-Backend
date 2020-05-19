@@ -39,7 +39,7 @@ using BlobClient = CalculateFunding.Common.Storage.BlobClient;
 using IBlobClient = CalculateFunding.Common.Storage.IBlobClient;
 using LocalBlobClient = CalculateFunding.Services.Core.AzureStorage.BlobClient;
 using LocalIBlobClient = CalculateFunding.Services.Core.Interfaces.AzureStorage.IBlobClient;
-
+using ServiceCollectionExtensions = CalculateFunding.Services.Core.Extensions.ServiceCollectionExtensions;
 
 namespace CalculateFunding.Api.Specs
 {
@@ -242,7 +242,7 @@ namespace CalculateFunding.Api.Specs
 
             builder.AddPolicySettings(Configuration);
 
-            PolicySettings policySettings = builder.GetPolicySettings(Configuration);
+            PolicySettings policySettings = ServiceCollectionExtensions.GetPolicySettings(Configuration);
 
             AsyncBulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
 

@@ -8,7 +8,7 @@ namespace CalculateFunding.Services.TestRunner.Interfaces
 
         AsyncPolicy TestResultsSearchRepository { get; set; }
 
-        AsyncPolicy BuildProjectRepository { get; set; }
+        AsyncPolicy CalculationsApiClient { get; set; }
 
         AsyncPolicy ProviderResultsRepository { get; set; }
 

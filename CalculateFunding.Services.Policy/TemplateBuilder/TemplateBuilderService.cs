@@ -55,7 +55,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
         {
             ServiceHealth templateRepoHealth = await ((IHealthChecker) _templateRepository).IsHealthOk();
             ServiceHealth templateVersionRepoHealth = await _templateVersionRepository.IsHealthOk();
-            (bool Ok, string Message) searchRepoHealth = await _searchRepository.IsHealthOk();
+            (bool Ok, string Message) = await _searchRepository.IsHealthOk();
 
             ServiceHealth health = new ServiceHealth
             {
@@ -63,7 +63,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             };
             health.Dependencies.AddRange(templateRepoHealth.Dependencies);
             health.Dependencies.AddRange(templateVersionRepoHealth.Dependencies);
-            health.Dependencies.Add(new DependencyHealth { HealthOk = searchRepoHealth.Ok, DependencyName = _searchRepository.GetType().GetFriendlyName(), Message = searchRepoHealth.Message });
+            health.Dependencies.Add(new DependencyHealth { HealthOk = Ok, DependencyName = _searchRepository.GetType().GetFriendlyName(), Message = Message });
 
             return health;
         }
@@ -579,7 +579,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
 
             if (!validationResult.IsValid)
             {
-                return CommandResult.ValidationFail(validationResult.ValidationState);
+                return CommandResult.ValidationFail(validationResult);
             }
 
             // schema specific validation

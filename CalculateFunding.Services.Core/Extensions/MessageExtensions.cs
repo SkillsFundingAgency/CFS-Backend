@@ -27,14 +27,14 @@ namespace CalculateFunding.Services.Core.Extensions
         {
             if (message.Body == null)
             {
-                return default(T);
+                return default;
             }
 
             string json = GetMessageBodyStringFromMessage(message);
 
             if (string.IsNullOrWhiteSpace(json))
             {
-                return default(T);
+                return default;
             }
 
             return JsonConvert.DeserializeObject<T>(json);
@@ -86,16 +86,10 @@ namespace CalculateFunding.Services.Core.Extensions
 
             if (message.UserProperties.ContainsKey("compressed"))
             {
-                using (MemoryStream inputStream = new MemoryStream(message.Body))
-                {
-                    using (GZipStream gZipStream = new GZipStream(inputStream, CompressionMode.Decompress))
-                    {
-                        using (StreamReader streamReader = new StreamReader(gZipStream))
-                        {
-                            json = streamReader.ReadToEnd();
-                        }
-                    }
-                }
+                using MemoryStream inputStream = new MemoryStream(message.Body);
+                using GZipStream gZipStream = new GZipStream(inputStream, CompressionMode.Decompress);
+                using StreamReader streamReader = new StreamReader(gZipStream);
+                json = streamReader.ReadToEnd();
             }
             else
             {
@@ -108,7 +102,7 @@ namespace CalculateFunding.Services.Core.Extensions
         public static T GetUserProperty<T>(this Message message, string key) 
         {
             return (!message.UserProperties.ContainsKey(key) || message.UserProperties[key] == null)
-                ? default(T)
+                ? default
                 : (T)message.UserProperties[key];
         }
     }
