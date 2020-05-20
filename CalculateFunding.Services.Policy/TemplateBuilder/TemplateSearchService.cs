@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
@@ -6,18 +7,26 @@ using CalculateFunding.Models.Policy;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Extensions;
 using System.Linq;
+using CalculateFunding.Common.ApiClient.Jobs;
+using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Models;
 using CalculateFunding.Repositories.Common.Search.Results;
+using CalculateFunding.Services.Core.Constants;
+using CalculateFunding.Services.Policy.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Search.Models;
+using Polly;
 using Serilog;
 
 namespace CalculateFunding.Services.Policy.TemplateBuilder
 {
-    public class TemplateSearchService : IHealthChecker
+    public class TemplateSearchService : ITemplateSearchService, IHealthChecker
     {
         private readonly ILogger _logger;
         private readonly ISearchRepository<TemplateIndex> _searchRepository;
+        private readonly IJobsApiClient _jobs;
+        private readonly AsyncPolicy _jobsClientPolicy;
 
         private readonly FacetFilterType[] _facets = {
             new FacetFilterType("fundingStreamId"),
@@ -29,13 +38,20 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
         private readonly IEnumerable<string> _defaultOrderBy = new[] { "lastUpdatedDate desc" };
 
         public TemplateSearchService(ILogger logger,
-            ISearchRepository<TemplateIndex> searchRepository)
+            ISearchRepository<TemplateIndex> searchRepository,
+            IPolicyResiliencePolicies resiliencePolicies,
+            IJobsApiClient jobs)
         {
             Guard.ArgumentNotNull(searchRepository, nameof(searchRepository));
+            Guard.ArgumentNotNull(jobs, nameof(jobs));
+            Guard.ArgumentNotNull(resiliencePolicies, nameof(resiliencePolicies));
+            Guard.ArgumentNotNull(resiliencePolicies?.JobsApiClient, nameof(resiliencePolicies.JobsApiClient));
             Guard.ArgumentNotNull(logger, nameof(logger));
 
             _logger = logger;
             _searchRepository = searchRepository;
+            _jobs = jobs;
+            _jobsClientPolicy = resiliencePolicies.JobsApiClient;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -182,6 +198,56 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
                     PublishedMinorVersion = m.Result.PublishedMinorVersion,
                     HasReleasedVersion = m.Result.HasReleasedVersion
                 });
+            }
+        }
+
+        public async Task<IActionResult> ReIndex(Reference user, string correlationId)
+        {
+            Guard.ArgumentNotNull(user, nameof(user));
+            Guard.IsNullOrWhiteSpace(correlationId, nameof(correlationId));
+
+            await CreateReIndexJob(user, correlationId);
+
+            return new NoContentResult();
+        }
+
+        public async Task<Job> CreateReIndexJob(Reference user, string correlationId)
+        {
+            try
+            {
+                Job job = await _jobsClientPolicy.ExecuteAsync(() => _jobs.CreateJob(new JobCreateModel
+                {
+                    JobDefinitionId = JobConstants.DefinitionNames.ReIndexTemplatesJob,
+                    InvokerUserId = user.Id,
+                    InvokerUserDisplayName = user.Name,
+                    CorrelationId = correlationId,
+                    Trigger = new Trigger
+                    {
+                        Message = "ReIndexing Templates",
+                        EntityType = nameof(TemplateIndex),
+                    }
+                }));
+
+                if (job != null)
+                {
+                    _logger.Information($"New job of type '{job.JobDefinitionId}' created with id: '{job.Id}'");
+                }
+                else
+                {
+                    string errorMessage = $"Failed to create job of type '{JobConstants.DefinitionNames.ReIndexTemplatesJob}'";
+
+                    _logger.Error(errorMessage);
+                }
+
+                return job;
+            }
+            catch (Exception ex)
+            {
+                string error = "Failed to queue templates re-index job";
+
+                _logger.Error(ex, error);
+
+                throw new Exception(error);
             }
         }
     }

@@ -28,7 +28,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             {
                 if (templateMatches.Count() == 1)
                     return templateMatches.First();
-                
+
                 throw new ApplicationException($"Duplicate templates with TemplateId={templateId}");
             }
 
@@ -69,6 +69,32 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
                 x.Content.Current.FundingPeriodId == fundingPeriodId);
 
             return existing.Any();
+        }
+
+        public async Task AllTemplatesBatchProcessing(Func<List<Template>, Task> persistIndexBatch, int batchSize)
+        {
+            CosmosDbQuery query = new CosmosDbQuery
+            {
+                QueryText = @"SELECT
+                                        c.content.id,
+                                        { 
+                                           'id' : c.content.current.id,
+                                           'templateId' : c.content.current.templateId,
+                                           'majorVersion' : c.content.current.majorVersion,
+                                           'minorVersion' : c.content.current.minorVersion,
+                                           'fundingStreamId' : c.content.current.fundingStreamId,
+                                           'fundingPeriodId' : c.content.current.fundingPeriodId,
+                                           'status'          : c.content.current.status,
+                                           'version'         : c.content.current.version
+                                        } AS Current
+                               FROM     templateBuilder c
+                               WHERE    c.documentType = 'Template' 
+                               AND      c.deleted = false"
+            };
+
+            await _cosmosRepository.DocumentsBatchProcessingAsync(persistBatchToIndex: persistIndexBatch,
+                cosmosDbQuery: query,
+                itemsPerPage: batchSize);
         }
     }
 }

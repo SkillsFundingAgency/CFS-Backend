@@ -1,4 +1,6 @@
-﻿using System.Net;
+﻿using System;
+using System.Collections.Generic;
+using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Models.Policy.TemplateBuilder;
 
@@ -11,5 +13,6 @@ namespace CalculateFunding.Services.Policy.Interfaces
         Task<Template> GetTemplate(string templateId);
         Task<HttpStatusCode> Update(Template template);
         Task<bool> IsFundingStreamAndPeriodInUse(string fundingStreamId, string fundingPeriodId);
+        Task AllTemplatesBatchProcessing(Func<List<Template>, Task> persistIndexBatch, int batchSize);
     }
 }

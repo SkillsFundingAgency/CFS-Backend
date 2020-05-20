@@ -12,5 +12,10 @@ namespace CalculateFunding.Services.Policy
         public Polly.AsyncPolicy FundingSchemaRepository { get; set; }
 
         public Polly.AsyncPolicy FundingTemplateRepository { get; set; }
+
+        public AsyncPolicy TemplatesSearchRepository { get; set; }
+        public AsyncPolicy TemplatesRepository { get; set; }
+
+        public AsyncPolicy JobsApiClient { get; set; }
     }
 }

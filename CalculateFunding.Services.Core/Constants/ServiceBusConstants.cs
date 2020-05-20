@@ -132,6 +132,8 @@
             public const string GeneratePublishedProviderEstateCsvPoisonedLocal = "publishing-generate-published-provider-estate-csv-poisoned";
             
             public const string PublishedFundingUndo = "publishing-published-funding-undo";
+
+            public const string PolicyReIndexTemplates = "policy-reindex-templates";
         }
 
         public static class TopicNames

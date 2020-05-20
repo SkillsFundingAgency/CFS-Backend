@@ -265,5 +265,23 @@ namespace CalculateFunding.Api.Policy.Controllers
         {
             return await _templateSearchService.SearchTemplates(searchModel);
         }
-    }
+
+        [HttpGet("api/templates/reindex")]
+        [ProducesResponseType(204)]
+        public async Task<IActionResult> ReIndex()
+        {
+          return await _templateSearchService.ReIndex(GetUser(),
+            GetCorrelationId());
+        }
+
+        private Reference GetUser()
+        {
+          return Request.GetUser();
+        }
+
+        private string GetCorrelationId()
+        {
+          return Request.GetCorrelationId();
+        }
+  }
 }

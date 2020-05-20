@@ -2,11 +2,17 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Jobs;
+using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Policy;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Repositories.Common.Search.Results;
+using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Policy.TemplateBuilder;
+using CalculateFunding.Services.Policy.UnitTests;
+using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Search.Models;
@@ -521,6 +527,94 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
             templateSearchResult.LastUpdatedDate.Should().Be(new DateTime(2019, 1, 1));
         }
 
+        [TestMethod]
+        public async Task SearchTemplates_GivenPageNumberZero_ReturnsBadRequest()
+        {
+            SearchModel searchModel = new SearchModel
+            {
+                PageNumber = 0
+            };
+
+            TemplateSearchService sut = CreateTemplateSearchService();
+
+            IActionResult result = await sut.SearchTemplates(searchModel);
+
+            result
+                .Should()
+                .BeAssignableTo<BadRequestObjectResult>()
+                .Which
+                .Value
+                .Should()
+                .Be("An invalid search model was provided");
+        }
+
+        [TestMethod]
+        public void ReIndex_ThrowsExceptionIfNoUserSupplied()
+        {
+            TemplateSearchService sut = CreateTemplateSearchService();
+            Func<Task<IActionResult>> invocation = () => sut.ReIndex(user: null, correlationId: NewRandomString());
+
+            invocation
+                .Should()
+                .Throw<ArgumentNullException>()
+                .Which
+                .ParamName
+                .Should()
+                .Be("user");
+        }
+
+        [TestMethod]
+        public void ReIndex_ThrowsExceptionIfNoCorrelationIdSupplied()
+        {
+            TemplateSearchService sut = CreateTemplateSearchService();
+            Func<Task<IActionResult>> invocation = () => sut.ReIndex(user: NewUser(), correlationId: null);
+
+            invocation
+                .Should()
+                .Throw<ArgumentNullException>()
+                .Which
+                .ParamName
+                .Should()
+                .Be("correlationId");
+        }
+
+        [TestMethod]
+        public async Task ReIndex_CreatesReIndexTemplatesJob()
+        {
+            Reference user = NewUser(_ => _.WithId(NewRandomString())
+                .WithName(NewRandomString()));
+            string correlationId = NewRandomString();
+
+            var jobsApiClient = CreateJobsApiClient();
+
+            TemplateSearchService sut = CreateTemplateSearchService(jobsApiClient: jobsApiClient);
+
+            IActionResult result = await sut.ReIndex(user, correlationId);
+
+            result
+                .Should()
+                .BeOfType<NoContentResult>();
+
+            await jobsApiClient
+                .Received(1)
+                .CreateJob(Arg.Is<JobCreateModel>(_ =>
+                    _.CorrelationId == correlationId &&
+                    _.InvokerUserId == user.Id &&
+                    _.InvokerUserDisplayName == user.Name &&
+                    _.JobDefinitionId == JobConstants.DefinitionNames.ReIndexTemplatesJob));
+        }
+
+        private Reference NewUser(Action<ReferenceBuilder> setUp = null)
+        {
+            ReferenceBuilder userBuilder = new ReferenceBuilder();
+
+            setUp?.Invoke(userBuilder);
+
+            return userBuilder.Build();
+        }
+
+        private string NewRandomString() => new RandomString();
+
         private static Repositories.Common.Search.SearchResult<TemplateIndex> CreateTemplateResult(TemplateIndex templateIndex)
         {
             return new Repositories.Common.Search.SearchResult<TemplateIndex>()
@@ -531,11 +625,23 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
 
         static TemplateSearchService CreateTemplateSearchService(
             ILogger logger = null,
-            ISearchRepository<TemplateIndex> searchRepository = null)
+            ISearchRepository<TemplateIndex> searchRepository = null,
+            IJobsApiClient jobsApiClient = null)
         {
             return new TemplateSearchService(
                 logger ?? CreateLogger(),
-                searchRepository ?? CreateSearchRepository());
+                searchRepository ?? CreateSearchRepository(),
+                new PolicyResiliencePolicies
+                {
+                    JobsApiClient = Polly.Policy.NoOpAsync()
+                },
+                jobsApiClient ?? CreateJobsApiClient());
+        }
+
+        static IJobsApiClient CreateJobsApiClient()
+        {
+            return Substitute.For<IJobsApiClient>();
+            ;
         }
 
         static ILogger CreateLogger()

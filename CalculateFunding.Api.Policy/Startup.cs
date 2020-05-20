@@ -5,6 +5,7 @@ using CalculateFunding.Common.Storage;
 using CalculateFunding.Common.TemplateMetadata;
 using CalculateFunding.Common.WebApi.Extensions;
 using CalculateFunding.Common.WebApi.Middleware;
+using CalculateFunding.Common.Config.ApiClient.Jobs;
 using CalculateFunding.Models.Policy;
 using CalculateFunding.Models.Policy.FundingPolicy;
 using CalculateFunding.Services.Core.AspNet.HealthChecks;
@@ -28,11 +29,10 @@ using Serilog;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Policy.TemplateBuilder;
 using CalculateFunding.Repositories.Common.Search;
-using CalculateFunding.Services.Core.Interfaces;
-using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Services.Policy.TemplateBuilder;
 using TemplateMetadataSchema10 = CalculateFunding.Common.TemplateMetadata.Schema10;
 using TemplateMetadataSchema11 = CalculateFunding.Common.TemplateMetadata.Schema11;
+
 
 namespace CalculateFunding.Api.Policy
 {
@@ -187,9 +187,9 @@ namespace CalculateFunding.Api.Policy
 
                  Configuration.Bind("CosmosDbSettings", cosmosDbSettings);
 
-                 CosmosRepository cosmosRepostory = new CosmosRepository(cosmosDbSettings);
+                 CosmosRepository cosmosRepository = new CosmosRepository(cosmosDbSettings);
 
-                 return new PolicyRepository(cosmosRepostory);
+                 return new PolicyRepository(cosmosRepository);
              });
 
             builder.AddSingleton<IPolicyResiliencePolicies>((ctx) =>
@@ -200,12 +200,15 @@ namespace CalculateFunding.Api.Policy
 
                 Polly.AsyncPolicy redisPolicy = ResiliencePolicyHelpers.GenerateRedisPolicy(totalNetworkRequestsPolicy);
 
-                return new PolicyResiliencePolicies()
+                return new PolicyResiliencePolicies
                 {
                     PolicyRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                     CacheProvider = redisPolicy,
                     FundingSchemaRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                     FundingTemplateRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                    TemplatesSearchRepository = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
+                    JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                    TemplatesRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                 };
             });
 
@@ -215,6 +218,7 @@ namespace CalculateFunding.Api.Policy
             RegisterTemplateBuilderComponents(builder);
 
             builder.AddPolicySettings(Configuration);
+            builder.AddJobsInterServiceClient(Configuration);
 
             MapperConfiguration fundingConfMappingConfig = new MapperConfiguration(c =>
             {
