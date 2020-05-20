@@ -1,5 +1,7 @@
 ﻿using System;
+using CalculateFunding.Common.Config.ApiClient.Jobs;
 using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Functions.CosmosDbScaling.ServiceBus;
 using CalculateFunding.Models.CosmosDbScaling;
 using CalculateFunding.Services.Core.Extensions;
@@ -14,6 +16,7 @@ using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Polly.Bulkhead;
+using ServiceCollectionExtensions = CalculateFunding.Services.Core.Extensions.ServiceCollectionExtensions;
 
 [assembly: FunctionsStartup(typeof(CalculateFunding.Functions.CosmosDbScaling.Startup))]
 
@@ -55,6 +58,7 @@ namespace CalculateFunding.Functions.CosmosDbScaling
 
             builder.AddSingleton<ICosmosDbThrottledEventsFilter, CosmosDbThrottledEventsFilter>();
             builder.AddSingleton<IValidator<ScalingConfigurationUpdateModel>, ScalingConfigurationUpdateModelValidator>();
+            builder.AddScoped<IJobManagement, JobManagement>();
 
             builder.AddSingleton<CalculationProviderResultsScalingRepository>((ctx) =>
             {
@@ -227,7 +231,7 @@ namespace CalculateFunding.Functions.CosmosDbScaling
 
             builder.AddCaching(config);
 
-            Common.Config.ApiClient.Jobs.ServiceCollectionExtensions.AddJobsInterServiceClient(builder, config);
+            builder.AddJobsInterServiceClient(config);
 
             builder.AddServiceBus(config, "cosmosdbscaling");
 
@@ -252,6 +256,19 @@ namespace CalculateFunding.Functions.CosmosDbScaling
                 };
 
                 return resiliencePolicies;
+            });
+
+            builder.AddSingleton<IJobManagementResiliencePolicies>((ctx) =>
+            {
+                PolicySettings policySettings = ServiceCollectionExtensions.GetPolicySettings(config);
+
+                AsyncBulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
+                
+                return new JobManagementResiliencePolicies()
+                {
+                    JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                };
+
             });
 
             return builder.BuildServiceProvider();

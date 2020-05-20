@@ -57,6 +57,7 @@ namespace CalculateFunding.Services.CalcEngine
         private readonly IValidator<ICalculatorResiliencePolicies> _calculatorResiliencePoliciesValidator;
         private readonly IDatasetAggregationsRepository _datasetAggregationsRepository;
         private readonly IJobManagement _jobManagement;
+        private readonly ICalculationEngineServiceValidator _calculationEngineServiceValidator;
 
         public CalculationEngineService(
             ILogger logger,
@@ -69,21 +70,35 @@ namespace CalculateFunding.Services.CalcEngine
             ICalculationsRepository calculationsRepository,
             EngineSettings engineSettings,
             ICalculatorResiliencePolicies resiliencePolicies,
-            IValidator<ICalculatorResiliencePolicies> calculatorResiliencePoliciesValidator,
             IDatasetAggregationsRepository datasetAggregationsRepository,
             IJobManagement jobManagement,
-            ISpecificationsApiClient specificationsApiClient)
+            ISpecificationsApiClient specificationsApiClient,
+            IValidator<ICalculatorResiliencePolicies> calculatorResiliencePoliciesValidator,
+            ICalculationEngineServiceValidator calculationEngineServiceValidator)
         {
-            _calculatorResiliencePoliciesValidator = calculatorResiliencePoliciesValidator;
-
-            //this should be a component and the calculatorResiliencePoliciesValidator should be one its dependencies
-
-            CalculationEngineServiceValidator.ValidateConstruction(_calculatorResiliencePoliciesValidator,
-                engineSettings, resiliencePolicies, calculationsRepository);
-
-            Guard.ArgumentNotNull(specificationsApiClient, nameof(specificationsApiClient));
+            Guard.ArgumentNotNull(logger, nameof(logger));
+            Guard.ArgumentNotNull(calculationEngine, nameof(calculationEngine));
+            Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
+            Guard.ArgumentNotNull(messengerService, nameof(messengerService));
+            Guard.ArgumentNotNull(providerSourceDatasetsRepository, nameof(providerSourceDatasetsRepository));
+            Guard.ArgumentNotNull(telemetry, nameof(telemetry));
+            Guard.ArgumentNotNull(providerResultsRepository, nameof(providerResultsRepository));
+            Guard.ArgumentNotNull(calculationsRepository, nameof(calculationsRepository));
+            Guard.ArgumentNotNull(engineSettings, nameof(engineSettings));
             Guard.ArgumentNotNull(resiliencePolicies?.SpecificationsApiClient, nameof(resiliencePolicies.SpecificationsApiClient));
+            Guard.ArgumentNotNull(resiliencePolicies?.CacheProvider, nameof(resiliencePolicies.CacheProvider));
+            Guard.ArgumentNotNull(resiliencePolicies?.Messenger, nameof(resiliencePolicies.Messenger));
+            Guard.ArgumentNotNull(resiliencePolicies?.ProviderSourceDatasetsRepository, nameof(resiliencePolicies.ProviderSourceDatasetsRepository));
+            Guard.ArgumentNotNull(resiliencePolicies?.ProviderResultsRepository, nameof(resiliencePolicies.ProviderResultsRepository));
+            Guard.ArgumentNotNull(resiliencePolicies?.CalculationsRepository, nameof(resiliencePolicies.CalculationsRepository));
+            Guard.ArgumentNotNull(datasetAggregationsRepository, nameof(datasetAggregationsRepository));
+            Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
+            Guard.ArgumentNotNull(specificationsApiClient, nameof(specificationsApiClient));
+            Guard.ArgumentNotNull(calculatorResiliencePoliciesValidator, nameof(calculatorResiliencePoliciesValidator));
+            Guard.ArgumentNotNull(calculationEngineServiceValidator, nameof(calculationEngineServiceValidator));
 
+            _calculatorResiliencePoliciesValidator = calculatorResiliencePoliciesValidator;
+            _calculationEngineServiceValidator = calculationEngineServiceValidator;
             _logger = logger;
             _calculationEngine = calculationEngine;
             _cacheProvider = cacheProvider;
@@ -148,7 +163,7 @@ namespace CalculateFunding.Services.CalcEngine
 
             _logger.Information($"Validating new allocations message");
 
-            CalculationEngineServiceValidator.ValidateMessage(_logger, message);
+            _calculationEngineServiceValidator.ValidateMessage(_logger, message);
 
             GenerateAllocationMessageProperties messageProperties = GetMessageProperties(message);
 
@@ -470,11 +485,11 @@ namespace CalculateFunding.Services.CalcEngine
             {
                 job = await _jobManagement.RetrieveJobAndCheckCanBeProcessed(jobId);
             }
-            catch(JobNotFoundException ex)
+            catch(JobNotFoundException)
             {
                 throw new NonRetriableException($"Could not find the parent job with job id: '{jobId}'");
             }
-            catch(JobAlreadyCompletedException ex)
+            catch(JobAlreadyCompletedException)
             {
                 return null;
             }

@@ -8,6 +8,7 @@ using CalculateFunding.Common.Config.ApiClient.Jobs;
 using CalculateFunding.Common.Config.ApiClient.Specifications;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Interfaces;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Functions.Scenarios.ServiceBus;
 using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Repositories.Common.Search;
@@ -76,6 +77,8 @@ namespace CalculateFunding.Functions.Scenarios
 
             builder.AddSingleton<IScenariosService, ScenariosService>();
             builder.AddSingleton<IScenariosSearchService, ScenariosSearchService>();
+            builder.AddScoped<IJobManagement, JobManagement>();
+
             builder
                 .AddSingleton<IValidator<CreateNewTestScenarioVersion>, CreateNewTestScenarioVersionValidator>();           
 
@@ -155,6 +158,19 @@ namespace CalculateFunding.Functions.Scenarios
                     ScenariosApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
 
                 };
+            });
+
+            builder.AddSingleton<IJobManagementResiliencePolicies>((ctx) =>
+            {
+                PolicySettings policySettings = ctx.GetService<PolicySettings>();
+
+                AsyncBulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
+
+                return new JobManagementResiliencePolicies()
+                {
+                    JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                };
+
             });
 
             return builder.BuildServiceProvider();

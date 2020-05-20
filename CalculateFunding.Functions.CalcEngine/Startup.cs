@@ -9,6 +9,7 @@ using CalculateFunding.Common.Config.ApiClient.Jobs;
 using CalculateFunding.Common.Config.ApiClient.Specifications;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Interfaces;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Storage;
 using CalculateFunding.Functions.CalcEngine.ServiceBus;
 using CalculateFunding.Models.Calcs;
@@ -76,6 +77,7 @@ namespace CalculateFunding.Functions.CalcEngine
             builder.AddSingleton<ICalculationEngine, CalculationEngine>();
             builder.AddSingleton<IAllocationFactory, AllocationFactory>();
             builder.AddScoped<IJobHelperService, JobHelperService>();
+            builder.AddScoped<IJobManagement, JobManagement>();
             builder.AddSingleton<IProviderSourceDatasetVersionKeyProvider, ProviderSourceDatasetVersionKeyProvider>();
             builder.AddSingleton<IFileSystemAccess, FileSystemAccess>();
 
@@ -175,7 +177,6 @@ namespace CalculateFunding.Functions.CalcEngine
             builder.AddSpecificationsInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
             builder.AddJobsInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
 
-
             builder.AddDatasetsInterServiceClient(config);
 
             builder.AddEngineSettings(config);
@@ -202,8 +203,17 @@ namespace CalculateFunding.Functions.CalcEngine
 
             builder.AddSingleton<ICalculatorResiliencePolicies>(calcResiliencePolicies);
             builder.AddSingleton<IJobHelperResiliencePolicies>(calcResiliencePolicies);
+            builder.AddSingleton<IJobManagementResiliencePolicies>((ctx) =>
+            {
+                return new JobManagementResiliencePolicies()
+                {
+                    JobsApiClient = calcResiliencePolicies.JobsApiClient
+                };
+
+            });
 
             builder.AddSingleton<IValidator<ICalculatorResiliencePolicies>, CalculatorResiliencePoliciesValidator>();
+            builder.AddSingleton<ICalculationEngineServiceValidator, CalculationEngineServiceValidator>();
 
             return builder.BuildServiceProvider();
         }

@@ -295,7 +295,7 @@ namespace CalculateFunding.Services.Core.Extensions
         {
             PolicySettings policySettings = GetPolicySettings(config);
 
-            builder.AddSingleton<PolicySettings>(policySettings);
+            builder.AddSingleton(policySettings);
 
             return builder;
         }

@@ -10,9 +10,9 @@ using Serilog;
 
 namespace CalculateFunding.Services.CalcEngine
 {
-    public static class CalculationEngineServiceValidator
+    public class CalculationEngineServiceValidator : ICalculationEngineServiceValidator
     {
-        public static void ValidateConstruction(
+        public CalculationEngineServiceValidator(
             IValidator<ICalculatorResiliencePolicies> calculatorResiliencePoliciesValidator,
             EngineSettings engineSettings,
             ICalculatorResiliencePolicies resiliencePolicies,
@@ -29,7 +29,7 @@ namespace CalculateFunding.Services.CalcEngine
             }
         }
 
-        public static void ValidateMessage(ILogger logger, Message message)
+        public void ValidateMessage(ILogger logger, Message message)
         {
             if (!message.UserProperties.ContainsKey("provider-summaries-partition-index"))
             {
