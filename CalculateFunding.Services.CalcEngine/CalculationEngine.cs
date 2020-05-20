@@ -72,7 +72,6 @@ namespace CalculateFunding.Services.CalcEngine
                     {
                         Calculation = calculation.GetReference(),
                         CalculationType = calculation.CalculationType,
-                        Version = 0 // This is no longer required for new publishing. Hard coded to 0 for change detection. Previously was calculation.Version
                     };
 
                     if (providerCalcResults.TryGetValue(calculation.Id, out CalculationResult calculationResult))

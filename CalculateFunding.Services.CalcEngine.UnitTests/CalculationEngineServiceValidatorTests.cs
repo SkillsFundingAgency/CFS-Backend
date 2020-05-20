@@ -43,7 +43,7 @@ namespace CalculateFunding.Services.Calculator
             // Act
             Action validateAction = () =>
             {
-                CalculationEngineServiceValidator.ValidateConstruction(validator, nullEngineSettings, mockCalculatorResiliencePolicies, mockCalculationRepository);
+                ICalculationEngineServiceValidator calculationEngineServiceValidator = new CalculationEngineServiceValidator(validator, nullEngineSettings, mockCalculatorResiliencePolicies, mockCalculationRepository);
             };
 
             // Assert
@@ -69,7 +69,7 @@ namespace CalculateFunding.Services.Calculator
             // Act
             Action validateAction = () =>
             {
-                CalculationEngineServiceValidator.ValidateConstruction(validator, nullEngineSettings, mockCalculatorResiliencePolicies, mockCalculationRepository);
+                ICalculationEngineServiceValidator calculationEngineServiceValidator = new CalculationEngineServiceValidator(validator, nullEngineSettings, mockCalculatorResiliencePolicies, mockCalculationRepository);
             };
 
             // Assert
@@ -92,7 +92,7 @@ namespace CalculateFunding.Services.Calculator
             validator.Validate(mockCalculatorResiliencePolicies).Returns(new ValidationResult());
 
             // Act
-            CalculationEngineServiceValidator.ValidateConstruction(validator, mockEngineSettings, mockCalculatorResiliencePolicies, mockCalculationRepository);
+            _ = new CalculationEngineServiceValidator(validator, mockEngineSettings, mockCalculatorResiliencePolicies, mockCalculationRepository);
         }
 
         [TestMethod]
@@ -111,8 +111,15 @@ namespace CalculateFunding.Services.Calculator
             messageUserProperties.Add(PartitionSizeKey, partitionSize);
             messageUserProperties.Add(PartitionCacheKeyKey, cacheKey);
 
+            EngineSettings mockEngineSettings = Substitute.For<EngineSettings>();
+            ICalculationsRepository mockCalculationRepository = Substitute.For<ICalculationsRepository>();
+            ICalculatorResiliencePolicies mockCalculatorResiliencePolicies = Substitute.For<ICalculatorResiliencePolicies>();
+            IValidator<ICalculatorResiliencePolicies> validator = Substitute.For<IValidator<ICalculatorResiliencePolicies>>();
+            
+            ICalculationEngineServiceValidator calculationEngineServiceValidator = new CalculationEngineServiceValidator(validator, mockEngineSettings, mockCalculatorResiliencePolicies, mockCalculationRepository);
+
             // Act, Assert
-            CalculationEngineServiceValidator.ValidateMessage(mockLogger, message);
+            calculationEngineServiceValidator.ValidateMessage(mockLogger, message);
         }
 
         [TestMethod]
@@ -128,11 +135,16 @@ namespace CalculateFunding.Services.Calculator
             IDictionary<string, object> messageUserProperties = message.UserProperties;
             messageUserProperties.Add(PartitionSizeKey, partitionSize);
             messageUserProperties.Add(PartitionCacheKeyKey, cacheKey);
-            
+            EngineSettings mockEngineSettings = Substitute.For<EngineSettings>();
+            ICalculationsRepository mockCalculationRepository = Substitute.For<ICalculationsRepository>();
+            ICalculatorResiliencePolicies mockCalculatorResiliencePolicies = Substitute.For<ICalculatorResiliencePolicies>();
+            IValidator<ICalculatorResiliencePolicies> validator = Substitute.For<IValidator<ICalculatorResiliencePolicies>>();
+
             // Act
             Action validateMethod = () =>
             {
-                CalculationEngineServiceValidator.ValidateMessage(mockLogger, message);
+                ICalculationEngineServiceValidator calculationEngineServiceValidator = new CalculationEngineServiceValidator(validator, mockEngineSettings, mockCalculatorResiliencePolicies, mockCalculationRepository);
+                calculationEngineServiceValidator.ValidateMessage(mockLogger, message);
             };
 
             // Assert
@@ -158,10 +170,16 @@ namespace CalculateFunding.Services.Calculator
             messageUserProperties.Add(PartitionIndexKey, partitionIndex);
             messageUserProperties.Add(PartitionCacheKeyKey, cacheKey);
 
+            EngineSettings mockEngineSettings = Substitute.For<EngineSettings>();
+            ICalculationsRepository mockCalculationRepository = Substitute.For<ICalculationsRepository>();
+            ICalculatorResiliencePolicies mockCalculatorResiliencePolicies = Substitute.For<ICalculatorResiliencePolicies>();
+            IValidator<ICalculatorResiliencePolicies> validator = Substitute.For<IValidator<ICalculatorResiliencePolicies>>();
+
             // Act
             Action validateMethod = () =>
             {
-                CalculationEngineServiceValidator.ValidateMessage(mockLogger, message);
+                ICalculationEngineServiceValidator calculationEngineServiceValidator = new CalculationEngineServiceValidator(validator, mockEngineSettings, mockCalculatorResiliencePolicies, mockCalculationRepository);
+                calculationEngineServiceValidator.ValidateMessage(mockLogger, message);
             };
 
             // Assert
@@ -186,11 +204,16 @@ namespace CalculateFunding.Services.Calculator
             IDictionary<string, object> messageUserProperties = message.UserProperties;
             messageUserProperties.Add(PartitionIndexKey, partitionIndex);
             messageUserProperties.Add(PartitionSizeKey, partitionSize);
+            EngineSettings mockEngineSettings = Substitute.For<EngineSettings>();
+            ICalculationsRepository mockCalculationRepository = Substitute.For<ICalculationsRepository>();
+            ICalculatorResiliencePolicies mockCalculatorResiliencePolicies = Substitute.For<ICalculatorResiliencePolicies>();
+            IValidator<ICalculatorResiliencePolicies> validator = Substitute.For<IValidator<ICalculatorResiliencePolicies>>();
 
             // Act
             Action validateMethod = () =>
             {
-                CalculationEngineServiceValidator.ValidateMessage(mockLogger, message);
+                ICalculationEngineServiceValidator calculationEngineServiceValidator = new CalculationEngineServiceValidator(validator, mockEngineSettings, mockCalculatorResiliencePolicies, mockCalculationRepository);
+                calculationEngineServiceValidator.ValidateMessage(mockLogger, message);
             };
 
             // Assert
@@ -217,11 +240,16 @@ namespace CalculateFunding.Services.Calculator
             messageUserProperties.Add(PartitionIndexKey, partitionIndex);
             messageUserProperties.Add(PartitionSizeKey, partitionSize);
             messageUserProperties.Add(PartitionCacheKeyKey, cacheKey);
+            EngineSettings mockEngineSettings = Substitute.For<EngineSettings>();
+            ICalculationsRepository mockCalculationRepository = Substitute.For<ICalculationsRepository>();
+            ICalculatorResiliencePolicies mockCalculatorResiliencePolicies = Substitute.For<ICalculatorResiliencePolicies>();
+            IValidator<ICalculatorResiliencePolicies> validator = Substitute.For<IValidator<ICalculatorResiliencePolicies>>();
 
             // Act
             Action validateMethod = () =>
             {
-                CalculationEngineServiceValidator.ValidateMessage(mockLogger, message);
+                ICalculationEngineServiceValidator calculationEngineServiceValidator = new CalculationEngineServiceValidator(validator, mockEngineSettings, mockCalculatorResiliencePolicies, mockCalculationRepository);
+                calculationEngineServiceValidator.ValidateMessage(mockLogger, message);
             };
 
             // Assert
@@ -248,11 +276,16 @@ namespace CalculateFunding.Services.Calculator
             messageUserProperties.Add(PartitionIndexKey, partitionIndex);
             messageUserProperties.Add(PartitionSizeKey, partitionSize);
             messageUserProperties.Add(PartitionCacheKeyKey, cacheKey);
+            EngineSettings mockEngineSettings = Substitute.For<EngineSettings>();
+            ICalculationsRepository mockCalculationRepository = Substitute.For<ICalculationsRepository>();
+            ICalculatorResiliencePolicies mockCalculatorResiliencePolicies = Substitute.For<ICalculatorResiliencePolicies>();
+            IValidator<ICalculatorResiliencePolicies> validator = Substitute.For<IValidator<ICalculatorResiliencePolicies>>();
 
             // Act
             Action validateMethod = () =>
             {
-                CalculationEngineServiceValidator.ValidateMessage(mockLogger, message);
+                ICalculationEngineServiceValidator calculationEngineServiceValidator = new CalculationEngineServiceValidator(validator, mockEngineSettings, mockCalculatorResiliencePolicies, mockCalculationRepository);
+                calculationEngineServiceValidator.ValidateMessage(mockLogger, message);
             };
 
             // Assert

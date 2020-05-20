@@ -56,14 +56,14 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
 
         public async Task<ServiceHealth> IsHealthOk()
         {
-            (bool Ok, string Message) searchRepoHealth = await _searchRepository.IsHealthOk();
+            (bool Ok, string Message) = await _searchRepository.IsHealthOk();
 
             ServiceHealth health = new ServiceHealth()
             {
                 Name = nameof(TemplateSearchService)
             };
 
-            health.Dependencies.Add(new DependencyHealth { HealthOk = searchRepoHealth.Ok, DependencyName = _searchRepository.GetType().GetFriendlyName(), Message = searchRepoHealth.Message });
+            health.Dependencies.Add(new DependencyHealth { HealthOk = Ok, DependencyName = _searchRepository.GetType().GetFriendlyName(), Message = Message });
 
             return health;
         }

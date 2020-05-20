@@ -22,7 +22,7 @@ namespace CalculateFunding.Services.Scenarios
 {
     public class ScenariosSearchService : IScenariosSearchService, IHealthChecker
     {
-        private IEnumerable<string> DefaultOrderBy = new[] { "lastUpdatedDate desc" };
+        private readonly IEnumerable<string> DefaultOrderBy = new[] { "lastUpdatedDate desc" };
         private readonly ILogger _logger;
         private readonly ISearchRepository<ScenarioIndex> _searchRepository;
         private readonly IScenariosRepository _scenariosRepository;
@@ -52,14 +52,14 @@ namespace CalculateFunding.Services.Scenarios
 
         public async Task<ServiceHealth> IsHealthOk()
         {
-            var searchRepoHealth = await _searchRepository.IsHealthOk();
+            (bool Ok, string Message) = await _searchRepository.IsHealthOk();
             ServiceHealth scenariosRepoHealth = await ((IHealthChecker)_scenariosRepository).IsHealthOk();
 
             ServiceHealth health = new ServiceHealth()
             {
                 Name = nameof(ScenariosService)
             };
-            health.Dependencies.Add(new DependencyHealth { HealthOk = searchRepoHealth.Ok, DependencyName = _searchRepository.GetType().GetFriendlyName(), Message = searchRepoHealth.Message });
+            health.Dependencies.Add(new DependencyHealth { HealthOk = Ok, DependencyName = _searchRepository.GetType().GetFriendlyName(), Message = Message });
             health.Dependencies.AddRange(scenariosRepoHealth.Dependencies);
 
             return health;

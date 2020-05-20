@@ -78,9 +78,7 @@ namespace CalculateFunding.Services.Calcs.Validators
 
                      OkObjectResult okObjectResult = result as OkObjectResult;
 
-                     PreviewResponse response = okObjectResult.Value as PreviewResponse;
-
-                     if (response != null)
+                     if (okObjectResult.Value is PreviewResponse response)
                      {
                          if (!response.CompilerOutput.CompilerMessages.IsNullOrEmpty())
                          {

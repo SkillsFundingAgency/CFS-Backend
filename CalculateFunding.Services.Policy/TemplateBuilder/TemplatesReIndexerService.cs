@@ -140,7 +140,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
                 await _jobManagement.UpdateJobStatus(jobId, 0, 0, true, null);
                 _logger.Information($"Completed templates reindex job. JobId='{jobId}'");
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 await _jobManagement.UpdateJobStatus(jobId, 0, 0, false, null);
                 throw;

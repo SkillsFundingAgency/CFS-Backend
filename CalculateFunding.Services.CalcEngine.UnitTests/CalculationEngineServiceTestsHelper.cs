@@ -44,10 +44,11 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
                     MockCalculationRepository,
                     MockEngineSettings,
                     MockCalculatorResiliencePolicies,
-                    MockCalculatorResiliencePoliciesValidator,
                     DatasetAggregationsRepository,
                     MockJobManagement,
-                    MockSpecificationsApiClient
+                    MockSpecificationsApiClient,
+                    MockCalculatorResiliencePoliciesValidator,
+                    MockCalculationEngineServiceValidator
                     );
 
             return service;
@@ -65,6 +66,7 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
         public ICalculationEngine MockCalculationEngine { get; set; } = Substitute.For<ICalculationEngine>();
         public IValidator<ICalculatorResiliencePolicies> MockCalculatorResiliencePoliciesValidator { get; set; } = Substitute.For<IValidator<ICalculatorResiliencePolicies>>();
         public IDatasetAggregationsRepository DatasetAggregationsRepository { get; set; } = Substitute.For<IDatasetAggregationsRepository>();
+        public ICalculationEngineServiceValidator MockCalculationEngineServiceValidator { get; set; } = Substitute.For<ICalculationEngineServiceValidator>();
         public IFeatureToggle FeatureToggle { get; set; } = Substitute.For<IFeatureToggle>();
         public IJobManagement MockJobManagement { get; set; } = Substitute.For<IJobManagement>();
         public ISpecificationsApiClient MockSpecificationsApiClient { get; set; } = Substitute.For<ISpecificationsApiClient>();

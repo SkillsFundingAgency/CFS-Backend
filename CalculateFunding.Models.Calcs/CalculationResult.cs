@@ -32,9 +32,5 @@ namespace CalculateFunding.Models.Calcs
 
         [JsonProperty("calculationType")]
         public CalculationType CalculationType { get; set; }
-
-        [Obsolete]
-        [JsonProperty("version")]
-        public int Version { get; set; }
     }
 }

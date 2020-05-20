@@ -54,7 +54,6 @@ namespace CalculateFunding.Services.CalcEngine
         private readonly AsyncPolicy _providerResultsRepositoryPolicy;
         private readonly AsyncPolicy _calculationsRepositoryPolicy;
         private readonly AsyncPolicy _specificationsApiPolicy;
-        private readonly IValidator<ICalculatorResiliencePolicies> _calculatorResiliencePoliciesValidator;
         private readonly IDatasetAggregationsRepository _datasetAggregationsRepository;
         private readonly IJobManagement _jobManagement;
         private readonly ICalculationEngineServiceValidator _calculationEngineServiceValidator;
@@ -97,7 +96,6 @@ namespace CalculateFunding.Services.CalcEngine
             Guard.ArgumentNotNull(calculatorResiliencePoliciesValidator, nameof(calculatorResiliencePoliciesValidator));
             Guard.ArgumentNotNull(calculationEngineServiceValidator, nameof(calculationEngineServiceValidator));
 
-            _calculatorResiliencePoliciesValidator = calculatorResiliencePoliciesValidator;
             _calculationEngineServiceValidator = calculationEngineServiceValidator;
             _logger = logger;
             _calculationEngine = calculationEngine;

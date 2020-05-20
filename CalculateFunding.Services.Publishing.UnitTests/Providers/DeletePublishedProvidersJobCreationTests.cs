@@ -22,7 +22,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Providers
         private const string DeletePublishedProvidersJob = JobConstants.DefinitionNames.DeletePublishedProvidersJob;
         private IJobManagement _jobs;
         private DeletePublishedProvidersJobCreation _jobCreation;
-        private IPublishingResiliencePolicies _resiliencePolicies;
         private ILogger _logger;
 
         [TestInitialize]

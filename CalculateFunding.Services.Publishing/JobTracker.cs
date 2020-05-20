@@ -28,7 +28,7 @@ namespace CalculateFunding.Services.Publishing
             {
                 throw new NonRetriableException(ex.Message);
             }
-            catch(JobAlreadyCompletedException ex)
+            catch(JobAlreadyCompletedException)
             {
                 return false;
             }

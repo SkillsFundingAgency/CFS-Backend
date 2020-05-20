@@ -1,28 +1,22 @@
 ﻿using System.Collections.Generic;
 using AutoMapper;
 using CalculateFunding.Common.ApiClient.Calcs;
-using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.ApiClient.Providers;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.ServiceBus.Interfaces;
-using CalculateFunding.Common.ServiceBus.Options;
 using CalculateFunding.Common.TemplateMetadata;
-
 using CalculateFunding.Models.Messages;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.FeatureToggles;
 using CalculateFunding.Services.Core.Interfaces;
-using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Specs.Interfaces;
 using CalculateFunding.Services.Specs.MappingProfiles;
 using FluentValidation;
 using FluentValidation.Results;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
@@ -50,7 +44,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         private readonly ISpecificationsRepository _specificationsRepository;
         private readonly IPoliciesApiClient _policiesApiClient;
         private readonly IProvidersApiClient _providersApiClient;
-        private readonly IJobManagement _jobManagement;
         private readonly IMapper _mapper;
         private readonly ISearchRepository<SpecificationIndex> _searchRepository;
         private readonly ICacheProvider _cacheProvider;
