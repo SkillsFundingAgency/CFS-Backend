@@ -59,7 +59,7 @@ namespace CalculateFunding.Services.Publishing.Undo.Tasks
         
         private async Task InitialisePublishFundingVersionDetails(string correlationId, PublishedFundingUndoTaskContext context)
         {
-            context.PublishedFundingVersionDetails = await Cosmos.GetCorrelationIdDetailsForPublishedProviderVersions(correlationId);
+            context.PublishedFundingVersionDetails = await Cosmos.GetCorrelationIdDetailsForPublishedFundingVersions(correlationId);
         }
         
         private async Task InitialisePublishedProviderDetails(string correlationId, PublishedFundingUndoTaskContext context)
