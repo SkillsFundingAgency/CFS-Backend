@@ -103,7 +103,7 @@ namespace CalculateFunding.Functions.Calcs
             });
 
             builder.AddSingleton<ITemplateContentsCalculationQuery, TemplateContentsCalculationQuery>();
-            builder.AddSingleton<IApplyTemplateCalculationsJobTrackerFactory, ApplyTemplateCalculationsJobTrackerFactory>();
+            builder.AddScoped<IApplyTemplateCalculationsJobTrackerFactory, ApplyTemplateCalculationsJobTrackerFactory>();
             builder.AddScoped<ICalculationService, CalculationService>()
                 .AddScoped<IInstructionAllocationJobCreation, InstructionAllocationJobCreation>()
                 .AddScoped<ICreateCalculationService, CreateCalculationService>();
