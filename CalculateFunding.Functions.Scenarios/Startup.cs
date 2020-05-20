@@ -77,7 +77,7 @@ namespace CalculateFunding.Functions.Scenarios
 
             builder.AddSingleton<IScenariosService, ScenariosService>();
             builder.AddSingleton<IScenariosSearchService, ScenariosSearchService>();
-            builder.AddScoped<IJobManagement, JobManagement>();
+            builder.AddSingleton<IJobManagement, JobManagement>();
 
             builder
                 .AddSingleton<IValidator<CreateNewTestScenarioVersion>, CreateNewTestScenarioVersionValidator>();           

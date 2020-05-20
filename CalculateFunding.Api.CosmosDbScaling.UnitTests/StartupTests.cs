@@ -42,10 +42,5 @@ namespace CalculateFunding.Api.CosmosDbScaling.UnitTests
             new Startup(CreateTestConfiguration())
                 .ConfigureServices(ServiceCollection);
         }
-
-        protected override void AddExtraRegistrations()
-        {
-            ServiceCollection.AddSingleton(Substitute.For<IJobManagement>());
-        }
     }
 }

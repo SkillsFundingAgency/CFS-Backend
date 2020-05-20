@@ -8,6 +8,7 @@ using CalculateFunding.Common.Config.ApiClient.Profiling;
 using CalculateFunding.Common.Config.ApiClient.Providers;
 using CalculateFunding.Common.Config.ApiClient.Specifications;
 using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Storage;
 using CalculateFunding.Common.WebApi.Extensions;
@@ -167,6 +168,7 @@ namespace CalculateFunding.Api.Publishing
             builder.AddSingleton<IPublishedProviderStatusUpdateService, PublishedProviderStatusUpdateService>();
             builder.AddSingleton<IPublishedProviderVersioningService, PublishedProviderVersioningService>();
             builder.AddSingleton<IJobTracker, JobTracker>();
+            builder.AddSingleton<IJobManagement, JobManagement>();
             builder.AddSingleton<IVersionRepository<PublishedProviderVersion>, VersionRepository<PublishedProviderVersion>>((ctx) =>
             {
                 CosmosDbSettings settings = new CosmosDbSettings();
@@ -263,6 +265,7 @@ namespace CalculateFunding.Api.Publishing
             builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Api.Publishing");
             builder.AddApplicationInsightsServiceName(Configuration, "CalculateFunding.Api.Publishing");
             builder.AddLogging("CalculateFunding.Api.Publishing");
+            builder.AddServiceBus(Configuration, "publishing");
             builder.AddTelemetry();
             builder.AddApiKeyMiddlewareSettings((IConfigurationRoot)Configuration);
             builder.AddPolicySettings(Configuration);
@@ -349,6 +352,19 @@ namespace CalculateFunding.Api.Publishing
                     SpecificationsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                     FundingStreamPaymentDatesRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy)
                 };
+            });
+
+            builder.AddSingleton<IJobManagementResiliencePolicies>((ctx) =>
+            {
+                PolicySettings policySettings = ctx.GetService<PolicySettings>();
+
+                AsyncBulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
+
+                return new JobManagementResiliencePolicies()
+                {
+                    JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                };
+
             });
         }
     }

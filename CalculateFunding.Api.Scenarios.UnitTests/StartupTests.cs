@@ -40,10 +40,5 @@ namespace CalculateFunding.Api.Scenarios.UnitTests
             new Startup(CreateTestConfiguration())
                 .ConfigureServices(ServiceCollection);
         }
-
-        protected override void AddExtraRegistrations()
-        {
-            ServiceCollection.AddSingleton(Substitute.For<IJobManagement>());
-        }
     }
 }

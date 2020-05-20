@@ -1,5 +1,7 @@
 ﻿using System;
+using CalculateFunding.Common.Config.ApiClient.Jobs;
 using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.WebApi.Extensions;
 using CalculateFunding.Common.WebApi.Middleware;
@@ -130,12 +132,13 @@ namespace CalculateFunding.API.CosmosDbScaling
                 return new CosmosDbScalingConfigRepository(cosmosRepository);
             });
 
+            builder.AddSingleton<IJobManagement, JobManagement>();
             builder.AddFeatureToggling(Configuration);
             builder.AddUserProviderFromRequest();
             builder.AddServiceBus(Configuration);
             builder.AddSearch(Configuration);
             builder.AddCaching(Configuration);          
-            Common.Config.ApiClient.Jobs.ServiceCollectionExtensions.AddJobsInterServiceClient(builder, Configuration);
+            builder.AddJobsInterServiceClient(Configuration);
             builder.AddPolicySettings(Configuration);
             builder.AddSingleton<ICosmosDbScalingResiliencePolicies>(m =>
             {
@@ -154,7 +157,19 @@ namespace CalculateFunding.API.CosmosDbScaling
                 return resiliencePolicies;
             });
 
-           
+            builder.AddSingleton<IJobManagementResiliencePolicies>((ctx) =>
+            {
+                PolicySettings policySettings = ServiceCollectionExtensions.GetPolicySettings(Configuration);
+
+                AsyncBulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
+
+                return new JobManagementResiliencePolicies()
+                {
+                    JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                };
+
+            });
+
             builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Apis.CosmosDbScaling");
             builder.AddApplicationInsightsServiceName(Configuration, "CalculateFunding.Api.CosmosDbScaling");
             builder.AddLogging("CalculateFunding.Apis.CosmosDbScaling");

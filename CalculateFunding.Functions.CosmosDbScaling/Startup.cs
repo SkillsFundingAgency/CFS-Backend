@@ -58,7 +58,7 @@ namespace CalculateFunding.Functions.CosmosDbScaling
 
             builder.AddSingleton<ICosmosDbThrottledEventsFilter, CosmosDbThrottledEventsFilter>();
             builder.AddSingleton<IValidator<ScalingConfigurationUpdateModel>, ScalingConfigurationUpdateModelValidator>();
-            builder.AddScoped<IJobManagement, JobManagement>();
+            builder.AddSingleton<IJobManagement, JobManagement>();
 
             builder.AddSingleton<CalculationProviderResultsScalingRepository>((ctx) =>
             {
