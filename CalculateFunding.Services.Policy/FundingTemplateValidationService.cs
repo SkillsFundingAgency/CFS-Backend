@@ -153,7 +153,8 @@ namespace CalculateFunding.Services.Policy
                 }
             }
 
-            var templateVersion = parsedFundingTemplate.SelectToken("$..templateVersion")?.Value<string>();
+            var templateVersion = (parsedFundingTemplate.SelectToken("$..templateVersion", false) ?? 
+                                   parsedFundingTemplate.SelectToken("$..fundingTemplateVersion", false))?.Value<string>();
 
             if (templateVersion.IsNullOrEmpty())
             {

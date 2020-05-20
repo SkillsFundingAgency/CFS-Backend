@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.TemplateMetadata;
+using CalculateFunding.Common.TemplateMetadata.Schema11;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Policy;
 using CalculateFunding.Models.Policy.TemplateBuilder;
@@ -17,6 +18,7 @@ using CalculateFunding.Services.Policy.Models;
 using CalculateFunding.Services.Policy.Validators;
 using FluentValidation.Results;
 using Serilog;
+using Serilog.Core;
 
 namespace CalculateFunding.Services.Policy.TemplateBuilder
 {

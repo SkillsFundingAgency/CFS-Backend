@@ -41,7 +41,8 @@ namespace CalculateFunding.Services.Policy.Models
             return new CommandResult
             {
                 Succeeded = false,
-                ValidationResult = errors
+                ValidationResult = errors,
+                ValidationModelState = errors.ToModelStateDictionary()
             };
         }
 
@@ -61,7 +62,8 @@ namespace CalculateFunding.Services.Policy.Models
             return new CommandResult
             {
                 Succeeded = false,
-                ValidationResult = validationResult
+                ValidationResult = validationResult,
+                ValidationModelState = validationResult.ToModelStateDictionary()
             };
         }
     }

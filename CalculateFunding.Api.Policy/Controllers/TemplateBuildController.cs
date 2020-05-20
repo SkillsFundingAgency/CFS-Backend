@@ -155,7 +155,6 @@ namespace CalculateFunding.Api.Policy.Controllers
             {
                 return Ok();
             }
-
             if (result.ValidationModelState != null)
             {
                 return BadRequest(result.ValidationModelState);
