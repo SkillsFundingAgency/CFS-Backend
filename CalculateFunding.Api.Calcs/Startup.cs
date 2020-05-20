@@ -201,7 +201,7 @@ namespace CalculateFunding.Api.Calcs
             builder
                 .AddSingleton<IDatasetDefinitionFieldChangesProcessor, DatasetDefinitionFieldChangesProcessor>();
 
-            builder.AddSingleton<ICalculationEngineRunningChecker, CalculationEngineRunningChecker>();
+            builder.AddScoped<ICalculationEngineRunningChecker, CalculationEngineRunningChecker>();
             builder
                 .AddSingleton<IBlobContainerRepository, BlobContainerRepository>();
 

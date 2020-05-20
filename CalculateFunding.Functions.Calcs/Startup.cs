@@ -115,7 +115,7 @@ namespace CalculateFunding.Functions.Calcs
             builder.AddScoped<IPreviewService, PreviewService>();
             builder.AddSingleton<ICompilerFactory, CompilerFactory>();
             //builder.AddSingleton<IDatasetRepository, DatasetRepository>();
-            builder.AddSingleton<IJobService, JobService>();
+            builder.AddScoped<IJobService, JobService>();
             builder
                 .AddSingleton<CSharpCompiler>()
                 .AddSingleton<VisualBasicCompiler>()
@@ -158,7 +158,7 @@ namespace CalculateFunding.Functions.Calcs
             builder
                .AddScoped<IDatasetDefinitionFieldChangesProcessor, DatasetDefinitionFieldChangesProcessor>();
 
-            builder.AddSingleton<ICalculationEngineRunningChecker, CalculationEngineRunningChecker>();
+            builder.AddScoped<ICalculationEngineRunningChecker, CalculationEngineRunningChecker>();
 
             builder.AddScoped<IValidator<CalculationCreateModel>, CalculationCreateModelValidator>();
 
