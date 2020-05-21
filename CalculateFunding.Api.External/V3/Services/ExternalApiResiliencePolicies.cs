@@ -10,5 +10,6 @@ namespace CalculateFunding.Api.External.V3.Services
         public AsyncPolicy PublishedFundingBlobRepositoryPolicy { get; set; }
 
         public AsyncPolicy PublishedFundingRepositoryPolicy { get; set; }
+        public AsyncPolicy PoliciesApiClientPolicy { get; set; }
     }
 }

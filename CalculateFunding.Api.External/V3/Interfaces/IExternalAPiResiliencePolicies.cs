@@ -9,5 +9,7 @@ namespace CalculateFunding.Api.External.V3.Interfaces
         AsyncPolicy PublishedFundingBlobRepositoryPolicy { get; set; }
 
         AsyncPolicy PublishedFundingRepositoryPolicy { get; set; }
+
+        AsyncPolicy PoliciesApiClientPolicy { get; set; }
     }
 }

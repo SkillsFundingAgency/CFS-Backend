@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Linq;
+using AutoMapper;
 using CalculateFunding.Api.External.Middleware;
 using CalculateFunding.Api.External.Swagger;
 using CalculateFunding.Api.External.V3.Interfaces;
+using CalculateFunding.Api.External.V3.MappingProfiles;
 using CalculateFunding.Api.External.V3.Services;
+using CalculateFunding.Common.Config.ApiClient.Policies;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Storage;
@@ -145,10 +148,10 @@ namespace CalculateFunding.Api.External
 
             // Register v3 services
             builder
-                .AddSingleton<V3.Interfaces.IFundingFeedService, V3.Services.FundingFeedService>();
+                .AddSingleton<IFundingFeedService, FundingFeedService>();
 
             builder
-               .AddSingleton<V3.Interfaces.IFundingFeedItemByIdService, V3.Services.FundingFeedItemByIdService>();
+               .AddSingleton<IFundingFeedItemByIdService, FundingFeedItemByIdService>();
 
             builder
                 .AddSingleton<IFileSystemCache, FileSystemCache>()
@@ -214,10 +217,12 @@ namespace CalculateFunding.Api.External
                 .AddSingleton<IFundingFeedSearchService, FundingFeedSearchService>()
                 .AddSingleton<IHealthChecker, FundingFeedSearchService>();
 
+            builder
+                .AddSingleton<IFundingStreamService, FundingStreamService>();
+
             builder.AddSearch(Configuration);
             builder
                .AddSingleton<ISearchRepository<PublishedFundingIndex>, SearchRepository<PublishedFundingIndex>>();
-
            
             builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Api.External");
             builder.AddApplicationInsightsServiceName(Configuration, "CalculateFunding.Api.External");
@@ -254,11 +259,20 @@ namespace CalculateFunding.Api.External
                     PublishedProviderBlobRepositoryPolicy = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                     PublishedFundingBlobRepositoryPolicy = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                     PublishedFundingRepositoryPolicy  = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
+                    PoliciesApiClientPolicy = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                 };
             });
 
+            MapperConfiguration externalConfig = new MapperConfiguration(c =>
+            {
+                c.AddProfile<ExternalServiceMappingProfile>();
+            });
+
+            builder.AddSingleton(externalConfig.CreateMapper());
+
             builder.AddHealthCheckMiddleware();
             builder.AddTransient<ContentTypeCheckMiddleware>();
+            builder.AddPoliciesInterServiceClient(Configuration);
 
             builder.AddSingleton<IProviderFundingVersionService>((ctx) =>
             {
