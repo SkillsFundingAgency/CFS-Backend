@@ -115,7 +115,11 @@ namespace CalculateFunding.Services.Calculator
             ICalculationsRepository mockCalculationRepository = Substitute.For<ICalculationsRepository>();
             ICalculatorResiliencePolicies mockCalculatorResiliencePolicies = Substitute.For<ICalculatorResiliencePolicies>();
             IValidator<ICalculatorResiliencePolicies> validator = Substitute.For<IValidator<ICalculatorResiliencePolicies>>();
-            
+            ValidationResult result = new ValidationResult();
+
+            validator.Validate(mockCalculatorResiliencePolicies)
+                .Returns(result);
+
             ICalculationEngineServiceValidator calculationEngineServiceValidator = new CalculationEngineServiceValidator(validator, mockEngineSettings, mockCalculatorResiliencePolicies, mockCalculationRepository);
 
             // Act, Assert
@@ -139,6 +143,10 @@ namespace CalculateFunding.Services.Calculator
             ICalculationsRepository mockCalculationRepository = Substitute.For<ICalculationsRepository>();
             ICalculatorResiliencePolicies mockCalculatorResiliencePolicies = Substitute.For<ICalculatorResiliencePolicies>();
             IValidator<ICalculatorResiliencePolicies> validator = Substitute.For<IValidator<ICalculatorResiliencePolicies>>();
+            ValidationResult result = new ValidationResult();
+
+            validator.Validate(mockCalculatorResiliencePolicies)
+                .Returns(result);
 
             // Act
             Action validateMethod = () =>
@@ -174,6 +182,10 @@ namespace CalculateFunding.Services.Calculator
             ICalculationsRepository mockCalculationRepository = Substitute.For<ICalculationsRepository>();
             ICalculatorResiliencePolicies mockCalculatorResiliencePolicies = Substitute.For<ICalculatorResiliencePolicies>();
             IValidator<ICalculatorResiliencePolicies> validator = Substitute.For<IValidator<ICalculatorResiliencePolicies>>();
+            ValidationResult result = new ValidationResult();
+
+            validator.Validate(mockCalculatorResiliencePolicies)
+                .Returns(result);
 
             // Act
             Action validateMethod = () =>
@@ -208,6 +220,10 @@ namespace CalculateFunding.Services.Calculator
             ICalculationsRepository mockCalculationRepository = Substitute.For<ICalculationsRepository>();
             ICalculatorResiliencePolicies mockCalculatorResiliencePolicies = Substitute.For<ICalculatorResiliencePolicies>();
             IValidator<ICalculatorResiliencePolicies> validator = Substitute.For<IValidator<ICalculatorResiliencePolicies>>();
+            ValidationResult result = new ValidationResult();
+
+            validator.Validate(mockCalculatorResiliencePolicies)
+                .Returns(result);
 
             // Act
             Action validateMethod = () =>
@@ -244,6 +260,10 @@ namespace CalculateFunding.Services.Calculator
             ICalculationsRepository mockCalculationRepository = Substitute.For<ICalculationsRepository>();
             ICalculatorResiliencePolicies mockCalculatorResiliencePolicies = Substitute.For<ICalculatorResiliencePolicies>();
             IValidator<ICalculatorResiliencePolicies> validator = Substitute.For<IValidator<ICalculatorResiliencePolicies>>();
+            ValidationResult result = new ValidationResult();
+
+            validator.Validate(mockCalculatorResiliencePolicies)
+                .Returns(result);
 
             // Act
             Action validateMethod = () =>
@@ -280,6 +300,10 @@ namespace CalculateFunding.Services.Calculator
             ICalculationsRepository mockCalculationRepository = Substitute.For<ICalculationsRepository>();
             ICalculatorResiliencePolicies mockCalculatorResiliencePolicies = Substitute.For<ICalculatorResiliencePolicies>();
             IValidator<ICalculatorResiliencePolicies> validator = Substitute.For<IValidator<ICalculatorResiliencePolicies>>();
+            ValidationResult result = new ValidationResult();
+
+            validator.Validate(mockCalculatorResiliencePolicies)
+                .Returns(result);
 
             // Act
             Action validateMethod = () =>

@@ -58,10 +58,8 @@ namespace CalculateFunding.Api.External.V3.Services
 
                 Stream fundingDocumentStream = _fileSystemCache.Get(fundingFileSystemCacheKey);
 
-                using (BinaryReader binaryReader = new BinaryReader(fundingDocumentStream))
-                {
-                    return GetDocumentContentFromBytes(binaryReader.ReadBytes((int)fundingDocumentStream.Length));
-                }
+                using BinaryReader binaryReader = new BinaryReader(fundingDocumentStream);
+                return GetDocumentContentFromBytes(binaryReader.ReadBytes((int)fundingDocumentStream.Length));
             }
 
             ICloudBlob blob = _blobClient.GetBlockBlobReference(documentPath);
@@ -120,7 +118,7 @@ namespace CalculateFunding.Api.External.V3.Services
             {
                 if (documentPath.StartsWith("/"))
                 {
-                    documentPath = documentPath.Substring(1, documentPath.Length - 1);
+                    documentPath = documentPath[1..];
                 }
 
                 int firstForwardSlash = documentPath.IndexOf("/");
