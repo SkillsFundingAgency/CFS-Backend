@@ -1,28 +1,28 @@
-﻿using CalculateFunding.Api.External.V3.Models;
+﻿using CalculateFunding.Common.ApiClient.Policies.Models;
 using CalculateFunding.Tests.Common.Helpers;
 
 namespace CalculateFunding.Api.External.UnitTests.Version3
 {
-    public class FundingStreamBuilder : TestEntityBuilder
+    public class PolicyFundingPeriodBuilder : TestEntityBuilder
     {
         private string _id;
         private string _name;
 
-        public FundingStreamBuilder WithId(string id)
+        public PolicyFundingPeriodBuilder WithId(string id)
         {
             _id = id;
             return this;
         }
 
-        public FundingStreamBuilder WithName(string name)
+        public PolicyFundingPeriodBuilder WithName(string name)
         {
             _name = name;
             return this;
         }
 
-        public FundingStream Build()
+        public FundingPeriod Build()
         {
-            return new FundingStream
+            return new FundingPeriod
             {
                 Id = _id ?? NewRandomString(),
                 Name = _name ?? NewRandomString()

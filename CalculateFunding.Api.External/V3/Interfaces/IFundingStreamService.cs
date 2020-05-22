@@ -6,5 +6,7 @@ namespace CalculateFunding.Api.External.V3.Interfaces
     public interface IFundingStreamService
     {
         Task<IActionResult> GetFundingStreams();
+        Task<IActionResult> GetFundingPeriods(string fundingStreamId);
+
     }
 }

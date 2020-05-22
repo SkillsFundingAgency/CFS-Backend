@@ -25,5 +25,12 @@ namespace CalculateFunding.Api.External.V3.Controllers
         {
             return await _fundingStreamService.GetFundingStreams();
         }
+
+        [HttpGet("{fundingStreamId}/funding-periods")]
+        [ProducesResponseType(200, Type = typeof(IEnumerable<FundingPeriod>))]
+        public async Task<IActionResult> GetFundingPeriods(string fundingStreamId)
+        {
+            return await _fundingStreamService.GetFundingPeriods(fundingStreamId);
+        }
     }
 }

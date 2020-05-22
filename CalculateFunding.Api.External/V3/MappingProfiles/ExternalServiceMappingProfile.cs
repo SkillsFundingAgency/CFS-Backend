@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using PolicyApiClientModel = CalculateFunding.Common.ApiClient.Policies.Models;
 
 namespace CalculateFunding.Api.External.V3.MappingProfiles
 {
@@ -6,7 +7,8 @@ namespace CalculateFunding.Api.External.V3.MappingProfiles
     {
         public ExternalServiceMappingProfile()
         {
-            CreateMap<Common.ApiClient.Policies.Models.FundingStream, Models.FundingStream>();
+            CreateMap<PolicyApiClientModel.FundingStream, Models.FundingStream>();
+            CreateMap<PolicyApiClientModel.FundingPeriod, Models.FundingPeriod>();
         }
     }
 }
