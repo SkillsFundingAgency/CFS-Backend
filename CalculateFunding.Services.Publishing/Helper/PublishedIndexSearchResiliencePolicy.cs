@@ -15,16 +15,11 @@ namespace CalculateFunding.Services.Publishing.Helper
 {
     public static class PublishedIndexSearchResiliencePolicy
     {
-        public static AsyncPolicy GeneratePublishedIndexSearch(IAsyncPolicy chainedPolicy)
-        {
-            return GeneratePublishedIndexSearch(new[] { chainedPolicy });
-        }
-
-        public static AsyncPolicy GeneratePublishedIndexSearch(IAsyncPolicy[] chainedPolicies = null, int retryCount = 15, int retryWaitSeconds = 20)
+        public static AsyncPolicy GeneratePublishedIndexSearch(int retries = 15, TimeSpan? timespan = null)
         {      
-            AsyncRetryPolicy waitAndRetryPolicy =
+            var waitAndRetryPolicy =
                 Policy.Handle<CloudException>(c => c.Message == "Another indexer invocation is currently in progress; concurrent invocations not allowed.")
-                 .WaitAndRetryAsync(retryCount, i=>  TimeSpan.FromSeconds(retryWaitSeconds) );
+                 .WaitAndRetryAsync(retries, i=> timespan ?? TimeSpan.FromSeconds(20) );
 
             AsyncFallbackPolicy fault = Policy.Handle<CloudException>()
                 .FallbackAsync((cancellationToken) => Task.CompletedTask,

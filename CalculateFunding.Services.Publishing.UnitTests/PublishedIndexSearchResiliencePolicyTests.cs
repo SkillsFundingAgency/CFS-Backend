@@ -34,9 +34,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             IPublishingResiliencePolicies resiliencePolicies = GenerateTestPolicies();
 
             //Act
-            Func<Task> test = async () => await resiliencePolicies.PublishedIndexSearchResiliencePolicy.ExecuteAsync(async () => await CreateValidSearchCloudException());
+            Func<Task> test = async () => await resiliencePolicies.PublishedIndexSearchResiliencePolicy.ExecuteAsync(CreateValidSearchCloudException);
 
-            //Assert          
+            //Assert 
             test
                 .Should()
                 .NotThrow<CloudException>();               
@@ -56,12 +56,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
         public static IPublishingResiliencePolicies GenerateTestPolicies()
         {
-
             return new ResiliencePolicies()
             {
                 FundingFeedSearchRepository = Policy.NoOpAsync(),
                 PublishedFundingBlobRepository = Policy.NoOpAsync(),
-                PublishedIndexSearchResiliencePolicy = PublishedIndexSearchResiliencePolicy.GeneratePublishedIndexSearch(null,1, 1)
+                PublishedIndexSearchResiliencePolicy = PublishedIndexSearchResiliencePolicy.GeneratePublishedIndexSearch(retries: 2, timespan: TimeSpan.FromMilliseconds(1))
             };
         }
     }
