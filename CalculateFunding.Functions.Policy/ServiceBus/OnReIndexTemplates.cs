@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Common.ServiceBus.Interfaces;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Core.Constants;
@@ -20,8 +21,8 @@ namespace CalculateFunding.Functions.Policy.ServiceBus
         public OnReIndexTemplates(ILogger logger,
             ITemplatesReIndexerService templatesReIndexerService,
             IMessengerService messengerService,
-            bool useAzureStorage = false)
-            : base(logger, messengerService, FunctionName, useAzureStorage)
+             IUserProfileProvider userProfileProvider, bool useAzureStorage = false) 
+            : base(logger, messengerService, FunctionName, useAzureStorage, userProfileProvider)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(templatesReIndexerService, nameof(templatesReIndexerService));

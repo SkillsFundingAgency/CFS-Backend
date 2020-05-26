@@ -8,6 +8,7 @@ using CalculateFunding.Common.Config.ApiClient.Providers;
 using CalculateFunding.Common.Config.ApiClient.Specifications;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.JobManagement;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Functions.Datasets.ServiceBus;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
@@ -72,6 +73,8 @@ namespace CalculateFunding.Functions.Datasets
                 builder.AddScoped<OnDatasetEventFailure>();
                 builder.AddScoped<OnDatasetValidationEventFailure>();
             }
+
+            builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();
 
             builder
                .AddSingleton<IDefinitionsService, DefinitionsService>();
@@ -175,6 +178,7 @@ namespace CalculateFunding.Functions.Datasets
             builder.AddSingleton<IDatasetsAggregationsRepository, DatasetsAggregationsRepository>(ctx =>
                 new DatasetsAggregationsRepository(CreateCosmosDbSettings(config, "datasetaggregations")));
 
+            builder.AddScoped<IUserProfileProvider, UserProfileProvider>();
 
             builder.AddCalculationsInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
             builder.AddSpecificationsInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);

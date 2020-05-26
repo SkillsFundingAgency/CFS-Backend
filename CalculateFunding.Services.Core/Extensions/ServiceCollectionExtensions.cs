@@ -11,7 +11,6 @@ using CalculateFunding.Common.ServiceBus.Options;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.FeatureToggles;
-using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Core.Logging;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Core.Services;
@@ -253,43 +252,7 @@ namespace CalculateFunding.Services.Core.Extensions
             builder.AddSingleton<EngineSettings>(engineSettings);
 
             return builder;
-        }
-
-        public static IServiceCollection AddUserProviderFromMessage(this IServiceCollection builder, Message message)
-        {
-            builder.AddScoped<IUserProfileProvider, UserProfileProvider>((ctx) =>
-            {
-                Reference user = message.GetUserDetails();
-
-                UserProfileProvider userProfileProvider = new UserProfileProvider();
-
-                userProfileProvider.SetUser(user.Id, user.Name);
-
-                return userProfileProvider;
-            });
-
-            return builder;
-        }
-
-        public static IServiceCollection AddUserProviderFromRequest(this IServiceCollection builder)
-        {
-            builder.AddScoped<IUserProfileProvider, UserProfileProvider>((ctx) =>
-            {
-                IHttpContextAccessor httpContextAccessor = ctx.GetService<IHttpContextAccessor>();
-
-                string userId = httpContextAccessor.HttpContext?.User?.Claims.FirstOrDefault(m => m.Type == ClaimTypes.Sid)?.Value;
-
-                string userName = httpContextAccessor.HttpContext?.User?.Claims.FirstOrDefault(m => m.Type == ClaimTypes.Name)?.Value;
-
-                UserProfileProvider userProfileProvider = new UserProfileProvider();
-
-                userProfileProvider.SetUser(userId, userName);
-
-                return userProfileProvider;
-            });
-
-            return builder;
-        }
+        }        
 
         public static IServiceCollection AddPolicySettings(this IServiceCollection builder, IConfiguration config)
         {

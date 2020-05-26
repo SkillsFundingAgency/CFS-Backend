@@ -20,6 +20,7 @@ namespace CalculateFunding.Functions.Users.SmokeTests
     {
         private static ILogger _logger;
         private static IFundingStreamPermissionService _fundingStreamPermissionService;
+        private static IUserProfileProvider _userProfileProvider;
 
         [ClassInitialize]
         public static void SetupTests(TestContext tc)
@@ -28,6 +29,7 @@ namespace CalculateFunding.Functions.Users.SmokeTests
 
             _logger = CreateLogger();
             _fundingStreamPermissionService = CreateFundingStreamPermissionService();
+            _userProfileProvider = CreateUserProfileProvider();
         }
 
         [TestMethod]
@@ -36,6 +38,7 @@ namespace CalculateFunding.Functions.Users.SmokeTests
             OnEditSpecificationEvent onEditSpecificationEvent = new OnEditSpecificationEvent(_logger,
                 _fundingStreamPermissionService,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                 _userProfileProvider,
                 IsDevelopment);
 
             (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.TopicSubscribers.UpdateUsersForEditSpecification,
@@ -55,6 +58,11 @@ namespace CalculateFunding.Functions.Users.SmokeTests
         private static IFundingStreamPermissionService CreateFundingStreamPermissionService()
         {
             return Substitute.For<IFundingStreamPermissionService>();
+        }
+
+        private static IUserProfileProvider CreateUserProfileProvider()
+        {
+            return Substitute.For<IUserProfileProvider>();
         }
     }
 }

@@ -8,6 +8,7 @@ using CalculateFunding.Common.Config.ApiClient.Providers;
 using CalculateFunding.Common.Config.ApiClient.Results;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.JobManagement;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Common.TemplateMetadata;
 using CalculateFunding.Common.TemplateMetadata.Schema10;
 using CalculateFunding.Functions.Specs.ServiceBus;
@@ -59,6 +60,8 @@ namespace CalculateFunding.Functions.Specs
 
         private static IServiceProvider Register(IServiceCollection builder, IConfigurationRoot config)
         {
+            builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();
+
             builder.AddSingleton<IQueueCreateSpecificationJobActions, QueueCreateSpecificationJobAction>();
             builder.AddSingleton<IQueueDeleteSpecificationJobActions, QueueDeleteSpecificationJobAction>();
 
@@ -183,6 +186,8 @@ namespace CalculateFunding.Functions.Specs
             builder.AddApplicationInsightsServiceName(config, "CalculateFunding.Functions.Specs");
             builder.AddLogging("CalculateFunding.Functions.Specs");
             builder.AddTelemetry();
+
+            builder.AddScoped<IUserProfileProvider, UserProfileProvider>();
 
             return builder.BuildServiceProvider();
         }

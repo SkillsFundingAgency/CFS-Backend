@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Common.ServiceBus.Interfaces;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Calcs.Interfaces;
@@ -20,8 +21,9 @@ namespace CalculateFunding.Functions.Calcs.ServiceBus
         public CalcsAddRelationshipToBuildProject(
             ILogger logger,
             IBuildProjectsService buildProjectsService,
-            IMessengerService messegerService,
-            bool useAzureStorage = false) : base(logger, messegerService, FunctionName, useAzureStorage)
+            IMessengerService messengerService,
+            IUserProfileProvider userProfileProvider, bool useAzureStorage = false) 
+            : base(logger, messengerService, FunctionName, useAzureStorage, userProfileProvider)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(buildProjectsService, nameof(buildProjectsService));

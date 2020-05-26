@@ -10,6 +10,7 @@ using CalculateFunding.Common.Config.ApiClient.Specifications;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Interfaces;
 using CalculateFunding.Common.JobManagement;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Storage;
 using CalculateFunding.Functions.CalcEngine.ServiceBus;
 using CalculateFunding.Models.Calcs;
@@ -29,6 +30,7 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.FeatureToggles;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Options;
+using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Services.DeadletterProcessor;
 using FluentValidation;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
@@ -63,6 +65,8 @@ namespace CalculateFunding.Functions.CalcEngine
 
         private static IServiceProvider Register(IServiceCollection builder, IConfigurationRoot config)
         {
+            builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();
+
             builder.AddSingleton<IConfiguration>(config);
             builder.AddCaching(config);
             
@@ -172,6 +176,7 @@ namespace CalculateFunding.Functions.CalcEngine
             builder
                 .AddSingleton(calculationsConfig.CreateMapper());
 
+            builder.AddScoped<IUserProfileProvider, UserProfileProvider>();
 
             builder.AddCalculationsInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
             builder.AddSpecificationsInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);

@@ -1,5 +1,6 @@
 using CalculateFunding.Common.Graph;
 using CalculateFunding.Common.Graph.Interfaces;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.WebApi.Extensions;
 using CalculateFunding.Common.WebApi.Middleware;
@@ -79,6 +80,7 @@ namespace CalculateFunding.Api.Graph
 
         public void RegisterComponents(IServiceCollection builder)
         {
+            builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();
             builder
                 .AddScoped<IHealthChecker, ControllerResolverHealthCheck>();
 
@@ -111,7 +113,7 @@ namespace CalculateFunding.Api.Graph
             builder.AddApiKeyMiddlewareSettings((IConfigurationRoot)Configuration);
 
             builder.AddHttpContextAccessor();
-
+           
             builder.AddHealthCheckMiddleware();
             
             builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Api.Graph");

@@ -2,6 +2,7 @@
 using CalculateFunding.Common.Config.ApiClient.Jobs;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.JobManagement;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.WebApi.Extensions;
 using CalculateFunding.Common.WebApi.Middleware;
@@ -28,8 +29,7 @@ namespace CalculateFunding.API.CosmosDbScaling
 {
     public class Startup
     {
-        public IConfiguration Configuration { get; }
-        public IServiceProvider ServiceProvider { get; private set; }
+        public IConfiguration Configuration { get; }       
 
         public Startup(IConfiguration configuration)
         {
@@ -109,6 +109,8 @@ namespace CalculateFunding.API.CosmosDbScaling
 
         public void RegisterComponents(IServiceCollection builder)
         {
+            builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();
+
             builder
                 .AddSingleton<IHealthChecker, ControllerResolverHealthCheck>();
 
@@ -133,8 +135,7 @@ namespace CalculateFunding.API.CosmosDbScaling
             });
 
             builder.AddSingleton<IJobManagement, JobManagement>();
-            builder.AddFeatureToggling(Configuration);
-            builder.AddUserProviderFromRequest();
+            builder.AddFeatureToggling(Configuration);           
             builder.AddServiceBus(Configuration);
             builder.AddSearch(Configuration);
             builder.AddCaching(Configuration);          
@@ -175,8 +176,7 @@ namespace CalculateFunding.API.CosmosDbScaling
             builder.AddLogging("CalculateFunding.Apis.CosmosDbScaling");
             builder.AddTelemetry();
             builder.AddApiKeyMiddlewareSettings((IConfigurationRoot)Configuration);
-            builder.AddHttpContextAccessor();
-            ServiceProvider = builder.BuildServiceProvider();
+            builder.AddHttpContextAccessor();           
             builder.AddHealthCheckMiddleware();
         }
     }

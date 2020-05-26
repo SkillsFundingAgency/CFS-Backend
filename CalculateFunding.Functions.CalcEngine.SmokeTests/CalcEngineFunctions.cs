@@ -21,6 +21,7 @@ namespace CalculateFunding.Functions.CalcEngine.SmokeTests
     {
         private static ICalculationEngineService _calcEngineService;
         private static ILogger _logger;
+        private static IUserProfileProvider _userProfileProvider;
 
         [ClassInitialize]
         public static void SetupTests(TestContext tc)
@@ -30,6 +31,8 @@ namespace CalculateFunding.Functions.CalcEngine.SmokeTests
             _logger = CreateLogger();
 
             _calcEngineService = CreateCalcEngineService();
+
+            _userProfileProvider = CreateUserProfileProvider();
         }
 
         [TestMethod]
@@ -38,6 +41,7 @@ namespace CalculateFunding.Functions.CalcEngine.SmokeTests
             OnCalcsGenerateAllocationResults onCalcsGenerateAllocationResults = new OnCalcsGenerateAllocationResults(_logger,
                 _calcEngineService,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                _userProfileProvider,
                 IsDevelopment);
 
             (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.CalcEngineGenerateAllocationResults, 
@@ -56,6 +60,11 @@ namespace CalculateFunding.Functions.CalcEngine.SmokeTests
         private static ICalculationEngineService CreateCalcEngineService()
         {
             return Substitute.For<ICalculationEngineService>();
+        }
+
+        private static IUserProfileProvider CreateUserProfileProvider()
+        {
+            return Substitute.For<IUserProfileProvider>();
         }
     }
 }

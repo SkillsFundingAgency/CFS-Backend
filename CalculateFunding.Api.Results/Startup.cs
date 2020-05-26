@@ -4,6 +4,7 @@ using CalculateFunding.Common.Config.ApiClient.Calcs;
 using CalculateFunding.Common.Config.ApiClient.Specifications;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.JobManagement;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.WebApi.Extensions;
 using CalculateFunding.Common.WebApi.Middleware;
@@ -38,9 +39,7 @@ namespace CalculateFunding.Api.Results
             Configuration = configuration;
         }
 
-        public IConfiguration Configuration { get; }
-
-        public IServiceProvider ServiceProvider { get; private set; }
+        public IConfiguration Configuration { get; }       
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
@@ -115,6 +114,8 @@ namespace CalculateFunding.Api.Results
 
         public void RegisterComponents(IServiceCollection builder)
         {
+            builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();
+
             builder
                 .AddSingleton<IHealthChecker, ControllerResolverHealthCheck>();
 
@@ -173,8 +174,7 @@ namespace CalculateFunding.Api.Results
 
                     return new BlobClient(storageSettings);
                 });
-
-            builder.AddUserProviderFromRequest();
+                       
 
             builder.AddSearch(Configuration);
             builder
@@ -237,8 +237,7 @@ namespace CalculateFunding.Api.Results
             builder.AddApiKeyMiddlewareSettings((IConfigurationRoot)Configuration);
 
             builder.AddHealthCheckMiddleware();
-
-            ServiceProvider = builder.BuildServiceProvider();
+           
         }
     }
 }

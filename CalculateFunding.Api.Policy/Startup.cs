@@ -119,6 +119,8 @@ namespace CalculateFunding.Api.Policy
 
         public void RegisterComponents(IServiceCollection builder)
         {
+            builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();
+
             builder.AddSingleton<IIoCValidatorFactory, ValidatorFactory>()
                 .AddSingleton<IValidator<Reference>, AuthorValidator>();
             builder
@@ -245,8 +247,7 @@ namespace CalculateFunding.Api.Policy
 
             builder.AddApiKeyMiddlewareSettings((IConfigurationRoot)Configuration);
 
-            builder.AddHttpContextAccessor();
-
+            builder.AddHttpContextAccessor();           
             builder.AddHealthCheckMiddleware();
         }
 

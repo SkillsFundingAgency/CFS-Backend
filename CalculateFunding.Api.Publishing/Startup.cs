@@ -9,6 +9,7 @@ using CalculateFunding.Common.Config.ApiClient.Providers;
 using CalculateFunding.Common.Config.ApiClient.Specifications;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.JobManagement;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Storage;
 using CalculateFunding.Common.WebApi.Extensions;
@@ -142,6 +143,8 @@ namespace CalculateFunding.Api.Publishing
 
         private void RegisterComponents(IServiceCollection builder)
         {
+            builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();
+
             builder
                 .AddSingleton<IHealthChecker, ControllerResolverHealthCheck>();
 
@@ -269,7 +272,7 @@ namespace CalculateFunding.Api.Publishing
             builder.AddTelemetry();
             builder.AddApiKeyMiddlewareSettings((IConfigurationRoot)Configuration);
             builder.AddPolicySettings(Configuration);
-            builder.AddHttpContextAccessor();
+            builder.AddHttpContextAccessor();           
             builder.AddHealthCheckMiddleware();
             builder.AddPublishingServices(Configuration);
             builder.AddSpecificationsInterServiceClient(Configuration);

@@ -19,6 +19,7 @@ namespace CalculateFunding.Functions.Notifications.SmokeTests
     {
         private static ILogger _logger;
         private static INotificationService _notificationService;
+        private static IUserProfileProvider _userProfileProvider;
 
         [ClassInitialize]
         public static void SetupTests(TestContext tc)
@@ -27,6 +28,7 @@ namespace CalculateFunding.Functions.Notifications.SmokeTests
 
             _logger = CreateLogger();
             _notificationService = CreateNotificationService();
+            _userProfileProvider = CreateUserProfileProvider();
         }
 
         [TestMethod]
@@ -35,6 +37,7 @@ namespace CalculateFunding.Functions.Notifications.SmokeTests
             OnNotificationEventTrigger onNotificationEventTrigger = new OnNotificationEventTrigger(_logger,
                 _notificationService,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                 _userProfileProvider,
                 IsDevelopment);
 
             (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.TopicSubscribers.JobNotificationsToSignalR,
@@ -54,6 +57,11 @@ namespace CalculateFunding.Functions.Notifications.SmokeTests
         private static INotificationService CreateNotificationService()
         {
             return Substitute.For<INotificationService>();
+        }
+
+        private static IUserProfileProvider CreateUserProfileProvider()
+        {
+            return Substitute.For<IUserProfileProvider>();
         }
     }
 }

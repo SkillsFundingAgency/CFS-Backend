@@ -1,11 +1,13 @@
 ﻿using System;
 using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Functions.Jobs.ServiceBus;
 using CalculateFunding.Models.Jobs;
 using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Options;
+using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Services.Jobs;
 using CalculateFunding.Services.Jobs.Interfaces;
 using CalculateFunding.Services.Jobs.Repositories;
@@ -48,6 +50,8 @@ namespace CalculateFunding.Functions.Jobs
                 builder.AddScoped<OnCheckForJobTimeout>();
                 builder.AddScoped<OnDeleteJobs>();
             }
+
+            builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();
 
             builder
                 .AddSingleton<IJobManagementService, JobManagementService>();
@@ -120,6 +124,8 @@ namespace CalculateFunding.Functions.Jobs
             builder.AddLogging("CalculateFunding.Functions.Jobs");
 
             builder.AddTelemetry();
+
+            builder.AddScoped<IUserProfileProvider, UserProfileProvider>();
 
             return builder.BuildServiceProvider();
         }

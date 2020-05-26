@@ -20,6 +20,7 @@ namespace CalculateFunding.Functions.Specs.SmokeTests
     {
         private static ISpecificationsService _specificationsService;
         private static ILogger _logger;
+        private static IUserProfileProvider _userProfileProvider;
 
         [ClassInitialize]
         public static void SetupTests(TestContext tc)
@@ -29,6 +30,7 @@ namespace CalculateFunding.Functions.Specs.SmokeTests
             _logger = CreateLogger();
 
             _specificationsService = CreateSpecificationService();
+            _userProfileProvider = CreateUserProfileProvider();
         }
 
         [TestMethod]
@@ -37,6 +39,7 @@ namespace CalculateFunding.Functions.Specs.SmokeTests
             OnAddRelationshipEvent onAddRelationshipEvent = new OnAddRelationshipEvent(_logger,
                 _specificationsService,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                 _userProfileProvider,
                 IsDevelopment);
 
             (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.AddDefinitionRelationshipToSpecification,
@@ -53,6 +56,7 @@ namespace CalculateFunding.Functions.Specs.SmokeTests
             OnDeleteSpecifications onDeleteSpecifications = new OnDeleteSpecifications(_logger,
                 _specificationsService,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                 _userProfileProvider,
                 IsDevelopment);
 
             (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.DeleteSpecifications,
@@ -71,6 +75,11 @@ namespace CalculateFunding.Functions.Specs.SmokeTests
         private static ISpecificationsService CreateSpecificationService()
         {
             return Substitute.For<ISpecificationsService>();
+        }
+
+        private static IUserProfileProvider CreateUserProfileProvider()
+        {
+            return Substitute.For<IUserProfileProvider>();
         }
     }
 }

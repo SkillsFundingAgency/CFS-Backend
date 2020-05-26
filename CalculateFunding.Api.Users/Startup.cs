@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.WebApi.Extensions;
 using CalculateFunding.Common.WebApi.Middleware;
@@ -109,6 +110,8 @@ namespace CalculateFunding.Api.Users
 
         public void RegisterComponents(IServiceCollection builder)
         {
+            builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();
+
             builder
                 .AddSingleton<IHealthChecker, ControllerResolverHealthCheck>();
 
@@ -170,8 +173,6 @@ namespace CalculateFunding.Api.Users
                     UserRepositoryPolicy = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
                 };
             });
-
-            builder.AddUserProviderFromRequest();
 
             builder.AddCaching(Configuration);
 

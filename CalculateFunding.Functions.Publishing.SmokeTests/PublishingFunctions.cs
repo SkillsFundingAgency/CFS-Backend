@@ -25,6 +25,7 @@ namespace CalculateFunding.Functions.Publishing.SmokeTests
         private static IPublishService _publishService;
         private static IPublishedProviderReIndexerService _publishedProviderReIndexerService;
         private static IDeletePublishedProvidersService _deletePublishedProvidersService;
+        private static IUserProfileProvider _userProfileProvider;
 
         [ClassInitialize]
         public static void SetupTests(TestContext tc)
@@ -37,6 +38,7 @@ namespace CalculateFunding.Functions.Publishing.SmokeTests
             _refreshService = CreateRefreshService();
             _publishedProviderReIndexerService = CreatePublishedProviderReIndexerService();
             _deletePublishedProvidersService = CreateDeletePublishedProvidersService();
+            _userProfileProvider = CreateUserProfileProvider();
         }
 
         [TestMethod]
@@ -45,6 +47,7 @@ namespace CalculateFunding.Functions.Publishing.SmokeTests
             OnApproveAllProviderFunding onApproveSpecificationFunding = new OnApproveAllProviderFunding(_logger,
                 _approveService,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                _userProfileProvider,
                 IsDevelopment);
 
             (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.PublishingApproveAllProviderFunding,
@@ -61,6 +64,7 @@ namespace CalculateFunding.Functions.Publishing.SmokeTests
             OnApproveBatchProviderFunding onApproveProviderFunding = new OnApproveBatchProviderFunding(_logger,
                 _approveService,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                _userProfileProvider,
                 IsDevelopment);
 
             (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.PublishingApproveBatchProviderFunding,
@@ -77,6 +81,7 @@ namespace CalculateFunding.Functions.Publishing.SmokeTests
             OnPublishAllProviderFunding onPublishFunding = new OnPublishAllProviderFunding(_logger,
                 _publishService,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                _userProfileProvider,
                 IsDevelopment);
 
             (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.PublishingPublishAllProviderFunding,
@@ -93,6 +98,7 @@ namespace CalculateFunding.Functions.Publishing.SmokeTests
             OnPublishBatchProviderFunding onPublishFunding = new OnPublishBatchProviderFunding(_logger,
                 _publishService,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                _userProfileProvider,
                 IsDevelopment);
 
             (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.PublishingPublishBatchProviderFunding,
@@ -109,6 +115,7 @@ namespace CalculateFunding.Functions.Publishing.SmokeTests
             OnRefreshFunding onRefreshFunding = new OnRefreshFunding(_logger,
                 _refreshService,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                _userProfileProvider,
                 IsDevelopment);
 
             (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.PublishingRefreshFunding,
@@ -125,6 +132,7 @@ namespace CalculateFunding.Functions.Publishing.SmokeTests
             OnReIndexPublishedProviders onReIndexPublishedProviders = new OnReIndexPublishedProviders(_logger,
                 _publishedProviderReIndexerService,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                _userProfileProvider,
                 IsDevelopment);
 
             (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.PublishingReIndexPublishedProviders,
@@ -141,6 +149,7 @@ namespace CalculateFunding.Functions.Publishing.SmokeTests
             OnDeletePublishedProviders onDeletePublishedProvider = new OnDeletePublishedProviders(_logger,
                 _deletePublishedProvidersService,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                _userProfileProvider,
                 IsDevelopment);
 
             (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.DeletePublishedProviders,
@@ -179,6 +188,11 @@ namespace CalculateFunding.Functions.Publishing.SmokeTests
         private static IDeletePublishedProvidersService CreateDeletePublishedProvidersService()
         {
             return Substitute.For<IDeletePublishedProvidersService>();
+        }
+
+        private static IUserProfileProvider CreateUserProfileProvider()
+        {
+            return Substitute.For<IUserProfileProvider>();
         }
     }
 }

@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
@@ -14,12 +14,12 @@
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="9.0.0" />
     <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="7.0.0" />
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Datasets" Version="1.0.0" />
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Graph" Version="2.0.3" />
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Jobs" Version="2.0.3" />
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Policies" Version="2.0.3" />
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Providers" Version="2.0.4" />
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Specifications" Version="2.0.3" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Datasets" Version="1.1.0" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Graph" Version="2.1.0" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Jobs" Version="2.1.0" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Policies" Version="2.1.0" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Providers" Version="2.1.0" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Specifications" Version="2.1.0" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.13.1" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.1.2" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="5.0.0" />

@@ -21,6 +21,7 @@ namespace CalculateFunding.Functions.TestEngine.SmokeTests
         private static ILogger _logger;
         private static ITestResultsService _testResultsService;
         private static ITestEngineService _testEngineService;
+        private static IUserProfileProvider _userProfileProvider;
 
         [ClassInitialize]
         public static void SetupTests(TestContext tc)
@@ -30,6 +31,7 @@ namespace CalculateFunding.Functions.TestEngine.SmokeTests
             _logger = CreateLogger();
             _testResultsService = CreateTestResultsService();
             _testEngineService = CreateTestEngineService();
+            _userProfileProvider = CreateUserProfileProvider();
         }
 
         [TestMethod]
@@ -38,6 +40,7 @@ namespace CalculateFunding.Functions.TestEngine.SmokeTests
             OnDeleteTestResults onDeleteTestResults = new OnDeleteTestResults(_logger,
                 _testResultsService,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                 _userProfileProvider,
                 IsDevelopment);
 
             (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.DeleteTestResults,
@@ -54,6 +57,7 @@ namespace CalculateFunding.Functions.TestEngine.SmokeTests
             OnEditSpecificationEvent onEditSpecificationEvent = new OnEditSpecificationEvent(_logger,
                 _testResultsService,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                 _userProfileProvider,
                 IsDevelopment);
 
             (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.TopicSubscribers.UpdateScenarioResultsForEditSpecification,
@@ -71,6 +75,7 @@ namespace CalculateFunding.Functions.TestEngine.SmokeTests
             OnTestExecution onTestExecution = new OnTestExecution(_logger,
                 _testEngineService,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                 _userProfileProvider,
                 IsDevelopment);
 
             (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.TestEngineExecuteTests,
@@ -87,6 +92,7 @@ namespace CalculateFunding.Functions.TestEngine.SmokeTests
             OnTestSpecificationProviderResultsCleanup onTestSpecificationProviderResultsCleanup = new OnTestSpecificationProviderResultsCleanup(_logger,
                 _testResultsService,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                 _userProfileProvider,
                 IsDevelopment);
 
             (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.TopicSubscribers.CleanupTestResultsForSpecificationProviders,
@@ -111,6 +117,11 @@ namespace CalculateFunding.Functions.TestEngine.SmokeTests
         private static ITestEngineService CreateTestEngineService()
         {
             return Substitute.For<ITestEngineService>();
+        }
+
+        private static IUserProfileProvider CreateUserProfileProvider()
+        {
+            return Substitute.For<IUserProfileProvider>();
         }
     }
 }

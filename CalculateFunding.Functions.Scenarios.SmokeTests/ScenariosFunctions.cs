@@ -21,6 +21,7 @@ namespace CalculateFunding.Functions.Scenarios.SmokeTests
         private static ILogger _logger;
         private static IDatasetDefinitionFieldChangesProcessor _datasetDefinitionFieldChangesProcessor;
         private static IScenariosService _scenariosService;
+        private static IUserProfileProvider _userProfileProvider;
 
         [ClassInitialize]
         public static void SetupTests(TestContext tc)
@@ -30,6 +31,7 @@ namespace CalculateFunding.Functions.Scenarios.SmokeTests
             _logger = CreateLogger();
             _datasetDefinitionFieldChangesProcessor = CreateDatasetDefinitionFieldChangesProcessor();
             _scenariosService = CreateScenariosService();
+            _userProfileProvider = CreateUserProfileProvider();
         }
 
         [TestMethod]
@@ -38,6 +40,7 @@ namespace CalculateFunding.Functions.Scenarios.SmokeTests
             OnDataDefinitionChanges onDataDefinitionChanges = new OnDataDefinitionChanges(_logger,
                 _datasetDefinitionFieldChangesProcessor,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                 _userProfileProvider,
                 IsDevelopment);
 
             (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.TopicSubscribers.UpdateScenarioFieldDefinitionProperties,
@@ -55,6 +58,7 @@ namespace CalculateFunding.Functions.Scenarios.SmokeTests
             OnDeleteTests onDeleteTests = new OnDeleteTests(_logger,
                 _scenariosService,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                 _userProfileProvider,
                 IsDevelopment);
 
             (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.DeleteTests,
@@ -71,6 +75,7 @@ namespace CalculateFunding.Functions.Scenarios.SmokeTests
             OnEditCalculationEvent onEditCalculationEvent = new OnEditCalculationEvent(_logger,
                 _scenariosService,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                 _userProfileProvider,
                 IsDevelopment);
 
             (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.TopicSubscribers.UpdateScenariosForEditCalculation,
@@ -88,6 +93,7 @@ namespace CalculateFunding.Functions.Scenarios.SmokeTests
             OnEditSpecificationEvent onEditSpecificationEvent = new OnEditSpecificationEvent(_logger,
                 _scenariosService,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                 _userProfileProvider,
                 IsDevelopment);
 
             (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.TopicSubscribers.UpdateScenariosForEditSpecification,
@@ -112,6 +118,11 @@ namespace CalculateFunding.Functions.Scenarios.SmokeTests
         private static IScenariosService CreateScenariosService()
         {
             return Substitute.For<IScenariosService>();
+        }
+
+        private static IUserProfileProvider CreateUserProfileProvider()
+        {
+            return Substitute.For<IUserProfileProvider>();
         }
     }
 }

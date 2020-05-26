@@ -51,6 +51,8 @@ using BlobClient = CalculateFunding.Services.Core.AzureStorage.BlobClient;
 using IBlobClient = CalculateFunding.Services.Core.Interfaces.AzureStorage.IBlobClient;
 using CommonBlobClient = CalculateFunding.Common.Storage.BlobClient;
 using ServiceCollectionExtensions = CalculateFunding.Services.Core.Extensions.ServiceCollectionExtensions;
+using CalculateFunding.Common.Models;
+
 
 [assembly: FunctionsStartup(typeof(Startup))]
 
@@ -79,6 +81,8 @@ namespace CalculateFunding.Functions.Publishing
         private static IServiceProvider Register(IServiceCollection builder,
             IConfigurationRoot config)
         {
+            builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();
+
             builder.AddFeatureManagement();
 
             builder.AddSingleton<IConfiguration>(ctx => config);
@@ -424,6 +428,8 @@ namespace CalculateFunding.Functions.Publishing
             });
             
             builder.AddSingleton<IProducerConsumerFactory, ProducerConsumerFactory>();
+
+            builder.AddScoped<IUserProfileProvider, UserProfileProvider>();
 
             return builder.BuildServiceProvider();
         }

@@ -5,6 +5,7 @@ using CalculateFunding.Common.Config.ApiClient.Providers;
 using CalculateFunding.Common.Config.ApiClient.Scenarios;
 using CalculateFunding.Common.Config.ApiClient.Specifications;
 using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.WebApi.Extensions;
 using CalculateFunding.Common.WebApi.Middleware;
@@ -116,6 +117,8 @@ namespace CalculateFunding.Api.TestRunner
 
         public void RegisterComponents(IServiceCollection builder)
         {
+            builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();
+
             builder
                 .AddSingleton<IHealthChecker, ControllerResolverHealthCheck>();
 
@@ -214,9 +217,7 @@ namespace CalculateFunding.Api.TestRunner
 
             builder
                 .AddScoped<ITestResultsService, TestResultsService>()
-                .AddScoped<IHealthChecker, TestResultsService>();
-
-            builder.AddUserProviderFromRequest();
+                .AddScoped<IHealthChecker, TestResultsService>();          
 
             builder.AddSearch(Configuration);
             builder

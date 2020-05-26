@@ -21,6 +21,7 @@ namespace CalculateFunding.Services.Core.Functions
         private ILogger _logger;
         private IMessengerService _messengerService;
         private string _expectedFileVersion;
+        private IUserProfileProvider _userProfileProvider;
 
         [TestInitialize]
         public void Setup()
@@ -30,6 +31,8 @@ namespace CalculateFunding.Services.Core.Functions
             _messengerService
                 .ServiceName
                 .Returns("SmokeService");
+
+            _userProfileProvider = Substitute.For<IUserProfileProvider>();
         }
 
         [TestMethod]
@@ -101,13 +104,13 @@ namespace CalculateFunding.Services.Core.Functions
 
         private void GivenSmokeTestCreatedInDevelopment(Func<Task> action = null)
         {
-            _smokeFunction = new SmokeFunction(_logger, _messengerService, true, action);
+            _smokeFunction = new SmokeFunction(_logger, _messengerService, true, _userProfileProvider,action);
             _expectedFileVersion = _smokeFunction.BuildNumber;
         }
 
         private void GivenSmokeTestCreatedNotInDevelopment()
         {
-            _smokeFunction = new SmokeFunction(_logger, _messengerService, false);
+            _smokeFunction = new SmokeFunction(_logger, _messengerService, false, _userProfileProvider);
             _expectedFileVersion = _smokeFunction.BuildNumber;
         }
 

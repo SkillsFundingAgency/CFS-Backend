@@ -20,6 +20,7 @@ namespace CalculateFunding.Functions.Jobs.SmokeTests
     {
         private static ILogger _logger;
         private static IJobManagementService _jobManagementService;
+        private static IUserProfileProvider _userProfileProvider;
 
         [ClassInitialize]
         public static void SetupTests(TestContext tc)
@@ -28,6 +29,7 @@ namespace CalculateFunding.Functions.Jobs.SmokeTests
 
             _logger = CreateLogger();
             _jobManagementService = CreateJobManagementService();
+            _userProfileProvider = CreateUserProfileProvider();
         }
 
         [TestMethod]
@@ -36,6 +38,7 @@ namespace CalculateFunding.Functions.Jobs.SmokeTests
             OnDeleteJobs onDeleteJobs = new OnDeleteJobs(_logger,
                 _jobManagementService,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                 _userProfileProvider,
                 IsDevelopment);
 
             (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.DeleteJobs,
@@ -52,6 +55,7 @@ namespace CalculateFunding.Functions.Jobs.SmokeTests
             OnJobNotification onJobNotification = new OnJobNotification(_logger,
                 _jobManagementService,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                 _userProfileProvider,
                 IsDevelopment);
 
             (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.TopicSubscribers.UpdateJobsOnCompletion,
@@ -71,6 +75,11 @@ namespace CalculateFunding.Functions.Jobs.SmokeTests
         private static IJobManagementService CreateJobManagementService()
         {
             return Substitute.For<IJobManagementService>();
+        }
+
+        private static IUserProfileProvider CreateUserProfileProvider()
+        {
+            return Substitute.For<IUserProfileProvider>();
         }
     }
 }

@@ -3,8 +3,8 @@ using CalculateFunding.Common.Models;
 using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
-using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Core.Options;
+using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Services.Notifications;
 using CalculateFunding.Services.Notifications.Interfaces;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
@@ -45,6 +45,8 @@ namespace CalculateFunding.Functions.Notifications
                 .AddSingleton<OnNotificationEventTrigger>();
             }
 
+            builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();
+
             builder
                 .AddSingleton<INotificationService, NotificationService>();
 
@@ -70,6 +72,8 @@ namespace CalculateFunding.Functions.Notifications
                     MessagePolicy = ResiliencePolicyHelpers.GenerateMessagingPolicy(totalNetworkRequestsPolicy),
                 };
             });
+
+            builder.AddScoped<IUserProfileProvider, UserProfileProvider>();
 
             return builder.BuildServiceProvider();
         }

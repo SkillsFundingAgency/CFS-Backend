@@ -33,6 +33,8 @@ using Polly.Bulkhead;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Services.DeadletterProcessor;
 using ServiceCollectionExtensions = CalculateFunding.Services.Core.Extensions.ServiceCollectionExtensions;
+using CalculateFunding.Common.Models;
+
 
 namespace CalculateFunding.Api.Providers
 {
@@ -123,6 +125,8 @@ namespace CalculateFunding.Api.Providers
 
         public void RegisterComponents(IServiceCollection builder)
         {
+            builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();
+
             builder
                 .AddSingleton<IHealthChecker, ControllerResolverHealthCheck>();
 
@@ -234,7 +238,7 @@ namespace CalculateFunding.Api.Providers
 
             builder.AddHealthCheckMiddleware();
 
-            ServiceProvider = builder.BuildServiceProvider();
+            builder.AddHttpContextAccessor();           
 
             builder.AddSearch(Configuration);
         }

@@ -24,6 +24,7 @@ namespace CalculateFunding.Functions.Calcs.SmokeTests
         private static IDatasetDefinitionFieldChangesProcessor _datasetDefinitionFieldChangesProcessor;
         private static ICalculationService _calculationService;
         private static ILogger _logger;
+        private static IUserProfileProvider _userProfileProvider;
 
         [ClassInitialize]
         public static void SetupTests(TestContext tc)
@@ -37,6 +38,7 @@ namespace CalculateFunding.Functions.Calcs.SmokeTests
             _jobService = CreateJobService();
             _calculationService = CreateCalculationService();
             _datasetDefinitionFieldChangesProcessor = CreateDatasetDefinitionFieldChangesProcessor();
+            _userProfileProvider = CreateUserProfileProvider();
         }
 
         [TestMethod]
@@ -45,6 +47,7 @@ namespace CalculateFunding.Functions.Calcs.SmokeTests
             OnApplyTemplateCalculations onApplyTemplateCalculations = new OnApplyTemplateCalculations(_logger,
                 _applyTemplateCalculationsService,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                _userProfileProvider,
                 IsDevelopment);
 
             (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.ApplyTemplateCalculations,
@@ -61,6 +64,7 @@ namespace CalculateFunding.Functions.Calcs.SmokeTests
             CalcsAddRelationshipToBuildProject calcsAddRelationshipToBuildProject = new CalcsAddRelationshipToBuildProject(_logger,
                 _buildProjectsService,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                _userProfileProvider,
                 IsDevelopment);
 
             (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.UpdateBuildProjectRelationships,
@@ -77,6 +81,7 @@ namespace CalculateFunding.Functions.Calcs.SmokeTests
             OnCalcsInstructAllocationResults onCalcsInstructAllocationResults = new OnCalcsInstructAllocationResults(_logger,
                 _buildProjectsService,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                _userProfileProvider,
                 IsDevelopment);
 
             (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.CalculationJobInitialiser, 
@@ -93,6 +98,7 @@ namespace CalculateFunding.Functions.Calcs.SmokeTests
             OnCalculationAggregationsJobCompleted onCalculationAggregationsJobCompleted = new OnCalculationAggregationsJobCompleted(_logger,
                 _jobService,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                _userProfileProvider,
                 IsDevelopment);
 
             (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.TopicSubscribers.CreateInstructAllocationsJob,
@@ -110,6 +116,7 @@ namespace CalculateFunding.Functions.Calcs.SmokeTests
             OnDataDefinitionChanges onDataDefinitionChanges = new OnDataDefinitionChanges(_logger,
                 _datasetDefinitionFieldChangesProcessor,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                _userProfileProvider,
                 IsDevelopment);
 
             (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.TopicSubscribers.UpdateCalculationFieldDefinitionProperties,
@@ -127,6 +134,7 @@ namespace CalculateFunding.Functions.Calcs.SmokeTests
             OnDeleteCalculationResults onDeleteCalculationResults = new OnDeleteCalculationResults(_logger,
                 _calculationService,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                _userProfileProvider,
                 IsDevelopment);
 
             (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.DeleteCalculationResults,
@@ -143,6 +151,7 @@ namespace CalculateFunding.Functions.Calcs.SmokeTests
             OnDeleteCalculations onDeleteCalculations = new OnDeleteCalculations(_logger,
                 _calculationService,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                _userProfileProvider,
                 IsDevelopment);
 
             (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.DeleteCalculations,
@@ -181,6 +190,11 @@ namespace CalculateFunding.Functions.Calcs.SmokeTests
         private static ICalculationService CreateCalculationService()
         {
             return Substitute.For<ICalculationService>();
+        }
+
+        private static IUserProfileProvider CreateUserProfileProvider()
+        {
+            return Substitute.For<IUserProfileProvider>();
         }
     }
 }

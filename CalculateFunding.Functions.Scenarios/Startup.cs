@@ -9,6 +9,7 @@ using CalculateFunding.Common.Config.ApiClient.Specifications;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Interfaces;
 using CalculateFunding.Common.JobManagement;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Functions.Scenarios.ServiceBus;
 using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Repositories.Common.Search;
@@ -60,6 +61,8 @@ namespace CalculateFunding.Functions.Scenarios
                 builder.AddScoped<OnEditCalculationEvent>();
                 builder.AddScoped<OnEditSpecificationEvent>();
             }
+
+            builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();
 
             builder.AddSingleton<IScenariosRepository, ScenariosRepository>((ctx) =>
             {
@@ -172,6 +175,8 @@ namespace CalculateFunding.Functions.Scenarios
                 };
 
             });
+
+            builder.AddScoped<IUserProfileProvider, UserProfileProvider>();
 
             return builder.BuildServiceProvider();
         }

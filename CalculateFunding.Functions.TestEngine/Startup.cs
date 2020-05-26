@@ -6,6 +6,7 @@ using CalculateFunding.Common.Config.ApiClient.Providers;
 using CalculateFunding.Common.Config.ApiClient.Scenarios;
 using CalculateFunding.Common.Config.ApiClient.Specifications;
 using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Functions.TestEngine.ServiceBus;
 using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Repositories.Common.Search;
@@ -15,6 +16,7 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Logging;
 using CalculateFunding.Services.Core.Options;
+using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Services.TestEngine.Interfaces;
 using CalculateFunding.Services.TestEngine.MappingProfiles;
 using CalculateFunding.Services.TestRunner;
@@ -60,6 +62,8 @@ namespace CalculateFunding.Functions.TestEngine
                 builder.AddScoped<OnEditSpecificationEvent>();
                 builder.AddScoped<OnTestExecution>();
             }
+
+            builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();
 
             builder
                 .AddSingleton<IGherkinParserService, GherkinParserService>();
@@ -195,6 +199,8 @@ namespace CalculateFunding.Functions.TestEngine
 
                 return resiliencePolicies;
             }));
+
+            builder.AddScoped<IUserProfileProvider, UserProfileProvider>();
 
             return builder.BuildServiceProvider();
         }

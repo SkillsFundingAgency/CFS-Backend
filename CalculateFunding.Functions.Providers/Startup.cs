@@ -28,6 +28,9 @@ using CalculateFunding.Models.Providers;
 using System.Threading;
 using CalculateFunding.Services.DeadletterProcessor;
 using ServiceCollectionExtensions = CalculateFunding.Services.Core.Extensions.ServiceCollectionExtensions;
+using CalculateFunding.Common.Models;
+using CalculateFunding.Services.Core.Services;
+
 
 [assembly: FunctionsStartup(typeof(CalculateFunding.Functions.Providers.Startup))]
 
@@ -60,6 +63,8 @@ namespace CalculateFunding.Functions.Providers
                 builder.AddScoped<OnPopulateScopedProvidersEventTrigger>();
                 builder.AddScoped<OnPopulateScopedProvidersEventTriggerFailure>();
             }
+
+            builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();
 
             builder.AddSingleton<IConfiguration>(config);
 
@@ -167,6 +172,8 @@ namespace CalculateFunding.Functions.Providers
                 });
 
             builder.AddServiceBus(config, "providers");
+
+            builder.AddScoped<IUserProfileProvider, UserProfileProvider>();
 
             return builder.BuildServiceProvider();
         }

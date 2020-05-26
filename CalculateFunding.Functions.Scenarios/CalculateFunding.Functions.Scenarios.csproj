@@ -10,7 +10,7 @@
     <None Remove="EventHub\**" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Datasets" Version="1.0.0" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Datasets" Version="1.1.0" />
     <PackageReference Include="Microsoft.Azure.Functions.Extensions" Version="1.0.0" />
     <PackageReference Include="AutoMapper" Version="9.0.0" />
     <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.ServiceBus" Version="4.1.0" />

@@ -23,6 +23,11 @@ namespace CalculateFunding.Services.Core.Extensions
             return new Reference(userId, userName);
         }
 
+        public static UserProfile GetUserProfile(this Message message)
+        {
+            return new UserProfile(message.GetUserDetails());
+        }
+
         public static T GetPayloadAsInstanceOf<T>(this Message message)
         {
             if (message.Body == null)

@@ -2,11 +2,13 @@
 using CalculateFunding.Common.Config.ApiClient.Jobs;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.JobManagement;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Functions.CosmosDbScaling.ServiceBus;
 using CalculateFunding.Models.CosmosDbScaling;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Options;
+using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Services.CosmosDbScaling;
 using CalculateFunding.Services.CosmosDbScaling.Interfaces;
 using CalculateFunding.Services.CosmosDbScaling.Repositories;
@@ -49,6 +51,7 @@ namespace CalculateFunding.Functions.CosmosDbScaling
                 builder.AddScoped<OnScaleUpCosmosDbCollection>();
             }
 
+            builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();
 
             builder.AddSingleton<ICosmosDbScalingRepositoryProvider, CosmosDbScalingRepositoryProvider>();
 
@@ -230,6 +233,8 @@ namespace CalculateFunding.Functions.CosmosDbScaling
             });
 
             builder.AddCaching(config);
+
+            builder.AddScoped<IUserProfileProvider, UserProfileProvider>();
 
             builder.AddJobsInterServiceClient(config);
 

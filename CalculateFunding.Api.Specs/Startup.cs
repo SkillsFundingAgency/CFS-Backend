@@ -6,6 +6,7 @@ using CalculateFunding.Common.Config.ApiClient.Providers;
 using CalculateFunding.Common.Config.ApiClient.Results;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.JobManagement;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Storage;
 using CalculateFunding.Common.TemplateMetadata;
@@ -125,6 +126,8 @@ namespace CalculateFunding.Api.Specs
 
         public void RegisterComponents(IServiceCollection builder)
         {
+            builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();
+
             builder
                 .AddSingleton<IHealthChecker, ControllerResolverHealthCheck>();
 
@@ -222,9 +225,7 @@ namespace CalculateFunding.Api.Specs
 
             builder.AddFeatureToggling(Configuration);
 
-            builder.AddSingleton(mappingConfig.CreateMapper());
-
-            builder.AddUserProviderFromRequest();
+            builder.AddSingleton(mappingConfig.CreateMapper());          
 
             builder.AddServiceBus(Configuration);
 

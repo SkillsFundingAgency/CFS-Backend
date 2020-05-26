@@ -8,6 +8,7 @@ using CalculateFunding.Common.Config.ApiClient.Specifications;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Interfaces;
 using CalculateFunding.Common.JobManagement;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Storage;
 using CalculateFunding.Common.WebApi.Extensions;
@@ -109,6 +110,8 @@ namespace CalculateFunding.Api.Calcs
 
         public void RegisterComponents(IServiceCollection builder)
         {
+            builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();
+
             builder.AddSingleton(Configuration);
             builder
                 .AddScoped<IHealthChecker, ControllerResolverHealthCheck>();
@@ -231,9 +234,7 @@ namespace CalculateFunding.Api.Calcs
             });
 
             builder
-                .AddSingleton<ICancellationTokenProvider, HttpContextCancellationProvider>();
-
-            builder.AddUserProviderFromRequest();
+                .AddSingleton<ICancellationTokenProvider, HttpContextCancellationProvider>();           
 
             MapperConfiguration calcConfig = new MapperConfiguration(c =>
             {

@@ -1,5 +1,4 @@
 ﻿using CalculateFunding.Common.Models;
-using CalculateFunding.Models.Users;
 
 namespace CalculateFunding.Services.Core.Extensions
 {

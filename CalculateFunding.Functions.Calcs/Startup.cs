@@ -11,6 +11,7 @@ using CalculateFunding.Common.Config.ApiClient.Specifications;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Interfaces;
 using CalculateFunding.Common.JobManagement;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Storage;
 using CalculateFunding.Functions.Calcs.ServiceBus;
 using CalculateFunding.Models.Calcs;
@@ -70,6 +71,8 @@ namespace CalculateFunding.Functions.Calcs
 
         private static IServiceProvider Register(IServiceCollection builder, IConfigurationRoot config)
         {
+            builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();
+
             builder.AddFeatureManagement();
 
             builder.AddSingleton<IConfiguration>(ctx => config);
@@ -205,6 +208,8 @@ namespace CalculateFunding.Functions.Calcs
             builder.AddServiceBus(config, "calcs");
             builder.AddScoped<ICalculationsFeatureFlag, CalculationsFeatureFlag>();
             builder.AddScoped<IGraphRepository, GraphRepository>();
+
+            builder.AddScoped<IUserProfileProvider, UserProfileProvider>();
 
             builder.AddProvidersInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
             builder.AddSpecificationsInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);

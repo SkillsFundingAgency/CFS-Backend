@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
 using System.Threading.Tasks;
+using CalculateFunding.Services.Core.Extensions;
 
 namespace CalculateFunding.Services.Core.Functions
 {
@@ -18,12 +19,14 @@ namespace CalculateFunding.Services.Core.Functions
         private readonly ILogger _logger;
         private readonly IMessengerService _messengerService;
         private readonly bool _useAzureStorage;
+        private readonly IUserProfileProvider _userProfileProvider;
         private readonly string _functionName;
 
         protected SmokeTest(ILogger logger, 
             IMessengerService messengerService, 
             string functionName, 
-            bool useAzureStorage)
+            bool useAzureStorage,
+            IUserProfileProvider userProfileProvider)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(messengerService, nameof(messengerService));
@@ -32,6 +35,7 @@ namespace CalculateFunding.Services.Core.Functions
             _logger = logger;
             _messengerService = messengerService;
             _useAzureStorage = useAzureStorage;
+            _userProfileProvider = userProfileProvider;
             _functionName = functionName;
         }
 
@@ -41,6 +45,8 @@ namespace CalculateFunding.Services.Core.Functions
 
         protected async Task Run(Func<Task> function, Message message)
         {
+            _userProfileProvider.UserProfile = message.GetUserProfile();
+
             if (IsSmokeTest(message))
             {
                 _logger.Information($"running smoke test for {_messengerService.ServiceName} listener {_functionName}");

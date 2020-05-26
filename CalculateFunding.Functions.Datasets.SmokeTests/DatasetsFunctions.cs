@@ -22,6 +22,7 @@ namespace CalculateFunding.Functions.Datasets.SmokeTests
         private static IDatasetDefinitionNameChangeProcessor _datasetDefinitionChangesProcessor;
         private static IProcessDatasetService _processDatasetService;
         private static IDatasetService _datasetService;
+        private static IUserProfileProvider _userProfileProvider;
 
         [ClassInitialize]
         public static void SetupTests(TestContext tc)
@@ -33,6 +34,7 @@ namespace CalculateFunding.Functions.Datasets.SmokeTests
             _datasetDefinitionChangesProcessor = CreateDatasetDefinitionNameChangeProcessor();
             _processDatasetService = CreateProcessDatasetService();
             _datasetService = CreateDatasetService();
+            _userProfileProvider = CreateUserProfileProvider();
         }
 
         [TestMethod]
@@ -41,6 +43,7 @@ namespace CalculateFunding.Functions.Datasets.SmokeTests
             OnDataDefinitionChanges onDataDefinitionChanges = new OnDataDefinitionChanges(_logger,
                 _datasetDefinitionChangesProcessor,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                _userProfileProvider,
                 IsDevelopment);
 
             (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.TopicSubscribers.UpdateDataDefinitionName,
@@ -58,6 +61,7 @@ namespace CalculateFunding.Functions.Datasets.SmokeTests
             OnDatasetEvent onDatasetEvent = new OnDatasetEvent(_logger,
                 _processDatasetService,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                _userProfileProvider,
                 IsDevelopment);
 
             (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.ProcessDataset,
@@ -74,6 +78,7 @@ namespace CalculateFunding.Functions.Datasets.SmokeTests
             OnDatasetValidationEvent onDatasetValidationEvent = new OnDatasetValidationEvent(_logger,
                 _datasetService,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                _userProfileProvider,
                 IsDevelopment);
 
             (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.ValidateDataset,
@@ -90,6 +95,7 @@ namespace CalculateFunding.Functions.Datasets.SmokeTests
             OnDeleteDatasets onDeleteDatasets = new OnDeleteDatasets(_logger,
                 _datasetService,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                _userProfileProvider,
                 IsDevelopment);
 
             (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.DeleteDatasets,
@@ -120,6 +126,10 @@ namespace CalculateFunding.Functions.Datasets.SmokeTests
             return Substitute.For<IDatasetService>();
         }
 
-        
+        private static IUserProfileProvider CreateUserProfileProvider()
+        {
+            return Substitute.For<IUserProfileProvider>();
+        }
+
     }
 }

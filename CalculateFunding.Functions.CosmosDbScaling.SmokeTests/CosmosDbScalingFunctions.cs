@@ -20,6 +20,7 @@ namespace CalculateFunding.Functions.CosmosDbScaling.SmokeTests
     {
         private static ILogger _logger;
         private static ICosmosDbScalingService _cosmosDbScalingService;
+        private static IUserProfileProvider _userProfileProvider;
 
         [ClassInitialize]
         public static void SetupTests(TestContext tc)
@@ -29,6 +30,8 @@ namespace CalculateFunding.Functions.CosmosDbScaling.SmokeTests
             _logger = CreateLogger();
 
             _cosmosDbScalingService = CreateCosmosDbScalingService();
+
+            _userProfileProvider = CreateUserProfileProvider();
         }
 
         [TestMethod]
@@ -37,6 +40,7 @@ namespace CalculateFunding.Functions.CosmosDbScaling.SmokeTests
             OnScaleUpCosmosDbCollection onScaleUpCosmosDbCollection = new OnScaleUpCosmosDbCollection(_logger,
                 _cosmosDbScalingService,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                _userProfileProvider,
                 IsDevelopment);
 
             (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.TopicSubscribers.ScaleUpCosmosdbCollection,
@@ -56,6 +60,11 @@ namespace CalculateFunding.Functions.CosmosDbScaling.SmokeTests
         private static ICosmosDbScalingService CreateCosmosDbScalingService()
         {
             return Substitute.For<ICosmosDbScalingService>();
+        }
+
+        private static IUserProfileProvider CreateUserProfileProvider()
+        {
+            return Substitute.For<IUserProfileProvider>();
         }
     }
 }

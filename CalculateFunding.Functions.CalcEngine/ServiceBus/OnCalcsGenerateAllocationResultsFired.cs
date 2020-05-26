@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Common.ServiceBus.Interfaces;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.CalcEngine.Interfaces;
@@ -21,8 +22,9 @@ namespace CalculateFunding.Functions.CalcEngine.ServiceBus
         public OnCalcsGenerateAllocationResults(
             ILogger logger,
             ICalculationEngineService calculationEngineService,
-            IMessengerService messegerService,
-            bool useAzureStorage = false) : base(logger, messegerService, FunctionName, useAzureStorage)
+            IMessengerService messengerService,
+            IUserProfileProvider userProfileProvider, bool useAzureStorage = false) 
+            : base(logger, messengerService, FunctionName, useAzureStorage, userProfileProvider)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(calculationEngineService, nameof(calculationEngineService));

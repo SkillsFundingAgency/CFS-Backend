@@ -1,4 +1,5 @@
-﻿using CalculateFunding.Common.ServiceBus.Interfaces;
+﻿using CalculateFunding.Common.Models;
+using CalculateFunding.Common.ServiceBus.Interfaces;
 using Microsoft.Azure.ServiceBus;
 using Serilog;
 using System;
@@ -14,12 +15,14 @@ namespace CalculateFunding.Services.Core.Functions
         private readonly Func<Task> _action;
 
         public SmokeFunction(ILogger logger,
-            IMessengerService messengerService,
+            IMessengerService messengerService,           
             bool isDevelopment,
+            IUserProfileProvider userProfileProvider,
             Func<Task> action = null) : base(logger,
                 messengerService,
-                FunctionName,
-                isDevelopment)
+                FunctionName,               
+                isDevelopment,
+                userProfileProvider)
         {
             _action = action;
         }

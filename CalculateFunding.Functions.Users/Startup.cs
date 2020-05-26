@@ -1,6 +1,7 @@
 ﻿using System;
 using AutoMapper;
 using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Functions.Users.ServiceBus;
 using CalculateFunding.Models.MappingProfiles;
@@ -49,6 +50,8 @@ namespace CalculateFunding.Functions.Users
             {
                 builder.AddScoped<OnEditSpecificationEvent>();
             }
+
+            builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();
 
             builder
               .AddSingleton<IUserService, UserService>()
@@ -117,6 +120,8 @@ namespace CalculateFunding.Functions.Users
             builder.AddTelemetry();
             
             Common.Config.ApiClient.Specifications.ServiceCollectionExtensions.AddSpecificationsInterServiceClient(builder, config);
+
+            builder.AddScoped<IUserProfileProvider, UserProfileProvider>();
 
             return builder.BuildServiceProvider();
         }

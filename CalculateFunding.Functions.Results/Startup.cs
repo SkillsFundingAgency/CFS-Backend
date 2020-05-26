@@ -8,6 +8,7 @@ using CalculateFunding.Common.Config.ApiClient.Specifications;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Interfaces;
 using CalculateFunding.Common.JobManagement;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Functions.Results.ServiceBus;
 using CalculateFunding.Functions.Results.Timer;
@@ -20,6 +21,7 @@ using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.Core.Options;
+using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Services.DeadletterProcessor;
 using CalculateFunding.Services.Results;
 using CalculateFunding.Services.Results.Interfaces;
@@ -64,6 +66,7 @@ namespace CalculateFunding.Functions.Results
                 builder.AddScoped<OnCalculationResultsCsvGeneration>();
                 builder.AddScoped<OnCalculationResultsCsvGenerationTimer>();
             }
+            builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();
 
             builder.AddSingleton<IConfiguration>(config);
             builder.AddSingleton<ICalculationResultsRepository, CalculationResultsRepository>();
@@ -158,6 +161,8 @@ namespace CalculateFunding.Functions.Results
                     JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
                 };
             });
+
+            builder.AddScoped<IUserProfileProvider, UserProfileProvider>();
 
             return builder.BuildServiceProvider();
         }

@@ -1,4 +1,5 @@
-﻿using CalculateFunding.Common.ServiceBus.Interfaces;
+﻿using CalculateFunding.Common.Models;
+using CalculateFunding.Common.ServiceBus.Interfaces;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Constants;
@@ -23,8 +24,8 @@ namespace CalculateFunding.Functions.Publishing.ServiceBus
             ILogger logger,
             IPublishedProviderEstateCsvGenerator csvGenerator,
             IMessengerService messengerService,
-            bool useAzureStorage = false)
-            : base(logger, messengerService, FunctionName, useAzureStorage)
+            IUserProfileProvider userProfileProvider, bool useAzureStorage = false) 
+            : base(logger, messengerService, FunctionName, useAzureStorage, userProfileProvider)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(csvGenerator, nameof(csvGenerator));

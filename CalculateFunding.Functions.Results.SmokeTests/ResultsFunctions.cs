@@ -22,6 +22,7 @@ namespace CalculateFunding.Functions.Results.SmokeTests
         private static IProviderResultsCsvGeneratorService _providerResultsCsvGeneratorService;
         private static IResultsService _resultsService;
         private static IProviderCalculationResultsReIndexerService _providerCalculationResultsReIndexerService;
+        private static IUserProfileProvider _userProfileProvider;
 
         [ClassInitialize]
         public static void SetupTests(TestContext tc)
@@ -32,6 +33,7 @@ namespace CalculateFunding.Functions.Results.SmokeTests
             _providerResultsCsvGeneratorService = CreateProviderResultsCsvGeneratorService();
             _resultsService = CreateResultsService();
             _providerCalculationResultsReIndexerService = CreateProviderCalculationResultsReIndexerService();
+            _userProfileProvider = CreateUserProfileProvider();
         }
 
         [TestMethod]
@@ -40,6 +42,7 @@ namespace CalculateFunding.Functions.Results.SmokeTests
             OnCalculationResultsCsvGeneration onCalculationResultsCsvGeneration = new OnCalculationResultsCsvGeneration(_logger,
                 _providerResultsCsvGeneratorService,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                 _userProfileProvider,
                 IsDevelopment);
 
             (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.CalculationResultsCsvGeneration,
@@ -56,6 +59,7 @@ namespace CalculateFunding.Functions.Results.SmokeTests
             OnProviderResultsSpecificationCleanup onProviderResultsSpecificationCleanup = new OnProviderResultsSpecificationCleanup(_logger,
                 _resultsService,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                 _userProfileProvider,
                 IsDevelopment);
 
             (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.TopicSubscribers.CleanupCalculationResultsForSpecificationProviders,
@@ -73,6 +77,7 @@ namespace CalculateFunding.Functions.Results.SmokeTests
             OnReIndexCalculationResults onReIndexCalculationResults = new OnReIndexCalculationResults(_logger,
                 _providerCalculationResultsReIndexerService,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                 _userProfileProvider,
                 IsDevelopment);
 
             (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.ReIndexCalculationResultsIndex,
@@ -101,6 +106,11 @@ namespace CalculateFunding.Functions.Results.SmokeTests
         private static IProviderCalculationResultsReIndexerService CreateProviderCalculationResultsReIndexerService()
         {
             return Substitute.For<IProviderCalculationResultsReIndexerService>();
+        }
+
+        private static IUserProfileProvider CreateUserProfileProvider()
+        {
+            return Substitute.For<IUserProfileProvider>();
         }
     }
 }

@@ -4,12 +4,14 @@ using CalculateFunding.Common.Config.ApiClient.Jobs;
 using CalculateFunding.Common.Config.ApiClient.Policies;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.JobManagement;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Functions.Policy.ServiceBus;
 using CalculateFunding.Models.Policy;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Options;
+using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Services.DeadletterProcessor;
 using CalculateFunding.Services.Policy;
 using CalculateFunding.Services.Policy.Interfaces;
@@ -63,6 +65,7 @@ namespace CalculateFunding.Functions.Policy
                 };
 
             });
+            builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();
 
             builder.AddSingleton<ICosmosRepository, CosmosRepository>();
             builder.AddSingleton<ITemplatesReIndexerService, TemplatesReIndexerService>();
@@ -110,6 +113,8 @@ namespace CalculateFunding.Functions.Policy
 
             builder.AddJobsInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
             builder.AddPoliciesInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
+
+            builder.AddScoped<IUserProfileProvider, UserProfileProvider>();
 
             return builder.BuildServiceProvider();
         }

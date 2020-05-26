@@ -6,6 +6,7 @@ using CalculateFunding.Common.Config.ApiClient.Providers;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Interfaces;
 using CalculateFunding.Common.JobManagement;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.WebApi.Extensions;
 using CalculateFunding.Common.WebApi.Http;
@@ -130,6 +131,8 @@ namespace CalculateFunding.Api.Datasets
 
         public void RegisterComponents(IServiceCollection builder)
         {
+            builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();
+
             builder
                 .AddSingleton<IHealthChecker, ControllerResolverHealthCheck>();
 
@@ -237,9 +240,6 @@ namespace CalculateFunding.Api.Datasets
 
             builder
                 .AddSingleton(dataSetsConfig.CreateMapper());
-
-            builder.AddUserProviderFromRequest();
-
 
             builder.AddCalculationsInterServiceClient(Configuration);
             builder.AddJobsInterServiceClient(Configuration);

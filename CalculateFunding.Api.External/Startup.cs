@@ -8,9 +8,11 @@ using CalculateFunding.Api.External.V3.MappingProfiles;
 using CalculateFunding.Api.External.V3.Services;
 using CalculateFunding.Common.Config.ApiClient.Policies;
 using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Storage;
 using CalculateFunding.Common.WebApi.Extensions;
+using CalculateFunding.Common.WebApi.Middleware;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.AspNet.HealthChecks;
@@ -44,9 +46,7 @@ namespace CalculateFunding.Api.External
             Configuration = configuration;
         }
 
-        public IConfiguration Configuration { get; }
-
-        public IServiceProvider ServiceProvider { get; private set; }
+        public IConfiguration Configuration { get; }      
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
@@ -112,6 +112,7 @@ namespace CalculateFunding.Api.External
                 app.UseHsts();
             }
 
+            app.UseMiddleware<LoggedInUserMiddleware>();
             app.UseRouting();
             app.UseAuthentication();
             app.UseAuthorization();
@@ -138,6 +139,8 @@ namespace CalculateFunding.Api.External
 
         public void RegisterComponents(IServiceCollection builder)
         {
+            builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();
+
             builder
                 .AddSingleton<IPublishedFundingQueryBuilder, PublishedFundingQueryBuilder>();
             
@@ -230,8 +233,7 @@ namespace CalculateFunding.Api.External
             builder.AddTelemetry();
 
 
-            builder.AddHttpContextAccessor();
-
+            builder.AddHttpContextAccessor();           
             builder.AddPolicySettings(Configuration);
 
             builder.AddSingleton<IPublishingResiliencePolicies>((ctx) =>
@@ -292,8 +294,7 @@ namespace CalculateFunding.Api.External
 
                 return new ProviderFundingVersionService(blobClient, publishedFundingRepository, logger, publishingResiliencePolicies, fileSystemCache, settings);
             });
-
-            ServiceProvider = builder.BuildServiceProvider();
+            
         }
     }
 }
