@@ -95,7 +95,7 @@ namespace CalculateFunding.Services.Publishing.Undo.Tasks
 
         protected async Task<PublishedProviderVersion> GetPreviousPublishedProviderVersion(string providerId, PublishedFundingUndoTaskContext taskContext)
         {
-            CorrelationIdDetails details = taskContext.PublishedProviderDetails;
+            CorrelationIdDetails details = taskContext.PublishedProviderVersionDetails;
             
             LogInformation($"Querying latest earlier published provider version for '{taskContext.Parameters}'");
 

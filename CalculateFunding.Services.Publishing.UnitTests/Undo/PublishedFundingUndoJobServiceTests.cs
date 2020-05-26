@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.Models;
+using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Interfaces.Undo;
@@ -161,7 +162,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo
 
             invocation
                 .Should()
-                .Throw<InvalidOperationException>()
+                .Throw<NonRetriableException>()
+                .Which
+                .InnerException
+                .Should()
+                .BeOfType<InvalidOperationException>()
                 .Which
                 .InnerException
                 .Should()

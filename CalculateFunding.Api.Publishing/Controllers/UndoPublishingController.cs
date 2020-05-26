@@ -19,7 +19,7 @@ namespace CalculateFunding.Api.Publishing.Controllers
             _service = service;
         }
         
-        [HttpDelete("api/publishing/undo/{forCorrelationId}/{hardDelete}")]
+        [HttpGet("api/publishing/undo/{forCorrelationId}/{hardDelete}")]
         [ApiExplorerSettings(IgnoreApi = true)]
         [ProducesResponseType(typeof(Job), 200)]
         public async Task<IActionResult> DeleteSpecification([FromRoute] string forCorrelationId, [FromRoute] bool hardDelete)

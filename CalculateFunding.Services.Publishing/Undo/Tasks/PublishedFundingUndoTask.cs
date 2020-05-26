@@ -97,7 +97,7 @@ namespace CalculateFunding.Services.Publishing.Undo.Tasks
         {
             LogInformation($"Querying latest earlier published funding version for '{taskContext.Parameters}'");
             
-            CorrelationIdDetails details = taskContext.PublishedFundingDetails;
+            CorrelationIdDetails details = taskContext.PublishedFundingVersionDetails;
 
             return await Cosmos.GetLatestEarlierPublishedFundingVersion(details.FundingStreamId,
                 details.FundingPeriodId,

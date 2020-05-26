@@ -28,7 +28,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Tasks
             
             GivenThePublishedFundingVersionFeed(NewFeedIterator(
                 WithPages(Page(publishedFundingVersionOne, publishedFundingVersionTwo),
-                    Page(publishedFundingVersionThree, publishedFundingVersionFour))));
+                    Page(publishedFundingVersionThree, publishedFundingVersionFour),
+                    Page<PublishedFundingVersion>())));
 
             await WhenTheTaskIsRun();
             

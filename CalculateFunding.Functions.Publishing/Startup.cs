@@ -126,6 +126,7 @@ namespace CalculateFunding.Functions.Publishing
                 builder.AddScoped<OnApproveBatchProviderFundingFailure>();
                 builder.AddScoped<OnPublishBatchProviderFunding>();
                 builder.AddScoped<OnPublishBatchProviderFundingFailure>();
+                builder.AddScoped<OnPublishedFundingUndo>();
             }
 
             builder.AddSingleton<ISpecificationService, SpecificationService>();

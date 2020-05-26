@@ -82,11 +82,16 @@ namespace CalculateFunding.Services.Publishing.Undo.Tasks
 
                 IEnumerable<TDocument> documents = await feed.ReadNext(cancellationToken);
 
-                if (documents.IsNullOrEmpty())
+                while(documents.IsNullOrEmpty() && feed.HasMoreResults)
                 {
-                    LogInformation($"{typeof(TDocument).Name} document feed produced an empty page. Completing producer");
+                    documents = await feed.ReadNext(cancellationToken);
+                }
+
+                if (documents.IsNullOrEmpty() && !feed.HasMoreResults)
+                {
+                    LogInformation($"{typeof(TDocument).Name} document feed has no more records. Completing producer");
                 
-                    return (true, ArraySegment<TDocument>.Empty);
+                    return (true, ArraySegment<TDocument>.Empty);    
                 }
 
                 LogInformation($"{typeof(TDocument).Name} document feed produced next {documents.Count()} documents.");

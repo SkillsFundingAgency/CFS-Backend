@@ -28,6 +28,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Tasks
             
             GivenThePublishedProviderVersionFeed(NewFeedIterator(
                 WithPages(Page(publishedProviderVersionOne, publishedProviderVersionTwo),
+                    Page<PublishedProviderVersion>(),
                     Page(publishedProviderVersionThree, publishedProviderVersionFour))));
 
             await WhenTheTaskIsRun();

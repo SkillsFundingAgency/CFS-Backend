@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Models.Publishing;
+using CalculateFunding.Services.Publishing.Undo;
 using CalculateFunding.Services.Publishing.Undo.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -20,7 +21,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Tasks
             _isHardDelete = NewRandomFlag();
             
             TaskContext = NewPublishedFundingUndoTaskContext(_ => 
-                _.WithPublishedProviderDetails(NewCorrelationIdDetails()));
+                _.WithPublishedProviderDetails(NewCorrelationIdDetails())
+                    .WithPublishedProviderVersionDetails(NewCorrelationIdDetails()));
 
             TaskDetails = TaskContext.PublishedProviderDetails;
             
@@ -67,6 +69,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Tasks
 
             GivenThePublishedProviderFeed(NewFeedIterator(WithPages(Page(publishedProviderOne, publishedProviderTwo),
                 Page(publishedProviderThree, publishedProviderFour),
+                Page<PublishedProvider>(),
                 Page(publishedProviderFive))));
             AndThePreviousLatestVersion(publishedProviderTwo.Current, previousVersionTwo);
             AndThePreviousLatestVersion(publishedProviderThree.Current, previousVersionThree);
@@ -111,9 +114,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Tasks
 
         protected void AndThePreviousLatestVersion(PublishedProviderVersion current, PublishedProviderVersion previous)
         {
-            Cosmos.Setup(_ => _.GetLatestEarlierPublishedProviderVersion(TaskDetails.FundingStreamId,
-                    TaskDetails.FundingPeriodId,
-                    TaskDetails.TimeStamp,
+            CorrelationIdDetails publishedProviderVersionDetails = TaskContext.PublishedProviderVersionDetails;
+            
+            Cosmos.Setup(_ => _.GetLatestEarlierPublishedProviderVersion(publishedProviderVersionDetails.FundingStreamId,
+                    publishedProviderVersionDetails.FundingPeriodId,
+                    publishedProviderVersionDetails.TimeStamp,
                     current.ProviderId))
                 .ReturnsAsync(previous);
         }

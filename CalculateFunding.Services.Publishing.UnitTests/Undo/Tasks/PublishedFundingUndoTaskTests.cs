@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Models.Publishing;
+using CalculateFunding.Services.Publishing.Undo;
 using CalculateFunding.Services.Publishing.Undo.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -20,7 +21,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Tasks
             _isHardDelete = NewRandomFlag();
             
             TaskContext = NewPublishedFundingUndoTaskContext(_ => 
-                _.WithPublishedFundingDetails(NewCorrelationIdDetails()));
+                _.WithPublishedFundingDetails(NewCorrelationIdDetails())
+                    .WithPublishedFundingVersionDetails(NewCorrelationIdDetails()));
 
             TaskDetails = TaskContext.PublishedFundingDetails;
             
@@ -66,8 +68,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Tasks
             PublishedFundingVersion previousVersionFive = NewPublishedFundingVersion();
 
             GivenThePublishedFundingFeed(NewFeedIterator(WithPages(Page(publishedFundingOne, publishedFundingTwo),
+                Page<PublishedFunding>(), 
                 Page(publishedFundingThree, publishedFundingFour),
-                Page(publishedFundingFive))));
+                Page(publishedFundingFive),
+                Page<PublishedFunding>())));
             AndThePreviousLatestVersion(publishedFundingTwo.Current, previousVersionTwo);
             AndThePreviousLatestVersion(publishedFundingThree.Current, previousVersionThree);
             AndThePreviousLatestVersion(publishedFundingFive.Current, previousVersionFive);
@@ -111,12 +115,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Tasks
 
         protected void AndThePreviousLatestVersion(PublishedFundingVersion current, PublishedFundingVersion previous)
         {
-            Cosmos.Setup(_ => _.GetLatestEarlierPublishedFundingVersion(TaskDetails.FundingStreamId,
-                    TaskDetails.FundingPeriodId,
-                    TaskDetails.TimeStamp,
-                    current.OrganisationGroupTypeIdentifier,
-                    current.OrganisationGroupIdentifierValue,
-                    current.GroupingReason))
+            CorrelationIdDetails publishedFundingVersionDetails = TaskContext.PublishedFundingVersionDetails;
+            
+            Cosmos.Setup(_ =>
+                 _.GetLatestEarlierPublishedFundingVersion(publishedFundingVersionDetails.FundingStreamId,
+                        publishedFundingVersionDetails.FundingPeriodId,
+                        publishedFundingVersionDetails.TimeStamp,
+                        current.OrganisationGroupTypeIdentifier,
+                        current.OrganisationGroupIdentifierValue,
+                        current.GroupingReason))
                 .ReturnsAsync(previous);
         }
 
