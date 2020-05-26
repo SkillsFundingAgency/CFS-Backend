@@ -39,6 +39,7 @@ using Polly.NoOp;
 using CalculateFunding.Common.ApiClient.DataSets;
 using AutoMapper;
 using CalculateFunding.Services.Calcs.MappingProfiles;
+using Serilog.Events;
 
 namespace CalculateFunding.Services.Calcs.Services
 {
@@ -1649,11 +1650,11 @@ namespace CalculateFunding.Services.Calcs.Services
             //Assert
             test
                 .Should()
-                .ThrowExactly<JobNotFoundException>()
+                .ThrowExactly<NonRetriableException>()
                 .Which
                 .Message
                 .Should()
-                .Be($"Could not find the job with id: '{parentJobId}'");
+                .Be($"Could not find the parent job with job id: '{parentJobId}'");
 
             await
                 jobsApiClient
@@ -1713,13 +1714,12 @@ namespace CalculateFunding.Services.Calcs.Services
                 jobManagement: jobManagement);
 
             //Act
-            Func<Task> invocation = async () => await buildProjectsService.UpdateAllocations(message);
+            await buildProjectsService.UpdateAllocations(message);
 
             //Assert
-            invocation
-                .Should()
-                .Throw<JobAlreadyCompletedException>()
-                .WithMessage($"Received job with id: '{jobId}' is already in a completed state with status {job.CompletionStatus}");
+            logger
+                .Received(1)
+                .Write(LogEventLevel.Information, $"Received job with id: '{jobId}' is already in a completed state with status {job.CompletionStatus}");
 
             await
                 jobsApiClient

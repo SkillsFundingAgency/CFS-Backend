@@ -92,7 +92,8 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
                 IFundingLineCsvBatchProcessor fundingLineCsvBatchProcessor = _batchProcessorServiceLocator.GetService(jobType);
 
                 bool processedResults = await fundingLineCsvBatchProcessor.GenerateCsv(jobType, 
-                    specificationId, 
+                    specificationId,
+                    fundingPeriodId,
                     temporaryPath, 
                     fundingLineCsvTransform,
                     fundingLineCode,

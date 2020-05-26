@@ -48,8 +48,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
         public async Task ReturnsFalseIfNoResultsProcessed()
         {
             string specificationId = NewRandomString();
+            string fundingPeriodId = NewRandomString();
 
-            bool processedResults = await WhenTheCsvIsGenerated(FundingLineCsvGeneratorJobType.Released, specificationId, NewRandomString(), NewRandomString(), NewRandomString());
+            bool processedResults = await WhenTheCsvIsGenerated(FundingLineCsvGeneratorJobType.Released, specificationId, fundingPeriodId, NewRandomString(), NewRandomString(), NewRandomString());
 
             processedResults
                 .Should()
@@ -64,6 +65,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
             FundingLineCsvGeneratorJobType jobType)
         {
             string specificationId = NewRandomString();
+            string fundingPeriodId = NewRandomString();
             string fundingLineCode = NewRandomString();
             string fundingStreamId = NewRandomString();
 
@@ -99,7 +101,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
             string predicate = NewRandomString();
             string joinPredicate = NewRandomString();
 
-            GivenTheCsvRowTransformation(publishProvidersOne, (IEnumerable<ExpandoObject>) transformedRowsOne, expectedCsvOne, true);
+            GivenTheCsvRowTransformation(publishProvidersOne, transformedRowsOne, expectedCsvOne, true);
             AndTheCsvRowTransformation(publishedProvidersTwo, transformedRowsTwo, expectedCsvTwo,  false);
             AndThePredicate(jobType, predicate);
             AndTheJoinPredicate(jobType, joinPredicate);
@@ -110,19 +112,20 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
                     100,
                     joinPredicate,
                     fundingLineCode))
-                .Callback<string, string, Func<List<PublishedProvider>, Task>, int, string, string>((pred, spec,  batchProcessor, batchSize, joinPred, flc) =>
+                .Callback<string, string, Func<List<PublishedProvider>, Task>, int, string, string>((pred, spec, 
+                    batchProcessor, batchSize, joinPred, flc) =>
                 {
                     batchProcessor(publishProvidersOne.ToList())
                         .GetAwaiter()
                         .GetResult();
-                    
+
                     batchProcessor(publishedProvidersTwo.ToList())
                         .GetAwaiter()
                         .GetResult();
                 })
                 .Returns(Task.CompletedTask);
 
-            bool processedResults = await WhenTheCsvIsGenerated(jobType, specificationId, expectedInterimFilePath, fundingLineCode, fundingStreamId);
+            bool processedResults = await WhenTheCsvIsGenerated(jobType, specificationId, fundingPeriodId, expectedInterimFilePath, fundingLineCode, fundingStreamId);
 
             processedResults
                 .Should()

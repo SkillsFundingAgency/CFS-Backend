@@ -235,7 +235,7 @@ namespace CalculateFunding.Services.Core.Extensions
 
             config.Bind("redisSettings", redisSettings);
 
-            builder.AddSingleton<RedisSettings>(redisSettings);
+            builder.AddSingleton(redisSettings);
 
             builder
                 .AddSingleton<ICacheProvider, StackExchangeRedisClientCacheProvider>();

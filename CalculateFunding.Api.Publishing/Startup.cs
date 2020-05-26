@@ -157,6 +157,8 @@ namespace CalculateFunding.Api.Publishing
             builder
                 .AddSingleton<IPublishedSearchService, PublishedSearchService>()
                 .AddSingleton<IHealthChecker, PublishedSearchService>();
+
+            builder.AddSingleton<IPoliciesService, PoliciesService>();
             builder.AddSingleton<IPublishedProviderStatusService, PublishedProviderStatusService>();
             builder.AddScoped<IProfileTotalsService, ProfileTotalsService>();
             builder.AddSingleton<IFundingConfigurationService, FundingConfigurationService>();

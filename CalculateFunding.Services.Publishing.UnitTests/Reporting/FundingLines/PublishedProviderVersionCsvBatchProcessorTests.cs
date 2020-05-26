@@ -49,8 +49,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
             string specificationId = NewRandomString();
             string fundingLineCode = NewRandomString();
             string fundingStreamId = NewRandomString();
+            string fundingPeriodId = NewRandomString();
 
-            bool processedResults = await WhenTheCsvIsGenerated(FundingLineCsvGeneratorJobType.Released, specificationId, NewRandomString(), fundingLineCode, fundingStreamId);
+            bool processedResults = await WhenTheCsvIsGenerated(FundingLineCsvGeneratorJobType.Released, specificationId, fundingPeriodId, NewRandomString(), fundingLineCode, fundingStreamId);
 
             processedResults
                 .Should()
@@ -65,6 +66,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
             FundingLineCsvGeneratorJobType jobType)
         {
             string specificationId = NewRandomString();
+            string fundingPeriodId = NewRandomString();
             string fundingLineCode = NewRandomString();
             string expectedInterimFilePath = NewRandomString();
             
@@ -97,7 +99,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
             string predicate = NewRandomString();
             string joinPredicate = NewRandomString();
 
-            GivenTheCsvRowTransformation(publishProviderVersionsOne, (IEnumerable<ExpandoObject>) transformedRowsOne, expectedCsvOne, true);
+            GivenTheCsvRowTransformation(publishProviderVersionsOne, transformedRowsOne, expectedCsvOne, true);
             AndTheCsvRowTransformation(publishedProviderVersionTwo, transformedRowsTwo, expectedCsvTwo,  false);
             AndThePredicate(jobType, predicate);
             AndTheJoinPredicate(jobType, joinPredicate);
@@ -121,7 +123,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
                 })
                 .Returns(Task.CompletedTask);
 
-            bool processedResults = await WhenTheCsvIsGenerated(jobType, specificationId, expectedInterimFilePath, fundingLineCode, null);
+            bool processedResults = await WhenTheCsvIsGenerated(jobType, specificationId, fundingPeriodId, expectedInterimFilePath, fundingLineCode, null);
 
             processedResults
                 .Should()

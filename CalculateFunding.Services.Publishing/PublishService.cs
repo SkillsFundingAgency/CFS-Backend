@@ -48,6 +48,7 @@ namespace CalculateFunding.Services.Publishing
         private readonly IPublishedProviderVersionService _publishedProviderVersionService;
         private readonly IPublishedFundingService _publishedFundingService;
         private readonly IPublishedFundingDataService _publishedFundingDataService;
+        private readonly IPoliciesService _policiesService;
 
         public PublishService(IPublishedFundingStatusUpdateService publishedFundingStatusUpdateService,
             IPublishingResiliencePolicies publishingResiliencePolicies,
@@ -68,7 +69,8 @@ namespace CalculateFunding.Services.Publishing
             ITransactionFactory transactionFactory,
             IPublishedProviderVersionService publishedProviderVersionService,
             IPublishedFundingService publishedFundingService,
-            IPublishedFundingDataService publishedFundingDataService)
+            IPublishedFundingDataService publishedFundingDataService,
+            IPoliciesService policiesService)
         {
             Guard.ArgumentNotNull(generateCsvJobsLocator, nameof(generateCsvJobsLocator));
             Guard.ArgumentNotNull(publishedFundingStatusUpdateService, nameof(publishedFundingStatusUpdateService));
@@ -92,6 +94,7 @@ namespace CalculateFunding.Services.Publishing
             Guard.ArgumentNotNull(transactionFactory, nameof(transactionFactory));
             Guard.ArgumentNotNull(publishedProviderVersionService, nameof(publishedProviderVersionService));
             Guard.ArgumentNotNull(publishedFundingDataService, nameof(publishedFundingDataService));
+            Guard.ArgumentNotNull(policiesService, nameof(policiesService));
 
             _publishedFundingStatusUpdateService = publishedFundingStatusUpdateService;
             _publishedFundingDataService = publishedFundingDataService;
@@ -113,6 +116,7 @@ namespace CalculateFunding.Services.Publishing
             _publishedProviderVersionService = publishedProviderVersionService;
             _providerService = providerService;
             _publishedFundingService = publishedFundingService;
+            _policiesService = policiesService;
         }
 
         public async Task PublishProviderFundingResults(Message message, bool batched = false)
@@ -179,7 +183,10 @@ namespace CalculateFunding.Services.Publishing
                 .GetService(GeneratePublishingCsvJobsCreationAction.Release);
             IEnumerable<string> fundingLineCodes = await _publishedFundingDataService.GetPublishedProviderFundingLines(specificationId);
             IEnumerable<string> fundingStreamIds = specification.FundingStreams.Select(fs => fs.Id); //this will only ever be a single I think
-            await generateCsvJobs.CreateJobs(specificationId, correlationId, author, fundingLineCodes, fundingStreamIds, specification.FundingPeriod?.Id);
+            
+            string fundingPeriodId = await _policiesService.GetFundingPeriodId(specification.FundingPeriod.Id);
+
+            await generateCsvJobs.CreateJobs(specificationId, correlationId, author, fundingLineCodes, fundingStreamIds, fundingPeriodId);
         }
 
         private async Task PublishFundingStream(Reference fundingStream,

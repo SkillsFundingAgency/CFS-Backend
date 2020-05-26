@@ -47,15 +47,16 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
         public async Task<bool> GenerateCsv(
             FundingLineCsvGeneratorJobType jobType, 
             string specificationId, 
+            string fundingPeriodId,
             string temporaryFilePath, 
             IFundingLineCsvTransform fundingLineCsvTransform, 
-            string fundingLineCode, 
+            string fundingLineCode,
             string fundingStreamId)
         {
             SpecificationSummary specification = await _specificationService.GetSpecificationSummaryById(specificationId);
 
             IEnumerable<PublishedFunding> publishedFunding = await _publishingResiliencePolicy.ExecuteAsync(() =>
-                _publishedFundingDataService.GetCurrentPublishedFunding(fundingStreamId, specification.FundingPeriod.Id));
+                _publishedFundingDataService.GetCurrentPublishedFunding(fundingStreamId, fundingPeriodId));
             IEnumerable<PublishedFundingVersion> publishedFundingVersions = publishedFunding.Select(_ => _.Current);
 
             IEnumerable<PublishedFundingOrganisationGrouping> organisationGroupings = 

@@ -29,6 +29,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Providers
     {
         private IProvidersApiClient _providers;
         private IProviderService _providerService;
+        private IPoliciesService _policiesService;
         private IPublishedFundingDataService _publishedFundingDataService;
         private ILogger _logger;
         private IMapper _mapper;
@@ -39,6 +40,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Providers
         public void SetUp()
         {
             _providers = Substitute.For<IProvidersApiClient>();
+            _policiesService = Substitute.For<IPoliciesService>();
             _publishedFundingDataService = Substitute.For<IPublishedFundingDataService>();
             _logger = Substitute.For<ILogger>();
             _mapper = new MapperConfiguration(_ =>
@@ -47,6 +49,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Providers
             }).CreateMapper();
 
             _providerService = new ProviderService(_providers,
+                _policiesService,
                 _publishedFundingDataService,
                 new ResiliencePolicies
                 {
@@ -145,6 +148,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Providers
 
             AndTheApiResponseScopedProviderIdsContainsProviderIds(specificationId, apiproviders.Select(_ => _.ProviderId));
 
+            AndTheFundingPeriodId();
+            
+
             (IDictionary<string, PublishedProvider> PublishedProvidersForFundingStream,
              IDictionary<string, PublishedProvider> ScopedPublishedProviders) = await WhenPublishedProvidersAreReturned(specification);
 
@@ -170,7 +176,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Providers
         [DataRow("specId", FundingPeriodId, "")]
         [DataRow("specId", FundingPeriodId, FundingStreamId)]
         [TestMethod]
-        public void WhenGeneratingMissingPublishedProvidersAnyMissingProvidersAreReturned(string specificationId, string fundingPeriodId, string fundingStreamId)
+        public async Task WhenGeneratingMissingPublishedProvidersAnyMissingProvidersAreReturned(string specificationId, string fundingPeriodId, string fundingStreamId)
         {
             IEnumerable<PublishedProvider> publishedProviders = new[] {
                 NewPublishedProvider(_ => _.WithCurrent(NewPublishedProviderVersion(ppv => ppv.WithProvider(NewProvider())))),
@@ -198,7 +204,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Providers
 
                 if (string.IsNullOrWhiteSpace(fundingPeriodId))
                 {
-                    message = $"Specified argument was out of the range of valid values. (Parameter 'fundingPeriodId')";
+                    message = $"Specified argument was out of the range of valid values. (Parameter 'specificationFundingPeriodId')";
                 }
 
                 if (string.IsNullOrWhiteSpace(fundingStreamId))
@@ -206,7 +212,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Providers
                     message = $"Specified argument was out of the range of valid values. (Parameter 'fundingStreamId')";
                 }
 
-                Action invocation = () => WhenGenerateMissingProviders(scopedProviders,
+                Func<Task> invocation = async() => await WhenGenerateMissingProviders(scopedProviders,
                 specification,
                 new Reference { Id = fundingStreamId },
                 publishedProviders.ToDictionary(_ => _.Current.ProviderId));
@@ -219,7 +225,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Providers
                 return;
             }
 
-            IDictionary<string, PublishedProvider> missingPublishedProviders = WhenGenerateMissingProviders(scopedProviders,
+            IDictionary<string, PublishedProvider> missingPublishedProviders = await WhenGenerateMissingProviders(scopedProviders,
                 specification,
                 new Reference { Id = fundingStreamId },
                 publishedProviders.ToDictionary(_ => _.Current.ProviderId));
@@ -287,6 +293,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Providers
                 .Returns(publishedProviders);
         }
 
+        private void AndTheFundingPeriodId()
+        {
+            _policiesService.GetFundingPeriodId(Arg.Any<string>())
+                .Returns(FundingPeriodId);
+        }
+
         private async Task<(IDictionary<string, PublishedProvider> PublishedProvidersForFundingStream, IDictionary<string, PublishedProvider> ScopedPublishedProviders)> WhenPublishedProvidersAreReturned(SpecificationSummary specification)
         {
             return await _providerService.GetPublishedProviders(new Reference { Id = FundingStreamId }, specification);
@@ -297,12 +309,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Providers
             return await _providerService.GetScopedProviderIdsForSpecification(specification);
         }
 
-        private IDictionary<string, PublishedProvider> WhenGenerateMissingProviders(IEnumerable<Provider> scopedProviders,
+        private async Task<IDictionary<string, PublishedProvider>> WhenGenerateMissingProviders(IEnumerable<Provider> scopedProviders,
             SpecificationSummary specification,
             Reference fundingStream,
             IDictionary<string, PublishedProvider> publishedProviders)
         {
-            return _providerService.GenerateMissingPublishedProviders(scopedProviders, specification, fundingStream, publishedProviders);
+            return await _providerService.GenerateMissingPublishedProviders(scopedProviders, specification, fundingStream, publishedProviders);
         }
 
         private async Task<IEnumerable<Provider>> WhenTheProvidersAreQueriedByVersionId(string providerVersionId)

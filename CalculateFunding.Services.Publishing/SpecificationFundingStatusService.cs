@@ -53,9 +53,9 @@ namespace CalculateFunding.Services.Publishing
                 return SpecificationFundingStatus.AlreadyChosen;
             }
 
-            string fundingPeriodId = specificationSummary.FundingPeriod.Id;
+            string fundingPeriodConfigId = specificationSummary.FundingPeriod.Id;
 
-            IEnumerable<SpecificationSummary> specificationSummaries = await _specificationService.GetSpecificationsSelectedForFundingByPeriod(fundingPeriodId);
+            IEnumerable<SpecificationSummary> specificationSummaries = await _specificationService.GetSpecificationsSelectedForFundingByPeriod(fundingPeriodConfigId);
 
             if (specificationSummaries.IsNullOrEmpty())
             {

@@ -19,22 +19,26 @@ namespace CalculateFunding.Services.Publishing.Specifications
         private readonly IPublishedFundingDataService _publishedFunding;
         private readonly ISpecificationService _specificationService;
         private readonly ISpecificationIdServiceRequestValidator _validator;
+        private readonly IPoliciesService _policiesService;
 
         public PublishedProviderFundingService(IPublishingResiliencePolicies resiliencePolicies,
             IPublishedFundingDataService publishedFunding,
             ISpecificationService specificationService,
-            ISpecificationIdServiceRequestValidator validator)
+            ISpecificationIdServiceRequestValidator validator,
+            IPoliciesService policiesService)
         {
             Guard.ArgumentNotNull(resiliencePolicies?.PublishedFundingRepository,
                 nameof(resiliencePolicies.PublishedFundingRepository));
             Guard.ArgumentNotNull(publishedFunding, nameof(publishedFunding));
             Guard.ArgumentNotNull(specificationService, nameof(specificationService));
             Guard.ArgumentNotNull(validator, nameof(validator));
+            Guard.ArgumentNotNull(policiesService, nameof(policiesService));
 
             _resiliencePolicy = resiliencePolicies.PublishedFundingRepository;
             _publishedFunding = publishedFunding;
             _specificationService = specificationService;
             _validator = validator;
+            _policiesService = policiesService;
         }
 
         public async Task<IActionResult> GetLatestPublishedProvidersForSpecificationId(string specificationId)
@@ -47,10 +51,12 @@ namespace CalculateFunding.Services.Publishing.Specifications
 
             List<PublishedProviderVersion> results = new List<PublishedProviderVersion>();
 
+            string fundingPeriodId = await _policiesService.GetFundingPeriodId(specificationSummary.FundingPeriod.Id);
+
             foreach (var fundingStream in specificationSummary.FundingStreams)
             {
                 IEnumerable<PublishedProvider> publishedProviders = await _resiliencePolicy.ExecuteAsync(() =>
-                _publishedFunding.GetCurrentPublishedProviders(fundingStream.Id, specificationSummary.FundingPeriod.Id));
+                _publishedFunding.GetCurrentPublishedProviders(fundingStream.Id, fundingPeriodId));
 
                 if (publishedProviders.AnyWithNullCheck())
                 {

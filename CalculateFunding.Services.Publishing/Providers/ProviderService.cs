@@ -13,35 +13,42 @@ using Serilog;
 using Polly;
 using AutoMapper;
 using ApiProviderVersion = CalculateFunding.Common.ApiClient.Providers.Models.ProviderVersion;
+using ApiFundingPeriod = CalculateFunding.Common.ApiClient.Policies.Models.FundingPeriod;
 using PublishedProvider = CalculateFunding.Models.Publishing.PublishedProvider;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Common.ApiClient.Providers.Models.Search;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Common.ApiClient.Policies;
+using CalculateFunding.Models.Policy;
 
 namespace CalculateFunding.Services.Publishing.Providers
 {
     public class ProviderService : IProviderService
     {
-        private readonly IProvidersApiClient _providers;
-        private readonly AsyncPolicy _resiliencePolicy;
+        private readonly IProvidersApiClient _providersApiClient;
+        private readonly AsyncPolicy _providersApiClientPolicy;
         private readonly IPublishedFundingDataService _publishedFundingDataService;
         private readonly ILogger _logger;
         private readonly IMapper _mapper;
+        private readonly IPoliciesService _policiesService;
 
-        public ProviderService(IProvidersApiClient providers,
+        public ProviderService(IProvidersApiClient providersApiClient,
+            IPoliciesService policiesService,
             IPublishedFundingDataService publishedFundingDataService,
             IPublishingResiliencePolicies resiliencePolicies,
             IMapper mapper,
             ILogger logger)
         {
-            Guard.ArgumentNotNull(providers, nameof(providers));
+            Guard.ArgumentNotNull(providersApiClient, nameof(providersApiClient));
+            Guard.ArgumentNotNull(policiesService, nameof(policiesService));
             Guard.ArgumentNotNull(publishedFundingDataService, nameof(publishedFundingDataService));
             Guard.ArgumentNotNull(resiliencePolicies?.ProvidersApiClient, nameof(resiliencePolicies.ProvidersApiClient));
             Guard.ArgumentNotNull(mapper, nameof(mapper));
             Guard.ArgumentNotNull(logger, nameof(logger));
 
-            _providers = providers;
-            _resiliencePolicy = resiliencePolicies.ProvidersApiClient;
+            _providersApiClient = providersApiClient;
+            _policiesService = policiesService;
+            _providersApiClientPolicy = resiliencePolicies.ProvidersApiClient;
             _publishedFundingDataService = publishedFundingDataService;
             _logger = logger;
             _mapper = mapper;
@@ -52,7 +59,7 @@ namespace CalculateFunding.Services.Publishing.Providers
             Guard.IsNullOrWhiteSpace(providerVersionId, nameof(providerVersionId));
 
             ApiResponse<ApiProviderVersion> providerVersionsResponse =
-                await _resiliencePolicy.ExecuteAsync(() => _providers.GetProvidersByVersion(providerVersionId));
+                await _providersApiClientPolicy.ExecuteAsync(() => _providersApiClient.GetProvidersByVersion(providerVersionId));
 
             Guard.ArgumentNotNull(providerVersionsResponse?.Content, nameof(providerVersionsResponse));
 
@@ -66,7 +73,7 @@ namespace CalculateFunding.Services.Publishing.Providers
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
 
             ApiResponse<IEnumerable<string>> scopedProviderIdResponse =
-                 await _resiliencePolicy.ExecuteAsync(() => _providers.GetScopedProviderIds(specificationId));
+                 await _providersApiClientPolicy.ExecuteAsync(() => _providersApiClient.GetScopedProviderIds(specificationId));
 
             if (scopedProviderIdResponse == null)
             {
@@ -92,12 +99,12 @@ namespace CalculateFunding.Services.Publishing.Providers
             Guard.IsNullOrWhiteSpace(providerVersionId, nameof(providerVersionId));
 
             ApiResponse<ApiProviderVersion> providerVersionsResponse =
-                await _resiliencePolicy.ExecuteAsync(() => _providers.GetProvidersByVersion(providerVersionId));
+                await _providersApiClientPolicy.ExecuteAsync(() => _providersApiClient.GetProvidersByVersion(providerVersionId));
 
             Guard.ArgumentNotNull(providerVersionsResponse?.Content, nameof(providerVersionsResponse));
 
             ApiResponse<IEnumerable<string>> scopedProviderIdResponse =
-                 await _resiliencePolicy.ExecuteAsync(() => _providers.GetScopedProviderIds(specificationId));
+                 await _providersApiClientPolicy.ExecuteAsync(() => _providersApiClient.GetScopedProviderIds(specificationId));
 
             Guard.ArgumentNotNull(scopedProviderIdResponse?.Content, nameof(scopedProviderIdResponse));
 
@@ -108,13 +115,13 @@ namespace CalculateFunding.Services.Publishing.Providers
             return scopedProvidersInVersion;
         }
 
-        public IDictionary<string, PublishedProvider> GenerateMissingPublishedProviders(IEnumerable<Provider> scopedProviders,
+        public async Task<IDictionary<string, PublishedProvider>> GenerateMissingPublishedProviders(IEnumerable<Provider> scopedProviders,
             SpecificationSummary specification,
             Reference fundingStream,
             IDictionary<string, PublishedProvider> publishedProviders)
         {
             string specificationId = specification?.Id;
-            string fundingPeriodId = specification?.FundingPeriod?.Id;
+            string specificationFundingPeriodId = specification?.FundingPeriod?.Id;
             string fundingStreamId = fundingStream?.Id;
 
             if (specificationId.IsNullOrWhitespace())
@@ -124,11 +131,11 @@ namespace CalculateFunding.Services.Publishing.Providers
                 throw new ArgumentOutOfRangeException(nameof(specificationId));
             }
 
-            if (fundingPeriodId.IsNullOrWhitespace())
+            if (specificationFundingPeriodId.IsNullOrWhitespace())
             {
                 string error = "Could not locate a funding period id on the supplied specification summary";
                 _logger.Error(error);
-                throw new ArgumentOutOfRangeException(nameof(fundingPeriodId));
+                throw new ArgumentOutOfRangeException(nameof(specificationFundingPeriodId));
             }
 
             if (fundingStreamId.IsNullOrWhitespace())
@@ -138,9 +145,11 @@ namespace CalculateFunding.Services.Publishing.Providers
                 throw new ArgumentOutOfRangeException(nameof(fundingStreamId));
             }
 
+            string fundingPeriodId = await _policiesService.GetFundingPeriodId(specificationFundingPeriodId);
+
             return scopedProviders.Where(_ =>
                     !publishedProviders.ContainsKey($"{_.ProviderId}"))
-                .Select(_ => CreatePublishedProvider(_,fundingPeriodId, fundingStreamId, specificationId, "Add by system because published provider doesn't already exist"))
+                .Select(_ => CreatePublishedProvider(_, fundingPeriodId, fundingStreamId, specificationId, "Add by system because published provider doesn't already exist"))
                 .ToDictionary(_ => _.Current.ProviderId, _ => _);
         }
 
@@ -178,9 +187,11 @@ namespace CalculateFunding.Services.Publishing.Providers
             Reference fundingStream, SpecificationSummary specification)
         {
             _logger.Information($"Retrieving published provider results for {fundingStream.Id} in specification {specification.Id}");
+            
+            string fundingPeriodId = await _policiesService.GetFundingPeriodId(specification.FundingPeriod.Id);
 
             IEnumerable<PublishedProvider> publishedProvidersResult =
-                await _publishedFundingDataService.GetCurrentPublishedProviders(fundingStream.Id, specification.FundingPeriod.Id);
+                await _publishedFundingDataService.GetCurrentPublishedProviders(fundingStream.Id, fundingPeriodId);
 
             // Ensure linq query evaluates only once
             Dictionary<string, PublishedProvider> publishedProvidersForFundingStream = publishedProvidersResult.ToDictionary(_ => _.Current.ProviderId);
@@ -195,8 +206,8 @@ namespace CalculateFunding.Services.Publishing.Providers
 
         public async Task<PublishedProvider> CreateMissingPublishedProviderForPredecessor(PublishedProvider predecessor, string successorId, string providerVersionId)
         {
-            ApiResponse<ProviderVersionSearchResult> apiResponse = await _resiliencePolicy.ExecuteAsync(() =>
-                _providers.GetProviderByIdFromProviderVersion(providerVersionId, successorId));
+            ApiResponse<ProviderVersionSearchResult> apiResponse = await _providersApiClientPolicy.ExecuteAsync(() =>
+                _providersApiClient.GetProviderByIdFromProviderVersion(providerVersionId, successorId));
 
             ProviderVersionSearchResult providerVersionSearchResult = apiResponse?.Content;
 

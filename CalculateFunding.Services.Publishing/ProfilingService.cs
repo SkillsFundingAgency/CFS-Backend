@@ -53,7 +53,7 @@ namespace CalculateFunding.Services.Publishing
             }
 
             var fundingValues = fundingLineTotals
-                .Select(k => new { FundingLineCode = k.FundingLineCode, Value = k.Value })
+                .Select(k => new { k.FundingLineCode, k.Value })
                 .Distinct()
                 .ToList();
 

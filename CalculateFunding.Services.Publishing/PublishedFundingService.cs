@@ -69,9 +69,11 @@ namespace CalculateFunding.Services.Publishing
 
             _logger.Information($"Fetching existing published funding");
 
+            string fundingPeriodId = await _policiesService.GetFundingPeriodId(specification.FundingPeriod.Id);
+
             // Get latest version of existing published funding
-            IEnumerable<PublishedFunding> publishedFunding = await _publishingResiliencePolicy.ExecuteAsync(() =>
-                _publishedFundingDataService.GetCurrentPublishedFunding(fundingStream.Id, specification.FundingPeriod.Id));
+            IEnumerable <PublishedFunding> publishedFunding = await _publishingResiliencePolicy.ExecuteAsync(() =>
+                _publishedFundingDataService.GetCurrentPublishedFunding(fundingStream.Id, fundingPeriodId));
 
             _logger.Information($"Fetched {publishedFunding.Count()} existing published funding items");
 
@@ -102,7 +104,7 @@ namespace CalculateFunding.Services.Publishing
                 TemplateMetadataContents = templateMetadataContents,
                 TemplateVersion = specification.TemplateIds[fundingStream.Id],
                 FundingStream = fundingStream,
-                FundingPeriod = await _policiesService.GetFundingPeriodById(specification.FundingPeriod.Id),
+                FundingPeriod = await _policiesService.GetFundingPeriodByConfigurationId(specification.FundingPeriod.Id),
                 PublishingDates = await _publishedFundingDateService.GetDatesForSpecification(specification.Id),
                 SpecificationId = specification.Id,
             };

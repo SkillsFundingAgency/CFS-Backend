@@ -144,7 +144,18 @@ namespace CalculateFunding.Services.Calcs
 
             string jobId = message.UserProperties["jobId"].ToString();
 
-            job = await _jobManagement.RetrieveJobAndCheckCanBeProcessed(jobId);
+            try
+            {
+                job = await _jobManagement.RetrieveJobAndCheckCanBeProcessed(jobId);
+            }
+            catch (JobNotFoundException)
+            {
+                throw new NonRetriableException($"Could not find the parent job with job id: '{jobId}'");
+            }
+            catch (JobAlreadyCompletedException)
+            {
+                return;
+            }
 
             await _jobManagement.AddJobLog(jobId, new JobLogUpdateModel());
 

@@ -9,6 +9,7 @@ namespace CalculateFunding.Services.Publishing.Interfaces
         
         Task<bool> GenerateCsv(FundingLineCsvGeneratorJobType jobType,
             string specificationId,
+            string fundingPeriodId,
             string temporaryFilePath,
             IFundingLineCsvTransform fundingLineCsvTransform,
             string fundingLineCode,

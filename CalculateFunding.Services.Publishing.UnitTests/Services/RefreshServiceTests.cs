@@ -197,6 +197,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             });
             AndScopedProviderCalculationResults();
             AndTemplateMapping();
+            AndTheFundingPeriodId(_specificationSummary.FundingPeriod.Id);
             AndPublishedProviders();
             AndUpdateStatusThrowsAnError(error);
 
@@ -228,6 +229,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             });
             AndScopedProviderCalculationResults();
             AndTemplateMapping();
+            AndTheFundingPeriodId(_specificationSummary.FundingPeriod.Id);
             AndPublishedProviders();
 
             await WhenMessageReceivedWithJobIdAndCorrelationId();
@@ -256,6 +258,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             });
             AndScopedProviderCalculationResults();
             AndTemplateMapping();
+            AndTheFundingPeriodId(_specificationSummary.FundingPeriod.Id);
             AndPublishedProviders();
             GivenVariationsEnabled();
             GivenFundingConfiguration(new ProviderMetadataVariationStrategy());
@@ -286,6 +289,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             AndScopedProviderCalculationResults();
             AndTemplateMapping();
             GivenPublishedProviderClosedWithSuccessor();
+            AndTheFundingPeriodId(_specificationSummary.FundingPeriod.Id);
             AndPublishedProviders();
             GivenVariationsEnabled();
             GivenFundingConfiguration(new ClosureWithSuccessorVariationStrategy(_providerService));
@@ -454,6 +458,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             AndSpecification();
             AndCalculationResultsBySpecificationId();
             AndTemplateMetadataContents();
+            AndTheFundingPeriodId(_specificationSummary.FundingPeriod.Id);
             AndScopedProviders();
             AndScopedProviderCalculationResults();
             AndTemplateMapping();
@@ -481,6 +486,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             AndScopedProviders();
             AndScopedProviderCalculationResults();
             AndTemplateMapping();
+            AndTheFundingPeriodId(_specificationSummary.FundingPeriod.Id);
             AndPublishedProviders();
             AndPublishedProviderExcluded();
 
@@ -682,6 +688,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                     Arg.Any<string>(),
                     Arg.Any<string>())
                 .Throws(new Exception(error));
+        }
+
+        private void AndTheFundingPeriodId(string fundingPeriodId)
+        {
+            _policiesService.GetFundingPeriodId(Arg.Any<string>())
+                .Returns(fundingPeriodId);
         }
 
         private void GivenJobCanBeProcessed()

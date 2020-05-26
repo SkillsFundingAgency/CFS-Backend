@@ -65,9 +65,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
             string specificationId = NewRandomString();
             string fundingLineCode = NewRandomString();
             string fundingStreamId = NewRandomString();
+            string fundingPeriodConfigId = NewRandomString();
             string fundingPeriodId = NewRandomString();
 
-            SpecificationSummary specificationSummary = NewSpecificationSummary(_ => _.WithFundingPeriodId(fundingPeriodId));
+            SpecificationSummary specificationSummary = NewSpecificationSummary(_ => _.WithFundingPeriodId(fundingPeriodConfigId));
 
             IEnumerable<PublishedFundingVersion> publishedFundingVersions = new List<PublishedFundingVersion>();
             IEnumerable<PublishedFundingOrganisationGrouping> publishedFundingOrganisationGroupings = new List<PublishedFundingOrganisationGrouping>();
@@ -93,6 +94,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
 
             bool processedResults = await WhenTheCsvIsGenerated(FundingLineCsvGeneratorJobType.HistoryOrganisationGroupValues,
                 specificationId,
+                fundingPeriodId,
                 NewRandomString(),
                 fundingLineCode,
                 fundingStreamId);
@@ -110,11 +112,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
             string specificationId = NewRandomString();
             string fundingLineCode = NewRandomString();
             string fundingStreamId = NewRandomString();
+            string fundingPeriodConfigId = NewRandomString();
             string fundingPeriodId = NewRandomString();
 
             string expectedInterimFilePath = NewRandomString();
 
-            SpecificationSummary specificationSummary = NewSpecificationSummary(_ => _.WithFundingPeriodId(fundingPeriodId));
+            SpecificationSummary specificationSummary = NewSpecificationSummary(_ => _.WithFundingPeriodId(fundingPeriodConfigId));
 
             IEnumerable<PublishedFundingVersion> publishedFundingVersions = new List<PublishedFundingVersion>();
 
@@ -174,7 +177,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
                     expectedCsvOne, 
                     true);
 
-            bool processedResults = await WhenTheCsvIsGenerated(jobType, specificationId, expectedInterimFilePath, fundingLineCode, fundingStreamId);
+            bool processedResults = await WhenTheCsvIsGenerated(jobType, specificationId, fundingPeriodId, expectedInterimFilePath, fundingLineCode, fundingStreamId);
 
             processedResults
                 .Should()

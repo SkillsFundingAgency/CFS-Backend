@@ -11,7 +11,8 @@ namespace CalculateFunding.Services.Publishing.Interfaces
     public interface IPoliciesService
     {
         Task<FundingConfiguration> GetFundingConfiguration(string fundingStreamId, string fundingPeriodId);
-        Task<FundingPeriod> GetFundingPeriodById(string fundingPeriodId);
+        Task<FundingPeriod> GetFundingPeriodByConfigurationId(string fundingPeriodConfigId);
+        Task<string> GetFundingPeriodId(string fundingPeriodConfigId);
         Task<TemplateMetadataContents> GetTemplateMetadataContents(string fundingStreamId, string templateId);
     }
 }

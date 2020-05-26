@@ -3,12 +3,17 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using AutoMapper;
+using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Utility;
+using CalculateFunding.Models.Policy;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Publishing.Interfaces;
 using Polly;
+using ApiFundingPeriod = CalculateFunding.Common.ApiClient.Policies.Models.FundingPeriod;
 
 namespace CalculateFunding.Services.Publishing
 {
@@ -18,13 +23,15 @@ namespace CalculateFunding.Services.Publishing
         private readonly ISpecificationService _specificationService;
         private readonly AsyncPolicy _publishedFundingRepositoryPolicy;
         private readonly AsyncPolicy _specificationsRepositoryPolicy;
+        private readonly IPoliciesService _policiesService;
         private readonly IPublishingEngineOptions _publishingEngineOptions;
 
         public PublishedFundingDataService(
             IPublishedFundingRepository publishedFundingRepository,
             ISpecificationService specificationService,
             IPublishingResiliencePolicies publishingResiliencePolicies, 
-            IPublishingEngineOptions publishingEngineOptions)
+            IPublishingEngineOptions publishingEngineOptions,
+            IPoliciesService policiesService)
         {
             Guard.ArgumentNotNull(publishedFundingRepository, nameof(publishedFundingRepository));
             Guard.ArgumentNotNull(specificationService, nameof(specificationService));
@@ -32,12 +39,14 @@ namespace CalculateFunding.Services.Publishing
             Guard.ArgumentNotNull(publishingResiliencePolicies.PublishedFundingRepository, nameof(publishingResiliencePolicies.PublishedFundingRepository));
             Guard.ArgumentNotNull(publishingResiliencePolicies.SpecificationsRepositoryPolicy, nameof(publishingResiliencePolicies.SpecificationsRepositoryPolicy));
             Guard.ArgumentNotNull(publishingEngineOptions, nameof(publishingEngineOptions));
+            Guard.ArgumentNotNull(policiesService, nameof(policiesService));
 
             _publishedFundingRepository = publishedFundingRepository;
             _specificationService = specificationService;
             _publishingEngineOptions = publishingEngineOptions;
             _publishedFundingRepositoryPolicy = publishingResiliencePolicies.PublishedFundingRepository;
             _specificationsRepositoryPolicy = publishingResiliencePolicies.SpecificationsRepositoryPolicy;
+            _policiesService = policiesService;
         }
 
         public async Task<IEnumerable<PublishedProvider>> GetPublishedProvidersForApproval(string specificationId, string[] providerIds = null)
@@ -49,10 +58,18 @@ namespace CalculateFunding.Services.Publishing
 
             ConcurrentBag<PublishedProvider> results = new ConcurrentBag<PublishedProvider>();
 
+            string fundingPeriodId = await _policiesService.GetFundingPeriodId(specificationSummary.FundingPeriod.Id);
+
+            if (fundingPeriodId.IsNullOrWhitespace())
+            {
+                string error = "Could not locate a funding period from the supplied funding period id on the specification summary";
+                throw new InvalidOperationException(error);
+            }
+
             foreach (Common.Models.Reference fundingStream in specificationSummary.FundingStreams)
             {
                 IEnumerable<KeyValuePair<string, string>> publishedProviderIds = await _publishedFundingRepositoryPolicy.ExecuteAsync(
-                                    () => _publishedFundingRepository.GetPublishedProviderIdsForApproval(fundingStream.Id, specificationSummary.FundingPeriod.Id, providerIds));
+                                    () => _publishedFundingRepository.GetPublishedProviderIdsForApproval(fundingStream.Id, fundingPeriodId, providerIds));
 
                 List<Task> allTasks = new List<Task>();
                 SemaphoreSlim throttler = new SemaphoreSlim(initialCount: _publishingEngineOptions.GetPublishedProvidersForApprovalConcurrencyCount);

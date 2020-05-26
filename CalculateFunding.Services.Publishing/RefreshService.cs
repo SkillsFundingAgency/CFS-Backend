@@ -213,8 +213,11 @@ namespace CalculateFunding.Services.Publishing
             
             // Get existing published providers for this specification
             _logger.Information("Looking up existing published providers from cosmos for refresh job");
+
+            string fundingPeriodId = await _policiesService.GetFundingPeriodId(specification.FundingPeriod.Id);
+
             List<PublishedProvider> existingPublishedProviders = (await _publishingResiliencePolicy.ExecuteAsync(() =>
-                _publishedFundingDataService.GetCurrentPublishedProviders(fundingStream.Id, specification.FundingPeriod.Id))).ToList();
+                _publishedFundingDataService.GetCurrentPublishedProviders(fundingStream.Id, fundingPeriodId))).ToList();
             _logger.Information($"Found {existingPublishedProviders.Count} existing published providers from cosmos for refresh job");
 
             foreach (PublishedProvider publishedProvider in existingPublishedProviders)
@@ -226,7 +229,7 @@ namespace CalculateFunding.Services.Publishing
             }
 
             // Create PublishedProvider for providers which don't already have a record (eg ProviderID-FundingStreamId-FundingPeriodId)
-            IDictionary<string, PublishedProvider> newProviders = _providerService.GenerateMissingPublishedProviders(scopedProviders.Values, specification, fundingStream, publishedProviders);
+            IDictionary<string, PublishedProvider> newProviders = await _providerService.GenerateMissingPublishedProviders(scopedProviders.Values, specification, fundingStream, publishedProviders);
             publishedProviders.AddRange(newProviders);
 
             // Get TemplateMapping for calcs from Calcs API client nuget
@@ -264,7 +267,7 @@ namespace CalculateFunding.Services.Publishing
             
             try
             {
-                await _profilingService.ProfileFundingLines(generatedPublishedProviderData.SelectMany(c => c.Value.FundingLines.Where(f => f.Type == OrganisationGroupingReason.Payment)), fundingStream.Id, specification.FundingPeriod.Id);
+                await _profilingService.ProfileFundingLines(generatedPublishedProviderData.SelectMany(c => c.Value.FundingLines.Where(f => f.Type == OrganisationGroupingReason.Payment)), fundingStream.Id, fundingPeriodId);
             }
             catch (Exception ex)
             {
@@ -412,7 +415,7 @@ namespace CalculateFunding.Services.Publishing
                     .GetService(GeneratePublishingCsvJobsCreationAction.Refresh);
                     IEnumerable<string> fundingLineCodes = await _publishedFundingDataService.GetPublishedProviderFundingLines(specification.Id);
                     IEnumerable<string> fundingStreamIds = Array.Empty<string>();
-                    await generateCsvJobs.CreateJobs(specification.Id, correlationId, author, fundingLineCodes, fundingStreamIds, specification.FundingPeriod?.Id);
+                    await generateCsvJobs.CreateJobs(specification.Id, correlationId, author, fundingLineCodes, fundingStreamIds, fundingPeriodId);
                 }
             }
         }

@@ -15,6 +15,7 @@ namespace CalculateFunding.Services.Publishing
     {
         private readonly IPoliciesApiClient _policiesApiClient;
         private readonly AsyncPolicy _policiesApiClientPolicy;
+        private const string periodIdStringFormat = "{0}-{1}";
 
         public PoliciesService(
             IPoliciesApiClient policiesApiClient,
@@ -42,7 +43,7 @@ namespace CalculateFunding.Services.Publishing
             return fundingConfigurationRequest.Content;
         }
 
-        public async Task<FundingPeriod> GetFundingPeriodById(string fundingPeriodId)
+        public async Task<FundingPeriod> GetFundingPeriodByConfigurationId(string fundingPeriodId)
         {
             Guard.IsNullOrWhiteSpace(fundingPeriodId, nameof(fundingPeriodId));
 
@@ -60,6 +61,21 @@ namespace CalculateFunding.Services.Publishing
             }
 
             return fundingPeriod.Content;
+        }
+
+        public async Task<string> GetFundingPeriodId(string fundingPeriodId)
+        {
+            ApiResponse<FundingPeriod> fundingPeriodResponse =
+                await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingPeriodById(fundingPeriodId));
+
+            if (fundingPeriodResponse?.Content == null)
+            {
+                return null;
+            }
+
+            FundingPeriod fundingPeriod = fundingPeriodResponse.Content;
+
+            return string.Format(periodIdStringFormat, fundingPeriod.Type, fundingPeriod.Period);
         }
 
         public async Task<TemplateMetadataContents> GetTemplateMetadataContents(string fundingStreamId, string templateId)

@@ -159,7 +159,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 _transactionFactory,
                 _publishedProviderVersionService,
                 _publishedFundingService,
-                _publishedFundingDataService
+                _publishedFundingDataService,
+                _policiesService
             );
         }
 

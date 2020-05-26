@@ -37,11 +37,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
         
         protected async Task<bool> WhenTheCsvIsGenerated(FundingLineCsvGeneratorJobType jobType, 
             string specificationId, 
+            string fundingPeriodId,
             string path,
             string fundingLineCode,
             string fundingStreamId)
         {
-            return await BatchProcessor.GenerateCsv(jobType, specificationId, path, _transformation.Object, fundingLineCode, fundingStreamId);
+            return await BatchProcessor.GenerateCsv(jobType, specificationId, fundingPeriodId, path, _transformation.Object, fundingLineCode, fundingStreamId);
         }
 
         protected void AndTheCsvRowTransformation(IEnumerable<dynamic> publishedProviders, ExpandoObject[] transformedRows, string csv, bool outputHeaders)

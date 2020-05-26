@@ -29,7 +29,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
         private Mock<IFundingLineCsvTransformServiceLocator> _transformServiceLocator;
         private Mock<IFundingLineCsvBatchProcessorServiceLocator> _batchProcessorServiceLocator;
         private Mock<IPublishedFundingPredicateBuilder> _predicateBuilder;
-        private Mock<ICsvUtils> _csvUtils;
         private Mock<IBlobClient> _blobClient;
         private Mock<ICloudBlob> _cloudBlob; 
         private Mock<IFundingLineCsvTransform> _transformation;
@@ -52,7 +51,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
             _batchProcessorServiceLocator = new Mock<IFundingLineCsvBatchProcessorServiceLocator>();
             _batchProcessor = new Mock<IFundingLineCsvBatchProcessor>();
             _blobClient = new Mock<IBlobClient>();
-            _csvUtils = new Mock<ICsvUtils>();
             _transformation = new Mock<IFundingLineCsvTransform>();
             _cloudBlob = new Mock<ICloudBlob>();
             _fileSystemAccess = new Mock<IFileSystemAccess>();
@@ -200,7 +198,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
             AndThePredicate(jobType, predicate);
             AndTheJobExists(jobId);
             AndTheBatchProcessorForJobType(jobType);
-            AndTheBatchProcessorProcessedResults(jobType, specificationId, expectedInterimFilePath, fundingLineCode, fundingStreamId);
+            AndTheBatchProcessorProcessedResults(jobType, specificationId, fundingPeriodId, expectedInterimFilePath, fundingLineCode, fundingStreamId);
 
             await WhenTheCsvIsGenerated();
             
@@ -239,11 +237,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
 
         private void AndTheBatchProcessorProcessedResults(FundingLineCsvGeneratorJobType jobType,
             string specificationId,
+            string fundingPeriodId,
             string filePath,
             string fundingLineCode,
             string fundingStreamId)
         {
-            _batchProcessor.Setup(_ => _.GenerateCsv(jobType, specificationId, filePath, _transformation.Object, fundingLineCode, fundingStreamId))
+            _batchProcessor.Setup(_ => _.GenerateCsv(jobType, specificationId, fundingPeriodId, filePath, _transformation.Object, fundingLineCode, fundingStreamId))
                 .ReturnsAsync(true)
                 .Verifiable();
         }
@@ -258,13 +257,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
         {
             _transformServiceLocator.Setup(_ => _.GetService(jobType))
                 .Returns(_transformation.Object);
-        }
-
-        private static IEnumerable<object[]> JobTypeExamples()
-        {
-            yield return new object [] {FundingLineCsvGeneratorJobType.CurrentState};
-            yield return new object [] {FundingLineCsvGeneratorJobType.Released};
-            yield return new object [] {FundingLineCsvGeneratorJobType.History};
         }
 
         private void AndTheCloudBlobForFileName(string fileName)
@@ -284,22 +276,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
         {
             _fileSystemAccess.Setup(_ => _.Exists(path))
                 .Returns(true);
-        }
-
-        private void AndTheCsvRowTransformation(IEnumerable<dynamic> publishedProviders, ExpandoObject[] transformedRows, string csv, bool outputHeaders)
-        {
-            GivenTheCsvRowTransformation(publishedProviders, transformedRows, csv, outputHeaders);
-        }
-
-        private void GivenTheCsvRowTransformation(IEnumerable<dynamic> publishedProviders, IEnumerable<ExpandoObject> transformedRows, string csv, bool outputHeaders)
-        {
-            _transformation
-                .Setup(_ => _.Transform(publishedProviders))
-                .Returns(transformedRows);
-
-            _csvUtils
-                .Setup(_ => _.AsCsv(transformedRows, outputHeaders))
-                .Returns(csv);
         }
 
         private static RandomString NewRandomString()

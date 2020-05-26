@@ -28,7 +28,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                     SpecificationsRepositoryPolicy = Policy.NoOpAsync(),
                     PublishedFundingRepository = Policy.NoOpAsync()
                 },
-                new Mock<IPublishingEngineOptions>().Object);
+                new Mock<IPublishingEngineOptions>().Object,
+                new Mock<IPoliciesService>().Object);
         }
 
         [TestMethod]
