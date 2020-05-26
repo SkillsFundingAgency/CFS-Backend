@@ -61,7 +61,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             {
                 FundingFeedSearchRepository = Policy.NoOpAsync(),
                 PublishedFundingBlobRepository = Policy.NoOpAsync(),
-                PublishedIndexSearchResiliencePolicy = PublishedIndexSearchResiliencePolicy.GeneratePublishedIndexSearch()
+                PublishedIndexSearchResiliencePolicy = PublishedIndexSearchResiliencePolicy.GeneratePublishedIndexSearch(null,1, 1)
             };
         }
     }

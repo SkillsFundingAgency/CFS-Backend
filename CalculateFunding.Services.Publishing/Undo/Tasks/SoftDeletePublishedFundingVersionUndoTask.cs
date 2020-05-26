@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using CalculateFunding.Models.Publishing;
+using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.Threading;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Interfaces.Undo;
@@ -24,7 +25,13 @@ namespace CalculateFunding.Services.Publishing.Undo.Tasks
             dynamic context, 
             IEnumerable<PublishedFundingVersion> publishedFundingVersions)
         {
-            await DeleteBlobDocuments(publishedFundingVersions);
+            Task[] undoTasks = new[]
+            {
+                DeleteDocuments(publishedFundingVersions, _ => _.PartitionKey),
+                DeleteBlobDocuments(publishedFundingVersions)
+            };
+
+            await TaskHelper.WhenAllAndThrow(undoTasks);
         }
     }
 }

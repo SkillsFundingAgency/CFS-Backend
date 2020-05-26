@@ -116,7 +116,7 @@ namespace CalculateFunding.Services.Publishing.Undo.Tasks
                 return;
             }
             
-            LogInformation($"Requesting bulk deletion of {documents.Count()} {typeof(TDocument).Name} documents");
+            LogInformation($"Requesting bulk deletion of {documents.Count()} {typeof(TDocument).Name} documents. HardDelete {hardDelete}");
             
             await Cosmos.BulkDeletePublishedFundingDocuments(documents, partitionKeyAccessor, hardDelete);
         }

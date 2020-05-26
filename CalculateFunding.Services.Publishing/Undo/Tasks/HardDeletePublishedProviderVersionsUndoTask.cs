@@ -23,12 +23,12 @@ namespace CalculateFunding.Services.Publishing.Undo.Tasks
         
         protected override async Task UndoPublishedProviderVersions(CancellationToken cancellationToken, 
             dynamic context, 
-            IEnumerable<PublishedProviderVersion> publishedProviders)
+            IEnumerable<PublishedProviderVersion> publishedProviderVersions)
         {
             Task[] undoTasks = new[]
             {
-                DeleteDocuments(publishedProviders, _ => _.PartitionKey, true),
-                DeleteBlobDocuments(publishedProviders)
+                DeleteDocuments(publishedProviderVersions, _ => _.PartitionKey, true),
+                DeleteBlobDocuments(publishedProviderVersions)
             };
 
             await TaskHelper.WhenAllAndThrow(undoTasks);

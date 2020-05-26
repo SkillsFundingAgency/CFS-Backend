@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using CalculateFunding.Models.Publishing;
+using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.Threading;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Interfaces.Undo;
@@ -22,9 +23,15 @@ namespace CalculateFunding.Services.Publishing.Undo.Tasks
 
         protected override async Task UndoPublishedProviderVersions(CancellationToken cancellationToken, 
             dynamic context, 
-            IEnumerable<PublishedProviderVersion> publishedProviders)
+            IEnumerable<PublishedProviderVersion> publishedProviderVersions)
         {
-            await DeleteBlobDocuments(publishedProviders);
+            Task[] undoTasks = new[]
+            {
+                DeleteDocuments(publishedProviderVersions, _ => _.PartitionKey),
+                DeleteBlobDocuments(publishedProviderVersions)
+            };
+
+            await TaskHelper.WhenAllAndThrow(undoTasks);
         }
     }
 }

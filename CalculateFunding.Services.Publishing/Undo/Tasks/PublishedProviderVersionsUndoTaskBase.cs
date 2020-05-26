@@ -58,7 +58,7 @@ namespace CalculateFunding.Services.Publishing.Undo.Tasks
 
         protected abstract Task UndoPublishedProviderVersions(CancellationToken cancellationToken, 
             dynamic context, 
-            IEnumerable<PublishedProviderVersion> publishedProviders);
+            IEnumerable<PublishedProviderVersion> publishedProviderVersions);
 
         protected async Task DeleteBlobDocuments(IEnumerable<PublishedProviderVersion> publishedProviderVersions)
         {

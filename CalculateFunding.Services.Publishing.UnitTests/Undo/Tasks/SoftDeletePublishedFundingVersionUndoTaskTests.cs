@@ -32,7 +32,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Tasks
 
             await WhenTheTaskIsRun();
             
-            ThenNothingWasDeleted<PublishedFundingVersion>();
+            ThenTheDocumentsWereDeleted(new [] { publishedFundingVersionOne, publishedFundingVersionTwo },
+                new [] { publishedFundingVersionOne.PartitionKey, publishedFundingVersionTwo.PartitionKey },
+                false);
+            AndTheDocumentsWereDeleted(new [] { publishedFundingVersionThree, publishedFundingVersionFour },
+                new [] { publishedFundingVersionThree.PartitionKey, publishedFundingVersionFour.PartitionKey },
+                false);
             AndThePublishedFundingVersionBlobDocumentsWereRemoved(publishedFundingVersionOne,
                 publishedFundingVersionTwo,
                 publishedFundingVersionThree,
