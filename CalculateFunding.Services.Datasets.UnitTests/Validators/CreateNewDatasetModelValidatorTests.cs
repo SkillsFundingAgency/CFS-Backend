@@ -1,6 +1,7 @@
 ﻿using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Services.Datasets.Interfaces;
+using CalculateFunding.Services.Datasets.Services;
 using FluentAssertions;
 using FluentValidation.Results;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -8,6 +9,7 @@ using NSubstitute;
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using PoliciesApiModels = CalculateFunding.Common.ApiClient.Policies.Models;
 
 namespace CalculateFunding.Services.Datasets.Validators
 {
@@ -18,6 +20,8 @@ namespace CalculateFunding.Services.Datasets.Validators
         const string Filename = "filename.xlsx";
         const string Name = "test-name";
         const string Description = "test description";
+        const string FundingStreamId = "funding-stream-id";
+        const string FundingStreamName = "funding-stream-name";
 
         [TestMethod]
         public void Validate_GivenEmptyDefinitionId_ValidIsFalse()
@@ -50,6 +54,56 @@ namespace CalculateFunding.Services.Datasets.Validators
             //Arrange
             CreateNewDatasetModel model = CreateModel();
             model.Description = string.Empty;
+
+            CreateNewDatasetModelValidator validator = CreateValidator();
+
+            //Act
+            ValidationResult result = validator.Validate(model);
+
+            //Assert
+            result
+                .IsValid
+                .Should()
+                .BeFalse();
+
+            result
+                .Errors
+                .Count
+                .Should()
+                .Be(1);
+        }
+
+        [TestMethod]
+        public void Validate_GivenEmptyFundingStreamId_ValidIsFalse()
+        {
+            //Arrange
+            CreateNewDatasetModel model = CreateModel();
+            model.FundingStreamId = string.Empty;
+
+            CreateNewDatasetModelValidator validator = CreateValidator();
+
+            //Act
+            ValidationResult result = validator.Validate(model);
+
+            //Assert
+            result
+                .IsValid
+                .Should()
+                .BeFalse();
+
+            result
+                .Errors
+                .Count
+                .Should()
+                .Be(1);
+        }
+
+        [TestMethod]
+        public void Validate_GivenInvalidFundingStreamId_ValidIsFalse()
+        {
+            //Arrange
+            CreateNewDatasetModel model = CreateModel();
+            model.FundingStreamId = "test-invalid-funding-stream-id";
 
             CreateNewDatasetModelValidator validator = CreateValidator();
 
@@ -245,9 +299,13 @@ namespace CalculateFunding.Services.Datasets.Validators
                 .BeTrue();
         }
 
-        static CreateNewDatasetModelValidator CreateValidator(IDatasetRepository datasetsRepository = null)
+        static CreateNewDatasetModelValidator CreateValidator(
+            IDatasetRepository datasetsRepository = null,
+            IPolicyRepository policyRepository = null)
         {
-            return new CreateNewDatasetModelValidator(datasetsRepository ?? CreateDatasetsRepository());
+            return new CreateNewDatasetModelValidator(
+                datasetsRepository ?? CreateDatasetsRepository(),
+                policyRepository ?? CreatePolicyRepository());
         }
 
         static IDatasetRepository CreateDatasetsRepository(bool hasDataset = false)
@@ -261,6 +319,33 @@ namespace CalculateFunding.Services.Datasets.Validators
             return repository;
         }
 
+        static IPolicyRepository CreatePolicyRepository()
+        {
+            IPolicyRepository repository = Substitute.For<IPolicyRepository>();
+
+            repository
+                .GetFundingStreams()
+                .Returns(NewFundingStreams());
+
+            return repository;
+        }
+
+        protected static IEnumerable<PoliciesApiModels.FundingStream> NewFundingStreams() =>
+            new List<PoliciesApiModels.FundingStream>
+            {
+                NewApiFundingStream(_ => _.WithId(FundingStreamId).WithName(FundingStreamName))
+            };
+
+        protected static PoliciesApiModels.FundingStream NewApiFundingStream(
+            Action<PolicyFundingStreamBuilder> setUp = null)
+        {
+            PolicyFundingStreamBuilder fundingStreamBuilder = new PolicyFundingStreamBuilder();
+
+            setUp?.Invoke(fundingStreamBuilder);
+
+            return fundingStreamBuilder.Build();
+        }
+
         static CreateNewDatasetModel CreateModel()
         {
             return new CreateNewDatasetModel
@@ -268,7 +353,8 @@ namespace CalculateFunding.Services.Datasets.Validators
                 DefinitionId = DefinitionId,
                 Filename = Filename,
                 Name = Name,
-                Description = Description
+                Description = Description,
+                FundingStreamId = FundingStreamId
             };
         }
     }

@@ -28,6 +28,8 @@ namespace CalculateFunding.Services.Datasets
             new FacetFilterType("status"),
             new FacetFilterType("definitionName"),
             new FacetFilterType("specificationNames", true),
+            new FacetFilterType("fundingStreamId"),
+            new FacetFilterType("fundingStreamName")
         };
 
         private IEnumerable<string> DefaultOrderBy = new[] { "lastUpdatedDate desc" };
@@ -139,7 +141,9 @@ namespace CalculateFunding.Services.Datasets
                 DatasetId = sr.Result.DatasetId,
                 LastUpdatedByName = sr.Result.LastUpdatedByName,
                 DefinitionName = sr.Result.DefinitionName,
-                LastUpdatedDate = sr.Result.LastUpdatedDate
+                LastUpdatedDate = sr.Result.LastUpdatedDate,
+                FundingStreamId = sr.Result.FundingStreamId,
+                FundingStreamName = sr.Result.FundingStreamName
             };
         }
 
@@ -246,7 +250,9 @@ namespace CalculateFunding.Services.Datasets
                     Version = m.Result.Version,
                     ChangeNote = m.Result.ChangeNote,
                     LastUpdatedByName = m.Result.LastUpdatedByName,
-                    LastUpdatedById = m.Result.LastUpdatedById
+                    LastUpdatedById = m.Result.LastUpdatedById,
+                    FundingStreamId = m.Result.FundingStreamId,
+                    FundingStreamName = m.Result.FundingStreamName
                 });
             }
         }

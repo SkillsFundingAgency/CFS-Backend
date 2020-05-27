@@ -2,6 +2,7 @@
 using CalculateFunding.Common.ApiClient.Providers;
 using CalculateFunding.Common.Config.ApiClient.Calcs;
 using CalculateFunding.Common.Config.ApiClient.Jobs;
+using CalculateFunding.Common.Config.ApiClient.Policies;
 using CalculateFunding.Common.Config.ApiClient.Providers;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Interfaces;
@@ -185,6 +186,9 @@ namespace CalculateFunding.Api.Datasets
               .AddSingleton<IDatasetDefinitionNameChangeProcessor, DatasetDefinitionNameChangeProcessor>();
 
             builder
+                .AddSingleton<IPolicyRepository, PolicyRepository>();
+
+            builder
                 .AddSingleton<IBlobClient, BlobClient>((ctx) =>
                 {
                     AzureStorageSettings storageSettings = new AzureStorageSettings();
@@ -244,6 +248,7 @@ namespace CalculateFunding.Api.Datasets
             builder.AddCalculationsInterServiceClient(Configuration);
             builder.AddJobsInterServiceClient(Configuration);
             builder.AddProvidersInterServiceClient(Configuration);
+            builder.AddPoliciesInterServiceClient(Configuration);
 
             builder.AddSearch(Configuration);
             builder
@@ -321,7 +326,8 @@ namespace CalculateFunding.Api.Datasets
                 DatasetDefinitionSearchRepository = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
                 BlobClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                 JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-                ProvidersApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
+                ProvidersApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                PoliciesApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
             };
         }
     }

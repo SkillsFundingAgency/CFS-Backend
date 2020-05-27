@@ -43,6 +43,7 @@ using Serilog;
 using ApiClientProviders = CalculateFunding.Common.ApiClient.Providers;
 using JobCreateModel = CalculateFunding.Common.ApiClient.Jobs.Models.JobCreateModel;
 using Trigger = CalculateFunding.Common.ApiClient.Jobs.Models.Trigger;
+using PoliciesApiModels = CalculateFunding.Common.ApiClient.Policies.Models;
 
 namespace CalculateFunding.Services.Datasets
 {
@@ -66,6 +67,7 @@ namespace CalculateFunding.Services.Datasets
         private readonly IJobManagement _jobManagement;
         private readonly IProviderSourceDatasetRepository _providerSourceDatasetRepository;
         private readonly ISpecificationsApiClient _specificationsApiClient;
+        private readonly IPolicyRepository _policyRepository;
 
         public DatasetService(
             IBlobClient blobClient,
@@ -85,7 +87,8 @@ namespace CalculateFunding.Services.Datasets
             IProvidersApiClient providersApiClient,
             IJobManagement jobManagement,
             IProviderSourceDatasetRepository providerSourceDatasetRepository,
-            ISpecificationsApiClient specificationsApiClient)
+            ISpecificationsApiClient specificationsApiClient,
+            IPolicyRepository policyRepository)
         {
             Guard.ArgumentNotNull(blobClient, nameof(blobClient));
             Guard.ArgumentNotNull(logger, nameof(logger));
@@ -104,6 +107,7 @@ namespace CalculateFunding.Services.Datasets
             Guard.ArgumentNotNull(datasetsResiliencePolicies?.ProvidersApiClient, nameof(datasetsResiliencePolicies.ProvidersApiClient));
             Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
             Guard.ArgumentNotNull(providerSourceDatasetRepository, nameof(providerSourceDatasetRepository));
+            Guard.ArgumentNotNull(policyRepository, nameof(policyRepository));
 
             _blobClient = blobClient;
             _logger = logger;
@@ -123,6 +127,7 @@ namespace CalculateFunding.Services.Datasets
             _jobManagement = jobManagement;
             _providerSourceDatasetRepository = providerSourceDatasetRepository;
             _specificationsApiClient = specificationsApiClient;
+            _policyRepository = policyRepository;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -175,6 +180,7 @@ namespace CalculateFunding.Services.Datasets
             responseModel.BlobUrl = blobUrl;
             responseModel.Author = author;
             responseModel.DefinitionId = model.DefinitionId;
+            responseModel.FundingStreamId = model.FundingStreamId;
 
             return new OkObjectResult(responseModel);
         }
@@ -219,6 +225,7 @@ namespace CalculateFunding.Services.Datasets
             responseModel.Name = dataset.Name;
             responseModel.Description = dataset.Description;
             responseModel.Version = nextVersion;
+            responseModel.FundingStreamId = model.FundingStreamId;
 
             return new OkObjectResult(responseModel);
         }
@@ -355,12 +362,6 @@ namespace CalculateFunding.Services.Datasets
             else
             {
                 user = author;
-            }
-
-            if (blob.Metadata.ContainsKey("authorId") && blob.Metadata.ContainsKey("authorName"))
-            {
-                user.Id = blob.Metadata["authorId"];
-                user.Name = blob.Metadata["authorName"];
             }
 
             model.LastUpdatedById = user?.Id;
@@ -527,6 +528,22 @@ namespace CalculateFunding.Services.Datasets
                 return;
             }
 
+            string fundingStreamId = blob.Metadata["fundingStreamId"];
+            IEnumerable<PoliciesApiModels.FundingStream> fundingStreams = await _policyRepository.GetFundingStreams();
+
+            if (!fundingStreams.Select(_ => _.Id).Contains(fundingStreamId))
+            {
+                string errorMessage = $"Unable to valdate given funding stream ID: {fundingStreamId}";
+                _logger.Error(errorMessage);
+
+                await SetValidationStatus(operationId, DatasetValidationStatus.FailedValidation, errorMessage);
+                await _jobManagement.UpdateJobStatus(jobId, 100, false, "Failed Validation - invalid funding stream ID");
+
+                return;
+            }
+
+            PoliciesApiModels.FundingStream fundingStream = fundingStreams.SingleOrDefault(_ => _.Id == fundingStreamId);
+
             await SetValidationStatus(operationId, DatasetValidationStatus.ValidatingTableResults);
             await _jobManagement.UpdateJobStatus(jobId, 50, null);
 
@@ -548,7 +565,7 @@ namespace CalculateFunding.Services.Datasets
 
                     if (model.Version == 1)
                     {
-                        dataset = await SaveNewDatasetAndVersion(blob, datasetDefinition, rowCount);
+                        dataset = await SaveNewDatasetAndVersion(blob, datasetDefinition, rowCount, fundingStream);
                     }
                     else
                     {
@@ -563,7 +580,7 @@ namespace CalculateFunding.Services.Datasets
                             user = message.GetUserDetails();
                         }
 
-                        dataset = await UpdateExistingDatasetAndAddVersion(blob, model, user, rowCount);
+                        dataset = await UpdateExistingDatasetAndAddVersion(blob, model, user, rowCount, fundingStream);
                     }
 
                     await SetValidationStatus(operationId, DatasetValidationStatus.Validated, datasetId: dataset.Id);
@@ -622,7 +639,7 @@ namespace CalculateFunding.Services.Datasets
                 DatasetId = datasetId,
             };
 
-            await _cacheProvider.SetAsync<DatasetValidationStatusModel>($"{CacheKeys.DatasetValidationStatus}:{status.OperationId}", status);
+            await _cacheProvider.SetAsync($"{CacheKeys.DatasetValidationStatus}:{status.OperationId}", status);
         }
 
         public async Task<IActionResult> UploadDatasetFile(string filename, DatasetMetadataViewModel datasetMetadataViewModel)
@@ -729,7 +746,9 @@ namespace CalculateFunding.Services.Datasets
                     Version = dataset.Content.Current.Version,
                     ChangeNote = dataset.Content.Current.Comment,
                     LastUpdatedByName = dataset.Content.Current.Author?.Name,
-                    LastUpdatedById = dataset.Content.Current.Author?.Id
+                    LastUpdatedById = dataset.Content.Current.Author?.Id,
+                    FundingStreamId = dataset.Content.Current.FundingStream?.Id,
+                    FundingStreamName = dataset.Content.Current.FundingStream?.Name
                 };
 
                 searchEntries.Add(datasetIndex);
@@ -778,7 +797,9 @@ namespace CalculateFunding.Services.Datasets
                         DefinitionName = dataset.Content.Definition.Name,
                         Description = dataset.Content.Description,
                         LastUpdatedDate = datasetVersion.Date,
-                        LastUpdatedByName = datasetVersion.Author.Name
+                        LastUpdatedByName = datasetVersion.Author.Name,
+                        FundingStreamId = datasetVersion.FundingStream?.Id,
+                        FundingStreamName = datasetVersion.FundingStream?.Name
                     };
                     searchEntries.Add(datasetVersionIndex);
 
@@ -961,7 +982,11 @@ namespace CalculateFunding.Services.Datasets
             return new OkResult();
         }
 
-        private async Task<Dataset> SaveNewDatasetAndVersion(ICloudBlob blob, DatasetDefinition datasetDefinition, int rowCount)
+        private async Task<Dataset> SaveNewDatasetAndVersion(
+            ICloudBlob blob, 
+            DatasetDefinition datasetDefinition, 
+            int rowCount, 
+            PoliciesApiModels.FundingStream fundingStream)
         {
             Guard.ArgumentNotNull(blob, nameof(blob));
             Guard.ArgumentNotNull(datasetDefinition, nameof(datasetDefinition));
@@ -979,7 +1004,8 @@ namespace CalculateFunding.Services.Datasets
                 DataDefinitionId = metadata.ContainsKey("dataDefinitionId") ? metadata["dataDefinitionId"] : string.Empty,
                 Name = metadata.ContainsKey("name") ? metadata["name"] : string.Empty,
                 Description = metadata.ContainsKey("description") ? HttpUtility.UrlDecode(metadata["description"]) : string.Empty,
-                Comment = metadata.ContainsKey("comment") ? metadata["comment"] : string.Empty
+                Comment = metadata.ContainsKey("comment") ? metadata["comment"] : string.Empty,
+                FundingStreamId = metadata.ContainsKey("fundingStreamId") ? metadata["fundingStreamId"] : string.Empty
             };
 
             ValidationResult validationResult = await _datasetMetadataModelValidator.ValidateAsync(metadataModel);
@@ -999,7 +1025,8 @@ namespace CalculateFunding.Services.Datasets
                 PublishStatus = Models.Versioning.PublishStatus.Draft,
                 BlobName = blob.Name,
                 RowCount = rowCount,
-                Comment = metadataModel.Comment
+                Comment = metadataModel.Comment,
+                FundingStream = fundingStream
             };
 
             Dataset dataset = new Dataset
@@ -1039,7 +1066,12 @@ namespace CalculateFunding.Services.Datasets
             return dataset;
         }
 
-        private async Task<Dataset> UpdateExistingDatasetAndAddVersion(ICloudBlob blob, GetDatasetBlobModel model, Reference author, int rowCount)
+        private async Task<Dataset> UpdateExistingDatasetAndAddVersion(
+            ICloudBlob blob, 
+            GetDatasetBlobModel model, 
+            Reference author, 
+            int rowCount,
+            PoliciesApiModels.FundingStream fundingStream)
         {
             Guard.ArgumentNotNull(blob, nameof(blob));
 
@@ -1071,6 +1103,7 @@ namespace CalculateFunding.Services.Datasets
                 BlobName = blob.Name,
                 Comment = model.Comment,
                 RowCount = rowCount,
+                FundingStream = fundingStream
             };
 
             dataset.Description = model.Description;
@@ -1119,7 +1152,9 @@ namespace CalculateFunding.Services.Datasets
                     Version = dataset.Current.Version,
                     ChangeNote = dataset.Current.Comment,
                     LastUpdatedById = dataset.Current.Author?.Id,
-                    LastUpdatedByName = dataset.Current.Author?.Name
+                    LastUpdatedByName = dataset.Current.Author?.Name,
+                    FundingStreamId = dataset.Current.FundingStream?.Id,
+                    FundingStreamName = dataset.Current.FundingStream?.Name
                 }
             });
         }
@@ -1141,7 +1176,9 @@ namespace CalculateFunding.Services.Datasets
                     DefinitionName = dataset.Definition.Name,
                     Description = dataset.Description,
                     LastUpdatedDate = datasetVersion.Date,
-                    LastUpdatedByName = datasetVersion.Author.Name
+                    LastUpdatedByName = datasetVersion.Author.Name,
+                    FundingStreamId = datasetVersion.FundingStream?.Id,
+                    FundingStreamName = datasetVersion.FundingStream?.Name
                 }
             });
         }
@@ -1249,6 +1286,7 @@ namespace CalculateFunding.Services.Datasets
                 Version = dataset.Content.Current.Version,
                 Comment = dataset.Content.Current.Comment,
                 CurrentDataSourceRows = dataset.Content.Current.RowCount,
+                FundingStream = dataset.Content.Current.FundingStream
             };
 
             int maxVersion = dataset.Content.History.Max(m => m.Version);

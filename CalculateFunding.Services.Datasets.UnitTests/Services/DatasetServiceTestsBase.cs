@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Providers;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.Caching;
@@ -20,6 +19,9 @@ using Microsoft.Azure.Storage.Blob;
 using NSubstitute;
 using OfficeOpenXml;
 using Serilog;
+using PoliciesApiModels = CalculateFunding.Common.ApiClient.Policies.Models;
+using System;
+using System.Collections.Generic;
 
 namespace CalculateFunding.Services.Datasets.Services
 {
@@ -32,6 +34,8 @@ namespace CalculateFunding.Services.Datasets.Services
         protected const string SpecificationId = "d557a71b-f570-4425-801b-250b9129f111";
         protected const string BuildProjectId = "d557a71b-f570-4425-801b-250b9129f111";
         protected const string DatasetId = "e557a71b-f570-4436-801b-250b9129f999";
+        protected const string FundingStreamId = "test-funding-stream-id";
+        protected const string FundingStreamName = "test-funding-stream-name";
 
         protected DatasetService CreateDatasetService(
             IBlobClient blobClient = null,
@@ -51,7 +55,8 @@ namespace CalculateFunding.Services.Datasets.Services
             IProvidersApiClient providersApiClient = null,
             IJobManagement jobManagement = null,
             IProviderSourceDatasetRepository providerSourceDatasetRepository = null,
-            ISpecificationsApiClient specificationsApiClient = null)
+            ISpecificationsApiClient specificationsApiClient = null,
+            IPolicyRepository policyRepository = null)
         {
             return new DatasetService(
                 blobClient ?? CreateBlobClient(),
@@ -69,9 +74,15 @@ namespace CalculateFunding.Services.Datasets.Services
                 DatasetsResilienceTestHelper.GenerateTestPolicies(),
                 datasetVersionIndex ?? CreateDatasetVersionRepository(),
                 providersApiClient ?? CreateProvidersApiClient(),
-                jobManagement ?? this.CreateJobManagement(),
+                jobManagement ?? CreateJobManagement(),
                 providerSourceDatasetRepository ?? CreateProviderSourceDatasetRepository(),
-                specificationsApiClient ?? CreateSpecificationsApiClient());
+                specificationsApiClient ?? CreateSpecificationsApiClient(),
+                policyRepository ?? CreatePolicyRepository());
+        }
+
+        protected IPolicyRepository CreatePolicyRepository()
+        {
+            return Substitute.For<IPolicyRepository>();
         }
 
         private ISpecificationsApiClient CreateSpecificationsApiClient()
@@ -272,6 +283,22 @@ namespace CalculateFunding.Services.Datasets.Services
 
                 return package.GetAsByteArray();
             }
+        }
+
+        protected IEnumerable<PoliciesApiModels.FundingStream> NewFundingStreams() =>
+            new List<PoliciesApiModels.FundingStream>
+            {
+                NewApiFundingStream(_ => _.WithId(FundingStreamId).WithName(FundingStreamName))
+            };
+
+        protected PoliciesApiModels.FundingStream NewApiFundingStream(
+            Action<PolicyFundingStreamBuilder> setUp = null)
+        {
+            PolicyFundingStreamBuilder fundingStreamBuilder = new PolicyFundingStreamBuilder();
+
+            setUp?.Invoke(fundingStreamBuilder);
+
+            return fundingStreamBuilder.Build();
         }
 
         protected IProvidersApiClient CreateProvidersApiClient()

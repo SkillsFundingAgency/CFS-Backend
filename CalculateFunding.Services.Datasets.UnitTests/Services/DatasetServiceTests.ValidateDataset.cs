@@ -264,8 +264,14 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IDictionary<string, string> metaData = new Dictionary<string, string>
             {
-                { "dataDefinitionId", DataDefintionId }
+                { "dataDefinitionId", DataDefintionId },
+                { "fundingStreamId", FundingStreamId }
             };
+
+            IPolicyRepository policyRepository = CreatePolicyRepository();
+            policyRepository
+                .GetFundingStreams()
+                .Returns(NewFundingStreams());
 
             ICloudBlob blob = Substitute.For<ICloudBlob>();
             blob
@@ -337,7 +343,8 @@ namespace CalculateFunding.Services.Datasets.Services
                 datasetUploadValidator: datasetUploadValidator,
                 cacheProvider: cacheProvider,
                 providersApiClient: providersApiClient,
-                mapper: mapper);
+                mapper: mapper,
+                policyRepository: policyRepository);
 
             // Act
             await service.ValidateDataset(message);
@@ -370,8 +377,14 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IDictionary<string, string> metaData = new Dictionary<string, string>
             {
-                { "dataDefinitionId", DataDefintionId }
+                { "dataDefinitionId", DataDefintionId },
+                { "fundingStreamId", FundingStreamId }
             };
+
+            IPolicyRepository policyRepository = CreatePolicyRepository();
+            policyRepository
+                .GetFundingStreams()
+                .Returns(NewFundingStreams());
 
             ICloudBlob blob = Substitute.For<ICloudBlob>();
             blob
@@ -432,7 +445,8 @@ namespace CalculateFunding.Services.Datasets.Services
                 datasetRepository: datasetRepository,
                 datasetUploadValidator: datasetUploadValidator,
                 providersApiClient: providersApiClient,
-                mapper: mapper);
+                mapper: mapper,
+                policyRepository: policyRepository);
 
             // Act
             Func<Task> result = () => service.ValidateDataset(message);
@@ -611,6 +625,131 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
+        public async Task OnValidateDataset_GivenInvalidFundingStreamId_EnsuresFundingStreamIdErrorReturned()
+        {
+            //Arrange
+            GetDatasetBlobModel model = NewGetDatasetBlobModel(_ => _.WithDefinitionId(DataDefintionId));
+
+            string blobPath = $"{model.DatasetId}/v{model.Version}/{model.Filename}";
+
+            Message message = GetValidateDatasetMessage(model);
+
+            ILogger logger = CreateLogger();
+
+            IDictionary<string, string> metaData = new Dictionary<string, string>
+            {
+                { "dataDefinitionId", DataDefintionId },
+                { "fundingStreamId", FundingStreamId }
+            };
+
+            IPolicyRepository policyRepository = CreatePolicyRepository();
+
+            ICloudBlob blob = Substitute.For<ICloudBlob>();
+            blob
+                .Metadata
+                .Returns(metaData);
+
+            MemoryStream memoryStream = new MemoryStream(CreateTestExcelPackage());
+
+            IBlobClient blobClient = CreateBlobClient();
+            blobClient
+                .GetBlobReferenceFromServerAsync(Arg.Is(blobPath))
+                .Returns(blob);
+            blobClient
+                .DownloadToStreamAsync(Arg.Is(blob))
+                .Returns(memoryStream);
+
+            DatasetDefinition datasetDefinition = new DatasetDefinition
+            {
+                Id = DataDefintionId
+            };
+
+            IEnumerable<DatasetDefinition> datasetDefinitions = new[]
+            {
+                datasetDefinition
+            };
+
+            IDatasetRepository datasetRepository = CreateDatasetsRepository();
+            datasetRepository
+                .GetDatasetDefinitionsByQuery(Arg.Any<Expression<Func<DocumentEntity<DatasetDefinition>, bool>>>())
+                .Returns(datasetDefinitions);
+
+            List<DatasetValidationError> errors = new List<DatasetValidationError>
+            {
+                new DatasetValidationError { ErrorMessage = "error" },
+                new DatasetValidationError { ErrorMessage = "error" },
+                new DatasetValidationError { ErrorMessage = "error" }
+            };
+
+            IEnumerable<TableLoadResult> tableLoadResults = new[]
+            {
+                new TableLoadResult{ GlobalErrors = errors }
+            };
+
+            IExcelDatasetReader datasetReader = CreateExcelDatasetReader();
+            datasetReader
+                .Read(Arg.Any<Stream>(), Arg.Is(datasetDefinition))
+                .Returns(tableLoadResults.ToList());
+
+            ValidationResult validationResult = new ValidationResult(new[]{
+                new ValidationFailure("prop1", "any error")
+            });
+
+            IValidator<DatasetUploadValidationModel> datasetUploadValidator = CreateDatasetUploadValidator(validationResult);
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+
+            ApiResponse<ProviderVersion> providerVersionResponse = new ApiResponse<ProviderVersion>(HttpStatusCode.OK, new ProviderVersion
+            {
+                Providers = new[]
+               {
+                    new Common.ApiClient.Providers.Models.Provider()
+                }
+            });
+
+            IProvidersApiClient providersApiClient = CreateProvidersApiClient();
+            providersApiClient
+                .GetAllMasterProviders()
+                .Returns(providerVersionResponse);
+
+            IJobManagement jobManagement = CreateJobManagement();
+
+            DatasetService service = CreateDatasetService(
+                logger: logger,
+                blobClient: blobClient,
+                datasetRepository: datasetRepository,
+                datasetUploadValidator: datasetUploadValidator,
+                cacheProvider: cacheProvider,
+                providersApiClient: providersApiClient,
+                policyRepository: policyRepository,
+                jobManagement: jobManagement);
+
+            // Act
+            Func<Task> test = async () => { await service.ValidateDataset(message); };
+
+            // Assert
+            test
+                .Should()
+                .NotThrow();
+
+            logger
+                .Received(1)
+                .Error($"Unable to valdate given funding stream ID: {FundingStreamId}");
+
+            await cacheProvider
+                .Received(1)
+                .SetAsync(
+                    $"{CacheKeys.DatasetValidationStatus}:{message.UserProperties["operation-id"]}", 
+                    Arg.Is<DatasetValidationStatusModel>(v =>
+                        v.OperationId == message.UserProperties["operation-id"].ToString() &&
+                        v.CurrentOperation == DatasetValidationStatus.FailedValidation &&
+                        v.ErrorMessage == $"Unable to valdate given funding stream ID: {FundingStreamId}"));
+            await jobManagement
+                .Received(1)
+                .UpdateJobStatus("job1", 100, false, "Failed Validation - invalid funding stream ID");
+        }
+
+        [TestMethod]
         public async Task OnValidateDataset_GivenTableResultsContainsThreeErrors_EnsuresValidationResultModelIsWrittenToCache()
         {
             //Arrange
@@ -624,8 +763,14 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IDictionary<string, string> metaData = new Dictionary<string, string>
             {
-                { "dataDefinitionId", DataDefintionId }
+                { "dataDefinitionId", DataDefintionId },
+                { "fundingStreamId", FundingStreamId }
             };
+
+            IPolicyRepository policyRepository = CreatePolicyRepository();
+            policyRepository
+                .GetFundingStreams()
+                .Returns(NewFundingStreams());
 
             ICloudBlob blob = Substitute.For<ICloudBlob>();
             blob
@@ -701,7 +846,8 @@ namespace CalculateFunding.Services.Datasets.Services
                 datasetRepository: datasetRepository,
                 datasetUploadValidator: datasetUploadValidator,
                 cacheProvider: cacheProvider,
-                providersApiClient: providersApiClient);
+                providersApiClient: providersApiClient,
+                policyRepository: policyRepository);
 
             // Act
             Func<Task> test = async () => { await service.ValidateDataset(message); };
@@ -741,7 +887,13 @@ namespace CalculateFunding.Services.Datasets.Services
                     { "datasetId", model.DatasetId },
                     { "name", name },
                     { "description", description },
-                };
+                    { "fundingStreamId", FundingStreamId }
+            };
+
+            IPolicyRepository policyRepository = CreatePolicyRepository();
+            policyRepository
+                .GetFundingStreams()
+                .Returns(NewFundingStreams());
 
             ILogger logger = CreateLogger();
 
@@ -800,7 +952,8 @@ namespace CalculateFunding.Services.Datasets.Services
                 logger: logger,
                 blobClient: blobClient,
                 datasetRepository: datasetRepository,
-                providersApiClient: providersApiClient
+                providersApiClient: providersApiClient,
+                policyRepository: policyRepository
                 );
 
             // Act
@@ -842,7 +995,13 @@ namespace CalculateFunding.Services.Datasets.Services
                     { "datasetId", model.DatasetId },
                     { "name", name },
                     { "description", model.Description },
-                };
+                    { "fundingStreamId", FundingStreamId }
+            };
+
+            IPolicyRepository policyRepository = CreatePolicyRepository();
+            policyRepository
+                .GetFundingStreams()
+                .Returns(NewFundingStreams());
 
             ILogger logger = CreateLogger();
 
@@ -920,7 +1079,8 @@ namespace CalculateFunding.Services.Datasets.Services
                 blobClient: blobClient,
                 datasetRepository: datasetRepository,
                 searchRepository: searchRepository,
-                providersApiClient: providersApiClient);
+                providersApiClient: providersApiClient,
+                policyRepository: policyRepository);
 
             // Act
             Func<Task> result = async () => { await service.ValidateDataset(message); };
@@ -939,7 +1099,7 @@ namespace CalculateFunding.Services.Datasets.Services
             const string authorName = "author-name";
             const string name = "name";
 
-            GetDatasetBlobModel model = NewGetDatasetBlobModel();
+            GetDatasetBlobModel model = NewGetDatasetBlobModel(_ => _.WithFundingStreamId(FundingStreamId));
 
             string blobPath = $"{model.DatasetId}/v{model.Version}/{model.Filename}";
 
@@ -953,7 +1113,13 @@ namespace CalculateFunding.Services.Datasets.Services
                     { "datasetId", model.DatasetId },
                     { "name", name },
                     { "description", model.Description },
-                };
+                    { "fundingStreamId", FundingStreamId }
+            };
+
+            IPolicyRepository policyRepository = CreatePolicyRepository();
+            policyRepository
+                .GetFundingStreams()
+                .Returns(NewFundingStreams());
 
             ILogger logger = CreateLogger();
 
@@ -1018,7 +1184,8 @@ namespace CalculateFunding.Services.Datasets.Services
                 datasetRepository: datasetRepository,
                 searchRepository: searchRepository,
                 cacheProvider: cacheProvider,
-                providersApiClient: providersApiClient);
+                providersApiClient: providersApiClient,
+                policyRepository: policyRepository);
 
             // Act
             Func<Task> result = async () => { await service.ValidateDataset(message); };
@@ -1049,7 +1216,10 @@ namespace CalculateFunding.Services.Datasets.Services
                 d.Current.Author.Name == authorName &&
                 d.Current.Author.Id == authorId &&
                 d.Name == name &&
-                d.Description == model.Description
+                d.Description == model.Description &&
+                d.Current.FundingStream != null &&
+                d.Current.FundingStream.Id == model.FundingStreamId &&
+                d.Current.FundingStream.Name == FundingStreamName
                 ));
 
             await searchRepository
@@ -1064,7 +1234,9 @@ namespace CalculateFunding.Services.Datasets.Services
                     d.First().Description == model.Description &&
                     d.First().LastUpdatedById == authorId &&
                     d.First().LastUpdatedByName == authorName &&
-                    d.First().ChangeNote == ""
+                    d.First().ChangeNote == "" &&
+                    d.First().FundingStreamId == model.FundingStreamId &&
+                    d.First().FundingStreamName == FundingStreamName
               ));
 
             await cacheProvider
@@ -1089,7 +1261,15 @@ namespace CalculateFunding.Services.Datasets.Services
             const string updatedDescription = "Updated description";
             const string updateComment = "Update comment";
 
-            GetDatasetBlobModel model = NewGetDatasetBlobModel(_ => _.WithDescription(updatedDescription).WithComment(updateComment).WithVersion(2).WithLastUpdatedBy(new ReferenceBuilder().WithId(authorId).WithName(authorName)));
+            GetDatasetBlobModel model = NewGetDatasetBlobModel(_ => _
+                .WithDescription(updatedDescription)
+                .WithComment(updateComment)
+                .WithVersion(2)
+                .WithFundingStreamId(FundingStreamId)
+                .WithLastUpdatedBy(
+                    new ReferenceBuilder()
+                        .WithId(authorId)
+                        .WithName(authorName)));
 
             string blobPath = $"{model.DatasetId}/v{model.Version}/{model.Filename}";
 
@@ -1103,8 +1283,14 @@ namespace CalculateFunding.Services.Datasets.Services
                     { "datasetId", model.DatasetId },
                     { "name", name },
                     { "description", model.Description },
-                    { "comment", model.Comment }
-                };
+                    { "comment", model.Comment },
+                    { "fundingStreamId", FundingStreamId }
+            };
+
+            IPolicyRepository policyRepository = CreatePolicyRepository();
+            policyRepository
+                .GetFundingStreams()
+                .Returns(NewFundingStreams());
 
             ILogger logger = CreateLogger();
 
@@ -1175,7 +1361,8 @@ namespace CalculateFunding.Services.Datasets.Services
                 datasetRepository: datasetRepository,
                 searchRepository: searchRepository,
                 cacheProvider: cacheProvider,
-                providersApiClient: providersApiClient);
+                providersApiClient: providersApiClient,
+                policyRepository: policyRepository);
 
             DatasetVersion existingDatasetVersion = new DatasetVersion()
             {
@@ -1232,7 +1419,10 @@ namespace CalculateFunding.Services.Datasets.Services
                     d.Definition.Id == model.DefinitionId &&
                     d.Current.Author.Name == authorName &&
                     d.Current.Author.Id == authorId &&
-                    d.Name == name
+                    d.Name == name &&
+                    d.Current.FundingStream != null &&
+                    d.Current.FundingStream.Id == model.FundingStreamId &&
+                    d.Current.FundingStream.Name == FundingStreamName
                 ));
 
             await searchRepository
@@ -1247,7 +1437,9 @@ namespace CalculateFunding.Services.Datasets.Services
                     d.First().Description == updatedDescription &&
                      d.First().LastUpdatedById == authorId &&
                     d.First().LastUpdatedByName == authorName &&
-                    d.First().ChangeNote == updateComment
+                    d.First().ChangeNote == updateComment &&
+                    d.First().FundingStreamId == model.FundingStreamId &&
+                    d.First().FundingStreamName == FundingStreamName
                     ));
 
             await cacheProvider
@@ -1286,8 +1478,14 @@ namespace CalculateFunding.Services.Datasets.Services
                     { "datasetId", model.DatasetId },
                     { "name", name },
                     { "description", model.Description },
-                    { "comment", model.Comment }
+                    { "comment", model.Comment },
+                    { "fundingStreamId", FundingStreamId }
                 };
+
+            IPolicyRepository policyRepository = CreatePolicyRepository();
+            policyRepository
+                .GetFundingStreams()
+                .Returns(NewFundingStreams());
 
             ILogger logger = CreateLogger();
 
@@ -1356,7 +1554,8 @@ namespace CalculateFunding.Services.Datasets.Services
                 blobClient: blobClient,
                 datasetRepository: datasetRepository,
                 searchRepository: searchRepository,
-                providersApiClient: providersApiClient);
+                providersApiClient: providersApiClient,
+                policyRepository: policyRepository);
 
             DatasetVersion existingDatasetVersion1 = new DatasetVersion()
             {
@@ -1423,8 +1622,14 @@ namespace CalculateFunding.Services.Datasets.Services
                     { "datasetId", model.DatasetId },
                     { "name", name },
                     { "description", model.Description },
-                    { "comment", model.Comment }
+                    { "comment", model.Comment },
+                    { "fundingStreamId", FundingStreamId }
                 };
+
+            IPolicyRepository policyRepository = CreatePolicyRepository();
+            policyRepository
+                .GetFundingStreams()
+                .Returns(NewFundingStreams());
 
             ILogger logger = CreateLogger();
 
@@ -1491,7 +1696,8 @@ namespace CalculateFunding.Services.Datasets.Services
                 blobClient: blobClient,
                 datasetRepository: datasetRepository,
                 searchRepository: searchRepository,
-                providersApiClient: providersApiClient);
+                providersApiClient: providersApiClient,
+                policyRepository: policyRepository);
 
             DatasetVersion existingDatasetVersion1 = new DatasetVersion()
             {
@@ -1547,8 +1753,14 @@ namespace CalculateFunding.Services.Datasets.Services
                     { "datasetId", model.DatasetId },
                     { "name", name },
                     { "description", model.Description },
-                    { "comment", model.Comment }
+                    { "comment", model.Comment },
+                    { "fundingStreamId", FundingStreamId }
                 };
+
+            IPolicyRepository policyRepository = CreatePolicyRepository();
+            policyRepository
+                .GetFundingStreams()
+                .Returns(NewFundingStreams());
 
             ILogger logger = CreateLogger();
 
@@ -1615,7 +1827,8 @@ namespace CalculateFunding.Services.Datasets.Services
                 blobClient: blobClient,
                 datasetRepository: datasetRepository,
                 searchRepository: searchRepository,
-                providersApiClient: providersApiClient);
+                providersApiClient: providersApiClient,
+                policyRepository: policyRepository);
 
             DatasetVersion existingDatasetVersion = new DatasetVersion()
             {
@@ -1675,8 +1888,14 @@ namespace CalculateFunding.Services.Datasets.Services
                     { "datasetId", model.DatasetId },
                     { "name", name },
                     { "description", model.Description },
-                    { "comment", model.Comment }
-                };
+                    { "comment", model.Comment },
+                    { "fundingStreamId", FundingStreamId }
+            };
+
+            IPolicyRepository policyRepository = CreatePolicyRepository();
+            policyRepository
+                .GetFundingStreams()
+                .Returns(NewFundingStreams());
 
             ILogger logger = CreateLogger();
 
@@ -1743,7 +1962,8 @@ namespace CalculateFunding.Services.Datasets.Services
                 blobClient: blobClient,
                 datasetRepository: datasetRepository,
                 searchRepository: searchRepository,
-                providersApiClient: providersApiClient);
+                providersApiClient: providersApiClient,
+                policyRepository: policyRepository);
 
             DatasetVersion existingDatasetVersion = new DatasetVersion()
             {
@@ -2613,8 +2833,14 @@ namespace CalculateFunding.Services.Datasets.Services
                     { "authorId", authorId },
                     { "datasetId", datasetId },
                     { "name", name },
-                    { "description", description }
-                };
+                    { "description", description },
+                    { "fundingStreamId", FundingStreamId }
+            };
+
+            IPolicyRepository policyRepository = CreatePolicyRepository();
+            policyRepository
+                .GetFundingStreams()
+                .Returns(NewFundingStreams());
 
             GetDatasetBlobModel model = new GetDatasetBlobModel
             {
@@ -2695,7 +2921,8 @@ namespace CalculateFunding.Services.Datasets.Services
                 searchRepository: searchRepository,
                 cacheProvider: cacheProvider,
                 jobManagement: jobManagement,
-                providersApiClient: providersApiClient);
+                providersApiClient: providersApiClient,
+                policyRepository: policyRepository);
 
             // Act
             Func<Task> result = async () => { await service.ValidateDataset(message); };

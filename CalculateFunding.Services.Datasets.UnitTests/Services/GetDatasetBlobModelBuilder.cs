@@ -14,7 +14,15 @@ namespace CalculateFunding.Services.Datasets.Services
         private string _definitionId;
         private string _description;
         private string _comment;
+        private string _fundingStreamId;
         private ReferenceBuilder _lastUpdatedBy;
+
+        public GetDatasetBlobModelBuilder WithFundingStreamId(string fundingStreamId)
+        {
+            _fundingStreamId = fundingStreamId;
+
+            return this;
+        }
 
         public GetDatasetBlobModelBuilder WithFileName(string filename)
         {
@@ -77,7 +85,8 @@ namespace CalculateFunding.Services.Datasets.Services
                 Description = _description ?? NewRandomString(),
                 Comment = _comment ?? NewRandomString(),
                 LastUpdatedById = _lastUpdatedBy.Build().Id,
-                LastUpdatedByName = _lastUpdatedBy.Build().Name
+                LastUpdatedByName = _lastUpdatedBy.Build().Name,
+                FundingStreamId = _fundingStreamId ?? NewRandomString(),
             };
         }
     }

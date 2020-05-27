@@ -1,13 +1,20 @@
 ﻿using CalculateFunding.Models.Datasets;
+using CalculateFunding.Services.Datasets.Interfaces;
 using FluentValidation;
-using FluentValidation.Validators;
+using System.Collections.Generic;
+using System.Linq;
+using PoliciesApiModels = CalculateFunding.Common.ApiClient.Policies.Models;
 
 namespace CalculateFunding.Services.Datasets.Validators
 {
     public class GetDatasetBlobModelValidator : AbstractValidator<GetDatasetBlobModel>
     {
-        public GetDatasetBlobModelValidator()
+        private readonly IPolicyRepository _policyRepository;
+
+        public GetDatasetBlobModelValidator(IPolicyRepository policyRepository)
         {
+            _policyRepository = policyRepository;
+
             RuleFor(model => model.DatasetId)
                .NotEmpty()
                .WithMessage("Missing data dataset id.");
@@ -45,6 +52,25 @@ namespace CalculateFunding.Services.Datasets.Validators
                         }
                     }
                 });
+
+            RuleFor(model => model.FundingStreamId)
+            .Custom((name, context) =>
+            {
+                GetDatasetBlobModel model = context.ParentContext.InstanceToValidate as GetDatasetBlobModel;
+                if (string.IsNullOrWhiteSpace(model.FundingStreamId))
+                {
+                    context.AddFailure("You must give a Funding Stream Id for the dataset");
+                }
+                else
+                {
+                    IEnumerable<PoliciesApiModels.FundingStream> fundingStreams = _policyRepository.GetFundingStreams().Result;
+
+                    if (fundingStreams != null && !fundingStreams.Any(_ => _.Id == model.FundingStreamId))
+                    {
+                        context.AddFailure($"Unable to find given funding stream ID: {model.FundingStreamId}");
+                    }
+                }
+            });
         }
     }
 }

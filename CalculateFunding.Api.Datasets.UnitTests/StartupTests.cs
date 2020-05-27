@@ -3,7 +3,6 @@ using System.Reflection;
 using CalculateFunding.Api.Datasets.Controllers;
 using CalculateFunding.Tests.Common;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NSubstitute;
 
 namespace CalculateFunding.Api.Datasets.UnitTests
 {
@@ -28,7 +27,9 @@ namespace CalculateFunding.Api.Datasets.UnitTests
                 { "jobsClient:ApiEndpoint", "https://localhost:7010/api/" },
                 { "jobsClient:ApiKey", "Local" },
                 { "providersClient:ApiEndpoint", "https://localhost:7011/api/" },
-                { "providersClient:ApiKey", "Local" }
+                { "providersClient:ApiKey", "Local" },
+                { "policiesClient:ApiEndpoint", "https://localhost:7013/api/" },
+                { "policiesClient:ApiKey", "Local" }
         };
 
             return configData;

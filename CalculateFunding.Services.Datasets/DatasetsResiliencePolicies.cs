@@ -25,5 +25,7 @@ namespace CalculateFunding.Services.Datasets
         public AsyncPolicy JobsApiClient { get; set; }
 
         public AsyncPolicy ProvidersApiClient { get; set; }
+
+        public AsyncPolicy PoliciesApiClient { get; set; }
     }
 }

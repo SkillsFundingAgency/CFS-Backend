@@ -4,18 +4,23 @@ using FluentValidation;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using PoliciesApiModels = CalculateFunding.Common.ApiClient.Policies.Models;
 
 namespace CalculateFunding.Services.Datasets.Validators
 {
     public class CreateNewDatasetModelValidator : AbstractValidator<CreateNewDatasetModel>
     {
         private readonly IDatasetRepository _datasetsRepository;
+        private readonly IPolicyRepository _policyRepository;
 
-        private IEnumerable<string> validExtensions = new[] {".xls", ".xlsx" };
+        private readonly IEnumerable<string> validExtensions = new[] { ".xls", ".xlsx" };
 
-        public CreateNewDatasetModelValidator(IDatasetRepository datasetsRepository)
+        public CreateNewDatasetModelValidator(
+            IDatasetRepository datasetsRepository,
+            IPolicyRepository policyRepository)
         {
             _datasetsRepository = datasetsRepository;
+            _policyRepository = policyRepository;
 
             RuleFor(model => model.DefinitionId)
             .NotEmpty()
@@ -49,6 +54,24 @@ namespace CalculateFunding.Services.Datasets.Validators
                 }
             });
 
+            RuleFor(model => model.FundingStreamId)
+            .Custom((name, context) =>
+            {
+                CreateNewDatasetModel model = context.ParentContext.InstanceToValidate as CreateNewDatasetModel;
+                if (string.IsNullOrWhiteSpace(model.FundingStreamId))
+                {
+                    context.AddFailure("You must give a Funding Stream Id for the dataset");
+                }
+                else
+                {
+                    IEnumerable<PoliciesApiModels.FundingStream> fundingStreams = _policyRepository.GetFundingStreams().Result;
+
+                    if (fundingStreams != null && !fundingStreams.Any(_ => _.Id == model.FundingStreamId))
+                    {
+                        context.AddFailure($"Unable to find given funding stream ID: {model.FundingStreamId}");
+                    }
+                }
+            });
         }
     }
 }

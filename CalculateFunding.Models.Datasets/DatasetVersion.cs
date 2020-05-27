@@ -1,4 +1,5 @@
-﻿using CalculateFunding.Models.Versioning;
+﻿using CalculateFunding.Common.Models;
+using CalculateFunding.Models.Versioning;
 using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Datasets
@@ -21,6 +22,8 @@ namespace CalculateFunding.Models.Datasets
         public string BlobName { get; set; }
 
         public int RowCount { get; set; }
+
+        public Reference FundingStream { get; set; }
 
         public override VersionedItem Clone()
         {

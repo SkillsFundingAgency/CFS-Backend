@@ -204,7 +204,8 @@ namespace CalculateFunding.Services.Datasets.Services
 
             CreateNewDatasetModel model = new CreateNewDatasetModel
             {
-                Filename = "test.xlsx"
+                Filename = "test.xlsx",
+                FundingStreamId = FundingStreamId
             };
             NewDatasetVersionResponseModel responseModel = new NewDatasetVersionResponseModel
             {
@@ -256,6 +257,11 @@ namespace CalculateFunding.Services.Datasets.Services
                .Id
                .Should()
                .Be(UserId);
+
+            responseModel
+                .FundingStreamId
+                .Should()
+                .Be(FundingStreamId);
         }
 
         [TestMethod]

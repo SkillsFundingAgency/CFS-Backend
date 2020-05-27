@@ -4,21 +4,15 @@ using CalculateFunding.Models.Datasets;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Datasets;
 using FluentAssertions;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Search.Models;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Newtonsoft.Json;
 using NSubstitute;
 using Serilog;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Repositories.Common.Search.Results;
-using CalculateFunding.Services.Core.Interfaces.AzureStorage;
-using Microsoft.Azure.Storage.Blob;
 
 namespace CalculateFunding.Services.Calcs.Services
 {
@@ -140,7 +134,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task SearchDataset_GivenValidModelAndIncludesGettingFacets_CallsSearchFiveTimes()
+        public async Task SearchDataset_GivenValidModelAndIncludesGettingFacets_CallsSearchSevenTimes()
         {
             //Arrange
             SearchModel model = new SearchModel
@@ -171,7 +165,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             await
                 searchRepository
-                    .Received(5)
+                    .Received(7)
                     .Search(Arg.Any<string>(), Arg.Any<SearchParameters>());
 
         }
@@ -209,7 +203,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             await
                 searchRepository
-                    .Received(5)
+                    .Received(7)
                     .Search(Arg.Any<string>(), Arg.Any<SearchParameters>());
 
         }
@@ -251,7 +245,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             await
                 searchRepository
-                .Received(4)
+                .Received(6)
                     .Search(model.SearchTerm, Arg.Is<SearchParameters>(c =>
                         model.Filters.Keys.All(f => c.Filter.Contains(f))
                         && !string.IsNullOrWhiteSpace(c.Filter)
@@ -295,7 +289,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             await
                 searchRepository
-                .Received(4)
+                .Received(6)
                     .Search(model.SearchTerm, Arg.Is<SearchParameters>(c =>
                         model.Filters.Keys.All(f => c.Filter.Contains(f))
                         && !string.IsNullOrWhiteSpace(c.Filter)
@@ -339,7 +333,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             await
                 searchRepository
-                .Received(4)
+                .Received(6)
                     .Search(model.SearchTerm, Arg.Is<SearchParameters>(c =>
                         model.Filters.Keys.All(f => c.Filter.Contains(f))
                         && !string.IsNullOrWhiteSpace(c.Filter)
@@ -383,7 +377,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             await
                 searchRepository
-                .Received(4)
+                .Received(6)
                     .Search(model.SearchTerm, Arg.Is<SearchParameters>(c =>
                         model.Filters.Keys.All(f => c.Filter.Contains(f))
                         && !string.IsNullOrWhiteSpace(c.Filter)
@@ -427,7 +421,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             await
                 searchRepository
-                .Received(4)
+                .Received(6)
                     .Search(model.SearchTerm, Arg.Is<SearchParameters>(c =>
                         model.Filters.Keys.All(f => c.Filter.Contains(f))
                         && !string.IsNullOrWhiteSpace(c.Filter)
@@ -584,7 +578,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             await
                 searchRepository
-                    .Received(5)
+                    .Received(7)
                     .Search(Arg.Any<string>(), Arg.Any<SearchParameters>());
         }
 
@@ -614,8 +608,10 @@ namespace CalculateFunding.Services.Calcs.Services
 				    DatasetId = "df073a02-bbc5-44ee-a84b-5931c6e7cf1e",
 				    Description = "150 rows starting",
 				    LastUpdatedByName = "James",
-				    LastUpdatedDate = new DateTime(2019, 1, 1)
-			    })
+				    LastUpdatedDate = new DateTime(2019, 1, 1),
+                    FundingStreamId = "DSG",
+                    FundingStreamName = "Dedicated schools grant"
+                })
 		    };
 
 			ISearchRepository<DatasetVersionIndex> mockDatasetVersionIndexRepository = CreateDatasetVersionSearchRepository();
@@ -643,9 +639,11 @@ namespace CalculateFunding.Services.Calcs.Services
 		    datasetVersionSearchResult.Description.Should().Be("150 rows starting");
 		    datasetVersionSearchResult.LastUpdatedByName.Should().Be("James");
 		    datasetVersionSearchResult.LastUpdatedDate.Should().Be(new DateTime(2019, 1, 1));
-	    }
+            datasetVersionSearchResult.FundingStreamId.Should().Be("DSG");
+            datasetVersionSearchResult.FundingStreamName.Should().Be("Dedicated schools grant");
+        }
 
-		[TestMethod]
+        [TestMethod]
 		public async Task SearchDatasetVersion_GivenInvalidParameters_ShouldReturnBadRequestResult()
 		{
 			// Arrange

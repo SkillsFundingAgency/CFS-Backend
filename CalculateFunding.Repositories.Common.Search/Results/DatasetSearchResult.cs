@@ -28,5 +28,8 @@ namespace CalculateFunding.Repositories.Common.Search.Results
         public string LastUpdatedByName { get; set; }
 
         public string LastUpdatedById { get; set; }
+        public string FundingStreamId { get; set; }
+        public string FundingStreamName { get; set; }
+
     }
 }

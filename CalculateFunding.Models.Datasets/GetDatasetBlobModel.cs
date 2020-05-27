@@ -18,6 +18,8 @@
 
         public string LastUpdatedByName { get; set; }
 
+        public string FundingStreamId { get; set; }
+
         public override string ToString()
         {
             return $"{DatasetId}/v{Version}/{Filename}";

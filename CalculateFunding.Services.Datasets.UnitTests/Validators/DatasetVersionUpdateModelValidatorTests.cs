@@ -12,19 +12,19 @@ using PoliciesApiModels = CalculateFunding.Common.ApiClient.Policies.Models;
 namespace CalculateFunding.Services.Datasets.Validators
 {
     [TestClass]
-    public class GetDatasetBlobModelValidatorTests
+    public class DatasetVersionUpdateModelValidatorTests
     {
         const string FundingStreamId = "funding-stream-id";
         const string FundingStreamName = "funding-stream-name";
 
         [TestMethod]
-        public void Validate_GivenMissingDatasetId_ReturnsFalse()
+        public void Validate_GivenEmptyDatasetId_ValidIsFalse()
         {
             //Arrange
-            GetDatasetBlobModel model = CreateModel();
+            DatasetVersionUpdateModel model = CreateModel();
             model.DatasetId = string.Empty;
 
-            GetDatasetBlobModelValidator validator = CreateValidator();
+            DatasetVersionUpdateModelValidator validator = CreateValidator();
 
             //Act
             ValidationResult result = validator.Validate(model);
@@ -43,38 +43,13 @@ namespace CalculateFunding.Services.Datasets.Validators
         }
 
         [TestMethod]
-        public void Validate_GivenMissingFilename_ReturnsFalse()
+        public void Validate_GivenEmptyFundingStreamId_ValidIsFalse()
         {
             //Arrange
-            GetDatasetBlobModel model = CreateModel();
-            model.Filename = string.Empty;
-
-            GetDatasetBlobModelValidator validator = CreateValidator();
-
-            //Act
-            ValidationResult result = validator.Validate(model);
-
-            //Assert
-            result
-                .IsValid
-                .Should()
-                .BeFalse();
-
-            result
-                .Errors
-                .Count
-                .Should()
-                .Be(1);
-        }
-
-        [TestMethod]
-        public void Validate_GivenMissingFundingStreamId_ReturnsFalse()
-        {
-            //Arrange
-            GetDatasetBlobModel model = CreateModel();
+            DatasetVersionUpdateModel model = CreateModel();
             model.FundingStreamId = string.Empty;
 
-            GetDatasetBlobModelValidator validator = CreateValidator();
+            DatasetVersionUpdateModelValidator validator = CreateValidator();
 
             //Act
             ValidationResult result = validator.Validate(model);
@@ -96,10 +71,10 @@ namespace CalculateFunding.Services.Datasets.Validators
         public void Validate_GivenInvalidFundingStreamId_ValidIsFalse()
         {
             //Arrange
-            GetDatasetBlobModel model = CreateModel();
+            DatasetVersionUpdateModel model = CreateModel();
             model.FundingStreamId = "test-invalid-funding-stream-id";
 
-            GetDatasetBlobModelValidator validator = CreateValidator();
+            DatasetVersionUpdateModelValidator validator = CreateValidator();
 
             //Act
             ValidationResult result = validator.Validate(model);
@@ -118,37 +93,12 @@ namespace CalculateFunding.Services.Datasets.Validators
         }
 
         [TestMethod]
-        public void Validate_GivenVersionIsZero_ReturnsFalse()
+        public void Validate_GivenValidModel_ValidIsTrue()
         {
             //Arrange
-            GetDatasetBlobModel model = CreateModel();
-            model.Version = 0;
+            DatasetVersionUpdateModel model = CreateModel();
 
-            GetDatasetBlobModelValidator validator = CreateValidator();
-
-            //Act
-            ValidationResult result = validator.Validate(model);
-
-            //Assert
-            result
-                .IsValid
-                .Should()
-                .BeFalse();
-
-            result
-                .Errors
-                .Count
-                .Should()
-                .Be(1);
-        }
-
-        [TestMethod]
-        public void Validate_GivenValidModel_ReturnsTrue()
-        {
-            //Arrange
-            GetDatasetBlobModel model = CreateModel();
-
-            GetDatasetBlobModelValidator validator = CreateValidator();
+            DatasetVersionUpdateModelValidator validator = CreateValidator();
 
             //Act
             ValidationResult result = validator.Validate(model);
@@ -160,21 +110,20 @@ namespace CalculateFunding.Services.Datasets.Validators
                 .BeTrue();
         }
 
-        static GetDatasetBlobModel CreateModel()
+        static DatasetVersionUpdateModel CreateModel()
         {
-            return new GetDatasetBlobModel
+            return new DatasetVersionUpdateModel
             {
-                DatasetId = "data-set-id",
-                Filename = "any-file.csv",
-                Version = 1,
-                FundingStreamId = FundingStreamId
+                Filename = "test-name.xls",
+                DatasetId = "test-id",
+                FundingStreamId = FundingStreamId,
             };
         }
 
-        static GetDatasetBlobModelValidator CreateValidator(
-            IPolicyRepository policyRepository = null)
+        static DatasetVersionUpdateModelValidator CreateValidator(
+    IPolicyRepository policyRepository = null)
         {
-            return new GetDatasetBlobModelValidator(
+            return new DatasetVersionUpdateModelValidator(
                 policyRepository ?? CreatePolicyRepository());
         }
 
