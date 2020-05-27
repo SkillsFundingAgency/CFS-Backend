@@ -66,13 +66,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Tasks
             PublishedProviderVersion previousVersionTwo = NewPublishedProviderVersion();
             PublishedProviderVersion previousVersionThree = NewPublishedProviderVersion();
             PublishedProviderVersion previousVersionFive = NewPublishedProviderVersion();
+            PublishedProviderVersion previousReleasedVersionThree = NewPublishedProviderVersion();
 
             GivenThePublishedProviderFeed(NewFeedIterator(WithPages(Page(publishedProviderOne, publishedProviderTwo),
                 Page(publishedProviderThree, publishedProviderFour),
-                Page<PublishedProvider>(),
                 Page(publishedProviderFive))));
             AndThePreviousLatestVersion(publishedProviderTwo.Current, previousVersionTwo);
             AndThePreviousLatestVersion(publishedProviderThree.Current, previousVersionThree);
+            AndThePreviousLatestReleasedVersion(publishedProviderThree.Current, previousReleasedVersionThree);
             AndThePreviousLatestVersion(publishedProviderFive.Current, previousVersionFive);
 
             await WhenTheTaskIsRun();
@@ -92,6 +93,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Tasks
             AndThePublishedProviderHasCurrent((publishedProviderFive, previousVersionFive), 
                 (publishedProviderTwo, previousVersionTwo),
                 (publishedProviderThree, previousVersionThree));
+            AndThePublishedProviderHasReleased((publishedProviderFive, null), 
+                (publishedProviderTwo, null),
+                (publishedProviderThree, previousReleasedVersionThree));
         }
 
         protected void AndThePublishedProviderHasCurrent(params (PublishedProvider funding, PublishedProviderVersion current)[] expectedMatches)
@@ -101,6 +105,16 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Tasks
                 expectedMatch.funding.Current
                     .Should()
                     .BeSameAs(expectedMatch.current);
+            }
+        }
+        
+        protected void AndThePublishedProviderHasReleased(params (PublishedProvider funding, PublishedProviderVersion released)[] expectedMatches)
+        {
+            foreach ((PublishedProvider funding, PublishedProviderVersion released) expectedMatch in expectedMatches)
+            {
+                expectedMatch.funding.Released
+                    .Should()
+                    .BeSameAs(expectedMatch.released);
             }
         }
         
@@ -119,14 +133,28 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Tasks
             Cosmos.Setup(_ => _.GetLatestEarlierPublishedProviderVersion(publishedProviderVersionDetails.FundingStreamId,
                     publishedProviderVersionDetails.FundingPeriodId,
                     publishedProviderVersionDetails.TimeStamp,
-                    current.ProviderId))
+                    current.ProviderId,
+                    null))
                 .ReturnsAsync(previous);
+        }
+        
+        protected void AndThePreviousLatestReleasedVersion(PublishedProviderVersion current, PublishedProviderVersion previousReleased)
+        {
+            CorrelationIdDetails publishedProviderVersionDetails = TaskContext.PublishedProviderVersionDetails;
+            
+            Cosmos.Setup(_ => _.GetLatestEarlierPublishedProviderVersion(publishedProviderVersionDetails.FundingStreamId,
+                    publishedProviderVersionDetails.FundingPeriodId,
+                    publishedProviderVersionDetails.TimeStamp,
+                    current.ProviderId,
+                    PublishedProviderStatus.Released))
+                .ReturnsAsync(previousReleased);
         }
 
         protected PublishedProvider NewPublishedProvider(Action<PublishedProviderBuilder> setUp = null)
         {
             PublishedProviderBuilder fundingBuilder = new PublishedProviderBuilder()
-                .WithCurrent(NewPublishedProviderVersion());
+                .WithCurrent(NewPublishedProviderVersion())
+                .WithReleased(NewPublishedProviderVersion());
 
             setUp?.Invoke(fundingBuilder);
             

@@ -18,19 +18,18 @@ namespace CalculateFunding.Services.Publishing.Undo.Repositories
         private readonly AsyncPolicy _resilience;
         private readonly ICosmosRepository _cosmos;
 
-        public PublishedFundingUndoCosmosRepository(IPublishingResiliencePolicies resiliencePolicies, 
+        public PublishedFundingUndoCosmosRepository(IPublishingResiliencePolicies resiliencePolicies,
             ICosmosRepository cosmos)
         {
             Guard.ArgumentNotNull(resiliencePolicies?.PublishedFundingRepository, nameof(resiliencePolicies.PublishedFundingRepository));
             Guard.ArgumentNotNull(cosmos, nameof(cosmos));
-            
+
             _resilience = resiliencePolicies.PublishedFundingRepository;
             _cosmos = cosmos;
         }
 
-        public async Task<CorrelationIdDetails> GetCorrelationDetailsForPublishedProviders(string correlationId)
-        {
-            return await GetDocumentCorrelationIdDetails(
+        public async Task<CorrelationIdDetails> GetCorrelationDetailsForPublishedProviders(string correlationId) =>
+            await GetDocumentCorrelationIdDetails(
                 @"SELECT
                               MIN(p._ts) AS timeStamp,
                               p.content.current.fundingStreamId,
@@ -42,11 +41,9 @@ namespace CalculateFunding.Services.Publishing.Undo.Repositories
                         GROUP BY p.content.current.fundingStreamId,
                         p.content.current.fundingPeriodId",
                 correlationId);
-        }
 
-        public async Task<CorrelationIdDetails> GetCorrelationIdDetailsForPublishedProviderVersions(string correlationId)
-        {
-            return await GetDocumentCorrelationIdDetails(
+        public async Task<CorrelationIdDetails> GetCorrelationIdDetailsForPublishedProviderVersions(string correlationId) =>
+            await GetDocumentCorrelationIdDetails(
                 @"SELECT
                               MIN(p._ts) AS timeStamp,
                               p.content.fundingStreamId,
@@ -58,11 +55,9 @@ namespace CalculateFunding.Services.Publishing.Undo.Repositories
                         GROUP BY p.content.fundingStreamId,
                         p.content.fundingPeriodId",
                 correlationId);
-        }
 
-        public async Task<CorrelationIdDetails> GetCorrelationIdDetailsForPublishedFundingVersions(string correlationId)
-        {
-            return await GetDocumentCorrelationIdDetails(
+        public async Task<CorrelationIdDetails> GetCorrelationIdDetailsForPublishedFundingVersions(string correlationId) =>
+            await GetDocumentCorrelationIdDetails(
                 @"SELECT
                               MIN(p._ts) AS timeStamp,
                               p.content.fundingStreamId,
@@ -73,12 +68,10 @@ namespace CalculateFunding.Services.Publishing.Undo.Repositories
                         AND p.deleted = false
                         GROUP BY p.content.fundingStreamId,
                         p.content.fundingPeriod.id",
-                correlationId);          
-        }
-        
-        public async Task<CorrelationIdDetails> GetCorrelationIdDetailsForPublishedFunding(string correlationId)
-        {
-            return await GetDocumentCorrelationIdDetails(
+                correlationId);
+
+        public async Task<CorrelationIdDetails> GetCorrelationIdDetailsForPublishedFunding(string correlationId) =>
+            await GetDocumentCorrelationIdDetails(
                 @"SELECT
                               MIN(p._ts) AS timeStamp,
                               p.content.current.fundingStreamId,
@@ -89,8 +82,7 @@ namespace CalculateFunding.Services.Publishing.Undo.Repositories
                         AND p.deleted = false
                         GROUP BY p.content.current.fundingStreamId,
                         p.content.current.fundingPeriod.id",
-                correlationId);          
-        }
+                correlationId);
 
         private async Task<CorrelationIdDetails> GetDocumentCorrelationIdDetails(string sql,
             string correlationId)
@@ -100,14 +92,13 @@ namespace CalculateFunding.Services.Publishing.Undo.Repositories
                     QueryText = sql,
                     Parameters = Parameters(("@correlationId", correlationId))
                 })))
-                .SingleOrDefault();    
+                .SingleOrDefault();
         }
 
         public ICosmosDbFeedIterator<PublishedProviderVersion> GetPublishedProviderVersions(string fundingStreamId,
             string fundingPeriodId,
-            long sinceTimeStamp)
-        {
-            return GetDocumentFeed<PublishedProviderVersion>(
+            long sinceTimeStamp) =>
+            GetDocumentFeed<PublishedProviderVersion>(
                 @"SELECT
                               *
                         FROM publishedProviderVersion p
@@ -119,13 +110,11 @@ namespace CalculateFunding.Services.Publishing.Undo.Repositories
                 fundingStreamId,
                 fundingPeriodId,
                 sinceTimeStamp);
-        }
 
         public ICosmosDbFeedIterator<PublishedProvider> GetPublishedProviders(string fundingStreamId,
             string fundingPeriodId,
-            long sinceTimeStamp)
-        {
-            return GetDocumentFeed<PublishedProvider>(
+            long sinceTimeStamp) =>
+            GetDocumentFeed<PublishedProvider>(
                 @"SELECT
                               *
                         FROM publishedProvider p
@@ -137,13 +126,11 @@ namespace CalculateFunding.Services.Publishing.Undo.Repositories
                 fundingStreamId,
                 fundingPeriodId,
                 sinceTimeStamp);
-        }
 
         public ICosmosDbFeedIterator<PublishedFunding> GetPublishedFunding(string fundingStreamId,
             string fundingPeriodId,
-            long sinceTimeStamp)
-        {
-            return GetDocumentFeed<PublishedFunding>(
+            long sinceTimeStamp) =>
+            GetDocumentFeed<PublishedFunding>(
                 @"SELECT
                               *
                         FROM publishedFunding p
@@ -154,14 +141,12 @@ namespace CalculateFunding.Services.Publishing.Undo.Repositories
                         AND p.deleted = false",
                 fundingStreamId,
                 fundingPeriodId,
-                sinceTimeStamp);   
-        }
+                sinceTimeStamp);
 
         public ICosmosDbFeedIterator<PublishedFundingVersion> GetPublishedFundingVersions(string fundingStreamId,
             string fundingPeriodId,
-            long sinceTimeStamp)
-        {
-            return GetDocumentFeed<PublishedFundingVersion>(
+            long sinceTimeStamp) =>
+            GetDocumentFeed<PublishedFundingVersion>(
                 @"SELECT
                               *
                         FROM publishedFundingVersion p
@@ -173,33 +158,29 @@ namespace CalculateFunding.Services.Publishing.Undo.Repositories
                 fundingStreamId,
                 fundingPeriodId,
                 sinceTimeStamp);
-        }
 
         private ICosmosDbFeedIterator<TDocument> GetDocumentFeed<TDocument>(string sql,
             string fundingStreamId,
             string fundingPeriodId,
             long sinceTimeStamp)
-            where TDocument : IIdentifiable
-        {
-            return _cosmos.GetFeedIterator<TDocument>(new CosmosDbQuery
-            {
-                QueryText = sql,
-                Parameters = Parameters(
-                    ("@sinceTimeStamp", sinceTimeStamp),
-                    ("@fundingStreamId", fundingStreamId),
-                    ("@fundingPeriodId", fundingPeriodId))
-            },
+            where TDocument : IIdentifiable =>
+            _cosmos.GetFeedIterator<TDocument>(new CosmosDbQuery
+                {
+                    QueryText = sql,
+                    Parameters = Parameters(
+                        ("@sinceTimeStamp", sinceTimeStamp),
+                        ("@fundingStreamId", fundingStreamId),
+                        ("@fundingPeriodId", fundingPeriodId))
+                },
                 100);
-        }
-        
+
         public async Task<PublishedFundingVersion> GetLatestEarlierPublishedFundingVersion(string fundingStreamId,
             string fundingPeriodId,
             long sinceTimeStamp,
             string groupTypeIdentifier,
-            string groupTypeIdentifierValue, 
-            ModelsGroupingReason groupingReason)
-        {
-            return await GetLatestEarlierDocument<PublishedFundingVersion>(
+            string groupTypeIdentifierValue,
+            ModelsGroupingReason groupingReason) =>
+            await GetLatestEarlierDocument<PublishedFundingVersion>(
                 @"SELECT
                               TOP 1 *
                         FROM publishedFundingVersion p
@@ -216,17 +197,16 @@ namespace CalculateFunding.Services.Publishing.Undo.Repositories
                 fundingPeriodId,
                 sinceTimeStamp,
                 Parameters(("@groupTypeIdentifier", groupTypeIdentifier),
-                    ("@groupTypeIdentifierValue", groupTypeIdentifierValue),
-                    ("@groupingReason", groupingReason.ToString())));
-        }
-        
+                        ("@groupTypeIdentifierValue", groupTypeIdentifierValue),
+                        ("@groupingReason", groupingReason.ToString())));
+
         public async Task<PublishedProviderVersion> GetLatestEarlierPublishedProviderVersion(string fundingStreamId,
             string fundingPeriodId,
-            long sinceTimeStamp, 
-            string providerId)
-        {
-            return await GetLatestEarlierDocument<PublishedProviderVersion>(
-                @"SELECT
+            long sinceTimeStamp,
+            string providerId,
+            PublishedProviderStatus? status = null) =>
+            await GetLatestEarlierDocument<PublishedProviderVersion>(
+                @$"SELECT
                               TOP 1 *
                         FROM publishedProviderVersion p
                         WHERE p.documentType = 'PublishedProviderVersion'
@@ -234,13 +214,14 @@ namespace CalculateFunding.Services.Publishing.Undo.Repositories
                         AND p.content.fundingStreamId = @fundingStreamId
                         AND p.content.fundingPeriodId = @fundingPeriodId
                         AND p.content.providerId = @providerId
+                        {(status.HasValue ? "AND p.content.status = @status" : string.Empty)}
                         AND p.deleted = false
                         ORDER BY p._ts DESC",
                 fundingStreamId,
                 fundingPeriodId,
                 sinceTimeStamp,
-                Parameters(("@providerId", providerId)));
-        }
+                Parameters(("@providerId", providerId))
+                    .Concat(status.HasValue ? Parameters(("@status", status.Value)) : ArraySegment<CosmosDbQueryParameter>.Empty).ToArray());
 
         private async Task<TDocument> GetLatestEarlierDocument<TDocument>(string sql,
             string fundingStreamId,
@@ -251,25 +232,25 @@ namespace CalculateFunding.Services.Publishing.Undo.Repositories
         {
             return (await _resilience.ExecuteAsync(() => _cosmos.QuerySql<TDocument>(new CosmosDbQuery
             {
-                QueryText    = sql,
+                QueryText = sql,
                 Parameters = Parameters(("@sinceTimeStamp", sinceTimeStamp),
-                    ("@fundingStreamId", fundingStreamId),
-                    ("@fundingPeriodId", fundingPeriodId))
+                        ("@fundingStreamId", fundingStreamId),
+                        ("@fundingPeriodId", fundingPeriodId))
                     .Concat(extraParameters)
-            }))).SingleOrDefault();     
+            }))).SingleOrDefault();
         }
-        
-        public async Task BulkDeletePublishedFundingDocuments<TDocument>(IEnumerable<TDocument> documents, 
-            Func<TDocument, string> partitionKeyAccessor, 
+
+        public async Task BulkDeletePublishedFundingDocuments<TDocument>(IEnumerable<TDocument> documents,
+            Func<TDocument, string> partitionKeyAccessor,
             bool hardDelete = false)
-        where TDocument : IIdentifiable
+            where TDocument : IIdentifiable
         {
             await _resilience.ExecuteAsync(() => _cosmos.BulkDeleteAsync(
-                documents.ToDictionary(partitionKeyAccessor), 
+                documents.ToDictionary(partitionKeyAccessor),
                 hardDelete: hardDelete));
         }
-        
-        public async Task BulkUpdatePublishedFundingDocuments<TDocument>(IEnumerable<TDocument> documents, 
+
+        public async Task BulkUpdatePublishedFundingDocuments<TDocument>(IEnumerable<TDocument> documents,
             Func<TDocument, string> partitionKeyAccessor)
             where TDocument : IIdentifiable
         {

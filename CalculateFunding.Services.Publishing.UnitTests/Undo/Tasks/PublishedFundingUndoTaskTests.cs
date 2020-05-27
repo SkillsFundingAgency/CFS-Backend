@@ -19,13 +19,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Tasks
         public void PublishedFundingUndoTaskBaseTestBaseSetUp()
         {
             _isHardDelete = NewRandomFlag();
-            
-            TaskContext = NewPublishedFundingUndoTaskContext(_ => 
+
+            TaskContext = NewPublishedFundingUndoTaskContext(_ =>
                 _.WithPublishedFundingDetails(NewCorrelationIdDetails())
                     .WithPublishedFundingVersionDetails(NewCorrelationIdDetails()));
 
             TaskDetails = TaskContext.PublishedFundingDetails;
-            
+
             Task = new PublishedFundingUndoTask(Cosmos.Object,
                 BlobStore.Object,
                 ProducerConsumerFactory,
@@ -33,12 +33,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Tasks
                 JobTracker.Object,
                 _isHardDelete);
         }
-        
+
         [TestMethod]
         public async Task ExitsEarlyIfErrorWhenPagingFeed()
         {
             await WhenTheTaskIsRun();
-            
+
             ThenNothingWasDeleted<PublishedFunding>();
             AndNothingWasUpdated<PublishedFunding>();
         }
@@ -47,13 +47,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Tasks
         public async Task ExitsEarlyIfFeedHasNoRecords()
         {
             GivenThePublishedFundingFeed(NewFeedIterator<PublishedFunding>());
-            
+
             await WhenTheTaskIsRun();
-            
+
             ThenNothingWasDeleted<PublishedFunding>();
             AndNothingWasUpdated<PublishedFunding>();
         }
-        
+
         [TestMethod]
         public async Task SetsCurrentToLatestPreviousVersionAndDeletesIfInitialVersion()
         {
@@ -62,35 +62,33 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Tasks
             PublishedFunding publishedFundingThree = NewPublishedFunding();
             PublishedFunding publishedFundingFour = NewPublishedFunding();
             PublishedFunding publishedFundingFive = NewPublishedFunding();
-            
+
             PublishedFundingVersion previousVersionTwo = NewPublishedFundingVersion();
             PublishedFundingVersion previousVersionThree = NewPublishedFundingVersion();
             PublishedFundingVersion previousVersionFive = NewPublishedFundingVersion();
 
             GivenThePublishedFundingFeed(NewFeedIterator(WithPages(Page(publishedFundingOne, publishedFundingTwo),
-                Page<PublishedFunding>(), 
                 Page(publishedFundingThree, publishedFundingFour),
-                Page(publishedFundingFive),
-                Page<PublishedFunding>())));
+                Page(publishedFundingFive))));
             AndThePreviousLatestVersion(publishedFundingTwo.Current, previousVersionTwo);
             AndThePreviousLatestVersion(publishedFundingThree.Current, previousVersionThree);
             AndThePreviousLatestVersion(publishedFundingFive.Current, previousVersionFive);
 
             await WhenTheTaskIsRun();
-            
-            ThenTheDocumentsWereDeleted(new [] { publishedFundingOne}, 
-                new [] { publishedFundingOne.ParitionKey }, 
+
+            ThenTheDocumentsWereDeleted(new[] {publishedFundingOne},
+                new[] {publishedFundingOne.ParitionKey},
                 _isHardDelete);
-            ThenTheDocumentsWereDeleted(new [] { publishedFundingFour}, 
-                new [] { publishedFundingFour.ParitionKey }, 
+            ThenTheDocumentsWereDeleted(new[] {publishedFundingFour},
+                new[] {publishedFundingFour.ParitionKey},
                 _isHardDelete);
-            AndTheDocumentsWereUpdated(new [] { publishedFundingTwo },
-                new [] {publishedFundingTwo.ParitionKey} );
-            AndTheDocumentsWereUpdated(new [] { publishedFundingThree },
-                new [] {publishedFundingThree.ParitionKey} );
-            AndTheDocumentsWereUpdated(new [] { publishedFundingFive },
-                new [] {publishedFundingFive.ParitionKey} );
-            AndThePublishedFundingHasCurrent((publishedFundingFive, previousVersionFive), 
+            AndTheDocumentsWereUpdated(new[] {publishedFundingTwo},
+                new[] {publishedFundingTwo.ParitionKey});
+            AndTheDocumentsWereUpdated(new[] {publishedFundingThree},
+                new[] {publishedFundingThree.ParitionKey});
+            AndTheDocumentsWereUpdated(new[] {publishedFundingFive},
+                new[] {publishedFundingFive.ParitionKey});
+            AndThePublishedFundingHasCurrent((publishedFundingFive, previousVersionFive),
                 (publishedFundingTwo, previousVersionTwo),
                 (publishedFundingThree, previousVersionThree));
         }
@@ -104,7 +102,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Tasks
                     .BeSameAs(expectedMatch.current);
             }
         }
-        
+
         protected void GivenThePublishedFundingFeed(ICosmosDbFeedIterator<PublishedFunding> feed)
         {
             Cosmos.Setup(_ => _.GetPublishedFunding(TaskDetails.FundingStreamId,
@@ -113,17 +111,17 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Tasks
                 .Returns(feed);
         }
 
-        protected void AndThePreviousLatestVersion(PublishedFundingVersion current, PublishedFundingVersion previous)
+        protected void AndThePreviousLatestVersion(PublishedFundingVersion current,
+            PublishedFundingVersion previous)
         {
             CorrelationIdDetails publishedFundingVersionDetails = TaskContext.PublishedFundingVersionDetails;
-            
-            Cosmos.Setup(_ =>
-                 _.GetLatestEarlierPublishedFundingVersion(publishedFundingVersionDetails.FundingStreamId,
-                        publishedFundingVersionDetails.FundingPeriodId,
-                        publishedFundingVersionDetails.TimeStamp,
-                        current.OrganisationGroupTypeIdentifier,
-                        current.OrganisationGroupIdentifierValue,
-                        current.GroupingReason))
+
+            Cosmos.Setup(_ => _.GetLatestEarlierPublishedFundingVersion(publishedFundingVersionDetails.FundingStreamId,
+                    publishedFundingVersionDetails.FundingPeriodId,
+                    publishedFundingVersionDetails.TimeStamp,
+                    current.OrganisationGroupTypeIdentifier,
+                    current.OrganisationGroupIdentifierValue,
+                    current.GroupingReason))
                 .ReturnsAsync(previous);
         }
 
@@ -133,7 +131,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Tasks
                 .WithCurrent(NewPublishedFundingVersion());
 
             setUp?.Invoke(fundingBuilder);
-            
+
             return fundingBuilder.Build();
         }
     }

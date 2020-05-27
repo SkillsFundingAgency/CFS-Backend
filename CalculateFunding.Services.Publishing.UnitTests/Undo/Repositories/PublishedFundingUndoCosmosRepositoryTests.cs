@@ -8,6 +8,7 @@ using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Undo;
 using CalculateFunding.Services.Publishing.Undo.Repositories;
+using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -307,6 +308,46 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Repositories
         }
         
         [TestMethod]
+        public async Task GetLatestEarlierPublishedProviderVersionByStatus()
+        {
+            string fundingStreamId = NewRandomString();
+            string fundingPeriodId = NewRandomString();
+            long timeStamp = NewRandomTimeStamp();
+            string providerId = NewRandomString();
+            PublishedProviderStatus status = new RandomEnum<PublishedProviderStatus>();
+
+            PublishedProviderVersion expectedLatestEarlierDocument = NewPublishedProviderVersion();
+            
+            GivenTheLatestEarlierDocument(@$"SELECT
+                              TOP 1 *
+                        FROM publishedProviderVersion p
+                        WHERE p.documentType = 'PublishedProviderVersion'
+                        AND p._ts < @sinceTimeStamp
+                        AND p.content.fundingStreamId = @fundingStreamId
+                        AND p.content.fundingPeriodId = @fundingPeriodId
+                        AND p.content.providerId = @providerId
+                        AND p.content.status = @status
+                        AND p.deleted = false
+                        ORDER BY p._ts DESC",
+                expectedLatestEarlierDocument,
+                ("@fundingPeriodId", fundingPeriodId),
+                ("@fundingStreamId", fundingStreamId),
+                ("@sinceTimeStamp", timeStamp),
+                ("@providerId", providerId),
+                ("@status", status));
+
+            PublishedProviderVersion actualLatestEarlierDocument = await _repository.GetLatestEarlierPublishedProviderVersion(fundingStreamId,
+                fundingPeriodId,
+                timeStamp,
+                providerId,
+                status);
+
+            actualLatestEarlierDocument
+                .Should()
+                .BeSameAs(expectedLatestEarlierDocument);
+        }
+        
+        [TestMethod]
         public async Task GetLatestEarlierPublishedProviderVersion()
         {
             string fundingStreamId = NewRandomString();
@@ -316,7 +357,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Repositories
 
             PublishedProviderVersion expectedLatestEarlierDocument = NewPublishedProviderVersion();
             
-            GivenTheLatestEarlierDocument(@"SELECT
+            GivenTheLatestEarlierDocument(@$"SELECT
                               TOP 1 *
                         FROM publishedProviderVersion p
                         WHERE p.documentType = 'PublishedProviderVersion'
@@ -324,6 +365,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Repositories
                         AND p.content.fundingStreamId = @fundingStreamId
                         AND p.content.fundingPeriodId = @fundingPeriodId
                         AND p.content.providerId = @providerId
+                        {string.Empty}
                         AND p.deleted = false
                         ORDER BY p._ts DESC",
                 expectedLatestEarlierDocument,

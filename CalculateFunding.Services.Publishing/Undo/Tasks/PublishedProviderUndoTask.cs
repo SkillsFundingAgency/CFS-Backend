@@ -71,7 +71,10 @@ namespace CalculateFunding.Services.Publishing.Undo.Tasks
             
             foreach (PublishedProvider publishedProvider in publishedProviders)
             {
-                PublishedProviderVersion previousVersion = await GetPreviousPublishedProviderVersion(publishedProvider.Current.ProviderId, taskContext);
+                string providerId = publishedProvider.Current.ProviderId;
+                
+                PublishedProviderVersion previousVersion = await GetPreviousPublishedProviderVersion(providerId, 
+                    taskContext);
 
                 if (previousVersion == null)
                 {
@@ -79,7 +82,12 @@ namespace CalculateFunding.Services.Publishing.Undo.Tasks
                 }
                 else
                 {
+                    PublishedProviderVersion previousReleasedVersion = await GetPreviousPublishedProviderVersion(providerId, 
+                        taskContext, 
+                        PublishedProviderStatus.Released);
+                    
                     publishedProvider.Current = previousVersion;
+                    publishedProvider.Released = previousReleasedVersion;
                     publishedProviderToUpdate.Add(publishedProvider);
                 }
             }
@@ -93,7 +101,9 @@ namespace CalculateFunding.Services.Publishing.Undo.Tasks
             await TaskHelper.WhenAllAndThrow(cosmosUpdates);
         }
 
-        protected async Task<PublishedProviderVersion> GetPreviousPublishedProviderVersion(string providerId, PublishedFundingUndoTaskContext taskContext)
+        protected async Task<PublishedProviderVersion> GetPreviousPublishedProviderVersion(string providerId, 
+            PublishedFundingUndoTaskContext taskContext,
+            PublishedProviderStatus? status = null)
         {
             CorrelationIdDetails details = taskContext.PublishedProviderVersionDetails;
             
@@ -102,7 +112,8 @@ namespace CalculateFunding.Services.Publishing.Undo.Tasks
             return await Cosmos.GetLatestEarlierPublishedProviderVersion(details.FundingStreamId,
                 details.FundingPeriodId,
                 details.TimeStamp,
-                providerId);
+                providerId,
+                status);
         }
     }
 }

@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Publishing;
+using CalculateFunding.Models.Versioning;
 using CalculateFunding.Services.Publishing.Undo;
 using ModelsGroupingReason = CalculateFunding.Models.Publishing.GroupingReason;
 
@@ -37,14 +38,16 @@ namespace CalculateFunding.Services.Publishing.Interfaces.Undo
 
         Task<PublishedFundingVersion> GetLatestEarlierPublishedFundingVersion(string fundingStreamId,
             string fundingPeriodId,
-            long sinceTimeStamp, 
-            string groupTypeIdentifier, 
-            string groupTypeIdentifierValue, 
+            long sinceTimeStamp,
+            string groupTypeIdentifier,
+            string groupTypeIdentifierValue,
             ModelsGroupingReason groupingReason);
 
         Task<PublishedProviderVersion> GetLatestEarlierPublishedProviderVersion(string fundingStreamId,
             string fundingPeriodId,
-            long sinceTimeStamp, string providerId);
+            long sinceTimeStamp,
+            string providerId,
+            PublishedProviderStatus? status = null);
 
         Task BulkDeletePublishedFundingDocuments<TDocument>(IEnumerable<TDocument> documents, 
             Func<TDocument, string> partitionKeyAccessor, 
