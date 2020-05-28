@@ -32,7 +32,7 @@ using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Policy.TemplateBuilder;
 using TemplateMetadataSchema10 = CalculateFunding.Common.TemplateMetadata.Schema10;
 using TemplateMetadataSchema11 = CalculateFunding.Common.TemplateMetadata.Schema11;
-
+using CalculateFunding.Services.Core.AspNet.Extensions;
 
 namespace CalculateFunding.Api.Policy
 {
@@ -52,30 +52,6 @@ namespace CalculateFunding.Api.Policy
                .AddNewtonsoftJson();
 
             RegisterComponents(services);
-
-            services.AddSwaggerGen(c =>
-            {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Policy Microservice API", Version = "v1" });
-                c.AddSecurityDefinition("API Key", new OpenApiSecurityScheme()
-                {
-                    Type = SecuritySchemeType.ApiKey,
-                    Name = "Ocp-Apim-Subscription-Key",
-                    In = ParameterLocation.Header,
-                });
-                c.AddSecurityRequirement(new OpenApiSecurityRequirement {
-                   {
-                     new OpenApiSecurityScheme
-                     {
-                       Reference = new OpenApiReference
-                       {
-                         Type = ReferenceType.SecurityScheme,
-                         Id = "API Key"
-                       }
-                      },
-                      new string[] { }
-                    }
-                });
-            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -93,13 +69,7 @@ namespace CalculateFunding.Api.Policy
 
             app.UseHttpsRedirection();
 
-            app.UseSwagger();
-
-            app.UseSwaggerUI(c =>
-            {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Policy Microservice API");
-                c.DocumentTitle = "Policy Microservice - Swagger";
-            });
+            app.ConfigureSwagger(title: "Policy Microservice API");
 
             app.MapWhen(
                     context => !context.Request.Path.Value.StartsWith("/swagger"),
@@ -249,6 +219,8 @@ namespace CalculateFunding.Api.Policy
 
             builder.AddHttpContextAccessor();           
             builder.AddHealthCheckMiddleware();
+
+            builder.ConfigureSwaggerServices(title: "Policy Microservice API");
         }
 
         public void RegisterTemplateBuilderComponents(IServiceCollection builder)

@@ -1,15 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Reflection;
-using Microsoft.AspNetCore.Builder;
+﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using Microsoft.OpenApi.Models;
-using Swashbuckle.AspNetCore.Filters;
+using CalculateFunding.Services.Core.AspNet.Extensions;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using Swashbuckle.AspNetCore.SwaggerUI;
+using System.Reflection;
+using System.IO;
+using System;
+using Microsoft.OpenApi.Models;
+using System.Collections.Generic;
 
 namespace CalculateFunding.Api.External.Swagger
 {
@@ -19,41 +19,25 @@ namespace CalculateFunding.Api.External.Swagger
         {
             services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
 
-            services.AddSwaggerGen(c =>
+            services.ConfigureSwaggerServices(setupSecurity:c =>
             {
-                c.AddSecurityDefinition("apiKey", new OpenApiSecurityScheme
+                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
-                    Type = SecuritySchemeType.ApiKey,
-                    Name = "x-api-key",
-                    In = ParameterLocation.Header
+                    Description = "JWT Authorization header using the Bearer scheme.",
+                    Type = SecuritySchemeType.Http, //We set the scheme type to http since we're using bearer authentication
+                    Scheme = "bearer" //The name of the HTTP Authorization scheme to be used in the Authorization header. In this case "bearer".
                 });
 
-                var req = new OpenApiSecurityRequirement
-                {
-                    { new OpenApiSecurityScheme() { Type = SecuritySchemeType.ApiKey }, new List<string>() }
-                };
-
-                c.AddSecurityRequirement(req);
-
-                c.OperationFilter<AddResponseHeadersFilter>();
-
-                var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-                var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-                c.IncludeXmlComments(xmlPath);
-            });
-        }
-
-        public static void ConfigureSwagger(IApplicationBuilder app, IApiVersionDescriptionProvider provider)
-        {
-            app.UseSwagger();
-            app.UseSwaggerUI(options =>
-            {
-                foreach (var description in provider.ApiVersionDescriptions)
-                {
-                    options.DocExpansion(DocExpansion.List);
-                    options.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.json", "Calculation Funding " + description.GroupName.ToUpperInvariant());
-                    options.RoutePrefix = "docs";
-                }
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement{
+                    {
+                        new OpenApiSecurityScheme{
+                            Reference = new OpenApiReference{
+                                Id = "Bearer", //The name of the previously defined security scheme.
+                                Type = ReferenceType.SecurityScheme
+                            }
+                        },new List<string>()
+                    }
+                });
             });
         }
     }

@@ -4,6 +4,7 @@ using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.WebApi.Extensions;
 using CalculateFunding.Common.WebApi.Middleware;
+using CalculateFunding.Services.Core.AspNet.Extensions;
 using CalculateFunding.Services.Core.AspNet.HealthChecks;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Graph;
@@ -54,13 +55,7 @@ namespace CalculateFunding.Api.Graph
 
             app.UseHttpsRedirection();
 
-            app.UseSwagger();
-
-            app.UseSwaggerUI(c =>
-            {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Graph Microservice API");
-                c.DocumentTitle = "Graph Microservice - Swagger";
-            });
+            app.ConfigureSwagger(title: "Graph Microservice API");
 
             app.MapWhen(
                     context => !context.Request.Path.Value.StartsWith("/swagger"),
@@ -120,29 +115,7 @@ namespace CalculateFunding.Api.Graph
             builder.AddApplicationInsightsServiceName(Configuration, "CalculateFunding.Api.Graph");
             builder.AddLogging("CalculateFunding.Api.Graph");
 
-            builder.AddSwaggerGen(c =>
-            {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Graph Microservice API", Version = "v1" });
-                c.AddSecurityDefinition("API Key", new OpenApiSecurityScheme()
-                {
-                    Type = SecuritySchemeType.ApiKey,
-                    Name = "Ocp-Apim-Subscription-Key",
-                    In = ParameterLocation.Header,
-                });
-                c.AddSecurityRequirement(new OpenApiSecurityRequirement {
-                   {
-                     new OpenApiSecurityScheme
-                     {
-                       Reference = new OpenApiReference
-                       {
-                         Type = ReferenceType.SecurityScheme,
-                         Id = "API Key"
-                       }
-                      },
-                      new string[] { }
-                    }
-                });
-            });
+            builder.ConfigureSwaggerServices(title: "Graph Microservice API");
         }
     }
 }

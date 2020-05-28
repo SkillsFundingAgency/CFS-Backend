@@ -7,6 +7,7 @@ using CalculateFunding.Common.WebApi.Middleware;
 using CalculateFunding.Models.Jobs;
 using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Services.Core.AspNet;
+using CalculateFunding.Services.Core.AspNet.Extensions;
 using CalculateFunding.Services.Core.AspNet.HealthChecks;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
@@ -46,30 +47,6 @@ namespace CalculateFunding.Api.Jobs
                     });
 
             RegisterComponents(services);
-
-            services.AddSwaggerGen(c =>
-            {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Jobs Microservice API", Version = "v1" });
-                c.AddSecurityDefinition("API Key", new OpenApiSecurityScheme()
-                {
-                    Type = SecuritySchemeType.ApiKey,
-                    Name = "Ocp-Apim-Subscription-Key",
-                    In = ParameterLocation.Header,
-                });
-                c.AddSecurityRequirement(new OpenApiSecurityRequirement {
-                   {
-                     new OpenApiSecurityScheme
-                     {
-                       Reference = new OpenApiReference
-                       {
-                         Type = ReferenceType.SecurityScheme,
-                         Id = "API Key"
-                       }
-                      },
-                      new string[] { }
-                    }
-                });
-            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -86,13 +63,7 @@ namespace CalculateFunding.Api.Jobs
 
             app.UseHttpsRedirection();
 
-            app.UseSwagger();
-
-            app.UseSwaggerUI(c =>
-            {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Jobs Microservice API");
-                c.DocumentTitle = "Jobs Microservice - Swagger";
-            });
+            app.ConfigureSwagger(title: "Jobs Microservice API");
 
             app.MapWhen(
                     context => !context.Request.Path.Value.StartsWith("/swagger"),
@@ -204,6 +175,7 @@ namespace CalculateFunding.Api.Jobs
 
             builder.AddHealthCheckMiddleware();
 
+            builder.ConfigureSwaggerServices(title: "Jobs Microservice API");
         }
     }
 }

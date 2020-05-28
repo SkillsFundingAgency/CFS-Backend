@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using CalculateFunding.Common.Config.ApiClient.Specifications;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
@@ -7,6 +8,7 @@ using CalculateFunding.Common.WebApi.Middleware;
 using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Models.Users;
 using CalculateFunding.Services.Core.AspNet;
+using CalculateFunding.Services.Core.AspNet.Extensions;
 using CalculateFunding.Services.Core.AspNet.HealthChecks;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
@@ -44,30 +46,6 @@ namespace CalculateFunding.Api.Users
                 .AddNewtonsoftJson();
 
             RegisterComponents(services);
-
-            services.AddSwaggerGen(c =>
-            {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Users Microservice API", Version = "v1" });
-                c.AddSecurityDefinition("API Key", new OpenApiSecurityScheme()
-                {
-                    Type = SecuritySchemeType.ApiKey,
-                    Name = "Ocp-Apim-Subscription-Key",
-                    In = ParameterLocation.Header,
-                });
-                c.AddSecurityRequirement(new OpenApiSecurityRequirement {
-                   {
-                     new OpenApiSecurityScheme
-                     {
-                       Reference = new OpenApiReference
-                       {
-                         Type = ReferenceType.SecurityScheme,
-                         Id = "API Key"
-                       }
-                      },
-                      new string[] { }
-                    }
-                });
-            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -84,13 +62,7 @@ namespace CalculateFunding.Api.Users
 
             app.UseHttpsRedirection();
 
-            app.UseSwagger();
-
-            app.UseSwaggerUI(c =>
-            {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Users Microservice API");
-                c.DocumentTitle = "Users Microservice - Swagger";
-            });
+            app.ConfigureSwagger(title: "Users Microservice API");
 
             app.MapWhen(
                     context => !context.Request.Path.Value.StartsWith("/swagger"),
@@ -186,7 +158,9 @@ namespace CalculateFunding.Api.Users
 
             builder.AddHealthCheckMiddleware();
            
-            Common.Config.ApiClient.Specifications.ServiceCollectionExtensions.AddSpecificationsInterServiceClient(builder, Configuration);
+            builder.AddSpecificationsInterServiceClient(Configuration);
+
+            builder.ConfigureSwaggerServices(title: "Users Microservice API");
         }
 
     }

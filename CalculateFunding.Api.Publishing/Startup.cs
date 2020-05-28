@@ -16,6 +16,7 @@ using CalculateFunding.Common.WebApi.Extensions;
 using CalculateFunding.Common.WebApi.Middleware;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Services.Core.AspNet.Extensions;
 using CalculateFunding.Services.Core.AspNet.HealthChecks;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
@@ -73,30 +74,6 @@ namespace CalculateFunding.Api.Publishing
             RegisterComponents(services);
 
             services.AddFeatureManagement();
-
-            services.AddSwaggerGen(c =>
-            {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Publishing Microservice API", Version = "v1" });
-                c.AddSecurityDefinition("API Key", new OpenApiSecurityScheme()
-                {
-                    Type = SecuritySchemeType.ApiKey,
-                    Name = "Ocp-Apim-Subscription-Key",
-                    In = ParameterLocation.Header,
-                });
-                c.AddSecurityRequirement(new OpenApiSecurityRequirement {
-                   {
-                     new OpenApiSecurityScheme
-                     {
-                       Reference = new OpenApiReference
-                       {
-                         Type = ReferenceType.SecurityScheme,
-                         Id = "API Key"
-                       }
-                      },
-                      new string[] { }
-                    }
-                });
-            });
         }
 
         public void Configure(IApplicationBuilder app,
@@ -117,13 +94,7 @@ namespace CalculateFunding.Api.Publishing
 
             app.UseHttpsRedirection();
 
-            app.UseSwagger();
-
-            app.UseSwaggerUI(c =>
-            {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Publishing Microservice API");
-                c.DocumentTitle = "Users Microservice - Swagger";
-            });
+            app.ConfigureSwagger(title: "Publishing Microservice API");
 
             app.MapWhen(
                     context => !context.Request.Path.Value.StartsWith("/swagger"),
@@ -371,6 +342,8 @@ namespace CalculateFunding.Api.Publishing
                 };
 
             });
+
+            builder.ConfigureSwaggerServices(title: "Publishing Microservice API");
         }
     }
 }

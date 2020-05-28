@@ -7,6 +7,7 @@ using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.WebApi.Extensions;
 using CalculateFunding.Common.WebApi.Middleware;
 using CalculateFunding.Models.CosmosDbScaling;
+using CalculateFunding.Services.Core.AspNet.Extensions;
 using CalculateFunding.Services.Core.AspNet.HealthChecks;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
@@ -44,29 +45,6 @@ namespace CalculateFunding.API.CosmosDbScaling
                .AddNewtonsoftJson();
 
             RegisterComponents(services);
-            services.AddSwaggerGen(c =>
-            {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "CosmosDbScaling Microservice API", Version = "v1" });
-                c.AddSecurityDefinition("API Key", new OpenApiSecurityScheme()
-                {
-                    Type = SecuritySchemeType.ApiKey,
-                    Name = "Ocp-Apim-Subscription-Key",
-                    In = ParameterLocation.Header,
-                });
-                c.AddSecurityRequirement(new OpenApiSecurityRequirement {
-                   {
-                     new OpenApiSecurityScheme
-                     {
-                       Reference = new OpenApiReference
-                       {
-                         Type = ReferenceType.SecurityScheme,
-                         Id = "API Key"
-                       }
-                      },
-                      new string[] { }
-                    }
-                });
-            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -83,13 +61,7 @@ namespace CalculateFunding.API.CosmosDbScaling
 
             app.UseHttpsRedirection();
 
-            app.UseSwagger();
-
-            app.UseSwaggerUI(c =>
-            {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "CosmosDbScaling Microservice API");
-                c.DocumentTitle = "CosmosDbScaling Microservice - Swagger";
-            });
+            app.ConfigureSwagger(title: "CosmosDbScaling Microservice API");
 
             app.MapWhen(
                     context => !context.Request.Path.Value.StartsWith("/swagger"),
@@ -178,6 +150,8 @@ namespace CalculateFunding.API.CosmosDbScaling
             builder.AddApiKeyMiddlewareSettings((IConfigurationRoot)Configuration);
             builder.AddHttpContextAccessor();           
             builder.AddHealthCheckMiddleware();
+
+            builder.ConfigureSwaggerServices(title: "CosmosDbScaling Microservice API", version: "v1");
         }
     }
 }

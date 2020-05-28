@@ -2,7 +2,6 @@
 using System.Linq;
 using AutoMapper;
 using CalculateFunding.Api.External.Middleware;
-using CalculateFunding.Api.External.Swagger;
 using CalculateFunding.Api.External.V3.Interfaces;
 using CalculateFunding.Api.External.V3.MappingProfiles;
 using CalculateFunding.Api.External.V3.Services;
@@ -15,6 +14,7 @@ using CalculateFunding.Common.WebApi.Extensions;
 using CalculateFunding.Common.WebApi.Middleware;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Services.Core.AspNet.Extensions;
 using CalculateFunding.Services.Core.AspNet.HealthChecks;
 using CalculateFunding.Services.Core.Caching.FileSystem;
 using CalculateFunding.Services.Core.Extensions;
@@ -36,6 +36,7 @@ using Newtonsoft.Json;
 using Polly.Bulkhead;
 using Serilog;
 using IConfiguration = Microsoft.Extensions.Configuration.IConfiguration;
+using SwaggerSetup = CalculateFunding.Api.External.Swagger.SwaggerSetup;
 
 namespace CalculateFunding.Api.External
 {
@@ -112,19 +113,22 @@ namespace CalculateFunding.Api.External
                 app.UseHsts();
             }
 
-            app.UseMiddleware<LoggedInUserMiddleware>();
-            app.UseRouting();
-            app.UseAuthentication();
-            app.UseAuthorization();
-            app.UseMiddleware<ContentTypeCheckMiddleware>();
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapControllers();
-            });
+            app.ConfigureSwagger(provider: provider);
 
-            SwaggerSetup.ConfigureSwagger(app, provider);
-
-            app.UseHealthCheckMiddleware();
+            app.MapWhen(
+                    context => !context.Request.Path.Value.StartsWith("/docs"),
+                    appBuilder => {
+                        appBuilder.UseHealthCheckMiddleware();
+                        appBuilder.UseMiddleware<LoggedInUserMiddleware>();
+                        appBuilder.UseRouting();
+                        appBuilder.UseAuthentication();
+                        appBuilder.UseAuthorization();
+                        appBuilder.UseMiddleware<ContentTypeCheckMiddleware>();
+                        appBuilder.UseEndpoints(endpoints =>
+                        {
+                            endpoints.MapControllers();
+                        });
+                    });
 
             applicationLifetime.ApplicationStarted.Register(() => OnStartUp(app));
         }

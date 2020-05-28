@@ -34,7 +34,7 @@ using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Services.DeadletterProcessor;
 using ServiceCollectionExtensions = CalculateFunding.Services.Core.Extensions.ServiceCollectionExtensions;
 using CalculateFunding.Common.Models;
-
+using CalculateFunding.Services.Core.AspNet.Extensions;
 
 namespace CalculateFunding.Api.Providers
 {
@@ -58,30 +58,6 @@ namespace CalculateFunding.Api.Providers
                 .AddNewtonsoftJson();
 
             RegisterComponents(services);
-
-            services.AddSwaggerGen(c =>
-            {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Provider Microservice API", Version = "v1" });
-                c.AddSecurityDefinition("API Key", new OpenApiSecurityScheme()
-                {
-                    Type = SecuritySchemeType.ApiKey,
-                    Name = "Ocp-Apim-Subscription-Key",
-                    In = ParameterLocation.Header,
-                });
-                c.AddSecurityRequirement(new OpenApiSecurityRequirement {
-                   {
-                     new OpenApiSecurityScheme
-                     {
-                       Reference = new OpenApiReference
-                       {
-                         Type = ReferenceType.SecurityScheme,
-                         Id = "API Key"
-                       }
-                      },
-                      new string[] { }
-                    }
-                });
-            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -99,13 +75,7 @@ namespace CalculateFunding.Api.Providers
 
             app.UseHttpsRedirection();
 
-            app.UseSwagger();
-
-            app.UseSwaggerUI(c =>
-            {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Provider Microservice API");
-                c.DocumentTitle = "Provider Microservice - Swagger";
-            });
+            app.ConfigureSwagger(title: "Provider Microservice API");
 
             app.MapWhen(
                     context => !context.Request.Path.Value.StartsWith("/swagger"),
@@ -241,6 +211,8 @@ namespace CalculateFunding.Api.Providers
             builder.AddHttpContextAccessor();           
 
             builder.AddSearch(Configuration);
+
+            builder.ConfigureSwaggerServices(title: "Provider Microservice API");
         }
 
         private static ProvidersResiliencePolicies CreateResiliencePolicies(AsyncBulkheadPolicy totalNetworkRequestsPolicy)
