@@ -12,6 +12,8 @@ namespace CalculateFunding.Models.Calcs
 
         public string ProviderCacheKey { get; set; }
 
+        public string SpecificationSummaryCachekey { get; set; }
+
         public string CalculationsAggregationsBatchCacheKey { get; set; }
        
         public int PartitionIndex { get; set; }

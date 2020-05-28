@@ -2038,6 +2038,7 @@ namespace CalculateFunding.Services.Datasets.Services
                             job.JobDefinitionId == definitionId &&
                             job.Properties["specification-id"] == SpecificationId &&
                             job.Properties["provider-cache-key"] == $"{CacheKeys.ScopedProviderSummariesPrefix}{SpecificationId}" &&
+                            job.Properties["specification-summary-cache-key"] == $"{CacheKeys.SpecificationSummaryById}{SpecificationId}" &&
                             job.Trigger.EntityId == expectedRelationshipId &&
                             job.Trigger.EntityType == nameof(DefinitionSpecificationRelationship) &&
                             job.Trigger.Message == $"Processed dataset relationship: '{expectedRelationshipId}' for specification: '{SpecificationId}'"

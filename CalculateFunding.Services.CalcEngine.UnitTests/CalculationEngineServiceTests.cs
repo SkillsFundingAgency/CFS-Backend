@@ -11,6 +11,7 @@ using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.ProviderLegacy;
+using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.CalcEngine;
 using CalculateFunding.Services.CalcEngine.Interfaces;
 using CalculateFunding.Services.CalcEngine.UnitTests;
@@ -56,6 +57,9 @@ namespace CalculateFunding.Services.Calculator
                 }
             };
 
+            _calculationEngineServiceTestsHelper.MockCacheProvider
+                .GetAsync<SpecificationSummary>(Arg.Any<string>())
+                .Returns(MockData.CreateSpecificationSummary());
             _calculationEngineServiceTestsHelper.MockSpecificationsApiClient
                 .GetSpecificationSummaryById(Arg.Any<string>())
                 .Returns(new ApiResponse<Common.ApiClient.Specifications.Models.SpecificationSummary>(HttpStatusCode.OK, _specificationSummary));
@@ -63,47 +67,6 @@ namespace CalculateFunding.Services.Calculator
 
         private string NewRandomString() => new RandomString();
         
-        [TestMethod]
-        public void GenerateAllocations_WhenBuildProjectIsNull_ShouldThrowException()
-        {
-            // Arrange
-            const string cacheKey = "Cache-key";
-            const string specificationId = "spec1";
-            const int partitionIndex = 0;
-            const int partitionSize = 100;
-            const string jobId = "job1";
-
-            JobViewModel jobViewModel = new JobViewModel { Id = jobId };
-
-            _calculationEngineServiceTestsHelper
-                .MockJobManagement
-                .RetrieveJobAndCheckCanBeProcessed(Arg.Is(jobId))
-                .Returns(jobViewModel);
-
-            CalculationEngineService service = _calculationEngineServiceTestsHelper.CreateCalculationEngineService();
-
-            Message message = new Message();
-            IDictionary<string, object> messageUserProperties = message.UserProperties;
-
-            messageUserProperties.Add("provider-summaries-partition-index", partitionIndex);
-            messageUserProperties.Add("provider-summaries-partition-size", partitionSize);
-            messageUserProperties.Add("provider-cache-key", cacheKey);
-            messageUserProperties.Add("specification-id", specificationId);
-            messageUserProperties.Add("jobId", jobId);
-
-            // Act
-            Action serviceAction = () => { service.GenerateAllocations(message).Wait(); };
-
-            // Assert
-            serviceAction
-                .Should()
-                .Throw<ArgumentNullException>()
-                .Which
-                .Message
-                .Should()
-                .Be("Value cannot be null. (Parameter 'buildProject')");
-        }
-
         [Ignore("This test has a provider result as null, but should be checking successful results.")]
         [TestMethod]
         public async Task GenerateAllocations_GivenAValidRequestWhereSaveProviderResultsNotIgnored_ShouldBatchCorrectlyAndSaveProviderResults()
@@ -145,7 +108,7 @@ namespace CalculateFunding.Services.Calculator
                 .Returns(mockAllocationModel);
             _calculationEngineServiceTestsHelper
                 .MockCalculationEngine
-                .CalculateProviderResults(mockAllocationModel, buildProject, calculationSummaryModelsReturn,
+                .CalculateProviderResults(mockAllocationModel, specificationId, calculationSummaryModelsReturn,
                     Arg.Is<ProviderSummary>(summary => providerSummaries.Contains(summary)),
                     Arg.Any<IEnumerable<ProviderSourceDataset>>())
                 .Returns((ProviderResult)null);
@@ -177,6 +140,7 @@ namespace CalculateFunding.Services.Calculator
         {
             //Arrange
             const string cacheKey = "Cache-key";
+            const string specificationSummaryCacheKey = "specification-summary-cache-key";
             const string specificationId = "spec1";
             const int partitionIndex = 0;
             const int partitionSize = 100;
@@ -219,7 +183,7 @@ namespace CalculateFunding.Services.Calculator
                 .Returns(mockAllocationModel);
             _calculationEngineServiceTestsHelper
                 .MockCalculationEngine
-                .CalculateProviderResults(mockAllocationModel, buildProject, calculationSummaryModelsReturn,
+                .CalculateProviderResults(mockAllocationModel, specificationId, calculationSummaryModelsReturn,
                     Arg.Is<ProviderSummary>(summary => providerSummaries.Contains(summary)),
                     Arg.Any<IEnumerable<ProviderSourceDataset>>(), Arg.Any<IEnumerable<CalculationAggregation>>())
                 .Returns(new ProviderResult()
@@ -237,6 +201,10 @@ namespace CalculateFunding.Services.Calculator
                 .MockJobManagement
                 .RetrieveJobAndCheckCanBeProcessed(Arg.Is(jobId))
                 .Returns(jobViewModel);
+            _calculationEngineServiceTestsHelper
+                .MockDatasetRepo
+                .GetProviderSourceDatasetsByProviderIdsAndRelationshipIds(Arg.Any<IEnumerable<string>>(), Arg.Any<IEnumerable<string>>())
+                .Returns(providerSummaries.ToDictionary(x => x.Id, x => Enumerable.Empty<ProviderSourceDataset>()));
 
             CalculationEngineService service = _calculationEngineServiceTestsHelper.CreateCalculationEngineService();
 
@@ -246,6 +214,7 @@ namespace CalculateFunding.Services.Calculator
             messageUserProperties.Add("provider-summaries-partition-index", partitionIndex);
             messageUserProperties.Add("provider-summaries-partition-size", partitionSize);
             messageUserProperties.Add("provider-cache-key", cacheKey);
+            messageUserProperties.Add("specification-summary-cache-key", specificationSummaryCacheKey);
             messageUserProperties.Add("specification-id", specificationId);
             messageUserProperties.Add("jobId", jobId);
 
@@ -256,7 +225,7 @@ namespace CalculateFunding.Services.Calculator
             _calculationEngineServiceTestsHelper
                 .MockCalculationEngine
                 .Received(providerSummaries.Count)
-                .CalculateProviderResults(mockAllocationModel, buildProject, calculationSummaryModelsReturn,
+                .CalculateProviderResults(mockAllocationModel, specificationId, calculationSummaryModelsReturn,
                     Arg.Any<ProviderSummary>(), Arg.Any<IEnumerable<ProviderSourceDataset>>(), Arg.Any<IEnumerable<CalculationAggregation>>());
 
             await
@@ -271,6 +240,7 @@ namespace CalculateFunding.Services.Calculator
         {
             //Arrange
             const string cacheKey = "Cache-key";
+            const string specificationSummaryCacheKey = "specification-summary-cache-key";
             const string specificationId = "spec1";
             const int partitionIndex = 0;
             const int partitionSize = 100;
@@ -332,7 +302,7 @@ namespace CalculateFunding.Services.Calculator
 
             _calculationEngineServiceTestsHelper
                 .MockCalculationEngine
-                .CalculateProviderResults(mockAllocationModel, buildProject, calculationSummaryModelsReturn,
+                .CalculateProviderResults(mockAllocationModel, specificationId, calculationSummaryModelsReturn,
                     Arg.Is<ProviderSummary>(summary => providerSummaries.Contains(summary)),
                     Arg.Any<IEnumerable<ProviderSourceDataset>>(), Arg.Any<IEnumerable<CalculationAggregation>>())
                 .Returns(new ProviderResult()
@@ -349,6 +319,11 @@ namespace CalculateFunding.Services.Calculator
                 .RetrieveJobAndCheckCanBeProcessed(Arg.Is(jobId))
                 .Returns(jobViewModel);
 
+            _calculationEngineServiceTestsHelper
+                .MockDatasetRepo
+                .GetProviderSourceDatasetsByProviderIdsAndRelationshipIds(Arg.Any<IEnumerable<string>>(), Arg.Any<IEnumerable<string>>())
+                .Returns(providerSummaries.ToDictionary(x => x.Id, x => Enumerable.Empty<ProviderSourceDataset>()));
+
             CalculationEngineService service = _calculationEngineServiceTestsHelper.CreateCalculationEngineService();
 
             Message message = new Message();
@@ -357,6 +332,7 @@ namespace CalculateFunding.Services.Calculator
             messageUserProperties.Add("provider-summaries-partition-index", partitionIndex);
             messageUserProperties.Add("provider-summaries-partition-size", partitionSize);
             messageUserProperties.Add("provider-cache-key", cacheKey);
+            messageUserProperties.Add("specification-summary-cache-key", specificationSummaryCacheKey);
             messageUserProperties.Add("specification-id", specificationId);
             messageUserProperties.Add("jobId", jobId);
 
@@ -367,7 +343,7 @@ namespace CalculateFunding.Services.Calculator
             _calculationEngineServiceTestsHelper
                 .MockCalculationEngine
                 .Received(providerSummaries.Count)
-                .CalculateProviderResults(mockAllocationModel, buildProject, calculationSummaryModelsReturn,
+                .CalculateProviderResults(mockAllocationModel, specificationId, calculationSummaryModelsReturn,
                     Arg.Any<ProviderSummary>(), Arg.Any<IEnumerable<ProviderSourceDataset>>(), Arg.Any<IEnumerable<CalculationAggregation>>());
 
             await
@@ -388,6 +364,7 @@ namespace CalculateFunding.Services.Calculator
         {
             //Arrange
             const string cacheKey = "Cache-key";
+            const string specificationSummaryCacheKey = "specification-summary-cache-key";
             const string specificationId = "spec1";
             const int partitionIndex = 0;
             const int partitionSize = 100;
@@ -430,7 +407,7 @@ namespace CalculateFunding.Services.Calculator
                 .Returns(mockAllocationModel);
             _calculationEngineServiceTestsHelper
                 .MockCalculationEngine
-                .CalculateProviderResults(mockAllocationModel, buildProject, calculationSummaryModelsReturn,
+                .CalculateProviderResults(mockAllocationModel, specificationId, calculationSummaryModelsReturn,
                     Arg.Is<ProviderSummary>(summary => providerSummaries.Contains(summary)),
                     Arg.Any<IEnumerable<ProviderSourceDataset>>(), Arg.Any<IEnumerable<CalculationAggregation>>())
                 .Returns(new ProviderResult());
@@ -446,6 +423,11 @@ namespace CalculateFunding.Services.Calculator
                 .RetrieveJobAndCheckCanBeProcessed(Arg.Is(jobId))
                 .Returns(jobViewModel);
 
+            _calculationEngineServiceTestsHelper
+                .MockDatasetRepo
+                .GetProviderSourceDatasetsByProviderIdsAndRelationshipIds(Arg.Any<IEnumerable<string>>(), Arg.Any<IEnumerable<string>>())
+                .Returns(providerSummaries.ToDictionary(x => x.Id, x => Enumerable.Empty<ProviderSourceDataset>()));
+
             CalculationEngineService service = _calculationEngineServiceTestsHelper.CreateCalculationEngineService();
 
             Message message = new Message();
@@ -454,6 +436,7 @@ namespace CalculateFunding.Services.Calculator
             messageUserProperties.Add("provider-summaries-partition-index", partitionIndex);
             messageUserProperties.Add("provider-summaries-partition-size", partitionSize);
             messageUserProperties.Add("provider-cache-key", cacheKey);
+            messageUserProperties.Add("specification-summary-cache-key", specificationSummaryCacheKey);
             messageUserProperties.Add("specification-id", specificationId);
             messageUserProperties.Add("ignore-save-provider-results", "true");
             messageUserProperties.Add("jobId", jobId);
@@ -464,7 +447,7 @@ namespace CalculateFunding.Services.Calculator
             _calculationEngineServiceTestsHelper
                 .MockCalculationEngine
                 .Received(providerSummaries.Count)
-                .CalculateProviderResults(mockAllocationModel, buildProject, calculationSummaryModelsReturn,
+                .CalculateProviderResults(mockAllocationModel, specificationId, calculationSummaryModelsReturn,
                     Arg.Any<ProviderSummary>(), Arg.Any<IEnumerable<ProviderSourceDataset>>(), Arg.Any<IEnumerable<CalculationAggregation>>());
 
             //Assert
@@ -480,6 +463,7 @@ namespace CalculateFunding.Services.Calculator
         {
             //Arrange
             const string cacheKey = "Cache-key";
+            const string specificationSummaryCacheKey = "specification-summary-cache-key";
             const string specificationId = "spec1";
             const int partitionIndex = 0;
             const int partitionSize = 100;
@@ -490,6 +474,7 @@ namespace CalculateFunding.Services.Calculator
             messageUserProperties.Add("provider-summaries-partition-index", partitionIndex);
             messageUserProperties.Add("provider-summaries-partition-size", partitionSize);
             messageUserProperties.Add("provider-cache-key", cacheKey);
+            messageUserProperties.Add("specification-summary-cache-key", specificationSummaryCacheKey);
             messageUserProperties.Add("specification-id", specificationId);
             messageUserProperties.Add("ignore-save-provider-results", "true");
 
@@ -520,6 +505,7 @@ namespace CalculateFunding.Services.Calculator
         {
             //Arrange
             const string cacheKey = "Cache-key";
+            const string specificationSummaryCacheKey = "specification-summary-cache-key";
             const string specificationId = "spec1";
             const int partitionIndex = 0;
             const int partitionSize = 100;
@@ -569,7 +555,7 @@ namespace CalculateFunding.Services.Calculator
                 .Returns(mockAllocationModel);
             _calculationEngineServiceTestsHelper
                 .MockCalculationEngine
-                .CalculateProviderResults(mockAllocationModel, buildProject, calculationSummaryModelsReturn,
+                .CalculateProviderResults(mockAllocationModel, specificationId, calculationSummaryModelsReturn,
                     Arg.Is<ProviderSummary>(summary => providerSummaries.Contains(summary)),
                     Arg.Any<IEnumerable<ProviderSourceDataset>>(), Arg.Any<IEnumerable<CalculationAggregation>>())
                 .Returns(new ProviderResult()
@@ -581,6 +567,11 @@ namespace CalculateFunding.Services.Calculator
                 .MockEngineSettings
                 .ProviderBatchSize = 3;
 
+            _calculationEngineServiceTestsHelper
+                .MockDatasetRepo
+                .GetProviderSourceDatasetsByProviderIdsAndRelationshipIds(Arg.Any<IEnumerable<string>>(), Arg.Any<IEnumerable<string>>())
+                .Returns(providerSummaries.ToDictionary(x => x.Id, x => Enumerable.Empty<ProviderSourceDataset>()));
+
             CalculationEngineService service = _calculationEngineServiceTestsHelper.CreateCalculationEngineService();
 
             Message message = new Message();
@@ -589,6 +580,7 @@ namespace CalculateFunding.Services.Calculator
             messageUserProperties.Add("provider-summaries-partition-index", partitionIndex);
             messageUserProperties.Add("provider-summaries-partition-size", partitionSize);
             messageUserProperties.Add("provider-cache-key", cacheKey);
+            messageUserProperties.Add("specification-summary-cache-key", specificationSummaryCacheKey);
             messageUserProperties.Add("specification-id", specificationId);
             messageUserProperties.Add("ignore-save-provider-results", "true");
             messageUserProperties.Add("jobId", jobId);
@@ -599,7 +591,7 @@ namespace CalculateFunding.Services.Calculator
             _calculationEngineServiceTestsHelper
                 .MockCalculationEngine
                 .Received(providerSummaries.Count)
-                .CalculateProviderResults(mockAllocationModel, buildProject, calculationSummaryModelsReturn,
+                .CalculateProviderResults(mockAllocationModel, specificationId, calculationSummaryModelsReturn,
                     Arg.Any<ProviderSummary>(), Arg.Any<IEnumerable<ProviderSourceDataset>>(), Arg.Any<IEnumerable<CalculationAggregation>>());
 
             //Assert
@@ -626,6 +618,7 @@ namespace CalculateFunding.Services.Calculator
         {
             //Arrange
             const string cacheKey = "Cache-key";
+            const string specificationSummaryCacheKey = "specification-summary-cache-key";
             const string specificationId = "spec1";
             const int partitionIndex = 0;
             const int partitionSize = 100;
@@ -675,7 +668,7 @@ namespace CalculateFunding.Services.Calculator
                 .Returns(mockAllocationModel);
             _calculationEngineServiceTestsHelper
                 .MockCalculationEngine
-                .CalculateProviderResults(mockAllocationModel, buildProject, calculationSummaryModelsReturn,
+                .CalculateProviderResults(mockAllocationModel, specificationId, calculationSummaryModelsReturn,
                     Arg.Is<ProviderSummary>(summary => providerSummaries.Contains(summary)),
                     Arg.Any<IEnumerable<ProviderSourceDataset>>(), Arg.Any<IEnumerable<CalculationAggregation>>())
                 .Returns(new ProviderResult()
@@ -693,6 +686,11 @@ namespace CalculateFunding.Services.Calculator
                 .MockEngineSettings
                 .ProviderBatchSize = 3;
 
+            _calculationEngineServiceTestsHelper
+                .MockDatasetRepo
+                .GetProviderSourceDatasetsByProviderIdsAndRelationshipIds(Arg.Any<IEnumerable<string>>(), Arg.Any<IEnumerable<string>>())
+                .Returns(providerSummaries.ToDictionary(x => x.Id, x => Enumerable.Empty<ProviderSourceDataset>()));
+
             CalculationEngineService service = _calculationEngineServiceTestsHelper.CreateCalculationEngineService();
 
             Message message = new Message();
@@ -701,6 +699,7 @@ namespace CalculateFunding.Services.Calculator
             messageUserProperties.Add("provider-summaries-partition-index", partitionIndex);
             messageUserProperties.Add("provider-summaries-partition-size", partitionSize);
             messageUserProperties.Add("provider-cache-key", cacheKey);
+            messageUserProperties.Add("specification-summary-cache-key", specificationSummaryCacheKey);
             messageUserProperties.Add("specification-id", specificationId);
             messageUserProperties.Add("ignore-save-provider-results", "true");
             messageUserProperties.Add("jobId", jobId);
@@ -724,6 +723,7 @@ namespace CalculateFunding.Services.Calculator
         {
             //Arrange
             const string cacheKey = "Cache-key";
+            const string specificationSummaryCacheKey = "specification-summary-cache-key";
             const string specificationId = "spec1";
             const int partitionIndex = 0;
             const int partitionSize = 100;
@@ -778,7 +778,7 @@ namespace CalculateFunding.Services.Calculator
                 .Returns(mockAllocationModel);
             _calculationEngineServiceTestsHelper
                 .MockCalculationEngine
-                .CalculateProviderResults(mockAllocationModel, buildProject, calculationSummaryModelsReturn,
+                .CalculateProviderResults(mockAllocationModel, specificationId, calculationSummaryModelsReturn,
                     Arg.Is<ProviderSummary>(summary => providerSummaries.Contains(summary)),
                     Arg.Any<IEnumerable<ProviderSourceDataset>>(), Arg.Any<IEnumerable<CalculationAggregation>>())
                 .Returns(new ProviderResult()
@@ -796,6 +796,11 @@ namespace CalculateFunding.Services.Calculator
                 .MockEngineSettings
                 .ProviderBatchSize = 3;
 
+            _calculationEngineServiceTestsHelper
+                .MockDatasetRepo
+                .GetProviderSourceDatasetsByProviderIdsAndRelationshipIds(Arg.Any<IEnumerable<string>>(), Arg.Any<IEnumerable<string>>())
+                .Returns(providerSummaries.ToDictionary(x => x.Id, x => Enumerable.Empty<ProviderSourceDataset>()));
+
             CalculationEngineService service = _calculationEngineServiceTestsHelper.CreateCalculationEngineService();
 
             Message message = new Message();
@@ -804,6 +809,7 @@ namespace CalculateFunding.Services.Calculator
             messageUserProperties.Add("provider-summaries-partition-index", partitionIndex);
             messageUserProperties.Add("provider-summaries-partition-size", partitionSize);
             messageUserProperties.Add("provider-cache-key", cacheKey);
+            messageUserProperties.Add("specification-summary-cache-key", specificationSummaryCacheKey);
             messageUserProperties.Add("specification-id", specificationId);
             messageUserProperties.Add("ignore-save-provider-results", "true");
             messageUserProperties.Add("jobId", jobId);
@@ -823,6 +829,7 @@ namespace CalculateFunding.Services.Calculator
         {
             //Arrange
             const string cacheKey = "Cache-key";
+            const string specificationSummaryCacheKey = "specification-summary-cache-key";
             const string specificationId = "spec1";
             const int partitionIndex = 0;
             const int partitionSize = 100;
@@ -843,6 +850,7 @@ namespace CalculateFunding.Services.Calculator
             messageUserProperties.Add("provider-summaries-partition-index", partitionIndex);
             messageUserProperties.Add("provider-summaries-partition-size", partitionSize);
             messageUserProperties.Add("provider-cache-key", cacheKey);
+            messageUserProperties.Add("specification-summary-cache-key", specificationSummaryCacheKey);
             messageUserProperties.Add("specification-id", specificationId);
             messageUserProperties.Add("ignore-save-provider-results", "true");
             messageUserProperties.Add("jobId", jobId);
@@ -864,6 +872,7 @@ namespace CalculateFunding.Services.Calculator
         {
             //Arrange
             const string cacheKey = "Cache-key";
+            const string specificationSummaryCacheKey = "specification-summary-cache-key";
             const string specificationId = "spec1";
             const int partitionIndex = 0;
             const int partitionSize = 100;
@@ -882,6 +891,7 @@ namespace CalculateFunding.Services.Calculator
             messageUserProperties.Add("provider-summaries-partition-index", partitionIndex);
             messageUserProperties.Add("provider-summaries-partition-size", partitionSize);
             messageUserProperties.Add("provider-cache-key", cacheKey);
+            messageUserProperties.Add("specification-summary-cache-key", specificationSummaryCacheKey);
             messageUserProperties.Add("specification-id", specificationId);
             messageUserProperties.Add("ignore-save-provider-results", "true");
             messageUserProperties.Add("jobId", jobId);
@@ -913,6 +923,7 @@ namespace CalculateFunding.Services.Calculator
         {
             //Arrange
             const string cacheKey = "Cache-key";
+            const string specificationSummaryCacheKey = "specification-summary-cache-key";
             const string specificationId = "spec1";
             const int partitionIndex = 0;
             const int partitionSize = 100;
@@ -975,7 +986,7 @@ namespace CalculateFunding.Services.Calculator
 
             _calculationEngineServiceTestsHelper
                 .MockCalculationEngine
-                .CalculateProviderResults(mockAllocationModel, buildProject, calculationSummaryModelsReturn,
+                .CalculateProviderResults(mockAllocationModel, specificationId, calculationSummaryModelsReturn,
                     Arg.Is<ProviderSummary>(summary => providerSummaries.Contains(summary)),
                     Arg.Any<IEnumerable<ProviderSourceDataset>>(), Arg.Any<IEnumerable<CalculationAggregation>>())
                     .Returns(new ProviderResult
@@ -992,6 +1003,11 @@ namespace CalculateFunding.Services.Calculator
                 .MockEngineSettings
                 .ProviderBatchSize = 3;
 
+            _calculationEngineServiceTestsHelper
+                .MockDatasetRepo
+                .GetProviderSourceDatasetsByProviderIdsAndRelationshipIds(Arg.Any<IEnumerable<string>>(), Arg.Any<IEnumerable<string>>())
+                .Returns(providerSummaries.ToDictionary(x => x.Id, x => Enumerable.Empty<ProviderSourceDataset>()));
+
             CalculationEngineService service = _calculationEngineServiceTestsHelper.CreateCalculationEngineService();
 
             Message message = new Message();
@@ -1000,6 +1016,7 @@ namespace CalculateFunding.Services.Calculator
             messageUserProperties.Add("provider-summaries-partition-index", partitionIndex);
             messageUserProperties.Add("provider-summaries-partition-size", partitionSize);
             messageUserProperties.Add("provider-cache-key", cacheKey);
+            messageUserProperties.Add("specification-summary-cache-key", specificationSummaryCacheKey);
             messageUserProperties.Add("specification-id", specificationId);
             messageUserProperties.Add("ignore-save-provider-results", "true");
             messageUserProperties.Add("jobId", jobId);
@@ -1013,7 +1030,7 @@ namespace CalculateFunding.Services.Calculator
             _calculationEngineServiceTestsHelper
                .MockCalculationEngine
                .Received(providerSummaries.Count)
-               .CalculateProviderResults(mockAllocationModel, buildProject, calculationSummaryModelsReturn,
+               .CalculateProviderResults(mockAllocationModel, specificationId, calculationSummaryModelsReturn,
                    Arg.Any<ProviderSummary>(), Arg.Any<IEnumerable<ProviderSourceDataset>>(), Arg.Any<IEnumerable<CalculationAggregation>>());
 
             await
@@ -1043,6 +1060,7 @@ namespace CalculateFunding.Services.Calculator
         {
             //Arrange
             const string cacheKey = "Cache-key";
+            const string specificationSummaryCacheKey = "specification-summary-cache-key";
             const string specificationId = "spec1";
             const int partitionIndex = 0;
             const int partitionSize = 100;
@@ -1105,7 +1123,7 @@ namespace CalculateFunding.Services.Calculator
 
             _calculationEngineServiceTestsHelper
                 .MockCalculationEngine
-                .CalculateProviderResults(mockAllocationModel, buildProject, calculationSummaryModelsReturn,
+                .CalculateProviderResults(mockAllocationModel, specificationId, calculationSummaryModelsReturn,
                     Arg.Is<ProviderSummary>(summary => providerSummaries.Contains(summary)),
                     Arg.Any<IEnumerable<ProviderSourceDataset>>(), Arg.Any<IEnumerable<CalculationAggregation>>())
                 .Returns(new ProviderResult()
@@ -1117,6 +1135,11 @@ namespace CalculateFunding.Services.Calculator
                 .MockEngineSettings
                 .ProviderBatchSize = 3;
 
+            _calculationEngineServiceTestsHelper
+                .MockDatasetRepo
+                .GetProviderSourceDatasetsByProviderIdsAndRelationshipIds(Arg.Any<IEnumerable<string>>(), Arg.Any<IEnumerable<string>>())
+                .Returns(providerSummaries.ToDictionary(x => x.Id, x => Enumerable.Empty<ProviderSourceDataset>()));
+
             CalculationEngineService service = _calculationEngineServiceTestsHelper.CreateCalculationEngineService();
 
             Message message = new Message();
@@ -1126,6 +1149,7 @@ namespace CalculateFunding.Services.Calculator
             messageUserProperties.Add("provider-summaries-partition-size", partitionSize);
             messageUserProperties.Add("provider-cache-key", cacheKey);
             messageUserProperties.Add("specification-id", specificationId);
+            messageUserProperties.Add("specification-summary-cache-key", specificationSummaryCacheKey);
             messageUserProperties.Add("ignore-save-provider-results", "true");
             messageUserProperties.Add("jobId", jobId);
             messageUserProperties.Add("batch-count", "1");
@@ -1138,7 +1162,7 @@ namespace CalculateFunding.Services.Calculator
             _calculationEngineServiceTestsHelper
                 .MockCalculationEngine
                 .Received(providerSummaries.Count)
-                .CalculateProviderResults(mockAllocationModel, buildProject, calculationSummaryModelsReturn,
+                .CalculateProviderResults(mockAllocationModel, specificationId, calculationSummaryModelsReturn,
                     Arg.Any<ProviderSummary>(), Arg.Any<IEnumerable<ProviderSourceDataset>>(), Arg.Is<IEnumerable<CalculationAggregation>>(m =>
                         m.Count() == 3 &&
                         m.ElementAt(0).Values.ElementAt(0).Value == 200 &&
@@ -1179,6 +1203,7 @@ namespace CalculateFunding.Services.Calculator
         {
             //Arrange
             const string cacheKey = "Cache-key";
+            const string specificationSummaryCacheKey = "specification-summary-cache-key";
             const string specificationId = "spec1";
             const int partitionIndex = 0;
             const int partitionSize = 100;
@@ -1234,7 +1259,7 @@ namespace CalculateFunding.Services.Calculator
 
             _calculationEngineServiceTestsHelper
                 .MockCalculationEngine
-                .CalculateProviderResults(mockAllocationModel, buildProject, calculationSummaryModelsReturn,
+                .CalculateProviderResults(mockAllocationModel, specificationId, calculationSummaryModelsReturn,
                     Arg.Is<ProviderSummary>(summary => providerSummaries.Contains(summary)),
                     Arg.Any<IEnumerable<ProviderSourceDataset>>(), Arg.Any<IEnumerable<CalculationAggregation>>())
                 .Returns(new ProviderResult()
@@ -1246,6 +1271,11 @@ namespace CalculateFunding.Services.Calculator
                 .MockEngineSettings
                 .ProviderBatchSize = 3;
 
+            _calculationEngineServiceTestsHelper
+                .MockDatasetRepo
+                .GetProviderSourceDatasetsByProviderIdsAndRelationshipIds(Arg.Any<IEnumerable<string>>(), Arg.Any<IEnumerable<string>>())
+                .Returns(providerSummaries.ToDictionary(x => x.Id, x => Enumerable.Empty<ProviderSourceDataset>()));
+
             CalculationEngineService service = _calculationEngineServiceTestsHelper.CreateCalculationEngineService();
 
             Message message = new Message();
@@ -1254,6 +1284,7 @@ namespace CalculateFunding.Services.Calculator
             messageUserProperties.Add("provider-summaries-partition-index", partitionIndex);
             messageUserProperties.Add("provider-summaries-partition-size", partitionSize);
             messageUserProperties.Add("provider-cache-key", cacheKey);
+            messageUserProperties.Add("specification-summary-cache-key", specificationSummaryCacheKey);
             messageUserProperties.Add("specification-id", specificationId);
             messageUserProperties.Add("ignore-save-provider-results", "true");
             messageUserProperties.Add("jobId", jobId);
@@ -1266,7 +1297,7 @@ namespace CalculateFunding.Services.Calculator
             _calculationEngineServiceTestsHelper
                 .MockCalculationEngine
                 .Received(providerSummaries.Count)
-                .CalculateProviderResults(mockAllocationModel, buildProject, calculationSummaryModelsReturn,
+                .CalculateProviderResults(mockAllocationModel, specificationId, calculationSummaryModelsReturn,
                     Arg.Any<ProviderSummary>(), Arg.Any<IEnumerable<ProviderSourceDataset>>(), Arg.Is<IEnumerable<CalculationAggregation>>(m =>
                         !m.Any()
                     ));
@@ -1295,6 +1326,7 @@ namespace CalculateFunding.Services.Calculator
         {
             //Arrange
             const string cacheKey = "Cache-key";
+            const string specificationSummaryCacheKey = "specification-summary-cache-key";
             const string specificationId = "spec1";
             const int partitionIndex = 0;
             const int partitionSize = 100;
@@ -1337,7 +1369,7 @@ namespace CalculateFunding.Services.Calculator
                 .Returns(mockAllocationModel);
             _calculationEngineServiceTestsHelper
                 .MockCalculationEngine
-                .CalculateProviderResults(mockAllocationModel, buildProject, calculationSummaryModelsReturn,
+                .CalculateProviderResults(mockAllocationModel, specificationId, calculationSummaryModelsReturn,
                     Arg.Is<ProviderSummary>(summary => providerSummaries.Contains(summary)),
                     Arg.Any<IEnumerable<ProviderSourceDataset>>(), Arg.Any<IEnumerable<CalculationAggregation>>())
                 .Returns(new ProviderResult()
@@ -1356,6 +1388,11 @@ namespace CalculateFunding.Services.Calculator
                 .RetrieveJobAndCheckCanBeProcessed(Arg.Is(jobId))
                 .Returns(jobViewModel);
 
+            _calculationEngineServiceTestsHelper
+                .MockDatasetRepo
+                .GetProviderSourceDatasetsByProviderIdsAndRelationshipIds(Arg.Any<IEnumerable<string>>(), Arg.Any<IEnumerable<string>>())
+                .Returns(providerSummaries.ToDictionary(x => x.Id, x => Enumerable.Empty<ProviderSourceDataset>()));
+
             CalculationEngineService service = _calculationEngineServiceTestsHelper.CreateCalculationEngineService();
 
             Message message = new Message();
@@ -1364,6 +1401,7 @@ namespace CalculateFunding.Services.Calculator
             messageUserProperties.Add("provider-summaries-partition-index", partitionIndex);
             messageUserProperties.Add("provider-summaries-partition-size", partitionSize);
             messageUserProperties.Add("provider-cache-key", cacheKey);
+            messageUserProperties.Add("specification-summary-cache-key", specificationSummaryCacheKey);
             messageUserProperties.Add("specification-id", specificationId);
             messageUserProperties.Add("jobId", jobId);
 

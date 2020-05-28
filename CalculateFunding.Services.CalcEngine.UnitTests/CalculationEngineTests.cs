@@ -46,7 +46,7 @@ namespace CalculateFunding.Services.Calculator
             // Act
             Action calculateProviderResultMethod = () =>
             {
-                calcEngine.CalculateProviderResults(mockAllocationModel, CreateBuildProject(), models, provider, sourceDataset);
+                calcEngine.CalculateProviderResults(mockAllocationModel, CreateBuildProject().SpecificationId, models, provider, sourceDataset);
             };
 
             // Assert
@@ -69,7 +69,7 @@ namespace CalculateFunding.Services.Calculator
             BuildProject buildProject = CreateBuildProject();
 
             // Act
-            ProviderResult result = calculationEngine.CalculateProviderResults(mockAllocationModel, buildProject, null,
+            ProviderResult result = calculationEngine.CalculateProviderResults(mockAllocationModel, buildProject.SpecificationId, null,
                 providerSummary, new List<ProviderSourceDataset>());
 
             // Assert
@@ -144,7 +144,7 @@ namespace CalculateFunding.Services.Calculator
             };
 
             // Act
-            var calculateProviderResults = calculationEngine.CalculateProviderResults(mockAllocationModel, buildProject, calculationSummaryModels,
+            var calculateProviderResults = calculationEngine.CalculateProviderResults(mockAllocationModel, buildProject.SpecificationId, calculationSummaryModels,
                 providerSummary, new List<ProviderSourceDataset>());
             ProviderResult result = calculateProviderResults;
 

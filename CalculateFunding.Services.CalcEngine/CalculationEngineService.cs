@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Specifications;
-using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.ServiceBus.Interfaces;
@@ -18,6 +17,7 @@ using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.ProviderLegacy;
+using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.CalcEngine.Interfaces;
 using CalculateFunding.Services.CodeGeneration.VisualBasic;
 using CalculateFunding.Services.Core;
@@ -179,9 +179,7 @@ namespace CalculateFunding.Services.CalcEngine
             string specificationId = messageProperties.SpecificationId;
 
             _logger.Information($"Generating allocations for specification id {specificationId}");
-
-            BuildProject buildProject = await GetBuildProject(specificationId);
-
+           
             byte[] assembly = await _calculationsRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetAssemblyBySpecificationId(specificationId));
 
             if (assembly == null)
@@ -189,9 +187,7 @@ namespace CalculateFunding.Services.CalcEngine
                 string error = $"Failed to get assembly for specification Id '{specificationId}'";
                 _logger.Error(error);
                 throw new RetriableException(error);
-            }
-
-            buildProject.Build.Assembly = assembly;
+            }          
 
             Dictionary<string, List<decimal>> cachedCalculationAggregationsBatch = CreateCalculationAggregateBatchDictionary(messageProperties);
 
@@ -216,11 +212,11 @@ namespace CalculateFunding.Services.CalcEngine
 
             Stopwatch calculationsLookupStopwatch = Stopwatch.StartNew();
             IEnumerable<CalculationSummaryModel> calculations = await _calculationsRepositoryPolicy.ExecuteAsync(() =>
-                _calculationsRepository.GetCalculationSummariesForSpecification(specificationId));
-            ApiResponse<SpecificationSummary> specificationSummary =
-                await _specificationsApiPolicy.ExecuteAsync(() => _specificationsApiClient.GetSpecificationSummaryById(specificationId));
+                _calculationsRepository.GetCalculationSummariesForSpecification(specificationId));           
 
-            IEnumerable<string> dataRelationshipIds = specificationSummary.Content.DataDefinitionRelationshipIds;
+            SpecificationSummary specificationSummary = await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.GetAsync<SpecificationSummary>(messageProperties.SpecificationSummaryCachekey));
+
+            IEnumerable<string> dataRelationshipIds = specificationSummary.DataDefinitionRelationshipIds;
             if (dataRelationshipIds == null)
             {
                 throw new InvalidOperationException("Data relationship ids returned null");
@@ -247,11 +243,12 @@ namespace CalculateFunding.Services.CalcEngine
 
                 Stopwatch calcTiming = Stopwatch.StartNew();
 
-                CalculationResultsModel calculationResults = await CalculateResults(summaries,
+                CalculationResultsModel calculationResults = await CalculateResults(specificationId, 
+                    summaries,
                     calculations,
                     aggregations,
                     dataRelationshipIds,
-                    buildProject,
+                    assembly,
                     messageProperties,
                     providerBatchSize,
                     i,
@@ -330,8 +327,7 @@ namespace CalculateFunding.Services.CalcEngine
                 _telemetry.TrackEvent("CalculationRunProvidersProcessed",
                     new Dictionary<string, string>()
                     {
-                    { "specificationId" , specificationId },
-                    { "buildProjectId" , buildProject.Id },
+                    { "specificationId" , specificationId },                  
                     },
                     metrics
                 );
@@ -347,11 +343,11 @@ namespace CalculateFunding.Services.CalcEngine
             }
         }
 
-        private async Task<CalculationResultsModel> CalculateResults(IEnumerable<ProviderSummary> summaries,
+        private async Task<CalculationResultsModel> CalculateResults(string specificationId, IEnumerable<ProviderSummary> summaries,
             IEnumerable<CalculationSummaryModel> calculations,
             IEnumerable<CalculationAggregation> aggregations,
             IEnumerable<string> dataRelationshipIds,
-            BuildProject buildProject,
+            byte[] assemblyForSpecification,
             GenerateAllocationMessageProperties messageProperties,
             int providerBatchSize,
             int index,
@@ -370,8 +366,8 @@ namespace CalculateFunding.Services.CalcEngine
 
             _logger.Information($"Fetching provider sources for specification id {messageProperties.SpecificationId}");
 
-            List<ProviderSourceDataset> providerSourceDatasets = new List<ProviderSourceDataset>(await _providerSourceDatasetsRepositoryPolicy.ExecuteAsync(
-                () => _providerSourceDatasetsRepository.GetProviderSourceDatasetsByProviderIdsAndRelationshipIds(providerIdList, dataRelationshipIds)));
+            IDictionary<string, IEnumerable<ProviderSourceDataset>> providerSourceDatasetsByProvider = await _providerSourceDatasetsRepositoryPolicy.ExecuteAsync(
+                () => _providerSourceDatasetsRepository.GetProviderSourceDatasetsByProviderIdsAndRelationshipIds(providerIdList, dataRelationshipIds));
 
             providerSourceDatasetsStopwatch.Stop();
 
@@ -381,7 +377,7 @@ namespace CalculateFunding.Services.CalcEngine
 
             _logger.Information($"Calculating results for specification id {messageProperties.SpecificationId}");
 
-            Assembly assembly = Assembly.Load(buildProject.Build.Assembly);
+            Assembly assembly = Assembly.Load(assemblyForSpecification);
 
             Parallel.ForEach(partitionedSummaries, new ParallelOptions { MaxDegreeOfParallelism = _engineSettings.CalculateProviderResultsDegreeOfParallelism }, provider =>
             {
@@ -392,14 +388,14 @@ namespace CalculateFunding.Services.CalcEngine
 
                 IAllocationModel allocationModel = _calculationEngine.GenerateAllocationModel(assembly);
 
-                IEnumerable<ProviderSourceDataset> providerDatasets = providerSourceDatasets.Where(m => m.ProviderId == provider.Id);
+                IEnumerable<ProviderSourceDataset> providerDatasets = Enumerable.Empty<ProviderSourceDataset>();
 
-                if (providerDatasets == null)
+                if (!providerSourceDatasetsByProvider.TryGetValue(provider.Id, out providerDatasets))
                 {
-                    throw new Exception($"Provider source dataset for {provider.Id} was null.");
+                    throw new Exception($"Provider source dataset not found for {provider.Id}.");
                 }
 
-                ProviderResult result = _calculationEngine.CalculateProviderResults(allocationModel, buildProject, calculations, provider, providerDatasets, aggregations);
+                ProviderResult result = _calculationEngine.CalculateProviderResults(allocationModel, specificationId, calculations, provider, providerDatasets, aggregations);
 
                 if (result == null)
                 {
@@ -457,6 +453,8 @@ namespace CalculateFunding.Services.CalcEngine
             properties.BatchCount = batchCount;
 
             properties.ProviderCacheKey = message.UserProperties["provider-cache-key"].ToString();
+
+            properties.SpecificationSummaryCachekey = message.UserProperties["specification-summary-cache-key"].ToString();
 
             properties.PartitionIndex = int.Parse(message.UserProperties["provider-summaries-partition-index"].ToString());
 

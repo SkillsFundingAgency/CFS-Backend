@@ -270,7 +270,7 @@ namespace CalculateFunding.Services.Datasets
                         bool generateCalculationAggregations = !allCalculations.IsNullOrEmpty() &&
                                                                SourceCodeHelpers.HasCalculationAggregateFunctionParameters(allCalculations.Select(m => m.SourceCode));
 
-                        await SendInstructAllocationsToJobService($"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}", specificationId, userId, userName, trigger, correlationId, generateCalculationAggregations);
+                        await SendInstructAllocationsToJobService($"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}", $"{CacheKeys.SpecificationSummaryById}{specificationId}", specificationId, userId, userName, trigger, correlationId, generateCalculationAggregations);
                     }
                     catch (NonRetriableException argEx)
                     {
@@ -832,7 +832,7 @@ namespace CalculateFunding.Services.Datasets
             return Convert.ToBase64String(plainTextBytes);
         }
 
-        private async Task SendInstructAllocationsToJobService(string providerCacheKey, string specificationId, string userId, string userName, Trigger trigger, string correlationId, bool generateCalculationAggregations)
+        private async Task SendInstructAllocationsToJobService(string providerCacheKey, string specificationSummaryCacheKey, string specificationId, string userId, string userName, Trigger trigger, string correlationId, bool generateCalculationAggregations)
         {
             JobCreateModel job = new JobCreateModel
             {
@@ -843,7 +843,8 @@ namespace CalculateFunding.Services.Datasets
                 Properties = new Dictionary<string, string>
                 {
                     { "specification-id", specificationId },
-                    { "provider-cache-key", providerCacheKey }
+                    { "provider-cache-key", providerCacheKey },
+                    { "specification-summary-cache-key", specificationSummaryCacheKey }
                 },
                 Trigger = trigger,
                 CorrelationId = correlationId

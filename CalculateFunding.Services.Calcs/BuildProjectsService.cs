@@ -10,6 +10,8 @@ using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Providers;
+using CalculateFunding.Common.ApiClient.Specifications;
+using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models.HealthCheck;
@@ -58,6 +60,8 @@ namespace CalculateFunding.Services.Calcs
         private readonly ICalculationEngineRunningChecker _calculationEngineRunningChecker;
         private readonly IGraphRepository _graphRepository;
         private readonly IMapper _mapper;
+        private readonly ISpecificationsApiClient _specificationsApiClient;
+        private readonly Polly.AsyncPolicy _specificationsApiClientPolicy;
 
         public BuildProjectsService(
             ILogger logger,
@@ -74,7 +78,8 @@ namespace CalculateFunding.Services.Calcs
             ICalculationEngineRunningChecker calculationEngineRunningChecker,
             IJobManagement jobManagement,
             IGraphRepository graphRepository,
-            IMapper mapper)
+            IMapper mapper,
+            ISpecificationsApiClient specificationsApiClient)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(telemetry, nameof(telemetry));
@@ -94,6 +99,8 @@ namespace CalculateFunding.Services.Calcs
             Guard.ArgumentNotNull(resiliencePolicies?.ProvidersApiClient, nameof(resiliencePolicies.ProvidersApiClient));
             Guard.ArgumentNotNull(resiliencePolicies?.BuildProjectRepositoryPolicy, nameof(resiliencePolicies.BuildProjectRepositoryPolicy));
             Guard.ArgumentNotNull(mapper, nameof(mapper));
+            Guard.ArgumentNotNull(specificationsApiClient, nameof(specificationsApiClient));
+            Guard.ArgumentNotNull(resiliencePolicies?.SpecificationsApiClient, nameof(resiliencePolicies.SpecificationsApiClient));
 
             _logger = logger;
             _telemetry = telemetry;
@@ -112,6 +119,8 @@ namespace CalculateFunding.Services.Calcs
             _buildProjectsRepositoryPolicy = resiliencePolicies.BuildProjectRepositoryPolicy;
             _calculationEngineRunningChecker = calculationEngineRunningChecker;
             _mapper = mapper;
+            _specificationsApiClient = specificationsApiClient;
+            _specificationsApiClientPolicy = resiliencePolicies.SpecificationsApiClient;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -165,11 +174,11 @@ namespace CalculateFunding.Services.Calcs
 
             IEnumerable<CalculationEntity> circularDependencies = await _graphRepository.GetCircularDependencies(specificationId);
 
-            if(!circularDependencies.IsNullOrEmpty())
+            if (!circularDependencies.IsNullOrEmpty())
             {
                 string errorMessage = $"circular dependencies exist for specification: '{specificationId}'";
-                
-                foreach(CalculationEntity calculationEntity in circularDependencies)
+
+                foreach (CalculationEntity calculationEntity in circularDependencies)
                 {
                     StringBuilder stringBuilder = new StringBuilder();
 
@@ -200,19 +209,44 @@ namespace CalculateFunding.Services.Calcs
                 properties.Add("ignore-save-provider-results", "true");
             }
 
-            string cacheKey = "";
+            string specificationSummaryCachekey = "";
 
-            if (message.UserProperties.ContainsKey("provider-cache-key"))
+            if (message.UserProperties.ContainsKey("specification-summary-cache-key"))
             {
-                cacheKey = message.UserProperties["provider-cache-key"].ToString();
+                specificationSummaryCachekey = message.UserProperties["specification-summary-cache-key"].ToString();
             }
             else
             {
-                cacheKey = $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}";
+                specificationSummaryCachekey = $"{CacheKeys.SpecificationSummaryById}{specificationId}";
             }
 
-            bool summariesExist = await _cacheProvider.KeyExists<ProviderSummary>(cacheKey);
-            long? totalCount = await _cacheProvider.ListLengthAsync<ProviderSummary>(cacheKey);
+            bool specificationSummaryExists = await _cacheProvider.KeyExists<Models.Specs.SpecificationSummary>(specificationSummaryCachekey);
+            if (!specificationSummaryExists)
+            {
+                ApiResponse<SpecificationSummary> specificationSummaryResponse = await _specificationsApiClientPolicy.ExecuteAsync(() => _specificationsApiClient.GetSpecificationSummaryById(specificationId));
+                if (!specificationSummaryResponse.StatusCode.IsSuccess())
+                {
+                    string errorMessage = $"Unable to get specification summary by id: '{specificationId}' with status code: {specificationSummaryResponse.StatusCode}";
+
+                    _logger.Error(errorMessage);
+
+                    throw new NonRetriableException(errorMessage);
+                }
+            }
+
+            string providerCacheKey = "";
+
+            if (message.UserProperties.ContainsKey("provider-cache-key"))
+            {
+                providerCacheKey = message.UserProperties["provider-cache-key"].ToString();
+            }
+            else
+            {
+                providerCacheKey = $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}";
+            }
+
+            bool summariesExist = await _cacheProvider.KeyExists<ProviderSummary>(providerCacheKey);
+            long? totalCount = await _cacheProvider.ListLengthAsync<ProviderSummary>(providerCacheKey);
 
             bool refreshCachedScopedProviders = false;
 
@@ -226,7 +260,7 @@ namespace CalculateFunding.Services.Calcs
                 }
                 else
                 {
-                    IEnumerable<ProviderSummary> cachedScopedSummaries = await _cacheProvider.ListRangeAsync<ProviderSummary>(cacheKey, 0, (int)totalCount);
+                    IEnumerable<ProviderSummary> cachedScopedSummaries = await _cacheProvider.ListRangeAsync<ProviderSummary>(providerCacheKey, 0, (int)totalCount);
 
                     IEnumerable<string> differences = scopedProviderIds.Content.Except(cachedScopedSummaries.Select(m => m.Id));
 
@@ -270,7 +304,7 @@ namespace CalculateFunding.Services.Calcs
                     throw new NonRetriableException(errorMessage);
                 }
 
-                totalCount = await _cacheProvider.ListLengthAsync<ProviderSummary>(cacheKey);
+                totalCount = await _cacheProvider.ListLengthAsync<ProviderSummary>(providerCacheKey);
             }
 
             const string providerSummariesPartitionIndex = "provider-summaries-partition-index";
@@ -279,9 +313,11 @@ namespace CalculateFunding.Services.Calcs
 
             properties.Add(providerSummariesPartitionSize, _engineSettings.MaxPartitionSize.ToString());
 
-            properties.Add("provider-cache-key", cacheKey);
+            properties.Add("provider-cache-key", providerCacheKey);
 
             properties.Add("specification-id", specificationId);
+
+            properties.Add("specification-summary-cache-key", specificationSummaryCachekey);
 
             IList<IDictionary<string, string>> allJobProperties = new List<IDictionary<string, string>>();
 
@@ -649,7 +685,7 @@ namespace CalculateFunding.Services.Calcs
 
             ApiResponse<IEnumerable<Common.ApiClient.DataSets.Models.DatasetSpecificationRelationshipViewModel>> datasetsApiClientResponse = await _datasetsApiClientPolicy.ExecuteAsync(() => _datasetsApiClient.GetCurrentRelationshipsBySpecificationId(specificationId));
 
-            if(!datasetsApiClientResponse.StatusCode.IsSuccess())
+            if (!datasetsApiClientResponse.StatusCode.IsSuccess())
             {
                 string message = $"No current dataset relationships found for specificationId '{specificationId}'.";
                 _logger.Error(message);

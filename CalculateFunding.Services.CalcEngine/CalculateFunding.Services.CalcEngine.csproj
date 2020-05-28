@@ -15,6 +15,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CalculateFunding.Models.Calcs\CalculateFunding.Models.Calcs.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Models.Specs\CalculateFunding.Models.Specs.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.CodeGeneration.VisualBasic\CalculateFunding.Services.CodeGeneration.VisualBasic.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.CodeMetadataGenerator\CalculateFunding.Services.CodeMetadataGenerator.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Core\CalculateFunding.Services.Core.csproj" />

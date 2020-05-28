@@ -13,7 +13,7 @@ namespace CalculateFunding.Services.CalcEngine.Interfaces
     {
         IAllocationModel GenerateAllocationModel(Assembly assembly);
 
-        ProviderResult CalculateProviderResults(IAllocationModel model, BuildProject buildProject, IEnumerable<CalculationSummaryModel> calculations, 
+        ProviderResult CalculateProviderResults(IAllocationModel model, string specificationId, IEnumerable<CalculationSummaryModel> calculations, 
             ProviderSummary provider, IEnumerable<ProviderSourceDataset> providerSourceDatasets, IEnumerable<CalculationAggregation> aggregations = null);
     }
 }

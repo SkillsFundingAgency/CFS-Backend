@@ -33,7 +33,7 @@ namespace CalculateFunding.Services.CalcEngine
             return _allocationFactory.CreateAllocationModel(assembly);
         }
 
-        public ProviderResult CalculateProviderResults(IAllocationModel model, BuildProject buildProject, IEnumerable<CalculationSummaryModel> calculations,
+        public ProviderResult CalculateProviderResults(IAllocationModel model, string specificationId, IEnumerable<CalculationSummaryModel> calculations,
             ProviderSummary provider, IEnumerable<ProviderSourceDataset> providerSourceDatasets, IEnumerable<CalculationAggregation> aggregations = null)
         {
             var stopwatch = new Stopwatch();
@@ -50,13 +50,13 @@ namespace CalculateFunding.Services.CalcEngine
             }
             else
             {
-                _logger.Information("There are no calculations to executed for specification ID {specificationId}", buildProject.SpecificationId);
+                _logger.Information("There are no calculations to executed for specification ID {specificationId}", specificationId);
             }
 
             ProviderResult providerResult = new ProviderResult
             {
                 Provider = provider,
-                SpecificationId = buildProject.SpecificationId
+                SpecificationId = specificationId
             };
 
             byte[] plainTextBytes = System.Text.Encoding.UTF8.GetBytes($"{providerResult.Provider.Id}-{providerResult.SpecificationId}");

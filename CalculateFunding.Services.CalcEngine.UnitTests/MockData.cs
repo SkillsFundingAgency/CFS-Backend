@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.ProviderLegacy;
+using CalculateFunding.Models.Specs;
+using CalculateFunding.Tests.Common.Helpers;
 
 namespace CalculateFunding.Services.CalcEngine.UnitTests
 {
@@ -906,7 +908,7 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
             sb.AppendLine(@"		],");
             sb.AppendLine(@"		""datasetRelationships"": null,");
             sb.AppendLine(@"		""build"": {");
-            sb.AppendLine(@"			""success"": true,");    			
+            sb.AppendLine(@"			""success"": true,");
             sb.AppendLine(@"			""compilerMessages"": [],");
             sb.AppendLine(@"			""sourceFiles"": [");
             sb.AppendLine(@"				{");
@@ -2209,6 +2211,20 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
             }
 
             return summaries.Take(count).ToList();
+        }
+
+        public static SpecificationSummary CreateSpecificationSummary(string specificationId = null)
+        {
+            return new SpecificationSummary()
+            {
+                Id = specificationId ?? new RandomString(),
+                DataDefinitionRelationshipIds = new List<string>()
+                {
+                    new RandomString(),
+                    new RandomString(),
+                    new RandomString()
+                }
+            };
         }
     }
 }
