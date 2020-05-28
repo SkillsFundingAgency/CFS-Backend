@@ -57,7 +57,11 @@ namespace CalculateFunding.Services.Core.AspNet.Extensions
 
                 var xmlFile = $"{Assembly.GetEntryAssembly().GetName().Name}.xml";
                 var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-                c.IncludeXmlComments(xmlPath);
+
+                if (File.Exists(xmlPath))
+                {
+                    c.IncludeXmlComments(xmlPath);
+                }
             });
 
             services.AddSwaggerGenNewtonsoftSupport();
