@@ -45,6 +45,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Repositori
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalculateFunding.Models.Versioning", "CalculateFunding.Models.Versioning\CalculateFunding.Models.Versioning.csproj", "{EE04CCFF-100B-4B04-88E7-DC8A7E010F00}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalculateFunding.Services.DeadletterProcessor", "CalculateFunding.Services.DeadletterProcessor\CalculateFunding.Services.DeadletterProcessor.csproj", "{ADB2980C-2544-401A-B0A8-25A578155AD7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -99,6 +101,10 @@ Global
 		{EE04CCFF-100B-4B04-88E7-DC8A7E010F00}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EE04CCFF-100B-4B04-88E7-DC8A7E010F00}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EE04CCFF-100B-4B04-88E7-DC8A7E010F00}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ADB2980C-2544-401A-B0A8-25A578155AD7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ADB2980C-2544-401A-B0A8-25A578155AD7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ADB2980C-2544-401A-B0A8-25A578155AD7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ADB2980C-2544-401A-B0A8-25A578155AD7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -119,6 +125,7 @@ Global
 		{430EE9ED-639F-4171-B4F0-0C3E29DC9DED} = {5D1F85D8-AC66-4439-B9A6-25E85B7B1965}
 		{B2D754B4-8955-45C9-920A-AAAE0F6EB338} = {A23ABA3D-913A-4298-B017-CDBCB405D37C}
 		{EE04CCFF-100B-4B04-88E7-DC8A7E010F00} = {C83A174D-0E21-4C2E-8AF6-49653B5E006F}
+		{ADB2980C-2544-401A-B0A8-25A578155AD7} = {BA6EE232-89F1-4750-80FA-3403EA194404}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {4022B40E-A4CC-42F4-8CD1-1A493F405714}
