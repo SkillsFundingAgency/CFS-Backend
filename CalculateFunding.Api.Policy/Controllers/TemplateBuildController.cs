@@ -35,7 +35,7 @@ namespace CalculateFunding.Api.Policy.Controllers
         }
 
         [HttpGet("api/templates/build/{templateId}")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(TemplateResponse))]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetTemplate([FromRoute] string templateId)
         {
@@ -53,7 +53,7 @@ namespace CalculateFunding.Api.Policy.Controllers
         }
 
         [HttpGet("api/templates/build/{templateId}/versions/{version}")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(TemplateResponse))]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetTemplateVersion([FromRoute] string templateId, [FromRoute] string version)
         {
@@ -194,7 +194,7 @@ namespace CalculateFunding.Api.Policy.Controllers
         }
 
         [HttpGet("api/templates/build/{templateId}/versions")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<TemplateResponse>))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetTemplateVersions([FromRoute] string templateId, [FromQuery] string statuses)
@@ -210,7 +210,7 @@ namespace CalculateFunding.Api.Policy.Controllers
         }
 
         [HttpPost("api/templates/build/versions/search")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<TemplateResponse>))]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetTemplateVersions(FindTemplateVersionQuery query)
         {
@@ -232,7 +232,7 @@ namespace CalculateFunding.Api.Policy.Controllers
         }
 
         [HttpPost("api/templates/build/{templateId}/approve")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(CommandResult))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> ApproveTemplate([FromRoute] string templateId, [FromQuery] string comment = null, [FromQuery] string version = null)
