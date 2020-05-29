@@ -120,6 +120,9 @@ namespace CalculateFunding.Functions.Datasets
                 .AddSingleton<IValidator<ExcelPackage>, DatasetWorksheetValidator>();
 
             builder
+                .AddSingleton<IValidator<DatasetDefinition>, DatasetDefinitionValidator>();
+
+            builder
                 .AddSingleton<IDefinitionChangesDetectionService, DefinitionChangesDetectionService>();
 
             builder

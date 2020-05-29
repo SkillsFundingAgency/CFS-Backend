@@ -20,6 +20,11 @@ using Microsoft.Azure.Storage.Blob;
 using NSubstitute;
 using Serilog;
 using CalculateFunding.Common.ServiceBus.Interfaces;
+using FluentValidation;
+using FluentValidation.Results;
+using PoliciesApiModels = CalculateFunding.Common.ApiClient.Policies.Models;
+using CalculateFunding.Tests.Common.Builders;
+using CalculateFunding.Tests.Common.Helpers;
 
 namespace CalculateFunding.Services.Datasets.Services
 {
@@ -27,6 +32,9 @@ namespace CalculateFunding.Services.Datasets.Services
     public class DefinitionsServiceTests
     {
         private const string yamlFile = "12345.yaml";
+        private const string FundingStreamId = "DSG";
+        private const string FundingStreamName = "Dedicated Schools Grant";
+
 
         [TestMethod]
         async public Task SaveDefinition_GivenNoYamlWasProvidedWithNoFileName_ReturnsBadRequest()
@@ -91,6 +99,37 @@ namespace CalculateFunding.Services.Datasets.Services
             logger
                 .Received(1)
                 .Error(Arg.Any<Exception>(), Arg.Is($"Invalid yaml was provided for file: {yamlFile}"));
+        }
+
+        [TestMethod]
+        async public Task SaveDefinition_GivenInvalidFundingStreamIdWasProvidedButIsInvalid_ReturnsBadRequest()
+        {
+            //Arrange
+            string yaml = CreateRawDefinition();
+            ILogger logger = CreateLogger();
+            string errorMessage = NewRandomString();
+
+            IValidator<DatasetDefinition> datasetDefinitionValidator = CreateDatasetDefinitionValidator(
+                NewValidationResult(_ =>
+                    _.WithValidationFailures(
+                        NewValidationFailure(vf => vf.WithErrorMessage(errorMessage)))));
+
+            DefinitionsService service = CreateDefinitionsService(
+                logger,
+                datasetDefinitionValidator: datasetDefinitionValidator);
+
+
+            //Act
+            IActionResult result = await service.SaveDefinition(yaml, yamlFile, null, null);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<BadRequestObjectResult>();
+
+            logger
+                .Received(1)
+                .Error($"Invalid metadata on definition. {errorMessage}");
         }
 
         [TestMethod]
@@ -312,7 +351,18 @@ namespace CalculateFunding.Services.Datasets.Services
                 .DetectChanges(Arg.Any<DatasetDefinition>(), Arg.Any<DatasetDefinition>())
                 .Returns(datasetDefinitionChanges);
 
-            DefinitionsService service = CreateDefinitionsService(logger, datasetsRepository, searchRepository, excelWriter: excelWriter, definitionChangesDetectionService: definitionChangesDetectionService);
+            IPolicyRepository policyRepository = CreatePolicyRepository();
+            policyRepository
+                .GetFundingStreams()
+                .Returns(NewFundingStreams());
+
+            DefinitionsService service = CreateDefinitionsService(
+                logger, 
+                datasetsRepository, 
+                searchRepository, 
+                excelWriter: excelWriter, 
+                definitionChangesDetectionService: definitionChangesDetectionService,
+                policyRepository: policyRepository);
 
             //Act
             IActionResult result = await service.SaveDefinition(yaml, yamlFile, null, null);
@@ -376,8 +426,19 @@ namespace CalculateFunding.Services.Datasets.Services
                 .DetectChanges(Arg.Any<DatasetDefinition>(), Arg.Any<DatasetDefinition>())
                 .Returns(datasetDefinitionChanges);
 
-            DefinitionsService service = CreateDefinitionsService(logger, datasetsRepository, searchRepository, 
-                excelWriter: excelWriter, blobClient: blobClient, definitionChangesDetectionService: definitionChangesDetectionService);
+            IPolicyRepository policyRepository = CreatePolicyRepository();
+            policyRepository
+                .GetFundingStreams()
+                .Returns(NewFundingStreams());
+
+            DefinitionsService service = CreateDefinitionsService(
+                logger, 
+                datasetsRepository, 
+                searchRepository, 
+                excelWriter: excelWriter, 
+                blobClient: blobClient, 
+                definitionChangesDetectionService: definitionChangesDetectionService,
+                policyRepository: policyRepository);
 
             //Act
             IActionResult result = await service.SaveDefinition(yaml, yamlFile, null, null);
@@ -434,8 +495,19 @@ namespace CalculateFunding.Services.Datasets.Services
                 .DetectChanges(Arg.Any<DatasetDefinition>(), Arg.Any<DatasetDefinition>())
                 .Returns(datasetDefinitionChanges);
 
-            DefinitionsService service = CreateDefinitionsService(logger, datasetsRepository, searchRepository, 
-                excelWriter: excelWriter, blobClient: blobClient, definitionChangesDetectionService: definitionChangesDetectionService);
+            IPolicyRepository policyRepository = CreatePolicyRepository();
+            policyRepository
+                .GetFundingStreams()
+                .Returns(NewFundingStreams());
+
+            DefinitionsService service = CreateDefinitionsService(
+                logger, 
+                datasetsRepository, 
+                searchRepository, 
+                excelWriter: excelWriter, 
+                blobClient: blobClient, 
+                definitionChangesDetectionService: definitionChangesDetectionService,
+                policyRepository: policyRepository);
 
             //Act
             IActionResult result = await service.SaveDefinition(yaml, yamlFile, null, null);
@@ -524,8 +596,19 @@ namespace CalculateFunding.Services.Datasets.Services
                 .DetectChanges(Arg.Any<DatasetDefinition>(), Arg.Any<DatasetDefinition>())
                 .Returns(datasetDefinitionChanges);
 
-            DefinitionsService service = CreateDefinitionsService(logger, datasetsRepository, searchRepository, 
-                excelWriter: excelWriter, blobClient: blobClient, definitionChangesDetectionService: definitionChangesDetectionService);
+            IPolicyRepository policyRepository = CreatePolicyRepository();
+            policyRepository
+                .GetFundingStreams()
+                .Returns(NewFundingStreams());
+
+            DefinitionsService service = CreateDefinitionsService(
+                logger, 
+                datasetsRepository, 
+                searchRepository, 
+                excelWriter: excelWriter, 
+                blobClient: blobClient, 
+                definitionChangesDetectionService: definitionChangesDetectionService,
+                policyRepository: policyRepository);
 
             //Act
             IActionResult result = await service.SaveDefinition(yaml, yamlFile, null, null);
@@ -544,7 +627,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Index(Arg.Is<IEnumerable<DatasetDefinitionIndex>>(
                     i => i.First().Description == "14/15 description" &&
                     i.First().Id == "9183" &&
-                    i.First().ModelHash == "DFBD0E1ACD29CEBCF5AD45674688D3780D916294C4DF878074AFD01B67BF129C" &&
+                    i.First().ModelHash == "DC25A96B6757D7B54CC571BC48471CE6385480610CDEBF3593B730A7895B0FE3" &&
                     i.First().Name == "14/15" &&
                     i.First().ProviderIdentifier == "None"
                    ));
@@ -583,9 +666,10 @@ namespace CalculateFunding.Services.Datasets.Services
                 Description = "14/15 description",
                 Id = "9183",
                 LastUpdatedDate = new DateTimeOffset(2018, 6, 19, 14, 10, 2, TimeSpan.Zero),
-                ModelHash = "DFBD0E1ACD29CEBCF5AD45674688D3780D916294C4DF878074AFD01B67BF129C",
+                ModelHash = "DC25A96B6757D7B54CC571BC48471CE6385480610CDEBF3593B730A7895B0FE3",
                 Name = "14/15",
                 ProviderIdentifier = "None",
+                FundingStreamId = FundingStreamId
             };
 
             ISearchRepository<DatasetDefinitionIndex> searchRepository = CreateDatasetDefinitionSearchRepository();
@@ -614,7 +698,19 @@ namespace CalculateFunding.Services.Datasets.Services
                 .DetectChanges(Arg.Any<DatasetDefinition>(), Arg.Any<DatasetDefinition>())
                 .Returns(datasetDefinitionChanges);
 
-            DefinitionsService service = CreateDefinitionsService(logger, datasetsRepository, searchRepository, excelWriter: excelWriter, blobClient: blobClient, definitionChangesDetectionService: definitionChangesDetectionService);
+            IPolicyRepository policyRepository = CreatePolicyRepository();
+            policyRepository
+                .GetFundingStreams()
+                .Returns(NewFundingStreams());
+
+            DefinitionsService service = CreateDefinitionsService(
+                logger, 
+                datasetsRepository, 
+                searchRepository, 
+                excelWriter: excelWriter, 
+                blobClient: blobClient, 
+                definitionChangesDetectionService: definitionChangesDetectionService,
+                policyRepository: policyRepository);
 
             //Act
             IActionResult result = await service.SaveDefinition(yaml, yamlFile, null, null);
@@ -658,7 +754,8 @@ namespace CalculateFunding.Services.Datasets.Services
 
             DatasetDefinition existingDatasetDefinition = new DatasetDefinition
             {
-                Id = definitionId
+                Id = definitionId,
+                FundingStreamId = FundingStreamId
             };
 
             IDatasetRepository datasetsRepository = CreateDataSetsRepository();
@@ -695,13 +792,19 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IMessengerService messengerService = CreateMessengerService();
 
+            IPolicyRepository policyRepository = CreatePolicyRepository();
+            policyRepository
+                .GetFundingStreams()
+                .Returns(NewFundingStreams());
+
             DefinitionsService service = CreateDefinitionsService(
                 logger, 
                 datasetsRepository,
                 excelWriter: excelWriter, 
                 blobClient: blobClient, 
                 definitionChangesDetectionService: definitionChangesDetectionService,
-                messengerService: messengerService);
+                messengerService: messengerService,
+                policyRepository: policyRepository);
 
             //Act
             IActionResult result = await service.SaveDefinition(yaml, yamlFile, null, null);
@@ -768,13 +871,19 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IMessengerService messengerService = CreateMessengerService();
 
+            IPolicyRepository policyRepository = CreatePolicyRepository();
+            policyRepository
+                .GetFundingStreams()
+                .Returns(NewFundingStreams());
+
             DefinitionsService service = CreateDefinitionsService(
                 logger,
                 datasetsRepository,
                 excelWriter: excelWriter,
                 blobClient: blobClient,
                 definitionChangesDetectionService: definitionChangesDetectionService,
-                messengerService: messengerService);
+                messengerService: messengerService,
+                policyRepository: policyRepository);
 
             //Act
             IActionResult result = await service.SaveDefinition(yaml, yamlFile, null, null);
@@ -1010,7 +1119,9 @@ namespace CalculateFunding.Services.Datasets.Services
             IExcelWriter<DatasetDefinition> excelWriter = null,
             IBlobClient blobClient = null,
             IDefinitionChangesDetectionService definitionChangesDetectionService = null,
-            IMessengerService messengerService = null)
+            IMessengerService messengerService = null,
+            IPolicyRepository policyRepository = null,
+            IValidator<DatasetDefinition> datasetDefinitionValidator = null)
         {
             return new DefinitionsService(logger ?? CreateLogger(),
                 datasetsRepository ?? CreateDataSetsRepository(),
@@ -1019,7 +1130,30 @@ namespace CalculateFunding.Services.Datasets.Services
                  excelWriter ?? CreateExcelWriter(),
                  blobClient ?? CreateBlobClient(),
                  definitionChangesDetectionService ?? CreateChangesDetectionService(),
-                 messengerService ?? CreateMessengerService());
+                 messengerService ?? CreateMessengerService(),
+                 policyRepository ?? CreatePolicyRepository(),
+                 datasetDefinitionValidator ?? CreateDatasetDefinitionValidator());
+        }
+
+        static IValidator<DatasetDefinition> CreateDatasetDefinitionValidator(ValidationResult validationResult = null)
+        {
+            if (validationResult == null)
+            {
+                validationResult = new ValidationResult();
+            }
+
+            IValidator<DatasetDefinition> validator = Substitute.For<IValidator<DatasetDefinition>>();
+
+            validator
+               .ValidateAsync(Arg.Any<DatasetDefinition>())
+               .Returns(validationResult);
+
+            return validator;
+        }
+
+        static IPolicyRepository CreatePolicyRepository()
+        {
+            return Substitute.For<IPolicyRepository>();
         }
 
         static IBlobClient CreateBlobClient()
@@ -1062,12 +1196,13 @@ namespace CalculateFunding.Services.Datasets.Services
             return Substitute.For<IMessengerService>();
         }
 
-        static string CreateRawDefinition()
+        private static string CreateRawDefinition()
         {
             StringBuilder yaml = new StringBuilder(185);
             yaml.AppendLine(@"id: 9183");
             yaml.AppendLine(@"name: 14/15");
             yaml.AppendLine(@"description: 14/15 description");
+            yaml.AppendLine($"fundingStreamId: {FundingStreamId}");
             yaml.AppendLine(@"tableDefinitions:");
             yaml.AppendLine(@"- id: 9189");
             yaml.AppendLine(@"  name: 14/15");
@@ -1079,5 +1214,42 @@ namespace CalculateFunding.Services.Datasets.Services
 
             return yaml.ToString();
         }
+
+        private IEnumerable<PoliciesApiModels.FundingStream> NewFundingStreams() =>
+            new List<PoliciesApiModels.FundingStream>
+            {
+                NewApiFundingStream(_ => _.WithId(FundingStreamId).WithName(FundingStreamName))
+            };
+
+        private PoliciesApiModels.FundingStream NewApiFundingStream(
+            Action<PolicyFundingStreamBuilder> setUp = null)
+        {
+            PolicyFundingStreamBuilder fundingStreamBuilder = new PolicyFundingStreamBuilder();
+
+            setUp?.Invoke(fundingStreamBuilder);
+
+            return fundingStreamBuilder.Build();
+        }
+
+        private ValidationResult NewValidationResult(Action<ValidationResultBuilder> setUp = null)
+        {
+            ValidationResultBuilder validationResultBuilder = new ValidationResultBuilder();
+
+            setUp?.Invoke(validationResultBuilder);
+
+            return validationResultBuilder.Build();
+        }
+
+        private ValidationFailure NewValidationFailure(Action<ValidationFailureBuilder> setUp = null)
+        {
+            ValidationFailureBuilder validationFailureBuilder = new ValidationFailureBuilder();
+
+            setUp?.Invoke(validationFailureBuilder);
+
+            return validationFailureBuilder.Build();
+        }
+
+        private string NewRandomString() => new RandomString();
+
     }
 }

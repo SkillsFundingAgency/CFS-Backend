@@ -1,18 +1,14 @@
 ﻿using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Datasets;
 using FluentAssertions;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Search.Models;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Newtonsoft.Json;
 using NSubstitute;
 using Serilog;
 
@@ -136,7 +132,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task SearchDatasetDefinition_GivenValidModelAndIncludesGettingFacets_CallsSearchFiveTimes()
+        public async Task SearchDatasetDefinition_GivenValidModelAndIncludesGettingFacets_CallsSearchForAllFacets()
         {
             //Arrange
             SearchModel model = new SearchModel
@@ -167,7 +163,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             await
                 searchRepository
-                    .Received(2)
+                    .Received(4)
                     .Search(Arg.Any<string>(), Arg.Any<SearchParameters>());
 
         }
@@ -205,7 +201,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             await
                 searchRepository
-                    .Received(2)
+                    .Received(4)
                     .Search(Arg.Any<string>(), Arg.Any<SearchParameters>());
 
         }
@@ -247,7 +243,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             await
                 searchRepository
-                .Received(1)
+                .Received(3)
                     .Search(model.SearchTerm, Arg.Is<SearchParameters>(c =>
                         model.Filters.Keys.All(f => c.Filter.Contains(f))
                         && !string.IsNullOrWhiteSpace(c.Filter)
@@ -291,7 +287,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             await
                 searchRepository
-                .Received(1)
+                .Received(3)
                     .Search(model.SearchTerm, Arg.Is<SearchParameters>(c =>
                         model.Filters.Keys.All(f => c.Filter.Contains(f))
                         && !string.IsNullOrWhiteSpace(c.Filter)
@@ -335,7 +331,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             await
                 searchRepository
-                .Received(1)
+                .Received(3)
                     .Search(model.SearchTerm, Arg.Is<SearchParameters>(c =>
                         model.Filters.Keys.All(f => c.Filter.Contains(f))
                         && !string.IsNullOrWhiteSpace(c.Filter)
@@ -379,7 +375,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             await
                 searchRepository
-                .Received(1)
+                .Received(3)
                     .Search(model.SearchTerm, Arg.Is<SearchParameters>(c =>
                         model.Filters.Keys.All(f => c.Filter.Contains(f))
                         && !string.IsNullOrWhiteSpace(c.Filter)
@@ -423,7 +419,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             await
                 searchRepository
-                .Received(1)
+                .Received(3)
                     .Search(model.SearchTerm, Arg.Is<SearchParameters>(c =>
                         model.Filters.Keys.All(f => c.Filter.Contains(f))
                         && !string.IsNullOrWhiteSpace(c.Filter)
@@ -580,7 +576,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             await
                 searchRepository
-                    .Received(2)
+                    .Received(4)
                     .Search(Arg.Any<string>(), Arg.Any<SearchParameters>());
         }
 

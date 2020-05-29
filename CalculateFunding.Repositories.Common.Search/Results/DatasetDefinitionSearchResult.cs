@@ -10,6 +10,10 @@ namespace CalculateFunding.Repositories.Common.Search.Results
 
         public string Description { get; set; }
 
+        public string FundingStreamId { get; set; }
+
+        public string FundingStreamName { get; set; }
+
         public string ProviderIdentifier { get; set; }
 
         public DateTimeOffset LastUpdatedDate { get; set; }

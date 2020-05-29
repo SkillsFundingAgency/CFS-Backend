@@ -710,6 +710,7 @@ namespace CalculateFunding.Services.Datasets.Services
             const string datasetName = "ds1";
             const string dataDefinitionId = "dd1";
             const string filename = "file.xls";
+            const string fundingStreamId = "DSG";
 
             byte[] byteArray = Encoding.UTF8.GetBytes(filename);
 
@@ -720,7 +721,8 @@ namespace CalculateFunding.Services.Datasets.Services
                 DataDefinitionId = dataDefinitionId,
                 DatasetId = datasetId,
                 Name = datasetName,
-                Stream = byteArray
+                Stream = byteArray,
+                FundingStreamId = fundingStreamId
             };
 
             IBlobClient blobClient = CreateBlobClient();
@@ -766,8 +768,12 @@ namespace CalculateFunding.Services.Datasets.Services
 
             cloudBlob.Metadata["description"]
                 .Should()
-                .Be(datasetMetadataViewModel.Description); 
-            
+                .Be(datasetMetadataViewModel.Description);
+
+            cloudBlob.Metadata["fundingStreamId"]
+                .Should()
+                .Be(datasetMetadataViewModel.FundingStreamId);
+
             cloudBlob
                  .Received()
                  .SetMetadata();

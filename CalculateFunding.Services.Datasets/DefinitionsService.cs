@@ -18,6 +18,8 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.DataImporter;
 using CalculateFunding.Services.Datasets.Interfaces;
+using FluentValidation;
+using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Storage.Blob;
 using Newtonsoft.Json;
@@ -25,6 +27,7 @@ using Polly;
 using Serilog;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
+using PoliciesApiModels = CalculateFunding.Common.ApiClient.Policies.Models;
 
 namespace CalculateFunding.Services.Datasets
 {
@@ -40,6 +43,8 @@ namespace CalculateFunding.Services.Datasets
         private readonly AsyncPolicy _blobClientPolicy;
         private readonly IDefinitionChangesDetectionService _definitionChangesDetectionService;
         private readonly IMessengerService _messengerService;
+        private readonly IPolicyRepository _policyRepository;
+        private readonly IValidator<DatasetDefinition> _datasetDefinitionValidator;
 
         public DefinitionsService(
             ILogger logger,
@@ -49,7 +54,9 @@ namespace CalculateFunding.Services.Datasets
             IExcelWriter<DatasetDefinition> excelWriter,
             IBlobClient blobClient,
             IDefinitionChangesDetectionService definitionChangesDetectionService,
-            IMessengerService messengerService)
+            IMessengerService messengerService,
+            IPolicyRepository policyRepository,
+            IValidator<DatasetDefinition> datasetDefinitionValidator)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(dataSetsRepository, nameof(dataSetsRepository));
@@ -61,6 +68,8 @@ namespace CalculateFunding.Services.Datasets
             Guard.ArgumentNotNull(datasetsResiliencePolicies?.DatasetDefinitionSearchRepository, nameof(datasetsResiliencePolicies.DatasetDefinitionSearchRepository));
             Guard.ArgumentNotNull(datasetsResiliencePolicies?.DatasetRepository, nameof(datasetsResiliencePolicies.DatasetRepository));
             Guard.ArgumentNotNull(datasetsResiliencePolicies?.BlobClient, nameof(datasetsResiliencePolicies.BlobClient));
+            Guard.ArgumentNotNull(policyRepository, nameof(policyRepository));
+            Guard.ArgumentNotNull(datasetDefinitionValidator, nameof(datasetDefinitionValidator));
 
             _logger = logger;
             _datasetsRepository = dataSetsRepository;
@@ -72,6 +81,8 @@ namespace CalculateFunding.Services.Datasets
             _blobClientPolicy = datasetsResiliencePolicies.BlobClient;
             _definitionChangesDetectionService = definitionChangesDetectionService;
             _messengerService = messengerService;
+            _policyRepository = policyRepository;
+            _datasetDefinitionValidator = datasetDefinitionValidator;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -115,6 +126,17 @@ namespace CalculateFunding.Services.Datasets
                 return new BadRequestObjectResult($"Invalid yaml was provided for file: {yamlFilename}");
             }
 
+            ValidationResult validationResult = await _datasetDefinitionValidator.ValidateAsync(definition);
+
+            if (!validationResult.IsValid)
+            {
+                string errorMessage = $"Invalid metadata on definition. {validationResult}";
+
+                _logger.Error(errorMessage);
+
+                return new BadRequestObjectResult(errorMessage);
+            }
+
             DatasetDefinitionChanges datasetDefinitionChanges = new DatasetDefinitionChanges();
 
             DatasetDefinition existingDefinition = await _datasetsRepositoryPolicy.ExecuteAsync(() => _datasetsRepository.GetDatasetDefinition(definition.Id));
@@ -153,7 +175,10 @@ namespace CalculateFunding.Services.Datasets
                     return new StatusCodeResult(statusCode);
                 }
 
-                await IndexDatasetDefinition(definition);
+                IEnumerable<PoliciesApiModels.FundingStream> fundingStreams = await _policyRepository.GetFundingStreams();
+                PoliciesApiModels.FundingStream fundingStream = fundingStreams.SingleOrDefault(_ => _.Id == definition.FundingStreamId);
+
+                await IndexDatasetDefinition(definition, fundingStream);
             }
             catch (Exception exception)
             {
@@ -192,7 +217,7 @@ namespace CalculateFunding.Services.Datasets
             return new OkResult();
         }
 
-        public async Task<IEnumerable<IndexError>> IndexDatasetDefinition(DatasetDefinition definition)
+        private async Task<IEnumerable<IndexError>> IndexDatasetDefinition(DatasetDefinition definition, PoliciesApiModels.FundingStream fundingStream)
         {
             // Calculate hash for model to see if there are changes
             string modelJson = JsonConvert.SerializeObject(definition);
@@ -215,6 +240,8 @@ namespace CalculateFunding.Services.Datasets
                 LastUpdatedDate = DateTimeOffset.Now,
                 ProviderIdentifier = definition.TableDefinitions.FirstOrDefault()?.FieldDefinitions?.Where(f => f.IdentifierFieldType.HasValue)?.Select(f => Enum.GetName(typeof(IdentifierFieldType), f.IdentifierFieldType.Value)).FirstOrDefault(),
                 ModelHash = hashCode,
+                FundingStreamId = fundingStream.Id,
+                FundingStreamName = fundingStream.Name
             };
 
             if (string.IsNullOrWhiteSpace(datasetDefinitionIndex.ProviderIdentifier))

@@ -21,6 +21,14 @@ namespace CalculateFunding.Models.Datasets.Schema
         [IsRetrievable(true)]
         public string Description { get; set; }
 
+        [JsonProperty("fundingStreamId")]
+        [IsFilterable, IsFacetable, IsRetrievable(true)]
+        public string FundingStreamId { get; set; }
+
+        [JsonProperty("fundingStreamName")]
+        [IsFilterable, IsFacetable, IsRetrievable(true)]
+        public string FundingStreamName { get; set; }
+
         [IsFilterable, IsFacetable, IsRetrievable(true)]
         [JsonProperty("providerIdentifier")]
         public string ProviderIdentifier { get; set; }

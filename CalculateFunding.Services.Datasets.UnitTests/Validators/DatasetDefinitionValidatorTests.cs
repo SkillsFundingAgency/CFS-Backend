@@ -1,55 +1,30 @@
-﻿using CalculateFunding.Models.Datasets;
-using CalculateFunding.Services.Datasets.Interfaces;
-using CalculateFunding.Services.Datasets.Services;
-using FluentAssertions;
+﻿using CalculateFunding.Services.Datasets.Interfaces;
 using FluentValidation.Results;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using CalculateFunding.Models.Datasets.Schema;
+using FluentAssertions;
 using NSubstitute;
-using System;
-using System.Collections.Generic;
 using PoliciesApiModels = CalculateFunding.Common.ApiClient.Policies.Models;
+using System.Collections.Generic;
+using System;
+using CalculateFunding.Services.Datasets.Services;
 
 namespace CalculateFunding.Services.Datasets.Validators
 {
     [TestClass]
-    public class DatasetVersionUpdateModelValidatorTests
+    public class DatasetDefinitionValidatorTests
     {
         private const string FundingStreamId = "funding-stream-id";
         private const string FundingStreamName = "funding-stream-name";
 
         [TestMethod]
-        public void Validate_GivenEmptyDatasetId_ValidIsFalse()
-        {
-            //Arrange
-            DatasetVersionUpdateModel model = CreateModel();
-            model.DatasetId = string.Empty;
-
-            DatasetVersionUpdateModelValidator validator = CreateValidator();
-
-            //Act
-            ValidationResult result = validator.Validate(model);
-
-            //Assert
-            result
-                .IsValid
-                .Should()
-                .BeFalse();
-
-            result
-                .Errors
-                .Count
-                .Should()
-                .Be(1);
-        }
-
-        [TestMethod]
         public void Validate_GivenEmptyFundingStreamId_ValidIsFalse()
         {
             //Arrange
-            DatasetVersionUpdateModel model = CreateModel();
+            DatasetDefinition model = CreateModel();
             model.FundingStreamId = string.Empty;
 
-            DatasetVersionUpdateModelValidator validator = CreateValidator();
+            DatasetDefinitionValidator validator = CreateValidator();
 
             //Act
             ValidationResult result = validator.Validate(model);
@@ -71,10 +46,10 @@ namespace CalculateFunding.Services.Datasets.Validators
         public void Validate_GivenInvalidFundingStreamId_ValidIsFalse()
         {
             //Arrange
-            DatasetVersionUpdateModel model = CreateModel();
+            DatasetDefinition model = CreateModel();
             model.FundingStreamId = "test-invalid-funding-stream-id";
 
-            DatasetVersionUpdateModelValidator validator = CreateValidator();
+            DatasetDefinitionValidator validator = CreateValidator();
 
             //Act
             ValidationResult result = validator.Validate(model);
@@ -92,38 +67,18 @@ namespace CalculateFunding.Services.Datasets.Validators
                 .Be(1);
         }
 
-        [TestMethod]
-        public void Validate_GivenValidModel_ValidIsTrue()
+        static DatasetDefinition CreateModel()
         {
-            //Arrange
-            DatasetVersionUpdateModel model = CreateModel();
-
-            DatasetVersionUpdateModelValidator validator = CreateValidator();
-
-            //Act
-            ValidationResult result = validator.Validate(model);
-
-            //Assert
-            result
-                .IsValid
-                .Should()
-                .BeTrue();
-        }
-
-        static DatasetVersionUpdateModel CreateModel()
-        {
-            return new DatasetVersionUpdateModel
+            return new DatasetDefinition
             {
-                Filename = "test-name.xls",
-                DatasetId = "test-id",
                 FundingStreamId = FundingStreamId,
             };
         }
 
-        static DatasetVersionUpdateModelValidator CreateValidator(
+        static DatasetDefinitionValidator CreateValidator(
     IPolicyRepository policyRepository = null)
         {
-            return new DatasetVersionUpdateModelValidator(
+            return new DatasetDefinitionValidator(
                 policyRepository ?? CreatePolicyRepository());
         }
 
@@ -153,5 +108,6 @@ namespace CalculateFunding.Services.Datasets.Validators
 
             return fundingStreamBuilder.Build();
         }
+
     }
 }

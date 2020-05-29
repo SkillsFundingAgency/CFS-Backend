@@ -659,6 +659,7 @@ namespace CalculateFunding.Services.Datasets
             blob.Metadata["authorName"] = datasetMetadataViewModel.AuthorName;
             blob.Metadata["name"] = datasetMetadataViewModel.Name;
             blob.Metadata["description"] = datasetMetadataViewModel.Description;
+            blob.Metadata["fundingStreamId"] = datasetMetadataViewModel.FundingStreamId;
             blob.SetMetadata();
 
             return new OkResult();

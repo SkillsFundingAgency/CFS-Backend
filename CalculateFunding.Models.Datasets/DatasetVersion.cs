@@ -35,7 +35,8 @@ namespace CalculateFunding.Models.Datasets
                 Date = Date,
                 Author = Author,
                 Comment = Comment,
-                BlobName = BlobName
+                BlobName = BlobName,
+                FundingStream = FundingStream
             };
         }
     }

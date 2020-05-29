@@ -15,7 +15,6 @@ using CalculateFunding.Common.WebApi.Middleware;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Repositories.Common.Search;
-using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.AspNet.Extensions;
 using CalculateFunding.Services.Core.AspNet.HealthChecks;
 using CalculateFunding.Services.Core.AzureStorage;
@@ -39,7 +38,6 @@ using CalculateFunding.Services.Results.Repositories;
 using FluentValidation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -140,6 +138,9 @@ namespace CalculateFunding.Api.Datasets
 
             builder
                 .AddSingleton<IValidator<GetDatasetBlobModel>, GetDatasetBlobModelValidator>();
+
+            builder
+                .AddSingleton<IValidator<DatasetDefinition>, DatasetDefinitionValidator>();
 
             builder
                .AddSingleton<IValidator<CreateDefinitionSpecificationRelationshipModel>, CreateDefinitionSpecificationRelationshipModelValidator>();

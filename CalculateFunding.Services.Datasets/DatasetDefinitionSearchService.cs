@@ -6,13 +6,10 @@ using CalculateFunding.Models;
 using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Repositories.Common.Search.Results;
-using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Datasets.Interfaces;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Search.Models;
-using Newtonsoft.Json;
 using Serilog;
 
 namespace CalculateFunding.Services.Datasets
@@ -24,6 +21,8 @@ namespace CalculateFunding.Services.Datasets
 
         private FacetFilterType[] Facets = {
             new FacetFilterType("providerIdentifier", true),
+            new FacetFilterType("fundingStreamId"),
+            new FacetFilterType("fundingStreamName"),
         };
 
         private IEnumerable<string> DefaultOrderBy = new[] { "lastUpdatedDate desc" };
@@ -165,6 +164,8 @@ namespace CalculateFunding.Services.Datasets
                     Description = m.Result.Description,
                     LastUpdatedDate = m.Result.LastUpdatedDate,
                     ProviderIdentifier = m.Result.ProviderIdentifier,
+                    FundingStreamId = m.Result.FundingStreamId,
+                    FundingStreamName = m.Result.FundingStreamName
                 });
             }
         }

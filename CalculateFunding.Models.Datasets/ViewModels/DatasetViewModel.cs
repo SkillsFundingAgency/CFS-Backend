@@ -9,6 +9,8 @@ namespace CalculateFunding.Models.Datasets.ViewModels
 
         public string Description { get; set; }
 
+        public Reference FundingStream { get; set; }
+
         public IEnumerable<DatasetVersionViewModel> Versions { get; set; }
     }
 }
