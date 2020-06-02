@@ -94,7 +94,13 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
             {
                 _result.Succeeded.Should().BeTrue();
                 _result.Exception.Should().BeNull();
-                _result.ValidationResult.Should().BeNull();
+            }
+
+            [TestMethod]
+            public void No_validation_errors()
+            {
+                (_result.ValidationResult == null || _result.ValidationResult.IsValid).Should()
+                    .BeTrue($"Unexpected validation errors: {_result.ValidationResult?.Errors.Select(x => x.ErrorMessage).Aggregate((x, y) => x + ", " + y)}");
             }
 
             [TestMethod]
@@ -304,7 +310,13 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
             {
                 _result.Succeeded.Should().BeTrue();
                 _result.Exception.Should().BeNull();
-                _result.ValidationResult.Should().BeNull();
+            }
+
+            [TestMethod]
+            public void No_validation_errors()
+            {
+                (_result.ValidationResult == null || _result.ValidationResult.IsValid).Should()
+                    .BeTrue($"Unexpected validation errors: {_result.ValidationResult?.Errors.Select(x => x.ErrorMessage).Aggregate((x, y) => x + ", " + y)}");
             }
 
             [TestMethod]

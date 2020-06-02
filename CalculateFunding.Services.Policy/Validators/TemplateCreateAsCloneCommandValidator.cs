@@ -21,7 +21,6 @@ namespace CalculateFunding.Services.Policy.Validators
             AsyncPolicy policyRepositoryPolicy = policyResiliencePolicies.PolicyRepository;
             
             RuleFor(x => x.CloneFromTemplateId).NotNull();
-            RuleFor(x => x.Name).Length(3, 200);
             RuleFor(x => x.Description).Length(0, 1000);
 
             RuleFor(x => x.FundingStreamId)

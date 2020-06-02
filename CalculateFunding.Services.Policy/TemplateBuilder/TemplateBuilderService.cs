@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.TemplateMetadata;
+using CalculateFunding.Common.TemplateMetadata.Schema11.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Policy;
 using CalculateFunding.Models.Policy.TemplateBuilder;
@@ -16,6 +17,7 @@ using CalculateFunding.Services.Policy.Interfaces;
 using CalculateFunding.Services.Policy.Models;
 using CalculateFunding.Services.Policy.Validators;
 using FluentValidation.Results;
+using Newtonsoft.Json;
 using Serilog;
 
 namespace CalculateFunding.Services.Policy.TemplateBuilder
@@ -113,9 +115,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             return templateVersions.Select(Map).ToList();
         }
 
-        public async Task<CommandResult> CreateTemplate(
-            TemplateCreateCommand command,
-            Reference author)
+        public async Task<CommandResult> CreateTemplate(TemplateCreateCommand command, Reference author)
         {
             ValidationResult validatorResult = await _validatorFactory.Validate(command);
             validatorResult.Errors.AddRange((await _validatorFactory.Validate(author))?.Errors);
@@ -127,11 +127,6 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
 
             try
             {
-                if (await _templateRepository.IsTemplateNameInUse(command.Name))
-                {
-                    return CommandResult.ValidationFail(nameof(command.Name), $"Template name [{command.Name}] already in use");
-                }
-
                 if (await _templateRepository.IsFundingStreamAndPeriodInUse(command.FundingStreamId, command.FundingPeriodId))
                 {
                     string validationErrorMessage =
@@ -147,17 +142,20 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
                     };
                 }
 
+                string templateName = $"{command.FundingStreamId} {command.FundingPeriodId}";
                 Template template = new Template
                 {
                     TemplateId = Guid.NewGuid().ToString(),
-                    Name = command.Name
+                    Name = templateName,
+                    FundingStream = await _policyRepository.GetFundingStreamById(command.FundingStreamId),
+                    FundingPeriod = await _policyRepository.GetFundingPeriodById(command.FundingPeriodId)
                 };
                 template.Current = new TemplateVersion
                 {
                     TemplateId = template.TemplateId,
                     FundingStreamId = command.FundingStreamId,
                     FundingPeriodId = command.FundingPeriodId,
-                    Name = command.Name,
+                    Name = templateName,
                     Description = command.Description,
                     Version = 1,
                     MajorVersion = 0,
@@ -182,7 +180,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
                     };
                 }
 
-                string errorMessage = $"Failed to create a new template with name {command.Name} in Cosmos. Status code {(int) result}";
+                string errorMessage = $"Failed to create a new template with name {templateName} in Cosmos. Status code {(int) result}";
                 _logger.Error(errorMessage);
 
                 return new CommandResult
@@ -233,11 +231,6 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
                     }
                 }
 
-                if (await _templateRepository.IsTemplateNameInUse(command.Name))
-                {
-                    return CommandResult.ValidationFail(nameof(command.Name), $"Template name [{command.Name}] already in use");
-                }
-
                 if (await _templateRepository.IsFundingStreamAndPeriodInUse(command.FundingStreamId, command.FundingPeriodId))
                 {
                     string validationErrorMessage =
@@ -254,16 +247,19 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
                 }
 
                 Guid templateId = Guid.NewGuid();
+                string templateName = $"{command.FundingStreamId} {command.FundingPeriodId}";
                 Template template = new Template
                 {
                     TemplateId = templateId.ToString(), 
-                    Name = command.Name,
+                    Name = templateName,
+                    FundingStream = await _policyRepository.GetFundingStreamById(command.FundingStreamId),
+                    FundingPeriod = await _policyRepository.GetFundingPeriodById(command.FundingPeriodId),
                     Current = new TemplateVersion
                     {
                         TemplateId = templateId.ToString(),
                         SchemaVersion = sourceVersion.SchemaVersion,
                         Author = author,
-                        Name = command.Name,
+                        Name = templateName,
                         Description = command.Description,
                         FundingStreamId = command.FundingStreamId,
                         FundingPeriodId = command.FundingPeriodId,
@@ -297,7 +293,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
                     };
                 }
 
-                string errorMessage = $"Failed to create a new template with name {command.Name} in Cosmos. Status code {(int) result}";
+                string errorMessage = $"Failed to create a new template with name {templateName} in Cosmos. Status code {(int) result}";
                 _logger.Error(errorMessage);
                 return CommandResult.Fail(errorMessage);
             }
@@ -310,40 +306,10 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             }
         }
 
-        private async Task CreateTemplateIndexItem(Template template, Reference author)
-        {
-            var fundingPeriod = await _policyRepository.GetFundingPeriodById(template.Current.FundingPeriodId);
-            var fundingStream = await _policyRepository.GetFundingStreamById(template.Current.FundingStreamId);
-
-            TemplateIndex templateIndex = new TemplateIndex
-            {
-                Id = template.TemplateId,
-                Name = template.Current.Name,
-                FundingStreamId = template.Current.FundingStreamId,
-                FundingStreamName = fundingStream.ShortName,
-                FundingPeriodId = template.Current.FundingPeriodId,
-                FundingPeriodName = fundingPeriod.Name,
-                LastUpdatedAuthorId = author.Id,
-                LastUpdatedAuthorName = author.Name,
-                LastUpdatedDate = DateTimeOffset.Now,
-                Version = template.Current.Version,
-                CurrentMajorVersion = template.Current.MajorVersion,
-                CurrentMinorVersion = template.Current.MinorVersion,
-                PublishedMajorVersion = template.Released?.MajorVersion ?? 0,
-                PublishedMinorVersion = template.Released?.MinorVersion ?? 0,
-                HasReleasedVersion = template.Released != null ? "Yes" : "No"
-            };
-
-            await _searchRepository.Index(new List<TemplateIndex>
-            {
-                templateIndex
-            });
-        }
-
-        public async Task<CommandResult> UpdateTemplateContent(TemplateContentUpdateCommand command, Reference author)
+        public async Task<CommandResult> UpdateTemplateContent(TemplateFundingLinesUpdateCommand originalCommand, Reference author)
         {
             // input parameter validation
-            ValidationResult validatorResult = await _validatorFactory.Validate(command);
+            ValidationResult validatorResult = await _validatorFactory.Validate(originalCommand);
             validatorResult.Errors.AddRange((await _validatorFactory.Validate(author))?.Errors);
             
             if (!validatorResult.IsValid)
@@ -351,22 +317,33 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
                 return CommandResult.ValidationFail(validatorResult);
             }
 
-            var template = await _templateRepository.GetTemplate(command.TemplateId);
-            if (template == null)
+            var template = await _templateRepository.GetTemplate(originalCommand.TemplateId);
+            if (template?.Current == null)
             {
-                return CommandResult.ValidationFail(nameof(command.TemplateId), "Template doesn't exist");
+                return CommandResult.ValidationFail(nameof(originalCommand.TemplateId), "Template doesn't exist");
             }
 
-            if (template.Current.TemplateJson == command.TemplateJson)
+            // to enable backwards compatibility
+            template.FundingStream ??= await _policyRepository.GetFundingStreamById(template.Current.FundingStreamId);
+            template.FundingPeriod ??= await _policyRepository.GetFundingPeriodById(template.Current.FundingPeriodId);
+
+            if (template.Current.TemplateJson == originalCommand.TemplateFundingLinesJson)
             {
                 return CommandResult.Success();
             }
 
-            CommandResult validationError = await ValidateTemplateContent(command);
+            (ValidationFailure error, TemplateJsonContentUpdateCommand updateCommand) = 
+                MapCommand(originalCommand, template, TemplateStatus.Draft, 0, 1);
+            if (error != null)
+            {
+                return CommandResult.ValidationFail(new ValidationResult(new []{error}));
+            }
+
+            CommandResult validationError = await ValidateTemplateContent(updateCommand.TemplateJson);
             if (validationError != null)
                 return validationError;
 
-            var updated = await UpdateTemplateContent(command, author, template);
+            var updated = await UpdateTemplateContent(updateCommand, author, template, TemplateStatus.Draft, 0, 1);
 
             if (!updated.IsSuccess())
             {
@@ -387,23 +364,18 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             }
 
             var template = await _templateRepository.GetTemplate(command.TemplateId);
-            if (template == null)
+            if (template?.Current == null)
             {
                 return CommandResult.ValidationFail(nameof(command.TemplateId), "Template doesn't exist");
             }
 
-            if (template.Current.Name == command.Name && template.Current.Description == command.Description)
+            // to enable backwards compatibility
+            template.FundingStream ??= await _policyRepository.GetFundingStreamById(template.Current.FundingStreamId);
+            template.FundingPeriod ??= await _policyRepository.GetFundingPeriodById(template.Current.FundingPeriodId);
+
+            if (template.Current.Description == command.Description)
             {
                 return CommandResult.Success();
-            }
-
-            // validate template name is unique if it is changing
-            if (template.Current.Name != command.Name)
-            {
-                if (await _templateRepository.IsTemplateNameInUse(command.Name))
-                {
-                    return CommandResult.ValidationFail(nameof(command.Name), $"Template name [{command.Name}] already in use");
-                }
             }
 
             var updated = await UpdateTemplateMetadata(command, author, template);
@@ -503,26 +475,23 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             };
         }
 
-        private async Task<HttpStatusCode> UpdateTemplateContent(TemplateContentUpdateCommand command, Reference author, Template template)
+        private async Task<HttpStatusCode> UpdateTemplateContent(TemplateJsonContentUpdateCommand command, Reference author, Template template, TemplateStatus status, int majorVersion, int minorVersion)
         {
             // create new version and save it
             TemplateVersion newVersion = template.Current.Clone() as TemplateVersion;
-            if (template.Current.Status == TemplateStatus.Published)
-            {
-                newVersion.Status = TemplateStatus.Draft;
-            }
-
+            newVersion.Status = status;
             newVersion.Author = author;
-            newVersion.Name = template.Current.Name;
+            newVersion.Name = $"{template.FundingStream.Id} {template.FundingPeriod.Id}";
             newVersion.Comment = null;
             newVersion.Description = template.Current.Description;
             newVersion.Status = TemplateStatus.Draft;
             newVersion.Date = DateTimeOffset.Now;
-            newVersion.TemplateJson = command.TemplateJson;
-            newVersion.Version++;
-            newVersion.MinorVersion++;
+            newVersion.Version = template.Current.Version + 1;
+            newVersion.MajorVersion = majorVersion;
+            newVersion.MinorVersion = minorVersion + 1;
             newVersion.Predecessors ??= new List<string>();
             newVersion.Predecessors.Add(template.Current.Id);
+            newVersion.TemplateJson = command.TemplateJson;
             await _templateVersionRepository.SaveVersion(newVersion);
 
             // update template
@@ -538,6 +507,19 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
 
             return updateResult;
         }
+        
+        private (T model, string errorMessage) Deserialise<T>(string json) where T : class
+        {
+            try
+            {
+                return (JsonConvert.DeserializeObject<T>(json), null);
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, $"Failed to deserialize json : {ex.Message}");
+                return (null, ex.Message);
+            }
+        }
 
         private async Task<HttpStatusCode> UpdateTemplateMetadata(TemplateMetadataUpdateCommand command, Reference author, Template template)
         {
@@ -548,18 +530,32 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             newVersion.Status = TemplateStatus.Draft;
             newVersion.Date = DateTimeOffset.Now;
             newVersion.TemplateJson = template.Current.TemplateJson;
-            newVersion.Name = command.Name;
+            newVersion.Name = $"{template.FundingStream.Id} {template.FundingPeriod.Id}"; // migrate old data
             newVersion.Description = command.Description;
-            newVersion.Version++;
-            newVersion.MinorVersion++;
+            newVersion.Version = template.Current.Version + 1;
+            newVersion.MinorVersion = template.Current.MinorVersion + 1;
+            newVersion.MajorVersion = template.Current.MajorVersion;
             newVersion.Predecessors ??= new List<string>();
             newVersion.Predecessors.Add(template.Current.Id);
+            if (!template.Current.TemplateJson.IsNullOrEmpty())
+            {
+                (SchemaJson templateContent, string error) = Deserialise<SchemaJson>(template.Current.TemplateJson);
+                if (error != null)
+                {
+                    _logger.Error("Failed to deserialise json template: " + error);
+                    return HttpStatusCode.BadRequest;
+                }
+                templateContent.FundingTemplate.FundingTemplateVersion = $"{newVersion.MajorVersion}.{newVersion.MinorVersion}";
+                templateContent.FundingTemplate.FundingPeriod = Map(template.FundingPeriod);
+                templateContent.FundingTemplate.FundingStream = Map(template.FundingStream);
+                newVersion.TemplateJson = templateContent.AsJson();
+            }
             var result = await _templateVersionRepository.SaveVersion(newVersion);
             if (!result.IsSuccess())
                 return result;
 
             // update template
-            template.Name = template.Current.Name;
+            template.Name = $"{template.FundingStream.Id} {template.FundingPeriod.Id}";
             template.AddPredecessor(template.Current.Id);
             template.Current = newVersion;
 
@@ -572,10 +568,61 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             return updateResult;
         }
 
-        private async Task<CommandResult> ValidateTemplateContent(TemplateContentUpdateCommand command)
+        private (ValidationFailure, TemplateJsonContentUpdateCommand) MapCommand(TemplateFundingLinesUpdateCommand command, Template template, TemplateStatus status, int majorVersion, int minorVersion)
+        {
+            (IEnumerable<SchemaJsonFundingLine> fundingLines, string errorMessage) = Deserialise<IEnumerable<SchemaJsonFundingLine>>(command.TemplateFundingLinesJson);
+            if (!errorMessage.IsNullOrEmpty())
+            {
+                _logger.Error("Failed to deserialise json template: " + errorMessage);
+                return (new ValidationFailure(nameof(command.TemplateFundingLinesJson), errorMessage), null);
+            }
+            var templateJson = new SchemaJson
+            {
+                Schema = "https://fundingschemas.blob.core.windows.net/schemas/funding-template-schema-1.1.json",
+                SchemaVersion = "1.1",
+                FundingTemplate = new SchemaJsonFundingStreamTemplate
+                {
+                    FundingLines = fundingLines,
+                    FundingPeriod = Map(template.FundingPeriod),
+                    FundingStream = Map(template.FundingStream),
+                    FundingTemplateVersion = $"{majorVersion}.{minorVersion}"
+                }
+            };
+            
+            return (null, new TemplateJsonContentUpdateCommand
+            {
+                TemplateId = command.TemplateId,
+                TemplateJson = templateJson.AsJson()
+            });
+        }
+
+        private SchemaJsonFundingStream Map(FundingStream templateFundingStream)
+        {
+            return new SchemaJsonFundingStream
+            {
+                Code = templateFundingStream.Id,
+                Name = templateFundingStream.Name
+            };
+        }
+
+        private SchemaJsonFundingPeriod Map(FundingPeriod templateFundingPeriod)
+        {
+            return new SchemaJsonFundingPeriod
+            {
+                Name = templateFundingPeriod.Name,
+                Period = templateFundingPeriod.Period,
+                Type = (CalculateFunding.Common.TemplateMetadata.Schema11.Models.FundingPeriodType) 
+                    Enum.Parse(typeof(CalculateFunding.Common.TemplateMetadata.Schema11.Models.FundingPeriodType), 
+                        templateFundingPeriod.Type.ToString()),
+                StartDate = templateFundingPeriod.StartDate,
+                EndDate = templateFundingPeriod.EndDate
+            };
+        }
+
+        private async Task<CommandResult> ValidateTemplateContent(string templateJson)
         {
             // template json validation
-            FundingTemplateValidationResult validationResult = await _fundingTemplateValidationService.ValidateFundingTemplate(command.TemplateJson);
+            FundingTemplateValidationResult validationResult = await _fundingTemplateValidationService.ValidateFundingTemplate(templateJson);
 
             if (!validationResult.IsValid)
             {
@@ -585,7 +632,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             // schema specific validation
             ITemplateMetadataGenerator templateMetadataGenerator = _templateMetadataResolver.GetService(validationResult.SchemaVersion);
 
-            ValidationResult validationGeneratorResult = templateMetadataGenerator.Validate(command.TemplateJson);
+            ValidationResult validationGeneratorResult = templateMetadataGenerator.Validate(templateJson);
 
             if (!validationGeneratorResult.IsValid)
             {
@@ -593,6 +640,36 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             }
 
             return null;
+        }
+
+        private async Task CreateTemplateIndexItem(Template template, Reference author)
+        {
+            var fundingPeriod = await _policyRepository.GetFundingPeriodById(template.Current.FundingPeriodId);
+            var fundingStream = await _policyRepository.GetFundingStreamById(template.Current.FundingStreamId);
+
+            TemplateIndex templateIndex = new TemplateIndex
+            {
+                Id = template.TemplateId,
+                Name = template.Current.Name,
+                FundingStreamId = template.Current.FundingStreamId,
+                FundingStreamName = fundingStream.ShortName,
+                FundingPeriodId = template.Current.FundingPeriodId,
+                FundingPeriodName = fundingPeriod.Name,
+                LastUpdatedAuthorId = author.Id,
+                LastUpdatedAuthorName = author.Name,
+                LastUpdatedDate = DateTimeOffset.Now,
+                Version = template.Current.Version,
+                CurrentMajorVersion = template.Current.MajorVersion,
+                CurrentMinorVersion = template.Current.MinorVersion,
+                PublishedMajorVersion = template.Released?.MajorVersion ?? 0,
+                PublishedMinorVersion = template.Released?.MinorVersion ?? 0,
+                HasReleasedVersion = template.Released != null ? "Yes" : "No"
+            };
+
+            await _searchRepository.Index(new List<TemplateIndex>
+            {
+                templateIndex
+            });
         }
     }
 }

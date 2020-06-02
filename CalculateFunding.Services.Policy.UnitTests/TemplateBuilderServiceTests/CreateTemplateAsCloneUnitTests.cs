@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.TemplateMetadata;
@@ -44,10 +45,9 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
                 _command = new TemplateCreateAsCloneCommand
                 {
                     CloneFromTemplateId = Guid.NewGuid().ToString(),
-                    Name = "New Name",
                     Description = "New Description",
                     FundingStreamId = "NEW",
-                    FundingPeriodId = "NEW-2020"
+                    FundingPeriodId = "20-21"
                 };
                 _author = new Reference("222", "CloningTestUser");
 
@@ -78,6 +78,8 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
                     TemplateId = _command.CloneFromTemplateId,
                     TemplateJson = "{ \"Lorem\": \"ipsum\" }",
                     Version = 12,
+                    FundingPeriodId = "19-20",
+                    FundingStreamId = "OLD",
                     MinorVersion = 1,
                     MajorVersion = 0,
                     SchemaVersion = "1.1",
@@ -88,6 +90,18 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
                 {
                     Name = _sourceTemplateVersion.Name,
                     TemplateId = _command.CloneFromTemplateId,
+                    FundingPeriod = new FundingPeriod
+                    {
+                        Id = "2021",
+                        Name = "Test Period",
+                        Type = FundingPeriodType.FY
+                    },
+                    FundingStream = new FundingStream
+                    {
+                        Id = "XX",
+                        ShortName = "XX",
+                        Name = "FundingSteam"
+                    },
                     Current = _sourceTemplateVersion
                 };
 
@@ -107,13 +121,13 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
                 _policyRespository.GetFundingPeriodById(Arg.Is(_command.FundingPeriodId)).Returns(new FundingPeriod
                 {
                     Id = _command.FundingPeriodId, 
-                    Name = "Test Funding Period"
+                    Name = "Test Funding Period 2"
                 });
                 _policyRespository.GetFundingStreamById(Arg.Is(_command.FundingStreamId)).Returns(new FundingStream
                 {
                     Id = _command.FundingStreamId,
-                    Name = "Funding Stream",
-                    ShortName = "Stream"
+                    Name = "Funding Stream 2",
+                    ShortName = "Stream 2"
                 });
 
                 _templateIndexer = Substitute.For<ISearchRepository<TemplateIndex>>();
@@ -124,19 +138,19 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
             {
                 _result.Succeeded.Should().BeTrue();
                 _result.Exception.Should().BeNull();
-                _result.ValidationResult.Should().BeNull();
+            }
+
+            [TestMethod]
+            public void No_validation_errors()
+            {
+                (_result.ValidationResult == null || _result.ValidationResult.IsValid).Should()
+                    .BeTrue($"Unexpected validation errors: {_result.ValidationResult?.Errors.Select(x => x.ErrorMessage).Aggregate((x, y) => x + ", " + y)}");
             }
 
             [TestMethod]
             public void Validated_template_command()
             {
                 _validatorFactory.Received(1).Validate(Arg.Is(_command));
-            }
-
-            [TestMethod]
-            public void Checked_for_duplicate_existing_template_name()
-            {
-                _templateRepository.Received(1).IsTemplateNameInUse(Arg.Is(_command.Name));
             }
 
             [TestMethod]
@@ -148,7 +162,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
             [TestMethod]
             public void Saved_version_with_correct_name()
             {
-                _versionRepository.Received(1).SaveVersion(Arg.Is<TemplateVersion>(x => x.Name == _command.Name));
+                _versionRepository.Received(1).SaveVersion(Arg.Is<TemplateVersion>(x => x.Name == $"{_command.FundingStreamId} {_command.FundingPeriodId}"));
             }
 
             [TestMethod]
@@ -202,7 +216,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
             [TestMethod]
             public void Saved_current_version_with_correct_name()
             {
-                _templateRepository.Received(1).CreateDraft(Arg.Is<Template>(x => x.Current.Name == _command.Name));
+                _templateRepository.Received(1).CreateDraft(Arg.Is<Template>(x => x.Current.Name == $"{_command.FundingStreamId} {_command.FundingPeriodId}"));
             }
 
             [TestMethod]

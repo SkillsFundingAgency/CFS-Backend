@@ -138,7 +138,7 @@ namespace CalculateFunding.Api.Policy.Controllers
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(string))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> UpdateTemplateContent(TemplateContentUpdateCommand command)
+        public async Task<IActionResult> UpdateTemplateContent(TemplateFundingLinesUpdateCommand command)
         {
             ValidationResult validationResult = await _validatorFactory.Validate(command);
 

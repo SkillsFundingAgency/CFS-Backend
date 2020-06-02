@@ -92,6 +92,7 @@ namespace CalculateFunding.Models.Policy.TemplateBuilder
         {
             return HashCode.Combine(
                 FundingStreamId, 
+                FundingPeriodId, 
                 SchemaVersion, 
                 Version, 
                 Status, 

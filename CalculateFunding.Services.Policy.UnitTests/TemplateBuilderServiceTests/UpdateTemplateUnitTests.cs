@@ -8,7 +8,6 @@ using CalculateFunding.Models.Policy;
 using CalculateFunding.Models.Policy.TemplateBuilder;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Repositories.Common.Search;
-using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Policy.Interfaces;
 using CalculateFunding.Services.Policy.Models;
 using CalculateFunding.Services.Policy.TemplateBuilder;
@@ -37,12 +36,13 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
             private TemplateVersion _templateVersionFirst;
             private IPolicyRepository _policyRepository;
             private ISearchRepository<TemplateIndex> _searchRepository;
+            private Template _savedTemplate;
+            private TemplateVersion _savedTemplateVersion;
 
             public When_i_update_template_metadata()
             {
                 _command = new TemplateMetadataUpdateCommand
                 {
-                    Name = "New Test Template",
                     Description = "Lorem ipsum",
                     TemplateId = Guid.NewGuid().ToString()
                 };
@@ -68,39 +68,63 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
                 _validatorFactory = Substitute.For<IIoCValidatorFactory>();
                 _validatorFactory.Validate(Arg.Any<object>()).Returns(new ValidationResult());
                 _templateRepository = Substitute.For<ITemplateRepository>();
-                _templateRepository.IsTemplateNameInUse(Arg.Is(_command.Name)).Returns(false);
+                _templateBeforeUpdate = new Template
+                {
+                    Name = "Test",
+                    TemplateId = _command.TemplateId,
+                    FundingPeriod = new FundingPeriod
+                    {
+                        Id = "2021",
+                        Name = "Test Period",
+                        Type = FundingPeriodType.FY
+                    },
+                    FundingStream = new FundingStream
+                    {
+                        Id = "XX",
+                        ShortName = "XX",
+                        Name = "FundingSteam"
+                    }
+                };
+                
                 _templateVersionFirst = new TemplateVersion
                 {
                     Name = "Old Test Name",
                     Description = "Old Description",
-                    Comment = "Old comments",
                     TemplateId = _command.TemplateId,
-                    TemplateJson = "{'json': 'original'}",
+                    TemplateJson = @"{""$schema"":""https://fundingschemas.blob.core.windows.net/schemas/funding-template-schema-1.1.json"",""schemaVersion"":""1.1"",""fundingTemplate"":{""fundingLines"":[{""templateLineId"":1,""type"":""Payment"",""name"":""Funding Line 1"",""fundingLineCode"":""DSG-001"",""fundingLines"":[],""calculations"":[]}],""fundingPeriod"":{""id"":""XX-2021"",""period"":""2021"",""name"":""XX-2021"",""type"":""FY"",""startDate"":""2020-04-01T00:00:00+00:00"",""endDate"":""2021-03-31T00:00:00+00:00""},""fundingStream"":{""code"":""DSG"",""name"":""DSG""},""fundingTemplateVersion"":""0.1""}}",
                     Version = 1,
                     MinorVersion = 1,
                     MajorVersion = 0,
+                    FundingPeriodId = _templateBeforeUpdate.FundingPeriod.Id,
+                    FundingStreamId = _templateBeforeUpdate.FundingStream.Id,
                     SchemaVersion = "1.1",
                     Status = TemplateStatus.Published,
                     Author = new Reference("111", "FirstTestUser")
                 };
-                _templateBeforeUpdate = new Template
-                {
-                    Name = _command.Name,
-                    TemplateId = _command.TemplateId,
-                    Current = _templateVersionFirst
-                };
+                _templateBeforeUpdate.Current = _templateVersionFirst;
+                
                 _templateRepository.GetTemplate(Arg.Is(_command.TemplateId)).Returns(_templateBeforeUpdate);
-                _templateRepository.Update(Arg.Any<Template>()).Returns(HttpStatusCode.OK);
+                _templateRepository.Update(Arg.Do<Template>(x => _savedTemplate = x)).Returns(HttpStatusCode.OK);
 
                 _versionRepository = Substitute.For<ITemplateVersionRepository>();
-                _versionRepository.SaveVersion(Arg.Any<TemplateVersion>()).Returns(HttpStatusCode.OK);
+                _versionRepository.SaveVersion(Arg.Do<TemplateVersion>(x => _savedTemplateVersion = x)).Returns(HttpStatusCode.OK);
 
                 _searchRepository = Substitute.For<ISearchRepository<TemplateIndex>>();
                 _searchRepository.Index(Arg.Any<IEnumerable<TemplateIndex>>()).Returns(Enumerable.Empty<IndexError>());
 
                 _policyRepository = Substitute.For<IPolicyRepository>();
-                _policyRepository.GetFundingPeriodById(Arg.Any<string>()).Returns(new FundingPeriod { Name = "FundingPeriod" });
-                _policyRepository.GetFundingStreamById(Arg.Any<string>()).Returns(new FundingStream { Name = "FundingSteam" });
+                _policyRepository.GetFundingPeriodById(Arg.Any<string>()).Returns(new FundingPeriod
+                {
+                    Id = "2021",
+                    Name = "Test Period",
+                    Type = FundingPeriodType.FY
+                });
+                _policyRepository.GetFundingStreamById(Arg.Any<string>()).Returns(new FundingStream
+                {
+                    Id = "XX",
+                    ShortName = "XX",
+                    Name = "FundingSteam"
+                });
             }
 
             [TestMethod]
@@ -108,7 +132,13 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
             {
                 _result.Succeeded.Should().BeTrue();
                 _result.Exception.Should().BeNull();
-                _result.ValidationResult.Should().BeNull();
+            }
+
+            [TestMethod]
+            public void No_validation_errors()
+            {
+                (_result.ValidationResult == null || _result.ValidationResult.IsValid).Should()
+                    .BeTrue($"Unexpected validation errors: {_result.ValidationResult?.Errors.Select(x => x.ErrorMessage).Aggregate((x, y) => x + ", " + y)}");
             }
 
             [TestMethod]
@@ -118,118 +148,125 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
             }
 
             [TestMethod]
-            public void Checked_for_duplicate_existing_template_name()
-            {
-                _templateRepository.Received(1).IsTemplateNameInUse(Arg.Is(_command.Name));
-            }
-
-            [TestMethod]
             public void Saved_template_with_a_current_version()
             {
-                _templateRepository.Received(1).Update(Arg.Is<Template>(x => x.Current != null));
+                _savedTemplate?.Current.Should().NotBeNull();
             }
 
             [TestMethod]
             public void Saved_current_version_with_correct_name()
             {
-                _templateRepository.Received(1).Update(Arg.Is<Template>(x => x.Current.Name == _command.Name));
+                _savedTemplate?.Current?.Name.Should().Be($"{_templateBeforeUpdate.FundingStream.Id} {_templateBeforeUpdate.FundingPeriod.Id}");
             }
 
             [TestMethod]
             public void Saved_current_version_with_correct_description()
             {
-                _templateRepository.Received(1).Update(Arg.Is<Template>(x => x.Current.Description == _command.Description));
+                _savedTemplate?.Current?.Description.Should().Be(_command.Description);
             }
 
             [TestMethod]
             public void Saved_current_version_with_correct_author()
             {
-                _templateRepository.Received(1).Update(Arg.Is<Template>(x => x.Current.Author.Name == _author.Name));
+                _savedTemplate?.Current?.Author?.Name.Should().Be(_author.Name);
+                _savedTemplate?.Current?.Author?.Id.Should().Be(_author.Id);
             }
 
             [TestMethod]
             public void Saved_current_version_with_correct_version_number()
             {
-                _templateRepository.Received(1).Update(Arg.Is<Template>(x => x.Current.Version == _templateVersionFirst.Version + 1));
+                _savedTemplate?.Current?.Version.Should().Be(_templateVersionFirst.Version + 1);
             }
 
             [TestMethod]
             public void Saved_current_version_with_correct_minor_version_number()
             {
-                _templateRepository.Received(1).Update(Arg.Is<Template>(x => x.Current.MinorVersion == _templateVersionFirst.MinorVersion + 1));
+                _savedTemplate?.Current?.MinorVersion.Should().Be(_templateVersionFirst.MinorVersion + 1);
             }
 
             [TestMethod]
             public void Saved_current_version_with_correct_major_version_number()
             {
-                _templateRepository.Received(1).Update(Arg.Is<Template>(x => x.Current.MajorVersion == _templateVersionFirst.MajorVersion));
+                _savedTemplate?.Current?.MajorVersion.Should().Be(_templateVersionFirst.MajorVersion);
             }
 
             [TestMethod]
             public void Saved_current_version_with_correct_publish_status()
             {
-                _templateRepository.Received(1).Update(Arg.Is<Template>(x => x.Current.PublishStatus == PublishStatus.Draft));
+                _savedTemplate?.Current?.PublishStatus.Should().Be(PublishStatus.Draft);
             }
 
             [TestMethod]
             public void Saved_current_version_with_correct_status()
             {
-                _templateRepository.Received(1).Update(Arg.Is<Template>(x => x.Current.Status == TemplateStatus.Draft));
+                _savedTemplate?.Current?.Status.Should().Be(TemplateStatus.Draft);
             }
 
             [TestMethod]
             public void Saved_version_with_correct_name()
             {
-                _versionRepository.Received(1).SaveVersion(Arg.Is<TemplateVersion>(x => x.Name == _command.Name));
+                _savedTemplateVersion?.Name.Should().Be($"{_templateBeforeUpdate.FundingStream.Id} {_templateBeforeUpdate.FundingPeriod.Id}");
             }
 
             [TestMethod]
             public void Saved_version_with_correct_description()
             {
-                _versionRepository.Received(1).SaveVersion(Arg.Is<TemplateVersion>(x => x.Description == _command.Description));
+                _savedTemplateVersion?.Description.Should().Be(_command.Description);
             }
 
             [TestMethod]
             public void Saved_version_with_correct_TemplateId()
             {
-                _versionRepository.Received(1).SaveVersion(Arg.Is<TemplateVersion>(x => x.TemplateId == _templateBeforeUpdate.TemplateId));
+                _savedTemplateVersion?.TemplateId.Should().Be(_templateBeforeUpdate.TemplateId);
             }
 
             [TestMethod]
             public void Saved_version_with_correct_status()
             {
-                _versionRepository.Received(1).SaveVersion(Arg.Is<TemplateVersion>(x => x.Status == TemplateStatus.Draft));
+                _savedTemplateVersion?.Status.Should().Be(TemplateStatus.Draft);
+            }
+
+            [TestMethod]
+            public void Saved_version_with_blank_comment()
+            {
+                _savedTemplateVersion?.Comment.Should().BeNullOrEmpty();
             }
 
             [TestMethod]
             public void Saved_version_with_recent_date()
             {
-                _versionRepository.Received(1).SaveVersion(Arg.Is<TemplateVersion>(x => x.Date > DateTimeOffset.Now.AddMinutes(-1)));
-            }
-
-            [TestMethod]
-            public void Saved_version_with_correct_TemplateJson()
-            {
-                _versionRepository.Received(1).SaveVersion(Arg.Is<TemplateVersion>(x => x.TemplateJson == _templateVersionFirst.TemplateJson));
+                _savedTemplateVersion?.Date.Should().BeAfter(DateTimeOffset.Now.AddMinutes(-1));
             }
 
             [TestMethod]
             public void Saved_version_with_correct_FundingPeriodId()
             {
-                _versionRepository.Received(1).SaveVersion(Arg.Is<TemplateVersion>(x => x.FundingPeriodId == _templateVersionFirst.FundingPeriodId));
+                _savedTemplateVersion?.FundingPeriodId.Should().Be(_templateVersionFirst.FundingPeriodId);
+            }
+
+            [TestMethod]
+            public void Saved_version_with_correct_FundingStreamId()
+            {
+                _savedTemplateVersion?.FundingStreamId.Should().Be(_templateVersionFirst.FundingStreamId);
+            }
+
+            [TestMethod]
+            public void Saved_version_with_changed_TemplateJson()
+            {
+                _savedTemplateVersion?.TemplateJson.Should().NotBe(_templateVersionFirst.TemplateJson);
             }
 
             [TestMethod]
             public void Saved_version_without_copying_across_comment()
             {
-                _versionRepository.Received(1).SaveVersion(Arg.Is<TemplateVersion>(x => x.Comment == null));
+                _savedTemplateVersion?.Comment.Should().BeNullOrEmpty();
             }
         }
         
         [TestClass]
         public class When_i_update_template_content
         {
-            TemplateContentUpdateCommand _command;
+            TemplateFundingLinesUpdateCommand _command;
             TemplateBuilderService _service;
             Reference _author;
             CommandResult _result;
@@ -243,13 +280,15 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
             private ITemplateMetadataResolver _templateMetadataResolver;
             private IPolicyRepository _policyRepository;
             private ISearchRepository<TemplateIndex> _searchRepository;
+            private Template _savedTemplate;
+            private TemplateVersion _savedTemplateVersion;
 
             public When_i_update_template_content()
             {
-                _command = new TemplateContentUpdateCommand
+                _command = new TemplateFundingLinesUpdateCommand
                 {
                     TemplateId = Guid.NewGuid().ToString(),
-                    TemplateJson = "{ \"Lorem\": \"ipsum\" }"
+                    TemplateFundingLinesJson = @"[{""templateLineId"":1,""type"":""Payment"",""name"":""Funding Line 1"",""fundingLineCode"":""DSG-001"",""fundingLines"":[],""calculations"":[]}]"
                 };
                 _author = new Reference("222", "SecondTestUser");
 
@@ -275,7 +314,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
                 _templateRepository = Substitute.For<ITemplateRepository>();
                 _templateVersionFirst = new TemplateVersion
                 {
-                    Name = "Test Name",
+                    Name = "XXX 20-21",
                     Description = "Description",
                     TemplateId = _command.TemplateId,
                     TemplateJson = null,
@@ -283,6 +322,8 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
                     MinorVersion = 1,
                     MajorVersion = 0,
                     SchemaVersion = "1.1",
+                    FundingStreamId = "XX",
+                    FundingPeriodId = "20-21",
                     Status = TemplateStatus.Published,
                     Author = new Reference("111", "FirstTestUser")
                 };
@@ -290,6 +331,18 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
                 {
                     Name = _templateVersionFirst.Name,
                     TemplateId = _command.TemplateId,
+                    FundingPeriod = new FundingPeriod
+                    {
+                        Id = "20-21",
+                        Name = "Test Period",
+                        Type = FundingPeriodType.FY
+                    },
+                    FundingStream = new FundingStream
+                    {
+                        Id = "XX",
+                        ShortName = "XX",
+                        Name = "FundingSteam"
+                    },
                     Current = _templateVersionFirst
                 };
 
@@ -300,17 +353,27 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
                 _templateValidationService = Substitute.For<IFundingTemplateValidationService>();
                 _templateValidationService.ValidateFundingTemplate(Arg.Any<string>()).Returns(new FundingTemplateValidationResult { });
                 _templateRepository.GetTemplate(Arg.Is(_command.TemplateId)).Returns(_templateBeforeUpdate);
-                _templateRepository.Update(Arg.Any<Template>()).Returns(HttpStatusCode.OK);
+                _templateRepository.Update(Arg.Do<Template>(x => _savedTemplate = x)).Returns(HttpStatusCode.OK);
 
                 _versionRepository = Substitute.For<ITemplateVersionRepository>();
-                _versionRepository.SaveVersion(Arg.Any<TemplateVersion>()).Returns(HttpStatusCode.OK);
+                _versionRepository.SaveVersion(Arg.Do<TemplateVersion>(x => _savedTemplateVersion = x)).Returns(HttpStatusCode.OK);
 
                 _searchRepository = Substitute.For<ISearchRepository<TemplateIndex>>();
                 _searchRepository.Index(Arg.Any<IEnumerable<TemplateIndex>>()).Returns(Enumerable.Empty<IndexError>());
 
                 _policyRepository = Substitute.For<IPolicyRepository>();
-                _policyRepository.GetFundingPeriodById(Arg.Any<string>()).Returns(new FundingPeriod { Name = "FundingPeriod" });
-                _policyRepository.GetFundingStreamById(Arg.Any<string>()).Returns(new FundingStream { Name = "FundingSteam" });
+                _policyRepository.GetFundingPeriodById(Arg.Any<string>()).Returns(new FundingPeriod
+                {
+                    Id = "2021",
+                    Name = "Test Period",
+                    Type = FundingPeriodType.FY
+                });
+                _policyRepository.GetFundingStreamById(Arg.Any<string>()).Returns(new FundingStream
+                {
+                    Id = "XX",
+                    ShortName = "XX",
+                    Name = "FundingSteam"
+                });
             }
 
             [TestMethod]
@@ -318,7 +381,13 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
             {
                 _result.Succeeded.Should().BeTrue();
                 _result.Exception.Should().BeNull();
-                _result.ValidationModelState.Should().BeNull();
+            }
+
+            [TestMethod]
+            public void No_validation_errors()
+            {
+                (_result.ValidationResult == null || _result.ValidationResult.IsValid).Should()
+                    .BeTrue($"Unexpected validation errors: {_result.ValidationResult?.Errors.Select(x => x.ErrorMessage).Aggregate((x, y) => x + ", " + y)}");
             }
 
             [TestMethod]
@@ -330,103 +399,111 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
             [TestMethod]
             public void Saved_template_with_a_current_version()
             {
-                _templateRepository.Received(1).Update(Arg.Is<Template>(x => x.Current != null));
+                _savedTemplate?.Current.Should().NotBeNull();
             }
 
             [TestMethod]
             public void Saved_current_version_with_correct_json()
             {
-                _templateRepository.Received(1).Update(Arg.Is<Template>(x => x.Current.TemplateJson == _command.TemplateJson));
+                //_savedTemplate?.Current?.TemplateJson.Should().Match(x => x.Contains(_command.TemplateFundingLinesJson, StringComparison.OrdinalIgnoreCase));
+                _savedTemplate?.Current?.TemplateJson.Should().Contain(_command.TemplateFundingLinesJson);
             }
 
             [TestMethod]
             public void Saved_current_version_with_correct_name()
             {
-                _templateRepository.Received(1).Update(Arg.Is<Template>(x => x.Current.Name == _templateVersionFirst.Name));
+                _savedTemplate?.Current?.Name.Should().Be($"{_templateBeforeUpdate.FundingStream.Id} {_templateBeforeUpdate.FundingPeriod.Id}");
             }
 
             [TestMethod]
             public void Saved_current_version_with_correct_description()
             {
-                _templateRepository.Received(1).Update(Arg.Is<Template>(x => x.Current.Description == _templateVersionFirst.Description));
+                _savedTemplate?.Current?.Description.Should().Be(_templateVersionFirst.Description);
             }
 
             [TestMethod]
             public void Saved_current_version_with_correct_author()
             {
-                _templateRepository.Received(1).Update(Arg.Is<Template>(x => x.Current.Author.Name == _author.Name));
+                _savedTemplate?.Current?.Author?.Name.Should().Be(_author.Name);
+                _savedTemplate?.Current?.Author?.Id.Should().Be(_author.Id);
             }
 
             [TestMethod]
             public void Saved_current_version_with_correct_version_number()
             {
-                _templateRepository.Received(1).Update(Arg.Is<Template>(x => x.Current.Version == _templateVersionFirst.Version + 1));
+                _savedTemplate?.Current?.Version.Should().Be(_templateVersionFirst.Version + 1);
             }
 
             [TestMethod]
             public void Saved_current_version_with_correct_minor_version_number()
             {
-                _templateRepository.Received(1).Update(Arg.Is<Template>(x => x.Current.MinorVersion == _templateVersionFirst.MinorVersion + 1));
+                _savedTemplate?.Current?.MinorVersion.Should().Be(_templateVersionFirst.MinorVersion + 1);
             }
 
             [TestMethod]
             public void Saved_current_version_with_correct_major_version_number()
             {
-                _templateRepository.Received(1).Update(Arg.Is<Template>(x => x.Current.MajorVersion == _templateVersionFirst.MajorVersion));
+                _savedTemplate?.Current?.MajorVersion.Should().Be(_templateVersionFirst.MajorVersion);
             }
 
             [TestMethod]
             public void Saved_current_version_with_correct_publish_status()
             {
-                _templateRepository.Received(1).Update(Arg.Is<Template>(x => x.Current.PublishStatus == PublishStatus.Draft));
+                _savedTemplate?.Current?.PublishStatus.Should().Be(PublishStatus.Draft);
             }
 
             [TestMethod]
             public void Saved_current_version_with_correct_status()
             {
-                _templateRepository.Received(1).Update(Arg.Is<Template>(x => x.Current.Status == TemplateStatus.Draft));
+                _savedTemplate?.Current?.Status.Should().Be(TemplateStatus.Draft);
             }
 
             [TestMethod]
             public void Saved_version_with_correct_name()
             {
-                _versionRepository.Received(1).SaveVersion(Arg.Is<TemplateVersion>(x => x.Name == _templateVersionFirst.Name));
+                _savedTemplateVersion?.Name.Should().Be($"{_templateBeforeUpdate.FundingStream.Id} {_templateBeforeUpdate.FundingPeriod.Id}");
             }
 
             [TestMethod]
             public void Saved_version_with_correct_description()
             {
-                _versionRepository.Received(1).SaveVersion(Arg.Is<TemplateVersion>(x => x.Description == _templateVersionFirst.Description));
+                _savedTemplateVersion?.Description.Should().Be(_templateVersionFirst.Description);
             }
 
             [TestMethod]
             public void Saved_version_with_correct_TemplateId()
             {
-                _versionRepository.Received(1).SaveVersion(Arg.Is<TemplateVersion>(x => x.TemplateId == _templateBeforeUpdate.TemplateId));
+                _savedTemplateVersion?.TemplateId.Should().Be(_templateBeforeUpdate.TemplateId);
             }
 
             [TestMethod]
             public void Saved_version_with_correct_status()
             {
-                _versionRepository.Received(1).SaveVersion(Arg.Is<TemplateVersion>(x => x.Status == TemplateStatus.Draft));
+                _savedTemplateVersion?.Status.Should().Be(TemplateStatus.Draft);
             }
 
             [TestMethod]
             public void Saved_version_with_blank_comment()
             {
-                _versionRepository.Received(1).SaveVersion(Arg.Is<TemplateVersion>(x => x.Comment == null));
+                _savedTemplateVersion?.Comment.Should().BeNullOrEmpty();
             }
 
             [TestMethod]
             public void Saved_version_with_recent_date()
             {
-                _versionRepository.Received(1).SaveVersion(Arg.Is<TemplateVersion>(x => x.Date > DateTimeOffset.Now.AddMinutes(-1)));
+                _savedTemplateVersion?.Date.Should().BeAfter(DateTimeOffset.Now.AddMinutes(-1));
             }
 
             [TestMethod]
             public void Saved_version_with_correct_FundingPeriodId()
             {
-                _versionRepository.Received(1).SaveVersion(Arg.Is<TemplateVersion>(x => x.FundingPeriodId == _templateVersionFirst.FundingPeriodId));
+                _savedTemplateVersion?.FundingPeriodId.Should().Be(_templateVersionFirst.FundingPeriodId);
+            }
+
+            [TestMethod]
+            public void Saved_version_with_correct_FundingStreamId()
+            {
+                _savedTemplateVersion?.FundingStreamId.Should().Be(_templateVersionFirst.FundingStreamId);
             }
         }
     }

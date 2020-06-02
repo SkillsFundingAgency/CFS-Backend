@@ -21,6 +21,18 @@ namespace CalculateFunding.Models.Policy.TemplateBuilder
         public string TemplateId { get; set; }
         
         /// <summary>
+        /// Funding Stream ID. eg PSG, DSG
+        /// </summary>
+        [JsonProperty("fundingStream")]
+        public FundingStream FundingStream { get; set; }
+
+        /// <summary>
+        /// Funding Period ID
+        /// </summary>
+        [JsonProperty("fundingPeriod")]
+        public FundingPeriod FundingPeriod { get; set; }
+        
+        /// <summary>
         /// Current version of the provider
         /// </summary>
         [JsonProperty("current")]
@@ -29,26 +41,15 @@ namespace CalculateFunding.Models.Policy.TemplateBuilder
         [JsonProperty("released")]
         public TemplateVersion Released { get; set; }
 
-        /// <summary>
-        /// Cosmos partition to store this document in. The cosmos collection uses /content/partitionKey as partition key
-        /// </summary>
-        [JsonProperty("partitionKey")]
-        public string PartitionKey => GeneratePartitionKey(Current.FundingStreamId, Current.SchemaVersion);
-
-        public static string GeneratePartitionKey(string schemaVersion, string fundingStreamId)
+        public bool HasPredecessor(string templateId)
         {
-            return $"template-{fundingStreamId}-{schemaVersion}";
+            return Current?.Predecessors?.Count(_ => _?.ToLower().Trim() == templateId?.ToLower().Trim()) >= 1;
         }
 
-        public bool HasPredecessor(string templateBuildId)
-        {
-            return Current?.Predecessors?.Count(_ => _?.ToLower().Trim() == templateBuildId?.ToLower().Trim()) >= 1;
-        }
-
-        public void AddPredecessor(string templateBuildId)
+        public void AddPredecessor(string templateId)
         {
             Current.Predecessors ??= new List<string>();
-            Current.Predecessors.Add(templateBuildId);
+            Current.Predecessors.Add(templateId);
         }
 
         public override bool Equals(object obj)
