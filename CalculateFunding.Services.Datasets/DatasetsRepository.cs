@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Net;
+using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models;
@@ -161,6 +162,39 @@ namespace CalculateFunding.Services.Datasets
             }
 
             return specificationIds;
+        }
+
+        public async Task<IEnumerable<KeyValuePair<string, int>>> GetDatasetLatestVersions(IEnumerable<string> datasetIds)
+        {
+            Guard.IsNotEmpty(datasetIds, nameof(datasetIds));
+
+            StringBuilder queryTextBuilder = new StringBuilder(@"
+                SELECT d.id, d.content.current.version
+                FROM datasets d
+                WHERE d.deleted = false 
+                AND d.documentType = 'Dataset'");
+
+            string documentIdQueryText = string.Join(',', datasetIds.Select((_, index) => $"@datasetId_{index}"));
+            queryTextBuilder.Append($" AND d.id IN ({documentIdQueryText})");
+
+            IEnumerable<CosmosDbQueryParameter> cosmosDbQueryParameters = datasetIds.Select((_, index) => new CosmosDbQueryParameter($"@datasetId_{index}", _));
+
+            CosmosDbQuery cosmosDbQuery = new CosmosDbQuery
+            {
+                QueryText = queryTextBuilder.ToString(),
+                Parameters = cosmosDbQueryParameters
+            };
+
+            IDictionary<string, int> results = new Dictionary<string, int>();
+            IEnumerable<dynamic> queryResults = await _cosmosRepository
+             .DynamicQuery(cosmosDbQuery);
+
+            foreach (dynamic item in queryResults)
+            {
+                results.Add((string)item.id, (int)item.version);
+            }
+
+            return await Task.FromResult(results);
         }
 
         public async Task DeleteDatasetsBySpecificationId(string specificationId, DeletionType deletionType)

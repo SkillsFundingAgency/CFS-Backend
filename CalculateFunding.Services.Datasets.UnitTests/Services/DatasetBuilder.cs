@@ -9,6 +9,7 @@ namespace CalculateFunding.Services.Datasets.Services
     public class DatasetBuilder : TestEntityBuilder
     {
         private string _id;
+        private string _name;
         private Reference _definition;
         private DatasetVersion _current;
         private IEnumerable<DatasetVersion> _history;
@@ -19,7 +20,14 @@ namespace CalculateFunding.Services.Datasets.Services
 
             return this;
         }
-        
+
+        public DatasetBuilder WithName(string name)
+        {
+            _name = name;
+
+            return this;
+        }
+
         public DatasetBuilder WithCurrent(DatasetVersion current)
         {
             _current = current;
@@ -48,7 +56,8 @@ namespace CalculateFunding.Services.Datasets.Services
                 Id = _id ?? NewRandomString(),
                 Definition = _definition,
                 Current = _current,
-                History = _history?.ToList()
+                History = _history?.ToList(),
+                Name = _name ?? NewRandomString()
             };
         }
     }

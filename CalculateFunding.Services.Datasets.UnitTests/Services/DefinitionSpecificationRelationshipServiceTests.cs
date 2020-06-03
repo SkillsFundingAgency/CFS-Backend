@@ -21,6 +21,7 @@ using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Datasets.Interfaces;
 using CalculateFunding.Services.Datasets.MappingProfiles;
+using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using FluentValidation;
 using FluentValidation.Results;
@@ -368,21 +369,49 @@ namespace CalculateFunding.Services.Datasets.Services
         public async Task GetRelationshipsBySpecificationId_GivenItemsReturned_ReturnsOK()
         {
             //Arrange
-            string specificationId = Guid.NewGuid().ToString();
+            string specificationId = NewRandomString();
 
             ILogger logger = CreateLogger();
 
+            int existingMappedVersion = 1;
+            int latestVersion = 2;
+            
+            string datasetId1 = NewRandomString();
+            string datasetId2 = NewRandomString();
+            string datasetId3 = NewRandomString();
+
             IEnumerable<DefinitionSpecificationRelationship> relationships = new[]
             {
-                new DefinitionSpecificationRelationship(),
-                new DefinitionSpecificationRelationship(),
-                new DefinitionSpecificationRelationship()
+                NewDefinitionSpecificationRelationship(_=>_.WithDatasetVersion(NewDatasetRelationshipVersion(dsrv => dsrv.WithVersion(existingMappedVersion).WithId(datasetId1)))),
+                NewDefinitionSpecificationRelationship(_=>_.WithDatasetVersion(NewDatasetRelationshipVersion(dsrv => dsrv.WithVersion(existingMappedVersion).WithId(datasetId2)))),
+                NewDefinitionSpecificationRelationship(_=>_.WithDatasetVersion(NewDatasetRelationshipVersion(dsrv => dsrv.WithVersion(existingMappedVersion).WithId(datasetId3)))),
+            };
+
+            Dataset dataset1 = NewDataset(_ => _.WithId(datasetId1));
+            Dataset dataset2 = NewDataset(_ => _.WithId(datasetId2));
+
+            KeyValuePair<string, int> keyValuePair1 = new KeyValuePair<string, int>(datasetId1, existingMappedVersion);
+            KeyValuePair<string, int> keyValuePair2 = new KeyValuePair<string, int>(datasetId2, latestVersion);
+
+            IEnumerable<KeyValuePair<string, int>> datasetLatestVersions = new List<KeyValuePair<string, int>>
+            {
+                keyValuePair1,
+                keyValuePair2,
             };
 
             IDatasetRepository datasetRepository = CreateDatasetRepository();
             datasetRepository
                 .GetDefinitionSpecificationRelationshipsByQuery(Arg.Any<Expression<Func<DocumentEntity<DefinitionSpecificationRelationship>, bool>>>())
                 .Returns(relationships);
+            datasetRepository
+                .GetDatasetLatestVersions(Arg.Is<IEnumerable<string>>(_ => _.Contains(datasetId1) && _.Contains(datasetId2)))
+                .Returns(datasetLatestVersions);
+            datasetRepository
+                .GetDatasetByDatasetId(Arg.Is(datasetId1))
+                .Returns(dataset1);
+            datasetRepository
+                .GetDatasetByDatasetId(Arg.Is(datasetId2))
+                .Returns(dataset2);
 
             DefinitionSpecificationRelationshipService service = CreateService(logger: logger, datasetRepository: datasetRepository);
 
@@ -402,6 +431,28 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Count()
                 .Should()
                 .Be(3);
+
+            items
+                .SingleOrDefault(_ => _.DatasetId == datasetId1)
+                .Should()
+                .NotBeNull();
+
+            items
+                .SingleOrDefault(_ => _.DatasetId == datasetId1)
+                .IsLatestVersion
+                .Should()
+                .BeTrue();
+
+            items
+                .SingleOrDefault(_ => _.DatasetId == datasetId2)
+                .Should()
+                .NotBeNull();
+
+            items
+                .SingleOrDefault(_ => _.DatasetId == datasetId2)
+                .IsLatestVersion
+                .Should()
+                .BeFalse();
         }
 
         [TestMethod]
@@ -1045,10 +1096,12 @@ namespace CalculateFunding.Services.Datasets.Services
         [TestMethod]
         public async Task GetCurrentRelationshipsBySpecificationIdAndDatasetDefinitionId_GivenRelationships_ReturnsOkAndList()
         {
-            string specificationId = Guid.NewGuid().ToString();
-            string relationshipId = Guid.NewGuid().ToString();
-            string definitionId = Guid.NewGuid().ToString();
-            string datasetId = Guid.NewGuid().ToString();
+            string specificationId = NewRandomString();
+            string relationshipId = NewRandomString();
+            string definitionId = NewRandomString();
+            string datasetId = NewRandomString();
+            const int exisingDatasetReulationshipVersion = 1;
+            const int latestDatasetReulationshipVersion = 2;
             const string relationshipName = "rel name";
             const string relationshipDescription = "dataset description";
 
@@ -1072,17 +1125,20 @@ namespace CalculateFunding.Services.Datasets.Services
                 DatasetVersion = new DatasetRelationshipVersion
                 {
                     Id = datasetId,
-                    Version = 1
+                    Version = exisingDatasetReulationshipVersion
                 },
                 IsSetAsProviderData = true
             });
 
-            Dataset dataset = new Dataset
-            {
-                Id = datasetId,
-                Name = "ds name"
-            };
+            Dataset dataset = NewDataset(_ => _.WithId(datasetId).WithName("ds name"));
 
+            KeyValuePair<string, int> keyValuePair1 = new KeyValuePair<string, int>(datasetId, latestDatasetReulationshipVersion);
+
+            IEnumerable<KeyValuePair<string, int>> datasetLatestVersions = new List<KeyValuePair<string, int>>
+            {
+                keyValuePair1,
+            };
+            
             IDatasetRepository datasetRepository = CreateDatasetRepository();
             datasetRepository
                 .GetDefinitionSpecificationRelationshipsByQuery(Arg.Any<Expression<Func<DocumentEntity<DefinitionSpecificationRelationship>, bool>>>())
@@ -1093,6 +1149,9 @@ namespace CalculateFunding.Services.Datasets.Services
             datasetRepository
                 .GetDatasetByDatasetId(Arg.Is(datasetId))
                 .Returns(dataset);
+            datasetRepository
+                .GetDatasetLatestVersions(Arg.Is<IEnumerable<string>>(_ => _.Contains(datasetId)))
+                .Returns(datasetLatestVersions);
 
             DefinitionSpecificationRelationshipService service = CreateService(logger: logger, datasetRepository: datasetRepository);
 
@@ -1171,6 +1230,12 @@ namespace CalculateFunding.Services.Datasets.Services
                .RelationshipDescription
                .Should()
                .Be(relationshipDescription);
+
+            content
+                .First()
+                .IsLatestVersion
+                .Should()
+                .BeFalse();
         }
 
         [TestMethod]
@@ -1866,5 +1931,34 @@ namespace CalculateFunding.Services.Datasets.Services
         {
             return Substitute.For<IJobManagement>();
         }
+
+        private Dataset NewDataset(Action<DatasetBuilder> setUp = null)
+        {
+            DatasetBuilder datasetBuilder = new DatasetBuilder();
+
+            setUp?.Invoke(datasetBuilder);
+
+            return datasetBuilder.Build();
+        }
+
+        private DefinitionSpecificationRelationship NewDefinitionSpecificationRelationship(Action<DefinitionSpecificationRelationshipBuilder> setUp = null)
+        {
+            DefinitionSpecificationRelationshipBuilder definitionSpecificationRelationshipBuilder = new DefinitionSpecificationRelationshipBuilder();
+
+            setUp?.Invoke(definitionSpecificationRelationshipBuilder);
+
+            return definitionSpecificationRelationshipBuilder.Build();
+        }
+
+        private DatasetRelationshipVersion NewDatasetRelationshipVersion(Action<DatasetRelationshipVersionBuilder> setUp = null)
+        {
+            DatasetRelationshipVersionBuilder datasetRelationshipVersionBuilder = new DatasetRelationshipVersionBuilder();
+
+            setUp?.Invoke(datasetRelationshipVersionBuilder);
+
+            return datasetRelationshipVersionBuilder.Build();
+        }
+
+        private string NewRandomString() => new RandomString();
     }
 }

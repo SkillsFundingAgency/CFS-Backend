@@ -15,5 +15,7 @@ namespace CalculateFunding.Models.Datasets.ViewModels
         public string RelationshipDescription { get; set; }
 
         public bool IsProviderData { get; set; }
+
+        public bool IsLatestVersion { get; set; }
     }
 }

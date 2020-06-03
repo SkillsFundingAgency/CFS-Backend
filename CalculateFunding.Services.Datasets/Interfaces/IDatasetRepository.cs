@@ -46,6 +46,8 @@ namespace CalculateFunding.Services.Datasets.Interfaces
 
         Task<IEnumerable<string>> GetDistinctRelationshipSpecificationIdsForDatasetDefinitionId(string datasetDefinitionId);
 
+        Task<IEnumerable<KeyValuePair<string, int>>> GetDatasetLatestVersions(IEnumerable<string> datasetIds);
+
         Task UpdateDefinitionSpecificationRelationships(IEnumerable<DefinitionSpecificationRelationship> relationships);
 
         Task DeleteDatasetsBySpecificationId(string specificationId, DeletionType deletionType);

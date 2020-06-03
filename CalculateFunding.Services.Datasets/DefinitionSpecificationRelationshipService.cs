@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Specifications;
@@ -212,9 +211,13 @@ namespace CalculateFunding.Services.Datasets
 
             IList<Task<DatasetSpecificationRelationshipViewModel>> tasks = new List<Task<DatasetSpecificationRelationshipViewModel>>();
 
+            IEnumerable<KeyValuePair<string, int>> datasetLatestVersions =
+                await _datasetRepository.GetDatasetLatestVersions(relationships.Select(_ => _.DatasetVersion.Id));
+
             foreach (DefinitionSpecificationRelationship relationship in relationships)
             {
-                Task<DatasetSpecificationRelationshipViewModel> task = CreateViewModel(relationship);
+                KeyValuePair<string, int> datasetLatestVersion = datasetLatestVersions.SingleOrDefault(_ => _.Key == relationship.DatasetVersion?.Id);
+                Task<DatasetSpecificationRelationshipViewModel> task = CreateViewModel(relationship, datasetLatestVersion);
 
                 tasks.Add(task);
             }
@@ -408,11 +411,15 @@ namespace CalculateFunding.Services.Datasets
                 return new OkObjectResult(relationshipViewModels);
             }
 
+            IEnumerable<KeyValuePair<string, int>> datasetLatestVersions =
+                await _datasetRepository.GetDatasetLatestVersions(relationships.Select(_ => _.DatasetVersion.Id));
+
             IList<Task<DatasetSpecificationRelationshipViewModel>> tasks = new List<Task<DatasetSpecificationRelationshipViewModel>>();
 
             foreach (DefinitionSpecificationRelationship relationship in relationships)
             {
-                Task<DatasetSpecificationRelationshipViewModel> task = CreateViewModel(relationship);
+                KeyValuePair<string, int> datasetLatestVersion = datasetLatestVersions.SingleOrDefault(_ => _.Key == relationship.DatasetVersion?.Id);
+                Task<DatasetSpecificationRelationshipViewModel> task = CreateViewModel(relationship, datasetLatestVersion);
 
                 tasks.Add(task);
             }
@@ -447,11 +454,15 @@ namespace CalculateFunding.Services.Datasets
                 return new OkObjectResult(relationshipViewModels);
             }
 
+            IEnumerable<KeyValuePair<string, int>> datasetLatestVersions =
+                await _datasetRepository.GetDatasetLatestVersions(relationships.Select(_ => _.DatasetVersion.Id));
+
             IList<Task<DatasetSpecificationRelationshipViewModel>> tasks = new List<Task<DatasetSpecificationRelationshipViewModel>>();
 
             foreach (DefinitionSpecificationRelationship relationship in relationships)
             {
-                Task<DatasetSpecificationRelationshipViewModel> task = CreateViewModel(relationship);
+                KeyValuePair<string, int> datasetLatestVersion = datasetLatestVersions.SingleOrDefault(_ => _.Key == relationship.DatasetVersion?.Id);
+                Task<DatasetSpecificationRelationshipViewModel> task = CreateViewModel(relationship, datasetLatestVersion);
 
                 tasks.Add(task);
             }
@@ -560,7 +571,9 @@ namespace CalculateFunding.Services.Datasets
             }
         }
 
-        private async Task<DatasetSpecificationRelationshipViewModel> CreateViewModel(DefinitionSpecificationRelationship relationship)
+        private async Task<DatasetSpecificationRelationshipViewModel> CreateViewModel(
+            DefinitionSpecificationRelationship relationship,
+            KeyValuePair<string, int> datasetLatestVersion)
         {
             DatasetSpecificationRelationshipViewModel relationshipViewModel = new DatasetSpecificationRelationshipViewModel
             {
@@ -579,6 +592,7 @@ namespace CalculateFunding.Services.Datasets
                     relationshipViewModel.DatasetId = relationship.DatasetVersion.Id;
                     relationshipViewModel.DatasetName = dataset.Name;
                     relationshipViewModel.Version = relationship.DatasetVersion.Version;
+                    relationshipViewModel.IsLatestVersion = relationship.DatasetVersion.Version == datasetLatestVersion.Value;
                 }
                 else
                 {

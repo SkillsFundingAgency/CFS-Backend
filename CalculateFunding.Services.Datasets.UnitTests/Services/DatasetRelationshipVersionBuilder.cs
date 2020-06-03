@@ -5,7 +5,15 @@ namespace CalculateFunding.Services.Datasets.Services
 {
     public class DatasetRelationshipVersionBuilder : TestEntityBuilder
     {
+        private string _id;
         private int? _version;
+
+        public DatasetRelationshipVersionBuilder WithId(string id)
+        {
+            _id = id;
+
+            return this;
+        }
 
         public DatasetRelationshipVersionBuilder WithVersion(int version)
         {
@@ -18,7 +26,8 @@ namespace CalculateFunding.Services.Datasets.Services
         {
             return new DatasetRelationshipVersion
             {
-                Version = _version.GetValueOrDefault(NewRandomNumberBetween(1, 99))
+                Id = _id ?? NewRandomString(),
+                Version = _version.GetValueOrDefault(NewRandomNumberBetween(1, 99)),
             };
         }
     }
