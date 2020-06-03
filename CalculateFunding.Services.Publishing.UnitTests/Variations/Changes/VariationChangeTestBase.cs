@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Models.Publishing;
@@ -32,13 +33,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
                 .Returns(_specificationsApiClient);
 
             VariationsApplication.ResiliencePolicies
-                .Returns(new ResiliencePolicies
-                {
-                    SpecificationsApiClient = Policy.NoOpAsync(),
-                    CacheProvider = Policy.NoOpAsync(),
-                    PoliciesApiClient = Policy.NoOpAsync(),
-                    CalculationsApiClient = Policy.NoOpAsync()
-                });
+            .Returns(new ResiliencePolicies
+            {
+                SpecificationsApiClient = Policy.NoOpAsync(),
+                CacheProvider = Policy.NoOpAsync(),
+                PoliciesApiClient = Policy.NoOpAsync(),
+                CalculationsApiClient = Policy.NoOpAsync()
+            });
         }
 
         protected async Task WhenTheChangeIsApplied()
@@ -63,7 +64,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
             ProfileVariationPointerBuilder variationPointerBuilder = new ProfileVariationPointerBuilder();
 
             setUp?.Invoke(variationPointerBuilder);
-            
+
             return variationPointerBuilder.Build();
         }
 

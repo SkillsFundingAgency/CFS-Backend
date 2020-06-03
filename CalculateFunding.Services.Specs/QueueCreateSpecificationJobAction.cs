@@ -87,7 +87,7 @@ namespace CalculateFunding.Services.Specs
             IEnumerable<Task<ApiResponse<TemplateMetadataContents>>> queryTemplateContentsTasks
                 = queryFundingConfigurationTasks.Where(_ => !string.IsNullOrWhiteSpace(_?.Result?.Content?.DefaultTemplateVersion))
                     .Select(_ => _policyResiliencePolicy.ExecuteAsync(() => _policies.GetFundingTemplateContents(
-                        _.Result.Content.FundingStreamId, _.Result.Content.DefaultTemplateVersion)));
+                        _.Result.Content.FundingStreamId, _.Result.Content.FundingPeriodId, _.Result.Content.DefaultTemplateVersion)));
 
             await TaskHelper.WhenAllAndThrow(queryTemplateContentsTasks.ToArray());
         }
@@ -110,7 +110,7 @@ namespace CalculateFunding.Services.Specs
             if (string.IsNullOrEmpty(templateVersion)) return;
 
             ApiResponse<TemplateMetadataContents> templateContents = await _policyResiliencePolicy.ExecuteAsync(
-                () => _policies.GetFundingTemplateContents(fundingStreamId,
+                () => _policies.GetFundingTemplateContents(fundingStreamId, fundingPeriodId,
                     fundingConfiguration.DefaultTemplateVersion));
 
             IEnumerable<FundingLine> flattenedFundingLines = templateContents?.Content?.RootFundingLines.Flatten(_ => _.FundingLines)

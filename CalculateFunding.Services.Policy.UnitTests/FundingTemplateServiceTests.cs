@@ -40,14 +40,15 @@ namespace CalculateFunding.Services.Policy
         {
             string fundingStreamId = NewRandomString();
             string templateVersion = NewRandomString();
+            string fundingPeriodId = NewRandomString();
 
             IFundingTemplateRepository fundingTemplateRepository = Substitute.For<IFundingTemplateRepository>();
             FundingTemplateService service = CreateFundingTemplateService(fundingTemplateRepository: fundingTemplateRepository);
 
-            fundingTemplateRepository.TemplateVersionExists($"{fundingStreamId}/{templateVersion}.json")
+            fundingTemplateRepository.TemplateVersionExists($"{fundingStreamId}/{fundingPeriodId}/{templateVersion}.json")
                 .Returns(expectedExistsFlag);
 
-            bool templateExists = await service.TemplateExists(fundingStreamId, templateVersion);
+            bool templateExists = await service.TemplateExists(fundingStreamId, fundingPeriodId, templateVersion);
 
             templateExists
                 .Should()
@@ -132,9 +133,10 @@ namespace CalculateFunding.Services.Policy
                 TemplateVersion = "1.8",
                 FundingStreamId = "PES",
                 SchemaVersion = "1.0",
+                FundingPeriodId = "AY-2020"
             };
 
-            string blobName = $"{validationResult.FundingStreamId}/{validationResult.TemplateVersion}.json";
+            string blobName = $"{validationResult.FundingStreamId}/{validationResult.FundingPeriodId}/{validationResult.TemplateVersion}.json";
 
             IFundingTemplateValidationService fundingTemplateValidationService = CreateFundingTemplateValidationService();
             fundingTemplateValidationService
@@ -188,9 +190,10 @@ namespace CalculateFunding.Services.Policy
                 TemplateVersion = "1.5",
                 FundingStreamId = "PES",
                 SchemaVersion = "1.0",
+                FundingPeriodId = "AY-2020"
             };
 
-            string cacheKey = $"{CacheKeys.FundingTemplatePrefix}{validationResult.FundingStreamId}-{validationResult.TemplateVersion}".ToLowerInvariant();
+            string cacheKey = $"{CacheKeys.FundingTemplatePrefix}{validationResult.FundingStreamId}-{validationResult.FundingPeriodId}-{validationResult.TemplateVersion}".ToLowerInvariant();
 
             ITemplateMetadataResolver templateMetadataResolver = CreateMetadataResolver("1.0");
 
@@ -238,6 +241,11 @@ namespace CalculateFunding.Services.Policy
                .Be("PES");
 
             actionResult
+               .RouteValues["fundingPeriodId"].ToString()
+               .Should()
+               .Be("AY-2020");
+
+            actionResult
                 .RouteValues["templateVersion"].ToString()
                 .Should()
                 .Be("1.5");
@@ -250,11 +258,11 @@ namespace CalculateFunding.Services.Policy
             await
                 cacheProvider
                     .Received(1)
-                    .RemoveAsync<FundingTemplateContents>(Arg.Is($"{CacheKeys.FundingTemplateContents}pes:1.5"));
+                    .RemoveAsync<FundingTemplateContents>(Arg.Is($"{CacheKeys.FundingTemplateContents}pes:ay-2020:1.5"));
 
             await cacheProvider
                 .Received(1)
-                .RemoveAsync<TemplateMetadataContents>($"{CacheKeys.FundingTemplateContentMetadata}pes:1.5");
+                .RemoveAsync<TemplateMetadataContents>($"{CacheKeys.FundingTemplateContentMetadata}pes:ay-2020:1.5");
         }
 
         [TestMethod]
@@ -318,8 +326,9 @@ namespace CalculateFunding.Services.Policy
             //Arrange
             const string fundingStreamId = "PES";
             const string templateVersion = "1.2";
+            const string fundingPeriodId = "AY-2020";
 
-            string cacheKey = $"{CacheKeys.FundingTemplatePrefix}{fundingStreamId}-{templateVersion}";
+            string cacheKey = $"{CacheKeys.FundingTemplatePrefix}{fundingStreamId}-{fundingPeriodId}-{templateVersion}";
 
             string template = "a template";
 
@@ -331,7 +340,7 @@ namespace CalculateFunding.Services.Policy
             FundingTemplateService fundingTemplateService = CreateFundingTemplateService(cacheProvider: cacheProvider);
 
             //Act
-            IActionResult result = await fundingTemplateService.GetFundingTemplateSourceFile(fundingStreamId, templateVersion);
+            IActionResult result = await fundingTemplateService.GetFundingTemplateSourceFile(fundingStreamId, fundingPeriodId, templateVersion);
 
             //Assert
             result
@@ -349,10 +358,11 @@ namespace CalculateFunding.Services.Policy
             //Arrange
             const string fundingStreamId = "PES";
             const string templateVersion = "1.2";
+            const string fundingPeriodId = "AY-2020";
 
-            string cacheKey = $"{CacheKeys.FundingTemplatePrefix}{fundingStreamId}-{templateVersion}";
+            string cacheKey = $"{CacheKeys.FundingTemplatePrefix}{fundingStreamId}-{fundingPeriodId}-{templateVersion}";
 
-            string blobName = $"{fundingStreamId}/{templateVersion}.json";
+            string blobName = $"{fundingStreamId}/{fundingPeriodId}/{templateVersion}.json";
 
             ICacheProvider cacheProvider = CreateCacheProvider();
             cacheProvider
@@ -369,7 +379,7 @@ namespace CalculateFunding.Services.Policy
                 fundingTemplateRepository: fundingTemplateRepository);
 
             //Act
-            IActionResult result = await fundingTemplateService.GetFundingTemplateSourceFile(fundingStreamId, templateVersion);
+            IActionResult result = await fundingTemplateService.GetFundingTemplateSourceFile(fundingStreamId, fundingPeriodId, templateVersion);
 
             //Assert
             result
@@ -383,10 +393,11 @@ namespace CalculateFunding.Services.Policy
             //Arrange
             const string fundingStreamId = "PES";
             const string templateVersion = "1.2";
+            const string fundingPeriodId = "AY-2020";
 
-            string cacheKey = $"{CacheKeys.FundingTemplatePrefix}{fundingStreamId}-{templateVersion}";
+            string cacheKey = $"{CacheKeys.FundingTemplatePrefix}{fundingStreamId}-{fundingPeriodId}-{templateVersion}";
 
-            string blobName = $"{fundingStreamId}/{templateVersion}.json";
+            string blobName = $"{fundingStreamId}/{fundingPeriodId}/{templateVersion}.json";
 
             string template = string.Empty;
 
@@ -413,7 +424,7 @@ namespace CalculateFunding.Services.Policy
                 fundingTemplateRepository: fundingTemplateRepository);
 
             //Act
-            IActionResult result = await fundingTemplateService.GetFundingTemplateSourceFile(fundingStreamId, templateVersion);
+            IActionResult result = await fundingTemplateService.GetFundingTemplateSourceFile(fundingStreamId, fundingPeriodId, templateVersion);
 
             //Assert
             result
@@ -422,7 +433,7 @@ namespace CalculateFunding.Services.Policy
                 .Which
                 .Value
                 .Should()
-                .Be($"Failed to retreive blob contents for funding stream id '{fundingStreamId}' funding template version '{templateVersion}'");
+                .Be($"Failed to retreive blob contents for funding stream id '{fundingStreamId}', funding period id '{fundingPeriodId}' and funding template version '{templateVersion}'");
 
             logger
                 .Received(1)
@@ -435,10 +446,11 @@ namespace CalculateFunding.Services.Policy
             //Arrange
             const string fundingStreamId = "PES";
             const string templateVersion = "1.2";
+            const string fundingPeriodId = "AY-2020";
 
-            string cacheKey = $"{CacheKeys.FundingTemplatePrefix}{fundingStreamId}-{templateVersion}";
+            string cacheKey = $"{CacheKeys.FundingTemplatePrefix}{fundingStreamId}-{fundingPeriodId}-{templateVersion}";
 
-            string blobName = $"{fundingStreamId}/{templateVersion}.json";
+            string blobName = $"{fundingStreamId}/{fundingPeriodId}/{templateVersion}.json";
 
             string template = string.Empty;
 
@@ -461,7 +473,7 @@ namespace CalculateFunding.Services.Policy
                 fundingTemplateRepository: fundingTemplateRepository);
 
             //Act
-            IActionResult result = await fundingTemplateService.GetFundingTemplateSourceFile(fundingStreamId, templateVersion);
+            IActionResult result = await fundingTemplateService.GetFundingTemplateSourceFile(fundingStreamId, fundingPeriodId, templateVersion);
 
             //Assert
             result
@@ -470,7 +482,7 @@ namespace CalculateFunding.Services.Policy
                 .Which
                 .Value
                 .Should()
-                .Be($"Error occurred fetching funding template for funding stream id '{fundingStreamId}' and version '{templateVersion}'");
+                .Be($"Error occurred fetching funding template for funding stream id '{fundingStreamId}', funding period id '{fundingPeriodId}' and version '{templateVersion}'");
 
             logger
                 .Received(1)
@@ -483,10 +495,11 @@ namespace CalculateFunding.Services.Policy
             //Arrange
             const string fundingStreamId = "PES";
             const string templateVersion = "1.2";
+            const string fundingPeriodId = "AY-2020";
 
-            string cacheKey = $"{CacheKeys.FundingTemplatePrefix}{fundingStreamId}-{templateVersion}";
+            string cacheKey = $"{CacheKeys.FundingTemplatePrefix}{fundingStreamId}-{fundingPeriodId}-{templateVersion}";
 
-            string blobName = $"{fundingStreamId}/{templateVersion}.json";
+            string blobName = $"{fundingStreamId}/{fundingPeriodId}/{templateVersion}.json";
 
             string template = string.Empty;
 
@@ -513,7 +526,7 @@ namespace CalculateFunding.Services.Policy
                 fundingTemplateRepository: fundingTemplateRepository);
 
             //Act
-            IActionResult result = await fundingTemplateService.GetFundingTemplateSourceFile(fundingStreamId, templateVersion);
+            IActionResult result = await fundingTemplateService.GetFundingTemplateSourceFile(fundingStreamId, fundingPeriodId, templateVersion);
 
             //Assert
             result
@@ -522,7 +535,7 @@ namespace CalculateFunding.Services.Policy
                 .Which
                 .Value
                 .Should()
-                .Be($"Error occurred fetching funding template for funding stream id '{fundingStreamId}' and version '{templateVersion}'");
+                .Be($"Error occurred fetching funding template for funding stream id '{fundingStreamId}', funding period id '{fundingPeriodId}' and version '{templateVersion}'");
 
             logger
                 .Received(1)
@@ -535,10 +548,11 @@ namespace CalculateFunding.Services.Policy
             //Arrange
             const string fundingStreamId = "PES";
             const string templateVersion = "1.2";
+            const string fundingPeriodId = "AY-2020";
 
-            string cacheKey = $"{CacheKeys.FundingTemplatePrefix}{fundingStreamId}-{templateVersion}";
+            string cacheKey = $"{CacheKeys.FundingTemplatePrefix}{fundingStreamId}-{fundingPeriodId}-{templateVersion}";
 
-            string blobName = $"{fundingStreamId}/{templateVersion}.json";
+            string blobName = $"{fundingStreamId}/{fundingPeriodId}/{templateVersion}.json";
 
             string template = "a template";
 
@@ -565,7 +579,7 @@ namespace CalculateFunding.Services.Policy
                 fundingTemplateRepository: fundingTemplateRepository);
 
             //Act
-            IActionResult result = await fundingTemplateService.GetFundingTemplateSourceFile(fundingStreamId, templateVersion);
+            IActionResult result = await fundingTemplateService.GetFundingTemplateSourceFile(fundingStreamId, fundingPeriodId, templateVersion);
 
             //Assert
             result

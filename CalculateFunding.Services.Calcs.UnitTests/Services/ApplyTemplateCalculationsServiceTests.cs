@@ -48,6 +48,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
         private string _specificationId;
         private string _fundingStreamId;
+        private string _fundingPeriodId;
         private string _correlationId;
         private string _templateVersion;
         private string _userId;
@@ -56,7 +57,8 @@ namespace CalculateFunding.Services.Calcs.Services
 
         private const string SpecificationId = "specification-id";
         private const string FundingStreamId = "fundingstream-id";
-        private const string TemplateVersion = "template-version";
+        private const string FundingPeriodId = "fundingPeriod-id"
+;        private const string TemplateVersion = "template-version";
         private const string CorrelationId = "sfa-correlationId";
         private const string UserId = "user-id";
         private const string UserName = "user-name";
@@ -93,6 +95,7 @@ namespace CalculateFunding.Services.Calcs.Services
             _correlationId = $"{NewRandomString()}_correlationId";
             _specificationId = $"{NewRandomString()}_specificationId";
             _fundingStreamId = $"{NewRandomString()}_fundingStreamId";
+            _fundingPeriodId = $"{NewRandomString()}_fundingPeriodId";
             _templateVersion = $"{NewRandomString()}_templateVersion";
 
             _calculationsRepository.UpdateTemplateMapping(Arg.Any<string>(),
@@ -163,10 +166,11 @@ namespace CalculateFunding.Services.Calcs.Services
         public void ThrowsExceptionIfCantLocateTemplateContentsForTheSuppliedFundingStreamIdAndTemplateVersion()
         {
             GivenAValidMessage();
+            AndTheSpecificationIsReturned();
             AndTheTemplateMapping(NewTemplateMapping());
 
             ThenAnExceptionShouldBeThrownWithMessage(
-                $"Did not locate Template Metadata Contents for funding stream id {_fundingStreamId} and template version {_templateVersion}");
+                $"Did not locate Template Metadata Contents for funding stream id {_fundingStreamId}, funding period id {_fundingPeriodId} and template version {_templateVersion}");
         }
 
         [TestMethod]
@@ -511,10 +515,12 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Returns(new ApiResponse<SpecificationSummary>
                 (
                     HttpStatusCode.OK,
-                    new SpecificationSummary { 
-                        Id = _specificationId
+                    new SpecificationSummary
+                    {
+                        Id = _specificationId,
+                        FundingPeriod = new Reference(_fundingPeriodId, "")
                     }
-                ));
+                )); ;
         }
 
         private void AndTheCalculationIsEditedForRequestMatching(Expression<Predicate<CalculationEditModel>> editModelMatching, string calculationId)
@@ -587,7 +593,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
         private void AndTheTemplateMetaDataContents(TemplateMetadataContents templateMetadataContents)
         {
-            _policies.GetFundingTemplateContents(_fundingStreamId, _templateVersion)
+            _policies.GetFundingTemplateContents(_fundingStreamId, _fundingPeriodId, _templateVersion)
                 .Returns(new ApiResponse<TemplateMetadataContents>(HttpStatusCode.OK, templateMetadataContents));
         }
 

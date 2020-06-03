@@ -112,15 +112,26 @@ namespace CalculateFunding.Services.Calcs
                         $"Did not locate Template Mapping for funding stream id {fundingStreamId} and specification id {specificationId}");
                 }
 
+                ApiResponse<SpecificationSummary> specificationApiResponse =
+                    await _specificationsApiClientPolicy.ExecuteAsync(() => _specificationsApiClient.GetSpecificationSummaryById(specificationId));
+
+                if (!specificationApiResponse.StatusCode.IsSuccess() || specificationApiResponse.Content == null)
+                {
+                    LogAndThrowException(
+                        $"Did not locate specification : {specificationId}");
+                }
+
+                SpecificationSummary specificationSummary = specificationApiResponse.Content;
+
                 ApiResponse<TemplateMetadataContents> templateContentsResponse = await _policiesResiliencePolicy.ExecuteAsync(
-                    () => _policiesApiClient.GetFundingTemplateContents(fundingStreamId, templateVersion));
+                    () => _policiesApiClient.GetFundingTemplateContents(fundingStreamId, specificationSummary.FundingPeriod.Id, templateVersion));
 
                 TemplateMetadataContents templateMetadataContents = templateContentsResponse?.Content;
 
                 if (templateMetadataContents == null)
                 {
                     LogAndThrowException(
-                        $"Did not locate Template Metadata Contents for funding stream id {fundingStreamId} and template version {templateVersion}");
+                        $"Did not locate Template Metadata Contents for funding stream id {fundingStreamId}, funding period id {specificationSummary.FundingPeriod.Id} and template version {templateVersion}");
                 }
 
                 TemplateMappingItem[] mappingsWithoutCalculations = templateMapping.TemplateMappingItems.Where(_ => _.CalculationId.IsNullOrWhitespace())
@@ -151,19 +162,10 @@ namespace CalculateFunding.Services.Calcs
 
                 await jobTracker.NotifyProgress(startingItemCount + 1);
 
-                ApiResponse<SpecificationSummary> specificationApiResponse =
-                    await _specificationsApiClientPolicy.ExecuteAsync(() => _specificationsApiClient.GetSpecificationSummaryById(specificationId));
-
-                if (!specificationApiResponse.StatusCode.IsSuccess() || specificationApiResponse.Content == null)
-                {
-                    LogAndThrowException(
-                        $"Did not locate specification : {specificationId}");
-                }
-
                 await EnsureAllRequiredCalculationsExist(mappingsWithoutCalculations,
                     templateMetadataContents,
                     fundingStreamId,
-                    specificationApiResponse.Content,
+                    specificationSummary,
                     author,
                     correlationId,
                     startingItemCount,
@@ -171,7 +173,7 @@ namespace CalculateFunding.Services.Calcs
                     templateMapping);
 
                 await EnsureAllExistingCalculationsModified(mappingsWithCalculations,
-                    specificationApiResponse.Content,
+                    specificationSummary,
                     correlationId,
                     author,
                     flattenedFundingLines,

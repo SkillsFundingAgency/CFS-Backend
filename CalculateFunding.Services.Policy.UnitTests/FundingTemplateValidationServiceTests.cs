@@ -290,7 +290,67 @@ namespace CalculateFunding.Services.Policy.UnitTests
             TestTemplate_schema_1_0 testClassWithFunding = new TestTemplate_schema_1_0
             {
                 SchemaVersion = "1.0",
-                Funding = new { templateVersion = "", fundingStream = new { code = "PES" } }
+                Funding = new { templateVersion = "", fundingStream = new { code = "PES" }, fundingPeriod = new { id = "AY-2020" } }
+            };
+
+            string fundingTemplate = JsonConvert.SerializeObject(testClassWithFunding);
+
+            string fundingSchema = schema.ToString();
+
+            string blobName = $"{fundingSchemaFolder}/{schemaVersion}.json";
+
+            IFundingSchemaRepository fundingSchemaRepository = CreateFundingSchemaRepository();
+            fundingSchemaRepository
+                .SchemaVersionExists(Arg.Is(blobName))
+                .Returns(true);
+            fundingSchemaRepository
+                .GetFundingSchemaVersion(Arg.Is(blobName))
+                .Returns(fundingSchema);
+
+            IPolicyRepository policyRepository = CreatePolicyRepository();
+            policyRepository
+                .GetFundingStreamById(Arg.Is("PES"))
+                .Returns(fundingStream);
+            policyRepository
+                .GetFundingPeriodById(Arg.Is("AY-2020"))
+                .Returns(new FundingPeriod());
+
+            FundingTemplateValidationService fundingTemplateValidationService = CreateFundingTemplateValidationService(
+                fundingSchemaRepository: fundingSchemaRepository,
+                policyRepository: policyRepository);
+
+            //Act
+            FundingTemplateValidationResult result = await fundingTemplateValidationService.ValidateFundingTemplate(fundingTemplate);
+
+            //Assert
+            result
+                .Errors[0]
+                .ErrorMessage
+                .Should()
+                .Be("Funding template version is missing from the template");
+
+            result
+               .IsValid
+               .Should()
+               .BeFalse();
+        }
+
+        [TestMethod]
+        public async Task ValidateFundingTemplate_GivenTemplateWithNoFundingPeriodId_ReturnsValidationResultWithErrors()
+        {
+            //Arrange
+            const string schemaVersion = "1.0";
+
+            FundingStream fundingStream = new FundingStream();
+
+            JSchemaGenerator generator = new JSchemaGenerator();
+
+            JSchema schema = generator.Generate(typeof(TestTemplate_schema_1_0));
+
+            TestTemplate_schema_1_0 testClassWithFunding = new TestTemplate_schema_1_0
+            {
+                SchemaVersion = schemaVersion,
+                Funding = new { templateVersion = "2.1", fundingStream = new { code = "PES" }, fundingPeriod = new { id = "" } }
             };
 
             string fundingTemplate = JsonConvert.SerializeObject(testClassWithFunding);
@@ -321,19 +381,19 @@ namespace CalculateFunding.Services.Policy.UnitTests
 
             //Assert
             result
-                .Errors[0]
-                .ErrorMessage
-                .Should()
-                .Be("Funding template version is missing from the template");
-
-            result
                .IsValid
                .Should()
                .BeFalse();
+
+            result
+                .Errors[0]
+                .ErrorMessage
+                .Should()
+                .Be("Funding period id is missing from the template");
         }
 
         [TestMethod]
-        public async Task ValidateFundingTemplate_Schema_1_0_GivenTemplateIsValidAndValuesExtracted_ReturnsValidationResultWithNoErrors()
+        public async Task ValidateFundingTemplate_GivenTemplateWithValidFundingPeriodIdButNoFundingPeriodExists_ReturnsValidationResultWithErrors()
         {
             //Arrange
             const string schemaVersion = "1.0";
@@ -347,7 +407,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
             TestTemplate_schema_1_0 testClassWithFunding = new TestTemplate_schema_1_0
             {
                 SchemaVersion = schemaVersion,
-                Funding = new { templateVersion = "2.1", fundingStream = new { code = "PES" } }
+                Funding = new { templateVersion = "2.1", fundingStream = new { code = "PES" }, fundingPeriod = new { id = "AY-2020" } }
             };
 
             string fundingTemplate = JsonConvert.SerializeObject(testClassWithFunding);
@@ -368,6 +428,66 @@ namespace CalculateFunding.Services.Policy.UnitTests
             policyRepository
                 .GetFundingStreamById(Arg.Is("PES"))
                 .Returns(fundingStream);
+
+            FundingTemplateValidationService fundingTemplateValidationService = CreateFundingTemplateValidationService(
+                fundingSchemaRepository: fundingSchemaRepository,
+                policyRepository: policyRepository);
+
+            //Act
+            FundingTemplateValidationResult result = await fundingTemplateValidationService.ValidateFundingTemplate(fundingTemplate);
+
+            //Assert
+            result
+               .IsValid
+               .Should()
+               .BeFalse();
+
+            result
+                .Errors[0]
+                .ErrorMessage
+                .Should()
+                .Be("A funding period could not be found for funding period id 'AY-2020'");
+        }
+
+        [TestMethod]
+        public async Task ValidateFundingTemplate_Schema_1_0_GivenTemplateIsValidAndValuesExtracted_ReturnsValidationResultWithNoErrors()
+        {
+            //Arrange
+            const string schemaVersion = "1.0";
+
+            FundingStream fundingStream = new FundingStream();
+
+            JSchemaGenerator generator = new JSchemaGenerator();
+
+            JSchema schema = generator.Generate(typeof(TestTemplate_schema_1_0));
+
+            TestTemplate_schema_1_0 testClassWithFunding = new TestTemplate_schema_1_0
+            {
+                SchemaVersion = schemaVersion,
+                Funding = new { templateVersion = "2.1", fundingStream = new { code = "PES" }, fundingPeriod = new { id = "AY-2020" } }
+            };
+
+            string fundingTemplate = JsonConvert.SerializeObject(testClassWithFunding);
+
+            string fundingSchema = schema.ToString();
+
+            string blobName = $"{fundingSchemaFolder}/{schemaVersion}.json";
+
+            IFundingSchemaRepository fundingSchemaRepository = CreateFundingSchemaRepository();
+            fundingSchemaRepository
+                .SchemaVersionExists(Arg.Is(blobName))
+                .Returns(true);
+            fundingSchemaRepository
+                .GetFundingSchemaVersion(Arg.Is(blobName))
+                .Returns(fundingSchema);
+
+            IPolicyRepository policyRepository = CreatePolicyRepository();
+            policyRepository
+                .GetFundingStreamById(Arg.Is("PES"))
+                .Returns(fundingStream);
+            policyRepository
+                .GetFundingPeriodById(Arg.Is("AY-2020"))
+                .Returns(new FundingPeriod());
 
             FundingTemplateValidationService fundingTemplateValidationService = CreateFundingTemplateValidationService(
                 fundingSchemaRepository: fundingSchemaRepository,
@@ -398,6 +518,11 @@ namespace CalculateFunding.Services.Policy.UnitTests
                 .Be("PES");
 
             result
+                .FundingPeriodId
+                .Should()
+                .Be("AY-2020");
+
+            result
                 .IsValid
                 .Should()
                 .BeTrue();
@@ -418,7 +543,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
             var template = new TestTemplate_schema_1_1
             {
                 SchemaVersion = schemaVersion,
-                FundingStreamTemplate = new { templateVersion = "56.4", fundingStream = new { code = "XXX" } }
+                FundingStreamTemplate = new { templateVersion = "56.4", fundingStream = new { code = "XXX" }, fundingPeriod = new { id = "AY-2020" } }
             };
 
             string fundingTemplate = JsonConvert.SerializeObject(template);
@@ -439,6 +564,9 @@ namespace CalculateFunding.Services.Policy.UnitTests
             policyRepository
                 .GetFundingStreamById(Arg.Is("XXX"))
                 .Returns(fundingStream);
+            policyRepository
+                .GetFundingPeriodById(Arg.Is("AY-2020"))
+                .Returns(new FundingPeriod());
 
             FundingTemplateValidationService fundingTemplateValidationService = CreateFundingTemplateValidationService(
                 fundingSchemaRepository: fundingSchemaRepository,
@@ -467,6 +595,11 @@ namespace CalculateFunding.Services.Policy.UnitTests
                 .FundingStreamId
                 .Should()
                 .Be("XXX");
+            
+            result
+                .FundingPeriodId
+                .Should()
+                .Be("AY-2020");
 
             result
                 .IsValid

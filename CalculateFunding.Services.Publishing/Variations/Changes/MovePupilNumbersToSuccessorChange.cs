@@ -30,11 +30,11 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
 
             PublishedProviderVersion predecessor = RefreshState;
             string fundingStreamId = predecessor.FundingStreamId;
+            string fundingPeriodId = predecessor.FundingPeriodId;
             string templateVersion = predecessor.TemplateVersion;
 
             IEnumerable<uint> pupilNumberTemplateCalculationIds = await new PupilNumberCalculationIdProvider(variationsApplications)
-                .GetPupilNumberCalculationIds(fundingStreamId,
-                    templateVersion);
+                .GetPupilNumberCalculationIds(fundingStreamId, fundingPeriodId, templateVersion);
 
             Dictionary<uint, FundingCalculation> predecessorCalculations = predecessor
                 .Calculations
@@ -81,15 +81,16 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
             }
 
             public async Task<IEnumerable<uint>> GetPupilNumberCalculationIds(string fundingStreamId,
+                string fundingPeriodId,
                 string templateVersion)
             {
-                string cacheKey = new PupilNumberCalculationIdCacheKey(fundingStreamId,
-                    templateVersion);
+                string cacheKey = new PupilNumberCalculationIdCacheKey(fundingStreamId, fundingPeriodId, templateVersion);
 
                 if (!await _cachingResilience.ExecuteAsync(() => _caching.KeyExists<IEnumerable<uint>>(cacheKey)))
                 {
                     await TryCachePupilNumberTemplateCalculationIds(cacheKey,
                         fundingStreamId,
+                        fundingPeriodId,
                         templateVersion);
                 }
 
@@ -97,11 +98,11 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
             }
 
             private async Task TryCachePupilNumberTemplateCalculationIds(string cacheKey,
-                string fundingStreamId,
+                string fundingStreamId, string fundingPeriodId,
                 string templateVersion)
             {
                 ApiResponse<TemplateMetadataContents> templateContentsResponse = await _policiesResilience.ExecuteAsync(
-                    () => _policies.GetFundingTemplateContents(fundingStreamId, templateVersion));
+                    () => _policies.GetFundingTemplateContents(fundingStreamId, fundingPeriodId, templateVersion));
 
                 if (!templateContentsResponse.StatusCode.IsSuccess())
                 {
@@ -129,13 +130,13 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
 
             private class PupilNumberCalculationIdCacheKey
             {
-                public PupilNumberCalculationIdCacheKey(string fundingStreamId,
-                    string templateVersion)
+                public PupilNumberCalculationIdCacheKey(string fundingStreamId, string fundingPeriodId, string templateVersion)
                 {
                     Guard.IsNullOrWhiteSpace(fundingStreamId, nameof(fundingStreamId));
                     Guard.IsNullOrWhiteSpace(templateVersion, nameof(templateVersion));
+                    Guard.IsNullOrWhiteSpace(fundingPeriodId, nameof(fundingPeriodId));
 
-                    Value = $"PupilNumberTemplateCalculationIds:{fundingStreamId}:{templateVersion}";
+                    Value = $"PupilNumberTemplateCalculationIds:{fundingStreamId}:{fundingPeriodId}:{templateVersion}";
                 }
 
                 private string Value { get; }

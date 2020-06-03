@@ -153,6 +153,25 @@ namespace CalculateFunding.Services.Policy
                 }
             }
 
+            string fundingPeriodId = parsedFundingTemplate.SelectToken("$..fundingPeriod.id")?.Value<string>();
+
+            if(string.IsNullOrWhiteSpace(fundingPeriodId))
+            {
+                fundingTemplateValidationResult.Errors.Add(new ValidationFailure("", "Funding period id is missing from the template"));
+            }
+            else
+            {
+                fundingTemplateValidationResult.FundingPeriodId = fundingPeriodId;
+
+                FundingPeriod fundingPeriod = await _policyRepositoryPolicy.ExecuteAsync(() => _policyRepository.GetFundingPeriodById(fundingTemplateValidationResult.FundingPeriodId));
+
+                if(fundingPeriod == null)
+                {
+                    fundingTemplateValidationResult.Errors
+                        .Add(new ValidationFailure("", $"A funding period could not be found for funding period id '{fundingTemplateValidationResult.FundingPeriodId}'"));
+                }
+            }
+
             var templateVersion = (parsedFundingTemplate.SelectToken("$..templateVersion", false) ?? 
                                    parsedFundingTemplate.SelectToken("$..fundingTemplateVersion", false))?.Value<string>();
 

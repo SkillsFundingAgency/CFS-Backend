@@ -1141,11 +1141,12 @@ WHERE   s.documentType = @DocumentType",
 
             ApiResponse<PolicyModels.FundingTemplateContents> fundingTemplateContents =
                 await _policiesApiClientPolicy.ExecuteAsync(() =>
-                    _policiesApiClient.GetFundingTemplate(fundingStreamId, templateVersion));
+                    _policiesApiClient.GetFundingTemplate(fundingStreamId, specification.Current.FundingPeriod.Id,
+                    templateVersion));
             if (fundingTemplateContents.StatusCode != HttpStatusCode.OK)
             {
                 string message =
-                    $"Retrieve funding template with fundingStreamId: {fundingStreamId} and templateId: {templateVersion} did not return OK.";
+                    $"Retrieve funding template with fundingStreamId: {fundingStreamId}, fundingPeriodId: {specification.Current.FundingPeriod.Id} and templateId: {templateVersion} did not return OK.";
                 _logger.Error(message);
                 return new PreconditionFailedResult(message);
             }

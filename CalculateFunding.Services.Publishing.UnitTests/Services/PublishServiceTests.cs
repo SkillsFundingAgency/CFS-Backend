@@ -78,6 +78,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         private IJobsRunning _jobsRunning;
         
         private const string SpecificationId = "SpecificationId";
+        private const string FundingPeriodId = "AY-2020";
         private const string JobId = "JobId";
         private const string FundingStreamId = "PSG";
         private const string CorrelationId = "CorrelationId";
@@ -484,7 +485,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
 
         private void AndSpecification()
         {
-            _specificationSummary = NewSpecificationSummary(_ => _.WithId(SpecificationId).WithFundingStreamIds(new[] { FundingStreamId }).WithTemplateIds((FundingStreamId, "1.0")));
+            _specificationSummary = NewSpecificationSummary(_ => _.WithId(SpecificationId)
+            .WithFundingStreamIds(new[] { FundingStreamId })
+            .WithFundingPeriodId(FundingPeriodId)
+            .WithTemplateIds((FundingStreamId, "1.0")));
 
             _specificationsApiClient.GetSpecificationSummaryById(SpecificationId)
                 .Returns(new ApiResponse<SpecificationSummary>(HttpStatusCode.OK, _specificationSummary));
@@ -501,7 +505,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             _templateMetadataContents = NewTemplateMetadataContents(_ => _.WithFundingLines(_fundingLines));
 
             _policiesService
-                .GetTemplateMetadataContents(FundingStreamId,
+                .GetTemplateMetadataContents(FundingStreamId, _specificationSummary.FundingPeriod.Id,
                                              _specificationSummary.TemplateIds[FundingStreamId])
                 .Returns(_templateMetadataContents);
         }

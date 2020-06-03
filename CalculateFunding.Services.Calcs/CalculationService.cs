@@ -889,10 +889,13 @@ namespace CalculateFunding.Services.Calcs
                 return new PreconditionFailedResult(message);
             }
 
-            Common.ApiClient.Models.ApiResponse<Common.TemplateMetadata.Models.TemplateMetadataContents> fundingTemplateContentsResponse = await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingTemplateContents(fundingStreamId, templateVersion));
+            Common.ApiClient.Models.ApiResponse<Common.TemplateMetadata.Models.TemplateMetadataContents> fundingTemplateContentsResponse =
+                await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingTemplateContents(fundingStreamId, 
+                specificationSummary.FundingPeriod.Id,  templateVersion));
+
             if (fundingTemplateContentsResponse.StatusCode != HttpStatusCode.OK)
             {
-                string message = $"Retrieve funding template with fundingStreamId: {fundingStreamId} and templateId: {templateVersion} did not return OK.";
+                string message = $"Retrieve funding template with fundingStreamId: {fundingStreamId}, fundingPeriodId: {specificationSummary.FundingPeriod.Id} and templateId: {templateVersion} did not return OK.";
                 _logger.Error(message);
 
                 return new PreconditionFailedResult(message);

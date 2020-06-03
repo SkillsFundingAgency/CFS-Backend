@@ -163,8 +163,9 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             string specificationId = "testSpecification";
             string templateVersion = "testTemplate";
             string fundingStreamId = "testFundingStream";
+            string fundingPeriodId = "testFundingPeriod";
 
-            string expectedErrorMessage = $"Retrieve funding template with fundingStreamId: {fundingStreamId} and templateId: {templateVersion} did not return OK.";
+            string expectedErrorMessage = $"Retrieve funding template with fundingStreamId: {fundingStreamId}, fundingPeriodId: {fundingPeriodId} and templateId: {templateVersion} did not return OK.";
 
             Specification specification = new Specification
             {
@@ -176,7 +177,8 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                         {
                             Id = fundingStreamId
                         }
-                    }
+                    },
+                    FundingPeriod = new Reference { Id = fundingPeriodId }
                 }
             };
 
@@ -190,7 +192,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             var fundingTemplateApiResponse = new ApiResponse<PolicyModels.FundingTemplateContents>(HttpStatusCode.NotFound, null);
 
             policiesApiClient
-                .GetFundingTemplate(Arg.Is(fundingStreamId), Arg.Is(templateVersion))
+                .GetFundingTemplate(Arg.Is(fundingStreamId), Arg.Is(fundingPeriodId),Arg.Is(templateVersion))
                 .Returns(fundingTemplateApiResponse);
 
             SpecificationsService service = CreateService(
@@ -223,6 +225,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             string templateVersion = "testTemplate";
             string specificationId = "testSpecification";
             string fundingStreamId = "testFundingStream";
+            string fundingPeriodId = "testFundingPeriod";
 
             Specification specification = new Specification
             {
@@ -234,7 +237,8 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                         {
                             Id = fundingStreamId
                         }
-                    }
+                    },
+                    FundingPeriod = new Reference { Id = fundingPeriodId }
                 }
             };
 
@@ -261,7 +265,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             //TODO; track down where we can grab the instance thats being saved to check we set the correct stuff on it
             
             policiesApiClient
-                .GetFundingTemplate(Arg.Is(fundingStreamId), Arg.Is(templateVersion))
+                .GetFundingTemplate(Arg.Is(fundingStreamId), Arg.Is(fundingPeriodId), Arg.Is(templateVersion))
                 .Returns(fundingTemplateApiResponse);
 
             SpecificationsService service = CreateService(

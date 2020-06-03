@@ -59,9 +59,9 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             return Task.FromResult(result);
         }
 
-        public async Task<ApiResponse<TemplateMetadataContents>> GetFundingTemplateContents(string fundingStreamId, string templateVersion)
+        public async Task<ApiResponse<TemplateMetadataContents>> GetFundingTemplateContents(string fundingStreamId, string fundingPeriodId, string templateVersion)
         {
-            ApiResponse<string> fundingSourceFile = await GetFundingTemplateSourceFile(fundingStreamId, templateVersion);
+            ApiResponse<string> fundingSourceFile = await GetFundingTemplateSourceFile(fundingStreamId, fundingPeriodId, templateVersion);
             if (fundingSourceFile.StatusCode != System.Net.HttpStatusCode.OK)
             {
                 return new ApiResponse<TemplateMetadataContents>(fundingSourceFile.StatusCode);
@@ -71,7 +71,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             return await Task.FromResult(new ApiResponse<TemplateMetadataContents>(System.Net.HttpStatusCode.OK, templateGenerator.GetMetadata(fundingSourceFile.Content)));
         }
 
-        public Task<ApiResponse<string>> GetFundingTemplateSourceFile(string fundingStreamId, string templateVersion)
+        public Task<ApiResponse<string>> GetFundingTemplateSourceFile(string fundingStreamId, string fundingPeriodid, string templateVersion)
         {
             string fileContents = GetResourceString($"{fundingStreamId}{templateVersion}");
             if (string.IsNullOrWhiteSpace(fileContents))
@@ -166,7 +166,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             throw new NotImplementedException();
         }
 
-        public Task<ApiResponse<FundingTemplateContents>> GetFundingTemplate(string fundingStreamId, string templateVersion)
+        public Task<ApiResponse<FundingTemplateContents>> GetFundingTemplate(string fundingStreamId, string fundingPeriodId, string templateVersion)
         {
             throw new NotImplementedException();
         }

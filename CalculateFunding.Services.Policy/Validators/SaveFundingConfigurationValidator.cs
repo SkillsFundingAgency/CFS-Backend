@@ -59,9 +59,10 @@ namespace CalculateFunding.Services.Policy.Validators
 
                     string fundingStreamId = model.FundingStreamId;
                     string defaultTemplateVersion = model.DefaultTemplateVersion;
+                    string fundingPeriodId = model.FundingPeriodId;
 
-                    if (!string.IsNullOrWhiteSpace(fundingStreamId) && !string.IsNullOrWhiteSpace(defaultTemplateVersion))
-                        if (!await fundingTemplateService.TemplateExists(fundingStreamId, defaultTemplateVersion))
+                    if (!string.IsNullOrWhiteSpace(fundingStreamId) && !string.IsNullOrWhiteSpace(fundingPeriodId) && !string.IsNullOrWhiteSpace(defaultTemplateVersion))
+                        if (!await fundingTemplateService.TemplateExists(fundingStreamId, fundingPeriodId, defaultTemplateVersion))
                             context.AddFailure("Default template not found");
                 });
         }

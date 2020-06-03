@@ -90,6 +90,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         private IMapper _mapper;
         private string _providerIdVaried;
         private const string SpecificationId = "SpecificationId";
+        private const string FundingPeriodId = "AY-2020";
         private const string JobId = "JobId";
         private const string CorrelationId = "CorrelationId";
         private const string FundingStreamId = "PSG";
@@ -556,7 +557,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             _templateMetadataContents = NewTemplateMetadataContents(_ => _.WithFundingLines(_fundingLines));
 
             _policiesService
-                .GetTemplateMetadataContents(FundingStreamId, _specificationSummary.TemplateIds[FundingStreamId])
+                .GetTemplateMetadataContents(FundingStreamId, _specificationSummary.FundingPeriod.Id, _specificationSummary.TemplateIds[FundingStreamId])
                 .Returns(_templateMetadataContents);
         }
 
@@ -726,6 +727,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             _specificationSummary = NewSpecificationSummary(_ => _
                 .WithId(SpecificationId)
                 .WithFundingStreamIds(new[] { FundingStreamId })
+                .WithFundingPeriodId(FundingPeriodId)
                 .WithTemplateIds((FundingStreamId, "1.0"))
                 .WithProviderVersionId(providerVersionId));
 

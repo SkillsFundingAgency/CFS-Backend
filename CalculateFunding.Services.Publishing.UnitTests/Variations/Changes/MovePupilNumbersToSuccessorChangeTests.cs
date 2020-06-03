@@ -27,6 +27,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
         private Mock<ICacheProvider> _caching;
         private Mock<IPoliciesApiClient> _policies;
         private string _fundingStreamId;
+        private string _fundingPeriodId;
         private string _templateVersion;
         private string _cacheKey;
 
@@ -34,14 +35,16 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
         public void SetUp()
         {
             _fundingStreamId = NewRandomString();
+            _fundingPeriodId = NewRandomString();
             _templateVersion = NewRandomString();
 
-            _cacheKey = $"PupilNumberTemplateCalculationIds:{_fundingStreamId}:{_templateVersion}";
+            _cacheKey = $"PupilNumberTemplateCalculationIds:{_fundingStreamId}:{_fundingPeriodId}:{_templateVersion}";
             
             PublishedProviderVersion refreshState = VariationContext.RefreshState;
             
             refreshState.FundingStreamId = _fundingStreamId;
             refreshState.TemplateVersion = _templateVersion;
+            refreshState.FundingPeriodId = _fundingPeriodId;
             
             _caching = new Mock<ICacheProvider>();
             _policies = new Mock<IPoliciesApiClient>();
@@ -184,8 +187,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
         
         private void GivenTheTemplateMetadataContents(TemplateMetadataContents templateMetadataContents)
         {
-            _policies.Setup(_ => _.GetFundingTemplateContents(_fundingStreamId,
-                    _templateVersion))
+            _policies.Setup(_ => _.GetFundingTemplateContents(_fundingStreamId, _fundingPeriodId, _templateVersion))
                 .ReturnsAsync(new ApiResponse<TemplateMetadataContents>(HttpStatusCode.OK, templateMetadataContents));
         }
 

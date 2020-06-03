@@ -78,12 +78,13 @@ namespace CalculateFunding.Services.Publishing
             return string.Format(periodIdStringFormat, fundingPeriod.Type, fundingPeriod.Period);
         }
 
-        public async Task<TemplateMetadataContents> GetTemplateMetadataContents(string fundingStreamId, string templateId)
+        public async Task<TemplateMetadataContents> GetTemplateMetadataContents(string fundingStreamId, string fundingPeriodId, string templateId)
         {
             Guard.IsNullOrWhiteSpace(fundingStreamId, nameof(fundingStreamId));
+            Guard.IsNullOrWhiteSpace(fundingPeriodId, nameof(fundingPeriodId));
             Guard.IsNullOrWhiteSpace(templateId, nameof(templateId));
 
-            ApiResponse<TemplateMetadataContents> templateMetadataContentsResponse = await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingTemplateContents(fundingStreamId, templateId));
+            ApiResponse<TemplateMetadataContents> templateMetadataContentsResponse = await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingTemplateContents(fundingStreamId, fundingPeriodId, templateId));
             
             return templateMetadataContentsResponse?.Content;
         }

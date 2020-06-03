@@ -7,6 +7,7 @@ namespace CalculateFunding.Services.Policy.Validators
     {
         private string _defaultTemplateVersion;
         private string _fundingStreamId;
+        private string _fundingPeriodId;
         private ApprovalMode? _approvalMode;
         
         public FundingConfigurationBuilder WithApprovalMode(ApprovalMode approvalMode)
@@ -23,6 +24,13 @@ namespace CalculateFunding.Services.Policy.Validators
             return this;
         }
 
+        public FundingConfigurationBuilder WithFundingPeriodId(string fundingPeriodId)
+        {
+            _fundingPeriodId = fundingPeriodId;
+
+            return this;
+        }
+
         public FundingConfigurationBuilder WithDefaultTemplateVersion(string defaultTemplateVersion)
         {
             _defaultTemplateVersion = defaultTemplateVersion;
@@ -34,7 +42,7 @@ namespace CalculateFunding.Services.Policy.Validators
         {
             return new FundingConfiguration
             {
-                FundingPeriodId = NewRandomString(),
+                FundingPeriodId = _fundingPeriodId ?? NewRandomString(),
                 FundingStreamId = _fundingStreamId ?? NewRandomString(),
                 DefaultTemplateVersion = _defaultTemplateVersion,
                 ApprovalMode = _approvalMode.GetValueOrDefault(NewRandomEnum(ApprovalMode.Undefined))

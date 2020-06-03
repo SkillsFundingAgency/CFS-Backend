@@ -144,7 +144,7 @@ namespace CalculateFunding.Services.Publishing
             await _jobManagement.UpdateJobStatus(jobId, 0, 0, null, null);
 
             SpecificationSummary specification = await _specificationService.GetSpecificationSummaryById(specificationId);
-
+            
             if (specification == null)
             {
                 throw new NonRetriableException($"Could not find specification with id '{specificationId}'");
@@ -201,7 +201,7 @@ namespace CalculateFunding.Services.Publishing
 
         private async Task RefreshFundingStream(Reference fundingStream, SpecificationSummary specification, IDictionary<string, Provider> scopedProviders, IDictionary<string, ProviderCalculationResult> allCalculationResults, string jobId, Reference author, string correlationId)
         {
-            TemplateMetadataContents templateMetadataContents = await _policiesService.GetTemplateMetadataContents(fundingStream.Id, specification.TemplateIds[fundingStream.Id]);
+            TemplateMetadataContents templateMetadataContents = await _policiesService.GetTemplateMetadataContents(fundingStream.Id, specification.FundingPeriod.Id, specification.TemplateIds[fundingStream.Id]);
             
             if (templateMetadataContents == null)
             {

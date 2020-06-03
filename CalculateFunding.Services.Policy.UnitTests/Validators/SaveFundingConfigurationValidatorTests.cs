@@ -46,11 +46,12 @@ namespace CalculateFunding.Services.Policy.Validators
         {
             string defaultTemplateVersion = NewRandomString();
             string fundingStreamId = NewRandomString();
+            string fundingPeriodId = NewRandomString();
 
             GivenTheFundingConfiguration(_ => _.WithApprovalMode(ApprovalMode.Undefined)
                 .WithFundingStreamId(fundingStreamId)
                 .WithDefaultTemplateVersion(defaultTemplateVersion));
-            AndTheTemplateExistsCheck(fundingStreamId, defaultTemplateVersion, true);
+            AndTheTemplateExistsCheck(fundingStreamId, fundingPeriodId, defaultTemplateVersion, true);
             
             WhenTheFundingConfigurationIsValidated();
             
@@ -63,10 +64,12 @@ namespace CalculateFunding.Services.Policy.Validators
         {
             string defaultTemplateVersion = NewRandomString();
             string fundingStreamId = NewRandomString();
+            string fundingPeriodId = NewRandomString();
 
             GivenTheFundingConfiguration(_ => _.WithFundingStreamId(fundingStreamId)
+                .WithFundingPeriodId(fundingPeriodId)
                 .WithDefaultTemplateVersion(defaultTemplateVersion));
-            AndTheTemplateExistsCheck(fundingStreamId, defaultTemplateVersion, expectedFlag);
+            AndTheTemplateExistsCheck(fundingStreamId, fundingPeriodId, defaultTemplateVersion, expectedFlag);
 
             WhenTheFundingConfigurationIsValidated();
 
@@ -81,10 +84,12 @@ namespace CalculateFunding.Services.Policy.Validators
             bool expectedFlag)
         {
             string fundingStreamId = NewRandomString();
+            string fundingPeriodId = NewRandomString();
 
             GivenTheFundingConfiguration(_ => _.WithDefaultTemplateVersion(defaultTemplateVersion)
-                .WithFundingStreamId(fundingStreamId));
-            AndTheTemplateExistsCheck(fundingStreamId, defaultTemplateVersion, true);
+                .WithFundingStreamId(fundingStreamId)
+                .WithFundingPeriodId(fundingPeriodId));
+            AndTheTemplateExistsCheck(fundingStreamId, fundingPeriodId, defaultTemplateVersion, true);
 
             WhenTheFundingConfigurationIsValidated();
 
@@ -121,10 +126,10 @@ namespace CalculateFunding.Services.Policy.Validators
             _fundingConfiguration = fundingConfigurationBuilder.Build();
         }
 
-        private void AndTheTemplateExistsCheck(string fundingStreamId, string templateVersion,
+        private void AndTheTemplateExistsCheck(string fundingStreamId, string fundingPeriodId, string templateVersion,
             bool templateExistsFlag)
         {
-            _fundingTemplateService.TemplateExists(fundingStreamId, templateVersion)
+            _fundingTemplateService.TemplateExists(fundingStreamId, fundingPeriodId, templateVersion)
                 .Returns(templateExistsFlag);
         }
     }

@@ -187,7 +187,7 @@ namespace CalculateFunding.Services.Specs.UnitTests
         {
             _policies.GetFundingConfiguration(fundingStreamId, fundingPeriodId)
                 .Returns(new ApiResponse<FundingConfiguration>(HttpStatusCode.OK, fundingConfiguration));
-            _policies.GetFundingTemplateContents(fundingStreamId, fundingConfiguration.DefaultTemplateVersion)
+            _policies.GetFundingTemplateContents(fundingStreamId, fundingPeriodId,fundingConfiguration.DefaultTemplateVersion)
                 .Returns(new ApiResponse<TemplateMetadataContents>(HttpStatusCode.OK, templateContents));
         }
 

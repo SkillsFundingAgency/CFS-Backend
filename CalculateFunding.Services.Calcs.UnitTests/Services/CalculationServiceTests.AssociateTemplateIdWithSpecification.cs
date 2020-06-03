@@ -31,6 +31,7 @@ namespace CalculateFunding.Services.Calcs.Services
             string specificationId = "spec1";
             string templateVersion = "1.0";
             string fundingStreamId = "PSG";
+            string fundingPeriodId = "AY-2020";
             string templateId = "2.2";
 
             ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
@@ -44,6 +45,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 {
                     new Reference(fundingStreamId, "PE and Sports"),
                 },
+                FundingPeriod = new Reference(fundingPeriodId, "AY-2020")
             };
 
             specificationsApiClient
@@ -143,7 +145,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Returns(specificationCalculations);
 
             policiesApiClient
-                .GetFundingTemplateContents(fundingStreamId, templateVersion)
+                .GetFundingTemplateContents(fundingStreamId, fundingPeriodId, templateVersion)
                 .Returns(new ApiResponse<TemplateMetadataContents>(HttpStatusCode.OK, fundingMetadataContents));
 
             specificationsApiClient
@@ -169,7 +171,7 @@ namespace CalculateFunding.Services.Calcs.Services
             // Assert
             await policiesApiClient
                 .Received(1)
-                .GetFundingTemplateContents(Arg.Is(fundingStreamId), Arg.Is(templateVersion));
+                .GetFundingTemplateContents(Arg.Is(fundingStreamId), Arg.Is(fundingPeriodId), Arg.Is(templateVersion));
 
             await calculationsRepository
                 .Received(1)
@@ -247,6 +249,7 @@ namespace CalculateFunding.Services.Calcs.Services
             string specificationId = "spec1";
             string templateVersion = "1.0";
             string fundingStreamId = "PSG";
+            string fundingPeriodId = "AY-2020";
             string templateId = "2.2";
 
             ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
@@ -260,6 +263,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 {
                     new Reference(fundingStreamId, "PE and Sports"),
                 },
+                FundingPeriod = new Reference(fundingPeriodId, "AY-2020")
             };
 
             specificationsApiClient
@@ -289,7 +293,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Returns(specificationCalculations);
 
             policiesApiClient
-                .GetFundingTemplateContents(fundingStreamId, templateVersion)
+                .GetFundingTemplateContents(fundingStreamId, fundingPeriodId, templateVersion)
                 .Returns(new ApiResponse<TemplateMetadataContents>(HttpStatusCode.OK, fundingMetadataContents));
 
             specificationsApiClient
@@ -315,7 +319,7 @@ namespace CalculateFunding.Services.Calcs.Services
             // Assert
             await policiesApiClient
                 .Received(1)
-                .GetFundingTemplateContents(Arg.Is(fundingStreamId), Arg.Is(templateVersion));
+                .GetFundingTemplateContents(Arg.Is(fundingStreamId), Arg.Is(fundingPeriodId), Arg.Is(templateVersion));
 
             await calculationsRepository
                 .Received(1)
@@ -349,6 +353,7 @@ namespace CalculateFunding.Services.Calcs.Services
             string specificationId = "spec1";
             string templateVersion = "1.0";
             string fundingStreamId = "PSG";
+            string fundingPeriodId = "AY-2020";
             string templateId = "2.2";
 
             ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
@@ -362,6 +367,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 {
                     new Reference(fundingStreamId, "PE and Sports"),
                 },
+                FundingPeriod = new Reference(fundingPeriodId, "AY-2020")
             };
 
             specificationsApiClient
@@ -474,7 +480,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Returns(existingTemplateMapping);
 
             policiesApiClient
-                .GetFundingTemplateContents(fundingStreamId, templateVersion)
+                .GetFundingTemplateContents(fundingStreamId, fundingPeriodId,templateVersion)
                 .Returns(new ApiResponse<TemplateMetadataContents>(HttpStatusCode.OK, fundingMetadataContents));
 
             CalculationService service = CreateCalculationService(
@@ -492,7 +498,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             await policiesApiClient
                 .Received(1)
-                .GetFundingTemplateContents(Arg.Is(fundingStreamId), Arg.Is(templateVersion));
+                .GetFundingTemplateContents(Arg.Is(fundingStreamId), Arg.Is(fundingPeriodId), Arg.Is(templateVersion));
 
             await calculationsRepository
                 .Received(0)
@@ -506,6 +512,7 @@ namespace CalculateFunding.Services.Calcs.Services
             string specificationId = "spec1";
             string templateVersion = "1.0";
             string fundingStreamId = "PSG";
+            string fundingPeriodId = "AY-2020";
             string templateId = "2.2";
 
             ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
@@ -519,6 +526,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 {
                     new Reference(fundingStreamId, "PE and Sports"),
                 },
+                FundingPeriod = new Reference(fundingPeriodId, "AY-2020")
             };
 
             specificationsApiClient
@@ -605,7 +613,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Returns(existingTemplateMapping);
 
             policiesApiClient
-                .GetFundingTemplateContents(fundingStreamId, templateVersion)
+                .GetFundingTemplateContents(fundingStreamId, fundingPeriodId, templateVersion)
                 .Returns(new ApiResponse<TemplateMetadataContents>(HttpStatusCode.OK, fundingMetadataContents));
 
             specificationsApiClient
@@ -635,7 +643,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             await policiesApiClient
                 .Received(1)
-                .GetFundingTemplateContents(Arg.Is(fundingStreamId), Arg.Is(templateVersion));
+                .GetFundingTemplateContents(Arg.Is(fundingStreamId), Arg.Is(fundingPeriodId), Arg.Is(templateVersion));
 
             await calculationsRepository
                 .Received(1)
@@ -692,6 +700,7 @@ namespace CalculateFunding.Services.Calcs.Services
             string specificationId = "spec1";
             string templateVersion = "1.0";
             string fundingStreamId = "PSG";
+            string fundingPeriodId = "AY-2020";
             string templateId = "2.2";
 
             ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
@@ -705,6 +714,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 {
                     new Reference(fundingStreamId, "PE and Sports"),
                 },
+                FundingPeriod = new Reference(fundingPeriodId, "AY-2020")
             };
 
             specificationsApiClient
@@ -812,7 +822,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Returns(existingTemplateMapping);
 
             policiesApiClient
-                .GetFundingTemplateContents(fundingStreamId, templateVersion)
+                .GetFundingTemplateContents(fundingStreamId, fundingPeriodId, templateVersion)
                 .Returns(new ApiResponse<TemplateMetadataContents>(HttpStatusCode.OK, fundingMetadataContents));
 
             specificationsApiClient
@@ -842,7 +852,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             await policiesApiClient
                 .Received(1)
-                .GetFundingTemplateContents(Arg.Is(fundingStreamId), Arg.Is(templateVersion));
+                .GetFundingTemplateContents(Arg.Is(fundingStreamId), Arg.Is(fundingPeriodId), Arg.Is(templateVersion));
 
             await calculationsRepository
                 .Received(1)
@@ -914,6 +924,7 @@ namespace CalculateFunding.Services.Calcs.Services
             string specificationId = "spec1";
             string templateVersion = "1.0";
             string fundingStreamId = "PSG";
+            string fundingPeriodId = "AY-2020";
             string templateId = "2.2";
 
             ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
@@ -927,6 +938,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 {
                     new Reference(fundingStreamId, "PE and Sports"),
                 },
+                FundingPeriod = new Reference(fundingPeriodId, "AY-2020")
             };
 
             specificationsApiClient
@@ -1032,7 +1044,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Returns(existingTemplateMapping);
 
             policiesApiClient
-                .GetFundingTemplateContents(fundingStreamId, templateVersion)
+                .GetFundingTemplateContents(fundingStreamId, fundingPeriodId, templateVersion)
                 .Returns(new ApiResponse<TemplateMetadataContents>(HttpStatusCode.OK, fundingMetadataContents));
 
             specificationsApiClient
@@ -1062,7 +1074,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             await policiesApiClient
                 .Received(1)
-                .GetFundingTemplateContents(Arg.Is(fundingStreamId), Arg.Is(templateVersion));
+                .GetFundingTemplateContents(Arg.Is(fundingStreamId), Arg.Is(fundingPeriodId), Arg.Is(templateVersion));
 
             await calculationsRepository
                 .Received(1)
@@ -1126,6 +1138,7 @@ namespace CalculateFunding.Services.Calcs.Services
             string specificationId = "spec1";
             string templateVersion = "1.0";
             string fundingStreamId = "PSG";
+            string fundingPeriodId = "AY-2020";
             string templateId = "2.2";
 
             ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
@@ -1139,6 +1152,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 {
                     new Reference(fundingStreamId, "PE and Sports"),
                 },
+                FundingPeriod = new Reference(fundingPeriodId, "AY-2020")
             };
 
             specificationsApiClient
@@ -1217,7 +1231,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Returns(existingTemplateMapping);
 
             policiesApiClient
-                .GetFundingTemplateContents(fundingStreamId, templateVersion)
+                .GetFundingTemplateContents(fundingStreamId, fundingPeriodId, templateVersion)
                 .Returns(new ApiResponse<TemplateMetadataContents>(HttpStatusCode.OK, fundingMetadataContents));
 
             specificationsApiClient
@@ -1247,7 +1261,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             await policiesApiClient
                 .Received(1)
-                .GetFundingTemplateContents(Arg.Is(fundingStreamId), Arg.Is(templateVersion));
+                .GetFundingTemplateContents(Arg.Is(fundingStreamId), Arg.Is(fundingPeriodId), Arg.Is(templateVersion));
 
             await calculationsRepository
                 .Received(1)
@@ -1297,6 +1311,7 @@ namespace CalculateFunding.Services.Calcs.Services
             string specificationId = "spec1";
             string templateVersion = "1.0";
             string fundingStreamId = "PSG";
+            string fundingPeriodId = "AY-2020";
             string templateId = "2.2";
 
             ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
@@ -1310,6 +1325,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 {
                     new Reference(fundingStreamId, "PE and Sports"),
                 },
+                FundingPeriod = new Reference(fundingPeriodId, "AY-2020")
             };
 
             specificationsApiClient
@@ -1390,7 +1406,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Returns(existingTemplateMapping);
 
             policiesApiClient
-                .GetFundingTemplateContents(fundingStreamId, templateVersion)
+                .GetFundingTemplateContents(fundingStreamId, fundingPeriodId, templateVersion)
                 .Returns(new ApiResponse<TemplateMetadataContents>(HttpStatusCode.OK, fundingMetadataContents));
 
             specificationsApiClient
@@ -1420,7 +1436,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             await policiesApiClient
                 .Received(1)
-                .GetFundingTemplateContents(Arg.Is(fundingStreamId), Arg.Is(templateVersion));
+                .GetFundingTemplateContents(Arg.Is(fundingStreamId), Arg.Is(fundingPeriodId), Arg.Is(templateVersion));
 
             await calculationsRepository
                 .Received(1)
@@ -1477,6 +1493,7 @@ namespace CalculateFunding.Services.Calcs.Services
             string specificationId = "spec1";
             string templateVersion = "1.0";
             string fundingStreamId = "PSG";
+            string fundingPeriodId = "AY-2020";
             string templateId = "2.2";
 
             ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
@@ -1490,6 +1507,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 {
                     new Reference(fundingStreamId, "PE and Sports"),
                 },
+                FundingPeriod = new Reference(fundingPeriodId, "AY-2020")
             };
 
             specificationsApiClient
@@ -1607,7 +1625,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Returns(existingTemplateMapping);
 
             policiesApiClient
-                .GetFundingTemplateContents(fundingStreamId, templateVersion)
+                .GetFundingTemplateContents(fundingStreamId, fundingPeriodId, templateVersion)
                 .Returns(new ApiResponse<TemplateMetadataContents>(HttpStatusCode.OK, fundingMetadataContents));
 
             specificationsApiClient
@@ -1637,7 +1655,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             await policiesApiClient
                 .Received(1)
-                .GetFundingTemplateContents(Arg.Is(fundingStreamId), Arg.Is(templateVersion));
+                .GetFundingTemplateContents(Arg.Is(fundingStreamId), Arg.Is(fundingPeriodId), Arg.Is(templateVersion));
 
             await calculationsRepository
                 .Received(1)
@@ -1694,6 +1712,7 @@ namespace CalculateFunding.Services.Calcs.Services
             string specificationId = "spec1";
             string templateVersion = "1.0";
             string fundingStreamId = "PSG";
+            string fundingPeriodId = "AY-2020";
             string templateId = "2.2";
 
             ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
@@ -1707,6 +1726,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 {
                     new Reference(fundingStreamId, "PE and Sports"),
                 },
+                FundingPeriod = new Reference(fundingPeriodId, "AY-2020")
             };
 
             specificationsApiClient
@@ -1824,7 +1844,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Returns(existingTemplateMapping);
 
             policiesApiClient
-                .GetFundingTemplateContents(fundingStreamId, templateVersion)
+                .GetFundingTemplateContents(fundingStreamId, fundingPeriodId, templateVersion)
                 .Returns(new ApiResponse<TemplateMetadataContents>(HttpStatusCode.OK, fundingMetadataContents));
 
             specificationsApiClient
@@ -1854,7 +1874,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             await policiesApiClient
                 .Received(1)
-                .GetFundingTemplateContents(Arg.Is(fundingStreamId), Arg.Is(templateVersion));
+                .GetFundingTemplateContents(Arg.Is(fundingStreamId), Arg.Is(fundingPeriodId), Arg.Is(templateVersion));
 
             await calculationsRepository
                 .Received(1)
@@ -2041,8 +2061,9 @@ namespace CalculateFunding.Services.Calcs.Services
             string specificationId = "testSpecification";
             string templateId = "testTemplate";
             string fundingStreamId = "testFundingStream";
+            string fundingPeriodId = "AY-2020";
 
-            string expectedErrorMessage = $"Retrieve funding template with fundingStreamId: {fundingStreamId} and templateId: {templateId} did not return OK.";
+            string expectedErrorMessage = $"Retrieve funding template with fundingStreamId: {fundingStreamId}, fundingPeriodId: {fundingPeriodId} and templateId: {templateId} did not return OK.";
 
             SpecModel.SpecificationSummary specificationSummary = new SpecModel.SpecificationSummary
             {
@@ -2052,7 +2073,8 @@ namespace CalculateFunding.Services.Calcs.Services
                         {
                             Id = fundingStreamId
                         }
-                    }
+                    },
+                FundingPeriod = new Reference(fundingPeriodId, "AY-2020")
             };
 
             ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
@@ -2065,7 +2087,7 @@ namespace CalculateFunding.Services.Calcs.Services
             var fundingTemplateApiResponse = new ApiResponse<TemplateMetadataContents>(HttpStatusCode.NotFound, null);
 
             policiesApiClient
-                .GetFundingTemplateContents(Arg.Is(fundingStreamId), Arg.Is(templateId))
+                .GetFundingTemplateContents(Arg.Is(fundingStreamId), Arg.Is(fundingPeriodId), Arg.Is(templateId))
                 .Returns(fundingTemplateApiResponse);
 
             CalculationService service = CreateCalculationService(

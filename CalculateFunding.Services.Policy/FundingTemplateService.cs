@@ -99,7 +99,7 @@ namespace CalculateFunding.Services.Policy
                 return validationGeneratorResult.PopulateModelState();
             }
 
-            string blobName = GetBlobNameFor(validationResult.FundingStreamId, validationResult.TemplateVersion);
+            string blobName = GetBlobNameFor(validationResult.FundingStreamId, validationResult.FundingPeriodId, validationResult.TemplateVersion);
 
             try
             {
@@ -107,12 +107,12 @@ namespace CalculateFunding.Services.Policy
 
                 await SaveFundingTemplateVersion(blobName, templateFileBytes);
 
-                string cacheKey = $"{CacheKeys.FundingTemplatePrefix}{validationResult.FundingStreamId}-{validationResult.TemplateVersion}".ToLowerInvariant();
+                string cacheKey = $"{CacheKeys.FundingTemplatePrefix}{validationResult.FundingStreamId}-{validationResult.FundingPeriodId}-{validationResult.TemplateVersion}".ToLowerInvariant();
                 await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.RemoveAsync<string>(cacheKey));
-                await _cacheProvider.RemoveAsync<FundingTemplateContents>($"{CacheKeys.FundingTemplateContents}{validationResult.FundingStreamId}:{validationResult.TemplateVersion}".ToLowerInvariant());
-                await _cacheProvider.RemoveAsync<TemplateMetadataContents>($"{CacheKeys.FundingTemplateContentMetadata}{validationResult.FundingStreamId}:{validationResult.TemplateVersion}".ToLowerInvariant());
+                await _cacheProvider.RemoveAsync<FundingTemplateContents>($"{CacheKeys.FundingTemplateContents}{validationResult.FundingStreamId}:{validationResult.FundingPeriodId}:{validationResult.TemplateVersion}".ToLowerInvariant());
+                await _cacheProvider.RemoveAsync<TemplateMetadataContents>($"{CacheKeys.FundingTemplateContentMetadata}{validationResult.FundingStreamId}:{validationResult.FundingPeriodId}:{validationResult.TemplateVersion}".ToLowerInvariant());
 
-                return new CreatedAtActionResult(actionName, controllerName, new { fundingStreamId = validationResult.FundingStreamId, templateVersion = validationResult.TemplateVersion }, string.Empty);
+                return new CreatedAtActionResult(actionName, controllerName, new { fundingStreamId = validationResult.FundingStreamId, fundingPeriodId = validationResult.FundingPeriodId, templateVersion = validationResult.TemplateVersion }, string.Empty);
             }
             catch (Exception ex)
             {
@@ -122,12 +122,13 @@ namespace CalculateFunding.Services.Policy
             }
         }
 
-        public async Task<IActionResult> GetFundingTemplateSourceFile(string fundingStreamId, string templateVersion)
+        public async Task<IActionResult> GetFundingTemplateSourceFile(string fundingStreamId, string fundingPeriodId, string templateVersion)
         {
             Guard.IsNullOrWhiteSpace(fundingStreamId, nameof(fundingStreamId));
+            Guard.IsNullOrWhiteSpace(fundingPeriodId, nameof(fundingPeriodId));
             Guard.IsNullOrWhiteSpace(templateVersion, nameof(templateVersion));
 
-            string cacheKey = $"{CacheKeys.FundingTemplatePrefix}{fundingStreamId}-{templateVersion}";
+            string cacheKey = $"{CacheKeys.FundingTemplatePrefix}{fundingStreamId}-{fundingPeriodId}-{templateVersion}";
 
             string template = await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.GetAsync<string>(cacheKey));
 
@@ -136,7 +137,7 @@ namespace CalculateFunding.Services.Policy
                 return new OkObjectResult(template);
             }
 
-            string blobName = GetBlobNameFor(fundingStreamId, templateVersion);
+            string blobName = GetBlobNameFor(fundingStreamId, fundingPeriodId, templateVersion);
 
             try
             {
@@ -152,7 +153,7 @@ namespace CalculateFunding.Services.Policy
                 if (string.IsNullOrWhiteSpace(template))
                 {
                     _logger.Error($"Empty template returned from blob storage for blob name '{blobName}'");
-                    return new InternalServerErrorResult($"Failed to retreive blob contents for funding stream id '{fundingStreamId}' funding template version '{templateVersion}'");
+                    return new InternalServerErrorResult($"Failed to retreive blob contents for funding stream id '{fundingStreamId}', funding period id '{fundingPeriodId}' and funding template version '{templateVersion}'");
                 }
 
                 await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync(cacheKey, template));
@@ -163,13 +164,13 @@ namespace CalculateFunding.Services.Policy
             {
                 _logger.Error(ex, $"Failed to fetch funding template '{blobName}' from blob storage");
 
-                return new InternalServerErrorResult($"Error occurred fetching funding template for funding stream id '{fundingStreamId}' and version '{templateVersion}'");
+                return new InternalServerErrorResult($"Error occurred fetching funding template for funding stream id '{fundingStreamId}', funding period id '{fundingPeriodId}' and version '{templateVersion}'");
             }
         }
 
-        private string GetBlobNameFor(string fundingStreamId, string templateVersion)
+        private string GetBlobNameFor(string fundingStreamId, string fundingPeriodId, string templateVersion)
         {
-            return $"{fundingStreamId}/{templateVersion}.json";
+            return $"{fundingStreamId}/{fundingPeriodId}/{templateVersion}.json";
         }
 
         private async Task SaveFundingTemplateVersion(string blobName, byte[] templateBytes)
@@ -210,9 +211,9 @@ namespace CalculateFunding.Services.Policy
             }
         }
 
-        public async Task<IActionResult> GetFundingTemplateContents(string fundingStreamId, string templateVersion)
+        public async Task<IActionResult> GetFundingTemplateContents(string fundingStreamId, string fundingPeriodId, string templateVersion)
         {
-            IActionResult getFundingTemplateMetadataResult = await GetFundingTemplateContentMetadata(fundingStreamId, templateVersion);
+            IActionResult getFundingTemplateMetadataResult = await GetFundingTemplateContentMetadata(fundingStreamId, fundingPeriodId, templateVersion);
             if (!(getFundingTemplateMetadataResult is OkObjectResult))
             {
                 return getFundingTemplateMetadataResult;
@@ -222,9 +223,9 @@ namespace CalculateFunding.Services.Policy
             return new OkObjectResult(fundingTemplateContents);
         }
 
-        public async Task<IActionResult> GetFundingTemplate(string fundingStreamId, string templateVersion)
+        public async Task<IActionResult> GetFundingTemplate(string fundingStreamId, string fundingPeriodId, string templateVersion)
         {
-            IActionResult getFundingTemplateContentResult = await GetFundingTemplateContentsInner(fundingStreamId, templateVersion);
+            IActionResult getFundingTemplateContentResult = await GetFundingTemplateContentsInner(fundingStreamId, fundingPeriodId, templateVersion);
             if (!(getFundingTemplateContentResult is OkObjectResult))
             {
                 return getFundingTemplateContentResult;
@@ -234,17 +235,17 @@ namespace CalculateFunding.Services.Policy
             return new OkObjectResult(fundingTemplateContents);
         }
 
-        public async Task<bool> TemplateExists(string fundingStreamId, string templateVersion)
+        public async Task<bool> TemplateExists(string fundingStreamId, string fundingPeriodId, string templateVersion)
         {
-            return await CheckIfFundingTemplateVersionExists(GetBlobNameFor(fundingStreamId, templateVersion));
+            return await CheckIfFundingTemplateVersionExists(GetBlobNameFor(fundingStreamId, fundingPeriodId, templateVersion));
         }
 
-        private async Task<IActionResult> GetFundingTemplateContentMetadata(string fundingStreamId, string templateVersion)
+        private async Task<IActionResult> GetFundingTemplateContentMetadata(string fundingStreamId, string fundingPeriodId, string templateVersion)
         {
-            TemplateMetadataContents fundingTemplateContentMetadata = await _cacheProvider.GetAsync<TemplateMetadataContents>($"{CacheKeys.FundingTemplateContentMetadata}{fundingStreamId}:{templateVersion}");
+            TemplateMetadataContents fundingTemplateContentMetadata = await _cacheProvider.GetAsync<TemplateMetadataContents>($"{CacheKeys.FundingTemplateContentMetadata}{fundingStreamId}:{fundingPeriodId}:{templateVersion}");
             if (fundingTemplateContentMetadata == null)
             {
-                IActionResult fundingTemplateContentSourceFileResult = await GetFundingTemplateSourceFile(fundingStreamId, templateVersion);
+                IActionResult fundingTemplateContentSourceFileResult = await GetFundingTemplateSourceFile(fundingStreamId, fundingPeriodId, templateVersion);
 
                 if (!(fundingTemplateContentSourceFileResult is OkObjectResult))
                 {
@@ -268,22 +269,22 @@ namespace CalculateFunding.Services.Policy
                     return new PreconditionFailedResult(message);
                 }
                 fundingTemplateContentMetadata = templateMetadataGenerator.GetMetadata(fundingTemplateContentSourceFile);
-                await _cacheProvider.SetAsync($"{CacheKeys.FundingTemplateContentMetadata}{fundingStreamId}:{templateVersion}", fundingTemplateContentMetadata);
+                await _cacheProvider.SetAsync($"{CacheKeys.FundingTemplateContentMetadata}{fundingStreamId}:{fundingPeriodId}:{templateVersion}", fundingTemplateContentMetadata);
             }
 
             return new OkObjectResult(fundingTemplateContentMetadata);
         }
 
-        private async Task<IActionResult> GetFundingTemplateContentsInner(string fundingStreamId, string templateVersion)
+        private async Task<IActionResult> GetFundingTemplateContentsInner(string fundingStreamId, string fundingPeriodId, string templateVersion)
         {
-            IActionResult fundingTemplateContentSourceFileResult = await GetFundingTemplateSourceFile(fundingStreamId, templateVersion);
+            IActionResult fundingTemplateContentSourceFileResult = await GetFundingTemplateSourceFile(fundingStreamId, fundingPeriodId, templateVersion);
             if (!(fundingTemplateContentSourceFileResult is OkObjectResult))
             {
                 return fundingTemplateContentSourceFileResult;
             }
             string fundingTemplateContentSourceFile = (fundingTemplateContentSourceFileResult as OkObjectResult).Value as string;
 
-            IActionResult fundingTemplateContentMetadataResult = await GetFundingTemplateContentMetadata(fundingStreamId, templateVersion);
+            IActionResult fundingTemplateContentMetadataResult = await GetFundingTemplateContentMetadata(fundingStreamId, fundingPeriodId, templateVersion);
             if (!(fundingTemplateContentMetadataResult is OkObjectResult))
             {
                 return fundingTemplateContentMetadataResult;

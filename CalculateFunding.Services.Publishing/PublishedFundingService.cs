@@ -113,7 +113,7 @@ namespace CalculateFunding.Services.Publishing
         private async Task<TemplateMetadataContents> ReadTemplateMetadataContents(Reference fundingStream, SpecificationSummary specification)
         {
             TemplateMetadataContents templateMetadataContents =
-                await _policiesService.GetTemplateMetadataContents(fundingStream.Id, specification.TemplateIds[fundingStream.Id]);
+                await _policiesService.GetTemplateMetadataContents(fundingStream.Id, specification.FundingPeriod.Id, specification.TemplateIds[fundingStream.Id]);
 
             if (templateMetadataContents == null)
             {

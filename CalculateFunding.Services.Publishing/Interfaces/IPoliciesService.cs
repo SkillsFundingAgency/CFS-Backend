@@ -13,6 +13,6 @@ namespace CalculateFunding.Services.Publishing.Interfaces
         Task<FundingConfiguration> GetFundingConfiguration(string fundingStreamId, string fundingPeriodId);
         Task<FundingPeriod> GetFundingPeriodByConfigurationId(string fundingPeriodConfigId);
         Task<string> GetFundingPeriodId(string fundingPeriodConfigId);
-        Task<TemplateMetadataContents> GetTemplateMetadataContents(string fundingStreamId, string templateId);
+        Task<TemplateMetadataContents> GetTemplateMetadataContents(string fundingStreamId, string fundingPeriodId, string templateId);
     }
 }
