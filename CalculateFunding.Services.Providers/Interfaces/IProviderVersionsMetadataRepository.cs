@@ -15,5 +15,7 @@ namespace CalculateFunding.Services.Providers.Interfaces
         Task<ProviderVersionByDate> GetProviderVersionByDate(int year, int month, int day);
         Task<bool> Exists(string name, string providerVersionTypeString, int version, string fundingStream);
         Task<ProviderVersionMetadata> GetProviderVersionMetadata(string providerVersionId);
+        Task<CurrentProviderVersion> GetCurrentProviderVersion(string fundingStreamId);
+        Task<HttpStatusCode> UpsertCurrentProviderVersion(CurrentProviderVersion currentProviderVersion);
     }
 }

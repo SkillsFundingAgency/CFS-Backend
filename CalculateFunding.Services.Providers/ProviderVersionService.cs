@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
-using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Common.Caching;
@@ -182,7 +181,6 @@ namespace CalculateFunding.Services.Providers
         {
             Guard.IsNullOrWhiteSpace(providerVersionId, nameof(providerVersionId));
 
-            //this call now returns a content result so have altered this method accordingly
             ContentResult contentResult = (ContentResult)await GetAllProviders(providerVersionId);
 
             return JsonConvert.DeserializeObject<ProviderVersion>(contentResult.Content);
@@ -206,7 +204,7 @@ namespace CalculateFunding.Services.Providers
 
             if (fileSystemCacheEnabled && _fileSystemCache.Exists(cacheKey))
             {
-                using Stream cachedStream = _fileSystemCache.Get(cacheKey);
+                await using Stream cachedStream = _fileSystemCache.Get(cacheKey);
 
                 return GetActionResultForStream(cachedStream, providerVersionId);
             }
@@ -221,7 +219,7 @@ namespace CalculateFunding.Services.Providers
 
             }
 
-            using Stream blobClientStream = await _blobClient.DownloadToStreamAsync(blob);
+            await using Stream blobClientStream = await _blobClient.DownloadToStreamAsync(blob);
             
             if (fileSystemCacheEnabled)
             {
@@ -368,13 +366,9 @@ namespace CalculateFunding.Services.Providers
 
         private async Task UploadProviderVersionBlob(string providerVersionId, ProviderVersion providerVersion)
         {
-            //HACK this should be in a retry policy too, fix
             ICloudBlob blob = _blobClient.GetBlockBlobReference(providerVersionId.ToLowerInvariant() + ".json");
 
-            // convert string to stream
-            byte[] byteArray = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(providerVersion));
-
-            using MemoryStream stream = new MemoryStream(byteArray);
+            await using MemoryStream stream = new MemoryStream(providerVersion.AsJsonBytes());
             
             await _blobRepositoryPolicy.ExecuteAsync(() => blob.UploadFromStreamAsync(stream));
         }

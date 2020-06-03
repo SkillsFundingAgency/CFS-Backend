@@ -8,327 +8,445 @@ using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Models.Providers;
+using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NSubstitute;
+using Moq;
 
 namespace CalculateFunding.Services.Providers.UnitTests
 {
     [TestClass]
     public class ProviderVersionsMetadataRepositoryTests
     {
-        [TestMethod]
-        [DataRow(false, "Whoops")]
-        [DataRow(false, "Yeah...")]
-        [DataRow(true, "Good")]
-        [DataRow(true, "Better")]
-        public async Task IsHealthOk_ReturnsAsExpected(bool ok, string message)
+        private Mock<ICosmosRepository> _cosmos;
+        private ProviderVersionsMetadataRepository _repository;
+
+        [TestInitialize]
+        public void SetUp()
         {
-            //Arrange
-            ICosmosRepository repository = Substitute.For<ICosmosRepository>();
-            repository
-                .IsHealthOk()
+            _cosmos = new Mock<ICosmosRepository>();
+
+            _repository = new ProviderVersionsMetadataRepository(_cosmos.Object);
+        }
+
+        [TestMethod]
+        public async Task IsHealthOkDelegatesToCosmos()
+        {
+            bool expectedOk = NewRandomFlag();
+            string expectedMessage = NewRandomString();
+
+            GivenTheCosmosHealth(expectedOk, expectedMessage);
+
+            ServiceHealth serviceHealth = await WhenTheServiceHealthIsQueried();
+
+            serviceHealth.Dependencies.Count
+                .Should()
+                .Be(1);
+
+            DependencyHealth health = serviceHealth.Dependencies.Single();
+
+            health
+                .Should()
+                .BeEquivalentTo(new DependencyHealth
+                    {
+                        HealthOk = expectedOk,
+                        Message = expectedMessage
+                    },
+                    opt
+                        => opt.Excluding(_ => _.DependencyName));
+        }
+
+        [TestMethod]
+        public void UpsertProviderVersionByDateGuardsAgainstMissingProviderVersion()
+        {
+            Func<Task> invocation = () => WhenTheProviderVersionByDateIsUpserted(null);
+
+            invocation
+                .Should()
+                .Throw<ArgumentNullException>();
+
+            AndNothingWasUpsertedToCosmos<ProviderVersionByDate>();
+        }
+
+        [TestMethod]
+        public async Task UpsertProviderVersionByDateSetsIdWithDateComponentsAndThenDelegatesToCosmos()
+        {
+            ProviderVersionByDate providerVersionByDate = NewProviderVersionByDate();
+            HttpStatusCode expectedStatusCode = NewRandomStatusCode();
+
+            GivenTheCosmosStatusCodeForTheUpsert(providerVersionByDate, expectedStatusCode);
+
+            HttpStatusCode actualStatusCode = await WhenTheProviderVersionByDateIsUpserted(providerVersionByDate);
+
+            actualStatusCode
+                .Should()
+                .Be(expectedStatusCode);
+
+            providerVersionByDate.Id
+                .Should()
+                .Be($"{providerVersionByDate.Year}{providerVersionByDate.Month:00}{providerVersionByDate.Day:00}");
+        }
+
+        [TestMethod]
+        public void UpsertMasterGuardsAgainstMissingViewModel()
+        {
+            Func<Task<HttpStatusCode>> invocation = () => WhenTheMasterProviderVersionIsUpserted(null);
+
+            invocation
+                .Should()
+                .Throw<ArgumentNullException>();
+
+            AndNothingWasUpsertedToCosmos<MasterProviderVersion>();
+        }
+
+        [TestMethod]
+        public async Task UpsertMasterDelegatesToCosmos()
+        {
+            MasterProviderVersion masterProviderVersion = NewMasterProviderVersion();
+            HttpStatusCode expectedStatusCode = NewRandomStatusCode();
+
+            GivenTheCosmosStatusCodeForTheUpsert(masterProviderVersion, expectedStatusCode);
+
+            HttpStatusCode actualStatusCode = await WhenTheMasterProviderVersionIsUpserted(masterProviderVersion);
+
+            actualStatusCode
+                .Should()
+                .Be(expectedStatusCode);
+        }
+
+        [TestMethod]
+        public async Task CreateProviderVersionDelegatesToCosmos()
+        {
+            ProviderVersionMetadata providerVersion = NewProviderVersionMetadata();
+            HttpStatusCode expectedStatusCode = NewRandomStatusCode();
+
+            GivenTheStatusCodeForTheCreate(providerVersion, expectedStatusCode);
+
+            HttpStatusCode actualStatusCode = await WhenTheProviderVersionIsCreated(providerVersion);
+
+            actualStatusCode
+                .Should()
+                .Be(expectedStatusCode);
+        }
+
+        [TestMethod]
+        public void CreateProviderVersionGuardsAgainstMissingProviderVersion()
+        {
+            Func<Task<HttpStatusCode>> invocation = () => WhenTheProviderVersionIsCreated(null);
+
+            invocation
+                .Should()
+                .Throw<ArgumentNullException>();
+
+            AndNothingWasCreatedInCosmos<ProviderVersionMetadata>();
+        }
+
+        [TestMethod]
+        public async Task GetMasterProviderVersionReturnsTheFirstMasterProviderVersionItLocatesWithAnIdOfMaster()
+        {
+            string master = nameof(master);
+
+            MasterProviderVersion masterProviderVersionOne = NewMasterProviderVersion();
+            MasterProviderVersion masterProviderVersionTwo = NewMasterProviderVersion(_ => _.WithId(master));
+            MasterProviderVersion masterProviderVersionThree = NewMasterProviderVersion();
+            MasterProviderVersion masterProviderVersionFive = NewMasterProviderVersion(_ => _.WithId(master));
+
+            GivenTheCosmosContents(masterProviderVersionOne,
+                masterProviderVersionTwo,
+                masterProviderVersionThree,
+                masterProviderVersionFive);
+
+            MasterProviderVersion actualMasterProviderVersion = await WhenTheMasterProviderVersionIsQueried();
+
+            actualMasterProviderVersion
+                .Should()
+                .BeSameAs(masterProviderVersionTwo);
+        }
+
+        [TestMethod]
+        public async Task GetProviderVersionByDateReturnsFirstProviderVersionWithMatchingDateComponents()
+        {
+            DateTime date = NewRandomDate();
+
+            int year = date.Year;
+            int month = date.Month;
+            int day = date.Day;
+
+            string id = $"{year}{month:00}{day:00}";
+
+            ProviderVersionByDate providerVersionByDateOne = NewProviderVersionByDate();
+            ProviderVersionByDate providerVersionByDateTwo = NewProviderVersionByDate(_ => _.WithId(id));
+            ProviderVersionByDate providerVersionByDateThree = NewProviderVersionByDate(_ => _.WithId(id));
+
+            GivenTheCosmosContents(providerVersionByDateOne,
+                providerVersionByDateTwo,
+                providerVersionByDateThree);
+
+            ProviderVersionByDate actualProviderVersionByDate = await WhenTheProviderVersionByDateIsQueried(day, month, year);
+
+            actualProviderVersionByDate
+                .Should()
+                .BeSameAs(providerVersionByDateTwo);
+        }
+
+        [TestMethod]
+        public async Task GetProviderVersionsReturnsAllProviderVersionMetadataInTheSuppliedFundingStream()
+        {
+            string fundingStream = NewRandomString();
+
+            ProviderVersionMetadata providerVersionOne = NewProviderVersionMetadata(_ => _.WithFundingStream(fundingStream));
+            ProviderVersionMetadata providerVersionTwo = NewProviderVersionMetadata(_ => _.WithFundingStream(fundingStream));
+            ProviderVersionMetadata providerVersionThree = NewProviderVersionMetadata();
+            ProviderVersionMetadata providerVersionFour = NewProviderVersionMetadata(_ => _.WithFundingStream(fundingStream));
+            ProviderVersionMetadata providerVersionFive = NewProviderVersionMetadata();
+
+            GivenTheCosmosContents(providerVersionOne,
+                providerVersionTwo,
+                providerVersionThree,
+                providerVersionFour,
+                providerVersionFive);
+
+            IEnumerable<ProviderVersionMetadata> actualProviderVersions = await WhenTheProviderVersionsAreQueried(fundingStream);
+
+            actualProviderVersions
+                .Should()
+                .BeEquivalentTo(providerVersionOne, providerVersionTwo, providerVersionFour);
+        }
+
+        [TestMethod]
+        [DataRow("name", 99, "type", "fundingStream", true)]
+        [DataRow("NOT THE name", 99, "type", "fundingStream", false)]
+        [DataRow("name", 101, "type", "fundingStream", false)]
+        [DataRow("name", 99, "NOT THE type", "fundingStream", false)]
+        [DataRow("name", 99, "type", "NOT THE fundingStream", false)]
+        public async Task ExistsMatchesAnyByFundingStreamVersionTypeAndName(string queriedName,
+            int queriedVersion,
+            string queriedType,
+            string queriedFundingStream,
+            bool expectedExists)
+        {
+            string type = nameof(type);
+            string name = nameof(name);
+            string fundingStream = nameof(fundingStream);
+            int version = 99;
+
+            ProviderVersion providerVersionOne = NewProviderVersion();
+            ProviderVersion providerVersionTwo = NewProviderVersion(_ => _.WithName(name)
+                .WithFundingStream(fundingStream)
+                .WithVersion(version)
+                .WithType(type));
+
+            GivenTheCosmosContents(providerVersionOne,
+                providerVersionTwo);
+
+            bool actualExists = await WhenTheProviderVersionExistsIsChecked(queriedName, queriedType, queriedFundingStream, queriedVersion);
+
+            actualExists
+                .Should()
+                .Be(expectedExists);
+        }
+
+        [TestMethod]
+        public void GetCurrentProviderVersionGuardsAgainstMissingFundingStreamId()
+        {
+            Func<Task<CurrentProviderVersion>> invocation = () => WhenTheCurrentProviderVersionIsQueried(null);
+
+            invocation
+                .Should()
+                .Throw<ArgumentNullException>();
+        }
+        
+        [TestMethod]
+        public async Task GetCurrentProviderVersionMatchesByTheFundingStreamId()
+        {
+            string fundingStreamId = NewRandomString();
+
+            CurrentProviderVersion currentProviderVersionOne = NewCurrentProviderVersion();
+            CurrentProviderVersion currentProviderVersionTwo = NewCurrentProviderVersion();
+            CurrentProviderVersion currentProviderVersionThree = NewCurrentProviderVersion(_ => _.ForFundingStreamId(fundingStreamId));
+            CurrentProviderVersion currentProviderVersionFour = NewCurrentProviderVersion();
+            
+            GivenTheCosmosContents(currentProviderVersionOne,
+                currentProviderVersionTwo,
+                currentProviderVersionThree,
+                currentProviderVersionFour);
+            
+            CurrentProviderVersion actualCurrentProviderVersion = await WhenTheCurrentProviderVersionIsQueried(fundingStreamId);
+
+            actualCurrentProviderVersion
+                .Should()
+                .BeSameAs(currentProviderVersionThree);
+        }
+
+        [TestMethod]
+        public void UpsertCurrentProviderVersionGuardsAgainstMissingCurrentProviderVersion()
+        {
+            Func<Task<HttpStatusCode>> invocation = () => WhenTheCurrentProviderVersionIsUpserted(null);
+
+            invocation
+                .Should()
+                .Throw<ArgumentNullException>();
+            
+            AndNothingWasUpsertedToCosmos<CurrentProviderVersion>();
+        }
+
+        [TestMethod]
+        public async Task UpsertCurrentProviderVersionDelegatesToCosmos()
+        {
+            CurrentProviderVersion currentProviderVersion = NewCurrentProviderVersion();
+            HttpStatusCode expectedStatusCode = NewRandomStatusCode();
+            
+            GivenTheCosmosStatusCodeForTheUpsert(currentProviderVersion, expectedStatusCode);
+
+            HttpStatusCode actualStatusCode = await WhenTheCurrentProviderVersionIsUpserted(currentProviderVersion);
+
+            actualStatusCode
+                .Should()
+                .Be(expectedStatusCode);
+        }
+
+        private async Task<HttpStatusCode> WhenTheCurrentProviderVersionIsUpserted(CurrentProviderVersion currentProviderVersion)
+            => await _repository.UpsertCurrentProviderVersion(currentProviderVersion);
+        
+        private async Task<CurrentProviderVersion> WhenTheCurrentProviderVersionIsQueried(string fundingStreamId)
+            => await _repository.GetCurrentProviderVersion(fundingStreamId);
+
+        private async Task<ServiceHealth> WhenTheServiceHealthIsQueried()
+            => await _repository.IsHealthOk();
+
+        private void GivenTheCosmosHealth(bool ok,
+            string message)
+        {
+            _cosmos.Setup(_ => _.IsHealthOk())
                 .Returns((ok, message));
-
-            ProviderVersionsMetadataRepository providerVersionsMetadataRepository = new ProviderVersionsMetadataRepository(repository);
-
-            //Act
-            ServiceHealth serviceHealth = await providerVersionsMetadataRepository.IsHealthOk();
-
-            //Assert
-            repository.Received(1).IsHealthOk();
-
-            serviceHealth.Dependencies.Count.Should().Be(1);
-
-            DependencyHealth health = serviceHealth.Dependencies.ToArray()[0];
-
-            health.HealthOk.Should().Be(ok);
-            health.DependencyName.Should().StartWith("ObjectProxy");
-            health.Message.Should().Be(message);
         }
 
-        [TestMethod]
-        public async Task UpsertProviderVersionByDate_ProviderVersionByDateNull_ThrowsException()
+        private async Task<HttpStatusCode> WhenTheProviderVersionByDateIsUpserted(ProviderVersionByDate providerVersion)
+            => await _repository.UpsertProviderVersionByDate(providerVersion);
+
+        private void AndNothingWasUpsertedToCosmos<TEntity>()
+            where TEntity : IIdentifiable
+            => _cosmos.Verify(_ => _.UpsertAsync(It.IsAny<TEntity>(),
+                    It.IsAny<string>(),
+                    It.IsAny<bool>(),
+                    It.IsAny<bool>()),
+                Times.Never);
+
+        private void AndNothingWasCreatedInCosmos<TEntity>()
+            where TEntity : IIdentifiable
+            => _cosmos.Verify(_ => _.CreateAsync(It.IsAny<TEntity>(),
+                    null),
+                Times.Never);
+
+        private void GivenTheCosmosStatusCodeForTheUpsert<TEntity>(TEntity entity,
+            HttpStatusCode httpStatusCode)
+            where TEntity : IIdentifiable
+            => _cosmos.Setup(_ => _.UpsertAsync(entity,
+                    null,
+                    false,
+                    true))
+                .ReturnsAsync(httpStatusCode);
+
+        private void GivenTheStatusCodeForTheCreate<TEntity>(TEntity entity,
+            HttpStatusCode httpStatusCode)
+            where TEntity : IIdentifiable
+            => _cosmos.Setup(_ => _.CreateAsync(entity,
+                    null))
+                .ReturnsAsync(httpStatusCode);
+
+        private async Task<HttpStatusCode> WhenTheMasterProviderVersionIsUpserted(MasterProviderVersion providerVersion)
+            => await _repository.UpsertMaster(providerVersion);
+
+        private async Task<HttpStatusCode> WhenTheProviderVersionIsCreated(ProviderVersionMetadata providerVersion)
+            => await _repository.CreateProviderVersion(providerVersion);
+
+        private void GivenTheCosmosContents<TEntity>(params TEntity[] contents)
+            where TEntity : IIdentifiable
         {
-            //Arrange
-            ICosmosRepository repository = Substitute.For<ICosmosRepository>();
-            ProviderVersionsMetadataRepository providerVersionsMetadataRepository = new ProviderVersionsMetadataRepository(repository);
+            ICollection<DocumentEntity<TEntity>> filteredResults = new List<DocumentEntity<TEntity>>();
 
-            //Act
-            Func<Task> error = () => providerVersionsMetadataRepository.UpsertProviderVersionByDate(null);
+            _cosmos.Setup(_ => _.GetAllDocumentsAsync(It.IsAny<int>(),
+                    It.IsAny<Expression<Func<DocumentEntity<TEntity>, bool>>>()))
+                .Callback<int, Expression<Func<DocumentEntity<TEntity>, bool>>>((_,
+                    query) =>
+                {
+                    IEnumerable<DocumentEntity<TEntity>> documents = contents.Select(document => new DocumentEntity<TEntity>(document));
+                    Func<DocumentEntity<TEntity>, bool> filter = query.Compile();
 
-            //Assert
-            error.Should().Throw<ArgumentNullException>();
-
-            await repository
-                .Received(0)
-                .UpsertAsync(Arg.Any<ProviderVersionByDate>());
+                    filteredResults.AddRange(documents.Where(document => filter(document)));
+                })
+                .ReturnsAsync(filteredResults);
         }
 
-        [TestMethod]
-        public async Task UpsertProviderVersionByDate_ReturnsCorrectly()
+        private async Task<bool> WhenTheProviderVersionExistsIsChecked(string name,
+            string type,
+            string fundingStream,
+            int version)
+            => await _repository.Exists(name, type, version, fundingStream);
+
+        private async Task<IEnumerable<ProviderVersionMetadata>> WhenTheProviderVersionsAreQueried(string fundingStream)
+            => await _repository.GetProviderVersions(fundingStream);
+
+        private async Task<ProviderVersionByDate> WhenTheProviderVersionByDateIsQueried(int day,
+            int month,
+            int year)
+            => await _repository.GetProviderVersionByDate(year, month, day);
+
+        private async Task<MasterProviderVersion> WhenTheMasterProviderVersionIsQueried()
+            => await _repository.GetMasterProviderVersion();
+
+        private ProviderVersionByDate NewProviderVersionByDate(Action<ProviderVersionByDateBuilder> setUp = null)
         {
-            //Arrange
-            HttpStatusCode statusCode = HttpStatusCode.Continue;
+            ProviderVersionByDateBuilder providerVersionByDateBuilder = new ProviderVersionByDateBuilder();
 
-            ICosmosRepository repository = Substitute.For<ICosmosRepository>();
-            repository
-                .UpsertAsync(Arg.Any<ProviderVersionByDate>())
-                .Returns(statusCode);
+            setUp?.Invoke(providerVersionByDateBuilder);
 
-            ProviderVersionsMetadataRepository providerVersionsMetadataRepository = new ProviderVersionsMetadataRepository(repository);
-
-            ProviderVersionByDate providerVersionByDate = new ProviderVersionByDate
-            {
-                Description = "A",
-                Year = 1,
-                Month = 2,
-                Day = 3,
-                Id = "B"
-            };
-
-            //Act
-            HttpStatusCode result = await providerVersionsMetadataRepository.UpsertProviderVersionByDate(providerVersionByDate);
-
-            //Assert
-            result.Should().Be(statusCode);
-
-            await repository
-                .Received(1)
-                .UpsertAsync(Arg.Is<ProviderVersionByDate>(x => x.Description == providerVersionByDate.Description
-                                                                && x.Id == string.Concat(providerVersionByDate.Year,
-                                                                    providerVersionByDate.Month.ToString("00"),
-                                                                    providerVersionByDate.Day.ToString("00"))));
+            return providerVersionByDateBuilder.Build();
         }
 
-        [TestMethod]
-        public async Task UpsertMaster_ViewModelNull_ThrowsException()
+        private MasterProviderVersion NewMasterProviderVersion(Action<MasterProviderVersionBuilder> setUp = null)
         {
-            //Arrange
-            ICosmosRepository repository = Substitute.For<ICosmosRepository>();
-            ProviderVersionsMetadataRepository providerVersionsMetadataRepository = new ProviderVersionsMetadataRepository(repository);
+            MasterProviderVersionBuilder masterProviderVersionBuilder = new MasterProviderVersionBuilder();
 
-            //Act
-            Func<Task> error = () => providerVersionsMetadataRepository.UpsertMaster(null);
+            setUp?.Invoke(masterProviderVersionBuilder);
 
-            //Assert
-            error.Should().Throw<ArgumentNullException>();
-            await repository
-                .Received(0)
-                .UpsertAsync(Arg.Any<MasterProviderVersion>());
+            return masterProviderVersionBuilder.Build();
         }
 
-        [TestMethod]
-        public async Task UpsertMaster_ReturnsCorrectly()
+        private ProviderVersionMetadata NewProviderVersionMetadata(Action<ProviderVersionMetadataBuilder> setUp = null)
         {
-            //Arrange
-            HttpStatusCode statusCode = HttpStatusCode.EarlyHints;
+            ProviderVersionMetadataBuilder providerVersionMetadataBuilder = new ProviderVersionMetadataBuilder();
 
-            ICosmosRepository repository = Substitute.For<ICosmosRepository>();
-            repository
-                .UpsertAsync(Arg.Any<MasterProviderVersion>())
-                .Returns(statusCode);
+            setUp?.Invoke(providerVersionMetadataBuilder);
 
-            ProviderVersionsMetadataRepository providerVersionsMetadataRepository = new ProviderVersionsMetadataRepository(repository);
-
-            MasterProviderVersion masterProviderVersion = new MasterProviderVersion();
-
-            //Act
-            HttpStatusCode result = await providerVersionsMetadataRepository.UpsertMaster(masterProviderVersion);
-
-            //Assert
-            result.Should().Be(statusCode);
-
-            await repository
-                .Received(1)
-                .UpsertAsync(masterProviderVersion);
+            return providerVersionMetadataBuilder.Build();
         }
 
-        [TestMethod]
-        public async Task CreateProviderVersion_MetadataNull_ThrowsException()
+        private ProviderVersion NewProviderVersion(Action<ProviderVersionBuilder> setUp = null)
         {
-            //Arrange
-            ICosmosRepository repository = Substitute.For<ICosmosRepository>();
-            ProviderVersionsMetadataRepository providerVersionsMetadataRepository = new ProviderVersionsMetadataRepository(repository);
+            ProviderVersionBuilder providerVersionBuilder = new ProviderVersionBuilder();
 
-            //Act
-            Func<Task> error = () => providerVersionsMetadataRepository.CreateProviderVersion(null);
+            setUp?.Invoke(providerVersionBuilder);
 
-            //Assert
-            error.Should().Throw<ArgumentNullException>();
-            await repository
-                .Received(0)
-                .CreateAsync(Arg.Any<ProviderVersionMetadata>());
+            return providerVersionBuilder.Build();
         }
 
-        [TestMethod]
-        public async Task CreateProviderVersion_ReturnsCorrectly()
+        private CurrentProviderVersion NewCurrentProviderVersion(Action<CurrentProviderVersionBuilder> setUp = null)
         {
-            //Arrange
-            HttpStatusCode statusCode = HttpStatusCode.EarlyHints;
+            CurrentProviderVersionBuilder currentProviderVersionBuilder = new CurrentProviderVersionBuilder();
 
-            ICosmosRepository repository = Substitute.For<ICosmosRepository>();
-            repository
-                .CreateAsync(Arg.Any<ProviderVersionMetadata>())
-                .Returns(statusCode);
-
-            ProviderVersionsMetadataRepository providerVersionsMetadataRepository = new ProviderVersionsMetadataRepository(repository);
-
-            ProviderVersionMetadata providerVersionMetadata = new ProviderVersionMetadata();
-
-            //Act
-            HttpStatusCode result = await providerVersionsMetadataRepository.CreateProviderVersion(providerVersionMetadata);
-
-            //Assert
-            result.Should().Be(statusCode);
-
-            await repository
-                .Received(1)
-                .CreateAsync(providerVersionMetadata);
+            setUp?.Invoke(currentProviderVersionBuilder);
+            
+            return currentProviderVersionBuilder.Build();
         }
 
-        [TestMethod]
-        public async Task GetMasterProviderVersion_ReturnsCorrectly()
-        {
-            MasterProviderVersion mpv1 = new MasterProviderVersion { Id = "1" };
-            MasterProviderVersion mpv2 = new MasterProviderVersion { Id = "2" };
+        private bool NewRandomFlag() => new RandomBoolean();
 
-            //Arrange
-            IEnumerable<DocumentEntity<MasterProviderVersion>> masterProviderVersions = new List<DocumentEntity<MasterProviderVersion>>
-            {
-                new DocumentEntity<MasterProviderVersion>(mpv1),
-                new DocumentEntity<MasterProviderVersion>(mpv2)
-            };
+        private string NewRandomString() => new RandomString();
 
-            ICosmosRepository repository = Substitute.For<ICosmosRepository>();
-            repository
-                .GetAllDocumentsAsync(query: Arg.Any<Expression<Func<DocumentEntity<MasterProviderVersion>, bool>>>())
-                .Returns(masterProviderVersions);
+        private DateTime NewRandomDate() => new RandomDateTime();
 
-            ProviderVersionsMetadataRepository providerVersionsMetadataRepository = new ProviderVersionsMetadataRepository(repository);
-
-            //Act
-            MasterProviderVersion result = await providerVersionsMetadataRepository.GetMasterProviderVersion();
-
-            //Assert
-            result.Should().Be(mpv1);
-            //TODO test gap around the lambda filter expressions going to cosmos - worth trying this just in case but not surprised it doesn't work
-            //await repository
-            //    .Received(1)
-            //    .GetAllDocumentsAsync(query: Arg.Is<Expression<Func<DocumentEntity<MasterProviderVersion>, bool>>>(x => x.Content.Id == "master"));
-            await repository
-                .Received(1)
-                .GetAllDocumentsAsync(query: Arg.Any<Expression<Func<DocumentEntity<MasterProviderVersion>, bool>>>());
-        }
-
-        [TestMethod]
-        public async Task GetProviderVersionByDate_ReturnsCorrectly()
-        {
-            ProviderVersionByDate pvbd1 = new ProviderVersionByDate { Id = "1" };
-            ProviderVersionByDate pvbd2 = new ProviderVersionByDate { Id = "2" };
-
-            //Arrange
-            IEnumerable<DocumentEntity<ProviderVersionByDate>> providerVersionsByDate = new List<DocumentEntity<ProviderVersionByDate>>
-            {
-                new DocumentEntity<ProviderVersionByDate>(pvbd1),
-                new DocumentEntity<ProviderVersionByDate>(pvbd2)
-            };
-
-            ICosmosRepository repository = Substitute.For<ICosmosRepository>();
-            repository
-                .GetAllDocumentsAsync(query: Arg.Any<Expression<Func<DocumentEntity<ProviderVersionByDate>, bool>>>())
-                .Returns(providerVersionsByDate);
-
-            ProviderVersionsMetadataRepository providerVersionsMetadataRepository = new ProviderVersionsMetadataRepository(repository);
-
-            //Act
-            ProviderVersionByDate result = await providerVersionsMetadataRepository.GetProviderVersionByDate(1, 2, 3);
-
-            //Assert
-            result.Should().Be(pvbd1);
-            //TODO test gap around the lambda filter expressions going to cosmos
-            await repository
-                .Received(1)
-                .GetAllDocumentsAsync(query: Arg.Any<Expression<Func<DocumentEntity<ProviderVersionByDate>, bool>>>());
-        }
-
-        [TestMethod]
-        public async Task GetProviderVersions_ReturnsCorrectly()
-        {
-            ProviderVersionMetadata pv1 = new ProviderVersionMetadata { ProviderVersionId = "1" };
-            ProviderVersionMetadata pv2 = new ProviderVersionMetadata { ProviderVersionId = "2" };
-
-            //Arrange
-            IEnumerable<DocumentEntity<ProviderVersionMetadata>> providerVersions = new List<DocumentEntity<ProviderVersionMetadata>>
-            {
-                new DocumentEntity<ProviderVersionMetadata>(pv1),
-                new DocumentEntity<ProviderVersionMetadata>(pv2)
-            };
-
-            ICosmosRepository repository = Substitute.For<ICosmosRepository>();
-            repository
-                .GetAllDocumentsAsync(query: Arg.Any<Expression<Func<DocumentEntity<ProviderVersionMetadata>, bool>>>())
-                .Returns(providerVersions);
-
-            ProviderVersionsMetadataRepository providerVersionsMetadataRepository = new ProviderVersionsMetadataRepository(repository);
-
-            //Act
-            IEnumerable<ProviderVersionMetadata> result = await providerVersionsMetadataRepository.GetProviderVersions("fundingStream");
-
-            //Assert
-            result
-                .Count()
-                .Should()
-                .Be(providerVersions.Count());
-
-            foreach (ProviderVersionMetadata pv in providerVersions.Select(x => x.Content))
-            {
-                result
-                    .Count(x => x.Id == pv.Id)
-                    .Should()
-                    .Be(1);
-            }
-
-            //TODO test gap around the lambda filter expressions going to cosmos
-            await repository
-                .Received(1)
-                .GetAllDocumentsAsync(query: Arg.Any<Expression<Func<DocumentEntity<ProviderVersionMetadata>, bool>>>());
-        }
-
-        [TestMethod]
-        [DataRow("Alice", true)]
-        [DataRow("Bob", false)]
-        public async Task Exists_ReturnsCorrectly(string name, bool exists)
-        {
-            ProviderVersion pv1 = new ProviderVersion { Id = "1", Name = "Alice" };
-            ProviderVersion pv2 = new ProviderVersion { Id = "2", Name = "b" };
-
-            //Arrange
-            IEnumerable<DocumentEntity<ProviderVersion>> providerVersions = new List<DocumentEntity<ProviderVersion>>
-            {
-                new DocumentEntity<ProviderVersion>(pv1),
-                new DocumentEntity<ProviderVersion>(pv2)
-            };
-
-            ICosmosRepository repository = Substitute.For<ICosmosRepository>();
-            repository
-                .GetAllDocumentsAsync(query: Arg.Any<Expression<Func<DocumentEntity<ProviderVersion>, bool>>>())
-                .Returns(providerVersions);
-
-            ProviderVersionsMetadataRepository providerVersionsMetadataRepository = new ProviderVersionsMetadataRepository(repository);
-
-            //Act
-            bool result = await providerVersionsMetadataRepository.Exists(name, "", 1, "");
-
-            //Assert
-            result
-                .Should()
-                .Be(exists);
-
-            //TODO test gap around the lambda filter expressions going to cosmos
-            await repository
-                .Received(1)
-                .GetAllDocumentsAsync(query: Arg.Any<Expression<Func<DocumentEntity<ProviderVersion>, bool>>>());
-        }
+        private HttpStatusCode NewRandomStatusCode() => (HttpStatusCode) (int) new RandomNumberBetween(200, 500);
     }
 }

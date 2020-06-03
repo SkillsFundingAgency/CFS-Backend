@@ -14,5 +14,8 @@ namespace CalculateFunding.Services.Providers
         public AsyncPolicy BlobRepositoryPolicy { get; set; }
 
         public AsyncPolicy JobsApiClient { get; set; }
+        
+        public AsyncPolicy PoliciesApiClient { get; set; }
     }
 }
+

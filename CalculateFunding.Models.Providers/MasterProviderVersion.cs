@@ -1,9 +1,8 @@
-﻿using CalculateFunding.Common.Models;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Providers
 {
-    public class MasterProviderVersion : ProviderVersionMetadata, IIdentifiable
+    public class MasterProviderVersion : ProviderVersionMetadata
     {
         [JsonProperty("id")]
         public new string Id { get; set; }

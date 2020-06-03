@@ -8,5 +8,6 @@ namespace CalculateFunding.Services.Providers.Interfaces
         AsyncPolicy ProviderVersionMetadataRepository { get; set; }
         AsyncPolicy BlobRepositoryPolicy { get; set; }
         AsyncPolicy JobsApiClient { get; set; }
+        AsyncPolicy PoliciesApiClient { get; set; }
     }
 }

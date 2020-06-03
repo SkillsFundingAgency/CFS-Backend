@@ -9,23 +9,24 @@ using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Providers;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Providers.Interfaces;
+using Microsoft.ApplicationInsights.Common;
 
 namespace CalculateFunding.Services.Providers
 {
     public class ProviderVersionsMetadataRepository : IProviderVersionsMetadataRepository, IHealthChecker
     {
-        readonly ICosmosRepository _repository;
+        readonly ICosmosRepository _cosmos;
 
-        public ProviderVersionsMetadataRepository(ICosmosRepository cosmosRepository)
+        public ProviderVersionsMetadataRepository(ICosmosRepository cosmosCosmos)
         {
-            Guard.ArgumentNotNull(cosmosRepository, nameof(cosmosRepository));
+            Guard.ArgumentNotNull(cosmosCosmos, nameof(cosmosCosmos));
 
-            _repository = cosmosRepository;
+            _cosmos = cosmosCosmos;
         }
 
         public Task<ServiceHealth> IsHealthOk()
         {
-            (bool Ok, string Message) = _repository.IsHealthOk();
+            (bool Ok, string Message) = _cosmos.IsHealthOk();
 
             ServiceHealth health = new ServiceHealth()
             {
@@ -34,7 +35,7 @@ namespace CalculateFunding.Services.Providers
             health.Dependencies.Add(new DependencyHealth
             {
                 HealthOk = Ok,
-                DependencyName = _repository.GetType().GetFriendlyName(),
+                DependencyName = _cosmos.GetType().GetFriendlyName(),
                 Message = Message
             });
 
@@ -45,46 +46,66 @@ namespace CalculateFunding.Services.Providers
         {
             Guard.ArgumentNotNull(providerVersionByDate, nameof(providerVersionByDate));
 
-            providerVersionByDate.Id = string.Concat(providerVersionByDate.Year, providerVersionByDate.Month.ToString("00"), providerVersionByDate.Day.ToString("00"));
+            providerVersionByDate.Id = $"{providerVersionByDate.Year}{providerVersionByDate.Month:00}{providerVersionByDate.Day:00}";
 
-            return await _repository.UpsertAsync(providerVersionByDate);
+            return await _cosmos.UpsertAsync(providerVersionByDate);
         }
 
         public async Task<HttpStatusCode> UpsertMaster(MasterProviderVersion providerVersionMetadataViewModel)
         {
             Guard.ArgumentNotNull(providerVersionMetadataViewModel, nameof(providerVersionMetadataViewModel));
 
-            return await _repository.UpsertAsync(providerVersionMetadataViewModel);
+            return await _cosmos.UpsertAsync(providerVersionMetadataViewModel);
         }
 
         public async Task<HttpStatusCode> CreateProviderVersion(ProviderVersionMetadata providerVersion)
         {
             Guard.ArgumentNotNull(providerVersion, nameof(providerVersion));
 
-            return await _repository.CreateAsync(providerVersion);
+            return await _cosmos.CreateAsync(providerVersion);
         }
 
         public async Task<MasterProviderVersion> GetMasterProviderVersion()
         {
-            IEnumerable<DocumentEntity<MasterProviderVersion>> masterProviderVersion = await _repository.GetAllDocumentsAsync<MasterProviderVersion>(query: m => m.Content.Id == "master");
+            IEnumerable<DocumentEntity<MasterProviderVersion>> masterProviderVersion = await _cosmos.GetAllDocumentsAsync<MasterProviderVersion>(query: m => 
+                m.Content.Id == "master");
             return masterProviderVersion.Select(x => x.Content).FirstOrDefault();
         }
 
         public async Task<ProviderVersionByDate> GetProviderVersionByDate(int year, int month, int day)
         {
-            IEnumerable<DocumentEntity<ProviderVersionByDate>> providerVersionsByDate = await _repository.GetAllDocumentsAsync<ProviderVersionByDate>(query: m => m.Content.Id == string.Concat(year, month.ToString("00"), day.ToString("00")));
+            IEnumerable<DocumentEntity<ProviderVersionByDate>> providerVersionsByDate = await _cosmos.GetAllDocumentsAsync<ProviderVersionByDate>(query: m => 
+                m.Content.Id == $"{year}{month:00}{day:00}");
             return providerVersionsByDate.Select(x => x.Content).FirstOrDefault();
+        }
+        
+        public async Task<CurrentProviderVersion> GetCurrentProviderVersion(string fundingStreamId)
+        {
+            Guard.IsNullOrWhiteSpace(fundingStreamId, nameof(fundingStreamId));
+            
+            return (await _cosmos.GetAllDocumentsAsync<CurrentProviderVersion>(query: document =>
+                document.Content.Id == $"Current_{fundingStreamId}"))?
+                .Select(document => document.Content)
+                .SingleOrDefault();
+        }
+        
+        public async Task<HttpStatusCode> UpsertCurrentProviderVersion(CurrentProviderVersion currentProviderVersion)
+        { 
+            Guard.ArgumentNotNull(currentProviderVersion, nameof(currentProviderVersion));
+
+            return await _cosmos.UpsertAsync(currentProviderVersion);
         }
 
         public async Task<IEnumerable<ProviderVersionMetadata>> GetProviderVersions(string fundingStream)
         {
-            IEnumerable<DocumentEntity<ProviderVersionMetadata>> providerVersions = await _repository.GetAllDocumentsAsync<ProviderVersionMetadata>(query: m => m.Content.FundingStream == fundingStream);
+            IEnumerable<DocumentEntity<ProviderVersionMetadata>> providerVersions = await _cosmos.GetAllDocumentsAsync<ProviderVersionMetadata>(query: m => 
+                m.Content.FundingStream == fundingStream);
             return providerVersions?.Select(x => x.Content);
         }
 
         public async Task<bool> Exists(string name, string providerVersionTypeString, int version, string fundingStream)
         {
-            IEnumerable<DocumentEntity<ProviderVersion>> results = await _repository
+            IEnumerable<DocumentEntity<ProviderVersion>> results = await _cosmos
                     .GetAllDocumentsAsync<ProviderVersion>(query: m => m.Content.ProviderVersionTypeString == providerVersionTypeString
                                                                          && m.Content.Version == version
                                                                          && m.Content.FundingStream == fundingStream);
@@ -99,7 +120,7 @@ namespace CalculateFunding.Services.Providers
 
             string cosmosKey = $"providerVersion-{providerVersionId}";
 
-            IEnumerable<DocumentEntity<ProviderVersionMetadata>> providerVersions = await _repository.GetAllDocumentsAsync<ProviderVersionMetadata>(query: m => m.Id == cosmosKey);
+            IEnumerable<DocumentEntity<ProviderVersionMetadata>> providerVersions = await _cosmos.GetAllDocumentsAsync<ProviderVersionMetadata>(query: m => m.Id == cosmosKey);
             return providerVersions?.Select(x => x.Content).FirstOrDefault();
         }
     }
