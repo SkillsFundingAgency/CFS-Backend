@@ -82,6 +82,11 @@ namespace CalculateFunding.Services.Policy
             return (await _cosmosRepository.Query<FundingConfiguration>(m => m.Content.FundingStreamId == fundingStreamId));
         }
 
+        public async Task<IEnumerable<FundingConfiguration>> GetFundingConfigurations()
+        {
+            return await _cosmosRepository.Query<FundingConfiguration>();
+        }
+
         public async Task<FundingPeriod> GetFundingPeriodById(string fundingPeriodId)
         {
             Guard.IsNullOrWhiteSpace(fundingPeriodId, nameof(fundingPeriodId));

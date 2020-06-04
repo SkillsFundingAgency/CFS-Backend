@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models;
+using CalculateFunding.Models.Policy;
 using CalculateFunding.Models.Policy.TemplateBuilder;
 using CalculateFunding.Repositories.Common.Search.Results;
 using CalculateFunding.Services.Policy.Interfaces;
@@ -207,6 +208,16 @@ namespace CalculateFunding.Api.Policy.Controllers
                 await _templateBuilderService.GetVersionsByTemplate(templateId, templateStatuses);
 
             return Ok(templateVersionResponses);
+        }
+
+        [HttpGet("api/templates/build/available-stream-periods")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<FundingStreamWithPeriods>))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> GetFundingStreamPeriodsWithoutTemplates()
+        {
+            IEnumerable<FundingStreamWithPeriods> results = await _templateBuilderService.GetFundingStreamAndPeriodsWithoutTemplates();
+            return Ok(results);
         }
 
         [HttpPost("api/templates/build/versions/search")]

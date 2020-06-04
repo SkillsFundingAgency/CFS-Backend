@@ -89,7 +89,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
 
                 await _searchRepositoryResilience.ExecuteAsync(() => _searchRepository.DeleteIndex());
 
-                await _templatesRepositoryResilience.ExecuteAsync(() => _templatesRepository.AllTemplatesBatchProcessing(
+                await _templatesRepositoryResilience.ExecuteAsync(() => _templatesRepository.GetTemplatesForIndexing(
                     async templates =>
                     {
                         IList<TemplateIndex> results = new List<TemplateIndex>();

@@ -25,5 +25,7 @@ namespace CalculateFunding.Services.Policy.Interfaces
         Task<CommandResult> ApproveTemplate(Reference author, string templateId, string comment, string version = null);
         
         Task<CommandResult> CreateTemplateAsClone(TemplateCreateAsCloneCommand command, Reference author);
+        
+        Task<IEnumerable<FundingStreamWithPeriods>> GetFundingStreamAndPeriodsWithoutTemplates();
     }
 }

@@ -9,6 +9,7 @@ using CalculateFunding.Common.TemplateMetadata;
 using CalculateFunding.Common.TemplateMetadata.Schema11.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Policy;
+using CalculateFunding.Models.Policy.FundingPolicy;
 using CalculateFunding.Models.Policy.TemplateBuilder;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Repositories.Common.Search;
@@ -304,6 +305,36 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
                     Exception = ex
                 };
             }
+        }
+
+        public async Task<IEnumerable<FundingStreamWithPeriods>> GetFundingStreamAndPeriodsWithoutTemplates()
+        {
+            Task<IEnumerable<FundingStream>> allFundingStreamsTask = _policyRepository.GetFundingStreams();
+            Task<IEnumerable<FundingPeriod>> allFundingPeriodsTask = _policyRepository.GetFundingPeriods();
+            Task<IEnumerable<FundingConfiguration>> allFundingConfigurationsTask = _policyRepository.GetFundingConfigurations();
+            Task<IEnumerable<Template>> allTemplatesTask = _templateRepository.GetAllTemplates();
+
+            await Task.WhenAll(allFundingStreamsTask, allFundingConfigurationsTask, allTemplatesTask, allFundingPeriodsTask);
+
+            List<FundingStream> allFundingStreams = (await allFundingStreamsTask).ToList();
+            List<FundingConfiguration> allFundingConfigurations = (await allFundingConfigurationsTask).ToList();
+            List<FundingPeriod> allFundingPeriods = (await allFundingPeriodsTask).ToList();
+            List<Template> allTemplates = (await allTemplatesTask).ToList();
+
+            List<FundingStreamWithPeriods> results = new List<FundingStreamWithPeriods>();
+            foreach (var fundingStream in allFundingStreams)
+            {
+                results.Add(new FundingStreamWithPeriods
+                {
+                    FundingStream = fundingStream,
+                    FundingPeriods = allFundingPeriods.Where(p =>
+                        !allTemplates.Any(
+                            template => template.Current.FundingStreamId == fundingStream.Id && template.Current.FundingPeriodId == p.Id) &&
+                        allFundingConfigurations.Any(c => c.FundingStreamId == fundingStream.Id && c.FundingPeriodId == p.Id)).ToList()
+                });
+            }
+
+            return results;
         }
 
         public async Task<CommandResult> UpdateTemplateContent(TemplateFundingLinesUpdateCommand originalCommand, Reference author)

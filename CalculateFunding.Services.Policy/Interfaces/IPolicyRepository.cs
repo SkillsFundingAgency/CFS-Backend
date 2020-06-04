@@ -28,5 +28,7 @@ namespace CalculateFunding.Services.Policy.Interfaces
         Task SaveFundingPeriods(IEnumerable<FundingPeriod> fundingPeriods);
 
         Task<IEnumerable<FundingConfiguration>> GetFundingConfigurationsByFundingStreamId(string fundingStreamId);
+
+        Task<IEnumerable<FundingConfiguration>> GetFundingConfigurations();
     }
 }

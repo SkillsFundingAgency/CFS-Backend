@@ -40,17 +40,6 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             return await _cosmosRepository.CreateAsync(template);
         }
 
-        public async Task<bool> IsTemplateNameInUse(string templateName)
-        {
-            Guard.IsNullOrWhiteSpace(templateName, nameof(templateName));
-
-            IEnumerable<Template> existing = await _cosmosRepository.Query<Template>(x =>
-                x.Content.Current != null &&
-                x.Content.Current.Name.ToLower() == templateName.ToLower());
-
-            return existing.Any();
-        }
-
         public async Task<HttpStatusCode> Update(Template template)
         {
             Guard.ArgumentNotNull(template, nameof(template));
@@ -71,7 +60,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             return existing.Any();
         }
 
-        public async Task AllTemplatesBatchProcessing(Func<List<Template>, Task> persistIndexBatch, int batchSize)
+        public async Task GetTemplatesForIndexing(Func<List<Template>, Task> persistIndexBatch, int batchSize)
         {
             CosmosDbQuery query = new CosmosDbQuery
             {
@@ -95,6 +84,13 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             await _cosmosRepository.DocumentsBatchProcessingAsync(persistBatchToIndex: persistIndexBatch,
                 cosmosDbQuery: query,
                 itemsPerPage: batchSize);
+        }
+
+        public async Task<IEnumerable<Template>> GetAllTemplates()
+        {
+            IEnumerable<Template> templates = await _cosmosRepository.Query<Template>();
+
+            return templates;
         }
     }
 }
