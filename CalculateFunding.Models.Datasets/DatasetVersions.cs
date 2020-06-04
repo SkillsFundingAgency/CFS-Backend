@@ -8,11 +8,11 @@ namespace CalculateFunding.Models.Datasets
     {
         public DatasetVersions()
         {
-            Versions = Enumerable.Empty<int>();
+            Versions = Enumerable.Empty<DatasetVersionModel>();
         }
 
         public int? SelectedVersion { get; set; }
 
-        public IEnumerable<int> Versions { get; set; }
+        public IEnumerable<DatasetVersionModel> Versions { get; set; }
     }
 }

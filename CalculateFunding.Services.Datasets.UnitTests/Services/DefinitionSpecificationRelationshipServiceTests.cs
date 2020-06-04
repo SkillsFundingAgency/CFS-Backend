@@ -86,7 +86,7 @@ namespace CalculateFunding.Services.Datasets.Services
         public async Task CreateRelationship_GivenValidModelButDefinitionCouldNotBeFound_ReturnsPreConditionFailed()
         {
             //Arrange
-            string datasetDefinitionId = Guid.NewGuid().ToString();
+            string datasetDefinitionId = NewRandomString();
 
             CreateDefinitionSpecificationRelationshipModel model = new CreateDefinitionSpecificationRelationshipModel
             {
@@ -126,8 +126,8 @@ namespace CalculateFunding.Services.Datasets.Services
         public async Task CreateRelationship_GivenValidModelButSpecificationCouldNotBeFound_ReturnsPreConditionFailed()
         {
             //Arrange
-            string datasetDefinitionId = Guid.NewGuid().ToString();
-            string specificationId = Guid.NewGuid().ToString();
+            string datasetDefinitionId = NewRandomString();
+            string specificationId = NewRandomString();
 
             Models.Datasets.Schema.DatasetDefinition definition = new Models.Datasets.Schema.DatasetDefinition();
 
@@ -176,8 +176,8 @@ namespace CalculateFunding.Services.Datasets.Services
         public async Task CreateRelationship_GivenValidModelButFailedToSave_ReturnsFailedResult()
         {
             //Arrange
-            string datasetDefinitionId = Guid.NewGuid().ToString();
-            string specificationId = Guid.NewGuid().ToString();
+            string datasetDefinitionId = NewRandomString();
+            string specificationId = NewRandomString();
 
             Models.Datasets.Schema.DatasetDefinition definition = new Models.Datasets.Schema.DatasetDefinition();
 
@@ -232,8 +232,8 @@ namespace CalculateFunding.Services.Datasets.Services
         public async Task CreateRelationship_GivenValidModelAndSavesWithoutError_ReturnsOK()
         {
             //Arrange
-            string datasetDefinitionId = Guid.NewGuid().ToString();
-            string specificationId = Guid.NewGuid().ToString();
+            string datasetDefinitionId = NewRandomString();
+            string specificationId = NewRandomString();
 
             Models.Datasets.Schema.DatasetDefinition definition = new Models.Datasets.Schema.DatasetDefinition
             {
@@ -341,7 +341,7 @@ namespace CalculateFunding.Services.Datasets.Services
         public async Task GetRelationshipsBySpecificationId_GivenNoDataReturned_ReturnsOK()
         {
             //Arrange
-            string specificationId = Guid.NewGuid().ToString();
+            string specificationId = NewRandomString();
 
             ILogger logger = CreateLogger();
 
@@ -480,7 +480,7 @@ namespace CalculateFunding.Services.Datasets.Services
         public async Task GetRelationshipBySpecificationIdAndName_GivenNameDoesNotExist_ReturnsBadRequest()
         {
             //Arrange
-            string specificationId = Guid.NewGuid().ToString();
+            string specificationId = NewRandomString();
 
             ILogger logger = CreateLogger();
 
@@ -503,7 +503,7 @@ namespace CalculateFunding.Services.Datasets.Services
         public async Task GetRelationshipBySpecificationIdAndName_GivenRelationshipDoesNotExist_ReturnsNotfound()
         {
             //Arrange
-            string specificationId = Guid.NewGuid().ToString();
+            string specificationId = NewRandomString();
             string name = "test name";
 
             ILogger logger = CreateLogger();
@@ -523,7 +523,7 @@ namespace CalculateFunding.Services.Datasets.Services
         public async Task GetRelationshipBySpecificationIdAndName_GivenRelationshipFound_ReturnsOKResult()
         {
             //Arrange
-            string specificationId = Guid.NewGuid().ToString();
+            string specificationId = NewRandomString();
             string name = "test name";
 
             DefinitionSpecificationRelationship relationship = new DefinitionSpecificationRelationship();
@@ -569,7 +569,7 @@ namespace CalculateFunding.Services.Datasets.Services
         [TestMethod]
         public async Task GetRelationshipsBySpecificationId_GivenSpecificationNotFound_ReturnsPreConditionFailed()
         {
-            string specificationId = Guid.NewGuid().ToString();
+            string specificationId = NewRandomString();
 
             ILogger logger = CreateLogger();
 
@@ -603,7 +603,7 @@ namespace CalculateFunding.Services.Datasets.Services
         [TestMethod]
         public async Task GetRelationshipsBySpecificationId_GivenNoRelationshipsFound_ReturnsOkAndEmptyList()
         {
-            string specificationId = Guid.NewGuid().ToString();
+            string specificationId = NewRandomString();
 
             ILogger logger = CreateLogger();
 
@@ -649,8 +649,8 @@ namespace CalculateFunding.Services.Datasets.Services
         [TestMethod]
         public async Task GetRelationshipsBySpecificationId_GivenRelationshipsButDatasetVersionIsNull_ReturnsOkAndList()
         {
-            string specificationId = Guid.NewGuid().ToString();
-            string relationshipId = Guid.NewGuid().ToString();
+            string specificationId = NewRandomString();
+            string relationshipId = NewRandomString();
             const string relationshipName = "rel name";
 
             ILogger logger = CreateLogger();
@@ -709,9 +709,9 @@ namespace CalculateFunding.Services.Datasets.Services
         [TestMethod]
         public async Task GetRelationshipsBySpecificationId_GivenRelationshipsButDatasetVersionIsNullButHasDefinition_ReturnsOkAndList()
         {
-            string specificationId = Guid.NewGuid().ToString();
-            string relationshipId = Guid.NewGuid().ToString();
-            string definitionId = Guid.NewGuid().ToString();
+            string specificationId = NewRandomString();
+            string relationshipId = NewRandomString();
+            string definitionId = NewRandomString();
             const string relationshipName = "rel name";
 
             ILogger logger = CreateLogger();
@@ -808,10 +808,10 @@ namespace CalculateFunding.Services.Datasets.Services
         [TestMethod]
         public async Task GetRelationshipsBySpecificationId_GivenRelationshipsWithDatasetVersionButVersionCouldNotBeFound_ReturnsOkAndList()
         {
-            string specificationId = Guid.NewGuid().ToString();
-            string relationshipId = Guid.NewGuid().ToString();
-            string definitionId = Guid.NewGuid().ToString();
-            string datasetId = Guid.NewGuid().ToString();
+            string specificationId = NewRandomString();
+            string relationshipId = NewRandomString();
+            string definitionId = NewRandomString();
+            string datasetId = NewRandomString();
             const string relationshipName = "rel name";
 
             ILogger logger = CreateLogger();
@@ -917,10 +917,10 @@ namespace CalculateFunding.Services.Datasets.Services
         [TestMethod]
         public async Task GetRelationshipsBySpecificationId_GivenRelationships_ReturnsOkAndList()
         {
-            string specificationId = Guid.NewGuid().ToString();
-            string relationshipId = Guid.NewGuid().ToString();
-            string definitionId = Guid.NewGuid().ToString();
-            string datasetId = Guid.NewGuid().ToString();
+            string specificationId = NewRandomString();
+            string relationshipId = NewRandomString();
+            string definitionId = NewRandomString();
+            string datasetId = NewRandomString();
             const string relationshipName = "rel name";
             const string relationshipDescription = "dataset description";
 
@@ -1056,7 +1056,7 @@ namespace CalculateFunding.Services.Datasets.Services
         [TestMethod]
         public async Task GetCurrentRelationshipsBySpecificationIdAndDatasetDefinitionId_GivenNoRelationshipsFound_ReturnsOkAndEmptyList()
         {
-            string specificationId = Guid.NewGuid().ToString();
+            string specificationId = NewRandomString();
 
             string datasetDefinitionId = "12345";
 
@@ -1262,7 +1262,7 @@ namespace CalculateFunding.Services.Datasets.Services
         [TestMethod]
         public async Task GetDataSourcesByRelationshipId_GivenRelationshipNotFound_ReturnsPreConditionFailed()
         {
-            string relationshipId = Guid.NewGuid().ToString();
+            string relationshipId = NewRandomString();
 
             ILogger logger = CreateLogger();
 
@@ -1291,7 +1291,7 @@ namespace CalculateFunding.Services.Datasets.Services
         [TestMethod]
         public async Task GetDataSourcesByRelationshipId_GivenRelationshipFoundButNoDatasets_ReturnsOKResult()
         {
-            string relationshipId = Guid.NewGuid().ToString();
+            string relationshipId = NewRandomString();
 
             ILogger logger = CreateLogger();
 
@@ -1322,7 +1322,12 @@ namespace CalculateFunding.Services.Datasets.Services
         [TestMethod]
         public async Task GetDataSourcesByRelationshipId_GivenRelationshipFoundAndDatasetsFound_ReturnsOKResult()
         {
-            string relationshipId = Guid.NewGuid().ToString();
+            string relationshipId = NewRandomString();
+            int datasetVersion = NewRandomInt();
+            string datasetComment = NewRandomString();
+            DateTimeOffset datasetDate = NewRandomDateTime();
+            string datasetAuthorId = NewRandomString();
+            string datasetAuthorName = NewRandomString();
 
             ILogger logger = CreateLogger();
 
@@ -1341,18 +1346,20 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IEnumerable<Dataset> datasets = new[]
             {
-                new Dataset
-                {
-                    Id = "ds-id",
-                    Name = "ds name",
-                    History = new List<DatasetVersion>
-                    {
-                        new DatasetVersion
-                        {
-                            Version = 1
-                        }
-                    }
-                }
+                NewDataset(_ =>_
+                    .WithId(NewRandomString())
+                    .WithName(NewRandomString())
+                    .WithHistory(
+                        NewDatasetVersion(dv=> dv
+                            .WithVersion(datasetVersion)
+                            .WithComment(datasetComment)
+                            .WithDate(datasetDate)
+                            .WithAuthor(
+                                NewReference(r=>r
+                                    .WithId(datasetAuthorId)
+                                    .WithName(datasetAuthorName)))
+                            )
+                    ))
             };
 
             datasetRepository
@@ -1384,8 +1391,56 @@ namespace CalculateFunding.Services.Datasets.Services
                 .First()
                 .Versions
                 .First()
+                .Version
                 .Should()
-                .Be(1);
+                .Be(datasetVersion);
+
+            sourceModel
+                .Datasets
+                .First()
+                .Versions
+                .First()
+                .Comment
+                .Should()
+                .Be(datasetComment);
+
+            sourceModel
+                .Datasets
+                .First()
+                .Versions
+                .First()
+                .Date
+                .Should()
+                .Be(datasetDate);
+
+            sourceModel
+                .Datasets
+                .First()
+                .Versions
+                .First()
+                .Author
+                .Should()
+                .NotBeNull();
+
+            sourceModel
+                .Datasets
+                .First()
+                .Versions
+                .First()
+                .Author
+                .Id
+                .Should()
+                .Be(datasetAuthorId);
+
+            sourceModel
+                .Datasets
+                .First()
+                .Versions
+                .First()
+                .Author
+                .Name
+                .Should()
+                .Be(datasetAuthorName);
 
             sourceModel
                 .Datasets
@@ -1393,7 +1448,6 @@ namespace CalculateFunding.Services.Datasets.Services
                 .SelectedVersion
                 .Should()
                 .BeNull();
-
         }
 
         [TestMethod]
@@ -1421,7 +1475,7 @@ namespace CalculateFunding.Services.Datasets.Services
         public async Task AssignDatasourceVersionToRelationship_GivenModelDatasetNotFound_ReturnsPreConditionFailed()
         {
             //Arrange
-            string datasetId = Guid.NewGuid().ToString();
+            string datasetId = NewRandomString();
 
             AssignDatasourceModel model = new AssignDatasourceModel
             {
@@ -1460,8 +1514,8 @@ namespace CalculateFunding.Services.Datasets.Services
         public async Task AssignDatasourceVersionToRelationship_GivenModelButRelationshipNotFound_ReturnsPreConditionFailed()
         {
             //Arrange
-            string datasetId = Guid.NewGuid().ToString();
-            string relationshipId = Guid.NewGuid().ToString();
+            string datasetId = NewRandomString();
+            string relationshipId = NewRandomString();
 
             AssignDatasourceModel model = new AssignDatasourceModel
             {
@@ -1506,8 +1560,8 @@ namespace CalculateFunding.Services.Datasets.Services
         public async Task AssignDatasourceVersionToRelationship_GivenModelButSavingReturnsBadRequest_ReturnsBadRequest()
         {
             //Arrange
-            string datasetId = Guid.NewGuid().ToString();
-            string relationshipId = Guid.NewGuid().ToString();
+            string datasetId = NewRandomString();
+            string relationshipId = NewRandomString();
 
             AssignDatasourceModel model = new AssignDatasourceModel
             {
@@ -1557,8 +1611,8 @@ namespace CalculateFunding.Services.Datasets.Services
         public async Task AssignDatasourceVersionToRelationship_GivenModelAndSaves_ReturnsNoContent()
         {
             //Arrange
-            string datasetId = Guid.NewGuid().ToString();
-            string relationshipId = Guid.NewGuid().ToString();
+            string datasetId = NewRandomString();
+            string relationshipId = NewRandomString();
 
             AssignDatasourceModel model = new AssignDatasourceModel
             {
@@ -1601,8 +1655,8 @@ namespace CalculateFunding.Services.Datasets.Services
         public async Task AssignDatasourceVersionToRelationship_JobServiceFeatureToggleSwitchedOn_CallsJobServiceInsteadOfQueuingDirectly()
         {
             //Arrange
-            string datasetId = Guid.NewGuid().ToString();
-            string relationshipId = Guid.NewGuid().ToString();
+            string datasetId = NewRandomString();
+            string relationshipId = NewRandomString();
 
             AssignDatasourceModel model = new AssignDatasourceModel
             {
@@ -1941,6 +1995,24 @@ namespace CalculateFunding.Services.Datasets.Services
             return datasetBuilder.Build();
         }
 
+        private DatasetVersion NewDatasetVersion(Action<DatasetVersionBuilder> setUp = null)
+        {
+            DatasetVersionBuilder datasetVersionBuilder = new DatasetVersionBuilder();
+
+            setUp?.Invoke(datasetVersionBuilder);
+
+            return datasetVersionBuilder.Build();
+        }
+
+        private Reference NewReference(Action<ReferenceBuilder> setUp = null)
+        {
+            ReferenceBuilder referenceBuilder = new ReferenceBuilder();
+
+            setUp?.Invoke(referenceBuilder);
+
+            return referenceBuilder.Build();
+        }
+
         private DefinitionSpecificationRelationship NewDefinitionSpecificationRelationship(Action<DefinitionSpecificationRelationshipBuilder> setUp = null)
         {
             DefinitionSpecificationRelationshipBuilder definitionSpecificationRelationshipBuilder = new DefinitionSpecificationRelationshipBuilder();
@@ -1960,5 +2032,8 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         private string NewRandomString() => new RandomString();
+        private int NewRandomInt() => new RandomNumberBetween(1, 10);
+        private DateTimeOffset NewRandomDateTime() => new RandomDateTime();
+
     }
 }

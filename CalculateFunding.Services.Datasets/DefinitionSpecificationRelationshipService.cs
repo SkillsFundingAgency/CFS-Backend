@@ -212,7 +212,7 @@ namespace CalculateFunding.Services.Datasets
             IList<Task<DatasetSpecificationRelationshipViewModel>> tasks = new List<Task<DatasetSpecificationRelationshipViewModel>>();
 
             IEnumerable<KeyValuePair<string, int>> datasetLatestVersions =
-                await _datasetRepository.GetDatasetLatestVersions(relationships.Select(_ => _.DatasetVersion.Id));
+                await _datasetRepository.GetDatasetLatestVersions(relationships.Select(_ => _.DatasetVersion?.Id));
 
             foreach (DefinitionSpecificationRelationship relationship in relationships)
             {
@@ -274,7 +274,14 @@ namespace CalculateFunding.Services.Datasets
                             Id = dataset.Id,
                             Name = dataset.Name,
                             SelectedVersion = (relationship.DatasetVersion != null && relationship.DatasetVersion.Id == dataset.Id) ? relationship.DatasetVersion.Version : null as int?,
-                            Versions = dataset.History.Select(m => m.Version)
+                            Versions = dataset.History.Select(m => new DatasetVersionModel
+                            { 
+                                Id = m.Id,
+                                Version = m.Version,
+                                Date = m.Date,
+                                Author = m.Author,
+                                Comment = m.Comment
+                            } )
                         }
                 });
                 }
@@ -412,7 +419,7 @@ namespace CalculateFunding.Services.Datasets
             }
 
             IEnumerable<KeyValuePair<string, int>> datasetLatestVersions =
-                await _datasetRepository.GetDatasetLatestVersions(relationships.Select(_ => _.DatasetVersion.Id));
+                await _datasetRepository.GetDatasetLatestVersions(relationships.Select(_ => _.DatasetVersion?.Id));
 
             IList<Task<DatasetSpecificationRelationshipViewModel>> tasks = new List<Task<DatasetSpecificationRelationshipViewModel>>();
 
@@ -455,7 +462,7 @@ namespace CalculateFunding.Services.Datasets
             }
 
             IEnumerable<KeyValuePair<string, int>> datasetLatestVersions =
-                await _datasetRepository.GetDatasetLatestVersions(relationships.Select(_ => _.DatasetVersion.Id));
+                await _datasetRepository.GetDatasetLatestVersions(relationships.Select(_ => _.DatasetVersion?.Id));
 
             IList<Task<DatasetSpecificationRelationshipViewModel>> tasks = new List<Task<DatasetSpecificationRelationshipViewModel>>();
 
@@ -486,7 +493,7 @@ namespace CalculateFunding.Services.Datasets
 
             if (relationships.IsNullOrEmpty())
             {
-                relationships = new DefinitionSpecificationRelationship[0];
+                relationships = Array.Empty<DefinitionSpecificationRelationship>();
             }
 
             IEnumerable<string> definitionIds = relationships.Select(m => m.DatasetDefinition.Id);
