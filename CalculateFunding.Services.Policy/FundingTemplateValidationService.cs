@@ -135,11 +135,7 @@ namespace CalculateFunding.Services.Policy
             JObject parsedFundingTemplate)
         {
             var fundingStreamCode = parsedFundingTemplate.SelectToken("$..fundingStream.code")?.Value<string>();
-            if (fundingStreamCode.IsNullOrEmpty())
-            {
-                fundingTemplateValidationResult.Errors.Add(new ValidationFailure("", "Funding stream id is missing from the template"));
-            }
-            else
+            if (!fundingStreamCode.IsNullOrEmpty())
             {
                 fundingTemplateValidationResult.FundingStreamId = fundingStreamCode;
 
@@ -155,11 +151,7 @@ namespace CalculateFunding.Services.Policy
 
             string fundingPeriodId = parsedFundingTemplate.SelectToken("$..fundingPeriod.id")?.Value<string>();
 
-            if(string.IsNullOrWhiteSpace(fundingPeriodId))
-            {
-                fundingTemplateValidationResult.Errors.Add(new ValidationFailure("", "Funding period id is missing from the template"));
-            }
-            else
+            if(!string.IsNullOrWhiteSpace(fundingPeriodId))
             {
                 fundingTemplateValidationResult.FundingPeriodId = fundingPeriodId;
 
@@ -172,14 +164,9 @@ namespace CalculateFunding.Services.Policy
                 }
             }
 
-            var templateVersion = (parsedFundingTemplate.SelectToken("$..templateVersion", false) ?? 
-                                   parsedFundingTemplate.SelectToken("$..fundingTemplateVersion", false))?.Value<string>();
+            var templateVersion = parsedFundingTemplate.SelectToken("$..templateVersion", false)?.Value<string>();
 
-            if (templateVersion.IsNullOrEmpty())
-            {
-                fundingTemplateValidationResult.Errors.Add(new ValidationFailure("", "Funding template version is missing from the template"));
-            }
-            else
+            if (!templateVersion.IsNullOrEmpty())
             {
                 fundingTemplateValidationResult.TemplateVersion = templateVersion;
             }

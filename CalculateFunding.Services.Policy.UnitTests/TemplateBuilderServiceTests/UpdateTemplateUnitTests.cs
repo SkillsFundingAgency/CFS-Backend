@@ -251,9 +251,9 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
             }
 
             [TestMethod]
-            public void Saved_version_with_changed_TemplateJson()
+            public void Saved_version_with_correct_TemplateJson()
             {
-                _savedTemplateVersion?.TemplateJson.Should().NotBe(_templateVersionFirst.TemplateJson);
+                _savedTemplateVersion?.TemplateJson.Should().Be(_templateVersionFirst.TemplateJson);
             }
 
             [TestMethod]

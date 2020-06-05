@@ -547,7 +547,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             }
             catch (Exception ex)
             {
-                _logger.Error(ex, $"Failed to deserialize json : {ex.Message}");
+                _logger.Error(ex, $"Failed to deserialize json into {typeof(T).FullName}: {ex.Message}");
                 return (null, ex.Message);
             }
         }
@@ -568,19 +568,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             newVersion.MajorVersion = template.Current.MajorVersion;
             newVersion.Predecessors ??= new List<string>();
             newVersion.Predecessors.Add(template.Current.Id);
-            if (!template.Current.TemplateJson.IsNullOrEmpty())
-            {
-                (SchemaJson templateContent, string error) = Deserialise<SchemaJson>(template.Current.TemplateJson);
-                if (error != null)
-                {
-                    _logger.Error("Failed to deserialise json template: " + error);
-                    return HttpStatusCode.BadRequest;
-                }
-                templateContent.FundingTemplate.FundingTemplateVersion = $"{newVersion.MajorVersion}.{newVersion.MinorVersion}";
-                templateContent.FundingTemplate.FundingPeriod = Map(template.FundingPeriod);
-                templateContent.FundingTemplate.FundingStream = Map(template.FundingStream);
-                newVersion.TemplateJson = templateContent.AsJson();
-            }
+            newVersion.TemplateJson = template.Current.TemplateJson;
             var result = await _templateVersionRepository.SaveVersion(newVersion);
             if (!result.IsSuccess())
                 return result;
@@ -604,7 +592,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             (IEnumerable<SchemaJsonFundingLine> fundingLines, string errorMessage) = Deserialise<IEnumerable<SchemaJsonFundingLine>>(command.TemplateFundingLinesJson);
             if (!errorMessage.IsNullOrEmpty())
             {
-                _logger.Error("Failed to deserialise json template: " + errorMessage);
+                _logger.Error("Updating Template: Input Validation: Failed to deserialise json template: " + errorMessage);
                 return (new ValidationFailure(nameof(command.TemplateFundingLinesJson), errorMessage), null);
             }
             var templateJson = new SchemaJson
@@ -613,10 +601,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
                 SchemaVersion = "1.1",
                 FundingTemplate = new SchemaJsonFundingStreamTemplate
                 {
-                    FundingLines = fundingLines,
-                    FundingPeriod = Map(template.FundingPeriod),
-                    FundingStream = Map(template.FundingStream),
-                    FundingTemplateVersion = $"{majorVersion}.{minorVersion}"
+                    FundingLines = fundingLines
                 }
             };
             
@@ -626,30 +611,6 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
                 TemplateJson = templateJson.AsJson()
             });
         }
-
-        private SchemaJsonFundingStream Map(FundingStream templateFundingStream)
-        {
-            return new SchemaJsonFundingStream
-            {
-                Code = templateFundingStream.Id,
-                Name = templateFundingStream.Name
-            };
-        }
-
-        private SchemaJsonFundingPeriod Map(FundingPeriod templateFundingPeriod)
-        {
-            return new SchemaJsonFundingPeriod
-            {
-                Name = templateFundingPeriod.Name,
-                Period = templateFundingPeriod.Period,
-                Type = (CalculateFunding.Common.TemplateMetadata.Schema11.Models.FundingPeriodType) 
-                    Enum.Parse(typeof(CalculateFunding.Common.TemplateMetadata.Schema11.Models.FundingPeriodType), 
-                        templateFundingPeriod.Type.ToString()),
-                StartDate = templateFundingPeriod.StartDate,
-                EndDate = templateFundingPeriod.EndDate
-            };
-        }
-
         private async Task<CommandResult> ValidateTemplateContent(string templateJson)
         {
             // template json validation
