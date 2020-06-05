@@ -162,7 +162,8 @@ namespace CalculateFunding.Services.Datasets.Services
 
             DatasetDefinition datasetDefinition = new DatasetDefinition
             {
-                Id = DataDefintionId
+                Id = DataDefintionId,
+                FundingStreamId = FundingStreamId
             };
 
             IEnumerable<DatasetDefinition> datasetDefinitions = new[]
@@ -290,7 +291,8 @@ namespace CalculateFunding.Services.Datasets.Services
 
             DatasetDefinition datasetDefinition = new DatasetDefinition
             {
-                Id = DataDefintionId
+                Id = DataDefintionId,
+                FundingStreamId = FundingStreamId
             };
 
             IEnumerable<DatasetDefinition> datasetDefinitions = new[]
@@ -329,7 +331,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IProvidersApiClient providersApiClient = CreateProvidersApiClient();
             providersApiClient
-                .GetAllMasterProviders()
+                .GetCurrentProvidersForFundingStream(FundingStreamId)
                 .Returns(providerVersionResponse);
 
             ICacheProvider cacheProvider = CreateCacheProvider();
@@ -362,10 +364,10 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        public void OnValidateDataset_GivenNoProvidersReturned_ThrowsRetriableException()
+        public void OnValidateDataset_GivenProvidersApiFailed_ThrowsRetriableException()
         {
             //Arrange
-            const string errorMessage = "Failed to fetch master providers with status code: BadRequest";
+            string errorMessage = $"Failed to fetch current providers for funding stream {FundingStreamId} with status code: BadRequest";
 
             GetDatasetBlobModel model = NewGetDatasetBlobModel();
 
@@ -403,7 +405,8 @@ namespace CalculateFunding.Services.Datasets.Services
 
             DatasetDefinition datasetDefinition = new DatasetDefinition
             {
-                Id = DataDefintionId
+                Id = DataDefintionId,
+                FundingStreamId = FundingStreamId
             };
 
             IEnumerable<DatasetDefinition> datasetDefinitions = new[]
@@ -434,7 +437,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IProvidersApiClient providersApiClient = CreateProvidersApiClient();
             providersApiClient
-                .GetAllMasterProviders()
+                .GetCurrentProvidersForFundingStream(FundingStreamId)
                 .Returns(new ApiResponse<ProviderVersion>(HttpStatusCode.BadRequest));
 
             IMapper mapper = CreateMapper();
@@ -459,6 +462,101 @@ namespace CalculateFunding.Services.Datasets.Services
                .Message
                .Should()
                .Be(errorMessage);
+        }
+
+        [TestMethod]
+        public async Task OnValidateDataset_GivenNoProvidersForFundingStream_ShouldFailValidationAndLogError()
+        {
+            //Arrange
+            GetDatasetBlobModel model = NewGetDatasetBlobModel();
+
+            string blobPath = $"{model.DatasetId}/v{model.Version}/{model.Filename}";
+
+            Message message = GetValidateDatasetMessage(model);
+
+            ILogger logger = CreateLogger();
+
+            IDictionary<string, string> metaData = new Dictionary<string, string>
+            {
+                { "dataDefinitionId", DataDefintionId },
+                { "fundingStreamId", FundingStreamId }
+            };
+
+            IPolicyRepository policyRepository = CreatePolicyRepository();
+            policyRepository
+                .GetFundingStreams()
+                .Returns(NewFundingStreams());
+
+            ICloudBlob blob = Substitute.For<ICloudBlob>();
+            blob
+                .Metadata
+                .Returns(metaData);
+
+            MemoryStream memoryStream = new MemoryStream(CreateTestExcelPackage());
+
+            IBlobClient blobClient = CreateBlobClient();
+            blobClient
+                .GetBlobReferenceFromServerAsync(Arg.Is(blobPath))
+                .Returns(blob);
+            blobClient
+                .DownloadToStreamAsync(Arg.Is(blob))
+                .Returns(memoryStream);
+
+            DatasetDefinition datasetDefinition = new DatasetDefinition
+            {
+                Id = DataDefintionId,
+                FundingStreamId = FundingStreamId
+            };
+
+            IEnumerable<DatasetDefinition> datasetDefinitions = new[]
+            {
+                datasetDefinition
+            };
+
+            IDatasetRepository datasetRepository = CreateDatasetsRepository();
+            datasetRepository
+                .GetDatasetDefinitionsByQuery(Arg.Any<Expression<Func<DocumentEntity<DatasetDefinition>, bool>>>())
+                .Returns(datasetDefinitions);
+
+            List<DatasetValidationError> errors = new List<DatasetValidationError>
+            {
+                new DatasetValidationError { ErrorMessage = "error" }
+            };
+
+            ValidationResult validationResult = new ValidationResult(new[]{
+                new ValidationFailure("prop1", "any error")
+            });
+
+            IValidator<DatasetUploadValidationModel> datasetUploadValidator = CreateDatasetUploadValidator(validationResult);
+
+            IEnumerable<TableLoadResult> tableLoadResults = new[]
+            {
+                new TableLoadResult{ GlobalErrors = errors }
+            };
+
+            IProvidersApiClient providersApiClient = CreateProvidersApiClient();
+            providersApiClient
+                .GetCurrentProvidersForFundingStream(FundingStreamId)
+                .Returns(new ApiResponse<ProviderVersion>(HttpStatusCode.OK));
+
+            IMapper mapper = CreateMapper();
+
+            DatasetService service = CreateDatasetService(
+                logger: logger,
+                blobClient: blobClient,
+                datasetRepository: datasetRepository,
+                datasetUploadValidator: datasetUploadValidator,
+                providersApiClient: providersApiClient,
+                mapper: mapper,
+                policyRepository: policyRepository);
+
+            // Act
+           await service.ValidateDataset(message);
+
+            // Assert
+            logger
+                .Received(1)
+                .Error(Arg.Is($"No provider version for the funding stream {datasetDefinition.FundingStreamId}"));
         }
 
         [TestMethod]
@@ -494,6 +592,7 @@ namespace CalculateFunding.Services.Datasets.Services
             DatasetDefinition datasetDefinition = new DatasetDefinition()
             {
                 Id = DataDefintionId,
+                FundingStreamId = FundingStreamId
             };
 
             IEnumerable<DatasetDefinition> datasetDefinitions = new List<DatasetDefinition>() { datasetDefinition };
@@ -576,6 +675,7 @@ namespace CalculateFunding.Services.Datasets.Services
             DatasetDefinition datasetDefinition = new DatasetDefinition()
             {
                 Id = DataDefintionId,
+                FundingStreamId = FundingStreamId
             };
 
             IEnumerable<DatasetDefinition> datasetDefinitions = new List<DatasetDefinition>() { datasetDefinition };
@@ -661,7 +761,8 @@ namespace CalculateFunding.Services.Datasets.Services
 
             DatasetDefinition datasetDefinition = new DatasetDefinition
             {
-                Id = DataDefintionId
+                Id = DataDefintionId,
+                FundingStreamId = FundingStreamId
             };
 
             IEnumerable<DatasetDefinition> datasetDefinitions = new[]
@@ -709,7 +810,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IProvidersApiClient providersApiClient = CreateProvidersApiClient();
             providersApiClient
-                .GetAllMasterProviders()
+                .GetCurrentProvidersForFundingStream(FundingStreamId)
                 .Returns(providerVersionResponse);
 
             IJobManagement jobManagement = CreateJobManagement();
@@ -789,7 +890,8 @@ namespace CalculateFunding.Services.Datasets.Services
 
             DatasetDefinition datasetDefinition = new DatasetDefinition
             {
-                Id = DataDefintionId
+                Id = DataDefintionId,
+                FundingStreamId = FundingStreamId
             };
 
             IEnumerable<DatasetDefinition> datasetDefinitions = new[]
@@ -837,7 +939,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IProvidersApiClient providersApiClient = CreateProvidersApiClient();
             providersApiClient
-                .GetAllMasterProviders()
+                .GetCurrentProvidersForFundingStream(FundingStreamId)
                 .Returns(providerVersionResponse);
 
             DatasetService service = CreateDatasetService(
@@ -914,7 +1016,8 @@ namespace CalculateFunding.Services.Datasets.Services
 
             DatasetDefinition datasetDefinition = new DatasetDefinition
             {
-                Id = DataDefintionId
+                Id = DataDefintionId,
+                FundingStreamId = FundingStreamId
             };
 
             IEnumerable<DatasetDefinition> datasetDefinitions = new[]
@@ -945,7 +1048,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IProvidersApiClient providersApiClient = CreateProvidersApiClient();
             providersApiClient
-                .GetAllMasterProviders()
+                .GetCurrentProvidersForFundingStream(FundingStreamId)
                 .Returns(providerVersionResponse);
 
             DatasetService service = CreateDatasetService(
@@ -1022,7 +1125,8 @@ namespace CalculateFunding.Services.Datasets.Services
 
             DatasetDefinition datasetDefinition = new DatasetDefinition
             {
-                Id = DataDefintionId
+                Id = DataDefintionId,
+                FundingStreamId = FundingStreamId
             };
 
             IEnumerable<DatasetDefinition> datasetDefinitions = new[]
@@ -1066,7 +1170,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IProvidersApiClient providersApiClient = CreateProvidersApiClient();
             providersApiClient
-                .GetAllMasterProviders()
+                .GetCurrentProvidersForFundingStream(FundingStreamId)
                 .Returns(providerVersionResponse);
 
             ISearchRepository<DatasetIndex> searchRepository = CreateSearchRepository();
@@ -1140,7 +1244,8 @@ namespace CalculateFunding.Services.Datasets.Services
 
             DatasetDefinition datasetDefinition = new DatasetDefinition
             {
-                Id = model.DefinitionId
+                Id = model.DefinitionId,
+                FundingStreamId = FundingStreamId
             };
 
             IEnumerable<DatasetDefinition> datasetDefinitions = new[]
@@ -1176,7 +1281,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IProvidersApiClient providersApiClient = CreateProvidersApiClient();
             providersApiClient
-                .GetAllMasterProviders()
+                .GetCurrentProvidersForFundingStream(FundingStreamId)
                 .Returns(providerVersionResponse);
 
             DatasetService service = CreateDatasetService(logger: logger,
@@ -1317,6 +1422,7 @@ namespace CalculateFunding.Services.Datasets.Services
             {
                 Id = model.DefinitionId,
                 Name = "Dataset Definition Name",
+                FundingStreamId = FundingStreamId
             };
 
             IEnumerable<DatasetDefinition> datasetDefinitions = new[]
@@ -1352,7 +1458,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IProvidersApiClient providersApiClient = CreateProvidersApiClient();
             providersApiClient
-                .GetAllMasterProviders()
+                .GetCurrentProvidersForFundingStream(FundingStreamId)
                 .Returns(providerVersionResponse);
 
             DatasetService service = CreateDatasetService(
@@ -1512,6 +1618,7 @@ namespace CalculateFunding.Services.Datasets.Services
             {
                 Id = model.DefinitionId,
                 Name = "Dataset Definition Name",
+                FundingStreamId = FundingStreamId
             };
 
             IEnumerable<DatasetDefinition> datasetDefinitions = new[]
@@ -1547,7 +1654,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IProvidersApiClient providersApiClient = CreateProvidersApiClient();
             providersApiClient
-                .GetAllMasterProviders()
+                .GetCurrentProvidersForFundingStream(FundingStreamId)
                 .Returns(providerVersionResponse);
 
             DatasetService service = CreateDatasetService(logger: logger,
@@ -1656,6 +1763,7 @@ namespace CalculateFunding.Services.Datasets.Services
             {
                 Id = model.DefinitionId,
                 Name = "Dataset Definition Name",
+                FundingStreamId = FundingStreamId
             };
 
             IEnumerable<DatasetDefinition> datasetDefinitions = new[]
@@ -1689,7 +1797,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IProvidersApiClient providersApiClient = CreateProvidersApiClient();
             providersApiClient
-                .GetAllMasterProviders()
+                .GetCurrentProvidersForFundingStream(FundingStreamId)
                 .Returns(providerVersionResponse);
 
             DatasetService service = CreateDatasetService(logger: logger,
@@ -1787,6 +1895,7 @@ namespace CalculateFunding.Services.Datasets.Services
             {
                 Id = model.DefinitionId,
                 Name = "Dataset Definition Name",
+                FundingStreamId = FundingStreamId
             };
 
             IEnumerable<DatasetDefinition> datasetDefinitions = new[]
@@ -1818,7 +1927,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IProvidersApiClient providersApiClient = CreateProvidersApiClient();
             providersApiClient
-                .GetAllMasterProviders()
+                .GetCurrentProvidersForFundingStream(FundingStreamId)
                 .Returns(providerVersionResponse);
 
             ISearchRepository<DatasetIndex> searchRepository = CreateSearchRepository();
@@ -1922,6 +2031,7 @@ namespace CalculateFunding.Services.Datasets.Services
             {
                 Id = model.DefinitionId,
                 Name = "Dataset Definition Name",
+                FundingStreamId = FundingStreamId
             };
 
             IEnumerable<DatasetDefinition> datasetDefinitions = new[]
@@ -1955,7 +2065,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IProvidersApiClient providersApiClient = CreateProvidersApiClient();
             providersApiClient
-                .GetAllMasterProviders()
+                .GetCurrentProvidersForFundingStream(FundingStreamId)
                 .Returns(providerVersionResponse);
 
             DatasetService service = CreateDatasetService(logger: logger,
@@ -2874,7 +2984,8 @@ namespace CalculateFunding.Services.Datasets.Services
 
             DatasetDefinition datasetDefinition = new DatasetDefinition
             {
-                Id = dataDefinitionId
+                Id = dataDefinitionId,
+                FundingStreamId = FundingStreamId
             };
 
             IEnumerable<DatasetDefinition> datasetDefinitions = new[]
@@ -2912,7 +3023,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IProvidersApiClient providersApiClient = CreateProvidersApiClient();
             providersApiClient
-                .GetAllMasterProviders()
+                .GetCurrentProvidersForFundingStream(FundingStreamId)
                 .Returns(providerVersionResponse);
 
             DatasetService service = CreateDatasetService(logger: logger,

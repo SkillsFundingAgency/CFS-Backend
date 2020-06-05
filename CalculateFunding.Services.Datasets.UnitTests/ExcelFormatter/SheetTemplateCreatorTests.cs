@@ -24,7 +24,7 @@ namespace CalculateFunding.Services.Datasets.ExcelFormatter
                     new Tuple<string, Color>("Max. or Min. value exceeded", Color.FromArgb(255, 217, 102)),
                     new Tuple<string, Color>("Provider ID value missing", Color.FromArgb(255, 255, 114)),
                     new Tuple<string, Color>("Duplicate entries in the provider ID column", Color.FromArgb(122, 124, 255)),
-                    new Tuple<string, Color>("Provider ID mismatch with service provider data", Color.FromArgb(255, 178, 255))
+                    new Tuple<string, Color>("Provider ID does not exist in the current funding stream provider", Color.FromArgb(255, 178, 255))
                 };
 
                 // Act

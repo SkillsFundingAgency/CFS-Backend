@@ -1187,28 +1187,33 @@ namespace CalculateFunding.Services.Datasets
         private async Task<(IDictionary<string, IEnumerable<string>> validationFailures, int providersProcessed)> ValidateTableResults(DatasetDefinition datasetDefinition, ICloudBlob blob)
         {
             int rowCount = 0;
+            Dictionary<string, IEnumerable<string>> validationFailures = new Dictionary<string, IEnumerable<string>>();
 
             ConcurrentBag<ProviderSummary> summaries = new ConcurrentBag<ProviderSummary>();
 
-            ApiResponse<ApiClientProviders.Models.ProviderVersion> providerVersionResponse = await _providersApiClientPolicy.ExecuteAsync(() => _providersApiClient.GetAllMasterProviders());
+            ApiResponse<ApiClientProviders.Models.ProviderVersion> providerVersionResponse = await _providersApiClientPolicy.ExecuteAsync(() => _providersApiClient.GetCurrentProvidersForFundingStream(datasetDefinition.FundingStreamId));
 
-            if (!providerVersionResponse.StatusCode.IsSuccess() ||
-                providerVersionResponse.Content == null ||
-                providerVersionResponse.Content.Providers.IsNullOrEmpty())
+            if (!providerVersionResponse.StatusCode.IsSuccess() && providerVersionResponse.StatusCode != HttpStatusCode.NotFound)
             {
-                string errorMessage = $"Failed to fetch master providers with status code: {providerVersionResponse.StatusCode}";
+                string errorMessage = $"Failed to fetch current providers for funding stream {datasetDefinition.FundingStreamId} with status code: {providerVersionResponse.StatusCode}";
 
                 _logger.Error(errorMessage);
 
                 throw new RetriableException(errorMessage);
             }
 
+            if(providerVersionResponse.StatusCode == HttpStatusCode.NotFound || providerVersionResponse.Content == null || providerVersionResponse.Content.Providers.IsNullOrEmpty())
+            {
+                _logger.Error($"No provider version for the funding stream {datasetDefinition.FundingStreamId}");
+                validationFailures.Add(nameof(datasetDefinition.FundingStreamId), new string[] { $"No provider version for the funding stream {datasetDefinition.FundingStreamId}" });
+
+                return (validationFailures, rowCount);
+            }
+
             Parallel.ForEach(providerVersionResponse.Content.Providers, (provider) =>
             {
                 summaries.Add(_mapper.Map<ProviderSummary>(provider));
             });
-
-            Dictionary<string, IEnumerable<string>> validationFailures = new Dictionary<string, IEnumerable<string>>();
 
             using (Stream datasetStream = await _blobClient.DownloadToStreamAsync(blob))
             {

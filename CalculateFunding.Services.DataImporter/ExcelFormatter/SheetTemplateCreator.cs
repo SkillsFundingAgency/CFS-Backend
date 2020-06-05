@@ -17,7 +17,7 @@ namespace CalculateFunding.Services.DataImporter.ExcelFormatter
 			    new CellLevelErrorKey(FieldValidationResult.ReasonForFailure.MaxOrMinValueExceeded, "Max. or Min. value exceeded"),
 			    new CellLevelErrorKey(FieldValidationResult.ReasonForFailure.ProviderIdValueMissing, "Provider ID value missing"),
 			    new CellLevelErrorKey(FieldValidationResult.ReasonForFailure.DuplicateEntriesInTheProviderIdColumn, "Duplicate entries in the provider ID column"),
-			    new CellLevelErrorKey(FieldValidationResult.ReasonForFailure.ProviderIdMismatchWithServiceProvider, "Provider ID mismatch with service provider data")
+			    new CellLevelErrorKey(FieldValidationResult.ReasonForFailure.ProviderIdMismatchWithServiceProvider, "Provider ID does not exist in the current funding stream provider")
 		    };
 			
 			if(excelPackage.Workbook.Worksheets["Errors"] != null) excelPackage.Workbook.Worksheets.Delete("Errors");
