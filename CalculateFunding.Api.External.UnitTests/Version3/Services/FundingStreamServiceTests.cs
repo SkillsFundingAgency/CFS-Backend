@@ -30,6 +30,9 @@ namespace CalculateFunding.Api.External.UnitTests.Version3.Services
         private string _fundingPeriodId;
         private string _fundingPeriodName;
         private string _fundingPeriodDefaultTemplateVersion;
+        private string _majorVersion;
+        private string _minorVersion;
+
 
         [TestInitialize]
         public void Initialize()
@@ -39,6 +42,8 @@ namespace CalculateFunding.Api.External.UnitTests.Version3.Services
             _fundingPeriodId = NewRandomString();
             _fundingPeriodName = NewRandomString();
             _fundingPeriodDefaultTemplateVersion = NewRandomString();
+            _majorVersion = NewRandomInteger().ToString();
+            _minorVersion = NewRandomInteger().ToString();
 
             _policiesApiClient = Substitute.For<IPoliciesApiClient>();
             _mapper = new MapperConfiguration(_ =>
@@ -80,6 +85,73 @@ namespace CalculateFunding.Api.External.UnitTests.Version3.Services
             test
                 .Should()
                 .ThrowExactly<ArgumentNullException>();
+        }
+
+        [TestMethod]
+        public void ThrowsArgumentExceptionOnGivenFundingStreamIdWhenGetFundingTemplateSourceFile()
+        {
+            Func<Task> test = async () => await WhenGetFundingTemplateSourceFile(null, NewRandomString(), NewRandomString(), NewRandomString());
+
+            test
+                .Should()
+                .ThrowExactly<ArgumentNullException>();
+        }
+
+        [TestMethod]
+        public void ThrowsArgumentExceptionOnGivenFundingPeriodIdWhenGetFundingTemplateSourceFile()
+        {
+            Func<Task> test = async () => await WhenGetFundingTemplateSourceFile(NewRandomString(), null, NewRandomString(), NewRandomString());
+
+            test
+                .Should()
+                .ThrowExactly<ArgumentNullException>();
+        }
+
+        [TestMethod]
+        public void ThrowsArgumentExceptionOnGivenMajorVersionWhenGetFundingTemplateSourceFile()
+        {
+            Func<Task> test = async () => await WhenGetFundingTemplateSourceFile(NewRandomString(), NewRandomString(), null, NewRandomString());
+
+            test
+                .Should()
+                .ThrowExactly<ArgumentNullException>();
+        }
+
+        [TestMethod]
+        public void ThrowsArgumentExceptionOnGivenMinorVersionWhenGetFundingTemplateSourceFile()
+        {
+            Func<Task> test = async () => await WhenGetFundingTemplateSourceFile(NewRandomString(), NewRandomString(), NewRandomString(), null);
+
+            test
+                .Should()
+                .ThrowExactly<ArgumentNullException>();
+        }
+        [TestMethod]
+        public async Task ReturnsBadRequestWhenGetFundingTemplateSourceFileWithGivenNonIntegerMajorVersion()
+        {
+            IActionResult result = await WhenGetFundingTemplateSourceFile(NewRandomString(), NewRandomString(), "test", NewRandomString());
+
+            result
+                .Should()
+                .BeOfType<BadRequestObjectResult>()
+                .Which
+                .Value
+                .Should()
+                .Be("majorVersion should be integer");
+        }
+
+        [TestMethod]
+        public async Task ReturnsBadRequestWhenGetFundingTemplateSourceFileWithGivenNonIntegerMinorVersion()
+        {
+            IActionResult result = await WhenGetFundingTemplateSourceFile(NewRandomString(), NewRandomString(), NewRandomInteger().ToString(), "test");
+
+            result
+                .Should()
+                .BeOfType<BadRequestObjectResult>()
+                .Which
+                .Value
+                .Should()
+                .Be("minorVersion should be integer");
         }
 
         [TestMethod]
@@ -126,6 +198,18 @@ namespace CalculateFunding.Api.External.UnitTests.Version3.Services
             ThenFundingPeriodResultMatches(result);
         }
 
+        [TestMethod]
+        public async Task ReturnsFundingTemplateSourceFileForGivenInput()
+        {
+            string templateContent = NewRandomString();
+
+            GivenApiFundingTemplateSourceFile(templateContent);
+
+            IActionResult result = await WhenGetFundingTemplateSourceFile(_fundingStreamId, _fundingPeriodId, _majorVersion, _minorVersion);
+
+            ThenTemplateContentMatches(result, templateContent);
+        }
+
         private void GivenApiFundingStreams(IEnumerable<PolicyApiClientModel.FundingStream> fundingStreams)
         {
             _policiesApiClient
@@ -159,6 +243,14 @@ namespace CalculateFunding.Api.External.UnitTests.Version3.Services
                         fundingPeriods)));
         }
 
+        private void GivenApiFundingTemplateSourceFile(string templateContent)
+        {
+            _policiesApiClient
+                .GetFundingTemplateSourceFile(_fundingStreamId, _fundingPeriodId, $"{_majorVersion}.{_minorVersion}")
+                .Returns(
+                Task.FromResult(new ApiResponse<string>(HttpStatusCode.OK,templateContent)));
+        }
+
         private async Task<IActionResult> WhenGetFundingStreams()
         {
             return await _fundingStreamService.GetFundingStreams();
@@ -167,6 +259,33 @@ namespace CalculateFunding.Api.External.UnitTests.Version3.Services
         private async Task<IActionResult> WhenGetFundingPeriods(string fundingStreamId)
         {
             return await _fundingStreamService.GetFundingPeriods(fundingStreamId);
+        }
+
+        private async Task<IActionResult> WhenGetFundingTemplateSourceFile(
+            string fundingStreamId, string fundingPeriodId, string majorVersion, string minorVersion)
+        {
+            return await _fundingStreamService.GetFundingTemplateSourceFile(
+                fundingStreamId,
+                fundingPeriodId,
+                majorVersion,
+                minorVersion);
+        }
+
+        private void ThenTemplateContentMatches(IActionResult result, string expectedResponse)
+        {
+            result
+                .Should()
+                .BeOfType<ObjectResult>()
+                .Which
+                .Value
+                .Should()
+                .BeOfType<string>();
+
+            string actualResponse = (result as ObjectResult).Value as string;
+
+            actualResponse
+                .Should()
+                .Be(expectedResponse);
         }
 
         private void ThenFundingPeriodResultMatches(IActionResult result)
@@ -275,5 +394,6 @@ namespace CalculateFunding.Api.External.UnitTests.Version3.Services
         }
 
         private string NewRandomString() => new RandomString();
+        private int NewRandomInteger() => new RandomNumberBetween(0, 999);
     }
 }
