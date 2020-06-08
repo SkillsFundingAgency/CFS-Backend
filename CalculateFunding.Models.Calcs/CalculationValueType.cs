@@ -9,5 +9,7 @@ namespace CalculateFunding.Models.Calcs
         Number,
         Percentage,
         Currency,
+        Boolean,
+        String,
     }
 }

@@ -5,6 +5,6 @@ namespace CalculateFunding.Services.Policy.Interfaces
 {
     public interface IFundingTemplateValidationService
     {
-        Task<FundingTemplateValidationResult> ValidateFundingTemplate(string fundingTemplate);
+        Task<FundingTemplateValidationResult> ValidateFundingTemplate(string fundingTemplate, string fundingStreamId, string fundingPeriodId, string templateVersion = null);
     }
 }

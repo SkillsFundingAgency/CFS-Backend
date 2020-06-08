@@ -72,10 +72,13 @@ namespace CalculateFunding.Services.Policy
             return health;
         }
 
-        public async Task<IActionResult> SaveFundingTemplate(string actionName, string controllerName, string template)
+        public async Task<IActionResult> SaveFundingTemplate(string actionName, string controllerName, string template, string fundingStreamId, string fundingPeriodId, string templateVersion)
         {
             Guard.IsNullOrWhiteSpace(actionName, nameof(actionName));
             Guard.IsNullOrWhiteSpace(controllerName, nameof(controllerName));
+            Guard.IsNullOrWhiteSpace(fundingStreamId, nameof(fundingStreamId));
+            Guard.IsNullOrWhiteSpace(fundingPeriodId, nameof(fundingPeriodId));
+            Guard.IsNullOrWhiteSpace(templateVersion, nameof(templateVersion));
 
             //Already checked for null above when getting body
             if (template.Trim() == string.Empty)
@@ -83,7 +86,7 @@ namespace CalculateFunding.Services.Policy
                 return new BadRequestObjectResult("Null or empty funding template was provided.");
             }
 
-            FundingTemplateValidationResult validationResult = await _fundingTemplateValidationService.ValidateFundingTemplate(template);
+            FundingTemplateValidationResult validationResult = await _fundingTemplateValidationService.ValidateFundingTemplate(template, fundingStreamId, fundingPeriodId, templateVersion);
 
             if (!validationResult.IsValid)
             {

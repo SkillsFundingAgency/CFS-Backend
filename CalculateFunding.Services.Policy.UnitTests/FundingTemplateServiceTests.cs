@@ -63,10 +63,13 @@ namespace CalculateFunding.Services.Policy
         public async Task SaveFundingTemplate_GivenEmptyTemplate_ReturnsBadRequest(string template)
         {
             //Arrange
+            string fundingStreamId = NewRandomString();
+            string templateVersion = NewRandomString();
+            string fundingPeriodId = NewRandomString();
             FundingTemplateService fundingTemplateService = CreateFundingTemplateService();
 
             //Act
-            IActionResult result = await fundingTemplateService.SaveFundingTemplate(createdAtActionName, createdAtControllerName, template);
+            IActionResult result = await fundingTemplateService.SaveFundingTemplate(createdAtActionName, createdAtControllerName, template, fundingStreamId, fundingPeriodId, templateVersion);
 
             //Assert
             result
@@ -83,6 +86,9 @@ namespace CalculateFunding.Services.Policy
         {
             //Arrange
             const string template = "a template";
+            string fundingStreamId = NewRandomString();
+            string templateVersion = NewRandomString();
+            string fundingPeriodId = NewRandomString();
 
             FundingTemplateValidationResult validationResult = new FundingTemplateValidationResult();
             validationResult.Errors.Add(new ValidationFailure("prop1", "an error"));
@@ -90,13 +96,13 @@ namespace CalculateFunding.Services.Policy
 
             IFundingTemplateValidationService fundingTemplateValidationService = CreateFundingTemplateValidationService();
             fundingTemplateValidationService
-                .ValidateFundingTemplate(Arg.Is(template))
+                .ValidateFundingTemplate(Arg.Is(template), Arg.Is(fundingStreamId), Arg.Is(fundingPeriodId), Arg.Is(templateVersion))
                 .Returns(validationResult);
 
             FundingTemplateService fundingTemplateService = CreateFundingTemplateService(fundingTemplateValidationService: fundingTemplateValidationService);
 
             //Act
-            IActionResult result = await fundingTemplateService.SaveFundingTemplate(createdAtActionName, createdAtControllerName, template);
+            IActionResult result = await fundingTemplateService.SaveFundingTemplate(createdAtActionName, createdAtControllerName, template, fundingStreamId, fundingPeriodId, templateVersion);
 
             //Assert
             result
@@ -127,6 +133,9 @@ namespace CalculateFunding.Services.Policy
         {
             //Arrange
             const string template = "a template";
+            string fundingStreamId = NewRandomString();
+            string templateVersion = NewRandomString();
+            string fundingPeriodId = NewRandomString();
 
             FundingTemplateValidationResult validationResult = new FundingTemplateValidationResult
             {
@@ -140,7 +149,7 @@ namespace CalculateFunding.Services.Policy
 
             IFundingTemplateValidationService fundingTemplateValidationService = CreateFundingTemplateValidationService();
             fundingTemplateValidationService
-                .ValidateFundingTemplate(Arg.Is(template))
+                .ValidateFundingTemplate(Arg.Is(template), Arg.Is(fundingStreamId), Arg.Is(fundingPeriodId), Arg.Is(templateVersion))
                 .Returns(validationResult);
 
             IFundingTemplateRepository fundingTemplateRepository = CreateFundingTemplateRepository();
@@ -163,7 +172,7 @@ namespace CalculateFunding.Services.Policy
                 templateMetadataResolver: templateMetadataResolver);
 
             //Act
-            IActionResult result = await fundingTemplateService.SaveFundingTemplate(createdAtActionName, createdAtControllerName, template);
+            IActionResult result = await fundingTemplateService.SaveFundingTemplate(createdAtActionName, createdAtControllerName, template, fundingStreamId, fundingPeriodId, templateVersion);
 
             //Assert
             result
@@ -184,13 +193,16 @@ namespace CalculateFunding.Services.Policy
         {
             //Arrange
             string template = CreateJsonFile("CalculateFunding.Services.Policy.Resources.LogicalModelTemplateNoProfilePeriods.json");
+            string fundingStreamId = "PES";
+            string templateVersion = "1.5";
+            string fundingPeriodId = "AY-2020";
 
             FundingTemplateValidationResult validationResult = new FundingTemplateValidationResult
             {
-                TemplateVersion = "1.5",
-                FundingStreamId = "PES",
+                TemplateVersion = templateVersion,
+                FundingStreamId = fundingStreamId,
                 SchemaVersion = "1.0",
-                FundingPeriodId = "AY-2020"
+                FundingPeriodId = fundingPeriodId
             };
 
             string cacheKey = $"{CacheKeys.FundingTemplatePrefix}{validationResult.FundingStreamId}-{validationResult.FundingPeriodId}-{validationResult.TemplateVersion}".ToLowerInvariant();
@@ -199,7 +211,7 @@ namespace CalculateFunding.Services.Policy
 
             IFundingTemplateValidationService fundingTemplateValidationService = CreateFundingTemplateValidationService();
             fundingTemplateValidationService
-                .ValidateFundingTemplate(Arg.Is(template))
+                .ValidateFundingTemplate(Arg.Is(template), Arg.Is(fundingStreamId), Arg.Is(fundingPeriodId), Arg.Is(templateVersion))
                 .Returns(validationResult);
 
             IFundingTemplateRepository fundingTemplateRepository = CreateFundingTemplateRepository();
@@ -216,7 +228,7 @@ namespace CalculateFunding.Services.Policy
                 templateMetadataResolver: templateMetadataResolver);
 
             //Act
-            IActionResult result = await fundingTemplateService.SaveFundingTemplate(createdAtActionName, createdAtControllerName, template);
+            IActionResult result = await fundingTemplateService.SaveFundingTemplate(createdAtActionName, createdAtControllerName, template, fundingStreamId, fundingPeriodId, templateVersion);
 
             //Assert
             result
@@ -270,11 +282,14 @@ namespace CalculateFunding.Services.Policy
         {
             //Arrange
             string template = CreateJsonFile("CalculateFunding.Services.Policy.Resources.LogicalModelTemplate.json");
+            string fundingStreamId = "PES";
+            string templateVersion = "1.5";
+            string fundingPeriodId = "AY-2020";
 
             FundingTemplateValidationResult validationResult = new FundingTemplateValidationResult
             {
-                TemplateVersion = "1.9",
-                FundingStreamId = "PES",
+                TemplateVersion = templateVersion,
+                FundingStreamId = fundingStreamId,
                 SchemaVersion = "1.0",
             };
 
@@ -282,7 +297,7 @@ namespace CalculateFunding.Services.Policy
 
             IFundingTemplateValidationService fundingTemplateValidationService = CreateFundingTemplateValidationService();
             fundingTemplateValidationService
-                .ValidateFundingTemplate(Arg.Is(template))
+                .ValidateFundingTemplate(Arg.Is(template), Arg.Is(fundingStreamId), Arg.Is(fundingPeriodId), Arg.Is(templateVersion))
                 .Returns(validationResult);
 
             IFundingTemplateRepository fundingTemplateRepository = CreateFundingTemplateRepository();
@@ -299,7 +314,7 @@ namespace CalculateFunding.Services.Policy
                 templateMetadataResolver: templateMetadataResolver);
 
             //Act
-            IActionResult result = await fundingTemplateService.SaveFundingTemplate(createdAtActionName, createdAtControllerName, template);
+            IActionResult result = await fundingTemplateService.SaveFundingTemplate(createdAtActionName, createdAtControllerName, template, fundingStreamId, fundingPeriodId, templateVersion);
 
             //Assert
             result

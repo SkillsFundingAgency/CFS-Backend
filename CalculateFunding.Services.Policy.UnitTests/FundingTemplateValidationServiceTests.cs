@@ -27,7 +27,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
             FundingTemplateValidationService fundingTemplateValidationService = CreateFundingTemplateValidationService();
 
             //Act
-            FundingTemplateValidationResult result = await fundingTemplateValidationService.ValidateFundingTemplate(fundingTemplate);
+            FundingTemplateValidationResult result = await fundingTemplateValidationService.ValidateFundingTemplate(fundingTemplate, "fsid", "fpid", "1.0");
 
             //Assert
             result
@@ -50,7 +50,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
             FundingTemplateValidationService fundingTemplateValidationService = CreateFundingTemplateValidationService();
 
             //Act
-            FundingTemplateValidationResult result = await fundingTemplateValidationService.ValidateFundingTemplate(fundingTemplate);
+            FundingTemplateValidationResult result = await fundingTemplateValidationService.ValidateFundingTemplate(fundingTemplate, "fsid", "fpid", "1.0");
 
             //Assert
             result
@@ -79,7 +79,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
             FundingTemplateValidationService fundingTemplateValidationService = CreateFundingTemplateValidationService();
 
             //Act
-            FundingTemplateValidationResult result = await fundingTemplateValidationService.ValidateFundingTemplate(fundingTemplate);
+            FundingTemplateValidationResult result = await fundingTemplateValidationService.ValidateFundingTemplate(fundingTemplate, "fsid", "fpid", "1.0");
 
             //Assert
             result
@@ -116,7 +116,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
             FundingTemplateValidationService fundingTemplateValidationService = CreateFundingTemplateValidationService(fundingSchemaRepository: fundingSchemaRepository);
 
             //Act
-            FundingTemplateValidationResult result = await fundingTemplateValidationService.ValidateFundingTemplate(fundingTemplate);
+            FundingTemplateValidationResult result = await fundingTemplateValidationService.ValidateFundingTemplate(fundingTemplate, "fsid", "fpid", "1.0");
 
             //Assert
             result
@@ -158,7 +158,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
             FundingTemplateValidationService fundingTemplateValidationService = CreateFundingTemplateValidationService(fundingSchemaRepository: fundingSchemaRepository);
 
             //Act
-            FundingTemplateValidationResult result = await fundingTemplateValidationService.ValidateFundingTemplate(fundingTemplate);
+            FundingTemplateValidationResult result = await fundingTemplateValidationService.ValidateFundingTemplate(fundingTemplate, "fsid", "fpid", "1.0");
 
             //Assert
             result
@@ -214,7 +214,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
                 policyRepository: policyRepository);
 
             //Act
-            FundingTemplateValidationResult result = await fundingTemplateValidationService.ValidateFundingTemplate(fundingTemplate);
+            FundingTemplateValidationResult result = await fundingTemplateValidationService.ValidateFundingTemplate(fundingTemplate, "PES", "AY-2020", "2.1");
 
             //Assert
             result
@@ -274,7 +274,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
                 policyRepository: policyRepository);
 
             //Act
-            FundingTemplateValidationResult result = await fundingTemplateValidationService.ValidateFundingTemplate(fundingTemplate);
+            FundingTemplateValidationResult result = await fundingTemplateValidationService.ValidateFundingTemplate(fundingTemplate, "PES", "AY-2020", "2.1");
 
             //Assert
             result
@@ -353,7 +353,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
                 policyRepository: policyRepository);
 
             //Act
-            FundingTemplateValidationResult result = await fundingTemplateValidationService.ValidateFundingTemplate(fundingTemplate);
+            FundingTemplateValidationResult result = await fundingTemplateValidationService.ValidateFundingTemplate(fundingTemplate, "XXX", "AY-2020", "56.4");
 
             //Assert
             result

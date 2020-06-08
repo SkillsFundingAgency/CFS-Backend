@@ -370,7 +370,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
                 return CommandResult.ValidationFail(new ValidationResult(new []{error}));
             }
 
-            CommandResult validationError = await ValidateTemplateContent(updateCommand.TemplateJson);
+            CommandResult validationError = await ValidateTemplateContent(updateCommand.TemplateJson, template.Current.FundingStreamId, template.Current.FundingPeriodId);
             if (validationError != null)
                 return validationError;
 
@@ -611,10 +611,10 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
                 TemplateJson = templateJson.AsJson()
             });
         }
-        private async Task<CommandResult> ValidateTemplateContent(string templateJson)
+        private async Task<CommandResult> ValidateTemplateContent(string templateJson, string fundingStreamId, string fundingPeriodId)
         {
             // template json validation
-            FundingTemplateValidationResult validationResult = await _fundingTemplateValidationService.ValidateFundingTemplate(templateJson);
+            FundingTemplateValidationResult validationResult = await _fundingTemplateValidationService.ValidateFundingTemplate(templateJson, fundingStreamId, fundingPeriodId);
 
             if (!validationResult.IsValid)
             {

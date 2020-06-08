@@ -110,7 +110,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
                 _templateMetadataResolver = Substitute.For<ITemplateMetadataResolver>();
                 _templateMetadataResolver.GetService(Arg.Any<string>()).Returns(_templateMetadataGenerator);
                 _templateValidationService = Substitute.For<IFundingTemplateValidationService>();
-                _templateValidationService.ValidateFundingTemplate(Arg.Any<string>()).Returns(new FundingTemplateValidationResult { });
+                _templateValidationService.ValidateFundingTemplate(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), null).Returns(new FundingTemplateValidationResult { });
                 _templateRepository.GetTemplate(Arg.Is(_command.CloneFromTemplateId)).Returns(_sourceTemplate);
                 _templateRepository.CreateDraft(Arg.Any<Template>()).Returns(HttpStatusCode.OK);
 

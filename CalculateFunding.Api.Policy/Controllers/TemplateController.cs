@@ -64,22 +64,12 @@ namespace CalculateFunding.Api.Policy.Controllers
 
         /// <summary>
         /// Saves (creates or updates) a funding template based off a schema version for a funding stream and funding period.
-        /// There is an assumption that the following json will be populated to get the schema version, funding stream and funding period in the body content:
-        /// {
-        ///      "schemaVersion: "1.0"
-        ///      "fundingStream: {
-        ///            "code": "PSG"
-        ///      }
-        ///      "fundingPeriod":{
-        ///             "id" : "AY-2020"
-        ///      }
-        /// }
         /// </summary>
         /// <returns></returns>
-        [HttpPost("api/templates")]
+        [HttpPost("api/templates/{fundingStreamId}/{fundingPeriodId}/{templateVersion}")]
         [ProducesResponseType(201)]
         [Produces("application/json")]
-        public async Task<IActionResult> SaveFundingTemplate()
+        public async Task<IActionResult> SaveFundingTemplate([FromRoute]string fundingStreamId, [FromRoute]string fundingPeriodId, [FromRoute]string templateVersion)
         {
             string controllerName = string.Empty;
 
@@ -93,7 +83,10 @@ namespace CalculateFunding.Api.Policy.Controllers
             return await _fundingTemplateService.SaveFundingTemplate(
                 nameof(GetFundingTemplate),
                 controllerName,
-                template);
+                template,
+                fundingStreamId,
+                fundingPeriodId,
+                templateVersion);
         }
     }
 }

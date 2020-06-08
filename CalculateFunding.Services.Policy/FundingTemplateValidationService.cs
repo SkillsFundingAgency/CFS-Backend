@@ -41,7 +41,7 @@ namespace CalculateFunding.Services.Policy
 
         public async Task<ServiceHealth> IsHealthOk()
         {
-            (bool Ok, string Message) fundingSchemaRepoHealth = await ((BlobClient) _fundingSchemaRepository).IsHealthOk();
+            (bool Ok, string Message) fundingSchemaRepoHealth = await ((BlobClient)_fundingSchemaRepository).IsHealthOk();
 
             ServiceHealth health = new ServiceHealth()
             {
@@ -58,11 +58,16 @@ namespace CalculateFunding.Services.Policy
             return health;
         }
 
-        public async Task<FundingTemplateValidationResult> ValidateFundingTemplate(string fundingTemplate)
+        public async Task<FundingTemplateValidationResult> ValidateFundingTemplate(string fundingTemplate, string fundingStreamId, string fundingPeriodId, string templateVersion = null)
         {
             Guard.IsNullOrWhiteSpace(fundingTemplate, nameof(fundingTemplate));
 
-            FundingTemplateValidationResult fundingTemplateValidationResult = new FundingTemplateValidationResult();
+            FundingTemplateValidationResult fundingTemplateValidationResult = new FundingTemplateValidationResult()
+            {
+                FundingStreamId = fundingStreamId,
+                FundingPeriodId = fundingPeriodId,
+                TemplateVersion = templateVersion
+            };
 
             JObject parsedFundingTemplate;
 
@@ -94,8 +99,7 @@ namespace CalculateFunding.Services.Policy
 
             if (!schemaExists)
             {
-                fundingTemplateValidationResult.Errors.Add(new ValidationFailure("",
-                    $"A valid schema could not be found for schema version '{schemaVersion}'."));
+                fundingTemplateValidationResult.Errors.Add(new ValidationFailure("", $"A valid schema could not be found for schema version '{schemaVersion}'."));
 
                 return fundingTemplateValidationResult;
             }
@@ -107,7 +111,8 @@ namespace CalculateFunding.Services.Policy
                 return fundingTemplateValidationResult;
             }
 
-            await ExtractFundingStreamAndVersion(fundingTemplateValidationResult, parsedFundingTemplate);
+            await ValidateFundingStream(fundingTemplateValidationResult);
+            await ValidateFundingPeriod(fundingTemplateValidationResult);
 
             return fundingTemplateValidationResult;
         }
@@ -131,14 +136,10 @@ namespace CalculateFunding.Services.Policy
             }
         }
 
-        private async Task ExtractFundingStreamAndVersion(FundingTemplateValidationResult fundingTemplateValidationResult,
-            JObject parsedFundingTemplate)
+        private async Task ValidateFundingStream(FundingTemplateValidationResult fundingTemplateValidationResult)
         {
-            var fundingStreamCode = parsedFundingTemplate.SelectToken("$..fundingStream.code")?.Value<string>();
-            if (!fundingStreamCode.IsNullOrEmpty())
+            if (!fundingTemplateValidationResult.FundingStreamId.IsNullOrEmpty())
             {
-                fundingTemplateValidationResult.FundingStreamId = fundingStreamCode;
-
                 FundingStream fundingStream = await _policyRepositoryPolicy.ExecuteAsync(() =>
                     _policyRepository.GetFundingStreamById(fundingTemplateValidationResult.FundingStreamId));
 
@@ -148,38 +149,19 @@ namespace CalculateFunding.Services.Policy
                         .Add(new ValidationFailure("", $"A funding stream could not be found for funding stream id '{fundingTemplateValidationResult.FundingStreamId}'"));
                 }
             }
+        }
 
-            string fundingPeriodId = parsedFundingTemplate.SelectToken("$..fundingPeriod.id")?.Value<string>();
-
-            if(!string.IsNullOrWhiteSpace(fundingPeriodId))
+        private async Task ValidateFundingPeriod(FundingTemplateValidationResult fundingTemplateValidationResult)
+        {
+            if (!string.IsNullOrWhiteSpace(fundingTemplateValidationResult.FundingPeriodId))
             {
-                fundingTemplateValidationResult.FundingPeriodId = fundingPeriodId;
-
                 FundingPeriod fundingPeriod = await _policyRepositoryPolicy.ExecuteAsync(() => _policyRepository.GetFundingPeriodById(fundingTemplateValidationResult.FundingPeriodId));
 
-                if(fundingPeriod == null)
+                if (fundingPeriod == null)
                 {
                     fundingTemplateValidationResult.Errors
                         .Add(new ValidationFailure("", $"A funding period could not be found for funding period id '{fundingTemplateValidationResult.FundingPeriodId}'"));
                 }
-            }
-
-            var templateVersion = parsedFundingTemplate.SelectToken("$..templateVersion", false)?.Value<string>();
-
-            if (!templateVersion.IsNullOrEmpty())
-            {
-                fundingTemplateValidationResult.TemplateVersion = templateVersion;
-            }
-
-            var schemaVersionToken = parsedFundingTemplate.SelectToken("$..schemaVersion")?.Value<string>();
-
-            if (schemaVersionToken.IsNullOrEmpty())
-            {
-                fundingTemplateValidationResult.Errors.Add(new ValidationFailure("", "No schemaVersion property found"));
-            }
-            else
-            {
-                fundingTemplateValidationResult.SchemaVersion = schemaVersionToken;
             }
         }
     }

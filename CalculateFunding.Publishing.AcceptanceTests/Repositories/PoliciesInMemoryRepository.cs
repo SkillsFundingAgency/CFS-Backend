@@ -105,7 +105,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             return Task.FromResult(new ApiResponse<FundingConfiguration>(System.Net.HttpStatusCode.OK, configuration));
         }
 
-        public Task<ApiResponse<string>> SaveFundingTemplate(string templateJson)
+        public Task<ApiResponse<string>> SaveFundingTemplate(string templateJson, string fundingStreamId, string fundingPeriodid, string templateVersion)
         {
             throw new NotImplementedException();
         }
