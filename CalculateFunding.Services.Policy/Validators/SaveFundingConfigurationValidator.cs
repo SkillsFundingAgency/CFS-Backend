@@ -51,8 +51,6 @@ namespace CalculateFunding.Services.Policy.Validators
                 });
 
             RuleFor(model => model.DefaultTemplateVersion)
-                .NotEmpty()
-                .WithMessage("No default template version was provided to SaveFundingConfiguration")
                 .CustomAsync(async (name, context, cancellationToken) =>
                 {
                     FundingConfiguration model = context.ParentContext.InstanceToValidate as FundingConfiguration;

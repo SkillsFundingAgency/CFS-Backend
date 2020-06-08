@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Net;
-using System.Security.Claims;
-using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Common.ApiClient.Models;
@@ -20,10 +17,8 @@ using CalculateFunding.Services.Specs.Interfaces;
 using FluentAssertions;
 using FluentValidation;
 using FluentValidation.Results;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Newtonsoft.Json;
 using NSubstitute;
 using PolicyModels = CalculateFunding.Common.ApiClient.Policies.Models;
 
@@ -84,7 +79,9 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             ApiResponse<PolicyModels.FundingStream> fundingStreamResponse = new ApiResponse<PolicyModels.FundingStream>(HttpStatusCode.OK, fundingStream);
 
-            ApiResponse<FundingConfiguration> fundingConfigResponse = new ApiResponse<FundingConfiguration>(HttpStatusCode.OK, new FundingConfiguration());
+            FundingConfiguration fundingConfiguration = NewFundingConfiguration(_ => _.WithDefaultTemplateVersion(NewRandomString()));
+
+            ApiResponse<FundingConfiguration> fundingConfigResponse = new ApiResponse<FundingConfiguration>(HttpStatusCode.OK, fundingConfiguration);
 
             policiesApiClient
                 .GetFundingPeriodById(Arg.Is(fundingPeriodId))
@@ -193,6 +190,88 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         }
 
         [TestMethod]
+        public async Task SpecificationsService_CreateSpecification_WhenFundingConfigurationDefaultTemplateVersionNotSet_ThenSpecificationCreationFailed()
+        {
+            // Arrange
+            const string fundingStreamId = "fs1";
+            const string fundingPeriodId = "fp1";
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();
+            ISearchRepository<SpecificationIndex> searchRepository = CreateSearchRepository();
+            IQueueCreateSpecificationJobActions createSpecificationJobAction = Substitute.For<IQueueCreateSpecificationJobActions>();
+
+            IMapper mapper = CreateImplementedMapper();
+            IVersionRepository<SpecificationVersion> versionRepository = CreateVersionRepository();
+
+            SpecificationsService specificationsService = CreateService(
+                specificationsRepository: specificationsRepository,
+                policiesApiClient: policiesApiClient,
+                searchRepository: searchRepository,
+                mapper: mapper,
+                specificationVersionRepository: versionRepository,
+                queueCreateSpecificationJobActions: createSpecificationJobAction);
+
+            SpecificationCreateModel specificationCreateModel = new SpecificationCreateModel()
+            {
+                Name = "Specification Name",
+                Description = "Specification Description",
+                FundingPeriodId = "fp1",
+                FundingStreamIds = new List<string>() { fundingStreamId },
+            };
+
+            Reference user = new Reference(UserId, Username);
+
+            specificationsRepository
+                .GetSpecificationByQuery(Arg.Any<Expression<Func<DocumentEntity<Specification>, bool>>>())
+                .Returns((Specification)null);
+
+            PolicyModels.FundingPeriod fundingPeriod = new PolicyModels.FundingPeriod
+            {
+                Id = fundingPeriodId,
+                Name = "Funding Period 1"
+            };
+
+            ApiResponse<PolicyModels.FundingPeriod> fundingPeriodResponse = new ApiResponse<PolicyModels.FundingPeriod>(HttpStatusCode.OK, fundingPeriod);
+
+            PolicyModels.FundingStream fundingStream = new PolicyModels.FundingStream
+            {
+                Id = fundingStreamId,
+                Name = "Funding Stream 1",
+            };
+
+            ApiResponse<PolicyModels.FundingStream> fundingStreamResponse = new ApiResponse<PolicyModels.FundingStream>(HttpStatusCode.OK, fundingStream);
+
+            FundingConfiguration fundingConfiguration = NewFundingConfiguration();
+
+            ApiResponse<FundingConfiguration> fundingConfigResponse = new ApiResponse<FundingConfiguration>(HttpStatusCode.OK, fundingConfiguration);
+
+            policiesApiClient
+                .GetFundingPeriodById(Arg.Is(fundingPeriodId))
+                .Returns(fundingPeriodResponse);
+
+            policiesApiClient
+                .GetFundingStreamById(Arg.Is(fundingStreamId))
+                .Returns(fundingStreamResponse);
+
+            policiesApiClient
+                .GetFundingConfiguration(Arg.Is(fundingStreamId), Arg.Is(fundingPeriodId))
+                .Returns(fundingConfigResponse);
+
+            // Act
+            IActionResult result = await specificationsService.CreateSpecification(specificationCreateModel, user, null);
+
+            // Assert
+            result
+                .Should()
+                .BeOfType<InternalServerErrorResult>()
+                .Which
+                .Value
+                .Should()
+                .Be($"Default Template Version is empty for funding stream id '{fundingStreamId}' and funding period id '{fundingPeriodId}'");
+        }
+
+        [TestMethod]
         public async Task SpecificationsService_CreateSpecification_WhenValidInputProvided_ThenTrimmedSpecificationIsCreated()
         {
             // Arrange
@@ -245,7 +324,9 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             ApiResponse<PolicyModels.FundingStream> fundingStreamResponse = new ApiResponse<PolicyModels.FundingStream>(HttpStatusCode.OK, fundingStream);
 
-            ApiResponse<FundingConfiguration> fundingConfigResponse = new ApiResponse<FundingConfiguration>(HttpStatusCode.OK, new FundingConfiguration());
+            FundingConfiguration fundingConfiguration = NewFundingConfiguration(_ => _.WithDefaultTemplateVersion(NewRandomString()));
+
+            ApiResponse<FundingConfiguration> fundingConfigResponse = new ApiResponse<FundingConfiguration>(HttpStatusCode.OK, fundingConfiguration);
 
             policiesApiClient
                 .GetFundingPeriodById(Arg.Is(fundingPeriodId))

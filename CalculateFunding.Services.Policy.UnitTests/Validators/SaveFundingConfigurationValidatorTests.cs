@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using CalculateFunding.Models.Policy;
 using CalculateFunding.Models.Policy.FundingPolicy;
 using CalculateFunding.Services.Policy.Interfaces;
-using CalculateFunding.Services.Providers.Validators;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using FluentValidation.Results;
@@ -60,7 +59,7 @@ namespace CalculateFunding.Services.Policy.Validators
 
         [TestMethod]
         [DynamicData(nameof(FlagExamples), DynamicDataSourceType.Method)]
-        public void IsInvalidIfDefaultTemplateVersionNotSupplied(bool expectedFlag)
+        public void IsInvalidIfDefaultTemplateDoesNotExist(bool expectedFlag)
         {
             string defaultTemplateVersion = NewRandomString();
             string fundingStreamId = NewRandomString();
@@ -70,26 +69,6 @@ namespace CalculateFunding.Services.Policy.Validators
                 .WithFundingPeriodId(fundingPeriodId)
                 .WithDefaultTemplateVersion(defaultTemplateVersion));
             AndTheTemplateExistsCheck(fundingStreamId, fundingPeriodId, defaultTemplateVersion, expectedFlag);
-
-            WhenTheFundingConfigurationIsValidated();
-
-            ThenTheValidationResultShouldBe(expectedFlag);
-        }
-
-        [TestMethod]
-        [DataRow("a template version", true)]
-        [DataRow(" ", false)]
-        [DataRow(null, false)]
-        public void IsInvalidIfDefaultTemplateDoesNotExist(string defaultTemplateVersion,
-            bool expectedFlag)
-        {
-            string fundingStreamId = NewRandomString();
-            string fundingPeriodId = NewRandomString();
-
-            GivenTheFundingConfiguration(_ => _.WithDefaultTemplateVersion(defaultTemplateVersion)
-                .WithFundingStreamId(fundingStreamId)
-                .WithFundingPeriodId(fundingPeriodId));
-            AndTheTemplateExistsCheck(fundingStreamId, fundingPeriodId, defaultTemplateVersion, true);
 
             WhenTheFundingConfigurationIsValidated();
 

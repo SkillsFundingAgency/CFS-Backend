@@ -483,7 +483,7 @@ namespace CalculateFunding.Services.Specs
 
             foreach (string fundingStreamId in createModel.FundingStreamIds)
             {
-                Common.ApiClient.Models.ApiResponse<PolicyModels.FundingStream> fundingStreamResponse =
+                ApiResponse<PolicyModels.FundingStream> fundingStreamResponse =
                     await _policiesApiClientPolicy.ExecuteAsync(() =>
                         _policiesApiClient.GetFundingStreamById(fundingStreamId));
                 Reference fundingStream = _mapper.Map<Reference>(fundingStreamResponse?.Content);
@@ -520,9 +520,17 @@ namespace CalculateFunding.Services.Specs
                         $"No funding configuration returned for funding stream id '{fundingStreamId}' and funding period id '{specification.Current.FundingPeriod.Id}'");
                 }
 
-                if (fundingConfigResponse.Content != null)
+                FundingConfiguration fundingConfiguration = fundingConfigResponse.Content;
+
+                if (fundingConfiguration != null)
                 {
-                    fundingConfigs.Add(fundingStreamId, fundingConfigResponse.Content);
+                    if (string.IsNullOrEmpty(fundingConfiguration.DefaultTemplateVersion))
+                    {
+                        return new InternalServerErrorResult(
+                            $"Default Template Version is empty for funding stream id '{fundingStreamId}' and funding period id '{specification.Current.FundingPeriod.Id}'");
+                    }
+
+                    fundingConfigs.Add(fundingStreamId, fundingConfiguration);
                 }
             }
 
