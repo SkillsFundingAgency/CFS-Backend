@@ -29,11 +29,18 @@ namespace CalculateFunding.Services.Core.Extensions
         {
             return Encoding.UTF8.GetBytes(poco.AsJson());
         }
-        
+
+        public static TPoco AsPocoWithSettings<TPoco>(this string json,
+            JsonSerializerSettings settings)
+            where TPoco : class
+        {
+            return json.IsNullOrWhitespace() ? null : JsonConvert.DeserializeObject<TPoco>(json, settings);    
+        }
+
         public static TPoco AsPoco<TPoco>(this string json, bool useCamelCase = true)
             where TPoco : class
         {
-            return json.IsNullOrWhitespace() ? null : JsonConvert.DeserializeObject<TPoco>(json, NewJsonSerializerSettings(useCamelCase));
+            return json.AsPocoWithSettings<TPoco>(NewJsonSerializerSettings(useCamelCase));
         }
 
         public static string AsJson<TPoco>(this TPoco poco, bool useCamelCase = true)

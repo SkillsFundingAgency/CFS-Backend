@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Common.TemplateMetadata.Schema10;
 using CalculateFunding.Models.Publishing;

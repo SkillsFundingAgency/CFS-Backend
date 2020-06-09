@@ -1,7 +1,7 @@
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace CalculateFunding.Generators.Schema10.UnitTests
+namespace CalculateFunding.Services.Core.Extensions
 {
     [TestClass]
     public class DecimalExtensionsTests
@@ -90,9 +90,7 @@ namespace CalculateFunding.Generators.Schema10.UnitTests
         [TestMethod]
         public void WhenANullDecimalIsProvided_ThenNullableDecimalIsReturned()
         {
-            decimal? inputNumber = null;
-
-            object result = inputNumber.DecimalAsObject();
+            object result = ((decimal?) null).DecimalAsObject();
 
             result
                 .Should()

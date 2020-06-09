@@ -10,6 +10,7 @@ namespace CalculateFunding.Models.Aggregations
         Sum,
         Average,
         Min,
-        Max
+        Max,
+        
     }
 }

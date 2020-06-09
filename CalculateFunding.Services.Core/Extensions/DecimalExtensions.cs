@@ -1,17 +1,12 @@
-﻿using System;
+using System;
 
-namespace CalculateFunding.Generators.Schema10
+namespace CalculateFunding.Services.Core.Extensions
 {
     public static class DecimalExtensions
     {
         public static object DecimalAsObject(this decimal? value)
         {
-            if (!value.HasValue)
-            {
-                return value;
-            }
-
-            return value.Value.DecimalAsObject();
+            return value?.DecimalAsObject();
         }
 
         public static object DecimalAsObject(this decimal value)

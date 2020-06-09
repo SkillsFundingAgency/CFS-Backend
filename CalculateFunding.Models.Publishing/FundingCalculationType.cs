@@ -58,5 +58,14 @@ namespace CalculateFunding.Models.Publishing
         /// 
         /// </summary>
         ProviderLedFunding,
+        
+        /// <summary>
+        /// Number
+        /// </summary>
+        Number,
+        
+        Boolean,
+        
+        Enum
     }
 }

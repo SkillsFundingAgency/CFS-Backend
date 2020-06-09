@@ -317,9 +317,8 @@ namespace CalculateFunding.Functions.Publishing
             {
                 PublishedProviderContentsGeneratorResolver resolver = new PublishedProviderContentsGeneratorResolver();
 
-                IPublishedProviderContentsGenerator v10Generator = new Generators.Schema10.PublishedProviderContentsGenerator();
-
-                resolver.Register("1.0", v10Generator);
+                resolver.Register("1.0", new Generators.Schema10.PublishedProviderContentsGenerator());
+                resolver.Register("1.1", new Generators.Schema11.PublishedProviderContentsGenerator());
 
                 return resolver;
             });
@@ -328,9 +327,8 @@ namespace CalculateFunding.Functions.Publishing
             {
                 PublishedFundingContentsGeneratorResolver resolver = new PublishedFundingContentsGeneratorResolver();
 
-                IPublishedFundingContentsGenerator v10Generator = new Generators.Schema10.PublishedFundingContentsGenerator();
-
-                resolver.Register("1.0", v10Generator);
+                resolver.Register("1.0", new Generators.Schema10.PublishedFundingContentsGenerator());
+                resolver.Register("1.1", new Generators.Schema11.PublishedFundingContentsGenerator());
 
                 return resolver;
             });

@@ -22,28 +22,23 @@ namespace CalculateFunding.Services.Publishing
         }
 
         /// <summary>
-        /// Get a resolver registered to the schema version
+        ///     Get a resolver registered to the schema version
         /// </summary>
         /// <param name="schemaVersion">The schema version</param>
-        /// <returns>A resolver regsitered for the schema value</returns>
+        /// <returns>A resolver registered for the schema value</returns>
         /// <exception cref="Exception">Thrown when no resolver registered for schema value</exception>
         public IPublishedFundingContentsGenerator GetService(string schemaVersion)
         {
             Guard.IsNullOrWhiteSpace(schemaVersion, nameof(schemaVersion));
 
-            IPublishedFundingContentsGenerator templateMetadataGenerator;
-
-            if (_supportedVersions.TryGetValue(schemaVersion, out templateMetadataGenerator))
-            {
-                return templateMetadataGenerator;
-            }
-            else
-            {
-                throw new Exception($"Unable to find a registered resolver for schema version : {schemaVersion}");
-            }
+            return TryGetService(schemaVersion, out IPublishedFundingContentsGenerator templateMetadataGenerator)
+                ? templateMetadataGenerator
+                : throw new ArgumentOutOfRangeException(nameof(schemaVersion), 
+                    $"Unable to find a registered resolver for schema version : {schemaVersion}");
         }
 
-        public void Register(string schemaVersion, IPublishedFundingContentsGenerator publishedFundingContentsGenerator)
+        public void Register(string schemaVersion,
+            IPublishedFundingContentsGenerator publishedFundingContentsGenerator)
         {
             Guard.IsNullOrWhiteSpace(schemaVersion, nameof(schemaVersion));
             Guard.ArgumentNotNull(publishedFundingContentsGenerator, nameof(publishedFundingContentsGenerator));
@@ -51,9 +46,8 @@ namespace CalculateFunding.Services.Publishing
             _supportedVersions.TryAdd(schemaVersion, publishedFundingContentsGenerator);
         }
 
-        public bool TryGetService(string schemaVersion, out IPublishedFundingContentsGenerator publishedFundingContentsGenerator)
-        {
-            return _supportedVersions.TryGetValue(schemaVersion, out publishedFundingContentsGenerator);
-        }
+        public bool TryGetService(string schemaVersion,
+            out IPublishedFundingContentsGenerator publishedFundingContentsGenerator) 
+            => _supportedVersions.TryGetValue(schemaVersion, out publishedFundingContentsGenerator);
     }
 }
