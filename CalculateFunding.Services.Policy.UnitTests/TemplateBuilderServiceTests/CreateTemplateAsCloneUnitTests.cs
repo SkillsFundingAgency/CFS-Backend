@@ -5,6 +5,7 @@ using System.Net;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.TemplateMetadata;
 using CalculateFunding.Models.Policy;
+using CalculateFunding.Models.Policy.FundingPolicy;
 using CalculateFunding.Models.Policy.TemplateBuilder;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Repositories.Common.Search;
@@ -37,7 +38,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
             private IFundingTemplateValidationService _templateValidationService;
             private ITemplateMetadataGenerator _templateMetadataGenerator;
             private ITemplateMetadataResolver _templateMetadataResolver;
-            private IPolicyRepository _policyRespository;
+            private IPolicyRepository _policyRepository;
             private ISearchRepository<TemplateIndex> _templateIndexer;
 
             public When_i_clone_template_to_create_new_template()
@@ -60,7 +61,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
                     _versionRepository,
                     _templateRepository,
                     _templateIndexer,
-                    _policyRespository,
+                    _policyRepository,
                     Substitute.For<ILogger>());
 
                 _result = _service.CreateTemplateAsClone(_command, _author).GetAwaiter().GetResult();
@@ -112,23 +113,43 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
                 _templateValidationService = Substitute.For<IFundingTemplateValidationService>();
                 _templateValidationService.ValidateFundingTemplate(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), null).Returns(new FundingTemplateValidationResult { });
                 _templateRepository.GetTemplate(Arg.Is(_command.CloneFromTemplateId)).Returns(_sourceTemplate);
+                _templateRepository.GetAllTemplates().Returns(new [] {_sourceTemplate});
                 _templateRepository.CreateDraft(Arg.Any<Template>()).Returns(HttpStatusCode.OK);
 
                 _versionRepository = Substitute.For<ITemplateVersionRepository>();
                 _versionRepository.SaveVersion(Arg.Any<TemplateVersion>()).Returns(HttpStatusCode.OK);
 
-                _policyRespository = Substitute.For<IPolicyRepository>();
-                _policyRespository.GetFundingPeriodById(Arg.Is(_command.FundingPeriodId)).Returns(new FundingPeriod
+                _policyRepository = Substitute.For<IPolicyRepository>();
+                _policyRepository.GetFundingPeriods().Returns(new [] { 
+                    new FundingPeriod
+                    {
+                        Id = "2021",
+                        Name = "Test Period",
+                        Type = FundingPeriodType.FY
+                    },
+                    new FundingPeriod
                 {
                     Id = _command.FundingPeriodId, 
                     Name = "Test Funding Period 2"
-                });
-                _policyRespository.GetFundingStreamById(Arg.Is(_command.FundingStreamId)).Returns(new FundingStream
+                }});
+                _policyRepository.GetFundingStreams().Returns(new [] { 
+                    new FundingStream
+                    {
+                        Id = "XX",
+                        ShortName = "XX",
+                        Name = "FundingSteam"
+                    },
+                    new FundingStream
                 {
                     Id = _command.FundingStreamId,
                     Name = "Funding Stream 2",
                     ShortName = "Stream 2"
-                });
+                }});
+                _policyRepository.GetFundingConfigurations().Returns(new [] { new FundingConfiguration
+                {
+                    FundingStreamId = _command.FundingStreamId,
+                    FundingPeriodId = _command.FundingPeriodId
+                }});
 
                 _templateIndexer = Substitute.For<ISearchRepository<TemplateIndex>>();
             }
@@ -151,12 +172,6 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
             public void Validated_template_command()
             {
                 _validatorFactory.Received(1).Validate(Arg.Is(_command));
-            }
-
-            [TestMethod]
-            public void Checked_for_duplicate_funding_stream_funding_period()
-            {
-                _templateRepository.Received(1).IsFundingStreamAndPeriodInUse(Arg.Is(_command.FundingStreamId), Arg.Is(_command.FundingPeriodId));
             }
 
             [TestMethod]

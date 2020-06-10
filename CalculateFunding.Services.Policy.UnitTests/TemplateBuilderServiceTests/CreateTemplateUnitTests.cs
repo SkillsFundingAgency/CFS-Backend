@@ -4,6 +4,7 @@ using System.Net;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.TemplateMetadata;
 using CalculateFunding.Models.Policy;
+using CalculateFunding.Models.Policy.FundingPolicy;
 using CalculateFunding.Models.Policy.TemplateBuilder;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Repositories.Common.Search;
@@ -33,6 +34,8 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
             private IIoCValidatorFactory _validatorFactory;
             private IPolicyRepository _policyRepository;
             private ISearchRepository<TemplateIndex> _searchRepository;
+            private FundingPeriod _fundingPeriod;
+            private FundingStream _fundingStream;
 
             public When_i_create_initial_draft_template_without_content()
             {
@@ -73,19 +76,26 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
                 _searchRepository = Substitute.For<ISearchRepository<TemplateIndex>>();
                 _searchRepository.Index(Arg.Any<IEnumerable<TemplateIndex>>()).Returns(Enumerable.Empty<IndexError>());
 
-                _policyRepository = Substitute.For<IPolicyRepository>();
-                _policyRepository.GetFundingPeriodById(Arg.Any<string>()).Returns(new FundingPeriod
+                _fundingPeriod = new FundingPeriod
                 {
-                    Id = "2021",
+                    Id = _command.FundingPeriodId,
                     Name = "Test Period",
                     Type = FundingPeriodType.FY
-                });
-                _policyRepository.GetFundingStreamById(Arg.Any<string>()).Returns(new FundingStream
+                };
+                _fundingStream = new FundingStream
                 {
-                    Id = "XX",
+                    Id = _command.FundingStreamId,
                     ShortName = "XX",
                     Name = "FundingSteam"
-                });
+                };
+                _policyRepository = Substitute.For<IPolicyRepository>();
+                _policyRepository.GetFundingPeriods().Returns(new [] { _fundingPeriod});
+                _policyRepository.GetFundingStreams().Returns(new [] { _fundingStream });
+                _policyRepository.GetFundingConfigurations().Returns(new [] { new FundingConfiguration
+                {
+                    FundingStreamId = _fundingStream.Id,
+                    FundingPeriodId = _fundingPeriod.Id
+                }});
             }
 
             [TestMethod]
@@ -106,12 +116,6 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
             public void Validated_template_command()
             {
                 _validatorFactory.Received(1).Validate(Arg.Is(_command));
-            }
-
-            [TestMethod]
-            public void Checked_for_duplicate_funding_stream_funding_period()
-            {
-                _templateRepository.Received(1).IsFundingStreamAndPeriodInUse(Arg.Is(_command.FundingStreamId), Arg.Is(_command.FundingPeriodId));
             }
 
             [TestMethod]

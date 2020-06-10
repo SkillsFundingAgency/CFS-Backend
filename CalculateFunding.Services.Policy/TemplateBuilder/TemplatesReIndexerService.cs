@@ -24,8 +24,6 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
         private readonly IJobManagement _jobManagement;
         private readonly ISearchRepository<TemplateIndex> _searchRepository;
         private readonly AsyncPolicy _searchRepositoryResilience;
-        private readonly IPolicyRepository _policyRepository;
-        private readonly AsyncPolicy _policyRepositoryResilience;
         private readonly ITemplateRepository _templatesRepository;
         private readonly AsyncPolicy _templatesRepositoryResilience;
 
@@ -51,8 +49,6 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
 
             _searchRepository = searchRepository;
             _searchRepositoryResilience = policyResiliencePolicies.TemplatesSearchRepository;
-            _policyRepository = policyRepository;
-            _policyRepositoryResilience = policyResiliencePolicies.PolicyRepository;
             _templatesRepository = templateRepository;
             _templatesRepositoryResilience = policyResiliencePolicies.TemplatesRepository;
             _jobManagement = jobManagement;
@@ -96,19 +92,14 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
 
                         foreach (Template template in templates)
                         {
-                            var fundingPeriod =
-                                await _policyRepositoryResilience.ExecuteAsync(() => _policyRepository.GetFundingPeriodById(template.Current.FundingPeriodId));
-                            var fundingStream =
-                                await _policyRepositoryResilience.ExecuteAsync(() => _policyRepository.GetFundingStreamById(template.Current.FundingStreamId));
-
                             results.Add(new TemplateIndex
                             {
-                                Id = template.Current.Id,
-                                Name = template.Current.Name,
-                                FundingStreamId = template.Current.FundingStreamId,
-                                FundingStreamName = fundingStream.ShortName,
-                                FundingPeriodId = template.Current.FundingPeriodId,
-                                FundingPeriodName = fundingPeriod.Name,
+                                Id = template.TemplateId,
+                                Name = template.Name,
+                                FundingStreamId = template.FundingStream?.Id,
+                                FundingStreamName = template.FundingStream?.ShortName,
+                                FundingPeriodId = template.FundingPeriod?.Id,
+                                FundingPeriodName = template.FundingPeriod?.Name,
                                 LastUpdatedAuthorId = user.Id,
                                 LastUpdatedAuthorName = user.Name,
                                 LastUpdatedDate = DateTimeOffset.Now,

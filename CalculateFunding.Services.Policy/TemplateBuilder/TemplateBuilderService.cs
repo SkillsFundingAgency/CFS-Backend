@@ -128,14 +128,17 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
 
             try
             {
-                if (await _templateRepository.IsFundingStreamAndPeriodInUse(command.FundingStreamId, command.FundingPeriodId))
+                IEnumerable<FundingStreamWithPeriods> available = await GetFundingStreamAndPeriodsWithoutTemplates();
+                var match = available.Where(x => x.FundingStream.Id == command.FundingStreamId &&
+                                                 x.FundingPeriods.Any(p => p.Id == command.FundingPeriodId));
+                if (!match.Any())
                 {
                     string validationErrorMessage =
-                        $"Template with FundingStreamId [{command.FundingStreamId}] and FundingPeriodId [{command.FundingPeriodId}] already in use";
+                        $"Combination of FundingStreamId [{command.FundingStreamId}] and FundingPeriodId [{command.FundingPeriodId}] not available";
                     _logger.Error(validationErrorMessage);
                     ValidationResult validationResult = new ValidationResult();
-                    validationResult.WithError(nameof(command.FundingPeriodId), validationErrorMessage);
-                    validationResult.WithError(nameof(command.FundingStreamId), validationErrorMessage);
+                    validationResult.Errors.Add(new ValidationFailure(nameof(command.FundingStreamId), validationErrorMessage));
+                    validationResult.Errors.Add(new ValidationFailure(nameof(command.FundingPeriodId), validationErrorMessage));
                     return new CommandResult
                     {
                         ErrorMessage = validationErrorMessage,
@@ -144,12 +147,13 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
                 }
 
                 string templateName = $"{command.FundingStreamId} {command.FundingPeriodId}";
+                FundingStreamWithPeriods streamWithPeriods = available.Single(x => x.FundingStream.Id == command.FundingStreamId);
                 Template template = new Template
                 {
                     TemplateId = Guid.NewGuid().ToString(),
                     Name = templateName,
-                    FundingStream = await _policyRepository.GetFundingStreamById(command.FundingStreamId),
-                    FundingPeriod = await _policyRepository.GetFundingPeriodById(command.FundingPeriodId)
+                    FundingStream = streamWithPeriods.FundingStream,
+                    FundingPeriod = streamWithPeriods.FundingPeriods.Single(p => p.Id == command.FundingPeriodId)
                 };
                 template.Current = new TemplateVersion
                 {
@@ -232,10 +236,13 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
                     }
                 }
 
-                if (await _templateRepository.IsFundingStreamAndPeriodInUse(command.FundingStreamId, command.FundingPeriodId))
+                IEnumerable<FundingStreamWithPeriods> available = await GetFundingStreamAndPeriodsWithoutTemplates();
+                var match = available.Where(x => x.FundingStream.Id == command.FundingStreamId &&
+                                                 x.FundingPeriods.Any(p => p.Id == command.FundingPeriodId));
+                if (!match.Any())
                 {
                     string validationErrorMessage =
-                        $"Template with FundingStreamId [{command.FundingStreamId}] and FundingPeriodId [{command.FundingPeriodId}] already in use";
+                        $"Combination of FundingStreamId [{command.FundingStreamId}] and FundingPeriodId [{command.FundingPeriodId}] not available";
                     _logger.Error(validationErrorMessage);
                     ValidationResult validationResult = new ValidationResult();
                     validationResult.Errors.Add(new ValidationFailure(nameof(command.FundingStreamId), validationErrorMessage));
@@ -249,12 +256,13 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
 
                 Guid templateId = Guid.NewGuid();
                 string templateName = $"{command.FundingStreamId} {command.FundingPeriodId}";
+                FundingStreamWithPeriods streamWithPeriods = available.Single(x => x.FundingStream.Id == command.FundingStreamId);
                 Template template = new Template
                 {
                     TemplateId = templateId.ToString(), 
                     Name = templateName,
-                    FundingStream = await _policyRepository.GetFundingStreamById(command.FundingStreamId),
-                    FundingPeriod = await _policyRepository.GetFundingPeriodById(command.FundingPeriodId),
+                    FundingStream = streamWithPeriods.FundingStream,
+                    FundingPeriod = streamWithPeriods.FundingPeriods.Single(p => p.Id == command.FundingPeriodId),
                     Current = new TemplateVersion
                     {
                         TemplateId = templateId.ToString(),
@@ -358,16 +366,16 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             template.FundingStream ??= await _policyRepository.GetFundingStreamById(template.Current.FundingStreamId);
             template.FundingPeriod ??= await _policyRepository.GetFundingPeriodById(template.Current.FundingPeriodId);
 
-            if (template.Current.TemplateJson == originalCommand.TemplateFundingLinesJson)
-            {
-                return CommandResult.Success();
-            }
-
             (ValidationFailure error, TemplateJsonContentUpdateCommand updateCommand) = 
                 MapCommand(originalCommand, template, TemplateStatus.Draft, 0, 1);
             if (error != null)
             {
                 return CommandResult.ValidationFail(new ValidationResult(new []{error}));
+            }
+            
+            if (template.Current.TemplateJson == updateCommand.TemplateJson)
+            {
+                return CommandResult.Success();
             }
 
             CommandResult validationError = await ValidateTemplateContent(updateCommand.TemplateJson, template.Current.FundingStreamId, template.Current.FundingPeriodId);
@@ -453,7 +461,9 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             // create new version and save it
             TemplateVersion newVersion = templateVersion.Clone() as TemplateVersion;
             newVersion.Author = author;
-            newVersion.Name = templateVersion.Name;
+            newVersion.Name = template.Name;
+            newVersion.FundingStreamId = template.FundingStream.Id;
+            newVersion.FundingPeriodId = template.FundingPeriod.Id;
             newVersion.Description = templateVersion.Description;
             newVersion.Comment = comment;
             newVersion.TemplateJson = templateVersion.TemplateJson;
@@ -471,7 +481,6 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             }
 
             // update template
-            template.Name = newVersion.Name;
             template.AddPredecessor(template.Current.Id);
             template.Current = newVersion;
             var templateUpdateResult = await _templateRepository.Update(template);
@@ -512,9 +521,11 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             TemplateVersion newVersion = template.Current.Clone() as TemplateVersion;
             newVersion.Status = status;
             newVersion.Author = author;
-            newVersion.Name = $"{template.FundingStream.Id} {template.FundingPeriod.Id}";
+            newVersion.Name = template.Name;
             newVersion.Comment = null;
             newVersion.Description = template.Current.Description;
+            newVersion.FundingStreamId = template.FundingStream.Id;
+            newVersion.FundingPeriodId = template.FundingPeriod.Id;
             newVersion.Status = TemplateStatus.Draft;
             newVersion.Date = DateTimeOffset.Now;
             newVersion.Version = template.Current.Version + 1;
@@ -561,7 +572,9 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             newVersion.Status = TemplateStatus.Draft;
             newVersion.Date = DateTimeOffset.Now;
             newVersion.TemplateJson = template.Current.TemplateJson;
-            newVersion.Name = $"{template.FundingStream.Id} {template.FundingPeriod.Id}"; // migrate old data
+            newVersion.FundingStreamId = template.FundingStream.Id;
+            newVersion.FundingPeriodId = template.FundingPeriod.Id;
+            newVersion.Name = template.Name;
             newVersion.Description = command.Description;
             newVersion.Version = template.Current.Version + 1;
             newVersion.MinorVersion = template.Current.MinorVersion + 1;
@@ -636,17 +649,14 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
 
         private async Task CreateTemplateIndexItem(Template template, Reference author)
         {
-            var fundingPeriod = await _policyRepository.GetFundingPeriodById(template.Current.FundingPeriodId);
-            var fundingStream = await _policyRepository.GetFundingStreamById(template.Current.FundingStreamId);
-
             TemplateIndex templateIndex = new TemplateIndex
             {
                 Id = template.TemplateId,
-                Name = template.Current.Name,
-                FundingStreamId = template.Current.FundingStreamId,
-                FundingStreamName = fundingStream.ShortName,
-                FundingPeriodId = template.Current.FundingPeriodId,
-                FundingPeriodName = fundingPeriod.Name,
+                Name = template.Name,
+                FundingStreamId = template.FundingStream.Id,
+                FundingStreamName = template.FundingStream.ShortName,
+                FundingPeriodId = template.FundingPeriod.Id,
+                FundingPeriodName = template.FundingPeriod.Name,
                 LastUpdatedAuthorId = author.Id,
                 LastUpdatedAuthorName = author.Name,
                 LastUpdatedDate = DateTimeOffset.Now,

@@ -78,6 +78,18 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
                 {
                     Name = _templateVersionBeforeUpdate.Name,
                     TemplateId = _templateVersionBeforeUpdate.TemplateId,
+                    FundingPeriod = new FundingPeriod
+                    {
+                        Id = "2021",
+                        Name = "Test Period",
+                        Type = FundingPeriodType.FY
+                    },
+                    FundingStream = new FundingStream
+                    {
+                        Id = "XX",
+                        ShortName = "XX",
+                        Name = "FundingSteam"
+                    },
                     Current = _templateVersionBeforeUpdate
                 };
                 _templateRepository.GetTemplate(Arg.Is(_templateId)).Returns(_templateBeforeUpdate);
@@ -220,7 +232,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
             [TestMethod]
             public void Saved_version_with_correct_FundingPeriodId()
             {
-                _versionRepository.Received(1).SaveVersion(Arg.Is<TemplateVersion>(x => x.FundingPeriodId == _templateVersionBeforeUpdate.FundingPeriodId));
+                _versionRepository.Received(1).SaveVersion(Arg.Is<TemplateVersion>(x => x.FundingPeriodId == _templateBeforeUpdate.FundingPeriod.Id));
             }
         }
         
@@ -294,6 +306,18 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
                 {
                     Name = _templateVersionPrevious.Name,
                     TemplateId = _templateVersionPrevious.TemplateId,
+                    FundingPeriod = new FundingPeriod
+                    {
+                        Id = "2021",
+                        Name = "Test Period",
+                        Type = FundingPeriodType.FY
+                    },
+                    FundingStream = new FundingStream
+                    {
+                        Id = "XX",
+                        ShortName = "XX",
+                        Name = "FundingSteam"
+                    },
                     Current = _templateVersionCurrent
                 };
                 _templateRepository.GetTemplate(Arg.Is(_templateId)).Returns(_templateBeforeUpdate);
@@ -437,7 +461,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
             [TestMethod]
             public void Saved_version_with_correct_FundingPeriodId()
             {
-                _versionRepository.Received(1).SaveVersion(Arg.Is<TemplateVersion>(x => x.FundingPeriodId == _templateVersionPrevious.FundingPeriodId));
+                _versionRepository.Received(1).SaveVersion(Arg.Is<TemplateVersion>(x => x.FundingPeriodId == _templateBeforeUpdate.FundingPeriod.Id));
             }
         }
     }
