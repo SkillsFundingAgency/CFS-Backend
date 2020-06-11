@@ -43,12 +43,12 @@ namespace CalculateFunding.Functions.TestEngine.SmokeTests
                  _userProfileProvider,
                 IsDevelopment);
 
-            (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.DeleteTestResults,
+            SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.DeleteTestResults,
                 (Message smokeResponse) => onDeleteTestResults.Run(smokeResponse));
 
-            responses
+            response
                 .Should()
-                .Contain(_ => _.InvocationId == uniqueId);
+                .NotBeNull();
         }
 
         [TestMethod]
@@ -60,13 +60,13 @@ namespace CalculateFunding.Functions.TestEngine.SmokeTests
                  _userProfileProvider,
                 IsDevelopment);
 
-            (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.TopicSubscribers.UpdateScenarioResultsForEditSpecification,
+            SmokeResponse response = await RunSmokeTest(ServiceBusConstants.TopicSubscribers.UpdateScenarioResultsForEditSpecification,
                 (Message smokeResponse) => onEditSpecificationEvent.Run(smokeResponse),
                 ServiceBusConstants.TopicNames.EditSpecification);
 
-            responses
+            response
                 .Should()
-                .Contain(_ => _.InvocationId == uniqueId);
+                .NotBeNull();
         }
 
         [TestMethod]
@@ -78,12 +78,12 @@ namespace CalculateFunding.Functions.TestEngine.SmokeTests
                  _userProfileProvider,
                 IsDevelopment);
 
-            (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.TestEngineExecuteTests,
+            SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.TestEngineExecuteTests,
                 (Message smokeResponse) => onTestExecution.Run(smokeResponse));
 
-            responses
+            response
                 .Should()
-                .Contain(_ => _.InvocationId == uniqueId);
+                .NotBeNull();
         }
 
         [TestMethod]
@@ -95,13 +95,13 @@ namespace CalculateFunding.Functions.TestEngine.SmokeTests
                  _userProfileProvider,
                 IsDevelopment);
 
-            (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.TopicSubscribers.CleanupTestResultsForSpecificationProviders,
+            SmokeResponse response = await RunSmokeTest(ServiceBusConstants.TopicSubscribers.CleanupTestResultsForSpecificationProviders,
                 (Message smokeResponse) => onTestSpecificationProviderResultsCleanup.Run(smokeResponse),
                 ServiceBusConstants.TopicNames.ProviderSourceDatasetCleanup);
 
-            responses
+            response
                 .Should()
-                .Contain(_ => _.InvocationId == uniqueId);
+                .NotBeNull();
         }
 
         private static ILogger CreateLogger()

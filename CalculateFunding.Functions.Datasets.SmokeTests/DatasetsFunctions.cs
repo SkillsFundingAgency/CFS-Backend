@@ -46,13 +46,13 @@ namespace CalculateFunding.Functions.Datasets.SmokeTests
                 _userProfileProvider,
                 IsDevelopment);
 
-            (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.TopicSubscribers.UpdateDataDefinitionName,
+            SmokeResponse response = await RunSmokeTest(ServiceBusConstants.TopicSubscribers.UpdateDataDefinitionName,
                 (Message smokeResponse) => onDataDefinitionChanges.Run(smokeResponse),
                 ServiceBusConstants.TopicNames.DataDefinitionChanges);
 
-            responses
+            response
                 .Should()
-                .Contain(_ => _.InvocationId == uniqueId);
+                .NotBeNull();
         }
 
         [TestMethod]
@@ -64,12 +64,12 @@ namespace CalculateFunding.Functions.Datasets.SmokeTests
                 _userProfileProvider,
                 IsDevelopment);
 
-            (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.ProcessDataset,
+            SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.ProcessDataset,
                 (Message smokeResponse) => onDatasetEvent.Run(smokeResponse), useSession: true);
 
-            responses
+            response
                 .Should()
-                .Contain(_ => _.InvocationId == uniqueId);
+                .NotBeNull();
         }
 
         [TestMethod]
@@ -81,12 +81,12 @@ namespace CalculateFunding.Functions.Datasets.SmokeTests
                 _userProfileProvider,
                 IsDevelopment);
 
-            (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.ValidateDataset,
+            SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.ValidateDataset,
                 (Message smokeResponse) => onDatasetValidationEvent.Run(smokeResponse));
 
-            responses
+            response
                 .Should()
-                .Contain(_ => _.InvocationId == uniqueId);
+                .NotBeNull();
         }
 
         [TestMethod]
@@ -98,12 +98,12 @@ namespace CalculateFunding.Functions.Datasets.SmokeTests
                 _userProfileProvider,
                 IsDevelopment);
 
-            (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.DeleteDatasets,
+            SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.DeleteDatasets,
                 (Message smokeResponse) => onDeleteDatasets.Run(smokeResponse));
 
-            responses
+            response
                 .Should()
-                .Contain(_ => _.InvocationId == uniqueId);
+                .NotBeNull();
         }
 
         private static ILogger CreateLogger()

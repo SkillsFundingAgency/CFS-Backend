@@ -44,7 +44,7 @@ namespace CalculateFunding.Functions.Specs.ServiceBus
                 }
                 catch (Exception exception)
                 {
-                    _logger.Error(exception, $"An error occurred getting message from queue: {ServiceBusConstants.QueueNames.AddDefinitionRelationshipToSpecification}");
+                    _logger.Error(exception, $"An error occurred getting message from queue: {ServiceBusConstants.QueueNames.DeleteSpecifications}");
                     throw;
                 }
             },

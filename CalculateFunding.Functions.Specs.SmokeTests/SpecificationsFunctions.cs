@@ -42,12 +42,12 @@ namespace CalculateFunding.Functions.Specs.SmokeTests
                  _userProfileProvider,
                 IsDevelopment);
 
-            (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.AddDefinitionRelationshipToSpecification,
+            SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.AddDefinitionRelationshipToSpecification,
                 (Message smokeResponse) => onAddRelationshipEvent.Run(smokeResponse));
 
-            responses
+            response
                 .Should()
-                .Contain(_ => _.InvocationId == uniqueId);
+                .NotBeNull();
         }
 
         [TestMethod]
@@ -59,12 +59,12 @@ namespace CalculateFunding.Functions.Specs.SmokeTests
                  _userProfileProvider,
                 IsDevelopment);
 
-            (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.DeleteSpecifications,
+            SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.DeleteSpecifications,
                 (Message smokeResponse) => onDeleteSpecifications.Run(smokeResponse));
 
-            responses
+            response
                 .Should()
-                .Contain(_ => _.InvocationId == uniqueId);
+                .NotBeNull();
         }
 
         private static ILogger CreateLogger()

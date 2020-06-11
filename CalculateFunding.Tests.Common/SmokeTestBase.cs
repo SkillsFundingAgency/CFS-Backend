@@ -56,10 +56,10 @@ namespace CalculateFunding.Tests.Common
                 }
             });
 
-            _timeout = TimeSpan.FromSeconds(IsDevelopment ? 10 : 30);
+            _timeout = TimeSpan.FromSeconds(IsDevelopment ? 10 : 60);
         }
 
-        public async Task<(IEnumerable<SmokeResponse> responses, string uniqueId)> RunSmokeTest(string queueName,
+        public async Task<SmokeResponse> RunSmokeTest(string queueName,
             Action<Message> action,
             string topicName = null,
             bool useSession = false)
@@ -90,7 +90,7 @@ namespace CalculateFunding.Tests.Common
             }
         }
 
-        private async Task<(IEnumerable<SmokeResponse> responses, string uniqueId)> RunSmokeTest(IMessengerService messengerService,
+        private async Task<SmokeResponse> RunSmokeTest(IMessengerService messengerService,
             string queueName,
             Action<Message> action,
             string topicName,
@@ -166,9 +166,8 @@ namespace CalculateFunding.Tests.Common
                     action(message);
                 }
 
-                return (await messengerService.ReceiveMessages<SmokeResponse>(entityPathBase,
-                    _timeout),
-                    uniqueId);
+                return await messengerService.ReceiveMessage<SmokeResponse>(entityPathBase,_ => _.InvocationId == uniqueId,
+                    _timeout);
             }
             finally
             {
@@ -194,9 +193,10 @@ namespace CalculateFunding.Tests.Common
                         _timeout)
                 .Returns(new string[] { uniqueId });
 
-            messengerService.ReceiveMessages<SmokeResponse>(entityPathBase,
+            messengerService.ReceiveMessage<SmokeResponse>(entityPathBase,
+                    Arg.Any<Predicate<SmokeResponse>>(),
                     _timeout)
-                .Returns(new SmokeResponse[] { new SmokeResponse { InvocationId = uniqueId } });
+                .Returns(new SmokeResponse { InvocationId = uniqueId });
         }
 
         private static void CheckServiceBusCalls(IMessengerService messengerService, string uniqueId, string queueName, string topicName, string entityPathBase, bool useSession)
@@ -261,7 +261,8 @@ namespace CalculateFunding.Tests.Common
 
             messengerService
                 .Received(1)
-                .ReceiveMessages<SmokeResponse>(entityPathBase,
+                .ReceiveMessage<SmokeResponse>(entityPathBase,
+                    Arg.Any<Predicate<SmokeResponse>>(),
                     _timeout);
         }
 

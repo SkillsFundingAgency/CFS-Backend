@@ -50,12 +50,12 @@ namespace CalculateFunding.Functions.Publishing.SmokeTests
                 _userProfileProvider,
                 IsDevelopment);
 
-            (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.PublishingApproveAllProviderFunding,
+            SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.PublishingApproveAllProviderFunding,
                 (Message smokeResponse) => onApproveSpecificationFunding.Run(smokeResponse), useSession: true);
 
-            responses
+            response
                 .Should()
-                .Contain(_ => _.InvocationId == uniqueId);
+                .NotBeNull();
         }
 
         [TestMethod]
@@ -67,12 +67,12 @@ namespace CalculateFunding.Functions.Publishing.SmokeTests
                 _userProfileProvider,
                 IsDevelopment);
 
-            (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.PublishingApproveBatchProviderFunding,
+            SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.PublishingApproveBatchProviderFunding,
                 (Message smokeResponse) => onApproveProviderFunding.Run(smokeResponse), useSession: true);
 
-            responses
+            response
                 .Should()
-                .Contain(_ => _.InvocationId == uniqueId);
+                .NotBeNull();
         }
 
         [TestMethod]
@@ -84,12 +84,13 @@ namespace CalculateFunding.Functions.Publishing.SmokeTests
                 _userProfileProvider,
                 IsDevelopment);
 
-            (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.PublishingPublishAllProviderFunding,
+            SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.PublishingPublishAllProviderFunding,
                 (Message smokeResponse) => onPublishFunding.Run(smokeResponse), useSession: true);
 
-            responses
+
+            response
                 .Should()
-                .Contain(_ => _.InvocationId == uniqueId);
+                .NotBeNull();
         }
 
         [TestMethod]
@@ -101,12 +102,12 @@ namespace CalculateFunding.Functions.Publishing.SmokeTests
                 _userProfileProvider,
                 IsDevelopment);
 
-            (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.PublishingPublishBatchProviderFunding,
+            SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.PublishingPublishBatchProviderFunding,
                 (Message smokeResponse) => onPublishFunding.Run(smokeResponse), useSession: true);
 
-            responses
+            response
                 .Should()
-                .Contain(_ => _.InvocationId == uniqueId);
+                .NotBeNull();
         }
 
         [TestMethod]
@@ -118,12 +119,12 @@ namespace CalculateFunding.Functions.Publishing.SmokeTests
                 _userProfileProvider,
                 IsDevelopment);
 
-            (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.PublishingRefreshFunding,
+            SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.PublishingRefreshFunding,
                 (Message smokeResponse) => onRefreshFunding.Run(smokeResponse), useSession: true);
 
-            responses
+            response
                 .Should()
-                .Contain(_ => _.InvocationId == uniqueId);
+                .NotBeNull();
         }
 
         [TestMethod]
@@ -135,12 +136,12 @@ namespace CalculateFunding.Functions.Publishing.SmokeTests
                 _userProfileProvider,
                 IsDevelopment);
 
-            (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.PublishingReIndexPublishedProviders,
+            SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.PublishingReIndexPublishedProviders,
                 (Message smokeResponse) => onReIndexPublishedProviders.Run(smokeResponse));
 
-            responses
+            response
                 .Should()
-                .Contain(_ => _.InvocationId == uniqueId);
+                .NotBeNull();
         }
 
         [TestMethod]
@@ -152,12 +153,12 @@ namespace CalculateFunding.Functions.Publishing.SmokeTests
                 _userProfileProvider,
                 IsDevelopment);
 
-            (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.DeletePublishedProviders,
+            SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.DeletePublishedProviders,
                 (Message smokeResponse) => onDeletePublishedProvider.Run(smokeResponse));
 
-            responses
+            response
                 .Should()
-                .Contain(_ => _.InvocationId == uniqueId);
+                .NotBeNull();
         }
 
         private static ILogger CreateLogger()

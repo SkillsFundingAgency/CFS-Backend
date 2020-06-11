@@ -40,13 +40,13 @@ namespace CalculateFunding.Functions.Notifications.SmokeTests
                  _userProfileProvider,
                 IsDevelopment);
 
-            (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.TopicSubscribers.JobNotificationsToSignalR,
+            SmokeResponse response = await RunSmokeTest(ServiceBusConstants.TopicSubscribers.JobNotificationsToSignalR,
                 (Message smokeResponse) => onNotificationEventTrigger.Run(smokeResponse, null),
                 ServiceBusConstants.TopicNames.JobNotifications);
 
-            responses
+            response
                 .Should()
-                .Contain(_ => _.InvocationId == uniqueId);
+                .NotBeNull();
         }
 
         private static ILogger CreateLogger()

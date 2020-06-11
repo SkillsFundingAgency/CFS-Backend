@@ -45,12 +45,12 @@ namespace CalculateFunding.Functions.Results.SmokeTests
                  _userProfileProvider,
                 IsDevelopment);
 
-            (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.CalculationResultsCsvGeneration,
+            SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.CalculationResultsCsvGeneration,
                 (Message smokeResponse) => onCalculationResultsCsvGeneration.Run(smokeResponse));
 
-            responses
+            response
                 .Should()
-                .Contain(_ => _.InvocationId == uniqueId);
+                .NotBeNull();
         }
 
         [TestMethod]
@@ -62,13 +62,13 @@ namespace CalculateFunding.Functions.Results.SmokeTests
                  _userProfileProvider,
                 IsDevelopment);
 
-            (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.TopicSubscribers.CleanupCalculationResultsForSpecificationProviders,
+            SmokeResponse response = await RunSmokeTest(ServiceBusConstants.TopicSubscribers.CleanupCalculationResultsForSpecificationProviders,
                 (Message smokeResponse) => onProviderResultsSpecificationCleanup.Run(smokeResponse),
                 ServiceBusConstants.TopicNames.ProviderSourceDatasetCleanup);
 
-            responses
+            response
                 .Should()
-                .Contain(_ => _.InvocationId == uniqueId);
+                .NotBeNull();
         }
 
         [TestMethod]
@@ -80,12 +80,12 @@ namespace CalculateFunding.Functions.Results.SmokeTests
                  _userProfileProvider,
                 IsDevelopment);
 
-            (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.ReIndexCalculationResultsIndex,
+            SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.ReIndexCalculationResultsIndex,
                 (Message smokeResponse) => onReIndexCalculationResults.Run(smokeResponse));
 
-            responses
+            response
                 .Should()
-                .Contain(_ => _.InvocationId == uniqueId);
+                .NotBeNull();
         }
 
         private static ILogger CreateLogger()

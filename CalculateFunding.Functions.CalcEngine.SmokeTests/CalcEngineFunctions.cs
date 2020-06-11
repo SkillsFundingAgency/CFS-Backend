@@ -44,12 +44,12 @@ namespace CalculateFunding.Functions.CalcEngine.SmokeTests
                 _userProfileProvider,
                 IsDevelopment);
 
-            (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.QueueNames.CalcEngineGenerateAllocationResults, 
+            SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.CalcEngineGenerateAllocationResults, 
                 (Message smokeResponse) => onCalcsGenerateAllocationResults.Run(smokeResponse));
 
-            responses
+            response
                 .Should()
-                .Contain(_ => _.InvocationId == uniqueId);
+                .NotBeNull();
         }
 
         private static ILogger CreateLogger()

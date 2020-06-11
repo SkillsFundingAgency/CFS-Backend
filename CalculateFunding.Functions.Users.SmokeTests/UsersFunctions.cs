@@ -41,13 +41,13 @@ namespace CalculateFunding.Functions.Users.SmokeTests
                  _userProfileProvider,
                 IsDevelopment);
 
-            (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.TopicSubscribers.UpdateUsersForEditSpecification,
+            SmokeResponse response = await RunSmokeTest(ServiceBusConstants.TopicSubscribers.UpdateUsersForEditSpecification,
                 (Message smokeResponse) => onEditSpecificationEvent.Run(smokeResponse),
                 ServiceBusConstants.TopicNames.EditSpecification);
 
-            responses
+            response
                 .Should()
-                .Contain(_ => _.InvocationId == uniqueId);
+                .NotBeNull();
         }
 
         private static ILogger CreateLogger()

@@ -43,13 +43,13 @@ namespace CalculateFunding.Functions.CosmosDbScaling.SmokeTests
                 _userProfileProvider,
                 IsDevelopment);
 
-            (IEnumerable<SmokeResponse> responses, string uniqueId) = await RunSmokeTest(ServiceBusConstants.TopicSubscribers.ScaleUpCosmosdbCollection,
+            SmokeResponse response = await RunSmokeTest(ServiceBusConstants.TopicSubscribers.ScaleUpCosmosdbCollection,
                 (Message smokeResponse) => onScaleUpCosmosDbCollection.Run(smokeResponse),
                 ServiceBusConstants.TopicNames.JobNotifications);
 
-            responses
+            response
                 .Should()
-                .Contain(_ => _.InvocationId == uniqueId);
+                .NotBeNull();
         }
 
         private static ILogger CreateLogger()
