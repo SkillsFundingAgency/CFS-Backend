@@ -102,7 +102,7 @@ namespace CalculateFunding.Functions.Policy
             builder.AddServiceBus(config, "policy");
             builder.AddApplicationInsightsTelemetryClient(config, "CalculateFunding.Functions.Policy");
             builder.AddApplicationInsightsServiceName(config, "CalculateFunding.Functions.Policy");
-            builder.AddLogging("CalculateFunding.Functions.Policy");
+            builder.AddLogging("CalculateFunding.Functions.Policy", config);
             builder.AddTelemetry();
 
             builder.AddSingleton<IPolicyResiliencePolicies>(policyResiliencePolicies);
