@@ -84,6 +84,8 @@ namespace CalculateFunding.Services.Users
                     CanDeleteProfilePattern = true,
                     CanAssignProfilePattern = false,
                     CanApplyCustomProfilePattern = false,
+                    CanApproveCalculations = true,
+                    CanApproveAnyCalculations = false,
                     FundingStreamId = FundingStreamId,
                     UserId = UserId
                 },
@@ -101,6 +103,8 @@ namespace CalculateFunding.Services.Users
                     CanDeleteProfilePattern = false,
                     CanAssignProfilePattern = true,
                     CanApplyCustomProfilePattern = false,
+                    CanApproveCalculations = false,
+                    CanApproveAnyCalculations = true,
                     FundingStreamId = "fs2",
                     UserId = UserId
                 }
@@ -140,6 +144,8 @@ namespace CalculateFunding.Services.Users
                         CanDeleteProfilePattern = true,
                         CanAssignProfilePattern = false,
                         CanApplyCustomProfilePattern = false,
+                        CanApproveCalculations = true,
+                        CanApproveAnyCalculations = false,
                         FundingStreamId = FundingStreamId,
                         UserId = UserId
                     },
@@ -157,6 +163,8 @@ namespace CalculateFunding.Services.Users
                         CanDeleteProfilePattern = false,
                         CanAssignProfilePattern = true,
                         CanApplyCustomProfilePattern = false,
+                        CanApproveCalculations = false,
+                        CanApproveAnyCalculations = true,
                         FundingStreamId = "fs2",
                         UserId = UserId
                     }

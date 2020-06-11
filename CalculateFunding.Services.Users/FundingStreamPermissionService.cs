@@ -279,7 +279,9 @@ namespace CalculateFunding.Services.Users
                             CanEditProfilePattern = false,
                             CanDeleteProfilePattern = false,
                             CanAssignProfilePattern = false,
-                            CanApplyCustomProfilePattern = false
+                            CanApplyCustomProfilePattern = false,
+                            CanApproveCalculations = false,
+                            CanApproveAnyCalculations = false
                         });
                     }
                 }

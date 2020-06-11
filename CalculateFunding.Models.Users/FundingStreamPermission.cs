@@ -86,6 +86,12 @@ namespace CalculateFunding.Models.Users
         [JsonProperty("canApplyCustomProfilePattern")]
         public bool CanApplyCustomProfilePattern { get; set; }
 
+        [JsonProperty("canApproveCalculations")]
+        public bool CanApproveCalculations { get; set; }
+        
+        [JsonProperty("canApproveAnyCalculations")]
+        public bool CanApproveAnyCalculations { get; set; }
+
         public bool HasSamePermissions(FundingStreamPermission fundingStreamPermission)
         {
             return fundingStreamPermission.CanCreateSpecification == CanCreateSpecification &&
@@ -110,7 +116,9 @@ namespace CalculateFunding.Models.Users
                 fundingStreamPermission.CanEditProfilePattern == CanEditProfilePattern &&
                 fundingStreamPermission.CanDeleteProfilePattern == CanDeleteProfilePattern &&
                 fundingStreamPermission.CanAssignProfilePattern == CanAssignProfilePattern &&
-                fundingStreamPermission.CanApplyCustomProfilePattern == CanApplyCustomProfilePattern;
+                fundingStreamPermission.CanApplyCustomProfilePattern == CanApplyCustomProfilePattern &&
+                fundingStreamPermission.CanApproveCalculations == CanApproveCalculations &&
+                fundingStreamPermission.CanApproveAnyCalculations == CanApproveAnyCalculations;
         }
     }
 }

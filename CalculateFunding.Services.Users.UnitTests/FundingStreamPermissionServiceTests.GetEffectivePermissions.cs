@@ -225,7 +225,9 @@ namespace CalculateFunding.Services.Users
                 CanEditProfilePattern = false,
                 CanDeleteProfilePattern = false,
                 CanAssignProfilePattern = false,
-                CanApplyCustomProfilePattern = false
+                CanApplyCustomProfilePattern = false,
+                CanApproveCalculations = true,
+                CanApproveAnyCalculations = false
             };
 
             userRepository
@@ -348,7 +350,9 @@ namespace CalculateFunding.Services.Users
                 CanEditProfilePattern = false,
                 CanDeleteProfilePattern = false,
                 CanAssignProfilePattern = false,
-                CanApplyCustomProfilePattern = false
+                CanApplyCustomProfilePattern = false,
+                CanApproveCalculations = true,
+                CanApproveAnyCalculations = false
             };
 
             userRepository
@@ -467,7 +471,9 @@ namespace CalculateFunding.Services.Users
                 CanEditProfilePattern = false,
                 CanDeleteProfilePattern = false,
                 CanAssignProfilePattern = false,
-                CanApplyCustomProfilePattern = false
+                CanApplyCustomProfilePattern = false,
+                CanApproveCalculations = true,
+                CanApproveAnyCalculations = false
             };
 
             FundingStreamPermission fs2Permission = new FundingStreamPermission()
@@ -687,7 +693,9 @@ namespace CalculateFunding.Services.Users
                 CanEditProfilePattern = false,
                 CanDeleteProfilePattern = false,
                 CanAssignProfilePattern = false,
-                CanApplyCustomProfilePattern = false
+                CanApplyCustomProfilePattern = false,
+                CanApproveCalculations = true,
+                CanApproveAnyCalculations = false
             };
 
             FundingStreamPermission fs2Permission = new FundingStreamPermission()
@@ -710,7 +718,9 @@ namespace CalculateFunding.Services.Users
                 CanEditProfilePattern = false,
                 CanDeleteProfilePattern = false,
                 CanAssignProfilePattern = false,
-                CanApplyCustomProfilePattern = false
+                CanApplyCustomProfilePattern = false,
+                CanApproveCalculations = true,
+                CanApproveAnyCalculations = false
             };
 
             userRepository
