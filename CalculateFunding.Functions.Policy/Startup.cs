@@ -11,11 +11,11 @@ using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Options;
-using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Services.DeadletterProcessor;
 using CalculateFunding.Services.Policy;
 using CalculateFunding.Services.Policy.Interfaces;
 using CalculateFunding.Services.Policy.TemplateBuilder;
+using CalculateFunding.Functions.Policy;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -23,6 +23,7 @@ using Microsoft.FeatureManagement;
 using Polly.Bulkhead;
 using ServiceCollectionExtensions = CalculateFunding.Services.Core.Extensions.ServiceCollectionExtensions;
 
+[assembly: FunctionsStartup(typeof(Startup))]
 namespace CalculateFunding.Functions.Policy
 {
     public class Startup : FunctionsStartup
