@@ -4,6 +4,8 @@ using System.Linq;
 using System.Reflection;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
+using CalculateFunding.Generators.Funding;
+using CalculateFunding.Generators.Funding.Models;
 using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets;
@@ -13,12 +15,14 @@ using CalculateFunding.Services.CalcEngine.Interfaces;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.FeatureToggles;
 using Serilog;
+using Calculation = CalculateFunding.Generators.Funding.Models.Calculation;
+using FundingLine = CalculateFunding.Generators.Funding.Models.FundingLine;
 
 namespace CalculateFunding.Services.CalcEngine
 {
     public class AllocationModel : IAllocationModel
     {
-        private readonly List<Tuple<FieldInfo, CalculationResult>> _funcs = new List<Tuple<FieldInfo, CalculationResult>>();
+        private readonly List<(MemberInfo, CalculationResult)> _funcs = new List<(MemberInfo, CalculationResult)>();
         private readonly Dictionary<string, PropertyInfo> _datasetSetters = new Dictionary<string, PropertyInfo>();
         private readonly object _instance;
         private readonly object _datasetsInstance;
@@ -56,7 +60,21 @@ namespace CalculateFunding.Services.CalcEngine
 
             _mainMethod = allocationType.GetMethods().FirstOrDefault(x => x.Name == "MainCalc");
 
-            _funcs = PopulateFuncs(executeFuncs);
+            _funcs = PopulateMembers<CalculationResult>(executeFuncs.ToList<MemberInfo>(), (attributes) =>
+            {
+                CustomAttributeData calcAttribute = attributes.FirstOrDefault(x => x.AttributeType.Name == "CalculationAttribute");
+                if (calcAttribute != null)
+                {
+                    CalculationResult result = new CalculationResult
+                    {
+                        Calculation = GetReference(attributes, "Calculation"),
+                    };
+
+                    return result;
+                }
+
+                return null;
+            });
 
             _instance = Activator.CreateInstance(allocationType);
             _datasetsInstance = Activator.CreateInstance(datasetType);
@@ -66,22 +84,16 @@ namespace CalculateFunding.Services.CalcEngine
             _featureToggle = featureToggle;
         }
 
-        private List<Tuple<FieldInfo, CalculationResult>> PopulateFuncs(List<FieldInfo> executeFuncs)
+        private List<(MemberInfo, T)> PopulateMembers<T>(List<MemberInfo> executeFuncs, Func<IList<CustomAttributeData>, T> func) where T:class
         {
-            List<Tuple<FieldInfo, CalculationResult>> funcs = new List<Tuple<FieldInfo, CalculationResult>>();
+            List<(MemberInfo, T)> funcs = new List<(MemberInfo, T)>();
 
-            foreach (FieldInfo executeFunc in executeFuncs)
+            foreach (MemberInfo members in executeFuncs)
             {
-                IList<CustomAttributeData> attributes = executeFunc.GetCustomAttributesData();
-                CustomAttributeData calcAttribute = attributes.FirstOrDefault(x => x.AttributeType.Name == "CalculationAttribute");
-                if (calcAttribute != null)
+                IList<CustomAttributeData> attributes = members.GetCustomAttributesData();
+                if (func(attributes) != null)
                 {
-                    CalculationResult result = new CalculationResult
-                    {
-                        Calculation = GetReference(attributes, "Calculation"),
-                    };
-
-                    funcs.Add(new Tuple<FieldInfo, CalculationResult>(executeFunc, result));
+                    funcs.Add((members, func(attributes)));
                 }
             }
 
@@ -137,7 +149,7 @@ namespace CalculateFunding.Services.CalcEngine
 
         private Dictionary<string, Type> DatasetTypes { get; }
 
-        public IEnumerable<CalculationResult> Execute(List<ProviderSourceDataset> datasets, ProviderSummary providerSummary, IEnumerable<CalculationAggregation> aggregationValues = null)
+        public IEnumerable<CalculationResult> Execute(List<ProviderSourceDataset> datasets, ProviderSummary providerSummary, IDictionary<string, Funding> fundingStreamLines, IEnumerable<CalculationAggregation> aggregationValues = null)
         {
             HashSet<string> datasetNamesUsed = new HashSet<string>();
             foreach (ProviderSourceDataset dataset in datasets)
@@ -164,25 +176,10 @@ namespace CalculateFunding.Services.CalcEngine
 
             SetMissingDatasetDefaultObjects(datasetNamesUsed, _datasetSetters, _datasetsInstance);
 
-            SetInstanceCalcResults(_instance);
-
-            Dictionary<string, string[]> results = (Dictionary<string, string[]>)_mainMethod.Invoke(_instance, null);
+            // get all calculation results
+            Dictionary<string, string[]> results = (Dictionary<string, string[]>)_mainMethod.Invoke(_instance, new object[] { true });
 
             return ProcessCalculationResults(results, _funcs);
-        }
-
-        private void SetInstanceCalcResults(object instance)
-        {
-            PropertyInfo calcResultsSetter = instance.GetType().GetProperty("CalcResultsCache");
-
-            if (calcResultsSetter != null)
-            {
-                Type propType = calcResultsSetter.PropertyType;
-
-                object data = Activator.CreateInstance(propType);
-
-                calcResultsSetter.SetValue(instance, data);
-            }
         }
 
         /// <summary>
@@ -200,7 +197,7 @@ namespace CalculateFunding.Services.CalcEngine
         }
 
         private IList<CalculationResult> ProcessCalculationResults(Dictionary<string, string[]> results,
-            List<Tuple<FieldInfo, CalculationResult>> funcs)
+            List<(MemberInfo, CalculationResult)> funcs)
         {
             IList<CalculationResult> calculationResults = new List<CalculationResult>();
 
@@ -212,12 +209,12 @@ namespace CalculateFunding.Services.CalcEngine
                     continue;
                 }
 
-                Tuple<FieldInfo, CalculationResult> func = funcs.FirstOrDefault(m =>
+                (MemberInfo field, CalculationResult result) = funcs.FirstOrDefault(m =>
                     string.Equals(m.Item2.Calculation.Id, calcResult.Key, StringComparison.InvariantCultureIgnoreCase));
 
-                if (func != null)
+                if (field != null)
                 {
-                    CalculationResult calculationResult = func.Item2;
+                    CalculationResult calculationResult = result;
 
                     ProcessCalculationResult(calculationResult, calcResult);
 
@@ -585,14 +582,6 @@ namespace CalculateFunding.Services.CalcEngine
                 }
             }
             return data;
-        }
-
-        private static IEnumerable<Reference> GetReferences(IList<CustomAttributeData> attributes, string attributeName)
-        {
-            foreach (CustomAttributeData attribute in attributes.Where(x => x.AttributeType.Name.StartsWith(attributeName)))
-            {
-                yield return new Reference(GetProperty(attribute, "Id"), GetProperty(attribute, "Name"));
-            }
         }
 
         private static Reference GetReference(IList<CustomAttributeData> attributes, string attributeName)

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.ProviderLegacy;
 using CalculateFunding.Models.Specs;
@@ -2215,6 +2216,12 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
 
         public static SpecificationSummary CreateSpecificationSummary(string specificationId = null)
         {
+            Reference fundingStream = new Reference
+            {
+                Id = new RandomString(),
+                Name = new RandomString()
+            };
+
             return new SpecificationSummary()
             {
                 Id = specificationId ?? new RandomString(),
@@ -2223,7 +2230,15 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
                     new RandomString(),
                     new RandomString(),
                     new RandomString()
-                }
+                },
+                FundingStreams = new[] {
+                    fundingStream
+                },
+                FundingPeriod = new Reference {
+                    Id = new RandomString(),
+                    Name = new RandomString()
+                },
+                TemplateIds = new Dictionary<string, string> { { fundingStream.Id, "1.1" } }
             };
         }
     }

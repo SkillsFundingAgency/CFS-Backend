@@ -1,4 +1,6 @@
-﻿using CalculateFunding.Common.ApiClient.Specifications;
+﻿using AutoMapper;
+using CalculateFunding.Common.ApiClient.Policies;
+using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.ServiceBus.Interfaces;
@@ -23,6 +25,7 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
             MockCalculatorResiliencePolicies.ProviderSourceDatasetsRepository.Returns(MockProviderSourceDatasetsRepositoryPolicy);
             MockCalculatorResiliencePolicies.ProviderResultsRepository.Returns(MockProviderResultsRepositoryPolicy);
             MockCalculatorResiliencePolicies.CalculationsRepository.Returns(MockCalculationRepositoryPolicy);
+            MockCalculatorResiliencePolicies.PoliciesApiClient.Returns(MockPoliciesApiClientPolicy);
             MockCalculatorResiliencePoliciesValidator
                 .Validate(Arg.Any<ICalculatorResiliencePolicies>())
                 .Returns(new ValidationResult());
@@ -47,8 +50,10 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
                     DatasetAggregationsRepository,
                     MockJobManagement,
                     MockSpecificationsApiClient,
+                    MockPoliciesApiClient,
                     MockCalculatorResiliencePoliciesValidator,
-                    MockCalculationEngineServiceValidator
+                    MockCalculationEngineServiceValidator,
+                    MockMapper
                     );
 
             return service;
@@ -70,11 +75,14 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
         public IFeatureToggle FeatureToggle { get; set; } = Substitute.For<IFeatureToggle>();
         public IJobManagement MockJobManagement { get; set; } = Substitute.For<IJobManagement>();
         public ISpecificationsApiClient MockSpecificationsApiClient { get; set; } = Substitute.For<ISpecificationsApiClient>();
+        public IPoliciesApiClient MockPoliciesApiClient { get; set; } = Substitute.For<IPoliciesApiClient>();
+        public IMapper MockMapper { get; set; } = Substitute.For<IMapper>();
         public AsyncPolicy MockCacheProviderPolicy { get; set; } = Policy.NoOpAsync();
         public AsyncPolicy MockMessengerPolicy { get; set; } = Policy.NoOpAsync();
         public AsyncPolicy MockProviderSourceDatasetsRepositoryPolicy { get; set; } = Policy.NoOpAsync();
         public AsyncPolicy MockProviderResultsRepositoryPolicy { get; set; } = Policy.NoOpAsync();
         public AsyncPolicy MockCalculationRepositoryPolicy { get; set; } = Policy.NoOpAsync();
+        public AsyncPolicy MockPoliciesApiClientPolicy { get; set; } = Policy.NoOpAsync();
         public AsyncPolicy MockJobsApiClientPolicy { get; set; } = Policy.NoOpAsync();
         public AsyncPolicy MockSpecificationsApiClientPolicy { get; set; } = Policy.NoOpAsync();
     }

@@ -9,12 +9,15 @@ using CalculateFunding.Common.ApiClient.DataSets;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.ApiClient.Providers;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.JobManagement;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
+using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets.Schema;
@@ -37,7 +40,11 @@ using Microsoft.Azure.ServiceBus;
 using Serilog;
 using static CalculateFunding.Services.Core.Constants.JobConstants;
 using CalculationEntity = CalculateFunding.Models.Graph.Entity<CalculateFunding.Common.ApiClient.Graph.Models.Calculation, CalculateFunding.Common.ApiClient.Graph.Models.Relationship>;
+using FundingLine = CalculateFunding.Models.Calcs.FundingLine;
 using GraphCalculation = CalculateFunding.Common.ApiClient.Graph.Models.Calculation;
+using TemplateFundingLine = CalculateFunding.Common.TemplateMetadata.Models.FundingLine;
+using TemplateCalculation = CalculateFunding.Common.TemplateMetadata.Models.Calculation;
+using TemplateCalculationType = CalculateFunding.Common.TemplateMetadata.Enums.CalculationType;
 
 namespace CalculateFunding.Services.Calcs
 {
@@ -49,6 +56,7 @@ namespace CalculateFunding.Services.Calcs
         private readonly Polly.AsyncPolicy _providersApiClientPolicy;
         private readonly ICacheProvider _cacheProvider;
         private readonly ICalculationsRepository _calculationsRepository;
+        private readonly Polly.AsyncPolicy _calculationsRepositoryPolicy;
         private readonly IFeatureToggle _featureToggle;
         private readonly EngineSettings _engineSettings;
         private readonly ISourceCodeService _sourceCodeService;
@@ -62,6 +70,8 @@ namespace CalculateFunding.Services.Calcs
         private readonly IMapper _mapper;
         private readonly ISpecificationsApiClient _specificationsApiClient;
         private readonly Polly.AsyncPolicy _specificationsApiClientPolicy;
+        private readonly IPoliciesApiClient _policiesApiClient;
+        private readonly Polly.AsyncPolicy _policiesApiClientPolicy;
 
         public BuildProjectsService(
             ILogger logger,
@@ -79,7 +89,8 @@ namespace CalculateFunding.Services.Calcs
             IJobManagement jobManagement,
             IGraphRepository graphRepository,
             IMapper mapper,
-            ISpecificationsApiClient specificationsApiClient)
+            ISpecificationsApiClient specificationsApiClient,
+            IPoliciesApiClient policiesApiClient)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(telemetry, nameof(telemetry));
@@ -98,9 +109,12 @@ namespace CalculateFunding.Services.Calcs
             Guard.ArgumentNotNull(resiliencePolicies?.DatasetsApiClient, nameof(resiliencePolicies.DatasetsApiClient));
             Guard.ArgumentNotNull(resiliencePolicies?.ProvidersApiClient, nameof(resiliencePolicies.ProvidersApiClient));
             Guard.ArgumentNotNull(resiliencePolicies?.BuildProjectRepositoryPolicy, nameof(resiliencePolicies.BuildProjectRepositoryPolicy));
+            Guard.ArgumentNotNull(resiliencePolicies?.CalculationsRepository, nameof(resiliencePolicies.CalculationsRepository));
             Guard.ArgumentNotNull(mapper, nameof(mapper));
             Guard.ArgumentNotNull(specificationsApiClient, nameof(specificationsApiClient));
             Guard.ArgumentNotNull(resiliencePolicies?.SpecificationsApiClient, nameof(resiliencePolicies.SpecificationsApiClient));
+            Guard.ArgumentNotNull(policiesApiClient, nameof(policiesApiClient));
+            Guard.ArgumentNotNull(resiliencePolicies?.PoliciesApiClient, nameof(resiliencePolicies.PoliciesApiClient));
 
             _logger = logger;
             _telemetry = telemetry;
@@ -108,6 +122,7 @@ namespace CalculateFunding.Services.Calcs
             _providersApiClientPolicy = resiliencePolicies.ProvidersApiClient;
             _cacheProvider = cacheProvider;
             _calculationsRepository = calculationsRepository;
+            _calculationsRepositoryPolicy = resiliencePolicies.CalculationsRepository;
             _featureToggle = featureToggle;
             _engineSettings = engineSettings;
             _sourceCodeService = sourceCodeService;
@@ -121,6 +136,8 @@ namespace CalculateFunding.Services.Calcs
             _mapper = mapper;
             _specificationsApiClient = specificationsApiClient;
             _specificationsApiClientPolicy = resiliencePolicies.SpecificationsApiClient;
+            _policiesApiClient = policiesApiClient;
+            _policiesApiClientPolicy = resiliencePolicies.PoliciesApiClient;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -197,12 +214,8 @@ namespace CalculateFunding.Services.Calcs
                     })).Aggregate((partialLog, log) => $"{partialLog}\r\n{log}"));
                 }
 
-                _logger.Information(errorMessage);
-
-                throw new NonRetriableException(errorMessage);
+                LogAndThrowException<NonRetriableException>(errorMessage);
             }
-
-            BuildProject buildProject = await GetBuildProjectForSpecificationId(specificationId);
 
             if (message.UserProperties.ContainsKey("ignore-save-provider-results"))
             {
@@ -227,10 +240,7 @@ namespace CalculateFunding.Services.Calcs
                 if (!specificationSummaryResponse.StatusCode.IsSuccess())
                 {
                     string errorMessage = $"Unable to get specification summary by id: '{specificationId}' with status code: {specificationSummaryResponse.StatusCode}";
-
-                    _logger.Error(errorMessage);
-
-                    throw new NonRetriableException(errorMessage);
+                    LogAndThrowException<NonRetriableException>(errorMessage);
                 }
             }
 
@@ -281,9 +291,7 @@ namespace CalculateFunding.Services.Calcs
                     {
                         string errorMessage = $"Unable to re-generate scoped providers while building projects '{specificationId}' with status code: {refreshCacheFromApi.StatusCode}";
 
-                        _logger.Error(errorMessage);
-
-                        throw new NonRetriableException(errorMessage);
+                        LogAndThrowException<NonRetriableException>(errorMessage);
                     }
 
                     // returns true if job queued
@@ -298,10 +306,7 @@ namespace CalculateFunding.Services.Calcs
                 if (!jobCompletedSuccessfully)
                 {
                     string errorMessage = $"Unable to re-generate scoped providers while building projects '{specificationId}' job didn't complete successfully in time";
-
-                    _logger.Error(errorMessage);
-
-                    throw new NonRetriableException(errorMessage);
+                    LogAndThrowException<NonRetriableException>(errorMessage);
                 }
 
                 totalCount = await _cacheProvider.ListLengthAsync<ProviderSummary>(providerCacheKey);
@@ -462,6 +467,7 @@ namespace CalculateFunding.Services.Calcs
             BuildProject buildProject = await GetBuildProjectForSpecificationId(specificationId);
 
             IEnumerable<Models.Calcs.Calculation> calculations = await _calculationsRepository.GetCalculationsBySpecificationId(specificationId);
+
             CompilerOptions compilerOptions = await _calculationsRepository.GetCompilerOptions(specificationId);
             if (compilerOptions == null)
             {
@@ -552,9 +558,24 @@ namespace CalculateFunding.Services.Calcs
         {
             BuildProject buildProject = null;
 
+            ApiResponse<SpecificationSummary> specificationSummaryResponse = await _specificationsApiClientPolicy.ExecuteAsync(() => _specificationsApiClient.GetSpecificationSummaryById(specificationId));
+
+            if (specificationSummaryResponse?.Content == null)
+            {
+                _logger.Error($"Failed to get specification for specification id '{specificationId}'");
+
+                throw new ArgumentNullException(nameof(SpecificationSummary));
+            }
+
+            SpecificationSummary specificationSummary = specificationSummaryResponse.Content;
+
+            IEnumerable<Reference> fundingStreams = specificationSummary.FundingStreams;
+            Reference fundingPeriod = specificationSummary.FundingPeriod;
+            IDictionary<string, string> templateIds = specificationSummary.TemplateIds;
+
             if (_featureToggle.IsDynamicBuildProjectEnabled())
             {
-                buildProject = await GenerateBuildProject(specificationId);
+                buildProject = await GenerateBuildProject(specificationId, fundingStreams.Select(_ => (_, fundingPeriod)), templateIds);
             }
             else
             {
@@ -562,7 +583,7 @@ namespace CalculateFunding.Services.Calcs
 
                 if (buildProject == null)
                 {
-                    buildProject = await GenerateBuildProject(specificationId);
+                    buildProject = await GenerateBuildProject(specificationId, fundingStreams.Select(_ => (_, fundingPeriod)), templateIds);
 
                     await _buildProjectsRepositoryPolicy.ExecuteAsync(() => _buildProjectsRepository.CreateBuildProject(buildProject));
                 }
@@ -672,7 +693,52 @@ namespace CalculateFunding.Services.Calcs
             return await _jobManagement.QueueJobs(jobCreateModels);
         }
 
-        private async Task<BuildProject> GenerateBuildProject(string specificationId)
+        private static IEnumerable<TemplateFundingLine> FlattenFundingLines(IEnumerable<TemplateFundingLine> enumerable, Func<TemplateFundingLine, IEnumerable<TemplateFundingLine>> func = null)
+        {
+            enumerable ??= new TemplateFundingLine[0];
+
+            func ??= c => c.FundingLines;
+
+            return enumerable
+                .SelectMany(cfl => 
+                {
+                    // flatten calculations under current funding line
+                    cfl.Calculations?
+                        // flatten and only include cash calculations
+                        .Flatten(calc => calc.Calculations.Where(_ => calc.Type == TemplateCalculationType.Cash))?
+                        // contenate child fundinglines after flattening
+                        .Concat(cfl.FundingLines?
+                            .Flatten(fl => fl.FundingLines)?
+                            // select all child calculations for each funding line
+                            .SelectMany(fl => fl.Calculations?
+                                // flatten and only include cash calculations
+                                .Flatten(calc => calc.Calculations.Where(_ => calc.Type == TemplateCalculationType.Cash))) ?? Enumerable.Empty<TemplateCalculation>());
+                    
+                    return FlattenFundingLines(func(cfl), cfl => cfl.FundingLines);
+                }).Concat(enumerable);
+        }
+
+        private static IEnumerable<FundingLine> GetFundingLines(TemplateMetadataContents templateMetadataContents, string fundingStreamId)
+        {
+            return FlattenFundingLines(templateMetadataContents.RootFundingLines).Select(_ => {
+                return new FundingLine
+                {
+                    Id = _.TemplateLineId,
+                    Name = _.Name,
+                    Namespace = fundingStreamId,
+                    SourceCodeName = VisualBasicTypeGenerator.GenerateIdentifier(_.Name),
+                    Calculations = _.Calculations.Select(calc => new FundingLineCalculation
+                    {
+                        Id = calc.TemplateCalculationId,
+                        Name = calc.Name,
+                        Namespace = fundingStreamId,
+                        SourceCodeName = VisualBasicTypeGenerator.GenerateIdentifier(calc.Name)
+                    })
+                };
+            }).ToList();
+        }
+
+        private async Task<BuildProject> GenerateBuildProject(string specificationId, IEnumerable<(Reference, Reference)> fundingStreamAndPeriods, IDictionary<string, string> templateIds)
         {
             BuildProject buildproject = new BuildProject
             {
@@ -683,13 +749,40 @@ namespace CalculateFunding.Services.Calcs
                 Build = new Build()
             };
 
+            Dictionary<string, Funding> funding = new Dictionary<string, Funding>();
+
+            foreach ((Reference FundingStream, Reference FundingPeriod) in fundingStreamAndPeriods)
+            {
+                TemplateMapping templateMapping = await _calculationsRepositoryPolicy.ExecuteAsync(
+                            () => _calculationsRepository.GetTemplateMapping(specificationId, FundingStream.Id));
+
+                if (templateMapping == null)
+                {
+                    LogAndThrowException<Exception>(
+                        $"Did not locate Template Mapping for funding stream id {FundingStream.Id} and specification id {specificationId}");
+                }
+
+                ApiResponse<TemplateMetadataContents> templateMetadataContentsResponse = await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingTemplateContents(FundingStream.Id, FundingPeriod.Id, templateIds[FundingStream.Id]));
+
+                if (templateMetadataContentsResponse?.Content == null)
+                {
+                    continue;
+                }
+
+                funding.Add(FundingStream.Id, new Funding {
+                        Mappings = templateMapping.TemplateMappingItems.ToDictionary(_ => _.TemplateId, _ => _.CalculationId),
+                        FundingLines = GetFundingLines(templateMetadataContentsResponse.Content, FundingStream.Id)
+                });
+            }
+
+            buildproject.FundingLines = funding;
+
             ApiResponse<IEnumerable<Common.ApiClient.DataSets.Models.DatasetSpecificationRelationshipViewModel>> datasetsApiClientResponse = await _datasetsApiClientPolicy.ExecuteAsync(() => _datasetsApiClient.GetCurrentRelationshipsBySpecificationId(specificationId));
 
             if (!datasetsApiClientResponse.StatusCode.IsSuccess())
             {
                 string message = $"No current dataset relationships found for specificationId '{specificationId}'.";
-                _logger.Error(message);
-                throw new RetriableException(message);
+                LogAndThrowException<RetriableException>(message);
             }
 
             IEnumerable<DatasetSpecificationRelationshipViewModel> datasetRelationshipModels = _mapper.Map<IEnumerable<DatasetSpecificationRelationshipViewModel>>(datasetsApiClientResponse.Content);
@@ -744,6 +837,12 @@ namespace CalculateFunding.Services.Calcs
             }
 
             return buildproject;
+        }
+
+        private void LogAndThrowException<T>(string message) where T:Exception
+        {
+            _logger.Error(message);
+            throw (T)Activator.CreateInstance(typeof(T), message);
         }
     }
 }

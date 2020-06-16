@@ -117,7 +117,11 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
 
             yield return CreateProperty("Calculations", "AdditionalCalculations", list);
 
-            foreach (var @namespace in namespaces) yield return CreateProperty(@namespace, $"{@namespace}Calculations", list);
+            foreach (var @namespace in namespaces)
+            {
+                yield return CreateProperty(@namespace, $"{@namespace}Calculations", list);
+                yield return CreateProperty($"FundingLines", $"{@namespace}FundingLines");
+            }
         }
 
         private static StatementSyntax CreateCalculationNameFunctionPointer()

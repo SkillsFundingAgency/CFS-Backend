@@ -20,7 +20,7 @@ namespace CalculateFunding.Services.DataImporter
             // If only one table defined in each then match it
 	        if (datasetDefinition.TableDefinitions.Count == 1 && excel.Workbook.Worksheets.Count == 1)
 	        {
-	           yield return ConvertSheetToObjects(excel.Workbook.Worksheets.First(), datasetDefinition.TableDefinitions.First()).TableLoadResult;
+               yield return ConvertSheetToObjects(excel.Workbook.Worksheets.First(), datasetDefinition.TableDefinitions.First()).TableLoadResult;
             }
 	        else
 	        {

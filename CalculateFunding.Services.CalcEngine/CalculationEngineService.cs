@@ -6,11 +6,14 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using AutoMapper;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.JobManagement;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Common.ServiceBus.Interfaces;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Aggregations;
@@ -33,6 +36,7 @@ using Microsoft.Azure.ServiceBus;
 using Polly;
 using Serilog;
 using AggregatedType = CalculateFunding.Models.Aggregations.AggregatedType;
+using FundingLine = CalculateFunding.Generators.Funding.Models.FundingLine;
 
 namespace CalculateFunding.Services.CalcEngine
 {
@@ -54,9 +58,12 @@ namespace CalculateFunding.Services.CalcEngine
         private readonly AsyncPolicy _providerResultsRepositoryPolicy;
         private readonly AsyncPolicy _calculationsRepositoryPolicy;
         private readonly AsyncPolicy _specificationsApiPolicy;
+        private readonly AsyncPolicy _policiesApiClientPolicy;
         private readonly IDatasetAggregationsRepository _datasetAggregationsRepository;
         private readonly IJobManagement _jobManagement;
         private readonly ICalculationEngineServiceValidator _calculationEngineServiceValidator;
+        private readonly IPoliciesApiClient _policiesApiClient;
+        private readonly IMapper _mapper;
 
         public CalculationEngineService(
             ILogger logger,
@@ -72,8 +79,10 @@ namespace CalculateFunding.Services.CalcEngine
             IDatasetAggregationsRepository datasetAggregationsRepository,
             IJobManagement jobManagement,
             ISpecificationsApiClient specificationsApiClient,
+            IPoliciesApiClient policiesApiClient,
             IValidator<ICalculatorResiliencePolicies> calculatorResiliencePoliciesValidator,
-            ICalculationEngineServiceValidator calculationEngineServiceValidator)
+            ICalculationEngineServiceValidator calculationEngineServiceValidator,
+            IMapper mapper)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(calculationEngine, nameof(calculationEngine));
@@ -90,11 +99,14 @@ namespace CalculateFunding.Services.CalcEngine
             Guard.ArgumentNotNull(resiliencePolicies?.ProviderSourceDatasetsRepository, nameof(resiliencePolicies.ProviderSourceDatasetsRepository));
             Guard.ArgumentNotNull(resiliencePolicies?.ProviderResultsRepository, nameof(resiliencePolicies.ProviderResultsRepository));
             Guard.ArgumentNotNull(resiliencePolicies?.CalculationsRepository, nameof(resiliencePolicies.CalculationsRepository));
+            Guard.ArgumentNotNull(resiliencePolicies?.PoliciesApiClient, nameof(resiliencePolicies.PoliciesApiClient));
             Guard.ArgumentNotNull(datasetAggregationsRepository, nameof(datasetAggregationsRepository));
             Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
             Guard.ArgumentNotNull(specificationsApiClient, nameof(specificationsApiClient));
             Guard.ArgumentNotNull(calculatorResiliencePoliciesValidator, nameof(calculatorResiliencePoliciesValidator));
             Guard.ArgumentNotNull(calculationEngineServiceValidator, nameof(calculationEngineServiceValidator));
+            Guard.ArgumentNotNull(policiesApiClient, nameof(policiesApiClient));
+            Guard.ArgumentNotNull(mapper, nameof(mapper));
 
             _calculationEngineServiceValidator = calculationEngineServiceValidator;
             _logger = logger;
@@ -115,6 +127,9 @@ namespace CalculateFunding.Services.CalcEngine
             _jobManagement = jobManagement;
             _specificationsApiClient = specificationsApiClient;
             _specificationsApiPolicy = resiliencePolicies.SpecificationsApiClient;
+            _policiesApiClientPolicy = resiliencePolicies.PoliciesApiClient;
+            _policiesApiClient = policiesApiClient;
+            _mapper = mapper;
         }
 
         public async Task<IActionResult> GenerateAllocations(HttpRequest request)
@@ -232,6 +247,8 @@ namespace CalculateFunding.Services.CalcEngine
 
             IEnumerable<CalculationAggregation> aggregations = await BuildAggregations(messageProperties);
 
+            IDictionary<string, Funding> fundingStreamLines = await BuildFundingLines(specificationSummary);
+
             int totalProviderResults = 0;
 
             bool calculationResultsHaveExceptions = false;
@@ -246,6 +263,7 @@ namespace CalculateFunding.Services.CalcEngine
                 CalculationResultsModel calculationResults = await CalculateResults(specificationId, 
                     summaries,
                     calculations,
+                    fundingStreamLines,
                     aggregations,
                     dataRelationshipIds,
                     assembly,
@@ -345,6 +363,7 @@ namespace CalculateFunding.Services.CalcEngine
 
         private async Task<CalculationResultsModel> CalculateResults(string specificationId, IEnumerable<ProviderSummary> summaries,
             IEnumerable<CalculationSummaryModel> calculations,
+            IDictionary<string, Funding> fundingStreamLines,
             IEnumerable<CalculationAggregation> aggregations,
             IEnumerable<string> dataRelationshipIds,
             byte[] assemblyForSpecification,
@@ -395,7 +414,7 @@ namespace CalculateFunding.Services.CalcEngine
                     throw new Exception($"Provider source dataset not found for {provider.Id}.");
                 }
 
-                ProviderResult result = _calculationEngine.CalculateProviderResults(allocationModel, specificationId, calculations, provider, providerDatasets, aggregations);
+                ProviderResult result = _calculationEngine.CalculateProviderResults(allocationModel, specificationId, calculations, provider, providerDatasets, fundingStreamLines, aggregations);
 
                 if (result == null)
                 {
@@ -538,7 +557,6 @@ namespace CalculateFunding.Services.CalcEngine
         {
             IEnumerable<CalculationAggregation> aggregations = Enumerable.Empty<CalculationAggregation>();
 
-
             aggregations = await _cacheProvider.GetAsync<List<CalculationAggregation>>($"{ CacheKeys.DatasetAggregationsForSpecification}{messageProperties.SpecificationId}");
 
             if (aggregations.IsNullOrEmpty())
@@ -604,6 +622,37 @@ namespace CalculateFunding.Services.CalcEngine
             }
 
             return aggregations;
+        }
+
+        private async Task<IDictionary<string, Funding>> BuildFundingLines(SpecificationSummary specificationSummary)
+        {
+            Dictionary<string, Funding> fundingStreamLines = new Dictionary<string, Funding>();
+
+            foreach (Reference fundingStream in specificationSummary.FundingStreams)
+            {
+                TemplateMapping templateMapping = await _calculationsRepositoryPolicy.ExecuteAsync(
+                        () => _calculationsRepository.GetTemplateMapping(specificationSummary.Id, fundingStream.Id));
+
+                if (templateMapping == null)
+                {
+                    LogAndThrowException<Exception>(
+                        $"Did not locate Template Mapping for funding stream id {fundingStream.Id} and specification id {specificationSummary.Id}");
+                }
+
+                ApiResponse<Common.TemplateMetadata.Models.TemplateMetadataContents> templateMetadataContentsResponse = await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingTemplateContents(fundingStream.Id, specificationSummary.FundingPeriod.Id, specificationSummary.TemplateIds[fundingStream.Id]));
+
+                if (templateMetadataContentsResponse?.Content == null)
+                {
+                    continue;
+                }
+
+                fundingStreamLines.Add(fundingStream.Id, new Funding {
+                    Mappings = templateMapping.TemplateMappingItems.ToDictionary(_=> _.TemplateId, _=> _.CalculationId),
+                    FundingLines = _mapper.Map<IEnumerable<FundingLine>>(templateMetadataContentsResponse.Content.RootFundingLines)
+                });
+            }
+
+            return fundingStreamLines;
         }
 
         private async Task CompleteBatch(GenerateAllocationMessageProperties messageProperties, Dictionary<string, List<decimal>> cachedCalculationAggregationsBatch, int itemsProcessed, int totalProviderResults)
@@ -731,6 +780,12 @@ namespace CalculateFunding.Services.CalcEngine
             {
                 _logger.Error($"Failed to add a job log for job id '{jobId}'");
             }
+        }
+
+        private void LogAndThrowException<T>(string message) where T : Exception
+        {
+            _logger.Error(message);
+            throw (T)Activator.CreateInstance(typeof(T), message);
         }
     }
 }

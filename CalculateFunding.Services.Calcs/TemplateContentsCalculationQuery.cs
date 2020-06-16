@@ -3,6 +3,7 @@ using System.Linq;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Models.Calcs;
 using Calculation = CalculateFunding.Common.TemplateMetadata.Models.Calculation;
+using FundingLine = CalculateFunding.Common.TemplateMetadata.Models.FundingLine;
 
 namespace CalculateFunding.Services.Calcs
 {

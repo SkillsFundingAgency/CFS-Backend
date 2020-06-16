@@ -10,7 +10,7 @@
 
 
 
-    <PackageReference Include="CalculateFunding.Common.ApiClient.Datasets" Version="2.2.0" />
+    <PackageReference Include="CalculateFunding.Common.ApiClient.Datasets" Version="5.0.0" />
 
 
 
@@ -30,6 +30,8 @@
     <PackageReference Include="CalculateFunding.Common.JobManagement" Version="2.1.0" />
 
     <PackageReference Include="CalculateFunding.Common.Storage" Version="2.0.1" />
+
+    <PackageReference Include="CalculateFunding.Generators.Funding" Version="2.0.0" />
 
 
 

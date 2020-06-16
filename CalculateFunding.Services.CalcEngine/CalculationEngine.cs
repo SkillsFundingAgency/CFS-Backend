@@ -10,6 +10,7 @@ using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.ProviderLegacy;
 using CalculateFunding.Services.CalcEngine.Interfaces;
 using Serilog;
+using FundingLine = CalculateFunding.Generators.Funding.Models.FundingLine;
 
 
 namespace CalculateFunding.Services.CalcEngine
@@ -34,12 +35,12 @@ namespace CalculateFunding.Services.CalcEngine
         }
 
         public ProviderResult CalculateProviderResults(IAllocationModel model, string specificationId, IEnumerable<CalculationSummaryModel> calculations,
-            ProviderSummary provider, IEnumerable<ProviderSourceDataset> providerSourceDatasets, IEnumerable<CalculationAggregation> aggregations = null)
+            ProviderSummary provider, IEnumerable<ProviderSourceDataset> providerSourceDatasets, IDictionary<string, Funding> fundingStreamLines, IEnumerable<CalculationAggregation> aggregations = null)
         {
             var stopwatch = new Stopwatch();
             stopwatch.Start();
 
-            IEnumerable<CalculationResult> calculationResults = model.Execute(providerSourceDatasets != null ? providerSourceDatasets.ToList() : new List<ProviderSourceDataset>(), provider, aggregations).ToArray();
+            IEnumerable<CalculationResult> calculationResults = model.Execute(providerSourceDatasets != null ? providerSourceDatasets.ToList() : new List<ProviderSourceDataset>(), provider, fundingStreamLines, aggregations).ToArray();
 
             var providerCalcResults = calculationResults.ToDictionary(x => x.Calculation?.Id);
             stopwatch.Stop();

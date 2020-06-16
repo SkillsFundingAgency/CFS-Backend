@@ -34,6 +34,16 @@ namespace CalculateFunding.Services.CalcEngine
             return _mapper.Map<IEnumerable<CalculationSummaryModel>>(apiResponse?.Content);
         }
 
+        public async Task<TemplateMapping> GetTemplateMapping(string specificationId, string fundingStreamId)
+        {
+            if (string.IsNullOrWhiteSpace(specificationId))
+                throw new ArgumentNullException(nameof(specificationId));
+
+            ApiResponse<Common.ApiClient.Calcs.Models.TemplateMapping> apiResponse = await _apiClient.GetTemplateMapping(specificationId, fundingStreamId);
+
+            return _mapper.Map<TemplateMapping>(apiResponse?.Content);
+        }
+
         public async Task<BuildProject> GetBuildProjectBySpecificationId(string specificationId)
         {
             if (string.IsNullOrWhiteSpace(specificationId))

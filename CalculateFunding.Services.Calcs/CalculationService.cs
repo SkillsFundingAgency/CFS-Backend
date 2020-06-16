@@ -1255,7 +1255,7 @@ namespace CalculateFunding.Services.Calcs
         {
             bool madeChanges = false;
 
-            List<FundingLine> allFundingLines = fundingTemplateContents
+            List<Common.TemplateMetadata.Models.FundingLine> allFundingLines = fundingTemplateContents
                 .RootFundingLines
                 .Flatten(_ => _.FundingLines).ToList();
 

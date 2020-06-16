@@ -112,6 +112,8 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                 SyntaxFactory.ImportsStatement(SyntaxFactory.SingletonSeparatedList<ImportsClauseSyntax>(
                     SyntaxFactory.SimpleImportsClause(SyntaxFactory.ParseName("System")))),
                 SyntaxFactory.ImportsStatement(SyntaxFactory.SingletonSeparatedList<ImportsClauseSyntax>(
+                    SyntaxFactory.SimpleImportsClause(SyntaxFactory.ParseName("System.Linq")))),
+                SyntaxFactory.ImportsStatement(SyntaxFactory.SingletonSeparatedList<ImportsClauseSyntax>(
                     SyntaxFactory.SimpleImportsClause(SyntaxFactory.ParseName("System.Collections.Generic")))),
                 SyntaxFactory.ImportsStatement(SyntaxFactory.SingletonSeparatedList<ImportsClauseSyntax>(
                     SyntaxFactory.SimpleImportsClause(SyntaxFactory.ParseName("Microsoft.VisualBasic.CompilerServices"))))

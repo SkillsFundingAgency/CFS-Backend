@@ -15,6 +15,7 @@ using Newtonsoft.Json;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Serilog;
+using Funding = CalculateFunding.Services.CalcEngine.Funding;
 
 namespace CalculateFunding.Services.Calculator
 {
@@ -30,9 +31,12 @@ namespace CalculateFunding.Services.Calculator
             // Arrange
             CalculationEngine calcEngine = CreateCalculationEngine();
 
+            IDictionary<string, Funding> fundingLines = new Dictionary<string, Funding>();
+
             IAllocationModel mockAllocationModel = Substitute.For<IAllocationModel>();
             mockAllocationModel
-                .Execute(Arg.Any<List<ProviderSourceDataset>>(), Arg.Any<ProviderSummary>())
+                .Execute(Arg.Any<List<ProviderSourceDataset>>(), Arg.Any<ProviderSummary>(),
+                    Arg.Any<IDictionary<string, Funding>>())
                 .Throws(new DivideByZeroException());
 
             List<CalculationSummaryModel> models = new List<CalculationSummaryModel>
@@ -46,7 +50,8 @@ namespace CalculateFunding.Services.Calculator
             // Act
             Action calculateProviderResultMethod = () =>
             {
-                calcEngine.CalculateProviderResults(mockAllocationModel, CreateBuildProject().SpecificationId, models, provider, sourceDataset);
+                calcEngine.CalculateProviderResults(mockAllocationModel, CreateBuildProject().SpecificationId, models, provider, sourceDataset,
+                    fundingLines);
             };
 
             // Assert
@@ -61,7 +66,8 @@ namespace CalculateFunding.Services.Calculator
             // Arrange
             IAllocationModel mockAllocationModel = Substitute.For<IAllocationModel>();
             mockAllocationModel
-                .Execute(Arg.Any<List<ProviderSourceDataset>>(), Arg.Any<ProviderSummary>())
+                .Execute(Arg.Any<List<ProviderSourceDataset>>(), Arg.Any<ProviderSummary>(),
+                    Arg.Any<IDictionary<string, Funding>>())
                 .Returns(new List<CalculationResult>());
 
             CalculationEngine calculationEngine = CreateCalculationEngine();
@@ -70,7 +76,8 @@ namespace CalculateFunding.Services.Calculator
 
             // Act
             ProviderResult result = calculationEngine.CalculateProviderResults(mockAllocationModel, buildProject.SpecificationId, null,
-                providerSummary, new List<ProviderSourceDataset>());
+                providerSummary, new List<ProviderSourceDataset>(),
+                Arg.Any<IDictionary<string, Funding>>());
 
             // Assert
             result.CalculationResults.Should().BeEmpty();
@@ -88,6 +95,8 @@ namespace CalculateFunding.Services.Calculator
                 new Reference("Spec1", "SpecOne"),
                 new Reference("Spec2", "SpecTwo")
             };
+
+            IDictionary<string, Funding> fundingLines = new Dictionary<string, Funding>();
 
             Reference fundingCalcReference = new Reference("CalcF1", "Funding calc 1");
 
@@ -113,7 +122,8 @@ namespace CalculateFunding.Services.Calculator
             };
             IAllocationModel mockAllocationModel = Substitute.For<IAllocationModel>();
             mockAllocationModel
-                .Execute(Arg.Any<List<ProviderSourceDataset>>(), Arg.Any<ProviderSummary>())
+                .Execute(Arg.Any<List<ProviderSourceDataset>>(), Arg.Any<ProviderSummary>(),
+                    Arg.Any<IDictionary<string, Funding>>())
                 .Returns(calculationResults);
 
             CalculationEngine calculationEngine = CreateCalculationEngine();
@@ -145,7 +155,8 @@ namespace CalculateFunding.Services.Calculator
 
             // Act
             var calculateProviderResults = calculationEngine.CalculateProviderResults(mockAllocationModel, buildProject.SpecificationId, calculationSummaryModels,
-                providerSummary, new List<ProviderSourceDataset>());
+                providerSummary, new List<ProviderSourceDataset>(),
+                fundingLines);
             ProviderResult result = calculateProviderResults;
 
             // Assert

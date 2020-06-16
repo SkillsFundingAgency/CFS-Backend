@@ -484,7 +484,8 @@ namespace CalculateFunding.Services.Calcs.Services
             {
                 SpecificationId = specificationId,
                 Id = Guid.NewGuid().ToString(),
-                Name = specificationId
+                Name = specificationId,
+                FundingLines = new Dictionary<string, Funding>()
             };
 
             CompilerOptions compilerOptions = new CompilerOptions();

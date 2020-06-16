@@ -3,6 +3,7 @@ using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Tests.Common.Helpers;
 using Calculation = CalculateFunding.Models.Calcs.Calculation;
+using FundingLine = CalculateFunding.Common.TemplateMetadata.Models.FundingLine;
 using TemplateCalculation = CalculateFunding.Common.TemplateMetadata.Models.Calculation;
 
 namespace CalculateFunding.Services.Calcs.Services

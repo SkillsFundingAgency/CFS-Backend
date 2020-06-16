@@ -64,6 +64,7 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.Vb.UnitTests
         {
             // Arrange
             List<Calculation> calculations = new List<Calculation>();
+            Dictionary<string, Funding> fundingLines = new Dictionary<string, Funding>();
 
             CompilerOptions compilerOptions = new CompilerOptions
             {
@@ -74,7 +75,7 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.Vb.UnitTests
             CalculationTypeGenerator calculationTypeGenerator = new CalculationTypeGenerator(compilerOptions);
 
             // Act
-            IEnumerable<SourceFile> results = calculationTypeGenerator.GenerateCalcs(calculations);
+            IEnumerable<SourceFile> results = calculationTypeGenerator.GenerateCalcs(calculations, fundingLines);
 
             // Assert
             results.Should().HaveCount(1);
@@ -86,6 +87,7 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.Vb.UnitTests
         {
             // Arrange
             List<Calculation> calculations = new List<Calculation>();
+            Dictionary<string, Funding> fundingLines = new Dictionary<string, Funding>();
 
             CompilerOptions compilerOptions = new CompilerOptions
             {
@@ -95,7 +97,7 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.Vb.UnitTests
             CalculationTypeGenerator calculationTypeGenerator = new CalculationTypeGenerator(compilerOptions);
 
             // Act
-            IEnumerable<SourceFile> results = calculationTypeGenerator.GenerateCalcs(calculations);
+            IEnumerable<SourceFile> results = calculationTypeGenerator.GenerateCalcs(calculations, fundingLines);
 
             // Assert
             results.Should().HaveCount(1);
@@ -113,8 +115,27 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.Vb.UnitTests
                 .WithCalculationNamespaceType(CalculationNamespace.Template)
                 .WithSourceCodeName("One")
                 .WithSourceCode("return DSG.One() + 100"));
-            
-            IEnumerable<SourceFile> results = new CalculationTypeGenerator(new CompilerOptions()).GenerateCalcs(new [] { dsg, psg });
+
+            FundingLine dsgfl = NewFundingLine(_ => _.WithCalculations(new[] { NewFundingLineCalculation(_ => _.WithId(1)
+                .WithCalculationNamespaceType(CalculationNamespace.Template))})
+                .WithId(1)
+                .WithName("One")
+                .WithSourceCodeName("One")
+                .WithNamespace("DSG"));
+
+            FundingLine psgfl = NewFundingLine(_ => _.WithCalculations(new[] { NewFundingLineCalculation(_ => _.WithId(1)
+                .WithCalculationNamespaceType(CalculationNamespace.Template))})
+                .WithId(2)
+                .WithName("One")
+                .WithSourceCodeName("One")
+                .WithNamespace("PSG"));
+
+            IDictionary<string, Funding> fundingLines = new Dictionary<string, Funding> { 
+                {"DSG", NewFunding(_ => _.WithFundingLines(new[] { dsgfl }))},
+                {"PSG", NewFunding(_ => _.WithFundingLines(new[] { psgfl }))}
+            };
+
+            IEnumerable<SourceFile> results = new CalculationTypeGenerator(new CompilerOptions()).GenerateCalcs(new [] { dsg, psg }, fundingLines);
 
             results.Should().HaveCount(1);
             results.First()
@@ -122,13 +143,17 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.Vb.UnitTests
                 .Should()
                 .ContainAll("Public Class PSGCalculations", 
                     "Public Class DSGCalculations", 
-                    "Public Class AdditionalCalculations");
+                    "Public Class AdditionalCalculations",
+                    "Public Class PSGFundingLines",
+                    "Public Class DSGFundingLines");
         }
         
         [TestMethod]
         public void GenerateCalculations_GivenNoCalculations_ThenSingleInnerClassForAdditionalCreated()
         {
-            IEnumerable<SourceFile> results = new CalculationTypeGenerator(new CompilerOptions()).GenerateCalcs(Enumerable.Empty<Calculation>());
+            Dictionary<string, Funding> fundingLines = new Dictionary<string, Funding>();
+
+            IEnumerable<SourceFile> results = new CalculationTypeGenerator(new CompilerOptions()).GenerateCalcs(Enumerable.Empty<Calculation>(), fundingLines);
 
             results.Should().HaveCount(1);
             results.First()
@@ -157,7 +182,9 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.Vb.UnitTests
                 .WithSourceCodeName("Two")
                 .WithSourceCode("return 789"));
 
-            IEnumerable<SourceFile> results = new CalculationTypeGenerator(new CompilerOptions()).GenerateCalcs(new []{ dsg, psg, additionalOne, additionalTwo });
+            Dictionary<string, Funding> fundingLines = new Dictionary<string, Funding>();
+
+            IEnumerable<SourceFile> results = new CalculationTypeGenerator(new CompilerOptions()).GenerateCalcs(new []{ dsg, psg, additionalOne, additionalTwo }, fundingLines);
 
             results.Should().HaveCount(1);
             results.First()
@@ -180,9 +207,10 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.Vb.UnitTests
             };
 
             CalculationTypeGenerator calculationTypeGenerator = new CalculationTypeGenerator(compilerOptions);
+            Dictionary<string, Funding> fundingLines = new Dictionary<string, Funding>();
 
             // Act
-            IEnumerable<SourceFile> results = calculationTypeGenerator.GenerateCalcs(new List<Calculation>());
+            IEnumerable<SourceFile> results = calculationTypeGenerator.GenerateCalcs(new List<Calculation>(), fundingLines);
 
             // Assert
             results.Should().HaveCount(1);
@@ -229,7 +257,9 @@ Return Result + 0";
 
             IEnumerable<Calculation> calculations = new[] { new Calculation { Current = new CalculationVersion { SourceCode = badCode, SourceCodeName = "Broken" } } };
 
-            Action generate = () => calculationTypeGenerator.GenerateCalcs(calculations).ToList();
+            Dictionary<string, Funding> fundingLines = new Dictionary<string, Funding>();
+
+            Action generate = () => calculationTypeGenerator.GenerateCalcs(calculations, fundingLines).ToList();
 
             generate
                 .Should()
@@ -250,7 +280,9 @@ Return Result + 0";
             IEnumerable<Calculation> calculations = new[] { new Calculation {
                 Current = new CalculationVersion { SourceCode = "Return 1", Namespace = CalculationNamespace.Additional}, Id = id } };
 
-            Action generate = () => calculationTypeGenerator.GenerateCalcs(calculations).ToList();
+            Dictionary<string, Funding> fundingLines = new Dictionary<string, Funding>();
+
+            Action generate = () => calculationTypeGenerator.GenerateCalcs(calculations, fundingLines).ToList();
 
             generate
                 .Should()
@@ -258,6 +290,33 @@ Return Result + 0";
                 .And.Message
                 .Should()
                 .Be($"Calculation source code name is not populated for calc {id}");
+        }
+
+        private FundingLineCalculation NewFundingLineCalculation(Action<FundingLineCalculationBuilder> setUp = null)
+        {
+            FundingLineCalculationBuilder calculationBundingLineBuilder = new FundingLineCalculationBuilder();
+
+            setUp?.Invoke(calculationBundingLineBuilder);
+
+            return calculationBundingLineBuilder.Build();
+        }
+
+        private Funding NewFunding(Action<FundingBuilder> setUp = null)
+        {
+            FundingBuilder fundingBuilder = new FundingBuilder();
+
+            setUp?.Invoke(fundingBuilder);
+
+            return fundingBuilder.Build();
+        }
+
+        private FundingLine NewFundingLine(Action<FundingLineBuilder> setUp = null)
+        {
+            FundingLineBuilder fundingLineBuilder = new FundingLineBuilder();
+
+            setUp?.Invoke(fundingLineBuilder);
+
+            return fundingLineBuilder.Build();
         }
         
         private Calculation NewCalculation(Action<CalculationBuilder> setUp = null)

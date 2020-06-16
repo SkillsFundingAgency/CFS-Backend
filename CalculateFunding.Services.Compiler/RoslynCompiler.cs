@@ -7,6 +7,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
+using System.Reflection;
 
 namespace CalculateFunding.Services.Compiler
 {
@@ -21,10 +23,12 @@ namespace CalculateFunding.Services.Compiler
 
         public Build GenerateCode(List<SourceFile> sourcefiles)
         {
-            MetadataReference[] references = {
+            MetadataReference[] references = Assembly.GetExecutingAssembly().GetReferencedAssemblies().Select(_ => AssemblyMetadata.CreateFromFile(Assembly.Load(_).Location).GetReference()).ToArray();
+
+            references = references.Concat(new[] {
                 AssemblyMetadata.CreateFromFile(typeof(object).Assembly.Location).GetReference(),
                 AssemblyMetadata.CreateFromFile(typeof(Microsoft.VisualBasic.Constants).Assembly.Location).GetReference()
-            };
+            }).ToArray();
 
             using (var ms = new MemoryStream())
             {

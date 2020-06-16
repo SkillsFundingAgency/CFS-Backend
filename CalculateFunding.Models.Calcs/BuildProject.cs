@@ -15,6 +15,9 @@ namespace CalculateFunding.Models.Calcs
         [JsonProperty("datasetRelationships")]
         public List<DatasetRelationshipSummary> DatasetRelationships { get; set; }
 
+        [JsonProperty("fundingLines")]
+        public IDictionary<string, Funding> FundingLines { get; set; }
+
         [JsonProperty("build")]
         public Build Build { get; set; }
     }

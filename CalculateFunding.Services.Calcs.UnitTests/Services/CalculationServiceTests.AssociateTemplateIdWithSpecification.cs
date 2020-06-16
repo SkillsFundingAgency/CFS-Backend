@@ -19,6 +19,7 @@ using NSubstitute;
 using Serilog;
 using TemplateMetadataModels = CalculateFunding.Common.TemplateMetadata.Models;
 using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
+using FundingLine = CalculateFunding.Common.TemplateMetadata.Models.FundingLine;
 
 namespace CalculateFunding.Services.Calcs.Services
 {

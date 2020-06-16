@@ -6,6 +6,7 @@ using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.ProviderLegacy;
+using FundingLine = CalculateFunding.Generators.Funding.Models.FundingLine;
 
 namespace CalculateFunding.Services.CalcEngine.Interfaces
 {
@@ -14,6 +15,6 @@ namespace CalculateFunding.Services.CalcEngine.Interfaces
         IAllocationModel GenerateAllocationModel(Assembly assembly);
 
         ProviderResult CalculateProviderResults(IAllocationModel model, string specificationId, IEnumerable<CalculationSummaryModel> calculations, 
-            ProviderSummary provider, IEnumerable<ProviderSourceDataset> providerSourceDatasets, IEnumerable<CalculationAggregation> aggregations = null);
+            ProviderSummary provider, IEnumerable<ProviderSourceDataset> providerSourceDatasets, IDictionary<string, Funding> fundingStreamLines, IEnumerable<CalculationAggregation> aggregations = null);
     }
 }

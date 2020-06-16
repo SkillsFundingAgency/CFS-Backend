@@ -28,6 +28,7 @@ namespace CalculateFunding.Services.CodeGeneration
             sourceFiles.AddRange(GenerateDatasetSourceFiles(buildProject));
 
             sourceFiles.AddRange(GenerateCalculationSourceFiles(buildProject, calculations, compilerOptions));
+
             stopwatch.Stop();
             _logger.Information($"${buildProject.Id} created syntax tree ({stopwatch.ElapsedMilliseconds}ms)");
             return sourceFiles;

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Calcs;
@@ -21,7 +22,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             _compilerOptions = compilerOptions;
         }
 
-        public IEnumerable<SourceFile> GenerateCalcs(IEnumerable<Calculation> calculations)
+        public IEnumerable<SourceFile> GenerateCalcs(IEnumerable<Calculation> calculations, IDictionary<string, Funding> funding)
         {
             SyntaxList<OptionStatementSyntax> optionsList = new SyntaxList<OptionStatementSyntax>(new[]
             {
@@ -43,7 +44,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                 ? SyntaxFactory.ParseTypeName("LegacyBaseCalculation")
                 : SyntaxFactory.ParseTypeName("BaseCalculation")));
 
-            IEnumerable<StatementSyntax> methods = CreateMembers(calculations);
+            IEnumerable<StatementSyntax> methods = CreateMembers(calculations, funding);
             
             ClassBlockSyntax classBlock = SyntaxFactory.ClassBlock(classStatement,
                 inherits,
@@ -71,31 +72,47 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             yield return new SourceFile { FileName = "Calculations.vb", SourceCode = sourceCode };
         }
 
-        private IEnumerable<StatementSyntax> CreateMembers(IEnumerable<Calculation> calculations)
+        private IEnumerable<StatementSyntax> CreateMembers(IEnumerable<Calculation> calculations, IDictionary<string, Funding> funding)
         {
             yield return ParseSourceCodeToStatementSyntax("Public StackFrameStartingCount As Integer = 0");
             yield return ParseSourceCodeToStatementSyntax("Public Property Dictionary As Dictionary(Of String, String()) = New Dictionary(Of String, String())(2)");
             yield return ParseSourceCodeToStatementSyntax("Public Property DictionaryValues As Dictionary(Of String, Decimal?) = New Dictionary(Of String, Decimal?)(2)");
+            yield return ParseSourceCodeToStatementSyntax("Public Property FundingLineDictionary As Dictionary(Of String, String()) = New Dictionary(Of String, String())(2)");
+            yield return ParseSourceCodeToStatementSyntax("Public Property FundingLineDictionaryValues As Dictionary(Of String, Decimal?) = New Dictionary(Of String, Decimal?)(2)");
 
             if (calculations == null) yield break;
 
-            NamespaceBuilderResult namespaceBuilderResult = new CalculationNamespaceBuilder(_compilerOptions)
-                .BuildNamespacesForCalculations(calculations);
+            HashSet<string> calculationIds = calculations.Select(_ => _.Current.CalculationId).ToHashSet();
 
-            foreach (StatementSyntax propertiesDefinition in namespaceBuilderResult.PropertiesDefinitions)
+            // filter out calculations which are not in scope
+            foreach (string fundingStreamId in funding.Keys)
             {
-                yield return propertiesDefinition;
+                funding[fundingStreamId].FundingLines = funding[fundingStreamId].FundingLines.Select(fl =>
+                {
+                    fl.Calculations = fl.Calculations.Where(calc => funding[fundingStreamId].Mappings.ContainsKey(calc.Id) && calculationIds.Contains(funding[fundingStreamId].Mappings[calc.Id]));
+                    return fl;
+                });
             }
 
-            IEnumerable<NamespaceClassDefinition> namespaceClassDefinitions = 
-                namespaceBuilderResult.InnerClasses;
+            IEnumerable<NamespaceBuilderResult> namespaceBuilderResults = new[] {
+                new CalculationNamespaceBuilder(_compilerOptions).BuildNamespacesForCalculations(calculations),
+                new FundingLineNamespaceBuilder().BuildNamespacesForFundingLines(funding)
+            };
 
-            foreach (NamespaceClassDefinition namespaceClassDefinition in namespaceClassDefinitions)
+            foreach (NamespaceBuilderResult namespaceBuilderResult in namespaceBuilderResults)
             {
-                yield return namespaceClassDefinition.ClassBlockSyntax;
+                foreach (StatementSyntax propertiesDefinition in namespaceBuilderResult.PropertiesDefinitions)
+                {
+                    yield return propertiesDefinition;
+                }
+
+                foreach (NamespaceClassDefinition namespaceClassDefinition in namespaceBuilderResult.InnerClasses)
+                {
+                    yield return namespaceClassDefinition.ClassBlockSyntax;
+                }
             }
 
-            yield return CreateMainMethod(calculations,namespaceClassDefinitions);
+            yield return CreateMainMethod(calculations, namespaceBuilderResults.SelectMany(_ => _.InnerClasses));
         }
 
         private StatementSyntax CreateMainMethod(IEnumerable<Calculation> calcs, 
@@ -105,7 +122,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
 
             builder.AppendLine();
             builder.AppendLine("<System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)>");
-            builder.AppendLine("Public Function MainCalc As Dictionary(Of String, String())");
+            builder.AppendLine($"Public Function MainCalc(allCalculations As Boolean) As Dictionary(Of String, String())");
             builder.AppendLine();
 
             if (_compilerOptions.UseDiagnosticsMode)
@@ -115,14 +132,10 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
 
             foreach (NamespaceClassDefinition namespaceDefinition in namespaceDefinitions)
             {
-                builder.AppendLine($"{namespaceDefinition.Namespace} = New {namespaceDefinition.ClassName}()");
+                builder.AppendLine($"{namespaceDefinition.Variable} = New {namespaceDefinition.ClassName}()");
+                builder.AppendLine($"{namespaceDefinition.Variable}.Initialise(Me)");
             }
 
-            foreach (NamespaceClassDefinition namespaceDefinition in namespaceDefinitions)
-            {
-                builder.AppendLine($"{namespaceDefinition.Namespace}.Initialise(Me)");
-            }
-            
             foreach (Calculation calc in calcs)
             {
                 if (_compilerOptions.UseDiagnosticsMode)
@@ -160,7 +173,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                 builder.AppendLine();
             }
 
-            builder.AppendLine("return Dictionary");
+            builder.AppendLine("Return Dictionary");
             builder.AppendLine("End Function");
             builder.AppendLine();
 

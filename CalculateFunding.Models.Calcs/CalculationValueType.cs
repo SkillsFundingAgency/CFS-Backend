@@ -10,6 +10,6 @@ namespace CalculateFunding.Models.Calcs
         Percentage,
         Currency,
         Boolean,
-        String,
+        String
     }
 }

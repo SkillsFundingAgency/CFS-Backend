@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.JobManagement;
+using CalculateFunding.Common.Models;
+using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets;
@@ -26,6 +28,8 @@ using Newtonsoft.Json;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using ApiClientSpecificationSummary = CalculateFunding.Common.ApiClient.Specifications.Models.SpecificationSummary;
+using Funding = CalculateFunding.Services.CalcEngine.Funding;
+using FundingLine = CalculateFunding.Common.TemplateMetadata.Models.FundingLine;
 
 namespace CalculateFunding.Services.Calculator
 {
@@ -34,8 +38,9 @@ namespace CalculateFunding.Services.Calculator
     {
         private CalculationEngineServiceTestsHelper _calculationEngineServiceTestsHelper;
         private ApiClientSpecificationSummary _specificationSummary;
-        
-        
+        private SpecificationSummary _cachedSummary;
+
+
         [TestInitialize]
         public void SetUp()
         {
@@ -54,15 +59,44 @@ namespace CalculateFunding.Services.Calculator
                     NewRandomString(),
                     NewRandomString(),
                     NewRandomString()
+                },
+                FundingPeriod = new Reference
+                {
+                    Id = NewRandomString(),
+                    Name = NewRandomString()
+                },
+                FundingStreams = new[] {
+                    new Reference {
+                        Id = NewRandomString(),
+                        Name = NewRandomString()
+                    }
                 }
             };
 
+            _cachedSummary = MockData.CreateSpecificationSummary();
+
             _calculationEngineServiceTestsHelper.MockCacheProvider
                 .GetAsync<SpecificationSummary>(Arg.Any<string>())
-                .Returns(MockData.CreateSpecificationSummary());
+                .Returns(_cachedSummary);
             _calculationEngineServiceTestsHelper.MockSpecificationsApiClient
                 .GetSpecificationSummaryById(Arg.Any<string>())
-                .Returns(new ApiResponse<Common.ApiClient.Specifications.Models.SpecificationSummary>(HttpStatusCode.OK, _specificationSummary));
+                .Returns(new ApiResponse<ApiClientSpecificationSummary>(HttpStatusCode.OK, _specificationSummary));
+
+            TemplateMapping mapping = new TemplateMapping
+            {
+                FundingStreamId = _cachedSummary.FundingStreams.Single().Id,
+                SpecificationId = _cachedSummary.Id,
+                TemplateMappingItems = new List<TemplateMappingItem>()
+            };
+
+            _calculationEngineServiceTestsHelper.MockCalculationRepository
+                .GetTemplateMapping(_cachedSummary.Id, _cachedSummary.FundingStreams.Single().Id)
+                .Returns(mapping);
+
+            _calculationEngineServiceTestsHelper.MockPoliciesApiClient
+                .GetFundingTemplateContents(_cachedSummary.FundingStreams.Single().Id, _cachedSummary.FundingPeriod.Id, _cachedSummary.TemplateIds[_cachedSummary.FundingStreams.Single().Id])
+                .Returns(new ApiResponse<TemplateMetadataContents>(HttpStatusCode.OK, new TemplateMetadataContents { RootFundingLines = new FundingLine[0] }));
+
         }
 
         private string NewRandomString() => new RandomString();
@@ -83,7 +117,7 @@ namespace CalculateFunding.Services.Calculator
 
             IAllocationModel mockAllocationModel = Substitute.For<IAllocationModel>();
             mockAllocationModel
-                .Execute(Arg.Any<List<ProviderSourceDataset>>(), Arg.Any<ProviderSummary>())
+                .Execute(Arg.Any<List<ProviderSourceDataset>>(), Arg.Any<ProviderSummary>(), Arg.Any<IDictionary<string, Funding>>())
                 .Returns(new List<CalculationResult>());
 
             _calculationEngineServiceTestsHelper
@@ -110,7 +144,8 @@ namespace CalculateFunding.Services.Calculator
                 .MockCalculationEngine
                 .CalculateProviderResults(mockAllocationModel, specificationId, calculationSummaryModelsReturn,
                     Arg.Is<ProviderSummary>(summary => providerSummaries.Contains(summary)),
-                    Arg.Any<IEnumerable<ProviderSourceDataset>>())
+                    Arg.Any<IEnumerable<ProviderSourceDataset>>(),
+                    Arg.Any<IDictionary<string, Funding>>())
                 .Returns((ProviderResult)null);
 
             _calculationEngineServiceTestsHelper
@@ -153,7 +188,7 @@ namespace CalculateFunding.Services.Calculator
 
             IAllocationModel mockAllocationModel = Substitute.For<IAllocationModel>();
             mockAllocationModel
-                .Execute(Arg.Any<List<ProviderSourceDataset>>(), Arg.Any<ProviderSummary>())
+                .Execute(Arg.Any<List<ProviderSourceDataset>>(), Arg.Any<ProviderSummary>(), Arg.Any<IDictionary<string, Funding>>())
                 .Returns(new List<CalculationResult>());
 
             _calculationEngineServiceTestsHelper
@@ -185,7 +220,9 @@ namespace CalculateFunding.Services.Calculator
                 .MockCalculationEngine
                 .CalculateProviderResults(mockAllocationModel, specificationId, calculationSummaryModelsReturn,
                     Arg.Is<ProviderSummary>(summary => providerSummaries.Contains(summary)),
-                    Arg.Any<IEnumerable<ProviderSourceDataset>>(), Arg.Any<IEnumerable<CalculationAggregation>>())
+                    Arg.Any<IEnumerable<ProviderSourceDataset>>(),
+                    Arg.Any<IDictionary<string, Funding>>(),
+                    Arg.Any<IEnumerable<CalculationAggregation>>())
                 .Returns(new ProviderResult()
                 {
 
@@ -218,6 +255,19 @@ namespace CalculateFunding.Services.Calculator
             messageUserProperties.Add("specification-id", specificationId);
             messageUserProperties.Add("jobId", jobId);
 
+            TemplateMapping mapping = new TemplateMapping { FundingStreamId = _cachedSummary.FundingStreams.Single().Id,
+                SpecificationId = _cachedSummary.Id,
+                TemplateMappingItems = new List<TemplateMappingItem>()
+            };
+
+            _calculationEngineServiceTestsHelper.MockCalculationRepository
+                .GetTemplateMapping(_cachedSummary.Id, _cachedSummary.FundingStreams.Single().Id)
+                .Returns(mapping);
+
+            _calculationEngineServiceTestsHelper.MockPoliciesApiClient
+                .GetFundingTemplateContents(_cachedSummary.FundingStreams.Single().Id, _cachedSummary.FundingPeriod.Id, _cachedSummary.TemplateIds[_cachedSummary.FundingStreams.Single().Id])
+                .Returns(new ApiResponse<TemplateMetadataContents>(HttpStatusCode.OK, new TemplateMetadataContents { RootFundingLines = new FundingLine[0] }));
+
             //Act
             await service.GenerateAllocations(message);
 
@@ -226,7 +276,8 @@ namespace CalculateFunding.Services.Calculator
                 .MockCalculationEngine
                 .Received(providerSummaries.Count)
                 .CalculateProviderResults(mockAllocationModel, specificationId, calculationSummaryModelsReturn,
-                    Arg.Any<ProviderSummary>(), Arg.Any<IEnumerable<ProviderSourceDataset>>(), Arg.Any<IEnumerable<CalculationAggregation>>());
+                    Arg.Any<ProviderSummary>(), Arg.Any<IEnumerable<ProviderSourceDataset>>(),
+                    Arg.Any<IDictionary<string, Funding>>(), Arg.Any<IEnumerable<CalculationAggregation>>());
 
             await
             _calculationEngineServiceTestsHelper
@@ -255,7 +306,7 @@ namespace CalculateFunding.Services.Calculator
 
             IAllocationModel mockAllocationModel = Substitute.For<IAllocationModel>();
             mockAllocationModel
-                .Execute(Arg.Any<List<ProviderSourceDataset>>(), Arg.Any<ProviderSummary>())
+                .Execute(Arg.Any<List<ProviderSourceDataset>>(), Arg.Any<ProviderSummary>(), Arg.Any<IDictionary<string, Funding>>())
                 .Returns(new List<CalculationResult>());
 
             _calculationEngineServiceTestsHelper
@@ -304,7 +355,8 @@ namespace CalculateFunding.Services.Calculator
                 .MockCalculationEngine
                 .CalculateProviderResults(mockAllocationModel, specificationId, calculationSummaryModelsReturn,
                     Arg.Is<ProviderSummary>(summary => providerSummaries.Contains(summary)),
-                    Arg.Any<IEnumerable<ProviderSourceDataset>>(), Arg.Any<IEnumerable<CalculationAggregation>>())
+                    Arg.Any<IEnumerable<ProviderSourceDataset>>(),
+                    Arg.Any<IDictionary<string, Funding>>(), Arg.Any<IEnumerable<CalculationAggregation>>())
                 .Returns(new ProviderResult()
                 { });
 
@@ -344,7 +396,8 @@ namespace CalculateFunding.Services.Calculator
                 .MockCalculationEngine
                 .Received(providerSummaries.Count)
                 .CalculateProviderResults(mockAllocationModel, specificationId, calculationSummaryModelsReturn,
-                    Arg.Any<ProviderSummary>(), Arg.Any<IEnumerable<ProviderSourceDataset>>(), Arg.Any<IEnumerable<CalculationAggregation>>());
+                    Arg.Any<ProviderSummary>(), Arg.Any<IEnumerable<ProviderSourceDataset>>(),
+                    Arg.Any<IDictionary<string, Funding>>(), Arg.Any<IEnumerable<CalculationAggregation>>());
 
             await
             _calculationEngineServiceTestsHelper
@@ -377,7 +430,7 @@ namespace CalculateFunding.Services.Calculator
 
             IAllocationModel mockAllocationModel = Substitute.For<IAllocationModel>();
             mockAllocationModel
-                .Execute(Arg.Any<List<ProviderSourceDataset>>(), Arg.Any<ProviderSummary>())
+                .Execute(Arg.Any<List<ProviderSourceDataset>>(), Arg.Any<ProviderSummary>(), Arg.Any<IDictionary<string, Funding>>())
                 .Returns(new List<CalculationResult>());
 
             _calculationEngineServiceTestsHelper
@@ -409,7 +462,8 @@ namespace CalculateFunding.Services.Calculator
                 .MockCalculationEngine
                 .CalculateProviderResults(mockAllocationModel, specificationId, calculationSummaryModelsReturn,
                     Arg.Is<ProviderSummary>(summary => providerSummaries.Contains(summary)),
-                    Arg.Any<IEnumerable<ProviderSourceDataset>>(), Arg.Any<IEnumerable<CalculationAggregation>>())
+                    Arg.Any<IEnumerable<ProviderSourceDataset>>(),
+                    Arg.Any<IDictionary<string, Funding>>(), Arg.Any<IEnumerable<CalculationAggregation>>())
                 .Returns(new ProviderResult());
 
             _calculationEngineServiceTestsHelper
@@ -448,7 +502,8 @@ namespace CalculateFunding.Services.Calculator
                 .MockCalculationEngine
                 .Received(providerSummaries.Count)
                 .CalculateProviderResults(mockAllocationModel, specificationId, calculationSummaryModelsReturn,
-                    Arg.Any<ProviderSummary>(), Arg.Any<IEnumerable<ProviderSourceDataset>>(), Arg.Any<IEnumerable<CalculationAggregation>>());
+                    Arg.Any<ProviderSummary>(), Arg.Any<IEnumerable<ProviderSourceDataset>>(),
+                    Arg.Any<IDictionary<string, Funding>>(), Arg.Any<IEnumerable<CalculationAggregation>>());
 
             //Assert
             await
@@ -520,7 +575,7 @@ namespace CalculateFunding.Services.Calculator
 
             IAllocationModel mockAllocationModel = Substitute.For<IAllocationModel>();
             mockAllocationModel
-                .Execute(Arg.Any<List<ProviderSourceDataset>>(), Arg.Any<ProviderSummary>())
+                .Execute(Arg.Any<List<ProviderSourceDataset>>(), Arg.Any<ProviderSummary>(), Arg.Any<IDictionary<string, Funding>>())
                 .Returns(new List<CalculationResult>());
 
             _calculationEngineServiceTestsHelper
@@ -557,7 +612,8 @@ namespace CalculateFunding.Services.Calculator
                 .MockCalculationEngine
                 .CalculateProviderResults(mockAllocationModel, specificationId, calculationSummaryModelsReturn,
                     Arg.Is<ProviderSummary>(summary => providerSummaries.Contains(summary)),
-                    Arg.Any<IEnumerable<ProviderSourceDataset>>(), Arg.Any<IEnumerable<CalculationAggregation>>())
+                    Arg.Any<IEnumerable<ProviderSourceDataset>>(),
+                    Arg.Any<IDictionary<string, Funding>>(), Arg.Any<IEnumerable<CalculationAggregation>>())
                 .Returns(new ProviderResult()
                 {
 
@@ -592,7 +648,8 @@ namespace CalculateFunding.Services.Calculator
                 .MockCalculationEngine
                 .Received(providerSummaries.Count)
                 .CalculateProviderResults(mockAllocationModel, specificationId, calculationSummaryModelsReturn,
-                    Arg.Any<ProviderSummary>(), Arg.Any<IEnumerable<ProviderSourceDataset>>(), Arg.Any<IEnumerable<CalculationAggregation>>());
+                    Arg.Any<ProviderSummary>(), Arg.Any<IEnumerable<ProviderSourceDataset>>(),
+                    Arg.Any<IDictionary<string, Funding>>(), Arg.Any<IEnumerable<CalculationAggregation>>());
 
             //Assert
             await
@@ -633,7 +690,7 @@ namespace CalculateFunding.Services.Calculator
 
             IAllocationModel mockAllocationModel = Substitute.For<IAllocationModel>();
             mockAllocationModel
-                .Execute(Arg.Any<List<ProviderSourceDataset>>(), Arg.Any<ProviderSummary>())
+                .Execute(Arg.Any<List<ProviderSourceDataset>>(), Arg.Any<ProviderSummary>(), Arg.Any<IDictionary<string, Funding>>())
                 .Returns(new List<CalculationResult>());
 
             _calculationEngineServiceTestsHelper
@@ -670,7 +727,8 @@ namespace CalculateFunding.Services.Calculator
                 .MockCalculationEngine
                 .CalculateProviderResults(mockAllocationModel, specificationId, calculationSummaryModelsReturn,
                     Arg.Is<ProviderSummary>(summary => providerSummaries.Contains(summary)),
-                    Arg.Any<IEnumerable<ProviderSourceDataset>>(), Arg.Any<IEnumerable<CalculationAggregation>>())
+                    Arg.Any<IEnumerable<ProviderSourceDataset>>(),
+                    Arg.Any<IDictionary<string, Funding>>(), Arg.Any<IEnumerable<CalculationAggregation>>())
                 .Returns(new ProviderResult()
                 {
                     CalculationResults = new List<CalculationResult>
@@ -738,7 +796,7 @@ namespace CalculateFunding.Services.Calculator
 
             IAllocationModel mockAllocationModel = Substitute.For<IAllocationModel>();
             mockAllocationModel
-                .Execute(Arg.Any<List<ProviderSourceDataset>>(), Arg.Any<ProviderSummary>())
+                .Execute(Arg.Any<List<ProviderSourceDataset>>(), Arg.Any<ProviderSummary>(), Arg.Any<IDictionary<string, Funding>>())
                 .Returns(new List<CalculationResult>());
 
             _calculationEngineServiceTestsHelper
@@ -780,7 +838,8 @@ namespace CalculateFunding.Services.Calculator
                 .MockCalculationEngine
                 .CalculateProviderResults(mockAllocationModel, specificationId, calculationSummaryModelsReturn,
                     Arg.Is<ProviderSummary>(summary => providerSummaries.Contains(summary)),
-                    Arg.Any<IEnumerable<ProviderSourceDataset>>(), Arg.Any<IEnumerable<CalculationAggregation>>())
+                    Arg.Any<IEnumerable<ProviderSourceDataset>>(),
+                    Arg.Any<IDictionary<string, Funding>>(), Arg.Any<IEnumerable<CalculationAggregation>>())
                 .Returns(new ProviderResult()
                 {
                     CalculationResults = new List<CalculationResult>
@@ -945,7 +1004,7 @@ namespace CalculateFunding.Services.Calculator
 
             IAllocationModel mockAllocationModel = Substitute.For<IAllocationModel>();
             mockAllocationModel
-                .Execute(Arg.Any<List<ProviderSourceDataset>>(), Arg.Any<ProviderSummary>())
+                .Execute(Arg.Any<List<ProviderSourceDataset>>(), Arg.Any<ProviderSummary>(), Arg.Any<IDictionary<string, Funding>>())
                 .Returns(new List<CalculationResult>());
 
             _calculationEngineServiceTestsHelper
@@ -988,7 +1047,8 @@ namespace CalculateFunding.Services.Calculator
                 .MockCalculationEngine
                 .CalculateProviderResults(mockAllocationModel, specificationId, calculationSummaryModelsReturn,
                     Arg.Is<ProviderSummary>(summary => providerSummaries.Contains(summary)),
-                    Arg.Any<IEnumerable<ProviderSourceDataset>>(), Arg.Any<IEnumerable<CalculationAggregation>>())
+                    Arg.Any<IEnumerable<ProviderSourceDataset>>(),
+                    Arg.Any<IDictionary<string, Funding>>(), Arg.Any<IEnumerable<CalculationAggregation>>())
                     .Returns(new ProviderResult
                     {
                         CalculationResults = new List<CalculationResult>
@@ -1031,7 +1091,8 @@ namespace CalculateFunding.Services.Calculator
                .MockCalculationEngine
                .Received(providerSummaries.Count)
                .CalculateProviderResults(mockAllocationModel, specificationId, calculationSummaryModelsReturn,
-                   Arg.Any<ProviderSummary>(), Arg.Any<IEnumerable<ProviderSourceDataset>>(), Arg.Any<IEnumerable<CalculationAggregation>>());
+                   Arg.Any<ProviderSummary>(), Arg.Any<IEnumerable<ProviderSourceDataset>>(),
+                   Arg.Any<IDictionary<string, Funding>>(), Arg.Any<IEnumerable<CalculationAggregation>>());
 
             await
                 _calculationEngineServiceTestsHelper
@@ -1082,7 +1143,7 @@ namespace CalculateFunding.Services.Calculator
 
             IAllocationModel mockAllocationModel = Substitute.For<IAllocationModel>();
             mockAllocationModel
-                .Execute(Arg.Any<List<ProviderSourceDataset>>(), Arg.Any<ProviderSummary>())
+                .Execute(Arg.Any<List<ProviderSourceDataset>>(), Arg.Any<ProviderSummary>(), Arg.Any<IDictionary<string, Funding>>())
                 .Returns(new List<CalculationResult>());
 
             _calculationEngineServiceTestsHelper
@@ -1125,7 +1186,8 @@ namespace CalculateFunding.Services.Calculator
                 .MockCalculationEngine
                 .CalculateProviderResults(mockAllocationModel, specificationId, calculationSummaryModelsReturn,
                     Arg.Is<ProviderSummary>(summary => providerSummaries.Contains(summary)),
-                    Arg.Any<IEnumerable<ProviderSourceDataset>>(), Arg.Any<IEnumerable<CalculationAggregation>>())
+                    Arg.Any<IEnumerable<ProviderSourceDataset>>(),
+                    Arg.Any<IDictionary<string, Funding>>(), Arg.Any<IEnumerable<CalculationAggregation>>())
                 .Returns(new ProviderResult()
                 {
 
@@ -1163,7 +1225,8 @@ namespace CalculateFunding.Services.Calculator
                 .MockCalculationEngine
                 .Received(providerSummaries.Count)
                 .CalculateProviderResults(mockAllocationModel, specificationId, calculationSummaryModelsReturn,
-                    Arg.Any<ProviderSummary>(), Arg.Any<IEnumerable<ProviderSourceDataset>>(), Arg.Is<IEnumerable<CalculationAggregation>>(m =>
+                    Arg.Any<ProviderSummary>(), Arg.Any<IEnumerable<ProviderSourceDataset>>(),
+                    Arg.Any<IDictionary<string, Funding>>(), Arg.Is<IEnumerable<CalculationAggregation>>(m =>
                         m.Count() == 3 &&
                         m.ElementAt(0).Values.ElementAt(0).Value == 200 &&
                         m.ElementAt(0).Values.ElementAt(1).Value == 10 &&
@@ -1218,7 +1281,7 @@ namespace CalculateFunding.Services.Calculator
 
             IAllocationModel mockAllocationModel = Substitute.For<IAllocationModel>();
             mockAllocationModel
-                .Execute(Arg.Any<List<ProviderSourceDataset>>(), Arg.Any<ProviderSummary>())
+                .Execute(Arg.Any<List<ProviderSourceDataset>>(), Arg.Any<ProviderSummary>(), Arg.Any<IDictionary<string, Funding>>())
                 .Returns(new List<CalculationResult>());
 
             _calculationEngineServiceTestsHelper
@@ -1261,7 +1324,8 @@ namespace CalculateFunding.Services.Calculator
                 .MockCalculationEngine
                 .CalculateProviderResults(mockAllocationModel, specificationId, calculationSummaryModelsReturn,
                     Arg.Is<ProviderSummary>(summary => providerSummaries.Contains(summary)),
-                    Arg.Any<IEnumerable<ProviderSourceDataset>>(), Arg.Any<IEnumerable<CalculationAggregation>>())
+                    Arg.Any<IEnumerable<ProviderSourceDataset>>(),
+                    Arg.Any<IDictionary<string, Funding>>(), Arg.Any<IEnumerable<CalculationAggregation>>())
                 .Returns(new ProviderResult()
                 {
 
@@ -1298,7 +1362,8 @@ namespace CalculateFunding.Services.Calculator
                 .MockCalculationEngine
                 .Received(providerSummaries.Count)
                 .CalculateProviderResults(mockAllocationModel, specificationId, calculationSummaryModelsReturn,
-                    Arg.Any<ProviderSummary>(), Arg.Any<IEnumerable<ProviderSourceDataset>>(), Arg.Is<IEnumerable<CalculationAggregation>>(m =>
+                    Arg.Any<ProviderSummary>(), Arg.Any<IEnumerable<ProviderSourceDataset>>(),
+                    Arg.Any<IDictionary<string, Funding>>(), Arg.Is<IEnumerable<CalculationAggregation>>(m =>
                         !m.Any()
                     ));
 
@@ -1339,7 +1404,7 @@ namespace CalculateFunding.Services.Calculator
 
             IAllocationModel mockAllocationModel = Substitute.For<IAllocationModel>();
             mockAllocationModel
-                .Execute(Arg.Any<List<ProviderSourceDataset>>(), Arg.Any<ProviderSummary>())
+                .Execute(Arg.Any<List<ProviderSourceDataset>>(), Arg.Any<ProviderSummary>(), Arg.Any<IDictionary<string, Funding>>())
                 .Returns(new List<CalculationResult>());
 
             _calculationEngineServiceTestsHelper
@@ -1371,7 +1436,8 @@ namespace CalculateFunding.Services.Calculator
                 .MockCalculationEngine
                 .CalculateProviderResults(mockAllocationModel, specificationId, calculationSummaryModelsReturn,
                     Arg.Is<ProviderSummary>(summary => providerSummaries.Contains(summary)),
-                    Arg.Any<IEnumerable<ProviderSourceDataset>>(), Arg.Any<IEnumerable<CalculationAggregation>>())
+                    Arg.Any<IEnumerable<ProviderSourceDataset>>(),
+                    Arg.Any<IDictionary<string, Funding>>(), Arg.Any<IEnumerable<CalculationAggregation>>())
                 .Returns(new ProviderResult()
                 {
 

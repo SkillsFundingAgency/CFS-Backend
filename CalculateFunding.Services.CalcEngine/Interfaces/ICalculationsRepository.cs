@@ -6,6 +6,8 @@ namespace CalculateFunding.Services.CalcEngine.Interfaces
 {
     public interface ICalculationsRepository
     {
+        Task<TemplateMapping> GetTemplateMapping(string specificationId, string fundingStreamId);
+
         Task<IEnumerable<CalculationSummaryModel>> GetCalculationSummariesForSpecification(string specificationId);
 
         Task<BuildProject> GetBuildProjectBySpecificationId(string specificationId);

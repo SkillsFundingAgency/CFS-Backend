@@ -42,7 +42,13 @@ using CalculateFunding.Services.Calcs.MappingProfiles;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Models.Specs;
 using Serilog.Events;
-
+using CalculateFunding.Common.ApiClient.Policies;
+using SpecModels = CalculateFunding.Common.ApiClient.Specifications.Models;
+using CalculateFunding.Common.Models;
+using CalculateFunding.Tests.Common.Helpers;
+using CalculateFunding.Common.ApiClient.Policies.Models;
+using CalculateFunding.Common.TemplateMetadata.Models;
+using Calculation = CalculateFunding.Models.Calcs.Calculation;
 
 namespace CalculateFunding.Services.Calcs.Services
 {
@@ -184,11 +190,44 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetDatasetDefinitionById(Arg.Is("111"))
                 .Returns(new ApiResponse<Common.ApiClient.DataSets.Models.DatasetDefinition>(HttpStatusCode.OK, CreateDatsetDefinition()));
 
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+
+            SpecModels.SpecificationSummary specificationSummary = CreateSpecificationSummary(SpecificationId);
+
+            specificationsApiClient
+                .GetSpecificationSummaryById(SpecificationId)
+                .Returns(new ApiResponse<SpecModels.SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
+
+            TemplateMapping mapping = new TemplateMapping
+            {
+                FundingStreamId = specificationSummary.FundingStreams.Single().Id,
+                SpecificationId = specificationSummary.Id,
+                TemplateMappingItems = new List<TemplateMappingItem>()
+            };
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+
+            calculationsRepository
+                .GetTemplateMapping(specificationSummary.Id, specificationSummary.FundingStreams.Single().Id)
+                .Returns(mapping);
+
+            IPoliciesApiClient policiesApiClient = CreatePolicyApiClient();
+
+            policiesApiClient
+                .GetFundingTemplateContents(specificationSummary.FundingStreams.Single().Id, specificationSummary.FundingPeriod.Id, specificationSummary.TemplateIds[specificationSummary.FundingStreams.Single().Id])
+                .Returns(new ApiResponse<TemplateMetadataContents>(HttpStatusCode.OK, 
+                    new TemplateMetadataContents { RootFundingLines = new Common.TemplateMetadata.Models.FundingLine[0] }));
+
             IMapper mapper = CreateMapper();
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
 
-            BuildProjectsService buildProjectsService = CreateBuildProjectsService(sourceCodeService: sourceCodeService, datasetsApiClient: datasetsApiClient, mapper: mapper);
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(sourceCodeService: sourceCodeService, 
+                datasetsApiClient: datasetsApiClient, 
+                mapper: mapper, 
+                specificationsApiClient: specificationsApiClient,
+                policiesApiClient: policiesApiClient,
+                calculationsRepository: calculationsRepository);
 
             //Act
             await buildProjectsService.UpdateBuildProjectRelationships(message);
@@ -249,9 +288,42 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
 
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+
+            SpecModels.SpecificationSummary specificationSummary = CreateSpecificationSummary(SpecificationId);
+
+            specificationsApiClient
+                .GetSpecificationSummaryById(SpecificationId)
+                .Returns(new ApiResponse<SpecModels.SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
+
+            TemplateMapping mapping = new TemplateMapping
+            {
+                FundingStreamId = specificationSummary.FundingStreams.Single().Id,
+                SpecificationId = specificationSummary.Id,
+                TemplateMappingItems = new List<TemplateMappingItem>()
+            };
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+
+            calculationsRepository
+                .GetTemplateMapping(specificationSummary.Id, specificationSummary.FundingStreams.Single().Id)
+                .Returns(mapping);
+
+            IPoliciesApiClient policiesApiClient = CreatePolicyApiClient();
+
+            policiesApiClient
+                .GetFundingTemplateContents(specificationSummary.FundingStreams.Single().Id, specificationSummary.FundingPeriod.Id, specificationSummary.TemplateIds[specificationSummary.FundingStreams.Single().Id])
+                .Returns(new ApiResponse<TemplateMetadataContents>(HttpStatusCode.OK,
+                    new TemplateMetadataContents { RootFundingLines = new Common.TemplateMetadata.Models.FundingLine[0] }));
+
             IMapper mapper = CreateMapper();
 
-            BuildProjectsService buildProjectsService = CreateBuildProjectsService(sourceCodeService: sourceCodeService, datasetsApiClient: datasetsApiClient, mapper: mapper);
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(sourceCodeService: sourceCodeService, 
+                datasetsApiClient: datasetsApiClient, 
+                mapper: mapper,
+                specificationsApiClient: specificationsApiClient,
+                policiesApiClient: policiesApiClient,
+                calculationsRepository: calculationsRepository);
 
             //Act
             await buildProjectsService.UpdateBuildProjectRelationships(message);
@@ -316,12 +388,44 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Returns(false);
 
             IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectRepository();
+
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+
+            SpecModels.SpecificationSummary specificationSummary = CreateSpecificationSummary(SpecificationId);
+
+            specificationsApiClient
+                .GetSpecificationSummaryById(SpecificationId)
+                .Returns(new ApiResponse<SpecModels.SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
+
+            TemplateMapping mapping = new TemplateMapping
+            {
+                FundingStreamId = specificationSummary.FundingStreams.Single().Id,
+                SpecificationId = specificationSummary.Id,
+                TemplateMappingItems = new List<TemplateMappingItem>()
+            };
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+
+            calculationsRepository
+                .GetTemplateMapping(specificationSummary.Id, specificationSummary.FundingStreams.Single().Id)
+                .Returns(mapping);
+
+            IPoliciesApiClient policiesApiClient = CreatePolicyApiClient();
+
+            policiesApiClient
+                .GetFundingTemplateContents(specificationSummary.FundingStreams.Single().Id, specificationSummary.FundingPeriod.Id, specificationSummary.TemplateIds[specificationSummary.FundingStreams.Single().Id])
+                .Returns(new ApiResponse<TemplateMetadataContents>(HttpStatusCode.OK,
+                    new TemplateMetadataContents { RootFundingLines = new Common.TemplateMetadata.Models.FundingLine[0] }));
+
             IMapper mapper = CreateMapper();
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(datasetsApiClient: datasetsApiClient,
                 buildProjectsRepository: buildProjectsRepository,
                 featureToggle: featureToggle,
-                mapper: mapper);
+                mapper: mapper,
+                specificationsApiClient: specificationsApiClient,
+                policiesApiClient: policiesApiClient,
+                calculationsRepository: calculationsRepository);
 
             //Act
             await buildProjectsService.UpdateBuildProjectRelationships(message);
@@ -399,9 +503,42 @@ namespace CalculateFunding.Services.Calcs.Services
             sourceCodeService.When(x => x.SaveAssembly(Arg.Any<BuildProject>()))
                                         .Do(x => throw new Exception());
 
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+
+            SpecModels.SpecificationSummary specificationSummary = CreateSpecificationSummary(SpecificationId);
+
+            specificationsApiClient
+                .GetSpecificationSummaryById(SpecificationId)
+                .Returns(new ApiResponse<SpecModels.SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
+
+            TemplateMapping mapping = new TemplateMapping
+            {
+                FundingStreamId = specificationSummary.FundingStreams.Single().Id,
+                SpecificationId = specificationSummary.Id,
+                TemplateMappingItems = new List<TemplateMappingItem>()
+            };
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+
+            calculationsRepository
+                .GetTemplateMapping(specificationSummary.Id, specificationSummary.FundingStreams.Single().Id)
+                .Returns(mapping);
+
+            IPoliciesApiClient policiesApiClient = CreatePolicyApiClient();
+
+            policiesApiClient
+                .GetFundingTemplateContents(specificationSummary.FundingStreams.Single().Id, specificationSummary.FundingPeriod.Id, specificationSummary.TemplateIds[specificationSummary.FundingStreams.Single().Id])
+                .Returns(new ApiResponse<TemplateMetadataContents>(HttpStatusCode.OK,
+                    new TemplateMetadataContents { RootFundingLines = new Common.TemplateMetadata.Models.FundingLine[0] }));
+
             IMapper mapper = CreateMapper();
 
-            BuildProjectsService buildProjectsService = CreateBuildProjectsService(sourceCodeService: sourceCodeService, datasetsApiClient: datasetsApiClient, mapper: mapper);
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(sourceCodeService: sourceCodeService, 
+                datasetsApiClient: datasetsApiClient, 
+                mapper: mapper,
+                specificationsApiClient: specificationsApiClient,
+                policiesApiClient: policiesApiClient,
+                calculationsRepository: calculationsRepository);
 
             //Act
             Func<Task> test = () => buildProjectsService.UpdateBuildProjectRelationships(message);
@@ -441,8 +578,40 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetCurrentRelationshipsBySpecificationId(Arg.Is(SpecificationId))
                 .Returns(new ApiResponse<IEnumerable<Common.ApiClient.DataSets.Models.DatasetSpecificationRelationshipViewModel>>(HttpStatusCode.OK, Enumerable.Empty<Common.ApiClient.DataSets.Models.DatasetSpecificationRelationshipViewModel>()));
 
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+
+            SpecModels.SpecificationSummary specificationSummary = CreateSpecificationSummary(SpecificationId);
+
+            specificationsApiClient
+                .GetSpecificationSummaryById(SpecificationId)
+                .Returns(new ApiResponse<SpecModels.SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
+
+            TemplateMapping mapping = new TemplateMapping
+            {
+                FundingStreamId = specificationSummary.FundingStreams.Single().Id,
+                SpecificationId = specificationSummary.Id,
+                TemplateMappingItems = new List<TemplateMappingItem>()
+            };
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+
+            calculationsRepository
+                .GetTemplateMapping(specificationSummary.Id, specificationSummary.FundingStreams.Single().Id)
+                .Returns(mapping);
+
+            IPoliciesApiClient policiesApiClient = CreatePolicyApiClient();
+
+            policiesApiClient
+                .GetFundingTemplateContents(specificationSummary.FundingStreams.Single().Id, specificationSummary.FundingPeriod.Id, specificationSummary.TemplateIds[specificationSummary.FundingStreams.Single().Id])
+                .Returns(new ApiResponse<TemplateMetadataContents>(HttpStatusCode.OK,
+                    new TemplateMetadataContents { RootFundingLines = new Common.TemplateMetadata.Models.FundingLine[0] }));
+
             IMapper mapper = CreateMapper();
-            BuildProjectsService buildProjectsService = CreateBuildProjectsService(datasetsApiClient: datasetsApiClient, mapper: mapper);
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(datasetsApiClient: datasetsApiClient, 
+                mapper: mapper,
+                specificationsApiClient: specificationsApiClient,
+                policiesApiClient: policiesApiClient,
+                calculationsRepository: calculationsRepository);
 
             //Act
             IActionResult result = await buildProjectsService.GetBuildProjectBySpecificationId(SpecificationId);
@@ -474,10 +643,42 @@ namespace CalculateFunding.Services.Calcs.Services
             datasetsApiClient
                 .GetDatasetDefinitionById(Arg.Is("111"))
                 .Returns(new ApiResponse<Common.ApiClient.DataSets.Models.DatasetDefinition>(HttpStatusCode.OK, datasetDefinition));
+            
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+
+            SpecModels.SpecificationSummary specificationSummary = CreateSpecificationSummary(SpecificationId);
+
+            specificationsApiClient
+                .GetSpecificationSummaryById(SpecificationId)
+                .Returns(new ApiResponse<SpecModels.SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
+
+            TemplateMapping mapping = new TemplateMapping
+            {
+                FundingStreamId = specificationSummary.FundingStreams.Single().Id,
+                SpecificationId = specificationSummary.Id,
+                TemplateMappingItems = new List<TemplateMappingItem>()
+            };
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+
+            calculationsRepository
+                .GetTemplateMapping(specificationSummary.Id, specificationSummary.FundingStreams.Single().Id)
+                .Returns(mapping);
+
+            IPoliciesApiClient policiesApiClient = CreatePolicyApiClient();
+
+            policiesApiClient
+                .GetFundingTemplateContents(specificationSummary.FundingStreams.Single().Id, specificationSummary.FundingPeriod.Id, specificationSummary.TemplateIds[specificationSummary.FundingStreams.Single().Id])
+                .Returns(new ApiResponse<TemplateMetadataContents>(HttpStatusCode.OK,
+                    new TemplateMetadataContents { RootFundingLines = new Common.TemplateMetadata.Models.FundingLine[0] }));
 
             IMapper mapper = CreateMapper();
 
-            BuildProjectsService buildProjectsService = CreateBuildProjectsService(datasetsApiClient: datasetsApiClient, mapper: mapper);
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(datasetsApiClient: datasetsApiClient, 
+                mapper: mapper,
+                specificationsApiClient: specificationsApiClient,
+                policiesApiClient: policiesApiClient,
+                calculationsRepository: calculationsRepository);
 
             //Act
             IActionResult result = await buildProjectsService.GetBuildProjectBySpecificationId(SpecificationId);
@@ -517,7 +718,40 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetBuildProjectBySpecificationId(Arg.Is(SpecificationId))
                 .Returns(buildProject);
 
-            BuildProjectsService buildProjectsService = CreateBuildProjectsService(featureToggle: featureToggle, buildProjectsRepository: buildProjectsRepository);
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+
+            SpecModels.SpecificationSummary specificationSummary = CreateSpecificationSummary(SpecificationId);
+
+            specificationsApiClient
+                .GetSpecificationSummaryById(SpecificationId)
+                .Returns(new ApiResponse<SpecModels.SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
+
+            TemplateMapping mapping = new TemplateMapping
+            {
+                FundingStreamId = specificationSummary.FundingStreams.Single().Id,
+                SpecificationId = specificationSummary.Id,
+                TemplateMappingItems = new List<TemplateMappingItem>()
+            };
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+
+            calculationsRepository
+                .GetTemplateMapping(specificationSummary.Id, specificationSummary.FundingStreams.Single().Id)
+                .Returns(mapping);
+
+            IPoliciesApiClient policiesApiClient = CreatePolicyApiClient();
+
+            policiesApiClient
+                .GetFundingTemplateContents(specificationSummary.FundingStreams.Single().Id, specificationSummary.FundingPeriod.Id, specificationSummary.TemplateIds[specificationSummary.FundingStreams.Single().Id])
+                .Returns(new ApiResponse<TemplateMetadataContents>(HttpStatusCode.OK,
+                    new TemplateMetadataContents { RootFundingLines = new Common.TemplateMetadata.Models.FundingLine[0] }));
+
+
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(featureToggle: featureToggle, 
+                buildProjectsRepository: buildProjectsRepository,
+                specificationsApiClient: specificationsApiClient,
+                policiesApiClient: policiesApiClient,
+                calculationsRepository: calculationsRepository);
 
             //Act
             IActionResult result = await buildProjectsService.GetBuildProjectBySpecificationId(SpecificationId);
@@ -551,13 +785,44 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetDatasetDefinitionById(Arg.Is("111"))
                 .Returns(new ApiResponse<Common.ApiClient.DataSets.Models.DatasetDefinition>(HttpStatusCode.OK, CreateDatsetDefinition()));
 
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+
+            SpecModels.SpecificationSummary specificationSummary = CreateSpecificationSummary(SpecificationId);
+
+            specificationsApiClient
+                .GetSpecificationSummaryById(SpecificationId)
+                .Returns(new ApiResponse<SpecModels.SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
+
+            TemplateMapping mapping = new TemplateMapping
+            {
+                FundingStreamId = specificationSummary.FundingStreams.Single().Id,
+                SpecificationId = specificationSummary.Id,
+                TemplateMappingItems = new List<TemplateMappingItem>()
+            };
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+
+            calculationsRepository
+                .GetTemplateMapping(specificationSummary.Id, specificationSummary.FundingStreams.Single().Id)
+                .Returns(mapping);
+
+            IPoliciesApiClient policiesApiClient = CreatePolicyApiClient();
+
+            policiesApiClient
+                .GetFundingTemplateContents(specificationSummary.FundingStreams.Single().Id, specificationSummary.FundingPeriod.Id, specificationSummary.TemplateIds[specificationSummary.FundingStreams.Single().Id])
+                .Returns(new ApiResponse<TemplateMetadataContents>(HttpStatusCode.OK,
+                    new TemplateMetadataContents { RootFundingLines = new Common.TemplateMetadata.Models.FundingLine[0] }));
+
             IMapper mapper = CreateMapper();
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(
                 featureToggle: featureToggle,
                 buildProjectsRepository: buildProjectsRepository,
                 datasetsApiClient: datasetsApiClient,
-                mapper: mapper);
+                mapper: mapper,
+                specificationsApiClient: specificationsApiClient,
+                policiesApiClient: policiesApiClient,
+                calculationsRepository: calculationsRepository);
 
             //Act
             IActionResult result = await buildProjectsService.GetBuildProjectBySpecificationId(SpecificationId);
@@ -617,13 +882,44 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetDatasetDefinitionById(Arg.Is("111"))
                 .Returns(new ApiResponse<Common.ApiClient.DataSets.Models.DatasetDefinition>(HttpStatusCode.OK, CreateDatsetDefinition()));
 
+            SpecModels.SpecificationSummary specificationSummary = CreateSpecificationSummary(specificationId);
+
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+
+            specificationsApiClient
+                .GetSpecificationSummaryById(specificationId)
+                .Returns(new ApiResponse<SpecModels.SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
+
+            TemplateMapping mapping = new TemplateMapping
+            {
+                FundingStreamId = specificationSummary.FundingStreams.Single().Id,
+                SpecificationId = specificationSummary.Id,
+                TemplateMappingItems = new List<TemplateMappingItem>()
+            };
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+
+            calculationsRepository
+                .GetTemplateMapping(specificationSummary.Id, specificationSummary.FundingStreams.Single().Id)
+                .Returns(mapping);
+
+            IPoliciesApiClient policiesApiClient = CreatePolicyApiClient();
+
+            policiesApiClient
+                .GetFundingTemplateContents(specificationSummary.FundingStreams.Single().Id, specificationSummary.FundingPeriod.Id, specificationSummary.TemplateIds[specificationSummary.FundingStreams.Single().Id])
+                .Returns(new ApiResponse<TemplateMetadataContents>(HttpStatusCode.OK,
+                    new TemplateMetadataContents { RootFundingLines = new Common.TemplateMetadata.Models.FundingLine[0] }));
+
             IMapper mapper = CreateMapper();
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(
                 logger: logger,
                 sourceCodeService: sourceCodeService,
                 datasetsApiClient: datasetsApiClient,
-                mapper: mapper);
+                mapper: mapper,
+                specificationsApiClient: specificationsApiClient,
+                policiesApiClient: policiesApiClient,
+                calculationsRepository: calculationsRepository);
 
             //Act
             IActionResult result = await buildProjectsService.GetAssemblyBySpecificationId(specificationId);
@@ -663,9 +959,42 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetDatasetDefinitionById(Arg.Is("111"))
                 .Returns(new ApiResponse<Common.ApiClient.DataSets.Models.DatasetDefinition>(HttpStatusCode.OK, CreateDatsetDefinition()));
 
+            SpecModels.SpecificationSummary specificationSummary = CreateSpecificationSummary(specificationId);
+
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+            specificationsApiClient
+                .GetSpecificationSummaryById(specificationId)
+                .Returns(new ApiResponse<SpecModels.SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
+
+            TemplateMapping mapping = new TemplateMapping
+            {
+                FundingStreamId = specificationSummary.FundingStreams.Single().Id,
+                SpecificationId = specificationSummary.Id,
+                TemplateMappingItems = new List<TemplateMappingItem>()
+            };
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+
+            calculationsRepository
+                .GetTemplateMapping(specificationSummary.Id, specificationSummary.FundingStreams.Single().Id)
+                .Returns(mapping);
+
+            IPoliciesApiClient policiesApiClient = CreatePolicyApiClient();
+
+            policiesApiClient
+                .GetFundingTemplateContents(specificationSummary.FundingStreams.Single().Id, specificationSummary.FundingPeriod.Id, specificationSummary.TemplateIds[specificationSummary.FundingStreams.Single().Id])
+                .Returns(new ApiResponse<TemplateMetadataContents>(HttpStatusCode.OK,
+                    new TemplateMetadataContents { RootFundingLines = new Common.TemplateMetadata.Models.FundingLine[0] }));
+
             IMapper mapper = CreateMapper();
 
-            BuildProjectsService buildProjectsService = CreateBuildProjectsService(logger: logger, sourceCodeService: sourceCodeService, datasetsApiClient: datasetsApiClient, mapper: mapper);
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(logger: logger, 
+                sourceCodeService: sourceCodeService, 
+                datasetsApiClient: datasetsApiClient, 
+                mapper: mapper,
+                policiesApiClient: policiesApiClient,
+                specificationsApiClient: specificationsApiClient,
+                calculationsRepository: calculationsRepository);
 
             //Act
             IActionResult result = await buildProjectsService.GetAssemblyBySpecificationId(specificationId);
@@ -3054,6 +3383,32 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetDatasetDefinitionById(Arg.Is("111"))
                 .Returns(new ApiResponse<Common.ApiClient.DataSets.Models.DatasetDefinition>(HttpStatusCode.OK, CreateDatsetDefinition()));
 
+            SpecModels.SpecificationSummary specificationSummary = CreateSpecificationSummary(SpecificationId);
+
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+
+            specificationsApiClient
+                .GetSpecificationSummaryById(SpecificationId)
+                .Returns(new ApiResponse<SpecModels.SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
+
+            TemplateMapping mapping = new TemplateMapping
+            {
+                FundingStreamId = specificationSummary.FundingStreams.Single().Id,
+                SpecificationId = specificationSummary.Id,
+                TemplateMappingItems = new List<TemplateMappingItem>()
+            };
+
+            calculationsRepository
+                .GetTemplateMapping(specificationSummary.Id, specificationSummary.FundingStreams.Single().Id)
+                .Returns(mapping);
+
+            IPoliciesApiClient policiesApiClient = CreatePolicyApiClient();
+
+            policiesApiClient
+                .GetFundingTemplateContents(specificationSummary.FundingStreams.Single().Id, specificationSummary.FundingPeriod.Id, specificationSummary.TemplateIds[specificationSummary.FundingStreams.Single().Id])
+                .Returns(new ApiResponse<TemplateMetadataContents>(HttpStatusCode.OK,
+                    new TemplateMetadataContents { RootFundingLines = new Common.TemplateMetadata.Models.FundingLine[0] }));
+
             IMapper mapper = CreateMapper();
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
@@ -3074,7 +3429,9 @@ namespace CalculateFunding.Services.Calcs.Services
                buildProjectsRepository: buildProjectsRepository,
                featureToggle: featureToggle,
                datasetsApiClient: datasetsApiClient,
-               mapper: mapper);
+               mapper: mapper,
+               policiesApiClient: policiesApiClient,
+               specificationsApiClient: specificationsApiClient);
 
             //Act
             IActionResult actionResult = await buildProjectsService.CompileAndSaveAssembly(SpecificationId);
@@ -3135,6 +3492,32 @@ namespace CalculateFunding.Services.Calcs.Services
                 .IsDynamicBuildProjectEnabled()
                 .Returns(true);
 
+            SpecModels.SpecificationSummary specificationSummary = CreateSpecificationSummary(SpecificationId);
+
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+
+            specificationsApiClient
+                .GetSpecificationSummaryById(SpecificationId)
+                .Returns(new ApiResponse<SpecModels.SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
+
+            TemplateMapping mapping = new TemplateMapping
+            {
+                FundingStreamId = specificationSummary.FundingStreams.Single().Id,
+                SpecificationId = specificationSummary.Id,
+                TemplateMappingItems = new List<TemplateMappingItem>()
+            };
+
+            calculationsRepository
+                .GetTemplateMapping(specificationSummary.Id, specificationSummary.FundingStreams.Single().Id)
+                .Returns(mapping);
+
+            IPoliciesApiClient policiesApiClient = CreatePolicyApiClient();
+
+            policiesApiClient
+                .GetFundingTemplateContents(specificationSummary.FundingStreams.Single().Id, specificationSummary.FundingPeriod.Id, specificationSummary.TemplateIds[specificationSummary.FundingStreams.Single().Id])
+                .Returns(new ApiResponse<TemplateMetadataContents>(HttpStatusCode.OK,
+                    new TemplateMetadataContents { RootFundingLines = new Common.TemplateMetadata.Models.FundingLine[0] }));
+
             IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectRepository();
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(
@@ -3143,7 +3526,9 @@ namespace CalculateFunding.Services.Calcs.Services
                buildProjectsRepository: buildProjectsRepository,
                featureToggle: featureToggle,
                datasetsApiClient: datasetsApiClient,
-               mapper: mapper);
+               mapper: mapper,
+               policiesApiClient: policiesApiClient,
+               specificationsApiClient: specificationsApiClient);
 
             //Act
             IActionResult actionResult = await buildProjectsService.CompileAndSaveAssembly(SpecificationId);
@@ -3179,6 +3564,30 @@ namespace CalculateFunding.Services.Calcs.Services
             return jobs;
         }
 
+        private static SpecModels.SpecificationSummary CreateSpecificationSummary(string specificationId = null)
+        {
+            Reference fundingStream = new Reference
+            {
+                Id = new RandomString(),
+                Name = new RandomString()
+            };
+
+            return new SpecModels.SpecificationSummary
+            {
+                Id = specificationId ?? new RandomString(),
+                Name = "Specification 1",
+                FundingStreams = new[] {
+                    fundingStream
+                },
+                FundingPeriod = new Reference
+                {
+                    Id = new RandomString(),
+                    Name = new RandomString()
+                },
+                TemplateIds = new Dictionary<string, string> { { fundingStream.Id, "1.1" } }
+            };
+        }
+
         private static BuildProjectsService CreateBuildProjectsService(
             ILogger logger = null,
             ITelemetry telemetry = null,
@@ -3194,7 +3603,8 @@ namespace CalculateFunding.Services.Calcs.Services
             IJobManagement jobManagement = null,
             IGraphRepository graphRepository = null,
             IMapper mapper = null,
-            ISpecificationsApiClient specificationsApiClient = null)
+            ISpecificationsApiClient specificationsApiClient = null,
+            IPoliciesApiClient policiesApiClient = null)
         {
             return new BuildProjectsService(
                 logger ?? CreateLogger(),
@@ -3212,12 +3622,18 @@ namespace CalculateFunding.Services.Calcs.Services
                 jobManagement ?? CreateJobManagement(),
                 graphRepository ?? CreateGraphRepository(),
                 mapper ?? CreateMapper(),
-                specificationsApiClient ?? CreateSpecificationsApiClient());
+                specificationsApiClient ?? CreateSpecificationsApiClient(),
+                policiesApiClient ?? CreatePolicyApiClient());
         }
 
         private static ISpecificationsApiClient CreateSpecificationsApiClient()
         {
             return Substitute.For<ISpecificationsApiClient>();
+        }
+
+        private static IPoliciesApiClient CreatePolicyApiClient()
+        {
+            return Substitute.For<IPoliciesApiClient>();
         }
 
         private static ISourceCodeService CreateSourceCodeService()

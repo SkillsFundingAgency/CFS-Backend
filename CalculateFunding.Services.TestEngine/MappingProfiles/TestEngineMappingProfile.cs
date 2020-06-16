@@ -32,7 +32,8 @@ namespace CalculateFunding.Services.TestEngine.MappingProfiles
                 .ForMember(m => m.EstablishmentNumber, opt => opt.Ignore())
                 .ForMember(m => m.OpenDate, opt => opt.Ignore());
 
-            CreateMap<Common.ApiClient.Calcs.Models.BuildProject, BuildProject>();
+            CreateMap<Common.ApiClient.Calcs.Models.BuildProject, BuildProject>()
+                .ForMember(m => m.FundingLines, opt => opt.Ignore());
             CreateMap<Common.ApiClient.Calcs.Models.Build, Build>();
             CreateMap<Common.ApiClient.Calcs.Models.SourceFile, SourceFile>();
             CreateMap<Common.ApiClient.Calcs.Models.CompilerMessage, CompilerMessage>();
