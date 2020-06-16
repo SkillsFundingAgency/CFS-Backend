@@ -1,4 +1,5 @@
-﻿using System.Net.Mime;
+﻿using System.Collections.Generic;
+using System.Net.Mime;
 using System.Threading.Tasks;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Common.Utility;
@@ -87,6 +88,19 @@ namespace CalculateFunding.Api.Policy.Controllers
                 fundingStreamId,
                 fundingPeriodId,
                 templateVersion);
+        }
+
+        /// <summary>
+        /// Gets source file and metadata of a template
+        /// </summary>
+        /// <param name="fundingStreamId">Funding stream ID</param>
+        /// <param name="fundingPeriodId">Funding Period ID</param>        
+        /// <returns></returns>
+        [HttpGet("api/templates/{fundingStreamId}/{fundingPeriodId}")]
+        [Produces(typeof(IEnumerable<PublishedFundingTemplate>))]
+        public async Task<IActionResult> GetFundingTemplates([FromRoute]string fundingStreamId, [FromRoute]string fundingPeriodId)
+        {
+            return await _fundingTemplateService.GetFundingTemplates(fundingStreamId, fundingPeriodId);
         }
     }
 }

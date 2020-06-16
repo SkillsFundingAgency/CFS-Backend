@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Caching;
@@ -8,6 +10,7 @@ using CalculateFunding.Common.TemplateMetadata;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Policy;
+using CalculateFunding.Models.Policy.TemplateBuilder;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
@@ -30,6 +33,7 @@ namespace CalculateFunding.Services.Policy
         private readonly ICacheProvider _cacheProvider;
         private readonly Polly.AsyncPolicy _cacheProviderPolicy;
         private readonly ITemplateMetadataResolver _templateMetadataResolver;
+        private readonly ITemplateBuilderService _templateBuilderService;
 
         public FundingTemplateService(
             ILogger logger,
@@ -37,7 +41,8 @@ namespace CalculateFunding.Services.Policy
             IPolicyResiliencePolicies policyResiliencePolicies,
             IFundingTemplateValidationService fundingTemplateValidationService,
             ICacheProvider cacheProvider,
-            ITemplateMetadataResolver templateMetadataResolver)
+            ITemplateMetadataResolver templateMetadataResolver,
+            ITemplateBuilderService templateBuilderService)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(fundingTemplateRepository, nameof(fundingTemplateRepository));
@@ -46,6 +51,7 @@ namespace CalculateFunding.Services.Policy
             Guard.ArgumentNotNull(fundingTemplateValidationService, nameof(fundingTemplateValidationService));
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
             Guard.ArgumentNotNull(templateMetadataResolver, nameof(templateMetadataResolver));
+            Guard.ArgumentNotNull(templateBuilderService, nameof(templateBuilderService));
 
             _logger = logger;
             _fundingTemplateRepository = fundingTemplateRepository;
@@ -54,6 +60,7 @@ namespace CalculateFunding.Services.Policy
             _cacheProvider = cacheProvider;
             _cacheProviderPolicy = policyResiliencePolicies.CacheProvider;
             _templateMetadataResolver = templateMetadataResolver;
+            _templateBuilderService = templateBuilderService;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -214,6 +221,18 @@ namespace CalculateFunding.Services.Policy
             }
         }
 
+        private async Task<IEnumerable<PublishedFundingTemplate>> SearchTemplates(string blobNamePrefix)
+        {
+            try
+            {
+                return await _fundingTemplateRepositoryPolicy.ExecuteAsync(() => _fundingTemplateRepository.SearchTemplates(blobNamePrefix));
+            }
+            catch (Exception ex)
+            {
+                throw new NonRetriableException($"Failed to search for funding template: '{blobNamePrefix}' from blob storage", ex);
+            }
+        }
+
         public async Task<IActionResult> GetFundingTemplateContents(string fundingStreamId, string fundingPeriodId, string templateVersion)
         {
             IActionResult getFundingTemplateMetadataResult = await GetFundingTemplateContentMetadata(fundingStreamId, fundingPeriodId, templateVersion);
@@ -241,6 +260,35 @@ namespace CalculateFunding.Services.Policy
         public async Task<bool> TemplateExists(string fundingStreamId, string fundingPeriodId, string templateVersion)
         {
             return await CheckIfFundingTemplateVersionExists(GetBlobNameFor(fundingStreamId, fundingPeriodId, templateVersion));
+        }
+
+        public async Task<IActionResult> GetFundingTemplates(string fundingStreamId, string fundingPeriodId)
+        {
+            IEnumerable<PublishedFundingTemplate> publishFundingTemplates = await SearchTemplates($"{fundingStreamId}/{ fundingPeriodId}/");
+            IEnumerable<TemplateResponse> templateResponses = await _templateBuilderService.FindVersionsByFundingStreamAndPeriod(new FindTemplateVersionQuery()
+            {
+                FundingStreamId = fundingStreamId,
+                FundingPeriodId = fundingPeriodId,
+                Statuses = new List<TemplateStatus>() { TemplateStatus.Published }
+            });
+
+            foreach (var publishedFundingTemplate in publishFundingTemplates)
+            {
+                var versionParts = publishedFundingTemplate.TemplateVersion.Split(".");
+                if (versionParts.Length >= 2)
+                {
+                    TemplateResponse templateResponse = templateResponses.FirstOrDefault(x => x.MajorVersion.ToString() == versionParts[0] && x.MinorVersion.ToString() == versionParts[1]);
+                    if(templateResponse != null)
+                    {
+                        publishedFundingTemplate.PublishNote = templateResponse.Comments;
+                        publishedFundingTemplate.AuthorId = templateResponse.AuthorId;
+                        publishedFundingTemplate.AuthorName = templateResponse.AuthorName;
+                        publishedFundingTemplate.SchemaVersion = templateResponse.SchemaVersion;
+                    }
+                }
+            }
+
+            return publishFundingTemplates.Any() ? (IActionResult) new OkObjectResult(publishFundingTemplates) : new NotFoundResult();
         }
 
         private async Task<IActionResult> GetFundingTemplateContentMetadata(string fundingStreamId, string fundingPeriodId, string templateVersion)

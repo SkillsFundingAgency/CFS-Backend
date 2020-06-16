@@ -175,5 +175,10 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         {
             throw new NotImplementedException();
         }
+
+        public Task<ApiResponse<IEnumerable<PublishedFundingTemplate>>> GetFundingTemplates(string fundingStreamId, string fundingPeriodId)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

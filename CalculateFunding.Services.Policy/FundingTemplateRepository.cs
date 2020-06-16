@@ -1,5 +1,7 @@
 ﻿using CalculateFunding.Common.Storage;
+using CalculateFunding.Models.Policy;
 using CalculateFunding.Services.Policy.Interfaces;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Policy
@@ -21,6 +23,11 @@ namespace CalculateFunding.Services.Policy
         public async Task<string> GetFundingTemplateVersion(string blobName)
         {
             return await GetVersion(blobName);
+        }
+
+        public async Task<IEnumerable<PublishedFundingTemplate>> SearchTemplates(string blobNamePrefix)
+        {
+            return await Search(blobNamePrefix);
         }
     }
 }

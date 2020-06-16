@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -8,6 +9,7 @@ using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.TemplateMetadata;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Models.Policy;
+using CalculateFunding.Models.Policy.TemplateBuilder;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
@@ -611,12 +613,205 @@ namespace CalculateFunding.Services.Policy
                     .SetAsync(Arg.Is(cacheKey), Arg.Is(template));
         }
 
+        [TestMethod]
+        public async Task GetFundingTemplates_GivenTemplateIsInBlob_ReturnsOkObjectResult()
+        {
+            //Arrange
+            const string fundingStreamId = "PES";
+            const string fundingPeriodId = "AY-2020";
+
+            string blobNamePrefix = $"{fundingStreamId}/{ fundingPeriodId}/";
+
+            IEnumerable<TemplateResponse> templateVersions = new[]
+            {
+                new TemplateResponse()
+                {
+                    FundingPeriodId = fundingPeriodId,
+                    FundingStreamId = fundingStreamId,
+                    MajorVersion = 1,
+                    MinorVersion = 0,
+                    Status = TemplateStatus.Published
+                }
+            };
+            IEnumerable<PublishedFundingTemplate> pubblishedFundingTempalte = new[]
+            {
+                new PublishedFundingTemplate()
+                {
+                    TemplateVersion = "1.0"
+                }
+
+            };
+
+            IFundingTemplateRepository fundingTemplateRepository = CreateFundingTemplateRepository();
+
+            fundingTemplateRepository
+                .SearchTemplates(Arg.Is(blobNamePrefix))
+                .Returns(pubblishedFundingTempalte);
+
+            ITemplateBuilderService templateBuilderService = CreateTemplateBuilderService();
+            templateBuilderService.FindVersionsByFundingStreamAndPeriod(Arg.Is<FindTemplateVersionQuery>(x => x.FundingStreamId == fundingStreamId && x.FundingPeriodId == fundingPeriodId))
+                                .Returns(templateVersions);
+
+
+            ILogger logger = CreateLogger();
+
+            FundingTemplateService fundingTemplateService = CreateFundingTemplateService(
+                logger,
+                fundingTemplateRepository: fundingTemplateRepository,
+                templateBuilderService: templateBuilderService);
+
+            //Act
+            IActionResult result = await fundingTemplateService.GetFundingTemplates(fundingStreamId, fundingPeriodId);
+
+            //Assert
+            result
+                .Should()
+                .BeAssignableTo<OkObjectResult>()
+                .Which
+                .Value
+                .Should()
+                .Be(pubblishedFundingTempalte);
+        }
+
+        [TestMethod]
+        public async Task GetFundingTemplates_GivenTemplateIsInBlob_Metatdata_In_TemplateBuilder_Collection_ReturnsOkObjectResultWithAMetadata()
+        {
+            //Arrange
+            const string fundingStreamId = "PES";
+            const string fundingPeriodId = "AY-2020";
+
+            string blobNamePrefix = $"{fundingStreamId}/{ fundingPeriodId}/";
+
+            IEnumerable<TemplateResponse> templateVersions = new[]
+            {
+                new TemplateResponse()
+                {
+                    FundingPeriodId = fundingPeriodId,
+                    FundingStreamId = fundingStreamId,
+                    MajorVersion = 1,
+                    MinorVersion = 1,
+                    Status = TemplateStatus.Published,
+                    AuthorId = "Auth-Id",
+                    AuthorName = "Auth-Name",
+                    Comments = "SomeComments",
+                    SchemaVersion = "1.1"
+                },
+                new TemplateResponse()
+                {
+                    FundingPeriodId = fundingPeriodId,
+                    FundingStreamId = fundingStreamId,
+                    MajorVersion = 1,
+                    MinorVersion = 0,
+                    Status = TemplateStatus.Published,
+                    AuthorId = "Auth-Id2",
+                    AuthorName = "Auth-Name2",
+                    Comments = "SomeComments2",
+                    SchemaVersion = "1.2"
+                }
+            };
+
+            IEnumerable<PublishedFundingTemplate> pubblishedFundingTempaltes = new[]
+            {
+                new PublishedFundingTemplate()
+                {
+                    TemplateVersion = "1.0",
+                    PublishDate = new DateTime(2020, 06, 15, 10, 30, 50)
+                }
+
+            };
+
+            IFundingTemplateRepository fundingTemplateRepository = CreateFundingTemplateRepository();
+
+            fundingTemplateRepository
+                .SearchTemplates(Arg.Is(blobNamePrefix))
+                .Returns(pubblishedFundingTempaltes);
+
+            ITemplateBuilderService templateBuilderService = CreateTemplateBuilderService();
+            templateBuilderService.FindVersionsByFundingStreamAndPeriod(Arg.Is<FindTemplateVersionQuery>(x => x.FundingStreamId == fundingStreamId && x.FundingPeriodId == fundingPeriodId))
+                                .Returns(templateVersions);
+
+
+            ILogger logger = CreateLogger();
+
+            FundingTemplateService fundingTemplateService = CreateFundingTemplateService(
+                logger,
+                fundingTemplateRepository: fundingTemplateRepository,
+                templateBuilderService: templateBuilderService);
+
+            //Act
+            IActionResult result = await fundingTemplateService.GetFundingTemplates(fundingStreamId, fundingPeriodId);
+
+            //Assert
+            result
+                .Should()
+                .BeAssignableTo<OkObjectResult>();
+            PublishedFundingTemplate resultTemplate = ((OkObjectResult)result).Value.As<IEnumerable<PublishedFundingTemplate>>().FirstOrDefault();
+            TemplateResponse templateResponse = templateVersions.First(x => x.MajorVersion == 1 && x.MinorVersion == 0);
+
+            resultTemplate.TemplateVersion.Should().Be(pubblishedFundingTempaltes.First().TemplateVersion);
+            resultTemplate.PublishDate.Should().Be(pubblishedFundingTempaltes.First().PublishDate);
+            resultTemplate.AuthorId.Should().Be(templateResponse.AuthorId);
+            resultTemplate.AuthorName.Should().Be(templateResponse.AuthorName);
+            resultTemplate.PublishNote.Should().Be(templateResponse.Comments);
+            resultTemplate.SchemaVersion.Should().Be(templateResponse.SchemaVersion);
+        }
+
+        [TestMethod]
+        public async Task GetFundingTemplates_GivenNoTemplateIsInBlob_ReturnsNotFound()
+        {
+            //Arrange
+            const string fundingStreamId = "PES";
+            const string fundingPeriodId = "AY-2020";
+
+            string blobNamePrefix = $"{fundingStreamId}/{ fundingPeriodId}/";
+
+            IEnumerable<TemplateResponse> templateVersions = new[]
+            {
+                new TemplateResponse()
+                {
+                    FundingPeriodId = fundingPeriodId,
+                    FundingStreamId = fundingStreamId,
+                    MajorVersion = 1,
+                    MinorVersion = 0,
+                    Status = TemplateStatus.Published
+                }
+            };
+            IEnumerable<PublishedFundingTemplate> pubblishedFundingTempalte = Enumerable.Empty<PublishedFundingTemplate>();
+
+            IFundingTemplateRepository fundingTemplateRepository = CreateFundingTemplateRepository();
+
+            fundingTemplateRepository
+                .SearchTemplates(Arg.Is(blobNamePrefix))
+                .Returns(pubblishedFundingTempalte);
+
+            ITemplateBuilderService templateBuilderService = CreateTemplateBuilderService();
+            templateBuilderService.FindVersionsByFundingStreamAndPeriod(Arg.Is<FindTemplateVersionQuery>(x => x.FundingStreamId == fundingStreamId && x.FundingPeriodId == fundingPeriodId))
+                                .Returns(templateVersions);
+
+
+            ILogger logger = CreateLogger();
+
+            FundingTemplateService fundingTemplateService = CreateFundingTemplateService(
+                logger,
+                fundingTemplateRepository: fundingTemplateRepository,
+                templateBuilderService: templateBuilderService);
+
+            //Act
+            IActionResult result = await fundingTemplateService.GetFundingTemplates(fundingStreamId, fundingPeriodId);
+
+            //Assert
+            result
+                .Should()
+                .BeAssignableTo<NotFoundResult>();
+        }
+
         private static FundingTemplateService CreateFundingTemplateService(
             ILogger logger = null,
             IFundingTemplateRepository fundingTemplateRepository = null,
             IFundingTemplateValidationService fundingTemplateValidationService = null,
             ICacheProvider cacheProvider = null,
-            ITemplateMetadataResolver templateMetadataResolver = null)
+            ITemplateMetadataResolver templateMetadataResolver = null,
+            ITemplateBuilderService templateBuilderService = null)
         {
             return new FundingTemplateService(
                    logger ?? CreateLogger(),
@@ -624,7 +819,8 @@ namespace CalculateFunding.Services.Policy
                    PolicyResiliencePoliciesTestHelper.GenerateTestPolicies(),
                    fundingTemplateValidationService ?? CreateFundingTemplateValidationService(),
                    cacheProvider ?? CreateCacheProvider(),
-                   templateMetadataResolver ?? CreateMetadataResolver()
+                   templateMetadataResolver ?? CreateMetadataResolver(),
+                   templateBuilderService ?? CreateTemplateBuilderService()
                 );
         }
 
@@ -666,6 +862,11 @@ namespace CalculateFunding.Services.Policy
         private static IFundingTemplateRepository CreateFundingTemplateRepository()
         {
             return Substitute.For<IFundingTemplateRepository>();
+        }
+
+        private static ITemplateBuilderService CreateTemplateBuilderService()
+        {
+            return Substitute.For<ITemplateBuilderService>();
         }
 
         private static IFundingTemplateValidationService CreateFundingTemplateValidationService()

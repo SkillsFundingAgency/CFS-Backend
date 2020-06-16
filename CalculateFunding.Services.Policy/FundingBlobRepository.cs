@@ -1,7 +1,9 @@
 ﻿using CalculateFunding.Common.Storage;
 using CalculateFunding.Common.Utility;
+using CalculateFunding.Models.Policy;
 using Microsoft.Azure.Storage.Blob;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -61,6 +63,23 @@ namespace CalculateFunding.Services.Policy
             }
 
             return schema;
+        }
+
+        protected Task<IEnumerable<PublishedFundingTemplate>> Search(string blobNamePrefix)
+        {
+            List<PublishedFundingTemplate> publishedFundingTemplates = new List<PublishedFundingTemplate>();
+
+            IEnumerable<IListBlobItem> blobItems = ListBlobs(blobNamePrefix, null, true, BlobListingDetails.None);
+            foreach (CloudBlockBlob blob in blobItems)
+            {
+                string templateVersion = Path.GetFileNameWithoutExtension(blob.Name);
+                DateTime lastModified = blob.Properties.LastModified.HasValue ?
+                    blob.Properties.LastModified.Value.UtcDateTime : blob.Properties.Created.GetValueOrDefault().UtcDateTime;
+
+                publishedFundingTemplates.Add(new PublishedFundingTemplate() { TemplateVersion = templateVersion, PublishDate = lastModified });
+            }
+
+            return Task.FromResult<IEnumerable<PublishedFundingTemplate>>(publishedFundingTemplates);
         }
     }
 }
