@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Policy;
 using CalculateFunding.Models.Policy.TemplateBuilder;
@@ -246,11 +247,13 @@ namespace CalculateFunding.Api.Policy.Controllers
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(CommandResult))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> PublishTemplate([FromRoute] string templateId, [FromBody] string note, [FromQuery] string version = null)
+        public async Task<IActionResult> PublishTemplate([FromRoute] string templateId, [FromBody] TemplatePublishCommand command)
         {
-            Reference author = ControllerContext.HttpContext.Request?.GetUserOrDefault();
+            Guard.ArgumentNotNull(command, nameof(command));
             
-            CommandResult response = await _templateBuilderService.PublishTemplate(new TemplatePublishCommand { Author = author, TemplateId = templateId, Version = version, Note = note});
+            command.Author = ControllerContext.HttpContext.Request?.GetUserOrDefault();
+            
+            CommandResult response = await _templateBuilderService.PublishTemplate(command);
 
             if (response.Succeeded)
             {

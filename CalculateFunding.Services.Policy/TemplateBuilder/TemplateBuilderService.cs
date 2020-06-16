@@ -445,12 +445,12 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             var templateVersion = template.Current;
             if (command.Version != null)
             {
-                if (!int.TryParse(command.Version, out int versionNumber))
+                if (command.VersionNumber == 0)
                 {
                     return CommandResult.ValidationFail(nameof(command.Version), $"Invalid version '{command.Version}'");
                 }
 
-                templateVersion = await _templateVersionRepository.GetTemplateVersion(command.TemplateId, versionNumber);
+                templateVersion = await _templateVersionRepository.GetTemplateVersion(command.TemplateId, command.VersionNumber);
                 if (templateVersion == null)
                 {
                     return CommandResult.ValidationFail(nameof(command.Version), $"Version '{command.Version}' could not be found for template '{command.TemplateId}'");

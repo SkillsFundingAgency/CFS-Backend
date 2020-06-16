@@ -8,5 +8,9 @@ namespace CalculateFunding.Models.Policy.TemplateBuilder
         public string TemplateId { get; set; }
         public string Note { get; set; }
         public string Version { get; set; }
+        public int VersionNumber =>
+            int.TryParse(Version, out int versionNumber)
+                ? versionNumber
+                : 0;
     }
 }
