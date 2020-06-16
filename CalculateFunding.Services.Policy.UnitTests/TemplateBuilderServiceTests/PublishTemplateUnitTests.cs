@@ -22,12 +22,12 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
     public class ApproveTemplateUnitTests
     {
         [TestClass]
-        public class When_i_approve_current_template
+        public class When_i_publish_current_template
         {
             TemplateBuilderService _service;
             Reference _author;
             string _templateId;
-            string _comment;
+            string _publishNote;
             CommandResult _result;
             private ITemplateVersionRepository _versionRepository;
             private ITemplateRepository _templateRepository;
@@ -35,11 +35,11 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
             private Template _templateBeforeUpdate;
             private TemplateVersion _templateVersionBeforeUpdate;
 
-            public When_i_approve_current_template()
+            public When_i_publish_current_template()
             {
                 _templateId = Guid.NewGuid().ToString();
                 _author = new Reference("222", "SecondTestUser");
-                _comment = "Test approval comment";
+                _publishNote = "Test publish note";
 
                 SetupMocks();
 
@@ -53,7 +53,13 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
                     Substitute.For<IPolicyRepository>(),
                     Substitute.For<ILogger>());
 
-                _result = _service.ApproveTemplate(_author, _templateId, _comment).GetAwaiter().GetResult();
+                TemplatePublishCommand command = new TemplatePublishCommand
+                {
+                    Author = _author,
+                    TemplateId = _templateId,
+                    Note = _publishNote
+                };
+                _result = _service.PublishTemplate(command).GetAwaiter().GetResult();
             }
 
             private void SetupMocks()
@@ -212,9 +218,9 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
             }
 
             [TestMethod]
-            public void Saved_version_with_correct_comment()
+            public void Saved_version_with_correct_note()
             {
-                _versionRepository.Received(1).SaveVersion(Arg.Is<TemplateVersion>(x => x.Comment == _comment));
+                _versionRepository.Received(1).SaveVersion(Arg.Is<TemplateVersion>(x => x.Comment == _publishNote));
             }
 
             [TestMethod]
@@ -237,12 +243,12 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
         }
         
         [TestClass]
-        public class When_i_approve_previous_version_of_template
+        public class When_i_publish_previous_version_of_template
         {
             TemplateBuilderService _service;
             Reference _author;
             string _templateId;
-            string _comment;
+            string _publishNote;
             CommandResult _result;
             private ITemplateVersionRepository _versionRepository;
             private ITemplateRepository _templateRepository;
@@ -251,11 +257,11 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
             private TemplateVersion _templateVersionPrevious;
             private TemplateVersion _templateVersionCurrent;
 
-            public When_i_approve_previous_version_of_template()
+            public When_i_publish_previous_version_of_template()
             {
                 _templateId = Guid.NewGuid().ToString();
                 _author = new Reference("222", "SecondTestUser");
-                _comment = "Test approval comment";
+                _publishNote = "Test publish comment";
 
                 SetupMocks();
 
@@ -269,7 +275,14 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
                     Substitute.For<IPolicyRepository>(),
                     Substitute.For<ILogger>());
 
-                _result = _service.ApproveTemplate(_author, _templateId, _comment, _templateVersionPrevious.Version.ToString()).GetAwaiter().GetResult();
+                TemplatePublishCommand command = new TemplatePublishCommand
+                {
+                    Author = _author,
+                    TemplateId = _templateId,
+                    Version = _templateVersionPrevious.Version.ToString(),
+                    Note = _publishNote
+                };
+                _result = _service.PublishTemplate(command).GetAwaiter().GetResult();
             }
 
             private void SetupMocks()
@@ -441,9 +454,9 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
             }
 
             [TestMethod]
-            public void Saved_version_with_correct_comment()
+            public void Saved_version_with_correct_note()
             {
-                _versionRepository.Received(1).SaveVersion(Arg.Is<TemplateVersion>(x => x.Comment == _comment));
+                _versionRepository.Received(1).SaveVersion(Arg.Is<TemplateVersion>(x => x.Comment == _publishNote));
             }
 
             [TestMethod]

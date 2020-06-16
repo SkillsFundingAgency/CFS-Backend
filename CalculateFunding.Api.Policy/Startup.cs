@@ -236,6 +236,7 @@ namespace CalculateFunding.Api.Policy
                 .AddSingleton<AbstractValidator<TemplateCreateAsCloneCommand>, TemplateCreateAsCloneCommandValidator>()
                 .AddSingleton<AbstractValidator<TemplateFundingLinesUpdateCommand>, TemplateContentUpdateCommandValidator>()
                 .AddSingleton<AbstractValidator<TemplateMetadataUpdateCommand>, TemplateMetadataUpdateCommandValidator>()
+                .AddSingleton<AbstractValidator<TemplatePublishCommand>, TemplatePublishCommandValidator>()
                 .AddSingleton<AbstractValidator<Reference>, AuthorValidator>()
                 .AddSingleton<AbstractValidator<FindTemplateVersionQuery>, FindTemplateVersionQueryValidator>()
                 .AddSingleton<ITemplateRepository, TemplateRepository>(ctx => new TemplateRepository(cosmos))

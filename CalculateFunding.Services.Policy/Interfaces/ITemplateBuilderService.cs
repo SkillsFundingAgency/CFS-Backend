@@ -21,9 +21,9 @@ namespace CalculateFunding.Services.Policy.Interfaces
         Task<CommandResult> UpdateTemplateContent(TemplateFundingLinesUpdateCommand originalCommand, Reference author);
 
         Task<CommandResult> UpdateTemplateMetadata(TemplateMetadataUpdateCommand command, Reference author);
-        
-        Task<CommandResult> ApproveTemplate(Reference author, string templateId, string comment, string version = null);
-        
+
+        Task<CommandResult> PublishTemplate(TemplatePublishCommand command);
+
         Task<CommandResult> CreateTemplateAsClone(TemplateCreateAsCloneCommand command, Reference author);
         
         Task<IEnumerable<FundingStreamWithPeriods>> GetFundingStreamAndPeriodsWithoutTemplates();

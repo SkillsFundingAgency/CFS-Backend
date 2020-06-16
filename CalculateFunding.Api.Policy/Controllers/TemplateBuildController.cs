@@ -242,15 +242,15 @@ namespace CalculateFunding.Api.Policy.Controllers
             return Ok(templateVersionResponses);
         }
 
-        [HttpPost("api/templates/build/{templateId}/approve")]
+        [HttpPost("api/templates/build/{templateId}/publish")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(CommandResult))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> ApproveTemplate([FromRoute] string templateId, [FromQuery] string comment = null, [FromQuery] string version = null)
+        public async Task<IActionResult> PublishTemplate([FromRoute] string templateId, [FromBody] string note, [FromQuery] string version = null)
         {
             Reference author = ControllerContext.HttpContext.Request?.GetUserOrDefault();
             
-            CommandResult response = await _templateBuilderService.ApproveTemplate(author, templateId, comment, version);
+            CommandResult response = await _templateBuilderService.PublishTemplate(new TemplatePublishCommand { Author = author, TemplateId = templateId, Version = version, Note = note});
 
             if (response.Succeeded)
             {

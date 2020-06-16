@@ -427,29 +427,33 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             return CommandResult.Success();
         }
 
-        public async Task<CommandResult> ApproveTemplate(Reference author, string templateId, string comment, string version = null)
+        public async Task<CommandResult> PublishTemplate(TemplatePublishCommand command)
         {
-            Guard.IsNotEmpty(templateId, nameof(templateId));
-            Guard.ArgumentNotNull(author, nameof(author));
+            ValidationResult validatorResult = await _validatorFactory.Validate(command);
+            
+            if (!validatorResult.IsValid)
+            {
+                return CommandResult.ValidationFail(validatorResult);
+            }
 
-            var template = await _templateRepository.GetTemplate(templateId);
+            var template = await _templateRepository.GetTemplate(command.TemplateId);
             if (template == null)
             {
-                return CommandResult.ValidationFail(nameof(templateId), "Template doesn't exist");
+                return CommandResult.ValidationFail(nameof(command.TemplateId), "Template doesn't exist");
             }
 
             var templateVersion = template.Current;
-            if (version != null)
+            if (command.Version != null)
             {
-                if (!int.TryParse(version, out int versionNumber))
+                if (!int.TryParse(command.Version, out int versionNumber))
                 {
-                    return CommandResult.ValidationFail(nameof(version), $"Invalid version '{version}'");
+                    return CommandResult.ValidationFail(nameof(command.Version), $"Invalid version '{command.Version}'");
                 }
 
-                templateVersion = await _templateVersionRepository.GetTemplateVersion(templateId, versionNumber);
+                templateVersion = await _templateVersionRepository.GetTemplateVersion(command.TemplateId, versionNumber);
                 if (templateVersion == null)
                 {
-                    return CommandResult.ValidationFail(nameof(version), $"Version '{version}' could not be found for template '{templateId}'");
+                    return CommandResult.ValidationFail(nameof(command.Version), $"Version '{command.Version}' could not be found for template '{command.TemplateId}'");
                 }
             }
 
@@ -460,12 +464,12 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
 
             // create new version and save it
             TemplateVersion newVersion = templateVersion.Clone() as TemplateVersion;
-            newVersion.Author = author;
+            newVersion.Author = command.Author;
             newVersion.Name = template.Name;
             newVersion.FundingStreamId = template.FundingStream.Id;
             newVersion.FundingPeriodId = template.FundingPeriod.Id;
             newVersion.Description = templateVersion.Description;
-            newVersion.Comment = comment;
+            newVersion.Comment = command.Note;
             newVersion.TemplateJson = templateVersion.TemplateJson;
             newVersion.Status = TemplateStatus.Published;
             newVersion.Version = template.Current.Version + 1;
@@ -477,7 +481,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             var templateVersionUpdateResult = await _templateVersionRepository.SaveVersion(newVersion);
             if (!templateVersionUpdateResult.IsSuccess())
             {
-                return CommandResult.ValidationFail(nameof(templateId), $"Template version failed to save: {templateVersionUpdateResult}");
+                return CommandResult.ValidationFail(nameof(command.TemplateId), $"Template version failed to save: {templateVersionUpdateResult}");
             }
 
             // update template
