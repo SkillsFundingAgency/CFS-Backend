@@ -9,5 +9,6 @@ namespace CalculateFunding.Api.External.V3.Interfaces
         Task<IActionResult> GetFundingPeriods(string fundingStreamId);
         Task<IActionResult> GetFundingTemplateSourceFile(
             string fundingStreamId, string fundingPeriodId, string majorVersion, string minorVersion);
+        Task<IActionResult> GetPublishedFundingTemplates(string fundingStreamId, string fundingPeriodId);
     }
 }

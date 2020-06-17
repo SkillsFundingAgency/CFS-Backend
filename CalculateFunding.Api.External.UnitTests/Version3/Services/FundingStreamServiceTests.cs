@@ -210,6 +210,75 @@ namespace CalculateFunding.Api.External.UnitTests.Version3.Services
             ThenTemplateContentMatches(result, templateContent);
         }
 
+        [TestMethod]
+        public async Task ReturnsPublishedFundingTemplatesForGivenFundingStreamAndPeriod()
+        {
+            IEnumerable<PolicyApiClientModel.PublishedFundingTemplate> publishedFundingTemplates =
+                new List<PolicyApiClientModel.PublishedFundingTemplate>
+                {
+                    new PolicyApiClientModel.PublishedFundingTemplate()
+                    {
+                        AuthorName = "AuthName",
+                        AuthorId = "AuthId",
+                        PublishDate = new DateTime(2020,06,16, 10, 30, 40, 00),
+                        PublishNote = "SomeComments",
+                        SchemaVersion = "1.2",
+                        TemplateVersion= "2.3"
+                    }
+                };
+
+            GivenApiPublishedFundingTemplates(_fundingStreamId, _fundingPeriodId, publishedFundingTemplates);
+
+            IActionResult result = await WhenGetPublishedFundingTemplates(_fundingStreamId, _fundingPeriodId);
+
+            result
+                .Should()
+                .BeOfType<OkObjectResult>()
+                .Which
+                .Value
+                .Should()
+                .BeAssignableTo<IEnumerable<PublishedFundingTemplate>>();
+
+            var template = ((ObjectResult)result).Value.As<IEnumerable<PublishedFundingTemplate>>().First();
+            template.MajorVersion.Should().Be("2");
+            template.MinorVersion.Should().Be("3");
+            template.PublishNote.Should().Be("SomeComments");
+            template.AuthorName.Should().Be("AuthName");
+            template.PublishDate.Should().Be(new DateTime(2020, 06, 16, 10, 30, 40, 00));
+            template.SchemaVersion.Should().Be("1.2");
+        }
+
+        [TestMethod]
+        public async Task ReturnsNotFoundIfNoPublishFundingTemplatesForGivenFundingStreamAndPeriod()
+        {
+            IEnumerable<PolicyApiClientModel.PublishedFundingTemplate> publishedFundingTemplates = new List<PolicyApiClientModel.PublishedFundingTemplate>();
+
+            _policiesApiClient
+               .GetFundingTemplates(Arg.Is(_fundingStreamId), Arg.Is(_fundingPeriodId))
+               .Returns(
+               Task.FromResult(
+                   new ApiResponse<IEnumerable<PolicyApiClientModel.PublishedFundingTemplate>>(
+                       HttpStatusCode.NotFound,
+                       publishedFundingTemplates)));
+
+            IActionResult result = await WhenGetPublishedFundingTemplates(_fundingStreamId, _fundingPeriodId);
+
+            result
+                .Should()
+                .BeOfType<NotFoundResult>();
+        }
+
+        private void GivenApiPublishedFundingTemplates(string fundingStreamId, string fundingPeriodId, IEnumerable<PolicyApiClientModel.PublishedFundingTemplate> publishedFundingTemplates)
+        {
+            _policiesApiClient
+                .GetFundingTemplates(Arg.Is(fundingStreamId), Arg.Is(fundingPeriodId))
+                .Returns(
+                Task.FromResult(
+                    new ApiResponse<IEnumerable<PolicyApiClientModel.PublishedFundingTemplate>>(
+                        HttpStatusCode.OK,
+                        publishedFundingTemplates)));
+        }
+
         private void GivenApiFundingStreams(IEnumerable<PolicyApiClientModel.FundingStream> fundingStreams)
         {
             _policiesApiClient
@@ -259,6 +328,11 @@ namespace CalculateFunding.Api.External.UnitTests.Version3.Services
         private async Task<IActionResult> WhenGetFundingPeriods(string fundingStreamId)
         {
             return await _fundingStreamService.GetFundingPeriods(fundingStreamId);
+        }
+
+        private async Task<IActionResult> WhenGetPublishedFundingTemplates(string fundingStreamId, string fundingPeriodId)
+        {
+            return await _fundingStreamService.GetPublishedFundingTemplates(fundingStreamId, fundingPeriodId);
         }
 
         private async Task<IActionResult> WhenGetFundingTemplateSourceFile(

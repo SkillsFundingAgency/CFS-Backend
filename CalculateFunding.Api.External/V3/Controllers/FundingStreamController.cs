@@ -46,5 +46,12 @@ namespace CalculateFunding.Api.External.V3.Controllers
                 majorVersion,
                 minorVersion);
         }
+
+        [HttpGet("{fundingStreamId}/funding-periods/{fundingPeriodId}/templates")]
+        [ProducesResponseType(200, Type = typeof(IEnumerable<PublishedFundingTemplate>))]
+        public async Task<IActionResult> GetPublishedFundingTemplates(string fundingStreamId, string fundingPeriodId)
+        {
+            return await _fundingStreamService.GetPublishedFundingTemplates(fundingStreamId,fundingPeriodId);
+        }
     }
 }
