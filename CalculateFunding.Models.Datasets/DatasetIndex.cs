@@ -9,7 +9,7 @@ namespace CalculateFunding.Models.Datasets
     public class DatasetIndex
     {
         [Key]
-        [IsSearchable, IsRetrievable(true)]
+        [IsRetrievable(true)]
         [JsonProperty("id")]
         public string Id { get; set; }
 
@@ -29,7 +29,7 @@ namespace CalculateFunding.Models.Datasets
         [JsonProperty("version")]
         public int Version { get; set; }
 
-        [IsFilterable, IsSearchable, IsFacetable, IsRetrievable(true)]
+        [IsFilterable, IsFacetable, IsRetrievable(true)]
         [JsonProperty("fundingPeriodNames")]
         public string[] FundingPeriodNames { get; set; }
 
@@ -37,11 +37,11 @@ namespace CalculateFunding.Models.Datasets
         [JsonProperty("fundingperiodIds")]
         public string[] FundingPeriodIds { get; set; }
 
-        [IsFilterable, IsSortable, IsFacetable, IsSearchable, IsRetrievable(true)]
+        [IsFilterable, IsSortable, IsFacetable, IsRetrievable(true)]
         [JsonProperty("status")]
         public string Status { get; set; }
 
-        [IsFilterable, IsSortable, IsSearchable, IsFacetable, IsRetrievable(true)]
+        [IsFilterable, IsSortable, IsFacetable, IsRetrievable(true)]
         [JsonProperty("definitionName")]
         public string DefinitionName { get; set; }
 
@@ -65,7 +65,7 @@ namespace CalculateFunding.Models.Datasets
         [IsRetrievable(true)]
         public string[] SpecificationIds { get; set; }
 
-        [IsFilterable, IsFacetable, IsSearchable, IsRetrievable(true)]
+        [IsFilterable, IsFacetable, IsRetrievable(true)]
         [JsonProperty("specificationNames")]
         public string[] SpecificationNames { get; set; }
 
