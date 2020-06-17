@@ -224,26 +224,28 @@ namespace CalculateFunding.Services.Calcs.Services
             GivenAValidMessage();
             AndTheTemplateMapping(templateMapping);
             AndTheTemplateMetaDataContents(templateMetadataContents);
+
+            CalculationValueType calculationValueTypeOne = templateCalculationOne.ValueFormat.AsMatchingEnum<CalculationValueType>();
+            CalculationValueType calculationValueTypeTwo = templateCalculationTwo.ValueFormat.AsMatchingEnum<CalculationValueType>();
+            CalculationValueType calculationValueTypeThree = templateCalculationThree.ValueFormat.AsMatchingEnum<CalculationValueType>();
+
             AndTheCalculationIsCreatedForRequestMatching(_ => _.Name == templateCalculationOne.Name &&
-                                                              _.SourceCode == "return 0" &&
+                                                              _.SourceCode == calculationValueTypeOne.GetDefaultSourceCode() &&
                                                               _.SpecificationId == _specificationId &&
                                                               _.FundingStreamId == _fundingStreamId &&
-                                                              _.ValueType.GetValueOrDefault()
-                                                              == templateCalculationOne.ValueFormat.AsMatchingEnum<CalculationValueType>(),
+                                                              _.ValueType.GetValueOrDefault() == calculationValueTypeOne,
                 NewCalculation(_ => _.WithId(newCalculationId1)));
             AndTheCalculationIsCreatedForRequestMatching(_ => _.Name == templateCalculationTwo.Name &&
-                                                              _.SourceCode == "return 0" &&
+                                                              _.SourceCode == calculationValueTypeTwo.GetDefaultSourceCode() &&
                                                               _.SpecificationId == _specificationId &&
                                                               _.FundingStreamId == _fundingStreamId &&
-                                                              _.ValueType.GetValueOrDefault()
-                                                              == templateCalculationTwo.ValueFormat.AsMatchingEnum<CalculationValueType>(),
+                                                              _.ValueType.GetValueOrDefault() == calculationValueTypeTwo,
                 NewCalculation(_ => _.WithId(newCalculationId2)));
             AndTheCalculationIsCreatedForRequestMatching(_ => _.Name == templateCalculationThree.Name &&
-                                                              _.SourceCode == "return 0" &&
+                                                              _.SourceCode == calculationValueTypeThree.GetDefaultSourceCode() &&
                                                               _.SpecificationId == _specificationId &&
                                                               _.FundingStreamId == _fundingStreamId &&
-                                                              _.ValueType.GetValueOrDefault()
-                                                              == templateCalculationThree.ValueFormat.AsMatchingEnum<CalculationValueType>(),
+                                                              _.ValueType.GetValueOrDefault() == calculationValueTypeThree,
                 NewCalculation(_ => _.WithId(newCalculationId3)));
             AndTheTemplateContentsCalculation(mappingWithMissingCalculation1, templateMetadataContents, templateCalculationOne);
             AndTheTemplateContentsCalculation(mappingWithMissingCalculation2, templateMetadataContents, templateCalculationTwo);
@@ -337,12 +339,15 @@ namespace CalculateFunding.Services.Calcs.Services
             GivenAValidMessage();
             AndTheTemplateMapping(templateMapping);
             AndTheTemplateMetaDataContents(templateMetadataContents);
+
+            CalculationValueType calculationValueTypeOne = templateCalculationOne.ValueFormat.AsMatchingEnum<CalculationValueType>();
+            CalculationValueType calculationValueTypeTwo = templateCalculationTwo.ValueFormat.AsMatchingEnum<CalculationValueType>();
+
             AndTheCalculationIsCreatedForRequestMatching(_ => _.Name == templateCalculationOne.Name &&
-                                                              _.SourceCode == "return 0" &&
+                                                              _.SourceCode == calculationValueTypeOne.GetDefaultSourceCode() &&
                                                               _.SpecificationId == _specificationId &&
                                                               _.FundingStreamId == _fundingStreamId &&
-                                                              _.ValueType.GetValueOrDefault()
-                                                              == templateCalculationOne.ValueFormat.AsMatchingEnum<CalculationValueType>(),
+                                                              _.ValueType.GetValueOrDefault() == calculationValueTypeOne,
                 NewCalculation(_ => _.WithId(newCalculationId1)));
             AndTheCalculationIsEditedForRequestMatching(_ => _.Name == calculationName1 &&
                                                             _.ValueType.GetValueOrDefault() == calculationValueFormat1.AsMatchingEnum<CalculationValueType>() &&
@@ -350,11 +355,10 @@ namespace CalculateFunding.Services.Calcs.Services
                                                             _.SourceCode == null,
                 calculationId1);
             AndTheCalculationIsCreatedForRequestMatching(_ => _.Name == templateCalculationTwo.Name &&
-                                                              _.SourceCode == "return 0" &&
+                                                              _.SourceCode == calculationValueTypeTwo.GetDefaultSourceCode() &&
                                                               _.SpecificationId == _specificationId &&
                                                               _.FundingStreamId == _fundingStreamId &&
-                                                              _.ValueType.GetValueOrDefault()
-                                                              == templateCalculationTwo.ValueFormat.AsMatchingEnum<CalculationValueType>(),
+                                                              _.ValueType.GetValueOrDefault() == calculationValueTypeTwo,
                 NewCalculation(_ => _.WithId(newCalculationId2)));
             AndTheCalculationIsEditedForRequestMatching(_ => _.Name == calculationName2 &&
                                                 _.ValueType.GetValueOrDefault() == calculationValueFormat2.AsMatchingEnum<CalculationValueType>() &&
@@ -443,19 +447,21 @@ namespace CalculateFunding.Services.Calcs.Services
             GivenAValidMessage();
             AndTheTemplateMapping(templateMapping);
             AndTheTemplateMetaDataContents(templateMetadataContents);
+
+            CalculationValueType calculationValueTypeOne = templateCalculationOne.ValueFormat.AsMatchingEnum<CalculationValueType>();
+            CalculationValueType calculationValueTypeTwo = templateCalculationTwo.ValueFormat.AsMatchingEnum<CalculationValueType>();
+
             AndTheCalculationIsCreatedForRequestMatching(_ => _.Name == templateCalculationOne.Name &&
-                                                              _.SourceCode == "return 0" &&
+                                                              _.SourceCode == calculationValueTypeOne.GetDefaultSourceCode() &&
                                                               _.SpecificationId == _specificationId &&
                                                               _.FundingStreamId == _fundingStreamId &&
-                                                              _.ValueType.GetValueOrDefault()
-                                                              == templateCalculationOne.ValueFormat.AsMatchingEnum<CalculationValueType>(),
+                                                              _.ValueType.GetValueOrDefault() == calculationValueTypeOne,
                 NewCalculation(_ => _.WithId(newCalculationId1)));
             AndTheCalculationIsCreatedForRequestMatching(_ => _.Name == templateCalculationTwo.Name &&
-                                                              _.SourceCode == "return 0" &&
+                                                              _.SourceCode == calculationValueTypeTwo.GetDefaultSourceCode() &&
                                                               _.SpecificationId == _specificationId &&
                                                               _.FundingStreamId == _fundingStreamId &&
-                                                              _.ValueType.GetValueOrDefault()
-                                                              == templateCalculationTwo.ValueFormat.AsMatchingEnum<CalculationValueType>(),
+                                                              _.ValueType.GetValueOrDefault() == calculationValueTypeTwo,
                 NewCalculation(_ => _.WithId(newCalculationId2)));
             AndTheTemplateContentsCalculation(mappingWithMissingCalculation1, templateMetadataContents, templateCalculationOne);
             AndTheTemplateContentsCalculation(mappingWithMissingCalculation2, templateMetadataContents, templateCalculationTwo);

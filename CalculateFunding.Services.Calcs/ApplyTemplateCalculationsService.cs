@@ -333,13 +333,15 @@ namespace CalculateFunding.Services.Calcs
             if (templateCalculation == null)
                 LogAndThrowException($"Unable to locate template contents for template calculation id {templateMapping.TemplateId}");
 
+            CalculationValueType calculationValueType = templateCalculation.ValueFormat.AsMatchingEnum<CalculationValueType>();
+
             CalculationCreateModel calculationCreateModel = new CalculationCreateModel
             {
                 FundingStreamId = fundingStreamId,
                 SpecificationId = specificationId,
-                ValueType = templateCalculation.ValueFormat.AsMatchingEnum<CalculationValueType>(),
+                ValueType = calculationValueType,
                 Name = templateCalculation.Name,
-                SourceCode = "return 0"
+                SourceCode = calculationValueType.GetDefaultSourceCode(),
             };
 
             CreateCalculationResponse createCalculationResponse = await _createCalculationService.CreateCalculation(specificationId,
@@ -351,7 +353,7 @@ namespace CalculateFunding.Services.Calcs
                 initiateCalcRun: false);
 
             if (!(createCalculationResponse?.Succeeded).GetValueOrDefault())
-                LogAndThrowException("Unable to create new default template calculation for template mapping");
+                 LogAndThrowException("Unable to create new default template calculation for template mapping");
 
             templateMapping.CalculationId = createCalculationResponse.Calculation.Id;
 

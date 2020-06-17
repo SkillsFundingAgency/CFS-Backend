@@ -144,12 +144,12 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                 if (string.IsNullOrWhiteSpace(currentCalculationVersion.SourceCodeName)) throw new InvalidOperationException($"Calculation source code name is not populated for calc {calculation.Id}");
 
                 // Add attributes to describe calculation and calculation specification
-                sourceCode.AppendLine($"<Calculation(Id := \"{calculation.Id}\", Name := \"{calculation.Name}\")>");
+                sourceCode.AppendLine($"<Calculation(Id := \"{calculation.Id}\", Name := \"{calculation.Name}\", CalculationDataType := \"{calculation.Current.DataType}\")>");
                
                 // Add attribute for calculation description
                 if (currentCalculationVersion.Description.IsNotNullOrWhitespace()) sourceCode.AppendLine($"<Description(Description := \"{currentCalculationVersion.Description?.Replace("\"", "\"\"")}\")>");
 
-                sourceCode.AppendLine($"Public {currentCalculationVersion.SourceCodeName} As Func(Of decimal?) = Nothing");
+                sourceCode.AppendLine($"Public {currentCalculationVersion.SourceCodeName} As Func(Of {GetDataType(calculation.Current.DataType)}) = Nothing");
                 sourceCode.AppendLine();
 
                 yield return ParseSourceCodeToStatementSyntax(sourceCode);
@@ -176,16 +176,17 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
 
                 sourceCode.AppendLine();
 
-                sourceCode.AppendLine($"{calculation.Current.SourceCodeName} = Function() As decimal?");
+                sourceCode.AppendLine($"{calculation.Current.SourceCodeName} = Function() As {GetDataType(calculation.Current.DataType)}");
                 sourceCode.AppendLine($"{calculation.Namespace}.calcname = Function() As String");
                 sourceCode.AppendLine($"Return \"{calculation.Namespace}.{calculation.Current.SourceCodeName}\"");
                 sourceCode.AppendLine("End Function");
                 sourceCode.AppendLine();
                 sourceCode.AppendLine("Dim existingCacheItem as String() = Nothing");
                 sourceCode.AppendLine($"If calculationContext.Dictionary.TryGetValue(\"{calculation.Id}\", existingCacheItem) Then");
-                sourceCode.AppendLine("Dim existingCalculationResultDecimal As Decimal? = Nothing");
-                sourceCode.AppendLine($"   If calculationContext.DictionaryValues.TryGetValue(\"{calculation.Id}\", existingCalculationResultDecimal) Then");
-                sourceCode.AppendLine("        Return existingCalculationResultDecimal");
+                sourceCode.AppendLine($"Dim existingCalculationResult{GetVariableName(calculation.Current.DataType)} As {GetDataType(calculation.Current.DataType)} = Nothing");
+                sourceCode.AppendLine(
+                    $"   If calculationContext.Dictionary{GetVariableName(calculation.Current.DataType)}Values.TryGetValue(\"{calculation.Id}\", existingCalculationResult{GetVariableName(calculation.Current.DataType)}) Then");
+                sourceCode.AppendLine($"        Return existingCalculationResult{GetVariableName(calculation.Current.DataType)}");
                 sourceCode.AppendLine("    End If");
 
                 sourceCode.AppendLine("    If existingCacheItem.Length > 2 Then");
@@ -197,7 +198,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                 sourceCode.AppendLine("        End If");
                 sourceCode.AppendLine("    End If");
                 sourceCode.AppendLine("End If");
-                sourceCode.AppendLine("Dim userCalculationCodeImplementation As Func(Of Decimal?) = Function() as Decimal?");
+                sourceCode.AppendLine($"Dim userCalculationCodeImplementation As Func(Of {GetDataType(calculation.Current.DataType)}) = Function() as {GetDataType(calculation.Current.DataType)}");
                 sourceCode.AppendLine("Dim frameCount = New System.Diagnostics.StackTrace().FrameCount");
                 sourceCode.AppendLine("If frameCount > calculationContext.StackFrameStartingCount + 40 Then");
                 sourceCode.AppendLine(
@@ -214,11 +215,11 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                 sourceCode.AppendLine();
 
                 sourceCode.AppendLine("Try");
-                sourceCode.AppendLine("Dim executedUserCodeCalculationResult As Nullable(Of Decimal) = userCalculationCodeImplementation()");
+                sourceCode.AppendLine($"Dim executedUserCodeCalculationResult As {GetDataType(calculation.Current.DataType)} = userCalculationCodeImplementation()");
                 sourceCode.AppendLine();
                 sourceCode.AppendLine(
-                    $"calculationContext.Dictionary.Add(\"{calculation.Id}\", {{If(executedUserCodeCalculationResult.HasValue, executedUserCodeCalculationResult.ToString(), \"\")}})");
-                sourceCode.AppendLine($"calculationContext.DictionaryValues.Add(\"{calculation.Id}\", executedUserCodeCalculationResult)");
+                    $"calculationContext.Dictionary.Add(\"{calculation.Id}\", {GetConditionalDictionaryAddSourceCode(calculation.Current.DataType)})");
+                sourceCode.AppendLine($"calculationContext.Dictionary{GetVariableName(calculation.Current.DataType)}Values.Add(\"{calculation.Id}\", executedUserCodeCalculationResult)");
                 sourceCode.AppendLine("Return executedUserCodeCalculationResult");
                 sourceCode.AppendLine("Catch ex as System.Exception");
                 sourceCode.AppendLine($"   calculationContext.Dictionary.Add(\"{calculation.Id}\", {{\"\", ex.GetType().Name, ex.Message}})");
@@ -234,5 +235,29 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
 
             return ParseSourceCodeToStatementSyntax(sourceCode);
         }
+
+        private static string GetDataType(CalculationDataType calculationDataType) => calculationDataType switch
+        {
+            CalculationDataType.Decimal => "Decimal?",
+            CalculationDataType.String => "String",
+            CalculationDataType.Boolean => "Boolean?",
+            _ => throw new ArgumentOutOfRangeException(),
+        };
+
+        private static string GetVariableName(CalculationDataType calculationDataType) => calculationDataType switch
+        {
+            CalculationDataType.Decimal => "Decimal",
+            CalculationDataType.String => "String",
+            CalculationDataType.Boolean => "Boolean",
+            _ => throw new ArgumentOutOfRangeException(),
+        };
+
+        private static string GetConditionalDictionaryAddSourceCode(CalculationDataType calculationDataType) => calculationDataType switch
+        {
+            CalculationDataType.Decimal => $"{{If(executedUserCodeCalculationResult.HasValue, executedUserCodeCalculationResult.ToString(), \"\")}}",
+            CalculationDataType.String => $"{{executedUserCodeCalculationResult}}",
+            CalculationDataType.Boolean => $"{{If(executedUserCodeCalculationResult.HasValue, executedUserCodeCalculationResult.ToString(), \"\")}}",
+            _ => throw new ArgumentOutOfRangeException(),
+        };
     }
 }

@@ -118,7 +118,7 @@ namespace CalculateFunding.Services.Results
                                 OpenDate = providerResult.Provider?.DateOpened,
                                 CalculationId = providerResult.CalculationResults.Select(m => m.Calculation.Id).ToArraySafe(),
                                 CalculationName = providerResult.CalculationResults.Select(m => m.Calculation.Name).ToArraySafe(),
-                                CalculationResult = providerResult.CalculationResults.Select(m => m.Value.HasValue ? m.Value.ToString() : "null").ToArraySafe()
+                                CalculationResult = providerResult.CalculationResults.Select(m => !string.IsNullOrEmpty(m.Value?.ToString()) ? m.Value.ToString() : "null").ToArraySafe()
                             };
 
                             if (_featureToggle.IsExceptionMessagesEnabled())

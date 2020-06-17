@@ -212,7 +212,8 @@ namespace CalculateFunding.Services.Calcs.Services
                         m.WasTemplateCalculation == false &&
                         m.Namespace == CalculationNamespace.Additional &&
                         m.Name == model.Name &&
-                        m.SourceCodeName == VisualBasicTypeGenerator.GenerateIdentifier(model.Name)
+                        m.SourceCodeName == VisualBasicTypeGenerator.GenerateIdentifier(model.Name) &&
+                        m.DataType == CalculationDataType.Decimal
                     ));
 
 

@@ -356,7 +356,7 @@ namespace CalculateFunding.Services.Results
                         UPIN = providerResult.Provider.UPIN,
                         EstablishmentNumber = providerResult.Provider.EstablishmentNumber,
                         OpenDate = providerResult.Provider.DateOpened,
-                        CalculationResult = providerResult.CalculationResults.Select(m => m.Value.HasValue ? m.Value.ToString() : "null").ToArraySafe()
+                        CalculationResult = providerResult.CalculationResults.Select(m => !string.IsNullOrEmpty(m.Value?.ToString()) ? m.Value.ToString() : "null").ToArraySafe()
                     };
 
                     if (_featureToggle.IsExceptionMessagesEnabled())

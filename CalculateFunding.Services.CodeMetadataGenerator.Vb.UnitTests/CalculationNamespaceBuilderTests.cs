@@ -75,8 +75,8 @@ Calculations = calculationContext.Calculations"
             const string one = "One";
 
             string[] expectedFunctionPointers = {
-                "Public One As Func(Of decimal?) = Nothing",
-                "Public Two As Func(Of decimal?) = Nothing"
+                "Public One As Func(Of Decimal?) = Nothing",
+                "Public Two As Func(Of Decimal?) = Nothing"
             };
 
             GivenTheCalculations(NewCalculationWithNamespace(one, "One"), NewCalculationWithNamespace(one, "Two"));

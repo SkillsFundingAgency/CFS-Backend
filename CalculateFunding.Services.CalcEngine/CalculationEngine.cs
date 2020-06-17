@@ -10,8 +10,6 @@ using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.ProviderLegacy;
 using CalculateFunding.Services.CalcEngine.Interfaces;
 using Serilog;
-using FundingLine = CalculateFunding.Generators.Funding.Models.FundingLine;
-
 
 namespace CalculateFunding.Services.CalcEngine
 {
@@ -73,20 +71,28 @@ namespace CalculateFunding.Services.CalcEngine
                     {
                         Calculation = calculation.GetReference(),
                         CalculationType = calculation.CalculationType,
+                        CalculationDataType = calculation.CalculationValueType.ToCalculationDataType()
                     };
 
                     if (providerCalcResults.TryGetValue(calculation.Id, out CalculationResult calculationResult))
                     {
                         result.Calculation.Id = calculationResult.Calculation?.Id;
 
-                        // The default for the calculation is to return Decimal.MinValue - if this is the case, then subsitute a 0 value as the result, instead of the negative number.
-                        if (calculationResult.Value != decimal.MinValue)
+                        if (result.CalculationDataType == CalculationDataType.Decimal)
                         {
-                            result.Value = calculationResult.Value;
+                            // The default for the calculation is to return Decimal.MinValue - if this is the case, then subsitute a 0 value as the result, instead of the negative number.
+                            if (!Decimal.Equals(decimal.MinValue, calculationResult.Value))
+                            {
+                                result.Value = calculationResult.Value;
+                            }
+                            else
+                            {
+                                result.Value = 0;
+                            }
                         }
                         else
                         {
-                            result.Value = 0;
+                            result.Value = calculationResult.Value;
                         }
 
                         result.ExceptionType = calculationResult.ExceptionType;

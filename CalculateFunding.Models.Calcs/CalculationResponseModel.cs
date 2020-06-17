@@ -45,6 +45,5 @@ namespace CalculateFunding.Models.Calcs
 
         [JsonProperty("description")]
         public string Description { get; set; }
-
     }
 }

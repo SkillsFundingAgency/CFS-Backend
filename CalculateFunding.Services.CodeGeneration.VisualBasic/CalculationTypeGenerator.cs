@@ -76,9 +76,11 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
         {
             yield return ParseSourceCodeToStatementSyntax("Public StackFrameStartingCount As Integer = 0");
             yield return ParseSourceCodeToStatementSyntax("Public Property Dictionary As Dictionary(Of String, String()) = New Dictionary(Of String, String())(2)");
-            yield return ParseSourceCodeToStatementSyntax("Public Property DictionaryValues As Dictionary(Of String, Decimal?) = New Dictionary(Of String, Decimal?)(2)");
+            yield return ParseSourceCodeToStatementSyntax("Public Property DictionaryDecimalValues As Dictionary(Of String, Decimal?) = New Dictionary(Of String, Decimal?)(2)");
+            yield return ParseSourceCodeToStatementSyntax("Public Property DictionaryBooleanValues As Dictionary(Of String, Boolean?) = New Dictionary(Of String, Boolean?)(2)");
+            yield return ParseSourceCodeToStatementSyntax("Public Property DictionaryStringValues As Dictionary(Of String, String) = New Dictionary(Of String, String)(2)");
             yield return ParseSourceCodeToStatementSyntax("Public Property FundingLineDictionary As Dictionary(Of String, String()) = New Dictionary(Of String, String())(2)");
-            yield return ParseSourceCodeToStatementSyntax("Public Property FundingLineDictionaryValues As Dictionary(Of String, Decimal?) = New Dictionary(Of String, Decimal?)(2)");
+            yield return ParseSourceCodeToStatementSyntax("Public Property FundingLineDictionaryValues As Dictionary(Of String, Object) = New Dictionary(Of String, Object)(2)");
 
             if (calculations == null) yield break;
 

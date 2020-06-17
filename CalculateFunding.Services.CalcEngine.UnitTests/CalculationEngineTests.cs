@@ -102,23 +102,35 @@ namespace CalculateFunding.Services.Calculator
 
             Reference numbercalcReference = new Reference("CalcF2", "Funding calc 2");
 
+            Reference booleancalcReference = new Reference("CalcF3", "Funding calc 3");
+
             CalculationResult fundingCalcReturned = new CalculationResult()
             {
                 CalculationType = CalculationType.Template,
                 Calculation = fundingCalcReference,
-                Value = 10000
+                Value = 10000,
+                CalculationDataType = CalculationDataType.Decimal
             };
             CalculationResult fundingCalcReturned2 = new CalculationResult()
             {
                 CalculationType = CalculationType.Template,
                 Calculation = numbercalcReference,
-                Value = 20000
+                Value = 20000,
+                CalculationDataType = CalculationDataType.Decimal
+            };
+            CalculationResult fundingCalcReturned3 = new CalculationResult()
+            {
+                CalculationType = CalculationType.Template,
+                Calculation = booleancalcReference,
+                Value = true,
+                CalculationDataType = CalculationDataType.Boolean
             };
 
             List<CalculationResult> calculationResults = new List<CalculationResult>()
             {
                 fundingCalcReturned,
-                fundingCalcReturned2
+                fundingCalcReturned2,
+                fundingCalcReturned3
             };
             IAllocationModel mockAllocationModel = Substitute.For<IAllocationModel>();
             mockAllocationModel
@@ -134,7 +146,8 @@ namespace CalculateFunding.Services.Calculator
             {
                 Id = "Non matching calculation",
                 Name = "Non matching calculation",
-                CalculationType = CalculationType.Template
+                CalculationType = CalculationType.Template,
+                CalculationValueType = CalculationValueType.Number
             };
             IEnumerable<CalculationSummaryModel> calculationSummaryModels = new[]
             {
@@ -142,13 +155,22 @@ namespace CalculateFunding.Services.Calculator
                 {
                     Id = fundingCalcReference.Id,
                     Name = fundingCalcReference.Name,
-                    CalculationType = CalculationType.Template
+                    CalculationType = CalculationType.Template,
+                    CalculationValueType = CalculationValueType.Number
                 },
                 new CalculationSummaryModel()
                 {
                     Id = numbercalcReference.Id,
                     Name = numbercalcReference.Name,
-                    CalculationType = CalculationType.Template
+                    CalculationType = CalculationType.Template,
+                    CalculationValueType = CalculationValueType.Number
+                },
+                new CalculationSummaryModel()
+                {
+                    Id = booleancalcReference.Id,
+                    Name = booleancalcReference.Name,
+                    CalculationType = CalculationType.Template,
+                    CalculationValueType = CalculationValueType.Boolean
                 },
                 nonMatchingCalculationModel
             };
@@ -163,22 +185,31 @@ namespace CalculateFunding.Services.Calculator
             result.Provider.Should().Be(providerSummary);
             result.SpecificationId.Should().BeEquivalentTo(buildProject.SpecificationId);
             result.Id.Should().BeEquivalentTo(GenerateId(providerSummary.Id, buildProject.SpecificationId));
-            result.CalculationResults.Should().HaveCount(3);
+            result.CalculationResults.Should().HaveCount(4);
 
             CalculationResult fundingCalcResult = result.CalculationResults.First(cr => cr.Calculation.Id == fundingCalcReference.Id);
             fundingCalcResult.Calculation.Should().BeEquivalentTo(fundingCalcReference);
             fundingCalcResult.CalculationType.Should().BeEquivalentTo(fundingCalcReturned.CalculationType);
-            fundingCalcResult.Value.Should().Be(fundingCalcReturned.Value.Value);
+            fundingCalcResult.Value.Should().Be(fundingCalcReturned.Value);
+            fundingCalcResult.CalculationDataType.Should().Be(CalculationDataType.Decimal);
 
             CalculationResult numberCalcResult = result.CalculationResults.First(cr => cr.Calculation.Id == numbercalcReference.Id);
             numberCalcResult.Calculation.Should().BeEquivalentTo(numbercalcReference);
             numberCalcResult.CalculationType.Should().BeEquivalentTo(fundingCalcReturned2.CalculationType);
-            numberCalcResult.Value.Should().Be(fundingCalcReturned2.Value.Value);
+            numberCalcResult.Value.Should().Be(fundingCalcReturned2.Value);
+            numberCalcResult.CalculationDataType.Should().Be(CalculationDataType.Decimal);
+
+            CalculationResult booleanCalcResult = result.CalculationResults.First(cr => cr.Calculation.Id == booleancalcReference.Id);
+            booleanCalcResult.Calculation.Should().BeEquivalentTo(booleancalcReference);
+            booleanCalcResult.CalculationType.Should().BeEquivalentTo(fundingCalcReturned3.CalculationType);
+            booleanCalcResult.Value.Should().Be(fundingCalcReturned3.Value);
+            booleanCalcResult.CalculationDataType.Should().Be(CalculationDataType.Boolean);
 
             CalculationResult nonMatchingCalcResult = result.CalculationResults.First(cr => cr.Calculation.Id == "Non matching calculation");
             nonMatchingCalcResult.Calculation.Should().BeEquivalentTo(new Reference(nonMatchingCalculationModel.Id, nonMatchingCalculationModel.Name));
             nonMatchingCalcResult.CalculationType.Should().BeEquivalentTo(nonMatchingCalculationModel.CalculationType);
             nonMatchingCalcResult.Value.Should().BeNull();
+            nonMatchingCalcResult.CalculationDataType.Should().Be(CalculationDataType.Decimal);
         }
 
         private static string GenerateId(string providerId, string specificationId)
@@ -220,11 +251,6 @@ namespace CalculateFunding.Services.Calculator
             BuildProject buildProject = JsonConvert.DeserializeObject<BuildProject>(MockData.SerializedBuildProject());
 
             return buildProject;
-        }
-
-        private static ICalculationsRepository CreateCalculationsRepository()
-        {
-            return Substitute.For<ICalculationsRepository>();
         }
 
         private static ILogger CreateLogger()

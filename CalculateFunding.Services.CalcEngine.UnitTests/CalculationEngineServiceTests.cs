@@ -1098,8 +1098,8 @@ namespace CalculateFunding.Services.Calculator
                 _calculationEngineServiceTestsHelper
                     .MockCacheProvider
                     .Received()
-                    .SetAsync<Dictionary<string, List<decimal>>>(Arg.Any<string>(),
-                        Arg.Is<Dictionary<string, List<decimal>>>(
+                    .SetAsync(Arg.Any<string>(),
+                        Arg.Is<Dictionary<string, List<object>>>(
                             m => m.Count == 3 &&
                                  m["Calc1"].Count == 20 &&
                                  m["Calc2"].Count == 20 &&
@@ -1499,13 +1499,15 @@ namespace CalculateFunding.Services.Calculator
                 {
                     Name = "TestCalc1",
                     CalculationType = CalculationType.Template,
-                    Id = "TC1"
+                    Id = "TC1",
+                    CalculationValueType = CalculationValueType.Number
                 },
                 new CalculationSummaryModel()
                 {
                     Name = "TestCalc2",
                     CalculationType = CalculationType.Template,
-                    Id = "TC2"
+                    Id = "TC2",
+                    CalculationValueType = CalculationValueType.Number
                 }
             };
             return calculationSummaryModels;

@@ -17,7 +17,7 @@ namespace CalculateFunding.Services.TestRunner.Vocab.Calculation
         public override GherkinParseResult Execute(ProviderResult providerResult, IEnumerable<ProviderSourceDataset> datasets)
         {
             CalculationResult calculationResult = providerResult.CalculationResults.SingleOrDefault(x => x.Calculation.Name.Equals(CalculationName, StringComparison.InvariantCultureIgnoreCase));
-            decimal? actualValue = calculationResult.Value;
+            object? actualValue = calculationResult.Value;
             if (decimal.TryParse(Value, out decimal expectedValue))
             {
                 bool logicResult = TestLogic(expectedValue, actualValue, Operator);

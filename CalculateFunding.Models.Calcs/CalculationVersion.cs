@@ -44,6 +44,9 @@ namespace CalculateFunding.Models.Calcs
         [JsonProperty("description")]
         public string Description { get; set; }
 
+        [JsonProperty("dataType")] 
+        public CalculationDataType DataType { get; set; }
+
         public override VersionedItem Clone()
         {
             // TODO update clone
@@ -61,7 +64,8 @@ namespace CalculateFunding.Models.Calcs
                 Namespace = Namespace,
                 WasTemplateCalculation = WasTemplateCalculation,
                 ValueType = ValueType,
-                Name = Name
+                Name = Name,
+                DataType = DataType
             };
         }
     }

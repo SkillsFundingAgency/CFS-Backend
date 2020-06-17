@@ -14,5 +14,8 @@ namespace CalculateFunding.Models.Calcs
 
         [JsonProperty("version")]
         public int Version { get; set; }
+
+        [JsonProperty("calculationValueType")]
+        public CalculationValueType CalculationValueType { get; set; }
     }
 }

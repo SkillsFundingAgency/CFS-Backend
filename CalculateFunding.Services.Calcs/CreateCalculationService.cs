@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO.Enumeration;
 using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
@@ -119,7 +118,8 @@ namespace CalculateFunding.Services.Calcs
                 CalculationType = calculationType,
                 WasTemplateCalculation = false,
                 Namespace = calculationNamespace,
-                Name = model.Name
+                Name = model.Name,
+                DataType = model.ValueType.Value.ToCalculationDataType()
             };
 
             calculation.Current = calculationVersion;

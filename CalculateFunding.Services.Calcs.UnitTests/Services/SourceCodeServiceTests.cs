@@ -458,8 +458,11 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Error($"Failed to compress source files for specification id: '{specificationId}'");
         }
 
-        [TestMethod]
-        public void CompileBuildProject_WhenBuildingCalculation_ThenCompilationUsesSourceCodeName()
+        [DataTestMethod]
+        [DataRow(CalculationDataType.Decimal, "Return 10", "Decimal?")]
+        [DataRow(CalculationDataType.Boolean, "Return True", "Boolean?")]
+        [DataRow(CalculationDataType.String, "Return Nothing", "String")]
+        public void CompileBuildProject_WhenBuildingCalculation_ThenCompilationUsesSourceCodeName(CalculationDataType calculationDataType, string sourceCode, string expectedType)
         {
             // Arrange
             string specificationId = "test-spec1";
@@ -470,10 +473,11 @@ namespace CalculateFunding.Services.Calcs.Services
                     Id = "calcId1",
                     Current = new CalculationVersion
                     {
-                        SourceCode = "return 10",
+                        SourceCode = sourceCode,
                         Name = "calc 1",
                         SourceCodeName = "differentCalcName",
                         Description = "test calc",
+                        DataType = calculationDataType,
                     }
                 }
             };
@@ -497,8 +501,8 @@ namespace CalculateFunding.Services.Calcs.Services
             build.Success.Should().BeTrue();
 
             string calcSourceCode = build.SourceFiles.First(s => s.FileName == "Calculations.vb").SourceCode;
-            calcSourceCode.Should().Contain($"Public differentCalcName As Func(Of decimal?) = Nothing");
-            calcSourceCode.Should().NotContain($"Public calc1 As Func(Of decimal?) = Nothing");
+            calcSourceCode.Should().Contain($"Public differentCalcName As Func(Of {expectedType}) = Nothing");
+            calcSourceCode.Should().NotContain($"Public calc1 As Func(Of {expectedType}) = Nothing");
             calcSourceCode.Should().Contain($"differentCalcName()");
             calcSourceCode.Should().NotContain($"calc1()");
         }

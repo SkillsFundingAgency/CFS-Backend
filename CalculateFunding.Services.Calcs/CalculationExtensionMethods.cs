@@ -23,7 +23,7 @@ namespace CalculateFunding.Services.Calcs
                 ValueType = calculation.Current.ValueType,
                 WasTemplateCalculation = calculation.Current.WasTemplateCalculation,
                 SourceCodeName = calculation.Current.SourceCodeName,
-                Description = calculation.Current.Description,
+                Description = calculation.Current.Description
             };
         }
 
@@ -35,7 +35,8 @@ namespace CalculateFunding.Services.Calcs
                 Name = calculation.Name,
                 CalculationType = calculation.Current.CalculationType,
                 Status = calculation.Current.PublishStatus,
-                Version = calculation.Current.Version
+                Version = calculation.Current.Version,
+                CalculationValueType = calculation.Current.ValueType
             };
         }
     }

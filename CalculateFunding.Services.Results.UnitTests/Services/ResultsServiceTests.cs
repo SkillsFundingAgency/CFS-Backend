@@ -38,8 +38,6 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
     {
         const string providerId = "123456";
         const string specificationId = "888999";
-        const string fundingStreamId = "fs-1";
-        const string fundingPeriodId = "fp-1";
 
         [TestMethod]
         public async Task GetProviderResults_GivenNullOrEmptyProviderId_ReturnsBadRequest()

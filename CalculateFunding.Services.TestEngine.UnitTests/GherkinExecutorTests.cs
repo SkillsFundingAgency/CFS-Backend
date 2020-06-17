@@ -538,7 +538,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
                 Provider = new ProviderSummary { Id = "prov1" },
                 CalculationResults = new List<CalculationResult>
                 {
-                    new CalculationResult { Calculation = new Common.Models.Reference { Name = calcName }, Value = 14 }
+                    new CalculationResult { Calculation = new Common.Models.Reference { Name = calcName }, Value = (decimal)14 }
                 }
             };
             IEnumerable<ProviderSourceDataset> datasets = new List<ProviderSourceDataset>
@@ -623,7 +623,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
                 Provider = new ProviderSummary { Id = "prov1" },
                 CalculationResults = new List<CalculationResult>
                 {
-                    new CalculationResult { Calculation = new Common.Models.Reference { Name = calcName }, Value = 14 }
+                    new CalculationResult { Calculation = new Common.Models.Reference { Name = calcName }, Value = (decimal) 14 }
                 }
             };
             IEnumerable<ProviderSourceDataset> datasets = new List<ProviderSourceDataset>
@@ -708,7 +708,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
                 Provider = new ProviderSummary { Id = "prov1" },
                 CalculationResults = new List<CalculationResult>
                 {
-                    new CalculationResult { Calculation = new Common.Models.Reference { Name = calcName }, Value = 14 }
+                    new CalculationResult { Calculation = new Common.Models.Reference { Name = calcName }, Value = (decimal)14 }
                 }
             };
             IEnumerable<ProviderSourceDataset> datasets = new List<ProviderSourceDataset>
@@ -793,7 +793,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
                 Provider = new ProviderSummary { Id = "prov1" },
                 CalculationResults = new List<CalculationResult>
                 {
-                    new CalculationResult { Calculation = new Common.Models.Reference { Name = calcName }, Value = 14 }
+                    new CalculationResult { Calculation = new Common.Models.Reference { Name = calcName }, Value = (decimal)14 }
                 }
             };
             IEnumerable<ProviderSourceDataset> datasets = new List<ProviderSourceDataset>

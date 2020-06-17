@@ -4,8 +4,6 @@ using System.Linq;
 using System.Reflection;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
-using CalculateFunding.Generators.Funding;
-using CalculateFunding.Generators.Funding.Models;
 using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets;
@@ -15,9 +13,6 @@ using CalculateFunding.Services.CalcEngine.Interfaces;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.FeatureToggles;
 using Serilog;
-using Calculation = CalculateFunding.Generators.Funding.Models.Calculation;
-using FundingLine = CalculateFunding.Generators.Funding.Models.FundingLine;
-
 namespace CalculateFunding.Services.CalcEngine
 {
     public class AllocationModel : IAllocationModel
@@ -60,7 +55,7 @@ namespace CalculateFunding.Services.CalcEngine
 
             _mainMethod = allocationType.GetMethods().FirstOrDefault(x => x.Name == "MainCalc");
 
-            _funcs = PopulateMembers<CalculationResult>(executeFuncs.ToList<MemberInfo>(), (attributes) =>
+            _funcs = PopulateMembers(executeFuncs.ToList<MemberInfo>(), (attributes) =>
             {
                 CustomAttributeData calcAttribute = attributes.FirstOrDefault(x => x.AttributeType.Name == "CalculationAttribute");
                 if (calcAttribute != null)
@@ -68,6 +63,7 @@ namespace CalculateFunding.Services.CalcEngine
                     CalculationResult result = new CalculationResult
                     {
                         Calculation = GetReference(attributes, "Calculation"),
+                        CalculationDataType = GetCalculationDataType(attributes, "Calculation")
                     };
 
                     return result;
@@ -227,13 +223,12 @@ namespace CalculateFunding.Services.CalcEngine
 
         private static void ProcessCalculationResult(CalculationResult calculationResult, KeyValuePair<string, string[]> calcResult)
         {
-            const int valueIndex = 0;
             const int exceptionTypeIndex = 1;
             const int exceptionMessageIndex = 2;
             const int exceptionStackTraceIndex = 3;
             const int exceptionElapsedTimeIndex = 4;
 
-            calculationResult.Value = calcResult.Value[valueIndex].GetValueOrNull<decimal>();
+            SetCalculationResultValue(calculationResult, calcResult);
 
             if (calcResult.Value.Length > exceptionMessageIndex)
             {
@@ -250,6 +245,19 @@ namespace CalculateFunding.Services.CalcEngine
                     }
                 }
             }
+        }
+
+        private static void SetCalculationResultValue(CalculationResult calculationResult, KeyValuePair<string, string[]> calcResult)
+        {
+            const int valueIndex = 0;
+
+            calculationResult.Value = calculationResult.CalculationDataType switch
+            {
+                CalculationDataType.Decimal => calcResult.Value[valueIndex].GetValueOrNull<decimal>(),
+                CalculationDataType.String => calcResult.Value[valueIndex],
+                CalculationDataType.Boolean => calcResult.Value[valueIndex].GetValueOrNull<bool>(),
+                _ => throw new ArgumentOutOfRangeException(),
+            };
         }
 
         private void SetInstanceAggregationsValues(IEnumerable<CalculationAggregation> aggregationValues)
@@ -592,6 +600,21 @@ namespace CalculateFunding.Services.CalcEngine
                 return new Reference(GetProperty(attribute, "Id"), GetProperty(attribute, "Name"));
             }
             return null;
+        }
+
+        private static CalculationDataType GetCalculationDataType(IList<CustomAttributeData> attributes, string attributeName)
+        {
+            // Setting initial value as Decimal for backward compatibility
+            CalculationDataType calculationDataType = CalculationDataType.Decimal;
+
+            CustomAttributeData attribute = attributes.FirstOrDefault(x => x.AttributeType.Name.StartsWith(attributeName));
+            if (attribute != null)
+            {
+                string calculationDataTypeString = GetProperty(attribute, "CalculationDataType");
+                Enum.TryParse(calculationDataTypeString, out calculationDataType);
+            }
+
+            return calculationDataType;
         }
 
         private static string GetProperty(CustomAttributeData attribute, string propertyName)
