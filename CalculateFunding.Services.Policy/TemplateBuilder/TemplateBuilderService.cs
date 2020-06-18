@@ -663,7 +663,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
                 FundingPeriodName = template.FundingPeriod.Name,
                 LastUpdatedAuthorId = author.Id,
                 LastUpdatedAuthorName = author.Name,
-                LastUpdatedDate = DateTimeOffset.Now,
+                LastUpdatedDate = template.Current.Date,
                 Version = template.Current.Version,
                 CurrentMajorVersion = template.Current.MajorVersion,
                 CurrentMinorVersion = template.Current.MinorVersion,

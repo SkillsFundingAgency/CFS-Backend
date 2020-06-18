@@ -70,6 +70,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
                                            'id' : c.content.current.id,
                                            'name' : c.content.name,
                                            'templateId' : c.content.current.templateId,
+                                           'date' : c.content.current.date,
                                            'majorVersion' : c.content.current.majorVersion,
                                            'minorVersion' : c.content.current.minorVersion,
                                            'fundingStreamId' : c.content.current.fundingStreamId,

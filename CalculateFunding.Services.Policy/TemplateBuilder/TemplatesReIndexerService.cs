@@ -116,7 +116,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
                                 FundingPeriodName = fundingPeriod == null ? "Unknown" : fundingPeriod.Name,
                                 LastUpdatedAuthorId = template.Current.Author?.Id,
                                 LastUpdatedAuthorName = template.Current.Author?.Name,
-                                LastUpdatedDate = DateTimeOffset.Now,
+                                LastUpdatedDate = template.Current.Date,
                                 Version = template.Current.Version,
                                 CurrentMajorVersion = template.Current.MajorVersion,
                                 CurrentMinorVersion = template.Current.MinorVersion,
