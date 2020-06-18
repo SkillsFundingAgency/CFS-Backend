@@ -1,10 +1,10 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Reflection;
-using CalculateFunding.Functions.CalcEngine.ServiceBus;
+using CalculateFunding.Functions.Policy.ServiceBus;
 using CalculateFunding.Tests.Common;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace CalculateFunding.Functions.CalcEngine.UnitTests
+namespace CalculateFunding.Functions.Policy.UnitTests
 {
     [TestClass]
     public class IocConfigTests : FunctionIoCUnitTestBase
@@ -13,27 +13,28 @@ namespace CalculateFunding.Functions.CalcEngine.UnitTests
         {
             return new Dictionary<string, string>
             {
-                { "SearchServiceName", "ss-t1te-cfs"},
-                { "SearchServiceKey", "test" },
+                { "AzureConfiguration:ConnectionString", "connectionString"},
+                { "APPINSIGHTS_INSTRUMENTATIONKEY", "GUID"},
+                { "ApplicationInsightsOptions:InstrumentationKey", "GUID"},
+                { "ApplicationInsights:InstrumentationKey", "GUID"},
+                { "AzureStorageSettings:ConnectionString", "StorageConnection" },
+                { "RedisSettings:CacheConnection", "redisConnection" },
+                { "ServiceBusSettings:ConnectionString", "serviceBusConnection" },
                 { "CosmosDbSettings:DatabaseName", "calculate-funding" },
                 { "CosmosDbSettings:ConnectionString", "AccountEndpoint=https://test.documents.azure.com:443/;AccountKey=dGVzdA==;" },
-                { "specificationsClient:ApiEndpoint", "https://localhost:7001/api/" },
-                { "specificationsClient:ApiKey", "Local" },
-                { "calcsClient:ApiEndpoint", "https://localhost:7002/api/" },
-                { "calcsClient:ApiKey", "Local" },
-                { "datasetsClient:ApiEndpoint", "https://localhost:7004/api/"},
-                { "datasetsClient:ApiKey", "Local"},
+                { "SearchServiceName", "ss-t1te-cfs"},
+                { "SearchServiceKey", "test" },
                 { "jobsClient:ApiEndpoint", "https://localhost:7010/api/"},
                 { "jobsClient:ApiKey", "Local"},
-                { "AzureStorageSettings:ConnectionString", "StorageConnection" }
             };
         }
 
-        protected override Assembly EntryAssembly => typeof(OnCalcsGenerateAllocationResults).Assembly;
+        protected override Assembly EntryAssembly => typeof(OnReIndexTemplates).Assembly;
 
         protected override void RegisterDependencies()
         {
             Startup.RegisterComponents(ServiceCollection, CreateTestConfiguration());
         }
+
     }
 }

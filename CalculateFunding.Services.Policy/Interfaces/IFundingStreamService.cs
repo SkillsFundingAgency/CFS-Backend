@@ -1,5 +1,6 @@
 ﻿using CalculateFunding.Models.Policy;
 using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Policy.Interfaces
@@ -11,5 +12,7 @@ namespace CalculateFunding.Services.Policy.Interfaces
         Task<IActionResult> GetFundingStreamById(string fundingStreamId);
 
         Task<IActionResult> SaveFundingStream(FundingStreamSaveModel fundingStreamSaveModel);
+
+        Task<IEnumerable<FundingStream>> GetAllFundingStreams();
     }
 }

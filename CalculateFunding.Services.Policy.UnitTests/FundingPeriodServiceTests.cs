@@ -26,7 +26,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
 {
     [TestClass]
     public class FundingPeriodServiceTests
-    {       
+    {
 
         [TestMethod]
         public async Task GetFundingPeriods_GivenNullOrEmptyPeriodsReturned_LogsAndReturnsOKWithEmptyList()
@@ -235,7 +235,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
                 .Value
                 .Should()
                 .Be(fundingPeriod);
-        }        
+        }
 
         [TestMethod]
         public async Task SaveFundingPeriod_GivenNoJsonWasProvided_ReturnsBadRequest()
@@ -324,6 +324,62 @@ namespace CalculateFunding.Services.Policy.UnitTests
                 .RemoveAsync<FundingPeriod[]>(CacheKeys.FundingPeriods);
         }
 
+        [TestMethod]
+        public async Task GetAllFundingPeriods_GivenNullOrEmptyPeriodsReturned_LogsAndReturnsOKWithEmptyList()
+        {
+            // Arrange
+            ILogger logger = CreateLogger();
+
+            IEnumerable<FundingPeriod> Periods = null;
+
+            IPolicyRepository policyRepository = CreatePolicyRepository();
+            policyRepository
+                .GetFundingPeriods()
+                .Returns(Periods);
+
+            FundingPeriodService fundingPeriodService = CreateFundingPeriodService(logger: logger, policyRepository: policyRepository);
+
+            // Act
+            IEnumerable<FundingPeriod> result = await fundingPeriodService.GetAllFundingPeriods();
+
+            // Assert
+            result
+                .Should()
+                .BeOfType<FundingPeriod[]>()
+                .Which
+                .Should()
+                .AllBeEquivalentTo(Periods);
+
+            logger
+                .Received(1)
+                .Error(Arg.Is("No funding periods were returned"));
+        }
+
+        [TestMethod]
+        public async Task GetAllFundingPeriods_ReturnsSuccess()
+        {
+            ILogger logger = CreateLogger();
+
+            IEnumerable<FundingPeriod> Periods = new List<FundingPeriod>
+            {
+                new FundingPeriod(),
+                new FundingPeriod()
+            };
+
+            IPolicyRepository policyRepository = CreatePolicyRepository();
+            policyRepository
+                .GetFundingPeriods()
+                .Returns(Periods);
+
+            FundingPeriodService fundingPeriodService = CreateFundingPeriodService(logger: logger, policyRepository: policyRepository);
+
+            IEnumerable<FundingPeriod> result = await fundingPeriodService.GetAllFundingPeriods();
+
+            result
+                .Should()
+                .HaveCount(2);
+        }
+
         private string NewRandomString() => new RandomString();
 
         private static FundingPeriodService CreateFundingPeriodService(
@@ -341,7 +397,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
         }
 
         private static IValidator<FundingPeriodsJsonModel> CreateFundingPeriodValidator()
-        {           
+        {
             ValidationResult validationResult = null;
             if (validationResult == null)
             {

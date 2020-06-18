@@ -5,6 +5,8 @@ using CalculateFunding.Common.Config.ApiClient.Policies;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
+using CalculateFunding.Common.Models.HealthCheck;
+using CalculateFunding.Functions.Policy;
 using CalculateFunding.Functions.Policy.ServiceBus;
 using CalculateFunding.Models.Policy;
 using CalculateFunding.Repositories.Common.Search;
@@ -15,7 +17,9 @@ using CalculateFunding.Services.DeadletterProcessor;
 using CalculateFunding.Services.Policy;
 using CalculateFunding.Services.Policy.Interfaces;
 using CalculateFunding.Services.Policy.TemplateBuilder;
-using CalculateFunding.Functions.Policy;
+using CalculateFunding.Services.Policy.Validators;
+using CalculateFunding.Services.Providers.Validators;
+using FluentValidation;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -67,6 +71,18 @@ namespace CalculateFunding.Functions.Policy
 
             });
             builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();
+
+            builder
+                .AddSingleton<IFundingStreamService, FundingStreamService>()
+                .AddSingleton<IHealthChecker, FundingStreamService>()
+                .AddSingleton<IValidator<FundingStreamSaveModel>, FundingStreamSaveModelValidator>();
+
+            builder
+                .AddSingleton<IFundingPeriodService, FundingPeriodService>()
+                .AddSingleton<IHealthChecker, FundingPeriodService>()
+                .AddSingleton<IFundingPeriodValidator, FundingPeriodValidator>();
+
+            builder.AddSingleton<IValidator<FundingPeriodsJsonModel>, FundingPeriodJsonModelValidator>();
 
             builder.AddSingleton<ICosmosRepository, CosmosRepository>();
             builder.AddSingleton<ITemplatesReIndexerService, TemplatesReIndexerService>();
@@ -123,21 +139,17 @@ namespace CalculateFunding.Functions.Policy
         private static PolicyResiliencePolicies CreateResiliencePolicies(PolicySettings policySettings)
         {
             AsyncBulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
-            
-            Polly.AsyncPolicy redisPolicy = ResiliencePolicyHelpers.GenerateRedisPolicy(totalNetworkRequestsPolicy);
 
-            PolicyResiliencePolicies resiliencePolicies = new PolicyResiliencePolicies
+            return new PolicyResiliencePolicies
             {
                 PolicyRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-                CacheProvider = redisPolicy,
+                CacheProvider = ResiliencePolicyHelpers.GenerateRedisPolicy(totalNetworkRequestsPolicy),
                 FundingSchemaRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                 FundingTemplateRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                 TemplatesSearchRepository = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
                 JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-                TemplatesRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
+                TemplatesRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
             };
-
-            return resiliencePolicies;
         }
     }
 }

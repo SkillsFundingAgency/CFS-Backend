@@ -353,6 +353,70 @@ namespace CalculateFunding.Services.Policy.UnitTests
                 .Information(Arg.Is($"Successfully saved file to cosmos db"));
         }
 
+        [TestMethod]
+        public async Task GetAllFundingStreams_ReturnsSuccess()
+        {
+            IEnumerable<FundingStream> fundingStreams = new List<FundingStream>
+            {
+                new FundingStream {
+                    Id = "fs-1",
+                    Name = "Funding Stream Name",
+                    ShortName = "FSN",
+                },
+                new FundingStream {
+                    Id = "fs-2",
+                    Name = "Funding Stream Name",
+                    ShortName = "FSN",
+                },
+                new FundingStream {
+                    Id = "fs-3",
+                    Name = "Funding Stream Name",
+                    ShortName = "FSN",
+                }
+            };
+
+            ILogger logger = CreateLogger();
+            IPolicyRepository policyRepository = CreatePolicyRepository();
+            policyRepository
+                .GetFundingStreams()
+                .Returns(fundingStreams);
+            IFundingStreamService fundingStreamService = CreateFundingStreamService(logger: logger, policyRepository: policyRepository);
+
+            IEnumerable<FundingStream> result = await fundingStreamService.GetAllFundingStreams();
+
+            result
+                .Should()
+                .HaveCount(3);
+        }
+
+        [TestMethod]
+        public async Task GetAllFundingStreams_GivenNullOrEmptyFundingStreamsReturned_LogsAndReturnsOKWithEmptyList()
+        {
+            ILogger logger = CreateLogger();
+
+            IEnumerable<FundingStream> fundingStreams = null;
+
+            IPolicyRepository policyRepository = CreatePolicyRepository();
+            policyRepository
+                .GetFundingStreams()
+                .Returns(fundingStreams);
+
+            FundingStreamService fundingStreamService = CreateFundingStreamService(logger: logger, policyRepository: policyRepository);
+
+            IEnumerable<FundingStream> result = await fundingStreamService.GetAllFundingStreams();
+
+            result
+                .Should()
+                .BeOfType<FundingStream[]>()
+                .Which
+                .Should()
+                .AllBeEquivalentTo(fundingStreams);
+
+            logger
+                .Received(1)
+                .Error(Arg.Is("No funding streams were returned"));
+        }
+
         private static FundingStreamService CreateFundingStreamService(
             ILogger logger = null,
             ICacheProvider cacheProvider = null,

@@ -9,9 +9,9 @@ using CalculateFunding.Models.Policy;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Policy.Interfaces;
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using Serilog;
-using FluentValidation;
 
 namespace CalculateFunding.Services.Policy
 {
@@ -21,7 +21,7 @@ namespace CalculateFunding.Services.Policy
         private readonly IPolicyRepository _policyRepository;
         private readonly ICacheProvider _cacheProvider;
         private readonly Polly.AsyncPolicy _policyRepositoryPolicy;
-        private readonly Polly.AsyncPolicy _cacheProviderPolicy;      
+        private readonly Polly.AsyncPolicy _cacheProviderPolicy;
         private readonly IValidator<FundingPeriodsJsonModel> _fundingPeriodJsonModelValidator;
 
         public FundingPeriodService(ILogger logger,
@@ -32,14 +32,14 @@ namespace CalculateFunding.Services.Policy
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
-            Guard.ArgumentNotNull(policyRepository, nameof(policyRepository));           
+            Guard.ArgumentNotNull(policyRepository, nameof(policyRepository));
             Guard.ArgumentNotNull(policyResiliencePolicies?.PolicyRepository, nameof(policyResiliencePolicies.PolicyRepository));
             Guard.ArgumentNotNull(policyResiliencePolicies?.CacheProvider, nameof(policyResiliencePolicies.CacheProvider));
             Guard.ArgumentNotNull(fundingPeriodJsonModelValidator, nameof(fundingPeriodJsonModelValidator));
 
             _logger = logger;
             _cacheProvider = cacheProvider;
-            _policyRepository = policyRepository;           
+            _policyRepository = policyRepository;
             _policyRepositoryPolicy = policyResiliencePolicies.PolicyRepository;
             _cacheProviderPolicy = policyResiliencePolicies.CacheProvider;
             _fundingPeriodJsonModelValidator = fundingPeriodJsonModelValidator;
@@ -83,6 +83,11 @@ namespace CalculateFunding.Services.Policy
 
         public async Task<IActionResult> GetFundingPeriods()
         {
+            return new OkObjectResult(await GetAllFundingPeriods());
+        }
+
+        public async Task<IEnumerable<FundingPeriod>> GetAllFundingPeriods()
+        {
             IEnumerable<FundingPeriod> fundingPeriods = await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.GetAsync<FundingPeriod[]>(CacheKeys.FundingPeriods));
 
             if (fundingPeriods.IsNullOrEmpty())
@@ -101,7 +106,7 @@ namespace CalculateFunding.Services.Policy
                 }
             }
 
-            return new OkObjectResult(fundingPeriods);
+            return fundingPeriods;
         }
 
         public async Task<IActionResult> SaveFundingPeriods(FundingPeriodsJsonModel fundingPeriodsJsonModel)
@@ -113,7 +118,7 @@ namespace CalculateFunding.Services.Policy
             }
 
             try
-            {               
+            {
                 BadRequestObjectResult validationResult = (await _fundingPeriodJsonModelValidator.ValidateAsync(fundingPeriodsJsonModel)).PopulateModelState();
 
                 if (validationResult != null)

@@ -1,4 +1,9 @@
-﻿using CalculateFunding.Common.Caching;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
+using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Policy;
@@ -8,11 +13,6 @@ using CalculateFunding.Services.Policy.Interfaces;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using Serilog;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Threading.Tasks;
 
 
 namespace CalculateFunding.Services.Policy
@@ -27,8 +27,8 @@ namespace CalculateFunding.Services.Policy
         private readonly IValidator<FundingStreamSaveModel> _fundingStreamSaveModelValidator;
 
         public FundingStreamService(
-            ILogger logger, 
-            ICacheProvider cacheProvider, 
+            ILogger logger,
+            ICacheProvider cacheProvider,
             IPolicyRepository policyRepository,
             IPolicyResiliencePolicies policyResiliencePolicies,
             IValidator<FundingStreamSaveModel> fundingStreamSaveModelValidator)
@@ -52,7 +52,7 @@ namespace CalculateFunding.Services.Policy
         {
             ServiceHealth policyRepoHealth = await ((IHealthChecker)_policyRepository).IsHealthOk();
             (bool Ok, string Message) cacheRepoHealth = await _cacheProvider.IsHealthOk();
-           
+
             ServiceHealth health = new ServiceHealth()
             {
                 Name = nameof(FundingStreamService)
@@ -64,6 +64,11 @@ namespace CalculateFunding.Services.Policy
         }
 
         public async Task<IActionResult> GetFundingStreams()
+        {
+            return new OkObjectResult(await GetAllFundingStreams());
+        }
+
+        public async Task<IEnumerable<FundingStream>> GetAllFundingStreams()
         {
             IEnumerable<FundingStream> fundingStreams = await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.GetAsync<FundingStream[]>(CacheKeys.AllFundingStreams));
 
@@ -81,7 +86,7 @@ namespace CalculateFunding.Services.Policy
                 await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync<FundingStream[]>(CacheKeys.AllFundingStreams, fundingStreams.ToArray()));
             }
 
-            return new OkObjectResult(fundingStreams);
+            return fundingStreams;
         }
 
         public async Task<IActionResult> GetFundingStreamById(string fundingStreamId)
@@ -129,7 +134,7 @@ namespace CalculateFunding.Services.Policy
             }
 
             try
-            {                
+            {
                 FundingStream fundingStream = new FundingStream()
                 {
                     Id = fundingStreamSaveModel.Id,

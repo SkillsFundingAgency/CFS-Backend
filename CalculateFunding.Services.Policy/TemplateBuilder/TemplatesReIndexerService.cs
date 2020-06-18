@@ -21,6 +21,8 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
     public class TemplatesReIndexerService : ITemplatesReIndexerService
     {
         private readonly ILogger _logger;
+        private readonly IFundingStreamService _fundingStreamService;
+        private readonly IFundingPeriodService _fundingPeriodService;
         private readonly IJobManagement _jobManagement;
         private readonly ISearchRepository<TemplateIndex> _searchRepository;
         private readonly AsyncPolicy _searchRepositoryResilience;
@@ -33,7 +35,10 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             IPolicyResiliencePolicies policyResiliencePolicies,
             IPolicyRepository policyRepository,
             ITemplateRepository templateRepository,
-            IJobManagement jobManagement, ILogger logger)
+            IJobManagement jobManagement,
+            ILogger logger,
+            IFundingStreamService fundingStreamService,
+            IFundingPeriodService fundingPeriodService)
         {
             Guard.ArgumentNotNull(searchRepository, nameof(searchRepository));
             Guard.ArgumentNotNull(policyResiliencePolicies?.TemplatesSearchRepository,
@@ -53,6 +58,8 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             _templatesRepositoryResilience = policyResiliencePolicies.TemplatesRepository;
             _jobManagement = jobManagement;
             _logger = logger;
+            _fundingStreamService = fundingStreamService;
+            _fundingPeriodService = fundingPeriodService;
         }
 
         public async Task Run(Message message)
@@ -85,6 +92,9 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
 
                 await _searchRepositoryResilience.ExecuteAsync(() => _searchRepository.DeleteIndex());
 
+                IEnumerable<FundingStream> fundingStreams = await _fundingStreamService.GetAllFundingStreams();
+                IEnumerable<FundingPeriod> fundingPeriods = await _fundingPeriodService.GetAllFundingPeriods();
+
                 await _templatesRepositoryResilience.ExecuteAsync(() => _templatesRepository.GetTemplatesForIndexing(
                     async templates =>
                     {
@@ -92,16 +102,20 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
 
                         foreach (Template template in templates)
                         {
+                            FundingStream fundingStream = fundingStreams.SingleOrDefault(f => f.Id == template.Current.FundingStreamId);
+                            FundingPeriod fundingPeriod = fundingPeriods.SingleOrDefault(f => f.Id == template.Current.FundingPeriodId);
+
+
                             results.Add(new TemplateIndex
                             {
-                                Id = template.TemplateId,
-                                Name = template.Name,
-                                FundingStreamId = template.FundingStream?.Id,
-                                FundingStreamName = template.FundingStream?.ShortName,
-                                FundingPeriodId = template.FundingPeriod?.Id,
-                                FundingPeriodName = template.FundingPeriod?.Name,
-                                LastUpdatedAuthorId = user.Id,
-                                LastUpdatedAuthorName = user.Name,
+                                Id = template.Current.TemplateId,
+                                Name = template.Current.Name,
+                                FundingStreamId = template.Current.FundingStreamId,
+                                FundingStreamName = fundingStream == null ? "Unknown" : fundingStream.Name,
+                                FundingPeriodId = template.Current.FundingPeriodId,
+                                FundingPeriodName = fundingPeriod == null ? "Unknown" : fundingPeriod.Name,
+                                LastUpdatedAuthorId = template.Current.Author?.Id,
+                                LastUpdatedAuthorName = template.Current.Author?.Name,
                                 LastUpdatedDate = DateTimeOffset.Now,
                                 Version = template.Current.Version,
                                 CurrentMajorVersion = template.Current.MajorVersion,
@@ -119,7 +133,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
                         {
                             string errorMessage =
                                 $"Failed to index published provider documents with errors: {string.Join(";", errors.Select(m => m.ErrorMessage))}";
-                            
+
                             _logger.Error(errorMessage);
 
                             throw new NonRetriableException(errorMessage);

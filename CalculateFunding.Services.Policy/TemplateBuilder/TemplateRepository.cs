@@ -68,6 +68,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
                                         c.content.id,
                                         { 
                                            'id' : c.content.current.id,
+                                           'name' : c.content.name,
                                            'templateId' : c.content.current.templateId,
                                            'majorVersion' : c.content.current.majorVersion,
                                            'minorVersion' : c.content.current.minorVersion,
