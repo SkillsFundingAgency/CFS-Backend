@@ -17,6 +17,16 @@ namespace CalculateFunding.Services.Core.Extensions
         }
 
         [TestMethod]
+        public void WhenADecimalPlacesNumberWithinInt32RangeAndInputIsDecimalThenDisplayIsNotRounded()
+        {
+            object result = 1.109M.DecimalAsObject();
+
+            result
+                .Should()
+                .Be(1.109M);
+        }
+
+        [TestMethod]
         public void WhenAWholeNumberWithinInt32RangeAndInputIsNullableDecimalThenDisplayIsRounded()
         {
             decimal? inputNumber = 1M;
@@ -90,7 +100,7 @@ namespace CalculateFunding.Services.Core.Extensions
         [TestMethod]
         public void WhenANullDecimalIsProvided_ThenNullableDecimalIsReturned()
         {
-            object result = ((decimal?) null).DecimalAsObject();
+            object result = ((decimal?)null).DecimalAsObject();
 
             result
                 .Should()

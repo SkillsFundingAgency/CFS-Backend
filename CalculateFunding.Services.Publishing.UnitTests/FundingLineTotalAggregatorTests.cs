@@ -40,7 +40,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             //Assert
             fundingLines.Single(_ => _.TemplateLineId == 1).Value
                 .Should()
-                .Be(16200.63M);
+                .Be(16200.64M);
 
             fundingLines.Single(_ => _.TemplateLineId == 2).Value
                 .Should()
@@ -52,7 +52,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             fundingLines.Single(_ => _.TemplateLineId == 4).Value
                 .Should()
-                .Be(5000.63M);
+                .Be(5000.64M);
 
             fundingLines.Single(_ => _.TemplateLineId == 5).Value
                 .Should()
@@ -117,7 +117,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                     }
                 case 2:
                     {
-                        return 500M;
+                        return 500.001M;
                     }
                 case 3:
                     {
@@ -125,7 +125,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                     }
                 case 5:
                     {
-                        return 5000.63M;
+                        return 5000.639M;
                     }
                 case 6:
                     {
