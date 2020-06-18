@@ -409,21 +409,6 @@ namespace CalculateFunding.Services.Graph.UnitTests
                 .BeOfType<OkResult>();
         }
 
-        [TestMethod]
-        public async Task DeleteAllForSpecificationDelegatesToSpecificationRepository()
-        {
-            string specificationId = NewRandomString();
-
-            IActionResult result = await _graphService.DeleteAllForSpecification(specificationId);
-            
-            result
-                .Should()
-                .BeOfType<OkResult>();
-
-            await _specificationRepository
-                .Received(1)
-                .DeleteAllForSpecification(specificationId);
-        }
 
         [TestMethod]
         public async Task SaveDatasetFields_GivenValidDatasetFields_OkStatusCodeReturned()

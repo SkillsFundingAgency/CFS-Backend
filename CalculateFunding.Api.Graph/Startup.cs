@@ -1,4 +1,5 @@
 using CalculateFunding.Common.Graph;
+using CalculateFunding.Common.Graph.Cosmos;
 using CalculateFunding.Common.Graph.Interfaces;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
@@ -80,18 +81,20 @@ namespace CalculateFunding.Api.Graph
                 .AddScoped<IHealthChecker, ControllerResolverHealthCheck>();
 
             builder
-                .AddScoped<ICypherBuilderFactory, CypherBuilderFactory>();
-
+                .AddScoped<IGremlinClientFactory, GremlinClientFactory>();
             builder
-                .AddScoped<IGraphRepository, GraphRepository>(ctx =>
+                .AddScoped<IPathResultsTransform, PathResultsTransform>();
+            builder
+                .AddScoped<ICosmosGraphDbSettings>(ctx =>
                 {
-                    ICypherBuilderFactory cypherBuilderFactory = ctx.GetService<ICypherBuilderFactory>();
-                    GraphDbSettings graphDbSettings = new GraphDbSettings();
+                    CosmosGraphDbSettings settings = new CosmosGraphDbSettings();
+                    
+                    Configuration.Bind("CosmosGraphSettings", settings);
 
-                    Configuration.Bind("GraphDbSettings", graphDbSettings);
-
-                    return new GraphRepository(graphDbSettings, cypherBuilderFactory);
+                    return settings;
                 });
+            builder
+                .AddScoped<IGraphRepository, GraphRepository>();
 
             builder
                 .AddScoped<ISpecificationRepository, SpecificationRepository>();

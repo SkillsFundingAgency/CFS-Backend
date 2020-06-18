@@ -78,16 +78,6 @@ namespace CalculateFunding.Services.Graph.UnitTests
 
             await ThenTheNodeWasDeleted<Specification>(SpecificationId, specificationId);
         }
-
-        [TestMethod]
-        public async Task DeleteAllForSpecification_GivenValidCalculation_ExpectedMethodsCalled()
-        {
-            string specificationId = NewRandomString();
-
-            await _specificationRepository.DeleteAllForSpecification(specificationId);
-
-            await ThenTheNodeAndAllItsChildrenWereDeleted<Specification>(SpecificationId, specificationId);
-        }
         
         [TestMethod]
         public async Task DeleteSpecificationDatasetRelationshipDelegatesToGraphRepository()

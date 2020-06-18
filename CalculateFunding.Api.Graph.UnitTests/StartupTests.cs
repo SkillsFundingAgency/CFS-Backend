@@ -14,9 +14,10 @@ namespace CalculateFunding.Api.Graph.UnitTests
         {
             return new Dictionary<string, string>
             {
-                { "GraphDbSettings:Url", "bolt://localhost:7687" },
-                { "GraphDbSettings:Username", "neo4j" },
-                { "GraphDbSettings:Password", "password" }
+                { "CosmosGraphSettings:EndPointUrl", "localhost" },
+                { "CosmosGraphSettings:Port", "443" },
+                { "CosmosGraphSettings:ApiKey", "xyz" },
+                { "CosmosGraphSettings:ContainerPath", "/dbs/cfs/colls/specs" },
             };
         }
         

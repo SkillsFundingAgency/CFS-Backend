@@ -113,12 +113,5 @@ namespace CalculateFunding.Services.Graph.UnitTests
         {
             await ThenTheNodesWereCreated(new[] {node}, indices);
         }
-
-        protected async Task ThenTheNodeAndAllItsChildrenWereDeleted<TNode>(string field, string value)
-        {
-            await GraphRepository
-                .Received(1)
-                .DeleteNodeAndChildNodes<TNode>(Arg.Is<Field>(_ => _.Name == field && _.Value == value));
-        }
     }
 }

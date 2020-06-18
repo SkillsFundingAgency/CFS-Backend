@@ -1,11 +1,7 @@
-﻿using CalculateFunding.Common.Graph;
-using CalculateFunding.Common.Graph.Interfaces;
-using CalculateFunding.Models.Graph;
-using Newtonsoft.Json.Linq;
-using System;
+﻿using CalculateFunding.Models.Graph;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Graph.Interfaces;
 
 namespace CalculateFunding.Services.Graph.Interfaces
 {

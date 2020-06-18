@@ -32,11 +32,6 @@ namespace CalculateFunding.Services.Graph
             await _graphRepository.UpsertNodes(new [] { node }, indices);    
         }
 
-        protected async Task DeleteNodeAndChildNodes<TNode>(string field, string value)
-        {
-            await _graphRepository.DeleteNodeAndChildNodes<TNode>(new Field { Name = field, Value = value });
-        }
-
         protected async Task UpsertRelationship<TNodeA, TNodeB>(string label, (string Name, string Value) idA, (string Name, string Value) idB)
         {
             await _graphRepository.UpsertRelationship<TNodeA, TNodeB>(label, 

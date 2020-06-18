@@ -217,13 +217,6 @@ namespace CalculateFunding.Api.Graph.Controllers
         {
             return await _graphService.DeleteCalculationCalculationRelationship(calculationIdA, calculationIdB);
         }
-
-        [HttpDelete("api/graph/specification/{specificationId}/all")]
-        [ProducesResponseType((int) HttpStatusCode.OK)]
-        public async Task<IActionResult> DeleteAllForSpecification([FromRoute] string specificationId)
-        {
-            return await _graphService.DeleteAllForSpecification(specificationId);
-        }
        
         [HttpPost("api/graph/calculation/{calculationId}/relationships/datafields")]
         [ProducesResponseType(200)]

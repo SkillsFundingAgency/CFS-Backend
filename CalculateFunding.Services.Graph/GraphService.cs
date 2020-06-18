@@ -131,12 +131,6 @@ namespace CalculateFunding.Services.Graph
             return await ExecuteRepositoryAction(() => _calcRepository.DeleteCalculationDataFieldRelationship(calculationId, fieldId),
                 $"Unable to delete calculation -> datafield relationship {calculationId} -> {fieldId}");   
         }
-        
-        public async Task<IActionResult> DeleteAllForSpecification(string specificationId)
-        {
-            return await ExecuteRepositoryAction(() => _specRepository.DeleteAllForSpecification(specificationId),
-                $"Delete all for specification failed for specification:'{specificationId}'");
-        }
 
         public async Task<IActionResult> DeleteSpecification(string specificationId)
         {

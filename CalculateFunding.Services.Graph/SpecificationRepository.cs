@@ -29,12 +29,7 @@ namespace CalculateFunding.Services.Graph
         {
             await UpsertNodes(specifications, SpecificationId);
         }
-
-        public async Task DeleteAllForSpecification(string specificationId)
-        {
-            await DeleteNodeAndChildNodes<Specification>(SpecificationId, specificationId);
-        }
-
+        
         public async Task CreateSpecificationDatasetRelationship(string specificationId, string datasetId)
         {
             await UpsertRelationship<Specification, Dataset>(SpecificationDatasetRelationship,

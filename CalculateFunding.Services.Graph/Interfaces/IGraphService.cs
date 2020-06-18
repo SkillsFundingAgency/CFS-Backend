@@ -16,10 +16,8 @@ namespace CalculateFunding.Services.Graph.Interfaces
         Task<IActionResult> UpsertCalculationCalculationsRelationships(string calculationId, string[] calculationIds);
         Task<IActionResult> UpsertCalculationDataFieldsRelationships(string calculationId, string[] datasetFieldIds);
         Task<IActionResult> UpsertCalculationDataFieldRelationship(string calculationId, string datasetFieldId);
-
         Task<IActionResult> DeleteCalculationSpecificationRelationship(string calculationId, string specificationId);
         Task<IActionResult> DeleteCalculationCalculationRelationship(string calculationIdA, string calculationIdB);
-        Task<IActionResult> DeleteAllForSpecification(string specificationId);
         Task<IActionResult> UpsertDataset(Dataset dataset);
         Task<IActionResult> UpsertDatasets(Dataset[] datasets);
         Task<IActionResult> DeleteDataset(string datasetId);
