@@ -101,7 +101,7 @@ namespace CalculateFunding.Api.Providers.Controllers
         }
 
         [HttpGet("api/providers/versions-by-fundingstream/{fundingStreamId}")]
-        [ProducesResponseType(200, Type = typeof(IEnumerable<ProviderVersion>))]
+        [ProducesResponseType(200, Type = typeof(IEnumerable<ProviderVersionMetadata>))]
         public async Task<IActionResult> GetProviderVersions([FromRoute]string fundingStreamId)
         {
             return await _providerVersionService.GetProviderVersionsByFundingStream(fundingStreamId);
