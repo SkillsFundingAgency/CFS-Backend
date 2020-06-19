@@ -80,7 +80,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             yield return ParseSourceCodeToStatementSyntax("Public Property DictionaryBooleanValues As Dictionary(Of String, Boolean?) = New Dictionary(Of String, Boolean?)(2)");
             yield return ParseSourceCodeToStatementSyntax("Public Property DictionaryStringValues As Dictionary(Of String, String) = New Dictionary(Of String, String)(2)");
             yield return ParseSourceCodeToStatementSyntax("Public Property FundingLineDictionary As Dictionary(Of String, String()) = New Dictionary(Of String, String())(2)");
-            yield return ParseSourceCodeToStatementSyntax("Public Property FundingLineDictionaryValues As Dictionary(Of String, Object) = New Dictionary(Of String, Object)(2)");
+            yield return ParseSourceCodeToStatementSyntax("Public Property FundingLineDictionaryValues As Dictionary(Of String, Decimal?) = New Dictionary(Of String, Decimal?)(2)");
 
             if (calculations == null) yield break;
 
@@ -91,7 +91,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             {
                 funding[fundingStreamId].FundingLines = funding[fundingStreamId].FundingLines.Select(fl =>
                 {
-                    fl.Calculations = fl.Calculations.Where(calc => funding[fundingStreamId].Mappings.ContainsKey(calc.Id) && calculationIds.Contains(funding[fundingStreamId].Mappings[calc.Id]));
+                    fl.Calculations = fl.Calculations?.Where(calc => funding[fundingStreamId].Mappings.ContainsKey(calc.Id) && calculationIds.Contains(funding[fundingStreamId].Mappings[calc.Id]));
                     return fl;
                 });
             }

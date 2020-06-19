@@ -68,11 +68,11 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             sourceCode.AppendLine($"{@namespace} = calculationContext.{@namespace}");
             sourceCode.AppendLine();
 
-            foreach (FundingLine fundingLine in fundingLines)
+            foreach (FundingLine fundingLine in fundingLines.Where(_ => !_.Calculations.IsNullOrEmpty()))
             {
                 fundingLine.SourceCodeName ??= GenerateIdentifier(fundingLine.Name);
 
-                sourceCode.AppendLine($"{fundingLine.SourceCodeName} = Function() As decimal?");
+                sourceCode.AppendLine($"{fundingLine.SourceCodeName} = Function() As Decimal?");
                 sourceCode.AppendLine();
                 sourceCode.AppendLine("Dim existingCacheItem as String() = Nothing");
                 sourceCode.AppendLine($"If calculationContext.FundingLineDictionary.TryGetValue(\"{fundingLine.Id}\", existingCacheItem) Then");

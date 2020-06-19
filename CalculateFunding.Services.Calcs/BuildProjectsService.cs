@@ -727,7 +727,7 @@ namespace CalculateFunding.Services.Calcs
                     Name = _.Name,
                     Namespace = fundingStreamId,
                     SourceCodeName = VisualBasicTypeGenerator.GenerateIdentifier(_.Name),
-                    Calculations = _.Calculations.Select(calc => new FundingLineCalculation
+                    Calculations = _.Calculations?.Select(calc => new FundingLineCalculation
                     {
                         Id = calc.TemplateCalculationId,
                         Name = calc.Name,
