@@ -53,7 +53,7 @@ namespace CalculateFunding.Services.Publishing
             return calculations?.Select(calc =>
             {
                 CalculationResult calculationResult = calculationResults.SingleOrDefault(calcResult => calcResult.Id == GetCalculationId(mapping, calc.TemplateCalculationId));
-                decimal? calculationResultValue = calculationResult?.Value;
+                decimal? calculationResultValue = calculationResult?.Value as decimal?;
 
                 return new GeneratorModels.Calculation
                 {
@@ -64,7 +64,7 @@ namespace CalculateFunding.Services.Publishing
                     Type = calc.Type.AsMatchingEnum<Generators.Funding.Enums.CalculationType>(),
                     Value = calc.Type == ApiCalculationType.Cash && calculationResultValue.HasValue
                     ? Math.Round(calculationResultValue.Value, 2, MidpointRounding.AwayFromZero)
-                    : calculationResultValue.HasValue ? calculationResultValue.Value : 0
+                    : calculationResult?.Value
                 };
             }) ?? new GeneratorModels.Calculation[0];
         }

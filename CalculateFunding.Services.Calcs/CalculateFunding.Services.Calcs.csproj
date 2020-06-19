@@ -14,7 +14,7 @@
 
 
 
-    <PackageReference Include="CalculateFunding.Common.ApiClient.Graph" Version="3.1.0" />
+    <PackageReference Include="CalculateFunding.Common.ApiClient.Graph" Version="4.0.0" />
 
 
 
@@ -31,7 +31,7 @@
 
     <PackageReference Include="CalculateFunding.Common.Storage" Version="2.0.1" />
 
-    <PackageReference Include="CalculateFunding.Generators.Funding" Version="2.0.0" />
+    <PackageReference Include="CalculateFunding.Generators.Funding" Version="3.0.4" />
 
 
 

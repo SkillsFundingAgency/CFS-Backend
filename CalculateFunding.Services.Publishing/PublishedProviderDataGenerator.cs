@@ -5,6 +5,7 @@ using AutoMapper;
 using CalculateFunding.Common.TemplateMetadata.Enums;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Common.Utility;
+using CalculateFunding.Generators.Funding;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
 using GeneratorModels = CalculateFunding.Generators.Funding.Models;
@@ -92,13 +93,13 @@ namespace CalculateFunding.Services.Publishing
             return fundingLine;
         }
 
-        private Common.TemplateMetadata.Models.Calculation ToCalculation(Common.TemplateMetadata.Models.Calculation calculation, Common.ApiClient.Calcs.Models.TemplateMapping mapping, IEnumerable<CalculationResult> calculationResults)
+        private Calculation ToCalculation(Calculation calculation, Common.ApiClient.Calcs.Models.TemplateMapping mapping, IEnumerable<CalculationResult> calculationResults)
         {
-            decimal? calculationResultValue = calculationResults.SingleOrDefault(calc => calc.Id == GetCalculationId(mapping, calculation.TemplateCalculationId))?.Value;
+            object value = calculationResults.SingleOrDefault(calc => calc.Id == GetCalculationId(mapping, calculation.TemplateCalculationId))?.Value;
 
-            calculation.Value = calculation.Type == CalculationType.Cash && calculationResultValue.HasValue
-                ? (object)Math.Round(calculationResultValue.Value, 2, MidpointRounding.AwayFromZero)
-                : calculationResultValue;
+            calculation.Value = calculation.Type == CalculationType.Cash && value is decimal calculationResultValue
+                ? Math.Round(calculationResultValue, 2, MidpointRounding.AwayFromZero)
+                : value;
 
             calculation.Calculations = calculation.Calculations?.Select(_ => ToCalculation(_, mapping, calculationResults));
 

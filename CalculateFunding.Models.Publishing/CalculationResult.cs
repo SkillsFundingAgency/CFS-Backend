@@ -10,6 +10,6 @@ namespace CalculateFunding.Models.Publishing
         public string Id { get; set; }
 
         [JsonProperty("value")] 
-        public decimal? Value { get; set; }
+        public object Value { get; set; }
     }
 }

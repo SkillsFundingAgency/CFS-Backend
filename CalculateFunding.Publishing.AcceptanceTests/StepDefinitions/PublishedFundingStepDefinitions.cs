@@ -263,24 +263,22 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
         }
 
         [Then(@"the published funding contains a calculations in published provider with following calculation results")]
-        public void ThenThePublishedFundingContainsACalculationsInPublishedProviderWithFollowingCalculationResults(Table table)
+        public void ThenThePublishedFundingContainsACalculationsInPublishedProviderWithFollowingCalculationResults(IEnumerable<CalculationResult> calculationResult)
         {
             PublishedFunding publishedFunding = _publishedFundingResultStepContext.CurrentPublishedFunding;
 
             publishedFunding.Should()
                 .NotBeNull();
 
-            var calculations = publishedFunding.Current.Calculations;
+            IEnumerable<FundingCalculation> calculations = publishedFunding.Current.Calculations;
 
             calculations
                 .Should()
                 .NotBeNull("Calculations not found");
 
-            IEnumerable<CalculationResult> calculationResult = table.CreateSet<CalculationResult>();
-
-            foreach (var cals in calculationResult)
+            foreach (CalculationResult cals in calculationResult)
             {
-                var calValue = calculations.FirstOrDefault(c => c.TemplateCalculationId.ToString() == cals.Id);
+                FundingCalculation calValue = calculations.FirstOrDefault(c => c.TemplateCalculationId.ToString() == cals.Id);
 
                 calValue
                     .Should()

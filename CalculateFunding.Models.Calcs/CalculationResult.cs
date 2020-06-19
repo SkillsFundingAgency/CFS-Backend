@@ -11,7 +11,7 @@ namespace CalculateFunding.Models.Calcs
         public Reference Calculation { get; set; }
 
         [JsonProperty("value")]
-        public object? Value { get; set; }
+        public object Value { get; set; }
 
         [JsonProperty("exceptionType")]
         public string ExceptionType { get; set; }
