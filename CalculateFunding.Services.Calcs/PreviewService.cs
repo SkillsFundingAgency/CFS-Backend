@@ -194,6 +194,13 @@ namespace CalculateFunding.Services.Calcs
                 string calculationIdentifier = $"{calculationToPreview.Namespace}.{VisualBasicTypeGenerator.GenerateIdentifier(calculationToPreview.Name)}";
 
                 IDictionary<string, string> functions = _sourceCodeService.GetCalculationFunctions(compilerOutput.SourceFiles);
+                IDictionary<string, string> calculationIdentifierMap = calculations
+                    .Select(_ => new 
+                    { 
+                        Identifier = $"{_.Namespace}.{VisualBasicTypeGenerator.GenerateIdentifier(_.Name)}", 
+                        CalcName = _.Name 
+                    })
+                    .ToDictionary(d => d.Identifier, d => d.CalcName);
 
                 if (!functions.ContainsKey(calculationIdentifier))
                 {
@@ -225,6 +232,20 @@ namespace CalculateFunding.Services.Calcs
                                         compilerOutput.CompilerMessages.Add(new CompilerMessage { Message = $"{aggregateParameter} is not an aggregable field", Severity = Severity.Error });
                                         continueChecking = false;
                                         break;
+                                    }
+
+                                    if (calculationIdentifierMap.ContainsKey(aggregateParameter))
+                                    {
+                                        Calculation calculation = calculations.SingleOrDefault(_ => _.Name == calculationIdentifierMap[aggregateParameter]);
+
+                                        if(calculation.Current.DataType != CalculationDataType.Decimal)
+                                        {
+                                            compilerOutput.Success = false;
+                                            compilerOutput.CompilerMessages.Add(new CompilerMessage { Message = 
+                                                $"Only decimal fields can be used on aggregation. {aggregateParameter} has data type of {calculation.Current.DataType}", Severity = Severity.Error });
+                                            continueChecking = false;
+                                            break;
+                                        }
                                     }
                                 }
 
