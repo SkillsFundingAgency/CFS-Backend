@@ -7,7 +7,8 @@ namespace CalculateFunding.Services.Compiler
 {
     public interface ICompiler
     {
-        Build GenerateCode(List<SourceFile> sourcefiles);
+        Build GenerateCode(List<SourceFile> sourcefiles,
+            IEnumerable<Calculation> calculations);
 
         IDictionary<string, string> GetCalculationFunctions(IEnumerable<SourceFile> sourceFiles);
     }

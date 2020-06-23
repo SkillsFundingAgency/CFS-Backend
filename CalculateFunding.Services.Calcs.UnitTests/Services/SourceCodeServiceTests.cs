@@ -96,7 +96,7 @@ namespace CalculateFunding.Services.Calcs.Services
             //Assert
             compiler
                  .Received(1)
-                 .GenerateCode(Arg.Is<List<SourceFile>>(m => m.Count == 3));
+                 .GenerateCode(Arg.Is<List<SourceFile>>(m => m.Count == 3), Arg.Any<IEnumerable<Calculation>>());
         }
 
         [TestMethod]
@@ -313,7 +313,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ICompiler compiler = CreateCompiler();
             compiler
-                .GenerateCode(Arg.Any<List<SourceFile>>())
+                .GenerateCode(Arg.Any<List<SourceFile>>(), Arg.Any<IEnumerable<Calculation>>())
                 .Returns(newBuild);
 
             ICompilerFactory compilerFactory = CreateCompilerFactory(compiler, sourceFiles);

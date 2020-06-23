@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using CalculateFunding.Common.Extensions;
 
 namespace CalculateFunding.Services.Compiler
 {
@@ -20,8 +21,11 @@ namespace CalculateFunding.Services.Compiler
             Logger = logger;
         }
 
-        public Build GenerateCode(List<SourceFile> sourcefiles)
+        
+        public Build GenerateCode(List<SourceFile> sourcefiles,
+            IEnumerable<Calculation> calculations)
         {
+            // ReSharper disable once CoVariantArrayConversion
             MetadataReference[] references = Assembly.GetExecutingAssembly().GetReferencedAssemblies().Select(_ => AssemblyMetadata.CreateFromFile(Assembly.Load(_).Location).GetReference()).ToArray();
 
             references = references.Concat(new[] {
@@ -29,31 +33,35 @@ namespace CalculateFunding.Services.Compiler
                 AssemblyMetadata.CreateFromFile(typeof(Microsoft.VisualBasic.Constants).Assembly.Location).GetReference()
             }).ToArray();
 
-            using (var ms = new MemoryStream())
+            Dictionary<string, Calculation> calculationsLookup = calculations.ToDictionary(_ => _.Id);
+            
+            using MemoryStream stream = new MemoryStream();
+            
+            Build build = GenerateCode(sourcefiles, references, stream, calculationsLookup);
+
+            if (build.Success)
             {
-                var build = GenerateCode(sourcefiles, references, ms);
+                stream.Seek(0L, SeekOrigin.Begin);
 
-                if (build.Success)
-                {
-                    ms.Seek(0L, SeekOrigin.Begin);
+                byte[] data = new byte[stream.Length];
+                stream.Read(data, 0, data.Length);
 
-                    byte[] data = new byte[ms.Length];
-                    ms.Read(data, 0, data.Length);
-
-                    build.Assembly = data;
-                }
-
-                return build;
+                build.Assembly = data;
             }
+
+            return build;
         }
 
-        protected Build GenerateCode(List<SourceFile> sourceFiles, MetadataReference[] references, MemoryStream ms)
+        protected Build GenerateCode(List<SourceFile> sourceFiles, 
+            MetadataReference[] references, 
+            MemoryStream stream,
+            IDictionary<string, Calculation> calculations)
         {
             Stopwatch stopwatch = new Stopwatch();
 
             stopwatch.Start();
 
-            EmitResult result = Compile(references, ms, sourceFiles);
+            EmitResult result = Compile(references, stream, sourceFiles);
 
             Build compilerOutput = new Build
             {
@@ -65,35 +73,53 @@ namespace CalculateFunding.Services.Compiler
             Logger.Information($"Compilation complete success = {compilerOutput.Success} ({stopwatch.ElapsedMilliseconds}ms)");
 
             compilerOutput.CompilerMessages = result.Diagnostics.Where(x => x.Severity != DiagnosticSeverity.Hidden)
-                .Select(x => new CompilerMessage
+                .Select(diagnostic => new CompilerMessage
                 {
-                    Message = x.GetMessage(),
-                    Severity = (Severity)x.Severity,
-                    Location = GetLocation(x)
+                    Message = diagnostic.GetMessage(),
+                    Severity = diagnostic.Severity.AsMatchingEnum<Severity>(),
+                    Location = GetLocation(diagnostic, calculations)
                 })
                 .ToList();
 
             return compilerOutput;
         }
 
-        private SourceLocation GetLocation(Diagnostic diagnostic)
+        private SourceLocation GetLocation(Diagnostic diagnostic, 
+            IDictionary<string, Calculation> calculations)
         {
-            var span = diagnostic.Location.GetMappedLineSpan();
+            FileLinePositionSpan span = diagnostic.Location.GetMappedLineSpan();
 
             Reference owner = null;
 
-            var split = span.Path?.Split('|');
-            if (split != null && split.Length == 2)
+            string[] split = span.Path.Split('|');
+            
+            if (split.Length == 2)
             {
                 owner = new Reference(split.First(), split.Last());
+
+                if (calculations.TryGetValue(owner.Id, out Calculation externalSource))
+                {
+                    DeNormaliseWhiteSpaceLinePosition originalSourceCodeLinePosition 
+                        = new DeNormaliseWhiteSpaceLinePosition(span, externalSource.Current.SourceCode);
+                    
+                    return new SourceLocation
+                    {
+                        Owner = owner,
+                        StartLine = originalSourceCodeLinePosition.StartLine,
+                        StartChar = span.StartLinePosition.Character,
+                        EndLine = originalSourceCodeLinePosition.EndLine,
+                        EndChar = span.EndLinePosition.Character
+                    };
+                }
             }
 
+            //increment all by 1 as roslyn uses base 0 indices for line numbers
             return new SourceLocation
             {
                 Owner = owner,
-                StartLine = span.StartLinePosition.Line,
+                StartLine = span.StartLinePosition.Line + 1,
                 StartChar = span.StartLinePosition.Character,
-                EndLine = span.EndLinePosition.Line,
+                EndLine = span.EndLinePosition.Line + 1,
                 EndChar = span.EndLinePosition.Character
             };
         }

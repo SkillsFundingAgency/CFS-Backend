@@ -140,8 +140,8 @@ namespace CalculateFunding.Services.Calcs
                 IEnumerable<SourceFile> sourceFiles = GenerateSourceFiles(buildProject, calculations, compilerOptions);
 
                 ICompiler compiler = _compilerFactory.GetCompiler(sourceFiles);
-
-                return compiler.GenerateCode(sourceFiles?.ToList());
+                
+                return compiler.GenerateCode(sourceFiles?.ToList(), calculations);
             }
             catch (Exception e)
             {
