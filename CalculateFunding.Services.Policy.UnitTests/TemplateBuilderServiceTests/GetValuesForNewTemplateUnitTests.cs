@@ -26,8 +26,6 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
             private TemplateBuilderService _service;
             private IEnumerable<FundingStreamWithPeriods> _result;
             private ITemplateRepository _templateRepository;
-            private ITemplateVersionRepository _versionRepository;
-            private ISearchRepository<TemplateIndex> _searchRepository;
             private IPolicyRepository _policyRepository;
             private Template _existingTemplate;
 
@@ -43,6 +41,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
                     _templateRepository,
                     Substitute.For<ISearchRepository<TemplateIndex>>(),
                     _policyRepository,
+                    Substitute.For<ITemplateBlobService>(),
                     Substitute.For<ILogger>());
                 
                 _result = _service.GetFundingStreamAndPeriodsWithoutTemplates().GetAwaiter().GetResult();

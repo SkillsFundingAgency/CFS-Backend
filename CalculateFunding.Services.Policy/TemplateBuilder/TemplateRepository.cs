@@ -65,22 +65,40 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             CosmosDbQuery query = new CosmosDbQuery
             {
                 QueryText = @"SELECT
-                                        c.content.id,
-                                        { 
-                                           'id' : c.content.current.id,
-                                           'name' : c.content.name,
-                                           'templateId' : c.content.current.templateId,
-                                           'date' : c.content.current.date,
-                                           'majorVersion' : c.content.current.majorVersion,
-                                           'minorVersion' : c.content.current.minorVersion,
-                                           'fundingStreamId' : c.content.current.fundingStreamId,
-                                           'fundingPeriodId' : c.content.current.fundingPeriodId,
-                                           'status'          : c.content.current.status,
-                                           'version'         : c.content.current.version
-                                        } AS Current
-                               FROM     templateBuilder c
-                               WHERE    c.documentType = 'Template' 
-                               AND      c.deleted = false"
+        c.content.templateId,
+        c.content.name,
+        { 
+           'name'         : c.content.name,
+           'templateId'   : c.content.current.templateId,
+           'date'         : c.content.current.date,
+           'majorVersion' : c.content.current.majorVersion,
+           'minorVersion' : c.content.current.minorVersion,
+           'status'       : c.content.current.status,
+           'version'      : c.content.current.version,
+           'author'       : {
+              'id'           : c.content.current.author.id,
+              'name'         : c.content.current.author.name
+            }
+        } AS Current,
+        { 
+           'majorVersion' : c.content.released.majorVersion,
+           'minorVersion' : c.content.released.minorVersion,
+           'status'       : c.content.released.status,
+           'version'      : c.content.released.version
+        } AS Released,
+        {
+           'id'           : c.content.fundingStream.id,
+           'name'         : c.content.fundingStream.name,
+           'shortName'    : c.content.fundingStream.shortName
+        } AS FundingStream,
+        {
+           'id'           : c.content.fundingPeriod.id,
+           'name'         : c.content.fundingPeriod.name,
+           'shortName'    : c.content.fundingPeriod.shortName
+        } AS FundingPeriod
+FROM     templateBuilder c
+WHERE    c.documentType = 'Template' 
+AND      c.deleted = false"
             };
 
             await _cosmosRepository.DocumentsBatchProcessingAsync(persistBatchToIndex: persistIndexBatch,

@@ -57,6 +57,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
                     _templateRepository,
                     Substitute.For<ISearchRepository<TemplateIndex>>(),
                     Substitute.For<IPolicyRepository>(),
+                    Substitute.For<ITemplateBlobService>(),
                     Substitute.For<ILogger>());
 
                 _result = _service.GetTemplate(_template.TemplateId).GetAwaiter().GetResult();
@@ -188,6 +189,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
                     Substitute.For<ITemplateRepository>(),
                     Substitute.For<ISearchRepository<TemplateIndex>>(),
                     Substitute.For<IPolicyRepository>(),
+                    Substitute.For<ITemplateBlobService>(),
                     Substitute.For<ILogger>());
 
                 _result = _service

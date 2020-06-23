@@ -58,6 +58,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
                     _templateRepository,
                     _searchRepository,
                     _policyRepository,
+                    Substitute.For<ITemplateBlobService>(),
                     Substitute.For<ILogger>());
                 
                 _result = _service.CreateTemplate(_command, _author).GetAwaiter().GetResult();

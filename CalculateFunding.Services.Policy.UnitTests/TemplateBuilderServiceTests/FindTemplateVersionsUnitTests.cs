@@ -76,6 +76,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
                     Substitute.For<ITemplateRepository>(),
                     Substitute.For<ISearchRepository<TemplateIndex>>(),
                     Substitute.For<IPolicyRepository>(),
+                    Substitute.For<ITemplateBlobService>(),
                     Substitute.For<ILogger>());
                 
                 _result = _service

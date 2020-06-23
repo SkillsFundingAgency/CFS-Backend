@@ -33,6 +33,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
         private readonly ITemplateRepository _templateRepository;
         private readonly ISearchRepository<TemplateIndex> _searchRepository;
         private readonly IPolicyRepository _policyRepository;
+        private readonly ITemplateBlobService _templateBlobService;
 
         public TemplateBuilderService(
             IIoCValidatorFactory validatorFactory,
@@ -42,6 +43,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             ITemplateRepository templateRepository,
             ISearchRepository<TemplateIndex> searchRepository,
             IPolicyRepository policyRepository,
+            ITemplateBlobService templateBlobService,
             ILogger logger)
         {
             _validatorFactory = validatorFactory;
@@ -51,6 +53,8 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             _templateRepository = templateRepository;
             _searchRepository = searchRepository;
             _policyRepository = policyRepository;
+            _templateBlobService = templateBlobService;
+            _fundingTemplateValidationService = fundingTemplateValidationService;
             _logger = logger;
         }
 
@@ -158,9 +162,9 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
                 template.Current = new TemplateVersion
                 {
                     TemplateId = template.TemplateId,
+                    Name = templateName,
                     FundingStreamId = command.FundingStreamId,
                     FundingPeriodId = command.FundingPeriodId,
-                    Name = templateName,
                     Description = command.Description,
                     Version = 1,
                     MajorVersion = 0,
@@ -259,28 +263,17 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
                 FundingStreamWithPeriods streamWithPeriods = available.Single(x => x.FundingStream.Id == command.FundingStreamId);
                 Template template = new Template
                 {
-                    TemplateId = templateId.ToString(), 
+                    TemplateId = templateId.ToString(),
                     Name = templateName,
                     FundingStream = streamWithPeriods.FundingStream,
-                    FundingPeriod = streamWithPeriods.FundingPeriods.Single(p => p.Id == command.FundingPeriodId),
-                    Current = new TemplateVersion
-                    {
-                        TemplateId = templateId.ToString(),
-                        SchemaVersion = sourceVersion.SchemaVersion,
-                        Author = author,
-                        Name = templateName,
-                        Description = command.Description,
-                        FundingStreamId = command.FundingStreamId,
-                        FundingPeriodId = command.FundingPeriodId,
-                        Comment = null,
-                        TemplateJson = sourceVersion.TemplateJson,
-                        Status = TemplateStatus.Draft,
-                        Version = 1,
-                        MajorVersion = 0,
-                        MinorVersion = 1,
-                        Date = DateTimeOffset.Now
-                    }
+                    FundingPeriod = streamWithPeriods.FundingPeriods.Single(p => p.Id == command.FundingPeriodId)
                 };
+                template.Current = Map(template,
+                    sourceVersion,
+                    author,
+                    command.Description,
+                    majorVersion: 0,
+                    minorVersion: 1);
                 
                 // create new version and save it
                 HttpStatusCode templateVersionUpdateResult = await _templateVersionRepository.SaveVersion(template.Current);
@@ -366,8 +359,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             template.FundingStream ??= await _policyRepository.GetFundingStreamById(template.Current.FundingStreamId);
             template.FundingPeriod ??= await _policyRepository.GetFundingPeriodById(template.Current.FundingPeriodId);
 
-            (ValidationFailure error, TemplateJsonContentUpdateCommand updateCommand) = 
-                MapCommand(originalCommand, template, TemplateStatus.Draft, 0, 1);
+            (ValidationFailure error, TemplateJsonContentUpdateCommand updateCommand) = MapCommand(originalCommand);
             if (error != null)
             {
                 return CommandResult.ValidationFail(new ValidationResult(new []{error}));
@@ -382,7 +374,11 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             if (validationError != null)
                 return validationError;
 
-            var updated = await UpdateTemplateContent(updateCommand, author, template, TemplateStatus.Draft, 0, 1);
+            var updated = await UpdateTemplateContent(updateCommand, 
+                author, 
+                template,
+                template.Current.MajorVersion, 
+                template.Current.MinorVersion + 1);
 
             if (!updated.IsSuccess())
             {
@@ -463,21 +459,13 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             }
 
             // create new version and save it
-            TemplateVersion newVersion = templateVersion.Clone() as TemplateVersion;
-            newVersion.Author = command.Author;
-            newVersion.Name = template.Name;
-            newVersion.FundingStreamId = template.FundingStream.Id;
-            newVersion.FundingPeriodId = template.FundingPeriod.Id;
-            newVersion.Description = templateVersion.Description;
-            newVersion.Comment = command.Note;
-            newVersion.TemplateJson = templateVersion.TemplateJson;
-            newVersion.Status = TemplateStatus.Published;
-            newVersion.Version = template.Current.Version + 1;
-            newVersion.MajorVersion = template.Current.MajorVersion + 1;
-            newVersion.MinorVersion = 0;
-            newVersion.Date = DateTimeOffset.Now;
-            newVersion.Predecessors ??= new List<string>();
-            newVersion.Predecessors.Add(template.Current.Id);
+            var newVersion = Map(template, 
+                templateVersion, 
+                command.Author, 
+                newStatus: TemplateStatus.Published, 
+                majorVersion: template.Current.MajorVersion + 1,
+                minorVersion: 0,
+                publishNote: command.Note);
             var templateVersionUpdateResult = await _templateVersionRepository.SaveVersion(newVersion);
             if (!templateVersionUpdateResult.IsSuccess())
             {
@@ -492,56 +480,81 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             {
                 return CommandResult.Fail($"Failed to approve template: {templateUpdateResult}");
             }
-
-            return CommandResult.Success();
+            
+            // finally add to blob so it's available to the rest of CFS
+            return await _templateBlobService.PublishTemplate(template);
         }
 
-        private static TemplateResponse Map(TemplateVersion template)
+        private static TemplateVersion Map(Template template, 
+            TemplateVersion sourceVersion, 
+            Reference author, 
+            string description = null, 
+            string templateJson = null, 
+            TemplateStatus newStatus = TemplateStatus.Draft, 
+            int majorVersion = 0, 
+            int minorVersion = 1, 
+            string publishNote = null)
+        {
+            int previousVersionNumber = template.Current?.Version ?? 0;
+            TemplateVersion newVersion = sourceVersion.Clone() as TemplateVersion;
+            newVersion.Author = author;
+            newVersion.TemplateId = template.TemplateId;
+            newVersion.Name = template.Name;
+            newVersion.FundingStreamId = template.FundingStream.Id;
+            newVersion.FundingPeriodId = template.FundingPeriod.Id;
+            newVersion.Description = description ?? sourceVersion?.Description;
+            newVersion.Comment = publishNote;
+            newVersion.TemplateJson = templateJson ?? sourceVersion?.TemplateJson;
+            newVersion.Version = previousVersionNumber + 1;
+            newVersion.MajorVersion = majorVersion;
+            newVersion.MinorVersion = minorVersion;
+            newVersion.Status = newStatus;
+            newVersion.Date = DateTimeOffset.Now;
+            newVersion.Predecessors ??= new List<string>();
+            
+            if (template.Current != null)
+            {
+                newVersion.Predecessors.Add(template.Current.Id);
+            }
+            
+            return newVersion;
+        }
+
+        private static TemplateResponse Map(TemplateVersion templateVersion)
         {
             return new TemplateResponse
             {
-                TemplateId = template.TemplateId,
-                TemplateJson = template.TemplateJson,
-                Name = template.Name,
-                Description = template.Description,
-                FundingStreamId = template.FundingStreamId,
-                FundingPeriodId = template.FundingPeriodId,
-                Version = template.Version,
-                MinorVersion = template.MinorVersion,
-                MajorVersion = template.MajorVersion,
-                SchemaVersion = template.SchemaVersion,
-                Status = template.Status,
-                AuthorId = template.Author.Id,
-                AuthorName = template.Author.Name,
-                LastModificationDate = template.Date.DateTime,
-                PublishStatus = template.PublishStatus,
-                Comments = template.Comment
+                TemplateId = templateVersion.TemplateId,
+                TemplateJson = templateVersion.TemplateJson,
+                Name = templateVersion.Name,
+                Description = templateVersion.Description,
+                FundingStreamId = templateVersion.FundingStreamId,
+                FundingPeriodId = templateVersion.FundingPeriodId,
+                Version = templateVersion.Version,
+                MinorVersion = templateVersion.MinorVersion,
+                MajorVersion = templateVersion.MajorVersion,
+                SchemaVersion = templateVersion.SchemaVersion,
+                Status = templateVersion.Status,
+                AuthorId = templateVersion.Author.Id,
+                AuthorName = templateVersion.Author.Name,
+                LastModificationDate = templateVersion.Date.DateTime,
+                PublishStatus = templateVersion.PublishStatus,
+                Comments = templateVersion.Comment
             };
         }
 
-        private async Task<HttpStatusCode> UpdateTemplateContent(TemplateJsonContentUpdateCommand command, Reference author, Template template, TemplateStatus status, int majorVersion, int minorVersion)
+        private async Task<HttpStatusCode> UpdateTemplateContent(TemplateJsonContentUpdateCommand command, Reference author, Template template, int majorVersion, int minorVersion)
         {
             // create new version and save it
-            TemplateVersion newVersion = template.Current.Clone() as TemplateVersion;
-            newVersion.Status = status;
-            newVersion.Author = author;
-            newVersion.Name = template.Name;
-            newVersion.Comment = null;
-            newVersion.Description = template.Current.Description;
-            newVersion.FundingStreamId = template.FundingStream.Id;
-            newVersion.FundingPeriodId = template.FundingPeriod.Id;
-            newVersion.Status = TemplateStatus.Draft;
-            newVersion.Date = DateTimeOffset.Now;
-            newVersion.Version = template.Current.Version + 1;
-            newVersion.MajorVersion = majorVersion;
-            newVersion.MinorVersion = minorVersion + 1;
-            newVersion.Predecessors ??= new List<string>();
-            newVersion.Predecessors.Add(template.Current.Id);
-            newVersion.TemplateJson = command.TemplateJson;
+            TemplateVersion newVersion = Map(template, 
+                template.Current, 
+                author, 
+                templateJson: command.TemplateJson, 
+                majorVersion: majorVersion,
+                minorVersion: minorVersion);
             await _templateVersionRepository.SaveVersion(newVersion);
 
             // update template
-            template.Name = template.Current.Name;
             template.AddPredecessor(template.Current.Id);
             template.Current = newVersion;
             
@@ -570,28 +583,17 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
         private async Task<HttpStatusCode> UpdateTemplateMetadata(TemplateMetadataUpdateCommand command, Reference author, Template template)
         {
             // create new version and save it
-            TemplateVersion newVersion = template.Current.Clone() as TemplateVersion;
-            newVersion.Author = author;
-            newVersion.Comment = null;
-            newVersion.Status = TemplateStatus.Draft;
-            newVersion.Date = DateTimeOffset.Now;
-            newVersion.TemplateJson = template.Current.TemplateJson;
-            newVersion.FundingStreamId = template.FundingStream.Id;
-            newVersion.FundingPeriodId = template.FundingPeriod.Id;
-            newVersion.Name = template.Name;
-            newVersion.Description = command.Description;
-            newVersion.Version = template.Current.Version + 1;
-            newVersion.MinorVersion = template.Current.MinorVersion + 1;
-            newVersion.MajorVersion = template.Current.MajorVersion;
-            newVersion.Predecessors ??= new List<string>();
-            newVersion.Predecessors.Add(template.Current.Id);
-            newVersion.TemplateJson = template.Current.TemplateJson;
+            TemplateVersion newVersion = Map(template, 
+                template.Current, 
+                author, 
+                command.Description, 
+                majorVersion: template.Current.MajorVersion,
+                minorVersion: template.Current.MinorVersion + 1);
             var result = await _templateVersionRepository.SaveVersion(newVersion);
             if (!result.IsSuccess())
                 return result;
 
             // update template
-            template.Name = $"{template.FundingStream.Id} {template.FundingPeriod.Id}";
             template.AddPredecessor(template.Current.Id);
             template.Current = newVersion;
 
@@ -604,7 +606,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             return updateResult;
         }
 
-        private (ValidationFailure, TemplateJsonContentUpdateCommand) MapCommand(TemplateFundingLinesUpdateCommand command, Template template, TemplateStatus status, int majorVersion, int minorVersion)
+        private (ValidationFailure, TemplateJsonContentUpdateCommand) MapCommand(TemplateFundingLinesUpdateCommand command)
         {
             (IEnumerable<SchemaJsonFundingLine> fundingLines, string errorMessage) = Deserialise<IEnumerable<SchemaJsonFundingLine>>(command.TemplateFundingLinesJson);
             if (!errorMessage.IsNullOrEmpty())

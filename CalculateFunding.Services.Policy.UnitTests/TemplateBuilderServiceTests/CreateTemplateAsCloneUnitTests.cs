@@ -40,6 +40,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
             private ITemplateMetadataResolver _templateMetadataResolver;
             private IPolicyRepository _policyRepository;
             private ISearchRepository<TemplateIndex> _templateIndexer;
+            private ITemplateBlobService _templateBlobService;
 
             public When_i_clone_template_to_create_new_template()
             {
@@ -62,6 +63,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
                     _templateRepository,
                     _templateIndexer,
                     _policyRepository,
+                    _templateBlobService,
                     Substitute.For<ILogger>());
 
                 _result = _service.CreateTemplateAsClone(_command, _author).GetAwaiter().GetResult();
@@ -152,6 +154,9 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
                 }});
 
                 _templateIndexer = Substitute.For<ISearchRepository<TemplateIndex>>();
+                
+                _templateBlobService = Substitute.For<ITemplateBlobService>();
+                _templateBlobService.PublishTemplate(Arg.Any<Template>()).Returns(CommandResult.Success());
             }
             
             [TestMethod]

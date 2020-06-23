@@ -231,6 +231,7 @@ namespace CalculateFunding.Api.Policy
             CosmosRepository cosmos = new CosmosRepository(settings);
             builder
                 .AddSingleton<ITemplateBuilderService, TemplateBuilderService>()
+                .AddSingleton<ITemplateBlobService, TemplateBlobService>()
                 .AddSingleton<IHealthChecker, TemplateBuilderService>()
                 .AddSingleton<AbstractValidator<TemplateCreateCommand>, TemplateCreateCommandValidator>()
                 .AddSingleton<AbstractValidator<TemplateCreateAsCloneCommand>, TemplateCreateAsCloneCommandValidator>()

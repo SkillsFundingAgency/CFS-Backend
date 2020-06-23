@@ -34,6 +34,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
             private IIoCValidatorFactory _validatorFactory;
             private Template _templateBeforeUpdate;
             private TemplateVersion _templateVersionBeforeUpdate;
+            private ITemplateBlobService _templateBlobService;
 
             public When_i_publish_current_template()
             {
@@ -51,6 +52,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
                     _templateRepository,
                     Substitute.For<ISearchRepository<TemplateIndex>>(),
                     Substitute.For<IPolicyRepository>(),
+                    _templateBlobService,
                     Substitute.For<ILogger>());
 
                 TemplatePublishCommand command = new TemplatePublishCommand
@@ -105,6 +107,8 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
                 _versionRepository.GetTemplateVersion(Arg.Is(_templateId), Arg.Is(_templateBeforeUpdate.Current.Version))
                     .Returns(_templateVersionBeforeUpdate);
                 _versionRepository.SaveVersion(Arg.Any<TemplateVersion>()).Returns(HttpStatusCode.OK);
+                _templateBlobService = Substitute.For<ITemplateBlobService>();
+                _templateBlobService.PublishTemplate(Arg.Any<Template>()).Returns(CommandResult.Success());
             }
 
             [TestMethod]
@@ -256,6 +260,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
             private Template _templateBeforeUpdate;
             private TemplateVersion _templateVersionPrevious;
             private TemplateVersion _templateVersionCurrent;
+            private ITemplateBlobService _templateBlobService;
 
             public When_i_publish_previous_version_of_template()
             {
@@ -273,6 +278,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
                     _templateRepository,
                     Substitute.For<ISearchRepository<TemplateIndex>>(),
                     Substitute.For<IPolicyRepository>(),
+                    _templateBlobService,
                     Substitute.For<ILogger>());
 
                 TemplatePublishCommand command = new TemplatePublishCommand
@@ -340,6 +346,8 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
                 _versionRepository.GetTemplateVersion(Arg.Is(_templateId), Arg.Is(_templateVersionPrevious.Version))
                     .Returns(_templateVersionPrevious);
                 _versionRepository.SaveVersion(Arg.Any<TemplateVersion>()).Returns(HttpStatusCode.OK);
+                _templateBlobService = Substitute.For<ITemplateBlobService>();
+                _templateBlobService.PublishTemplate(Arg.Any<Template>()).Returns(CommandResult.Success());
             }
 
             [TestMethod]

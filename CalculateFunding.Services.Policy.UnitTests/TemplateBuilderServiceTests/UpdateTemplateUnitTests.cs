@@ -58,6 +58,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
                     _templateRepository,
                     _searchRepository,
                     _policyRepository,
+                    Substitute.For<ITemplateBlobService>(),
                     Substitute.For<ILogger>());
                 
                 _result = _service.UpdateTemplateMetadata(_command, _author).GetAwaiter().GetResult();
@@ -88,7 +89,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
                 
                 _templateVersionFirst = new TemplateVersion
                 {
-                    Name = "Old Template Name",
+                    Name = _templateBeforeUpdate.Name,
                     Description = "Old Description",
                     TemplateId = _command.TemplateId,
                     TemplateJson = @"{""$schema"":""https://fundingschemas.blob.core.windows.net/schemas/funding-template-schema-1.1.json"",""schemaVersion"":""1.1"",""fundingTemplate"":{""fundingLines"":[{""templateLineId"":1,""type"":""Payment"",""name"":""Funding Line 1"",""fundingLineCode"":""DSG-001"",""fundingLines"":[],""calculations"":[]}],""fundingPeriod"":{""id"":""XX-2021"",""period"":""2021"",""name"":""XX-2021"",""type"":""FY"",""startDate"":""2020-04-01T00:00:00+00:00"",""endDate"":""2021-03-31T00:00:00+00:00""},""fundingStream"":{""code"":""DSG"",""name"":""DSG""},""fundingTemplateVersion"":""0.1""}}",
@@ -156,7 +157,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
             [TestMethod]
             public void Saved_current_version_with_correct_name()
             {
-                _savedTemplate?.Current?.Name.Should().Be("Template Name");
+                _savedTemplate?.Current?.Name.Should().Be(_templateBeforeUpdate.Name);
             }
 
             [TestMethod]
@@ -205,7 +206,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
             [TestMethod]
             public void Saved_version_with_correct_name()
             {
-                _savedTemplateVersion?.Name.Should().Be("Template Name");
+                _savedTemplateVersion?.Name.Should().Be(_templateBeforeUpdate.Name);
             }
 
             [TestMethod]
@@ -282,6 +283,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
             private ISearchRepository<TemplateIndex> _searchRepository;
             private Template _savedTemplate;
             private TemplateVersion _savedTemplateVersion;
+            private ITemplateBlobService _templateBlobService;
 
             public When_i_update_template_content()
             {
@@ -293,7 +295,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
                 _author = new Reference("222", "SecondTestUser");
 
                 SetupMocks();
-                
+
                 _service = new TemplateBuilderService(
                     _validatorFactory,
                     _templateValidationService,
@@ -302,6 +304,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
                     _templateRepository,
                     _searchRepository,
                     _policyRepository,
+                    _templateBlobService,
                     Substitute.For<ILogger>());
                 
                 _result = _service.UpdateTemplateContent(_command, _author).GetAwaiter().GetResult();
@@ -374,6 +377,8 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
                     ShortName = "XX",
                     Name = "FundingSteam"
                 });
+                _templateBlobService = Substitute.For<ITemplateBlobService>();
+                _templateBlobService.PublishTemplate(Arg.Any<Template>()).Returns(CommandResult.Success());
             }
 
             [TestMethod]
@@ -411,7 +416,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
             [TestMethod]
             public void Saved_current_version_with_correct_name()
             {
-                _savedTemplate?.Current?.Name.Should().Be("Template Name");
+                _savedTemplate?.Current?.Name.Should().Be(_templateBeforeUpdate.Name);
             }
 
             [TestMethod]
@@ -460,7 +465,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
             [TestMethod]
             public void Saved_version_with_correct_name()
             {
-                _savedTemplateVersion?.Name.Should().Be("Template Name");
+                _savedTemplateVersion?.Name.Should().Be(_templateBeforeUpdate.Name);
             }
 
             [TestMethod]
