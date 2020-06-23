@@ -1092,7 +1092,13 @@ Scenario Outline: Successful publishing of funding
 	And the following released published provider ids are upserted
 		| PublishedProviderId                                           | Status  |
 		| publishedprovider-1000000-<FundingPeriodId>-<FundingStreamId> | Released|	
-		| publishedprovider-1000002-<FundingPeriodId>-<FundingStreamId> | Released|	
+		| publishedprovider-1000002-<FundingPeriodId>-<FundingStreamId> | Released|
+	And the provider variation reasons were recorded
+		| ProviderId | VariationReason  |
+		| 1000000    | FundingUpdated   |
+		| 1000000    | ProfilingUpdated |
+		| 1000002    | FundingUpdated   |
+		| 1000002    | ProfilingUpdated |
 
 	Examples:
 		| FundingStreamId | FundingPeriodId | FundingPeriodName      | TemplateVersion | ProviderVersionId |

@@ -140,6 +140,14 @@ namespace CalculateFunding.Models.Publishing
         /// </summary>
         [JsonProperty("variationReasons")]
         public IEnumerable<VariationReason> VariationReasons { get; set; }
+
+        public void AddVariationReasons(params VariationReason[] variationReasons)
+        {
+            VariationReasons = (VariationReasons ?? new VariationReason[0])
+                .Concat(variationReasons)
+                .Distinct()
+                .ToArray();
+        }
         
         /// <summary>
         /// Errors blocking the release of this funding encountered
@@ -196,6 +204,9 @@ namespace CalculateFunding.Models.Publishing
             FundingLineOverPayments ??= new Dictionary<string, decimal>();
             FundingLineOverPayments[fundingLineId] = overpayment;
         }
+
+        [JsonIgnore]
+        public bool HasResults => Calculations?.Any() == true;
         
         public override VersionedItem Clone()
         {

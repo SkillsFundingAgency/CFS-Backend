@@ -3980,6 +3980,24 @@ this.ScenarioInitialize(scenarioInfo);
 #line 1092
  testRunner.And("the following released published provider ids are upserted", ((string)(null)), table260, "And ");
 #line hidden
+                TechTalk.SpecFlow.Table table261 = new TechTalk.SpecFlow.Table(new string[] {
+                            "ProviderId",
+                            "VariationReason"});
+                table261.AddRow(new string[] {
+                            "1000000",
+                            "FundingUpdated"});
+                table261.AddRow(new string[] {
+                            "1000000",
+                            "ProfilingUpdated"});
+                table261.AddRow(new string[] {
+                            "1000002",
+                            "FundingUpdated"});
+                table261.AddRow(new string[] {
+                            "1000002",
+                            "ProfilingUpdated"});
+#line 1096
+ testRunner.And("the provider variation reasons were recorded", ((string)(null)), table261, "And ");
+#line hidden
             }
             this.ScenarioCleanup();
         }

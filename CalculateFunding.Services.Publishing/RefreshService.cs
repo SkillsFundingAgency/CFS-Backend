@@ -267,12 +267,16 @@ namespace CalculateFunding.Services.Publishing
             
             try
             {
-                await _profilingService.ProfileFundingLines(generatedPublishedProviderData.SelectMany(c => c.Value.FundingLines.Where(f => f.Type == OrganisationGroupingReason.Payment)), fundingStream.Id, fundingPeriodId);
+                await _profilingService.ProfileFundingLines(generatedPublishedProviderData.SelectMany(c => 
+                    c.Value.FundingLines.Where(f => f.Type == OrganisationGroupingReason.Payment)), 
+                    fundingStream.Id, 
+                    fundingPeriodId);
             }
             catch (Exception ex)
             {
 
                 _logger.Error(ex, "Exception during generating provider profiling");
+                
                 throw;
             }
 
@@ -287,6 +291,7 @@ namespace CalculateFunding.Services.Publishing
             foreach (KeyValuePair<string, PublishedProvider> publishedProvider in publishedProvidersReadonlyDictionary)
             {
                 PublishedProviderVersion publishedProviderVersion = publishedProvider.Value.Current;
+                
                 string providerId = publishedProviderVersion.ProviderId;
 
                 // this could be a retry and the key may not exist as the provider has been created as a successor so we need to skip
@@ -356,6 +361,8 @@ namespace CalculateFunding.Services.Publishing
 
                 publishedProvidersToUpdate.Add(publishedProvider.Key, publishedProvider.Value);
             }
+            
+            AddInitialPublishVariationReasons(newProviders.Values);
 
             if(!(await _variationService.ApplyVariations(publishedProvidersToUpdate, newProviders, specification.Id)))
             {
@@ -417,6 +424,14 @@ namespace CalculateFunding.Services.Publishing
                     IEnumerable<string> fundingStreamIds = Array.Empty<string>();
                     await generateCsvJobs.CreateJobs(specification.Id, correlationId, author, fundingLineCodes, fundingStreamIds, fundingPeriodId);
                 }
+            }
+        }
+        
+        private void AddInitialPublishVariationReasons(IEnumerable<PublishedProvider> publishedProviders)
+        {
+            foreach (PublishedProvider publishedProvider in publishedProviders.Where(_ => _.HasResults))
+            {
+                publishedProvider.Current.AddVariationReasons(VariationReason.FundingUpdated, VariationReason.ProfilingUpdated);
             }
         }
     }

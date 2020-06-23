@@ -152,8 +152,6 @@ namespace CalculateFunding.Services.Publishing
         {
             Guard.ArgumentNotNull(publishedProviderCreateVersionRequests, nameof(publishedProviderCreateVersionRequests));
 
-            ConcurrentBag<PublishedProvider> publishedProviders = new ConcurrentBag<PublishedProvider>();
-
             List<Task> allTasks = new List<Task>();
             SemaphoreSlim throttler = new SemaphoreSlim(initialCount: _publishingEngineOptions.PublishedProviderCreateVersionsConcurrencyCount);
             foreach (PublishedProviderCreateVersionRequest publishedProviderCreateVersionRequest in publishedProviderCreateVersionRequests)
@@ -200,7 +198,7 @@ namespace CalculateFunding.Services.Publishing
 
             List<Task> allTasks = new List<Task>();
             SemaphoreSlim throttler = new SemaphoreSlim(initialCount: _publishingEngineOptions.PublishedProviderSaveVersionsConcurrencyCount);
-            foreach (var versions in versionsToSave.ToBatches(10))
+            foreach (IEnumerable<KeyValuePair<string, PublishedProviderVersion>> versions in versionsToSave.ToBatches(10))
             {
                 await throttler.WaitAsync();
                 allTasks.Add(

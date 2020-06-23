@@ -736,6 +736,20 @@ Scenario Outline: Successful publishing of funding
 		| publishedprovider-1000102-<FundingPeriodId>-<FundingStreamId> | Released |
 		| publishedprovider-1000201-<FundingPeriodId>-<FundingStreamId> | Released |
 		| publishedprovider-1000202-<FundingPeriodId>-<FundingStreamId> | Released |
+	And the provider variation reasons were recorded
+		| ProviderId | VariationReason  |
+		| 1000000    | FundingUpdated   |
+		| 1000000    | ProfilingUpdated |
+		| 1000002    | FundingUpdated   |
+		| 1000002    | ProfilingUpdated |
+		| 1000101    | FundingUpdated   |
+		| 1000101    | ProfilingUpdated |
+		| 1000102    | FundingUpdated   |
+		| 1000102    | ProfilingUpdated |
+		| 1000201    | FundingUpdated   |
+		| 1000201    | ProfilingUpdated |
+		| 1000202    | FundingUpdated   |
+		| 1000202    | ProfilingUpdated |
 
 	Examples:
 		| FundingStreamId | FundingPeriodId | FundingPeriodName     | TemplateVersion | ProviderVersionId |

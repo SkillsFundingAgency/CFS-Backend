@@ -99,6 +99,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         private Mock<IPoliciesApiClient> _policiesApiClient;
         private Mock<ICacheProvider> _cacheProvider;
         private string providerVersionId;
+        private PublishedProvider _missingProvider;
 
         [TestInitialize]
         public void Setup()
@@ -273,6 +274,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                     Arg.Is(PublishedProviderStatus.Updated),
                     Arg.Is(JobId),
                     Arg.Is(CorrelationId));
+
+            _missingProvider?.Current.VariationReasons
+                .Should()
+                .BeEquivalentTo(new[]
+                    {
+                        VariationReason.FundingUpdated, VariationReason.ProfilingUpdated
+                    },
+                    opt => opt.WithoutStrictOrdering());
         }
 
         [TestMethod]
@@ -638,17 +647,18 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         private void GivenPublishedProviderClosedWithSuccessor()
         {
             PublishedProvider predecessor = _publishedProviders.Single(_ => _.Current.ProviderId == _providerIdVaried);
-            PublishedProvider missingProvider = predecessor.DeepCopy();
-            missingProvider.Current.ProviderId = Successor;
-            missingProvider.Current.Provider.ProviderId = Successor;
-            missingProvider.Current.Provider.Status = "Open";
+            
+            _missingProvider = predecessor.DeepCopy();
+            _missingProvider.Current.ProviderId = Successor;
+            _missingProvider.Current.Provider.ProviderId = Successor;
+            _missingProvider.Current.Provider.Status = "Open";
 
             _providerService
                 .CreateMissingPublishedProviderForPredecessor(
                     Arg.Is<PublishedProvider>(_ => _.Current.ProviderId == predecessor.Current.ProviderId), 
                     Arg.Is(Successor),
                     Arg.Is(providerVersionId))
-                .Returns(missingProvider);
+                .Returns(_missingProvider);
         }
 
         private void AndPublishedProviders()

@@ -1,14 +1,12 @@
 ﻿using AutoMapper;
 using CalculateFunding.Common.ApiClient.Calcs;
 using CalculateFunding.Common.ApiClient.Calcs.Models;
-using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
-using CalculateFunding.Common.ServiceBus.Interfaces;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Generators.OrganisationGroup.Interfaces;
 using CalculateFunding.Models.Publishing;
@@ -163,6 +161,21 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 _publishedFundingDataService,
                 _policiesService
             );
+        }
+
+        [TestMethod]
+        public async Task PublishAllProviderFundingResults_AddsInitialAllocationVariationReasonsToAllNewProviderVersions()
+        {
+            GivenJobCanBeProcessed();
+            AndSpecification();
+            AndCalculationResultsBySpecificationId();
+            AndTemplateMetadataContents();
+            AndPublishedProviders();
+            AndTemplateMapping();
+
+            await WhenPublishAllProvidersMessageReceivedWithJobId();
+
+            ThenEachNewProviderVersionHasTheFollowingVariationReasons(VariationReason.FundingUpdated, VariationReason.ProfilingUpdated);
         }
 
         [TestMethod]
@@ -455,6 +468,18 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 .UpdateJobStatus(JobId, 0, false, string.Join(", ", prereqValidationErrors));
         }
 
+        private void ThenEachNewProviderVersionHasTheFollowingVariationReasons(params VariationReason[] variationReasons)
+        {
+            foreach (PublishedProvider publishedProvider in _publishedProviders)
+            {
+                publishedProvider
+                    .Current?
+                    .VariationReasons
+                    .Should()
+                    .BeEquivalentTo(variationReasons, opt => opt.WithoutStrictOrdering());
+            }    
+        }
+
         private void GivenJobCanBeProcessed()
         {
             JobViewModel jobViewModel = NewJobViewModel();
@@ -496,9 +521,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
 
         private void AndTemplateMetadataContents()
         {
-            _calculationTemplateIds = new[] { new TemplateCalculationBuilder().Build(), 
-                                              new TemplateCalculationBuilder().Build(), 
-                                              new TemplateCalculationBuilder().Build() };
+            _calculationTemplateIds = new[] { NewTemplateCalculation(), 
+                NewTemplateCalculation(), 
+                NewTemplateCalculation() };
 
             _fundingLines = new[] { NewTemplateFundingLine(fl => fl.WithCalculations(_calculationTemplateIds)) };
 
@@ -510,20 +535,33 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 .Returns(_templateMetadataContents);
         }
 
+        private TemplateCalculation NewTemplateCalculation(Action<TemplateCalculationBuilder> setUp = null)
+        {
+            TemplateCalculationBuilder templateCalculationBuilder = new TemplateCalculationBuilder();
+
+            setUp?.Invoke(templateCalculationBuilder);
+            
+            return templateCalculationBuilder.Build();
+        }
+
         private void AndTemplateMapping()
         {
-            TemplateMappingItem[] templateMappingItems = new[] { new TemplateMappingItem { TemplateId = _calculationTemplateIds[0].TemplateCalculationId,
-                                                                        CalculationId = _calculationResults[0].Id },
-                                                                 new TemplateMappingItem { TemplateId = _calculationTemplateIds[1].TemplateCalculationId,
-                                                                        CalculationId = _calculationResults[1].Id },
-                                                                 new TemplateMappingItem { TemplateId = _calculationTemplateIds[2].TemplateCalculationId,
-                                                                        CalculationId = _calculationResults[2].Id } };
+            TemplateMappingItem[] templateMappingItems = new[] {
+                NewTemplateMappingItem(_ => _.WithTemplateId(_calculationTemplateIds[0].TemplateCalculationId)
+                .WithCalculationId(_calculationResults[0].Id)),
+                NewTemplateMappingItem(_ => _.WithTemplateId(_calculationTemplateIds[1].TemplateCalculationId)
+                    .WithCalculationId(_calculationResults[1].Id)),
+                NewTemplateMappingItem(_ => _.WithTemplateId(_calculationTemplateIds[2].TemplateCalculationId)
+                    .WithCalculationId(_calculationResults[2].Id))
+                };
+            
             _templateMapping = NewTemplateMapping(_ => _.WithItems(templateMappingItems));
 
             _calculationsApiClient
                 .GetTemplateMapping(_specificationSummary.Id, FundingStreamId)
                 .Returns(new ApiResponse<TemplateMapping>(HttpStatusCode.OK, _templateMapping));
         }
+        
         private void AndPublishedProviders()
         {
             Provider[] providers = new[] { NewProvider(), 
@@ -531,20 +569,22 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 NewProvider()
             };
 
+            TemplateFundingLine templateFundingLine = _fundingLines[0];
+
             _publishedProviders = providers.Select(_ =>
                     NewPublishedProvider(pp => pp.WithCurrent(
                         NewPublishedProviderVersion(ppv => ppv.WithProvider(_)
                             .WithProviderId(_.ProviderId)
                             .WithTotalFunding(9)
-                            .WithFundingLines(new[] { new FundingLine { FundingLineCode = _fundingLines[0].FundingLineCode, 
-                                                                        TemplateLineId = _fundingLines[0].TemplateLineId, 
-                                                                        Value = 9 } })
-                            .WithFundingCalculations(new[] {new FundingCalculation { Value = _calculationResults[0].Value, 
-                                                                                        TemplateCalculationId = _calculationTemplateIds[0].TemplateCalculationId },
-                                                            new FundingCalculation { Value = _calculationResults[1].Value, 
-                                                                                        TemplateCalculationId = _calculationTemplateIds[1].TemplateCalculationId },
-                                                            new FundingCalculation { Value = _calculationResults[2].Value, 
-                                                                                        TemplateCalculationId = _calculationTemplateIds[2].TemplateCalculationId } })
+                            .WithFundingLines(NewFundingLine(fl => fl.WithFundingLineCode(templateFundingLine.FundingLineCode)
+                                .WithTemplateLineId(templateFundingLine.TemplateLineId)
+                                .WithValue(9)))
+                            .WithFundingCalculations(NewFundingCalculation(fc => fc.WithTemplateCalculationId(_calculationTemplateIds[0].TemplateCalculationId)
+                                .WithValue(_calculationTemplateIds[0].Value)),
+                                NewFundingCalculation(fc => fc.WithTemplateCalculationId(_calculationTemplateIds[1].TemplateCalculationId)
+                                    .WithValue(_calculationTemplateIds[1].Value)),
+                                NewFundingCalculation(fc => fc.WithTemplateCalculationId(_calculationTemplateIds[2].TemplateCalculationId)
+                                    .WithValue(_calculationTemplateIds[2].Value)))
                             .WithPublishedProviderStatus(PublishedProviderStatus.Approved))))).ToList();
 
             _providerService
@@ -552,6 +592,33 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                                                          _specificationSummary)
                 .Returns((_publishedProviders.ToDictionary(_ => _.Current.ProviderId),
                                                            _publishedProviders.ToDictionary(_ => _.Current.ProviderId)));
+        }
+
+        private FundingLine NewFundingLine(Action<FundingLineBuilder> setUp = null)
+        {
+            FundingLineBuilder fundingLineBuilder = new FundingLineBuilder();
+
+            setUp?.Invoke(fundingLineBuilder);
+            
+            return fundingLineBuilder.Build();
+        }
+
+        private FundingCalculation NewFundingCalculation(Action<FundingCalculationBuilder> setUp = null)
+        {
+            FundingCalculationBuilder fundingCalculationBuilder = new FundingCalculationBuilder();
+
+            setUp?.Invoke(fundingCalculationBuilder);
+            
+            return fundingCalculationBuilder.Build();
+        }
+
+        private TemplateMappingItem NewTemplateMappingItem(Action<TemplateMappingItemBuilder> setUp = null)
+        {
+            TemplateMappingItemBuilder templateMappingItemBuilder = new TemplateMappingItemBuilder();
+
+            setUp?.Invoke(templateMappingItemBuilder);
+            
+            return templateMappingItemBuilder.Build();
         }
 
         private void AndCalculationEngineRunningForPublishAllProviders()
@@ -608,7 +675,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 .WithUserProperty("jobId",JobId)
                 .WithUserProperty("sfa-correlationId", CorrelationId)
                 .WithUserProperty(
-                    JobConstants.MessagePropertyNames.PublishProvidersRequest, JsonExtensions.AsJson(publishProvidersRequest)));
+                    JobConstants.MessagePropertyNames.PublishProvidersRequest, publishProvidersRequest.AsJson()));
 
             await _publishService.PublishProviderFundingResults(message, batched: true);
         }

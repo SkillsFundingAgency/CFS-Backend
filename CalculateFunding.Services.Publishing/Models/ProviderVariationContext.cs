@@ -161,6 +161,8 @@ namespace CalculateFunding.Services.Publishing.Models
 
         public bool HasVariationChanges => _variationChanges.AnyWithNullCheck();
 
+        public bool HasNewProvidersToAdd => NewProvidersToAdd.AnyWithNullCheck();
+
         /// <summary>
         /// Provider version ID of the existing specificaton which will be used to search provider from core provider data
         /// </summary>

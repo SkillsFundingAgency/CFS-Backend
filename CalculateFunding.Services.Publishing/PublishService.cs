@@ -149,7 +149,7 @@ namespace CalculateFunding.Services.Publishing
             if(batched)
             {
                 string publishProvidersRequestJson = message.GetUserProperty<string>(JobConstants.MessagePropertyNames.PublishProvidersRequest);
-                publishProvidersRequest = JsonExtensions.AsPoco<PublishProvidersRequest>(publishProvidersRequestJson);
+                publishProvidersRequest = publishProvidersRequestJson.AsPoco<PublishProvidersRequest>();
             }
 
             foreach (Reference fundingStream in specification.FundingStreams)
@@ -159,7 +159,7 @@ namespace CalculateFunding.Services.Publishing
                     jobId, 
                     author, 
                     correlationId,
-                    batched == true ? PrerequisiteCheckerType.ReleaseBatchProviders : PrerequisiteCheckerType.ReleaseAllProviders, 
+                    batched ? PrerequisiteCheckerType.ReleaseBatchProviders : PrerequisiteCheckerType.ReleaseAllProviders, 
                     publishProvidersRequest?.Providers?.ToArray());
             }
 
@@ -216,6 +216,8 @@ namespace CalculateFunding.Services.Publishing
                 batchProviderIds.IsNullOrEmpty() ?
                 publishedProvidersForFundingStream.Values :
                 batchProviderIds.Where(_ => publishedProvidersForFundingStream.ContainsKey(_)).Select(_ => publishedProvidersForFundingStream[_]);
+            
+            AddInitialPublishVariationReasons(selectedPublishedProviders);
 
             _logger.Information($"Verifying prerequisites for funding publish");
 
@@ -278,6 +280,14 @@ namespace CalculateFunding.Services.Publishing
                 await transaction.Compensate();
 
                 throw;
+            }
+        }
+
+        private void AddInitialPublishVariationReasons(IEnumerable<PublishedProvider> publishedProviders)
+        {
+            foreach (PublishedProvider publishedProvider in publishedProviders)
+            {
+                publishedProvider.Current.AddVariationReasons(VariationReason.FundingUpdated, VariationReason.ProfilingUpdated);
             }
         }
 
