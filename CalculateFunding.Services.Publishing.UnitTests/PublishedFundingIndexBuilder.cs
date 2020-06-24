@@ -12,7 +12,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 Id = NewRandomString(),
                 FundingPeriodId = NewRandomString(),
                 FundingStreamId = NewRandomString(),
-                DocumentPath = NewRandomString()
+                DocumentPath = NewRandomString(),
+                VariationReasons = new[]
+                {
+                    NewRandomString(),
+                    NewRandomString()
+                }
             };
         }
     }

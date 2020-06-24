@@ -63,5 +63,9 @@ namespace CalculateFunding.Models.Publishing
         [JsonProperty("deleted")]
         public bool? Deleted { get; set; }
 
+        [IsFilterable]
+        [IsRetrievable(true)]
+        [JsonProperty("variationReasons")]
+        public string[] VariationReasons { get; set; }
     }
 }

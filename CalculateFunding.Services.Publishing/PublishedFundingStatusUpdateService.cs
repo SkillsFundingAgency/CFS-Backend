@@ -92,7 +92,7 @@ namespace CalculateFunding.Services.Publishing
 
                             if (!statusCode.IsSuccess())
                             {
-                                string errorMessage = $"Failed to save published funding for id: {publishedFunding.Id} with status code {statusCode.ToString()}";
+                                string errorMessage = $"Failed to save published funding for id: {publishedFunding.Id} with status code {statusCode}";
 
                                 _logger.Warning(errorMessage);
 

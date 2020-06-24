@@ -149,7 +149,8 @@ namespace CalculateFunding.Generators.Schema11
                     publishedFundingVersion.GroupingReason,
                     publishedFundingVersion.StatusChangedDate,
                     publishedFundingVersion.ExternalPublicationDate,
-                    publishedFundingVersion.EarliestPaymentAvailableDate
+                    publishedFundingVersion.EarliestPaymentAvailableDate,
+                    VariationReasons = publishedFundingVersion.VariationReasons?.ToArray()
                 }
             };
 

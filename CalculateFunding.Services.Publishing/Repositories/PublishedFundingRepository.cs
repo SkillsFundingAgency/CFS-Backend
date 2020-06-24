@@ -864,7 +864,8 @@ namespace CalculateFunding.Services.Publishing.Repositories
                     GroupingType = _.GroupingType,
                     IdentifierValue = _.IdentifierValue,
                     Version = _.version,
-                    StatusChangedDate = _.statusChangedDate
+                    StatusChangedDate = _.statusChangedDate,
+                    VariationReasons = _.variationReasons
                 });
         }
     }

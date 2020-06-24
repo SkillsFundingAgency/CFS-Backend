@@ -138,6 +138,10 @@
     "groupingReason": "Payment",
     "statusChangedDate": "2019-08-19T15:58:13.6560035+01:00",
     "externalPublicationDate": "2019-09-01T00:00:00+01:00",
-    "earliestPaymentAvailableDate": "2019-08-19T15:58:13.6559999+01:00"
+    "earliestPaymentAvailableDate": "2019-08-19T15:58:13.6559999+01:00",
+    "variationReasons": [
+      "AuthorityFieldUpdated",
+      "EstablishmentNumberFieldUpdated"
+    ]
   }
 }

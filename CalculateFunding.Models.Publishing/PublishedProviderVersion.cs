@@ -141,14 +141,11 @@ namespace CalculateFunding.Models.Publishing
         [JsonProperty("variationReasons")]
         public IEnumerable<VariationReason> VariationReasons { get; set; }
 
-        public void AddVariationReasons(params VariationReason[] variationReasons)
-        {
-            VariationReasons = (VariationReasons ?? new VariationReason[0])
-                .Concat(variationReasons)
+        public void AddVariationReasons(params VariationReason[] variationReasons) => VariationReasons = (VariationReasons ?? Array.Empty<VariationReason>())
+                .Concat(variationReasons ?? Array.Empty<VariationReason>())
                 .Distinct()
                 .ToArray();
-        }
-        
+
         /// <summary>
         /// Errors blocking the release of this funding encountered
         /// during the publishing cycle that created this version

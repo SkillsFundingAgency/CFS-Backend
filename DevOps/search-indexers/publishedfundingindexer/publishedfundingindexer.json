@@ -43,6 +43,10 @@
     {
       "sourceFieldName": "/deleted",
       "targetFieldName": "deleted"
+    },
+    {
+      "sourceFieldName": "/funding/variationReasons",
+      "targetFieldName": "variationReasons"
     }
   ],
   "parameters": {

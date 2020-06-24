@@ -58,6 +58,12 @@
     {
       "name": "deleted",
       "type": "Edm.Boolean"
+    },
+    {
+      "name": "variationReasons",
+      "type": "Collection(Edm.String)",
+      "filterable": true,
+      "retrievable": true
     }
   ]
 }
