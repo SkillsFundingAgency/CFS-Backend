@@ -622,9 +622,9 @@ namespace CalculateFunding.Services.Policy
 
             string blobNamePrefix = $"{fundingStreamId}/{ fundingPeriodId}/";
 
-            IEnumerable<TemplateResponse> templateVersions = new[]
+            IEnumerable<TemplateSummaryResponse> templateVersions = new[]
             {
-                new TemplateResponse()
+                new TemplateSummaryResponse()
                 {
                     FundingPeriodId = fundingPeriodId,
                     FundingStreamId = fundingStreamId,
@@ -682,9 +682,9 @@ namespace CalculateFunding.Services.Policy
 
             string blobNamePrefix = $"{fundingStreamId}/{ fundingPeriodId}/";
 
-            IEnumerable<TemplateResponse> templateVersions = new[]
+            IEnumerable<TemplateSummaryResponse> templateVersions = new[]
             {
-                new TemplateResponse()
+                new TemplateSummaryResponse()
                 {
                     FundingPeriodId = fundingPeriodId,
                     FundingStreamId = fundingStreamId,
@@ -696,7 +696,7 @@ namespace CalculateFunding.Services.Policy
                     Comments = "SomeComments",
                     SchemaVersion = "1.1"
                 },
-                new TemplateResponse()
+                new TemplateSummaryResponse()
                 {
                     FundingPeriodId = fundingPeriodId,
                     FundingStreamId = fundingStreamId,
@@ -746,7 +746,7 @@ namespace CalculateFunding.Services.Policy
                 .Should()
                 .BeAssignableTo<OkObjectResult>();
             PublishedFundingTemplate resultTemplate = ((OkObjectResult)result).Value.As<IEnumerable<PublishedFundingTemplate>>().FirstOrDefault();
-            TemplateResponse templateResponse = templateVersions.First(x => x.MajorVersion == 1 && x.MinorVersion == 0);
+            TemplateSummaryResponse templateResponse = templateVersions.First(x => x.MajorVersion == 1 && x.MinorVersion == 0);
 
             resultTemplate.TemplateVersion.Should().Be(pubblishedFundingTempaltes.First().TemplateVersion);
             resultTemplate.PublishDate.Should().Be(pubblishedFundingTempaltes.First().PublishDate);
@@ -765,9 +765,9 @@ namespace CalculateFunding.Services.Policy
 
             string blobNamePrefix = $"{fundingStreamId}/{ fundingPeriodId}/";
 
-            IEnumerable<TemplateResponse> templateVersions = new[]
+            IEnumerable<TemplateSummaryResponse> templateVersions = new[]
             {
-                new TemplateResponse()
+                new TemplateSummaryResponse()
                 {
                     FundingPeriodId = fundingPeriodId,
                     FundingStreamId = fundingStreamId,

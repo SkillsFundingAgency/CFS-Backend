@@ -103,21 +103,16 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             return Map(templateVersion);
         }
 
-        public async Task<IEnumerable<TemplateResponse>> GetVersionsByTemplate(string templateId, List<TemplateStatus> statuses)
+        public async Task<IEnumerable<TemplateSummaryResponse>> GetVersionSummariesByTemplate(string templateId, List<TemplateStatus> statuses)
         {
             Guard.ArgumentNotNull(templateId, nameof(templateId));
 
-            IEnumerable<TemplateVersion> templateVersions = await _templateVersionRepository.GetByTemplate(templateId, statuses);
-
-            return templateVersions.Select(Map).ToList();
+            return await _templateVersionRepository.GetSummaryVersionsByTemplate(templateId, statuses);
         }
 
-        public async Task<IEnumerable<TemplateResponse>> FindVersionsByFundingStreamAndPeriod(FindTemplateVersionQuery query)
+        public async Task<IEnumerable<TemplateSummaryResponse>> FindVersionsByFundingStreamAndPeriod(FindTemplateVersionQuery query)
         {
-            IEnumerable<TemplateVersion> templateVersions = await _templateVersionRepository
-                .FindByFundingStreamAndPeriod(query);
-
-            return templateVersions.Select(Map).ToList();
+            return await _templateVersionRepository.FindByFundingStreamAndPeriod(query);
         }
 
         public async Task<CommandResult> CreateTemplate(TemplateCreateCommand command, Reference author)
@@ -526,6 +521,28 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             {
                 TemplateId = templateVersion.TemplateId,
                 TemplateJson = templateVersion.TemplateJson,
+                Name = templateVersion.Name,
+                Description = templateVersion.Description,
+                FundingStreamId = templateVersion.FundingStreamId,
+                FundingPeriodId = templateVersion.FundingPeriodId,
+                Version = templateVersion.Version,
+                MinorVersion = templateVersion.MinorVersion,
+                MajorVersion = templateVersion.MajorVersion,
+                SchemaVersion = templateVersion.SchemaVersion,
+                Status = templateVersion.Status,
+                AuthorId = templateVersion.Author.Id,
+                AuthorName = templateVersion.Author.Name,
+                LastModificationDate = templateVersion.Date.DateTime,
+                PublishStatus = templateVersion.PublishStatus,
+                Comments = templateVersion.Comment
+            };
+        }
+
+        private static TemplateSummaryResponse MapSummary(TemplateVersion templateVersion)
+        {
+            return new TemplateSummaryResponse
+            {
+                TemplateId = templateVersion.TemplateId,
                 Name = templateVersion.Name,
                 Description = templateVersion.Description,
                 FundingStreamId = templateVersion.FundingStreamId,

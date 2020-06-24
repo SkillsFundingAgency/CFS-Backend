@@ -265,7 +265,7 @@ namespace CalculateFunding.Services.Policy
         public async Task<IActionResult> GetFundingTemplates(string fundingStreamId, string fundingPeriodId)
         {
             IEnumerable<PublishedFundingTemplate> publishFundingTemplates = await SearchTemplates($"{fundingStreamId}/{ fundingPeriodId}/");
-            IEnumerable<TemplateResponse> templateResponses = await _templateBuilderService.FindVersionsByFundingStreamAndPeriod(new FindTemplateVersionQuery()
+            IEnumerable<TemplateSummaryResponse> templateResponses = await _templateBuilderService.FindVersionsByFundingStreamAndPeriod(new FindTemplateVersionQuery()
             {
                 FundingStreamId = fundingStreamId,
                 FundingPeriodId = fundingPeriodId,
@@ -277,7 +277,7 @@ namespace CalculateFunding.Services.Policy
                 var versionParts = publishedFundingTemplate.TemplateVersion.Split(".");
                 if (versionParts.Length >= 2)
                 {
-                    TemplateResponse templateResponse = templateResponses.FirstOrDefault(x => x.MajorVersion.ToString() == versionParts[0] && x.MinorVersion.ToString() == versionParts[1]);
+                    TemplateSummaryResponse templateResponse = templateResponses.FirstOrDefault(x => x.MajorVersion.ToString() == versionParts[0] && x.MinorVersion.ToString() == versionParts[1]);
                     if(templateResponse != null)
                     {
                         publishedFundingTemplate.PublishNote = templateResponse.Comments;

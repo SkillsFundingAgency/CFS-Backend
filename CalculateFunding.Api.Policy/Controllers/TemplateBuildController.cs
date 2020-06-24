@@ -196,7 +196,7 @@ namespace CalculateFunding.Api.Policy.Controllers
         }
 
         [HttpGet("api/templates/build/{templateId}/versions")]
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<TemplateResponse>))]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<TemplateSummaryResponse>))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetTemplateVersions([FromRoute] string templateId, [FromQuery] string statuses)
@@ -205,8 +205,8 @@ namespace CalculateFunding.Api.Policy.Controllers
                 .Select(s => (TemplateStatus)Enum.Parse(typeof(TemplateStatus), s))
                 .ToList() : new List<TemplateStatus>();
 
-            IEnumerable<TemplateResponse> templateVersionResponses =
-                await _templateBuilderService.GetVersionsByTemplate(templateId, templateStatuses);
+            IEnumerable<TemplateSummaryResponse> templateVersionResponses =
+                await _templateBuilderService.GetVersionSummariesByTemplate(templateId, templateStatuses);
 
             return Ok(templateVersionResponses);
         }
@@ -222,7 +222,7 @@ namespace CalculateFunding.Api.Policy.Controllers
         }
 
         [HttpPost("api/templates/build/versions/search")]
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<TemplateResponse>))]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<TemplateSummaryResponse>))]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetTemplateVersions(FindTemplateVersionQuery query)
         {
@@ -237,7 +237,7 @@ namespace CalculateFunding.Api.Policy.Controllers
                 return validationResult.AsBadRequest();
             }
 
-            IEnumerable<TemplateResponse> templateVersionResponses =
+            IEnumerable<TemplateSummaryResponse> templateVersionResponses =
                 await _templateBuilderService.FindVersionsByFundingStreamAndPeriod(query);
 
             return Ok(templateVersionResponses);
