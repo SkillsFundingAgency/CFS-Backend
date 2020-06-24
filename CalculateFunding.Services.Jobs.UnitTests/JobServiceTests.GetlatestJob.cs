@@ -36,7 +36,7 @@ namespace CalculateFunding.Services.Jobs
         }
 
         [TestMethod]
-        public async Task GetLatestJob_WhenNoJobsForSpecification_ReturnNotFoundResult()
+        public async Task GetLatestJob_WhenNoJobsForSpecification_ReturnNoContent()
         {
             // Arrange
             string specificationId = "spec123";
@@ -47,7 +47,7 @@ namespace CalculateFunding.Services.Jobs
             IActionResult result = await service.GetLatestJob(specificationId, null);
 
             // Assert
-            result.Should().BeOfType<NotFoundResult>();
+            result.Should().BeOfType<NoContentResult>();
         }
 
         [TestMethod]
@@ -280,7 +280,7 @@ namespace CalculateFunding.Services.Jobs
             // Assert
             result
                 .Should()
-                .BeOfType<NotFoundResult>();
+                .BeOfType<NoContentResult>();
         }
 
         [TestMethod]

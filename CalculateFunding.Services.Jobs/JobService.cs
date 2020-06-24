@@ -163,7 +163,7 @@ namespace CalculateFunding.Services.Jobs
   
             if (job == null)
             {
-                return new NotFoundResult();
+                return new NoContentResult();
             }
             else
             {
