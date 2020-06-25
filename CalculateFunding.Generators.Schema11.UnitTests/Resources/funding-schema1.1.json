@@ -61,14 +61,14 @@
         "type",
         "value"
       ],
-	  "additionalProperties": false
+      "additionalProperties": false
     },
     "organisationGroupTypeIdentifiers-schema": {
       "type": "array",
       "items": {
         "$ref": "#/definitions/organisationGroupTypeIdentifier-schema"
       },
-	  "additionalProperties": false
+      "additionalProperties": false
     },
     "organisationGroup-schema": {
       "properties": {
@@ -89,13 +89,16 @@
             "ParliamentaryConstituency",
             "Provider",
             "Country",
-			"LocalGovernmentGroup"
+            "LocalGovernmentGroup"
           ]
         },
         "groupTypeClassification": {
           "type": "string",
           "description": "The Classification of organisation group type (e.g. LegalEntity and GeographicalBoundary)",
-          "enum": [ "LegalEntity", "GeographicalBoundary" ]
+          "enum": [
+            "LegalEntity",
+            "GeographicalBoundary"
+          ]
         },
         "name": {
           "type": "string",
@@ -114,7 +117,7 @@
           "$ref": "#/definitions/organisationGroupTypeIdentifiers-schema"
         }
       },
-	  "additionalProperties": false
+      "additionalProperties": false
     },
     "fundingStream-schema": {
       "properties": {
@@ -131,7 +134,7 @@
         "code",
         "name"
       ],
-	  "additionalProperties": false
+      "additionalProperties": false
     },
     "fundingPeriod-schema": {
       "properties": {
@@ -176,7 +179,7 @@
         "startDate",
         "endDate"
       ],
-	  "additionalProperties": false
+      "additionalProperties": false
     },
     "funding-schema": {
       "properties": {
@@ -259,7 +262,7 @@
         "externalPublicationDate",
         "earliestPaymentAvailableDate"
       ],
-	  "additionalProperties": false
+      "additionalProperties": false
     },
     "providerFundings-schema": {
       "type": "array",
@@ -326,12 +329,26 @@
           }
         },
         "successors": {
-          "$ref": "#/definitions/providerInformations-schema",
-          "description": "Collection of successor providers"
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/definitions/providerIdentifers-schema"
+            }
+          ],
+          "description": "Collection of successor provider identifiers"
         },
         "predecessors": {
-          "$ref": "#/definitions/providerInformations-schema",
-          "description": "Collection of predecessor providers"
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/definitions/providerIdentifers-schema"
+            }
+          ],
+          "description": "Collection of predecessor provider identifiers"
         },
         "fundingValue": {
           "$ref": "#/definitions/fundingValue-schema",
@@ -354,34 +371,7 @@
         "fundingStreamCode",
         "fundingPeriodId"
       ],
-	  "additionalProperties": false
-    },
-    "providerInformations-schema": {
-      "type": [
-        "array",
-        "null"
-      ],
-      "items": {
-        "$ref": "#/definitions/providerInformation-schema"
-      },
       "additionalProperties": false
-    },
-    "providerInformation-schema": {
-      "properties": {
-        "ukPrn": {
-          "type": "string",
-          "description": "The name of the organisation"
-        },
-        "providerVersionId": {
-          "type": "string",
-          "description": "Version Id of the Provider in the CFS, this is required to identify specific version of provider at the time of allocation."
-        }
-      },
-      "required": [
-        "ukPrn",
-        "providerVersionId"
-      ],
-	  "additionalProperties": false
     },
     "provider-schema": {
       "properties": {
@@ -437,14 +427,14 @@
         "providerType",
         "providerVersionId"
       ],
-	  "additionalProperties": false
+      "additionalProperties": false
     },
     "providerIdentifers-schema": {
       "type": "array",
       "items": {
         "$ref": "#/definitions/providerIdentifer-schema"
       },
-	  "additionalProperties": false
+      "additionalProperties": false
     },
     "providerIdentifer-schema": {
       "properties": {
@@ -469,7 +459,7 @@
         "type",
         "value"
       ],
-	  "additionalProperties": false
+      "additionalProperties": false
     },
     "providerDetails-schema": {
       "properties": {
@@ -694,7 +684,7 @@
         }
       },
       "required": [],
-	  "additionalProperties": false
+      "additionalProperties": false
     },
     "fundingValue-schema": {
       "properties": {
@@ -711,14 +701,14 @@
         "totalValue",
         "fundingLines"
       ],
-	  "additionalProperties": false
+      "additionalProperties": false
     },
     "fundingLines-schema": {
       "type": "array",
       "items": {
         "$ref": "#/definitions/fundingLine-schema"
       },
-	  "additionalProperties": false
+      "additionalProperties": false
     },
     "fundingLine-schema": {
       "properties": {
@@ -739,7 +729,6 @@
           "description": "The name of a funding line (e.g. 'Total funding line')"
         },
         "fundingLineCode": {
-          "type": "string",
           "description": "The funding line code (e.g. PSG-001)"
         },
         "value": {
@@ -773,20 +762,45 @@
           "description": "Calculations that make up this funding line"
         }
       },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "Payment"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "fundingLineCode": {
+                "type": "string"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "fundingLineCode": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ],
       "required": [
         "templateLineId",
         "type",
         "name",
         "value"
       ],
-	  "additionalProperties": false
+      "additionalProperties": false
     },
     "distributionPeriods-schema": {
       "type": "array",
       "items": {
         "$ref": "#/definitions/distributionPeriod-schema"
       },
-	  "additionalProperties": false
+      "additionalProperties": false
     },
     "distributionPeriod-schema": {
       "properties": {
@@ -808,7 +822,7 @@
         "value",
         "profilePeriods"
       ],
-	  "additionalProperties": false
+      "additionalProperties": false
     },
     "profilePeriods-schema": {
       "type": "array",
@@ -816,7 +830,7 @@
       "items": {
         "$ref": "#/definitions/profilePeriod-schema"
       },
-	  "additionalProperties": false
+      "additionalProperties": false
     },
     "profilePeriod-schema": {
       "properties": {
@@ -856,7 +870,7 @@
         "profiledValue",
         "distributionPeriodId"
       ],
-	  "additionalProperties": false
+      "additionalProperties": false
     },
     "groupRate-schema": {
       "properties": {
@@ -906,7 +920,7 @@
       "items": {
         "$ref": "#/definitions/calculation-schema"
       },
-	  "additionalProperties": false
+      "additionalProperties": false
     },
     "calculation-schema": {
       "properties": {
@@ -944,7 +958,9 @@
           "enum": [
             "Number",
             "Percentage",
-            "Currency"
+            "Currency",
+            "Boolean",
+            "String"
           ]
         },
         "calculations": {

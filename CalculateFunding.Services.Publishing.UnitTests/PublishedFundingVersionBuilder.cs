@@ -27,6 +27,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private Reference _author;
         private DateTimeOffset _date;
         private IEnumerable<FundingLine> _fundingLines;
+        private IEnumerable<VariationReason> _variationReasons;
 
 
         public PublishedFundingVersionBuilder WithFundingId(string fundingId)
@@ -60,6 +61,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         public PublishedFundingVersionBuilder WithFundingLines(IEnumerable<FundingLine> fundingLines)
         {
             _fundingLines = fundingLines;
+
+            return this;
+        }
+
+        public PublishedFundingVersionBuilder WithVariationReasons(IEnumerable<VariationReason> variationReasons)
+        {
+            _variationReasons = variationReasons;
 
             return this;
         }
@@ -175,7 +183,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 OrganisationGroupName = _organisationGroupName,
                 Author = _author,
                 Date = _date,
-                FundingLines = _fundingLines
+                FundingLines = _fundingLines,
+                VariationReasons = _variationReasons
             };
         }
     }

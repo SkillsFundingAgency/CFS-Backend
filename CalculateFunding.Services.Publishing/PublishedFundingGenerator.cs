@@ -121,8 +121,6 @@ namespace CalculateFunding.Services.Publishing
 
                 publishedFundingVersion.FundingId = _publishedFundingIdGeneratorResolver.GetService(templateMetadataContents.SchemaVersion).GetFundingId(publishedFundingVersion);
 
-                PropagateProviderVariationReasons(publishedFundingVersion, publishedProviders);
-
                 PublishedFunding publishedFundingResult = organisationGroup.PublishedFunding;
 
                 if (publishedFundingResult == null)
@@ -134,14 +132,6 @@ namespace CalculateFunding.Services.Publishing
                 }
 
                 yield return (publishedFundingResult, publishedFundingVersion);
-            }
-        }
-
-        private void PropagateProviderVariationReasons(PublishedFundingVersion publishedFundingVersion,  IEnumerable<PublishedProvider> publishedProviders)
-        {
-            foreach (PublishedProvider publishedProvider in publishedProviders)
-            {
-                publishedFundingVersion.AddVariationReasons(publishedProvider.Current.VariationReasons);
             }
         }
 

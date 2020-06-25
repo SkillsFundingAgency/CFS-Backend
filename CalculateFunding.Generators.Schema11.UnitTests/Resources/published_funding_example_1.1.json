@@ -39,7 +39,7 @@
       "fundingLines": [
         {
           "name": "Total DSG before deductions and recoupment",
-          "fundingLineCode": "DSG-001",
+          "fundingLineCode": null,
           "value": 8504676472.0,
           "templateLineId": 2,
           "type": "Information",
@@ -47,7 +47,7 @@
           "fundingLines": [
             {
               "name": "Schools Block before recoupment",
-              "fundingLineCode": "DSG-003",
+              "fundingLineCode": null,
               "value": 6306796036.0,
               "templateLineId": 4,
               "type": "Information",
@@ -56,7 +56,7 @@
               "fundingLines": [
                 {
                   "name": "Provisional Schools Block Funding Excluding Growth",
-                  "fundingLineCode": "DSG-020",
+                  "fundingLineCode": null,
                   "value": 6250221658.0,
                   "templateLineId": 239,
                   "type": "Information",
@@ -76,7 +76,7 @@
                   "fundingLines": [
                     {
                       "name": "Pupil Led Factors",
-                      "fundingLineCode": "DSG-004",
+                      "fundingLineCode": null,
                       "value": 6126994482.0,
                       "templateLineId": 5,
                       "type": "Information",
@@ -129,7 +129,7 @@
                     },
                     {
                       "name": "Funding Through Premises and Mobility Factors",
-                      "fundingLineCode": "DSG-007",
+                      "fundingLineCode": null,
                       "value": 123227176,
                       "templateLineId": 6,
                       "type": "Information",
@@ -151,7 +151,7 @@
                 },
                 {
                   "name": "LA Protection",
-                  "fundingLineCode": "DSG-021",
+                  "fundingLineCode": null,
                   "value": 899278,
                   "templateLineId": 240,
                   "type": "Information",

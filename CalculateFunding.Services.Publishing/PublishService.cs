@@ -242,10 +242,17 @@ namespace CalculateFunding.Services.Publishing
 
                 await SavePublishedProvidersAsReleased(jobId, author, selectedPublishedProviders, correlationId);
 
+                ICollection<PublishedProvider> publishedProviders = publishedProvidersForFundingStream?.Values;
+
                 _logger.Information($"Generating published funding");
                 IEnumerable<(PublishedFunding PublishedFunding, PublishedFundingVersion PublishedFundingVersion)> publishedFundingToSave =
-                    _publishedFundingGenerator.GeneratePublishedFunding(publishedFundingInput, publishedProvidersForFundingStream?.Values).ToList();
+                    _publishedFundingGenerator.GeneratePublishedFunding(publishedFundingInput, publishedProviders).ToList();
                 _logger.Information($"A total of {publishedFundingToSave.Count()} published funding versions created to save.");
+
+                foreach ((PublishedFunding PublishedFunding, PublishedFundingVersion PublishedFundingVersion) publishedFundingItems in publishedFundingToSave)
+                {
+                    PropagateProviderVariationReasons(publishedFundingItems.PublishedFundingVersion, publishedProviders);
+                }
 
                 // if any error occurs while updating then we still need to run the indexer to be consistent
                 transaction.Enroll(async () =>
@@ -279,6 +286,14 @@ namespace CalculateFunding.Services.Publishing
                 await transaction.Compensate();
 
                 throw;
+            }
+        }
+
+        private void PropagateProviderVariationReasons(PublishedFundingVersion publishedFundingVersion, IEnumerable<PublishedProvider> publishedProviders)
+        {
+            foreach (PublishedProvider publishedProvider in publishedProviders)
+            {
+                publishedFundingVersion.AddVariationReasons(publishedProvider.Current.VariationReasons);
             }
         }
 

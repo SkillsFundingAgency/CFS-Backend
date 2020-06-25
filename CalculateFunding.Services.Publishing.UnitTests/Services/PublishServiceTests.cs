@@ -175,7 +175,23 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
 
             await WhenPublishAllProvidersMessageReceivedWithJobId();
 
-            ThenEachNewProviderVersionHasTheFollowingVariationReasons(VariationReason.FundingUpdated, VariationReason.ProfilingUpdated);
+            ThenEachNewProviderVersionHasTheFollowingVariationReasons(VariationReason.FundingUpdated, VariationReason.ProfilingUpdated, VariationReason.AuthorityFieldUpdated);
+        }
+
+        [TestMethod]
+        public async Task PublishAllProviderFundingResults_AddsPublishedFundingVariationReasonsToAllPublishedProiders()
+        {
+            GivenJobCanBeProcessed();
+            AndSpecification();
+            AndCalculationResultsBySpecificationId();
+            AndTemplateMetadataContents();
+            AndPublishedProviders();
+            AndTemplateMapping();
+            AndGeneratePublishedFunding();
+
+            await WhenPublishAllProvidersMessageReceivedWithJobId();
+
+            ThenUpdatePublishedFundingStatusHasTheFollowingVariationReasons(VariationReason.AuthorityFieldUpdated);
         }
 
         [TestMethod]
@@ -477,7 +493,22 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                     .VariationReasons
                     .Should()
                     .BeEquivalentTo(variationReasons, opt => opt.WithoutStrictOrdering());
-            }    
+            }
+        }
+
+        private void ThenUpdatePublishedFundingStatusHasTheFollowingVariationReasons(VariationReason variationReason)
+        {
+            _publishedFundingStatusUpdateService
+                .Received(1)
+                .UpdatePublishedFundingStatus(
+                    Arg.Is<List<(PublishedFunding PublishedFunding, PublishedFundingVersion PublishedFundingVersion)>>(
+                        _ => _.Select(item => item.PublishedFundingVersion)
+                              .All(ppv => ppv.VariationReasons.Contains(variationReason))),
+                    Arg.Any<Reference>(),
+                    PublishedFundingStatus.Released,
+                    JobId,
+                    CorrelationId
+                );
         }
 
         private void GivenJobCanBeProcessed()
@@ -573,7 +604,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
 
             _publishedProviders = providers.Select(_ =>
                     NewPublishedProvider(pp => pp.WithCurrent(
-                        NewPublishedProviderVersion(ppv => ppv.WithProvider(_)
+                        NewPublishedProviderVersion(ppv => ppv
+                            .WithProvider(_)
                             .WithProviderId(_.ProviderId)
                             .WithTotalFunding(9)
                             .WithFundingLines(NewFundingLine(fl => fl.WithFundingLineCode(templateFundingLine.FundingLineCode)
@@ -585,7 +617,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                                     .WithValue(_calculationTemplateIds[1].Value)),
                                 NewFundingCalculation(fc => fc.WithTemplateCalculationId(_calculationTemplateIds[2].TemplateCalculationId)
                                     .WithValue(_calculationTemplateIds[2].Value)))
-                            .WithPublishedProviderStatus(PublishedProviderStatus.Approved))))).ToList();
+                            .WithPublishedProviderStatus(PublishedProviderStatus.Approved)
+                            .WithVariationReasons(new[] { VariationReason.AuthorityFieldUpdated })
+                            )))).ToList();
 
             _providerService
                 .GetPublishedProviders(Arg.Is<Reference>(_ => _.Id == FundingStreamId),
@@ -621,6 +655,33 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             return templateMappingItemBuilder.Build();
         }
 
+        private PublishedFundingInput NewPublishedFundingInput(Action<PublishedFundingInputBuilder> setUp = null)
+        {
+            PublishedFundingInputBuilder publishedFundingInputBuilder = new PublishedFundingInputBuilder();
+
+            setUp?.Invoke(publishedFundingInputBuilder);
+
+            return publishedFundingInputBuilder.Build();
+        }
+
+        private PublishedFunding NewPublishedFunding(Action<PublishedFundingBuilder> setUp = null)
+        {
+            PublishedFundingBuilder publishedFundingBuilder = new PublishedFundingBuilder();
+
+            setUp?.Invoke(publishedFundingBuilder);
+
+            return publishedFundingBuilder.Build();
+        }
+
+        private PublishedFundingVersion NewPublishedFundingVersion(Action<PublishedFundingVersionBuilder> setUp = null)
+        {
+            PublishedFundingVersionBuilder publishedFundingVersionBuilder = new PublishedFundingVersionBuilder();
+
+            setUp?.Invoke(publishedFundingVersionBuilder);
+
+            return publishedFundingVersionBuilder.Build();
+        }
+
         private void AndCalculationEngineRunningForPublishAllProviders()
         {
             string[] jobTypes = new string[] { 
@@ -649,6 +710,23 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             _jobsRunning
                 .GetJobTypes(Arg.Is(SpecificationId), Arg.Is<IEnumerable<string>>(_ => _.All(jt => jobTypes.Contains(jt))))
                 .Returns(new[] { JobConstants.DefinitionNames.RefreshFundingJob });
+        }
+
+        private void AndGeneratePublishedFunding()
+        {
+            IEnumerable<PublishedFundingVersion> publishedFundingVersions = _publishedProviders.Select(_ =>
+                NewPublishedFundingVersion(pfv => pfv.WithSpecificationId(SpecificationId)))
+                .ToList();
+
+            IEnumerable<(PublishedFunding, PublishedFundingVersion)> publishedFunding = publishedFundingVersions.Select(_ =>
+                (NewPublishedFunding(pf => pf.WithCurrent(_)),_)
+            ).ToList();
+
+            _publishedFundingGenerator
+                .GeneratePublishedFunding(
+                    Arg.Is<PublishedFundingInput>(_ => _.SpecificationId == SpecificationId),
+                    Arg.Is<ICollection<PublishedProvider>>(_ => _.All(pp => _publishedProviders.Select(pp => pp.Current.ProviderId).Contains(pp.Current.ProviderId))))
+                .Returns(publishedFunding);
         }
 
         private void AndCalculationResultsBySpecificationId()
@@ -689,9 +767,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             return publishProvidersRequestBuilder.Build();
         }
 
-        private static RandomString NewRandomString()
-        {
-            return new RandomString();
-        }
+        private static RandomString NewRandomString() => new RandomString();
+
+        protected static TEnum NewRandomEnum<TEnum>(params TEnum[] except) where TEnum : struct => new RandomEnum<TEnum>(except);
     }
 }
