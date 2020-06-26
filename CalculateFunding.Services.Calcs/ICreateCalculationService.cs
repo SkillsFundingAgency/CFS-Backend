@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Calcs;
@@ -12,6 +13,8 @@ namespace CalculateFunding.Services.Calcs
             CalculationType calculationType,
             Reference author,
             string correlationId, 
-            bool initiateCalcRun = true);
+            bool initiateCalcRun = true,
+            TemplateCalculationType? templateCalculationType = null,
+            IEnumerable<string> allowedEnumTypeValues = null);
     }
 }

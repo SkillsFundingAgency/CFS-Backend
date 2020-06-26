@@ -5,7 +5,7 @@ namespace CalculateFunding.Services.Calcs
 {
     public static class CalculationValueTypeExtensions
     {
-        public static CalculationDataType ToCalculationDataType(this CalculationValueType calculationValueType)
+        public static CalculationDataType ToCalculationDataType(this CalculationValueType calculationValueType, TemplateCalculationType? templateCalculationType = null)
         {
             return calculationValueType switch
             {
@@ -13,7 +13,7 @@ namespace CalculateFunding.Services.Calcs
                 CalculationValueType.Percentage => CalculationDataType.Decimal,
                 CalculationValueType.Currency => CalculationDataType.Decimal,
                 CalculationValueType.Boolean => CalculationDataType.Boolean,
-                CalculationValueType.String => CalculationDataType.String,
+                CalculationValueType.String => templateCalculationType.GetValueOrDefault() == TemplateCalculationType.Enum ? CalculationDataType.Enum : CalculationDataType.String,
                 _ => throw new ArgumentOutOfRangeException(),
             };
         }

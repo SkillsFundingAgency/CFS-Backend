@@ -15,6 +15,7 @@ namespace CalculateFunding.Services.Calcs.Services
         private string _formulaText;
         private uint _templateCalculationId;
         private IEnumerable<Calculation> _calculations = null;
+        private IEnumerable<string> _allowedEnumTypeValues;
 
         public TemplateMappingCalculationBuilder WithCalculations(params Calculation[] calculations)
         {
@@ -64,7 +65,14 @@ namespace CalculateFunding.Services.Calcs.Services
 
             return this;
         }
-        
+
+        public TemplateMappingCalculationBuilder WithAllowedEnumTypeValues(IEnumerable<string> allowedEnumTypeValues)
+        {
+            _allowedEnumTypeValues = allowedEnumTypeValues;
+
+            return this;
+        }
+
         public Calculation Build()
         {
             return new Calculation
@@ -75,7 +83,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 FormulaText = _formulaText,
                 AggregationType = _aggregationType.GetValueOrDefault(AggregationType.Sum),
                 TemplateCalculationId = _templateCalculationId,
-                Calculations = _calculations
+                Calculations = _calculations,
+                AllowedEnumTypeValues = _allowedEnumTypeValues
             };
         }
     }

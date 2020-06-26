@@ -1,4 +1,6 @@
-﻿namespace CalculateFunding.Models.Calcs
+﻿using System.Collections.Generic;
+
+namespace CalculateFunding.Models.Calcs
 {
     public class CalculationEditModel
     {

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
@@ -73,8 +74,10 @@ namespace CalculateFunding.Services.Calcs
             CalculationNamespace calculationNamespace,
             CalculationType calculationType,
             Reference author,
-            string correlationId, 
-            bool initiateCalcRun = true)
+            string correlationId,
+            bool initiateCalcRun = true,
+            TemplateCalculationType? templateCalculationType = null,
+            IEnumerable<string> allowedEnumTypeValues = null)
         {
             Guard.ArgumentNotNull(model, nameof(model));
             Guard.ArgumentNotNull(author, nameof(author));
@@ -119,7 +122,8 @@ namespace CalculateFunding.Services.Calcs
                 WasTemplateCalculation = false,
                 Namespace = calculationNamespace,
                 Name = model.Name,
-                DataType = model.ValueType.Value.ToCalculationDataType()
+                DataType = model.ValueType.Value.ToCalculationDataType(templateCalculationType),
+                AllowedEnumTypeValues = allowedEnumTypeValues != null ? new List<string>(allowedEnumTypeValues) : Enumerable.Empty<string>()
             };
 
             calculation.Current = calculationVersion;

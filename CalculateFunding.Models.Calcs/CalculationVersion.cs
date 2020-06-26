@@ -1,5 +1,7 @@
 ﻿using CalculateFunding.Models.Versioning;
 using Newtonsoft.Json;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace CalculateFunding.Models.Calcs
 {
@@ -44,8 +46,11 @@ namespace CalculateFunding.Models.Calcs
         [JsonProperty("description")]
         public string Description { get; set; }
 
-        [JsonProperty("dataType")] 
+        [JsonProperty("dataType")]
         public CalculationDataType DataType { get; set; }
+
+        [JsonProperty("allowedEnumTypeValues")]
+        public IEnumerable<string> AllowedEnumTypeValues { get; set; }
 
         public override VersionedItem Clone()
         {
@@ -65,7 +70,8 @@ namespace CalculateFunding.Models.Calcs
                 WasTemplateCalculation = WasTemplateCalculation,
                 ValueType = ValueType,
                 Name = Name,
-                DataType = DataType
+                DataType = DataType,
+                AllowedEnumTypeValues = AllowedEnumTypeValues?.Any() == true ? new List<string>(AllowedEnumTypeValues) : null
             };
         }
     }

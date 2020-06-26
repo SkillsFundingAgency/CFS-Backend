@@ -125,7 +125,7 @@ namespace CalculateFunding.Services.Calculator
                 Value = true,
                 CalculationDataType = CalculationDataType.Boolean
             };
-
+            
             List<CalculationResult> calculationResults = new List<CalculationResult>()
             {
                 fundingCalcReturned,

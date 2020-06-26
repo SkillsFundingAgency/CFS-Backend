@@ -462,6 +462,7 @@ namespace CalculateFunding.Services.Calcs.Services
         [DataRow(CalculationDataType.Decimal, "Return 10", "Decimal?")]
         [DataRow(CalculationDataType.Boolean, "Return True", "Boolean?")]
         [DataRow(CalculationDataType.String, "Return Nothing", "String")]
+        [DataRow(CalculationDataType.Enum, "Return Nothing", "Calc1Options?")]
         public void CompileBuildProject_WhenBuildingCalculation_ThenCompilationUsesSourceCodeName(CalculationDataType calculationDataType, string sourceCode, string expectedType)
         {
             // Arrange
@@ -478,6 +479,7 @@ namespace CalculateFunding.Services.Calcs.Services
                         SourceCodeName = "differentCalcName",
                         Description = "test calc",
                         DataType = calculationDataType,
+                        AllowedEnumTypeValues = calculationDataType == CalculationDataType.Enum ? new List<string>(){"T1", "T2", "T3"} : null
                     }
                 }
             };

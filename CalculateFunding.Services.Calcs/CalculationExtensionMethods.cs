@@ -24,6 +24,7 @@ namespace CalculateFunding.Services.Calcs
                 WasTemplateCalculation = calculation.Current.WasTemplateCalculation,
                 SourceCodeName = calculation.Current.SourceCodeName,
                 Description = calculation.Current.Description
+
             };
         }
 

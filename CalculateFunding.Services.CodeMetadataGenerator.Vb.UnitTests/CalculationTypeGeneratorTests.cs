@@ -103,7 +103,7 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.Vb.UnitTests
             results.Should().HaveCount(1);
             results.First().SourceCode.Should().StartWith("Option Strict Off");
         }
-        
+
         [TestMethod]
         public void GenerateCalculations_GivenNoAdditionalCalculations_ThenSingleInnerClassForAdditionalStillCreated()
         {
@@ -130,24 +130,55 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.Vb.UnitTests
                 .WithSourceCodeName("One")
                 .WithNamespace("PSG"));
 
-            IDictionary<string, Funding> fundingLines = new Dictionary<string, Funding> { 
+            IDictionary<string, Funding> fundingLines = new Dictionary<string, Funding> {
                 {"DSG", NewFunding(_ => _.WithFundingLines(new[] { dsgfl }))},
                 {"PSG", NewFunding(_ => _.WithFundingLines(new[] { psgfl }))}
             };
 
-            IEnumerable<SourceFile> results = new CalculationTypeGenerator(new CompilerOptions()).GenerateCalcs(new [] { dsg, psg }, fundingLines);
+            IEnumerable<SourceFile> results = new CalculationTypeGenerator(new CompilerOptions()).GenerateCalcs(new[] { dsg, psg }, fundingLines);
 
             results.Should().HaveCount(1);
             results.First()
                 .SourceCode
                 .Should()
-                .ContainAll("Public Class PSGCalculations", 
-                    "Public Class DSGCalculations", 
+                .ContainAll("Public Class PSGCalculations",
+                    "Public Class DSGCalculations",
                     "Public Class AdditionalCalculations",
                     "Public Class PSGFundingLines",
                     "Public Class DSGFundingLines");
         }
-        
+
+        [TestMethod]
+        public void GenerateCalculations_GiveEnumCalculationType()
+        {
+            Calculation dsg = NewCalculation(_ => _.WithFundingStream(NewReference(rf => rf.WithId("DSG")))
+            .WithName("MethodologyType")
+            .WithValueType(CalculationValueType.String)
+            .WithDataType(CalculationDataType.Enum)
+            .WithAllowedEnumTypeValues(new[] { "Type1", "Type2", "Type3" })
+               .WithSourceCodeName("One")
+               .WithCalculationNamespaceType(CalculationNamespace.Template)
+               .WithSourceCode("return Nothing"));
+
+            FundingLine dsgfl = NewFundingLine(_ => _.WithCalculations(new[] { NewFundingLineCalculation(_ => _.WithId(1)
+                .WithCalculationNamespaceType(CalculationNamespace.Template))})
+                .WithId(2)
+                .WithName("Two")
+                .WithSourceCodeName("Two")
+                .WithNamespace("DSG"));
+
+            IDictionary<string, Funding> fundingLines = new Dictionary<string, Funding> {
+                {"DSG", NewFunding(_ => _.WithFundingLines(new[] { dsgfl }))}
+            };
+
+            IEnumerable<SourceFile> results = new CalculationTypeGenerator(new CompilerOptions()).GenerateCalcs(new[] { dsg }, fundingLines).ToList();
+
+            results.Should().HaveCount(1);
+
+            results.First().SourceCode.Should().Contain("Enum MethodologyTypeOptions");
+            results.First().SourceCode.Should().Contain("Public One As Func(Of MethodologyTypeOptions?) = Nothing");
+        }
+
         [TestMethod]
         public void GenerateCalculations_GivenNoCalculations_ThenSingleInnerClassForAdditionalCreated()
         {
@@ -184,17 +215,17 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.Vb.UnitTests
 
             Dictionary<string, Funding> fundingLines = new Dictionary<string, Funding>();
 
-            IEnumerable<SourceFile> results = new CalculationTypeGenerator(new CompilerOptions()).GenerateCalcs(new []{ dsg, psg, additionalOne, additionalTwo }, fundingLines);
+            IEnumerable<SourceFile> results = new CalculationTypeGenerator(new CompilerOptions()).GenerateCalcs(new[] { dsg, psg, additionalOne, additionalTwo }, fundingLines);
 
             results.Should().HaveCount(1);
             results.First()
                 .SourceCode
                 .Should()
-                .ContainAll("Public Class PSGCalculations", 
-                    "Public Class DSGCalculations", 
+                .ContainAll("Public Class PSGCalculations",
+                    "Public Class DSGCalculations",
                     "Public Class AdditionalCalculations");
         }
-        
+
         [TestMethod]
         [DataRow(false, "Inherits BaseCalculation")]
         [DataRow(true, "Inherits LegacyBaseCalculation")]
@@ -318,13 +349,13 @@ Return Result + 0";
 
             return fundingLineBuilder.Build();
         }
-        
+
         private Calculation NewCalculation(Action<CalculationBuilder> setUp = null)
         {
             CalculationBuilder calculationBuilder = new CalculationBuilder();
 
             setUp?.Invoke(calculationBuilder);
-            
+
             return calculationBuilder.Build();
         }
 
@@ -333,7 +364,7 @@ Return Result + 0";
             ReferenceBuilder referenceBuilder = new ReferenceBuilder();
 
             setUp?.Invoke(referenceBuilder);
-            
+
             return referenceBuilder.Build();
         }
     }

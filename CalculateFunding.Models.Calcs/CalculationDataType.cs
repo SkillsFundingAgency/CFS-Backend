@@ -8,6 +8,7 @@ namespace CalculateFunding.Models.Calcs
     {
         Decimal,
         String,
-        Boolean
+        Boolean,
+        Enum
     }
 }

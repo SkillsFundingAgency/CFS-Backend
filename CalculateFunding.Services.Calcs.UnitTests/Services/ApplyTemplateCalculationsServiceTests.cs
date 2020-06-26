@@ -196,6 +196,7 @@ namespace CalculateFunding.Services.Calcs.Services
             TemplateMappingItem mappingWithMissingCalculation1 = NewTemplateMappingItem();
             TemplateMappingItem mappingWithMissingCalculation2 = NewTemplateMappingItem();
             TemplateMappingItem mappingWithMissingCalculation3 = NewTemplateMappingItem();
+            TemplateMappingItem mappingWithMissingCalculation4 = NewTemplateMappingItem();
 
             TemplateMapping templateMapping = NewTemplateMapping(_ => _.WithItems(mappingWithMissingCalculation1,
                 NewTemplateMappingItem(mi => mi.WithCalculationId(NewRandomString())),
@@ -203,7 +204,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 NewTemplateMappingItem(mi => mi.WithCalculationId(NewRandomString())),
 
                 mappingWithMissingCalculation3,
-                NewTemplateMappingItem(mi => mi.WithCalculationId(NewRandomString()))));
+                NewTemplateMappingItem(mi => mi.WithCalculationId(NewRandomString())),
+                mappingWithMissingCalculation4));
 
             TemplateMetadataContents templateMetadataContents = NewTemplateMetadataContents(_ => _.WithFundingLines(NewFundingLine(fl =>
                 fl.WithCalculations(
@@ -212,14 +214,21 @@ namespace CalculateFunding.Services.Calcs.Services
                         c1.WithTemplateCalculationId(1);
                     }),
                     NewTemplateMappingCalculation(c2 => c2.WithTemplateCalculationId(2)),
-                    NewTemplateMappingCalculation(c3 => c3.WithTemplateCalculationId(3))))));
+                    NewTemplateMappingCalculation(c3 => c3.WithTemplateCalculationId(3)),
+                    NewTemplateMappingCalculation(c4 => c4.WithTemplateCalculationId(4)
+                          .WithType(Common.TemplateMetadata.Enums.CalculationType.Enum)
+                          .WithAllowedEnumTypeValues(new List<string>() { "Type1", "Type2", "Type3"})
+                          .WithValueFormat(CalculationValueFormat.String))
+                    ))));
             TemplateCalculation templateCalculationOne = NewTemplateMappingCalculation(_ => _.WithName("template calculation 1"));
             TemplateCalculation templateCalculationTwo = NewTemplateMappingCalculation(_ => _.WithName("template calculation 2"));
             TemplateCalculation templateCalculationThree = NewTemplateMappingCalculation(_ => _.WithName("template calculation 3"));
+            TemplateCalculation templateCalculationFour = NewTemplateMappingCalculation(_ => _.WithName("template calculation 4"));
 
             string newCalculationId1 = NewRandomString();
             string newCalculationId2 = NewRandomString();
             string newCalculationId3 = NewRandomString();
+            string newCalculationId4 = NewRandomString();
 
             GivenAValidMessage();
             AndTheTemplateMapping(templateMapping);
@@ -228,6 +237,12 @@ namespace CalculateFunding.Services.Calcs.Services
             CalculationValueType calculationValueTypeOne = templateCalculationOne.ValueFormat.AsMatchingEnum<CalculationValueType>();
             CalculationValueType calculationValueTypeTwo = templateCalculationTwo.ValueFormat.AsMatchingEnum<CalculationValueType>();
             CalculationValueType calculationValueTypeThree = templateCalculationThree.ValueFormat.AsMatchingEnum<CalculationValueType>();
+            CalculationValueType calculationValueTypeFour = templateCalculationFour.ValueFormat.AsMatchingEnum<CalculationValueType>();
+
+            TemplateCalculationType templateCalculationTypeOne = templateCalculationOne.Type.AsMatchingEnum<TemplateCalculationType>();
+            TemplateCalculationType templateCalculationTypeTwo = templateCalculationTwo.Type.AsMatchingEnum<TemplateCalculationType>();
+            TemplateCalculationType templateCalculationTypeThree = templateCalculationThree.Type.AsMatchingEnum<TemplateCalculationType>();
+            TemplateCalculationType templateCalculationTypeFour = templateCalculationFour.Type.AsMatchingEnum<TemplateCalculationType>();
 
             AndTheCalculationIsCreatedForRequestMatching(_ => _.Name == templateCalculationOne.Name &&
                                                               _.SourceCode == calculationValueTypeOne.GetDefaultSourceCode() &&
@@ -247,9 +262,16 @@ namespace CalculateFunding.Services.Calcs.Services
                                                               _.FundingStreamId == _fundingStreamId &&
                                                               _.ValueType.GetValueOrDefault() == calculationValueTypeThree,
                 NewCalculation(_ => _.WithId(newCalculationId3)));
+            AndTheCalculationIsCreatedForRequestMatching(_ => _.Name == templateCalculationFour.Name &&
+                                                              _.SourceCode == calculationValueTypeFour.GetDefaultSourceCode() &&
+                                                              _.SpecificationId == _specificationId &&
+                                                              _.FundingStreamId == _fundingStreamId &&
+                                                              _.ValueType.GetValueOrDefault() == calculationValueTypeFour,
+                NewCalculation(_ => _.WithId(newCalculationId4)));
             AndTheTemplateContentsCalculation(mappingWithMissingCalculation1, templateMetadataContents, templateCalculationOne);
             AndTheTemplateContentsCalculation(mappingWithMissingCalculation2, templateMetadataContents, templateCalculationTwo);
             AndTheTemplateContentsCalculation(mappingWithMissingCalculation3, templateMetadataContents, templateCalculationThree);
+            AndTheTemplateContentsCalculation(mappingWithMissingCalculation4, templateMetadataContents, templateCalculationFour);
             AndTheSpecificationIsReturned();
 
             await WhenTheTemplateCalculationsAreApplied();
@@ -266,7 +288,11 @@ namespace CalculateFunding.Services.Calcs.Services
                 .CalculationId
                 .Should().Be(newCalculationId3);
 
-            AndTheTemplateMappingWasUpdated(templateMapping, 4);
+            mappingWithMissingCalculation4
+                .CalculationId
+                .Should().Be(newCalculationId4);
+
+            AndTheTemplateMappingWasUpdated(templateMapping, 5);
             AndTheJobsStartWasLogged();
             AndTheJobCompletionWasLogged(4);
             AndACalculationRunWasInitialised();
@@ -342,6 +368,9 @@ namespace CalculateFunding.Services.Calcs.Services
 
             CalculationValueType calculationValueTypeOne = templateCalculationOne.ValueFormat.AsMatchingEnum<CalculationValueType>();
             CalculationValueType calculationValueTypeTwo = templateCalculationTwo.ValueFormat.AsMatchingEnum<CalculationValueType>();
+
+            TemplateCalculationType templateCalculationTypeOne = templateCalculationOne.Type.AsMatchingEnum<TemplateCalculationType>();
+            TemplateCalculationType templateCalculationTypeTwo = templateCalculationTwo.Type.AsMatchingEnum<TemplateCalculationType>();
 
             AndTheCalculationIsCreatedForRequestMatching(_ => _.Name == templateCalculationOne.Name &&
                                                               _.SourceCode == calculationValueTypeOne.GetDefaultSourceCode() &&
@@ -451,6 +480,9 @@ namespace CalculateFunding.Services.Calcs.Services
             CalculationValueType calculationValueTypeOne = templateCalculationOne.ValueFormat.AsMatchingEnum<CalculationValueType>();
             CalculationValueType calculationValueTypeTwo = templateCalculationTwo.ValueFormat.AsMatchingEnum<CalculationValueType>();
 
+            TemplateCalculationType templateCalculationTypeOne = templateCalculationOne.Type.AsMatchingEnum<TemplateCalculationType>();
+            TemplateCalculationType templateCalculationTypeTwo = templateCalculationTwo.Type.AsMatchingEnum<TemplateCalculationType>();
+
             AndTheCalculationIsCreatedForRequestMatching(_ => _.Name == templateCalculationOne.Name &&
                                                               _.SourceCode == calculationValueTypeOne.GetDefaultSourceCode() &&
                                                               _.SpecificationId == _specificationId &&
@@ -507,7 +539,9 @@ namespace CalculateFunding.Services.Calcs.Services
                     Arg.Is<Reference>(_ => _.Id == _userId &&
                                            _.Name == _userName),
                     Arg.Is(_correlationId),
-                    Arg.Is(false))
+                    Arg.Is(false),
+                    Arg.Any<TemplateCalculationType?>(),
+                    Arg.Any<IEnumerable<string>>())
                 .Returns(new CreateCalculationResponse
                 {
                     Succeeded = true,

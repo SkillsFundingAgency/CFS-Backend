@@ -256,7 +256,9 @@ namespace CalculateFunding.Services.CalcEngine
                 CalculationDataType.Decimal => calcResult.Value[valueIndex].GetValueOrNull<decimal>(),
                 CalculationDataType.String => calcResult.Value[valueIndex],
                 CalculationDataType.Boolean => calcResult.Value[valueIndex].GetValueOrNull<bool>(),
+                CalculationDataType.Enum => calcResult.Value[valueIndex]?.ToString(),
                 _ => throw new ArgumentOutOfRangeException(),
+                
             };
         }
 

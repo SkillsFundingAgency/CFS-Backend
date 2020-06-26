@@ -231,7 +231,7 @@ namespace CalculateFunding.Services.Calcs
                     Description = existingCalculation.Current.Description,
                     SourceCode = existingCalculation.Current.SourceCode,
                     Name = templateCalculation.Name,
-                    ValueType = templateCalculation.ValueFormat.AsMatchingEnum<CalculationValueType>(),
+                    ValueType = templateCalculation.ValueFormat.AsMatchingEnum<CalculationValueType>()
                 };
 
                 IActionResult editCalculationResult = await _calculationService.EditCalculation(specification.Id, mappingWithCalculations.CalculationId, calculationEditModel, author, correlationId);
@@ -288,8 +288,8 @@ namespace CalculateFunding.Services.Calcs
                         {
                             Description = existingCalculation.Current.Description,
                             SourceCode = existingCalculation.Current.SourceCode,
-                            Name = existingCalculation?.Current.Name,
-                            ValueType = existingCalculation?.Current.ValueType,
+                            Name = existingCalculation.Current.Name,
+                            ValueType = existingCalculation.Current.ValueType,
                         };
 
                         IActionResult editCalculationResult = await _calculationService.EditCalculation(specificationId, mapping.CalculationId, calculationEditModel, author, correlationId, true);
@@ -334,6 +334,7 @@ namespace CalculateFunding.Services.Calcs
                 LogAndThrowException($"Unable to locate template contents for template calculation id {templateMapping.TemplateId}");
 
             CalculationValueType calculationValueType = templateCalculation.ValueFormat.AsMatchingEnum<CalculationValueType>();
+            TemplateCalculationType templateCalculationType = templateCalculation.Type.AsMatchingEnum <TemplateCalculationType>();
 
             CalculationCreateModel calculationCreateModel = new CalculationCreateModel
             {
@@ -350,7 +351,9 @@ namespace CalculateFunding.Services.Calcs
                 CalculationType.Template,
                 author,
                 correlationId,
-                initiateCalcRun: false);
+                initiateCalcRun: false,
+                templateCalculationType,
+                templateCalculation.AllowedEnumTypeValues);
 
             if (!(createCalculationResponse?.Succeeded).GetValueOrDefault())
                  LogAndThrowException("Unable to create new default template calculation for template mapping");
