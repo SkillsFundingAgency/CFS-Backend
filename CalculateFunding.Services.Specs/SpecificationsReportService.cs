@@ -131,62 +131,48 @@ namespace CalculateFunding.Services.Specs
             }).Where(_ => _ != null).OrderByDescending(_ => _.LastModified);
         }
 
-        private ReportCategory GetReportCategory(JobType jobType)
-        {
-            switch (jobType)
+        private ReportCategory GetReportCategory(JobType jobType) =>
+            jobType switch
             {
-                case JobType.CalcResult:
-                case JobType.CurrentState:
-                case JobType.Released:
-                case JobType.CurrentProfileValues:
-                case JobType.CurrentOrganisationGroupValues:
-                    return ReportCategory.Live;
-                case JobType.History:
-                case JobType.HistoryProfileValues:
-                case JobType.HistoryOrganisationGroupValues:
-                case JobType.HistoryPublishedProviderEstate:
-                    return ReportCategory.History;
-                case JobType.Undefined:
-                default:
-                    return ReportCategory.Undefined;
-            }
-        }
+                { } type when type != JobType.CalcResult &&
+                              type == JobType.Released ||
+                              type == JobType.History ||
+                              type ==  JobType.HistoryProfileValues ||
+                              type ==  JobType.CurrentProfileValues ||
+                              type ==  JobType.CurrentState ||
+                              type ==  JobType.CurrentOrganisationGroupValues ||
+                              type ==  JobType.HistoryOrganisationGroupValues ||
+                              type ==  JobType.HistoryPublishedProviderEstate => ReportCategory.History,
+                JobType.CalcResult => ReportCategory.Live,
+                _ => ReportCategory.Undefined
+            };
 
-        private ReportType GetReportType(JobType jobType)
-        {
-            switch (jobType)
+        private ReportType GetReportType(JobType jobType) =>
+            jobType switch
             {
-                case JobType.CurrentState:
-                case JobType.Released:
-                case JobType.History:
-                case JobType.HistoryProfileValues:
-                case JobType.CurrentProfileValues:
-                case JobType.CurrentOrganisationGroupValues:
-                case JobType.HistoryOrganisationGroupValues:
-                case JobType.HistoryPublishedProviderEstate:
-                    return ReportType.FundingLine;
-                case JobType.CalcResult:
-                    return ReportType.CalculationResult;
-                case JobType.Undefined:
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-        }
+                { } type when type != JobType.CalcResult &&
+                              type == JobType.Released ||
+                              type == JobType.History ||
+                              type ==  JobType.HistoryProfileValues ||
+                              type ==  JobType.CurrentProfileValues ||
+                              type ==  JobType.CurrentOrganisationGroupValues ||
+                              type ==  JobType.HistoryOrganisationGroupValues ||
+                              type ==  JobType.HistoryPublishedProviderEstate => ReportType.FundingLine,
+                JobType.CalcResult => ReportType.CalculationResult,
+                _ => throw new ArgumentOutOfRangeException()
+            };
 
-        private string GetContainerName(ReportType reportType)
-        {
-            return reportType switch
+        private string GetContainerName(ReportType reportType) =>
+            reportType switch
             {
                 ReportType.FundingLine => PublishedProviderVersionsContainerName,
                 ReportType.CalculationResult => CalcsResultsContainerName,
                 _ => throw new ArgumentOutOfRangeException(),
             };
-        }
 
         private string EncodeReportId(SpecificationReportIdentifier specificationReportIdentifier)
         {
-            string idJson = JsonExtensions.AsJson(specificationReportIdentifier);
-            byte[] idBytes = Encoding.UTF8.GetBytes(idJson);
+            byte[] idBytes = specificationReportIdentifier.AsJsonBytes();
             return Convert.ToBase64String(idBytes);
         }
 
@@ -194,7 +180,7 @@ namespace CalculateFunding.Services.Specs
         {
             byte[]  base64EncodedBytes = Convert.FromBase64String(encodedReportId);
             string decodedText = Encoding.UTF8.GetString(base64EncodedBytes);
-            return JsonExtensions.AsPoco<SpecificationReportIdentifier>(decodedText);
+            return decodedText.AsPoco<SpecificationReportIdentifier>();
         }
 
         private SpecificationReportIdentifier GetReportId(IDictionary<string, string> blobMetadata)
@@ -207,14 +193,14 @@ namespace CalculateFunding.Services.Specs
 
             Enum.TryParse(jobTypeString, out JobType jobType);
 
-            return blobMetadata != null ? new SpecificationReportIdentifier
+            return new SpecificationReportIdentifier
             {
                 JobType = jobType,
                 FundingLineCode = fundingLineCode,
                 FundingPeriodId = fundingPeriodId,
                 FundingStreamId = fundingStreamId,
                 SpecificationId = specificationId
-            } : null;
+            };
         }
 
         private string GenerateFileName(SpecificationReportIdentifier id)
@@ -239,8 +225,6 @@ namespace CalculateFunding.Services.Specs
                             return $"{FundingLineReportFilePrefix}-{id.SpecificationId}-{id.JobType}{fundingLineCode}{fundingStreamId}.csv";
                         case JobType.HistoryPublishedProviderEstate:
                             return $"{FundingLineReportFilePrefix}-{id.SpecificationId}-{id.JobType}-{id.FundingPeriodId}.csv";
-                        case JobType.CalcResult:
-                        case JobType.Undefined:
                         default:
                             throw new ArgumentOutOfRangeException();
                     }

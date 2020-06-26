@@ -48,7 +48,18 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         }
 
         [TestMethod]
-        public void GetReportMetadata_GivenSpecificationIdWithBlobs_ReturnsReportMetadata()
+        [DataRow(JobType.Released, ReportCategory.History)]
+        [DataRow(JobType.History, ReportCategory.History)]
+        [DataRow(JobType.CurrentState, ReportCategory.History)]
+        [DataRow(JobType.CurrentProfileValues, ReportCategory.History)]
+        [DataRow(JobType.HistoryProfileValues, ReportCategory.History)]
+        [DataRow(JobType.CurrentOrganisationGroupValues, ReportCategory.History)]
+        [DataRow(JobType.HistoryOrganisationGroupValues, ReportCategory.History)]
+        [DataRow(JobType.HistoryPublishedProviderEstate, ReportCategory.History)]
+        [DataRow(JobType.CalcResult, ReportCategory.Live)]
+        [DataRow((JobType)int.MaxValue, ReportCategory.Undefined)]
+        public void GetReportMetadata_GivenSpecificationIdWithBlobs_ReturnsReportMetadata(JobType jobType,
+            ReportCategory expectedReportCategory)
         {
             string fundingLineBlobName = NewRandomString();
             string fundingLineFileExtension = "csv";
@@ -57,7 +68,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             string calcResultsBlobName = NewRandomString();
             string calcResultsFileExtension = "xlsx";
 
-            JobType jobType = JobType.Released;
             string fundingLineCode = NewRandomString();
             string fundingPeriodId = NewRandomString();
             string fundingStreamId = NewRandomString();
@@ -159,7 +169,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .BeEquivalentTo(new SpecificationReport
                 {
                         Name = fundingLineFileName,
-                        Category = "Live",
+                        Category = expectedReportCategory.ToString(),
                         Format = "CSV",
                         Size = "-1 B",
                         SpecificationReportIdentifier = EncodeSpecificationReportIdentifier(id)
@@ -169,8 +179,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         [TestMethod]
         public void DownloadReport_NullFileNamePassed_ThrowsException()
         {
-            string reportId = null;
-            Func<Task<IActionResult>> invocation = async () => await _service.DownloadReport(reportId);
+            Func<Task<IActionResult>> invocation = async () => await _service.DownloadReport(reportId: null);
 
             invocation
                 .Should()
@@ -178,7 +187,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .Which
                 .ParamName
                 .Should()
-                .Be(nameof(reportId));
+                .Be("reportId");
         }
 
         [TestMethod]
@@ -203,7 +212,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             _blobClient
                 .When(_ => _.GetBlobReferenceFromServerAsync(expectedBlobName, PublishedProviderVersionsContainerName))
-                .Do(_ => { throw new StorageException(); });
+                .Do(_ => throw new StorageException());
 
             IActionResult result = await _service.DownloadReport(EncodeSpecificationReportIdentifier(id));
 
@@ -291,16 +300,9 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
         private static string EncodeSpecificationReportIdentifier(SpecificationReportIdentifier specificationReportIdentifier)
         {
-            string idJson = JsonExtensions.AsJson(specificationReportIdentifier);
+            string idJson = specificationReportIdentifier.AsJson();
             byte[] idBytes = Encoding.UTF8.GetBytes(idJson);
             return Convert.ToBase64String(idBytes);
-        }
-
-        private static SpecificationReportIdentifier DecodeSpecificationReportIdentifier(string encodedSpecificationReportIdentifier)
-        {
-            byte[] base64EncodedBytes = Convert.FromBase64String(encodedSpecificationReportIdentifier);
-            string decodedText = Encoding.UTF8.GetString(base64EncodedBytes);
-            return JsonExtensions.AsPoco<SpecificationReportIdentifier>(decodedText);
         }
     }
 }
