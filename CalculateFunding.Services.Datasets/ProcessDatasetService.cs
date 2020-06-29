@@ -72,6 +72,7 @@ namespace CalculateFunding.Services.Datasets
         private readonly IMapper _mapper;
         private readonly IJobManagement _jobManagement;
         private readonly IProviderSourceDatasetVersionKeyProvider _datasetVersionKeyProvider;
+     
 
         public ProcessDatasetService(
             IDatasetRepository datasetRepository,
@@ -91,7 +92,8 @@ namespace CalculateFunding.Services.Datasets
             IFeatureToggle featureToggle,
             IMapper mapper,
             IJobManagement jobManagement,
-            IProviderSourceDatasetVersionKeyProvider datasetVersionKeyProvider)
+            IProviderSourceDatasetVersionKeyProvider datasetVersionKeyProvider
+            )
         {
             Guard.ArgumentNotNull(datasetRepository, nameof(datasetRepository));
             Guard.ArgumentNotNull(excelDatasetReader, nameof(excelDatasetReader));
@@ -109,7 +111,8 @@ namespace CalculateFunding.Services.Datasets
             Guard.ArgumentNotNull(datasetsResiliencePolicies?.ProviderResultsRepository, nameof(datasetsResiliencePolicies.ProviderResultsRepository));
             Guard.ArgumentNotNull(datasetsResiliencePolicies?.ProvidersApiClient, nameof(datasetsResiliencePolicies.ProvidersApiClient));
             Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
-            Guard.ArgumentNotNull(datasetVersionKeyProvider, nameof(datasetVersionKeyProvider));
+            Guard.ArgumentNotNull(datasetVersionKeyProvider, nameof(datasetVersionKeyProvider));          
+            Guard.ArgumentNotNull(datasetsResiliencePolicies?.JobsApiClient, nameof(datasetsResiliencePolicies.JobsApiClient));
 
             _datasetRepository = datasetRepository;
             _excelDatasetReader = excelDatasetReader;
@@ -129,7 +132,7 @@ namespace CalculateFunding.Services.Datasets
             _messengerService = messengerService;
             _mapper = mapper;
             _jobManagement = jobManagement;
-            _datasetVersionKeyProvider = datasetVersionKeyProvider;
+            _datasetVersionKeyProvider = datasetVersionKeyProvider;           
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -161,6 +164,19 @@ namespace CalculateFunding.Services.Datasets
             Dataset dataset = message.GetPayloadAsInstanceOf<Dataset>();
 
             string jobId = message.UserProperties["jobId"].ToString();
+
+            JobViewModel jobResponse = await _jobManagement.GetJobById(jobId);
+
+            if (jobResponse == null)
+            {
+                _logger.Error($"Error occurred while retireving the job. JobId {jobId}");
+                await _jobManagement.UpdateJobStatus(jobId, 100, false, "Failed to Process - No job details found.");
+                return;
+            }
+
+            bool isScopedJob = jobResponse.JobDefinitionId == JobConstants.DefinitionNames.MapScopedDatasetJob;
+            bool queueCalculationJob = !isScopedJob &&
+                !(message.UserProperties.ContainsKey("disableQueueCalculationJob") && bool.Parse(message.UserProperties["disableQueueCalculationJob"].ToString()));
 
             await _jobManagement.UpdateJobStatus(jobId, 0, null);
 
@@ -258,19 +274,29 @@ namespace CalculateFunding.Services.Datasets
                             throw new NonRetriableException(errorMessage);
                         }
 
-                        Trigger trigger = new Trigger
+                        if (queueCalculationJob)
                         {
-                            EntityId = relationshipId,
-                            EntityType = nameof(DefinitionSpecificationRelationship),
-                            Message = $"Processed dataset relationship: '{relationshipId}' for specification: '{specificationId}'"
-                        };
+                            Trigger trigger = new Trigger
+                            {
+                                EntityId = relationshipId,
+                                EntityType = nameof(DefinitionSpecificationRelationship),
+                                Message = $"Processed dataset relationship: '{relationshipId}' for specification: '{specificationId}'"
+                            };
 
-                        IEnumerable<CalculationResponseModel> allCalculations = await _calcsRepository.GetCurrentCalculationsBySpecificationId(specificationId);
+                            IEnumerable<CalculationResponseModel> allCalculations = await _calcsRepository.GetCurrentCalculationsBySpecificationId(specificationId);
 
-                        bool generateCalculationAggregations = !allCalculations.IsNullOrEmpty() &&
-                                                               SourceCodeHelpers.HasCalculationAggregateFunctionParameters(allCalculations.Select(m => m.SourceCode));
+                            bool generateCalculationAggregations = !allCalculations.IsNullOrEmpty() &&
+                                                                   SourceCodeHelpers.HasCalculationAggregateFunctionParameters(allCalculations.Select(m => m.SourceCode));
 
-                        await SendInstructAllocationsToJobService($"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}", $"{CacheKeys.SpecificationSummaryById}{specificationId}", specificationId, userId, userName, trigger, correlationId, generateCalculationAggregations);
+                            await SendInstructAllocationsToJobService($"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}",
+                                $"{CacheKeys.SpecificationSummaryById}{specificationId}",
+                                specificationId,
+                                userId,
+                                userName,
+                                trigger,
+                                correlationId,
+                                generateCalculationAggregations);
+                        }
                     }
                     catch (NonRetriableException argEx)
                     {
@@ -282,6 +308,56 @@ namespace CalculateFunding.Services.Datasets
                         _logger.Error(ex, $"Failed to create job of type '{DefinitionNames.CreateInstructAllocationJob}' on specification '{specificationId}'");
 
                         throw new Exception($"Failed to create job of type '{DefinitionNames.CreateInstructAllocationJob}' on specification '{specificationId}'", ex);
+                    }
+                }
+
+                if (isScopedJob)
+                {
+                    IEnumerable<DefinitionSpecificationRelationship> relationships = await _datasetRepository.GetDefinitionSpecificationRelationshipsByQuery(c => c.Content.Specification.Id == specificationId);
+
+                    Dictionary<string, Dataset> nonScopeddatasets = new Dictionary<string, Dataset>();
+
+                    foreach (DefinitionSpecificationRelationship nonScopedRelationship in relationships.Where(x => x.Id != relationshipId))
+                    {
+                        if (nonScopedRelationship == null || nonScopedRelationship.DatasetVersion == null || string.IsNullOrWhiteSpace(nonScopedRelationship.DatasetVersion.Id))
+                        {
+                            continue;
+                        }
+
+                        if (!nonScopeddatasets.TryGetValue(nonScopedRelationship.DatasetVersion.Id, out Dataset nonScopedDataset))
+                        {
+                            nonScopedDataset = await _datasetRepository.GetDatasetByDatasetId(nonScopedRelationship.DatasetVersion.Id);
+                            nonScopeddatasets.Add(nonScopedRelationship.DatasetVersion.Id, nonScopedDataset);
+                        }
+
+                        Trigger trigger = new Trigger
+                        {
+                            EntityId = nonScopedDataset.Id,
+                            EntityType = nameof(Dataset),
+                            Message = $"Mapping dataset: '{nonScopedDataset.Id}'"
+                        };
+
+                        JobCreateModel mapNonScopedDatasetJob = new JobCreateModel
+                        {
+                            InvokerUserDisplayName = user?.Name,
+                            InvokerUserId = user?.Id,
+                            JobDefinitionId = DefinitionNames.MapDatasetJob,
+                            MessageBody = JsonConvert.SerializeObject(nonScopedDataset),
+                            Properties = new Dictionary<string, string>
+                                            {
+                                                { "specification-id", nonScopedRelationship.Specification.Id },
+                                                { "relationship-id", nonScopedRelationship.Id },
+                                                { "user-id", user?.Id},
+                                                { "user-name", user?.Name},
+                                                { "disableQueueCalculationJob", "true" }
+                                            },
+                            SpecificationId = nonScopedRelationship.Specification.Id,
+                            ParentJobId = jobId,
+                            Trigger = trigger,
+                            CorrelationId = correlationId,
+                        };
+
+                        await _jobManagement.QueueJob(mapNonScopedDatasetJob);
                     }
                 }
 
@@ -389,12 +465,12 @@ namespace CalculateFunding.Services.Datasets
             return datasetAggregations;
         }
 
-        private async Task<BuildProject> ProcessDataset(Dataset dataset, 
-            SpecificationSummary specification, 
-            string relationshipId, 
-            int version, 
-            Reference user, 
-            bool forceRefreshScopedProviders, 
+        private async Task<BuildProject> ProcessDataset(Dataset dataset,
+            SpecificationSummary specification,
+            string relationshipId,
+            int version,
+            Reference user,
+            bool forceRefreshScopedProviders,
             string correlationId)
         {
             string dataDefinitionId = dataset.Definition.Id;
@@ -436,15 +512,15 @@ namespace CalculateFunding.Services.Datasets
                 throw new NonRetriableException($"Failed to load table result");
             }
 
-            await PersistDataset(loadResult, 
-                dataset, 
-                datasetDefinition, 
-                buildProject, 
-                specification, 
-                relationshipId, 
-                version, 
-                user, 
-                forceRefreshScopedProviders, 
+            await PersistDataset(loadResult,
+                dataset,
+                datasetDefinition,
+                buildProject,
+                specification,
+                relationshipId,
+                version,
+                user,
+                forceRefreshScopedProviders,
                 correlationId);
 
             return buildProject;
@@ -483,15 +559,15 @@ namespace CalculateFunding.Services.Datasets
             return tableLoadResults.FirstOrDefault();
         }
 
-        private async Task PersistDataset(TableLoadResult loadResult, 
-            Dataset dataset, 
-            DatasetDefinition datasetDefinition, 
-            BuildProject buildProject, 
-            SpecificationSummary specification, 
-            string relationshipId, 
-            int version, 
-            Reference user, 
-            bool forceRefreshScopedProviders, 
+        private async Task PersistDataset(TableLoadResult loadResult,
+            Dataset dataset,
+            DatasetDefinition datasetDefinition,
+            BuildProject buildProject,
+            SpecificationSummary specification,
+            string relationshipId,
+            int version,
+            Reference user,
+            bool forceRefreshScopedProviders,
             string correlationId)
         {
             Guard.IsNullOrWhiteSpace(relationshipId, nameof(relationshipId));
@@ -712,7 +788,7 @@ namespace CalculateFunding.Services.Datasets
 
             // need to remove all calculation result batches so that all calcs are created on calc run
             await _cacheProvider.RemoveByPatternAsync($"{CacheKeys.CalculationResults}{specification.Id}");
-            
+
             bool jobCompletedSuccessfully = await _jobManagement.QueueJobAndWait(async () =>
                 {
                     ApiResponse<bool> refreshCacheFromApi = await _providersApiClientPolicy.ExecuteAsync(() =>

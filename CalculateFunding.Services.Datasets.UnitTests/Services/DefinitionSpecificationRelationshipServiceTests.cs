@@ -19,6 +19,7 @@ using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.ViewModels;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Caching;
+using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Datasets.Interfaces;
 using CalculateFunding.Services.Datasets.MappingProfiles;
 using CalculateFunding.Tests.Common.Helpers;
@@ -1708,6 +1709,73 @@ namespace CalculateFunding.Services.Datasets.Services
                                                        j.Properties["user-id"] == "user-id-1" &&
                                                        j.Properties.ContainsKey("user-name") &&
                                                        j.Properties["user-name"] == "user-name-1"));
+
+            await messengerService
+                .DidNotReceive()
+                .SendToQueue(Arg.Any<string>(), Arg.Any<Dataset>(), Arg.Any<IDictionary<string, string>>());
+        }
+
+        [TestMethod]
+        public async Task AssignDatasourceVersionToRelationship_ForScopedProviderDataset_CreateMapScopedDatasetJob()
+        {
+            //Arrange
+            string datasetId = NewRandomString();
+            string relationshipId = NewRandomString();
+
+            AssignDatasourceModel model = new AssignDatasourceModel
+            {
+                DatasetId = datasetId,
+                RelationshipId = relationshipId,
+                Version = 1
+            };
+
+            Reference user = new Reference("user-id-1", "user-name-1");
+
+            ILogger logger = CreateLogger();
+
+            Dataset dataset = new Dataset();
+            DefinitionSpecificationRelationship relationship = new DefinitionSpecificationRelationship
+            {
+                Id = "rel-1",
+                Specification = new Reference { Id = "spec-id" },
+                IsSetAsProviderData = true
+            };
+
+            IDatasetRepository datasetRepository = CreateDatasetRepository();
+            datasetRepository
+                .GetDatasetByDatasetId(Arg.Is(datasetId))
+                .Returns(dataset);
+            datasetRepository
+                .GetDefinitionSpecificationRelationshipById(Arg.Is(relationshipId))
+                .Returns(relationship);
+            datasetRepository
+                .UpdateDefinitionSpecificationRelationship(Arg.Any<DefinitionSpecificationRelationship>())
+                .Returns(HttpStatusCode.OK);
+
+            IJobManagement jobManagement = CreateJobManagement();
+
+            IMessengerService messengerService = CreateMessengerService();
+
+            DefinitionSpecificationRelationshipService service = CreateService(logger: logger, datasetRepository: datasetRepository, jobManagement: jobManagement, messengerService: messengerService);
+
+            //Act
+            IActionResult result = await service.AssignDatasourceVersionToRelationship(model, user, null);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<NoContentResult>();
+
+            await jobManagement
+                .Received(1)
+                .QueueJob(Arg.Is<JobCreateModel>(j => j.JobDefinitionId == JobConstants.DefinitionNames.MapScopedDatasetJob &&
+                                                       j.SpecificationId == relationship.Specification.Id &&
+                                                       j.Properties.ContainsKey("user-id") &&
+                                                       j.Properties["user-id"] == "user-id-1" &&
+                                                       j.Properties.ContainsKey("user-name") &&
+                                                       j.Properties["user-name"] == "user-name-1" &&
+                                                       j.Properties.ContainsKey("relationship-id") &&
+                                                       j.Properties["relationship-id"] == "rel-1"));
 
             await messengerService
                 .DidNotReceive()

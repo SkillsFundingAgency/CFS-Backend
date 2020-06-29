@@ -50,7 +50,8 @@ namespace CalculateFunding.Services.Datasets.Services
             IFeatureToggle featureToggle = null,
             IMapper mapper = null,
             IJobManagement jobManagement = null,
-            IProviderSourceDatasetVersionKeyProvider versionKeyProvider = null)
+            IProviderSourceDatasetVersionKeyProvider versionKeyProvider = null,
+            IJobsApiClient jobsApiClient = null)
         {
 
             return new ProcessDatasetService(
@@ -71,7 +72,8 @@ namespace CalculateFunding.Services.Datasets.Services
                 featureToggle ?? CreateFeatureToggle(),
                 mapper ?? CreateMapper(),
                 jobManagement ?? CreateJobManagement(),
-                versionKeyProvider ?? CreateDatasetVersionKeyProvider());
+                versionKeyProvider ?? CreateDatasetVersionKeyProvider()
+                );
         }
 
         protected static IProviderSourceDatasetVersionKeyProvider CreateDatasetVersionKeyProvider()

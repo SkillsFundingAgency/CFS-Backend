@@ -147,6 +147,7 @@ namespace CalculateFunding.Services.Datasets.Services
         public async Task ProcessDataset_GivenNullPayload_DoesNoProcessing()
         {
             GivenTheMessageProperties(("jobId", "job1"));
+            AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
 
             await WhenTheProcessDatasetMessageIsProcessed();
 
@@ -162,6 +163,7 @@ namespace CalculateFunding.Services.Datasets.Services
         {
             GivenTheMessageProperties(("jobId", "job1"));
             AndTheMessageBody(new Dataset());
+            AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
 
             await WhenTheProcessDatasetMessageIsProcessed();
 
@@ -177,6 +179,7 @@ namespace CalculateFunding.Services.Datasets.Services
         {
             GivenTheMessageProperties(("specification-id", ""), ("jobId", "job1"));
             AndTheMessageBody(new Dataset());
+            AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
 
             await WhenTheProcessDatasetMessageIsProcessed();
 
@@ -194,6 +197,7 @@ namespace CalculateFunding.Services.Datasets.Services
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
                 .WithDefinition(NewReference(rf => rf.WithId(DataDefintionId)))
                 .WithHistory(NewDatasetVersion())));
+            AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheSpecification(SpecificationId, NewSpecification(_ =>
             _.WithId(SpecificationId)
             .WithProviderVersionId(ProviderVersionId)
@@ -215,6 +219,7 @@ namespace CalculateFunding.Services.Datasets.Services
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
                 .WithDefinition(NewReference(rf => rf.WithId(DataDefintionId)))
                 .WithHistory(NewDatasetVersion())));
+            AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheSpecification(SpecificationId, NewSpecification(_ =>
             _.WithId(SpecificationId)
             .WithProviderVersionId(ProviderVersionId)
@@ -237,6 +242,7 @@ namespace CalculateFunding.Services.Datasets.Services
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
                 .WithDefinition(NewReference(rf => rf.WithId(DataDefintionId)))
                 .WithHistory(NewDatasetVersion())));
+            AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheSpecification(SpecificationId, NewSpecification(_ =>
             _.WithId(SpecificationId)
             .WithProviderVersionId(ProviderVersionId)
@@ -261,6 +267,7 @@ namespace CalculateFunding.Services.Datasets.Services
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
                 .WithDefinition(NewReference(rf => rf.WithId(DataDefintionId)))
                 .WithHistory(NewDatasetVersion())));
+            AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheSpecification(SpecificationId, NewSpecification(_ =>
             _.WithId(SpecificationId)
             .WithProviderVersionId(ProviderVersionId)
@@ -289,6 +296,7 @@ namespace CalculateFunding.Services.Datasets.Services
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
                 .WithDefinition(NewReference(rf => rf.WithId(DataDefintionId)))
                 .WithHistory(NewDatasetVersion())));
+            AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheSpecification(SpecificationId, NewSpecification(_ =>
             _.WithId(SpecificationId)
             .WithProviderVersionId(ProviderVersionId)
@@ -317,6 +325,7 @@ namespace CalculateFunding.Services.Datasets.Services
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
                 .WithDefinition(NewReference(rf => rf.WithId(DataDefintionId)))
                 .WithHistory(NewDatasetVersion())));
+            AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheSpecification(SpecificationId, NewSpecification(_ =>
             _.WithId(SpecificationId)
             .WithProviderVersionId(ProviderVersionId)
@@ -353,6 +362,7 @@ namespace CalculateFunding.Services.Datasets.Services
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
                 .WithDefinition(NewReference(rf => rf.WithId(DataDefintionId)))
                 .WithHistory(NewDatasetVersion())));
+            AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheSpecification(SpecificationId, NewSpecification(_ =>
             _.WithId(SpecificationId)
             .WithProviderVersionId(ProviderVersionId)
@@ -392,6 +402,7 @@ namespace CalculateFunding.Services.Datasets.Services
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
                 .WithDefinition(NewReference(rf => rf.WithId(DataDefintionId)))
                 .WithHistory(NewDatasetVersion())));
+            AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheRelationship(_relationshipId, NewRelationship(_ => _.WithDatasetDefinition(NewReference(
                     rf => rf.WithId(DataDefintionId)))
                 .WithDatasetVersion(NewRelationshipVersion())));
@@ -428,6 +439,7 @@ namespace CalculateFunding.Services.Datasets.Services
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
                 .WithDefinition(NewReference(rf => rf.WithId(DataDefintionId)))
                 .WithHistory(NewDatasetVersion())));
+            AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheRelationship(_relationshipId, NewRelationship(_ => _.WithDatasetDefinition(NewReference(
                     rf => rf.WithId(DataDefintionId)))
                 .WithDatasetVersion(NewRelationshipVersion())));
@@ -466,6 +478,7 @@ namespace CalculateFunding.Services.Datasets.Services
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
                 .WithDefinition(NewReference(rf => rf.WithId(DataDefintionId)))
                 .WithHistory(NewDatasetVersion())));
+            AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheSpecification(SpecificationId, NewSpecification(_ =>
             _.WithId(SpecificationId)
             .WithProviderVersionId(ProviderVersionId)
@@ -524,6 +537,7 @@ namespace CalculateFunding.Services.Datasets.Services
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
                 .WithDefinition(NewReference(rf => rf.WithId(DataDefintionId)))
                 .WithHistory(NewDatasetVersion())));
+            AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheSpecification(SpecificationId, NewSpecification(_ =>
             _.WithId(SpecificationId)
             .WithProviderVersionId(ProviderVersionId)
@@ -582,6 +596,7 @@ namespace CalculateFunding.Services.Datasets.Services
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
                 .WithDefinition(NewReference(rf => rf.WithId(DataDefintionId)))
                 .WithHistory(NewDatasetVersion())));
+            AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheSpecification(SpecificationId, NewSpecification(_ =>
             _.WithId(SpecificationId)
             .WithProviderVersionId(ProviderVersionId)
@@ -639,6 +654,7 @@ namespace CalculateFunding.Services.Datasets.Services
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
                 .WithDefinition(NewReference(rf => rf.WithId(DataDefintionId)))
                 .WithHistory(NewDatasetVersion())));
+            AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheSpecification(SpecificationId, NewSpecification(_ =>
             _.WithId(SpecificationId)
             .WithProviderVersionId(ProviderVersionId)
@@ -714,6 +730,7 @@ namespace CalculateFunding.Services.Datasets.Services
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
                 .WithDefinition(NewReference(rf => rf.WithId(DataDefintionId)))
                 .WithHistory(NewDatasetVersion())));
+            AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheSpecification(SpecificationId, NewSpecification(_ =>
             _.WithId(SpecificationId)
             .WithProviderVersionId(ProviderVersionId)
@@ -793,6 +810,7 @@ namespace CalculateFunding.Services.Datasets.Services
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
                 .WithDefinition(NewReference(rf => rf.WithId(DataDefintionId)))
                 .WithHistory(NewDatasetVersion())));
+            AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheSpecification(SpecificationId, NewSpecification(_ =>
             _.WithId(SpecificationId)
             .WithProviderVersionId(ProviderVersionId)
@@ -846,6 +864,7 @@ namespace CalculateFunding.Services.Datasets.Services
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
                 .WithDefinition(NewReference(rf => rf.WithId(DataDefintionId)))
                 .WithHistory(NewDatasetVersion())));
+            AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheSpecification(SpecificationId, NewSpecification(_ =>
             _.WithId(SpecificationId)
             .WithProviderVersionId(ProviderVersionId)
@@ -903,6 +922,7 @@ namespace CalculateFunding.Services.Datasets.Services
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
                 .WithDefinition(NewReference(rf => rf.WithId(DataDefintionId)))
                 .WithHistory(NewDatasetVersion())));
+            AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheRelationship(_relationshipId, NewRelationship(_ => _.WithDatasetDefinition(NewReference(
                     rf => rf.WithId(DataDefintionId)))
                 .WithDatasetVersion(NewRelationshipVersion())));
@@ -953,6 +973,7 @@ namespace CalculateFunding.Services.Datasets.Services
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
                 .WithDefinition(NewReference(rf => rf.WithId(DataDefintionId)))
                 .WithHistory(NewDatasetVersion())));
+            AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheSpecification(SpecificationId, NewSpecification(_ =>
             _.WithId(SpecificationId)
             .WithProviderVersionId(ProviderVersionId)
@@ -1021,6 +1042,7 @@ namespace CalculateFunding.Services.Datasets.Services
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
                 .WithDefinition(NewReference(rf => rf.WithId(DataDefintionId)))
                 .WithHistory(NewDatasetVersion())));
+            AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheSpecification(SpecificationId, NewSpecification(_ =>
             _.WithId(SpecificationId)
             .WithProviderVersionId(ProviderVersionId)
@@ -1067,6 +1089,176 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
+        public async Task ProcessDataset_GivenPayloadAndTableResultsWithProviderIdsForScopedDataset_NotCreateNewAllocationJob()
+        {
+            GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"),
+                ("user-id", UserId), ("user-name", Username));
+            AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
+                .WithDefinition(NewReference(rf => rf.WithId(DataDefintionId)))
+                .WithHistory(NewDatasetVersion())));
+            AndTheJobDetails("job1", JobConstants.DefinitionNames.MapScopedDatasetJob);
+            AndTheSpecification(SpecificationId, NewSpecification(_ =>
+            _.WithId(SpecificationId)
+            .WithProviderVersionId(ProviderVersionId)
+            ));
+            AndTheRelationship(_relationshipId, NewRelationship(_ => _.WithDatasetDefinition(NewReference(
+                    rf => rf.WithId(DataDefintionId)))
+                .WithDatasetVersion(NewRelationshipVersion())));
+
+            DatasetDefinition datasetDefinition = NewDatasetDefinition(_ => _.WithTableDefinitions(NewTableDefinition(tb =>
+                tb.WithFieldDefinitions(NewFieldDefinition(fld => fld.WithName(Upin)
+                    .WithIdentifierFieldType(IdentifierFieldType.UPIN))))));
+
+            AndTheDatasetDefinitions(datasetDefinition);
+            AndTheBuildProject(SpecificationId, NewBuildProject(_ => _.WithRelationships(NewRelationshipSummary(summary =>
+                summary.WithDefinesScope(true)
+                    .WithRelationship(NewReference(rf => rf.WithId(_relationshipId)
+                    .WithName(_relationshipName)))
+                    .WithDatasetDefinition(NewDatasetDefinition())))));
+            AndThePopulationOfProviderSummeriesForSpecification(false, false);
+            AndTheCompileResponse(HttpStatusCode.NoContent);
+
+            ICloudBlob cloudBlob = NewCloudBlob();
+
+            AndTheCloudBlob(BlobPath, cloudBlob);
+
+            Stream tableStream = NewStream(new byte[1]);
+
+            AndTheCloudStream(cloudBlob, tableStream);
+
+            TableLoadResult tableLoadResult = NewTableLoadResult(_ => _.WithRows(NewRowLoadResult(
+                row => row.WithFields((Upin, _upin)))));
+
+            AndTheCachedTableLoadResults(_datasetCacheKey, tableLoadResult);
+            AndTheTableLoadResultsFromExcel(tableStream, datasetDefinition, tableLoadResult);
+            AndTheCoreProviderData(NewApiProviderSummary(_ => _.WithId(_providerId)
+                .WithUPIN(_upin)));
+            AndTheJob(NewJob(_ => _.WithId(_jobId)
+                .WithDefinitionId(CreateInstructAllocationJob)), CreateInstructAllocationJob);
+
+            await WhenTheProcessDatasetMessageIsProcessed();
+
+            await ThenTheAllocationJobNotCreated();
+        }
+
+        [TestMethod]
+        public async Task ProcessDataset_GivenPayloadAndTableResultsWithProviderIdsForScopedDataset_CreateNewMapDatasetJobsForOtherRelationshipsInSpecification()
+        {
+            GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"),
+                ("user-id", UserId), ("user-name", Username));
+            AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
+                .WithDefinition(NewReference(rf => rf.WithId(DataDefintionId)))
+                .WithHistory(NewDatasetVersion())));
+            AndTheJobDetails("job1", JobConstants.DefinitionNames.MapScopedDatasetJob);
+            AndTheSpecification(SpecificationId, NewSpecification(_ =>
+            _.WithId(SpecificationId)
+            .WithProviderVersionId(ProviderVersionId)
+            ));
+            AndTheRelationship(_relationshipId, NewRelationship(_ => _.WithDatasetDefinition(NewReference(
+                    rf => rf.WithId(DataDefintionId)))
+                .WithDatasetVersion(NewRelationshipVersion())));
+
+            DatasetDefinition datasetDefinition = NewDatasetDefinition(_ => _.WithTableDefinitions(NewTableDefinition(tb =>
+                tb.WithFieldDefinitions(NewFieldDefinition(fld => fld.WithName(Upin)
+                    .WithIdentifierFieldType(IdentifierFieldType.UPIN))))));
+
+            IEnumerable<DefinitionSpecificationRelationship> specificationRelationships = new List<DefinitionSpecificationRelationship>() {
+                    new DefinitionSpecificationRelationship() { Id = _relationshipId},
+                    new DefinitionSpecificationRelationship() { Id = "non-scoped-rel-1", DatasetVersion = new DatasetRelationshipVersion(){Id = "dataset-1"}, Specification = new Reference(SpecificationId, "sp-name")}
+                };
+
+            _datasetRepository.GetDefinitionSpecificationRelationshipsByQuery(Arg.Any<Expression<Func<DocumentEntity<DefinitionSpecificationRelationship>, bool>>>())
+                .Returns(specificationRelationships);
+
+            _datasetRepository.GetDatasetByDatasetId(Arg.Is<string>("dataset-1"))
+                .Returns(new Dataset() { Id = "dataset-1" });
+
+            AndTheDatasetDefinitions(datasetDefinition);
+            AndTheBuildProject(SpecificationId, NewBuildProject(_ => _.WithRelationships(NewRelationshipSummary(summary =>
+                summary.WithDefinesScope(true)
+                    .WithRelationship(NewReference(rf => rf.WithId(_relationshipId)
+                    .WithName(_relationshipName)))
+                    .WithDatasetDefinition(NewDatasetDefinition())))));
+            AndThePopulationOfProviderSummeriesForSpecification(false, false);
+            AndTheCompileResponse(HttpStatusCode.NoContent);
+
+            ICloudBlob cloudBlob = NewCloudBlob();
+
+            AndTheCloudBlob(BlobPath, cloudBlob);
+
+            Stream tableStream = NewStream(new byte[1]);
+
+            AndTheCloudStream(cloudBlob, tableStream);
+
+            TableLoadResult tableLoadResult = NewTableLoadResult(_ => _.WithRows(NewRowLoadResult(
+                row => row.WithFields((Upin, _upin)))));
+
+            AndTheCachedTableLoadResults(_datasetCacheKey, tableLoadResult);
+            AndTheTableLoadResultsFromExcel(tableStream, datasetDefinition, tableLoadResult);
+            AndTheCoreProviderData(NewApiProviderSummary(_ => _.WithId(_providerId)
+                .WithUPIN(_upin)));
+            AndTheJob(NewJob(_ => _.WithId(_jobId)
+                .WithDefinitionId(JobConstants.DefinitionNames.MapDatasetJob)), JobConstants.DefinitionNames.MapDatasetJob);
+
+            await WhenTheProcessDatasetMessageIsProcessed();
+
+            await ThenTheMapDatasetJobWasCreated(JobConstants.DefinitionNames.MapDatasetJob, "non-scoped-rel-1", "dataset-1");
+        }
+
+        [TestMethod]
+        public async Task ProcessDataset_GivenPayloadAndTableResultsWithProviderIdsForNonScopedDatasetWithDisablecalculationFlag_NotCreateNewAllocationJob()
+        {
+            GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"),
+                ("user-id", UserId), ("user-name", Username), ("disableQueueCalculationJob", "true"));
+            AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
+                .WithDefinition(NewReference(rf => rf.WithId(DataDefintionId)))
+                .WithHistory(NewDatasetVersion())));
+            AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
+            AndTheSpecification(SpecificationId, NewSpecification(_ =>
+            _.WithId(SpecificationId)
+            .WithProviderVersionId(ProviderVersionId)
+            ));
+            AndTheRelationship(_relationshipId, NewRelationship(_ => _.WithDatasetDefinition(NewReference(
+                    rf => rf.WithId(DataDefintionId)))
+                .WithDatasetVersion(NewRelationshipVersion())));
+
+            DatasetDefinition datasetDefinition = NewDatasetDefinition(_ => _.WithTableDefinitions(NewTableDefinition(tb =>
+                tb.WithFieldDefinitions(NewFieldDefinition(fld => fld.WithName(Upin)
+                    .WithIdentifierFieldType(IdentifierFieldType.UPIN))))));
+
+            AndTheDatasetDefinitions(datasetDefinition);
+            AndTheBuildProject(SpecificationId, NewBuildProject(_ => _.WithRelationships(NewRelationshipSummary(summary =>
+                summary.WithDefinesScope(true)
+                    .WithRelationship(NewReference(rf => rf.WithId(_relationshipId)
+                    .WithName(_relationshipName)))
+                    .WithDatasetDefinition(NewDatasetDefinition())))));
+            AndThePopulationOfProviderSummeriesForSpecification(false, false);
+            AndTheCompileResponse(HttpStatusCode.NoContent);
+
+            ICloudBlob cloudBlob = NewCloudBlob();
+
+            AndTheCloudBlob(BlobPath, cloudBlob);
+
+            Stream tableStream = NewStream(new byte[1]);
+
+            AndTheCloudStream(cloudBlob, tableStream);
+
+            TableLoadResult tableLoadResult = NewTableLoadResult(_ => _.WithRows(NewRowLoadResult(
+                row => row.WithFields((Upin, _upin)))));
+
+            AndTheCachedTableLoadResults(_datasetCacheKey, tableLoadResult);
+            AndTheTableLoadResultsFromExcel(tableStream, datasetDefinition, tableLoadResult);
+            AndTheCoreProviderData(NewApiProviderSummary(_ => _.WithId(_providerId)
+                .WithUPIN(_upin)));
+            AndTheJob(NewJob(_ => _.WithId(_jobId)
+                .WithDefinitionId(CreateInstructAllocationJob)), CreateInstructAllocationJob);
+
+            await WhenTheProcessDatasetMessageIsProcessed();
+
+            await ThenTheAllocationJobNotCreated();
+        }
+
+        [TestMethod]
         public async Task ProcessDataset_GivenPayloadAndTableResultsWithProviderIdsAndJobServiceFeatureIsOnAndCalcsIncludeAggregatedCals_EnsuresCreatesNewGenerateAggregationsJob()
         {
             GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"),
@@ -1074,6 +1266,7 @@ namespace CalculateFunding.Services.Datasets.Services
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
                 .WithDefinition(NewReference(rf => rf.WithId(DataDefintionId)))
                 .WithHistory(NewDatasetVersion())));
+            AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheSpecification(SpecificationId, NewSpecification(_ =>
             _.WithId(SpecificationId)
             .WithProviderVersionId(ProviderVersionId)
@@ -1129,6 +1322,7 @@ namespace CalculateFunding.Services.Datasets.Services
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
                 .WithDefinition(NewReference(rf => rf.WithId(DataDefintionId)))
                 .WithHistory(NewDatasetVersion())));
+            AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheSpecification(SpecificationId, NewSpecification(_ =>
             _.WithId(SpecificationId)
             .WithProviderVersionId(ProviderVersionId)
@@ -1186,6 +1380,7 @@ namespace CalculateFunding.Services.Datasets.Services
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
                 .WithDefinition(NewReference(rf => rf.WithId(DataDefintionId)))
                 .WithHistory(NewDatasetVersion())));
+            AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheSpecification(SpecificationId, NewSpecification(_ =>
             _.WithId(SpecificationId)
             .WithProviderVersionId(ProviderVersionId)
@@ -1238,6 +1433,7 @@ namespace CalculateFunding.Services.Datasets.Services
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
                 .WithDefinition(NewReference(rf => rf.WithId(DataDefintionId)))
                 .WithHistory(NewDatasetVersion())));
+            AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheSpecification(SpecificationId, NewSpecification(_ =>
             _.WithId(SpecificationId)
             .WithProviderVersionId(ProviderVersionId)
@@ -1297,6 +1493,7 @@ namespace CalculateFunding.Services.Datasets.Services
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
                 .WithDefinition(NewReference(rf => rf.WithId(DataDefintionId)))
                 .WithHistory(NewDatasetVersion())));
+            AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheSpecification(SpecificationId, NewSpecification(_ =>
             _.WithId(SpecificationId)
             .WithProviderVersionId(ProviderVersionId)
@@ -1353,6 +1550,7 @@ namespace CalculateFunding.Services.Datasets.Services
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
                 .WithDefinition(NewReference(rf => rf.WithId(DataDefintionId)))
                 .WithHistory(NewDatasetVersion())));
+            AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheSpecification(SpecificationId, NewSpecification(_ =>
             _.WithId(SpecificationId)
             .WithProviderVersionId(ProviderVersionId)
@@ -1408,6 +1606,7 @@ namespace CalculateFunding.Services.Datasets.Services
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
                 .WithDefinition(NewReference(rf => rf.WithId(DataDefintionId)))
                 .WithHistory(NewDatasetVersion())));
+            AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheSpecification(SpecificationId, NewSpecification(_ =>
             _.WithId(SpecificationId)
             .WithProviderVersionId(ProviderVersionId)
@@ -1489,6 +1688,11 @@ namespace CalculateFunding.Services.Datasets.Services
             _message.Body = body.AsJsonBytes();
         }
 
+        private void AndTheJobDetails(string jobId, string jobDefinitionId)
+        {
+            _jobsApiClient.GetJobById(Arg.Is(jobId))
+                .Returns(new ApiResponse<JobViewModel> (HttpStatusCode.OK, new JobViewModel() { Id = jobId, JobDefinitionId = jobDefinitionId }));
+        }
         private void AndTheCloudBlob(string blobName, ICloudBlob cloudBlob)
         {
             _blobClient
@@ -2043,6 +2247,32 @@ namespace CalculateFunding.Services.Datasets.Services
                             job.Trigger.EntityType == nameof(DefinitionSpecificationRelationship) &&
                             job.Trigger.Message == $"Processed dataset relationship: '{expectedRelationshipId}' for specification: '{SpecificationId}'"
                     ));
+        }
+
+        private async Task ThenTheMapDatasetJobWasCreated(string definitionId, string expectedRelationshipId, string expectedDatasetId)
+        {
+            await
+                _jobsApiClient
+                    .Received(1)
+                    .CreateJob(Arg.Is<JobCreateModel>(
+                        job =>
+                            job.InvokerUserDisplayName == Username &&
+                            job.InvokerUserId == UserId &&
+                            job.JobDefinitionId == definitionId &&
+                            job.Properties["specification-id"] == SpecificationId &&
+                            job.Properties["relationship-id"] == expectedRelationshipId &&
+                            job.Trigger.EntityId == expectedDatasetId &&
+                            job.Trigger.EntityType == nameof(Dataset) &&
+                            job.Trigger.Message == $"Mapping dataset: '{expectedDatasetId}'"
+                    ));
+        }
+
+        private async Task ThenTheAllocationJobNotCreated()
+        {
+            await
+                _jobsApiClient
+                    .Received(0)
+                    .CreateJob(Arg.Any<JobCreateModel>());
         }
 
         private async Task ThenTheRegenerateProviderSummariesForSpecificationInvoked(bool setCachedProviders)

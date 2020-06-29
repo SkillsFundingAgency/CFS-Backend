@@ -328,6 +328,7 @@ namespace CalculateFunding.Services.Datasets
                 return new StatusCodeResult((int)statusCode);
             }
 
+            string jobToQueue = relationship.IsSetAsProviderData ? JobConstants.DefinitionNames.MapScopedDatasetJob : JobConstants.DefinitionNames.MapDatasetJob;
             Trigger trigger = new Trigger
             {
                 EntityId = dataset.Id,
@@ -339,22 +340,22 @@ namespace CalculateFunding.Services.Datasets
             {
                 InvokerUserDisplayName = user?.Name,
                 InvokerUserId = user?.Id,
-                JobDefinitionId = JobConstants.DefinitionNames.MapDatasetJob,
+                JobDefinitionId = jobToQueue,
                 MessageBody = JsonConvert.SerializeObject(dataset),
                 Properties = new Dictionary<string, string>
-                    {
-                        { "specification-id", relationship.Specification.Id },
-                        { "relationship-id", relationship.Id },
-                        { "user-id", user?.Id},
-                        { "user-name", user?.Name},
-                    },
+                {
+                    { "specification-id", relationship.Specification.Id },
+                    { "relationship-id", relationship.Id },
+                    { "user-id", user?.Id},
+                    { "user-name", user?.Name},
+                },
                 SpecificationId = relationship.Specification.Id,
                 Trigger = trigger,
                 CorrelationId = correlationId
             };
 
             await _jobManagement.QueueJob(job);
-
+            
             return new NoContentResult();
         }
 
