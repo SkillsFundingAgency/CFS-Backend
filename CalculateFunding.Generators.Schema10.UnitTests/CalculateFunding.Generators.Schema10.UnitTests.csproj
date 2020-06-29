@@ -9,19 +9,25 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Resources\exampleProvider1.json" />
     <None Remove="Resources\exampleProviderOutput1.json" />
     <None Remove="Resources\exampleProviderTemplate1.json" />
     <None Remove="Resources\examplePublishedFundingVersion_2.json" />
     <None Remove="Resources\exampleTemplate1.json" />
     <None Remove="Resources\expectedPublishedFundingSchema1Contents_2.json" />
+    <None Remove="Resources\provider-schema-1.0.json" />
+    <None Remove="Resources\schema1.0.json" />
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="Resources\exampleProvider1.json" />
     <EmbeddedResource Include="Resources\exampleProviderOutput1.json" />
     <EmbeddedResource Include="Resources\exampleProviderTemplate1.json" />
     <EmbeddedResource Include="Resources\examplePublishedFundingVersion_2.json" />
     <EmbeddedResource Include="Resources\expectedPublishedFundingSchema1Contents_2.json" />
     <EmbeddedResource Include="Resources\exampleTemplate1.json" />
+    <EmbeddedResource Include="Resources\provider-schema-1.0.json" />
+    <EmbeddedResource Include="Resources\schema1.0.json" />
   </ItemGroup>
 
   <ItemGroup>
@@ -30,6 +36,7 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.4.0" />
     <PackageReference Include="MSTest.TestAdapter" Version="2.1.1" />
     <PackageReference Include="MSTest.TestFramework" Version="2.1.1" />
+    <PackageReference Include="NJsonSchema" Version="10.1.23" />
     <PackageReference Include="NSubstitute" Version="4.2.1" />
   </ItemGroup>
 

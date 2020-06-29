@@ -23,6 +23,9 @@
 
     <ItemGroup>
       <None Remove="Resources\1.1.json" />
+      <None Remove="Resources\funding-schema1.1.json" />
+      <None Remove="Resources\provider-schema-1.1.json" />
+      <None Remove="Resources\provider_example_1.json" />
       <None Remove="Resources\schema1.1-draft2.json" />
       <None Remove="Resources\funding-template-schema 1.1-draft.json" />
     </ItemGroup>
@@ -31,6 +34,9 @@
       <None Remove="Resources\example-funding-template1.1.json" />
       <EmbeddedResource Include="Resources\example-funding-template1.1.json" />
       <None Remove="Resources\template-schema1.1.json" />
+      <EmbeddedResource Include="Resources\funding-schema1.1.json" />
+      <EmbeddedResource Include="Resources\provider-schema-1.1.json" />
+      <EmbeddedResource Include="Resources\provider_example_1.json" />
       <EmbeddedResource Include="Resources\template-schema1.1.json" />
       <None Remove="Resources\example-published-funding-version.json" />
       <EmbeddedResource Include="Resources\example-published-funding-version.json" />

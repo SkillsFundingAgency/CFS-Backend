@@ -1,0 +1,273 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://fundingschemas.blob.core.windows.net/schemas/provider-logical-model-1.0.json",
+  "title": "Corporate provider schema",
+  "description": "A Department of Education view of provider",
+  "version": "1.0",
+  "type": "object",
+  "properties": {
+    "identifier": {
+      "$id": "#root/identifier",
+      "title": "Identifier",
+      "type": "string"
+    },
+    "name": {
+      "$id": "#root/name",
+      "title": "Name",
+      "type": "string"
+    },
+    "searchableName": {
+      "$id": "#root/searchableName",
+      "title": "Searchablename",
+      "type": "string"
+    },
+    "otherIdentifiers": {
+      "$id": "#root/otherIdentifiers",
+      "title": "Otheridentifiers",
+      "type": "array",
+      "items": {
+        "$id": "#root/otherIdentifiers/items",
+        "title": "Items",
+        "type": "object",
+        "required": [
+          "type",
+          "value"
+        ],
+        "properties": {
+          "type": {
+            "$id": "#root/otherIdentifiers/items/type",
+            "title": "Type",
+            "type": "string"
+          },
+          "value": {
+            "$id": "#root/otherIdentifiers/items/value",
+            "title": "Value",
+            "type": "string"
+          }
+        }
+      }
+
+    },
+    "providerVersionId": {
+      "$id": "#root/providerVersionId",
+      "title": "Providerversionid",
+      "type": "string"
+    },
+    "providerType": {
+      "$id": "#root/providerType",
+      "title": "Providertype",
+      "type": "string"
+    },
+    "providerSubType": {
+      "$id": "#root/providerSubType",
+      "title": "Providersubtype",
+      "type": "string"
+    },
+    "providerDetails": {
+      "$id": "#root/providerDetails",
+      "title": "Providerdetails",
+      "type": "object",
+      "required": [
+        "dateOpened",
+        "dateClosed",
+        "status",
+        "phaseOfEducation",
+        "localAuthorityName",
+        "openReason",
+        "closeReason",
+        "trustStatus",
+        "trustName",
+        "town",
+        "postcode",
+        "companiesHouseNumber",
+        "groupIdNumber",
+        "rscRegionName",
+        "rscRegionCode",
+        "governmentOfficeRegionName",
+        "governmentOfficeRegionCode",
+        "districtName",
+        "districtCode",
+        "wardName",
+        "wardCode",
+        "censusWardName",
+        "censusWardCode",
+        "middleSuperOutputAreaName",
+        "middleSuperOutputAreaCode",
+        "lowerSuperOutputAreaName",
+        "lowerSuperOutputAreaCode",
+        "parliamentaryConstituencyName",
+        "parliamentaryConstituencyCode",
+        "countryCode",
+        "countryName"
+      ],
+      "properties": {
+        "dateOpened": {
+          "$id": "#root/providerDetails/dateOpened",
+          "title": "Dateopened",
+          "type": "string"
+        },
+        "dateClosed": {
+          "$id": "#root/providerDetails/dateClosed",
+          "title": "Dateclosed",
+          "type": "null"
+        },
+        "status": {
+          "$id": "#root/providerDetails/status",
+          "title": "Status",
+          "type": "string"
+        },
+        "phaseOfEducation": {
+          "$id": "#root/providerDetails/phaseOfEducation",
+          "title": "Phaseofeducation",
+          "type": "string"
+        },
+        "localAuthorityName": {
+          "$id": "#root/providerDetails/localAuthorityName",
+          "title": "Localauthorityname",
+          "type": "string"
+        },
+        "openReason": {
+          "$id": "#root/providerDetails/openReason",
+          "title": "Openreason",
+          "type": "string"
+        },
+        "closeReason": {
+          "$id": "#root/providerDetails/closeReason",
+          "title": "Closereason",
+          "type": "null"
+        },
+        "trustStatus": {
+          "$id": "#root/providerDetails/trustStatus",
+          "title": "Truststatus",
+          "type": "string"
+        },
+        "trustName": {
+          "$id": "#root/providerDetails/trustName",
+          "title": "Trustname",
+          "type": "string"
+        },
+        "town": {
+          "$id": "#root/providerDetails/town",
+          "title": "Town",
+          "type": "string"
+        },
+        "postcode": {
+          "$id": "#root/providerDetails/postcode",
+          "title": "Postcode",
+          "type": "string"
+        },
+        "companiesHouseNumber": {
+          "$id": "#root/providerDetails/companiesHouseNumber",
+          "title": "Companieshousenumber",
+          "type": "string"
+        },
+        "groupIdNumber": {
+          "$id": "#root/providerDetails/groupIdNumber",
+          "title": "Groupidnumber",
+          "type": "string"
+        },
+        "rscRegionName": {
+          "$id": "#root/providerDetails/rscRegionName",
+          "title": "Rscregionname",
+          "type": "string"
+        },
+        "rscRegionCode": {
+          "$id": "#root/providerDetails/rscRegionCode",
+          "title": "Rscregioncode",
+          "type": "string"
+        },
+        "governmentOfficeRegionName": {
+          "$id": "#root/providerDetails/governmentOfficeRegionName",
+          "title": "Governmentofficeregionname",
+          "type": "string"
+        },
+        "governmentOfficeRegionCode": {
+          "$id": "#root/providerDetails/governmentOfficeRegionCode",
+          "title": "Governmentofficeregioncode",
+          "type": "string"
+        },
+        "districtName": {
+          "$id": "#root/providerDetails/districtName",
+          "title": "Districtname",
+          "type": "string"
+        },
+        "districtCode": {
+          "$id": "#root/providerDetails/districtCode",
+          "title": "Districtcode",
+          "type": "string"
+        },
+        "wardName": {
+          "$id": "#root/providerDetails/wardName",
+          "title": "Wardname",
+          "type": "string"
+        },
+        "wardCode": {
+          "$id": "#root/providerDetails/wardCode",
+          "title": "Wardcode",
+          "type": "string"
+        },
+        "censusWardName": {
+          "$id": "#root/providerDetails/censusWardName",
+          "title": "Censuswardname",
+          "type": "string"
+        },
+        "censusWardCode": {
+          "$id": "#root/providerDetails/censusWardCode",
+          "title": "Censuswardcode",
+          "type": "string"
+        },
+        "middleSuperOutputAreaName": {
+          "$id": "#root/providerDetails/middleSuperOutputAreaName",
+          "title": "Middlesuperoutputareaname",
+          "type": "string"
+        },
+        "middleSuperOutputAreaCode": {
+          "$id": "#root/providerDetails/middleSuperOutputAreaCode",
+          "title": "Middlesuperoutputareacode",
+          "type": "string"
+        },
+        "lowerSuperOutputAreaName": {
+          "$id": "#root/providerDetails/lowerSuperOutputAreaName",
+          "title": "Lowersuperoutputareaname",
+          "type": "string"
+        },
+        "lowerSuperOutputAreaCode": {
+          "$id": "#root/providerDetails/lowerSuperOutputAreaCode",
+          "title": "Lowersuperoutputareacode",
+          "type": "string"
+        },
+        "parliamentaryConstituencyName": {
+          "$id": "#root/providerDetails/parliamentaryConstituencyName",
+          "title": "Parliamentaryconstituencyname",
+          "type": "string"
+        },
+        "parliamentaryConstituencyCode": {
+          "$id": "#root/providerDetails/parliamentaryConstituencyCode",
+          "title": "Parliamentaryconstituencycode",
+          "type": "string"
+        },
+        "countryCode": {
+          "$id": "#root/providerDetails/countryCode",
+          "title": "Countrycode",
+          "type": "string"
+        },
+        "countryName": {
+          "$id": "#root/providerDetails/countryName",
+          "title": "Countryname",
+          "type": "string"
+        }
+      }
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "identifier",
+    "name",
+    "searchableName",
+    "otherIdentifiers",
+    "providerVersionId",
+    "providerType",
+    "providerSubType",
+    "providerDetails"
+  ]
+}
