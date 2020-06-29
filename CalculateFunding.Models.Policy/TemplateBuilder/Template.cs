@@ -19,7 +19,10 @@ namespace CalculateFunding.Models.Policy.TemplateBuilder
 
         [JsonProperty("templateId")]
         public string TemplateId { get; set; }
-        
+
+        [JsonProperty("description")]
+        public string Description { get; set; }
+
         /// <summary>
         /// Funding Stream ID. eg PSG, DSG
         /// </summary>

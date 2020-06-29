@@ -1,6 +1,6 @@
 ﻿namespace CalculateFunding.Models.Policy.TemplateBuilder
 {
-    public class TemplateMetadataUpdateCommand
+    public class TemplateDescriptionUpdateCommand
     {
         public string TemplateId { get; set; }
         

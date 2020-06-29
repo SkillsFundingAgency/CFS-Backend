@@ -236,7 +236,7 @@ namespace CalculateFunding.Api.Policy
                 .AddSingleton<AbstractValidator<TemplateCreateCommand>, TemplateCreateCommandValidator>()
                 .AddSingleton<AbstractValidator<TemplateCreateAsCloneCommand>, TemplateCreateAsCloneCommandValidator>()
                 .AddSingleton<AbstractValidator<TemplateFundingLinesUpdateCommand>, TemplateContentUpdateCommandValidator>()
-                .AddSingleton<AbstractValidator<TemplateMetadataUpdateCommand>, TemplateMetadataUpdateCommandValidator>()
+                .AddSingleton<AbstractValidator<TemplateDescriptionUpdateCommand>, TemplateDescriptionUpdateCommandValidator>()
                 .AddSingleton<AbstractValidator<TemplatePublishCommand>, TemplatePublishCommandValidator>()
                 .AddSingleton<AbstractValidator<Reference>, AuthorValidator>()
                 .AddSingleton<AbstractValidator<FindTemplateVersionQuery>, FindTemplateVersionQueryValidator>()

@@ -55,9 +55,6 @@ namespace CalculateFunding.Models.Policy.TemplateBuilder
         [JsonProperty("name")]
         public string Name { get; set; }
 
-        [JsonProperty("description")]
-        public string Description { get; set; }
-
         /// <summary>
         /// Entity ID for cosmos versioning. This refers to the parent cosmos ID
         /// </summary>
@@ -96,8 +93,7 @@ namespace CalculateFunding.Models.Policy.TemplateBuilder
                 SchemaVersion, 
                 Version, 
                 Status, 
-                Name, 
-                Description);
+                Name);
         }
     }
 }

@@ -317,3 +317,6 @@ __pycache__/
 /CalculateFunding.Functions.Users/Properties/launchSettings.json
 /CalculateFunding.Migrations.Calculations.Etl/Properties/launchSettings.json
 /CalculateFunding.Api.Graph/Properties/launchSettings.json
+
+**/Properties/serviceDependencies.json
+**/Properties/serviceDependencies.local.json

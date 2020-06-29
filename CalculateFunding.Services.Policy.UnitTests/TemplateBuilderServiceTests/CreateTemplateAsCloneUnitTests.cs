@@ -77,7 +77,6 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
                 _sourceTemplateVersion = new TemplateVersion
                 {
                     Name = "Old Test Name",
-                    Description = "Old Description",
                     TemplateId = _command.CloneFromTemplateId,
                     TemplateJson = "{ \"Lorem\": \"ipsum\" }",
                     Version = 12,
@@ -92,6 +91,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
                 _sourceTemplate = new Template
                 {
                     Name = _sourceTemplateVersion.Name,
+                    Description = "Old description",
                     TemplateId = _command.CloneFromTemplateId,
                     FundingPeriod = new FundingPeriod
                     {
@@ -115,14 +115,14 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
                 _templateValidationService = Substitute.For<IFundingTemplateValidationService>();
                 _templateValidationService.ValidateFundingTemplate(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), null).Returns(new FundingTemplateValidationResult { });
                 _templateRepository.GetTemplate(Arg.Is(_command.CloneFromTemplateId)).Returns(_sourceTemplate);
-                _templateRepository.GetAllTemplates().Returns(new [] {_sourceTemplate});
+                _templateRepository.GetAllTemplates().Returns(new[] { _sourceTemplate });
                 _templateRepository.CreateDraft(Arg.Any<Template>()).Returns(HttpStatusCode.OK);
 
                 _versionRepository = Substitute.For<ITemplateVersionRepository>();
                 _versionRepository.SaveVersion(Arg.Any<TemplateVersion>()).Returns(HttpStatusCode.OK);
 
                 _policyRepository = Substitute.For<IPolicyRepository>();
-                _policyRepository.GetFundingPeriods().Returns(new [] { 
+                _policyRepository.GetFundingPeriods().Returns(new[] {
                     new FundingPeriod
                     {
                         Id = "2021",
@@ -131,10 +131,10 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
                     },
                     new FundingPeriod
                 {
-                    Id = _command.FundingPeriodId, 
+                    Id = _command.FundingPeriodId,
                     Name = "Test Funding Period 2"
                 }});
-                _policyRepository.GetFundingStreams().Returns(new [] { 
+                _policyRepository.GetFundingStreams().Returns(new[] {
                     new FundingStream
                     {
                         Id = "XX",
@@ -147,18 +147,18 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
                     Name = "Funding Stream 2",
                     ShortName = "Stream 2"
                 }});
-                _policyRepository.GetFundingConfigurations().Returns(new [] { new FundingConfiguration
+                _policyRepository.GetFundingConfigurations().Returns(new[] { new FundingConfiguration
                 {
                     FundingStreamId = _command.FundingStreamId,
                     FundingPeriodId = _command.FundingPeriodId
                 }});
 
                 _templateIndexer = Substitute.For<ISearchRepository<TemplateIndex>>();
-                
+
                 _templateBlobService = Substitute.For<ITemplateBlobService>();
                 _templateBlobService.PublishTemplate(Arg.Any<Template>()).Returns(CommandResult.Success());
             }
-            
+
             [TestMethod]
             public void Results_in_success()
             {
@@ -183,12 +183,6 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
             public void Saved_version_with_correct_name()
             {
                 _versionRepository.Received(1).SaveVersion(Arg.Is<TemplateVersion>(x => x.Name == $"{_command.FundingStreamId} {_command.FundingPeriodId}"));
-            }
-
-            [TestMethod]
-            public void Saved_version_with_correct_description()
-            {
-                _versionRepository.Received(1).SaveVersion(Arg.Is<TemplateVersion>(x => x.Description == _command.Description));
             }
 
             [TestMethod]
@@ -240,9 +234,9 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
             }
 
             [TestMethod]
-            public void Saved_current_version_with_correct_description()
+            public void Saved_template_with_correct_description()
             {
-                _templateRepository.Received(1).CreateDraft(Arg.Is<Template>(x => x.Current.Description == _command.Description));
+                _templateRepository.Received(1).CreateDraft(Arg.Is<Template>(x => x.Description == _command.Description));
             }
 
             [TestMethod]

@@ -73,7 +73,6 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
                 _templateVersionBeforeUpdate = new TemplateVersion
                 {
                     Name = "Original Test Name",
-                    Description = "Original Description",
                     TemplateId = _templateId,
                     Version = 46,
                     MinorVersion = 16,
@@ -138,12 +137,6 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
             }
 
             [TestMethod]
-            public void Saved_current_version_with_correct_description()
-            {
-                _templateRepository.Received(1).Update(Arg.Is<Template>(x => x.Current.Description == _templateVersionBeforeUpdate.Description));
-            }
-
-            [TestMethod]
             public void Saved_current_version_with_correct_author()
             {
                 _templateRepository.Received(1).Update(Arg.Is<Template>(x => x.Current.Author.Name == _author.Name));
@@ -183,12 +176,6 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
             public void Saved_version_with_correct_name()
             {
                 _versionRepository.Received(1).SaveVersion(Arg.Is<TemplateVersion>(x => x.Name == _templateVersionBeforeUpdate.Name));
-            }
-
-            [TestMethod]
-            public void Saved_version_with_correct_description()
-            {
-                _versionRepository.Received(1).SaveVersion(Arg.Is<TemplateVersion>(x => x.Description == _templateVersionBeforeUpdate.Description));
             }
 
             [TestMethod]
@@ -300,7 +287,6 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
                 _templateVersionPrevious = new TemplateVersion
                 {
                     Name = "Previous Version Test Name",
-                    Description = "Previous Version Description",
                     TemplateId = _templateId,
                     Version = 32,
                     MinorVersion = 2,
@@ -312,7 +298,6 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
                 _templateVersionCurrent = new TemplateVersion
                 {
                     Name = "Current Version Test Name",
-                    Description = "Current Version Description",
                     TemplateId = _templateId,
                     Version = 46,
                     MinorVersion = 16,
@@ -378,12 +363,6 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
             }
 
             [TestMethod]
-            public void Saved_current_version_with_correct_description()
-            {
-                _templateRepository.Received(1).Update(Arg.Is<Template>(x => x.Current.Description == _templateVersionPrevious.Description));
-            }
-
-            [TestMethod]
             public void Saved_current_version_with_correct_author()
             {
                 _templateRepository.Received(1).Update(Arg.Is<Template>(x => x.Current.Author.Name == _author.Name));
@@ -423,12 +402,6 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
             public void Saved_version_with_correct_name()
             {
                 _versionRepository.Received(1).SaveVersion(Arg.Is<TemplateVersion>(x => x.Name == _templateVersionPrevious.Name));
-            }
-
-            [TestMethod]
-            public void Saved_version_with_correct_description()
-            {
-                _versionRepository.Received(1).SaveVersion(Arg.Is<TemplateVersion>(x => x.Description == _templateVersionPrevious.Description));
             }
 
             [TestMethod]

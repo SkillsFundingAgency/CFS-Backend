@@ -3,9 +3,9 @@ using FluentValidation;
 
 namespace CalculateFunding.Services.Policy.Validators
 {
-    public class TemplateMetadataUpdateCommandValidator : AbstractValidator<TemplateMetadataUpdateCommand>
+    public class TemplateDescriptionUpdateCommandValidator : AbstractValidator<TemplateDescriptionUpdateCommand>
     {
-        public TemplateMetadataUpdateCommandValidator()
+        public TemplateDescriptionUpdateCommandValidator()
         {
             RuleFor(x => x.TemplateId).NotNull();
             RuleFor(x => x.Description).Length(0, 1000);

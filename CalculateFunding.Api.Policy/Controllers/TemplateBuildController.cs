@@ -169,7 +169,7 @@ namespace CalculateFunding.Api.Policy.Controllers
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(string))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> UpdateTemplateMetadata(TemplateMetadataUpdateCommand command)
+        public async Task<IActionResult> UpdateTemplateDescription(TemplateDescriptionUpdateCommand command)
         {
             ValidationResult validationResult = await _validatorFactory.Validate(command);
 
@@ -180,7 +180,7 @@ namespace CalculateFunding.Api.Policy.Controllers
 
             Reference author = ControllerContext.HttpContext.Request?.GetUserOrDefault();
 
-            CommandResult result = await _templateBuilderService.UpdateTemplateMetadata(command, author);
+            CommandResult result = await _templateBuilderService.UpdateTemplateDescription(command, author);
 
             if (result.Succeeded)
             {

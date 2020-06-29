@@ -60,7 +60,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
 
         public async Task<ServiceHealth> IsHealthOk()
         {
-            ServiceHealth templateRepoHealth = await ((IHealthChecker) _templateRepository).IsHealthOk();
+            ServiceHealth templateRepoHealth = await ((IHealthChecker)_templateRepository).IsHealthOk();
             ServiceHealth templateVersionRepoHealth = await _templateVersionRepository.IsHealthOk();
             (bool Ok, string Message) = await _searchRepository.IsHealthOk();
 
@@ -85,7 +85,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
                 return null;
             }
 
-            return Map(template.Current);
+            return Map(template.Current, template);
         }
 
         public async Task<TemplateResponse> GetTemplateVersion(string templateId, string version)
@@ -100,7 +100,13 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
                 return null;
             }
 
-            return Map(templateVersion);
+            var template = await _templateRepository.GetTemplate(templateId);
+            if (template == null)
+            {
+                return null;
+            }
+
+            return Map(templateVersion, template);
         }
 
         public async Task<IEnumerable<TemplateSummaryResponse>> GetVersionSummariesByTemplate(string templateId, List<TemplateStatus> statuses)
@@ -119,7 +125,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
         {
             ValidationResult validatorResult = await _validatorFactory.Validate(command);
             validatorResult.Errors.AddRange((await _validatorFactory.Validate(author))?.Errors);
-            
+
             if (!validatorResult.IsValid)
             {
                 return CommandResult.ValidationFail(validatorResult);
@@ -151,6 +157,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
                 {
                     TemplateId = Guid.NewGuid().ToString(),
                     Name = templateName,
+                    Description = command.Description,
                     FundingStream = streamWithPeriods.FundingStream,
                     FundingPeriod = streamWithPeriods.FundingPeriods.Single(p => p.Id == command.FundingPeriodId)
                 };
@@ -160,7 +167,6 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
                     Name = templateName,
                     FundingStreamId = command.FundingStreamId,
                     FundingPeriodId = command.FundingPeriodId,
-                    Description = command.Description,
                     Version = 1,
                     MajorVersion = 0,
                     MinorVersion = 1,
@@ -184,7 +190,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
                     };
                 }
 
-                string errorMessage = $"Failed to create a new template with name {templateName} in Cosmos. Status code {(int) result}";
+                string errorMessage = $"Failed to create a new template with name {templateName} in Cosmos. Status code {(int)result}";
                 _logger.Error(errorMessage);
 
                 return new CommandResult
@@ -205,7 +211,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
         {
             ValidationResult validatorResult = await _validatorFactory.Validate(command);
             validatorResult.Errors.AddRange((await _validatorFactory.Validate(author))?.Errors);
-            
+
             if (!validatorResult.IsValid)
             {
                 return CommandResult.ValidationFail(validatorResult);
@@ -260,16 +266,16 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
                 {
                     TemplateId = templateId.ToString(),
                     Name = templateName,
+                    Description = command.Description,
                     FundingStream = streamWithPeriods.FundingStream,
                     FundingPeriod = streamWithPeriods.FundingPeriods.Single(p => p.Id == command.FundingPeriodId)
                 };
                 template.Current = Map(template,
                     sourceVersion,
                     author,
-                    command.Description,
                     majorVersion: 0,
                     minorVersion: 1);
-                
+
                 // create new version and save it
                 HttpStatusCode templateVersionUpdateResult = await _templateVersionRepository.SaveVersion(template.Current);
                 if (!templateVersionUpdateResult.IsSuccess())
@@ -282,7 +288,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
                 if (result.IsSuccess())
                 {
                     await CreateTemplateIndexItem(template, author);
-                    
+
                     return new CommandResult
                     {
                         Succeeded = true,
@@ -290,7 +296,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
                     };
                 }
 
-                string errorMessage = $"Failed to create a new template with name {templateName} in Cosmos. Status code {(int) result}";
+                string errorMessage = $"Failed to create a new template with name {templateName} in Cosmos. Status code {(int)result}";
                 _logger.Error(errorMessage);
                 return CommandResult.Fail(errorMessage);
             }
@@ -338,7 +344,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             // input parameter validation
             ValidationResult validatorResult = await _validatorFactory.Validate(originalCommand);
             validatorResult.Errors.AddRange((await _validatorFactory.Validate(author))?.Errors);
-            
+
             if (!validatorResult.IsValid)
             {
                 return CommandResult.ValidationFail(validatorResult);
@@ -357,9 +363,9 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             (ValidationFailure error, TemplateJsonContentUpdateCommand updateCommand) = MapCommand(originalCommand);
             if (error != null)
             {
-                return CommandResult.ValidationFail(new ValidationResult(new []{error}));
+                return CommandResult.ValidationFail(new ValidationResult(new[] { error }));
             }
-            
+
             if (template.Current.TemplateJson == updateCommand.TemplateJson)
             {
                 return CommandResult.Success();
@@ -369,10 +375,10 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             if (validationError != null)
                 return validationError;
 
-            var updated = await UpdateTemplateContent(updateCommand, 
-                author, 
+            var updated = await UpdateTemplateContent(updateCommand,
+                author,
                 template,
-                template.Current.MajorVersion, 
+                template.Current.MajorVersion,
                 template.Current.MinorVersion + 1);
 
             if (!updated.IsSuccess())
@@ -383,11 +389,11 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             return CommandResult.Success();
         }
 
-        public async Task<CommandResult> UpdateTemplateMetadata(TemplateMetadataUpdateCommand command, Reference author)
+        public async Task<CommandResult> UpdateTemplateDescription(TemplateDescriptionUpdateCommand command, Reference author)
         {
             ValidationResult validatorResult = await _validatorFactory.Validate(command);
             validatorResult.Errors.AddRange((await _validatorFactory.Validate(author))?.Errors);
-            
+
             if (!validatorResult.IsValid)
             {
                 return CommandResult.ValidationFail(validatorResult);
@@ -403,12 +409,12 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             template.FundingStream ??= await _policyRepository.GetFundingStreamById(template.Current.FundingStreamId);
             template.FundingPeriod ??= await _policyRepository.GetFundingPeriodById(template.Current.FundingPeriodId);
 
-            if (template.Current.Description == command.Description)
+            if (template.Description == command.Description)
             {
                 return CommandResult.Success();
             }
 
-            var updated = await UpdateTemplateMetadata(command, author, template);
+            var updated = await UpdateTemplateDescription(command, author, template);
 
             if (!updated.IsSuccess())
             {
@@ -421,7 +427,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
         public async Task<CommandResult> PublishTemplate(TemplatePublishCommand command)
         {
             ValidationResult validatorResult = await _validatorFactory.Validate(command);
-            
+
             if (!validatorResult.IsValid)
             {
                 return CommandResult.ValidationFail(validatorResult);
@@ -454,10 +460,10 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             }
 
             // create new version and save it
-            var newVersion = Map(template, 
-                templateVersion, 
-                command.Author, 
-                newStatus: TemplateStatus.Published, 
+            var newVersion = Map(template,
+                templateVersion,
+                command.Author,
+                newStatus: TemplateStatus.Published,
                 majorVersion: template.Current.MajorVersion + 1,
                 minorVersion: 0,
                 publishNote: command.Note);
@@ -475,19 +481,18 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             {
                 return CommandResult.Fail($"Failed to approve template: {templateUpdateResult}");
             }
-            
+
             // finally add to blob so it's available to the rest of CFS
             return await _templateBlobService.PublishTemplate(template);
         }
 
-        private static TemplateVersion Map(Template template, 
-            TemplateVersion sourceVersion, 
-            Reference author, 
-            string description = null, 
-            string templateJson = null, 
-            TemplateStatus newStatus = TemplateStatus.Draft, 
-            int majorVersion = 0, 
-            int minorVersion = 1, 
+        private static TemplateVersion Map(Template template,
+            TemplateVersion sourceVersion,
+            Reference author,
+            string templateJson = null,
+            TemplateStatus newStatus = TemplateStatus.Draft,
+            int majorVersion = 0,
+            int minorVersion = 1,
             string publishNote = null)
         {
             int previousVersionNumber = template.Current?.Version ?? 0;
@@ -497,7 +502,6 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             newVersion.Name = template.Name;
             newVersion.FundingStreamId = template.FundingStream.Id;
             newVersion.FundingPeriodId = template.FundingPeriod.Id;
-            newVersion.Description = description ?? sourceVersion?.Description;
             newVersion.Comment = publishNote;
             newVersion.TemplateJson = templateJson ?? sourceVersion?.TemplateJson;
             newVersion.Version = previousVersionNumber + 1;
@@ -506,23 +510,22 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             newVersion.Status = newStatus;
             newVersion.Date = DateTimeOffset.Now;
             newVersion.Predecessors ??= new List<string>();
-            
+
             if (template.Current != null)
             {
                 newVersion.Predecessors.Add(template.Current.Id);
             }
-            
+
             return newVersion;
         }
 
-        private static TemplateResponse Map(TemplateVersion templateVersion)
+        private static TemplateResponse Map(TemplateVersion templateVersion, Template template)
         {
             return new TemplateResponse
             {
                 TemplateId = templateVersion.TemplateId,
                 TemplateJson = templateVersion.TemplateJson,
                 Name = templateVersion.Name,
-                Description = templateVersion.Description,
                 FundingStreamId = templateVersion.FundingStreamId,
                 FundingPeriodId = templateVersion.FundingPeriodId,
                 Version = templateVersion.Version,
@@ -534,7 +537,8 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
                 AuthorName = templateVersion.Author.Name,
                 LastModificationDate = templateVersion.Date.DateTime,
                 PublishStatus = templateVersion.PublishStatus,
-                Comments = templateVersion.Comment
+                Comments = templateVersion.Comment,
+                Description = template.Description
             };
         }
 
@@ -544,7 +548,6 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             {
                 TemplateId = templateVersion.TemplateId,
                 Name = templateVersion.Name,
-                Description = templateVersion.Description,
                 FundingStreamId = templateVersion.FundingStreamId,
                 FundingPeriodId = templateVersion.FundingPeriodId,
                 Version = templateVersion.Version,
@@ -563,10 +566,10 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
         private async Task<HttpStatusCode> UpdateTemplateContent(TemplateJsonContentUpdateCommand command, Reference author, Template template, int majorVersion, int minorVersion)
         {
             // create new version and save it
-            TemplateVersion newVersion = Map(template, 
-                template.Current, 
-                author, 
-                templateJson: command.TemplateJson, 
+            TemplateVersion newVersion = Map(template,
+                template.Current,
+                author,
+                templateJson: command.TemplateJson,
                 majorVersion: majorVersion,
                 minorVersion: minorVersion);
             await _templateVersionRepository.SaveVersion(newVersion);
@@ -574,7 +577,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             // update template
             template.AddPredecessor(template.Current.Id);
             template.Current = newVersion;
-            
+
             HttpStatusCode updateResult = await _templateRepository.Update(template);
             if (updateResult == HttpStatusCode.OK)
             {
@@ -583,7 +586,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
 
             return updateResult;
         }
-        
+
         private (T model, string errorMessage) Deserialise<T>(string json) where T : class
         {
             try
@@ -597,22 +600,9 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             }
         }
 
-        private async Task<HttpStatusCode> UpdateTemplateMetadata(TemplateMetadataUpdateCommand command, Reference author, Template template)
+        private async Task<HttpStatusCode> UpdateTemplateDescription(TemplateDescriptionUpdateCommand command, Reference author, Template template)
         {
-            // create new version and save it
-            TemplateVersion newVersion = Map(template, 
-                template.Current, 
-                author, 
-                command.Description, 
-                majorVersion: template.Current.MajorVersion,
-                minorVersion: template.Current.MinorVersion + 1);
-            var result = await _templateVersionRepository.SaveVersion(newVersion);
-            if (!result.IsSuccess())
-                return result;
-
-            // update template
-            template.AddPredecessor(template.Current.Id);
-            template.Current = newVersion;
+            template.Description = command.Description;
 
             HttpStatusCode updateResult = await _templateRepository.Update(template);
             if (updateResult == HttpStatusCode.OK)
@@ -640,7 +630,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
                     FundingLines = fundingLines
                 }
             };
-            
+
             return (null, new TemplateJsonContentUpdateCommand
             {
                 TemplateId = command.TemplateId,

@@ -20,7 +20,7 @@ namespace CalculateFunding.Services.Policy.Interfaces
 
         Task<CommandResult> UpdateTemplateContent(TemplateFundingLinesUpdateCommand originalCommand, Reference author);
 
-        Task<CommandResult> UpdateTemplateMetadata(TemplateMetadataUpdateCommand command, Reference author);
+        Task<CommandResult> UpdateTemplateDescription(TemplateDescriptionUpdateCommand command, Reference author);
 
         Task<CommandResult> PublishTemplate(TemplatePublishCommand command);
 

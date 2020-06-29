@@ -71,7 +71,6 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
                 var version = new TemplateVersion
                 {
                     Name = "Old Test Name",
-                    Description = "Old Description",
                     TemplateId = _existingTemplate.TemplateId,
                     TemplateJson = @"{""$schema"":""https://fundingschemas.blob.core.windows.net/schemas/funding-template-schema-1.1.json"",""schemaVersion"":""1.1"",""fundingTemplate"":{""fundingLines"":[{""templateLineId"":1,""type"":""Payment"",""name"":""Funding Line 1"",""fundingLineCode"":""DSG-001"",""fundingLines"":[],""calculations"":[]}],""fundingPeriod"":{""id"":""XX-2021"",""period"":""2021"",""name"":""XX-2021"",""type"":""FY"",""startDate"":""2020-04-01T00:00:00+00:00"",""endDate"":""2021-03-31T00:00:00+00:00""},""fundingStream"":{""code"":""DSG"",""name"":""DSG""},""fundingTemplateVersion"":""0.1""}}",
                     Version = 1,

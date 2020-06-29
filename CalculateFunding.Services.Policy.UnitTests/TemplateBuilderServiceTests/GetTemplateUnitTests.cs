@@ -3,7 +3,6 @@ using CalculateFunding.Common.TemplateMetadata;
 using CalculateFunding.Models.Policy;
 using CalculateFunding.Models.Policy.TemplateBuilder;
 using CalculateFunding.Repositories.Common.Search;
-using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Policy.Interfaces;
 using CalculateFunding.Services.Policy.Models;
 using CalculateFunding.Services.Policy.TemplateBuilder;
@@ -31,7 +30,6 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
                 _templateVersion = new TemplateVersion
                 {
                     Name = "Test Name",
-                    Description = "Description",
                     TemplateId = "123",
                     TemplateJson = null,
                     Version = 0,
@@ -44,6 +42,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
                 {
                     TemplateId = _templateVersion.TemplateId,
                     Name = _templateVersion.Name,
+                    Description = "Description",
                     Current = _templateVersion
                 };
                 _templateRepository = Substitute.For<ITemplateRepository>();
@@ -84,7 +83,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
             [TestMethod]
             public void Returns_correct_Description()
             {
-                _result.Description.Should().Be(_templateVersion.Description);
+                _result.Description.Should().Be(_template.Description);
             }
 
             [TestMethod]
@@ -159,15 +158,16 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
         {
             private readonly TemplateBuilderService _service;
             private readonly ITemplateVersionRepository _templateVersionRepository;
+            private readonly ITemplateRepository _templateRepository;
             private readonly TemplateResponse _result;
             private readonly TemplateVersion _templateVersionPrevious;
+            private readonly Template _template;
 
             public When_i_request_previous_version_of_template()
             {
                 _templateVersionPrevious = new TemplateVersion
                 {
                     Name = "Test Name 1",
-                    Description = "Description 1",
                     TemplateId = "123",
                     TemplateJson = null,
                     Version = 0,
@@ -176,17 +176,26 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
                     Status = TemplateStatus.Draft,
                     Author = new Reference("111", "FirstTestUser")
                 };
+                _template = new Template
+                {
+                    TemplateId = _templateVersionPrevious.TemplateId,
+                    Name = _templateVersionPrevious.Name,
+                    Description = "Description",
+                    Current = _templateVersionPrevious
+                };
                 _templateVersionRepository = Substitute.For<ITemplateVersionRepository>();
                 _templateVersionRepository.GetTemplateVersion(
                     Arg.Is(_templateVersionPrevious.TemplateId),
                     Arg.Is(_templateVersionPrevious.Version)).Returns(_templateVersionPrevious);
+                _templateRepository = Substitute.For<ITemplateRepository>();
+                _templateRepository.GetTemplate(Arg.Is(_template.TemplateId)).Returns(_template);
 
                 _service = new TemplateBuilderService(
                     Substitute.For<IIoCValidatorFactory>(),
                     Substitute.For<IFundingTemplateValidationService>(),
                     Substitute.For<ITemplateMetadataResolver>(),
                     _templateVersionRepository,
-                    Substitute.For<ITemplateRepository>(),
+                    _templateRepository,
                     Substitute.For<ISearchRepository<TemplateIndex>>(),
                     Substitute.For<IPolicyRepository>(),
                     Substitute.For<ITemplateBlobService>(),
@@ -214,12 +223,6 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
             public void Returns_correct_Name()
             {
                 _result.Name.Should().Be(_templateVersionPrevious.Name);
-            }
-
-            [TestMethod]
-            public void Returns_correct_Description()
-            {
-                _result.Description.Should().Be(_templateVersionPrevious.Description);
             }
 
             [TestMethod]

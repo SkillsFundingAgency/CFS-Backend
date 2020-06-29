@@ -126,12 +126,6 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
             }
 
             [TestMethod]
-            public void Saved_version_with_correct_description()
-            {
-                _versionRepository.Received(1).SaveVersion(Arg.Is<TemplateVersion>(x => x.Description == _command.Description));
-            }
-
-            [TestMethod]
             public void Saved_version_with_correct_FundingStreamId()
             {
                 _versionRepository.Received(1).SaveVersion(Arg.Is<TemplateVersion>(x => x.FundingStreamId == _command.FundingStreamId));
@@ -174,9 +168,9 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
             }
 
             [TestMethod]
-            public void Saved_current_version_with_correct_description()
+            public void Saved_template_with_correct_description()
             {
-                _templateRepository.Received(1).CreateDraft(Arg.Is<Template>(x => x.Current.Description == _command.Description));
+                _templateRepository.Received(1).CreateDraft(Arg.Is<Template>(x => x.Description == _command.Description));
             }
 
             [TestMethod]
