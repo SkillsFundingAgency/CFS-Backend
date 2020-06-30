@@ -21,11 +21,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         public void BuildsUpCosmosSqlToGetCountForSuppliedParameters(IEnumerable<string> fundingStreamIds,
             IEnumerable<string> fundingPeriodIds,
             IEnumerable<string> groupingReasons,
+            IEnumerable<string> variationReasons,
             string expectedSql)
         {
             CosmosDbQuery query = _queryBuilder.BuildCountQuery(fundingStreamIds,
                 fundingPeriodIds,
-                groupingReasons);
+                groupingReasons,
+                variationReasons);
 
             query
                 .Should()
@@ -43,6 +45,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         public void BuildsUpCosmosSqlForSuppliedParameters(IEnumerable<string> fundingStreamIds,
             IEnumerable<string> fundingPeriodIds,
             IEnumerable<string> groupingReasons,
+            IEnumerable<string> variationReasons,
             int top,
             int? pageRef,
             string expectedSql)
@@ -50,6 +53,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             CosmosDbQuery query = _queryBuilder.BuildQuery(fundingStreamIds,
                 fundingPeriodIds,
                 groupingReasons,
+                variationReasons,
                 top,
                 pageRef);
 
@@ -69,6 +73,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             yield return new object[]
             {
                 EnumerableFor("DSG", "PSG"),
+                null,
                 null,
                 null,
                 100,
@@ -97,6 +102,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 AND p.content.fundingStreamId IN ('DSG','PSG')
                 
                 
+                
                 ORDER BY p.documentType,
 				p.content.statusChangedDate, 
 				p.content.id,
@@ -110,6 +116,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             {
                 EnumerableFor("DSG"),
                 EnumerableFor("AY-2020"),
+                null,
                 null,
                 100,
                 2,
@@ -137,6 +144,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 AND p.content.fundingStreamId IN ('DSG')
                 AND p.content.fundingPeriod.id IN ('AY-2020')
                 
+                
                 ORDER BY p.documentType,
 				p.content.statusChangedDate, 
 				p.content.id,
@@ -151,6 +159,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 EnumerableFor("PSG"),
                 null,
                 EnumerableFor("Payment", "Information"),
+                null,
                 60,
                 5,
                 @"SELECT
@@ -177,6 +186,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 AND p.content.fundingStreamId IN ('PSG')
                 
                 AND p.content.groupingReason IN ('Payment','Information')
+                
                 ORDER BY p.documentType,
 				p.content.statusChangedDate, 
 				p.content.id,
@@ -187,10 +197,53 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 OFFSET 240 LIMIT 60"
             };
             yield return new object[]
+{
+                EnumerableFor("PSG"),
+                null,
+                null,
+                EnumerableFor("AuthorityFieldUpdated", "EstablishmentNumberFieldUpdated"),
+                60,
+                5,
+                @"SELECT
+                    p.content.id,
+                    p.content.statusChangedDate,
+                    p.content.fundingStreamId,
+                    p.content.fundingPeriod.id AS FundingPeriodId,
+                    p.content.groupingReason AS GroupingType,
+                    p.content.organisationGroupTypeCode AS GroupTypeIdentifier,
+                    p.content.organisationGroupIdentifierValue AS IdentifierValue,
+                    p.content.version,
+                    CONCAT(p.content.fundingStreamId, '-', 
+                            p.content.fundingPeriod.id, '-',
+                            p.content.groupingReason, '-',
+                            p.content.organisationGroupTypeCode, '-',
+                            ToString(p.content.organisationGroupIdentifierValue), '-',
+                            ToString(p.content.majorVersion), '_',
+                            ToString(p.content.minorVersion), '.json')
+                    AS DocumentPath,
+                    p.deleted
+                FROM publishedFunding p
+                WHERE p.documentType = 'PublishedFundingVersion'
+                AND p.deleted = false
+                AND p.content.fundingStreamId IN ('PSG')
+                
+                
+                AND p.content.variationReasons IN ('AuthorityFieldUpdated','EstablishmentNumberFieldUpdated')
+                ORDER BY p.documentType,
+				p.content.statusChangedDate, 
+				p.content.id,
+				p.content.fundingStreamId,
+				p.content.fundingPeriod.id,
+				p.content.groupingReason,
+				p.deleted
+                OFFSET 240 LIMIT 60"
+};
+            yield return new object[]
             {
                 EnumerableFor("DSG", "PSG"),
                 EnumerableFor("AY-1921", "AY-2020"),
                 EnumerableFor("Payment", "Information"),
+                EnumerableFor("AuthorityFieldUpdated", "EstablishmentNumberFieldUpdated"),
                 100,
                 4,
                 @"SELECT
@@ -217,6 +270,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 AND p.content.fundingStreamId IN ('DSG','PSG')
                 AND p.content.fundingPeriod.id IN ('AY-1921','AY-2020')
                 AND p.content.groupingReason IN ('Payment','Information')
+                AND p.content.variationReasons IN ('AuthorityFieldUpdated','EstablishmentNumberFieldUpdated')
                 ORDER BY p.documentType,
 				p.content.statusChangedDate, 
 				p.content.id,
@@ -235,6 +289,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 EnumerableFor("DSG", "PSG"),
                 null,
                 null,
+                null,
                 @"SELECT
                    VALUE COUNT(1)
                 FROM publishedFunding p
@@ -246,6 +301,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             {
                 EnumerableFor("DSG"),
                 EnumerableFor("AY-2020"),
+                null,
                 null,
                 @"SELECT
                    VALUE COUNT(1)
@@ -260,6 +316,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 EnumerableFor("PSG"),
                 null,
                 EnumerableFor("Payment", "Information"),
+                null,
                 @"SELECT
                    VALUE COUNT(1)
                 FROM publishedFunding p
@@ -271,9 +328,26 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             };
             yield return new object[]
             {
+                EnumerableFor("PSG"),
+                null,
+                null,
+                EnumerableFor("AuthorityFieldUpdated", "EstablishmentNumberFieldUpdated"),
+                @"SELECT
+                   VALUE COUNT(1)
+                FROM publishedFunding p
+                WHERE p.documentType = 'PublishedFundingVersion'
+                AND p.deleted = false
+                AND p.content.fundingStreamId IN ('PSG')
+                
+                
+                AND p.content.variationReasons IN ('AuthorityFieldUpdated','EstablishmentNumberFieldUpdated')"
+            };
+            yield return new object[]
+            {
                 EnumerableFor("DSG", "PSG"),
                 EnumerableFor("AY-1921", "AY-2020"),
                 EnumerableFor("Payment", "Information"),
+                EnumerableFor("AuthorityFieldUpdated", "EstablishmentNumberFieldUpdated"),
                 @"SELECT
                    VALUE COUNT(1)
                 FROM publishedFunding p
@@ -281,7 +355,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 AND p.deleted = false
                 AND p.content.fundingStreamId IN ('DSG','PSG')
                 AND p.content.fundingPeriod.id IN ('AY-1921','AY-2020')
-                AND p.content.groupingReason IN ('Payment','Information')"
+                AND p.content.groupingReason IN ('Payment','Information')
+                AND p.content.variationReasons IN ('AuthorityFieldUpdated','EstablishmentNumberFieldUpdated')"
             };
         }
 

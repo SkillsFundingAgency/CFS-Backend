@@ -12,7 +12,6 @@ using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using Newtonsoft.Json.Linq;
 using NSubstitute;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
@@ -76,6 +75,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
             IEnumerable<string> fundingStreamIds = EnumerableFor(NewRandomString(), NewRandomString());
             IEnumerable<string> fundingPeriodIds = EnumerableFor(NewRandomString(), NewRandomString(), NewRandomString());
             IEnumerable<string> groupingReasons = EnumerableFor(NewRandomString());
+            IEnumerable<string> variationReasons = EnumerableFor(NewRandomString());
             int top = NewRandomNumber();
             int pageRef = NewRandomNumber();
 
@@ -86,6 +86,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
             GivenTheCosmosDbQuery(fundingStreamIds, 
                 fundingPeriodIds,
                 groupingReasons,
+                variationReasons,
                 top,
                 pageRef,
                 query);
@@ -94,6 +95,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
             IEnumerable<PublishedFundingIndex> actualResults = await _repository.QueryPublishedFunding(fundingStreamIds,
                 fundingPeriodIds,
                 groupingReasons,
+                variationReasons,
                 top,
                 pageRef);
 
@@ -108,6 +110,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
             IEnumerable<string> fundingStreamIds = EnumerableFor(NewRandomString(), NewRandomString());
             IEnumerable<string> fundingPeriodIds = EnumerableFor(NewRandomString(), NewRandomString(), NewRandomString());
             IEnumerable<string> groupingReasons = EnumerableFor(NewRandomString());
+            IEnumerable<string> variationReasons = EnumerableFor(NewRandomString());
 
             IEnumerable<PublishedFundingIndex> expectedResults = new PublishedFundingIndex[0];
             CosmosDbQuery query = new CosmosDbQuery();
@@ -115,6 +118,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
             GivenTheCosmosDbCountQuery(fundingStreamIds,
                 fundingPeriodIds,
                 groupingReasons,
+                variationReasons,
                 query);
 
             int expectedCount = new RandomNumberBetween(1, 10000);
@@ -124,7 +128,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
 
             int actualCount = await _repository.QueryPublishedFundingCount(fundingStreamIds,
                 fundingPeriodIds,
-                groupingReasons);
+                groupingReasons,
+                variationReasons);
 
             actualCount
                 .Should()
@@ -134,6 +139,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
         private void GivenTheCosmosDbQuery(IEnumerable<string> fundingStreamIds,
             IEnumerable<string> fundingPeriodIds,
             IEnumerable<string> groupingReasons,
+            IEnumerable<string> variationReasons,
             int top,
             int? pageRef,
             CosmosDbQuery expectedQuery)
@@ -141,6 +147,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
             _publishedFundingQueryBuilder.Setup(_ => _.BuildQuery(fundingStreamIds,
                     fundingPeriodIds,
                     groupingReasons,
+                    variationReasons,
                     top,
                     pageRef))
                 .Returns(expectedQuery);
@@ -149,11 +156,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
         private void GivenTheCosmosDbCountQuery(IEnumerable<string> fundingStreamIds,
             IEnumerable<string> fundingPeriodIds,
             IEnumerable<string> groupingReasons,
+            IEnumerable<string> variationReasons,
             CosmosDbQuery expectedQuery)
         {
             _publishedFundingQueryBuilder.Setup(_ => _.BuildCountQuery(fundingStreamIds,
                     fundingPeriodIds,
-                    groupingReasons))
+                    groupingReasons,
+                    variationReasons))
                 .Returns(expectedQuery);
         }
 

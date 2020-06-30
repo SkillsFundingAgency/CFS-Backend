@@ -9,14 +9,15 @@ namespace CalculateFunding.Services.Publishing
     {
         public CosmosDbQuery BuildCountQuery(IEnumerable<string> fundingStreamIds,
             IEnumerable<string> fundingPeriodIds,
-            IEnumerable<string> groupingReasons)
+            IEnumerable<string> groupingReasons,
+            IEnumerable<string> variationReasons)
         {
             return new CosmosDbQuery
             {
                 QueryText = $@"
                 SELECT
                    VALUE COUNT(1)
-                {BuildFromClauseAndPredicates(fundingStreamIds, fundingPeriodIds, groupingReasons)}"
+                {BuildFromClauseAndPredicates(fundingStreamIds, fundingPeriodIds, groupingReasons, variationReasons)}"
             };
         }
 
@@ -24,6 +25,7 @@ namespace CalculateFunding.Services.Publishing
             IEnumerable<string> fundingStreamIds,
             IEnumerable<string> fundingPeriodIds,
             IEnumerable<string> groupingReasons,
+            IEnumerable<string> variationReasons,
             int top,
             int? pageRef)
         {
@@ -48,7 +50,7 @@ namespace CalculateFunding.Services.Publishing
                             ToString(p.content.minorVersion), '.json')
                     AS DocumentPath,
                     p.deleted
-                {BuildFromClauseAndPredicates(fundingStreamIds, fundingPeriodIds, groupingReasons)}
+                {BuildFromClauseAndPredicates(fundingStreamIds, fundingPeriodIds, groupingReasons, variationReasons)}
                 ORDER BY p.documentType,
 				p.content.statusChangedDate, 
 				p.content.id,
@@ -62,14 +64,16 @@ namespace CalculateFunding.Services.Publishing
 
         private string BuildFromClauseAndPredicates(IEnumerable<string> fundingStreamIds,
             IEnumerable<string> fundingPeriodIds,
-            IEnumerable<string> groupingReasons)
+            IEnumerable<string> groupingReasons,
+            IEnumerable<string> variationReasons)
         {
             return $@"FROM publishedFunding p
                 WHERE p.documentType = 'PublishedFundingVersion'
                 AND p.deleted = false
                 {FundingStreamsPredicate(fundingStreamIds)}
                 {FundingPeriodsPredicate(fundingPeriodIds)}
-                {GroupingReasonsPredicate(groupingReasons)}";
+                {GroupingReasonsPredicate(groupingReasons)}
+                {VariationReasonsPredicate(variationReasons)}";
         }
 
         private string FundingStreamsPredicate(IEnumerable<string> fundingStreamIds)
@@ -80,6 +84,9 @@ namespace CalculateFunding.Services.Publishing
 
         private string GroupingReasonsPredicate(IEnumerable<string> groupingReasons)
             => InPredicateFor(groupingReasons, "p.content.groupingReason");
+
+        private string VariationReasonsPredicate(IEnumerable<string> variationReasons)
+            => InPredicateFor(variationReasons, "p.content.variationReasons");
 
         private string InPredicateFor(IEnumerable<string> matches, string field)
         {

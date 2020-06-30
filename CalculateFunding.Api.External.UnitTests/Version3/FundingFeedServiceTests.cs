@@ -5,10 +5,8 @@ using System.Threading.Tasks;
 using CalculateFunding.Api.External.V3.Interfaces;
 using CalculateFunding.Api.External.V3.Services;
 using CalculateFunding.Models.External;
-using CalculateFunding.Models.External.AtomItems;
 using CalculateFunding.Models.External.V3.AtomItems;
 using CalculateFunding.Models.Publishing;
-using CalculateFunding.Models.Search;
 using CalculateFunding.Services.Publishing.Interfaces;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
@@ -292,6 +290,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version3
             feedsSearchService.Setup(_ => _
                     .GetFeedsV3(It.IsAny<int?>(),
                         It.IsAny<int>(),
+                        It.IsAny<IEnumerable<string>>(),
                         It.IsAny<IEnumerable<string>>(),
                         It.IsAny<IEnumerable<string>>(),
                         It.IsAny<IEnumerable<string>>()))

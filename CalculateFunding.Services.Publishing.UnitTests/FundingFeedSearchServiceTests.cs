@@ -21,6 +21,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private IEnumerable<string> _fundingStreamIds;
         private IEnumerable<string> _fundingPeriodIds;
         private IEnumerable<string> _groupingReasons;
+        private IEnumerable<string> _variationReasons;
 
         [TestInitialize]
         public void SetUp()
@@ -36,6 +37,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             _fundingStreamIds = NewRandomStrings();
             _fundingPeriodIds = NewRandomStrings();
             _groupingReasons = NewRandomStrings();
+            _variationReasons = NewRandomStrings();
         }
 
         [TestMethod]
@@ -137,7 +139,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         {
             _publishedFundingRepository.Setup(_ => _.QueryPublishedFundingCount(_fundingStreamIds,
                     _fundingPeriodIds,
-                    _groupingReasons))
+                    _groupingReasons,
+                    _variationReasons))
                 .ReturnsAsync(totalCount);
         }
 
@@ -149,6 +152,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             _publishedFundingRepository.Setup(_ => _.QueryPublishedFunding(_fundingStreamIds,
                     _fundingPeriodIds,
                     _groupingReasons,
+                    _variationReasons,
                     top,
                     pageRef))
                 .ReturnsAsync(fundingFeedResults);
@@ -161,7 +165,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 top,
                 _fundingStreamIds,
                 _fundingPeriodIds,
-                _groupingReasons);
+                _groupingReasons,
+                _variationReasons);
         }
 
         private IEnumerable<string> NewRandomStrings()

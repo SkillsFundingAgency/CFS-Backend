@@ -49,7 +49,8 @@ namespace CalculateFunding.Services.Publishing
             int top,
             IEnumerable<string> fundingStreamIds = null,
             IEnumerable<string> fundingPeriodIds = null,
-            IEnumerable<string> groupingReasons = null)
+            IEnumerable<string> groupingReasons = null,
+            IEnumerable<string> variationReasons = null)
         {
             if (pageRef < 1)
             {
@@ -63,7 +64,8 @@ namespace CalculateFunding.Services.Publishing
 
             int totalCount = await _publishedFundingRepositoryPolicy.ExecuteAsync(() => _publishedFundingRepository.QueryPublishedFundingCount(fundingStreamIds,
                 fundingPeriodIds,
-                groupingReasons));
+                groupingReasons,
+                variationReasons));
 
             bool pageRefRequested = true;
 
@@ -77,6 +79,7 @@ namespace CalculateFunding.Services.Publishing
                 _publishedFundingRepository.QueryPublishedFunding(fundingStreamIds,
                     fundingPeriodIds,
                     groupingReasons,
+                    variationReasons,
                     top,
                     pageRef));
 

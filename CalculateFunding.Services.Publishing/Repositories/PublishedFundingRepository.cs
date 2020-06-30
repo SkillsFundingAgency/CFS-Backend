@@ -828,11 +828,13 @@ namespace CalculateFunding.Services.Publishing.Repositories
 
         public async Task<int> QueryPublishedFundingCount(IEnumerable<string> fundingStreamIds,
             IEnumerable<string> fundingPeriodIds,
-            IEnumerable<string> groupingReasons)
+            IEnumerable<string> groupingReasons,
+            IEnumerable<string> variationReasons)
         {
             CosmosDbQuery query = _publishedFundingQueryBuilder.BuildCountQuery(fundingStreamIds,
                 fundingPeriodIds,
-                groupingReasons);
+                groupingReasons,
+                variationReasons);
 
             IEnumerable<dynamic> dynamicQuery = await _repository.DynamicQuery(query);
 
@@ -842,13 +844,15 @@ namespace CalculateFunding.Services.Publishing.Repositories
 
         public async Task<IEnumerable<PublishedFundingIndex>> QueryPublishedFunding(IEnumerable<string> fundingStreamIds, 
             IEnumerable<string> fundingPeriodIds, 
-            IEnumerable<string> groupingReasons, 
+            IEnumerable<string> groupingReasons,
+            IEnumerable<string> variationReasons,
             int top, 
             int? pageRef)
         {
             CosmosDbQuery query = _publishedFundingQueryBuilder.BuildQuery(fundingStreamIds,
                 fundingPeriodIds,
                 groupingReasons,
+                variationReasons,
                 top,
                 pageRef);
 

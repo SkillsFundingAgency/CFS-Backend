@@ -9,11 +9,13 @@ namespace CalculateFunding.Services.Publishing.Interfaces
             IEnumerable<string> fundingStreamIds,
             IEnumerable<string> fundingPeriodIds,
             IEnumerable<string> groupingReasons,
+            IEnumerable<string> variationReasons,
             int top,
             int? pageRef);
 
         CosmosDbQuery BuildCountQuery(IEnumerable<string> fundingStreamIds,
             IEnumerable<string> fundingPeriodIds,
-            IEnumerable<string> groupingReasons);
+            IEnumerable<string> groupingReasons,
+            IEnumerable<string> variationReasons);
     }
 }

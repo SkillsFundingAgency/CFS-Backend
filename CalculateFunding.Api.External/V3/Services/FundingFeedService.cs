@@ -9,7 +9,6 @@ using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.External;
 using CalculateFunding.Models.External.V3.AtomItems;
 using CalculateFunding.Models.Publishing;
-using CalculateFunding.Models.Search;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Publishing.Interfaces;
 using Microsoft.AspNetCore.Http;
@@ -39,6 +38,7 @@ namespace CalculateFunding.Api.External.V3.Services
             IEnumerable<string> fundingStreamIds = null,
             IEnumerable<string> fundingPeriodIds = null,
             IEnumerable<Models.GroupingReason> groupingReasons = null,
+            IEnumerable<Models.VariationReason> variationReasons = null,
             int? pageSize = MaxRecords)
         {
             pageSize = pageSize ?? MaxRecords;
@@ -47,7 +47,10 @@ namespace CalculateFunding.Api.External.V3.Services
 
             if (pageSize < 1 || pageSize > 500) return new BadRequestObjectResult($"Page size should be more that zero and less than or equal to {MaxRecords}");
 
-            SearchFeedV3<PublishedFundingIndex> searchFeed = await _feedService.GetFeedsV3(pageRef, pageSize.Value, fundingStreamIds, fundingPeriodIds, groupingReasons?.Select(x => x.ToString()));
+            SearchFeedV3<PublishedFundingIndex> searchFeed = await _feedService.GetFeedsV3(
+                pageRef, pageSize.Value, fundingStreamIds, fundingPeriodIds, 
+                groupingReasons?.Select(x => x.ToString()),
+                variationReasons?.Select(x => x.ToString()));
 
             if (searchFeed == null || searchFeed.TotalCount == 0 || searchFeed.Entries.IsNullOrEmpty()) return new NotFoundResult();
 
@@ -149,5 +152,7 @@ namespace CalculateFunding.Api.External.V3.Services
                 Content = contentsObject,
             });
         }
+
+
     }
 }

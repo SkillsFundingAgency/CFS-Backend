@@ -22,12 +22,13 @@ namespace CalculateFunding.Api.External.UnitTests.Version3.Controllers
             string[] fundingStreamIds = new string[] { "1234" };
             string[] fundingPeriodIds = new string[] { "1234" };
             GroupingReason[] groupReasons = new GroupingReason[] { GroupingReason.Payment };
+            VariationReason[] variationReasons = new VariationReason[] { VariationReason.AuthorityFieldUpdated };
 
-            await controller.GetFunding(fundingStreamIds, fundingPeriodIds, groupReasons, 5);
+            await controller.GetFunding(fundingStreamIds, fundingPeriodIds, groupReasons, variationReasons, 5);
 
             await fundingFeedService
                 .Received(1)
-                .GetFunding(Arg.Any<HttpRequest>(),  null, Arg.Is(fundingStreamIds), Arg.Is(fundingPeriodIds), Arg.Is(groupReasons), Arg.Is(5));
+                .GetFunding(Arg.Any<HttpRequest>(),  null, Arg.Is(fundingStreamIds), Arg.Is(fundingPeriodIds), Arg.Is(groupReasons), Arg.Is(variationReasons), Arg.Is(5));
         }
 
         [TestMethod]
@@ -41,12 +42,13 @@ namespace CalculateFunding.Api.External.UnitTests.Version3.Controllers
             string[] fundingStreamIds = new string[] { "1234" };
             string[] fundingPeriodIds = new string[] { "1234" };
             GroupingReason[] groupReasons = new GroupingReason[] { GroupingReason.Payment };
+            VariationReason[] variationReasons = new VariationReason[] { VariationReason.AuthorityFieldUpdated };
 
-            await controller.GetFundingPage(fundingStreamIds, fundingPeriodIds, groupReasons, 5, 1);
+            await controller.GetFundingPage(fundingStreamIds, fundingPeriodIds, groupReasons, variationReasons, 5, 1);
 
             await fundingFeedService
                 .Received(1)
-                .GetFunding(Arg.Any<HttpRequest>(), Arg.Is(1), Arg.Is(fundingStreamIds), Arg.Is(fundingPeriodIds), Arg.Is(groupReasons), Arg.Is(5));
+                .GetFunding(Arg.Any<HttpRequest>(), Arg.Is(1), Arg.Is(fundingStreamIds), Arg.Is(fundingPeriodIds), Arg.Is(groupReasons), Arg.Is(variationReasons), Arg.Is(5));
         }
     }
 }

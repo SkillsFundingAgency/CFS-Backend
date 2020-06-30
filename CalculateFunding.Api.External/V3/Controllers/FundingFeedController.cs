@@ -27,6 +27,7 @@ namespace CalculateFunding.Api.External.V3.Controllers
         /// <param name="fundingStreamIds">Optional Funding stream IDs</param>
         /// <param name="fundingPeriodIds">Optional Funding Period IDs</param>
         /// <param name="groupingReasons">Optional Grouping Reasons</param>
+        /// <param name="variationReasons">Optional Variation Reasons</param>
         /// <param name="pageSize">Page Size</param>
         /// <returns>Feed of funding notifications based on query parameters</returns>
         [HttpGet("")]
@@ -35,10 +36,11 @@ namespace CalculateFunding.Api.External.V3.Controllers
             [FromQuery] string[] fundingStreamIds,
             [FromQuery] string[] fundingPeriodIds,
             [FromQuery] GroupingReason[] groupingReasons,
+            [FromQuery] VariationReason[] variationReasons,
             [FromQuery] int? pageSize)
         {
             return await _fundingFeedsService.GetFunding(Request, null, fundingStreamIds,
-                 fundingPeriodIds, groupingReasons, pageSize);
+                 fundingPeriodIds, groupingReasons, variationReasons, pageSize);
         }
 
 
@@ -48,6 +50,7 @@ namespace CalculateFunding.Api.External.V3.Controllers
         /// <param name="fundingStreamIds">Optional Funding stream IDs</param>
         /// <param name="fundingPeriodIds">Optional Funding Period IDs</param>
         /// <param name="groupingReasons">Optional Grouping Reasons</param>
+        /// <param name="variationReasons">Optional Variation Reasons</param>
         /// <param name="pageSize">Page Size</param>
         /// <param name="pageRef">Page reference for historical page</param>
         /// <returns></returns>
@@ -57,11 +60,12 @@ namespace CalculateFunding.Api.External.V3.Controllers
             [FromQuery] string[] fundingStreamIds,
             [FromQuery] string[] fundingPeriodIds,
             [FromQuery] GroupingReason[] groupingReasons,
+            [FromQuery] VariationReason[] variationReasons,
             [FromQuery] int? pageSize,
             [FromRoute] int pageRef)
         {
             return await _fundingFeedsService.GetFunding(Request, pageRef, fundingStreamIds,
-                 fundingPeriodIds, groupingReasons, pageSize);
+                 fundingPeriodIds, groupingReasons, variationReasons, pageSize);
         }
     }
 }

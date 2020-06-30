@@ -90,11 +90,13 @@ namespace CalculateFunding.Services.Publishing.Interfaces
             IEnumerable<string> fundingStreamIds,
             IEnumerable<string> fundingPeriodIds,
             IEnumerable<string> groupingReasons,
+            IEnumerable<string> variationReasons,
             int top,
             int? pageRef);
 
         Task<int> QueryPublishedFundingCount(IEnumerable<string> fundingStreamIds,
             IEnumerable<string> fundingPeriodIds,
-            IEnumerable<string> groupingReasons);
+            IEnumerable<string> groupingReasons,
+            IEnumerable<string> variationReasons);
     }
 }
