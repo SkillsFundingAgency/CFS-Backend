@@ -12,7 +12,7 @@ namespace CalculateFunding.Services.Policy.Interfaces
 
         Task<TemplateResponse> GetTemplateVersion(string templateId, string version);
 
-        Task<IEnumerable<TemplateSummaryResponse>> GetVersionSummariesByTemplate(string templateId, List<TemplateStatus> statuses);
+        Task<TemplateVersionListResponse> FindTemplateVersions(string templateId, List<TemplateStatus> statuses, int page, int itemsPerPage);
 
         Task<IEnumerable<TemplateSummaryResponse>> FindVersionsByFundingStreamAndPeriod(FindTemplateVersionQuery query);
         

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
@@ -195,18 +196,26 @@ namespace CalculateFunding.Api.Policy.Controllers
             return new InternalServerErrorResult(result.ErrorMessage ?? result.Exception?.Message ?? "Unknown error occurred");
         }
 
+        /// <summary>
+        /// get all versions of a template, in descending last updated order
+        /// </summary>
+        /// <param name="templateId">template ID</param>
+        /// <param name="statuses">optional</param>
+        /// <param name="page">if 0 or missing, all results are returned (up to 1000)</param>
+        /// <param name="itemsPerPage">if 0 or missing, all results are returned (up to 1000)</param>
+        /// <returns></returns>
         [HttpGet("api/templates/build/{templateId}/versions")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<TemplateSummaryResponse>))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> GetTemplateVersions([FromRoute] string templateId, [FromQuery] string statuses)
+        public async Task<IActionResult> GetTemplateVersions([FromRoute] string templateId, [FromQuery] string statuses, [FromQuery] int page, [FromQuery] int itemsPerPage)
         {
             List<TemplateStatus> templateStatuses = !string.IsNullOrWhiteSpace(statuses) ? statuses.Split(',')
                 .Select(s => (TemplateStatus)Enum.Parse(typeof(TemplateStatus), s))
                 .ToList() : new List<TemplateStatus>();
 
-            IEnumerable<TemplateSummaryResponse> templateVersionResponses =
-                await _templateBuilderService.GetVersionSummariesByTemplate(templateId, templateStatuses);
+            TemplateVersionListResponse templateVersionResponses =
+                await _templateBuilderService.FindTemplateVersions(templateId, templateStatuses, page, itemsPerPage);
 
             return Ok(templateVersionResponses);
         }

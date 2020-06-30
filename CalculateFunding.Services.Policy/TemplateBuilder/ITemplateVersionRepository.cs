@@ -9,7 +9,10 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
     public interface ITemplateVersionRepository : IVersionRepository<TemplateVersion>
     {
         Task<TemplateVersion> GetTemplateVersion(string templateId, int versionNumber);
-        Task<IEnumerable<TemplateSummaryResponse>> GetSummaryVersionsByTemplate(string templateId, IEnumerable<TemplateStatus> statuses);
-        Task<IEnumerable<TemplateSummaryResponse>> FindByFundingStreamAndPeriod(FindTemplateVersionQuery query);
+
+        Task<IEnumerable<TemplateVersion>> GetSummaryVersionsByTemplate(string templateId,
+            IEnumerable<TemplateStatus> statuses);
+        
+        Task<IEnumerable<TemplateVersion>> FindByFundingStreamAndPeriod(FindTemplateVersionQuery query);
     }
 }

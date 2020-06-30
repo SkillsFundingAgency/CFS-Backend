@@ -109,16 +109,64 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             return Map(templateVersion, template);
         }
 
-        public async Task<IEnumerable<TemplateSummaryResponse>> GetVersionSummariesByTemplate(string templateId, List<TemplateStatus> statuses)
+        public async Task<TemplateVersionListResponse> FindTemplateVersions(
+            string templateId,
+            List<TemplateStatus> statuses,
+            int page,
+            int itemsPerPage)
         {
             Guard.ArgumentNotNull(templateId, nameof(templateId));
+            
+            TemplateVersionListResponse response = new TemplateVersionListResponse();
 
-            return await _templateVersionRepository.GetSummaryVersionsByTemplate(templateId, statuses);
+            var templateTask = _templateRepository.GetTemplate(templateId);
+            var versionsTask = _templateVersionRepository.GetSummaryVersionsByTemplate(templateId, statuses);
+            await Task.WhenAll(templateTask, versionsTask);
+            Template template = await templateTask;
+            IEnumerable<TemplateVersion> versions = await versionsTask;
+            IEnumerable<TemplateSummaryResponse> results = versions
+                .Select(v => MapSummaryResponse(v, template))
+                .OrderByDescending(x => x.LastModificationDate)
+                .ToList();
+            
+            if (page < 1 || itemsPerPage < 1)
+            {
+                response.PageResults = results;
+            }
+            else
+            {
+                response.PageResults = results
+                    .Skip((page - 1) * itemsPerPage)
+                    .Take(itemsPerPage);
+                response.TotalCount = results.Count();
+            }
+            
+            return response;
         }
 
         public async Task<IEnumerable<TemplateSummaryResponse>> FindVersionsByFundingStreamAndPeriod(FindTemplateVersionQuery query)
         {
-            return await _templateVersionRepository.FindByFundingStreamAndPeriod(query);
+            List<TemplateSummaryResponse> results = new List<TemplateSummaryResponse>();
+            List<TemplateVersion> versions = (await _templateVersionRepository.FindByFundingStreamAndPeriod(query)).ToList();
+
+            var tasks = new List<Task<Template>>();
+            foreach (var templateId in versions.Select(v => v.TemplateId).Distinct())
+            {
+                tasks.Add(_templateRepository.GetTemplate(templateId));
+            }
+            
+            await Task.WhenAll(tasks.ToArray());
+
+            foreach (var task in tasks)
+            {
+                Template template = await task;
+                results.AddRange(versions
+                    .Where(v => v.TemplateId == template.TemplateId)
+                    .Select(v => MapSummaryResponse(v, template)));
+            }
+
+            return results
+                .OrderByDescending(x => x.LastModificationDate);
         }
 
         public async Task<CommandResult> CreateTemplate(TemplateCreateCommand command, Reference author)
@@ -541,7 +589,8 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
                 Description = template.Description
             };
         }
-
+        
+        /*
         private static TemplateSummaryResponse MapSummary(TemplateVersion templateVersion)
         {
             return new TemplateSummaryResponse
@@ -561,7 +610,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
                 PublishStatus = templateVersion.PublishStatus,
                 Comments = templateVersion.Comment
             };
-        }
+        }*/
 
         private async Task<HttpStatusCode> UpdateTemplateContent(TemplateJsonContentUpdateCommand command, Reference author, Template template, int majorVersion, int minorVersion)
         {
@@ -685,6 +734,28 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             {
                 templateIndex
             });
+        }
+        
+        private TemplateSummaryResponse MapSummaryResponse(TemplateVersion source, Template template)
+        {
+            return new TemplateSummaryResponse
+            {
+                TemplateId = source.TemplateId,
+                Name = template.Name,
+                Description = template.Description,
+                Status = source.Status,
+                Version = source.Version,
+                MajorVersion = source.MajorVersion,
+                MinorVersion = source.MinorVersion,
+                AuthorName = source.Author.Name,
+                AuthorId = source.Author.Id,
+                PublishStatus = source.PublishStatus,
+                SchemaVersion = source.SchemaVersion,
+                LastModificationDate = source.Date.DateTime,
+                FundingStreamId = template.FundingStream.Id,
+                FundingPeriodId = template.FundingPeriod.Id,
+                Comments = source.Comment
+            };
         }
     }
 }
