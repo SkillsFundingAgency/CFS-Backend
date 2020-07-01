@@ -36,7 +36,8 @@ namespace CalculateFunding.Functions.Specs.ServiceBus
 
         [FunctionName(FunctionName)]
         public async Task Run([ServiceBusTrigger(ReIndexSingleSpecification, 
-            Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
+            Connection = ServiceBusConstants.ConnectionStringConfigurationKey,
+            IsSessionsEnabled = true)] Message message)
         {
             await Run(async () =>
             {
