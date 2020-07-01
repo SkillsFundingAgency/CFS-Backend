@@ -208,22 +208,25 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .UpdateSpecification(Arg.Is(specification))
                 .Returns(HttpStatusCode.OK);
 
-            IEnumerable<IndexError> errors = new[]
-            {
-                new IndexError{ ErrorMessage = "failed" }
-            };
+            // IEnumerable<IndexError> errors = new[]
+            // {
+            //     new IndexError{ ErrorMessage = "failed" }
+            // };
 
-            ISearchRepository<SpecificationIndex> searchRepository = CreateSearchRepository();
-            searchRepository
-                .Index(Arg.Any<IEnumerable<SpecificationIndex>>())
-                .Returns(errors);
+            // ISearchRepository<SpecificationIndex> searchRepository = CreateSearchRepository();
+            // searchRepository
+            //     .Index(Arg.Any<IEnumerable<SpecificationIndex>>())
+            //     .Returns(errors);
+            
+            _specificationIndexer
+                .When(_ => _.Index(Arg.Is<Specification>(sp => sp.IsSelectedForFunding)))
+                .Throw(new Exception());
 
             ICacheProvider cacheProvider = CreateCacheProvider();
 
             SpecificationsService service = CreateService(
                 logs: logger,
                 specificationsRepository: specificationsRepository,
-                searchRepository: searchRepository,
                 cacheProvider: cacheProvider);
 
             // Act
@@ -232,19 +235,15 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             // Assert
             result
                 .Should()
-                .BeOfType<InternalServerErrorResult>()
-                .Which
-                .Value
-                .Should()
-                .Be($"Failed to index search for specification {SpecificationId} with the following errors: failed");
+                .BeOfType<InternalServerErrorResult>();
 
-            logger
-                .Received(1)
-                .Error(Arg.Is($"Failed to index search for specification {SpecificationId} with the following errors: failed"));
-
-            logger
-                .Received(1)
-                .Error(Arg.Any<Exception>(), Arg.Is($"Failed to index search for specification {SpecificationId} with the following errors: failed"));
+            // logger
+            //     .Received(1)
+            //     .Error(Arg.Is($"Failed to index search for specification {SpecificationId} with the following errors: failed"));
+            //
+            // logger
+            //     .Received(1)
+            //     .Error(Arg.Any<Exception>(), Arg. ($"Failed to index search for specification {SpecificationId} with the following errors: failed"));
 
             await cacheProvider
                 .Received(1)

@@ -9,12 +9,12 @@
 
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="9.0.0" />
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Datasets" Version="1.1.0" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Datasets" Version="5.0.0" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Graph" Version="2.1.0" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Jobs" Version="2.1.0" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Policies" Version="3.0.0" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Providers" Version="2.1.0" />
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Specifications" Version="2.1.0" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Specifications" Version="2.2.0" />
     <PackageReference Include="Microsoft.Azure.Functions.Extensions" Version="1.0.0" />
     <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.ServiceBus" Version="3.1.0" />
     <PackageReference Include="Microsoft.Azure.WebJobs.ServiceBus" Version="3.0.0-beta8" />

@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net;
 using AutoMapper;
 using CalculateFunding.Common.ApiClient.Calcs;
+using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies;
+using CalculateFunding.Common.ApiClient.Policies.Models;
 using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
 using CalculateFunding.Common.ApiClient.Providers;
 using CalculateFunding.Common.Caching;
@@ -30,6 +33,8 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
     [TestClass]
     public partial class SpecificationsServiceTests
     {
+        private ISpecificationIndexer _specificationIndexer;
+        
         const string FundingStreamId = "YAPGG";
         const string SpecificationId = "ffa8ccb3-eb8e-4658-8b3f-f1e4c3a8f313";
         const string PolicyId = "dda8ccb3-eb8e-4658-8b3f-f1e4c3a8f322";
@@ -52,6 +57,43 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         private readonly ICacheProvider _cacheProvider;
         private readonly IMessengerService _messengerService;
         private readonly IVersionRepository<Models.Specs.SpecificationVersion> _versionRepository;
+
+        [TestInitialize]
+        public void SetUp()
+        {
+            specificationsRepository = CreateSpecificationsRepository();
+
+            policiesApiClient = CreatePoliciesApiClient();
+            policiesApiClient.GetFundingPeriods()
+                .Returns(new ApiResponse<IEnumerable<FundingPeriod>>(HttpStatusCode.OK, new[]
+                {
+                    new FundingPeriod
+                    {
+                        Id = ExpectedFundingPeriodId,
+                        Period = ExpectedFundingPeriodName
+                    },
+                    new FundingPeriod
+                    {
+                        Id = "FIRST DIFFERENT ID",
+                        Period = "A DIFFERENT PERIOD"
+                    },
+                    new FundingPeriod
+                    {
+                        Id = "A DIFFERENT ID",
+                        Period = ExpectedFundingPeriodName
+                    }
+                }));
+
+            mapper = CreateMapper();
+            mapper.Map<SpecificationSummary>(_specWithFundingPeriodAndFundingStream)
+                .Returns(MapSpecification(_specWithFundingPeriodAndFundingStream));
+            mapper.Map<SpecificationSummary>(_specWithFundingPeriodAndFundingStream2)
+                .Returns(MapSpecification(_specWithFundingPeriodAndFundingStream2));
+            mapper.Map<SpecificationSummary>(_specWithNoFundingStream)
+                .Returns(MapSpecification(_specWithNoFundingStream));
+            
+            _specificationIndexer = Substitute.For<ISpecificationIndexer>();
+        }
 
         private SpecificationsService CreateService(
             IMapper mapper = null,
@@ -89,7 +131,8 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 queueDeleteSpecificationJobActions ?? Substitute.For<IQueueDeleteSpecificationJobActions>(),
                 calcsApiClient ?? CreateCalcsApiClient(),
                 featureToggle ?? Substitute.For<IFeatureToggle>(),
-                providersApiClient ?? Substitute.For<IProvidersApiClient>());
+                providersApiClient ?? Substitute.For<IProvidersApiClient>(),
+                _specificationIndexer);
         }
 
         protected IVersionRepository<Models.Specs.SpecificationVersion> CreateVersionRepository()

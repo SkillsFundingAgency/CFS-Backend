@@ -143,6 +143,32 @@
 			"analyzer": null,
 			"searchAnalyzer": null,
 			"indexAnalyzer": null
+		},
+		{
+			"name": "mapDatasetLastUpdated",
+			"type": "Edm.DateTimeOffset",
+			"key": false,
+			"facetable": false,
+			"filterable": false,
+			"retrievable": true,
+			"searchable": false,
+			"sortable": true,
+			"analyzer": null,
+			"searchAnalyzer": null,
+			"indexAnalyzer": null
+		},
+		{
+			"name": "totalMappedDataSets",
+			"type": "Edm.Int32",
+			"key": false,
+			"facetable": false,
+			"filterable": false,
+			"retrievable": true,
+			"searchable": false,
+			"sortable": true,
+			"analyzer": null,
+			"searchAnalyzer": null,
+			"indexAnalyzer": null
 		}
 	],
 	"scoringProfiles": [],

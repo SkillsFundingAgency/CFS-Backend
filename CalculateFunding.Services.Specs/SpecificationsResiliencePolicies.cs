@@ -12,6 +12,11 @@ namespace CalculateFunding.Services.Specs
         public AsyncPolicy CalcsApiClient { get; set; }
 
         public AsyncPolicy ProvidersApiClient { get; set; }
-
+        
+        public AsyncPolicy DatasetsApiClient { get; set; }
+        
+        public AsyncPolicy SpecificationsSearchRepository { get; set; }
+        
+        public AsyncPolicy SpecificationsRepository { get; set; }
     }
 }

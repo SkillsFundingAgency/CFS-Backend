@@ -1,4 +1,5 @@
-﻿using CalculateFunding.Common.Models;
+﻿using System;
+using CalculateFunding.Common.Models;
 
 namespace CalculateFunding.Models.Datasets
 {
@@ -15,5 +16,9 @@ namespace CalculateFunding.Models.Datasets
         public bool IsSetAsProviderData { get; set; }
 
         public bool UsedInDataAggregations { get; set; }
+       
+        public DateTimeOffset? LastUpdated { get; set; }
+        
+        public Reference Author { get; set; }
     }
 }

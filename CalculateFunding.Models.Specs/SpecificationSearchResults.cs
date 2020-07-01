@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using CalculateFunding.Repositories.Common.Search;
 
 namespace CalculateFunding.Models.Specs
 {
@@ -9,6 +10,8 @@ namespace CalculateFunding.Models.Specs
         {
             Results = Enumerable.Empty<SpecificationDatasetRelationshipsSearchResult>();
         }
+        
+        public IEnumerable<Facet> Facets { get; set; }
 
         public IEnumerable<SpecificationDatasetRelationshipsSearchResult> Results { get; set; }
 

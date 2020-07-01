@@ -142,62 +142,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         }
 
         [TestMethod]
-        public void AssignDataDefinitionRelationship_GivenFailedToUpdateSearch_ThrowsFailedToIndexSearchException()
-        {
-            //Arrange
-            dynamic anyObject = new { specificationId = SpecificationId, relationshipId = RelationshipId };
-
-            string json = JsonConvert.SerializeObject(anyObject);
-
-            Message message = new Message(Encoding.UTF8.GetBytes(json));
-
-            Specification specification = new Specification
-            {
-                Id = SpecificationId,
-                Name = SpecificationName,
-                Current = new Models.Specs.SpecificationVersion()
-                {
-                    FundingStreams = new List<Reference>() { new Reference("fs-id", "fs-name") },
-                    FundingPeriod = new Reference("18/19", "2018/19"),
-                },
-            };
-
-            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            specificationsRepository
-                .GetSpecificationById(Arg.Is(SpecificationId))
-                .Returns(specification);
-
-            specificationsRepository
-                .UpdateSpecification(Arg.Is(specification))
-                .Returns(HttpStatusCode.OK);
-
-            IList<IndexError> errors = new List<IndexError> { new IndexError() };
-
-            ISearchRepository<SpecificationIndex> searchRepository = CreateSearchRepository();
-            searchRepository
-                .Index(Arg.Any<List<SpecificationIndex>>())
-                .Returns(errors);
-
-            Models.Specs.SpecificationVersion newSpecVersion = specification.Current.Clone() as Models.Specs.SpecificationVersion;
-
-            IVersionRepository<Models.Specs.SpecificationVersion> versionRepository = CreateVersionRepository();
-            versionRepository
-                .CreateVersion(Arg.Any<Models.Specs.SpecificationVersion>(), Arg.Any<Models.Specs.SpecificationVersion>())
-                .Returns(newSpecVersion);
-
-
-            SpecificationsService service = CreateService(specificationsRepository: specificationsRepository,
-                searchRepository: searchRepository, specificationVersionRepository: versionRepository);
-
-            //Act
-            Func<Task> test = async () => await service.AssignDataDefinitionRelationship(message);
-
-            //Assert
-            test
-                .Should().ThrowExactly<FailedToIndexSearchException>();
-        }
-
-        [TestMethod]
         public async Task AssignDataDefinitionRelationship_GivenUpdatedCosmosAndSearch_LogsSuccess()
         {
             //Arrange
@@ -227,13 +171,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .UpdateSpecification(Arg.Is(specification))
                 .Returns(HttpStatusCode.OK);
 
-            IList<IndexError> errors = new List<IndexError>();
-
-            ISearchRepository<SpecificationIndex> searchRepository = CreateSearchRepository();
-            searchRepository
-                .Index(Arg.Any<List<SpecificationIndex>>())
-                .Returns(errors);
-
             ILogger logger = CreateLogger();
 
             Models.Specs.SpecificationVersion newSpecVersion = specification.Current.Clone() as Models.Specs.SpecificationVersion;
@@ -243,8 +180,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .CreateVersion(Arg.Any<Models.Specs.SpecificationVersion>(), Arg.Any<Models.Specs.SpecificationVersion>())
                 .Returns(newSpecVersion);
 
-            SpecificationsService service = CreateService(specificationsRepository: specificationsRepository,
-                searchRepository: searchRepository, logs: logger, specificationVersionRepository: versionRepository);
+            SpecificationsService service = CreateService(specificationsRepository: specificationsRepository, logs: logger, specificationVersionRepository: versionRepository);
 
             //Act
             await service.AssignDataDefinitionRelationship(message);
@@ -253,18 +189,10 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             logger
                 .Received(1)
                 .Information($"Successfully assigned relationship id: {RelationshipId} to specification with id: {SpecificationId}");
-
-            await
-                searchRepository
-                    .Received(1)
-                    .Index(Arg.Is<IList<SpecificationIndex>>(
-                        m => m.First().Id == SpecificationId &&
-                        m.First().Name == SpecificationName &&
-                        m.First().FundingStreamIds.First() == "fs-id" &&
-                        m.First().FundingStreamNames.First() == "fs-name" &&
-                        m.First().FundingPeriodId == "18/19" &&
-                        m.First().FundingPeriodName == "2018/19" &&
-                        m.First().LastUpdatedDate.Value.Date == DateTimeOffset.Now.Date));
+            
+            await _specificationIndexer
+                .Received(1)
+                .Index(Arg.Is<Specification>(_ => ReferenceEquals(_.Current, newSpecVersion)));
         }
     }
 }

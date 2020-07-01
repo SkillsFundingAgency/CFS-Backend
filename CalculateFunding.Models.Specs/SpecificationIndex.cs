@@ -52,5 +52,13 @@ namespace CalculateFunding.Models.Specs
         [IsFilterable, IsFacetable, IsRetrievable(true)]
         [JsonProperty("isSelectedForFunding")]
         public bool IsSelectedForFunding { get; set; }
+        
+        [IsRetrievable(true), IsSortable]
+        [JsonProperty("mapDatasetLastUpdated")]
+        public DateTimeOffset? MapDatasetLastUpdated { get; set; }
+        
+        [IsRetrievable(true), IsSortable]
+        [JsonProperty("totalMappedDataSets")]
+        public int? TotalMappedDataSets { get; set; }
     }
 }

@@ -46,7 +46,7 @@ namespace CalculateFunding.Services.Specs
         private readonly IPoliciesApiClient _policiesApiClient;
         private readonly Polly.AsyncPolicy _policiesApiClientPolicy;
         private readonly ILogger _logger;
-        private readonly IValidator<SpecificationCreateModel> _specificationCreateModelvalidator;
+        private readonly IValidator<SpecificationCreateModel> _specificationCreateModelValidator;
         private readonly IMessengerService _messengerService;
         private readonly ISearchRepository<SpecificationIndex> _searchRepository;
         private readonly IValidator<AssignDefinitionRelationshipMessage> _assignDefinitionRelationshipMessageValidator;
@@ -61,6 +61,7 @@ namespace CalculateFunding.Services.Specs
         private readonly IFeatureToggle _featureToggle;
         private readonly IProvidersApiClient _providersApiClient;
         private readonly Polly.AsyncPolicy _providersApiClientPolicy;
+        private readonly ISpecificationIndexer _specificationIndexer;
 
         public SpecificationsService(
             IMapper mapper,
@@ -80,7 +81,8 @@ namespace CalculateFunding.Services.Specs
             IQueueDeleteSpecificationJobActions queueDeleteSpecificationJobAction,
             ICalculationsApiClient calcsApiClient,
             IFeatureToggle featureToggle,
-            IProvidersApiClient providersApiClient)
+            IProvidersApiClient providersApiClient,
+            ISpecificationIndexer specificationIndexer)
         {
             Guard.ArgumentNotNull(mapper, nameof(mapper));
             Guard.ArgumentNotNull(specificationsRepository, nameof(specificationsRepository));
@@ -104,13 +106,14 @@ namespace CalculateFunding.Services.Specs
             Guard.ArgumentNotNull(calcsApiClient, nameof(calcsApiClient));
             Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
             Guard.ArgumentNotNull(providersApiClient, nameof(providersApiClient));
+            Guard.ArgumentNotNull(specificationIndexer, nameof(specificationIndexer));
 
             _mapper = mapper;
             _specificationsRepository = specificationsRepository;
             _policiesApiClient = policiesApiClient;
             _policiesApiClientPolicy = resiliencePolicies.PoliciesApiClient;
             _logger = logger;
-            _specificationCreateModelvalidator = specificationCreateModelValidator;
+            _specificationCreateModelValidator = specificationCreateModelValidator;
             _messengerService = messengerService;
             _searchRepository = searchRepository;
             _assignDefinitionRelationshipMessageValidator = assignDefinitionRelationshipMessageValidator;
@@ -124,6 +127,7 @@ namespace CalculateFunding.Services.Specs
             _featureToggle = featureToggle;
             _calcsApiClientPolicy = resiliencePolicies.CalcsApiClient;
             _providersApiClient = providersApiClient;
+            _specificationIndexer = specificationIndexer;
             _providersApiClientPolicy = resiliencePolicies.ProvidersApiClient;
         }
 
@@ -134,12 +138,14 @@ namespace CalculateFunding.Services.Specs
             (bool Ok, string Message) messengerServiceHealth = await _messengerService.IsHealthOk(queueName);
             (bool Ok, string Message) searchRepoHealth = await _searchRepository.IsHealthOk();
             (bool Ok, string Message) cacheHealth = await _cacheProvider.IsHealthOk();
+            ServiceHealth specificationIndexerHealth = await _specificationIndexer.IsHealthOk();
 
             ServiceHealth health = new ServiceHealth()
             {
                 Name = nameof(SpecificationsService)
             };
             health.Dependencies.AddRange(specRepoHealth.Dependencies);
+            health.Dependencies.AddRange(specificationIndexerHealth.Dependencies);
             health.Dependencies.Add(new DependencyHealth
             {
                 HealthOk = messengerServiceHealth.Ok,
@@ -447,7 +453,7 @@ namespace CalculateFunding.Services.Specs
             createModel.Name = createModel.Name?.Trim();
 
             BadRequestObjectResult validationResult =
-                (await _specificationCreateModelvalidator.ValidateAsync(createModel)).PopulateModelState();
+                (await _specificationCreateModelValidator.ValidateAsync(createModel)).PopulateModelState();
 
             if (validationResult != null)
             {
@@ -479,7 +485,6 @@ namespace CalculateFunding.Services.Specs
             };
 
             List<Reference> fundingStreams = new List<Reference>();
-            List<Reference> fundingStreamObjects = new List<Reference>();
 
             foreach (string fundingStreamId in createModel.FundingStreamIds)
             {
@@ -493,7 +498,6 @@ namespace CalculateFunding.Services.Specs
                 }
 
                 fundingStreams.Add(new Reference(fundingStream.Id, fundingStream.Name));
-                fundingStreamObjects.Add(fundingStream);
             }
 
             if (!fundingStreams.Any())
@@ -542,29 +546,13 @@ namespace CalculateFunding.Services.Specs
                 return new InternalServerErrorResult("Error creating specification in repository");
             }
 
-            await _searchRepository.Index(new List<SpecificationIndex>
-            {
-                new SpecificationIndex
-                {
-                    Id = specification.Id,
-                    Name = specification.Name,
-                    FundingStreamIds = specificationVersion.FundingStreams.Select(s => s.Id).ToArray(),
-                    FundingStreamNames = specificationVersion.FundingStreams.Select(s => s.Name).ToArray(),
-                    FundingPeriodId = specificationVersion.FundingPeriod.Id,
-                    FundingPeriodName = specificationVersion.FundingPeriod.Name,
-                    LastUpdatedDate = repositoryCreateResult.CreatedAt,
-                    Description = specificationVersion.Description,
-                    Status = Enum.GetName(typeof(PublishStatus), specificationVersion.PublishStatus),
-                }
-            });
-
-            specificationVersion = await _specificationVersionRepository.CreateVersion(specificationVersion);
+            specification.Current = specificationVersion = await _specificationVersionRepository.CreateVersion(specificationVersion);
 
             await _specificationVersionRepository.SaveVersion(specificationVersion);
 
-            await ClearSpecificationCacheItems(specificationVersion.FundingPeriod.Id);
+            await _specificationIndexer.Index(specification);
 
-            string specificationId = specification.Id;
+            await ClearSpecificationCacheItems(specificationVersion.FundingPeriod.Id);
 
             foreach (string fundingStreamId in specification.Current.FundingStreams.Select(m => m.Id))
             {
@@ -621,7 +609,7 @@ namespace CalculateFunding.Services.Specs
                 ApiResponse<bool> refreshCacheFromApi = await _providersApiClientPolicy.ExecuteAsync(() => 
                                  _providersApiClient.RegenerateProviderSummariesForSpecification(specificationId, true));
 
-                if (!refreshCacheFromApi.StatusCode.IsSuccess() || refreshCacheFromApi?.Content == null)
+                if (!refreshCacheFromApi.StatusCode.IsSuccess())
                 {
                     string errorMessage = $"Unable to re-generate scoped providers while editing specification '{specificationId}' with status code: {refreshCacheFromApi.StatusCode}";
 
@@ -669,6 +657,7 @@ namespace CalculateFunding.Services.Specs
 
             HttpStatusCode statusCode =
                 await UpdateSpecification(specification, specificationVersion, previousSpecificationVersion);
+            
             if (!statusCode.IsSuccess())
             {
                 return new StatusCodeResult((int) statusCode);
@@ -692,21 +681,7 @@ namespace CalculateFunding.Services.Specs
 
         private async Task ReindexSpecification(Specification specification)
         {
-            IEnumerable<IndexError> specificationIndexingErrors = await _searchRepository.Index(new[]
-            {
-                CreateSpecificationIndex(specification)
-            });
-
-            List<IndexError> specificationIndexingErrorsAsList = specificationIndexingErrors.ToList();
-            if (!specificationIndexingErrorsAsList.IsNullOrEmpty())
-            {
-                string specificationIndexingErrorsConcatted =
-                    string.Join(". ", specificationIndexingErrorsAsList.Select(e => e.ErrorMessage));
-                string formattedErrorMessage =
-                    $"Could not index specification {specification.Current.Id} because: {specificationIndexingErrorsConcatted}";
-                _logger.Error(formattedErrorMessage);
-                throw new ApplicationException(formattedErrorMessage);
-            }
+            await _specificationIndexer.Index(specification);
         }
 
         public async Task<IActionResult> EditSpecificationStatus(string specificationId, EditStatusModel editStatusModel, Reference user)
@@ -879,18 +854,7 @@ namespace CalculateFunding.Services.Specs
                         $"Failed to update specification for id: {specificationId} with dataset definition relationship id {relationshipId}");
                 }
 
-                SpecificationIndex specIndex = CreateSpecificationIndex(specification);
-
-                IEnumerable<IndexError> errors =
-                    await _searchRepository.Index(new List<SpecificationIndex> {specIndex});
-
-                if (errors.Any())
-                {
-                    _logger.Error(
-                        $"failed to index search with the following errors: {string.Join(";", errors.Select(m => m.ErrorMessage))}");
-
-                    throw new FailedToIndexSearchException(errors);
-                }
+                await _specificationIndexer.Index(specification);
 
                 _logger.Information(
                     $"Successfully assigned relationship id: {relationshipId} to specification with id: {specificationId}");
@@ -927,33 +891,15 @@ WHERE   s.documentType = @DocumentType",
                     (await _specificationsRepository.GetSpecificationsByRawQuery<SpecificationSearchModel>(
                         cosmosDbQuery)).ToArraySafe();
 
-                List<SpecificationIndex> specDocuments = new List<SpecificationIndex>();
-
-                specDocuments = specifications.Select(specification => new SpecificationIndex
+                if (specifications.Any())
                 {
-                    Id = specification.Id,
-                    Name = specification.Name,
-                    FundingStreamIds = specification.FundingStreams?.Select(s => s.Id).ToArray(),
-                    FundingStreamNames = specification.FundingStreams?.Select(s => s.Name).ToArray(),
-                    FundingPeriodId = specification.FundingPeriod.Id,
-                    FundingPeriodName = specification.FundingPeriod.Name,
-                    LastUpdatedDate = specification.UpdatedAt,
-                    Status = specification.PublishStatus,
-                    Description = specification.Description,
-                    IsSelectedForFunding = specification.IsSelectedForFunding,
-                    DataDefinitionRelationshipIds = specification.DataDefinitionRelationshipIds.IsNullOrEmpty()
-                        ? new string[0]
-                        : specification.DataDefinitionRelationshipIds,
-                }).ToList();
-
-                if (!specDocuments.IsNullOrEmpty())
-                {
-                    await _searchRepository.Index(specDocuments);
+                    await _specificationIndexer.Index(specifications);
+                    
                     _logger.Information($"Successfully re-indexed {specifications.Count()} documents");
                 }
                 else
                 {
-                    _logger.Warning("No specification documents were returned from cosmos db");
+                    _logger.Warning("No specification documents were returned from cosmos db"); 
                 }
 
                 return new NoContentResult();
@@ -1039,31 +985,19 @@ WHERE   s.documentType = @DocumentType",
 
         private async Task<IActionResult> UpdateSpecification(Specification specification, string specificationId)
         {
-            SpecificationIndex specificationIndex = null;
-
             try
             {
                 HttpStatusCode statusCode = await _specificationsRepository.UpdateSpecification(specification);
 
                 if (!statusCode.IsSuccess())
                 {
-                    var error =
+                    string error =
                         $"Failed to set IsSelectedForFunding on specification for id: {specificationId} with status code: {statusCode}";
                     _logger.Error(error);
                     return new InternalServerErrorResult(error);
                 }
 
-                specificationIndex = CreateSpecificationIndex(specification);
-
-                var errors = await _searchRepository.Index(new List<SpecificationIndex> { specificationIndex });
-
-                if (errors.Any())
-                {
-                    var error =
-                        $"Failed to index search for specification {specificationId} with the following errors: {string.Join(";", errors.Select(m => m.ErrorMessage))}";
-                    _logger.Error(error);
-                    throw new Exception(error);
-                }
+                await _specificationIndexer.Index(specification);
 
                 await _cacheProvider.RemoveAsync<SpecificationSummary>(
                     $"{CacheKeys.SpecificationSummaryById}{specification.Id}");
@@ -1072,11 +1006,9 @@ WHERE   s.documentType = @DocumentType",
             {
                 specification.IsSelectedForFunding = false;
 
-                specificationIndex = CreateSpecificationIndex(specification);
-
                 await TaskHelper.WhenAllAndThrow(
                     _specificationsRepository.UpdateSpecification(specification),
-                    _searchRepository.Index(new[] { specificationIndex })
+                     _specificationIndexer.Index(specification)
                 );
 
                 await _cacheProvider.RemoveAsync<SpecificationSummary>(
@@ -1218,27 +1150,6 @@ WHERE   s.documentType = @DocumentType",
                 _cacheProvider.RemoveAsync<List<SpecificationSummary>>(
                     $"{CacheKeys.SpecificationSummariesByFundingPeriodId}{fundingPeriodId}")
             );
-        }
-
-        private SpecificationIndex CreateSpecificationIndex(Specification specification)
-        {
-            Models.Specs.SpecificationVersion specificationVersion =
-                specification.Current.Clone() as Models.Specs.SpecificationVersion;
-
-            return new SpecificationIndex
-            {
-                Id = specification.Id,
-                Name = specification.Name,
-                IsSelectedForFunding = specification.IsSelectedForFunding,
-                Status = Enum.GetName(typeof(PublishStatus), specificationVersion.PublishStatus),
-                Description = specificationVersion.Description,
-                FundingStreamIds = specificationVersion.FundingStreams.Select(s => s.Id).ToArray(),
-                FundingStreamNames = specificationVersion.FundingStreams.Select(s => s.Name).ToArray(),
-                FundingPeriodId = specificationVersion.FundingPeriod.Id,
-                FundingPeriodName = specificationVersion.FundingPeriod.Name,
-                LastUpdatedDate = DateTimeOffset.Now,
-                DataDefinitionRelationshipIds = specificationVersion.DataDefinitionRelationshipIds.ToArraySafe(),
-            };
         }
 
         public async Task<IActionResult> GetPublishDates(string specificationId)
@@ -1403,7 +1314,7 @@ WHERE   s.documentType = @DocumentType",
         public async Task<IActionResult> SetProfileVariationPointer(string specificationId,
             SpecificationProfileVariationPointerModel specificationProfileVariationPointerModel)
         {
-            return await SetProfileVariationPointers(specificationId, new SpecificationProfileVariationPointerModel[] { specificationProfileVariationPointerModel }, true);
+            return await SetProfileVariationPointers(specificationId, new[] { specificationProfileVariationPointerModel }, true);
         }
 
         public async Task<IActionResult> GetFundingStreamIdsForSelectedFundingSpecifications()

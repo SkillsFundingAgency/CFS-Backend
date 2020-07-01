@@ -8,5 +8,11 @@
         Polly.AsyncPolicy CalcsApiClient { get; set; }
 
         Polly.AsyncPolicy ProvidersApiClient { get; set; }
+        
+        Polly.AsyncPolicy DatasetsApiClient { get; set; }
+        
+        Polly.AsyncPolicy SpecificationsSearchRepository { get; set; }
+        
+        Polly.AsyncPolicy SpecificationsRepository { get; set; }
     }
 }

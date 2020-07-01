@@ -12,7 +12,9 @@ namespace CalculateFunding.Services.Specs.UnitTests
                 JobsApiClient = Policy.NoOpAsync(),
                 PoliciesApiClient = Policy.NoOpAsync(),
                 CalcsApiClient = Policy.NoOpAsync(),
-                ProvidersApiClient = Policy.NoOpAsync()
+                ProvidersApiClient = Policy.NoOpAsync(),
+                DatasetsApiClient = Policy.NoOpAsync(),
+                SpecificationsSearchRepository = Policy.NoOpAsync()
             };
         }
     }

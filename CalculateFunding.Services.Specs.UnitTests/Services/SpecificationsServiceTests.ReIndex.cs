@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models;
@@ -107,10 +108,14 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 }
             };
 
-            ISearchRepository<SpecificationIndex> searchRepository = CreateSearchRepository();
-            searchRepository
-                .When(x => x.Index(Arg.Any<List<SpecificationIndex>>()))
-                .Do(x => { throw new Exception(); });
+            // ISearchRepository<SpecificationIndex> searchRepository = CreateSearchRepository();
+            // searchRepository
+            //     .When(x => x.Index(Arg.Any<List<SpecificationIndex>>()))
+            //     .Do(x => { throw new Exception(); });
+            
+            _specificationIndexer
+                .When(_ => _.Index(Arg.Any<IEnumerable<SpecificationSearchModel>>()))
+                .Throw(new Exception());
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
             specificationsRepository
@@ -119,7 +124,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             ILogger logger = CreateLogger();
 
-            ISpecificationsService service = CreateService(searchRepository: searchRepository, logs: logger,
+            ISpecificationsService service = CreateService(logs: logger,
                 specificationsRepository: specificationsRepository);
 
             //Act
@@ -205,9 +210,14 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             IActionResult result = await service.ReIndex();
 
             //Assert
-            logger
+            await _specificationIndexer
                 .Received(1)
-                .Information(Arg.Is($"Successfully re-indexed 1 documents"));
+                .Index(Arg.Is<IEnumerable<SpecificationSearchModel>>(_ => _.SequenceEqual(specifications)));
+            
+            
+            // logger
+            //     .Received(1)
+            //     .Information(Arg.Is($"Successfully re-indexed 1 documents"));
 
             result
                 .Should()

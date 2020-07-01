@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 namespace System.Linq
 {
     [EditorBrowsable(EditorBrowsableState.Never)]
-    static public class IEnumerableExtensions
+    public static class IEnumerableExtensions
     {
         public static bool AnyWithNullCheck<T>(this IEnumerable<T> enumerable)
         {
@@ -32,7 +32,7 @@ namespace System.Linq
             return !enumerable.AnyWithNullCheck();
         }
 
-        static public T[] ToArraySafe<T>(this IEnumerable<T> enumerable)
+        public static T[] ToArraySafe<T>(this IEnumerable<T> enumerable)
         {
             return (enumerable ?? Enumerable.Empty<T>()).ToArray();
         }
@@ -77,7 +77,7 @@ namespace System.Linq
 
         public static IEnumerable<T> Flatten<T>(this IEnumerable<T> enumerable, Func<T, IEnumerable<T>> func)
         {
-            enumerable = enumerable ?? new T[0];
+            enumerable ??= new T[0];
             
             return enumerable.SelectMany(c => func(c).Flatten(func)).Concat(enumerable);
         }
@@ -101,7 +101,7 @@ namespace System.Linq
                 return;
             }
 
-            foreach (var item in items)
+            foreach (T item in items)
             {
                 action(item);
             }

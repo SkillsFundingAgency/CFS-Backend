@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Utility;
+using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.Threading;
 using Serilog;
@@ -76,19 +77,21 @@ namespace CalculateFunding.Services.Core.Threading
             Task[] tasks = new Task[consumersLength + 1];
             
             tasks[0] = _producer.ProduceAllItems(context);
+
+            string itemType = typeof(TItem).GetFriendlyName();
             
-            _logger.Information($"Started producer task for {typeof(TItem).Name}");
+            _logger.Information($"Started producer task for {itemType}");
             
             for (int consumerIndex = 0; consumerIndex < consumersLength; consumerIndex++)
             {
                 tasks[consumerIndex + 1] = _consumers[consumerIndex].Run(context);
             }
             
-            _logger.Information($"Started {consumersLength} consumer tasks for {typeof(TItem).Name}");
+            _logger.Information($"Started {consumersLength} consumer tasks for {itemType}");
 
             await TaskHelper.WhenAllAndThrow(tasks);
             
-            _logger.Information($"Completed all producer consumer tasks for {typeof(TItem).Name}");
+            _logger.Information($"Completed all producer consumer tasks for {itemType}");
             
             await _channel.Reader.Completion;
         }

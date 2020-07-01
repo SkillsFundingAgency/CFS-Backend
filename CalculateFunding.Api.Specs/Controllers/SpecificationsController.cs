@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models;
@@ -8,6 +9,7 @@ using CalculateFunding.Models.Specs;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Repositories.Common.Search.Results;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Specs;
 using CalculateFunding.Services.Specs.Interfaces;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -20,24 +22,27 @@ namespace CalculateFunding.Api.Specs.Controllers
         private readonly ISpecificationsService _specService;
         private readonly ISpecificationsSearchService _specSearchService;
         private readonly ISpecificationsReportService _specificationsReportService;
+        private readonly ISpecificationIndexingService _specificationIndexingService;
         private readonly IWebHostEnvironment _hostingEnvironment;
 
         public SpecificationsController(
             ISpecificationsService specService,
             ISpecificationsSearchService specSearchService,
             IWebHostEnvironment hostingEnvironment,
-            ISpecificationsReportService specificationsReportService
-            )
+            ISpecificationsReportService specificationsReportService,
+            ISpecificationIndexingService specificationIndexingService)
         {
             Guard.ArgumentNotNull(specService, nameof(specService));
             Guard.ArgumentNotNull(specSearchService, nameof(specSearchService));
             Guard.ArgumentNotNull(hostingEnvironment, nameof(hostingEnvironment));
             Guard.ArgumentNotNull(specificationsReportService, nameof(specificationsReportService));
+            Guard.ArgumentNotNull(specificationIndexingService, nameof(specificationIndexingService));
 
             _specService = specService;
             _specSearchService = specSearchService;
             _hostingEnvironment = hostingEnvironment;
             _specificationsReportService = specificationsReportService;
+            _specificationIndexingService = specificationIndexingService;
         }
 
         [Route("api/specs/specification-by-id")]
@@ -313,6 +318,19 @@ namespace CalculateFunding.Api.Specs.Controllers
         public async Task<IActionResult> DownloadSpecificationReport([FromRoute] string reportId)
         {
             return await _specificationsReportService.DownloadReport(reportId);
+        }
+        
+        [HttpPost("api/specs/{specificationId}/reindex")]
+        [Produces(typeof(JobViewModel))]
+        [ProducesResponseType((int)HttpStatusCode.NotFound)]
+        public async Task<IActionResult> ReIndexSpecification([FromRoute] string specificationId)
+        {
+            Reference user = ControllerContext.HttpContext.Request.GetUser();
+            string correlationId = ControllerContext.HttpContext.Request.GetCorrelationId();
+
+            return await _specificationIndexingService.QueueSpecificationIndexJob(specificationId,
+                user,
+                correlationId);
         }
     }
 }

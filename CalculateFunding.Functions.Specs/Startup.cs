@@ -2,6 +2,7 @@
 using System.Threading;
 using AutoMapper;
 using CalculateFunding.Common.Config.ApiClient.Calcs;
+using CalculateFunding.Common.Config.ApiClient.Dataset;
 using CalculateFunding.Common.Config.ApiClient.Jobs;
 using CalculateFunding.Common.Config.ApiClient.Policies;
 using CalculateFunding.Common.Config.ApiClient.Providers;
@@ -20,8 +21,10 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
+using CalculateFunding.Services.Core.Interfaces.Threading;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Core.Services;
+using CalculateFunding.Services.Core.Threading;
 using CalculateFunding.Services.Specs;
 using CalculateFunding.Services.Specs.Interfaces;
 using CalculateFunding.Services.Specs.MappingProfiles;
@@ -69,6 +72,7 @@ namespace CalculateFunding.Functions.Specs
             if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
             {
                 builder.AddScoped<OnAddRelationshipEvent>();
+                builder.AddScoped<OnReIndexSpecification>();
             }
 
             builder.AddSingleton<ISpecificationsRepository, SpecificationsRepository>((ctx) =>
@@ -79,9 +83,9 @@ namespace CalculateFunding.Functions.Specs
 
                 specsVersioningDbSettings.ContainerName = "specs";
 
-                CosmosRepository resultsRepostory = new CosmosRepository(specsVersioningDbSettings);
+                CosmosRepository resultsRepository = new CosmosRepository(specsVersioningDbSettings);
 
-                return new SpecificationsRepository(resultsRepostory);
+                return new SpecificationsRepository(resultsRepository);
             });
 
             builder.AddSingleton<ISpecificationsService, SpecificationsService>();
@@ -89,7 +93,10 @@ namespace CalculateFunding.Functions.Specs
             builder.AddSingleton<IValidator<SpecificationEditModel>, SpecificationEditModelValidator>();
             builder.AddSingleton<IValidator<AssignDefinitionRelationshipMessage>, AssignDefinitionRelationshipMessageValidator>();
             builder.AddSingleton<ISpecificationsSearchService, SpecificationsSearchService>();
-            builder.AddSingleton<IResultsRepository, ResultsRepository>();            
+            builder.AddSingleton<IResultsRepository, ResultsRepository>();
+            builder.AddSingleton<ISpecificationIndexer, SpecificationIndexer>();
+            builder.AddSingleton<IProducerConsumerFactory, ProducerConsumerFactory>();
+            builder.AddSingleton<ISpecificationIndexingService, SpecificationIndexingService>();
 
             builder.AddSingleton<ITemplateMetadataResolver>((ctx) =>
             {
@@ -143,17 +150,16 @@ namespace CalculateFunding.Functions.Specs
                     PoliciesApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                     JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                     CalcsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-                  ProvidersApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
+                    ProvidersApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                    DatasetsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                    SpecificationsSearchRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                    SpecificationsRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
                 };
             });
 
-            builder.AddSingleton<IJobManagementResiliencePolicies>((ctx) =>
+            builder.AddSingleton<IJobManagementResiliencePolicies>((ctx) => new JobManagementResiliencePolicies()
             {
-                return new JobManagementResiliencePolicies()
-                {
-                    JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
-                };
-
+                JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
             });
 
             MapperConfiguration mappingConfig = new MapperConfiguration(c =>
@@ -177,6 +183,7 @@ namespace CalculateFunding.Functions.Specs
             builder.AddPoliciesInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
             builder.AddJobsInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
             builder.AddCalculationsInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
+            builder.AddDatasetsInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
 
             builder.AddPolicySettings(config);
 

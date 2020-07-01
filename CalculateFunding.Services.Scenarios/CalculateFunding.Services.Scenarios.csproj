@@ -7,10 +7,11 @@
 
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="9.0.0" />
-    <PackageReference Include="CalculateFunding.Common.ApiClient.Datasets" Version="5.0.0" />
+    <PackageReference Include="CalculateFunding.Common.ApiClient.Datasets" Version="5.1.0" />
+    <PackageReference Include="CalculateFunding.Common.ApiClient.Specifications" Version="4.3.1" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Calcs" Version="2.3.0" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Jobs" Version="2.1.0" />
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Specifications" Version="2.1.0" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Specifications" Version="2.2.0" />
   </ItemGroup>
 
   <ItemGroup>

@@ -57,7 +57,10 @@
             public const string PopulateScopedProvidersJob = nameof(PopulateScopedProvidersJob);
 
             public const string PublishedFundingUndoJob = nameof(PublishedFundingUndoJob);
+            
             public const string ReIndexTemplatesJob = nameof(ReIndexTemplatesJob);
+            
+            public const string ReIndexSpecificationJob = nameof(ReIndexSpecificationJob);
         }
 
         public static class NotificationChannels

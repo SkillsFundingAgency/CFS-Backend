@@ -76,41 +76,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         private IPoliciesApiClient policiesApiClient;
         private ISpecificationsRepository specificationsRepository;
 
-        [TestInitialize]
-        public void Setup()
-        {
-            specificationsRepository = CreateSpecificationsRepository();
-
-            policiesApiClient = CreatePoliciesApiClient();
-            policiesApiClient.GetFundingPeriods()
-                .Returns(new ApiResponse<IEnumerable<FundingPeriod>>(HttpStatusCode.OK, new[]
-                {
-                    new FundingPeriod
-                    {
-                        Id = ExpectedFundingPeriodId,
-                        Period = ExpectedFundingPeriodName
-                    },
-                    new FundingPeriod
-                    {
-                        Id = "FIRST DIFFERENT ID",
-                        Period = "A DIFFERENT PERIOD"
-                    },
-                    new FundingPeriod
-                    {
-                        Id = "A DIFFERENT ID",
-                        Period = ExpectedFundingPeriodName
-                    }
-                }));
-
-            mapper = CreateMapper();
-            mapper.Map<SpecificationSummary>(_specWithFundingPeriodAndFundingStream)
-                .Returns(MapSpecification(_specWithFundingPeriodAndFundingStream));
-            mapper.Map<SpecificationSummary>(_specWithFundingPeriodAndFundingStream2)
-                .Returns(MapSpecification(_specWithFundingPeriodAndFundingStream2));
-            mapper.Map<SpecificationSummary>(_specWithNoFundingStream)
-                .Returns(MapSpecification(_specWithNoFundingStream));
-        }
-
         [TestMethod]
         public async Task ReturnsDistinctFundingPeriods_GivenFundingStreamIdForAnSpecWithFundingPeriodAndMatchingIdAndPeriod()
         {

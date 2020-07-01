@@ -22,6 +22,7 @@ using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Interfaces.Helpers;
 using CalculateFunding.Services.Datasets.Interfaces;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
@@ -39,11 +40,10 @@ namespace CalculateFunding.Services.Datasets
         private readonly ISpecificationsApiClient _specificationsApiClient;
         private readonly IValidator<CreateDefinitionSpecificationRelationshipModel> _relationshipModelValidator;
         private readonly IMessengerService _messengerService;
-        private readonly IDatasetService _datasetService;
         private readonly ICalcsRepository _calcsRepository;
-        private readonly IDefinitionsService _definitionService;
         private readonly ICacheProvider _cacheProvider;
         private readonly IJobManagement _jobManagement;
+        private readonly IDateTimeProvider _dateTimeProvider;
         private readonly Polly.AsyncPolicy _specificationsApiClientPolicy;
 
         public DefinitionSpecificationRelationshipService(IDatasetRepository datasetRepository,
@@ -51,21 +51,19 @@ namespace CalculateFunding.Services.Datasets
             ISpecificationsApiClient specificationsApiClient,
             IValidator<CreateDefinitionSpecificationRelationshipModel> relationshipModelValidator,
             IMessengerService messengerService,
-            IDatasetService datasetService,
             ICalcsRepository calcsRepository,
-            IDefinitionsService definitionService,
             ICacheProvider cacheProvider,
             IDatasetsResiliencePolicies datasetsResiliencePolicies,
-            IJobManagement jobManagement)
+            IJobManagement jobManagement,
+            IDateTimeProvider dateTimeProvider)
         {
+            Guard.ArgumentNotNull(dateTimeProvider, nameof(dateTimeProvider));
             Guard.ArgumentNotNull(datasetRepository, nameof(datasetRepository));
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(specificationsApiClient, nameof(specificationsApiClient));
             Guard.ArgumentNotNull(relationshipModelValidator, nameof(relationshipModelValidator));
             Guard.ArgumentNotNull(messengerService, nameof(messengerService));
-            Guard.ArgumentNotNull(datasetService, nameof(datasetService));
             Guard.ArgumentNotNull(calcsRepository, nameof(calcsRepository));
-            Guard.ArgumentNotNull(definitionService, nameof(definitionService));
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
             Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
             Guard.ArgumentNotNull(datasetsResiliencePolicies?.SpecificationsApiClient, nameof(datasetsResiliencePolicies.SpecificationsApiClient));
@@ -75,11 +73,10 @@ namespace CalculateFunding.Services.Datasets
             _specificationsApiClient = specificationsApiClient;
             _relationshipModelValidator = relationshipModelValidator;
             _messengerService = messengerService;
-            _datasetService = datasetService;
             _calcsRepository = calcsRepository;
-            _definitionService = definitionService;
             _cacheProvider = cacheProvider;
             _jobManagement = jobManagement;
+            _dateTimeProvider = dateTimeProvider;
             _specificationsApiClientPolicy = datasetsResiliencePolicies.SpecificationsApiClient;
         }
 
@@ -145,7 +142,9 @@ namespace CalculateFunding.Services.Datasets
                 Description = model.Description,
                 Id = relationshipId,
                 IsSetAsProviderData = model.IsSetAsProviderData,
-                UsedInDataAggregations = model.UsedInDataAggregations
+                UsedInDataAggregations = model.UsedInDataAggregations,
+                Author = author,
+                LastUpdated = _dateTimeProvider.UtcNow,
             };
 
             HttpStatusCode statusCode = await _datasetRepository.SaveDefinitionSpecificationRelationship(relationship);
@@ -313,6 +312,8 @@ namespace CalculateFunding.Services.Datasets
                 return new StatusCodeResult(412);
             }
 
+            relationship.Author = user;
+            relationship.LastUpdated = _dateTimeProvider.UtcNow;
             relationship.DatasetVersion = new DatasetRelationshipVersion
             {
                 Id = model.DatasetId,
@@ -536,41 +537,41 @@ namespace CalculateFunding.Services.Datasets
             return new OkObjectResult(specificationIds);
         }
 
-        public async Task UpdateRelationshipDatasetDefinitionName(Reference datsetDefinitionReference)
+        public async Task UpdateRelationshipDatasetDefinitionName(Reference datasetDefinitionReference)
         {
-            if (datsetDefinitionReference == null)
+            if (datasetDefinitionReference == null)
             {
                 _logger.Error("Null dataset definition reference supplied");
                 throw new NonRetriableException("A null dataset definition reference was supplied");
             }
 
             IEnumerable<DefinitionSpecificationRelationship> relationships =
-              (await _datasetRepository.GetDefinitionSpecificationRelationshipsByQuery(m => m.Content.DatasetDefinition.Id == datsetDefinitionReference.Id)).ToList();
+              (await _datasetRepository.GetDefinitionSpecificationRelationshipsByQuery(m => m.Content.DatasetDefinition.Id == datasetDefinitionReference.Id)).ToList();
 
             if (!relationships.IsNullOrEmpty())
             {
                 int relationshipCount = relationships.Count();
 
-                _logger.Information($"Updating {relationshipCount} relationships with new definition name: {datsetDefinitionReference.Name}");
+                _logger.Information($"Updating {relationshipCount} relationships with new definition name: {datasetDefinitionReference.Name}");
 
                 try
                 {
 
                     foreach (DefinitionSpecificationRelationship definitionSpecificationRelationship in relationships)
                     {
-                        definitionSpecificationRelationship.DatasetDefinition.Name = datsetDefinitionReference.Name;
+                        definitionSpecificationRelationship.DatasetDefinition.Name = datasetDefinitionReference.Name;
                     }
 
                     await _datasetRepository.UpdateDefinitionSpecificationRelationships(relationships);
 
-                    _logger.Information($"Updated {relationshipCount} relationships with new definition name: {datsetDefinitionReference.Name}");
+                    _logger.Information($"Updated {relationshipCount} relationships with new definition name: {datasetDefinitionReference.Name}");
 
                 }
                 catch (Exception ex)
                 {
                     _logger.Error(ex, ex.Message);
 
-                    throw new RetriableException($"Failed to update relationships with new definition name: {datsetDefinitionReference.Name}", ex);
+                    throw new RetriableException($"Failed to update relationships with new definition name: {datasetDefinitionReference.Name}", ex);
                 }
             }
             else
@@ -588,7 +589,9 @@ namespace CalculateFunding.Services.Datasets
                 Id = relationship.Id,
                 Name = relationship.Name,
                 RelationshipDescription = relationship.Description,
-                IsProviderData = relationship.IsSetAsProviderData
+                IsProviderData = relationship.IsSetAsProviderData,
+                LastUpdatedAuthor = relationship.Author,
+                LastUpdatedDate = relationship.LastUpdated
             };
 
             if (relationship.DatasetVersion != null)

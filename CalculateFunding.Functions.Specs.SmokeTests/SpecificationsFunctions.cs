@@ -19,6 +19,7 @@ namespace CalculateFunding.Functions.Specs.SmokeTests
     public class SpecificationsFunctions : SmokeTestBase
     {
         private static ISpecificationsService _specificationsService;
+        private static ISpecificationIndexingService _specificationIndexerService;
         private static ILogger _logger;
         private static IUserProfileProvider _userProfileProvider;
 
@@ -31,6 +32,7 @@ namespace CalculateFunding.Functions.Specs.SmokeTests
 
             _specificationsService = CreateSpecificationService();
             _userProfileProvider = CreateUserProfileProvider();
+            _specificationIndexerService = CreateSpecificationIndexerService();
         }
 
         [TestMethod]
@@ -66,20 +68,30 @@ namespace CalculateFunding.Functions.Specs.SmokeTests
                 .Should()
                 .NotBeNull();
         }
-
-        private static ILogger CreateLogger()
+        
+        [TestMethod]
+        public async Task OnReIndexSpecification_SmokeTestSucceeds()
         {
-            return Substitute.For<ILogger>();
+            OnReIndexSpecification onDeleteSpecifications = new OnReIndexSpecification(_logger,
+                _specificationIndexerService,
+                Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                _userProfileProvider,
+                IsDevelopment);
+
+            SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.ReIndexSingleSpecification,
+                (Message smokeResponse) => onDeleteSpecifications.Run(smokeResponse));
+
+            response
+                .Should()
+                .NotBeNull();
         }
 
-        private static ISpecificationsService CreateSpecificationService()
-        {
-            return Substitute.For<ISpecificationsService>();
-        }
+        private static ILogger CreateLogger() => Substitute.For<ILogger>();
 
-        private static IUserProfileProvider CreateUserProfileProvider()
-        {
-            return Substitute.For<IUserProfileProvider>();
-        }
+        private static ISpecificationsService CreateSpecificationService() => Substitute.For<ISpecificationsService>();
+
+        private static IUserProfileProvider CreateUserProfileProvider() => Substitute.For<IUserProfileProvider>();
+
+        private static ISpecificationIndexingService CreateSpecificationIndexerService() => Substitute.For<ISpecificationIndexingService>();
     }
 }

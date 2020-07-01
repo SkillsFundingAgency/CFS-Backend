@@ -192,5 +192,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         {
             throw new NotImplementedException();
         }
+
+        public Task<ApiResponse<JobModel>> ReIndexSpecification(string specificationId) => throw new NotImplementedException();
     }
 }

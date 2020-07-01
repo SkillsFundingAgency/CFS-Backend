@@ -111,6 +111,8 @@
 
             public const string DeleteSpecifications = "specifications-delete";
             
+            public const string ReIndexSingleSpecification = "publishing-reindex-specification";
+            
             public const string DeletePublishedProviders = "publishing-delete-published-providers";
 
             public const string ReIndexSpecificationCalculationRelationships = "calculations-reindex-specification-calculation-rels";

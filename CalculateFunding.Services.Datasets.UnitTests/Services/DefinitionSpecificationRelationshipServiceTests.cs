@@ -19,6 +19,7 @@ using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.ViewModels;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Caching;
+using CalculateFunding.Services.Core.Interfaces.Helpers;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Datasets.Interfaces;
 using CalculateFunding.Services.Datasets.MappingProfiles;
@@ -37,8 +38,21 @@ namespace CalculateFunding.Services.Datasets.Services
     [TestClass]
     public class DefinitionSpecificationRelationshipServiceTests
     {
+        private IDateTimeProvider _dateTimeProvider;
+        private DateTime _utcNow;
+        
+        [TestInitialize]
+        public void SetUp()
+        {
+            _dateTimeProvider = Substitute.For<IDateTimeProvider>();
+            _utcNow = NewRandomDateTime().DateTime.ToUniversalTime();
+
+            _dateTimeProvider.UtcNow
+                .Returns(_utcNow);
+        }
+        
         [TestMethod]
-        public async Task CreateRelationship_GivenNullModelProvided_ReturnesBadRequest()
+        public async Task CreateRelationship_GivenNullModelProvided_ReturnsBadRequest()
         {
             //Arrange
             ILogger logger = CreateLogger();
@@ -293,8 +307,10 @@ namespace CalculateFunding.Services.Datasets.Services
             DefinitionSpecificationRelationshipService service = CreateService(logger: logger,
                 datasetRepository: datasetRepository, specificationsApiClient: specificationsApiClient, cacheProvider: cacheProvider, calcsRepository: calcsRepository);
 
+            Reference author = NewReference();
+
             //Act
-            IActionResult result = await service.CreateRelationship(model, null, null);
+            IActionResult result = await service.CreateRelationship(model, author, null);
 
             //Assert
             result
@@ -309,7 +325,9 @@ namespace CalculateFunding.Services.Datasets.Services
                         m.Description == "test description" &&
                         m.Name == "test-name" &&
                         m.Specification.Id == specificationId &&
-                        m.DatasetDefinition.Id == datasetDefinitionId));
+                        m.DatasetDefinition.Id == datasetDefinitionId &&
+                        m.LastUpdated == _utcNow &&
+                        ReferenceEquals(m.Author, author)));
 
             await
               cacheProvider
@@ -1623,6 +1641,7 @@ namespace CalculateFunding.Services.Datasets.Services
             };
 
             ILogger logger = CreateLogger();
+            Reference user = NewReference();
 
             Dataset dataset = new Dataset();
             DefinitionSpecificationRelationship relationship = new DefinitionSpecificationRelationship
@@ -1638,13 +1657,15 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetDefinitionSpecificationRelationshipById(Arg.Is(relationshipId))
                 .Returns(relationship);
             datasetRepository
-                .UpdateDefinitionSpecificationRelationship(Arg.Any<DefinitionSpecificationRelationship>())
+                .UpdateDefinitionSpecificationRelationship(Arg.Is<DefinitionSpecificationRelationship>(_ =>
+                    ReferenceEquals(_.Author, user) &&
+                    _.LastUpdated == _utcNow))
                 .Returns(HttpStatusCode.OK);
 
             DefinitionSpecificationRelationshipService service = CreateService(logger: logger, datasetRepository: datasetRepository);
 
             //Act
-            IActionResult result = await service.AssignDatasourceVersionToRelationship(model, null, null);
+            IActionResult result = await service.AssignDatasourceVersionToRelationship(model, user, null);
 
             //Assert
             result
@@ -1958,15 +1979,13 @@ namespace CalculateFunding.Services.Datasets.Services
                             m.ElementAt(1).DatasetDefinition.Name == "name-1"));
         }
 
-        private static DefinitionSpecificationRelationshipService CreateService(
+        private DefinitionSpecificationRelationshipService CreateService(
             IDatasetRepository datasetRepository = null,
             ILogger logger = null, 
             ISpecificationsApiClient specificationsApiClient = null, 
             IValidator<CreateDefinitionSpecificationRelationshipModel> relationshipModelValidator = null,
             IMessengerService messengerService = null, 
-            IDatasetService datasetService = null, 
-            ICalcsRepository calcsRepository = null,
-            IDefinitionsService definitionsService = null, 
+            ICalcsRepository calcsRepository = null, 
             ICacheProvider cacheProvider = null, 
             IJobManagement jobManagement = null)
         {
@@ -1975,13 +1994,12 @@ namespace CalculateFunding.Services.Datasets.Services
                 logger ?? CreateLogger(),
                 specificationsApiClient ?? CreateSpecificationsApiClient(), 
                 relationshipModelValidator ?? CreateRelationshipModelValidator(),
-                messengerService ?? CreateMessengerService(), 
-                datasetService ?? CreateDatasetService(),
+                messengerService ?? CreateMessengerService(),
                 calcsRepository ?? CreateCalcsRepository(), 
-                definitionsService ?? CreateDefinitionService(), 
                 cacheProvider ?? CreateCacheProvider(),
                 DatasetsResilienceTestHelper.GenerateTestPolicies(), 
-                jobManagement ?? CreateJobManagement());
+                jobManagement ?? CreateJobManagement(),
+                _dateTimeProvider);
         }
 
         private static IValidator<CreateDefinitionSpecificationRelationshipModel> CreateRelationshipModelValidator(ValidationResult validationResult = null)

@@ -151,13 +151,10 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                    s.Current.Description == specificationCreateModel.Description &&
                    s.Current.FundingPeriod.Id == fundingPeriodId));
 
-            await searchRepository
+            await _specificationIndexer
                 .Received(1)
-                .Index(Arg.Is<List<SpecificationIndex>>(c =>
-                c.Count() == 1 &&
-                !string.IsNullOrWhiteSpace(c.First().Id) &&
-                c.First().Name == specificationCreateModel.Name
-                ));
+                .Index(Arg.Is<Specification>(_ => _.Name == specificationCreateModel.Name &&
+                                                  _.Id.IsNotNullOrWhitespace()));
 
             await versionRepository
                .Received(1)
@@ -395,15 +392,11 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                    s => s.Name == specificationCreateModel.Name.Trim() &&
                    s.Current.Description == specificationCreateModel.Description &&
                    s.Current.FundingPeriod.Id == fundingPeriodId));
-
-            await searchRepository
+            
+            await _specificationIndexer
                 .Received(1)
-                .Index(Arg.Is<List<SpecificationIndex>>(c =>
-                c.Count() == 1 &&
-                !string.IsNullOrWhiteSpace(c.First().Id) &&
-                c.First().Name == specificationCreateModel.Name.Trim()
-                ));
-
+                .Index(Arg.Is<Specification>(_ => _.Name == specificationCreateModel.Name.Trim() &&
+                                                  _.Id.IsNotNullOrWhitespace()));
             await versionRepository
                .Received(1)
                .SaveVersion(Arg.Is<SpecificationVersion>(

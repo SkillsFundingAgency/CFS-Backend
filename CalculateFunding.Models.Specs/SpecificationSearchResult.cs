@@ -1,4 +1,6 @@
-﻿namespace CalculateFunding.Models.Specs
+﻿using System;
+
+namespace CalculateFunding.Models.Specs
 {
     public class SpecificationDatasetRelationshipsSearchResult
     {
@@ -7,5 +9,13 @@
         public string SpecificationName { get; set; }
 
         public int DefinitionRelationshipCount { get; set; }
+        
+        public string[] FundingStreamNames { get; set; }
+        
+        public string FundingPeriodName { get; set; }
+        
+        public DateTimeOffset? MapDatasetLastUpdated { get; set; }
+        
+        public int TotalMappedDataSets { get; set; }
     }
 }

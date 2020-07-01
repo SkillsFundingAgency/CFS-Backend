@@ -5,9 +5,7 @@ using CalculateFunding.Repositories.Common.Search.Results;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Specs.Interfaces;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
 using Serilog;
 using System;
 using System.Collections.Generic;
@@ -22,8 +20,13 @@ namespace CalculateFunding.Services.Specs
     {
         private readonly ILogger _logger;
 
-        private readonly FacetFilterType[] Facets = {
+        private static readonly FacetFilterType[] SpecificationIndexFacets = {
             new FacetFilterType("status"),
+            new FacetFilterType("fundingPeriodName"),
+            new FacetFilterType("fundingStreamNames", true)
+        };
+        
+        private static readonly FacetFilterType[] DatasetRelationshipFacets = {
             new FacetFilterType("fundingPeriodName"),
             new FacetFilterType("fundingStreamNames", true)
         };
@@ -47,7 +50,7 @@ namespace CalculateFunding.Services.Specs
             return health;
         }
 
-        async public Task<IActionResult> SearchSpecificationDatasetRelationships(SearchModel searchModel)
+        public async Task<IActionResult> SearchSpecificationDatasetRelationships(SearchModel searchModel)
         {
             if (searchModel == null || searchModel.PageNumber < 1 || searchModel.Top < 1)
             {
@@ -59,20 +62,43 @@ namespace CalculateFunding.Services.Specs
             try
             {
                 searchModel.OrderBy = DefaultOrderBy;
+                
+                IEnumerable<Task<SearchResults<SpecificationIndex>>> searchTasks = await BuildSearchTasks(searchModel, DatasetRelationshipFacets);
 
-                SearchResults<SpecificationIndex> searchResults = await PerformNonFacetSearch(searchModel);
-
-                SpecificationDatasetRelationshipsSearchResults results = new SpecificationDatasetRelationshipsSearchResults
+                if (searchTasks.IsNullOrEmpty())
                 {
-                    TotalCount = (int)(searchResults?.TotalCount ?? 0),
-                    Results = searchResults.Results?.Select(m => new SpecificationDatasetRelationshipsSearchResult
+                    return new InternalServerErrorResult("Failed to build search tasks");
+                }
+
+                SpecificationDatasetRelationshipsSearchResults results = new SpecificationDatasetRelationshipsSearchResults();
+
+                await TaskHelper.WhenAllAndThrow(searchTasks.ToArray());
+
+                foreach (Task<SearchResults<SpecificationIndex>> searchTask in searchTasks)
+                {
+                    SearchResults<SpecificationIndex> searchResult = searchTask.Result;
+
+                    if (!searchResult.Facets.IsNullOrEmpty())
                     {
-                        SpecificationId = m.Result.Id,
-                        SpecificationName = m.Result.Name,
-                        DefinitionRelationshipCount = m.Result.DataDefinitionRelationshipIds.IsNullOrEmpty()
-                            ? 0 : m.Result.DataDefinitionRelationshipIds.Count()
-                    })
-                };
+                        results.Facets = searchResult.Facets.Concat(searchResult.Facets);
+                    }
+                    else
+                    {
+                        results.TotalCount = (int)(searchResult.TotalCount ?? 0);
+                        results.Results = searchResult.Results?.Select(m => new SpecificationDatasetRelationshipsSearchResult
+                        {
+                            SpecificationId = m.Result.Id,
+                            SpecificationName = m.Result.Name,
+                            FundingPeriodName = m.Result.FundingPeriodName,
+                            FundingStreamNames = m.Result.FundingStreamNames,
+                            TotalMappedDataSets = m.Result.TotalMappedDataSets.GetValueOrDefault(),
+                            MapDatasetLastUpdated = m.Result.MapDatasetLastUpdated,
+                            DefinitionRelationshipCount = m.Result.DataDefinitionRelationshipIds.IsNullOrEmpty()
+                                ? 0
+                                : m.Result.DataDefinitionRelationshipIds.Count()
+                        });
+                    }
+                }
 
                 return new OkObjectResult(results);
             }
@@ -84,7 +110,7 @@ namespace CalculateFunding.Services.Specs
             }
         }
 
-        async public Task<IActionResult> SearchSpecifications(SearchModel searchModel)
+        public async Task<IActionResult> SearchSpecifications(SearchModel searchModel)
         {
             if (searchModel == null || searchModel.PageNumber < 1 || searchModel.Top < 1)
             {
@@ -93,16 +119,11 @@ namespace CalculateFunding.Services.Specs
                 return new BadRequestObjectResult("An invalid search model was provided");
             }
 
-            if (searchModel == null)
-            {
-                return new BadRequestObjectResult("An invalid search model was provided");
-            }
-
             try
             {
                 searchModel.OrderBy = DefaultOrderBy;
 
-                IEnumerable<Task<SearchResults<SpecificationIndex>>> searchTasks = await BuildSearchTasks(searchModel, Facets);
+                IEnumerable<Task<SearchResults<SpecificationIndex>>> searchTasks = await BuildSearchTasks(searchModel, SpecificationIndexFacets);
 
                 if (searchTasks.IsNullOrEmpty())
                 {
@@ -113,7 +134,7 @@ namespace CalculateFunding.Services.Specs
 
                 await TaskHelper.WhenAllAndThrow(searchTasks.ToArraySafe());
 
-                foreach (var searchTask in searchTasks)
+                foreach (Task<SearchResults<SpecificationIndex>> searchTask in searchTasks)
                 {
                     SearchResults<SpecificationIndex> searchResult = searchTask.Result;
 
@@ -123,8 +144,8 @@ namespace CalculateFunding.Services.Specs
                     }
                     else
                     {
-                        results.TotalCount = (int)(searchResult?.TotalCount ?? 0);
-                        results.Results = searchResult?.Results?.Select(m => new SpecificationSearchResult
+                        results.TotalCount = (int)(searchResult.TotalCount ?? 0);
+                        results.Results = searchResult.Results?.Select(m => new SpecificationSearchResult
                         {
                             Id = m.Result.Id,
                             Name = m.Result.Name,
@@ -145,22 +166,6 @@ namespace CalculateFunding.Services.Specs
 
                 return new InternalServerErrorResult($"Failed to query search, with exception: {exception.Message}");
             }
-        }
-
-        async Task<SearchModel> GetSearchModelFromRequest(HttpRequest request)
-        {
-            string json = await request.GetRawBodyStringAsync();
-
-            SearchModel searchModel = JsonConvert.DeserializeObject<SearchModel>(json);
-
-            if (searchModel == null || searchModel.PageNumber < 1 || searchModel.Top < 1)
-            {
-                _logger.Error("A null or invalid search model was provided for searching specifications");
-
-                return null;
-            }
-
-            return searchModel;
         }
     }
 }

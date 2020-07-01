@@ -23,6 +23,7 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
+using CalculateFunding.Services.Core.Interfaces.Helpers;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Services.DataImporter;
@@ -101,6 +102,8 @@ namespace CalculateFunding.Api.Datasets
 
         public void RegisterComponents(IServiceCollection builder)
         {
+            builder.AddSingleton<IDateTimeProvider, DateTimeProvider>();
+            
             builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();
 
             builder

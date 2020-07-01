@@ -236,11 +236,15 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .PublishStatus
                 .Should()
                 .Be(PublishStatus.Approved);
-
-            await
-                searchRepository
+            
+            await _specificationIndexer
                 .Received(1)
-                .Index(Arg.Is<IEnumerable<SpecificationIndex>>(m => m.First().Status == "Approved"));
+                .Index(Arg.Is<Specification>(_ => _.Current.PublishStatus == PublishStatus.Approved));
+
+            // await
+            //     searchRepository
+            //     .Received(1)
+            //     .Index(Arg.Is<IEnumerable<SpecificationIndex>>(m => m.First().Status == "Approved"));
 
             await
                 versionRepository
@@ -363,10 +367,14 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .Should()
                 .Be(PublishStatus.Updated);
 
-            await
-                searchRepository
+            await _specificationIndexer
                 .Received(1)
-                .Index(Arg.Is<IEnumerable<SpecificationIndex>>(m => m.First().Status == "Updated"));
+                .Index(Arg.Is<Specification>(_ => _.Current.PublishStatus == PublishStatus.Updated));
+
+            // await
+            //     searchRepository
+            //     .Received(1)
+            //     .Index(Arg.Is<IEnumerable<SpecificationIndex>>(m => m.First().Status == "Updated"));
 
             await
                 versionRepository
@@ -374,59 +382,59 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                  .SaveVersion(Arg.Is(newSpecVersion));
         }
 
-        [TestMethod]
-        public void EditSpecificationStatus_GivenSomethingGoesWrongDuringIndexing_ShouldThrowException()
-        {
-            //Arrange
-            const string errorMessage = "Encountered 802 error code";
-
-            EditStatusModel specificationEditStatusModel = new EditStatusModel
-            {
-                PublishStatus = PublishStatus.Approved
-            };
-
-            ILogger logger = CreateLogger();
-
-            Specification specification = CreateSpecification();
-
-            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-
-            specificationsRepository
-                .GetSpecificationById(Arg.Is(SpecificationId))
-                .Returns(specification);
-
-            specificationsRepository
-                .UpdateSpecification(Arg.Any<Specification>())
-                .Returns(HttpStatusCode.OK);
-
-            ISearchRepository<SpecificationIndex> searchRepository = CreateSearchRepository();
-            searchRepository
-                .Index(Arg.Any<IEnumerable<SpecificationIndex>>())
-                .Returns(new[] { new IndexError() { ErrorMessage = errorMessage } });
-
-            SpecificationVersion newSpecVersion = specification.Current.Clone() as SpecificationVersion;
-            newSpecVersion.PublishStatus = PublishStatus.Approved;
-
-            IVersionRepository<SpecificationVersion> versionRepository = CreateVersionRepository();
-            versionRepository
-                .CreateVersion(Arg.Any<SpecificationVersion>(), Arg.Any<SpecificationVersion>())
-                .Returns(newSpecVersion);
-
-            SpecificationsService service = CreateService(
-                logs: logger, specificationsRepository: specificationsRepository, searchRepository: searchRepository, specificationVersionRepository: versionRepository);
-
-            // Act
-            Func<Task<IActionResult>> editSpecificationStatus = async () => await service.EditSpecificationStatus(SpecificationId, specificationEditStatusModel, null);
-
-            // Assert
-            editSpecificationStatus
-                .Should()
-                .Throw<ApplicationException>()
-                .Which
-                .Message
-                .Should()
-                .Be($"Could not index specification {specification.Current.Id} because: {errorMessage}");
-        }
+        // [TestMethod]
+        // public void EditSpecificationStatus_GivenSomethingGoesWrongDuringIndexing_ShouldThrowException()
+        // {
+        //     //Arrange
+        //     const string errorMessage = "Encountered 802 error code";
+        //
+        //     EditStatusModel specificationEditStatusModel = new EditStatusModel
+        //     {
+        //         PublishStatus = PublishStatus.Approved
+        //     };
+        //
+        //     ILogger logger = CreateLogger();
+        //
+        //     Specification specification = CreateSpecification();
+        //
+        //     ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+        //
+        //     specificationsRepository
+        //         .GetSpecificationById(Arg.Is(SpecificationId))
+        //         .Returns(specification);
+        //
+        //     specificationsRepository
+        //         .UpdateSpecification(Arg.Any<Specification>())
+        //         .Returns(HttpStatusCode.OK);
+        //
+        //     ISearchRepository<SpecificationIndex> searchRepository = CreateSearchRepository();
+        //     searchRepository
+        //         .Index(Arg.Any<IEnumerable<SpecificationIndex>>())
+        //         .Returns(new[] { new IndexError() { ErrorMessage = errorMessage } });
+        //
+        //     SpecificationVersion newSpecVersion = specification.Current.Clone() as SpecificationVersion;
+        //     newSpecVersion.PublishStatus = PublishStatus.Approved;
+        //
+        //     IVersionRepository<SpecificationVersion> versionRepository = CreateVersionRepository();
+        //     versionRepository
+        //         .CreateVersion(Arg.Any<SpecificationVersion>(), Arg.Any<SpecificationVersion>())
+        //         .Returns(newSpecVersion);
+        //
+        //     SpecificationsService service = CreateService(
+        //         logs: logger, specificationsRepository: specificationsRepository, searchRepository: searchRepository, specificationVersionRepository: versionRepository);
+        //
+        //     // Act
+        //     Func<Task<IActionResult>> editSpecificationStatus = async () => await service.EditSpecificationStatus(SpecificationId, specificationEditStatusModel, null);
+        //
+        //     // Assert
+        //     editSpecificationStatus
+        //         .Should()
+        //         .Throw<ApplicationException>()
+        //         .Which
+        //         .Message
+        //         .Should()
+        //         .Be($"Could not index specification {specification.Current.Id} because: {errorMessage}");
+        // }
     }
 }
 

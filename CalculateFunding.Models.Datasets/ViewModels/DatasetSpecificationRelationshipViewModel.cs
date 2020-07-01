@@ -1,4 +1,5 @@
-﻿using CalculateFunding.Common.Models;
+﻿using System;
+using CalculateFunding.Common.Models;
 
 namespace CalculateFunding.Models.Datasets.ViewModels
 {
@@ -17,5 +18,9 @@ namespace CalculateFunding.Models.Datasets.ViewModels
         public bool IsProviderData { get; set; }
 
         public bool IsLatestVersion { get; set; }
+        
+        public DateTimeOffset? LastUpdatedDate { get; set; }
+        
+        public Reference LastUpdatedAuthor { get; set; }
     }
 }

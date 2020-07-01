@@ -310,6 +310,10 @@ namespace CalculateFunding.Services.Datasets
                         throw new Exception($"Failed to create job of type '{DefinitionNames.CreateInstructAllocationJob}' on specification '{specificationId}'", ex);
                     }
                 }
+                
+                //queue reindex spec job here also once we're done (NB I'm not sure I understand why the
+                //use of Polly policies is so inconsistent in this service method
+                await _specsApiClient.ReIndexSpecification(specificationId);
 
                 if (isScopedJob)
                 {
@@ -927,8 +931,8 @@ namespace CalculateFunding.Services.Datasets
             };
 
             Job createdJob = await _jobManagement.QueueJob(job);
+            
             _logger.Information($"New job of type '{createdJob.JobDefinitionId}' created with id: '{createdJob.Id}'");
-            return;
         }
 
         private async Task SendProviderSourceDatasetCleanupMessageToTopic(string specificationId, string topicName, IEnumerable<ProviderSourceDataset> providers)

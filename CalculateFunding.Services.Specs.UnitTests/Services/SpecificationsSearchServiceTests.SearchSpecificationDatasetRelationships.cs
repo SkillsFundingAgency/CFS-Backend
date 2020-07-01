@@ -96,7 +96,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         }
 
         [TestMethod]
-        async public Task SearchSpecificationDatasetRelationships_GivenSearchThrowsException_ReturnsStatusCode500()
+        public async Task SearchSpecificationDatasetRelationships_GivenSearchThrowsException_ReturnsStatusCode500()
         {
             //Arrange
             SearchModel model = CreateSearchModel();
@@ -127,7 +127,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         }
 
         [TestMethod]
-        async public Task SearchSpecificationDatasetRelationships_GivenSearchReturnsResults_ReturnsOKResult()
+        public async Task SearchSpecificationDatasetRelationships_GivenSearchReturnsResults_ReturnsOKResult()
         {
             //Arrange
             SearchModel model = CreateSearchModel();
@@ -156,7 +156,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         }
 
         [TestMethod]
-        async public Task SearchSpecificationDatasetRelationships_GivenSearchReturnsResultsAndDataDefinitionsIsNull_ReturnsOKResult()
+        public async Task SearchSpecificationDatasetRelationships_GivenSearchReturnsResultsAndDataDefinitionsIsNull_ReturnsOKResult()
         {
             //Arrange
             SearchModel model = CreateSearchModel();
@@ -215,9 +215,72 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                .Should()
                .Be(0);
         }
+        
+        [TestMethod]
+        public async Task SearchSpecificationDatasetRelationships_GivenSearchReturnsFacets_ReturnsOKResult()
+        {
+            //Arrange
+            SearchModel model = CreateSearchModel();
+            
+            SearchResults<SpecificationIndex> searchResults = new SearchResults<SpecificationIndex>
+            {
+                TotalCount = 1,
+                Facets = new List<Facet>
+                {
+                    new Facet
+                    {
+                        Name = "stuff",
+                        FacetValues = new[]
+                        {
+                            new FacetValue
+                            {
+                                Count = 200,
+                                Name = "stuff one"
+                            }, 
+                        }
+                    },
+                }
+            };
+
+            ISearchRepository<SpecificationIndex> searchRepository = CreateSearchRepository();
+            searchRepository
+                .Search(Arg.Is("SearchTermTest"), Arg.Any<SearchParameters>())
+                .Returns(searchResults);
+
+            ILogger logger = CreateLogger();
+
+            SpecificationsSearchService service = CreateSearchService(searchRepository, logger);
+
+            //Act
+            IActionResult result = await service.SearchSpecificationDatasetRelationships(model);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>();
+
+            OkObjectResult okObjectResult = result as OkObjectResult;
+
+            SpecificationDatasetRelationshipsSearchResults specificationSearchResults = okObjectResult.Value as SpecificationDatasetRelationshipsSearchResults;
+
+            specificationSearchResults
+                .Results
+                .Should()
+                .BeNullOrEmpty();
+
+            specificationSearchResults
+                .TotalCount
+                .Should()
+                .Be(0);
+
+            searchResults
+                .Facets
+                .Should()
+                .BeEquivalentTo(searchResults.Facets);
+        }
 
         [TestMethod]
-        async public Task SearchSpecificationDatasetRelationships_GivenSearchReturnsResultsAndDataDefinitionsHasItems_ReturnsOKResult()
+        public async Task SearchSpecificationDatasetRelationships_GivenSearchReturnsResultsAndDataDefinitionsHasItems_ReturnsOKResult()
         {
             //Arrange
             SearchModel model = CreateSearchModel();

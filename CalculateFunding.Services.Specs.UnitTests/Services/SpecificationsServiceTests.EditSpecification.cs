@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Net;
-using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.Models;
@@ -21,7 +19,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Newtonsoft.Json;
 using NSubstitute;
 using PolicyModels = CalculateFunding.Common.ApiClient.Policies.Models;
 
@@ -30,11 +27,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 {
     public partial class SpecificationsServiceTests
     {
-        private readonly IQueryCollection _queryStringValues = 
-            new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "specificationId", new StringValues(SpecificationId) }
-            });
         private readonly PolicyModels.FundingPeriod _fundingPeriod = new PolicyModels.FundingPeriod
         {
             Id = "fp10",
@@ -153,7 +145,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         public async Task EditSpecification_GivenFailsToUpdateCosmosWithBadRequest_ReturnsBadRequest()
         {
             //Arrange
-            var existingFundingStreams = _specification.Current.FundingStreams;
+            IEnumerable<Reference> existingFundingStreams = _specification.Current.FundingStreams;
             SpecificationEditModel specificationEditModel = new SpecificationEditModel
             {
                 FundingPeriodId = "fp10",
@@ -197,15 +189,10 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         public async Task EditSpecification_GivenProviderVersionChanges_CallsRegenerateScopedProviders()
         {
             //Arrange
-            var existingFundingStreams = _specification.Current.FundingStreams;
             SpecificationEditModel specificationEditModel = new SpecificationEditModel
             {
                 FundingPeriodId = "fp10",
                 Name = "new spec name"
-            };
-            PolicyModels.FundingStream fundingStream = new PolicyModels.FundingStream
-            {
-                Id = existingFundingStreams.First().Id
             };
             Models.Specs.SpecificationVersion newSpecVersion = _specification.Current.Clone() as Models.Specs.SpecificationVersion;
             newSpecVersion.Name = specificationEditModel.Name;
@@ -216,21 +203,15 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             _providersApiClient.RegenerateProviderSummariesForSpecification(_specification.Id, true)
                 .Returns(new ApiResponse<bool>(HttpStatusCode.OK, true));
 
-            var service = CreateSpecificationsService(newSpecVersion);
+            SpecificationsService service = CreateSpecificationsService(newSpecVersion);
 
             //Act
             IActionResult result = await service.EditSpecification(SpecificationId, specificationEditModel, null, null);
 
-            //Arrange
-            await
-                _searchRepository
-                    .Received(1)
-                    .Index(Arg.Is<IEnumerable<SpecificationIndex>>(
-                            m => m.First().Id == SpecificationId &&
-                            m.First().Name == "new spec name" &&
-                            m.First().FundingPeriodId == "fp10" &&
-                            m.First().FundingStreamIds.Count() == 1
-                        ));
+            await _specificationIndexer
+                .Received(1)
+                .Index(Arg.Is<Specification>(_ => ReferenceEquals(_.Current, newSpecVersion)));
+
             await
                 _cacheProvider
                     .Received(1)
@@ -289,7 +270,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         public async Task EditSpecification_GivenChanges_UpdatesSearchAndSendsMessage()
         {
             //Arrange
-            var existingFundingStreams = _specification.Current.FundingStreams;
+            IEnumerable<Reference> existingFundingStreams = _specification.Current.FundingStreams;
             SpecificationEditModel specificationEditModel = new SpecificationEditModel
             {
                 FundingPeriodId = "fp10",
@@ -305,21 +286,15 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             newSpecVersion.FundingPeriod.Id = specificationEditModel.FundingPeriodId;
             newSpecVersion.FundingStreams = new[] { new Reference { Id = "fs11" } };
 
-            var service = CreateSpecificationsService(newSpecVersion);
+            SpecificationsService service = CreateSpecificationsService(newSpecVersion);
 
             //Act
             IActionResult result = await service.EditSpecification(SpecificationId, specificationEditModel, null, null);
 
-            //Arrange
-            await
-                _searchRepository
-                    .Received(1)
-                    .Index(Arg.Is<IEnumerable<SpecificationIndex>>(
-                            m => m.First().Id == SpecificationId &&
-                            m.First().Name == "new spec name" &&
-                            m.First().FundingPeriodId == "fp10" &&
-                            m.First().FundingStreamIds.Count() == 1
-                        ));
+            await _specificationIndexer
+                .Received(1)
+                .Index(Arg.Is<Specification>(_ => ReferenceEquals(_.Current, newSpecVersion)));
+
             await
                 _cacheProvider
                     .Received(1)
@@ -368,16 +343,11 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         public async Task EditSpecification_GivenChanges_CreatesNewVersionWithTrimmedName(string specificationEditModelName, string resultSpecificationName)
         {
             //Arrange
-            var existingFundingStreams = _specification.Current.FundingStreams;
             SpecificationEditModel specificationEditModel = new SpecificationEditModel
             {
                 FundingPeriodId = "fp10",
                 Name = specificationEditModelName,
                 ProviderVersionId = _specification.Current.ProviderVersionId
-            };
-            PolicyModels.FundingStream fundingStream = new PolicyModels.FundingStream
-            {
-                Id = existingFundingStreams.First().Id
             };
             Models.Specs.SpecificationVersion newSpecVersion = _specification.Current.Clone() as Models.Specs.SpecificationVersion;
             newSpecVersion.Name = specificationEditModel.Name.Trim();
@@ -386,21 +356,16 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             _versionRepository
                 .CreateVersion(Arg.Any<Models.Specs.SpecificationVersion>(), Arg.Any<Models.Specs.SpecificationVersion>())
                 .Returns(newSpecVersion);
-            var service = CreateSpecificationsService(newSpecVersion);
+            SpecificationsService service = CreateSpecificationsService(newSpecVersion);
 
             //Act
             IActionResult result = await service.EditSpecification(SpecificationId, specificationEditModel, null, null);
 
             //Assert
-            await
-                _searchRepository
-                    .Received(1)
-                    .Index(Arg.Is<IEnumerable<SpecificationIndex>>(
-                            m => m.First().Id == SpecificationId &&
-                            m.First().Name == resultSpecificationName &&
-                            m.First().FundingPeriodId == "fp10" &&
-                            m.First().FundingStreamIds.Count() == 1
-                        ));
+            await _specificationIndexer
+                .Received(1)
+                .Index(Arg.Is<Specification>(_ => ReferenceEquals(_.Current, newSpecVersion)));
+
             await
                 _cacheProvider
                     .Received(1)
@@ -448,15 +413,10 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             IActionResult result = await service.EditSpecification(SpecificationId, specificationEditModel, null, null);
 
             //Assert
-            await
-                _searchRepository
-                    .Received(1)
-                    .Index(Arg.Is<IEnumerable<SpecificationIndex>>(
-                            m => m.First().Id == SpecificationId &&
-                            m.First().Name == "new spec name" &&
-                            m.First().FundingPeriodId == "fp10" &&
-                            m.First().FundingStreamIds.Count() == 1
-                        ));
+            await _specificationIndexer
+                .Received(1)
+                .Index(Arg.Is<Specification>(_ => ReferenceEquals(_.Current, newSpecVersion)));
+
             await
                 _cacheProvider
                     .Received(1)
@@ -474,51 +434,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                _versionRepository
                 .Received(1)
                 .SaveVersion(Arg.Is(newSpecVersion));
-        }
-
-        [TestMethod]
-        public void EditSpecification_WhenIndexingReturnsErrors_ShouldThrowException()
-        {
-            //Arrange
-            var existingFundingStreams = _specification.Current.FundingStreams;
-            const string errorMessage = "Encountered error 802 code";
-            SpecificationEditModel specificationEditModel = new SpecificationEditModel
-            {
-                FundingPeriodId = "fp10",
-                Name = "new spec name",
-                ProviderVersionId = _specification.Current.ProviderVersionId
-            };
-            PolicyModels.FundingStream fundingStream = new PolicyModels.FundingStream
-            {
-                Id = existingFundingStreams.First().Id
-            };
-            Models.Specs.SpecificationVersion newSpecVersion = _specification.Current.Clone() as Models.Specs.SpecificationVersion;
-            newSpecVersion.Name = specificationEditModel.Name;
-            newSpecVersion.FundingPeriod.Id = specificationEditModel.FundingPeriodId;
-            newSpecVersion.FundingStreams = new[] { new Reference { Id = "fs11" } };
-            _searchRepository
-                .Index(Arg.Any<IEnumerable<SpecificationIndex>>())
-                .Returns(new[] { new IndexError() { ErrorMessage = errorMessage } });
-            var service = CreateSpecificationsService(newSpecVersion);
-
-            //Act
-            Func<Task<IActionResult>> editSpecification = async () => await service.EditSpecification(SpecificationId, specificationEditModel, null, null);
-
-            //Assert
-            editSpecification
-                .Should()
-                .Throw<ApplicationException>()
-                .Which
-                .Message
-                .Should()
-                .Be($"Could not index specification {_specification.Current.Id} because: {errorMessage}");
-        }
-
-        private static MemoryStream CreateMemoryStreamForModel(SpecificationEditModel specificationEditModel)
-        {
-            string json = JsonConvert.SerializeObject(specificationEditModel);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            return new MemoryStream(byteArray);
         }
     }
 }

@@ -12,18 +12,31 @@ namespace CalculateFunding.Functions.DebugQueue
     public static class Specs
     {
         [FunctionName("on-add-relationship-event")]
-        public static async Task Run([QueueTrigger(ServiceBusConstants.QueueNames.AddDefinitionRelationshipToSpecification, Connection = "AzureConnectionString")]string item, ILogger log)
+        public static async Task RunAddRelationship([QueueTrigger(ServiceBusConstants.QueueNames.AddDefinitionRelationshipToSpecification, Connection = "AzureConnectionString")]string item, ILogger log)
         {
-            using (IServiceScope scope = Functions.Specs.Startup.RegisterComponents(new ServiceCollection()).CreateScope())
-            {
-                Message message = Helpers.ConvertToMessage<AssignDefinitionRelationshipMessage>(item);
+            using IServiceScope scope = Functions.Specs.Startup.RegisterComponents(new ServiceCollection()).CreateScope();
+            
+            Message message = Helpers.ConvertToMessage<AssignDefinitionRelationshipMessage>(item);
 
-                OnAddRelationshipEvent function = scope.ServiceProvider.GetService<OnAddRelationshipEvent>();
+            OnAddRelationshipEvent function = scope.ServiceProvider.GetService<OnAddRelationshipEvent>();
 
-                await function.Run(message);
+            await function.Run(message);
 
-                log.LogInformation($"C# Queue trigger function processed: {item}");
-            }
+            log.LogInformation($"C# Queue trigger function processed: {item}");
+        }
+        
+        [FunctionName("on-reindex-specification")]
+        public static async Task RunReIndexSpec([QueueTrigger(ServiceBusConstants.QueueNames.ReIndexSingleSpecification, Connection = "AzureConnectionString")]string item, ILogger log)
+        {
+            using IServiceScope scope = Functions.Specs.Startup.RegisterComponents(new ServiceCollection()).CreateScope();
+            
+            Message message = Helpers.ConvertToMessage<Message>(item);
+
+            OnReIndexSpecification function = scope.ServiceProvider.GetService<OnReIndexSpecification>();
+
+            await function.Run(message);
+
+            log.LogInformation($"C# Queue trigger function processed: {item}");
         }
     }
 }
