@@ -1092,11 +1092,11 @@ namespace CalculateFunding.Services.Datasets.Services
         public async Task ProcessDataset_GivenPayloadAndTableResultsWithProviderIdsForScopedDataset_NotCreateNewAllocationJob()
         {
             GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"),
-                ("user-id", UserId), ("user-name", Username));
+                ("user-id", UserId), ("user-name", Username), ("parentJobId", "parentJob1"));
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
                 .WithDefinition(NewReference(rf => rf.WithId(DataDefintionId)))
                 .WithHistory(NewDatasetVersion())));
-            AndTheJobDetails("job1", JobConstants.DefinitionNames.MapScopedDatasetJob);
+            AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheSpecification(SpecificationId, NewSpecification(_ =>
             _.WithId(SpecificationId)
             .WithProviderVersionId(ProviderVersionId)
@@ -1145,11 +1145,11 @@ namespace CalculateFunding.Services.Datasets.Services
         public async Task ProcessDataset_GivenPayloadAndTableResultsWithProviderIdsForScopedDataset_CreateNewMapDatasetJobsForOtherRelationshipsInSpecification()
         {
             GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"),
-                ("user-id", UserId), ("user-name", Username));
+                ("user-id", UserId), ("user-name", Username), ("parentJobId", "parentJob1"));
             AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
                 .WithDefinition(NewReference(rf => rf.WithId(DataDefintionId)))
                 .WithHistory(NewDatasetVersion())));
-            AndTheJobDetails("job1", JobConstants.DefinitionNames.MapScopedDatasetJob);
+            AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
             AndTheSpecification(SpecificationId, NewSpecification(_ =>
             _.WithId(SpecificationId)
             .WithProviderVersionId(ProviderVersionId)

@@ -18,6 +18,7 @@ using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.Datasets.ViewModels;
 using CalculateFunding.Models.Messages;
 using CalculateFunding.Services.CodeGeneration.VisualBasic;
+using CalculateFunding.Services.Compiler;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Constants;
@@ -329,7 +330,11 @@ namespace CalculateFunding.Services.Datasets
                 return new StatusCodeResult((int)statusCode);
             }
 
-            string jobToQueue = relationship.IsSetAsProviderData ? JobConstants.DefinitionNames.MapScopedDatasetJob : JobConstants.DefinitionNames.MapDatasetJob;
+            IEnumerable<CalculationResponseModel> allCalculations = await _calcsRepository.GetCurrentCalculationsBySpecificationId(relationship.Specification.Id);
+
+            bool generateCalculationAggregations = !allCalculations.IsNullOrEmpty() &&
+                                                                   SourceCodeHelpers.HasCalculationAggregateFunctionParameters(allCalculations.Select(m => m.SourceCode));
+
             Trigger trigger = new Trigger
             {
                 EntityId = dataset.Id,
@@ -341,7 +346,7 @@ namespace CalculateFunding.Services.Datasets
             {
                 InvokerUserDisplayName = user?.Name,
                 InvokerUserId = user?.Id,
-                JobDefinitionId = jobToQueue,
+                JobDefinitionId = JobConstants.DefinitionNames.MapDatasetJob,
                 MessageBody = JsonConvert.SerializeObject(dataset),
                 Properties = new Dictionary<string, string>
                 {
@@ -354,6 +359,37 @@ namespace CalculateFunding.Services.Datasets
                 Trigger = trigger,
                 CorrelationId = correlationId
             };
+
+            Job parentJob = null;
+
+            if (relationship.IsSetAsProviderData)
+            {
+                string parentJobDefinition = generateCalculationAggregations ?
+                            JobConstants.DefinitionNames.MapScopedDatasetJobWithAggregation :
+                            JobConstants.DefinitionNames.MapScopedDatasetJob;
+
+                parentJob = await _jobManagement.QueueJob(new JobCreateModel
+                {
+                    InvokerUserDisplayName = user?.Name,
+                    InvokerUserId = user?.Id,
+                    JobDefinitionId = parentJobDefinition,
+                    Properties = new Dictionary<string, string>
+                    {
+                        { "specification-id", relationship.Specification.Id },
+                        { "provider-cache-key", $"{CacheKeys.ScopedProviderSummariesPrefix}{relationship.Specification.Id}" },
+                        { "specification-summary-cache-key", $"{CacheKeys.SpecificationSummaryById}{relationship.Specification.Id}" }
+                    },
+                    SpecificationId = relationship.Specification.Id,
+                    Trigger = trigger,
+                    CorrelationId = correlationId
+                });
+            }
+
+            if (parentJob != null)
+            {
+                job.ParentJobId = parentJob.Id;
+                job.Properties.Add("parentJobId", parentJob.Id);
+            }
 
             await _jobManagement.QueueJob(job);
             

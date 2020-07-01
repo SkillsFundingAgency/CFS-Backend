@@ -174,10 +174,14 @@ namespace CalculateFunding.Services.Datasets
                 return;
             }
 
-            bool isScopedJob = jobResponse.JobDefinitionId == JobConstants.DefinitionNames.MapScopedDatasetJob;
+            // if we need to spawn any jobs then the map scoped dataset job needs to be set as the parent job
+            string parentJobId = message.UserProperties.ContainsKey("parentJobId") ? message.UserProperties["parentJobId"].ToString() : null;
+            // if it contains a parent job id then this is a child job of the map scoped datasets Job which means it is a scoped provider job
+            bool isScopedJob = !string.IsNullOrWhiteSpace(parentJobId);
+            // if this is a scoped job or it's a child job of the scoped dataset job then we don't want to trigger an instruct
             bool queueCalculationJob = !isScopedJob &&
                 !(message.UserProperties.ContainsKey("disableQueueCalculationJob") && bool.Parse(message.UserProperties["disableQueueCalculationJob"].ToString()));
-
+            
             await _jobManagement.UpdateJobStatus(jobId, 0, null);
 
             if (dataset == null)
@@ -356,7 +360,7 @@ namespace CalculateFunding.Services.Datasets
                                                 { "disableQueueCalculationJob", "true" }
                                             },
                             SpecificationId = nonScopedRelationship.Specification.Id,
-                            ParentJobId = jobId,
+                            ParentJobId = parentJobId,
                             Trigger = trigger,
                             CorrelationId = correlationId,
                         };

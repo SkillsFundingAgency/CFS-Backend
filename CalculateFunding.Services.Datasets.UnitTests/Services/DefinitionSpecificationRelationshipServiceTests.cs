@@ -1775,6 +1775,15 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IJobManagement jobManagement = CreateJobManagement();
 
+            jobManagement.QueueJob(Arg.Is<JobCreateModel>(j => j.JobDefinitionId == JobConstants.DefinitionNames.MapScopedDatasetJob &&
+                                                       j.SpecificationId == relationship.Specification.Id &&
+                                                       j.Properties.ContainsKey("provider-cache-key") &&
+                                                       j.Properties["provider-cache-key"] == $"{CacheKeys.ScopedProviderSummariesPrefix}{relationship.Specification.Id}" &&
+                                                       j.Properties.ContainsKey("specification-summary-cache-key") &&
+                                                       j.Properties["specification-summary-cache-key"] == $"{CacheKeys.SpecificationSummaryById}{relationship.Specification.Id}"))
+                .Returns(new Job { Id = "parentJobId" });
+
+
             IMessengerService messengerService = CreateMessengerService();
 
             DefinitionSpecificationRelationshipService service = CreateService(logger: logger, datasetRepository: datasetRepository, jobManagement: jobManagement, messengerService: messengerService);
@@ -1789,14 +1798,25 @@ namespace CalculateFunding.Services.Datasets.Services
 
             await jobManagement
                 .Received(1)
-                .QueueJob(Arg.Is<JobCreateModel>(j => j.JobDefinitionId == JobConstants.DefinitionNames.MapScopedDatasetJob &&
+                .QueueJob(Arg.Is<JobCreateModel>(j => j.JobDefinitionId == JobConstants.DefinitionNames.MapDatasetJob &&
                                                        j.SpecificationId == relationship.Specification.Id &&
                                                        j.Properties.ContainsKey("user-id") &&
                                                        j.Properties["user-id"] == "user-id-1" &&
                                                        j.Properties.ContainsKey("user-name") &&
                                                        j.Properties["user-name"] == "user-name-1" &&
                                                        j.Properties.ContainsKey("relationship-id") &&
-                                                       j.Properties["relationship-id"] == "rel-1"));
+                                                       j.Properties["relationship-id"] == "rel-1" &&
+                                                       j.Properties.ContainsKey("parentJobId") &&
+                                                       j.Properties["parentJobId"] == "parentJobId"));
+
+            await jobManagement
+                .Received(1)
+                .QueueJob(Arg.Is<JobCreateModel>(j => j.JobDefinitionId == JobConstants.DefinitionNames.MapScopedDatasetJob &&
+                                                       j.SpecificationId == relationship.Specification.Id &&
+                                                       j.Properties.ContainsKey("provider-cache-key") &&
+                                                       j.Properties["provider-cache-key"] == $"{CacheKeys.ScopedProviderSummariesPrefix}{relationship.Specification.Id}" &&
+                                                       j.Properties.ContainsKey("specification-summary-cache-key") &&
+                                                       j.Properties["specification-summary-cache-key"] == $"{CacheKeys.SpecificationSummaryById}{relationship.Specification.Id}"));
 
             await messengerService
                 .DidNotReceive()
