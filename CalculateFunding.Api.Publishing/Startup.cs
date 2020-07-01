@@ -134,8 +134,6 @@ namespace CalculateFunding.Api.Publishing
             builder.AddScoped<IProfileTotalsService, ProfileTotalsService>();
             builder.AddSingleton<IFundingConfigurationService, FundingConfigurationService>();
 
-            builder.AddScoped<IPublishingFeatureFlag, PublishingFeatureFlag>();
-
             builder.AddScoped<IFundingStreamPaymentDatesQuery, FundingStreamPaymentDatesQuery>();
             builder.AddScoped<IFundingStreamPaymentDatesIngestion, FundingStreamPaymentDatesIngestion>();
             builder.AddSingleton<ICsvUtils, CsvUtils>();

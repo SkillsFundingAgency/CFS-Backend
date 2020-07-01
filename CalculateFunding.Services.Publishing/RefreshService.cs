@@ -283,7 +283,7 @@ namespace CalculateFunding.Services.Publishing
             _logger.Information("Finished profiling providers for refresh");
 
             // snapshot the current published providers so any changes aren't reflected when we detect variations later
-            await _variationService.SnapShot(publishedProviders, fundingStream.Id);
+            _variationService.SnapShot(publishedProviders, fundingStream.Id);
 
             //we need enumerate a readonly cut of this as we add to it in some variations now (for missing providers not in scope)
             Dictionary<string, PublishedProvider> publishedProvidersReadonlyDictionary = publishedProviders.ToDictionary(_ => _.Key, _ => _.Value);

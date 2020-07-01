@@ -15,60 +15,45 @@ namespace CalculateFunding.Services.Publishing
 {
     public class VariationService : IVariationService
     {
-        private readonly IPublishingFeatureFlag _publishingFeatureFlag;
         private readonly IDetectProviderVariations _detectProviderVariations;
         private readonly IApplyProviderVariations _applyProviderVariations;
         private readonly ConcurrentDictionary<string, IDictionary<string, PublishedProviderSnapShots>> _snapshots;
         private readonly IRecordVariationErrors _recordVariationErrors;
         private readonly ILogger _logger;
-        private bool? _variationsEnabled;
 
         public int ErrorCount => _applyProviderVariations.ErrorMessages.Count();
-
-        private async Task<bool> VariationsEnabled()
-        {
-            _variationsEnabled ??= await _publishingFeatureFlag.IsVariationsEnabled();
-
-            return _variationsEnabled.Value;
-        }
 
         public VariationService(IDetectProviderVariations detectProviderVariations,
             IApplyProviderVariations applyProviderVariations,
             IRecordVariationErrors recordVariationErrors,
-            ILogger logger,
-            IPublishingFeatureFlag publishingFeatureFlag)
+            ILogger logger)
         {
             Guard.ArgumentNotNull(detectProviderVariations, nameof(detectProviderVariations));
             Guard.ArgumentNotNull(applyProviderVariations, nameof(applyProviderVariations));
             Guard.ArgumentNotNull(recordVariationErrors, nameof(recordVariationErrors));
-            Guard.ArgumentNotNull(publishingFeatureFlag, nameof(publishingFeatureFlag));
             Guard.ArgumentNotNull(logger, nameof(logger));
 
             _detectProviderVariations = detectProviderVariations;
             _applyProviderVariations = applyProviderVariations;
             _recordVariationErrors = recordVariationErrors;
-            _publishingFeatureFlag = publishingFeatureFlag;
             _logger = logger;
             _snapshots = new ConcurrentDictionary<string, IDictionary<string, PublishedProviderSnapShots>>();
         }
 
-        public async Task<string> SnapShot(IDictionary<string, PublishedProvider> publishedProviders, string snapshotId = null)
+        public string SnapShot(IDictionary<string, PublishedProvider> publishedProviders,
+            string snapshotId = null)
         {
             Guard.ArgumentNotNull(publishedProviders, nameof(publishedProviders));
 
-            if (await VariationsEnabled())
-            {
-                snapshotId ??= Guid.NewGuid().ToString();
+            snapshotId ??= Guid.NewGuid().ToString();
 
-                IDictionary<string, PublishedProviderSnapShots> snapshots = publishedProviders
-                        .ToDictionary(_ => _.Key, _ => new PublishedProviderSnapShots(_.Value));
+            IDictionary<string, PublishedProviderSnapShots> snapshots = publishedProviders
+                    .ToDictionary(_ => _.Key, _ => new PublishedProviderSnapShots(_.Value));
 
-                _snapshots.AddOrUpdate(snapshotId, snapshots, (k,v) => snapshots);
+            _snapshots.AddOrUpdate(snapshotId, snapshots, (k,v) => snapshots);
 
-                return snapshotId;
-            }
+            return snapshotId;
 
-            return string.Empty;
         }
 
         public async Task<IDictionary<string, PublishedProvider>> PrepareVariedProviders(decimal? updatedTotalFunding, 
@@ -84,9 +69,8 @@ namespace CalculateFunding.Services.Publishing
             Guard.ArgumentNotNull(existingPublishedProvider, nameof(existingPublishedProvider));
             Guard.ArgumentNotNull(updatedProvider, nameof(updatedProvider));
 
-            bool shouldRunVariations = (await VariationsEnabled() &&
-                                        variations.AnyWithNullCheck() &&
-                                        !string.IsNullOrWhiteSpace(snapshotId));
+            bool shouldRunVariations = variations.AnyWithNullCheck() &&
+                                        !string.IsNullOrWhiteSpace(snapshotId);
 
             _logger.Information($"Variations enabled = {shouldRunVariations}");
 

@@ -8,7 +8,8 @@ namespace CalculateFunding.Services.Publishing.Interfaces
     public interface IVariationService
     {
         int ErrorCount { get; }
-        Task<string> SnapShot(IDictionary<string, PublishedProvider> publishedProviders, string snapshotId = null);
+        string SnapShot(IDictionary<string, PublishedProvider> publishedProviders,
+            string snapshotId = null);
         Task<IDictionary<string, PublishedProvider>> PrepareVariedProviders(decimal? updatedTotalFunding,
             IDictionary<string, PublishedProvider> allPublishedProviderRefreshStates,
             PublishedProvider existingPublishedProvider,

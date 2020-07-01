@@ -82,7 +82,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         private IDetectProviderVariations _detectProviderVariation;
         private IApplyProviderVariations _applyProviderVariation;
         private IRecordVariationErrors _recordVariationErrors;
-        private IPublishingFeatureFlag _publishingFeatureFlag;
         private FundingConfiguration _fundingConfiguration;
         private ISpecificationFundingStatusService _specificationFundingStatusService;
         private IJobsRunning _jobsRunning;
@@ -158,8 +157,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             _detectProviderVariation = new ProviderVariationsDetection(_variationStrategyServiceLocator);
             _applyProviderVariation = new ProviderVariationsApplication(_publishingResiliencePolicies, _specificationsApiClient, _policiesApiClient.Object, _cacheProvider.Object);
             _recordVariationErrors = Substitute.For<IRecordVariationErrors>();
-            _publishingFeatureFlag = Substitute.For<IPublishingFeatureFlag>();
-            _variationService = new VariationService(_detectProviderVariation, _applyProviderVariation, _recordVariationErrors, _logger, _publishingFeatureFlag);
+            _variationService = new VariationService(_detectProviderVariation, _applyProviderVariation, _recordVariationErrors, _logger);
             _refreshService = new RefreshService(_publishedProviderStatusUpdateService,
                 _publishedFundingDataService,
                 _publishingResiliencePolicies,
@@ -262,7 +260,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             AndTemplateMapping();
             AndTheFundingPeriodId(_specificationSummary.FundingPeriod.Id);
             AndPublishedProviders();
-            GivenVariationsEnabled();
             GivenFundingConfiguration(new ProviderMetadataVariationStrategy());
 
             await WhenMessageReceivedWithJobIdAndCorrelationId();
@@ -301,7 +298,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             GivenPublishedProviderClosedWithSuccessor();
             AndTheFundingPeriodId(_specificationSummary.FundingPeriod.Id);
             AndPublishedProviders();
-            GivenVariationsEnabled();
             GivenFundingConfiguration(new ClosureWithSuccessorVariationStrategy(_providerService));
 
             Func<Task> invocation = WhenMessageReceivedWithJobIdAndCorrelationId;
@@ -683,12 +679,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             _jobsRunning
                 .GetJobTypes(Arg.Is(SpecificationId), Arg.Is<IEnumerable<string>>(_ => _.All(jt => jobTypes.Contains(jt))))
                 .Returns(new[] { JobConstants.DefinitionNames.CreateInstructAllocationJob });
-        }
-
-        private void GivenVariationsEnabled()
-        {
-            _publishingFeatureFlag.IsVariationsEnabled()
-                .Returns(true);
         }
 
         private void AndUpdateStatusThrowsAnError(string error)

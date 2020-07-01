@@ -10,13 +10,11 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
     {
         private readonly IFeatureManagerSnapshot _featureManagerSnapshot;
 
-        public PublishServiceAcceptanceStepContext(IPublishingFeatureFlag publishingFeatureFlag,
-            IFeatureManagerSnapshot featureManagerSnapshot, 
+        public PublishServiceAcceptanceStepContext(IFeatureManagerSnapshot featureManagerSnapshot, 
             ICalculationsApiClient calculationsInMemoryClient, 
             ICalculationResultsRepository calculationsInMemoryRepository,
             IProfilingApiClient profilingApiClient)
         {
-            FeatureFlag = publishingFeatureFlag;
             _featureManagerSnapshot = featureManagerSnapshot;
             CalculationsInMemoryRepository = (CalculationInMemoryRepository)calculationsInMemoryRepository;
             CalculationsInMemoryClient = (CalculationsInMemoryClient)calculationsInMemoryClient;
@@ -27,8 +25,6 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
         {
             ((InMemoryFeatureManagerSnapshot)_featureManagerSnapshot).SetIsEnabled(feature, flag);
         }
-
-        public IPublishingFeatureFlag FeatureFlag { get; }
 
         public CalculationsInMemoryClient CalculationsInMemoryClient { get; }
 

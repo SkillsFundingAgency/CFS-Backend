@@ -103,7 +103,6 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
             RegisterTypeAs<SpecificationInMemoryRepository, ISpecificationService>();
             RegisterTypeAs<JobsInMemoryRepository, IJobsApiClient>();
             RegisterTypeAs<InMemoryFeatureManagerSnapshot, IFeatureManagerSnapshot>();
-            RegisterTypeAs<PublishingFeatureFlag, IPublishingFeatureFlag>();
             RegisterTypeAs<PublishedProviderInMemorySearchRepository, ISearchRepository<PublishedProviderIndex>>();
             RegisterTypeAs<ReApplyCustomProfiles, IReApplyCustomProfiles>();
             RegisterInstanceAs<IPublishedProviderErrorDetection>(new PublishedProviderErrorDetection(ArraySegment<IDetectPublishedProviderErrors>.Empty));
