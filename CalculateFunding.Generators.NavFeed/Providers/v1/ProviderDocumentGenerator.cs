@@ -224,7 +224,6 @@ namespace CalculateFunding.Generators.NavFeed.Providers.v1
                 LACode = x.ProviderLaCode,
                 LegalName = null,
                 Name = x.ProviderName,
-                LocalAuthorityName = null,
                 LowerSuperOutputAreaCode = null,
                 LowerSuperOutputAreaName = null,
                 MiddleSuperOutputAreaCode = null,

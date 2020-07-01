@@ -36,7 +36,7 @@ namespace CalculateFunding.Services.Publishing.Reporting
                 row["Provider Type"] = provider.ProviderType;
                 row["Provider SubType"] = provider.ProviderSubType;
                 row["LA Code"] = provider.LACode;
-                row["LA Name"] = provider.LocalAuthorityName;
+                row["LA Name"] = provider.Authority;
                 row["Allocation Status"] = publishedProviderVersion.Status.ToString();
                 row["Allocation Major Version"] = publishedProviderVersion.MajorVersion.ToString();
                 row["Allocation Minor Version"] = publishedProviderVersion.MinorVersion.ToString();

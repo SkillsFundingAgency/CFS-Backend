@@ -81,9 +81,6 @@ namespace CalculateFunding.Models.ProviderLegacy
         [JsonProperty("postcode")]
         public string Postcode { get; set; }
 
-        [JsonProperty("localAuthorityName")]
-        public string LocalAuthorityName { get; set; }
-
         [JsonProperty("companiesHouseNumber")]
         public string CompaniesHouseNumber { get; set; }
 

@@ -64,7 +64,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
             yield return VariationExample(_ => _.LACode = NewRandomString(), VariationReason.LACodeFieldUpdated);
             yield return VariationExample(_ => _.LegalName = NewRandomString(), VariationReason.LegalNameFieldUpdated);
             yield return VariationExample(_ => _.TrustCode = NewRandomString(), VariationReason.TrustCodeFieldUpdated);
-            yield return VariationExample(_ => _.LocalAuthorityName = NewRandomString(), VariationReason.AuthorityFieldUpdated);
             yield return VariationExample(_ => _.CompaniesHouseNumber = NewRandomString(), VariationReason.CompaniesHouseNumberFieldUpdated);
             yield return VariationExample(_ => _.GroupIdNumber = NewRandomString(), VariationReason.GroupIDFieldUpdated);
             yield return VariationExample(_ => _.RscRegionName = NewRandomString(), VariationReason.RSCRegionNameFieldUpdated);

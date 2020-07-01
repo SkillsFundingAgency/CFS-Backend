@@ -160,7 +160,6 @@ namespace CalculateFunding.Services.Providers
                     TrustCode = x.TrustCode,
                     Town = x.Town,
                     Postcode = x.Postcode,
-                    LocalAuthorityName = x.LocalAuthorityName,
                     CompaniesHouseNumber = x.CompaniesHouseNumber,
                     GroupIdNumber = x.GroupIdNumber,
                     RscRegionName = x.RscRegionName,

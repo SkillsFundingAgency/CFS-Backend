@@ -3927,7 +3927,7 @@ this.ScenarioInitialize(scenarioInfo);
                 table258.AddRow(new string[] {
                             "1000000-FY-2021-DSG",
                             "LA maintained schools",
-                            "Maintained School 1",
+                            "Local Authority 1",
                             "Released",
                             "Maintained School 1",
                             "1000000",
@@ -3938,7 +3938,7 @@ this.ScenarioInitialize(scenarioInfo);
                 table258.AddRow(new string[] {
                             "1000002-FY-2021-DSG",
                             "LA maintained schools",
-                            "Maintained School 2",
+                            "Local Authority 1",
                             "Released",
                             "Maintained School 2",
                             "1000002",

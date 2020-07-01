@@ -9,7 +9,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private string _providerId;
         private string _status;
         private string _establishmentNumber;
-        private string _localAuthorityName;
+        private string _authority;
         private string _laCode;
         private string _urn;
         private string _ukprn;
@@ -122,10 +122,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             return this;
         }
 
-        public ProviderBuilder WithLocalAuthorityName(string localAuthorityName)
+        public ProviderBuilder WithAuthority(string authority)
         {
-            _localAuthorityName = localAuthorityName;
-
+            _authority = authority;
+        
             return this;
         }
         
@@ -183,7 +183,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                     DfeEstablishmentNumber = _copyFrom.DfeEstablishmentNumber,
                     GroupIdNumber = _copyFrom.GroupIdNumber,
                     LACode = _copyFrom.LACode,
-                    LocalAuthorityName = _copyFrom.LocalAuthorityName,
                     ParliamentaryConstituencyCode = _copyFrom.ParliamentaryConstituencyCode,
                     ParliamentaryConstituencyName = _copyFrom.ParliamentaryConstituencyName,
                     RscRegionCode = _copyFrom.RscRegionCode,
@@ -197,7 +196,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             return new Provider
             {
                 ProviderId = _providerId ?? NewRandomString(),
-                Authority = NewRandomString(),
+                Authority = _authority ?? NewRandomString(),
                 Name = _name ?? NewRandomString(),
                 Postcode = NewRandomString(),
                 Status = _status ?? NewRandomString(),
@@ -224,7 +223,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 DfeEstablishmentNumber = NewRandomString(),
                 GroupIdNumber = NewRandomString(),
                 LACode = _laCode ?? NewRandomString(),
-                LocalAuthorityName = _localAuthorityName ?? NewRandomString(),
                 ParliamentaryConstituencyCode = NewRandomString(),
                 ParliamentaryConstituencyName = NewRandomString(),
                 RscRegionCode = NewRandomString(),

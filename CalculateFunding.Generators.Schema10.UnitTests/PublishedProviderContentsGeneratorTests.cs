@@ -122,7 +122,7 @@ namespace CalculateFunding.Generators.Schema10.UnitTests
                     DateClosed = null,
                     Status = "Open",
                     PhaseOfEducation = "Secondary",
-                    LocalAuthorityName = "Camden",
+                    Authority = "Camden",
                     ReasonEstablishmentOpened = "Academy Converter",
                     ReasonEstablishmentClosed = null,
                     TrustStatus = ProviderTrustStatus.SupportedByASingleAacademyTrust,

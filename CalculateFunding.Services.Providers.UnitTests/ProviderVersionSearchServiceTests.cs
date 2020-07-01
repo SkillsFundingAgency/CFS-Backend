@@ -830,7 +830,6 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 Successor = "",
                 TrustName = "Trusts (name)",
                 TrustCode = "",
-                LocalAuthorityName = "LocalAuthorityName",
                 CompaniesHouseNumber = "CompaniesHouseNumber",
                 GroupIdNumber = "GroupIdNumber",
                 RscRegionName = "RscRegionName",

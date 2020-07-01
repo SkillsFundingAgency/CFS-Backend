@@ -11,7 +11,7 @@ namespace CalculateFunding.Services.Results
         private string _establishmentNumber;
         private string _name;
         private string _laCode;
-        private string _localAuthorityName;
+        private string _authority;
         private string _providerType;
         private string _providerSubType;
 
@@ -50,9 +50,10 @@ namespace CalculateFunding.Services.Results
             return this;
         }
 
-        public ProviderSummaryBuilder WithLocalAuthorityName(string localAuthorityName)
+
+        public ProviderSummaryBuilder WithAuthority(string authority)
         {
-            _localAuthorityName = localAuthorityName;
+            _authority = authority;
 
             return this;
         }
@@ -75,6 +76,7 @@ namespace CalculateFunding.Services.Results
         {
             return new ProviderSummary
             {
+                Authority = _authority ?? NewRandomString(),
                 Name = _name ?? NewRandomString(),
                 URN = _urn ?? NewRandomString(),
                 UKPRN = _ukPrn ?? NewRandomString(),
@@ -82,7 +84,7 @@ namespace CalculateFunding.Services.Results
                 ProviderSubType = _providerSubType ?? NewRandomString(),
                 EstablishmentNumber = _establishmentNumber ?? NewRandomString(),
                 LACode = _laCode ?? NewRandomString(),
-                LocalAuthorityName = _localAuthorityName ?? NewRandomString()
+                // LocalAuthorityName = _localAuthorityName ?? NewRandomString()
             };
         }
     }

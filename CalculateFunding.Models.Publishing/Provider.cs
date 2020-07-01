@@ -97,10 +97,6 @@ namespace CalculateFunding.Models.Publishing
         [JsonProperty("postcode")]
         public string Postcode { get; set; }
 
-        [JsonProperty("localAuthorityName")]
-        [VariationReasonValue(VariationReason.AuthorityFieldUpdated)]
-        public string LocalAuthorityName { get; set; }
-
         [JsonProperty("companiesHouseNumber")]
         [VariationReasonValue(VariationReason.CompaniesHouseNumberFieldUpdated)]
         public string CompaniesHouseNumber { get; set; }

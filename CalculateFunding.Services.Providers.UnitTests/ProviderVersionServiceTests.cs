@@ -1428,7 +1428,6 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 TrustName = "Trusts (name)",
                 TrustCode = "",
                 TrustStatusViewModelString = "Not applicable",
-                LocalAuthorityName = "LocalAuthorityName",
                 CompaniesHouseNumber = "CompaniesHouseNumber",
                 GroupIdNumber = "GroupIdNumber",
                 RscRegionName = "RscRegionName",

@@ -31,7 +31,7 @@ namespace CalculateFunding.Services.Results
                 row["Estab Number"] = providerSummary.EstablishmentNumber;
                 row["Provider Name"] = providerSummary.Name;
                 row["LA Code"] = providerSummary.LACode;
-                row["LA Name"] = providerSummary.LocalAuthorityName;
+                row["LA Name"] = providerSummary.Authority;
                 row["Provider Type"] = providerSummary.ProviderType;
                 row["Provider SubType"] = providerSummary.ProviderSubType;
 

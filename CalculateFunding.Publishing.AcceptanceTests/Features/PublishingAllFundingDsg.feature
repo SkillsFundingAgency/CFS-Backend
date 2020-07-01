@@ -1081,8 +1081,8 @@ Scenario Outline: Successful publishing of funding
 		| <FundingStreamId>-<FundingPeriodId>-1000002-1_0.json |
 	And the following published provider search index items is produced for providerid with '<FundingStreamId>' and '<FundingPeriodId>'
 		| ID                  | ProviderType				| LocalAuthority		| FundingStatus | ProviderName			| UKPRN		 | FundingValue | SpecificationId   | FundingStreamId   | FundingPeriodId   |
-		| 1000000-FY-2021-DSG | LA maintained schools		| Maintained School 1	| Released      | Maintained School 1	| 1000000    | 12000        | specForPublishing | <FundingStreamId> | <FundingPeriodId> |
-		| 1000002-FY-2021-DSG | LA maintained schools		| Maintained School 2	| Released      | Maintained School 2	| 1000002    | 12000        | specForPublishing | <FundingStreamId> | <FundingPeriodId> |
+		| 1000000-FY-2021-DSG | LA maintained schools		| Local Authority 1	| Released      | Maintained School 1	| 1000000    | 12000        | specForPublishing | <FundingStreamId> | <FundingPeriodId> |
+		| 1000002-FY-2021-DSG | LA maintained schools		| Local Authority 1	| Released      | Maintained School 2	| 1000002    | 12000        | specForPublishing | <FundingStreamId> | <FundingPeriodId> |
 	And the following job is requested is completed for the current specification
 		| Field                  | Value             |
 		| JobDefinitionId        | PublishFundingJob |

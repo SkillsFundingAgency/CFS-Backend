@@ -93,9 +93,6 @@ namespace CalculateFunding.Models.Providers
         [JsonProperty("trustCode")]
         public string TrustCode { get; set; }
 
-        [JsonProperty("localAuthorityName")]
-        public string LocalAuthorityName { get; set; }
-
         [JsonProperty("companiesHouseNumber")]
         public string CompaniesHouseNumber { get; set; }
 

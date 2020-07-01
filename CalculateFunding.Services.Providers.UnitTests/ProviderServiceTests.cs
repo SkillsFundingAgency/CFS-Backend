@@ -124,7 +124,6 @@ namespace CalculateFunding.Services.Providers.UnitTests
                     x.First().TrustCode == provider.TrustCode &&
                     x.First().Town == provider.Town &&
                     x.First().Postcode == provider.Postcode &&
-                    x.First().LocalAuthorityName == provider.LocalAuthorityName &&
                     x.First().CompaniesHouseNumber == provider.CompaniesHouseNumber &&
                     x.First().GroupIdNumber == provider.GroupIdNumber &&
                     x.First().RscRegionName == provider.RscRegionName &&
@@ -570,7 +569,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 TrustCode = provider.TrustCode,
                 Town = provider.Town,
                 Postcode = provider.Postcode,
-                LocalAuthorityName = provider.LocalAuthorityName,
+                // LocalAuthorityName = provider.LocalAuthorityName,
                 CompaniesHouseNumber = provider.CompaniesHouseNumber,
                 GroupIdNumber = provider.GroupIdNumber,
                 RscRegionName = provider.RscRegionName,
@@ -625,7 +624,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 TrustStatus = TrustStatus.NotApplicable,
                 TrustName = "TrustName",
                 TrustCode = "TrustCode",
-                LocalAuthorityName = "LocalAuthorityName",
+                // LocalAuthorityName = "LocalAuthorityName",
                 CompaniesHouseNumber = "CompaniesHouseNumber",
                 GroupIdNumber = "GroupIdNumber",
                 RscRegionName = "RscRegionName",

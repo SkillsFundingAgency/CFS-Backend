@@ -413,10 +413,6 @@ namespace CalculateFunding.Services.CalcEngine
                         property.SetValue(data, providerSummary.PhaseOfEducation.EmptyIfNull());
                         break;
 
-                    case "LocalAuthorityName":
-                        property.SetValue(data, providerSummary.LocalAuthorityName.EmptyIfNull());
-                        break;
-
                     case "CompaniesHouseNumber":
                         property.SetValue(data, providerSummary.CompaniesHouseNumber.EmptyIfNull());
                         break;

@@ -119,7 +119,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 .Index(Arg.Is<IEnumerable<PublishedProviderIndex>>(
                     d => d.First().Id == $"{publishedProviderVersion.ProviderId}-{publishedProviderVersion.FundingPeriodId}-{publishedProviderVersion.FundingStreamId}" &&
                     d.First().ProviderType == publishedProviderVersion.Provider.ProviderType &&
-                    d.First().LocalAuthority == publishedProviderVersion.Provider.LocalAuthorityName &&
+                    d.First().LocalAuthority == publishedProviderVersion.Provider.Authority &&
                     d.First().FundingStatus == publishedProviderVersion.Status.ToString() &&
                     d.First().ProviderName == publishedProviderVersion.Provider.Name &&
                     d.First().UKPRN == publishedProviderVersion.Provider.UKPRN &&
@@ -146,7 +146,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 DateClosed = null,
                 Status = "Open",
                 PhaseOfEducation = "Secondary",
-                LocalAuthorityName = "Camden",
+                Authority = "Camden",
+                // LocalAuthorityName = "Camden",
                 ReasonEstablishmentOpened = "Academy Converter",
                 ReasonEstablishmentClosed = null,
                 TrustStatus = ProviderTrustStatus.SupportedByASingleAacademyTrust,

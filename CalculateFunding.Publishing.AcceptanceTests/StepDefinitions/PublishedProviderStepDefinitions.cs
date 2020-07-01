@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
@@ -48,16 +49,16 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
         }
 
         [Then(@"the following published provider search index items is produced for providerid with '(.*)' and '(.*)'")]
-        public void ThenTheFollowingPublishedProviderSearchIndexItemsIsProducedForProvideridWithAnd(string fundingStreamid, string fundingPeriodId, Table table)
+        public void ThenTheFollowingPublishedProviderSearchIndexItemsIsProducedForProviderIdWithAnd(string fundingStreamId, string fundingPeriodId, Table table)
         {
             _publishedProviderStepContext.Should().NotBeNull();
 
             IEnumerable<PublishedProviderIndex> providers = table.CreateSet<PublishedProviderIndex>();
 
-            foreach (var pubProvider in providers)
+            foreach (PublishedProviderIndex pubProvider in providers)
             {
-                string key = $"{pubProvider.UKPRN}-{fundingPeriodId}-{fundingStreamid}";
-                var searchIndex = _publishedProviderStepContext.SearchRepo.PublishedProviderIndex;
+                string key = $"{pubProvider.UKPRN}-{fundingPeriodId}-{fundingStreamId}";
+                ConcurrentDictionary<string, PublishedProviderIndex> searchIndex = _publishedProviderStepContext.SearchRepo.PublishedProviderIndex;
                 searchIndex.TryGetValue(key, out PublishedProviderIndex actual);
 
                 actual

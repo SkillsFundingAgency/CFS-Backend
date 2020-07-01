@@ -69,7 +69,7 @@ namespace CalculateFunding.Services.Publishing.Reporting.PublishedProviderEstate
                     row["Current Provider Type"] = updatedPublishedProviderVersion.Provider.ProviderType;
                     row["Current Provider Subtype"] = updatedPublishedProviderVersion.Provider.ProviderSubType;
                     row["Current LA Code"] = updatedPublishedProviderVersion.Provider.LACode;
-                    row["Current LA Name"] = updatedPublishedProviderVersion.Provider.LocalAuthorityName;
+                    row["Current LA Name"] = updatedPublishedProviderVersion.Provider.Authority;
                     row["Current Open Date"] = updatedPublishedProviderVersion.Provider.DateOpened?.ToString("s");
                     row["Current Open Reason"] = updatedPublishedProviderVersion.Provider.ReasonEstablishmentOpened;
                     row["Current Close Date"] = updatedPublishedProviderVersion.Provider.DateClosed?.ToString("s");
@@ -83,7 +83,7 @@ namespace CalculateFunding.Services.Publishing.Reporting.PublishedProviderEstate
                     row["Previous Provider Type"] = releasedPublishedProviderVersion.Provider.ProviderType;
                     row["Previous Provider Subtype"] = releasedPublishedProviderVersion.Provider.ProviderSubType;
                     row["Previous LA Code"] = releasedPublishedProviderVersion.Provider.LACode;
-                    row["Previous LA Name"] = releasedPublishedProviderVersion.Provider.LocalAuthorityName;
+                    row["Previous LA Name"] = releasedPublishedProviderVersion.Provider.Authority;
                     row["Previous Close Date"] = releasedPublishedProviderVersion.Provider.DateClosed?.ToString("s");
                     row["Previous Close Reason"] = releasedPublishedProviderVersion.Provider.ReasonEstablishmentClosed;
                     row["Previous Trust Code"] = releasedPublishedProviderVersion.Provider.TrustCode;

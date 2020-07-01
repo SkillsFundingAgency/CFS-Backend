@@ -93,7 +93,7 @@ namespace CalculateFunding.Services.Publishing
                     {
                         Id = publishedProvider.Current.FundingId,
                         ProviderType = publishedProvider.Current.Provider.ProviderType,
-                        LocalAuthority = publishedProvider.Current.Provider.LocalAuthorityName,
+                        LocalAuthority = publishedProvider.Current.Provider.Authority,
                         FundingStatus = publishedProvider.Current.Status.ToString(),
                         ProviderName = publishedProvider.Current.Provider.Name,
                         UKPRN = publishedProvider.Current.Provider.UKPRN,
