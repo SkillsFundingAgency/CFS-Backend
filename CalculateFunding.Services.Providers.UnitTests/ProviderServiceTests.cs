@@ -146,7 +146,10 @@ namespace CalculateFunding.Services.Providers.UnitTests
                     x.First().CountryCode == provider.CountryCode &&
                     x.First().CountryName == provider.CountryName &&
                     x.First().LocalGovernmentGroupTypeCode == provider.LocalGovernmentGroupTypeCode &&
-                    x.First().LocalGovernmentGroupTypeName == provider.LocalGovernmentGroupTypeName
+                    x.First().LocalGovernmentGroupTypeName == provider.LocalGovernmentGroupTypeName &&
+                    x.First().Street == provider.Street &&
+                    x.First().Locality == provider.Locality &&
+                    x.First().Address3 == provider.Address3
                 ), Arg.Is(cacheKeyForList));
 
             await cacheProvider
@@ -644,7 +647,10 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 CountryCode = "CountryCode",
                 CountryName = "CountryName",
                 LocalGovernmentGroupTypeCode = "LocalGovernmentGroupTypeCode",
-                LocalGovernmentGroupTypeName = "LocalGovernmentGroupTypeName"
+                LocalGovernmentGroupTypeName = "LocalGovernmentGroupTypeName",
+                Street = "Street",
+                Locality = "Locality",
+                Address3 = "Address3"
             };
         }
 

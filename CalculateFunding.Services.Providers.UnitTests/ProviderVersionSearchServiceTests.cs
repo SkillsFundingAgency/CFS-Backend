@@ -852,7 +852,10 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 CountryCode = "CountryCode",
                 CountryName = "CountryName",
                 LocalGovernmentGroupTypeCode = "LocalGovernmentGroupTypeCode",
-                LocalGovernmentGroupTypeName = "LocalGovernmentGroupTypeName"
+                LocalGovernmentGroupTypeName = "LocalGovernmentGroupTypeName",
+                Street = "Street",
+                Locality = "Locality",
+                Address3 = "Address3"
             };
         }
 

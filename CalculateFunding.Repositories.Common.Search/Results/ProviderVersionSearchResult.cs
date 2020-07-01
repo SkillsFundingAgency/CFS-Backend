@@ -107,5 +107,11 @@ namespace CalculateFunding.Repositories.Common.Search.Results
         public string LocalGovernmentGroupTypeCode { get; set; }
 
         public string LocalGovernmentGroupTypeName { get; set; }
+
+        public string Street { get; set; }
+
+        public string Locality { get; set; }
+
+        public string Address3 { get; set; }
     }
 }

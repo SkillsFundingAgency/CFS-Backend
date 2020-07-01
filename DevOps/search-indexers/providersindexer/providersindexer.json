@@ -211,6 +211,18 @@
     {
       "sourceFieldName": "/localGovernmentGroupTypeName",
       "targetFieldName": "localGovernmentGroupTypeName"
+    },
+    {
+      "sourceFieldName": "/street",
+      "targetFieldName": "street"
+    },
+    {
+      "sourceFieldName": "/locality",
+      "targetFieldName": "locality"
+    },
+    {
+      "sourceFieldName": "/address3",
+      "targetFieldName": "address3"
     }
   ],
   "parameters": {

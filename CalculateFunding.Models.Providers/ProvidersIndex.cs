@@ -222,6 +222,15 @@ namespace CalculateFunding.Models.Providers
 
         [IsFilterable]
         [JsonProperty("localGovernmentGroupTypeName")]
-        public string LocalGovernmentGroupTypeName { get; set; }
+        public string LocalGovernmentGroupTypeName { get; set; }       
+       
+        [JsonProperty("street")]
+        public string Street { get; set; }        
+       
+        [JsonProperty("locality")]
+        public string Locality { get; set; }        
+       
+        [JsonProperty("address3")]
+        public string Address3 { get; set; }
     }
 }

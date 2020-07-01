@@ -384,6 +384,9 @@ namespace CalculateFunding.Services.Providers
                     CountryName = m.Result.CountryName,
                     LocalGovernmentGroupTypeCode = m.Result.LocalGovernmentGroupTypeCode,
                     LocalGovernmentGroupTypeName = m.Result.LocalGovernmentGroupTypeName,
+                    Street = m.Result.Street,
+                    Locality = m.Result.Locality,
+                    Address3 = m.Result.Address3
                 });
             }
         }

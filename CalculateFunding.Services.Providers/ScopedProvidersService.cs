@@ -182,7 +182,10 @@ namespace CalculateFunding.Services.Providers
                     CountryCode = x.CountryCode,
                     CountryName = x.CountryName,
                     LocalGovernmentGroupTypeCode = x.LocalGovernmentGroupTypeCode,
-                    LocalGovernmentGroupTypeName = x.LocalGovernmentGroupTypeName
+                    LocalGovernmentGroupTypeName = x.LocalGovernmentGroupTypeName,
+                    Street = x.Street,
+                    Locality = x.Locality,
+                    Address3 = x.Address3
                 });
 
             await _cacheProvider.KeyDeleteAsync<ProviderSummary>(cacheKeyScopedListCacheKey);
