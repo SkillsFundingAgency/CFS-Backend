@@ -72,14 +72,14 @@ namespace CalculateFunding.Functions.Specs.SmokeTests
         [TestMethod]
         public async Task OnReIndexSpecification_SmokeTestSucceeds()
         {
-            OnReIndexSpecification onDeleteSpecifications = new OnReIndexSpecification(_logger,
+            OnReIndexSpecification onReIndexSpecifications = new OnReIndexSpecification(_logger,
                 _specificationIndexerService,
                 Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
                 _userProfileProvider,
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.ReIndexSingleSpecification,
-                (Message smokeResponse) => onDeleteSpecifications.Run(smokeResponse));
+                (Message smokeResponse) => onReIndexSpecifications.Run(smokeResponse), useSession: true);
 
             response
                 .Should()
