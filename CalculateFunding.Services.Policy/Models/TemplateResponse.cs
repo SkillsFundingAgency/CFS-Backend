@@ -50,5 +50,10 @@ namespace CalculateFunding.Services.Policy.Models
         public string AuthorName { get; set; }
         
         public DateTime LastModificationDate { get; set; }
+        
+        /// <summary>
+        /// whether this template version is the latest most current
+        /// </summary>
+        public bool IsCurrentVersion { get; set; }
     }
 }

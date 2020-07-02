@@ -577,6 +577,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
                 FundingStreamId = templateVersion.FundingStreamId,
                 FundingPeriodId = templateVersion.FundingPeriodId,
                 Version = templateVersion.Version,
+                IsCurrentVersion = templateVersion.Version == template.Current.Version,
                 MinorVersion = templateVersion.MinorVersion,
                 MajorVersion = templateVersion.MajorVersion,
                 SchemaVersion = templateVersion.SchemaVersion,
@@ -589,28 +590,6 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
                 Description = template.Description
             };
         }
-        
-        /*
-        private static TemplateSummaryResponse MapSummary(TemplateVersion templateVersion)
-        {
-            return new TemplateSummaryResponse
-            {
-                TemplateId = templateVersion.TemplateId,
-                Name = templateVersion.Name,
-                FundingStreamId = templateVersion.FundingStreamId,
-                FundingPeriodId = templateVersion.FundingPeriodId,
-                Version = templateVersion.Version,
-                MinorVersion = templateVersion.MinorVersion,
-                MajorVersion = templateVersion.MajorVersion,
-                SchemaVersion = templateVersion.SchemaVersion,
-                Status = templateVersion.Status,
-                AuthorId = templateVersion.Author.Id,
-                AuthorName = templateVersion.Author.Name,
-                LastModificationDate = templateVersion.Date.DateTime,
-                PublishStatus = templateVersion.PublishStatus,
-                Comments = templateVersion.Comment
-            };
-        }*/
 
         private async Task<HttpStatusCode> UpdateTemplateContent(TemplateJsonContentUpdateCommand command, Reference author, Template template, int majorVersion, int minorVersion)
         {
@@ -745,6 +724,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
                 Description = template.Description,
                 Status = source.Status,
                 Version = source.Version,
+                IsCurrentVersion = source.Version == template.Current.Version,
                 MajorVersion = source.MajorVersion,
                 MinorVersion = source.MinorVersion,
                 AuthorName = source.Author.Name,

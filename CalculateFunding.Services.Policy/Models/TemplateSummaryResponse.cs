@@ -47,5 +47,10 @@ namespace CalculateFunding.Services.Policy.Models
         public DateTime LastModificationDate { get; set; }
         
         public string Id { get; }
+
+        /// <summary>
+        /// whether this template version is the latest most current
+        /// </summary>
+        public bool IsCurrentVersion { get; set; }
     }
 }

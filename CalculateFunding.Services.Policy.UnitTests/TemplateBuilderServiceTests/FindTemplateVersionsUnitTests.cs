@@ -20,17 +20,18 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
     public class FindTemplateVersionsUnitTests
     {
         [TestClass]
-        public class When_i_request_published_versions_of_templates_by_funding_stream_and_period
+        public class When_i_request_draft_versions_of_templates_by_funding_stream_and_period
         {
             private readonly TemplateBuilderService _service;
             private readonly ITemplateRepository _templateRepository;
             private readonly ITemplateVersionRepository _templateVersionRepository;
-            private readonly IEnumerable<TemplateSummaryResponse> _result;
+            private readonly IEnumerable<TemplateSummaryResponse> _results;
             private readonly TemplateVersion _templateVersionPrevious;
+            private readonly TemplateVersion _templateVersionCurrent;
             private Template _template;
             private string _templateId;
 
-            public When_i_request_published_versions_of_templates_by_funding_stream_and_period()
+            public When_i_request_draft_versions_of_templates_by_funding_stream_and_period()
             {
                 _templateId = Guid.NewGuid().ToString();
                 _templateVersionPrevious = new TemplateVersion
@@ -42,11 +43,27 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
                     MinorVersion = 0,
                     SchemaVersion = "1.1",
                     FundingPeriodId = "12345",
-                    Status = TemplateStatus.Published,
+                    Status = TemplateStatus.Draft,
                     Author = new Reference
                     {
                         Id = "111",
                         Name = "Test 111"
+                    }
+                };
+                _templateVersionCurrent = new TemplateVersion
+                {
+                    Name = "Test Name 2",
+                    TemplateId = _templateId,
+                    Version = 2,
+                    MajorVersion = 2,
+                    MinorVersion = 0,
+                    SchemaVersion = "1.1",
+                    FundingPeriodId = "12345",
+                    Status = TemplateStatus.Draft,
+                    Author = new Reference
+                    {
+                        Id = "222",
+                        Name = "Test 222"
                     }
                 };
                 _template = new Template
@@ -65,13 +82,13 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
                         ShortName = "XX",
                         Name = "FundingSteam"
                     },
-                    Current = _templateVersionPrevious
+                    Current = _templateVersionCurrent
                 };
                 _templateRepository = Substitute.For<ITemplateRepository>();
                 _templateRepository.GetTemplate(Arg.Is(_templateId)).Returns(_template);
                 _templateVersionRepository = Substitute.For<ITemplateVersionRepository>();
                 _templateVersionRepository.FindByFundingStreamAndPeriod(Arg.Any<FindTemplateVersionQuery>())
-                    .Returns(new []{_templateVersionPrevious});
+                    .Returns(new []{_templateVersionPrevious, _templateVersionCurrent});
                 
                 _service = new TemplateBuilderService(
                     Substitute.For<IIoCValidatorFactory>(),
@@ -84,12 +101,12 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
                     Substitute.For<ITemplateBlobService>(),
                     Substitute.For<ILogger>());
                 
-                _result = _service
+                _results = _service
                     .FindVersionsByFundingStreamAndPeriod(new FindTemplateVersionQuery
                     {
                         FundingStreamId = "XXX",
                         FundingPeriodId = "2021",
-                        Statuses = new List<TemplateStatus> {TemplateStatus.Published}
+                        Statuses = new List<TemplateStatus> {TemplateStatus.Draft}
                     })
                     .GetAwaiter()
                     .GetResult();
@@ -98,26 +115,35 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
             [TestMethod]
             public void Results_in_success()
             {
-                _result.Should().NotBeNull();
+                _results.Should().NotBeNull();
             }
 
             [TestMethod]
             public void Returns_expected_number_of_results()
             {
-                _result.Should().HaveCount(1);
+                _results.Should().HaveCount(2);
             }
 
             [TestMethod]
             public void Returns_correct_template_version()
             {
-                _result.First().Version.Should().Be(_templateVersionPrevious.Version);
+                _results.First().Version.Should().Be(_templateVersionPrevious.Version);
             }
 
             [TestMethod]
             public void Returns_correct_Status()
             {
-                _result.Should().Match(x => 
-                    x.All(version => version.Status == TemplateStatus.Published));
+                _results.Should().Match(x => 
+                    x.All(version => version.Status == TemplateStatus.Draft));
+            }
+
+            [TestMethod]
+            public void Returns_correct_IsCurrentVersion()
+            {
+                _results.Single(x => x.Version == _template.Current.Version).IsCurrentVersion.Should().BeTrue();
+                _results.Where(x => x.Version != _template.Current.Version)
+                    .Should().Match(x => x
+                        .All(t => t.IsCurrentVersion == false));
             }
         }
 

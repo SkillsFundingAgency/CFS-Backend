@@ -161,6 +161,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
             private readonly ITemplateRepository _templateRepository;
             private readonly TemplateResponse _result;
             private readonly TemplateVersion _templateVersionPrevious;
+            private readonly TemplateVersion _templateVersionCurrent;
             private readonly Template _template;
 
             public When_i_request_previous_version_of_template()
@@ -170,18 +171,29 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
                     Name = "Test Name 1",
                     TemplateId = "123",
                     TemplateJson = null,
-                    Version = 0,
+                    Version = 1,
                     SchemaVersion = "1.1",
                     FundingPeriodId = "12345",
                     Status = TemplateStatus.Draft,
                     Author = new Reference("111", "FirstTestUser")
+                };
+                _templateVersionCurrent = new TemplateVersion
+                {
+                    Name = "Test Name 2",
+                    TemplateId = "456",
+                    TemplateJson = null,
+                    Version = 2,
+                    SchemaVersion = "1.1",
+                    FundingPeriodId = "12345",
+                    Status = TemplateStatus.Draft,
+                    Author = new Reference("222", "SecondTestUser")
                 };
                 _template = new Template
                 {
                     TemplateId = _templateVersionPrevious.TemplateId,
                     Name = _templateVersionPrevious.Name,
                     Description = "Description",
-                    Current = _templateVersionPrevious
+                    Current = _templateVersionCurrent
                 };
                 _templateVersionRepository = Substitute.For<ITemplateVersionRepository>();
                 _templateVersionRepository.GetTemplateVersion(
@@ -289,6 +301,12 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
             public void Returns_correct_AuthorId()
             {
                 _result.AuthorId.Should().Be(_templateVersionPrevious.Author.Id);
+            }
+
+            [TestMethod]
+            public void Returns_correct_IsCurrentVersion()
+            {
+                _result.IsCurrentVersion.Should().BeFalse();
             }
         }
     }
