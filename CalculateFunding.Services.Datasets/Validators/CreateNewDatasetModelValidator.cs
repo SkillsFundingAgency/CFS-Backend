@@ -1,4 +1,5 @@
 ﻿using CalculateFunding.Models.Datasets;
+using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Services.Datasets.Interfaces;
 using FluentValidation;
 using System.Collections.Generic;
@@ -21,10 +22,6 @@ namespace CalculateFunding.Services.Datasets.Validators
         {
             _datasetsRepository = datasetsRepository;
             _policyRepository = policyRepository;
-
-            RuleFor(model => model.DefinitionId)
-            .NotEmpty()
-            .WithMessage("You must provide a valid dataset schema");
 
             RuleFor(model => model.Description)
              .NotEmpty()
@@ -69,6 +66,25 @@ namespace CalculateFunding.Services.Datasets.Validators
                     if (fundingStreams != null && !fundingStreams.Any(_ => _.Id == model.FundingStreamId))
                     {
                         context.AddFailure($"Unable to find given funding stream ID: {model.FundingStreamId}");
+                    }
+                }
+            });
+
+            RuleFor(model => model.DefinitionId)
+            .Custom((name, context) =>
+            {
+                CreateNewDatasetModel model = context.ParentContext.InstanceToValidate as CreateNewDatasetModel;
+                if (string.IsNullOrWhiteSpace(model.DefinitionId))
+                {
+                    context.AddFailure("You must provide a valid dataset schema");
+                }
+                else if(!string.IsNullOrWhiteSpace(model.FundingStreamId))
+                {
+                    IEnumerable<DatasetDefinationByFundingStream> datasetDefinitions = _datasetsRepository.GetDatasetDefinitionsByFundingStreamId(model.FundingStreamId).Result;
+
+                    if (datasetDefinitions?.Any(d => d.Id == model.DefinitionId) == false)
+                    {
+                        context.AddFailure($"Dataset definition not found for funding stream ID: {model.FundingStreamId}");
                     }
                 }
             });

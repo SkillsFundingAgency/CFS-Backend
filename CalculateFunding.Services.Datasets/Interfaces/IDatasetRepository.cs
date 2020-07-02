@@ -28,6 +28,8 @@ namespace CalculateFunding.Services.Datasets.Interfaces
 
         Task<DatasetDefinition> GetDatasetDefinition(string definitionId);
 
+        Task<IEnumerable<DatasetDefinationByFundingStream>> GetDatasetDefinitionsByFundingStreamId(string fundingStreamId);
+
         Task<IEnumerable<DefinitionSpecificationRelationship>> GetDefinitionSpecificationRelationshipsByQuery(Expression<Func<DocumentEntity<DefinitionSpecificationRelationship>, bool>> query);
 
         Task<DefinitionSpecificationRelationship> GetRelationshipBySpecificationIdAndName(string specificationId, string name);

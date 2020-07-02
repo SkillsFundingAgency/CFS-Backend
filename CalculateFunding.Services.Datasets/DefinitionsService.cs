@@ -299,6 +299,25 @@ namespace CalculateFunding.Services.Datasets
             return new OkObjectResult(defintion);
         }
 
+        public async Task<IActionResult> GetDatasetDefinitionsByFundingStreamId(string fundingStreamId)
+        {
+            if (string.IsNullOrWhiteSpace(fundingStreamId))
+            {
+                _logger.Error("No FundingStreamId was provided to GetDatasetDefinitionByFundingStreamId");
+
+                return new BadRequestObjectResult("Null or empty fundingStreamId provided");
+            }
+
+            IEnumerable<DatasetDefinationByFundingStream> defintions = await _datasetsRepositoryPolicy.ExecuteAsync(() => _datasetsRepository.GetDatasetDefinitionsByFundingStreamId(fundingStreamId));
+
+            if (defintions?.Any() == false)
+            {
+                return new NotFoundResult();
+            }
+
+            return new OkObjectResult(defintions);
+        }
+
         public async Task<IActionResult> GetDatasetDefinitionsByIds(IEnumerable<string> definitionIds)
         {
             if (!definitionIds.Any())

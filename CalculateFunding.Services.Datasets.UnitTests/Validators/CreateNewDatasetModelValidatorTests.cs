@@ -8,6 +8,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using PoliciesApiModels = CalculateFunding.Common.ApiClient.Policies.Models;
 
@@ -120,6 +121,31 @@ namespace CalculateFunding.Services.Datasets.Validators
                 .Errors
                 .Count
                 .Should()
+                .Be(2);
+        }
+
+        [TestMethod]
+        public void Validate_GivenDefinitionNotFoundForFundingStreamId_ValidIsFalse()
+        {
+            //Arrange
+            CreateNewDatasetModel model = CreateModel();
+
+            IDatasetRepository datasetRepository = CreateDatasetsRepository(false, false);
+            CreateNewDatasetModelValidator validator = CreateValidator(datasetRepository);
+
+            //Act
+            ValidationResult result = validator.Validate(model);
+
+            //Assert
+            result
+                .IsValid
+                .Should()
+                .BeFalse();
+
+            result
+                .Errors
+                .Count
+                .Should()
                 .Be(1);
         }
 
@@ -209,7 +235,7 @@ namespace CalculateFunding.Services.Datasets.Validators
                 new Dataset()
             };
 
-            IDatasetRepository repository = CreateDatasetsRepository(true);
+            IDatasetRepository repository = CreateDatasetsRepository(true, true);
             repository
                 .GetDatasetsByQuery(Arg.Any<Expression<Func<DocumentEntity<Dataset>, bool>>>())
                 .Returns(datasets);
@@ -304,17 +330,23 @@ namespace CalculateFunding.Services.Datasets.Validators
             IPolicyRepository policyRepository = null)
         {
             return new CreateNewDatasetModelValidator(
-                datasetsRepository ?? CreateDatasetsRepository(),
+                datasetsRepository ?? CreateDatasetsRepository(false, true),
                 policyRepository ?? CreatePolicyRepository());
         }
 
-        static IDatasetRepository CreateDatasetsRepository(bool hasDataset = false)
+        static IDatasetRepository CreateDatasetsRepository(bool hasDataset = false, bool hasDatasetDefinitionForFundingStream = false)
         {
             IDatasetRepository repository = Substitute.For<IDatasetRepository>();
 
             repository
                 .GetDatasetsByQuery(Arg.Any<Expression<Func<DocumentEntity<Dataset>, bool>>>())
                 .Returns(hasDataset ? new[] { new Dataset() } : new Dataset[0]);
+
+            repository
+                .GetDatasetDefinitionsByFundingStreamId(Arg.Is(FundingStreamId))
+                .Returns(hasDatasetDefinitionForFundingStream ? 
+                new[] { new Models.Datasets.Schema.DatasetDefinationByFundingStream() { Id = DefinitionId } } 
+                : Enumerable.Empty<Models.Datasets.Schema.DatasetDefinationByFundingStream>());
 
             return repository;
         }

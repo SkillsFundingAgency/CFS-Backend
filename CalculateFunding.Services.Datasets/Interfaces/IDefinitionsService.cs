@@ -16,6 +16,8 @@ namespace CalculateFunding.Services.Datasets.Interfaces
 
         Task<IActionResult> GetDatasetDefinitionsByIds(IEnumerable<string> definitionIds);
 
+        Task<IActionResult> GetDatasetDefinitionsByFundingStreamId(string fundingStreamId);
+
         Task<IActionResult> GetDatasetSchemaSasUrl(DatasetSchemaSasUrlRequestModel datasetSchemaSasUrlRequestModel);
     }
 }

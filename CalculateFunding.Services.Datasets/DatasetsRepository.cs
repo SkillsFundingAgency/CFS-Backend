@@ -61,6 +61,44 @@ namespace CalculateFunding.Services.Datasets
             return definitions.FirstOrDefault();
         }
 
+        public async Task<IEnumerable<DatasetDefinationByFundingStream>> GetDatasetDefinitionsByFundingStreamId(string fundingStreamId)
+        {           
+            CosmosDbQuery cosmosDbQuery = new CosmosDbQuery
+            {
+                QueryText = @"SELECT d.id AS id, d.content.name AS name, d.content.description as description,
+                                d.content.fundingStreamId as fundingStreamId
+                            FROM    datasets d
+                            WHERE   d.deleted = false 
+                                    AND d.documentType = ""DatasetDefinition"" 
+                                    AND d.content.fundingStreamId = @FundingStreamId",
+                Parameters = new[]
+                {
+                    new CosmosDbQueryParameter("@FundingStreamId", fundingStreamId)
+                }
+            };
+
+            IEnumerable<dynamic> results = await _cosmosRepository.DynamicQuery(cosmosDbQuery, 1000);
+
+            IList<DatasetDefinationByFundingStream> datasetDefinitions = new List<DatasetDefinationByFundingStream>();
+
+            if (results.IsNullOrEmpty())
+            {
+                return datasetDefinitions;
+            }
+
+            foreach (dynamic result in results)
+            {
+                datasetDefinitions.Add(new DatasetDefinationByFundingStream
+                {
+                    Id = result.id,
+                    Name = result.name,
+                    Description = result.description                   
+                });
+            }
+
+            return datasetDefinitions;
+        }
+
         public async Task<Dataset> GetDatasetByDatasetId(string datasetId)
         {
             IEnumerable<Dataset> datasets = await GetDatasetsByQuery(m => m.Id == datasetId);

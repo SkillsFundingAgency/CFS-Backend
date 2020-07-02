@@ -324,5 +324,13 @@ namespace CalculateFunding.Api.Datasets.Controllers
 
             return await _definitionSpecificationRelationshipService.GetCurrentRelationshipsBySpecificationIdAndDatasetDefinitionId(specificationId, datasetDefinitionId);
         }
+
+        [Route("api/datasets/get-data-definitions/{fundingStreamId}")]
+        [HttpGet]
+        [Produces(typeof(IEnumerable<DatasetDefinition>))]
+        public Task<IActionResult> GetDatasetDefinitionsByFundingStreamId(string fundingStreamId)
+        {
+            return _definitionService.GetDatasetDefinitionsByFundingStreamId(fundingStreamId);
+        }
     }
 }

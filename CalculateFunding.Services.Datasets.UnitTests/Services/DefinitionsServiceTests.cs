@@ -968,6 +968,62 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
+        async public Task GetDatasetDefinitionsByFundingStream_GivenDefinitionsRequestedButContainsNoResults_ReturnsNotFound()
+        {
+            //Arrange
+            IEnumerable<DatasetDefinationByFundingStream> definitions = new DatasetDefinationByFundingStream[0];
+
+            IDatasetRepository repository = CreateDataSetsRepository();
+            repository
+                .GetDatasetDefinitionsByFundingStreamId(Arg.Is(FundingStreamId))
+                .Returns(definitions);
+
+            DefinitionsService service = CreateDefinitionsService(datasetsRepository: repository);
+
+            //Act
+            IActionResult result = await service.GetDatasetDefinitionsByFundingStreamId(FundingStreamId);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<NotFoundResult>();
+        }
+
+        [TestMethod]
+        async public Task GetDatasetDefinitionsByFundingStream_GivenDefinitionsRequestedButContainsResults_ReturnsArray()
+        {
+            //Arrange
+            IEnumerable<DatasetDefinationByFundingStream> definitions = new[]
+            {
+                new DatasetDefinationByFundingStream(), new DatasetDefinationByFundingStream()
+            };
+
+            IDatasetRepository repository = CreateDataSetsRepository();
+            repository
+                .GetDatasetDefinitionsByFundingStreamId(Arg.Is(FundingStreamId))
+                .Returns(definitions);
+
+            DefinitionsService service = CreateDefinitionsService(datasetsRepository: repository);
+
+            //Act
+            IActionResult result = await service.GetDatasetDefinitionsByFundingStreamId(FundingStreamId);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>();
+
+            OkObjectResult objResult = (OkObjectResult)result;
+
+            IEnumerable<DatasetDefinationByFundingStream> objValue = (IEnumerable<DatasetDefinationByFundingStream>)objResult.Value;
+
+            objValue
+                .Count()
+                .Should()
+                .Be(2);
+        }
+
+        [TestMethod]
         public async Task GetDatasetSchemaSasUrl_GivenNullRequestModel_ReturnsBadRequest()
         {
             //Arrange
