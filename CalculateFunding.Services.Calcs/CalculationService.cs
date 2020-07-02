@@ -707,6 +707,15 @@ namespace CalculateFunding.Services.Calcs
                         specifications.Add(calculation.SpecificationId, specification);
                     }
                 }
+                
+                //bad data has crept into Test so we've added this temp guard to make the reindex more
+                //resilient to breaks in referential integrity between calcs and specs
+                if (specification == null)
+                {
+                    _logger.Warning($"Did not locate the specification for calculation {calculation.Id} with id {calculation.SpecificationId}. Skipping indexing this calculation");
+                    
+                    continue;
+                }
 
                 string fundingStreamName = specification.FundingStreams.FirstOrDefault(_ => _.Id == calculation.FundingStreamId)?.Name;
 
