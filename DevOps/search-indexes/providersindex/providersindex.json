@@ -18,7 +18,7 @@
     {
       "name": "providerVersionId",
       "type": "Edm.String",
-      "searchable": true,
+      "searchable": false,
       "filterable": true,
       "sortable": false,
       "facetable": true
@@ -58,7 +58,7 @@
     {
       "name": "establishmentNumber",
       "type": "Edm.String",
-      "searchable": true,
+      "searchable": false,
       "filterable": false,
       "sortable": false,
       "facetable": false
@@ -66,7 +66,7 @@
     {
       "name": "dfeEstablishmentNumber",
       "type": "Edm.String",
-      "searchable": true,
+      "searchable": false,
       "filterable": false,
       "sortable": false,
       "facetable": false
@@ -74,7 +74,7 @@
     {
       "name": "authority",
       "type": "Edm.String",
-      "searchable": true,
+      "searchable": false,
       "filterable": true,
       "sortable": false,
       "facetable": true
@@ -82,7 +82,7 @@
     {
       "name": "providerType",
       "type": "Edm.String",
-      "searchable": true,
+      "searchable": false,
       "filterable": true,
       "sortable": false,
       "facetable": true
@@ -90,7 +90,7 @@
     {
       "name": "providerSubType",
       "type": "Edm.String",
-      "searchable": true,
+      "searchable": false,
       "filterable": true,
       "sortable": false,
       "facetable": true
@@ -114,7 +114,7 @@
     {
       "name": "providerProfileIdType",
       "type": "Edm.String",
-      "searchable": true,
+      "searchable": false,
       "filterable": false,
       "sortable": false,
       "facetable": false
@@ -122,7 +122,7 @@
     {
       "name": "laCode",
       "type": "Edm.String",
-      "searchable": true,
+      "searchable": false,
       "filterable": false,
       "sortable": false,
       "facetable": false
@@ -130,7 +130,7 @@
     {
       "name": "navVendorNo",
       "type": "Edm.String",
-      "searchable": true,
+      "searchable": false,
       "filterable": false,
       "sortable": false,
       "facetable": false
@@ -138,7 +138,7 @@
     {
       "name": "crmAccountId",
       "type": "Edm.String",
-      "searchable": true,
+      "searchable": false,
       "filterable": false,
       "sortable": false,
       "facetable": false
@@ -146,7 +146,7 @@
     {
       "name": "legalName",
       "type": "Edm.String",
-      "searchable": true,
+      "searchable": false,
       "filterable": false,
       "sortable": false,
       "facetable": false
@@ -154,7 +154,7 @@
     {
       "name": "status",
       "type": "Edm.String",
-      "searchable": true,
+      "searchable": false,
       "filterable": false,
       "sortable": false,
       "facetable": false
@@ -162,7 +162,7 @@
     {
       "name": "phaseOfEducation",
       "type": "Edm.String",
-      "searchable": true,
+      "searchable": false,
       "filterable": false,
       "sortable": false,
       "facetable": false
@@ -170,7 +170,7 @@
     {
       "name": "reasonEstablishmentOpened",
       "type": "Edm.String",
-      "searchable": true,
+      "searchable": false,
       "filterable": false,
       "sortable": false,
       "facetable": false
@@ -178,7 +178,7 @@
     {
       "name": "reasonEstablishmentClosed",
       "type": "Edm.String",
-      "searchable": true,
+      "searchable": false,
       "filterable": false,
       "sortable": false,
       "facetable": false
@@ -186,7 +186,7 @@
     {
       "name": "successor",
       "type": "Edm.String",
-      "searchable": true,
+      "searchable": false,
       "filterable": false,
       "sortable": false,
       "facetable": false
@@ -194,7 +194,7 @@
     {
       "name": "trustStatus",
       "type": "Edm.String",
-      "searchable": true,
+      "searchable": false,
       "filterable": false,
       "sortable": false,
       "facetable": false
@@ -202,7 +202,7 @@
     {
       "name": "trustName",
       "type": "Edm.String",
-      "searchable": true,
+      "searchable": false,
       "filterable": false,
       "sortable": false,
       "facetable": false
@@ -210,7 +210,7 @@
     {
       "name": "trustCode",
       "type": "Edm.String",
-      "searchable": true,
+      "searchable": false,
       "filterable": false,
       "sortable": false,
       "facetable": false
@@ -218,7 +218,7 @@
     {
       "name": "town",
       "type": "Edm.String",
-      "searchable": true,
+      "searchable": false,
       "filterable": false,
       "sortable": false,
       "facetable": false
@@ -226,7 +226,7 @@
     {
       "name": "postcode",
       "type": "Edm.String",
-      "searchable": true,
+      "searchable": false,
       "filterable": false,
       "sortable": false,
       "facetable": false
@@ -243,7 +243,7 @@
       "name": "companiesHouseNumber",
       "type": "Edm.String",
       "searchable": false,
-      "filterable": true,
+      "filterable": false,
       "sortable": false,
       "facetable": false
     },
@@ -251,7 +251,7 @@
       "name": "groupIdNumber",
       "type": "Edm.String",
       "searchable": false,
-      "filterable": true,
+      "filterable": false,
       "sortable": false,
       "facetable": false
     },
@@ -259,7 +259,7 @@
       "name": "rscRegionName",
       "type": "Edm.String",
       "searchable": false,
-      "filterable": true,
+      "filterable": false,
       "sortable": false,
       "facetable": false
     },
@@ -267,7 +267,7 @@
       "name": "rscRegionCode",
       "type": "Edm.String",
       "searchable": false,
-      "filterable": true,
+      "filterable": false,
       "sortable": false,
       "facetable": false
     },
@@ -275,7 +275,7 @@
       "name": "governmentOfficeRegionName",
       "type": "Edm.String",
       "searchable": false,
-      "filterable": true,
+      "filterable": false,
       "sortable": false,
       "facetable": false
     },
@@ -283,7 +283,7 @@
       "name": "governmentOfficeRegionCode",
       "type": "Edm.String",
       "searchable": false,
-      "filterable": true,
+      "filterable": false,
       "sortable": false,
       "facetable": false
     },
@@ -291,7 +291,7 @@
       "name": "districtName",
       "type": "Edm.String",
       "searchable": false,
-      "filterable": true,
+      "filterable": false,
       "sortable": false,
       "facetable": false
     },
@@ -299,7 +299,7 @@
       "name": "districtCode",
       "type": "Edm.String",
       "searchable": false,
-      "filterable": true,
+      "filterable": false,
       "sortable": false,
       "facetable": false
     },
@@ -307,7 +307,7 @@
       "name": "wardName",
       "type": "Edm.String",
       "searchable": false,
-      "filterable": true,
+      "filterable": false,
       "sortable": false,
       "facetable": false
     },
@@ -315,7 +315,7 @@
       "name": "wardCode",
       "type": "Edm.String",
       "searchable": false,
-      "filterable": true,
+      "filterable": false,
       "sortable": false,
       "facetable": false
     },
@@ -323,7 +323,7 @@
       "name": "censusWardName",
       "type": "Edm.String",
       "searchable": false,
-      "filterable": true,
+      "filterable": false,
       "sortable": false,
       "facetable": false
     },
@@ -331,7 +331,7 @@
       "name": "censusWardCode",
       "type": "Edm.String",
       "searchable": false,
-      "filterable": true,
+      "filterable": false,
       "sortable": false,
       "facetable": false
     },
@@ -347,7 +347,7 @@
       "name": "middleSuperOutputAreaCode",
       "type": "Edm.String",
       "searchable": false,
-      "filterable": true,
+      "filterable": false,
       "sortable": false,
       "facetable": false
     },
@@ -355,7 +355,7 @@
       "name": "lowerSuperOutputAreaName",
       "type": "Edm.String",
       "searchable": false,
-      "filterable": true,
+      "filterable": false,
       "sortable": false,
       "facetable": false
     },
@@ -363,7 +363,7 @@
       "name": "lowerSuperOutputAreaCode",
       "type": "Edm.String",
       "searchable": false,
-      "filterable": true,
+      "filterable": false,
       "sortable": false,
       "facetable": false
     },
@@ -371,7 +371,7 @@
       "name": "parliamentaryConstituencyName",
       "type": "Edm.String",
       "searchable": false,
-      "filterable": true,
+      "filterable": false,
       "sortable": false,
       "facetable": false
     },
@@ -379,7 +379,7 @@
       "name": "parliamentaryConstituencyCode",
       "type": "Edm.String",
       "searchable": false,
-      "filterable": true,
+      "filterable": false,
       "sortable": false,
       "facetable": false
     },
@@ -387,7 +387,7 @@
       "name": "countryCode",
       "type": "Edm.String",
       "searchable": false,
-      "filterable": true,
+      "filterable": false,
       "sortable": false,
       "facetable": false
     },
@@ -395,7 +395,7 @@
       "name": "countryName",
       "type": "Edm.String",
       "searchable": false,
-      "filterable": true,
+      "filterable": false,
       "sortable": false,
       "facetable": false
     },
@@ -403,7 +403,7 @@
       "name": "localGovernmentGroupTypeCode",
       "type": "Edm.String",
       "searchable": false,
-      "filterable": true,
+      "filterable": false,
       "sortable": false,
       "facetable": false
     },
@@ -411,7 +411,7 @@
       "name": "localGovernmentGroupTypeName",
       "type": "Edm.String",
       "searchable": false,
-      "filterable": true,
+      "filterable": false,
       "sortable": false,
       "facetable": false
     },
