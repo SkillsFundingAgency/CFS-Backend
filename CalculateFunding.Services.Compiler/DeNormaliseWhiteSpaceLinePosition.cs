@@ -7,6 +7,8 @@ namespace CalculateFunding.Services.Compiler
 {
     public readonly struct DeNormaliseWhiteSpaceLinePosition
     {
+        private const int NormalisedIndentSpaces = 20;
+        
         private static readonly string[] EmptyLinesOfCode = new string[0];
 
         public DeNormaliseWhiteSpaceLinePosition(FileLinePositionSpan normalisedPosition,
@@ -31,7 +33,9 @@ namespace CalculateFunding.Services.Compiler
             }
 
             StartLine = GetOriginalLineNumber(mappedLines, normalisedPosition.StartLinePosition);
+            StartCharacter = normalisedPosition.StartLinePosition.Character - NormalisedIndentSpaces;
             EndLine = GetOriginalLineNumber(mappedLines, normalisedPosition.EndLinePosition);
+            EndCharacter = normalisedPosition.EndLinePosition.Character - NormalisedIndentSpaces;
         }
 
         private static int GetOriginalLineNumber(Dictionary<int, int> mappedLines,
@@ -40,12 +44,16 @@ namespace CalculateFunding.Services.Compiler
 
         public int StartLine { get; }
 
+        public int StartCharacter { get; }
+        
         public int EndLine { get; }
+
+        public int EndCharacter { get; }
 
         public override bool Equals(object obj) => obj?.GetHashCode().Equals(GetHashCode()) == true;
 
-        public override int GetHashCode() => HashCode.Combine(StartLine, EndLine);
+        public override int GetHashCode() => HashCode.Combine(StartLine, StartCharacter, EndLine, EndCharacter);
 
-        public override string ToString() => $"[{StartLine}]-[{EndLine}]";
+        public override string ToString() => $"StartLine[{StartLine}]-StartCharacter[{StartCharacter}]-EndLine[{EndLine}]-EndCharacter[{EndCharacter}]";
     }
 }

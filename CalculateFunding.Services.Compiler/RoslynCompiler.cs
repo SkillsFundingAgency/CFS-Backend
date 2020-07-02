@@ -106,9 +106,9 @@ namespace CalculateFunding.Services.Compiler
                     {
                         Owner = owner,
                         StartLine = originalSourceCodeLinePosition.StartLine,
-                        StartChar = span.StartLinePosition.Character,
+                        StartChar = originalSourceCodeLinePosition.StartCharacter,
                         EndLine = originalSourceCodeLinePosition.EndLine,
-                        EndChar = span.EndLinePosition.Character
+                        EndChar = originalSourceCodeLinePosition.EndCharacter
                     };
                 }
             }

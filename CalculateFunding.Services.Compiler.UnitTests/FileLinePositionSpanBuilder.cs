@@ -8,7 +8,9 @@ namespace CalculateFunding.Services.Compiler.UnitTests
     {
         private string _path;
         private int? _startLine;
+        private int? _startChar;
         private int? _endLine;
+        private int? _endChar;
 
         public FileLinePositionSpanBuilder WithStartLineNumber(int startLine)
         {
@@ -16,10 +18,24 @@ namespace CalculateFunding.Services.Compiler.UnitTests
 
             return this;
         }
+        
+        public FileLinePositionSpanBuilder WithStartChar(int startChar)
+        {
+            _startChar = startChar;
+
+            return this;
+        }
 
         public FileLinePositionSpanBuilder WithEndLineNumber(int endLine)
         {
             _endLine = endLine;
+
+            return this;
+        }
+        
+        public FileLinePositionSpanBuilder WithEndChar(int endChar)
+        {
+            _endChar = endChar;
 
             return this;
         }
@@ -34,10 +50,12 @@ namespace CalculateFunding.Services.Compiler.UnitTests
         public FileLinePositionSpan Build()
         {
             return new FileLinePositionSpan(_path ?? NewRandomString(),
-                NewLinePosition(_startLine),
-                NewLinePosition(_endLine));
+                NewLinePosition(_startLine, _startChar),
+                NewLinePosition(_endLine, _endChar));
         }
 
-        private LinePosition NewLinePosition(int? lineNumber) => new LinePosition(lineNumber.GetValueOrDefault(NewRandomNumberBetween(0, 10)), 1);
+        private LinePosition NewLinePosition(int? lineNumber, int? charPosition) 
+            => new LinePosition(lineNumber.GetValueOrDefault(NewRandomNumberBetween(0, 10)), 
+                charPosition.GetValueOrDefault(NewRandomNumberBetween(0, 10)));
     }
 }

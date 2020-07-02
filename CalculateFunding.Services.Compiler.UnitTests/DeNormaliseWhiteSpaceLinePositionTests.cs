@@ -15,7 +15,9 @@ namespace CalculateFunding.Services.Compiler.UnitTests
             string originalString,
             FileLinePositionSpan diagnosticSpan,
             int expectedStartLine,
-            int expectedEndLine)
+            int expectedStartChar,
+            int expectedEndLine,
+            int expectedEndChar)
         {
             DeNormaliseWhiteSpaceLinePosition whiteSpaceLinePosition = new DeNormaliseWhiteSpaceLinePosition(diagnosticSpan, originalString);
             
@@ -25,9 +27,19 @@ namespace CalculateFunding.Services.Compiler.UnitTests
                 .Be(expectedStartLine);
             
             whiteSpaceLinePosition
+                .StartCharacter
+                .Should()
+                .Be(expectedStartChar);
+            
+            whiteSpaceLinePosition
                 .EndLine
                 .Should()
                 .Be(expectedEndLine);
+
+            whiteSpaceLinePosition
+                .EndCharacter
+                .Should()
+                .Be(expectedEndChar);
         }
 
         private static IEnumerable<object[]> DeNormalisedLinePositionExamples()
@@ -39,9 +51,13 @@ namespace CalculateFunding.Services.Compiler.UnitTests
 
                 two",
                 NewLinePositionSpan(_ => _.WithStartLineNumber(0)
-                    .WithEndLineNumber(1)),
+                    .WithStartChar(21)
+                    .WithEndLineNumber(1)
+                    .WithEndChar(27)),
                 2,
-                4
+                1,
+                4,
+                7
             };
             yield return new object []
             {
@@ -51,9 +67,13 @@ namespace CalculateFunding.Services.Compiler.UnitTests
 
                 four",
                 NewLinePositionSpan(_ => _.WithStartLineNumber(0)
-                    .WithEndLineNumber(0)),
+                    .WithStartChar(23)
+                    .WithEndLineNumber(0)
+                    .WithEndChar(45)),
                 1,
-                1
+                3,
+                1,
+                25
             };
             yield return new object []
             {
@@ -63,9 +83,13 @@ namespace CalculateFunding.Services.Compiler.UnitTests
                 three
                 four",
                 NewLinePositionSpan(_ => _.WithStartLineNumber(2)
-                    .WithEndLineNumber(2)),
+                    .WithStartChar(24)
+                    .WithEndLineNumber(2)
+                    .WithEndChar(28)),
                 4,
-                4
+                4,
+                4,
+                8
             };
         }
 
