@@ -13,7 +13,9 @@ namespace CalculateFunding.Api.External.UnitTests
                 PublishedProviderVersionRepository = Policy.NoOpAsync(),
                 JobsApiClient = Policy.NoOpAsync(),
                 BlobClient = Policy.NoOpAsync(),
-                PublishedFundingBlobRepository = Policy.NoOpAsync()
+                PublishedFundingBlobRepository = Policy.NoOpAsync(),
+                PublishedFundingRepository = Policy.NoOpAsync(),
+                ProvidersApiClient = Policy.NoOpAsync(),
             };
         }
     }

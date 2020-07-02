@@ -26,6 +26,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
         
         private string _fundingStreamId;
         private string _fundingPeriodId;
+        private string _publishedProviderVersion;
 
         [TestInitialize]
         public void SetUp()
@@ -38,6 +39,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
             
             _fundingPeriodId = NewRandomString();
             _fundingStreamId = NewRandomString();
+            _publishedProviderVersion = NewRandomString();
         }
 
         [TestMethod]
@@ -306,6 +308,24 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
                     50);
         }
 
+        [TestMethod]
+        public async Task GetPublishedProviderIdRetrievesPublishedProvider()
+        {
+            await WhenThePublishedProviderVersionsAreRetrieved();
+
+            const string queryText = @"
+                                SELECT c.content.released.provider.providerVersionId, 
+                                c.content.released.provider.providerId 
+                                FROM c
+                                WHERE c.documentType = 'PublishedProvider'
+                                AND c.content.released.fundingId = @publishedProviderVersion";
+
+            await _cosmosRepository
+                .Received(1)
+                .DynamicQuery(Arg.Is<CosmosDbQuery>(_ => _.QueryText == queryText &&
+                    HasParameter(_, "@publishedProviderVersion", _publishedProviderVersion)));
+        }
+
         private async Task WhenThePublishedProvidersAreDeleted()
         {
             await _repository.DeleteAllPublishedProvidersByFundingStreamAndPeriod(_fundingStreamId, _fundingPeriodId);
@@ -323,6 +343,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
         private async Task WhenThePublishedFundingVersionsAreDeleted()
         {
             await _repository.DeleteAllPublishedFundingVersionsByFundingStreamAndPeriod(_fundingStreamId, _fundingPeriodId);
+        }
+
+        private async Task WhenThePublishedProviderVersionsAreRetrieved()
+        {
+            await _repository.GetPublishedProviderId(_publishedProviderVersion);
         }
 
         private bool HasParameter(CosmosDbQuery query, string name, string value)

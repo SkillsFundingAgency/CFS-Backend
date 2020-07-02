@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using PolicyApiClientModel = CalculateFunding.Common.ApiClient.Policies.Models;
+using ProvidersApiClientModel = CalculateFunding.Common.ApiClient.Providers.Models;
 
 namespace CalculateFunding.Api.External.V3.MappingProfiles
 {
@@ -12,6 +13,7 @@ namespace CalculateFunding.Api.External.V3.MappingProfiles
             CreateMap<PolicyApiClientModel.PublishedFundingTemplate, Models.PublishedFundingTemplate>()
                 .ForMember(dest => dest.MajorVersion, opt => opt.MapFrom(src => GetVersionFromTemplateVersion(src.TemplateVersion, true)))
                 .ForMember(dest => dest.MinorVersion, opt => opt.MapFrom(src => GetVersionFromTemplateVersion(src.TemplateVersion, false)));
+            CreateMap<ProvidersApiClientModel.Search.ProviderVersionSearchResult, Models.ProviderVersionSearchResult>();
         }
 
         private static string GetVersionFromTemplateVersion(string templareVersion, bool major)

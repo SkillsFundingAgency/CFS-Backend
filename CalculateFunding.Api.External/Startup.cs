@@ -6,6 +6,7 @@ using CalculateFunding.Api.External.V3.Interfaces;
 using CalculateFunding.Api.External.V3.MappingProfiles;
 using CalculateFunding.Api.External.V3.Services;
 using CalculateFunding.Common.Config.ApiClient.Policies;
+using CalculateFunding.Common.Config.ApiClient.Providers;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
@@ -226,6 +227,8 @@ namespace CalculateFunding.Api.External
 
             builder
                 .AddSingleton<IFundingStreamService, FundingStreamService>();
+            builder
+                .AddSingleton<IPublishedProviderRetrievalService, PublishedProviderRetrievalService>();
 
             builder.AddSearch(Configuration);
             builder
@@ -250,7 +253,8 @@ namespace CalculateFunding.Api.External
                 {
                     FundingFeedSearchRepository = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
                     PublishedFundingBlobRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-                    PublishedFundingRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy)
+                    PublishedFundingRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
+                    ProvidersApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                 };
             });
 
@@ -279,6 +283,7 @@ namespace CalculateFunding.Api.External
             builder.AddHealthCheckMiddleware();
             builder.AddTransient<ContentTypeCheckMiddleware>();
             builder.AddPoliciesInterServiceClient(Configuration);
+            builder.AddProvidersInterServiceClient(Configuration);
 
             builder.AddSingleton<IProviderFundingVersionService>((ctx) =>
             {

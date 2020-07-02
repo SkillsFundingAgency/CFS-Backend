@@ -2,9 +2,6 @@
 using CalculateFunding.Api.External.V3.Interfaces;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Api.External.UnitTests.Version3.Controllers

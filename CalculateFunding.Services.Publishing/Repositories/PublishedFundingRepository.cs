@@ -823,7 +823,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
                 fundingLines.Add((string)item);
             }
 
-            return await Task.FromResult(fundingLines.Distinct()); ;
+            return await Task.FromResult(fundingLines.Distinct());
         }
 
         public async Task<int> QueryPublishedFundingCount(IEnumerable<string> fundingStreamIds,
@@ -871,6 +871,35 @@ namespace CalculateFunding.Services.Publishing.Repositories
                     StatusChangedDate = _.statusChangedDate,
                     VariationReasons = _.variationReasons
                 });
+        }
+
+        public async Task<(string providerVersionId, string providerId)> GetPublishedProviderId(string publishedProviderVersion)
+        {
+            Guard.IsNullOrWhiteSpace(publishedProviderVersion, nameof(publishedProviderVersion));
+
+            IEnumerable<dynamic> queryResults = await _repository
+             .DynamicQuery(new CosmosDbQuery
+             {
+                 QueryText = @"
+                                SELECT c.content.released.provider.providerVersionId, 
+                                c.content.released.provider.providerId 
+                                FROM c
+                                WHERE c.documentType = 'PublishedProvider'
+                                AND c.content.released.fundingId = @publishedProviderVersion",
+                 Parameters = new[]
+                 {
+                    new CosmosDbQueryParameter("@publishedProviderVersion", publishedProviderVersion),
+                 }
+             });
+
+            dynamic item = queryResults.SingleOrDefault();
+
+            if(item == null)
+            {
+                return (providerVersionId: null, providerId: null);
+            }
+
+            return (providerVersionId: (dynamic)item.providerVersionId, providerId: (dynamic)item.providerId);
         }
     }
 }

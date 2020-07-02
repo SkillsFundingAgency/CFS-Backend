@@ -380,5 +380,15 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         {
             throw new NotImplementedException();
         }
+
+        public Task<(string providerVersionId, string providerId)> GetPublishedProviderId(string publishedProviderVersion)
+        {
+            PublishedProvider publishedProvider = _repo.PublishedProviders.SelectMany(c => c.Value).Where(p =>
+                p.Released.FundingId == publishedProviderVersion).FirstOrDefault();
+
+            return Task.FromResult((
+                providerVersionId: publishedProvider?.Released?.Provider?.ProviderVersionId, 
+                providerId: publishedProvider?.Released?.Provider?.ProviderId));
+        }
     }
 }

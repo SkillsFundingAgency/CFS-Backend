@@ -98,5 +98,7 @@ namespace CalculateFunding.Services.Publishing.Interfaces
             IEnumerable<string> fundingPeriodIds,
             IEnumerable<string> groupingReasons,
             IEnumerable<string> variationReasons);
+
+        Task<(string providerVersionId, string providerId)> GetPublishedProviderId(string publishedProviderVersion);
     }
 }
