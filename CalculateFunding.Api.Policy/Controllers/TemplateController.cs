@@ -1,12 +1,14 @@
 ﻿using System.Collections.Generic;
-using System.Net.Mime;
 using System.Threading.Tasks;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Policy;
+using CalculateFunding.Services.Core.AspNet.OperationFilters;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Policy.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace CalculateFunding.Api.Policy.Controllers
 {
@@ -30,7 +32,7 @@ namespace CalculateFunding.Api.Policy.Controllers
         /// <returns></returns>
         [HttpGet("api/templates/{fundingStreamId}/{fundingPeriodId}/{templateVersion}")]
         [Produces(typeof(FundingTemplateContents))]
-        public async Task<IActionResult> GetFundingTemplate([FromRoute]string fundingStreamId, [FromRoute]string fundingPeriodId, [FromRoute]string templateVersion)
+        public async Task<IActionResult> GetFundingTemplate([FromRoute] string fundingStreamId, [FromRoute] string fundingPeriodId, [FromRoute] string templateVersion)
         {
             return await _fundingTemplateService.GetFundingTemplate(fundingStreamId, fundingPeriodId, templateVersion);
         }
@@ -44,7 +46,7 @@ namespace CalculateFunding.Api.Policy.Controllers
         /// <returns></returns>
         [HttpGet("api/templates/{fundingStreamId}/{fundingPeriodId}/{templateVersion}/sourcefile")]
         [Produces("application/json")]
-        public async Task<IActionResult> GetFundingTemplateSourceFile([FromRoute]string fundingStreamId, [FromRoute]string fundingPeriodId, [FromRoute]string templateVersion)
+        public async Task<IActionResult> GetFundingTemplateSourceFile([FromRoute] string fundingStreamId, [FromRoute] string fundingPeriodId, [FromRoute] string templateVersion)
         {
             return await _fundingTemplateService.GetFundingTemplateSourceFile(fundingStreamId, fundingPeriodId, templateVersion);
         }
@@ -58,19 +60,28 @@ namespace CalculateFunding.Api.Policy.Controllers
         /// <returns></returns>
         [HttpGet("api/templates/{fundingStreamId}/{fundingPeriodId}/{templateVersion}/metadata")]
         [ProducesResponseType(200, Type = typeof(TemplateMetadataContents))]
-        public async Task<IActionResult> GetFundingTemplateContents([FromRoute]string fundingStreamId, [FromRoute]string fundingPeriodId, [FromRoute]string templateVersion)
+        public async Task<IActionResult> GetFundingTemplateContents([FromRoute] string fundingStreamId, [FromRoute] string fundingPeriodId, [FromRoute] string templateVersion)
         {
             return await _fundingTemplateService.GetFundingTemplateContents(fundingStreamId, fundingPeriodId, templateVersion);
         }
 
+
+        private const string SaveFundingTemplateDescription = @"Saves (creates or updates) a funding template based off a schema version for a funding stream and funding period.
+
+The template contents should be provided in the HTTP body as per the template schema.
+The template is validated against the schema and associated rules.";
+
         /// <summary>
-        /// Saves (creates or updates) a funding template based off a schema version for a funding stream and funding period.
+        /// Saves (creates or updates) a funding template
         /// </summary>
         /// <returns></returns>
         [HttpPost("api/templates/{fundingStreamId}/{fundingPeriodId}/{templateVersion}")]
         [ProducesResponseType(201)]
+        [ProducesResponseType(400, Type = typeof(ModelStateDictionary))]
         [Produces("application/json")]
-        public async Task<IActionResult> SaveFundingTemplate([FromRoute]string fundingStreamId, [FromRoute]string fundingPeriodId, [FromRoute]string templateVersion)
+        [JsonBodyContents]
+        [SwaggerOperation(Summary = "Saves (creates or updates) a funding template", Description = SaveFundingTemplateDescription)]
+        public async Task<IActionResult> SaveFundingTemplate([FromRoute] string fundingStreamId, [FromRoute] string fundingPeriodId, [FromRoute] string templateVersion)
         {
             string controllerName = string.Empty;
 
@@ -98,7 +109,7 @@ namespace CalculateFunding.Api.Policy.Controllers
         /// <returns></returns>
         [HttpGet("api/templates/{fundingStreamId}/{fundingPeriodId}")]
         [Produces(typeof(IEnumerable<PublishedFundingTemplate>))]
-        public async Task<IActionResult> GetFundingTemplates([FromRoute]string fundingStreamId, [FromRoute]string fundingPeriodId)
+        public async Task<IActionResult> GetFundingTemplates([FromRoute] string fundingStreamId, [FromRoute] string fundingPeriodId)
         {
             return await _fundingTemplateService.GetFundingTemplates(fundingStreamId, fundingPeriodId);
         }

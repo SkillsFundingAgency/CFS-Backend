@@ -1,12 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using CalculateFunding.Common.Utility;
+using CalculateFunding.Services.Core.AspNet.OperationFilters;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Filters;
 using Swashbuckle.AspNetCore.SwaggerGen;
@@ -20,7 +19,7 @@ namespace CalculateFunding.Services.Core.AspNet.Extensions
         {
             services.AddSwaggerGen(c =>
             {
-                if(!string.IsNullOrWhiteSpace(title))
+                if (!string.IsNullOrWhiteSpace(title))
                 {
                     c.SwaggerDoc(version, new OpenApiInfo { Title = title, Version = version });
                 }
@@ -62,6 +61,10 @@ namespace CalculateFunding.Services.Core.AspNet.Extensions
                 {
                     c.IncludeXmlComments(xmlPath);
                 }
+
+                c.EnableAnnotations();
+
+                c.OperationFilter<JsonBodyContentsContentFilter>();
             });
 
             services.AddSwaggerGenNewtonsoftSupport();
