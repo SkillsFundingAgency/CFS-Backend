@@ -124,14 +124,12 @@ namespace CalculateFunding.Functions.Policy
 
             builder.AddSingleton<IPolicyResiliencePolicies>(policyResiliencePolicies);
             builder.AddSingleton<IJobHelperResiliencePolicies>(policyResiliencePolicies);
-            builder.AddScoped<IJobHelperService, JobHelperService>();
-            builder.AddScoped<IJobManagement, JobManagement>();
+            builder.AddSingleton<IJobHelperService, JobHelperService>();
+            builder.AddSingleton<IJobManagement, JobManagement>();
             builder.AddSingleton<ITemplatesReIndexerService, TemplatesReIndexerService>();
 
             builder.AddJobsInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
             builder.AddPoliciesInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
-
-            builder.AddScoped<IUserProfileProvider, UserProfileProvider>();
 
             return builder.BuildServiceProvider();
         }
