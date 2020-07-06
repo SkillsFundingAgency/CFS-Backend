@@ -14,5 +14,7 @@ namespace CalculateFunding.Services.Providers.Interfaces
         Task<IActionResult> GetProviderById(int year, int month, int day, string providerId);
         Task<IActionResult> SearchProviderVersions(SearchModel searchModel);
         Task<IActionResult> GetFacetValues(string facetName);
+        Task<IActionResult> GetLocalAuthoritiesByProviderVersionId(string providerVersionId);
+        Task<IActionResult> GetLocalAuthoritiesByFundingStreamId(string fundingStreamId);
     }
 }

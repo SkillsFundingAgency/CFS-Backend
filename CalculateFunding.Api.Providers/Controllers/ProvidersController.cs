@@ -28,5 +28,27 @@ namespace CalculateFunding.Api.Providers.Controllers
         {
             return await _providerVersionSearchService.GetFacetValues("authority");
         }
+
+        /// <summary>
+        /// Get list of local authorities for provider version id
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("api/local-authorities/versions/{providerVersionId}")]
+        [ProducesResponseType(200, Type = typeof(IEnumerable<string>))]
+        public async Task<IActionResult> GetLocalAuthorityNamesByProviderVersionId([FromRoute]string providerVersionId)
+        {
+            return await _providerVersionSearchService.GetLocalAuthoritiesByProviderVersionId(providerVersionId);
+        }
+
+        /// <summary>
+        /// Get list of local authorities for funding stream id
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("api/local-authorities/fundingstreams/{fundingStreamId}")]
+        [ProducesResponseType(200, Type = typeof(IEnumerable<string>))]
+        public async Task<IActionResult> GetLocalAuthorityNamesByFundingStreamId([FromRoute]string fundingStreamId)
+        {
+            return await _providerVersionSearchService.GetLocalAuthoritiesByFundingStreamId(fundingStreamId);
+        }
     }
 }

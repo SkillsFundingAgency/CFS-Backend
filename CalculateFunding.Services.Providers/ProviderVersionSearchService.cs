@@ -22,8 +22,8 @@ namespace CalculateFunding.Services.Providers
         private readonly AsyncPolicy _searchRepositoryPolicy;
         private readonly ILogger _logger;
         private readonly ISearchRepository<ProvidersIndex> _searchRepository;
-        private readonly AsyncPolicy _providerVersionMetadataRepositoryPolicy;
-        private readonly IProviderVersionsMetadataRepository _providerVersionMetadataRepository;
+        private readonly AsyncPolicy _providerVersionsMetadataRepositoryPolicy;
+        private readonly IProviderVersionsMetadataRepository _providerVersionsMetadataRepository;
         private readonly IProviderVersionService _providerVersionService;
 
         private readonly FacetFilterType[] Facets = {
@@ -36,7 +36,7 @@ namespace CalculateFunding.Services.Providers
 
         public ProviderVersionSearchService(ILogger logger,
             ISearchRepository<ProvidersIndex> searchRepository,
-            IProviderVersionsMetadataRepository providerVersionMetadataRepository,
+            IProviderVersionsMetadataRepository providerVersionsMetadataRepository,
             IProvidersResiliencePolicies resiliencePolicies,
             IProviderVersionService providerVersionService)
         {
@@ -48,8 +48,8 @@ namespace CalculateFunding.Services.Providers
             _logger = logger;
             _searchRepository = searchRepository;
             _searchRepositoryPolicy = resiliencePolicies.ProviderVersionsSearchRepository;
-            _providerVersionMetadataRepository = providerVersionMetadataRepository;
-            _providerVersionMetadataRepositoryPolicy = resiliencePolicies.ProviderVersionMetadataRepository;
+            _providerVersionsMetadataRepository = providerVersionsMetadataRepository;
+            _providerVersionsMetadataRepositoryPolicy = resiliencePolicies.ProviderVersionMetadataRepository;
             _providerVersionService = providerVersionService;
         }
 
@@ -57,7 +57,7 @@ namespace CalculateFunding.Services.Providers
         {
             (bool Ok, string Message) = await _searchRepository.IsHealthOk();
 
-            ServiceHealth providerVersionMetadataRepoHealth = await ((IHealthChecker)_providerVersionMetadataRepository).IsHealthOk();
+            ServiceHealth providerVersionMetadataRepoHealth = await ((IHealthChecker)_providerVersionsMetadataRepository).IsHealthOk();
 
             ServiceHealth providerVersionServiceHealth = await _providerVersionService.IsHealthOk();
 
@@ -228,6 +228,57 @@ namespace CalculateFunding.Services.Providers
             return new OkObjectResult(distinctFacetValues);
         }
 
+        public async Task<IActionResult> GetLocalAuthoritiesByProviderVersionId(string providerVersionId)
+        {
+            string authorityFacet = "authority";
+            string providerVersionIdFacet = "providerVersionId";
+
+            SearchModel searchModel = new SearchModel() { Top = 0};
+            searchModel.IncludeFacets = true;           
+            searchModel.OverrideFacetFields = new[] { authorityFacet };
+            searchModel.SearchMode = Models.Search.SearchMode.All;
+            searchModel.Filters = new Dictionary<string, string[]>
+            {
+                { providerVersionIdFacet , new string[] { providerVersionId } }
+            };
+
+            try
+            {
+                ProviderVersionSearchResults results = await SearchProviderVersionSearchResults(searchModel);
+                IEnumerable<string> providerVersions = results.Facets.Single(x => x.Name == providerVersionIdFacet).FacetValues.Select(x => x.Name);
+                IEnumerable<string> authorities = results.Facets.Single(x => x.Name == authorityFacet).FacetValues.Select(x => x.Name);
+
+                if(!providerVersions.Any(x => x == providerVersionId))
+                {
+                    return new NotFoundResult();
+                }
+
+                return new OkObjectResult(authorities);
+            }
+            catch (FailedToQuerySearchException exception)
+            {
+                string error = $"Failed to query search with Provider Version Id: {providerVersionId}";
+
+                _logger.Error(exception, error);
+
+                return new InternalServerErrorResult(error);
+            }
+        }
+
+        public async Task<IActionResult> GetLocalAuthoritiesByFundingStreamId(string fundingStreamId)
+        {
+            CurrentProviderVersion currentProviderVersion = await GetCurrentProviderVersion(fundingStreamId);
+            if (currentProviderVersion == null)
+            {
+                _logger.Error("Unable to search current provider for funding stream. " +
+                         $"No current provider version information located for {fundingStreamId}");
+
+                return new NotFoundResult();
+            }
+
+            return await GetLocalAuthoritiesByProviderVersionId(currentProviderVersion.ProviderVersionId);
+        }
+
         private async Task<ProviderVersionSearchResults> SearchProviderVersionSearchResults(SearchModel searchModel)
         {
             IEnumerable<Task<SearchResults<ProvidersIndex>>> searchTasks = BuildSearchTasks(searchModel);
@@ -261,7 +312,7 @@ namespace CalculateFunding.Services.Providers
 
                             return _searchRepository.Search(searchModel.SearchTerm, new SearchParameters
                             {
-                                Facets = new[]{ filterPair.Key },
+                                Facets = new[]{$"{filterPair.Key},count:{searchModel.FacetCount}"},
                                 SearchMode = (SearchMode)searchModel.SearchMode,
                                 IncludeTotalResultCount = true,
                                 Filter = string.Join(" and ", facetDictionary.Where(x => x.Key != filterPair.Key && !string.IsNullOrWhiteSpace(x.Value)).Select(x => x.Value)),
@@ -300,7 +351,15 @@ namespace CalculateFunding.Services.Providers
                     else
                         filter = $"({string.Join(" or ", searchModel.Filters[facet.Name].Select(x => $"{facet.Name} eq '{x}'"))})";
                 }
-                facetDictionary.Add(facet.Name, filter);
+
+                if (searchModel.OverrideFacetFields.Any() && (searchModel.OverrideFacetFields.Contains(facet.Name) || searchModel.Filters.ContainsKey(facet.Name)))
+                {
+                    facetDictionary.Add(facet.Name, filter);
+                }
+                else if (!searchModel.OverrideFacetFields.Any())
+                {
+                    facetDictionary.Add(facet.Name, filter);
+                }
             }
 
             return facetDictionary;
@@ -390,5 +449,8 @@ namespace CalculateFunding.Services.Providers
                 });
             }
         }
+
+        private async Task<CurrentProviderVersion> GetCurrentProviderVersion(string fundingStreamId) =>
+            await _providerVersionsMetadataRepositoryPolicy.ExecuteAsync(() => _providerVersionsMetadataRepository.GetCurrentProviderVersion(fundingStreamId));
     }
 }

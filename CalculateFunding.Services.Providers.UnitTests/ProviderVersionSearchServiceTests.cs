@@ -695,6 +695,319 @@ namespace CalculateFunding.Services.Providers.UnitTests
         }
 
         [TestMethod]
+        public async Task GetLocalAuthoritiesByProviderVersionId_WhenProviderVersionIdFacetNotProvided_NotFoundResultReturned()
+        {
+            // Arrange
+            string authorityFacet = "authority";
+            string providerVersionIdFacet = "providerVersionId";
+
+            SearchResults<ProvidersIndex> authorityResults = new SearchResults<ProvidersIndex>
+            {
+                Facets = new List<Facet>
+                {
+                    new Facet
+                    {
+                        Name = authorityFacet,
+                        FacetValues = new List<FacetValue>()
+                    }
+                }
+            };
+            SearchResults<ProvidersIndex> providerVersionResults = new SearchResults<ProvidersIndex>
+            {
+                Facets = new List<Facet>
+                {
+                    new Facet
+                    {
+                        Name = providerVersionIdFacet,
+                        FacetValues = new List<FacetValue>()
+                    }
+                }
+            };
+
+            ISearchRepository<ProvidersIndex> searchRepository = CreateSearchRepository();
+            searchRepository
+                .Search(string.Empty, Arg.Is<SearchParameters>(x => x.Facets.Any(x => x.Contains(authorityFacet))))
+                .Returns(authorityResults);
+            searchRepository
+                .Search(string.Empty, Arg.Is<SearchParameters>(x => x.Facets.Any(x => x.Contains(providerVersionIdFacet))))
+                .Returns(providerVersionResults);
+            searchRepository
+                .Search(string.Empty, Arg.Is<SearchParameters>(x => x.Facets == null || !x.Facets.Any()))
+                .Returns(new SearchResults<ProvidersIndex>());
+            IProviderVersionSearchService providerService = CreateProviderVersionSearchService(searchRepository: searchRepository);
+
+            // Act
+            IActionResult notFoundRequest = await providerService.GetLocalAuthoritiesByProviderVersionId("dsg-2020-07-03");
+
+            // Assert
+            notFoundRequest
+                .Should()
+                .BeOfType<NotFoundResult>();
+        }
+
+        [TestMethod]
+        public async Task GetLocalAuthoritiesByProviderVersionId_WhenProviderVersionIdFacetProvidedWithNoAuthorities_OkWithEmptyResultReturned()
+        {
+            // Arrange
+            string authorityFacet = "authority";
+            string providerVersionIdFacet = "providerVersionId";
+
+            string providerVersionId = "dsg-2020-07-03";
+
+            SearchResults<ProvidersIndex> authorityResults = new SearchResults<ProvidersIndex>
+            {
+                Facets = new List<Facet>
+                {
+                    new Facet
+                    {
+                        Name = authorityFacet,
+                        FacetValues = Enumerable.Empty<FacetValue>()
+                    }
+                }
+            };
+            SearchResults<ProvidersIndex> providerVersionResults = new SearchResults<ProvidersIndex>
+            {
+                Facets = new List<Facet>
+                {
+                    new Facet
+                    {
+                        Name = providerVersionIdFacet,
+                        FacetValues = new List<FacetValue>
+                        {
+                            new FacetValue { Name = providerVersionId }
+                        }
+                    }
+                }
+            };
+
+            ISearchRepository<ProvidersIndex> searchRepository = CreateSearchRepository();
+            searchRepository
+                .Search(string.Empty, Arg.Is<SearchParameters>(x => x.Facets.Any(x => x.Contains(authorityFacet))))
+                .Returns(authorityResults);
+            searchRepository
+                .Search(string.Empty, Arg.Is<SearchParameters>(x => x.Facets.Any(x => x.Contains(providerVersionIdFacet))))
+                .Returns(providerVersionResults);
+            searchRepository
+                .Search(string.Empty, Arg.Is<SearchParameters>(x => x.Facets == null || !x.Facets.Any()))
+                .Returns(new SearchResults<ProvidersIndex>());
+            IProviderVersionSearchService providerService = CreateProviderVersionSearchService(searchRepository: searchRepository);
+
+            // Act
+            IActionResult notFoundRequest = await providerService.GetLocalAuthoritiesByProviderVersionId(providerVersionId);
+
+            // Assert
+            notFoundRequest
+                .Should()
+                .BeOfType<OkObjectResult>();
+
+            ((IEnumerable<string>)((OkObjectResult)notFoundRequest).Value).Should().BeEmpty();
+        }
+
+        [TestMethod]
+        public async Task GetLocalAuthoritiesByProviderVersionId_WhenAuthoritiesProvidedForProviderVersionId_OkesultsReturned()
+        {
+            // Arrange
+            string authorityFacet = "authority";
+            string providerVersionIdFacet = "providerVersionId";
+
+            string aFacetValue1 = "Kent";
+            string aFacetValue2 = "Essex";
+
+            string providerVersionId = "dsg-2020-07-03";
+
+            SearchResults<ProvidersIndex> authorityResults = new SearchResults<ProvidersIndex>
+            {
+                Facets = new List<Facet>
+                {
+                    new Facet
+                    {
+                        Name = authorityFacet,
+                        FacetValues = new List<FacetValue>()
+                        {
+                            new FacetValue { Name = aFacetValue1 },
+                            new FacetValue { Name = aFacetValue2 }
+                        }
+                    }
+                }
+            };
+
+            SearchResults<ProvidersIndex> providerVersionResults = new SearchResults<ProvidersIndex>
+            {
+                Facets = new List<Facet>
+                {
+                    new Facet
+                    {
+                        Name = providerVersionIdFacet,
+                        FacetValues = new List<FacetValue>
+                        {
+                            new FacetValue { Name = providerVersionId }
+                        }
+                    }
+                }
+            };
+
+            ISearchRepository<ProvidersIndex> searchRepository = CreateSearchRepository();
+            searchRepository
+                .Search(string.Empty, Arg.Is<SearchParameters>(x => x.Facets.Any(x => x.Contains(authorityFacet))))
+                .Returns(authorityResults);
+            searchRepository
+                .Search(string.Empty, Arg.Is<SearchParameters>(x => x.Facets.Any(x => x.Contains(providerVersionIdFacet))))
+                .Returns(providerVersionResults);
+            searchRepository
+                .Search(string.Empty, Arg.Is<SearchParameters>(x => x.Facets == null || !x.Facets.Any()))
+                .Returns(new SearchResults<ProvidersIndex>());
+            IProviderVersionSearchService providerService = CreateProviderVersionSearchService(searchRepository: searchRepository);
+
+            // Act
+            IActionResult notFoundRequest = await providerService.GetLocalAuthoritiesByProviderVersionId("dsg-2020-07-03");
+
+            // Assert
+            notFoundRequest
+                .Should()
+                .BeOfType<OkObjectResult>();
+
+            ((IEnumerable<string>)((OkObjectResult)notFoundRequest).Value).Should().Contain(aFacetValue1);
+            ((IEnumerable<string>)((OkObjectResult)notFoundRequest).Value).Should().Contain(aFacetValue2);
+        }
+
+        [TestMethod]
+        public async Task GetLocalAuthoritiesByFundingStreamId_WhenFundingStreamIdFacetNotProvided_NotFoundResultReturned()
+        {
+            // Arrange
+            string authorityFacet = "authority";
+            string providerVersionIdFacet = "providerVersionId";
+
+            SearchResults<ProvidersIndex> authorityResults = new SearchResults<ProvidersIndex>
+            {
+                Facets = new List<Facet>
+                {
+                    new Facet
+                    {
+                        Name = authorityFacet,
+                        FacetValues = new List<FacetValue>()
+                    }
+                }
+            };
+            SearchResults<ProvidersIndex> providerVersionResults = new SearchResults<ProvidersIndex>
+            {
+                Facets = new List<Facet>
+                {
+                    new Facet
+                    {
+                        Name = providerVersionIdFacet,
+                        FacetValues = new List<FacetValue>()
+                    }
+                }
+            };
+
+            ISearchRepository<ProvidersIndex> searchRepository = CreateSearchRepository();
+            searchRepository
+                .Search(string.Empty, Arg.Is<SearchParameters>(x => x.Facets.Any(x => x.Contains(authorityFacet))))
+                .Returns(authorityResults);
+            searchRepository
+                .Search(string.Empty, Arg.Is<SearchParameters>(x => x.Facets.Any(x => x.Contains(providerVersionIdFacet))))
+                .Returns(providerVersionResults);
+            searchRepository
+                .Search(string.Empty, Arg.Is<SearchParameters>(x => x.Facets == null || !x.Facets.Any()))
+                .Returns(new SearchResults<ProvidersIndex>());
+            
+
+            CurrentProviderVersion currentProviderVersion = NewCurrentProviderVersion(_ => _.ForFundingStreamId("fundingStreamId"));
+
+
+            IProviderVersionsMetadataRepository providerVersionsMetadataRepository = CreateProviderVersionMetadataRepository();
+            providerVersionsMetadataRepository.GetCurrentProviderVersion(Arg.Any<string>())
+                .Returns(currentProviderVersion);
+
+            IProviderVersionSearchService providerService = CreateProviderVersionSearchService(searchRepository: searchRepository, 
+                providerVersionMetadataRepository: providerVersionsMetadataRepository);
+
+            // Act
+            IActionResult notFoundRequest = await providerService.GetLocalAuthoritiesByFundingStreamId("fundingStreamId");
+
+            // Assert
+            notFoundRequest
+                .Should()
+                .BeOfType<NotFoundResult>();
+        }
+
+        [TestMethod]
+        public async Task GetLocalAuthoritiesByFundingStreamId_WhenAuthoritiesProvidedForProviderVersionId_OkesultsReturned()
+        {
+            // Arrange
+            string authorityFacet = "authority";
+            string providerVersionIdFacet = "providerVersionId";
+
+            string aFacetValue1 = "Kent";
+            string aFacetValue2 = "Essex";
+
+            string providerVersionId = "dsg-2020-07-03";
+
+            SearchResults<ProvidersIndex> authorityResults = new SearchResults<ProvidersIndex>
+            {
+                Facets = new List<Facet>
+                {
+                    new Facet
+                    {
+                        Name = authorityFacet,
+                        FacetValues = new List<FacetValue>()
+                        {
+                            new FacetValue { Name = aFacetValue1 },
+                            new FacetValue { Name = aFacetValue2 }
+                        }
+                    }
+                }
+            };
+
+            SearchResults<ProvidersIndex> providerVersionResults = new SearchResults<ProvidersIndex>
+            {
+                Facets = new List<Facet>
+                {
+                    new Facet
+                    {
+                        Name = providerVersionIdFacet,
+                        FacetValues = new List<FacetValue>
+                        {
+                            new FacetValue { Name = providerVersionId }
+                        }
+                    }
+                }
+            };
+
+            ISearchRepository<ProvidersIndex> searchRepository = CreateSearchRepository();
+            searchRepository
+                .Search(string.Empty, Arg.Is<SearchParameters>(x => x.Facets.Any(x => x.Contains(authorityFacet))))
+                .Returns(authorityResults);
+            searchRepository
+                .Search(string.Empty, Arg.Is<SearchParameters>(x => x.Facets.Any(x => x.Contains(providerVersionIdFacet))))
+                .Returns(providerVersionResults);
+            searchRepository
+                .Search(string.Empty, Arg.Is<SearchParameters>(x => x.Facets == null || !x.Facets.Any()))
+                .Returns(new SearchResults<ProvidersIndex>());
+
+            CurrentProviderVersion currentProviderVersion = NewCurrentProviderVersion(_ => _.ForFundingStreamId("fundingStreamId"));
+            currentProviderVersion.ProviderVersionId = providerVersionId;
+
+            IProviderVersionsMetadataRepository providerVersionsMetadataRepository = CreateProviderVersionMetadataRepository();
+            providerVersionsMetadataRepository.GetCurrentProviderVersion(Arg.Any<string>())
+                .Returns(currentProviderVersion);
+
+            IProviderVersionSearchService providerService = CreateProviderVersionSearchService(searchRepository: searchRepository,
+                providerVersionMetadataRepository: providerVersionsMetadataRepository);
+
+            // Act
+            IActionResult notFoundRequest = await providerService.GetLocalAuthoritiesByFundingStreamId("fundingStreamId");
+
+            // Assert
+            notFoundRequest
+                .Should()
+                .BeOfType<OkObjectResult>();
+
+            ((IEnumerable<string>)((OkObjectResult)notFoundRequest).Value).Should().Contain(aFacetValue1);
+            ((IEnumerable<string>)((OkObjectResult)notFoundRequest).Value).Should().Contain(aFacetValue2);
+        }
+
+        [TestMethod]
         public async Task GetFacetValues_WhenValidFacetProvided_FacetDistinctValuesReturned()
         {
             // Arrange
@@ -777,7 +1090,11 @@ namespace CalculateFunding.Services.Providers.UnitTests
             return Substitute.For<IProviderVersionService>();
         }
 
-        private IProviderVersionSearchService CreateProviderVersionSearchService(ICacheProvider cacheProvider = null, ISearchRepository<ProvidersIndex> searchRepository = null, IProviderVersionsMetadataRepository providerVersionMetadataRepository = null, IProviderVersionService providerVersionService = null)
+        private IProviderVersionSearchService CreateProviderVersionSearchService(
+            ICacheProvider cacheProvider = null, 
+            ISearchRepository<ProvidersIndex> searchRepository = null, 
+            IProviderVersionsMetadataRepository providerVersionMetadataRepository = null, 
+            IProviderVersionService providerVersionService = null)
         {
             return new ProviderVersionSearchService(
                 CreateLogger(),
@@ -799,6 +1116,15 @@ namespace CalculateFunding.Services.Providers.UnitTests
                     GetProvider()
                 }
             };
+        }
+
+        private CurrentProviderVersion NewCurrentProviderVersion(Action<CurrentProviderVersionBuilder> setUp = null)
+        {
+            CurrentProviderVersionBuilder currentProviderVersionBuilder = new CurrentProviderVersionBuilder();
+
+            setUp?.Invoke(currentProviderVersionBuilder);
+
+            return currentProviderVersionBuilder.Build();
         }
 
         public Provider GetProvider()
