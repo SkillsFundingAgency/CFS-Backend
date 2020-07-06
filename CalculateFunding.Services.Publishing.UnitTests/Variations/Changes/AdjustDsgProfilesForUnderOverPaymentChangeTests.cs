@@ -16,6 +16,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
     public class AdjustDsgProfilesForUnderOverPaymentChangeTests : VariationChangeTestBase
     {
         private int _year;
+        private string _month;
         private string _fundingLineCode;
 
         [TestInitialize]
@@ -29,6 +30,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
             };
             
             _year = NewRandomYear();
+            _month = NewRandomMonth();
             _fundingLineCode = NewRandomString();
         }
 
@@ -52,8 +54,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
                     dp.WithProfilePeriods(AsProfilePeriods(originalPeriodValues).ToArray())))));
             AndTheVariationPointersForTheSpecification(NewVariationPointer(_ => _.WithFundingLineId(_fundingLineCode)
                 .WithYear(_year)
-                .WithOccurence(0)
-                .WithTypeValue(MonthByVariationPointerIndex(variationPointerIndex))));
+                .WithOccurence(variationPointerIndex)
+                .WithTypeValue(_month)));
 
             await WhenTheChangeIsApplied();
 
@@ -97,6 +99,28 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
                 9500M,
                 NewAmounts(1000, 1000, 1000, 1400, 1100, 1100, 50, 950, 950, 0),
                 550M
+            };
+            //example from robs xls
+            yield return new object []
+            {
+                7, 
+                NewAmounts(9448074, 9448074, 9448074, 9448074, 9448074, 9448074, 9448074, 9448074, 9448074, 9448074, 9448074, 9448074, 9448074, 9448074, 9448074, 9448074, 9448074, 9448074, 9448074, 9448074, 9448074,9448074, 9448074, 9448074, 94480741),
+                NewAmounts(9222661, 9222661, 9222661, 9222661, 9222661, 9222661, 9222661, 9222661, 9222661, 9222661, 9222661, 9222661, 9222661, 9222661, 9222661, 9222661, 9222661, 9222661, 9222661, 9222661, 9222661,9222661, 9222661, 9222661, 9222675),
+                230566539M,
+                236566539M,
+                NewAmounts(9448074, 9448074, 9448074, 9448074, 9448074, 9448074, 9448074, 7644770, 9222661, 9222661, 9222661, 9222661, 9222661, 9222661, 9222661, 9222661, 9222661, 9222661, 9222661, 9222661, 9222661,9222661, 9222661, 9222661, 9222675),
+                null,
+            };
+            //same as Robs example but now the variation pointer puts us on the final profile period  
+            yield return new object []
+            {
+                24, 
+                NewAmounts(9448074, 9448074, 9448074, 9448074, 9448074, 9448074, 9448074, 9448074, 9448074, 9448074, 9448074, 9448074, 9448074, 9448074, 9448074, 9448074, 9448074, 9448074, 9448074, 9448074, 9448074,9448074, 9448074, 9448074, 94480741),
+                NewAmounts(9222661, 9222661, 9222661, 9222661, 9222661, 9222661, 9222661, 9222661, 9222661, 9222661, 9222661, 9222661, 9222661, 9222661, 9222661, 9222661, 9222661, 9222661, 9222661, 9222661, 9222661,9222661, 9222661, 9222661, 9222675),
+                230566539M,
+                236566539M,
+                NewAmounts(9448074, 9448074, 9448074, 9448074, 9448074, 9448074, 9448074, 9448074, 9448074, 9448074, 9448074, 9448074, 9448074, 9448074, 9448074, 9448074, 9448074, 9448074, 9448074, 9448074, 9448074,9448074, 9448074, 9448074, 3812763),
+                null,
             };
         }
 
@@ -153,8 +177,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
             return periodValues.Select((amount, index) => 
                 NewProfilePeriod(_ => _.WithAmount(amount)
                 .WithType(ProfilePeriodType.CalendarMonth)
-                .WithOccurence(0)
-                .WithTypeValue(MonthByVariationPointerIndex(index))
+                .WithOccurence(index)
+                .WithTypeValue(_month)
                 .WithYear(_year)))
                 .ToArray();
         }
@@ -170,7 +194,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
 
         private static DateTime NewRandomDateTime() => new RandomDateTime();
 
-        private string MonthByVariationPointerIndex(int variationPointerIndex) => new DateTime(2020, variationPointerIndex + 1, 1)
-            .ToString("MMMM");
+        private static string NewRandomMonth() => NewRandomDateTime().ToString("MMMM");
     }
 }
