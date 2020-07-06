@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using CalculateFunding.Services.Core.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 
@@ -7,15 +9,16 @@ namespace CalculateFunding.Services.Compiler
 {
     public readonly struct DeNormaliseWhiteSpaceLinePosition
     {
-        private const int NormalisedIndentSpaces = 20;
-        
         private static readonly string[] EmptyLinesOfCode = new string[0];
 
         public DeNormaliseWhiteSpaceLinePosition(FileLinePositionSpan normalisedPosition,
-            string originalSourceCode)
+            string originalSourceCode,
+            string normalisedSourceCode,
+            string externalSourceCodeId)
         {
             string[] linesOfCode = originalSourceCode?.Split(Environment.NewLine) ?? EmptyLinesOfCode;
             Dictionary<int, int> mappedLines = new Dictionary<int, int>();
+            Dictionary<int, Dictionary<int, int>> linesOfMappedCharacters = new Dictionary<int, Dictionary<int, int>>();
 
             int whitespaceCount = 0;
             int normalisedWhiteSpaceLineCount = 0;
@@ -32,20 +35,72 @@ namespace CalculateFunding.Services.Compiler
                 mappedLines.Add(normalisedWhiteSpaceLineCount++, whitespaceCount);
             }
 
-            StartLine = GetOriginalLineNumber(mappedLines, normalisedPosition.StartLinePosition);
-            StartCharacter = normalisedPosition.StartLinePosition.Character - NormalisedIndentSpaces;
-            EndLine = GetOriginalLineNumber(mappedLines, normalisedPosition.EndLinePosition);
-            EndCharacter = normalisedPosition.EndLinePosition.Character - NormalisedIndentSpaces;
+            string[] linesOfNormaliseSourceCode = new NormalisedExternalSourceCode(externalSourceCodeId, normalisedSourceCode);
+
+            StartLine = GetOriginalLineNumber(mappedLines,
+                normalisedPosition.StartLinePosition);
+            StartCharacter = GetOriginalCharacterPosition(StartLine,
+                normalisedPosition.StartLinePosition,
+                linesOfCode,
+                linesOfNormaliseSourceCode,
+                linesOfMappedCharacters);
+            EndLine = GetOriginalLineNumber(mappedLines,
+                normalisedPosition.EndLinePosition);
+            EndCharacter = GetOriginalCharacterPosition(EndLine,
+                normalisedPosition.EndLinePosition,
+                linesOfCode,
+                linesOfNormaliseSourceCode,
+                linesOfMappedCharacters);
         }
 
         private static int GetOriginalLineNumber(Dictionary<int, int> mappedLines,
-            LinePosition linePosition)
-            => mappedLines.TryGetValue(linePosition.Line, out int offset) ? linePosition.Line + offset + 1 : linePosition.Line + 1;
+            LinePosition normalisedLinePosition)
+            => mappedLines.TryGetValue(normalisedLinePosition.Line, out int offset) ? normalisedLinePosition.Line + offset + 1 : normalisedLinePosition.Line + 1;
+
+        private static int GetOriginalCharacterPosition(int actualLineNumber,
+            LinePosition linePosition,
+            string[] linesOfOriginalCode,
+            string[] linesOfNormalisedCode,
+            Dictionary<int, Dictionary<int, int>> linesOfMappedCharacters)
+        {
+            string originalLineOfCode = linesOfOriginalCode[actualLineNumber - 1];
+            string normalisedLineOfCode = linesOfNormalisedCode[linePosition.Line];
+
+            int indent = normalisedLineOfCode.TakeWhile(char.IsWhiteSpace).Count();
+
+            if (!linesOfMappedCharacters.TryGetValue(linePosition.Line, out Dictionary<int, int> mappedCharacters))
+            {
+                mappedCharacters = new Dictionary<int, int>();
+
+                int normalisedOffset = 0;
+
+                normalisedLineOfCode = normalisedLineOfCode.Trim();
+
+                for (int character = 0; character < normalisedLineOfCode.Length; character++)
+                {
+                    char originalCharacter = originalLineOfCode[character + normalisedOffset];
+                    char normalisedCharacter = normalisedLineOfCode[character];
+
+                    while (originalCharacter != normalisedCharacter)
+                    {
+                        originalCharacter = originalLineOfCode[++normalisedOffset + character];
+                    }
+
+                    mappedCharacters.Add(character, normalisedOffset + character);
+                }
+
+                linesOfMappedCharacters.Add(linePosition.Line, mappedCharacters);
+            }
+
+            int characterWithIndent = linePosition.Character - indent;
+
+            return mappedCharacters.TryGetValue(characterWithIndent, out int mappedCharacterPosition) ? mappedCharacterPosition + 1 : characterWithIndent;
+        }
 
         public int StartLine { get; }
 
         public int StartCharacter { get; }
-        
+
         public int EndLine { get; }
 
         public int EndCharacter { get; }
@@ -55,5 +110,41 @@ namespace CalculateFunding.Services.Compiler
         public override int GetHashCode() => HashCode.Combine(StartLine, StartCharacter, EndLine, EndCharacter);
 
         public override string ToString() => $"StartLine[{StartLine}]-StartCharacter[{StartCharacter}]-EndLine[{EndLine}]-EndCharacter[{EndCharacter}]";
+
+        private readonly struct NormalisedExternalSourceCode
+        {
+            public NormalisedExternalSourceCode(string externalSourceId,
+                string normalisedSourceCode)
+            {
+                string externalSourceCompilerSymbol = $"#ExternalSource(\"{externalSourceId}";
+                string externalSourceEnd = "#End ExternalSource";
+
+                string[] linesOfCode = normalisedSourceCode?.Split(Environment.NewLine) ?? EmptyLinesOfCode;
+
+                int startLine = linesOfCode.IndexOf(_ => _.Contains(externalSourceCompilerSymbol));
+
+                if (startLine == -1)
+                {
+                    Value = EmptyLinesOfCode;
+
+                    return;
+                }
+
+                int endLine = linesOfCode.Skip(startLine).IndexOf(_ => _.Contains(externalSourceEnd));
+
+                if (endLine == -1)
+                {
+                    Value = EmptyLinesOfCode;
+
+                    return;
+                }
+
+                Value = linesOfCode.Skip(startLine + 1).Take(endLine - 1).ToArray();
+            }
+
+            private string[] Value { get; }
+
+            public static implicit operator string[](NormalisedExternalSourceCode input) => input.Value;
+        }
     }
 }

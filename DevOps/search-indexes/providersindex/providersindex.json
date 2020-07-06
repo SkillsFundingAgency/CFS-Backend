@@ -339,7 +339,7 @@
       "name": "middleSuperOutputAreaName",
       "type": "Edm.String",
       "searchable": false,
-      "filterable": true,
+      "filterable": false,
       "sortable": false,
       "facetable": false
     },

@@ -52,7 +52,7 @@ namespace CalculateFunding.Services.Compiler
             return build;
         }
 
-        protected Build GenerateCode(List<SourceFile> sourceFiles, 
+        private Build GenerateCode(List<SourceFile> sourceFiles, 
             MetadataReference[] references, 
             MemoryStream stream,
             IDictionary<string, Calculation> calculations)
@@ -72,12 +72,14 @@ namespace CalculateFunding.Services.Compiler
             stopwatch.Stop();
             Logger.Information($"Compilation complete success = {compilerOutput.Success} ({stopwatch.ElapsedMilliseconds}ms)");
 
+            string normalisedCalculationsSourceCode = sourceFiles.SingleOrDefault(_ => _.FileName == "Calculations.vb")?.SourceCode ?? "";
+
             compilerOutput.CompilerMessages = result.Diagnostics.Where(x => x.Severity != DiagnosticSeverity.Hidden)
                 .Select(diagnostic => new CompilerMessage
                 {
                     Message = diagnostic.GetMessage(),
                     Severity = diagnostic.Severity.AsMatchingEnum<Severity>(),
-                    Location = GetLocation(diagnostic, calculations)
+                    Location = GetLocation(diagnostic, calculations, normalisedCalculationsSourceCode)
                 })
                 .ToList();
 
@@ -85,7 +87,8 @@ namespace CalculateFunding.Services.Compiler
         }
 
         private SourceLocation GetLocation(Diagnostic diagnostic, 
-            IDictionary<string, Calculation> calculations)
+            IDictionary<string, Calculation> calculations,
+            string normalisedCalculationsSourceCode)
         {
             FileLinePositionSpan span = diagnostic.Location.GetMappedLineSpan();
 
@@ -97,10 +100,15 @@ namespace CalculateFunding.Services.Compiler
             {
                 owner = new Reference(split.First(), split.Last());
 
-                if (calculations.TryGetValue(owner.Id, out Calculation externalSource))
+                string calculationId = owner.Id;
+                
+                if (calculations.TryGetValue(calculationId, out Calculation externalSource))
                 {
                     DeNormaliseWhiteSpaceLinePosition originalSourceCodeLinePosition 
-                        = new DeNormaliseWhiteSpaceLinePosition(span, externalSource.Current.SourceCode);
+                        = new DeNormaliseWhiteSpaceLinePosition(span, 
+                            externalSource.Current.SourceCode, 
+                            normalisedCalculationsSourceCode, 
+                            calculationId);
                     
                     return new SourceLocation
                     {
