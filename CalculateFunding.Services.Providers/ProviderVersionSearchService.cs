@@ -234,6 +234,7 @@ namespace CalculateFunding.Services.Providers
             string providerVersionIdFacet = "providerVersionId";
 
             SearchModel searchModel = new SearchModel() { Top = 0};
+            searchModel.FacetCount = 1000;
             searchModel.IncludeFacets = true;           
             searchModel.OverrideFacetFields = new[] { authorityFacet };
             searchModel.SearchMode = Models.Search.SearchMode.All;
