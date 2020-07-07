@@ -50,7 +50,11 @@ namespace CalculateFunding.Services.Publishing
             IDictionary<string, PublishedProviderSnapShots> snapshots = publishedProviders
                     .ToDictionary(_ => _.Key, _ => new PublishedProviderSnapShots(_.Value));
 
-            _snapshots.AddOrUpdate(snapshotId, snapshots, (k,v) => snapshots);
+            // only add the snapshot if there are published providers
+            if (snapshots.Count > 0)
+            {
+                _snapshots.AddOrUpdate(snapshotId, snapshots, (k, v) => snapshots);
+            }
 
             return snapshotId;
 
