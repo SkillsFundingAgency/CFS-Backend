@@ -119,6 +119,19 @@
             "indexAnalyzer": null
         },
         {
+            "name": "status",
+            "type": "Edm.String",
+            "key": false,
+            "facetable": true,
+            "filterable": true,
+            "retrievable": true,
+            "searchable": false,
+            "sortable": true,
+            "analyzer": null,
+            "searchAnalyzer": null,
+            "indexAnalyzer": null
+        },
+        {
             "name": "version",
             "type": "Edm.Int32",
             "key": false,

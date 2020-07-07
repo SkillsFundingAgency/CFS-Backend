@@ -192,6 +192,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
                     LastUpdatedAuthorId = m.Result.LastUpdatedAuthorId,
                     LastUpdatedAuthorName = m.Result.LastUpdatedAuthorName,
                     Version = m.Result.Version,
+                    Status = m.Result.Status,
                     CurrentMajorVersion = m.Result.CurrentMajorVersion,
                     CurrentMinorVersion = m.Result.CurrentMinorVersion,
                     PublishedMajorVersion = m.Result.PublishedMajorVersion,

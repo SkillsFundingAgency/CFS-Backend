@@ -105,6 +105,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
                                 LastUpdatedAuthorName = template.Current.Author?.Name,
                                 LastUpdatedDate = template.Current.Date,
                                 Version = template.Current.Version,
+                                Status = template.Current.Status.ToString(),
                                 CurrentMajorVersion = template.Current.MajorVersion,
                                 CurrentMinorVersion = template.Current.MinorVersion,
                                 PublishedMajorVersion = template.Released?.MajorVersion ?? 0,

@@ -23,6 +23,8 @@ namespace CalculateFunding.Repositories.Common.Search.Results
         public string LastUpdatedAuthorName { get; set; }
 
         public int Version { get; set; }
+        
+        public string Status { get; set; }
 
         public int CurrentMajorVersion { get; set; }
 

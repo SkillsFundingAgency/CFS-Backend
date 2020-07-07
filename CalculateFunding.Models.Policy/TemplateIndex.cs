@@ -46,6 +46,10 @@ namespace CalculateFunding.Models.Policy
         public string LastUpdatedAuthorName { get; set; }
 
         [IsRetrievable(true)]
+        [JsonProperty("status")]
+        public string Status { get; set; }
+
+        [IsRetrievable(true)]
         [JsonProperty("version")]
         public int Version { get; set; }
 
