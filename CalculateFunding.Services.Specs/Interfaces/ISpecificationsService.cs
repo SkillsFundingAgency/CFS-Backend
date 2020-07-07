@@ -42,6 +42,12 @@ namespace CalculateFunding.Services.Specs.Interfaces
 
         Task<IActionResult> GetCurrentSpecificationsByFundingPeriodIdAndFundingStreamId(string fundingPeriodId, string fundingStreamId);
 
+        Task<IActionResult> GetSpecificationWithResultsByFundingPeriodIdAndFundingStreamId(string fundingPeriodId, string fundingStreamId);
+        
+        Task<IActionResult> GetApprovedSpecificationsByFundingPeriodIdAndFundingStreamId(string fundingPeriodId, string fundingStreamId);
+
+        Task<IActionResult> GetSelectedSpecificationsByFundingPeriodIdAndFundingStreamId(string fundingPeriodId, string fundingStreamId);
+
         Task<IActionResult> SelectSpecificationForFunding(string specificationId);
 
         Task<IActionResult> SetAssignedTemplateVersion(string specificationId, string fundingStreamId, string templateVersion);

@@ -116,6 +116,14 @@ namespace CalculateFunding.Api.Results.Controllers
             return await _resultsService.GetProviderResultsBySpecificationId(specificationId, top);
         }
 
+        [Route("api/results/provider-has-results")]
+        [HttpGet]
+        [Produces(typeof(bool))]
+        public async Task<IActionResult> RunGetProviderHasResultsBySpecificationId([FromQuery] string specificationId)
+        {
+            return await _resultsService.ProviderHasResultsBySpecificationId(specificationId);
+        }
+
         [Route("api/results/hasCalculationResults/{calculationId}")]
         [HttpGet]
         [Produces(typeof(bool))]

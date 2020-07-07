@@ -151,6 +151,19 @@ namespace CalculateFunding.Services.Results
             return new NotFoundResult();
         }
 
+        public async Task<IActionResult> ProviderHasResultsBySpecificationId(string specificationId)
+        {
+            if (string.IsNullOrWhiteSpace(specificationId))
+            {
+                _logger.Error("No specification Id was provided");
+                return new BadRequestObjectResult("Null or empty specification Id provided");
+            }
+
+            bool hasResults = await _resultsRepositoryPolicy.ExecuteAsync(() => _resultsRepository.ProviderHasResultsBySpecificationId(specificationId));
+
+            return new OkObjectResult(hasResults);
+        }
+
         #region "GetProviderResultsBySpecificationId"
         public async Task<IActionResult> GetProviderResultsBySpecificationId(string specificationId, string top)
         {
@@ -165,7 +178,7 @@ namespace CalculateFunding.Services.Results
 
         private async Task<IEnumerable<ProviderResult>> ProviderResultsBySpecificationId(string specificationId, string top)
         {
-            IEnumerable<ProviderResult> providerResults = null;
+            IEnumerable<ProviderResult> providerResults;
 
             if (!string.IsNullOrWhiteSpace(top))
             {

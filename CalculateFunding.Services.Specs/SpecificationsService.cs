@@ -321,30 +321,27 @@ namespace CalculateFunding.Services.Specs
             return new OkObjectResult(result);
         }
 
-        public async Task<IActionResult> GetCurrentSpecificationsByFundingPeriodIdAndFundingStreamId(string fundingPeriodId, string fundingStreamId)
+        public async Task<IActionResult> GetSpecificationWithResultsByFundingPeriodIdAndFundingStreamId(
+            string fundingPeriodId, string fundingStreamId)
         {
             if (string.IsNullOrWhiteSpace(fundingPeriodId))
             {
-                _logger.Error(
-                    "No funding period Id was provided to GetSpecificationsByFundingPeriodIdAndFundingPeriodId");
+                _logger.Error("No funding period Id was provided to GetSpecificationWithResultsByFundingPeriodIdAndFundingStreamId");
 
                 return new BadRequestObjectResult("Null or empty fundingPeriodId provided");
             }
-
             if (string.IsNullOrWhiteSpace(fundingStreamId))
             {
-                _logger.Error(
-                    "No funding stream Id was provided to GetSpecificationsByFundingPeriodIdAndFundingPeriodId");
+                _logger.Error("No funding stream Id was provided to GetSpecificationWithResultsByFundingPeriodIdAndFundingStreamId");
 
-                return new BadRequestObjectResult("Null or empty fundingstreamId provided");
+                return new BadRequestObjectResult("Null or empty fundingStreamId provided");
             }
 
             IEnumerable<Specification> specifications =
-                await _specificationsRepository.GetApprovedOrUpdatedSpecificationsByFundingPeriodAndFundingStream(
+                await _specificationsRepository.GetSpecificationsByFundingPeriodAndFundingStream(
                     fundingPeriodId, fundingStreamId);
 
             ConcurrentBag<SpecificationSummary> mappedSpecifications = new ConcurrentBag<SpecificationSummary>();
-
             IList<Task> checkForResulstsTasks = new List<Task>();
 
             foreach (Specification specification in specifications)
@@ -364,7 +361,88 @@ namespace CalculateFunding.Services.Specs
 
             await TaskHelper.WhenAllAndThrow(checkForResulstsTasks.ToArray());
 
-            return new OkObjectResult(mappedSpecifications);
+            IEnumerable<SpecificationSummary> specificationSummaries =
+                _mapper.Map<IEnumerable<SpecificationSummary>>(mappedSpecifications);
+
+            return new OkObjectResult(specificationSummaries);
+        }
+
+        public async Task<IActionResult> GetApprovedSpecificationsByFundingPeriodIdAndFundingStreamId(
+    string fundingPeriodId, string fundingStreamId)
+        {
+            if (string.IsNullOrWhiteSpace(fundingPeriodId))
+            {
+                _logger.Error("No funding period Id was provided to GetSpecificationWithResultsByFundingPeriodIdAndFundingStreamId");
+
+                return new BadRequestObjectResult("Null or empty fundingPeriodId provided");
+            }
+            if (string.IsNullOrWhiteSpace(fundingStreamId))
+            {
+                _logger.Error("No funding stream Id was provided to GetSpecificationWithResultsByFundingPeriodIdAndFundingStreamId");
+
+                return new BadRequestObjectResult("Null or empty fundingStreamId provided");
+            }
+
+            IEnumerable<Specification> specifications =
+                await _specificationsRepository.GetApprovedOrUpdatedSpecificationsByFundingPeriodAndFundingStream(
+                    fundingPeriodId, fundingStreamId);
+
+            IEnumerable<SpecificationSummary> specificationSummaries = 
+                _mapper.Map<IEnumerable<SpecificationSummary>>(specifications);
+
+            return new OkObjectResult(specificationSummaries);
+        }
+
+        public async Task<IActionResult> GetSelectedSpecificationsByFundingPeriodIdAndFundingStreamId(
+string fundingPeriodId, string fundingStreamId)
+        {
+            if (string.IsNullOrWhiteSpace(fundingPeriodId))
+            {
+                _logger.Error("No funding period Id was provided to GetSpecificationWithResultsByFundingPeriodIdAndFundingStreamId");
+
+                return new BadRequestObjectResult("Null or empty fundingPeriodId provided");
+            }
+            if (string.IsNullOrWhiteSpace(fundingStreamId))
+            {
+                _logger.Error("No funding stream Id was provided to GetSpecificationWithResultsByFundingPeriodIdAndFundingStreamId");
+
+                return new BadRequestObjectResult("Null or empty fundingStreamId provided");
+            }
+
+            IEnumerable<Specification> specifications =
+    await _specificationsRepository.GetSpecificationsSelectedForFundingByPeriodAndFundingStream(
+        fundingPeriodId, fundingStreamId);
+
+            IEnumerable<SpecificationSummary> specificationSummaries =
+                _mapper.Map<IEnumerable<SpecificationSummary>>(specifications);
+
+            return new OkObjectResult(specificationSummaries);
+        }
+
+        public async Task<IActionResult> GetCurrentSpecificationsByFundingPeriodIdAndFundingStreamId(
+            string fundingPeriodId, string fundingStreamId)
+        {
+            if (string.IsNullOrWhiteSpace(fundingPeriodId))
+            {
+                _logger.Error("No funding period Id was provided to GetCurrentSpecificationsByFundingPeriodIdAndFundingStreamId");
+
+                return new BadRequestObjectResult("Null or empty fundingPeriodId provided");
+            }
+            if (string.IsNullOrWhiteSpace(fundingStreamId))
+            {
+                _logger.Error("No funding stream Id was provided to GetCurrentSpecificationsByFundingPeriodIdAndFundingStreamId");
+
+                return new BadRequestObjectResult("Null or empty fundingStreamId provided");
+            }
+
+            IEnumerable<Specification> specifications =
+                await _specificationsRepository.GetSpecificationsByFundingPeriodAndFundingStream(
+                    fundingPeriodId, fundingStreamId);
+
+            IEnumerable<SpecificationSummary> specificationSummaries =
+                _mapper.Map<IEnumerable<SpecificationSummary>>(specifications);
+
+            return new OkObjectResult(specificationSummaries);
         }
 
         public async Task<IActionResult> GetSpecificationsSelectedForFunding()

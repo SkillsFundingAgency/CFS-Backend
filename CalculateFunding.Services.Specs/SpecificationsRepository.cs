@@ -84,10 +84,23 @@ namespace CalculateFunding.Services.Specs
             return specifications;
         }
 
-        public async Task<IEnumerable<Specification>> GetApprovedOrUpdatedSpecificationsByFundingPeriodAndFundingStream(string fundingPeriodId, string fundingStreamId)
+        public async Task<IEnumerable<Specification>> GetSpecificationsByFundingPeriodAndFundingStream(
+            string fundingPeriodId, string fundingStreamId)
         {
             IEnumerable<Specification> specifications =
-                await _repository.Query<Specification>(m => m.Content.Current.FundingPeriod.Id == fundingPeriodId && (m.Content.Current.PublishStatus == PublishStatus.Approved || m.Content.Current.PublishStatus == PublishStatus.Updated));
+                await _repository.Query<Specification>(m =>
+                m.Content.Current.FundingPeriod.Id == fundingPeriodId);
+
+            return specifications.Where(m => m.Current.FundingStreams.Any(fs => fs.Id == fundingStreamId));
+        }
+
+        public async Task<IEnumerable<Specification>> GetApprovedOrUpdatedSpecificationsByFundingPeriodAndFundingStream(
+            string fundingPeriodId, string fundingStreamId)
+        {
+            IEnumerable<Specification> specifications =
+                await _repository.Query<Specification>(m => 
+                m.Content.Current.FundingPeriod.Id == fundingPeriodId && 
+                (m.Content.Current.PublishStatus == PublishStatus.Approved || m.Content.Current.PublishStatus == PublishStatus.Updated));
 
             return specifications.Where(m => m.Current.FundingStreams.Any(fs => fs.Id == fundingStreamId));
         }
@@ -95,9 +108,22 @@ namespace CalculateFunding.Services.Specs
         public async Task<IEnumerable<Specification>> GetSpecificationsSelectedForFundingByPeriod(string fundingPeriodId)
         {
             IEnumerable<Specification> specifications =
-              await _repository.Query<Specification>(m => m.Content.IsSelectedForFunding && m.Content.Current.FundingPeriod.Id == fundingPeriodId);
+              await _repository.Query<Specification>(m => 
+              m.Content.IsSelectedForFunding && 
+              m.Content.Current.FundingPeriod.Id == fundingPeriodId);
 
-            return specifications.Where(m => m.Current.FundingPeriod.Id == fundingPeriodId);
+            return specifications;
+        }
+
+        public async Task<IEnumerable<Specification>> GetSpecificationsSelectedForFundingByPeriodAndFundingStream(
+            string fundingPeriodId, string fundingStreamId)
+        {
+            IEnumerable<Specification> specifications =
+              await _repository.Query<Specification>(m =>
+              m.Content.IsSelectedForFunding &&
+              m.Content.Current.FundingPeriod.Id == fundingPeriodId);
+
+            return specifications.Where(m => m.Current.FundingStreams.Any(fs => fs.Id == fundingStreamId));
         }
 
         public async Task<IEnumerable<T>> GetSpecificationsByRawQuery<T>(CosmosDbQuery cosmosDbQuery)

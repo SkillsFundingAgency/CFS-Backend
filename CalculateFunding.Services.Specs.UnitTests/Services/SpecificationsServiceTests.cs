@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using AutoMapper;
 using CalculateFunding.Common.ApiClient.Calcs;
@@ -114,7 +115,8 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             ICalculationsApiClient calcsApiClient = null,
             IProvidersApiClient providersApiClient = null)
         {
-            return new SpecificationsService(mapper ?? CreateMapper(),
+            return new SpecificationsService(
+                mapper ?? CreateMapper(),
                 specificationsRepository ?? CreateSpecificationsRepository(),
                 policiesApiClient ?? CreatePoliciesApiClient(),
                 logs ?? CreateLogger(),
@@ -300,6 +302,20 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             setUp?.Invoke(fundingConfigurationBuilder);
 
             return fundingConfigurationBuilder.Build();
+        }
+
+        private Specification NewSpecification(Action<SpecificationBuilder> setUp = null)
+        {
+            SpecificationBuilder specificationBuilder = new SpecificationBuilder();
+
+            setUp?.Invoke(specificationBuilder);
+
+            return specificationBuilder.Build();
+        }
+
+        private IEnumerable<Specification> NewSpecifications(params Action<SpecificationBuilder>[] setUps)
+        {
+            return setUps.Select(NewSpecification);
         }
 
         private string NewRandomString() => new RandomString();

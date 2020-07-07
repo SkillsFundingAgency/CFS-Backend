@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using AutoMapper;
+﻿using AutoMapper;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Specs.Interfaces;
 using FluentAssertions;
@@ -9,63 +6,52 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Specs.UnitTests.Services
 {
     public partial class SpecificationsServiceTests
     {
         [TestMethod]
-        public async Task GetCurrentSpecificationsByFundingPeriodIdAndFundingStreamId_GivenNoFundingPeriodId_ReturnsBadRequestObject()
+        public async Task GetApprovedSpecificationsByFundingPeriodIdAndFundingStreamId_GivenFundingPeriodIdDoesNotExist_ReturnsBadRequest()
         {
-            //Arrange
             ILogger logger = CreateLogger();
 
             SpecificationsService service = CreateService(logs: logger);
 
-            //Act
-            IActionResult result = await service.GetCurrentSpecificationsByFundingPeriodIdAndFundingStreamId(null, null);
+            IActionResult result = await service.GetApprovedSpecificationsByFundingPeriodIdAndFundingStreamId(null, null);
 
-            //Assert
             result
                 .Should()
-                .BeOfType<BadRequestObjectResult>()
-                .Which
-                .Value
-                .Should()
-                .Be("Null or empty fundingPeriodId provided");
+                .BeOfType<BadRequestObjectResult>();
 
             logger
                 .Received(1)
-                .Error(Arg.Is("No funding period Id was provided to GetCurrentSpecificationsByFundingPeriodIdAndFundingStreamId"));
+                .Error(Arg.Any<string>());
         }
 
         [TestMethod]
-        public async Task GetCurrentSpecificationsByFundingPeriodIdAndFundingStreamId_GivenNoFundingStreamId_ReturnsBadRequestObject()
+        public async Task GetApprovedSpecificationsByFundingPeriodIdAndFundingStreamId_GivenFundingStreamIdDoesNotExist_ReturnsBadRequest()
         {
-            //Arrange
             ILogger logger = CreateLogger();
 
             SpecificationsService service = CreateService(logs: logger);
 
-            //Act
-            IActionResult result = await service.GetCurrentSpecificationsByFundingPeriodIdAndFundingStreamId(FundingPeriodId, null);
+            IActionResult result = await service.GetApprovedSpecificationsByFundingPeriodIdAndFundingStreamId(NewRandomString(), null);
 
-            //Assert
             result
                 .Should()
-                .BeOfType<BadRequestObjectResult>()
-                .Which
-                .Value
-                .Should()
-                .Be("Null or empty fundingStreamId provided");
+                .BeOfType<BadRequestObjectResult>();
 
             logger
                 .Received(1)
-                .Error(Arg.Is("No funding stream Id was provided to GetCurrentSpecificationsByFundingPeriodIdAndFundingStreamId"));
+                .Error(Arg.Any<string>());
         }
 
         [TestMethod]
-        public async Task GetCurrentSpecificationsByFundingPeriodIdAndFundingStreamId_GivenFundingStreamIdAndFundingPeriodId_ReturnsSpecificationSummary()
+        public async Task GetApprovedSpecificationsByFundingPeriodIdAndFundingStreamId_GivenFundingStreamIdAndFundingPeriodId_ReturnsSpecificationSummary()
         {
             string fundingStreamId = NewRandomString();
             string fundingPeriodId = NewRandomString();
@@ -77,14 +63,14 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             IEnumerable<Specification> specifications = NewSpecifications(_ => _.WithId(specificationId));
 
             specificationsRepository
-                .GetSpecificationsByFundingPeriodAndFundingStream(fundingPeriodId, fundingStreamId)
+                .GetApprovedOrUpdatedSpecificationsByFundingPeriodAndFundingStream(fundingPeriodId, fundingStreamId)
                 .Returns(specifications);
 
             SpecificationsService service = CreateService(
                 mapper: mapper,
                 specificationsRepository: specificationsRepository);
 
-            IActionResult result = await service.GetCurrentSpecificationsByFundingPeriodIdAndFundingStreamId(fundingPeriodId, fundingStreamId);
+            IActionResult result = await service.GetApprovedSpecificationsByFundingPeriodIdAndFundingStreamId(fundingPeriodId, fundingStreamId);
 
             result
                 .Should()

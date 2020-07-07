@@ -14,6 +14,8 @@ namespace CalculateFunding.Services.Results.Interfaces
 
         Task<IActionResult> GetProviderSpecifications(string providerId);
 
+        Task<IActionResult> ProviderHasResultsBySpecificationId(string specificationId);
+
         Task<IActionResult> GetProviderResultsBySpecificationId(string specificationId, string top);
 
         Task<IActionResult> GetProviderSourceDatasetsByProviderIdAndSpecificationId(string specificationId, string providerId);

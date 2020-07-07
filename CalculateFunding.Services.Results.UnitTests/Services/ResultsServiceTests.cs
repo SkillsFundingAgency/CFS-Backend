@@ -455,6 +455,51 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
         }
 
         [TestMethod]
+        public async Task ProviderHasResultsBySpecificationId_GivenNoSpecificationIsProvided_ReturnsBadRequest()
+        {
+            //Arrange
+            ResultsService service = CreateResultsService();
+
+            //Act
+            IActionResult result = await service.ProviderHasResultsBySpecificationId(null);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<BadRequestObjectResult>();
+        }
+
+        [TestMethod]
+        [DataRow(true)]
+        [DataRow(false)]
+        public async Task ProviderHasResultsBySpecificationId_GivenSpecificationIsProvided_ReturnsResults(bool hasResults)
+        {
+            //Arrange
+            ICalculationResultsRepository resultsRepository = CreateResultsRepository();
+            resultsRepository
+                .ProviderHasResultsBySpecificationId(specificationId)
+                .Returns(Task.FromResult(hasResults));
+
+            ResultsService service = CreateResultsService(resultsRepository: resultsRepository);
+
+            //Act
+            IActionResult result = await service.ProviderHasResultsBySpecificationId(specificationId);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>();
+
+            OkObjectResult okResults = result as OkObjectResult;
+
+            bool okResultsValue = (bool) okResults.Value;
+
+            okResultsValue
+                .Should()
+                .Be(hasResults);
+        }
+
+        [TestMethod]
         public async Task GetProviderSourceDatasetsByProviderIdAndSpecificationId_GivenNullOrEmptySpecificationId_ReturnsBadRequest()
         {
             //Arrange
@@ -1018,18 +1063,15 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
         }
 
         #region "Dependency creation"
-        static ResultsService CreateResultsService(ILogger logger = null,
+        static ResultsService CreateResultsService(
+            ILogger logger = null,
             ICalculationResultsRepository resultsRepository = null,
-            IMapper mapper = null,
-            ITelemetry telemetry = null,
             IProviderSourceDatasetRepository providerSourceDatasetRepository = null,
             ISearchRepository<ProviderCalculationResultsIndex> calculationProviderResultsSearchRepository = null,
             ISpecificationsApiClient specificationsApiClient = null,
             IResultsResiliencePolicies resiliencePolicies = null,
-            ICacheProvider cacheProvider = null,
             IMessengerService messengerService = null,
-            ICalculationsRepository calculationsRepository = null,
-            IBlobClient blobClient = null)
+            ICalculationsRepository calculationsRepository = null)
         {
             IFeatureToggle featureToggle = Substitute.For<IFeatureToggle>();
             featureToggle.IsExceptionMessagesEnabled().Returns(true);

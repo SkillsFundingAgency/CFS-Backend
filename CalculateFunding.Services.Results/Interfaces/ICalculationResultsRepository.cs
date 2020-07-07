@@ -22,5 +22,6 @@ namespace CalculateFunding.Services.Results.Interfaces
         Task<decimal> GetCalculationResultTotalForSpecificationId(string specificationId);
         Task<ProviderResult> GetSingleProviderResultBySpecificationId(string specificationId);
         Task<bool> CheckHasNewResultsForSpecificationIdAndTimePeriod(string specificationId, DateTimeOffset dateFrom, DateTimeOffset dateTo);
+        Task<bool> ProviderHasResultsBySpecificationId(string specificationId);
     }
 }

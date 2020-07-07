@@ -22,6 +22,9 @@ namespace CalculateFunding.Services.Specs.Interfaces
 
         Task<IEnumerable<Specification>> GetSpecificationsSelectedForFundingByPeriod(string fundingPeriodId);
 
+        Task<IEnumerable<Specification>> GetSpecificationsSelectedForFundingByPeriodAndFundingStream(
+            string fundingPeriodId, string fundingStreamId);
+
         Task<IEnumerable<Specification>> GetSpecifications();
 
         Task<Specification> GetSpecificationByQuery(Expression<Func<DocumentEntity<Specification>, bool>> query);
@@ -30,7 +33,11 @@ namespace CalculateFunding.Services.Specs.Interfaces
 
         Task<IEnumerable<T>> GetSpecificationsByRawQuery<T>(CosmosDbQuery cosmosDbQuery);
 
-        Task<IEnumerable<Specification>> GetApprovedOrUpdatedSpecificationsByFundingPeriodAndFundingStream(string fundingPeriodId, string fundingStreamId);
+        Task<IEnumerable<Specification>> GetApprovedOrUpdatedSpecificationsByFundingPeriodAndFundingStream(
+            string fundingPeriodId, string fundingStreamId);
+
+        Task<IEnumerable<Specification>> GetSpecificationsByFundingPeriodAndFundingStream(
+            string fundingPeriodId, string fundingStreamId);
 
         Task DeleteSpecifications(string specificationId, DeletionType deletionType);
         Task<IEnumerable<string>> GetDistinctFundingStreamsForSpecifications();

@@ -9,7 +9,6 @@ using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Calcs;
-
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Results.Interfaces;
 using Newtonsoft.Json;
@@ -167,6 +166,21 @@ namespace CalculateFunding.Services.Results.Repositories
             }
 
             return results.AsEnumerable();
+        }
+
+        public async Task<bool> ProviderHasResultsBySpecificationId(string specificationId)
+        {
+            CosmosDbQuery cosmosDbQuery = new CosmosDbQuery
+            {
+                QueryText = "SELECT VALUE COUNT(1) FROM c WHERE c.documentType = 'ProviderResult' AND  c.content.specificationId = @SpecificationId",
+                Parameters = new[]
+                {
+                    new CosmosDbQueryParameter("@SpecificationId", specificationId)
+                }
+            };
+
+            IEnumerable<bool> result = await _cosmosRepository.RawQuery<bool>(cosmosDbQuery, 1);
+            return result.FirstOrDefault();
         }
 
         public async Task<IEnumerable<ProviderResult>> GetProviderResultsBySpecificationId(string specificationId, int maxItemCount = -1)

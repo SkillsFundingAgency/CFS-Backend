@@ -6,7 +6,6 @@ using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Interfaces;
-using Newtonsoft.Json.Linq;
 
 namespace CalculateFunding.Services.Publishing.Repositories
 {
