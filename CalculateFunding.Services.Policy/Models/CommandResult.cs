@@ -11,7 +11,9 @@ namespace CalculateFunding.Services.Policy.Models
         public bool Succeeded { get; set; }
         
         public string TemplateId { get; set; }
-        
+
+        public int Version { get; set; }
+
         public string ErrorMessage { get; set; }
         
         public Exception Exception { get; set; }

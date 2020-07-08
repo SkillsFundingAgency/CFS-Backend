@@ -166,6 +166,35 @@ namespace CalculateFunding.Api.Policy.Controllers
             return new InternalServerErrorResult(result.ErrorMessage ?? result.Exception?.Message ?? "Unknown error occurred");
         }
 
+        [HttpPut("api/templates/build/{templateId}/restore/{version}")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(string))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> RestoreContent(TemplateFundingLinesUpdateCommand command, [FromRoute] string templateId, [FromRoute] string version)
+        {
+            ValidationResult validationResult = await _validatorFactory.Validate(command);
+
+            if (!validationResult.IsValid || command.TemplateId != templateId)
+            {
+                return validationResult.AsBadRequest();
+            }
+
+            Reference author = ControllerContext.HttpContext.Request?.GetUserOrDefault();
+
+            CommandResult result = await _templateBuilderService.RestoreTemplateContent(command, author);
+
+            if (result.Succeeded)
+            {
+                return Ok(result.Version);
+            }
+            if (result.ValidationModelState != null)
+            {
+                return BadRequest(result.ValidationModelState);
+            }
+
+            return new InternalServerErrorResult(result.ErrorMessage ?? result.Exception?.Message ?? "Unknown error occurred");
+        }
+
         [HttpPut("api/templates/build/metadata")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(string))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]

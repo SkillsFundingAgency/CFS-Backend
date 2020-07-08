@@ -389,7 +389,16 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
 
         public async Task<CommandResult> UpdateTemplateContent(TemplateFundingLinesUpdateCommand originalCommand, Reference author)
         {
-            // input parameter validation
+            return await UpdateOrRestoreTemplateContent(originalCommand, author);
+        }
+
+        public async Task<CommandResult> RestoreTemplateContent(TemplateFundingLinesUpdateCommand originalCommand, Reference author)
+        {
+            return await UpdateOrRestoreTemplateContent(originalCommand, author, restore: true);
+        }
+
+        private async Task<CommandResult> UpdateOrRestoreTemplateContent(TemplateFundingLinesUpdateCommand originalCommand, Reference author, bool restore = false)
+        {
             ValidationResult validatorResult = await _validatorFactory.Validate(originalCommand);
             validatorResult.Errors.AddRange((await _validatorFactory.Validate(author))?.Errors);
 
@@ -404,9 +413,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
                 return CommandResult.ValidationFail(nameof(originalCommand.TemplateId), "Template doesn't exist");
             }
 
-            // to enable backwards compatibility
-            template.FundingStream ??= await _policyRepository.GetFundingStreamById(template.Current.FundingStreamId);
-            template.FundingPeriod ??= await _policyRepository.GetFundingPeriodById(template.Current.FundingPeriodId);
+            await EnsureBackwardsCompatibility(template);
 
             (ValidationFailure error, TemplateJsonContentUpdateCommand updateCommand) = MapCommand(originalCommand);
             if (error != null)
@@ -414,7 +421,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
                 return CommandResult.ValidationFail(new ValidationResult(new[] { error }));
             }
 
-            if (template.Current.TemplateJson == updateCommand.TemplateJson)
+            if (!restore && template.Current.TemplateJson == updateCommand.TemplateJson)
             {
                 return CommandResult.Success();
             }
@@ -434,7 +441,16 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
                 return CommandResult.Fail($"Failed to update template: {updated}");
             }
 
-            return CommandResult.Success();
+            CommandResult commandResult = CommandResult.Success();
+            commandResult.Version = template.Current.Version;
+
+            return commandResult;
+        }
+
+        private async Task EnsureBackwardsCompatibility(Template template)
+        {
+            template.FundingStream ??= await _policyRepository.GetFundingStreamById(template.Current.FundingStreamId);
+            template.FundingPeriod ??= await _policyRepository.GetFundingPeriodById(template.Current.FundingPeriodId);
         }
 
         public async Task<CommandResult> UpdateTemplateDescription(TemplateDescriptionUpdateCommand command, Reference author)
@@ -453,9 +469,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
                 return CommandResult.ValidationFail(nameof(command.TemplateId), "Template doesn't exist");
             }
 
-            // to enable backwards compatibility
-            template.FundingStream ??= await _policyRepository.GetFundingStreamById(template.Current.FundingStreamId);
-            template.FundingPeriod ??= await _policyRepository.GetFundingPeriodById(template.Current.FundingPeriodId);
+            await EnsureBackwardsCompatibility(template);
 
             if (template.Description == command.Description)
             {
