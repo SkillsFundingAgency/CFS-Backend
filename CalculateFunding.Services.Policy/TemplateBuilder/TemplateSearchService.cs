@@ -10,7 +10,7 @@ using System.Linq;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.Models;
-using CalculateFunding.Models;
+using CalculateFunding.Common.Models.Search;
 using CalculateFunding.Repositories.Common.Search.Results;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Policy.Interfaces;
@@ -18,6 +18,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Search.Models;
 using Polly;
 using Serilog;
+using SearchMode = Microsoft.Azure.Search.Models.SearchMode;
 
 namespace CalculateFunding.Services.Policy.TemplateBuilder
 {

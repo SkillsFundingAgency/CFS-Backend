@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.Models;
-using CalculateFunding.Models;
+using CalculateFunding.Common.Models.Search;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CalculateFunding.Services.Policy.Interfaces

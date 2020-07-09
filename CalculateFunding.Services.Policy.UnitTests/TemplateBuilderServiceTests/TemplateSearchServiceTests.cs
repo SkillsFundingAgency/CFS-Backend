@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.Models;
-using CalculateFunding.Models;
+using CalculateFunding.Common.Models.Search;
 using CalculateFunding.Models.Policy;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Repositories.Common.Search.Results;
@@ -19,6 +19,7 @@ using Microsoft.Azure.Search.Models;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
+using Facet = CalculateFunding.Repositories.Common.Search.Facet;
 
 namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
 {
@@ -28,7 +29,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
         [TestMethod]
         public async Task SearchTemplate_SearchRequestFails_ThenBadRequestReturned()
         {
-            SearchModel model = new SearchModel()
+            SearchModel model = new SearchModel
             {
                 SearchTerm = "SearchTermTest",
                 PageNumber = 1,

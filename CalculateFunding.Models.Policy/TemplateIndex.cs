@@ -45,7 +45,7 @@ namespace CalculateFunding.Models.Policy
         [IsRetrievable(true)]
         public string LastUpdatedAuthorName { get; set; }
 
-        [IsRetrievable(true)]
+        [IsFilterable, IsFacetable, IsSortable, IsRetrievable(true)]
         [JsonProperty("status")]
         public string Status { get; set; }
 

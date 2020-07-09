@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
+using CalculateFunding.Common.Models.Search;
 using CalculateFunding.Common.Utility;
-using CalculateFunding.Models;
-using CalculateFunding.Models.Policy;
 using CalculateFunding.Models.Policy.TemplateBuilder;
 using CalculateFunding.Repositories.Common.Search.Results;
 using CalculateFunding.Services.Policy.Interfaces;
@@ -195,6 +193,11 @@ namespace CalculateFunding.Api.Policy.Controllers
             return new InternalServerErrorResult(result.ErrorMessage ?? result.Exception?.Message ?? "Unknown error occurred");
         }
 
+        /// <summary>
+        /// Update the description field of a template
+        /// </summary>
+        /// <param name="command">description for template</param>
+        /// <returns>200 with no content if successful</returns>
         [HttpPut("api/templates/build/metadata")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(string))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -226,13 +229,13 @@ namespace CalculateFunding.Api.Policy.Controllers
         }
 
         /// <summary>
-        /// get all versions of a template, in descending last updated order
+        /// get all versions of a template, filtered by status with paging, in descending last updated order
         /// </summary>
         /// <param name="templateId">template ID</param>
-        /// <param name="statuses">optional</param>
+        /// <param name="statuses">optional [Draft, Published]</param>
         /// <param name="page">if 0 or missing, all results are returned (up to 1000)</param>
         /// <param name="itemsPerPage">if 0 or missing, all results are returned (up to 1000)</param>
-        /// <returns></returns>
+        /// <returns>versions of a template matching input criteria</returns>
         [HttpGet("api/templates/build/{templateId}/versions")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<TemplateSummaryResponse>))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -249,6 +252,10 @@ namespace CalculateFunding.Api.Policy.Controllers
             return Ok(templateVersionResponses);
         }
 
+        /// <summary>
+        /// Find valid combinations of Funding streams and periods that have not been already allocated to a template
+        /// </summary>
+        /// <returns>collection of Funding streams with available periods</returns>
         [HttpGet("api/templates/build/available-stream-periods")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<FundingStreamWithPeriods>))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -259,6 +266,11 @@ namespace CalculateFunding.Api.Policy.Controllers
             return Ok(results);
         }
 
+        /// <summary>
+        /// Search among versions of a specific template
+        /// </summary>
+        /// <param name="query">criteria for finding versions</param>
+        /// <returns>search results</returns>
         [HttpPost("api/templates/build/versions/search")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<TemplateSummaryResponse>))]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -281,6 +293,12 @@ namespace CalculateFunding.Api.Policy.Controllers
             return Ok(templateVersionResponses);
         }
 
+        /// <summary>
+        /// Publish a specific version of this template
+        /// </summary>
+        /// <param name="templateId">template ID</param>
+        /// <param name="command">Inputs for publishing: version, notes</param>
+        /// <returns>result with Succeeded flag</returns>
         [HttpPost("api/templates/build/{templateId}/publish")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(CommandResult))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -306,10 +324,16 @@ namespace CalculateFunding.Api.Policy.Controllers
             return new InternalServerErrorResult(response.ErrorMessage ?? response.Exception?.Message ?? "Unknown error occurred");
         }
 
+        /// <summary>
+        /// Search for templates
+        /// (current versions only)
+        /// </summary>
+        /// <param name="searchModel">search filters</param>
+        /// <returns>template results</returns>
         [Route("api/templates/templates-search")]
         [HttpPost]
         [Produces(typeof(TemplateSearchResults))]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(TemplateSearchResults))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> TemplatesSearch([FromBody] SearchModel searchModel)
