@@ -35,6 +35,11 @@ namespace CalculateFunding.Api.Policy.Controllers
             _templateSearchService = templateSearchService;
         }
 
+        /// <summary>
+        /// Gets a template by templateId
+        /// </summary>
+        /// <param name="templateId">The template id</param>
+        /// <returns>200 with template if successful</returns>
         [HttpGet("api/templates/build/{templateId}")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(TemplateResponse))]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -44,7 +49,7 @@ namespace CalculateFunding.Api.Policy.Controllers
             {
                 return new BadRequestObjectResult("Null or empty template id");
             }
-            
+
             TemplateResponse result = await _templateBuilderService.GetTemplate(templateId);
 
             if (result == null)
@@ -53,6 +58,12 @@ namespace CalculateFunding.Api.Policy.Controllers
             return Ok(result);
         }
 
+        /// <summary>
+        /// Gets a specific template version by templateId and version
+        /// </summary>
+        /// <param name="templateId">The templateId</param>
+        /// <param name="version">The version</param>
+        /// <returns>200 with template version if successful</returns>
         [HttpGet("api/templates/build/{templateId}/versions/{version}")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(TemplateResponse))]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -66,7 +77,7 @@ namespace CalculateFunding.Api.Policy.Controllers
             {
                 return new BadRequestObjectResult("Null or empty template version");
             }
-            
+
             TemplateResponse result = await _templateBuilderService.GetTemplateVersion(templateId, version);
 
             if (result == null)
@@ -75,6 +86,11 @@ namespace CalculateFunding.Api.Policy.Controllers
             return Ok(result);
         }
 
+        /// <summary>
+        /// Create a new template
+        /// </summary>
+        /// <param name="command">Payload for creating a template</param>
+        /// <returns>201 if template created successfully</returns>
         [HttpPost("api/templates/build")]
         [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(string))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -105,6 +121,11 @@ namespace CalculateFunding.Api.Policy.Controllers
             return new InternalServerErrorResult(result.ErrorMessage ?? result.Exception?.Message ?? "Unknown error occurred");
         }
 
+        /// <summary>
+        /// Create a template clone
+        /// </summary>
+        /// <param name="command">Payload for cloning a template</param>
+        /// <returns>201 if template clone created successfully</returns>
         [HttpPost("api/templates/build/clone")]
         [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(string))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -135,6 +156,11 @@ namespace CalculateFunding.Api.Policy.Controllers
             return new InternalServerErrorResult(result.ErrorMessage ?? result.Exception?.Message ?? "Unknown error occurred");
         }
 
+        /// <summary>
+        /// Update the template content, i.e. the template json
+        /// </summary>
+        /// <param name="command">Payload for updating the template content</param>
+        /// <returns>200 if template updated successfully</returns>
         [HttpPut("api/templates/build/content")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(string))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -164,6 +190,13 @@ namespace CalculateFunding.Api.Policy.Controllers
             return new InternalServerErrorResult(result.ErrorMessage ?? result.Exception?.Message ?? "Unknown error occurred");
         }
 
+        /// <summary>
+        /// Restores a template to a previous version
+        /// </summary>
+        /// <param name="command">Payload for restoring a template</param>
+        /// <param name="templateId">TemplateId of the template to be restored</param>
+        /// <param name="version">Version of the template to restore to</param>
+        /// <returns>200 with response containing the new version number if restored successfully</returns>
         [HttpPut("api/templates/build/{templateId}/restore/{version}")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(string))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -229,7 +262,7 @@ namespace CalculateFunding.Api.Policy.Controllers
         }
 
         /// <summary>
-        /// get all versions of a template, filtered by status with paging, in descending last updated order
+        /// Get all versions of a template, filtered by status with paging, in descending last updated order
         /// </summary>
         /// <param name="templateId">template ID</param>
         /// <param name="statuses">optional [Draft, Published]</param>
@@ -282,7 +315,7 @@ namespace CalculateFunding.Api.Policy.Controllers
                 return validationResult.AsBadRequest();
             }
 
-            if(!validationResult.IsValid)
+            if (!validationResult.IsValid)
             {
                 return validationResult.AsBadRequest();
             }
@@ -306,9 +339,9 @@ namespace CalculateFunding.Api.Policy.Controllers
         public async Task<IActionResult> PublishTemplate([FromRoute] string templateId, [FromBody] TemplatePublishCommand command)
         {
             Guard.ArgumentNotNull(command, nameof(command));
-            
+
             command.Author = ControllerContext.HttpContext.Request?.GetUserOrDefault();
-            
+
             CommandResult response = await _templateBuilderService.PublishTemplate(command);
 
             if (response.Succeeded)
@@ -345,18 +378,18 @@ namespace CalculateFunding.Api.Policy.Controllers
         [ProducesResponseType(204)]
         public async Task<IActionResult> ReIndex()
         {
-          return await _templateSearchService.ReIndex(GetUser(),
-            GetCorrelationId());
+            return await _templateSearchService.ReIndex(GetUser(),
+              GetCorrelationId());
         }
 
         private Reference GetUser()
         {
-          return Request.GetUser();
+            return Request.GetUser();
         }
 
         private string GetCorrelationId()
         {
-          return Request.GetCorrelationId();
+            return Request.GetCorrelationId();
         }
-  }
+    }
 }
