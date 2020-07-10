@@ -13,11 +13,15 @@ namespace CalculateFunding.Services.Policy.Models
         /// Funding Stream ID. eg PSG, DSG
         /// </summary>
         public string FundingStreamId { get; set; }
+        
+        public string FundingStreamName { get; set; }
 
         /// <summary>
         /// Funding Period Id (foreign key)
         /// </summary>
         public string FundingPeriodId { get; set; }
+        
+        public string FundingPeriodName { get; set; }
 
         public string SchemaVersion { get; set; }
 

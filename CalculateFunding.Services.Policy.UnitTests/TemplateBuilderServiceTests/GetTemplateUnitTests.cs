@@ -43,6 +43,18 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
                     TemplateId = _templateVersion.TemplateId,
                     Name = _templateVersion.Name,
                     Description = "Description",
+                    FundingPeriod = new FundingPeriod
+                    {
+                        Id = "2021",
+                        Name = "Test Period",
+                        Type = FundingPeriodType.FY
+                    },
+                    FundingStream = new FundingStream
+                    {
+                        Id = "XX",
+                        ShortName = "XX",
+                        Name = "FundingSteam"
+                    },
                     Current = _templateVersion
                 };
                 _templateRepository = Substitute.For<ITemplateRepository>();
@@ -101,7 +113,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
             [TestMethod]
             public void Returns_correct_FundingPeriodId()
             {
-                _result.FundingPeriodId.Should().Be(_templateVersion.FundingPeriodId);
+                _result.FundingPeriodId.Should().Be(_template.FundingPeriod.Id);
             }
 
             [TestMethod]
@@ -113,7 +125,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
             [TestMethod]
             public void Returns_correct_FundingStreamId()
             {
-                _result.FundingStreamId.Should().Be(_templateVersion.FundingStreamId);
+                _result.FundingStreamId.Should().Be(_template.FundingStream.Id);
             }
 
             [TestMethod]
@@ -193,6 +205,18 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
                     TemplateId = _templateVersionPrevious.TemplateId,
                     Name = _templateVersionPrevious.Name,
                     Description = "Description",
+                    FundingPeriod = new FundingPeriod
+                    {
+                        Id = "2021",
+                        Name = "Test Period",
+                        Type = FundingPeriodType.FY
+                    },
+                    FundingStream = new FundingStream
+                    {
+                        Id = "XX",
+                        ShortName = "XX",
+                        Name = "FundingSteam"
+                    },
                     Current = _templateVersionCurrent
                 };
                 _templateVersionRepository = Substitute.For<ITemplateVersionRepository>();
@@ -250,12 +274,6 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
             }
 
             [TestMethod]
-            public void Returns_correct_FundingPeriodId()
-            {
-                _result.FundingPeriodId.Should().Be(_templateVersionPrevious.FundingPeriodId);
-            }
-
-            [TestMethod]
             public void Returns_correct_TemplateJson()
             {
                 _result.TemplateJson.Should().Be(_templateVersionPrevious.TemplateJson);
@@ -264,7 +282,25 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
             [TestMethod]
             public void Returns_correct_FundingStreamId()
             {
-                _result.FundingStreamId.Should().Be(_templateVersionPrevious.FundingStreamId);
+                _result.FundingStreamId.Should().Be(_template.FundingStream.Id);
+            }
+
+            [TestMethod]
+            public void Returns_correct_FundingStreamName()
+            {
+                _result.FundingStreamName.Should().Be(_template.FundingStream.Name);
+            }
+
+            [TestMethod]
+            public void Returns_correct_FundingPeriodId()
+            {
+                _result.FundingPeriodId.Should().Be(_template.FundingPeriod.Id);
+            }
+
+            [TestMethod]
+            public void Returns_correct_FundingPeriodName()
+            {
+                _result.FundingPeriodName.Should().Be(_template.FundingPeriod.Name);
             }
 
             [TestMethod]

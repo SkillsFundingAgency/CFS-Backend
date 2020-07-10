@@ -588,8 +588,10 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
                 TemplateId = templateVersion.TemplateId,
                 TemplateJson = templateVersion.TemplateJson,
                 Name = templateVersion.Name,
-                FundingStreamId = templateVersion.FundingStreamId,
-                FundingPeriodId = templateVersion.FundingPeriodId,
+                FundingStreamId = template.FundingStream.Id,
+                FundingStreamName = template.FundingStream.Name,
+                FundingPeriodId = template.FundingPeriod.Id,
+                FundingPeriodName = template.FundingPeriod.Name,
                 Version = templateVersion.Version,
                 IsCurrentVersion = templateVersion.Version == template.Current.Version,
                 MinorVersion = templateVersion.MinorVersion,
@@ -747,7 +749,9 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
                 SchemaVersion = source.SchemaVersion,
                 LastModificationDate = source.Date.DateTime,
                 FundingStreamId = template.FundingStream.Id,
+                FundingStreamName = template.FundingStream.Name,
                 FundingPeriodId = template.FundingPeriod.Id,
+                FundingPeriodName = template.FundingPeriod.Name,
                 Comments = source.Comment
             };
         }
