@@ -390,5 +390,15 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
                 providerVersionId: publishedProvider?.Released?.Provider?.ProviderVersionId, 
                 providerId: publishedProvider?.Released?.Provider?.ProviderId));
         }
+
+        public Task PublishedGroupBatchProcessing(string specificationId, Func<List<PublishedFunding>, Task> batchProcessor, int batchSize)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<IEnumerable<PublishedProvider>> QueryPublishedProvider(string specificationId, IEnumerable<string> fundingIds)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

@@ -100,5 +100,11 @@ namespace CalculateFunding.Services.Publishing.Interfaces
             IEnumerable<string> variationReasons);
 
         Task<(string providerVersionId, string providerId)> GetPublishedProviderId(string publishedProviderVersion);
+
+        Task PublishedGroupBatchProcessing(string specificationId,
+            Func<List<PublishedFunding>, Task> batchProcessor,
+            int batchSize);
+
+        Task<IEnumerable<PublishedProvider>> QueryPublishedProvider(string specificationId, IEnumerable<string> fundingIds);
     }
 }

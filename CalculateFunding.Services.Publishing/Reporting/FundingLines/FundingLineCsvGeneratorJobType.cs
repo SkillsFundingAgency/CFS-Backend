@@ -10,6 +10,7 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
         CurrentProfileValues = 5,
         CurrentOrganisationGroupValues = 6,
         HistoryOrganisationGroupValues = 7,
-        HistoryPublishedProviderEstate = 8
+        HistoryPublishedProviderEstate = 8,
+        PublishedGroups = 9
     }
 } 

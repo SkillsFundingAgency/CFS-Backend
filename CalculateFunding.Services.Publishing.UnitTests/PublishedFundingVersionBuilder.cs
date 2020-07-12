@@ -28,6 +28,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private DateTimeOffset _date;
         private IEnumerable<FundingLine> _fundingLines;
         private IEnumerable<VariationReason> _variationReasons;
+        private decimal? _totalFunding;
+        private DateTime _statusChangedDate;
 
 
         public PublishedFundingVersionBuilder WithFundingId(string fundingId)
@@ -47,6 +49,20 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         public PublishedFundingVersionBuilder WithAuthor(Reference author)
         {
             _author = author;
+
+            return this;
+        }
+
+        public PublishedFundingVersionBuilder WithTotalFunding(decimal? totalFunding)
+        {
+            _totalFunding = totalFunding;
+
+            return this;
+        }
+
+        public PublishedFundingVersionBuilder WithStatusChangedDate(DateTime statusChangedDate)
+        {
+            _statusChangedDate = statusChangedDate;
 
             return this;
         }
@@ -184,7 +200,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 Author = _author,
                 Date = _date,
                 FundingLines = _fundingLines,
-                VariationReasons = _variationReasons
+                VariationReasons = _variationReasons,
+                TotalFunding =_totalFunding,
+                StatusChangedDate = _statusChangedDate
             };
         }
     }

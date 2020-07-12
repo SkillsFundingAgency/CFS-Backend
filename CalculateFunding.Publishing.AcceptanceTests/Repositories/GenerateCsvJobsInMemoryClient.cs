@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using CalculateFunding.Common.Models;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
 
@@ -8,10 +7,9 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 {
     public class GenerateCsvJobsInMemoryClient : IGeneratePublishedFundingCsvJobsCreation
     {
-        public Task CreateJobs(string specificationId, string correlationId, Reference user, IEnumerable<string> fundingLineCodes = null, IEnumerable<string> fundingStreamIds = null,
-            string fundingPeriodId = null)
+        public Task CreateJobs(PublishedFundingCsvJobsRequest publishedFundingCsvJobsRequest)
         {
-            RequestedSpecificationIds.Add(specificationId);
+            RequestedSpecificationIds.Add(publishedFundingCsvJobsRequest.SpecificationId);
             
             return Task.CompletedTask;
         }

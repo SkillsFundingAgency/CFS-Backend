@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Services.Publishing.Interfaces;
+using CalculateFunding.Services.Publishing.Models;
 using CalculateFunding.Services.Publishing.Reporting;
 using CalculateFunding.Services.Publishing.Reporting.FundingLines;
 using CalculateFunding.Tests.Common.Helpers;
@@ -45,7 +46,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
                 .And
                 .ParamName
                 .Should()
-                .Be("specificationId");
+                .Be("SpecificationId");
         }
 
         [TestMethod]
@@ -63,7 +64,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
                 .And
                 .ParamName
                 .Should()
-                .Be("user");
+                .Be("User");
         }
 
         [TestMethod]
@@ -81,7 +82,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
                 .And
                 .ParamName
                 .Should()
-                .Be("fundingLineCodes");
+                .Be("FundingLineCodes");
         }
 
         [TestMethod]
@@ -99,7 +100,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
                 .And
                 .ParamName
                 .Should()
-                .Be("fundingStreamIds");
+                .Be("FundingStreamIds");
         }
 
         [TestMethod]
@@ -175,7 +176,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
 
         protected Task WhenTheJobsAreCreated(string specificationId, string correlationId, Reference user, IEnumerable<string> fundingLineCodes, IEnumerable<string> fundingStreamIds)
         {
-            return JobsCreation.CreateJobs(specificationId, correlationId, user, fundingLineCodes, fundingStreamIds);
+            PublishedFundingCsvJobsRequest publishedFundingCsvJobsRequest = new PublishedFundingCsvJobsRequest
+            {
+                SpecificationId = specificationId,
+                CorrelationId = correlationId,
+                User = user,
+                FundingLineCodes = fundingLineCodes,
+                FundingStreamIds = fundingStreamIds
+            };
+            return JobsCreation.CreateJobs(publishedFundingCsvJobsRequest);
         }
 
         protected Reference NewUser()

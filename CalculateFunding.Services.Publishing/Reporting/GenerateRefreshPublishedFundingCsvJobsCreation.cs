@@ -1,8 +1,6 @@
-﻿using CalculateFunding.Common.Models;
-using CalculateFunding.Common.Utility;
+﻿using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Publishing.Reporting
@@ -16,20 +14,15 @@ namespace CalculateFunding.Services.Publishing.Reporting
         {
         }
 
-        public override async Task CreateJobs(string specificationId, 
-            string correlationId, 
-            Reference user, 
-            IEnumerable<string> fundingLineCodes = null, 
-            IEnumerable<string> fundingStreamIds = null,
-            string fundingPeriodId = null)
+        public override async Task CreateJobs(PublishedFundingCsvJobsRequest publishedFundingCsvJobsRequest)
         {
-            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
-            Guard.ArgumentNotNull(user, nameof(user));
-            Guard.ArgumentNotNull(fundingLineCodes, nameof(fundingLineCodes));
-            Guard.ArgumentNotNull(fundingStreamIds, nameof(fundingStreamIds));
+            Guard.IsNullOrWhiteSpace(publishedFundingCsvJobsRequest.SpecificationId, nameof(publishedFundingCsvJobsRequest.SpecificationId));
+            Guard.ArgumentNotNull(publishedFundingCsvJobsRequest.User, nameof(publishedFundingCsvJobsRequest.User));
+            Guard.ArgumentNotNull(publishedFundingCsvJobsRequest.FundingLineCodes, nameof(publishedFundingCsvJobsRequest.FundingLineCodes));
+            Guard.ArgumentNotNull(publishedFundingCsvJobsRequest.FundingStreamIds, nameof(publishedFundingCsvJobsRequest.FundingStreamIds));
 
-            await CreatePublishedFundingCsvJobs(specificationId, correlationId, user, fundingLineCodes, fundingPeriodId);
-            await CreatePublishedProviderEstateCsvJobs(specificationId, correlationId, user, fundingStreamIds, fundingPeriodId);
+            await CreatePublishedFundingCsvJobs(publishedFundingCsvJobsRequest);
+            await CreatePublishedProviderEstateCsvJobs(publishedFundingCsvJobsRequest);
         }
 
         public override bool IsForAction(GeneratePublishingCsvJobsCreationAction action)

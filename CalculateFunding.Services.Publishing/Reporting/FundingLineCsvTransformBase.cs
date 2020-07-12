@@ -42,8 +42,9 @@ namespace CalculateFunding.Services.Publishing.Reporting
                 row["Allocation Minor Version"] = publishedProviderVersion.MinorVersion.ToString();
                 row["Allocation Author"] = publishedProviderVersion.Author?.Name;
                 row["Allocation DateTime"] = publishedProviderVersion.Date.ToString("s");
-
+                
                 TransformFundingLine(row, publishedProviderVersion);
+                TransformProviderDetials(row, publishedProviderVersion);
 
                 yield return (ExpandoObject) row;
             }
@@ -57,6 +58,10 @@ namespace CalculateFunding.Services.Publishing.Reporting
             {
                 row[fundingLine.Name] = fundingLine.Value?.ToString();
             }
+        }
+
+        protected virtual void TransformProviderDetials(IDictionary<string, object> row, PublishedProviderVersion publishedProviderVersion)
+        {
         }
 
         protected virtual PublishedProviderVersion GetPublishedProviderVersion(IEnumerable<dynamic> documents, int resultCount) => null;

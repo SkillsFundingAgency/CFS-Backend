@@ -249,6 +249,7 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
                 FundingLineCsvGeneratorJobType.CurrentProfileValues => $"{fundingStreamId} {fundingPeriodId} {fundingLineCode} Profile Current State {utcNow}.csv",
                 FundingLineCsvGeneratorJobType.CurrentOrganisationGroupValues => $"{fundingStreamId} {fundingPeriodId} Funding Lines Current State {utcNow}.csv",
                 FundingLineCsvGeneratorJobType.HistoryOrganisationGroupValues => $"{fundingStreamId} {fundingPeriodId} Funding Lines All Versions {utcNow}.csv",
+                FundingLineCsvGeneratorJobType.PublishedGroups => $"{fundingStreamId} {fundingPeriodId} Published Groups {utcNow}.csv",
                 _ => throw new ArgumentOutOfRangeException()
             };
         }

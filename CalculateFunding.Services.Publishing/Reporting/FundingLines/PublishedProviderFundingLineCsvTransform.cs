@@ -16,5 +16,13 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
             return jobType == FundingLineCsvGeneratorJobType.CurrentState ||
                    jobType == FundingLineCsvGeneratorJobType.Released;
         }
+
+        protected override void TransformProviderDetials(IDictionary<string, object> row, PublishedProviderVersion publishedProviderVersion)
+        {
+            row["Provider Status"] = publishedProviderVersion.Provider.Status.ToString();
+            row["Provider Successor"] = publishedProviderVersion.Provider.Successor?.ToString();
+            row["Provider Predecessors"] = publishedProviderVersion.Predecessors != null ? string.Join(';', publishedProviderVersion.Predecessors) : string.Empty;
+            row["Provider Variation Reasons"] = publishedProviderVersion.VariationReasons != null ? string.Join(';', publishedProviderVersion.VariationReasons) : string.Empty;
+        }
     }
 }

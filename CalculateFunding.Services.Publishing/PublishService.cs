@@ -184,8 +184,17 @@ namespace CalculateFunding.Services.Publishing
             IEnumerable<string> fundingStreamIds = specification.FundingStreams.Select(fs => fs.Id); //this will only ever be a single I think
             
             string fundingPeriodId = await _policiesService.GetFundingPeriodId(specification.FundingPeriod.Id);
-
-            await generateCsvJobs.CreateJobs(specificationId, correlationId, author, fundingLineCodes, fundingStreamIds, fundingPeriodId);
+            PublishedFundingCsvJobsRequest publishedFundingCsvJobsRequest = new PublishedFundingCsvJobsRequest
+            {
+                SpecificationId = specificationId,
+                CorrelationId = correlationId,
+                User = author,
+                FundingLineCodes = fundingLineCodes,
+                FundingStreamIds = fundingStreamIds,
+                FundingPeriodId = fundingPeriodId,
+                IsSpecificationSelectedForFunding = specification.IsSelectedForFunding
+            };
+            await generateCsvJobs.CreateJobs(publishedFundingCsvJobsRequest);
         }
 
         private async Task PublishFundingStream(Reference fundingStream,

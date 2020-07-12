@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Dynamic;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
+using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Caching.FileSystem;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Publishing.Interfaces;
@@ -85,6 +86,24 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
             setUp?.Invoke(specificationSummaryBuilder);
 
             return specificationSummaryBuilder.Build();
+        }
+
+        protected static PublishedFunding NewPublishedFunding(Action<PublishedFundingBuilder> setUp = null)
+        {
+            PublishedFundingBuilder publishedFundingBuilder = new PublishedFundingBuilder();
+
+            setUp?.Invoke(publishedFundingBuilder);
+
+            return publishedFundingBuilder.Build();
+        }
+
+        protected static PublishedFundingVersion NewPublishedFundingVersion(Action<PublishedFundingVersionBuilder> setUp = null)
+        {
+            PublishedFundingVersionBuilder publishedFundingVersionBuilder = new PublishedFundingVersionBuilder();
+
+            setUp?.Invoke(publishedFundingVersionBuilder);
+
+            return publishedFundingVersionBuilder.Build();
         }
     }
 }

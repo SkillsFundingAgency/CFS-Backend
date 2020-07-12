@@ -151,7 +151,16 @@ namespace CalculateFunding.Services.Publishing
                         .GetService(GeneratePublishingCsvJobsCreationAction.Approve);
                     IEnumerable<string> fundingLineCodes = await _publishedFundingDataService.GetPublishedProviderFundingLines(specificationId);
                     IEnumerable<string> fundingStreamIds = Array.Empty<string>();
-                    await generateCsvJobs.CreateJobs(specificationId, correlationId, author, fundingLineCodes, fundingStreamIds, fundingPeriodId);
+                    PublishedFundingCsvJobsRequest publishedFundingCsvJobsRequest = new PublishedFundingCsvJobsRequest
+                    {
+                        SpecificationId = specificationId,
+                        CorrelationId = correlationId,
+                        User = author,
+                        FundingLineCodes = fundingLineCodes,
+                        FundingStreamIds = fundingStreamIds,
+                        FundingPeriodId = fundingPeriodId
+                    };
+                    await generateCsvJobs.CreateJobs(publishedFundingCsvJobsRequest);
                 }
 
                 transaction.Complete();

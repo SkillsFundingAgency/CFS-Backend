@@ -47,11 +47,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
                                 .WithURN("urn1")
                                 .WithUKPRN("ukprn1")
                                 .WithProviderType("pt1")
-                                .WithProviderSubType("pst1")))
+                                .WithProviderSubType("pst1")
+                                .WithStatus("Open")
+                                .WithSuccessor("Successor1")))
                         .WithFundingLines(NewFundingLine(fl => fl.WithName("bfl1")
                                 .WithValue(999M)),
                             NewFundingLine(fl => fl.WithName("afl2")
                                 .WithValue(666M)))
+                        .WithPredecessors(new[] {"Pre1", "Pre2"})
+                        .WithVariationReasons(new[] { VariationReason.AuthorityFieldUpdated, VariationReason.CensusWardCodeFieldUpdated})
                         .WithAuthor(NewReference(auth => auth.WithName("author1")))
                         .WithMajorVersion(1)
                         .WithMinorVersion(11)
@@ -66,7 +70,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
                                 .WithURN("urn2")
                                 .WithUKPRN("ukprn2")
                                 .WithProviderType("pt2")
-                                .WithProviderSubType("pst2")))
+                                .WithProviderSubType("pst2")
+                                .WithStatus("Open")))
                         .WithFundingLines(NewFundingLine(fl => fl.WithName("zfl1")
                             .WithValue(123M)))
                         .WithAuthor(NewReference(auth => auth.WithName("author2")))
@@ -92,7 +97,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
                     {"Allocation Author", "author1"},
                     {"Allocation DateTime", "2020-01-05T20:05:44"},
                     {"afl2", 666M.ToString(CultureInfo.InvariantCulture)}, //funding lines to be alpha numerically ordered on name
-                    {"bfl1", 999M.ToString(CultureInfo.InvariantCulture)}
+                    {"bfl1", 999M.ToString(CultureInfo.InvariantCulture)},
+                    {"Provider Status", "Open"},
+                    {"Provider Successor", "Successor1" },
+                    {"Provider Predecessors", "Pre1;Pre2" },
+                    {"Provider Variation Reasons", "AuthorityFieldUpdated;CensusWardCodeFieldUpdated" }
                 },
                 new Dictionary<string, object>
                 {
@@ -110,6 +119,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
                     {"Allocation Author", "author2"},
                     {"Allocation DateTime", "2020-02-05T20:03:55"},
                     {"zfl1", 123M.ToString(CultureInfo.InvariantCulture)},
+                    {"Provider Status", "Open"},
+                    {"Provider Successor", null },
+                    {"Provider Predecessors", string.Empty },
+                    {"Provider Variation Reasons", string.Empty }
                 }
             };
 

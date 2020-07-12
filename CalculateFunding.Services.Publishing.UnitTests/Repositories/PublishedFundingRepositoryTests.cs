@@ -326,6 +326,84 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
                     HasParameter(_, "@publishedProviderVersion", _publishedProviderVersion)));
         }
 
+        [TestMethod]
+        public async Task PublishedGroupBatchProcessingShouldRetrieveBySpecificationId()
+        {
+            const string specificationId = "spec-1";
+
+            await WhenPublishedGroupBatchProcessing(specificationId, (List<PublishedFunding> pfs) => 
+            {
+                int count = pfs.Count();
+                return Task.CompletedTask; 
+            }, 50);
+
+            string queryText = $@"SELECT {{
+                                'fundingId': c.content.current.fundingId,
+                                'majorVersion': c.content.current.majorVersion,
+                                'groupingReason': c.content.current.groupingReason,
+                                'organisationGroupTypeCode' : c.content.current.organisationGroupTypeCode,
+                                'organisationGroupName' : c.content.current.organisationGroupName,
+                                'organisationGroupTypeIdentifier' : c.content.current.organisationGroupTypeIdentifier,
+                                'organisationGroupIdentifierValue' : c.content.current.organisationGroupIdentifierValue,
+                                'organisationGroupTypeClassification' : c.content.current.organisationGroupTypeClassification,
+                                'totalFunding' : c.content.current.totalFunding,
+                                'author' : {{
+                                                'name' : c.content.current.author.name
+                                            }},
+                                'statusChangedDate' : c.content.current.statusChangedDate,
+                                'providerFundings' : c.content.current.providerFundings
+                                }} AS Current                                
+                                FROM c 
+                                where c.documentType='PublishedFunding'
+                                and c.content.current.status = 'Released'
+                                and c.content.current.specificationId = @specificationId";
+
+            await _cosmosRepository
+                .Received(1)
+                .DocumentsBatchProcessingAsync(
+                Arg.Any<Func<List<PublishedFunding>, Task>>(),
+                Arg.Is<CosmosDbQuery>(_ => _.QueryText == queryText && HasParameter(_, "@specificationId", specificationId)),
+                50);
+
+        }
+
+        [TestMethod]
+        public async Task QueryPublishedProviderShouldRetrievePublishedProvidersBySpecificationAndFunidngIds()
+        {
+            const string specificationId = "spec-1";
+            IEnumerable<string> fundingIds = new[] { "fid1", "fid2" };
+
+            IEnumerable<PublishedProvider> publishedProviders = await WhenQueryPublishedProvider(specificationId, fundingIds);
+
+            string queryText = $@"SELECT 
+                            c.content.released.fundingId,
+                            c.content.released.fundingStreamId,
+                            c.content.released.fundingPeriodId,
+                            c.content.released.provider.providerId,
+                            c.content.released.provider.name AS providerName,
+                            c.content.released.majorVersion,
+                            c.content.released.minorVersion,
+                            c.content.released.totalFunding,
+                            c.content.released.provider.ukprn,
+                            c.content.released.provider.urn,
+                            c.content.released.provider.upin,
+                            c.content.released.provider.laCode,
+                            c.content.released.provider.status,
+                            c.content.released.provider.successor,
+                            c.content.released.predecessors,
+                            c.content.released.variationReasons
+                        FROM c where c.documentType='PublishedProvider' 
+                        and c.content.released.specificationId = @specificationId
+                        and ARRAY_CONTAINS (@fundingIds, c.content.released.fundingId)";
+
+            await _cosmosRepository
+                .Received(1)
+                .DynamicQuery(
+                Arg.Is<CosmosDbQuery>(_ => _.QueryText == queryText 
+                && HasParameter(_, "@specificationId", specificationId)
+                && HasArrayParameter(_, "@fundingIds", fundingIds)));
+        }
+
         private async Task WhenThePublishedProvidersAreDeleted()
         {
             await _repository.DeleteAllPublishedProvidersByFundingStreamAndPeriod(_fundingStreamId, _fundingPeriodId);
@@ -350,10 +428,25 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
             await _repository.GetPublishedProviderId(_publishedProviderVersion);
         }
 
+        private async Task WhenPublishedGroupBatchProcessing(string specificationId, Func<List<PublishedFunding>, Task> batchProcessor, int batchSize)
+        {
+            await _repository.PublishedGroupBatchProcessing(specificationId, batchProcessor, batchSize);
+        }
+
+        private async Task<IEnumerable<PublishedProvider>> WhenQueryPublishedProvider(string specificationId, IEnumerable<string> fundingIds)
+        {
+            return await _repository.QueryPublishedProvider(specificationId, fundingIds);
+        }
+
         private bool HasParameter(CosmosDbQuery query, string name, string value)
         {
             return query.Parameters?.Any(_ => _.Name == name &&
                                               (string) _.Value == value) == true;
+        }
+        private bool HasArrayParameter(CosmosDbQuery query, string name, IEnumerable<string> value)
+        {
+            return query.Parameters?.Any(_ => _.Name == name &&
+                                              (IEnumerable<string>)_.Value == value) == true;
         }
 
         private void GivenTheRepositoryServiceHealth(bool expectedIsOkFlag, string expectedMessage)

@@ -176,6 +176,7 @@ namespace CalculateFunding.Functions.Publishing
             builder.AddScoped<IFundingLineCsvTransform, PublishedProviderDeliveryProfileFundingLineCsvTransform>();
             builder.AddScoped<IFundingLineCsvTransform, PublishedProviderVersionFundingLineProfileValuesCsvTransform>();
             builder.AddScoped<IFundingLineCsvTransform, PublishedFundingOrganisationGroupValuesCsvTransform>();
+            builder.AddScoped<IFundingLineCsvTransform, PublishedGroupsFundingLineCsvTransform>();
 
             builder.AddScoped<IFundingLineCsvTransformServiceLocator, FundingLineCsvTransformServiceLocator>();
             builder.AddScoped<IPublishedFundingPredicateBuilder, PublishedFundingPredicateBuilder>();
@@ -185,6 +186,7 @@ namespace CalculateFunding.Functions.Publishing
             builder.AddScoped<IFundingLineCsvBatchProcessor, PublishedProviderVersionCsvBatchProcessor>();
             builder.AddScoped<IFundingLineCsvBatchProcessor, PublishedFundingOrganisationGroupCsvBatchProcessor>();
             builder.AddScoped<IFundingLineCsvBatchProcessor, PublishedFundingVersionOrganisationGroupCsvBatchProcessor>();
+            builder.AddScoped<IFundingLineCsvBatchProcessor, PublishedGroupsCsvBatchProcessor>();
 
             builder.AddTransient<ICreateGeneratePublishedFundingCsvJobs, GeneratePublishedFundingCsvJobCreation>();
             builder.AddScoped<IPublishedProviderEstateCsvGenerator, PublishedProviderEstateCsvGenerator>()
