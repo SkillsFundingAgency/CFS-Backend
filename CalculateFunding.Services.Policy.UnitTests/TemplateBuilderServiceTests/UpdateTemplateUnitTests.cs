@@ -382,6 +382,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
             {
                 _result.Succeeded.Should().BeTrue();
                 _result.Exception.Should().BeNull();
+                _result.Version.Should().Be(_templateVersionFirst.Version + 1);
             }
 
             [TestMethod]

@@ -180,7 +180,7 @@ namespace CalculateFunding.Api.Policy.Controllers
 
             if (result.Succeeded)
             {
-                return Ok();
+                return Ok(result.Version);
             }
             if (result.ValidationModelState != null)
             {
