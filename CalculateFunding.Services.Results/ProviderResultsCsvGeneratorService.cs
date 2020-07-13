@@ -100,14 +100,12 @@ namespace CalculateFunding.Services.Results
             ICloudBlob blob = _blobClient.GetBlockBlobReference($"calculation-results-{specificationId}.csv");
             blob.Properties.ContentDisposition = $"attachment; filename={GetPrettyFileName(specificationName)}";
 
-            using (Stream csvFileStream = _fileSystemAccess.OpenRead(temporaryFilePath))
-            {
-                await _blobClientPolicy.ExecuteAsync(() => 
-                    UploadBlob(blob, csvFileStream, GetMetadata(specificationId, specificationName)));
-            }
+            await using Stream csvFileStream = _fileSystemAccess.OpenRead(temporaryFilePath);
+            
+            await _blobClientPolicy.ExecuteAsync(() => UploadBlob(blob, csvFileStream, GetMetadata(specificationId, specificationName)));
         }
 
-        private async Task UploadBlob(ICloudBlob blob, Stream csvFileStream, IDictionary<string, string> metadata)
+        private async Task UploadBlob(ICloudBlob blob, Stream csvFileStream, IDictionary<string, string> metadata) 
         {
             await _blobClient.UploadAsync(blob, csvFileStream);
             await _blobClient.AddMetadataAsync(blob, metadata);

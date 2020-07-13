@@ -1,8 +1,7 @@
-using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.ProviderLegacy;
 using CalculateFunding.Tests.Common.Helpers;
 
-namespace CalculateFunding.Services.Results
+namespace CalculateFunding.Services.Results.UnitTests
 {
     public class ProviderSummaryBuilder : TestEntityBuilder
     {

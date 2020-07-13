@@ -4,7 +4,6 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
-using AutoMapper;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.Caching;
@@ -31,7 +30,7 @@ using NSubstitute;
 using Serilog;
 using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
 
-namespace CalculateFunding.Services.Results.UnitTests.Services
+namespace CalculateFunding.Services.Results.UnitTests
 {
     [TestClass]
     public partial class ResultsServiceTests
@@ -1154,13 +1153,13 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                         {
                             Calculation = new Reference { Id = "calc-id-1", Name = "calc name 1" },
                             Value = 123,
-                            CalculationType = Models.Calcs.CalculationType.Template
+                            CalculationType = CalculationType.Template
                         },
                         new CalculationResult
                         {
                             Calculation = new Reference { Id = "calc-id-2", Name = "calc name 2" },
                             Value = 10,
-                            CalculationType = Models.Calcs.CalculationType.Template
+                            CalculationType = CalculationType.Template
                         }
                     },
                     Provider = new ProviderSummary
@@ -1195,7 +1194,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                         {
                             Calculation = new Reference { Id = "calc-id-1", Name = "calc name 1" },
                             Value = null,
-                            CalculationType = Models.Calcs.CalculationType.Template
+                            CalculationType = CalculationType.Template
                         }
                     },
                     Provider = new ProviderSummary

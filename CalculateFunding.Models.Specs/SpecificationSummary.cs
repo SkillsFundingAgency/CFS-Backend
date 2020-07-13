@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Versioning;
 using Newtonsoft.Json;
@@ -21,6 +22,9 @@ namespace CalculateFunding.Models.Specs
 
         [JsonProperty("isSelectedForFunding")]
         public bool IsSelectedForFunding { get; set; }
+        
+        [JsonProperty("lastEditedDate")]
+        public DateTimeOffset? LastEditedDate { get; set; }
 
         [JsonProperty("approvalStatus")]
         public PublishStatus ApprovalStatus { get; set; }

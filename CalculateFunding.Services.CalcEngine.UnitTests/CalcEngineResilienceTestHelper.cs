@@ -15,7 +15,8 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
                 CacheProvider = Policy.NoOpAsync(),
                 Messenger = Policy.NoOpAsync(),
                 SpecificationsApiClient = Policy.NoOpAsync(),
-                JobsApiClient = Policy.NoOpAsync()
+                JobsApiClient = Policy.NoOpAsync(),
+                ResultsApiClient = Policy.NoOpAsync()
             };
         }
     }

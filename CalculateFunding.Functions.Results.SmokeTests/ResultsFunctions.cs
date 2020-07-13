@@ -22,6 +22,7 @@ namespace CalculateFunding.Functions.Results.SmokeTests
         private static IProviderResultsCsvGeneratorService _providerResultsCsvGeneratorService;
         private static IResultsService _resultsService;
         private static IProviderCalculationResultsReIndexerService _providerCalculationResultsReIndexerService;
+        private static ISpecificationsWithProviderResultsService _providerResultsService;
         private static IUserProfileProvider _userProfileProvider;
 
         [ClassInitialize]
@@ -34,6 +35,7 @@ namespace CalculateFunding.Functions.Results.SmokeTests
             _resultsService = CreateResultsService();
             _providerCalculationResultsReIndexerService = CreateProviderCalculationResultsReIndexerService();
             _userProfileProvider = CreateUserProfileProvider();
+            _providerResultsService = Substitute.For<ISpecificationsWithProviderResultsService>();
         }
 
         [TestMethod]
@@ -81,6 +83,23 @@ namespace CalculateFunding.Functions.Results.SmokeTests
                 IsDevelopment);
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.ReIndexCalculationResultsIndex,
+                (Message smokeResponse) => onReIndexCalculationResults.Run(smokeResponse));
+
+            response
+                .Should()
+                .NotBeNull();
+        }
+        
+        [TestMethod]
+        public async Task OnMergeSpecificationInformationForProviderWithResults_SmokeTestSucceeds()
+        {
+            OnMergeSpecificationInformationForProviderWithResults onReIndexCalculationResults = new OnMergeSpecificationInformationForProviderWithResults(_logger,
+                _providerResultsService,
+                Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                _userProfileProvider,
+                IsDevelopment);
+
+            SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.MergeSpecificationInformationForProvider,
                 (Message smokeResponse) => onReIndexCalculationResults.Run(smokeResponse));
 
             response

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Results.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models;
@@ -9,6 +10,8 @@ using CalculateFunding.Services.Results.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using CalculationType = CalculateFunding.Models.Calcs.CalculationType;
 using ProviderResult = CalculateFunding.Models.Calcs.ProviderResult;
+using ProviderWithResultsForSpecifications = CalculateFunding.Services.Results.Models.ProviderWithResultsForSpecifications;
+using SpecificationInformation = CalculateFunding.Services.Results.Models.SpecificationInformation;
 
 namespace CalculateFunding.Api.Results.Controllers
 {
@@ -18,22 +21,26 @@ namespace CalculateFunding.Api.Results.Controllers
         private readonly IProviderCalculationResultsSearchService _providerCalculationResultsSearchService;
         private readonly IFeatureToggle _featureToggle;
         private readonly IProviderCalculationResultsReIndexerService _providerCalculationResultsReIndexerService;
+        private readonly ISpecificationsWithProviderResultsService _specificationsWithProviderResultsService;
 
         public ResultsController(
              IResultsService resultsService,
              IProviderCalculationResultsSearchService providerCalculationResultsSearchService,
              IFeatureToggle featureToggle,
-             IProviderCalculationResultsReIndexerService providerCalculationResultsReIndexerService)
+             IProviderCalculationResultsReIndexerService providerCalculationResultsReIndexerService,
+             ISpecificationsWithProviderResultsService specificationsWithProviderResultsService)
         {
             Guard.ArgumentNotNull(resultsService, nameof(resultsService));
             Guard.ArgumentNotNull(providerCalculationResultsSearchService, nameof(providerCalculationResultsSearchService));
             Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
             Guard.ArgumentNotNull(providerCalculationResultsReIndexerService, nameof(providerCalculationResultsReIndexerService));
+            Guard.ArgumentNotNull(specificationsWithProviderResultsService, nameof(specificationsWithProviderResultsService));
 
             _resultsService = resultsService;
             _providerCalculationResultsSearchService = providerCalculationResultsSearchService;
             _featureToggle = featureToggle;
             _providerCalculationResultsReIndexerService = providerCalculationResultsReIndexerService;
+            _specificationsWithProviderResultsService = specificationsWithProviderResultsService;
         }
 
         [Route("api/results/get-provider-specs")]
@@ -137,7 +144,34 @@ namespace CalculateFunding.Api.Results.Controllers
         [ProducesResponseType(204)]
         public async Task<IActionResult> ReIndexCalculationResults()
         {
-            return await _providerCalculationResultsReIndexerService.ReIndexCalculationResults( Request.GetCorrelationId() ,Request.GetUser());
+            return await _providerCalculationResultsReIndexerService.ReIndexCalculationResults(Request.GetCorrelationId() ,Request.GetUser());
+        }
+
+        [HttpGet("api/results/providers/{providerId}/specifications")]
+        [Produces(typeof(IEnumerable<ProviderWithResultsForSpecifications>))]
+        public async Task<IActionResult> GetSpecificationsWithProviderResultsForProviderId([FromRoute] string providerId)
+        {
+            return await _specificationsWithProviderResultsService.GetSpecificationsWithProviderResultsForProviderId(providerId);
+        }
+
+        [HttpPut("api/results/providers/{providerId}/specifications")]
+        [Produces(typeof(Job))]
+        public async Task<IActionResult> QueueMergeSpecificationInformationForProviderJob([FromRoute] string providerId,
+            [FromBody] SpecificationInformation specificationInformation)
+        {
+            return await _specificationsWithProviderResultsService.QueueMergeSpecificationInformationForProviderJob(specificationInformation,
+                Request.GetUser(), 
+                Request.GetCorrelationId(),
+                providerId);
+        }
+        
+        [HttpPut("api/results/providers/specifications")]
+        [Produces(typeof(Job))]
+        public async Task<IActionResult> QueueMergeSpecificationInformationForAllProvidersJob([FromBody] SpecificationInformation specificationInformation)
+        {
+            return await _specificationsWithProviderResultsService.QueueMergeSpecificationInformationForProviderJob(specificationInformation,
+                Request.GetUser(), 
+                Request.GetCorrelationId());
         }
     }
 }

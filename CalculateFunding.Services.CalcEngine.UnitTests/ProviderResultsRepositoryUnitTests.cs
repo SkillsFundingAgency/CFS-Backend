@@ -4,12 +4,13 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.ApiClient.Results;
+using CalculateFunding.Common.ApiClient.Results.Models;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Calcs;
-using CalculateFunding.Models.ProviderLegacy;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.CalcEngine;
 using CalculateFunding.Services.CalcEngine.Caching;
@@ -17,9 +18,14 @@ using CalculateFunding.Services.CalcEngine.Interfaces;
 using CalculateFunding.Services.CalcEngine.UnitTests;
 using CalculateFunding.Services.Core.FeatureToggles;
 using CalculateFunding.Services.Core.Options;
+using CalculateFunding.Tests.Common.Helpers;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
+using CalculationResult = CalculateFunding.Models.Calcs.CalculationResult;
+using CalculationType = CalculateFunding.Models.Calcs.CalculationType;
+using ProviderResult = CalculateFunding.Models.Calcs.ProviderResult;
+using ProviderSummary = CalculateFunding.Models.ProviderLegacy.ProviderSummary;
 using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
 
 namespace CalculateFunding.Services.Calculator
@@ -27,6 +33,14 @@ namespace CalculateFunding.Services.Calculator
     [TestClass]
     public class ProviderResultsRepositoryUnitTests
     {
+        private IResultsApiClient _resultsApiClient;
+
+        [TestInitialize]
+        public void SetUp()
+        {
+            _resultsApiClient = Substitute.For<IResultsApiClient>();
+        }
+        
         [TestMethod]
         public async Task SaveProviderResults_WhenResults_ThenResultsSavedToCosmos()
         {
@@ -36,7 +50,12 @@ namespace CalculateFunding.Services.Calculator
 
             ProviderResultsRepository repo = CreateProviderResultsRepository(cosmosRepository, specificationsApiClient);
 
-            specificationsApiClient.GetSpecificationSummaryById(Arg.Any<string>()).Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, new SpecModel.SpecificationSummary { Name = "Specification 1" }));
+            specificationsApiClient.GetSpecificationSummaryById(Arg.Any<string>()).Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, 
+                new SpecModel.SpecificationSummary
+                {
+                    Name = "Specification 1",
+                    FundingPeriod = new Reference()
+                }));
 
             IEnumerable<ProviderResult> results = new List<ProviderResult>
             {
@@ -87,7 +106,18 @@ namespace CalculateFunding.Services.Calculator
             ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
             ProviderResultsRepository repo = CreateProviderResultsRepository(cosmosRepository, specificationsApiClient);
 
-            specificationsApiClient.GetSpecificationSummaryById(Arg.Any<string>()).Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, new SpecModel.SpecificationSummary { Name = "Specification 1" }));
+            SpecificationSummary specificationSummary = new SpecificationSummary
+            {
+                Id = NewRandomString(),
+                Name = NewRandomString(),
+                FundingPeriod = new Reference
+                {
+                    Id = NewRandomString()
+                },
+                LastEditedDate = new RandomDateTime()
+            };
+            
+            specificationsApiClient.GetSpecificationSummaryById(Arg.Any<string>()).Returns(new ApiResponse<SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
 
             IEnumerable<ProviderResult> results = new List<ProviderResult>
             {
@@ -98,7 +128,7 @@ namespace CalculateFunding.Services.Calculator
                         new CalculationResult
                         {
                             Calculation = new Reference { Id = "calc1", Name = "calculation one" },
-                            CalculationType = Models.Calcs.CalculationType.Template,
+                            CalculationType = CalculationType.Template,
                             Value = null
                         }
                     },
@@ -140,7 +170,18 @@ namespace CalculateFunding.Services.Calculator
 
             ProviderResultsRepository repo = CreateProviderResultsRepository(cosmosRepository, specificationsApiClient, calculationsHashProvider: hashProvider);
 
-            specificationsApiClient.GetSpecificationSummaryById(Arg.Any<string>()).Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, new SpecModel.SpecificationSummary { Name = "Specification 1" }));
+            SpecificationSummary specificationSummary = new SpecificationSummary
+            {
+                Id = NewRandomString(),
+                Name = NewRandomString(),
+                FundingPeriod = new Reference
+                {
+                    Id = NewRandomString()
+                },
+                LastEditedDate = new RandomDateTime()
+            };
+            
+            specificationsApiClient.GetSpecificationSummaryById(Arg.Any<string>()).Returns(new ApiResponse<SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
 
             IEnumerable<ProviderResult> results = new List<ProviderResult>
             {
@@ -151,7 +192,7 @@ namespace CalculateFunding.Services.Calculator
                         new CalculationResult
                         {
                             Calculation = new Reference { Id = "calc1", Name = "calculation one" },
-                            CalculationType = Models.Calcs.CalculationType.Template,
+                            CalculationType = CalculationType.Template,
                             Value = null
                         }
                     },
@@ -183,6 +224,8 @@ namespace CalculateFunding.Services.Calculator
                 Arg.Is<bool>(false));
         }
 
+        private static RandomString NewRandomString() => new RandomString();
+
         [TestMethod]
         public async Task SaveProviderResults_WhenResultsAndIsNewProviderCalculationResultsIndexEnabled_ThenResultsSavedToSearch()
         {
@@ -198,7 +241,18 @@ namespace CalculateFunding.Services.Calculator
 
             ProviderResultsRepository repo = CreateProviderResultsRepository(cosmosRepository, specificationsApiClient: specificationsApiClient, providerCalculationResultsSearchRepository: searchRepository, featureToggle: featureToggle);
 
-            specificationsApiClient.GetSpecificationSummaryById(Arg.Any<string>()).Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, new SpecModel.SpecificationSummary { Name = "Specification 1" }));
+            SpecificationSummary specificationSummary = new SpecificationSummary
+            {
+                Id = NewRandomString(),
+                Name = NewRandomString(),
+                FundingPeriod = new Reference
+                {
+                    Id = NewRandomString()
+                },
+                LastEditedDate = new RandomDateTime()
+            };
+            
+            specificationsApiClient.GetSpecificationSummaryById(Arg.Any<string>()).Returns(new ApiResponse<SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
 
             IEnumerable<ProviderResult> results = new List<ProviderResult>
             {
@@ -209,7 +263,7 @@ namespace CalculateFunding.Services.Calculator
                         new CalculationResult
                         {
                             Calculation = new Reference { Id = "calc1", Name = "calculation one" },
-                            CalculationType = Models.Calcs.CalculationType.Template,
+                            CalculationType = CalculationType.Template,
                             Value = 1112.3M
                         }
                     },
@@ -239,7 +293,7 @@ namespace CalculateFunding.Services.Calculator
 
             await searchRepository.Received(1).Index(Arg.Is<IEnumerable<ProviderCalculationResultsIndex>>(r =>
                 r.First().SpecificationId == results.First().SpecificationId &&
-                r.First().SpecificationName == "Specification 1" &&
+                r.First().SpecificationName == specificationSummary.Name &&
                 r.First().CalculationId.Any() &&
                 r.First().CalculationId.First() == results.First().CalculationResults.First().Calculation.Id &&
                 r.First().CalculationName.Any() &&
@@ -256,6 +310,14 @@ namespace CalculateFunding.Services.Calculator
                 r.First().OpenDate == results.First().Provider.DateOpened &&
                 r.First().CalculationResult.Any() &&
                 r.First().CalculationResult.First() == results.First().CalculationResults.First().Value.ToString()));
+            
+            await _resultsApiClient.Received(1)
+                .QueueMergeSpecificationInformationForProviderJobForProvider(Arg.Is<SpecificationInformation>(_ =>
+                        _.Id == specificationSummary.Id &&
+                        _.Name == specificationSummary.Name &&
+                        _.LastEditDate == specificationSummary.LastEditedDate &&
+                        _.FundingPeriodId == specificationSummary.FundingPeriod.Id),
+                    "prov1");
         }
 
         [TestMethod]
@@ -273,7 +335,11 @@ namespace CalculateFunding.Services.Calculator
 
             ProviderResultsRepository repo = CreateProviderResultsRepository(cosmosRepository, specificationsApiClient: specificationsApiClient, providerCalculationResultsSearchRepository: searchRepository, featureToggle: featureToggle);
 
-            specificationsApiClient.GetSpecificationSummaryById(Arg.Any<string>()).Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, new SpecModel.SpecificationSummary { Name = "Specification 1" }));
+            specificationsApiClient.GetSpecificationSummaryById(Arg.Any<string>()).Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, new SpecModel.SpecificationSummary
+            {
+                Name = "Specification 1",
+                FundingPeriod = new Reference()
+            }));
 
             IEnumerable<ProviderResult> results = new List<ProviderResult>
             {
@@ -336,7 +402,7 @@ namespace CalculateFunding.Services.Calculator
                r.First().CalculationResult.First() == "null"));
         }
 
-        private static ProviderResultsRepository CreateProviderResultsRepository(
+        private ProviderResultsRepository CreateProviderResultsRepository(
             ICosmosRepository cosmosRepository = null,
             ISpecificationsApiClient specificationsApiClient = null,
             ILogger logger = null,
@@ -344,10 +410,8 @@ namespace CalculateFunding.Services.Calculator
             ISearchRepository<ProviderCalculationResultsIndex> providerCalculationResultsSearchRepository = null,
             EngineSettings engineSettings = null,
             IProviderResultCalculationsHashProvider calculationsHashProvider = null,
-            ICalculatorResiliencePolicies calculatorResiliencePolicies = null)
-        {
-
-            return new ProviderResultsRepository(
+            ICalculatorResiliencePolicies calculatorResiliencePolicies = null) =>
+            new ProviderResultsRepository(
                 cosmosRepository ?? CreateCosmosRepository(),
                 specificationsApiClient ?? CreateSpecificationsApiClient(),
                 logger ?? CreateLogger(),
@@ -355,8 +419,8 @@ namespace CalculateFunding.Services.Calculator
                 featureToggle ?? CreateFeatureToggle(),
                 engineSettings ?? CreateEngineSettings(),
                 calculationsHashProvider ?? CreateCalcHashProvider(),
-                calculatorResiliencePolicies ?? CreateCalculatorResiliencePolicies());
-        }
+                calculatorResiliencePolicies ?? CreateCalculatorResiliencePolicies(),
+                _resultsApiClient);
 
         private static ICalculatorResiliencePolicies CreateCalculatorResiliencePolicies()
         {

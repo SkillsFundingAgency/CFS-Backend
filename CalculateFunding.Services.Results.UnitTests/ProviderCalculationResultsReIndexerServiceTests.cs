@@ -1,10 +1,18 @@
-﻿using CalculateFunding.Common.ApiClient.Models;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.Models;
+using CalculateFunding.Common.ServiceBus.Interfaces;
 using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.ProviderLegacy;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Constants;
+using CalculateFunding.Services.Core.FeatureToggles;
 using CalculateFunding.Services.Results.Interfaces;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
@@ -12,17 +20,9 @@ using Microsoft.Azure.ServiceBus;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Threading.Tasks;
-using CalculateFunding.Services.Core.FeatureToggles;
 using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
-using CalculateFunding.Models.ProviderLegacy;
-using CalculateFunding.Common.ServiceBus.Interfaces;
 
-namespace CalculateFunding.Services.Results.UnitTests.Services
+namespace CalculateFunding.Services.Results.UnitTests
 {
     [TestClass]
     public class ProviderCalculationResultsReIndexerServiceTests
@@ -284,14 +284,14 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                     {
                         Calculation = new Reference { Id = "calc-id-1", Name = "calc name 1" },
                         Value = 123,
-                        CalculationType = Models.Calcs.CalculationType.Template,
+                        CalculationType = CalculationType.Template,
                         ExceptionType = "Exception"
                     },
                     new CalculationResult
                     {
                         Calculation = new Reference { Id = "calc-id-2", Name = "calc name 2" },
                         Value = 10,
-                        CalculationType = Models.Calcs.CalculationType.Template
+                        CalculationType = CalculationType.Template
                     }
                 },
                 Provider = new ProviderSummary

@@ -13,6 +13,7 @@ using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces.Threading;
+using CalculateFunding.Services.Core.Threading;
 using CalculateFunding.Services.Specs.Interfaces;
 using Polly;
 using Serilog;
@@ -80,7 +81,7 @@ namespace CalculateFunding.Services.Specs
         {
             IEnumerable<SpecificationIndex> searchIndices = GetSearchIndices(specifications);
 
-            IndexingContext context = new IndexingContext(searchIndices);
+            PagedContext<SpecificationIndex> context = new PagedContext<SpecificationIndex>(searchIndices);
 
             IProducerConsumer producerConsumer = _producerConsumerFactory.CreateProducerConsumer(ProduceSpecificationIndices,
                 IndexSpecifications,
@@ -94,7 +95,7 @@ namespace CalculateFunding.Services.Specs
         private async Task<(bool isComplete, IEnumerable<SpecificationIndex> items)> ProduceSpecificationIndices(CancellationToken token,
             dynamic context)
         {
-            IndexingContext indexingContext = (IndexingContext) context;
+            PagedContext<SpecificationIndex> indexingContext = (PagedContext<SpecificationIndex>) context;
 
             while (indexingContext.HasPages)
             {
@@ -175,33 +176,6 @@ namespace CalculateFunding.Services.Specs
             });
             
             return serviceHealth;
-        }
-
-        private class IndexingContext
-        {
-            private const int PageSize = 5;
-            
-            private static readonly SpecificationIndex[] EmptySpecificationIndices = new SpecificationIndex[0];
-
-            private readonly SpecificationIndex[] _indices;
-            private volatile int _page;
-
-            public IndexingContext(IEnumerable<SpecificationIndex> indices)
-            {
-                _indices = indices?.ToArray() ?? EmptySpecificationIndices;
-                _page = 0;
-            }
-
-            public SpecificationIndex[] NextPage()
-            {
-                int skipCount = _page * PageSize;
-
-                Interlocked.Increment(ref _page);
-
-                return _indices.Skip(skipCount).Take(PageSize).ToArray();
-            }
-
-            public bool HasPages => _indices.Length >= _page * PageSize;
         }
     }
 }

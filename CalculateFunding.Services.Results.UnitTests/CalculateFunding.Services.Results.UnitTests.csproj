@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
-    <RootNamespace>CalculateFunding.Services.Results</RootNamespace>
+    <RootNamespace>CalculateFunding.Services.Results.UnitTests</RootNamespace>
     <LangVersion>8</LangVersion>
   </PropertyGroup>
 
@@ -15,6 +15,7 @@
     <PackageReference Include="FluentAssertions" Version="5.10.3" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.4.0" />
     <PackageReference Include="FluentValidation" Version="8.6.0" />
+    <PackageReference Include="Moq" Version="4.14.4" />
     <PackageReference Include="MSTest.TestAdapter" Version="2.1.1" />
     <PackageReference Include="MSTest.TestFramework" Version="2.1.1" />
     <PackageReference Include="NSubstitute" Version="4.2.1" />

@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Threading;
 using AutoMapper;
 using CalculateFunding.Common.Config.ApiClient.Calcs;
+using CalculateFunding.Common.Config.ApiClient.Jobs;
+using CalculateFunding.Common.Config.ApiClient.Policies;
 using CalculateFunding.Common.Config.ApiClient.Specifications;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.JobManagement;
@@ -18,7 +21,9 @@ using CalculateFunding.Services.Core.AzureStorage;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
+using CalculateFunding.Services.Core.Interfaces.Threading;
 using CalculateFunding.Services.Core.Options;
+using CalculateFunding.Services.Core.Threading;
 using CalculateFunding.Services.Results;
 using CalculateFunding.Services.Results.Interfaces;
 using CalculateFunding.Services.Results.Repositories;
@@ -83,8 +88,11 @@ namespace CalculateFunding.Api.Results
                     });
         }
 
-        public void RegisterComponents(IServiceCollection builder)
+        private void RegisterComponents(IServiceCollection builder)
         {
+            builder.AddScoped<ISpecificationsWithProviderResultsService, SpecificationsWithProviderResultsService>();
+            builder.AddScoped<IProducerConsumerFactory, ProducerConsumerFactory>();
+            
             builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();
 
             builder
@@ -163,6 +171,8 @@ namespace CalculateFunding.Api.Results
 
             builder.AddSpecificationsInterServiceClient(Configuration);
             builder.AddCalculationsInterServiceClient(Configuration);
+            builder.AddJobsInterServiceClient(Configuration);
+            builder.AddPoliciesInterServiceClient(Configuration);
 
             builder.AddPolicySettings(Configuration);
 

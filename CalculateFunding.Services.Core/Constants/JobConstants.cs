@@ -63,6 +63,8 @@
             public const string ReIndexTemplatesJob = nameof(ReIndexTemplatesJob);
             
             public const string ReIndexSpecificationJob = nameof(ReIndexSpecificationJob);
+
+            public const string MergeSpecificationInformationForProviderJob = nameof(MergeSpecificationInformationForProviderJob);
         }
 
         public static class NotificationChannels

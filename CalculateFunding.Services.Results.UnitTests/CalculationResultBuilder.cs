@@ -2,7 +2,7 @@ using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Tests.Common.Helpers;
 
-namespace CalculateFunding.Services.Results
+namespace CalculateFunding.Services.Results.UnitTests
 {
     public class CalculationResultBuilder : TestEntityBuilder
     {

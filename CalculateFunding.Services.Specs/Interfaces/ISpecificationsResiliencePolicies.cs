@@ -14,5 +14,7 @@
         Polly.AsyncPolicy SpecificationsSearchRepository { get; set; }
         
         Polly.AsyncPolicy SpecificationsRepository { get; set; }
+        
+        Polly.AsyncPolicy ResultsApiClient { get; set; }
     }
 }

@@ -229,6 +229,8 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
               _versionRepository
                .Received(1)
                .SaveVersion(Arg.Is(newSpecVersion));
+
+            await AndAMergeSpecificationInformationJobWasQueued(newSpecVersion);
         }
 
         [TestMethod]

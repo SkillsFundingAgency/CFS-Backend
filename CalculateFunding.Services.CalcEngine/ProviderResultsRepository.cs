@@ -4,6 +4,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.ApiClient.Results;
+using CalculateFunding.Common.ApiClient.Results.Models;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models;
@@ -18,6 +20,7 @@ using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Options;
 using Polly;
 using Serilog;
+using ProviderResult = CalculateFunding.Models.Calcs.ProviderResult;
 using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
 
 namespace CalculateFunding.Services.CalcEngine
@@ -32,6 +35,8 @@ namespace CalculateFunding.Services.CalcEngine
         private readonly EngineSettings _engineSettings;
         private readonly IProviderResultCalculationsHashProvider _calculationsHashProvider;
         private readonly AsyncPolicy _specificationsApiClientPolicy;
+        private readonly AsyncPolicy _resultsApiClientPolicy;
+        private readonly IResultsApiClient _resultsApiClient;
 
         public ProviderResultsRepository(
             ICosmosRepository cosmosRepository,
@@ -41,7 +46,8 @@ namespace CalculateFunding.Services.CalcEngine
             IFeatureToggle featureToggle,
             EngineSettings engineSettings,
             IProviderResultCalculationsHashProvider calculationsHashProvider,
-            ICalculatorResiliencePolicies calculatorResiliencePolicies)
+            ICalculatorResiliencePolicies calculatorResiliencePolicies,
+            IResultsApiClient resultsApiClient)
         {
             Guard.ArgumentNotNull(cosmosRepository, nameof(cosmosRepository));
             Guard.ArgumentNotNull(specificationsApiClient, nameof(specificationsApiClient));
@@ -51,7 +57,9 @@ namespace CalculateFunding.Services.CalcEngine
             Guard.ArgumentNotNull(engineSettings, nameof(engineSettings));
             Guard.ArgumentNotNull(calculationsHashProvider, nameof(calculationsHashProvider));
             Guard.ArgumentNotNull(calculatorResiliencePolicies, nameof(calculatorResiliencePolicies));
-            Guard.ArgumentNotNull(calculatorResiliencePolicies?.SpecificationsApiClient, nameof(calculatorResiliencePolicies.SpecificationsApiClient));
+            Guard.ArgumentNotNull(resultsApiClient, nameof(resultsApiClient));
+            Guard.ArgumentNotNull(calculatorResiliencePolicies.SpecificationsApiClient, nameof(calculatorResiliencePolicies.SpecificationsApiClient));
+            Guard.ArgumentNotNull(calculatorResiliencePolicies.ResultsApiClient, nameof(calculatorResiliencePolicies.ResultsApiClient));
 
             _cosmosRepository = cosmosRepository;
             _specificationsApiClient = specificationsApiClient;
@@ -60,7 +68,9 @@ namespace CalculateFunding.Services.CalcEngine
             _featureToggle = featureToggle;
             _engineSettings = engineSettings;
             _calculationsHashProvider = calculationsHashProvider;
+            _resultsApiClient = resultsApiClient;
             _specificationsApiClientPolicy = calculatorResiliencePolicies.SpecificationsApiClient;
+            _resultsApiClientPolicy = calculatorResiliencePolicies.ResultsApiClient;
         }
 
         public async Task<(long saveToCosmosElapsedMs, long saveToSearchElapsedMs, int savedProviders)> SaveProviderResults(IEnumerable<ProviderResult> providerResults,
@@ -166,6 +176,18 @@ namespace CalculateFunding.Services.CalcEngine
                         CalculationName = providerResult.CalculationResults.Select(m => m.Calculation.Name).ToArraySafe(),
                         CalculationResult = providerResult.CalculationResults.Select(m => !string.IsNullOrEmpty(m.Value?.ToString()) ? m.Value.ToString() : "null").ToArraySafe()
                     };
+
+                    if (providerResult.Provider != null)
+                    {
+                        await _resultsApiClientPolicy.ExecuteAsync(() => _resultsApiClient.QueueMergeSpecificationInformationForProviderJobForProvider(new SpecificationInformation
+                            {
+                                Id = specification.Id,
+                                Name = specification.Name,
+                                FundingPeriodId = specification.FundingPeriod.Id,
+                                LastEditDate = specification.LastEditedDate
+                            },
+                            providerResult.Provider.Id));
+                    }
 
                     if (_featureToggle.IsExceptionMessagesEnabled())
                     {

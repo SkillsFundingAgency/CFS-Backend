@@ -15,7 +15,7 @@ using NSubstitute;
 using Serilog;
 using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
 
-namespace CalculateFunding.Services.Results.UnitTests.Services
+namespace CalculateFunding.Services.Results.UnitTests
 {
     public partial class ResultsServiceTests
     {

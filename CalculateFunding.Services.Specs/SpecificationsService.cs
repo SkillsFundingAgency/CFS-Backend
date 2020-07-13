@@ -10,6 +10,8 @@ using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
 using CalculateFunding.Common.ApiClient.Providers;
+using CalculateFunding.Common.ApiClient.Results;
+using CalculateFunding.Common.ApiClient.Results.Models;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models;
@@ -32,9 +34,11 @@ using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
 using Newtonsoft.Json;
+using Polly;
 using Serilog;
 using PolicyModels = CalculateFunding.Common.ApiClient.Policies.Models;
 using PublishStatus = CalculateFunding.Models.Versioning.PublishStatus;
+using SpecificationVersion = CalculateFunding.Models.Specs.SpecificationVersion;
 
 
 namespace CalculateFunding.Services.Specs
@@ -44,7 +48,7 @@ namespace CalculateFunding.Services.Specs
         private readonly IMapper _mapper;
         private readonly ISpecificationsRepository _specificationsRepository;
         private readonly IPoliciesApiClient _policiesApiClient;
-        private readonly Polly.AsyncPolicy _policiesApiClientPolicy;
+        private readonly AsyncPolicy _policiesApiClientPolicy;
         private readonly ILogger _logger;
         private readonly IValidator<SpecificationCreateModel> _specificationCreateModelValidator;
         private readonly IMessengerService _messengerService;
@@ -57,11 +61,13 @@ namespace CalculateFunding.Services.Specs
         private readonly IQueueCreateSpecificationJobActions _queueCreateSpecificationJobAction;
         private readonly IQueueDeleteSpecificationJobActions _queueDeleteSpecificationJobAction;
         private readonly ICalculationsApiClient _calcsApiClient;
-        private readonly Polly.AsyncPolicy _calcsApiClientPolicy;
+        private readonly AsyncPolicy _calcsApiClientPolicy;
         private readonly IFeatureToggle _featureToggle;
         private readonly IProvidersApiClient _providersApiClient;
-        private readonly Polly.AsyncPolicy _providersApiClientPolicy;
+        private readonly AsyncPolicy _providersApiClientPolicy;
         private readonly ISpecificationIndexer _specificationIndexer;
+        private readonly IResultsApiClient _results;
+        private readonly AsyncPolicy _resultsApiClientPolicy; 
 
         public SpecificationsService(
             IMapper mapper,
@@ -82,7 +88,8 @@ namespace CalculateFunding.Services.Specs
             ICalculationsApiClient calcsApiClient,
             IFeatureToggle featureToggle,
             IProvidersApiClient providersApiClient,
-            ISpecificationIndexer specificationIndexer)
+            ISpecificationIndexer specificationIndexer,
+            IResultsApiClient results)
         {
             Guard.ArgumentNotNull(mapper, nameof(mapper));
             Guard.ArgumentNotNull(specificationsRepository, nameof(specificationsRepository));
@@ -107,6 +114,7 @@ namespace CalculateFunding.Services.Specs
             Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
             Guard.ArgumentNotNull(providersApiClient, nameof(providersApiClient));
             Guard.ArgumentNotNull(specificationIndexer, nameof(specificationIndexer));
+            Guard.ArgumentNotNull(results, nameof(results));
 
             _mapper = mapper;
             _specificationsRepository = specificationsRepository;
@@ -128,7 +136,9 @@ namespace CalculateFunding.Services.Specs
             _calcsApiClientPolicy = resiliencePolicies.CalcsApiClient;
             _providersApiClient = providersApiClient;
             _specificationIndexer = specificationIndexer;
+            _results = results;
             _providersApiClientPolicy = resiliencePolicies.ProvidersApiClient;
+            _resultsApiClientPolicy = resiliencePolicies.ResultsApiClient;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -393,8 +403,8 @@ namespace CalculateFunding.Services.Specs
             return new OkObjectResult(specificationSummaries);
         }
 
-        public async Task<IActionResult> GetSelectedSpecificationsByFundingPeriodIdAndFundingStreamId(
-string fundingPeriodId, string fundingStreamId)
+        public async Task<IActionResult> GetSelectedSpecificationsByFundingPeriodIdAndFundingStreamId(string fundingPeriodId,
+            string fundingStreamId)
         {
             if (string.IsNullOrWhiteSpace(fundingPeriodId))
             {
@@ -402,6 +412,7 @@ string fundingPeriodId, string fundingStreamId)
 
                 return new BadRequestObjectResult("Null or empty fundingPeriodId provided");
             }
+
             if (string.IsNullOrWhiteSpace(fundingStreamId))
             {
                 _logger.Error("No funding stream Id was provided to GetSpecificationWithResultsByFundingPeriodIdAndFundingStreamId");
@@ -410,8 +421,9 @@ string fundingPeriodId, string fundingStreamId)
             }
 
             IEnumerable<Specification> specifications =
-    await _specificationsRepository.GetSpecificationsSelectedForFundingByPeriodAndFundingStream(
-        fundingPeriodId, fundingStreamId);
+                await _specificationsRepository.GetSpecificationsSelectedForFundingByPeriodAndFundingStream(
+                    fundingPeriodId,
+                    fundingStreamId);
 
             IEnumerable<SpecificationSummary> specificationSummaries =
                 _mapper.Map<IEnumerable<SpecificationSummary>>(specifications);
@@ -846,6 +858,17 @@ string fundingPeriodId, string fundingStreamId)
 
             return new OkObjectResult(result);
         }
+        
+        private async Task QueueMergeSpecificationInformationJob(SpecificationVersion specification)
+        {
+            await _resultsApiClientPolicy.ExecuteAsync(() => _results.QueueMergeSpecificationInformationForProviderJobForAllProviders(new SpecificationInformation
+            {
+                Id = specification.Id,
+                Name = specification.Name,
+                FundingPeriodId = specification.FundingPeriod?.Id,
+                LastEditDate = specification.Date
+            }));
+        }
 
         private async Task SendSpecificationComparisonModelMessageToTopic(string specificationId, string topicName,
             Models.Specs.SpecificationVersion current, Models.Specs.SpecificationVersion previous, Reference user, string correlationId)
@@ -1079,6 +1102,8 @@ WHERE   s.documentType = @DocumentType",
 
                 await _cacheProvider.RemoveAsync<SpecificationSummary>(
                     $"{CacheKeys.SpecificationSummaryById}{specification.Id}");
+                
+                await QueueMergeSpecificationInformationJob(specification.Current);
             }
             catch (Exception ex)
             {
@@ -1196,6 +1221,8 @@ WHERE   s.documentType = @DocumentType",
 
                 await _cacheProvider.RemoveAsync<SpecificationSummary>(
                     $"{CacheKeys.SpecificationSummaryById}{specification.Id}");
+                
+                await QueueMergeSpecificationInformationJob(specificationVersion);
             }
 
             return result;
@@ -1216,6 +1243,8 @@ WHERE   s.documentType = @DocumentType",
 
                 await _cacheProvider.RemoveAsync<SpecificationSummary>(
                     $"{CacheKeys.SpecificationSummaryById}{specification.Id}");
+                
+                await QueueMergeSpecificationInformationJob(specification.Current);  
             }
 
             return result;

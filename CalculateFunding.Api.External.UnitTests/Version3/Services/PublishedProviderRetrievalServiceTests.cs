@@ -15,7 +15,6 @@ using System;
 using FluentAssertions;
 using System.IO;
 using CalculateFunding.Api.External.V3.Models;
-using Newtonsoft.Json;
 using CalculateFunding.Services.Core.Extensions;
 using ProvidersModels = CalculateFunding.Common.ApiClient.Providers.Models.Search;
 using CalculateFunding.Common.ApiClient.Models;
@@ -75,7 +74,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version3.Services
         {
             _publishedProviderVersion = null;
 
-            Func<Task> test = () => WhenGetPublishedProviderInformation();
+            Func<Task> test = WhenGetPublishedProviderInformation;
 
             test
                .Should()
@@ -146,18 +145,10 @@ namespace CalculateFunding.Api.External.UnitTests.Version3.Services
         private void AndGetFileSystemCache()
         {
             ProviderVersionSearchResult providerVersionSearchResult = NewProviderVersionSearchResult(_ => _.WithProviderId(_providerId));
-            string content = JsonConvert.SerializeObject(providerVersionSearchResult);
-
-            MemoryStream memoryStream = new MemoryStream();
-            StreamWriter streamWriter = new StreamWriter(memoryStream);
-            streamWriter.Write(content);
-            streamWriter.Flush();
-
-            memoryStream.Position = 0;
 
             _fileSystemCache
                 .Get(Arg.Is<FileSystemCacheKey>(_ => _.Path == $"{ProviderVersionFolderName}\\{_publishedProviderVersion}.json"))
-                .Returns(memoryStream);
+                .Returns(new MemoryStream(providerVersionSearchResult.AsJsonBytes()));
         }
 
         private void AndGetPublishedProviderId()

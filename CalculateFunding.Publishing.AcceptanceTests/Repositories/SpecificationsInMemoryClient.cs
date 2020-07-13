@@ -112,6 +112,10 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             throw new NotImplementedException();
         }
 
+        public Task<ApiResponse<IEnumerable<SpecificationSummary>>> GetSelectedSpecificationsByFundingPeriodIdAndFundingStreamId(string fundingPeriodId,
+            string fundingStreamId) =>
+            throw new NotImplementedException();
+
         public Task<ApiResponse<IEnumerable<SpecificationSummary>>> GetSpecificationsSelectedForFunding()
         {
             throw new NotImplementedException();
@@ -136,6 +140,18 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         {
             throw new NotImplementedException();
         }
+
+        public Task<ApiResponse<IEnumerable<SpecificationSummary>>> GetSpecificationsByFundingPeriodIdAndFundingStreamId(string fundingPeriodId,
+            string fundingStreamId) =>
+            throw new NotImplementedException();
+
+        public Task<ApiResponse<IEnumerable<SpecificationSummary>>> GetSpecificationResultsByFundingPeriodIdAndFundingStreamId(string fundingPeriodId,
+            string fundingStreamId) =>
+            throw new NotImplementedException();
+
+        public Task<ApiResponse<IEnumerable<SpecificationSummary>>> GetApprovedSpecificationsByFundingPeriodIdAndFundingStreamId(string fundingPeriodId,
+            string fundingStreamId) =>
+            throw new NotImplementedException();
 
         public Task<HttpStatusCode> SetAssignedTemplateVersion(string specificationId, string templateVersion, string fundingStreamId)
         {

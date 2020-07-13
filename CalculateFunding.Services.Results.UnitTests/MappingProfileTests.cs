@@ -4,7 +4,7 @@ using CalculateFunding.Models.MappingProfiles;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace CalculateFunding.Services.Results
+namespace CalculateFunding.Services.Results.UnitTests
 {
     [TestClass]
     public class MappingProfileTests

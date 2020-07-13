@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Common.ApiClient.Calcs;
 using CalculateFunding.Common.ApiClient.Models;
@@ -9,6 +10,8 @@ using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.ApiClient.Policies.Models;
 using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
 using CalculateFunding.Common.ApiClient.Providers;
+using CalculateFunding.Common.ApiClient.Results;
+using CalculateFunding.Common.ApiClient.Results.Models;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
@@ -24,9 +27,11 @@ using CalculateFunding.Services.Specs.MappingProfiles;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentValidation;
 using FluentValidation.Results;
+using Microsoft.AspNetCore.Razor.TagHelpers;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
+using SpecificationVersion = CalculateFunding.Models.Specs.SpecificationVersion;
 
 
 namespace CalculateFunding.Services.Specs.UnitTests.Services
@@ -58,6 +63,9 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         private readonly ICacheProvider _cacheProvider;
         private readonly IMessengerService _messengerService;
         private readonly IVersionRepository<Models.Specs.SpecificationVersion> _versionRepository;
+        
+        private IResultsApiClient _resultsApiClient;        
+        
 
         [TestInitialize]
         public void SetUp()
@@ -94,6 +102,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .Returns(MapSpecification(_specWithNoFundingStream));
             
             _specificationIndexer = Substitute.For<ISpecificationIndexer>();
+            _resultsApiClient = Substitute.For<IResultsApiClient>();
         }
 
         private SpecificationsService CreateService(
@@ -134,7 +143,18 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 calcsApiClient ?? CreateCalcsApiClient(),
                 featureToggle ?? Substitute.For<IFeatureToggle>(),
                 providersApiClient ?? Substitute.For<IProvidersApiClient>(),
-                _specificationIndexer);
+                _specificationIndexer,
+                _resultsApiClient);
+        }
+
+        private async Task AndAMergeSpecificationInformationJobWasQueued(SpecificationVersion specification)
+        {
+            await _resultsApiClient.Received(1)
+                .QueueMergeSpecificationInformationForProviderJobForAllProviders(Arg.Is<SpecificationInformation>(_ =>
+                    _.Id == specification.Id &&
+                    _.Name == specification.Name &&
+                    _.LastEditDate == specification.Date &&
+                    _.FundingPeriodId == specification.FundingPeriod.Id));
         }
 
         protected IVersionRepository<Models.Specs.SpecificationVersion> CreateVersionRepository()

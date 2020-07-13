@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
+using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Calcs;
+using CalculateFunding.Services.Results.Models;
 
 
 namespace CalculateFunding.Services.Results.Interfaces
@@ -23,5 +25,8 @@ namespace CalculateFunding.Services.Results.Interfaces
         Task<ProviderResult> GetSingleProviderResultBySpecificationId(string specificationId);
         Task<bool> CheckHasNewResultsForSpecificationIdAndTimePeriod(string specificationId, DateTimeOffset dateFrom, DateTimeOffset dateTo);
         Task<bool> ProviderHasResultsBySpecificationId(string specificationId);
+        Task<ProviderWithResultsForSpecifications> GetProviderWithResultsForSpecificationsByProviderId(string providerId);
+        Task UpsertSpecificationWithProviderResults(ProviderWithResultsForSpecifications providerWithResultsForSpecifications); 
+        ICosmosDbFeedIterator<ProviderWithResultsForSpecifications> GetProvidersWithResultsForSpecificationBySpecificationId(string specificationId);
     }
 }

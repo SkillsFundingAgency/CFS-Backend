@@ -2,11 +2,13 @@
 using System.Threading;
 using AutoMapper;
 using CalculateFunding.Common.ApiClient;
+using CalculateFunding.Common.ApiClient.Results;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.Config.ApiClient.Calcs;
 using CalculateFunding.Common.Config.ApiClient.Dataset;
 using CalculateFunding.Common.Config.ApiClient.Jobs;
 using CalculateFunding.Common.Config.ApiClient.Policies;
+using CalculateFunding.Common.Config.ApiClient.Results;
 using CalculateFunding.Common.Config.ApiClient.Specifications;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Interfaces;
@@ -131,6 +133,8 @@ namespace CalculateFunding.Functions.CalcEngine
 
                 ICalculatorResiliencePolicies calculatorResiliencePolicies = ctx.GetService<ICalculatorResiliencePolicies>();
 
+                IResultsApiClient resultsApiClient = ctx.GetService<IResultsApiClient>();
+
                 return new ProviderResultsRepository(
                     calcsCosmosRepostory,
                     specificationsApiClient,
@@ -139,7 +143,8 @@ namespace CalculateFunding.Functions.CalcEngine
                     featureToggle,
                     engineSettings,
                     calculationsHashProvider,
-                    calculatorResiliencePolicies);
+                    calculatorResiliencePolicies,
+                    resultsApiClient);
             });
 
             builder
@@ -183,6 +188,7 @@ namespace CalculateFunding.Functions.CalcEngine
             builder.AddSpecificationsInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
             builder.AddJobsInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
             builder.AddPoliciesInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
+            builder.AddResultsInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
 
             builder.AddDatasetsInterServiceClient(config);
 
@@ -238,7 +244,8 @@ namespace CalculateFunding.Functions.CalcEngine
                 CalculationsRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                 JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                 SpecificationsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-                PoliciesApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
+                PoliciesApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                ResultsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
             };
 
             return resiliencePolicies;

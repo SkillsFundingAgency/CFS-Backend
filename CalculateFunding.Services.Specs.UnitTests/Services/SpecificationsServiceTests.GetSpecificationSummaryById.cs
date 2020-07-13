@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Common.Caching;
@@ -87,6 +88,8 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         [TestMethod]
         public async Task GetSpecificationSummaryById_GivenSpecificationSummaryWasFoundAndIsNotInCache_ReturnsObject()
         {
+            DateTimeOffset expectedLastEditedDate = NewRandomDateTimeOffset();
+            
             //Arrange
             Specification specification = new Specification()
             {
@@ -110,6 +113,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                     FundingPeriod = new Reference("FP1", "Funding Period"),
                     PublishStatus = Models.Versioning.PublishStatus.Draft,
                     Version = 1,
+                    Date = expectedLastEditedDate
                 }
             };
 
@@ -157,7 +161,8 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                     {
                         "dr1", 
                         "dr2"
-                    }
+                    },
+                    LastEditedDate = expectedLastEditedDate
                 });
 
             await specificationsRepository

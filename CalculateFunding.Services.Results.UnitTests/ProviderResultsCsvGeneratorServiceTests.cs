@@ -19,7 +19,7 @@ using NSubstitute;
 using Polly;
 using Serilog;
 
-namespace CalculateFunding.Services.Results
+namespace CalculateFunding.Services.Results.UnitTests
 {
     [TestClass]
     public class ProviderResultsCsvGeneratorServiceTests

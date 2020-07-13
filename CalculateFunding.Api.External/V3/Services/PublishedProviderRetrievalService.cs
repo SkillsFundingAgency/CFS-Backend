@@ -67,12 +67,9 @@ namespace CalculateFunding.Api.External.V3.Services
 
             if (_cacheSettings.IsEnabled && _fileSystemCache.Exists(providerVersionFileSystemCacheKey))
             {
-                using Stream providerVersionDocumentStream = _fileSystemCache.Get(providerVersionFileSystemCacheKey);
-                using StreamReader streamReader = new StreamReader(providerVersionDocumentStream);
-                string content = streamReader.ReadToEnd();
+                await using Stream providerVersionDocumentStream = _fileSystemCache.Get(providerVersionFileSystemCacheKey);
 
-                ProviderVersionSearchResult cachedProviderVersionSearchResult
-                    = JsonConvert.DeserializeObject<ProviderVersionSearchResult>(content);
+                ProviderVersionSearchResult cachedProviderVersionSearchResult = providerVersionDocumentStream.AsPoco<ProviderVersionSearchResult>();
 
                 return new OkObjectResult(cachedProviderVersionSearchResult);
             }
@@ -83,6 +80,7 @@ namespace CalculateFunding.Api.External.V3.Services
             if (string.IsNullOrEmpty(results.providerVersionId) || string.IsNullOrEmpty(results.providerId))
             {
                 _logger.Error($"Failed to retrieve published provider with publishedProviderVersion: {publishedProviderVersion}");
+                
                 return new NotFoundResult();
             }
 
@@ -90,12 +88,13 @@ namespace CalculateFunding.Api.External.V3.Services
                 await _providersApiClientPolicy.ExecuteAsync(() => 
                     _providersApiClient.GetProviderByIdFromProviderVersion(results.providerVersionId, results.providerId));
 
-            if(apiResponse == null || apiResponse.Content == null || !apiResponse.StatusCode.IsSuccess())
+            if(apiResponse?.Content == null || !apiResponse.StatusCode.IsSuccess())
             {
                 string errorMessage = $"Failed to retrieve GetProviderByIdFromProviderVersion with " +
                     $"providerVersionId: {results.providerVersionId} and providerId: {results.providerId}";
 
                 _logger.Error(errorMessage);
+                
                 return new InternalServerErrorResult(errorMessage);
             }
 
@@ -105,12 +104,7 @@ namespace CalculateFunding.Api.External.V3.Services
             {
                 if (!_fileSystemCache.Exists(providerVersionFileSystemCacheKey))
                 {
-                    using MemoryStream stream = new MemoryStream();
-                    using StreamWriter streamWriter = new StreamWriter(stream);
-                    string providerVersionSearchResultContent = JsonConvert.SerializeObject(providerVersionSearchResult);
-                    streamWriter.Write(providerVersionSearchResultContent);
-                    streamWriter.Flush();
-                    stream.Position = 0;
+                    await using MemoryStream stream = new MemoryStream(providerVersionSearchResult.AsJsonBytes());
 
                     _fileSystemCache.Add(providerVersionFileSystemCacheKey, stream);
                 }

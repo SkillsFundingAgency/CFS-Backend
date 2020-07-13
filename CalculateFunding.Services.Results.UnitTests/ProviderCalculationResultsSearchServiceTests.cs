@@ -1,24 +1,19 @@
 ﻿using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Calcs;
-
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.FeatureToggles;
 using CalculateFunding.Services.Results.Interfaces;
 using FluentAssertions;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Search.Models;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Newtonsoft.Json;
 using NSubstitute;
 using Serilog;
 
-namespace CalculateFunding.Services.Results.UnitTests.Services
+namespace CalculateFunding.Services.Results.UnitTests
 {
     [TestClass]
     public class ProviderCalculationResultsSearchServiceTests

@@ -11,6 +11,7 @@ using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Results.Interfaces;
+using CalculateFunding.Services.Results.Models;
 using Newtonsoft.Json;
 
 namespace CalculateFunding.Services.Results.Repositories
@@ -114,6 +115,35 @@ namespace CalculateFunding.Services.Results.Repositories
                 providerResults.Select(x => new KeyValuePair<string, ProviderResult>(x.Provider.Id, x)),
                 degreeOfParallelism: 15,
                 hardDelete: true);
+        }
+
+        public ICosmosDbFeedIterator<ProviderWithResultsForSpecifications> GetProvidersWithResultsForSpecificationBySpecificationId(string specificationId)
+        {
+            CosmosDbQuery cosmosDbQuery = new CosmosDbQuery
+            {
+                QueryText = @"SELECT * 
+                              FROM    providerWithResultsForSpecifications p
+                              WHERE   p.documentType = 'ProviderWithResultsForSpecifications'
+                              AND p.deleted = false
+                              AND EXISTS(SELECT VALUE specification FROM specification IN p.content.specifications WHERE specification.id = @specificationId)",
+                Parameters = new []
+                {
+                    new CosmosDbQueryParameter("@specificationId", specificationId), 
+                }
+            };
+            
+            return _cosmosRepository.GetFeedIterator<ProviderWithResultsForSpecifications>(cosmosDbQuery);
+        }
+
+        public async Task<ProviderWithResultsForSpecifications> GetProviderWithResultsForSpecificationsByProviderId(string providerId)
+        {
+            return (await _cosmosRepository.Query<ProviderWithResultsForSpecifications>(_ => _.Content.Provider.Id == providerId))
+                .SingleOrDefault();
+        }
+
+        public async Task UpsertSpecificationWithProviderResults(ProviderWithResultsForSpecifications providerWithResultsForSpecifications)
+        {
+            await _cosmosRepository.UpsertAsync(providerWithResultsForSpecifications);
         }
 
         public async Task<IEnumerable<ProviderResult>> GetProviderResultsBySpecificationIdAndProviders(IEnumerable<string> providerIds, string specificationId)

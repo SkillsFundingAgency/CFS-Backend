@@ -136,6 +136,12 @@
             public const string PublishedFundingUndo = "publishing-published-funding-undo";
 
             public const string PolicyReIndexTemplates = "policy-reindex-templates";
+
+            public const string MergeSpecificationInformationForProvider = "merge-specification-information-for-provider-with-results";
+            
+            public const string MergeSpecificationInformationForProviderPoisoned = "merge-specification-information-for-provider-with-results/$DeadLetterQueue";
+            
+            public const string MergeSpecificationInformationForProviderPoisonedLocal = "merge-specification-information-poisoned";
         }
 
         public static class TopicNames

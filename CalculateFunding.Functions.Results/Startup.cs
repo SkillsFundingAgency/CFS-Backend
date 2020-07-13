@@ -3,6 +3,7 @@ using System.Threading;
 using CalculateFunding.Common.ApiClient;
 using CalculateFunding.Common.Config.ApiClient.Calcs;
 using CalculateFunding.Common.Config.ApiClient.Jobs;
+using CalculateFunding.Common.Config.ApiClient.Policies;
 using CalculateFunding.Common.Config.ApiClient.Providers;
 using CalculateFunding.Common.Config.ApiClient.Specifications;
 using CalculateFunding.Common.CosmosDb;
@@ -20,8 +21,10 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
+using CalculateFunding.Services.Core.Interfaces.Threading;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Core.Services;
+using CalculateFunding.Services.Core.Threading;
 using CalculateFunding.Services.DeadletterProcessor;
 using CalculateFunding.Services.Results;
 using CalculateFunding.Services.Results.Interfaces;
@@ -65,8 +68,12 @@ namespace CalculateFunding.Functions.Results
                 builder.AddScoped<OnReIndexCalculationResults>();
                 builder.AddScoped<OnCalculationResultsCsvGeneration>();
                 builder.AddScoped<OnCalculationResultsCsvGenerationTimer>();
+                builder.AddScoped<OnMergeSpecificationInformationForProviderWithResults>();
+                builder.AddScoped<OnMergeSpecificationInformationForProviderWithResultsFailure>();
             }
             builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();
+            builder.AddScoped<ISpecificationsWithProviderResultsService, SpecificationsWithProviderResultsService>();
+            builder.AddScoped<IProducerConsumerFactory, ProducerConsumerFactory>();
 
             builder.AddSingleton<IConfiguration>(config);
             builder.AddSingleton<ICalculationResultsRepository, CalculationResultsRepository>();
@@ -141,6 +148,7 @@ namespace CalculateFunding.Functions.Results
             builder.AddSpecificationsInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
             builder.AddJobsInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
             builder.AddProvidersInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
+            builder.AddPoliciesInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
 
             builder.AddFeatureToggling(config);
 
