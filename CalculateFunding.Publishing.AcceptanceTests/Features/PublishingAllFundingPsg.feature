@@ -707,6 +707,12 @@ Scenario Outline: Successful publishing of funding
 		| <FundingStreamId>-<FundingPeriodId>-Information-Provider-1000202-1_0.json   |
 		| <FundingStreamId>-<FundingPeriodId>-Payment-AcademyTrust-8000001-1_0.json   |
 		| <FundingStreamId>-<FundingPeriodId>-Payment-LocalAuthority-9000000-1_0.json |
+	And the published funding document produced has following metadata
+		| PublishedFundingFiles												   | MetadataKey | MetadataValue | 
+		| <FundingStreamId>-<FundingPeriodId>-Information-Provider-1000201-1_0.json | specification-id | specForPublishing |
+		| <FundingStreamId>-<FundingPeriodId>-Information-Provider-1000202-1_0.json | specification-id | specForPublishing |
+		| <FundingStreamId>-<FundingPeriodId>-Payment-AcademyTrust-8000001-1_0.json | specification-id | specForPublishing |
+		| <FundingStreamId>-<FundingPeriodId>-Payment-LocalAuthority-9000000-1_0.json | specification-id | specForPublishing |
 	And the published provider document produced is saved to blob storage for following file name
 		| PublishedProviderFiles                               |
 		| <FundingStreamId>-<FundingPeriodId>-1000000-1_0.json |
@@ -715,6 +721,14 @@ Scenario Outline: Successful publishing of funding
 		| <FundingStreamId>-<FundingPeriodId>-1000102-1_0.json |
 		| <FundingStreamId>-<FundingPeriodId>-1000201-1_0.json |
 		| <FundingStreamId>-<FundingPeriodId>-1000202-1_0.json |
+	And the published provider document produced has following metadata
+		| PublishedFundingFiles												   | MetadataKey | MetadataValue | 
+		| <FundingStreamId>-<FundingPeriodId>-1000000-1_0.json | specification-id | specForPublishing |
+		| <FundingStreamId>-<FundingPeriodId>-1000002-1_0.json | specification-id | specForPublishing |
+		| <FundingStreamId>-<FundingPeriodId>-1000101-1_0.json | specification-id | specForPublishing |
+		| <FundingStreamId>-<FundingPeriodId>-1000102-1_0.json | specification-id | specForPublishing |
+		| <FundingStreamId>-<FundingPeriodId>-1000201-1_0.json | specification-id | specForPublishing |
+		| <FundingStreamId>-<FundingPeriodId>-1000202-1_0.json | specification-id | specForPublishing |
 	And the following published provider search index items is produced for providerid with '<FundingStreamId>' and '<FundingPeriodId>'
 		| ID                  | ProviderType          | LocalAuthority    | FundingStatus | ProviderName            | UKPRN   | FundingValue | SpecificationId   | FundingStreamId   | FundingPeriodId   |
 		| 1000102-AY-1920-PSG | Academies             | Local Authority 1 | Released      | Academy 2               | 1000102 | 24000        | specForPublishing | <FundingStreamId> | <FundingPeriodId> |

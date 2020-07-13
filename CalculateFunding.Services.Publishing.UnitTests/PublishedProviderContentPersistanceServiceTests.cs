@@ -27,6 +27,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private const string ProviderVersionProviderId = "providerVersionProviderId";
         private const string ProviderVersionFundingPeriodId = "providerVersionFundingPeriodId";
         private const string ProviderVersionFundingStreamId = "providerVersionFundingStreamId";
+        private const string ProviderVersionSpecificationId = "providerVersionSpecificationId";
         private const int ProviderVersionVersion = 1;
 
         [TestInitialize]
@@ -90,7 +91,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .WithProviderId(ProviderVersionProviderId)
                 .WithFundingPeriodId(ProviderVersionFundingPeriodId)
                 .WithFundingStreamId(ProviderVersionFundingStreamId)
-                .WithVersion(ProviderVersionVersion));
+                .WithVersion(ProviderVersionVersion)
+                .WithSpecificationId(ProviderVersionSpecificationId));
 
             PublishedProvider publishedProvider = NewPublishedProvider(provider => provider.WithCurrent(publishedProviderVersion));
 
@@ -103,7 +105,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             string exceptionMessage = "Exception Message";
 
             _publishedProviderVersionService
-                .SavePublishedProviderVersionBody(publishedProviderVersion.FundingId, Arg.Any<string>())
+                .SavePublishedProviderVersionBody(publishedProviderVersion.FundingId, Arg.Any<string>(), publishedProviderVersion.SpecificationId)
                 .Throws(new Exception(exceptionMessage));
 
             // Act
@@ -166,7 +168,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .WithProviderId(ProviderVersionProviderId)
                 .WithFundingPeriodId(ProviderVersionFundingPeriodId)
                 .WithFundingStreamId(ProviderVersionFundingStreamId)
-                .WithVersion(ProviderVersionVersion));
+                .WithVersion(ProviderVersionVersion)
+                .WithSpecificationId(ProviderVersionSpecificationId));
 
             PublishedProvider publishedProvider = NewPublishedProvider(provider => provider.WithCurrent(publishedProviderVersion));
 
@@ -183,7 +186,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             // Assert
             await _publishedProviderVersionService
                 .Received()
-                .SavePublishedProviderVersionBody(publishedProviderVersion.FundingId, Arg.Any<string>());
+                .SavePublishedProviderVersionBody(publishedProviderVersion.FundingId, Arg.Any<string>(), publishedProviderVersion.SpecificationId);
 
             await _publishedProviderIndexerService
                 .Received()

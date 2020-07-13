@@ -18,6 +18,7 @@ using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.Storage.Blob;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using NSubstitute;
 using Polly;
 using Serilog;
 
@@ -45,6 +46,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
         private Message _message;
 
         private const string PublishedFundingReportContainerName = "publishingreports";
+        private const string PublishedFundingReportSpecificationIdMetadataKey = "specification-id";
 
         [TestInitialize]
         public void SetUp()
@@ -236,7 +238,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
             _blobClient
                 .Verify(_ => _.UploadFileAsync(_cloudBlob.Object, incrementalFileStream),
                     Times.Once);
-            
+
+            AndBlobMetadataSet(specificationId);
+
             _jobTracker.Verify(_ => _.CompleteTrackingJob(jobId),
                 Times.Once);
 
@@ -323,8 +327,20 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting
             _blobClient
                 .Verify(_ => _.UploadFileAsync(_cloudBlob.Object, incrementalFileStream),
                     Times.Once);
-            
+
+            AndBlobMetadataSet(specificationId);
+
             _jobTracker.Verify(_ => _.CompleteTrackingJob(jobId));
+        }
+
+        private void AndBlobMetadataSet(string specificationId)
+        {
+            _blobClient
+            .Verify(_ => _.AddMetadataAsync(
+                _cloudBlob.Object,
+                It.Is<IDictionary<string, string>>(d => 
+                    d.ContainsKey("specification-id") && d["specification-id"] == specificationId)),
+                Times.Once);
         }
 
         private void AndTheJobExists(string jobId)

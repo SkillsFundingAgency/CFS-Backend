@@ -8,6 +8,7 @@ using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Publishing.Interfaces;
+using Microsoft.Azure.Storage.Blob;
 using Polly;
 
 namespace CalculateFunding.Services.Publishing
@@ -58,7 +59,9 @@ namespace CalculateFunding.Services.Publishing
                                 throw new RetriableException($"Generator failed to generate content for published provider version with id: '{publishedFundingVersion.Id}'");
                             }
 
-                            await _publishedFundingRepositoryPolicy.ExecuteAsync(() => _blobClient.UploadFileAsync(GetBlobName(publishedFundingVersion), contents));
+                            string blobName = GetBlobName(publishedFundingVersion);
+                            await _publishedFundingRepositoryPolicy.ExecuteAsync(() => 
+                                UploadBlob(GetBlobName(publishedFundingVersion), contents, GetMetadata(publishedFundingVersion)));
                         }
                         finally
                         {
@@ -71,7 +74,22 @@ namespace CalculateFunding.Services.Publishing
 
         private string GetBlobName(PublishedFundingVersion publishedFundingVersion)
         {
-            return $"{publishedFundingVersion.FundingStreamId}-{publishedFundingVersion.FundingPeriod.Id}-{publishedFundingVersion.GroupingReason.ToString()}-{publishedFundingVersion.OrganisationGroupTypeCode}-{publishedFundingVersion.OrganisationGroupIdentifierValue}-{publishedFundingVersion.MajorVersion}_{publishedFundingVersion.MinorVersion}.json";
+            return $"{publishedFundingVersion.FundingStreamId}-{publishedFundingVersion.FundingPeriod.Id}-{publishedFundingVersion.GroupingReason}-{publishedFundingVersion.OrganisationGroupTypeCode}-{publishedFundingVersion.OrganisationGroupIdentifierValue}-{publishedFundingVersion.MajorVersion}_{publishedFundingVersion.MinorVersion}.json";
+        }
+
+        private async Task UploadBlob(string blobName, string contents, IDictionary<string, string> metadata)
+        {
+            await _blobClient.UploadFileAsync(blobName, contents);
+            ICloudBlob blob = _blobClient.GetBlockBlobReference(blobName);
+            await _blobClient.AddMetadataAsync(blob, metadata);
+        }
+
+        private IDictionary<string, string> GetMetadata(PublishedFundingVersion publishedFundingVersion)
+        {
+            return new Dictionary<string, string>
+            {
+                { "specification-id",  publishedFundingVersion.SpecificationId}
+            };
         }
     }
 }

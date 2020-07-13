@@ -9,7 +9,7 @@ namespace CalculateFunding.Services.Publishing.Interfaces
     {
         Task<IActionResult> GetPublishedProviderVersionBody(string publishedProviderVersionId);
 
-        Task SavePublishedProviderVersionBody(string publishedProviderVersionId, string publishedProviderVersionBody);
+        Task SavePublishedProviderVersionBody(string publishedProviderVersionId, string publishedProviderVersionBody, string specificationId);
         
         Task<IActionResult> ReIndex(Reference user, string correlationId);
 

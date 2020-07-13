@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -24,6 +25,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
     public class PublishedProviderVersionServiceTests
     {
         private const string publishedProviderVersionId = "id1";
+        private const string publishedProviderSpecificationId = "specId1";
         private const string body = "just a string";
 
         private readonly string blobName = $"{publishedProviderVersionId}.json";
@@ -160,7 +162,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             string errorMessage = $"Failed to save blob '{blobName}' to azure storage";
 
             //Act
-            Func<Task> test = async () => await _service.SavePublishedProviderVersionBody(publishedProviderVersionId, body);
+            Func<Task> test = async () => await _service.SavePublishedProviderVersionBody(publishedProviderVersionId, body, publishedProviderSpecificationId);
 
             //Assert
             test
@@ -177,7 +179,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         }
 
         [TestMethod]
-        public void SavePublishedProviderVersionBody_GivenUoloadAsyncThrowsException_ThrowsNewException()
+        public void SavePublishedProviderVersionBody_GivenUploadAsyncThrowsException_ThrowsNewException()
         {
             _blobClient
                 .When(x => x.UploadAsync(Arg.Any<ICloudBlob>(), Arg.Is(body)))
@@ -186,7 +188,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             string errorMessage = $"Failed to save blob '{blobName}' to azure storage";
 
             //Act
-            Func<Task> test = async () => await _service.SavePublishedProviderVersionBody(publishedProviderVersionId, body);
+            Func<Task> test = async () => await _service.SavePublishedProviderVersionBody(publishedProviderVersionId, body, publishedProviderSpecificationId);
 
             //Assert
             test
@@ -213,13 +215,19 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 .Returns(blob);
 
             //Act
-            await _service.SavePublishedProviderVersionBody(publishedProviderVersionId, body);
+            await _service.SavePublishedProviderVersionBody(publishedProviderVersionId, body, publishedProviderSpecificationId);
 
             //Assert
             await
                 _blobClient
                     .Received(1)
                     .UploadAsync(Arg.Is(blob), Arg.Is(body));
+            await
+                _blobClient
+                    .Received(1)
+                    .AddMetadataAsync(
+                        Arg.Is(blob),
+                        Arg.Is<IDictionary<string, string>>(_ => _.ContainsKey("specification-id") && _["specification-id"] == publishedProviderSpecificationId));
         }
 
         [TestMethod]

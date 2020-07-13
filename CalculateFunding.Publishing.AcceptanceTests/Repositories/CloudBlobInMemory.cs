@@ -4,7 +4,6 @@ using Microsoft.Azure.Storage.Shared.Protocol;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -13,6 +12,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
     public class CloudBlobInMemory : ICloudBlob
     {
         private string _blobName;
+        private IDictionary<string, string> _metadata;
 
         public string Name => _blobName;
 
@@ -23,7 +23,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 
         public BlobProperties Properties => throw new NotImplementedException();
 
-        public IDictionary<string, string> Metadata => throw new NotImplementedException();
+        public IDictionary<string, string> Metadata => _metadata;
 
         public DateTimeOffset? SnapshotTime => throw new NotImplementedException();
 
@@ -48,6 +48,8 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         public CloudBlobInMemory(string blobName)
         {
             _blobName = blobName;
+
+            _metadata = new Dictionary<string, string>();
         }
 
         public void AbortCopy(string copyId, AccessCondition accessCondition = null, BlobRequestOptions options = null, OperationContext operationContext = null)

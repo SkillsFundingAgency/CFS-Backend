@@ -11,6 +11,7 @@ using CalculateFunding.Publishing.AcceptanceTests.Properties;
 using CalculateFunding.Publishing.AcceptanceTests.Repositories;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
+using Microsoft.Azure.Storage.Blob;
 using Newtonsoft.Json;
 using TechTalk.SpecFlow;
 using TechTalk.SpecFlow.Assist;
@@ -112,7 +113,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
 
             publishedProviders
                 .Where(_ => _.Current.Status == PublishedProviderStatus.Approved || _.Current.Status == PublishedProviderStatus.Updated || _.Current.Status == PublishedProviderStatus.Draft)
-                .Select(_ => (_.Released))                
+                .Select(_ => (_.Released))
                 .First()
                 .Should()
                 .BeNull();
@@ -131,8 +132,8 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
                         Value = decimal.Parse(calc.Value.ToString())
                     })
                     .Should()
-                    .BeEquivalentTo(providerCalculationResults.ContainsKey(_.Current.ProviderId) ? 
-                        providerCalculationResults[_.Current.ProviderId] : 
+                    .BeEquivalentTo(providerCalculationResults.ContainsKey(_.Current.ProviderId) ?
+                        providerCalculationResults[_.Current.ProviderId] :
                         calculationsInMemoryRepository.Results);
 
                     // Already approved one's will not be re-approved / saved, so jobid or correleationid will not be populated for them
@@ -162,7 +163,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
                 .Select(_ => (_.Id, _.Current.Status))
                 .OrderBy(_ => _.Id)
                 .Should()
-                .BeEquivalentTo(expectedPublishedProviderIds);           
+                .BeEquivalentTo(expectedPublishedProviderIds);
 
             publishedProviders
                 .Where(_ => _.Current.Status == PublishedProviderStatus.Released)
@@ -170,7 +171,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
                 .First()
                 .Should()
                 .NotBeNull();
-        
+
         }
 
 
@@ -179,10 +180,10 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
         {
             IEnumerable<PublishedProvider> publishedProviders = await _publishedFundingRepositoryStepContext.Repo
                 .GetLatestPublishedProvidersBySpecification(_currentSpecificationStepContext.SpecificationId);
-            
+
             IEnumerable<(string FundingLineCode, decimal? Value)> expectedFundingLines = table.Rows.Select(_ => (_[0], (decimal?)decimal.Parse(_[1])));
 
-            IEnumerable<(string FundingLineCode, decimal? Value)> actualFundingLines 
+            IEnumerable<(string FundingLineCode, decimal? Value)> actualFundingLines
                 = publishedProviders.FirstOrDefault(_ => _.Current.ProviderId == providerId)?.Current.FundingLines.Select(_ => (_.FundingLineCode, _.Value));
 
             actualFundingLines
@@ -305,6 +306,24 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
                 publishedFunding.TryGetValue(fileName, out string actual);
                 actual.Should()
                         .Equals(expected);
+            }
+        }
+
+        [Then(@"the published funding document produced has following metadata")]
+        public void ThenThePublishedFundingDocumentHasMetadata(Table table)
+        {
+            _publishedFundingRepositoryStepContext.BlobRepo.Should().NotBeNull();
+
+            for (int i = 0; i < table.Rows.Count; i++)
+            {
+                string fileName = table.Rows[i][0];
+                string metadataKey = table.Rows[i][1];
+                string metadataValue = table.Rows[i][2];
+
+                ICloudBlob cloudBlob = _publishedFundingRepositoryStepContext.BlobRepo.GetBlockBlobReference(fileName);
+
+                cloudBlob.Metadata.TryGetValue(metadataKey, out string actual);
+                actual.Should().Equals(metadataValue);
             }
         }
 

@@ -1077,9 +1077,16 @@ Scenario Outline: Successful publishing of funding
 		| PublishedFundingFiles												   |
 		| <FundingStreamId>-<FundingPeriodId>-Information-LocalAuthority-200-1_0.json |
 		| <FundingStreamId>-<FundingPeriodId>-Payment-LocalAuthority-9000000-1_0.json |
+	And the published funding document produced has following metadata
+		| PublishedFundingFiles												   | MetadataKey | MetadataValue | 
+		| <FundingStreamId>-<FundingPeriodId>-Information-LocalAuthority-200-1_0.json | specification-id | specForPublishing |
+		| <FundingStreamId>-<FundingPeriodId>-Payment-LocalAuthority-9000000-1_0.json | specification-id | specForPublishing |
 	And the published provider document produced is saved to blob storage for following file name
 		| PublishedProviderFiles							   |
 		| <FundingStreamId>-<FundingPeriodId>-1000000-1_0.json |
+	And the published provider document produced has following metadata
+		| PublishedFundingFiles												   | MetadataKey | MetadataValue | 
+		| <FundingStreamId>-<FundingPeriodId>-1000000-1_0.json | specification-id | specForPublishing |
 	And the following published provider search index items is produced for providerid with '<FundingStreamId>' and '<FundingPeriodId>'
 		| ID                  | ProviderType				| LocalAuthority		| FundingStatus | ProviderName			| UKPRN		 | FundingValue | SpecificationId   | FundingStreamId   | FundingPeriodId   |
 		| 1000000-FY-2021-DSG | LA maintained schools		| Local Authority 1	| Released      | Maintained School 1	| 1000000    | 12000        | specForPublishing | <FundingStreamId> | <FundingPeriodId> |

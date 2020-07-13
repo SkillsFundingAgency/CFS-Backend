@@ -102,7 +102,8 @@ namespace CalculateFunding.Services.Results
 
             using (Stream csvFileStream = _fileSystemAccess.OpenRead(temporaryFilePath))
             {
-                await _blobClientPolicy.ExecuteAsync(() => UploadBlob(blob, csvFileStream, GetMetadata(specificationId, specificationName)));
+                await _blobClientPolicy.ExecuteAsync(() => 
+                    UploadBlob(blob, csvFileStream, GetMetadata(specificationId, specificationName)));
             }
         }
 

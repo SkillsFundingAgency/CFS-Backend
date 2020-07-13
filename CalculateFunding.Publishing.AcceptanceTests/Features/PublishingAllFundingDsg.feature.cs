@@ -3904,16 +3904,46 @@ this.ScenarioInitialize(scenarioInfo);
                         "le name", ((string)(null)), table256, "And ");
 #line hidden
                 TechTalk.SpecFlow.Table table257 = new TechTalk.SpecFlow.Table(new string[] {
-                            "PublishedProviderFiles"});
+                            "PublishedFundingFiles",
+                            "MetadataKey",
+                            "MetadataValue"});
                 table257.AddRow(new string[] {
-                            string.Format("{0}-{1}-1000000-1_0.json", fundingStreamId, fundingPeriodId)});
+                            string.Format("{0}-{1}-Information-LocalAuthority-200-1_0.json", fundingStreamId, fundingPeriodId),
+                            "specification-id",
+                            "specForPublishing"});
                 table257.AddRow(new string[] {
-                            string.Format("{0}-{1}-1000002-1_0.json", fundingStreamId, fundingPeriodId)});
+                            string.Format("{0}-{1}-Payment-LocalAuthority-9000000-1_0.json", fundingStreamId, fundingPeriodId),
+                            "specification-id",
+                            "specForPublishing"});
 #line 1078
- testRunner.And("the published provider document produced is saved to blob storage for following f" +
-                        "ile name", ((string)(null)), table257, "And ");
+ testRunner.And("the published funding document produced has following metadata", ((string)(null)), table257, "And ");
 #line hidden
                 TechTalk.SpecFlow.Table table258 = new TechTalk.SpecFlow.Table(new string[] {
+                            "PublishedProviderFiles"});
+                table258.AddRow(new string[] {
+                            string.Format("{0}-{1}-1000000-1_0.json", fundingStreamId, fundingPeriodId)});
+                table258.AddRow(new string[] {
+                            string.Format("{0}-{1}-1000002-1_0.json", fundingStreamId, fundingPeriodId)});
+#line 1082
+ testRunner.And("the published provider document produced is saved to blob storage for following f" +
+                        "ile name", ((string)(null)), table258, "And ");
+#line hidden
+                TechTalk.SpecFlow.Table table259 = new TechTalk.SpecFlow.Table(new string[] {
+                            "PublishedFundingFiles",
+                            "MetadataKey",
+                            "MetadataValue"});
+                table259.AddRow(new string[] {
+                            string.Format("{0}-{1}-1000000-1_0.json", fundingStreamId, fundingPeriodId),
+                            "specification-id",
+                            "specForPublishing"});
+                table259.AddRow(new string[] {
+                            string.Format("{0}-{1}-1000002-1_0.json", fundingStreamId, fundingPeriodId),
+                            "specification-id",
+                            "specForPublishing"});
+#line 1086
+ testRunner.And("the published provider document produced has following metadata", ((string)(null)), table259, "And ");
+#line hidden
+                TechTalk.SpecFlow.Table table260 = new TechTalk.SpecFlow.Table(new string[] {
                             "ID",
                             "ProviderType",
                             "LocalAuthority",
@@ -3924,7 +3954,7 @@ this.ScenarioInitialize(scenarioInfo);
                             "SpecificationId",
                             "FundingStreamId",
                             "FundingPeriodId"});
-                table258.AddRow(new string[] {
+                table260.AddRow(new string[] {
                             "1000000-FY-2021-DSG",
                             "LA maintained schools",
                             "Local Authority 1",
@@ -3935,7 +3965,7 @@ this.ScenarioInitialize(scenarioInfo);
                             "specForPublishing",
                             string.Format("{0}", fundingStreamId),
                             string.Format("{0}", fundingPeriodId)});
-                table258.AddRow(new string[] {
+                table260.AddRow(new string[] {
                             "1000002-FY-2021-DSG",
                             "LA maintained schools",
                             "Local Authority 1",
@@ -3946,57 +3976,57 @@ this.ScenarioInitialize(scenarioInfo);
                             "specForPublishing",
                             string.Format("{0}", fundingStreamId),
                             string.Format("{0}", fundingPeriodId)});
-#line 1082
+#line 1090
  testRunner.And(string.Format("the following published provider search index items is produced for providerid wi" +
-                            "th \'{0}\' and \'{1}\'", fundingStreamId, fundingPeriodId), ((string)(null)), table258, "And ");
-#line hidden
-                TechTalk.SpecFlow.Table table259 = new TechTalk.SpecFlow.Table(new string[] {
-                            "Field",
-                            "Value"});
-                table259.AddRow(new string[] {
-                            "JobDefinitionId",
-                            "PublishFundingJob"});
-                table259.AddRow(new string[] {
-                            "InvokerUserId",
-                            "PublishUserId"});
-                table259.AddRow(new string[] {
-                            "InvokerUserDisplayName",
-                            "Invoker User"});
-                table259.AddRow(new string[] {
-                            "ParentJobId",
-                            ""});
-#line 1086
- testRunner.And("the following job is requested is completed for the current specification", ((string)(null)), table259, "And ");
-#line hidden
-                TechTalk.SpecFlow.Table table260 = new TechTalk.SpecFlow.Table(new string[] {
-                            "PublishedProviderId",
-                            "Status"});
-                table260.AddRow(new string[] {
-                            string.Format("publishedprovider-1000000-{0}-{1}", fundingPeriodId, fundingStreamId),
-                            "Released"});
-                table260.AddRow(new string[] {
-                            string.Format("publishedprovider-1000002-{0}-{1}", fundingPeriodId, fundingStreamId),
-                            "Released"});
-#line 1092
- testRunner.And("the following released published provider ids are upserted", ((string)(null)), table260, "And ");
+                            "th \'{0}\' and \'{1}\'", fundingStreamId, fundingPeriodId), ((string)(null)), table260, "And ");
 #line hidden
                 TechTalk.SpecFlow.Table table261 = new TechTalk.SpecFlow.Table(new string[] {
+                            "Field",
+                            "Value"});
+                table261.AddRow(new string[] {
+                            "JobDefinitionId",
+                            "PublishFundingJob"});
+                table261.AddRow(new string[] {
+                            "InvokerUserId",
+                            "PublishUserId"});
+                table261.AddRow(new string[] {
+                            "InvokerUserDisplayName",
+                            "Invoker User"});
+                table261.AddRow(new string[] {
+                            "ParentJobId",
+                            ""});
+#line 1094
+ testRunner.And("the following job is requested is completed for the current specification", ((string)(null)), table261, "And ");
+#line hidden
+                TechTalk.SpecFlow.Table table262 = new TechTalk.SpecFlow.Table(new string[] {
+                            "PublishedProviderId",
+                            "Status"});
+                table262.AddRow(new string[] {
+                            string.Format("publishedprovider-1000000-{0}-{1}", fundingPeriodId, fundingStreamId),
+                            "Released"});
+                table262.AddRow(new string[] {
+                            string.Format("publishedprovider-1000002-{0}-{1}", fundingPeriodId, fundingStreamId),
+                            "Released"});
+#line 1100
+ testRunner.And("the following released published provider ids are upserted", ((string)(null)), table262, "And ");
+#line hidden
+                TechTalk.SpecFlow.Table table263 = new TechTalk.SpecFlow.Table(new string[] {
                             "ProviderId",
                             "VariationReason"});
-                table261.AddRow(new string[] {
+                table263.AddRow(new string[] {
                             "1000000",
                             "FundingUpdated"});
-                table261.AddRow(new string[] {
+                table263.AddRow(new string[] {
                             "1000000",
                             "ProfilingUpdated"});
-                table261.AddRow(new string[] {
+                table263.AddRow(new string[] {
                             "1000002",
                             "FundingUpdated"});
-                table261.AddRow(new string[] {
+                table263.AddRow(new string[] {
                             "1000002",
                             "ProfilingUpdated"});
-#line 1096
- testRunner.And("the provider variation reasons were recorded", ((string)(null)), table261, "And ");
+#line 1104
+ testRunner.And("the provider variation reasons were recorded", ((string)(null)), table263, "And ");
 #line hidden
             }
             this.ScenarioCleanup();

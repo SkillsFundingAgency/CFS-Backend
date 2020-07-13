@@ -1,8 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
-using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
@@ -100,10 +100,14 @@ namespace CalculateFunding.Services.Publishing
             return new OkObjectResult(template);
         }
 
-        public async Task SavePublishedProviderVersionBody(string publishedProviderVersionId, string publishedProviderVersionBody)
+        public async Task SavePublishedProviderVersionBody(
+            string publishedProviderVersionId, 
+            string publishedProviderVersionBody, 
+            string specificationId)
         {
             Guard.IsNullOrWhiteSpace(publishedProviderVersionId, nameof(publishedProviderVersionId));
             Guard.IsNullOrWhiteSpace(publishedProviderVersionBody, nameof(publishedProviderVersionBody));
+            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
 
             string blobName = $"{publishedProviderVersionId}.json";
 
@@ -111,7 +115,7 @@ namespace CalculateFunding.Services.Publishing
             {
                 ICloudBlob blob = _blobClient.GetBlockBlobReference(blobName);
 
-                await _blobClientPolicy.ExecuteAsync(() => _blobClient.UploadAsync(blob, publishedProviderVersionBody));
+                await _blobClientPolicy.ExecuteAsync(() => UploadBlob(blob, publishedProviderVersionBody, GetMetadata(specificationId)));
             }
             catch (Exception ex)
             {
@@ -122,7 +126,21 @@ namespace CalculateFunding.Services.Publishing
                 throw new Exception(errorMessage, ex);
             }
         }
-        
+
+        private async Task UploadBlob(ICloudBlob blob, string contents, IDictionary<string, string> metadata)
+        {
+            await _blobClient.UploadAsync(blob, contents);
+            await _blobClient.AddMetadataAsync(blob, metadata);
+        }
+
+        private IDictionary<string, string> GetMetadata(string specificationId)
+        {
+            return new Dictionary<string, string>
+            {
+                { "specification-id", specificationId }
+            };
+        }
+
         public async Task<IActionResult> ReIndex(Reference user, string correlationId)
         {
             Guard.ArgumentNotNull(user, nameof(user));

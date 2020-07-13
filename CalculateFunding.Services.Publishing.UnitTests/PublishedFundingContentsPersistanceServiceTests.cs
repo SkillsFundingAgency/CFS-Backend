@@ -6,6 +6,7 @@ using CalculateFunding.Generators.OrganisationGroup.Enums;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
 using FluentAssertions;
+using Microsoft.Azure.Storage.Blob;
 using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
@@ -23,6 +24,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private IPublishedFundingContentsGenerator _publishedFundingContentsGenerator;
         private Common.TemplateMetadata.Models.TemplateMetadataContents _templateMetadataContents;
         private PublishedFundingVersion _publishedFundingVersion;
+        private ICloudBlob _cloudBlob; 
 
         [TestInitialize]
         public void SetUp()
@@ -41,6 +43,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 _blobClient, PublishingResilienceTestHelper.GenerateTestPolicies(), 
                 new PublishingEngineOptions(configuration));
 
+            _cloudBlob = Substitute.For<ICloudBlob>();
+
             _publishedFundingPeriod = new PublishedFundingPeriod { Type = PublishedFundingPeriodType.AY, Period = "123" };
         }
 
@@ -58,6 +62,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             .WithOrganisationGroupIdentifierValue("101"));
 
             GivenTheGeneratedContentsIsReturned();
+            GivenTheBlobReference();
 
             // Act
             await WhenPublishedFundingContentsSaved();
@@ -96,17 +101,32 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
         private async Task ThenFileIsUploaded()
         {
-            string blobName = $"{_fundingStream}-{_publishedFundingPeriod.Id}-{GroupingReason.Payment.ToString()}-{OrganisationGroupTypeCode.AcademyTrust}-{_publishedFundingVersion.OrganisationGroupIdentifierValue}-{1}_{0}.json";
+            string blobName = $"{_fundingStream}-{_publishedFundingPeriod.Id}-{GroupingReason.Payment}-{OrganisationGroupTypeCode.AcademyTrust}-{_publishedFundingVersion.OrganisationGroupIdentifierValue}-{1}_{0}.json";
 
             await _blobClient
                 .Received(1)
                 .UploadFileAsync(Arg.Is(blobName), Arg.Any<string>());
+
+            await _blobClient
+                .Received(1)
+                .AddMetadataAsync(
+                    Arg.Is(_cloudBlob), 
+                    Arg.Is<IDictionary<string, string>>(_ => _.ContainsKey("specification-id") && _["specification-id"] == _publishedFundingVersion.SpecificationId));
         }
 
         private void GivenTheGeneratedContentsIsReturned()
         {
             _publishedFundingContentsGenerator.GenerateContents(_publishedFundingVersion, _templateMetadataContents)
                 .Returns("template1");
+        }
+
+        private void GivenTheBlobReference()
+        {
+            string blobName = $"{_fundingStream}-{_publishedFundingPeriod.Id}-{GroupingReason.Payment.ToString()}-{OrganisationGroupTypeCode.AcademyTrust}-{_publishedFundingVersion.OrganisationGroupIdentifierValue}-{1}_{0}.json";
+
+            _blobClient
+                .GetBlockBlobReference(Arg.Is(blobName))
+                .Returns(_cloudBlob);
         }
 
         private async Task WhenPublishedFundingContentsSaved()

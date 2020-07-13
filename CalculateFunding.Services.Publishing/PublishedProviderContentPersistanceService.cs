@@ -61,7 +61,8 @@ namespace CalculateFunding.Services.Publishing
 
                             try
                             {
-                                await _publishedProviderVersionService.SavePublishedProviderVersionBody(publishedProviderVersion.FundingId, contents);
+                                await _publishedProviderVersionService.SavePublishedProviderVersionBody(
+                                    publishedProviderVersion.FundingId, contents, publishedProviderVersion.SpecificationId);
                             }
                             catch (Exception ex)
                             {

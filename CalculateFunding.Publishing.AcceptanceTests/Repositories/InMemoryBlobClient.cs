@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Storage;
 using CalculateFunding.Common.Utility;
@@ -60,7 +61,9 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 
         public ICloudBlob GetBlockBlobReference(string blobName, string containerName = null)
         {
-            throw new NotImplementedException();
+            _files.TryAdd(blobName, string.Empty);
+
+            return new CloudBlobInMemory(blobName);
         }
 
         public void Initialize()
@@ -111,7 +114,13 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 
         public Task AddMetadataAsync(ICloudBlob blob, IDictionary<string, string> metadata)
         {
-            throw new NotImplementedException();
+            foreach (KeyValuePair<string, string> metadataItem 
+                in metadata.Where(_ => !string.IsNullOrEmpty(_.Value)))
+            {
+                blob.Metadata.Add(metadataItem.Key, metadataItem.Value);
+            }
+
+            return Task.FromResult(true);
         }
     }
 }

@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
@@ -87,7 +88,13 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 
         public Task AddMetadataAsync(ICloudBlob blob, IDictionary<string, string> metadata)
         {
-            throw new NotImplementedException();
+            foreach (KeyValuePair<string, string> metadataItem
+                in metadata.Where(_ => !string.IsNullOrEmpty(_.Value)))
+            {
+                blob.Metadata.Add(metadataItem.Key, metadataItem.Value);
+            }
+
+            return Task.FromResult(true);
         }
     }
 }
