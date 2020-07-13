@@ -1,14 +1,14 @@
 ﻿using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Extensions;
 using CalculateFunding.Models.Policy;
 using CalculateFunding.Services.Policy.Interfaces;
 using CalculateFunding.Services.Policy.Models;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Schema;
-using Newtonsoft.Json.Schema.Generation;
+using NJsonSchema;
 using NSubstitute;
 
 namespace CalculateFunding.Services.Policy.UnitTests
@@ -164,7 +164,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
             result
                 .Errors
                 .Should()
-                .HaveCount(11);
+                .HaveCount(8);
 
             result
                .IsValid
@@ -180,9 +180,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
 
             FundingStream fundingStream = new FundingStream();
 
-            JSchemaGenerator generator = new JSchemaGenerator();
-
-            JSchema schema = generator.Generate(typeof(TestTemplate_schema_1_0));
+            JsonSchema schema = JsonSchema.FromType<TestTemplate_schema_1_0>();
 
             TestTemplate_schema_1_0 testClassWithFunding = new TestTemplate_schema_1_0
             {
@@ -192,7 +190,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
 
             string fundingTemplate = JsonConvert.SerializeObject(testClassWithFunding);
 
-            string fundingSchema = schema.ToString();
+            string fundingSchema = schema.AsJson();
 
             string blobName = $"{fundingSchemaFolder}/{schemaVersion}.json";
 
@@ -237,9 +235,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
 
             FundingStream fundingStream = new FundingStream();
 
-            JSchemaGenerator generator = new JSchemaGenerator();
-
-            JSchema schema = generator.Generate(typeof(TestTemplate_schema_1_0));
+            JsonSchema schema = JsonSchema.FromType<TestTemplate_schema_1_0>();
 
             TestTemplate_schema_1_0 testClassWithFunding = new TestTemplate_schema_1_0
             {
@@ -249,7 +245,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
 
             string fundingTemplate = JsonConvert.SerializeObject(testClassWithFunding);
 
-            string fundingSchema = schema.ToString();
+            string fundingSchema = schema.AsJson();
 
             string blobName = $"{fundingSchemaFolder}/{schemaVersion}.json";
 
@@ -316,9 +312,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
 
             FundingStream fundingStream = new FundingStream();
 
-            JSchemaGenerator generator = new JSchemaGenerator();
-
-            JSchema schema = generator.Generate(typeof(TestTemplate_schema_1_1));
+            JsonSchema schema = JsonSchema.FromType<TestTemplate_schema_1_1>();
 
             var template = new TestTemplate_schema_1_1
             {
@@ -328,7 +322,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
 
             string fundingTemplate = JsonConvert.SerializeObject(template);
 
-            string fundingSchema = schema.ToString();
+            string fundingSchema = schema.AsJson();
 
             string blobName = $"{fundingSchemaFolder}/{schemaVersion}.json";
 

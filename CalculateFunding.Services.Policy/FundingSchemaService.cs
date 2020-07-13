@@ -6,7 +6,7 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Policy.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
-using Newtonsoft.Json.Schema;
+using NJsonSchema;
 using Serilog;
 using System;
 using System.Text;
@@ -94,10 +94,10 @@ namespace CalculateFunding.Services.Policy
                 return new BadRequestObjectResult("Null or empty funding schema was provided.");
             }
 
-            JSchema jSchema;
+            JsonSchema jSchema;
             try
             {
-                jSchema = JSchema.Parse(schema); 
+                jSchema = await JsonSchema.FromJsonAsync(schema); 
             }
             catch(Exception ex)
             {
@@ -171,11 +171,11 @@ namespace CalculateFunding.Services.Policy
             }
         }
 
-        private string ExtractVersionFromSchema(JSchema jSchema)
+        private string ExtractVersionFromSchema(JsonSchema jSchema)
         {
             if (jSchema.ExtensionData.ContainsKey("version"))
             {
-                JToken versionProperty = jSchema.ExtensionData["version"];
+                JToken versionProperty = JToken.Parse(jSchema.ExtensionData["version"].AsJson());
 
                 if (versionProperty != null && !string.IsNullOrWhiteSpace(versionProperty.Value<string>()))
                 {

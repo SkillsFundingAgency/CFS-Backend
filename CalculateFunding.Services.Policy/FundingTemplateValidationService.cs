@@ -10,7 +10,8 @@ using CalculateFunding.Services.Policy.Models;
 using FluentValidation.Results;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Newtonsoft.Json.Schema;
+using NJsonSchema;
+using NJsonSchema.Validation;
 
 namespace CalculateFunding.Services.Policy
 {
@@ -123,15 +124,14 @@ namespace CalculateFunding.Services.Policy
             string fundingSchemaJson =
                 await _fundingSchemaRepositoryPolicy.ExecuteAsync(() => _fundingSchemaRepository.GetFundingSchemaVersion(blobName));
 
-            JSchema fundingSchema = JSchema.Parse(fundingSchemaJson);
+            JsonSchema fundingSchema = await JsonSchema.FromJsonAsync(fundingSchemaJson);
+            ICollection<ValidationError> validationMessages = fundingSchema.Validate(parsedFundingTemplate);
 
-            bool isValidTemplate = parsedFundingTemplate.IsValid(fundingSchema, out IList<string> validationMessages);
-
-            if (!isValidTemplate)
+            if (validationMessages.AnyWithNullCheck())
             {
-                foreach (string message in validationMessages)
+                foreach (ValidationError message in validationMessages)
                 {
-                    fundingTemplateValidationResult.Errors.Add(new ValidationFailure("", message));
+                    fundingTemplateValidationResult.Errors.Add(new ValidationFailure(message.Property, message.ToString()));
                 }
             }
         }
