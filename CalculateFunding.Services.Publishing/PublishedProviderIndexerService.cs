@@ -135,7 +135,9 @@ namespace CalculateFunding.Services.Publishing
                 SpecificationId = publishedProviderVersion.SpecificationId,
                 FundingStreamId = publishedProviderVersion.FundingStreamId,
                 FundingPeriodId = publishedProviderVersion.FundingPeriodId,
-                HasErrors = publishedProviderVersion.HasErrors
+                HasErrors = publishedProviderVersion.HasErrors,
+                UPIN = publishedProviderVersion.Provider.UPIN,
+                URN = publishedProviderVersion.Provider.URN
             };
         }
     }

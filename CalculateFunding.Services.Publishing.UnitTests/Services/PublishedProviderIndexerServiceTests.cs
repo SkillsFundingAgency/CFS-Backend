@@ -123,6 +123,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                     d.First().FundingStatus == publishedProviderVersion.Status.ToString() &&
                     d.First().ProviderName == publishedProviderVersion.Provider.Name &&
                     d.First().UKPRN == publishedProviderVersion.Provider.UKPRN &&
+                    d.First().UPIN == publishedProviderVersion.Provider.UPIN &&
+                    d.First().URN == publishedProviderVersion.Provider.URN &&
                     d.First().FundingValue == Convert.ToDouble(publishedProviderVersion.TotalFunding) &&
                     d.First().SpecificationId == publishedProviderVersion.SpecificationId &&
                     d.First().FundingStreamId == "PSG" &&
@@ -142,6 +144,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 ProviderSubType = "Academy alternative provision converter",
                 URN = "123453",
                 UKPRN = "12345678",
+                UPIN = "123454",
                 DateOpened = DateTime.Parse("2012-12-02T00:00:00+00:00"),
                 DateClosed = null,
                 Status = "Open",

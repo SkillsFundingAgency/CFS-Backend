@@ -18,7 +18,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 SpecificationId = NewRandomString(),
                 FundingPeriodId = NewRandomString(),
                 FundingStreamId = NewRandomString(),
-                UKPRN = NewRandomString()
+                UKPRN = NewRandomString(),
+                UPIN = NewRandomString(),
+                URN = NewRandomString(),
             };
         }
     }

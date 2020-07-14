@@ -100,7 +100,9 @@ namespace CalculateFunding.Services.Publishing
                         FundingValue = Convert.ToDouble(publishedProvider.Current.TotalFunding),
                         SpecificationId = publishedProvider.Current.SpecificationId,
                         FundingStreamId = publishedProvider.Current.FundingStreamId,
-                        FundingPeriodId = publishedProvider.Current.FundingPeriodId
+                        FundingPeriodId = publishedProvider.Current.FundingPeriodId,
+                        UPIN = publishedProvider.Current.Provider.UPIN,
+                        URN = publishedProvider.Current.Provider.URN
                     });
                 }
                 

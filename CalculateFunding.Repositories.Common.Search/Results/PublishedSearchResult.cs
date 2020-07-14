@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace CalculateFunding.Repositories.Common.Search.Results
+﻿namespace CalculateFunding.Repositories.Common.Search.Results
 {    
     public class PublishedSearchResult
     {
@@ -12,6 +8,8 @@ namespace CalculateFunding.Repositories.Common.Search.Results
         public string FundingStatus { get; set; }
         public string ProviderName { get; set; }
         public string UKPRN { get; set; }
+        public string UPIN { get; set; }
+        public string URN { get; set; }
         public double FundingValue { get; set; }
         public string SpecificationId { get; set; }
         public string FundingStreamId { get; set; }

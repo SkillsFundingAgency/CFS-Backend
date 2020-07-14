@@ -33,6 +33,14 @@ namespace CalculateFunding.Models.Publishing
         [JsonProperty("ukprn")]
         public string UKPRN { get; set; }
 
+        [IsFilterable, IsSearchable, IsRetrievable(true)]
+        [JsonProperty("upin")]
+        public string UPIN { get; set; }
+
+        [IsFilterable, IsSearchable, IsRetrievable(true)]
+        [JsonProperty("urn")]
+        public string URN { get; set; }
+
         [IsFilterable, IsSortable, IsRetrievable(true)]
         [JsonProperty("fundingValue")]
         public double FundingValue { get; set; }

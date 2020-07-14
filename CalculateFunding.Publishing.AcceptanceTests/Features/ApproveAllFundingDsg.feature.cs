@@ -3061,10 +3061,10 @@ this.ScenarioInitialize(scenarioInfo);
                             "1000002"});
                 table27.AddRow(new string[] {
                             "UPIN",
-                            ""});
+                            "123456"});
                 table27.AddRow(new string[] {
                             "URN",
-                            ""});
+                            "1234567"});
                 table27.AddRow(new string[] {
                             "WardCode",
                             ""});
@@ -3936,7 +3936,9 @@ this.ScenarioInitialize(scenarioInfo);
                             "FundingValue",
                             "SpecificationId",
                             "FundingStreamId",
-                            "FundingPeriodId"});
+                            "FundingPeriodId",
+                            "UPIN",
+                            "URN"});
                 table32.AddRow(new string[] {
                             "1000002-FY-2021-DSG",
                             "LA maintained schools",
@@ -3947,7 +3949,9 @@ this.ScenarioInitialize(scenarioInfo);
                             "12000",
                             "specForPublishing",
                             string.Format("{0}", fundingStreamId),
-                            string.Format("{0}", fundingPeriodId)});
+                            string.Format("{0}", fundingPeriodId),
+                            "123456",
+                            "1234567"});
 #line 1100
  testRunner.And(string.Format("the following published provider search index items is produced for providerid wi" +
                             "th \'{0}\' and \'{1}\'", fundingStreamId, fundingPeriodId), ((string)(null)), table32, "And ");

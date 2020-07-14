@@ -128,6 +128,8 @@ namespace CalculateFunding.Services.Publishing
                             FundingStatus = m.Result.FundingStatus,
                             ProviderName = m.Result.ProviderName,
                             UKPRN = m.Result.UKPRN,
+                            UPIN = m.Result.UPIN,
+                            URN = m.Result.URN,
                             FundingValue = m.Result.FundingValue,
                             SpecificationId = m.Result.SpecificationId,
                             FundingStreamId = m.Result.FundingStreamId,
