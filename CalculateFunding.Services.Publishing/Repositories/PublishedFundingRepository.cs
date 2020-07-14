@@ -768,9 +768,12 @@ namespace CalculateFunding.Services.Publishing.Repositories
                                            'version'         : c.content.current.version,
                                            'provider'        : { 
                                                'providerType' : c.content.current.provider.providerType,
+                                               'providerSubType' : c.content.current.provider.providerSubType,
                                                'localAuthorityName' : c.content.current.provider.localAuthorityName,
                                                'name' : c.content.current.provider.name,
-                                               'ukprn' : c.content.current.provider.ukprn
+                                               'ukprn' : c.content.current.provider.ukprn,
+                                               'urn' : c.content.current.provider.urn,
+                                               'upin' : c.content.current.provider.upin
                                             }
                                         } AS Current
                                FROM     publishedProviders c
