@@ -124,6 +124,7 @@ namespace CalculateFunding.Services.Publishing
                         {
                             Id = m.Result.Id,
                             ProviderType = m.Result.ProviderType,
+                            ProviderSubType = m.Result.ProviderSubType,
                             LocalAuthority = m.Result.LocalAuthority,
                             FundingStatus = m.Result.FundingStatus,
                             ProviderName = m.Result.ProviderName,

@@ -634,6 +634,7 @@ namespace CalculateFunding.Migrations.Specifications.Etl.Migrations
                                     {
                                         Id = $"{provider.content.current.providerId}-{provider.content.current.fundingPeriodId}-{provider.content.current.fundingStreamId}",
                                         ProviderType = provider.content.current.provider.ProviderType,
+                                        ProviderSubType = provider.content.provider.ProviderSubType,
                                         LocalAuthority = provider.content.current.provider.LocalAuthorityName,
                                         FundingStatus = provider.content.current.status.ToString(),
                                         ProviderName = provider.content.current.provider.name,

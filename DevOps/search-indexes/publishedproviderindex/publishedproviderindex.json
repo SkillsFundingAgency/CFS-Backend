@@ -28,6 +28,19 @@
 			"indexAnalyzer": null
 		},
 		{
+			"name": "providerSubType",
+			"type": "Edm.String",
+			"key": false,
+			"facetable": true,
+			"filterable": true,
+			"retrievable": true,
+			"searchable": false,
+			"sortable": false,
+			"analyzer": null,
+			"searchAnalyzer": null,
+			"indexAnalyzer": null
+		},
+		{
 			"name": "localAuthority",
 			"type": "Edm.String",
 			"key": false,

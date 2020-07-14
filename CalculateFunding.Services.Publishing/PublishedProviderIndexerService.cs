@@ -48,13 +48,16 @@ namespace CalculateFunding.Services.Publishing
                 throw new NonRetriableException(error);
             }
 
-            await Index(new[] { publishedProviderVersion });
+            await Index(new[]
+            {
+                publishedProviderVersion
+            });
         }
 
         public async Task IndexPublishedProviders(IEnumerable<PublishedProviderVersion> publishedProviderVersions)
         {
             List<Task> allTasks = new List<Task>();
-            SemaphoreSlim throttler = new SemaphoreSlim(initialCount: _publishingEngineOptions.IndexPublishedProvidersConcurrencyCount);
+            SemaphoreSlim throttler = new SemaphoreSlim(_publishingEngineOptions.IndexPublishedProvidersConcurrencyCount);
             foreach (IEnumerable<PublishedProviderVersion> batch in publishedProviderVersions.ToBatches(100))
             {
                 await throttler.WaitAsync();
@@ -71,6 +74,7 @@ namespace CalculateFunding.Services.Publishing
                         }
                     }));
             }
+
             await TaskHelper.WhenAllAndThrow(allTasks.ToArray());
         }
 
@@ -121,12 +125,12 @@ namespace CalculateFunding.Services.Publishing
             return string.Empty;
         }
 
-            private PublishedProviderIndex CreatePublishedProviderIndex(PublishedProviderVersion publishedProviderVersion)
-        {
-            return new PublishedProviderIndex
+        private PublishedProviderIndex CreatePublishedProviderIndex(PublishedProviderVersion publishedProviderVersion) =>
+            new PublishedProviderIndex
             {
                 Id = $"{publishedProviderVersion.ProviderId}-{publishedProviderVersion.FundingPeriodId}-{publishedProviderVersion.FundingStreamId}",
                 ProviderType = publishedProviderVersion.Provider.ProviderType,
+                ProviderSubType = publishedProviderVersion.Provider.ProviderSubType,
                 LocalAuthority = publishedProviderVersion.Provider.Authority,
                 FundingStatus = publishedProviderVersion.Status.ToString(),
                 ProviderName = publishedProviderVersion.Provider.Name,
@@ -139,6 +143,5 @@ namespace CalculateFunding.Services.Publishing
                 UPIN = publishedProviderVersion.Provider.UPIN,
                 URN = publishedProviderVersion.Provider.URN
             };
-        }
     }
 }

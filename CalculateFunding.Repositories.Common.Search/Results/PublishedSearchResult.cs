@@ -4,6 +4,7 @@
     {
         public string Id { get; set; }
         public string ProviderType { get; set; }
+        public string ProviderSubType { get; set; }
         public string LocalAuthority { get; set; }
         public string FundingStatus { get; set; }
         public string ProviderName { get; set; }

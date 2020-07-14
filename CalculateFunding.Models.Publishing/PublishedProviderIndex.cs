@@ -1,5 +1,4 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using Microsoft.Azure.Search;
 using Newtonsoft.Json;
 
@@ -16,6 +15,10 @@ namespace CalculateFunding.Models.Publishing
         [IsFilterable, IsFacetable, IsRetrievable(true)]
         [JsonProperty("providerType")]
         public string ProviderType { get; set; }
+        
+        [IsFilterable, IsFacetable, IsRetrievable(true)]
+        [JsonProperty("providerSubType")]
+        public string ProviderSubType { get; set; }
 
         [IsFilterable, IsFacetable, IsRetrievable(true)]
         [JsonProperty("localAuthority")]

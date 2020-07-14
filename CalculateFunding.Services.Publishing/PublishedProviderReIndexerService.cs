@@ -64,15 +64,14 @@ namespace CalculateFunding.Services.Publishing
 
             Guard.IsNullOrWhiteSpace(jobId, nameof(jobId));
 
-            JobViewModel currentJob;
-
             try
             {
-                currentJob = await _jobManagement.RetrieveJobAndCheckCanBeProcessed(jobId);
+                await _jobManagement.RetrieveJobAndCheckCanBeProcessed(jobId);
             }
             catch
             {
                 string errorMessage = "Job cannot be run";
+                
                 _logger.Error(errorMessage);
 
                 throw new NonRetriableException(errorMessage);
@@ -93,6 +92,7 @@ namespace CalculateFunding.Services.Publishing
                     {
                         Id = publishedProvider.Current.FundingId,
                         ProviderType = publishedProvider.Current.Provider.ProviderType,
+                        ProviderSubType = publishedProvider.Current.Provider.ProviderSubType,
                         LocalAuthority = publishedProvider.Current.Provider.Authority,
                         FundingStatus = publishedProvider.Current.Status.ToString(),
                         ProviderName = publishedProvider.Current.Provider.Name,

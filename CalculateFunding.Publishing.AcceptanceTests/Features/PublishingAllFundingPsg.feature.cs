@@ -2509,6 +2509,7 @@ this.ScenarioInitialize(scenarioInfo);
                 TechTalk.SpecFlow.Table table355 = new TechTalk.SpecFlow.Table(new string[] {
                             "ID",
                             "ProviderType",
+                            "ProviderSubType",
                             "LocalAuthority",
                             "FundingStatus",
                             "ProviderName",
@@ -2520,6 +2521,7 @@ this.ScenarioInitialize(scenarioInfo);
                 table355.AddRow(new string[] {
                             "1000102-AY-1920-PSG",
                             "Academies",
+                            "Academy special sponsor led",
                             "Local Authority 1",
                             "Released",
                             "Academy 2",
@@ -2531,6 +2533,7 @@ this.ScenarioInitialize(scenarioInfo);
                 table355.AddRow(new string[] {
                             "1000201-AY-1920-PSG",
                             "Special schools",
+                            "Non-maintained special school",
                             "Local Authority 1",
                             "Released",
                             "Non-Maintained School 1",
@@ -2542,6 +2545,7 @@ this.ScenarioInitialize(scenarioInfo);
                 table355.AddRow(new string[] {
                             "1000101-AY-1920-PSG",
                             "Academies",
+                            "Academy special sponsor led",
                             "Local Authority 1",
                             "Released",
                             "Academy 1",
@@ -2553,6 +2557,7 @@ this.ScenarioInitialize(scenarioInfo);
                 table355.AddRow(new string[] {
                             "1000002-AY-1920-PSG",
                             "LA maintained schools",
+                            "Community school",
                             "Local Authority 1",
                             "Released",
                             "Maintained School 2",
@@ -2564,6 +2569,7 @@ this.ScenarioInitialize(scenarioInfo);
                 table355.AddRow(new string[] {
                             "1000202-AY-1920-PSG",
                             "Special schools",
+                            "Non-maintained special school",
                             "Local Authority 1",
                             "Released",
                             "Non-Maintained School 1",

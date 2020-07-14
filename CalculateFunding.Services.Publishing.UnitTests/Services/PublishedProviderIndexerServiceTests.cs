@@ -119,6 +119,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 .Index(Arg.Is<IEnumerable<PublishedProviderIndex>>(
                     d => d.First().Id == $"{publishedProviderVersion.ProviderId}-{publishedProviderVersion.FundingPeriodId}-{publishedProviderVersion.FundingStreamId}" &&
                     d.First().ProviderType == publishedProviderVersion.Provider.ProviderType &&
+                    d.First().ProviderSubType == publishedProviderVersion.Provider.ProviderSubType &&
                     d.First().LocalAuthority == publishedProviderVersion.Provider.Authority &&
                     d.First().FundingStatus == publishedProviderVersion.Status.ToString() &&
                     d.First().ProviderName == publishedProviderVersion.Provider.Name &&

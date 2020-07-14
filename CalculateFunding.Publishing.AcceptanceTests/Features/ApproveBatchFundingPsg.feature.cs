@@ -4860,6 +4860,7 @@ this.ScenarioInitialize(scenarioInfo);
                 TechTalk.SpecFlow.Table table220 = new TechTalk.SpecFlow.Table(new string[] {
                             "ID",
                             "ProviderType",
+                            "ProviderSubType",
                             "LocalAuthority",
                             "FundingStatus",
                             "ProviderName",
@@ -4873,6 +4874,7 @@ this.ScenarioInitialize(scenarioInfo);
                 table220.AddRow(new string[] {
                             "1000201-AY-1920-PSG",
                             "Special schools",
+                            "Non-maintained special school",
                             "Local Authority 1",
                             "Approved",
                             "Non-Maintained School 1",
