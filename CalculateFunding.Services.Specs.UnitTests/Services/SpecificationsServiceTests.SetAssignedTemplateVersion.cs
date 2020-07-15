@@ -260,7 +260,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .UpdateSpecification(Arg.Any<Specification>())
                 .Returns(HttpStatusCode.OK);
 
-            var fundingTemplateApiResponse = new ApiResponse<PolicyModels.FundingTemplateContents>(HttpStatusCode.OK, null);
+            ApiResponse<PolicyModels.FundingTemplateContents> fundingTemplateApiResponse = new ApiResponse<PolicyModels.FundingTemplateContents>(HttpStatusCode.OK, null);
 
             //TODO; track down where we can grab the instance thats being saved to check we set the correct stuff on it
             
@@ -273,6 +273,8 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 specificationsRepository: specificationsRepository,
                 specificationVersionRepository: specificationVersionRepository,
                 policiesApiClient: policiesApiClient);
+
+            SpecificationVersion previousSpecificationVersion = specification.Current;
 
             // Act
             IActionResult result = await service.SetAssignedTemplateVersion(specificationId, fundingStreamId, templateVersion);
@@ -296,6 +298,12 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             templateIds?[fundingStreamId]
                 .Should()
                 .Be(templateVersion);
+
+            await _templateVersionChangedHandler
+                .Received(1)
+                .HandleTemplateVersionChanged(Arg.Is(previousSpecificationVersion),
+                    Arg.Is(fundingStreamId),
+                    Arg.Is(templateVersion));
         }
     }
 }

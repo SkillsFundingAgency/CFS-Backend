@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Specs;
@@ -17,6 +18,15 @@ namespace CalculateFunding.Services.Specs.UnitTests
         private DateTimeOffset? _date;
         private string[] _dataDefinitionRelationshipIds;
         private PublishStatus? _publishStatus;
+        private Dictionary<string, string> _templateIds;
+
+        public SpecificationVersionBuilder WithTemplateIds(params (string fundingStreamId, string templateId)[] assignedTemplateIds)
+        {
+            _templateIds = assignedTemplateIds
+                .ToDictionary(_ => _.fundingStreamId, _ => _.templateId);
+
+            return this;
+        }
 
         public SpecificationVersionBuilder WithPublishStatus(PublishStatus publishStatus)
         {
@@ -85,7 +95,8 @@ namespace CalculateFunding.Services.Specs.UnitTests
                 SpecificationId = _specificationId,
                 FundingPeriod = NewReferenceForId(_fundingPeriodId, _fundingPeriodName),
                 FundingStreams = _fundingStreamIds.Select(id => NewReferenceForId(id)).ToArray(),
-                PublishStatus = _publishStatus.GetValueOrDefault(NewRandomEnum<PublishStatus>())
+                PublishStatus = _publishStatus.GetValueOrDefault(NewRandomEnum<PublishStatus>()),
+                TemplateIds = _templateIds ?? new Dictionary<string, string>()
             };
         }
 

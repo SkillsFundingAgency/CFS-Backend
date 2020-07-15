@@ -66,6 +66,7 @@ namespace CalculateFunding.Services.Specs
         private readonly IProvidersApiClient _providersApiClient;
         private readonly AsyncPolicy _providersApiClientPolicy;
         private readonly ISpecificationIndexer _specificationIndexer;
+        private readonly ISpecificationTemplateVersionChangedHandler _templateVersionChangedHandler;
         private readonly IResultsApiClient _results;
         private readonly AsyncPolicy _resultsApiClientPolicy; 
 
@@ -89,7 +90,8 @@ namespace CalculateFunding.Services.Specs
             IFeatureToggle featureToggle,
             IProvidersApiClient providersApiClient,
             ISpecificationIndexer specificationIndexer,
-            IResultsApiClient results)
+            IResultsApiClient results,
+            ISpecificationTemplateVersionChangedHandler templateVersionChangedHandler)
         {
             Guard.ArgumentNotNull(mapper, nameof(mapper));
             Guard.ArgumentNotNull(specificationsRepository, nameof(specificationsRepository));
@@ -115,6 +117,7 @@ namespace CalculateFunding.Services.Specs
             Guard.ArgumentNotNull(providersApiClient, nameof(providersApiClient));
             Guard.ArgumentNotNull(specificationIndexer, nameof(specificationIndexer));
             Guard.ArgumentNotNull(results, nameof(results));
+            Guard.ArgumentNotNull(templateVersionChangedHandler, nameof(templateVersionChangedHandler));
 
             _mapper = mapper;
             _specificationsRepository = specificationsRepository;
@@ -137,6 +140,7 @@ namespace CalculateFunding.Services.Specs
             _providersApiClient = providersApiClient;
             _specificationIndexer = specificationIndexer;
             _results = results;
+            _templateVersionChangedHandler = templateVersionChangedHandler;
             _providersApiClientPolicy = resiliencePolicies.ProvidersApiClient;
             _resultsApiClientPolicy = resiliencePolicies.ResultsApiClient;
         }
@@ -692,7 +696,9 @@ namespace CalculateFunding.Services.Specs
                 return new NotFoundObjectResult("Specification not found");
             }
 
-            Models.Specs.SpecificationVersion previousSpecificationVersion = specification.Current;
+            SpecificationVersion previousSpecificationVersion = specification.Current;
+            
+            await _templateVersionChangedHandler.HandleTemplateVersionChanged(previousSpecificationVersion, editModel.AssignedTemplateIds, user, correlationId);
 
             if(previousSpecificationVersion.ProviderVersionId != editModel.ProviderVersionId)
             {
@@ -709,8 +715,7 @@ namespace CalculateFunding.Services.Specs
                 }
             }
 
-            Models.Specs.SpecificationVersion specificationVersion =
-                specification.Current.Clone() as Models.Specs.SpecificationVersion;
+            SpecificationVersion specificationVersion = specification.Current.DeepCopy();
 
             specificationVersion.ProviderVersionId = editModel.ProviderVersionId;
             specificationVersion.Name = editModel.Name;
@@ -1194,13 +1199,14 @@ WHERE   s.documentType = @DocumentType",
                 return new PreconditionFailedResult(message);
             }
 
-            Models.Specs.SpecificationVersion currentSpecificationVersion = specification.Current;
-            Models.Specs.SpecificationVersion newSpecificationVersion =
-                specification.Current.Clone() as Models.Specs.SpecificationVersion;
+            SpecificationVersion currentSpecificationVersion = specification.Current;
+            SpecificationVersion newSpecificationVersion = specification.Current.DeepCopy();
 
             newSpecificationVersion.AddOrUpdateTemplateId(fundingStreamId, templateVersion);
             HttpStatusCode updateSpecificationResult =
                 await UpdateSpecification(specification, newSpecificationVersion, currentSpecificationVersion);
+
+            await _templateVersionChangedHandler.HandleTemplateVersionChanged(currentSpecificationVersion, fundingStreamId, templateVersion);
 
             return new OkObjectResult(updateSpecificationResult);
         }

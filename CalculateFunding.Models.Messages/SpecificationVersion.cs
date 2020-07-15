@@ -29,9 +29,6 @@ namespace CalculateFunding.Models.Messages
         [JsonProperty("dataDefinitionRelationshipIds")]
         public IEnumerable<string> DataDefinitionRelationshipIds { get; set; }
 
-        [JsonProperty("templateId")]
-        public string TemplateId { get; set; }
-
         [JsonProperty("templateIds")]
         public Dictionary<string, string> TemplateIds { get; set; } = new Dictionary<string, string>();
 

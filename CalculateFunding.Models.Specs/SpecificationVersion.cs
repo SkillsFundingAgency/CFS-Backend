@@ -35,9 +35,6 @@ namespace CalculateFunding.Models.Specs
         [JsonProperty("dataDefinitionRelationshipIds")]
         public IEnumerable<string> DataDefinitionRelationshipIds { get; set; }
 
-        [JsonProperty("templateId")]
-        public string TemplateId { get; set; }
-
         [JsonProperty("templateIds")]
         public Dictionary<string, string> TemplateIds { get; set; } = new Dictionary<string, string>();
 
@@ -58,6 +55,11 @@ namespace CalculateFunding.Models.Specs
             else
                 TemplateIds.Add(fundingStreamId, templateId);
         }
+
+        public bool TemplateVersionHasChanged(string fundingStreamId,
+            string templateId)
+            => !TemplateIds.TryGetValue(fundingStreamId, out string currentTemplate) ||
+               currentTemplate != templateId;
 
         public override VersionedItem Clone()
         {

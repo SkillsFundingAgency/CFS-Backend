@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using System.Collections.Generic;
+using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Specs
 {
@@ -13,6 +14,8 @@ namespace CalculateFunding.Models.Specs
         public string ProviderVersionId { get; set; }
 
         public string FundingPeriodId { get; set; }
+        
+        public IDictionary<string, string> AssignedTemplateIds { get; set; }
 
         public string Description { get; set; }
 

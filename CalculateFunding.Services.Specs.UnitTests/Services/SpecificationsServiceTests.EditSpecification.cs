@@ -21,6 +21,7 @@ using Microsoft.Extensions.Primitives;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using PolicyModels = CalculateFunding.Common.ApiClient.Policies.Models;
+using SpecificationVersion = CalculateFunding.Models.Specs.SpecificationVersion;
 
 
 namespace CalculateFunding.Services.Specs.UnitTests.Services
@@ -120,7 +121,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         }
 
         [TestMethod]
-        public async Task EditSpecification_GivenSpecificationWasfoundAndFundingPeriodChangedButFailedToGetFundingPeriodsFromCosmos_ReturnsPreConditionFailedresult()
+        public async Task EditSpecification_GivenSpecificationWasfoundAndFundingPeriodChangedButFailedToGetFundingPeriodsFromCosmos_ReturnsPreConditionFailedResult()
         {
             //Arrange
             SpecificationEditModel specificationEditModel = new SpecificationEditModel
@@ -272,26 +273,27 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         public async Task EditSpecification_GivenChanges_UpdatesSearchAndSendsMessage()
         {
             //Arrange
-            IEnumerable<Reference> existingFundingStreams = _specification.Current.FundingStreams;
             SpecificationEditModel specificationEditModel = new SpecificationEditModel
             {
                 FundingPeriodId = "fp10",
                 Name = "new spec name",
-                ProviderVersionId = _specification.Current.ProviderVersionId
+                ProviderVersionId = _specification.Current.ProviderVersionId,
+                AssignedTemplateIds =  new Dictionary<string, string>()
             };
-            PolicyModels.FundingStream fundingStream = new PolicyModels.FundingStream
-            {
-                Id = existingFundingStreams.First().Id
-            };
-            Models.Specs.SpecificationVersion newSpecVersion = _specification.Current.Clone() as Models.Specs.SpecificationVersion;
+            SpecificationVersion newSpecVersion = _specification.Current.DeepCopy();
             newSpecVersion.Name = specificationEditModel.Name;
             newSpecVersion.FundingPeriod.Id = specificationEditModel.FundingPeriodId;
             newSpecVersion.FundingStreams = new[] { new Reference { Id = "fs11" } };
 
             SpecificationsService service = CreateSpecificationsService(newSpecVersion);
+            
+            Reference user = new Reference();
+            string correlationId = NewRandomString();
+
+            SpecificationVersion previousSpecificationVersion = _specification.Current;
 
             //Act
-            IActionResult result = await service.EditSpecification(SpecificationId, specificationEditModel, null, null);
+            await service.EditSpecification(SpecificationId, specificationEditModel, user, correlationId);
 
             await _specificationIndexer
                 .Received(1)
@@ -314,6 +316,13 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
               _versionRepository
                .Received(1)
                .SaveVersion(Arg.Is(newSpecVersion));
+
+            await _templateVersionChangedHandler
+                .Received(1)
+                .HandleTemplateVersionChanged(Arg.Is(previousSpecificationVersion), 
+                    Arg.Is(specificationEditModel.AssignedTemplateIds), 
+                    Arg.Is(user),
+                     Arg.Is(correlationId));
         }
 
         private SpecificationsService CreateSpecificationsService(Models.Specs.SpecificationVersion newSpecVersion)

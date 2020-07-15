@@ -63,7 +63,8 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         private readonly ICacheProvider _cacheProvider;
         private readonly IMessengerService _messengerService;
         private readonly IVersionRepository<Models.Specs.SpecificationVersion> _versionRepository;
-        
+
+        private ISpecificationTemplateVersionChangedHandler _templateVersionChangedHandler;
         private IResultsApiClient _resultsApiClient;        
         
 
@@ -103,6 +104,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             
             _specificationIndexer = Substitute.For<ISpecificationIndexer>();
             _resultsApiClient = Substitute.For<IResultsApiClient>();
+            _templateVersionChangedHandler = Substitute.For<ISpecificationTemplateVersionChangedHandler>();
         }
 
         private SpecificationsService CreateService(
@@ -144,7 +146,8 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 featureToggle ?? Substitute.For<IFeatureToggle>(),
                 providersApiClient ?? Substitute.For<IProvidersApiClient>(),
                 _specificationIndexer,
-                _resultsApiClient);
+                _resultsApiClient,
+                _templateVersionChangedHandler);
         }
 
         private async Task AndAMergeSpecificationInformationJobWasQueued(SpecificationVersion specification)

@@ -166,6 +166,8 @@ namespace CalculateFunding.Api.Specs
                     return new LocalBlobClient(storageSettings);
                 });
 
+            builder.AddSingleton<ISpecificationTemplateVersionChangedHandler, SpecificationTemplateVersionChangedHandler>();
+
             builder
                 .AddSingleton<IBlobContainerRepository, BlobContainerRepository>();
 

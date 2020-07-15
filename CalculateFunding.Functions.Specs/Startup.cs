@@ -64,6 +64,7 @@ namespace CalculateFunding.Functions.Specs
         private static IServiceProvider Register(IServiceCollection builder, IConfigurationRoot config)
         {
             builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();
+            builder.AddSingleton<ISpecificationTemplateVersionChangedHandler, SpecificationTemplateVersionChangedHandler>();
 
             builder.AddSingleton<IQueueCreateSpecificationJobActions, QueueCreateSpecificationJobAction>();
             builder.AddSingleton<IQueueDeleteSpecificationJobActions, QueueDeleteSpecificationJobAction>();
