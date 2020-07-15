@@ -110,6 +110,7 @@ namespace CalculateFunding.Services.Specs
             Guard.ArgumentNotNull(resiliencePolicies?.JobsApiClient, nameof(resiliencePolicies.JobsApiClient));
             Guard.ArgumentNotNull(resiliencePolicies?.CalcsApiClient, nameof(resiliencePolicies.CalcsApiClient));
             Guard.ArgumentNotNull(resiliencePolicies?.ProvidersApiClient, nameof(resiliencePolicies.ProvidersApiClient));
+            Guard.ArgumentNotNull(resiliencePolicies?.ResultsApiClient, nameof(resiliencePolicies.ResultsApiClient));
             Guard.ArgumentNotNull(queueCreateSpecificationJobAction, nameof(queueCreateSpecificationJobAction));
             Guard.ArgumentNotNull(queueDeleteSpecificationJobAction, nameof(queueDeleteSpecificationJobAction));
             Guard.ArgumentNotNull(calcsApiClient, nameof(calcsApiClient));
