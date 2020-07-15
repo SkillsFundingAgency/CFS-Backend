@@ -80,7 +80,7 @@ namespace CalculateFunding.Services.Specs
 
                     if (!searchResult.Facets.IsNullOrEmpty())
                     {
-                        results.Facets = searchResult.Facets.Concat(searchResult.Facets);
+                        results.Facets = results.Facets.Concat(searchResult.Facets);
                     }
                     else
                     {

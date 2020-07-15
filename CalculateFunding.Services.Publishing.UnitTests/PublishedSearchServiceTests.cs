@@ -91,9 +91,20 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .Should()
                 .NotBeNull();
 
-            IEnumerable<PublishedSearchResult> publishedSearchResults = result.Value as IEnumerable<PublishedSearchResult>;
+            PublishedSearchResults publishedSearchResults = result.Value as PublishedSearchResults;
 
-            publishedSearchResults?.Select(_ => _.Id)
+            publishedSearchResults
+                .Facets
+                .Should()
+                .NotBeNull();
+
+            IEnumerable<PublishedSearchResult> results = publishedSearchResults.Results;
+
+            results
+                .Should()
+                .NotBeNull();
+
+            results.Select(_ => _.Id)
                 .Should()
                 .BeEquivalentTo(searchIndexResults.Results.Select(_ => _.Result.Id));
 

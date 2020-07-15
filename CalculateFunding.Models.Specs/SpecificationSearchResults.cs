@@ -9,6 +9,7 @@ namespace CalculateFunding.Models.Specs
         public SpecificationDatasetRelationshipsSearchResults()
         {
             Results = Enumerable.Empty<SpecificationDatasetRelationshipsSearchResult>();
+            Facets = Enumerable.Empty<Facet>();
         }
         
         public IEnumerable<Facet> Facets { get; set; }
