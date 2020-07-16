@@ -12,6 +12,7 @@ using Newtonsoft.Json;
 using Polly;
 using Serilog;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using ProvidersApiClientModel = CalculateFunding.Common.ApiClient.Providers.Models;
 
@@ -106,7 +107,7 @@ namespace CalculateFunding.Api.External.V3.Services
                 {
                     await using MemoryStream stream = new MemoryStream(providerVersionSearchResult.AsJsonBytes());
 
-                    _fileSystemCache.Add(providerVersionFileSystemCacheKey, stream);
+                    _fileSystemCache.Add(providerVersionFileSystemCacheKey, stream, ensureFolderExists: true);
                 }
             }
 

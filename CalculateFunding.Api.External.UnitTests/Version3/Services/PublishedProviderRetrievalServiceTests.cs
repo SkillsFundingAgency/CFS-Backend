@@ -19,6 +19,7 @@ using CalculateFunding.Services.Core.Extensions;
 using ProvidersModels = CalculateFunding.Common.ApiClient.Providers.Models.Search;
 using CalculateFunding.Common.ApiClient.Models;
 using System.Net;
+using System.Threading;
 
 namespace CalculateFunding.Api.External.UnitTests.Version3.Services
 {
@@ -120,12 +121,14 @@ namespace CalculateFunding.Api.External.UnitTests.Version3.Services
         [TestMethod]
         public async Task GetPublishedProviderInformation_GetProviderByIdFromProviderVersion_ReturnsProviderVersionSearchResult()
         {
+            GivenCacheSettings(true);
             AndGetPublishedProviderId();
             AndGetProviderByIdFromProviderVersion();
 
             IActionResult actionResult = await WhenGetPublishedProviderInformation();
 
             ThenPublishedProviderInformationSucceed(actionResult);
+            AndTheFileSystemCacheFolderWasEnsuredToExist();
         }
 
         private void GivenCacheSettings(bool isEnabled)
@@ -172,6 +175,16 @@ namespace CalculateFunding.Api.External.UnitTests.Version3.Services
             return await _publishedProviderRetrievalService.GetPublishedProviderInformation(_publishedProviderVersion);
         }
 
+        private void AndTheFileSystemCacheFolderWasEnsuredToExist()
+        {
+            _fileSystemCache
+                .Received(1)
+                .Add(Arg.Any<FileSystemCacheKey>(), 
+                    Arg.Any<Stream>(), 
+                    Arg.Is(CancellationToken.None),  
+                    Arg.Is(true));
+        }
+        
         private void ThenPublishedProviderInformationSucceed(IActionResult actionResult)
         {
             actionResult
