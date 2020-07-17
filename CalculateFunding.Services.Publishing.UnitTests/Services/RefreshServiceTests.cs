@@ -40,6 +40,7 @@ using TemplateCalculation = CalculateFunding.Common.TemplateMetadata.Models.Calc
 using TemplateFundingLine = CalculateFunding.Common.TemplateMetadata.Models.FundingLine;
 using CalculateFunding.Tests.Common.Helpers;
 using CalculateFunding.Common.ServiceBus.Interfaces;
+using CalculateFunding.Generators.OrganisationGroup.Interfaces;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.Services
 {
@@ -87,6 +88,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         private IJobsRunning _jobsRunning;
         private ICalculationPrerequisiteCheckerService _calculationApprovalCheckerService;
         private IMapper _mapper;
+        private IOrganisationGroupGenerator _organisationGroupGenerator;
         private string _providerIdVaried;
         private const string SpecificationId = "SpecificationId";
         private const string FundingPeriodId = "AY-2020";
@@ -133,12 +135,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             _publishedProviderIndexerService = Substitute.For<IPublishedProviderIndexerService>();
             _jobManagement = Substitute.For<IJobManagement>();
             _prerequisiteCheckerLocator = Substitute.For<IPrerequisiteCheckerLocator>();
+            _organisationGroupGenerator = Substitute.For<IOrganisationGroupGenerator>();
+            _policiesService = Substitute.For<IPoliciesService>();
             _prerequisiteCheckerLocator.GetPreReqChecker(PrerequisiteCheckerType.Refresh)
-                .Returns(new RefreshPrerequisiteChecker(_specificationFundingStatusService, _specificationService, _jobsRunning, _calculationApprovalCheckerService, _jobManagement, _logger));
+                .Returns(new RefreshPrerequisiteChecker(_specificationFundingStatusService, 
+                _specificationService, _jobsRunning, _calculationApprovalCheckerService, _jobManagement, _logger, _organisationGroupGenerator,
+                _policiesService, _mapper, _publishedFundingDataService, _publishingResiliencePolicies));
             _transactionFactory = new TransactionFactory(_logger, new TransactionResiliencePolicies { TransactionPolicy = Policy.NoOpAsync() });
             _publishedProviderVersionService = Substitute.For<IPublishedProviderVersionService>();
             _generateCsvJobsLocator = Substitute.For<IGeneratePublishedFundingCsvJobsCreationLocator>();
-            _policiesService = Substitute.For<IPoliciesService>();
             _reApplyCustomProfiles = new Mock<IReApplyCustomProfiles>();
             _policiesApiClient = new Mock<IPoliciesApiClient>();
             _cacheProvider = new Mock<ICacheProvider>();

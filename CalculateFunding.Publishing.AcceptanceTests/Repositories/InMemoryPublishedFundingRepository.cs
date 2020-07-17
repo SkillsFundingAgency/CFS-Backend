@@ -400,5 +400,15 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         {
             throw new NotImplementedException();
         }
+
+        public Task<IEnumerable<KeyValuePair<string, string>>> GetPublishedFundingIds(string specificationId)
+        {
+            IEnumerable<KeyValuePair<string, string>> results = _repo.PublishedFunding
+                .SelectMany(c => c.Value)
+                .Where(p => p.Current.SpecificationId == specificationId)
+                .Select(r => new KeyValuePair<string, string>(r.Id, r.ParitionKey));
+
+            return Task.FromResult(results);
+        }
     }
 }

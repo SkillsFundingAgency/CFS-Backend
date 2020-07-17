@@ -142,6 +142,45 @@ namespace CalculateFunding.Services.Publishing
             return results;
         }
 
+        public async Task<IEnumerable<PublishedFunding>> GetCurrentPublishedFunding(string specificationId)
+        {
+            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
+
+            ConcurrentBag<PublishedFunding> results = new ConcurrentBag<PublishedFunding>();
+
+            IEnumerable<KeyValuePair<string, string>> publishedFundingIds = await _publishedFundingRepositoryPolicy.ExecuteAsync(
+                                () => _publishedFundingRepository.GetPublishedFundingIds(specificationId));
+
+            List<Task> allTasks = new List<Task>();
+            SemaphoreSlim throttler = new SemaphoreSlim(initialCount: _publishingEngineOptions.GetCurrentPublishedFundingConcurrencyCount);
+            foreach (KeyValuePair<string, string> cosmosDocumentInformation in publishedFundingIds)
+            {
+                await throttler.WaitAsync();
+                allTasks.Add(
+                    Task.Run(async () =>
+                    {
+                        try
+                        {
+                            PublishedFunding result = await _publishedFundingRepositoryPolicy.ExecuteAsync(
+                                () => _publishedFundingRepository.GetPublishedFundingById(cosmosDocumentInformation.Key, cosmosDocumentInformation.Value));
+
+                            if (result == null)
+                            {
+                                throw new InvalidOperationException($"PublishedFunding not found for document '{cosmosDocumentInformation.Key}'");
+                            }
+                            results.Add(result);
+                        }
+                        finally
+                        {
+                            throttler.Release();
+                        }
+                    }));
+            }
+            await TaskHelper.WhenAllAndThrow(allTasks.ToArray());
+
+            return results;
+        }
+
         public async Task<IEnumerable<PublishedProvider>> GetCurrentPublishedProviders(string fundingStreamId, string fundingPeriodId, string[] providerIds = null)
         {
             Guard.IsNullOrWhiteSpace(fundingStreamId, nameof(fundingStreamId));

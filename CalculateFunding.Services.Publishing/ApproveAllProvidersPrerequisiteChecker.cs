@@ -18,7 +18,7 @@ namespace CalculateFunding.Services.Publishing
         {
         }
 
-        public async Task PerformChecks<T>(T prereqObject, string jobId, IEnumerable<PublishedProvider> publishedProviders = null, IEnumerable<string> providerIds = null)
+        public async Task PerformChecks<T>(T prereqObject, string jobId, IEnumerable<PublishedProvider> publishedProviders = null, IEnumerable<Provider> providers = null)
         {
             string specificationId = prereqObject as string;
 
@@ -38,7 +38,7 @@ namespace CalculateFunding.Services.Publishing
                 });
         }
 
-        protected override Task<IEnumerable<string>> PerformChecks<T>(T prereqObject, IEnumerable<PublishedProvider> publishedProviders = null)
+        protected override Task<IEnumerable<string>> PerformChecks<T>(T prereqObject, IEnumerable<PublishedProvider> publishedProviders = null, IEnumerable<Provider> providers = null)
         {
             return Task.FromResult<IEnumerable<string>>(null);
         }

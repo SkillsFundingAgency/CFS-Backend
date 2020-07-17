@@ -292,6 +292,33 @@ Background: Existing published funding
 		| TrustStatus        | SupportedByAMultiAcademyTrust |
 		| UKPRN              | 1000102                       |
 	And the provider with id '1000102' should be a scoped provider in the current specification in provider version 'psg-providers-1.0'
+	# Local Authorities in Core Provider Data
+	And the following provider exists within core provider data in provider version 'psg-providers-1.0'
+		| Field                         | Value                    |
+		| ProviderId                    | 9000000                  |
+		| Name                          | Local Authority 1        |
+		| Authority                     | Local Authority 1        |
+		| DateOpened                    | 2012-03-15               |
+		| LACode                        | 200                      |
+		| LocalAuthorityName            | Local Authority 1        |
+		| ProviderType                  | Local Authority          |
+		| ProviderSubType               | Local Authority          |
+		| ProviderVersionId             | <ProviderVersionId>      |
+		| TrustStatus                   | Not Supported By A Trust |
+		| UKPRN                         | 9000000                  |
+	And the following provider exists within core provider data in provider version 'psg-providers-1.0'
+		| Field                         | Value                    |
+		| ProviderId                    | 9000001                  |
+		| Name                          | Local Authority 2        |
+		| Authority                     | Local Authority 2        |
+		| DateOpened                    | 2012-03-15               |
+		| LACode                        | 201                      |
+		| LocalAuthorityName            | Local Authority 2        |
+		| ProviderType                  | Local Authority          |
+		| ProviderSubType               | Local Authority          |
+		| ProviderVersionId             | <ProviderVersionId>      |
+		| TrustStatus                   | Not Supported By A Trust |
+		| UKPRN                         | 9000001                  |
 	And calculation meta data exists for 'PSG'
 	    | CalculationType | CalculationId | Name                 | PublishStatus |
 	    | Template        | calculation1  | Total Allocation     | Approved      |

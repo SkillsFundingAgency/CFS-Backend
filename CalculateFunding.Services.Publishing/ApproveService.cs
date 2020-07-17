@@ -92,8 +92,7 @@ namespace CalculateFunding.Services.Publishing
 
             await PerformPrerequisiteChecks(specificationId, 
                 jobId, 
-                batched == true ? PrerequisiteCheckerType.ApproveBatchProviders : PrerequisiteCheckerType.ApproveAllProviders, 
-                approveProvidersRequest?.Providers);
+                batched == true ? PrerequisiteCheckerType.ApproveBatchProviders : PrerequisiteCheckerType.ApproveAllProviders);
 
             _logger.Information(logApproveProcessingMessage);
 
@@ -200,12 +199,12 @@ namespace CalculateFunding.Services.Publishing
             }
         }
 
-        private async Task PerformPrerequisiteChecks(string specificationId, string jobId, PrerequisiteCheckerType prerequisiteCheckerType, IEnumerable<string> providerIds = null)
+        private async Task PerformPrerequisiteChecks(string specificationId, string jobId, PrerequisiteCheckerType prerequisiteCheckerType)
         {
             _logger.Information($"Verifying prerequisites for {prerequisiteCheckerType}");
 
             IPrerequisiteChecker prerequisiteChecker = _prerequisiteCheckerLocator.GetPreReqChecker(prerequisiteCheckerType);
-            await prerequisiteChecker.PerformChecks(specificationId, jobId, null, providerIds);
+            await prerequisiteChecker.PerformChecks(specificationId, jobId, null, null);
 
             _logger.Information($"Prerequisites for {prerequisiteCheckerType} passed");
         }

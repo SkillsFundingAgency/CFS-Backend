@@ -453,7 +453,7 @@ Background: Existing published funding
 		| Name               | Local Authority 3        |
 		| Authority          | Local Authority 3        |
 		| DateOpened         | 2012-03-15               |
-		| LACode             | 202                      |
+		| LACode             | 203                      |
 		| LocalAuthorityName | Local Authority 3        |
 		| ProviderType       | Local Authority          |
 		| ProviderSubType    | Local Authority          |
@@ -588,7 +588,7 @@ Scenario: Provider name updated in core provider data and then do a refresh the 
 		| Name               | Local Authority Updated 1 |
 		| Authority          | Local Authority 1         |
 		| DateOpened         | 2012-03-15                |
-		| LACode             | 200                       |
+		| LACode             | 204                       |
 		| LocalAuthorityName | Local Authority 1         |
 		| ProviderType       | Local Authority           |
 		| ProviderSubType    | Local Authority           |

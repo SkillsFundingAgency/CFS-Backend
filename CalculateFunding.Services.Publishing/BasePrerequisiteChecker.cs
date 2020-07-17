@@ -29,11 +29,11 @@ namespace CalculateFunding.Services.Publishing
             _logger = logger;
         }
 
-        protected abstract Task<IEnumerable<string>> PerformChecks<T>(T prereqObject, IEnumerable<PublishedProvider> publishedProviders = null);
+        protected abstract Task<IEnumerable<string>> PerformChecks<T>(T prereqObject, IEnumerable<PublishedProvider> publishedProviders = null, IEnumerable<Provider> providers = null);
 
         public abstract bool IsCheckerType(PrerequisiteCheckerType type);
 
-        protected async Task BasePerformChecks<T>(T prereqObject, string specificationId, string jobId, string[] jobDefinitions, IEnumerable<PublishedProvider> publishedProviders = null)
+        protected async Task BasePerformChecks<T>(T prereqObject, string specificationId, string jobId, string[] jobDefinitions, IEnumerable<PublishedProvider> publishedProviders = null, IEnumerable<Provider> providers = null)
         {
             IEnumerable<string> jobTypesRunning = await _jobsRunning.GetJobTypes(specificationId, jobDefinitions);
             List<string> results = new List<string>();
@@ -44,7 +44,7 @@ namespace CalculateFunding.Services.Publishing
                 _logger.Error(string.Join(Environment.NewLine, results));
             }
 
-            results.AddRange(await PerformChecks(prereqObject, publishedProviders) ?? new string[0]);
+            results.AddRange(await PerformChecks(prereqObject, publishedProviders, providers) ?? new string[0]);
 
             if (!results.IsNullOrEmpty())
             {

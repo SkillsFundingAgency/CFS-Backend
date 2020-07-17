@@ -150,19 +150,35 @@ namespace CalculateFunding.Services.Publishing
                 throw new NonRetriableException($"Could not find specification with id '{specificationId}'");
             }
 
-            _logger.Information($"Verifying prerequisites for funding refresh");
-
-            // Check prerequisites for this specification to be chosen/refreshed
-            IPrerequisiteChecker prerequisiteChecker = _prerequisiteCheckerLocator.GetPreReqChecker(PrerequisiteCheckerType.Refresh);
-            await prerequisiteChecker.PerformChecks(specification, jobId);
-
-            _logger.Information($"Prerequisites for refresh passed");
-
             // Get scoped providers for this specification
             IDictionary<string, Provider> scopedProviders = await _providerService.GetScopedProvidersForSpecification(specification.Id, specification.ProviderVersionId);
 
             _logger.Information($"Found {scopedProviders.Count} scoped providers for refresh");
 
+            // Get existing published providers for this specification
+            _logger.Information("Looking up existing published providers from cosmos for refresh job");
+
+            string fundingPeriodId = await _policiesService.GetFundingPeriodId(specification.FundingPeriod.Id);
+
+            IDictionary<string, List<PublishedProvider>> existingPublishedProvidersByFundingStream = new Dictionary<string, List<PublishedProvider>>();
+            foreach (Reference fundingStream in specification.FundingStreams)
+            {
+                List<PublishedProvider> publishedProviders = (await _publishingResiliencePolicy.ExecuteAsync(() =>
+                _publishedFundingDataService.GetCurrentPublishedProviders(fundingStream.Id, fundingPeriodId))).ToList();
+
+                existingPublishedProvidersByFundingStream.Add(fundingStream.Id, publishedProviders);
+                _logger.Information($"Found {publishedProviders.Count} existing published providers for funding stream {fundingStream.Id} from cosmos for refresh job");
+            }
+
+            _logger.Information($"Verifying prerequisites for funding refresh");
+            
+            // Check prerequisites for this specification to be chosen/refreshed
+            IPrerequisiteChecker prerequisiteChecker = _prerequisiteCheckerLocator.GetPreReqChecker(PrerequisiteCheckerType.Refresh);
+            await prerequisiteChecker.PerformChecks(specification, jobId,existingPublishedProvidersByFundingStream.SelectMany(x => x.Value), scopedProviders.Values);
+
+            _logger.Information($"Prerequisites for refresh passed");
+
+           
             // Get calculation results for specification 
             _logger.Information($"Looking up calculation results");
 
@@ -185,7 +201,7 @@ namespace CalculateFunding.Services.Publishing
             {
                 foreach (Reference fundingStream in specification.FundingStreams)
                 {
-                    await RefreshFundingStream(fundingStream, specification, scopedProviders, allCalculationResults, jobId, author, correlationId);
+                    await RefreshFundingStream(fundingStream, specification, scopedProviders, allCalculationResults, jobId, author, correlationId, existingPublishedProvidersByFundingStream[fundingStream.Id], fundingPeriodId);
                 }
             }
             finally
@@ -199,7 +215,7 @@ namespace CalculateFunding.Services.Publishing
             _logger.Information("Refresh complete");
         }
 
-        private async Task RefreshFundingStream(Reference fundingStream, SpecificationSummary specification, IDictionary<string, Provider> scopedProviders, IDictionary<string, ProviderCalculationResult> allCalculationResults, string jobId, Reference author, string correlationId)
+        private async Task RefreshFundingStream(Reference fundingStream, SpecificationSummary specification, IDictionary<string, Provider> scopedProviders, IDictionary<string, ProviderCalculationResult> allCalculationResults, string jobId, Reference author, string correlationId, IEnumerable<PublishedProvider> existingPublishedProviders, string fundingPeriodId)
         {
             TemplateMetadataContents templateMetadataContents = await _policiesService.GetTemplateMetadataContents(fundingStream.Id, specification.FundingPeriod.Id, specification.TemplateIds[fundingStream.Id]);
             
@@ -211,15 +227,6 @@ namespace CalculateFunding.Services.Publishing
 
             Dictionary<string, PublishedProvider> publishedProviders = new Dictionary<string, PublishedProvider>();
             
-            // Get existing published providers for this specification
-            _logger.Information("Looking up existing published providers from cosmos for refresh job");
-
-            string fundingPeriodId = await _policiesService.GetFundingPeriodId(specification.FundingPeriod.Id);
-
-            List<PublishedProvider> existingPublishedProviders = (await _publishingResiliencePolicy.ExecuteAsync(() =>
-                _publishedFundingDataService.GetCurrentPublishedProviders(fundingStream.Id, fundingPeriodId))).ToList();
-            _logger.Information($"Found {existingPublishedProviders.Count} existing published providers from cosmos for refresh job");
-
             foreach (PublishedProvider publishedProvider in existingPublishedProviders)
             {
                 if (publishedProvider.Current.FundingStreamId == fundingStream.Id)

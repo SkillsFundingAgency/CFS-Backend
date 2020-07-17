@@ -10,7 +10,7 @@ namespace CalculateFunding.Services.Publishing.Interfaces
             TSpecification prereqObject, 
             string jobId, 
             IEnumerable<PublishedProvider> publishedProviders = null, 
-            IEnumerable<string> providerIds = null);
+            IEnumerable<Provider> providers = null);
 
         bool IsCheckerType(PrerequisiteCheckerType type);
     }

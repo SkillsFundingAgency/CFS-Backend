@@ -394,7 +394,7 @@ namespace CalculateFunding.Functions.Publishing
             builder.AddSingleton<ITransactionFactory, TransactionFactory>();
 
             builder
-                .AddProfilingInterServiceClient(config);
+                .AddProfilingInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
             
             builder.AddScoped<IPublishedFundingUndoJobService, PublishedFundingUndoJobService>();
             builder.AddScoped<IPublishedFundingUndoJobCreation, PublishedFundingUndoJobCreation>();

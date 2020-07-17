@@ -23,7 +23,7 @@ namespace CalculateFunding.Services.Publishing
         public async Task ProcessPublishedProvider(PublishedProviderVersion publishedProviderVersion)
         {
             Guard.ArgumentNotNull(publishedProviderVersion, nameof(publishedProviderVersion));
-            
+
             if (!publishedProviderVersion.HasCustomProfiles)
             {
                 return;

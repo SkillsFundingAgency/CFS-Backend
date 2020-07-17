@@ -106,5 +106,7 @@ namespace CalculateFunding.Services.Publishing.Interfaces
             int batchSize);
 
         Task<IEnumerable<PublishedProvider>> QueryPublishedProvider(string specificationId, IEnumerable<string> fundingIds);
+
+        Task<IEnumerable<KeyValuePair<string, string>>> GetPublishedFundingIds(string specificationId);
     }
 }

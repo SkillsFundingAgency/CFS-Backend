@@ -6,6 +6,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 {
     public class ProviderBuilder : TestEntityBuilder
     {
+        private string _providerVersionId;
         private string _providerId;
         private string _status;
         private string _establishmentNumber;
@@ -150,12 +151,20 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             return this;
         }
 
+        public ProviderBuilder WithProviderVersionId(string providerVersionId)
+        {
+            _providerVersionId = providerVersionId;
+
+            return this;
+        }
+
         public Provider Build()
         {
             if (_copyFrom != null)
             {
                 return new Provider
                 {
+                    ProviderVersionId = _copyFrom.ProviderVersionId,
                     ProviderId = _copyFrom.ProviderId,
                     Status = _copyFrom.Status,
                     Authority = _copyFrom.Authority,
@@ -195,6 +204,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             return new Provider
             {
+                ProviderVersionId = _providerVersionId ?? NewRandomString(),
                 ProviderId = _providerId ?? NewRandomString(),
                 Authority = _authority ?? NewRandomString(),
                 Name = _name ?? NewRandomString(),

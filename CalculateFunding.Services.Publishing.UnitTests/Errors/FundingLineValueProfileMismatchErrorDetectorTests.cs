@@ -17,7 +17,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
         [TestInitialize]
         public void SetUp()
         {
-            _errorDetector = new FundingLineValueProfileMismatchErrorDetector();   
+            _errorDetector = new FundingLineValueProfileMismatchErrorDetector();
         }
 
         [TestMethod]
@@ -45,7 +45,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
             string fundingLineCode1 = NewRandomString();
             string fundingLineCode2 = NewRandomString();
             string fundingLineCode3 = NewRandomString();
-            
+
             PublishedProviderVersion publishedProvider = NewPublishedProviderVersion(_ => _.WithProfilePatternKeys(
                     NewProfilePatternKey(pk => pk.WithFundingLineCode(fundingLineCode1)))
                 .WithFundingLines(
@@ -77,12 +77,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
                 .Errors
                 .Should()
                 .NotBeNullOrEmpty();
-            
-            AndPublishedProviderShouldHaveTheErrors(publishedProvider, 
+
+            AndPublishedProviderShouldHaveTheErrors(publishedProvider,
                 NewError(_ => _.WithFundingLineCode(fundingLineCode1)
                     .WithType(PublishedProviderErrorType.FundingLineValueProfileMismatch)
                     .WithDescription("Expected total funding line to be 999 but custom profiles total 10")));
-            
+
         }
 
         private void AndPublishedProviderShouldHaveTheErrors(PublishedProviderVersion providerVersion,
@@ -97,7 +97,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
             {
                 PublishedProviderError actualError = providerVersion.Errors
                     .SingleOrDefault(_ => _.FundingLineCode == expectedError.FundingLineCode);
-                
+
                 actualError
                     .Should()
                     .BeEquivalentTo(expectedError);
@@ -132,7 +132,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
             DistributionPeriodBuilder periodBuilder = new DistributionPeriodBuilder();
 
             setUp?.Invoke(periodBuilder);
-            
+
             return periodBuilder.Build();
         }
 
@@ -141,7 +141,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
             ProfilePeriodBuilder periodBuilder = new ProfilePeriodBuilder();
 
             setUp?.Invoke(periodBuilder);
-            
+
             return periodBuilder.Build();
         }
 
@@ -150,7 +150,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
             PublishedProviderErrorBuilder providerErrorBuilder = new PublishedProviderErrorBuilder();
 
             setUp?.Invoke(providerErrorBuilder);
-            
+
             return providerErrorBuilder.Build();
         }
 
@@ -159,10 +159,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
             ProfilePatternKeyBuilder patternKeyBuilder = new ProfilePatternKeyBuilder();
 
             setUp?.Invoke(patternKeyBuilder);
-            
+
             return patternKeyBuilder.Build();
         }
-        
+
         private string NewRandomString() => new RandomString();
     }
 }

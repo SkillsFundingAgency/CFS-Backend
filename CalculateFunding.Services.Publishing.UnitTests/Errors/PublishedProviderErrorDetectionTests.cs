@@ -23,8 +23,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
             _detectorOne = NewDetectorMock();
             _detectorTwo = NewDetectorMock();
             _detectorThree = NewDetectorMock();
-            
-            _errorDetection = new PublishedProviderErrorDetection(new []
+
+            _errorDetection = new PublishedProviderErrorDetection(new[]
             {
                 _detectorOne.Object,
                 _detectorTwo.Object,
@@ -36,8 +36,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
         public async Task ResetsErrorsOnPublishedProviderAndDelegatesToEachConfiguredErrorDetector()
         {
             PublishedProviderVersion publishedProviderVersion = NewPublishedProviderVersion();
-            
-            publishedProviderVersion.AddErrors(new []
+
+            publishedProviderVersion.AddErrors(new[]
             {
                 new PublishedProviderError(),
                 new PublishedProviderError(),
@@ -50,12 +50,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
             publishedProviderVersion.Errors
                 .Should()
                 .BeEmpty();
-            
+
             _detectorOne.Verify(_ => _.DetectErrors(publishedProviderVersion), Times.Once);
             _detectorTwo.Verify(_ => _.DetectErrors(publishedProviderVersion), Times.Once);
             _detectorThree.Verify(_ => _.DetectErrors(publishedProviderVersion), Times.Once);
         }
-        
+
         private PublishedProviderVersion NewPublishedProviderVersion() => new PublishedProviderVersionBuilder()
             .Build();
         private Mock<IDetectPublishedProviderErrors> NewDetectorMock() => new Mock<IDetectPublishedProviderErrors>();

@@ -22,7 +22,7 @@ namespace CalculateFunding.Services.Publishing
         {
         }
 
-        public override async Task PerformChecks<TSpecification>(TSpecification prereqObject, string jobId, IEnumerable<PublishedProvider> publishedProviders = null, IEnumerable<string> providerIds = null)
+        public override async Task PerformChecks<TSpecification>(TSpecification prereqObject, string jobId, IEnumerable<PublishedProvider> publishedProviders = null, IEnumerable<Provider> providers = null)
         {
             Guard.ArgumentNotNull(publishedProviders, nameof(publishedProviders));
             SpecificationSummary specification = prereqObject as SpecificationSummary;

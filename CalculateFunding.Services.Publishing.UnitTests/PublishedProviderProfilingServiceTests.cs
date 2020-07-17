@@ -167,7 +167,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             string fundingLineCode = NewRandomString();
             string key = NewRandomString();
 
-            ProfilePatternKey profilePatternKey = NewProfilePatternKey(_=>_.WithFundingLineCode(fundingLineCode).WithKey(key));
+            ProfilePatternKey profilePatternKey = NewProfilePatternKey(_ => _.WithFundingLineCode(fundingLineCode).WithKey(key));
 
             PublishedProvider publishedProvider = NewPublishedProvider(_ => _.WithCurrent(
                 NewPublishedProviderVersion(ppv => ppv.WithProfilePatternKeys(
@@ -206,7 +206,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             );
 
             PublishedProvider publishedProvider = NewPublishedProvider(_ => _.WithCurrent(existingPublishedProviderVersion));
-            
+
             GivenGetPublishedProvider(publishedProvider);
 
             IActionResult result = await WhenAssigningProfilePatternKey(_fundingStreamId, _fundingPeriodId, _providerId, profilePatternKey);
@@ -225,7 +225,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             ProfilePatternKey profilePatternKey = NewProfilePatternKey(_ => _.WithFundingLineCode(fundingLineCode).WithKey(newProfilePatterFundingKey));
 
             FundingLine fundingLine = NewFundingLine(_ => _.WithFundingLineCode(fundingLineCode));
-            PublishedProviderVersion existingPublishedProviderVersion = 
+            PublishedProviderVersion existingPublishedProviderVersion =
                 NewPublishedProviderVersion(ppv => ppv
                     .WithFundingStreamId(_fundingStreamId)
                     .WithSpecificationId(specificationId)
@@ -237,8 +237,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             PublishedProvider publishedProvider = NewPublishedProvider(_ => _.WithCurrent(existingPublishedProviderVersion));
             PublishedProviderVersion newPublishedProviderVersion = existingPublishedProviderVersion;
-            PublishedProviderCreateVersionRequest publishedProviderCreateVersionRequest = 
-                NewPublishedProviderCreateVersionRequest(_ =>_
+            PublishedProviderCreateVersionRequest publishedProviderCreateVersionRequest =
+                NewPublishedProviderCreateVersionRequest(_ => _
                     .WithPublishedProvider(publishedProvider)
                     .WithNewVersion(newPublishedProviderVersion));
 
@@ -336,7 +336,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         {
             _publishedProviderVersioningService
                 .AssemblePublishedProviderCreateVersionRequests(
-                    Arg.Is<IEnumerable<PublishedProvider>>(_=> PublishedProviderMatches(_, expectedPublishedProvider)),
+                    Arg.Is<IEnumerable<PublishedProvider>>(_ => PublishedProviderMatches(_, expectedPublishedProvider)),
                     Arg.Is<Reference>(_ => _ != null && _author != null && _.ToString() == _author.ToString()),
                     PublishedProviderStatus.Updated)
                 .Returns(new[] { publishedProviderCreateVersionRequest });
@@ -369,8 +369,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                {
                    IEnumerable<FundingLine> fundingLines = _.Arg<IEnumerable<FundingLine>>();
                    FundingLine fundingLine = fundingLines.FirstOrDefault();
-                   
-                   if(fundingLine.DistributionPeriods == null)
+
+                   if (fundingLine.DistributionPeriods == null)
                    {
                        fundingLine.DistributionPeriods = new List<DistributionPeriod>();
                    }
@@ -433,7 +433,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             (actionResult as StatusCodeResult)
                 .StatusCode
                 .Should()
-                .Be((int) httpStatusCode);
+                .Be((int)httpStatusCode);
         }
 
         private void AndProfilePatternKeyUpdated(PublishedProviderVersion publishedProviderVersion, ProfilePatternKey profilePatternKey)
@@ -459,7 +459,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         {
             FundingLine fundingLine = fundingLines.FirstOrDefault();
 
-            if(fundingLine == null)
+            if (fundingLine == null)
             {
                 return false;
             }
@@ -467,7 +467,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             ProfilePeriod firstProfilePeriod = fundingLine.DistributionPeriods.SingleOrDefault(_ => _.DistributionPeriodId == _distributionPeriod1Id)?.ProfilePeriods.FirstOrDefault();
             ProfilePeriod lastProfilePeriod = fundingLine.DistributionPeriods.SingleOrDefault(_ => _.DistributionPeriodId == _distributionPeriod2Id)?.ProfilePeriods.FirstOrDefault();
 
-            if(firstProfilePeriod == null || lastProfilePeriod == null)
+            if (firstProfilePeriod == null || lastProfilePeriod == null)
             {
                 return false;
             }
@@ -505,7 +505,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 ?.ProfilePeriods
                 .FirstOrDefault();
 
-            if(paidProfilePeriod == null)
+            if (paidProfilePeriod == null)
             {
                 return false;
             }
@@ -592,7 +592,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
         private static PublishedProviderCreateVersionRequest NewPublishedProviderCreateVersionRequest(Action<PublishedProviderCreateVersionRequestBuilder> setUp = null)
         {
-            PublishedProviderCreateVersionRequestBuilder publishedProviderCreateVersionRequestBuilder = 
+            PublishedProviderCreateVersionRequestBuilder publishedProviderCreateVersionRequestBuilder =
                 new PublishedProviderCreateVersionRequestBuilder();
 
             setUp?.Invoke(publishedProviderCreateVersionRequestBuilder);

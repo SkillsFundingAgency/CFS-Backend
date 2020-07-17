@@ -20,8 +20,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         public void SetUp()
         {
             _errorDetection = new Mock<IPublishedProviderErrorDetection>();
-            
-            _reApplyCustomProfiles = new ReApplyCustomProfiles(_errorDetection.Object);     
+
+            _reApplyCustomProfiles = new ReApplyCustomProfiles(_errorDetection.Object);
         }
 
         [TestMethod]
@@ -42,9 +42,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         public void ThrowsExceptionIfCustomProfileReferencesFundingLineNoLongerInThePublishedProvider()
         {
             string missingFundingLineCode = NewRandomString();
-            
+
             PublishedProviderVersion publishedProviderVersion = NewPublishedProviderVersion(_ =>
-                _.WithCustomProfiles(NewFundingLineOverrides(fl => 
+                _.WithCustomProfiles(NewFundingLineOverrides(fl =>
                     fl.WithFundingLineCode(missingFundingLineCode))));
 
             Func<Task> invocation = () => WhenThePublishedProviderIsProcessed(publishedProviderVersion);
@@ -75,8 +75,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                     dp.WithProfilePeriods(NewProfilePeriod()))));
             FundingLine fundingLineWithProfiling = NewFundingLine(fl => fl.WithFundingLineCode(fundingLineCodeTwo)
                 .WithDistributionPeriods(profiledDistributionPeriod));
-            
-            PublishedProviderVersion publishedProviderVersion = NewPublishedProviderVersion(_ => 
+
+            PublishedProviderVersion publishedProviderVersion = NewPublishedProviderVersion(_ =>
                 _.WithCustomProfiles(NewFundingLineOverrides(fl =>
                     fl.WithFundingLineCode(fundingLineWithCustomProfile)
                         .WithDistributionPeriods(customProfile)))
@@ -94,7 +94,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .DistributionPeriods
                 .Should()
                 .BeEquivalentTo(profiledDistributionPeriod);
-            
+
             _errorDetection.Verify(_ => _.ProcessPublishedProvider(publishedProviderVersion),
                 Times.Once);
         }
@@ -114,7 +114,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             PublishedProviderVersionBuilder providerVersionBuilder = new PublishedProviderVersionBuilder();
 
             setUp?.Invoke(providerVersionBuilder);
-            
+
             return providerVersionBuilder.Build();
         }
 
@@ -123,7 +123,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             FundingLineProfileOverridesBuilder profileOverridesBuilder = new FundingLineProfileOverridesBuilder();
 
             setUp?.Invoke(profileOverridesBuilder);
-            
+
             return profileOverridesBuilder.Build();
         }
 
@@ -132,7 +132,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             DistributionPeriodBuilder distributionPeriodBuilder = new DistributionPeriodBuilder();
 
             setUp?.Invoke(distributionPeriodBuilder);
-            
+
             return distributionPeriodBuilder.Build();
         }
 
@@ -141,7 +141,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             ProfilePeriodBuilder profilePeriodBuilder = new ProfilePeriodBuilder();
 
             setUp?.Invoke(profilePeriodBuilder);
-            
+
             return profilePeriodBuilder.Build();
         }
 
@@ -150,7 +150,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             FundingLineBuilder fundingLineBuilder = new FundingLineBuilder();
 
             setUp?.Invoke(fundingLineBuilder);
-            
+
             return fundingLineBuilder.Build();
         }
     }

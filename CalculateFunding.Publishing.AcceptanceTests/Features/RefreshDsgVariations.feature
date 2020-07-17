@@ -142,6 +142,20 @@ Background:
 		| TrustStatus        | Not Supported By A Trust      |
 		| UKPRN              | 1000000                       |
 	And the provider with id '1000000' should be a scoped provider in the current specification in provider version 'dsg-providers-2.0'
+	# Local Authorities in Core Provider Data
+	And the following provider exists within core provider data in provider version 'dsg-providers-2.0'
+		| Field                         | Value                    |
+		| ProviderId                    | 9000000                  |
+		| Name                          | Local Authority 1        |
+		| Authority                     | Local Authority 1        |
+		| DateOpened                    | 2012-03-15               |
+		| LACode                        | 200                      |
+		| LocalAuthorityName            | Local Authority 1        |
+		| ProviderType                  | Local Authority          |
+		| ProviderSubType               | Local Authority          |
+		| ProviderVersionId             | <ProviderVersionId>      |
+		| TrustStatus                   | Not Supported By A Trust |
+		| UKPRN                         | 9000000                  |
 	And calculation meta data exists for 'DSG'
 	    | CalculationType | CalculationId                        | Name                   | PublishStatus |
 	    | Template        | 5cfb28de-88d6-4faa-a936-d81a065fb596 | Stub for total funding | Approved      |

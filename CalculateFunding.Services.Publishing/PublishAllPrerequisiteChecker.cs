@@ -30,7 +30,7 @@ namespace CalculateFunding.Services.Publishing
             _logger = logger;
         }
 
-        public virtual async Task PerformChecks<TSpecification>(TSpecification prereqObject, string jobId, IEnumerable<PublishedProvider> publishedProviders = null, IEnumerable<string> providerIds = null)
+        public virtual async Task PerformChecks<TSpecification>(TSpecification prereqObject, string jobId, IEnumerable<PublishedProvider> publishedProviders = null, IEnumerable<Provider> providers = null)
         {
             Guard.ArgumentNotNull(publishedProviders, nameof(publishedProviders));
             SpecificationSummary specification = prereqObject as SpecificationSummary;
@@ -46,7 +46,7 @@ namespace CalculateFunding.Services.Publishing
             }, publishedProviders);
         }
 
-        protected async override Task<IEnumerable<string>> PerformChecks<TSpecification>(TSpecification prereqObject, IEnumerable<PublishedProvider> publishedProviders = null)
+        protected async override Task<IEnumerable<string>> PerformChecks<TSpecification>(TSpecification prereqObject, IEnumerable<PublishedProvider> publishedProviders = null, IEnumerable<Provider> providers = null)
         {
             Guard.ArgumentNotNull(publishedProviders, nameof(publishedProviders));
 
