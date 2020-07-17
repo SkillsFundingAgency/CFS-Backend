@@ -1,220 +1,390 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Models.Publishing;
+using AggregationType = CalculateFunding.Common.TemplateMetadata.Enums.AggregationType;
 using DistributionPeriod = CalculateFunding.Models.Publishing.DistributionPeriod;
 using FundingLine = CalculateFunding.Models.Publishing.FundingLine;
 using ProfilePeriod = CalculateFunding.Models.Publishing.ProfilePeriod;
+using TemplateFundingLine = CalculateFunding.Common.TemplateMetadata.Models.FundingLine;
 
 namespace CalculateFunding.Services.Publishing
 {
     public class FundingValueAggregator
     {
-        private Dictionary<uint, (decimal, int)> aggregatedCalculations;
-        private Dictionary<uint, (decimal?, IEnumerable<DistributionPeriod>)> aggregatedFundingLines;
-        private Dictionary<string, decimal> aggregatedDistributionPeriods;
-        private Dictionary<string, decimal> aggregatedProfilePeriods;
+        private Dictionary<uint, ICollection<decimal>> _rawCalculations;
+        private Dictionary<uint, (decimal, int)> _aggregatedCalculations;
+        private Dictionary<uint, (decimal?, IEnumerable<DistributionPeriod>)> _aggregatedFundingLines;
+        private Dictionary<string, decimal> _aggregatedDistributionPeriods;
+        private Dictionary<string, decimal> _aggregatedProfilePeriods;
 
-        public FundingValueAggregator()
+        public IEnumerable<AggregateFundingLine> GetTotals(TemplateMetadataContents templateMetadataContent,
+            IEnumerable<PublishedProviderVersion> publishedProviders)
         {
-        }
+            _aggregatedCalculations = new Dictionary<uint, (decimal, int)>();
+            _aggregatedFundingLines = new Dictionary<uint, (decimal?, IEnumerable<DistributionPeriod>)>();
+            _aggregatedDistributionPeriods = new Dictionary<string, decimal>();
+            _aggregatedProfilePeriods = new Dictionary<string, decimal>();
+            _rawCalculations = new Dictionary<uint, ICollection<decimal>>();
 
-        public IEnumerable<AggregateFundingLine> GetTotals(TemplateMetadataContents templateMetadataContent, IEnumerable<PublishedProviderVersion> publishedProviders)
-        {
-            aggregatedCalculations = new Dictionary<uint, (decimal, int)>();
-            aggregatedFundingLines = new Dictionary<uint, (decimal?, IEnumerable<DistributionPeriod>)>();
-            aggregatedDistributionPeriods = new Dictionary<string, decimal>();
-            aggregatedProfilePeriods = new Dictionary<string, decimal>();
-
-            publishedProviders?.ToList().ForEach(provider =>
+            foreach (PublishedProviderVersion provider in publishedProviders)
             {
                 Dictionary<uint, decimal> calculations = new Dictionary<uint, decimal>();
 
-                provider.Calculations?.ToList().ForEach(calculation => GetCalculation(calculations, calculation));
+                foreach (FundingCalculation calculation in provider.Calculations ?? ArraySegment<FundingCalculation>.Empty)
+                {
+                    GetCalculation(calculations, calculation);
+                }
 
                 Dictionary<uint, decimal?> fundingLines = new Dictionary<uint, decimal?>();
 
-                provider.FundingLines?.ToList().ForEach(fundingLine => GetFundingLine(fundingLines, fundingLine));
-            });
+                foreach (FundingLine fundingLine in provider.FundingLines ?? ArraySegment<FundingLine>.Empty)
+                {
+                    GetFundingLine(fundingLines, fundingLine);
+                }
+            }
 
-            var result = templateMetadataContent.RootFundingLines?.Select(fundingLine => GetAggregateFundingLine(fundingLine));
+            AggregateFundingLine[] aggregateFundingLines = templateMetadataContent.RootFundingLines?.Select(GetAggregateFundingLine).ToArray();
 
-            var r = new List<AggregateFundingLine>(result);
+            ProcessSecondPassAggregations(templateMetadataContent.RootFundingLines, aggregateFundingLines);
 
-            return r;
+            return aggregateFundingLines;
         }
 
-        public void GetCalculation(Dictionary<uint, decimal> calculations, FundingCalculation calculation)
+        private void ProcessSecondPassAggregations(IEnumerable<TemplateFundingLine> fundingLines,
+            IEnumerable<AggregateFundingLine> aggregateFundingLines)
+        {
+            IEnumerable<AggregateFundingLine> flattenedFundingLines = aggregateFundingLines.Flatten(_ => _.FundingLines);
+            IDictionary<uint, AggregateFundingCalculation[]> flattenedAggregateFundingCalculations =
+                flattenedFundingLines.SelectMany(_ => _.Calculations.Flatten(calc => calc.Calculations))
+                    .GroupBy(_ => _.TemplateCalculationId)
+                    .ToDictionary(_ => _.Key, _ => _.ToArray());
+
+            ProcessSecondPassAggregationsForAggregateType(fundingLines, flattenedAggregateFundingCalculations, AggregationType.GroupRate);
+            ProcessSecondPassAggregationsForAggregateType(fundingLines, flattenedAggregateFundingCalculations, AggregationType.PercentageChangeBetweenAandB);
+        }
+
+        private void ProcessSecondPassAggregationsForAggregateType(IEnumerable<TemplateFundingLine> fundingLines,
+            IDictionary<uint, AggregateFundingCalculation[]> flattenedAggregateFundingCalculations,
+            AggregationType aggregationType)
+        {
+            foreach (TemplateFundingLine fundingLine in fundingLines)
+            {
+                SetSecondPassAggregateCalculationValuesForFundingLine(fundingLine,
+                    flattenedAggregateFundingCalculations,
+                    aggregationType);
+            }
+        }
+
+        private void SetSecondPassAggregateCalculationValuesForFundingLine(TemplateFundingLine templateFundingLine,
+            IDictionary<uint, AggregateFundingCalculation[]> flattenedAggregateCalculations,
+            AggregationType aggregationType)
+        {
+            foreach (TemplateFundingLine nestedTemplateFundingLine in templateFundingLine.FundingLines ?? ArraySegment<TemplateFundingLine>.Empty)
+            {
+                SetSecondPassAggregateCalculationValuesForFundingLine(nestedTemplateFundingLine,
+                    flattenedAggregateCalculations,
+                    aggregationType);
+            }
+
+            foreach (Calculation templateCalculation in templateFundingLine.Calculations ?? ArraySegment<Calculation>.Empty)
+            {
+                SetSecondPassAggregateCalculationValuesForCalculation(templateCalculation,
+                    flattenedAggregateCalculations,
+                    aggregationType);
+            }
+        }
+
+        private void SetSecondPassAggregateCalculationValuesForCalculation(Calculation templateCalculation,
+            IDictionary<uint, AggregateFundingCalculation[]> flattenedAggregateCalculations,
+            AggregationType aggregationType)
+        {
+            if (templateCalculation.AggregationType == aggregationType)
+            {
+                uint templateCalculationId = templateCalculation.TemplateCalculationId;
+
+                if (!flattenedAggregateCalculations.TryGetValue(templateCalculationId, out AggregateFundingCalculation[] aggregateFundingCalculations))
+                {
+                    throw new ArgumentOutOfRangeException(nameof(templateCalculationId),
+                        $"Did not locate an aggregate funding calculation for template calculation id {templateCalculationId}");
+                }
+
+                SetSecondPassAggregateCalculationsValue(templateCalculation, aggregateFundingCalculations);
+            }
+
+            foreach (Calculation nestedTemplateCalculation in templateCalculation.Calculations ?? ArraySegment<Calculation>.Empty)
+            {
+                SetSecondPassAggregateCalculationValuesForCalculation(nestedTemplateCalculation,
+                    flattenedAggregateCalculations,
+                    aggregationType);
+            }
+        }
+
+        private void SetSecondPassAggregateCalculationsValue(Calculation templateCalculation,
+            AggregateFundingCalculation[] aggregateFundingCalculations)
+        {
+            decimal value = templateCalculation.AggregationType switch
+            {
+                AggregationType.PercentageChangeBetweenAandB => GetPercentageChangeBetweenAandB(templateCalculation),
+                AggregationType.GroupRate => 0, //TODO; GroupRate
+                _ => throw new NotSupportedException()
+            };
+
+            foreach (AggregateFundingCalculation aggregateFundingCalculation in aggregateFundingCalculations)
+            {
+                aggregateFundingCalculation.Value = value;
+            }
+        }
+
+        private decimal GetPercentageChangeBetweenAandB(Calculation templateCalculation)
+        {
+            uint calculationA = templateCalculation.PercentageChangeBetweenAandB.CalculationA;
+            uint calculationB = templateCalculation.PercentageChangeBetweenAandB.CalculationB;
+            AggregationType aggregationType = templateCalculation.PercentageChangeBetweenAandB.CalculationAggregationType;
+
+            decimal valueA = CalculateAggregateValueFor(calculationA, aggregationType);
+            decimal valueB = CalculateAggregateValueFor(calculationB, aggregationType);
+
+            return (valueB - valueA) / valueA * 100;
+        }
+
+        private decimal CalculateAggregateValueFor(uint templateCalculationId,
+            AggregationType aggregationType)
+        {
+            if (!_rawCalculations.TryGetValue(templateCalculationId, out ICollection<decimal> providerValues))
+            {
+                throw new ArgumentOutOfRangeException(nameof(templateCalculationId),
+                    $"Did not locate raw provider values for template calculation id {templateCalculationId}");
+            }
+
+            return aggregationType switch
+            {
+                AggregationType.Average => providerValues.Average(),
+                AggregationType.Sum => providerValues.Sum(),
+                AggregationType.GroupRate => 0, //TODO; group rate implementation
+                _ => throw new ArgumentOutOfRangeException(nameof(AggregationType))
+            };
+        }
+
+
+        private void GetCalculation(Dictionary<uint, decimal> calculations,
+            FundingCalculation calculation)
         {
             if (decimal.TryParse(calculation.Value?.ToString(), out decimal value))
             {
+                uint templateCalculationId = calculation.TemplateCalculationId;
+
                 // if the calculation for the current provider has not been added to the aggregated total then add it only once.
-                if (calculations.TryAdd(calculation.TemplateCalculationId, value))
+                if (calculations.TryAdd(templateCalculationId, value))
                 {
-                    AggregateCalculation(calculation.TemplateCalculationId, value);
+                    AggregateCalculation(templateCalculationId, value);
+                    AddRawCalculation(templateCalculationId, value);
                 }
             }
         }
 
-        public void GetFundingLine(Dictionary<uint, decimal?> fundingLines, FundingLine fundingLine)
+        private void GetFundingLine(Dictionary<uint, decimal?> fundingLines,
+            FundingLine fundingLine)
         {
             // if the calculation for the current provider has not been added to the aggregated total then add it only once.
             if (fundingLines.TryAdd(fundingLine.TemplateLineId, fundingLine.Value))
             {
                 AggregateFundingLine(fundingLine.TemplateLineId, fundingLine.Value, fundingLine.DistributionPeriods);
 
-                fundingLine.DistributionPeriods?.Where(_ => _ != null).ToList().ForEach(_ => AggregateDistributionPeriod(_));
+                foreach (DistributionPeriod distributionPeriod in fundingLine.DistributionPeriods?.Where(_ => _ != null) ?? ArraySegment<DistributionPeriod>.Empty)
+                {
+                    AggregateDistributionPeriod(distributionPeriod);
+                }
             }
         }
 
-        public void AggregateFundingLine(uint key, decimal? value, IEnumerable<DistributionPeriod> distributionPeriods)
+        private void AggregateFundingLine(uint key,
+            decimal? value,
+            IEnumerable<DistributionPeriod> distributionPeriods)
         {
-            if (aggregatedFundingLines.TryGetValue(key, out (decimal? Total, IEnumerable<DistributionPeriod> DistributionPeriods) aggregate))
+            if (_aggregatedFundingLines.TryGetValue(key, out (decimal? Total, IEnumerable<DistributionPeriod> DistributionPeriods) aggregate))
             {
                 aggregate = (aggregate.Total + value, aggregate.DistributionPeriods);
                 // aggregate the value
-                aggregatedFundingLines[key] = aggregate;
+                _aggregatedFundingLines[key] = aggregate;
             }
             else
             {
-                aggregatedFundingLines.Add(key, (value, distributionPeriods));
+                _aggregatedFundingLines.Add(key, (value, distributionPeriods));
             }
         }
 
-        public void AggregateDistributionPeriod(DistributionPeriod distributionPeriod)
+        private void AggregateDistributionPeriod(DistributionPeriod distributionPeriod)
         {
-            if (aggregatedDistributionPeriods.TryGetValue(distributionPeriod.DistributionPeriodId, out decimal total))
+            if (_aggregatedDistributionPeriods.TryGetValue(distributionPeriod.DistributionPeriodId, out decimal total))
             {
                 // aggregate the value
-                aggregatedDistributionPeriods[distributionPeriod.DistributionPeriodId] = total + distributionPeriod.Value;
+                _aggregatedDistributionPeriods[distributionPeriod.DistributionPeriodId] = total + distributionPeriod.Value;
             }
             else
             {
-                aggregatedDistributionPeriods.Add(distributionPeriod.DistributionPeriodId, distributionPeriod.Value);
+                _aggregatedDistributionPeriods.Add(distributionPeriod.DistributionPeriodId, distributionPeriod.Value);
             }
 
-            distributionPeriod.ProfilePeriods?.Where(_ => _ != null).ToList().ForEach(_ => AggregateProfilePeriod(_));
+            foreach (ProfilePeriod profilePeriod in distributionPeriod.ProfilePeriods?.Where(_ => _ != null) ?? ArraySegment<ProfilePeriod>.Empty)
+            {
+                AggregateProfilePeriod(profilePeriod);
+            }
         }
 
-        public void AggregateProfilePeriod(ProfilePeriod profilePeriod)
+        private void AggregateProfilePeriod(ProfilePeriod profilePeriod)
         {
             string uniqueProfilePeriodKey = $"{profilePeriod.DistributionPeriodId}-{profilePeriod.TypeValue}-{profilePeriod.Year}-{profilePeriod.Occurrence}";
-            if (aggregatedProfilePeriods.TryGetValue(uniqueProfilePeriodKey, out decimal total))
+            if (_aggregatedProfilePeriods.TryGetValue(uniqueProfilePeriodKey, out decimal total))
             {
                 // aggregate the value
-                aggregatedProfilePeriods[uniqueProfilePeriodKey] = total + profilePeriod.ProfiledValue;
+                _aggregatedProfilePeriods[uniqueProfilePeriodKey] = total + profilePeriod.ProfiledValue;
             }
             else
             {
-                aggregatedProfilePeriods.Add(uniqueProfilePeriodKey, profilePeriod.ProfiledValue);
+                _aggregatedProfilePeriods.Add(uniqueProfilePeriodKey, profilePeriod.ProfiledValue);
             }
         }
 
-        public void AggregateCalculation(uint key, decimal value)
+        private void AggregateCalculation(uint key,
+            decimal value)
         {
-            if (aggregatedCalculations.TryGetValue(key, out (decimal Total, int Count) aggregate))
+            if (_aggregatedCalculations.TryGetValue(key, out (decimal Total, int Count) aggregate))
             {
                 // aggregate the value
-                aggregatedCalculations[key] = (aggregate.Total + value, aggregate.Count + 1);
+                _aggregatedCalculations[key] = (aggregate.Total + value, aggregate.Count + 1);
             }
             else
             {
-                aggregatedCalculations.Add(key, (value, 1));
+                _aggregatedCalculations.Add(key, (value, 1));
             }
         }
 
-        public AggregateFundingCalculation GetAggregateCalculation(Common.TemplateMetadata.Models.Calculation calculation)
+        private void AddRawCalculation(uint key,
+            decimal value)
+        {
+            //we need the distinct list of provider values per calc for second pass as we
+            //need a custom aggregation on these to form the parts of some second pass aggregations
+            if (_rawCalculations.TryGetValue(key, out ICollection<decimal> providerValues))
+            {
+                providerValues.Add(value);
+            }
+            else
+            {
+                _rawCalculations.Add(key,
+                    new List<decimal>
+                    {
+                        value
+                    });
+            }
+        }
+
+        private AggregateFundingCalculation GetAggregateCalculation(Calculation calculation)
         {
             // make sure there this or one if it's children has an aggregation type of Sum or Average
-            if (aggregatedCalculations.TryGetValue(calculation.TemplateCalculationId, out (decimal Total, int Count) aggregate) && ShouldIncludeCalculation(calculation))
+            if (TryGetAggregateCalculation(calculation.TemplateCalculationId, out (decimal Total, int Count) aggregate) && ShouldIncludeCalculation(calculation))
             {
                 decimal aggregateValue = 0;
 
                 switch (calculation.AggregationType)
                 {
-                    case Common.TemplateMetadata.Enums.AggregationType.Average:
-                        {
-                            aggregateValue = aggregate.Count == 0 ? 0 : aggregate.Total / aggregate.Count;
-                            break;
-                        }
-                    case Common.TemplateMetadata.Enums.AggregationType.Sum:
-                        {
-                            aggregateValue = aggregate.Total;
-                            break;
-                        }
+                    case AggregationType.Average:
+                    {
+                        aggregateValue = aggregate.Count == 0 ? 0 : aggregate.Total / aggregate.Count;
+                        break;
+                    }
+                    case AggregationType.Sum:
+                    {
+                        aggregateValue = aggregate.Total;
+                        break;
+                    }
                 }
 
                 return GetAggregateCalculationForAggregatorType(calculation, aggregateValue);
             }
-            else
+
+            if (IsSecondPassAggregation(calculation.AggregationType))
             {
-                return null;
+                //add an empty second pass aggregate calculation to the graph so that we
+                //can calculate its value in a second pass (once all of the other aggregations have been run) 
+                return GetAggregateCalculationForAggregatorType(calculation, 0);
             }
+
+            return null;
         }
 
-        private AggregateFundingCalculation GetAggregateCalculationForAggregatorType(Calculation calculation, decimal aggregateValue)
+        private bool IsSecondPassAggregation(AggregationType aggregationType)
+            => aggregationType == AggregationType.GroupRate ||
+               aggregationType == AggregationType.PercentageChangeBetweenAandB;
+
+        private bool TryGetAggregateCalculation(uint templateCalculationId,
+            out (decimal Total, int Count) aggregate) =>
+            _aggregatedCalculations.TryGetValue(templateCalculationId, out aggregate);
+
+        private AggregateFundingCalculation GetAggregateCalculationForAggregatorType(Calculation calculation,
+            decimal aggregateValue)
         {
             return new AggregateFundingCalculation
             {
                 TemplateCalculationId = calculation.TemplateCalculationId,
                 Value = aggregateValue,
-                Calculations = calculation.Calculations?.Select(x => GetAggregateCalculation(x)).Where(x => x != null)
+                Calculations = calculation.Calculations?.Select(GetAggregateCalculation).Where(_ => _ != null).ToArray()
             };
         }
 
         private bool ShouldIncludeCalculation(Calculation calculation)
         {
-            if (calculation.AggregationType == Common.TemplateMetadata.Enums.AggregationType.Sum || calculation.AggregationType == Common.TemplateMetadata.Enums.AggregationType.Average)
+            if (calculation.AggregationType == AggregationType.Sum || calculation.AggregationType == AggregationType.Average)
             {
                 return true;
             }
-            else
-            {
-                return calculation.Calculations.AnyWithNullCheck(_ => ShouldIncludeCalculation(_));
-            }
+
+            return calculation.Calculations.AnyWithNullCheck(ShouldIncludeCalculation);
         }
 
-        public AggregateFundingLine GetAggregateFundingLine(Common.TemplateMetadata.Models.FundingLine fundingLine)
+        private AggregateFundingLine GetAggregateFundingLine(TemplateFundingLine fundingLine)
         {
-            if (aggregatedFundingLines.TryGetValue(fundingLine.TemplateLineId, out (decimal? Total, IEnumerable<DistributionPeriod> DistributionPeriods) aggregate))
+            if (_aggregatedFundingLines.TryGetValue(fundingLine.TemplateLineId, out (decimal? Total, IEnumerable<DistributionPeriod> DistributionPeriods) aggregate))
             {
                 return new AggregateFundingLine
                 {
                     Name = fundingLine.Name,
                     TemplateLineId = fundingLine.TemplateLineId,
-                    Calculations = fundingLine.Calculations?.Select(calculation => GetAggregateCalculation(calculation)).Where(x => x != null),
-                    FundingLines = fundingLine.FundingLines?.Select(x => GetAggregateFundingLine(x)),
-                    DistributionPeriods = aggregate.DistributionPeriods?.Select(x => GetAggregatePeriods(x)),
+                    Calculations = fundingLine.Calculations?.Select(GetAggregateCalculation).Where(_ => _ != null).ToArray(),
+                    FundingLines = fundingLine.FundingLines?.Select(GetAggregateFundingLine).ToArray(),
+                    DistributionPeriods = aggregate.DistributionPeriods?.Select(GetAggregatePeriods).ToArray(),
                     Value = aggregate.Total
                 };
             }
-            else
-            {
-                return null;
-            }
+
+            return null;
         }
 
-        public DistributionPeriod GetAggregatePeriods(DistributionPeriod distributionPeriod)
+        private DistributionPeriod GetAggregatePeriods(DistributionPeriod distributionPeriod)
         {
-            if (distributionPeriod != null && aggregatedDistributionPeriods.TryGetValue(distributionPeriod.DistributionPeriodId, out decimal total))
+            if (distributionPeriod != null && _aggregatedDistributionPeriods.TryGetValue(distributionPeriod.DistributionPeriodId, out decimal total))
             {
                 DistributionPeriod localDistributionPeriod = distributionPeriod.Clone();
 
                 localDistributionPeriod.Value = total;
-                localDistributionPeriod.ProfilePeriods?.ToList().ForEach(x => SetAggregateProfilePeriods(x));
+
+                foreach (ProfilePeriod profilePeriod in localDistributionPeriod.ProfilePeriods)
+                {
+                    SetAggregateProfilePeriods(profilePeriod);
+                }
+
                 return localDistributionPeriod;
             }
-            else
-            {
-                return null;
-            }
+
+            return null;
         }
 
-        public void SetAggregateProfilePeriods(ProfilePeriod profilePeriod)
+        private void SetAggregateProfilePeriods(ProfilePeriod profilePeriod)
         {
             string uniqueProfilePeriodKey = $"{profilePeriod.DistributionPeriodId}-{profilePeriod.TypeValue}-{profilePeriod.Year}-{profilePeriod.Occurrence}";
 
-            if (profilePeriod != null && aggregatedProfilePeriods.TryGetValue(uniqueProfilePeriodKey, out decimal total))
+            if (_aggregatedProfilePeriods.TryGetValue(uniqueProfilePeriodKey, out decimal total))
             {
                 profilePeriod.ProfiledValue = total;
             }

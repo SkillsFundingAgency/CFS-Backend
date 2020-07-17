@@ -21,13 +21,18 @@
   <ItemGroup>
     <EmbeddedResource Include="Resources\exampleFundingLineTemplate1.json" />
     <EmbeddedResource Include="Resources\exampleProvider1Calculations.json" />
+    <EmbeddedResource Include="Resources\exampleProvider1Calculations_Schema1_1.json" />
     <EmbeddedResource Include="Resources\exampleProvider2Calculations.json" />
+    <EmbeddedResource Include="Resources\exampleProvider2Calculations_Schema1_1.json" />
     <EmbeddedResource Include="Resources\exampleProvider3Calculations.json" />
-    <EmbeddedResource Include="Resources\exampleProviderTemplate1.json" />
+    <EmbeddedResource Include="Resources\exampleProvider3Calculations_Schema1_1.json" />
+    <EmbeddedResource Include="Resources\exampleProviderTemplate1_Schema1_1.json" />
+    <EmbeddedResource Include="Resources\exampleProviderTemplate1_Schema1_0.json" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="CalculateFunding.Common.TemplateMetadata.Schema10" Version="2.0.0" />
+    <PackageReference Include="CalculateFunding.Common.TemplateMetadata.Schema11" Version="2.0.8" />
     <PackageReference Include="FluentAssertions" Version="5.10.3" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.4.0" />
     <PackageReference Include="Moq" Version="4.14.4" />

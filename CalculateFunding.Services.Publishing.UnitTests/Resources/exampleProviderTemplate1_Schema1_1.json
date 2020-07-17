@@ -1,0 +1,172 @@
+{
+  "$schema": "https://fundingschemas.blob.core.windows.net/schemas/funding-template-schema-1.1.json#schema",
+  "schemaVersion": "1.1",
+  "fundingTemplate": {
+    "fundingLines": [
+      {
+        "name": "Total funding line",
+        "fundingLineCode": "TotalFundingLine",
+        "templateLineId": 1,
+        "type": "Payment",
+        "calculations": [
+          {
+            "name": "Percentage change between Test Rate and Made up Calc - Sum",
+            "templateCalculationId": 9001,
+            "valueFormat": "Percentage",
+            "type": "Number",
+            "formulaText": "",
+            "aggregationType": "PercentageChangeBetweenAandB",
+            "percentageChangeBetweenAandB": {
+              "calculationA" : 156,
+              "calculationB" : 152,
+              "calculationAggregationType" : "Sum"
+            }
+          },
+          {
+            "name": "Percentage change between Made up Calc and Test Rate - Avg",
+            "templateCalculationId": 9002,
+            "valueFormat": "Percentage",
+            "type": "Number",
+            "formulaText": "",
+            "aggregationType": "PercentageChangeBetweenAandB",
+            "percentageChangeBetweenAandB": {
+              "calculationA" : 152,
+              "calculationB" : 156,
+              "calculationAggregationType" : "Average"
+            }
+          },
+          {
+            "name": "Number of pupils",
+            "templateCalculationId": 1,
+            "valueFormat": "Number",
+            "type": "PupilNumber",
+            "formulaText": "Something * something",
+            "aggregationType": "Sum",
+            "calculations": [
+              {
+                "name": "Made up no value calc",
+                "templateCalculationId": 156,
+                "valueFormat": "Number",
+                "type": "Rate",
+                "formulaText": "Something * something else",
+                "aggregationType": "None",
+                "calculations": [
+                  {
+                    "name": "Test Rate",
+                    "templateCalculationId": 152,
+                    "valueFormat": "Number",
+                    "type": "Rate",
+                    "formulaText": "Something * something else",
+                    "aggregationType": "Sum"
+                  },
+                  {
+                    "name": "Test None",
+                    "templateCalculationId": 157,
+                    "valueFormat": "Number",
+                    "type": "Rate",
+                    "formulaText": "Something * something else",
+                    "aggregationType": "None"
+                  }
+                ]
+              },
+              {
+                "name": "Made up Calc",
+                "templateCalculationId": 155,
+                "valueFormat": "Number",
+                "type": "Rate",
+                "formulaText": "Something * something else",
+                "aggregationType": "Sum"
+              }
+            ]
+          },
+          {
+            "name": "Number of pupils",
+            "templateCalculationId": 1,
+            "valueFormat": "Number",
+            "type": "PupilNumber",
+            "formulaText": "Something * something",
+            "aggregationType": "Sum"
+          },
+          {
+            "name": "Weighting",
+            "templateCalculationId": 126,
+            "valueFormat": "Percentage",
+            "type": "Weighting",
+            "formulaText": "",
+            "aggregationType": "Average"
+          }
+        ],
+        "fundingLines": [
+          {
+            "name": "Total funding line",
+            "fundingLineCode": "TotalFundingLine",
+            "templateLineId": 1,
+            "type": "Payment",
+            "calculations": [
+              {
+                "name": "Number of pupils",
+                "templateCalculationId": 1,
+                "valueFormat": "Number",
+                "type": "PupilNumber",
+                "formulaText": "Something * something",
+                "aggregationType": "Sum",
+                "calculations": [
+                  {
+                    "name": "Made up no value calc",
+                    "templateCalculationId": 156,
+                    "valueFormat": "Number",
+                    "type": "Rate",
+                    "formulaText": "Something * something else",
+                    "aggregationType": "None",
+                    "calculations": [
+                      {
+                        "name": "Test Rate",
+                        "templateCalculationId": 152,
+                        "valueFormat": "Number",
+                        "type": "Rate",
+                        "formulaText": "Something * something else",
+                        "aggregationType": "Sum"
+                      },
+                      {
+                        "name": "Test None",
+                        "templateCalculationId": 157,
+                        "valueFormat": "Number",
+                        "type": "Rate",
+                        "formulaText": "Something * something else",
+                        "aggregationType": "None"
+                      }
+                    ]
+                  },
+                  {
+                    "name": "Made up Calc",
+                    "templateCalculationId": 155,
+                    "valueFormat": "Number",
+                    "type": "Rate",
+                    "formulaText": "Something * something else",
+                    "aggregationType": "Sum"
+                  }
+                ]
+              },
+              {
+                "name": "Number of pupils",
+                "templateCalculationId": 1,
+                "valueFormat": "Number",
+                "type": "PupilNumber",
+                "formulaText": "Something * something",
+                "aggregationType": "Sum"
+              },
+              {
+                "name": "Weighting",
+                "templateCalculationId": 126,
+                "valueFormat": "Percentage",
+                "type": "Weighting",
+                "formulaText": "",
+                "aggregationType": "Average"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

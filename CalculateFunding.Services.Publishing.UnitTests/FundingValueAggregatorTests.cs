@@ -9,8 +9,7 @@ using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
-using NSubstitute;
-using Serilog;
+using Serilog.Core;
 using FundingLine = CalculateFunding.Models.Publishing.FundingLine;
 
 namespace CalculateFunding.Services.Publishing.UnitTests
@@ -18,20 +17,50 @@ namespace CalculateFunding.Services.Publishing.UnitTests
     [TestClass]
     public class FundingValueAggregatorTests
     {
+        private TemplateMetadataContents _contents;
+        private FundingValueAggregator _fundingValueAggregator;
+
+        [TestInitialize]
+        public void SetUp()
+        {
+            _fundingValueAggregator = new FundingValueAggregator();  
+        }
+
+        [TestMethod]
+        public void PercentageChangedAggregation()
+        {
+            ITemplateMetadataGenerator templateMetaDataGenerator = CreateSchema11TemplateGenerator();
+
+            _contents = templateMetaDataGenerator.GetMetadata(GetResourceString("CalculateFunding.Services.Publishing.UnitTests.Resources.exampleProviderTemplate1_Schema1_1.json"));
+            
+            IEnumerable<AggregateFundingLine> fundingLines = _fundingValueAggregator.GetTotals(_contents, GetProviderVersions("_Schema1_1"));
+            
+            //check the percentage difference calc results
+            IEnumerable<AggregateFundingCalculation> aggregateFundingCalculations = fundingLines.Single().Calculations;
+            
+            AggregateFundingCalculation sum = aggregateFundingCalculations.SingleOrDefault(_ => _.TemplateCalculationId == 9001);
+
+            sum.Value
+                .Should()
+                .Be(-50M);
+            
+            AggregateFundingCalculation average = aggregateFundingCalculations.SingleOrDefault(_ => _.TemplateCalculationId == 9002);
+
+            average.Value
+                .Should()
+                .Be(100M);
+        }
+        
         [TestMethod]
         public void GetTotals_GivenValidPublishedProviderVersions_ReturnsFundingLines()
         {
             //Arrange
-            ILogger logger = CreateLogger();
+            ITemplateMetadataGenerator templateMetaDataGenerator = CreateSchema10TemplateGenerator();
 
-            ITemplateMetadataGenerator templateMetaDataGenerator = CreateTemplateGenerator(logger);
-
-            TemplateMetadataContents contents = templateMetaDataGenerator.GetMetadata(GetResourceString("CalculateFunding.Services.Publishing.UnitTests.Resources.exampleProviderTemplate1.json"));
-
-            FundingValueAggregator fundingValueAggregator = new FundingValueAggregator();
+            _contents = templateMetaDataGenerator.GetMetadata(GetResourceString("CalculateFunding.Services.Publishing.UnitTests.Resources.exampleProviderTemplate1_Schema1_0.json"));
 
             //Act
-            IEnumerable<AggregateFundingLine> fundingLines = fundingValueAggregator.GetTotals(contents, GetProviderVersions());
+            IEnumerable<AggregateFundingLine> fundingLines = _fundingValueAggregator.GetTotals(_contents, GetProviderVersions());
 
             //Assert
             fundingLines.First().Calculations.Where(x => x.TemplateCalculationId == 1).First().Value
@@ -63,17 +92,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .Be(127000.325M);
         }
 
-        public ITemplateMetadataGenerator CreateTemplateGenerator(ILogger logger = null)
-        {
-            return new TemplateMetadataGenerator(logger ?? CreateLogger());
-        }
+        public ITemplateMetadataGenerator CreateSchema10TemplateGenerator() 
+            => new TemplateMetadataGenerator(Logger.None);
 
-        public ILogger CreateLogger()
-        {
-            return Substitute.For<ILogger>();
-        }
+        public ITemplateMetadataGenerator CreateSchema11TemplateGenerator()
+            => new CalculateFunding.Common.TemplateMetadata.Schema11.TemplateMetadataGenerator(Logger.None);
 
-        public IEnumerable<PublishedProviderVersion> GetProviderVersions()
+        public IEnumerable<PublishedProviderVersion> GetProviderVersions(string schema = null)
         {
             List<PublishedProviderVersion> providerVersions = new List<PublishedProviderVersion>();
 
@@ -82,7 +107,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 providerVersions.Add(new PublishedProviderVersion
                 {
                     Provider = GetProvider(i),
-                    Calculations = JsonConvert.DeserializeObject<IEnumerable<FundingCalculation>>(GetResourceString($"CalculateFunding.Services.Publishing.UnitTests.Resources.exampleProvider{i}Calculations.json")),
+                    Calculations = JsonConvert.DeserializeObject<IEnumerable<FundingCalculation>>(GetResourceString($"CalculateFunding.Services.Publishing.UnitTests.Resources.exampleProvider{i}Calculations{schema}.json")),
                     FundingLines = new FundingLine[] { NewFundingLine(fl => fl.WithTemplateLineId(1).WithValue(0)) },
                     ProviderId = "1234" + i,
                     FundingStreamId = "PSG",
@@ -91,7 +116,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                     MajorVersion = 1,
                     MinorVersion = 0,
                     VariationReasons = new List<VariationReason> { VariationReason.NameFieldUpdated, VariationReason.FundingUpdated }
-                }); ;
+                });
             }
 
             return providerVersions;

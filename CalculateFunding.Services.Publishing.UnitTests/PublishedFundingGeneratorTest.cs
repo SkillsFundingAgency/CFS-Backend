@@ -58,7 +58,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             ITemplateMetadataGenerator templateMetaDataGenerator = new TemplateMetadataGenerator(logger);
 
-            _templateMetadataContents = templateMetaDataGenerator.GetMetadata(GetResourceString("CalculateFunding.Services.Publishing.UnitTests.Resources.exampleProviderTemplate1.json"));
+            _templateMetadataContents = templateMetaDataGenerator.GetMetadata(GetResourceString("CalculateFunding.Services.Publishing.UnitTests.Resources.exampleProviderTemplate1_Schema1_0.json"));
 
             _publishedFundingIdGenerator = Substitute.For<IPublishedFundingIdGenerator>();
 
