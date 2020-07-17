@@ -327,6 +327,15 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             return fundingConfigurationBuilder.Build();
         }
 
+        private PublishedFundingTemplate NewPublishedFundingTemplate(Action<PublishedFundingTemplateBuilder> setUp = null)
+        {
+            PublishedFundingTemplateBuilder publishedFundingTemplateBuilder = new PublishedFundingTemplateBuilder();
+
+            setUp?.Invoke(publishedFundingTemplateBuilder);
+
+            return publishedFundingTemplateBuilder.Build();
+        }
+
         private Specification NewSpecification(Action<SpecificationBuilder> setUp = null)
         {
             SpecificationBuilder specificationBuilder = new SpecificationBuilder();

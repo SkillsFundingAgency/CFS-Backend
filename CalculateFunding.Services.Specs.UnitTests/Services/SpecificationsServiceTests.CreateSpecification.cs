@@ -5,8 +5,10 @@ using System.Linq.Expressions;
 using System.Net;
 using System.Threading.Tasks;
 using AutoMapper;
+using CalculateFunding.Common.ApiClient.Calcs;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies;
+using CalculateFunding.Common.ApiClient.Policies.Models;
 using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Specs;
@@ -187,7 +189,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         }
 
         [TestMethod]
-        public async Task SpecificationsService_CreateSpecification_WhenFundingConfigurationDefaultTemplateVersionNotSet_ThenSpecificationCreationFailed()
+        public async Task SpecificationsService_CreateSpecification_WhenFundingConfigurationDefaultTemplateVersionNotSet_AndFundingTemplateNotExists_ThenSpecificationCreationFailed()
         {
             // Arrange
             const string fundingStreamId = "fs1";
@@ -255,6 +257,13 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .GetFundingConfiguration(Arg.Is(fundingStreamId), Arg.Is(fundingPeriodId))
                 .Returns(fundingConfigResponse);
 
+            ApiResponse<IEnumerable<PolicyModels.PublishedFundingTemplate>> publishedFundingTemplatesResponse 
+                = new ApiResponse<IEnumerable<PolicyModels.PublishedFundingTemplate>>(HttpStatusCode.OK, Enumerable.Empty<PolicyModels.PublishedFundingTemplate>());
+
+            policiesApiClient
+                .GetFundingTemplates(Arg.Is(fundingStreamId), Arg.Is(fundingPeriodId))
+                .Returns(publishedFundingTemplatesResponse);
+
             // Act
             IActionResult result = await specificationsService.CreateSpecification(specificationCreateModel, user, null);
 
@@ -266,6 +275,185 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .Value
                 .Should()
                 .Be($"Default Template Version is empty for funding stream id '{fundingStreamId}' and funding period id '{fundingPeriodId}'");
+        }
+
+        [TestMethod]
+        public async Task SpecificationsService_CreateSpecification_WhenFundingConfigurationDefaultTemplateVersionNotSet_AndFundingTemplateExists_ThenTrimmedSpecificationIsCreated()
+        {
+            // Arrange
+            const string fundingStreamId = "fs1";
+            const string fundingPeriodId = "fp1";
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();
+            ISearchRepository<SpecificationIndex> searchRepository = CreateSearchRepository();
+            IQueueCreateSpecificationJobActions createSpecificationJobAction = Substitute.For<IQueueCreateSpecificationJobActions>();
+            ICalculationsApiClient calculationsApiClient = CreateCalcsApiClient();
+
+            IMapper mapper = CreateImplementedMapper();
+            IVersionRepository<SpecificationVersion> versionRepository = CreateVersionRepository();
+
+            SpecificationsService specificationsService = CreateService(
+                specificationsRepository: specificationsRepository,
+                policiesApiClient: policiesApiClient,
+                searchRepository: searchRepository,
+                mapper: mapper,
+                specificationVersionRepository: versionRepository,
+                queueCreateSpecificationJobActions: createSpecificationJobAction,
+                calcsApiClient: calculationsApiClient);
+
+            SpecificationCreateModel specificationCreateModel = new SpecificationCreateModel()
+            {
+                Name = "   Specification Name   ",
+                Description = "Specification Description",
+                FundingPeriodId = "fp1",
+                FundingStreamIds = new List<string>() { fundingStreamId },
+            };
+
+            Reference user = new Reference(UserId, Username);
+
+            specificationsRepository
+                .GetSpecificationByQuery(Arg.Any<Expression<Func<DocumentEntity<Specification>, bool>>>())
+                .Returns((Specification)null);
+
+            PolicyModels.FundingPeriod fundingPeriod = new PolicyModels.FundingPeriod
+            {
+                Id = fundingPeriodId,
+                Name = "Funding Period 1"
+            };
+
+            ApiResponse<PolicyModels.FundingPeriod> fundingPeriodResponse = new ApiResponse<PolicyModels.FundingPeriod>(HttpStatusCode.OK, fundingPeriod);
+
+            PolicyModels.FundingStream fundingStream = new PolicyModels.FundingStream
+            {
+                Id = fundingStreamId,
+                Name = "Funding Stream 1",
+            };
+
+            ApiResponse<PolicyModels.FundingStream> fundingStreamResponse = new ApiResponse<PolicyModels.FundingStream>(HttpStatusCode.OK, fundingStream);
+
+            FundingConfiguration fundingConfiguration = NewFundingConfiguration();
+
+            ApiResponse<FundingConfiguration> fundingConfigResponse = new ApiResponse<FundingConfiguration>(HttpStatusCode.OK, fundingConfiguration);
+
+            policiesApiClient
+                .GetFundingPeriodById(Arg.Is(fundingPeriodId))
+                .Returns(fundingPeriodResponse);
+
+            policiesApiClient
+                .GetFundingStreamById(Arg.Is(fundingStreamId))
+                .Returns(fundingStreamResponse);
+
+            policiesApiClient
+                .GetFundingConfiguration(Arg.Is(fundingStreamId), Arg.Is(fundingPeriodId))
+                .Returns(fundingConfigResponse);
+
+            PublishedFundingTemplate publishedFundingTemplateOne = NewPublishedFundingTemplate(_ => _.WithTemplateVersion("9.9"));
+            PublishedFundingTemplate publishedFundingTemplateTwo = NewPublishedFundingTemplate(_ => _.WithTemplateVersion("10.0"));
+
+            ApiResponse<IEnumerable<PolicyModels.PublishedFundingTemplate>> publishedFundingTemplatesResponse
+                = new ApiResponse<IEnumerable<PolicyModels.PublishedFundingTemplate>>(
+                    HttpStatusCode.OK, 
+                    new[] { publishedFundingTemplateOne , publishedFundingTemplateTwo });
+
+            policiesApiClient
+                .GetFundingTemplates(Arg.Is(fundingStreamId), Arg.Is(fundingPeriodId))
+                .Returns(publishedFundingTemplatesResponse);
+
+            DateTime createdDate = new DateTime(2018, 1, 2, 5, 6, 2);
+
+            SpecificationVersion specificationVersion = new SpecificationVersion()
+            {
+                Description = "Specification Description",
+                FundingPeriod = new Reference("fp1", "Funding Period 1"),
+                Date = createdDate,
+                PublishStatus = Models.Versioning.PublishStatus.Draft,
+                FundingStreams = new List<Reference>() { new Reference(fundingStreamId, "Funding Stream 1") },
+                Name = "Specification Name",
+                Version = 1,
+                SpecificationId = SpecificationId
+            };
+
+            versionRepository
+                .CreateVersion(Arg.Any<SpecificationVersion>())
+                .Returns(specificationVersion);
+
+            DocumentEntity<Specification> createdSpecification = new DocumentEntity<Specification>()
+            {
+                Content = new Specification()
+                {
+                    Name = "Specification Name",
+                    Id = "createdSpec",
+                    Current = specificationVersion
+                },
+            };
+
+            specificationsRepository
+                .CreateSpecification(Arg.Is<Specification>(
+                    s => s.Name == specificationCreateModel.Name.Trim() &&
+                    s.Current.Description == specificationCreateModel.Description &&
+                    s.Current.FundingPeriod.Id == fundingPeriodId))
+                .Returns(createdSpecification);
+
+            // Act
+            IActionResult result = await specificationsService.CreateSpecification(specificationCreateModel, user, null);
+
+            // Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>()
+                .Which
+                .Value
+                .Should()
+                .BeOfType<SpecificationSummary>()
+                .And
+                .NotBeNull();
+
+            await specificationsRepository
+                .Received(1)
+                .CreateSpecification(Arg.Is<Specification>(
+                   s => s.Name == specificationCreateModel.Name.Trim() &&
+                   s.Current.Description == specificationCreateModel.Description &&
+                   s.Current.FundingPeriod.Id == fundingPeriodId));
+
+            await _specificationIndexer
+                .Received(1)
+                .Index(Arg.Is<Specification>(_ => _.Name == specificationCreateModel.Name.Trim() &&
+                                                  _.Id.IsNotNullOrWhitespace()));
+            await versionRepository
+               .Received(1)
+               .SaveVersion(Arg.Is<SpecificationVersion>(
+                       m => !string.IsNullOrWhiteSpace(m.EntityId) &&
+                       m.PublishStatus == Models.Versioning.PublishStatus.Draft &&
+                       m.Description == "Specification Description" &&
+                       m.FundingPeriod.Id == "fp1" &&
+                       m.FundingPeriod.Name == "Funding Period 1" &&
+                       m.FundingStreams.Any() &&
+                       m.Name == "Specification Name" &&
+                       m.Version == 1
+                   ));
+
+            await createSpecificationJobAction
+                .Received(1)
+                .Run(Arg.Is<SpecificationVersion>(
+                        m => !string.IsNullOrWhiteSpace(m.EntityId) &&
+                             m.PublishStatus == Models.Versioning.PublishStatus.Draft &&
+                             m.Description == "Specification Description" &&
+                             m.FundingPeriod.Id == "fp1" &&
+                             m.FundingPeriod.Name == "Funding Period 1" &&
+                             m.FundingStreams.Any() &&
+                             m.Name == "Specification Name" &&
+                             m.Version == 1
+                    ),
+                    Arg.Is<Reference>(author => author.Id == UserId &&
+                                              author.Name == Username),
+                    Arg.Any<string>());
+
+            SpecificationSummary specificationSummary = (result as OkObjectResult).Value as SpecificationSummary;
+
+            await calculationsApiClient
+                .Received(1)
+                .AssociateTemplateIdWithSpecification(Arg.Is(specificationSummary.Id), "10.0", fundingStreamId);
         }
 
         [TestMethod]

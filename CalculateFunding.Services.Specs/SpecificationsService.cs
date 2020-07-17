@@ -8,7 +8,6 @@ using AutoMapper;
 using CalculateFunding.Common.ApiClient.Calcs;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies;
-using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
 using CalculateFunding.Common.ApiClient.Providers;
 using CalculateFunding.Common.ApiClient.Results;
 using CalculateFunding.Common.ApiClient.Results.Models;
@@ -39,7 +38,6 @@ using Serilog;
 using PolicyModels = CalculateFunding.Common.ApiClient.Policies.Models;
 using PublishStatus = CalculateFunding.Models.Versioning.PublishStatus;
 using SpecificationVersion = CalculateFunding.Models.Specs.SpecificationVersion;
-
 
 namespace CalculateFunding.Services.Specs
 {
@@ -374,7 +372,7 @@ namespace CalculateFunding.Services.Specs
                 checkForResulstsTasks.Add(task);
             }
 
-            await TaskHelper.WhenAllAndThrow(checkForResulstsTasks.ToArray());
+            await Core.Helpers.TaskHelper.WhenAllAndThrow(checkForResulstsTasks.ToArray());
 
             IEnumerable<SpecificationSummary> specificationSummaries =
                 _mapper.Map<IEnumerable<SpecificationSummary>>(mappedSpecifications);
@@ -566,7 +564,7 @@ namespace CalculateFunding.Services.Specs
                 Id = Guid.NewGuid().ToString(),
             };
 
-            Models.Specs.SpecificationVersion specificationVersion = new Models.Specs.SpecificationVersion
+            SpecificationVersion specificationVersion = new SpecificationVersion
             {
                 Name = createModel.Name,
                 ProviderVersionId = createModel.ProviderVersionId,
@@ -604,11 +602,11 @@ namespace CalculateFunding.Services.Specs
 
             specification.Current = specificationVersion;
 
-            IDictionary<string, FundingConfiguration> fundingConfigs = new Dictionary<string, FundingConfiguration>();
+            IDictionary<string, string> defaultTemplateVersions = new Dictionary<string, string>();
 
             foreach (string fundingStreamId in specification.Current.FundingStreams.Select(m => m.Id))
             {
-                ApiResponse<FundingConfiguration> fundingConfigResponse =
+                ApiResponse<PolicyModels.FundingConfig.FundingConfiguration> fundingConfigResponse =
                     await _policiesApiClientPolicy.ExecuteAsync(() =>
                         _policiesApiClient.GetFundingConfiguration(fundingStreamId,
                             specification.Current.FundingPeriod.Id));
@@ -619,17 +617,46 @@ namespace CalculateFunding.Services.Specs
                         $"No funding configuration returned for funding stream id '{fundingStreamId}' and funding period id '{specification.Current.FundingPeriod.Id}'");
                 }
 
-                FundingConfiguration fundingConfiguration = fundingConfigResponse.Content;
+                PolicyModels.FundingConfig.FundingConfiguration fundingConfiguration = fundingConfigResponse.Content;
 
-                if (fundingConfiguration != null)
+                if (!string.IsNullOrEmpty(fundingConfiguration?.DefaultTemplateVersion))
                 {
-                    if (string.IsNullOrEmpty(fundingConfiguration.DefaultTemplateVersion))
+                    defaultTemplateVersions.Add(fundingStreamId, fundingConfiguration.DefaultTemplateVersion);
+                }
+                else
+                {
+                    ApiResponse<IEnumerable<PolicyModels.PublishedFundingTemplate>> publishedFundingTemplatesResponse =
+                        await _policiesApiClientPolicy.ExecuteAsync(() =>
+                            _policiesApiClient.GetFundingTemplates(fundingStreamId,
+                                specification.Current.FundingPeriod.Id));
+
+                    if (!publishedFundingTemplatesResponse.StatusCode.IsSuccess())
+                    {
+                        return new InternalServerErrorResult(
+                            $"No published funding template returned for funding stream id '{fundingStreamId}' and funding period id '{specification.Current.FundingPeriod.Id}'");
+                    }
+
+                    if (!publishedFundingTemplatesResponse.Content.Any())
                     {
                         return new InternalServerErrorResult(
                             $"Default Template Version is empty for funding stream id '{fundingStreamId}' and funding period id '{specification.Current.FundingPeriod.Id}'");
                     }
 
-                    fundingConfigs.Add(fundingStreamId, fundingConfiguration);
+                    IEnumerable<string> templateVersionStrings = publishedFundingTemplatesResponse.Content.Select(_ => _.TemplateVersion);
+
+                    List<decimal> templateVersions = new List<decimal>();
+                    foreach (string templateVersionString in templateVersionStrings)
+                    {
+                        bool parsed = decimal.TryParse(templateVersionString, out var parsedTemplateVersion);
+
+                        if (parsed)
+                        {
+                            templateVersions.Add(parsedTemplateVersion);
+                        }
+                    }
+
+                    decimal templateVersion = templateVersions.Max();
+                    defaultTemplateVersions.Add(fundingStreamId, templateVersion.ToString());
                 }
             }
 
@@ -651,11 +678,11 @@ namespace CalculateFunding.Services.Specs
 
             foreach (string fundingStreamId in specification.Current.FundingStreams.Select(m => m.Id))
             {
-                if (fundingConfigs.ContainsKey(fundingStreamId))
+                if (defaultTemplateVersions.ContainsKey(fundingStreamId))
                 {
                     await _calcsApiClientPolicy.ExecuteAsync(() =>
                         _calcsApiClient.AssociateTemplateIdWithSpecification(specification.Id,
-                            fundingConfigs[fundingStreamId].DefaultTemplateVersion, fundingStreamId));
+                            defaultTemplateVersions[fundingStreamId], fundingStreamId));
                 }
             }
 
