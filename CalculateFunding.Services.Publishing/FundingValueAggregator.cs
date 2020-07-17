@@ -13,6 +13,7 @@ namespace CalculateFunding.Services.Publishing
 {
     public class FundingValueAggregator
     {
+        private Dictionary<uint, AggregationType> _aggregationTypes;
         private Dictionary<uint, ICollection<decimal>> _rawCalculations;
         private Dictionary<uint, (decimal, int)> _aggregatedCalculations;
         private Dictionary<uint, (decimal?, IEnumerable<DistributionPeriod>)> _aggregatedFundingLines;
@@ -27,6 +28,7 @@ namespace CalculateFunding.Services.Publishing
             _aggregatedDistributionPeriods = new Dictionary<string, decimal>();
             _aggregatedProfilePeriods = new Dictionary<string, decimal>();
             _rawCalculations = new Dictionary<uint, ICollection<decimal>>();
+            _aggregationTypes = new Dictionary<uint, AggregationType>();
 
             foreach (PublishedProviderVersion provider in publishedProviders)
             {
@@ -127,7 +129,7 @@ namespace CalculateFunding.Services.Publishing
             decimal value = templateCalculation.AggregationType switch
             {
                 AggregationType.PercentageChangeBetweenAandB => GetPercentageChangeBetweenAandB(templateCalculation),
-                AggregationType.GroupRate => 0, //TODO; GroupRate
+                AggregationType.GroupRate => GetGroupRate(templateCalculation),
                 _ => throw new NotSupportedException()
             };
 
@@ -137,17 +139,55 @@ namespace CalculateFunding.Services.Publishing
             }
         }
 
+        private decimal GetGroupRate(Calculation templateCalculation)
+        {
+            GroupRate groupRate = templateCalculation.GroupRate;
+
+            uint numeratorCalculation = groupRate.Numerator;
+            uint denominatorCalculation = groupRate.Denominator;
+
+            AggregationType sum = AggregationType.Sum;
+            
+            EnsureGroupRateCalculationComponentIsSummed(numeratorCalculation);
+            EnsureGroupRateCalculationComponentIsSummed(denominatorCalculation);
+
+            decimal numerator = CalculateAggregateValueFor(numeratorCalculation, sum);
+            decimal denominator = CalculateAggregateValueFor(denominatorCalculation, sum);
+
+            decimal rate = numerator / denominator;
+            
+            AddRawCalculation(templateCalculation.TemplateCalculationId, rate);
+            
+            return rate;
+        }
+
+        private void EnsureGroupRateCalculationComponentIsSummed(uint numeratorCalculation)
+        {
+            if (!AggregationTypeIs(numeratorCalculation, AggregationType.Sum))
+            {
+                throw new InvalidOperationException(
+                    $"Group rate aggregations can only be used on other calculations when they are Sum aggregations. {numeratorCalculation} is not a Sum aggregation");
+            }
+        }
+
         private decimal GetPercentageChangeBetweenAandB(Calculation templateCalculation)
         {
-            uint calculationA = templateCalculation.PercentageChangeBetweenAandB.CalculationA;
-            uint calculationB = templateCalculation.PercentageChangeBetweenAandB.CalculationB;
-            AggregationType aggregationType = templateCalculation.PercentageChangeBetweenAandB.CalculationAggregationType;
+            PercentageChangeBetweenAandB percentageChangeBetweenAandB = templateCalculation.PercentageChangeBetweenAandB;
+            
+            uint calculationA = percentageChangeBetweenAandB.CalculationA;
+            uint calculationB = percentageChangeBetweenAandB.CalculationB;
+            
+            AggregationType aggregationType = percentageChangeBetweenAandB.CalculationAggregationType;
 
             decimal valueA = CalculateAggregateValueFor(calculationA, aggregationType);
             decimal valueB = CalculateAggregateValueFor(calculationB, aggregationType);
 
             return (valueB - valueA) / valueA * 100;
         }
+
+        private bool AggregationTypeIs(uint templateCalculationId,
+            params AggregationType[] permittedAggregationTypes)
+            => permittedAggregationTypes.Contains(GetAggregationType(templateCalculationId));
 
         private decimal CalculateAggregateValueFor(uint templateCalculationId,
             AggregationType aggregationType)
@@ -162,7 +202,7 @@ namespace CalculateFunding.Services.Publishing
             {
                 AggregationType.Average => providerValues.Average(),
                 AggregationType.Sum => providerValues.Sum(),
-                AggregationType.GroupRate => 0, //TODO; group rate implementation
+                AggregationType.GroupRate => providerValues.First(),
                 _ => throw new ArgumentOutOfRangeException(nameof(AggregationType))
             };
         }
@@ -261,6 +301,18 @@ namespace CalculateFunding.Services.Publishing
             }
         }
 
+        private void AddCalculationAggregationType(uint key,
+            AggregationType aggregationType)
+        {
+            _aggregationTypes[key] = aggregationType;
+        }
+
+        private AggregationType GetAggregationType(uint templateCalculationId)
+            => _aggregationTypes.TryGetValue(templateCalculationId, out AggregationType aggregationType)
+                ? aggregationType
+                : throw new ArgumentOutOfRangeException(nameof(templateCalculationId),
+                    $"No aggregation type tracked for template calculation id {templateCalculationId}");
+        
         private void AddRawCalculation(uint key,
             decimal value)
         {
@@ -282,6 +334,8 @@ namespace CalculateFunding.Services.Publishing
 
         private AggregateFundingCalculation GetAggregateCalculation(Calculation calculation)
         {
+            AddCalculationAggregationType(calculation.TemplateCalculationId, calculation.AggregationType);
+            
             // make sure there this or one if it's children has an aggregation type of Sum or Average
             if (TryGetAggregateCalculation(calculation.TemplateCalculationId, out (decimal Total, int Count) aggregate) && ShouldIncludeCalculation(calculation))
             {

@@ -36,6 +36,18 @@
             }
           },
           {
+            "name": "Group rate for Made up Calc and Test Rate",
+            "templateCalculationId": 9003,
+            "valueFormat": "Currency",
+            "type": "Number",
+            "formulaText": "",
+            "aggregationType": "GroupRate",
+            "groupRate": {
+              "numerator" : 1,
+              "denominator" : 152
+            }
+          },
+          {
             "name": "Number of pupils",
             "templateCalculationId": 1,
             "valueFormat": "Number",

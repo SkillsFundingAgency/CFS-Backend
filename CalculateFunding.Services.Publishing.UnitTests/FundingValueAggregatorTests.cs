@@ -5,6 +5,7 @@ using CalculateFunding.Common.TemplateMetadata;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Common.TemplateMetadata.Schema10;
 using CalculateFunding.Models.Publishing;
+using CalculateFunding.Services.Publishing.IoC;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -27,13 +28,25 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         }
 
         [TestMethod]
+        public void GroupRateAggregation()
+        {
+            IEnumerable<AggregateFundingLine> fundingLines = WhenTheSchema1_1FundingLinesAreAggregated();
+            
+            //check the group rate calc results
+            IEnumerable<AggregateFundingCalculation> aggregateFundingCalculations = fundingLines.Single().Calculations;
+
+            AggregateFundingCalculation groupRate = aggregateFundingCalculations.SingleOrDefault(_ => _.TemplateCalculationId == 9003);
+
+            groupRate
+                .Value
+                .Should()
+                .Be(10.001625M);
+        }
+
+        [TestMethod]
         public void PercentageChangedAggregation()
         {
-            ITemplateMetadataGenerator templateMetaDataGenerator = CreateSchema11TemplateGenerator();
-
-            _contents = templateMetaDataGenerator.GetMetadata(GetResourceString("CalculateFunding.Services.Publishing.UnitTests.Resources.exampleProviderTemplate1_Schema1_1.json"));
-            
-            IEnumerable<AggregateFundingLine> fundingLines = _fundingValueAggregator.GetTotals(_contents, GetProviderVersions("_Schema1_1"));
+            IEnumerable<AggregateFundingLine> fundingLines = WhenTheSchema1_1FundingLinesAreAggregated();
             
             //check the percentage difference calc results
             IEnumerable<AggregateFundingCalculation> aggregateFundingCalculations = fundingLines.Single().Calculations;
@@ -49,6 +62,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             average.Value
                 .Should()
                 .Be(100M);
+        }
+
+        private IEnumerable<AggregateFundingLine> WhenTheSchema1_1FundingLinesAreAggregated()
+        {
+            ITemplateMetadataGenerator templateMetaDataGenerator = CreateSchema11TemplateGenerator();
+
+            _contents = templateMetaDataGenerator.GetMetadata(GetResourceString("CalculateFunding.Services.Publishing.UnitTests.Resources.exampleProviderTemplate1_Schema1_1.json"));
+            
+           return _fundingValueAggregator.GetTotals(_contents, GetProviderVersions("_Schema1_1"));    
         }
         
         [TestMethod]
