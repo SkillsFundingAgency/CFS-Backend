@@ -22,6 +22,7 @@ namespace CalculateFunding.Services.Publishing
     {
         private static readonly FacetFilterType[] Facets = {
             new FacetFilterType("providerType"),
+            new FacetFilterType("providerSubType"),
             new FacetFilterType("localAuthority"),
             new FacetFilterType("fundingStatus")
         };

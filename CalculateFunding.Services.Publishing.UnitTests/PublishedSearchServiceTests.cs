@@ -109,7 +109,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .BeEquivalentTo(searchIndexResults.Results.Select(_ => _.Result.Id));
 
             await ThenTheFiltersWasSearched(searchModel, 
-                3, 
+                4, 
                 "(providerType eq 'test' or providerType eq '') and (filter1 eq 'filter1value1' or filter1 eq 'filter1value2')");
             await AndTheFilterWasSearched(searchModel,
                 1,
