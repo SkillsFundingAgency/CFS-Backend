@@ -1,7 +1,6 @@
 ﻿using System.Threading.Tasks;
 using CalculateFunding.Functions.CalcEngine.ServiceBus;
 using CalculateFunding.Services.Core.Constants;
-using CalculateFunding.Services.Core.Extensions;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.DependencyInjection;

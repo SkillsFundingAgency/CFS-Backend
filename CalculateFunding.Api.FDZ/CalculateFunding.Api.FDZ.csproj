@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <UserSecretsId>df0d69d5-a6db-4598-909f-262fc39cb8c8</UserSecretsId>
+    <LangVersion>8</LangVersion>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Folder Include="Controllers\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CalculateFunding.Services.Core.AspNet\CalculateFunding.Services.Core.AspNet.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Services.FDZ\CalculateFunding.Services.FDZ.csproj" />
+  </ItemGroup>
+
+
+</Project>
