@@ -154,7 +154,7 @@ namespace CalculateFunding.Services.Results.UnitTests
             await WhenTheSpecificationInformationIsMerged(message);
             
             ThenTheJobTrackingWasStarted(jobId);
-            AndTheProviderWithResultsForSpecificationsWasUpserted(providerWithResultsForSpecifications);
+            AndTheProviderWithResultsForSpecificationsWereUpserted(providerWithResultsForSpecifications);
 
             providerWithResultsForSpecifications
                 .Specifications
@@ -226,13 +226,13 @@ namespace CalculateFunding.Services.Results.UnitTests
             SpecificationInformation expectedSpecificationInformation = specificationInformation.DeepCopy();
             expectedSpecificationInformation.FundingPeriodEnd = expectedFundingPeriodEndDate;
             
-            AndTheProviderWithResultsForSpecificationsWasUpserted(providerOne);
-            AndTheProviderWithResultsForSpecificationsWasUpserted(providerTwo);
-            AndTheProviderWithResultsForSpecificationsWasUpserted(providerThree);
-            AndTheProviderWithResultsForSpecificationsWasUpserted(providerFour);
-            AndTheProviderWithResultsForSpecificationsWasUpserted(providerFive);
-            AndTheProviderWithResultsForSpecificationsWasUpserted(providerSix);
-            AndTheProviderWithResultsForSpecificationsWasUpserted(providerSeven);
+            AndTheProviderWithResultsForSpecificationsWereUpserted(providerOne,
+                providerTwo);
+            AndTheProviderWithResultsForSpecificationsWereUpserted(providerThree,
+                providerFour);
+            AndTheProviderWithResultsForSpecificationsWereUpserted(providerFive,
+                providerSix);
+            AndTheProviderWithResultsForSpecificationsWereUpserted(providerSeven);
 
             AndTheProviderWithResultsForSpecificationsHaveTheEquivalentSpecificationInformation(expectedSpecificationInformation,
                 providerOne,
@@ -299,9 +299,10 @@ namespace CalculateFunding.Services.Results.UnitTests
                 Times.Once);
         }
 
-        private void AndTheProviderWithResultsForSpecificationsWasUpserted(ProviderWithResultsForSpecifications providerWithResultsForSpecifications)
+        private void AndTheProviderWithResultsForSpecificationsWereUpserted(params ProviderWithResultsForSpecifications[] providerWithResultsForSpecifications)
         {
-            _calculationResults.Verify(_ => _.UpsertSpecificationWithProviderResults(providerWithResultsForSpecifications),
+            _calculationResults.Verify(_ => _.UpsertSpecificationWithProviderResults(It.Is<ProviderWithResultsForSpecifications[]>(results =>
+                    results.SequenceEqual(providerWithResultsForSpecifications))),
                 Times.Once);
         }
 

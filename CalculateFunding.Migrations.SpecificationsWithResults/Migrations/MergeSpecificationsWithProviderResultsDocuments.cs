@@ -23,28 +23,31 @@ namespace CalculateFunding.Migrations.SpecificationsWithResults.Migrations
     {
         private readonly ConcurrentDictionary<string, SpecificationSummary> _cachedSpecifications = new ConcurrentDictionary<string, SpecificationSummary>();
 
+        private readonly ConcurrentDictionary<string, ProviderWithResultsForSpecifications> _cachedProviderWithResultsForSpecifications =
+            new ConcurrentDictionary<string, ProviderWithResultsForSpecifications>();
+
         private readonly IProducerConsumerFactory _producerConsumerFactory;
         private readonly IPoliciesApiClient _policies;
         private readonly AsyncPolicy _policiesPolicy;
         private readonly ICosmosRepository _cosmosRepository;
-        private readonly ISpecificationsWithProviderResultsService _specificationsWithProviderResults;
+        private readonly ICalculationResultsRepository _results;
         private readonly ISpecificationsApiClient _specifications;
         private readonly ILogger _logger;
 
         public MergeSpecificationsWithProviderResultsDocuments(ICosmosRepository cosmosRepository,
             ILogger logger,
-            ISpecificationsWithProviderResultsService specificationsWithProviderResults,
             ISpecificationsApiClient specifications,
             IProducerConsumerFactory producerConsumerFactory,
             IResultsResiliencePolicies resultsResiliencePolicies,
-            IPoliciesApiClient policies)
+            IPoliciesApiClient policies,
+            ICalculationResultsRepository results)
         {
             _cosmosRepository = cosmosRepository;
             _logger = logger;
-            _specificationsWithProviderResults = specificationsWithProviderResults;
             _specifications = specifications;
             _producerConsumerFactory = producerConsumerFactory;
             _policies = policies;
+            _results = results;
             _policiesPolicy = resultsResiliencePolicies.PoliciesApiClient;
         }
 
@@ -52,6 +55,10 @@ namespace CalculateFunding.Migrations.SpecificationsWithResults.Migrations
         {
             try
             {
+                await _cosmosRepository.SetThroughput(100000);
+                
+                Console.WriteLine("Set calcresults RU at 100000");
+
                 CosmosDbQuery query = new CosmosDbQuery
                 {
                     QueryText = @"  SELECT * 
@@ -61,7 +68,7 @@ namespace CalculateFunding.Migrations.SpecificationsWithResults.Migrations
                 };
 
                 ICosmosDbFeedIterator<ProviderResult> feed = _cosmosRepository.GetFeedIterator<ProviderResult>(query);
-                
+
                 ApiResponse<IEnumerable<FundingPeriod>> fundingPeriods = await _policiesPolicy.ExecuteAsync(() => _policies.GetFundingPeriods());
 
                 MergeContext context = new MergeContext(feed, fundingPeriods.Content);
@@ -73,12 +80,22 @@ namespace CalculateFunding.Migrations.SpecificationsWithResults.Migrations
                     _logger);
 
                 await producerConsumer.Run(context);
+
+                Console.WriteLine($"Starting bulk upsert of {_cachedProviderWithResultsForSpecifications.Count} providers with results for specifications summaries");
+
+                await _cosmosRepository.BulkUpsertAsync(_cachedProviderWithResultsForSpecifications);
             }
             catch (Exception e)
             {
                 _logger.Error(e, "Unable to complete provider version migration");
 
                 throw;
+            }
+            finally
+            {
+                await _cosmosRepository.SetThroughput(10000);
+                
+                Console.WriteLine("Set calcresults RU at 10000");
             }
         }
 
@@ -115,7 +132,7 @@ namespace CalculateFunding.Migrations.SpecificationsWithResults.Migrations
             return (true, ArraySegment<MergeSpecificationRequest>.Empty);
         }
 
-        private async Task ConsumeSpecificationInformation(CancellationToken cancellationToken,
+        private Task ConsumeSpecificationInformation(CancellationToken cancellationToken,
             dynamic context,
             IEnumerable<MergeSpecificationRequest> items)
         {
@@ -123,12 +140,25 @@ namespace CalculateFunding.Migrations.SpecificationsWithResults.Migrations
 
             foreach (MergeSpecificationRequest mergeSpecificationRequest in items)
             {
-                _logger.Information($"Merging specification information {mergeSpecificationRequest.SpecificationInformation.Name} for provider id {mergeSpecificationRequest.ProviderId}");
+                SpecificationInformation requestSpecificationInformation = mergeSpecificationRequest.SpecificationInformation;
 
-                await _specificationsWithProviderResults.MergeSpecificationInformation(mergeSpecificationRequest.SpecificationInformation,
-                    mergeSpecificationRequest.ProviderId,
-                    fundingPeriods);
+                _logger.Information($"Merging specification information {requestSpecificationInformation.Name} for provider id {mergeSpecificationRequest.ProviderId}");
+
+                ProviderWithResultsForSpecifications providerWithResultsForSpecifications = GetProviderWithResultsForSpecificationsForProviderId(mergeSpecificationRequest.ProviderId);
+
+                SpecificationInformation specificationInformation = new SpecificationInformation
+                {
+                    Id = requestSpecificationInformation.Id,
+                    Name = requestSpecificationInformation.Name,
+                    LastEditDate = requestSpecificationInformation.LastEditDate,
+                    FundingPeriodId = requestSpecificationInformation.FundingPeriodId,
+                    FundingPeriodEnd = fundingPeriods.TryGetValue(requestSpecificationInformation.FundingPeriodId, out FundingPeriod fundingPeriod) ? fundingPeriod.EndDate : (DateTimeOffset?) null
+                };
+
+                providerWithResultsForSpecifications.MergeSpecificationInformation(specificationInformation);
             }
+
+            return Task.CompletedTask;
         }
 
         private SpecificationSummary GetSpecificationSummary(string specificationId)
@@ -138,6 +168,20 @@ namespace CalculateFunding.Migrations.SpecificationsWithResults.Migrations
                     .GetAwaiter()
                     .GetResult()
                     .Content);
+        }
+
+        private ProviderWithResultsForSpecifications GetProviderWithResultsForSpecificationsForProviderId(string providerId)
+        {
+            return _cachedProviderWithResultsForSpecifications.GetOrAdd(providerId,
+                id => _results.GetProviderWithResultsForSpecificationsByProviderId(providerId)
+                    .GetAwaiter()
+                    .GetResult() ?? new ProviderWithResultsForSpecifications
+                {
+                    Provider = new ProviderInformation
+                    {
+                        Id = providerId
+                    }
+                });
         }
 
         private class MergeContext

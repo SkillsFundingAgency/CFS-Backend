@@ -141,9 +141,9 @@ namespace CalculateFunding.Services.Results.Repositories
                 .SingleOrDefault();
         }
 
-        public async Task UpsertSpecificationWithProviderResults(ProviderWithResultsForSpecifications providerWithResultsForSpecifications)
+        public async Task UpsertSpecificationWithProviderResults(params ProviderWithResultsForSpecifications[] providerWithResultsForSpecifications)
         {
-            await _cosmosRepository.UpsertAsync(providerWithResultsForSpecifications);
+            await _cosmosRepository.BulkUpsertAsync(providerWithResultsForSpecifications.ToList());
         }
 
         public async Task<IEnumerable<ProviderResult>> GetProviderResultsBySpecificationIdAndProviders(IEnumerable<string> providerIds, string specificationId)

@@ -194,10 +194,12 @@ namespace CalculateFunding.Services.Results
             {
                 providerWithResultsForSpecification.MergeSpecificationInformation(specificationInformation);
 
-                await _resultsPolicy.ExecuteAsync(() => _results.UpsertSpecificationWithProviderResults(providerWithResultsForSpecification));
-
                 LogInformation($"Merged specification information for {specificationInformation.Id} into ProviderWithResultsForSpecifications for provider {providerWithResultsForSpecification.Id}");
             }
+
+            LogInformation($"Upserting page with {items.Count()} merged ProviderWithResultsForSpecifications for specification {specificationInformation.Id}");
+
+            await _resultsPolicy.ExecuteAsync(() => _results.UpsertSpecificationWithProviderResults(items.ToArray()));
         }
 
         private async Task MergeSpecificationInformationForProvider(SpecificationInformation specificationInformation,

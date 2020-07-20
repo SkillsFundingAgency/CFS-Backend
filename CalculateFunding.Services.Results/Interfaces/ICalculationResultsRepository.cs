@@ -26,7 +26,7 @@ namespace CalculateFunding.Services.Results.Interfaces
         Task<bool> CheckHasNewResultsForSpecificationIdAndTimePeriod(string specificationId, DateTimeOffset dateFrom, DateTimeOffset dateTo);
         Task<bool> ProviderHasResultsBySpecificationId(string specificationId);
         Task<ProviderWithResultsForSpecifications> GetProviderWithResultsForSpecificationsByProviderId(string providerId);
-        Task UpsertSpecificationWithProviderResults(ProviderWithResultsForSpecifications providerWithResultsForSpecifications); 
+        Task UpsertSpecificationWithProviderResults(params ProviderWithResultsForSpecifications[] providerWithResultsForSpecifications); 
         ICosmosDbFeedIterator<ProviderWithResultsForSpecifications> GetProvidersWithResultsForSpecificationBySpecificationId(string specificationId);
     }
 }
