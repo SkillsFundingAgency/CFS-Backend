@@ -314,7 +314,9 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                     Description = "Specification Description",
                     FundingPeriod = new Reference("FP1", "Funding Period"),
                     PublishStatus = Models.Versioning.PublishStatus.Draft,
-                    Version = 1
+                    Version = 1,
+                    ProviderSource = Models.Providers.ProviderSource.CFS,
+                    ProviderSnapshotId = 0
                 }
             };
         }

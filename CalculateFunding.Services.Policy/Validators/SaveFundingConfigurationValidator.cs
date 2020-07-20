@@ -63,6 +63,10 @@ namespace CalculateFunding.Services.Policy.Validators
                         if (!await fundingTemplateService.TemplateExists(fundingStreamId, fundingPeriodId, defaultTemplateVersion))
                             context.AddFailure("Default template not found");
                 });
+
+            RuleFor(_ => _.PaymentOrganisationSource)
+                .Must(_ => _ != PaymentOrganisationSource.Undefined)
+                .WithMessage("No valid PaymentOrganisationSource was selected");
         }
     }
 }

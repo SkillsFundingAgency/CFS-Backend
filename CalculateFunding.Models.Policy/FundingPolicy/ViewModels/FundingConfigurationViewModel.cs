@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using CalculateFunding.Models.Providers;
+using Newtonsoft.Json;
+using System.Collections.Generic;
 
 namespace CalculateFunding.Models.Policy.FundingPolicy.ViewModels
 {
@@ -20,5 +22,15 @@ namespace CalculateFunding.Models.Policy.FundingPolicy.ViewModels
         /// The mode this funding configuration will operate under during approve and refresh
         /// </summary>
         public ApprovalMode ApprovalMode { get; set; }
+
+        /// <summary>
+        /// Provider Source
+        /// </summary>
+        public ProviderSource ProviderSource { get; set; }
+
+        /// <summary>
+        /// Payment Organisation Source
+        /// </summary>
+        public PaymentOrganisationSource PaymentOrganisationSource { get; set; }
     }
 }

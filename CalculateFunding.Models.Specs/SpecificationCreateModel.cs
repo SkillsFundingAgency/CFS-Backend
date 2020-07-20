@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using CalculateFunding.Models.Providers;
+using System.Collections.Generic;
 
 namespace CalculateFunding.Models.Specs
 {
@@ -13,5 +14,6 @@ namespace CalculateFunding.Models.Specs
         public string Description { get; set; }
 
         public string Name { get; set; }
+       
     }
 }

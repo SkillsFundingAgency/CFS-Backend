@@ -120,7 +120,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
 
             FundingConfiguration fundingConfiguration = new FundingConfiguration
             {
-                Id = configId
+                Id = configId                
             };
 
 
@@ -150,6 +150,11 @@ namespace CalculateFunding.Services.Policy.UnitTests
                 .Value
                 .Should()
                 .Be(fundingConfiguration);
+
+
+            FundingConfiguration fundingConfigurationResult = ((OkObjectResult)result).Value.As<FundingConfiguration>();            
+            fundingConfigurationResult.ProviderSource.Should().Be(CalculateFunding.Models.Providers.ProviderSource.CFS);
+            fundingConfigurationResult.PaymentOrganisationSource.Should().Be(PaymentOrganisationSource.Undefined);
         }
 
         [TestMethod]

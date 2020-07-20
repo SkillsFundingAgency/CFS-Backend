@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using CalculateFunding.Common.Models;
+using CalculateFunding.Models.Providers;
 using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Policy.FundingPolicy
@@ -29,5 +30,11 @@ namespace CalculateFunding.Models.Policy.FundingPolicy
         
         [JsonProperty("approvalMode")]
         public ApprovalMode ApprovalMode { get; set; }
+
+        [JsonProperty("providerSource")]
+        public ProviderSource ProviderSource { get; set; }
+
+        [JsonProperty("paymentOrganisationSource")]
+        public PaymentOrganisationSource PaymentOrganisationSource { get; set; }
     }
 }

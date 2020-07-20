@@ -9,12 +9,12 @@
   <ItemGroup>
 	  <PackageReference Include="CalculateFunding.Common.ApiClient.Bearer" Version="2.1.0" />
 
-	  <PackageReference Include="CalculateFunding.Common.ApiClient.Policies" Version="5.1.0" />
+	  <PackageReference Include="CalculateFunding.Common.ApiClient.Policies" Version="5.2.0" />
 
 	  <PackageReference Include="CalculateFunding.Common.ApiClient.Calcs" Version="3.3.0" />
 
 
-    <PackageReference Include="CalculateFunding.Common.ApiClient.Specifications" Version="6.1.0" />
+    <PackageReference Include="CalculateFunding.Common.ApiClient.Specifications" Version="6.2.0" />
     <PackageReference Include="CalculateFunding.Common.ApiClient.Profiling" Version="3.2.0" />
     <PackageReference Include="CalculateFunding.Common.JobManagement" Version="2.2.0" />
     <PackageReference Include="CalculateFunding.Common.Models" Version="2.1.0" />

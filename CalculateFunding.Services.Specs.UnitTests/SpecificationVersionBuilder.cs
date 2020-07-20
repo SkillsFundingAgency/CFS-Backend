@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using CalculateFunding.Common.Models;
+using CalculateFunding.Models.Providers;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Tests.Common.Helpers;
@@ -19,6 +20,8 @@ namespace CalculateFunding.Services.Specs.UnitTests
         private string[] _dataDefinitionRelationshipIds;
         private PublishStatus? _publishStatus;
         private Dictionary<string, string> _templateIds;
+        private int? _providerSnapshotId;
+        private ProviderSource? _providerSource;
 
         public SpecificationVersionBuilder WithTemplateIds(params (string fundingStreamId, string templateId)[] assignedTemplateIds)
         {
@@ -85,6 +88,20 @@ namespace CalculateFunding.Services.Specs.UnitTests
             return this;
         }
 
+        public SpecificationVersionBuilder WithProviderSnapshotId(int? providerSnapshotId)
+        {
+            _providerSnapshotId = providerSnapshotId;
+
+            return this;
+        }
+
+        public SpecificationVersionBuilder WithProviderSource(ProviderSource providerSource)
+        {
+            _providerSource = providerSource;
+
+            return this;
+        }
+
         public SpecificationVersion Build()
         {
             return new SpecificationVersion
@@ -96,7 +113,9 @@ namespace CalculateFunding.Services.Specs.UnitTests
                 FundingPeriod = NewReferenceForId(_fundingPeriodId, _fundingPeriodName),
                 FundingStreams = _fundingStreamIds.Select(id => NewReferenceForId(id)).ToArray(),
                 PublishStatus = _publishStatus.GetValueOrDefault(NewRandomEnum<PublishStatus>()),
-                TemplateIds = _templateIds ?? new Dictionary<string, string>()
+                TemplateIds = _templateIds ?? new Dictionary<string, string>(),
+                ProviderSnapshotId = _providerSnapshotId ?? NewRandomNumberBetween(1, 10),
+                ProviderSource = _providerSource.GetValueOrDefault(NewRandomEnum(ProviderSource.CFS))
             };
         }
 

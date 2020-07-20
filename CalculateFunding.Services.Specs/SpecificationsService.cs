@@ -572,7 +572,7 @@ namespace CalculateFunding.Services.Specs
                 Description = createModel.Description,
                 DataDefinitionRelationshipIds = new List<string>(),
                 Author = user,
-                SpecificationId = specification.Id,
+                SpecificationId = specification.Id,               
                 Version = 1,
                 Date = DateTimeOffset.Now.ToLocalTime()
             };
@@ -749,7 +749,7 @@ namespace CalculateFunding.Services.Specs
             specificationVersion.Name = editModel.Name;
             specificationVersion.Description = editModel.Description;
             specificationVersion.Author = user;
-            specificationVersion.SpecificationId = specificationId;
+            specificationVersion.SpecificationId = specificationId;           
 
             specification.Name = editModel.Name;
 

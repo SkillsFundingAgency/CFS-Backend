@@ -282,7 +282,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Validators
                 FundingPeriodId = fundingPeriodId,
                 FundingStreamIds = new List<string>() { fundingStreamId },
                 Description = description,
-                Name = name
+                Name = name              
             };
         }
 

@@ -168,7 +168,8 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                        m.FundingPeriod.Name == "Funding Period 1" &&
                        m.FundingStreams.Any() &&
                        m.Name == "Specification Name" &&
-                       m.Version == 1
+                       m.Version == 1 &&
+                       m.ProviderSource == Models.Providers.ProviderSource.CFS 
                    ));
 
             await createSpecificationJobAction
@@ -181,7 +182,8 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                              m.FundingPeriod.Name == "Funding Period 1" &&
                              m.FundingStreams.Any() &&
                              m.Name == "Specification Name" &&
-                             m.Version == 1
+                             m.Version == 1 &&
+                             m.ProviderSource == Models.Providers.ProviderSource.CFS
                     ),
                     Arg.Is<Reference>(author => author.Id == UserId &&
                                               author.Name == Username),
@@ -430,7 +432,8 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                        m.FundingPeriod.Name == "Funding Period 1" &&
                        m.FundingStreams.Any() &&
                        m.Name == "Specification Name" &&
-                       m.Version == 1
+                       m.Version == 1 &&
+                       m.ProviderSource == Models.Providers.ProviderSource.CFS
                    ));
 
             await createSpecificationJobAction
@@ -443,7 +446,8 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                              m.FundingPeriod.Name == "Funding Period 1" &&
                              m.FundingStreams.Any() &&
                              m.Name == "Specification Name" &&
-                             m.Version == 1
+                             m.Version == 1 &&
+                             m.ProviderSource == Models.Providers.ProviderSource.CFS
                     ),
                     Arg.Is<Reference>(author => author.Id == UserId &&
                                               author.Name == Username),
@@ -595,7 +599,8 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                        m.FundingPeriod.Name == "Funding Period 1" &&
                        m.FundingStreams.Any() &&
                        m.Name == "Specification Name" &&
-                       m.Version == 1
+                       m.Version == 1 &&
+                       m.ProviderSource == Models.Providers.ProviderSource.CFS
                    ));
 
             await createSpecificationJobAction
@@ -608,7 +613,8 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                              m.FundingPeriod.Name == "Funding Period 1" &&
                              m.FundingStreams.Any() &&
                              m.Name == "Specification Name" &&
-                             m.Version == 1
+                             m.Version == 1 &&
+                             m.ProviderSource == Models.Providers.ProviderSource.CFS
                     ),
                     Arg.Is<Reference>(author => author.Id == UserId &&
                                               author.Name == Username),

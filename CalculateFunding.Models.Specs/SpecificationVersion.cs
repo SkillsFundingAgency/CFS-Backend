@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using CalculateFunding.Common.Models;
+using CalculateFunding.Models.Providers;
 using CalculateFunding.Models.Versioning;
 using Newtonsoft.Json;
 
@@ -46,6 +47,12 @@ namespace CalculateFunding.Models.Specs
 
         [JsonProperty("profileVariationPointers")]
         public IEnumerable<ProfileVariationPointer> ProfileVariationPointers { get; set; }
+        
+        [JsonProperty("providerSource")]
+        public ProviderSource ProviderSource { get; set; }
+
+        [JsonProperty("providerSnapshotId")]
+        public int? ProviderSnapshotId { get; set; }
 
         public void AddOrUpdateTemplateId(string fundingStreamId,
             string templateId)

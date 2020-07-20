@@ -1,4 +1,5 @@
 using CalculateFunding.Models.Policy.FundingPolicy;
+using CalculateFunding.Models.Providers;
 using CalculateFunding.Tests.Common.Helpers;
 
 namespace CalculateFunding.Services.Policy.Validators
@@ -9,10 +10,26 @@ namespace CalculateFunding.Services.Policy.Validators
         private string _fundingStreamId;
         private string _fundingPeriodId;
         private ApprovalMode? _approvalMode;
-        
+        private ProviderSource? _providerSource;
+        private PaymentOrganisationSource? _paymentOrganisationSource;
+
         public FundingConfigurationBuilder WithApprovalMode(ApprovalMode approvalMode)
         {
             _approvalMode = approvalMode;
+
+            return this;
+        }
+
+        public FundingConfigurationBuilder WithProviderSource(ProviderSource providerSource)
+        {
+            _providerSource = providerSource;
+
+            return this;
+        }
+
+        public FundingConfigurationBuilder WithPaymentOrganisationSource(PaymentOrganisationSource paymentOrganisationSource)
+        {
+            _paymentOrganisationSource = paymentOrganisationSource;
 
             return this;
         }
@@ -45,7 +62,9 @@ namespace CalculateFunding.Services.Policy.Validators
                 FundingPeriodId = _fundingPeriodId ?? NewRandomString(),
                 FundingStreamId = _fundingStreamId ?? NewRandomString(),
                 DefaultTemplateVersion = _defaultTemplateVersion,
-                ApprovalMode = _approvalMode.GetValueOrDefault(NewRandomEnum(ApprovalMode.Undefined))
+                ApprovalMode = _approvalMode.GetValueOrDefault(NewRandomEnum(ApprovalMode.Undefined)),
+                ProviderSource = _providerSource.GetValueOrDefault(NewRandomEnum(ProviderSource.CFS)),
+                PaymentOrganisationSource = _paymentOrganisationSource.GetValueOrDefault(NewRandomEnum(PaymentOrganisationSource.Undefined))
             };
         }
     }
