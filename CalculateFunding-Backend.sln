@@ -343,19 +343,19 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Generators
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Migrations.SpecificationsWithResults", "CalculateFunding.Migrations.SpecificationsWithResults\CalculateFunding.Migrations.SpecificationsWithResults.csproj", "{450C69A7-C0F2-4C14-B79F-D0171A54865A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalculateFunding.Services.FDZ", "CalculateFunding.Services.FDZ\CalculateFunding.Services.FDZ.csproj", "{FCBA6BCF-9936-4FEE-B084-18E036ED2A4B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalculateFunding.Services.FundingDataZone", "CalculateFunding.Services.FundingDataZone\CalculateFunding.Services.FundingDataZone.csproj", "{FCBA6BCF-9936-4FEE-B084-18E036ED2A4B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalculateFunding.Api.FDZ", "CalculateFunding.Api.FDZ\CalculateFunding.Api.FDZ.csproj", "{62A5DDDA-DE27-48CD-90AE-B51344F44A9F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalculateFunding.Api.FundingDataZone", "CalculateFunding.Api.FundingDataZone\CalculateFunding.Api.FundingDataZone.csproj", "{62A5DDDA-DE27-48CD-90AE-B51344F44A9F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalculateFunding.Functions.FDZ", "CalculateFunding.Functions.FDZ\CalculateFunding.Functions.FDZ.csproj", "{35436350-3FEB-4EF7-8441-0DE98582AE17}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalculateFunding.Functions.FundingDataZone", "CalculateFunding.Functions.FundingDataZone\CalculateFunding.Functions.FundingDataZone.csproj", "{35436350-3FEB-4EF7-8441-0DE98582AE17}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalculateFunding.Services.FDZ.UnitTests", "CalculateFunding.Services.FDZ.UnitTests\CalculateFunding.Services.FDZ.UnitTests.csproj", "{7E316219-66BE-4A39-9AE3-9AEE03350958}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalculateFunding.Services.FundingDataZone.UnitTests", "CalculateFunding.Services.FundingDataZone.UnitTests\CalculateFunding.Services.FundingDataZone.UnitTests.csproj", "{7E316219-66BE-4A39-9AE3-9AEE03350958}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalculateFunding.Api.FDZ.UnitTests", "CalculateFunding.Api.FDZ.UnitTests\CalculateFunding.Api.FDZ.UnitTests.csproj", "{060B767C-20E9-4C8B-9198-109799F67550}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalculateFunding.Api.FundingDataZone.UnitTests", "CalculateFunding.Api.FundingDataZone.UnitTests\CalculateFunding.Api.FundingDataZone.UnitTests.csproj", "{060B767C-20E9-4C8B-9198-109799F67550}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalculateFunding.Models.FDZ", "CalculateFunding.Models.FDZ\CalculateFunding.Models.FDZ.csproj", "{727E583B-B856-4CAF-B098-B2CF6CC2A574}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalculateFunding.Functions.FDZ.UnitTests", "CalculateFunding.Functions.FDZ.UnitTests\CalculateFunding.Functions.FDZ.UnitTests.csproj", "{E8EBEBA3-00DF-4B77-BA69-7C71BB8A5A0E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalculateFunding.Functions.FundingDataZone.UnitTests", "CalculateFunding.Functions.FundingDataZone.UnitTests\CalculateFunding.Functions.FundingDataZone.UnitTests.csproj", "{E8EBEBA3-00DF-4B77-BA69-7C71BB8A5A0E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
