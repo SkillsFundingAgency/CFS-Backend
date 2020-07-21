@@ -1,4 +1,4 @@
-﻿namespace CalculateFunding.Models.FDZ
+﻿namespace CalculateFunding.Models.FundingDataZone
 {
     public enum GroupingLevel
     {

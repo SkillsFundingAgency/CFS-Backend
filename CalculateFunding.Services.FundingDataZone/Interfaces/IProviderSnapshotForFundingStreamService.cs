@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using CalculateFunding.Models.FDZ;
+using CalculateFunding.Models.FundingDataZone;
 
 namespace CalculateFunding.Services.FundingDataZone.Interfaces
 {

@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using CalculateFunding.Models.FDZ;
+using CalculateFunding.Models.FundingDataZone;
 using CalculateFunding.Services.FundingDataZone.SqlModels;
 
 namespace CalculateFunding.Services.FundingDataZone.MappingProfiles

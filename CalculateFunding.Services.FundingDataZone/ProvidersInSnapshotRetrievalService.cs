@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
-using CalculateFunding.Models.FDZ;
+using CalculateFunding.Common.Utility;
+using CalculateFunding.Models.FundingDataZone;
 using CalculateFunding.Services.FundingDataZone.Interfaces;
 using CalculateFunding.Services.FundingDataZone.SqlModels;
 
@@ -17,6 +17,9 @@ namespace CalculateFunding.Services.FundingDataZone
             IPublishingAreaRepository publishingAreaRepository,
             IMapper mapper)
         {
+            Guard.ArgumentNotNull(publishingAreaRepository, nameof(publishingAreaRepository));
+            Guard.ArgumentNotNull(mapper, nameof(mapper));
+            
             _publishingAreaRepository = publishingAreaRepository;
             _mapper = mapper;
         }
@@ -25,14 +28,7 @@ namespace CalculateFunding.Services.FundingDataZone
         {
             IEnumerable<PublishingAreaProvider> providers = await _publishingAreaRepository.GetProvidersInSnapshot(providerSnapshotId);
 
-            List<Provider> results = new List<Provider>(providers.Count());
-
-            foreach (PublishingAreaProvider provider in providers)
-            {
-                results.Add(_mapper.Map<Provider>(provider));
-            }
-
-            return results;
+            return _mapper.Map<IEnumerable<Provider>>(providers);
         }
     }
 }

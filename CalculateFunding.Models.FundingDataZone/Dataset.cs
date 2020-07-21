@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
-namespace CalculateFunding.Models.FDZ
+namespace CalculateFunding.Models.FundingDataZone
 {
     public class Dataset
     {

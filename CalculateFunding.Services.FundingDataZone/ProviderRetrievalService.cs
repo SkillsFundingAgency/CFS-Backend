@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 using AutoMapper;
-using CalculateFunding.Models.FDZ;
+using CalculateFunding.Models.FundingDataZone;
 using CalculateFunding.Services.FundingDataZone.Interfaces;
 using CalculateFunding.Services.FundingDataZone.SqlModels;
 

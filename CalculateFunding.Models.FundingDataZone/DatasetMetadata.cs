@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace CalculateFunding.Models.FDZ
+namespace CalculateFunding.Models.FundingDataZone
 {
     public class DatasetMetadata : Dataset
     {

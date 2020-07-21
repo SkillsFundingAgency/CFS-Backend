@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using CalculateFunding.Models.FDZ;
+using CalculateFunding.Models.FundingDataZone;
 using CalculateFunding.Services.FundingDataZone.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
@@ -49,7 +49,7 @@ Used as input for:
         /// Get all providers in a provider snapshot
         /// </summary>
         /// <param name="providerSnapshotId">Provider Snapshot Id</param>
-        /// <returns></returns>
+        /// <returns>All providers in the snapshot with the supplied id</returns>
         [SwaggerOperation(Summary = "Get all providers in a provider snapshot", Description = GetProvidersInSnapshotDescription)]
         [HttpGet("api/providers/snapshots/{providerSnapshotId}/providers")]
         [Produces(typeof(IEnumerable<Provider>))]

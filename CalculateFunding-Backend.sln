@@ -353,7 +353,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalculateFunding.Services.F
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalculateFunding.Api.FundingDataZone.UnitTests", "CalculateFunding.Api.FundingDataZone.UnitTests\CalculateFunding.Api.FundingDataZone.UnitTests.csproj", "{060B767C-20E9-4C8B-9198-109799F67550}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalculateFunding.Models.FDZ", "CalculateFunding.Models.FDZ\CalculateFunding.Models.FDZ.csproj", "{727E583B-B856-4CAF-B098-B2CF6CC2A574}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalculateFunding.Models.FundingDataZone", "CalculateFunding.Models.FundingDataZone\CalculateFunding.Models.FundingDataZone.csproj", "{727E583B-B856-4CAF-B098-B2CF6CC2A574}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalculateFunding.Functions.FundingDataZone.UnitTests", "CalculateFunding.Functions.FundingDataZone.UnitTests\CalculateFunding.Functions.FundingDataZone.UnitTests.csproj", "{E8EBEBA3-00DF-4B77-BA69-7C71BB8A5A0E}"
 EndProject

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 
-namespace CalculateFunding.Models.FDZ
+namespace CalculateFunding.Models.FundingDataZone
 {
     public class ProviderSnapshot
     {
