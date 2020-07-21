@@ -16,6 +16,9 @@ namespace CalculateFunding.Api.FundingDataZone
 {
     public class Startup
     {
+        private const string FundingDataZone = "CalculateFunding.Api.FundingDataZone";
+        private const string Title = "Funding Data Zone - Microservice API";
+
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -47,7 +50,7 @@ namespace CalculateFunding.Api.FundingDataZone
 
             app.UseHttpsRedirection();
 
-            app.ConfigureSwagger(title: "FDZ Microservice API");
+            app.ConfigureSwagger(title: Title);
 
             app.MapWhen(
                     context => !context.Request.Path.Value.StartsWith("/swagger"),
@@ -69,21 +72,18 @@ namespace CalculateFunding.Api.FundingDataZone
         {
             builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();
 
-            builder.AddFDZServices(Configuration);
+            builder.AddFundingDataZoneServices(Configuration);
 
             builder.AddSingleton<IHealthChecker, ControllerResolverHealthCheck>();
 
-            builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Api.FDZ");
-            builder.AddApplicationInsightsServiceName(Configuration, "CalculateFunding.Api.FDZ");
-            builder.AddLogging("CalculateFunding.Api.FDZ");
+            builder.AddApplicationInsightsTelemetryClient(Configuration, FundingDataZone);
+            builder.AddApplicationInsightsServiceName(Configuration, FundingDataZone);
+            builder.AddLogging(FundingDataZone);
             builder.AddTelemetry();
             builder.AddApiKeyMiddlewareSettings((IConfigurationRoot)Configuration);
             builder.AddHealthCheckMiddleware();
 
-            builder.ConfigureSwaggerServices(title: "FDZ Microservice API");
-
+            builder.ConfigureSwaggerServices(title: Title);
         }
-
-
     }
 }

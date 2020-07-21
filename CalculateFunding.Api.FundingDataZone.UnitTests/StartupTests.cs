@@ -11,7 +11,10 @@ namespace CalculateFunding.Api.FundingDataZone.UnitTests
     {
         protected override Dictionary<string, string> AddToConfiguration()
         {
-            return new Dictionary<string, string>();
+            return new Dictionary<string, string>
+            {
+                {"FDZSqlStorageSettings:ConnectionString", "summit"}
+            };
         }
 
         protected override Assembly EntryAssembly => typeof(DataDownloadController).Assembly;
