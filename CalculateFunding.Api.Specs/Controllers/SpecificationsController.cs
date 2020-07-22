@@ -180,11 +180,11 @@ namespace CalculateFunding.Api.Specs.Controllers
             return await _specSearchService.SearchSpecifications(searchModel);
         }
 
-        [Route("api/specs/specifications-by-fundingperiod-and-fundingstream/{fundingPeriodId}/{fundingStreamId}")]
+        [Route("api/specs/specifications-by-fundingperiod-and-fundingstream/{fundingStreamId}/{fundingPeriodId}")]
         [HttpGet]
         [Produces(typeof(IEnumerable<SpecificationSummary>))]
         public async Task<IActionResult> GetSpecificationsByFundingPeriodIdAndFundingStreamId(
-            [FromRoute] string fundingPeriodId, [FromRoute] string fundingStreamId)
+            [FromRoute] string fundingStreamId, [FromRoute] string fundingPeriodId)
         {
             return await _specService
                 .GetCurrentSpecificationsByFundingPeriodIdAndFundingStreamId(fundingPeriodId, fundingStreamId);
@@ -194,27 +194,27 @@ namespace CalculateFunding.Api.Specs.Controllers
         [HttpGet]
         [Produces(typeof(IEnumerable<SpecificationSummary>))]
         public async Task<IActionResult> GetSpecificationResultsByFundingPeriodIdAndFundingStreamId(
-            [FromRoute] string fundingPeriodId, [FromRoute] string fundingStreamId)
+            [FromRoute] string fundingStreamId, [FromRoute] string fundingPeriodId)
         {
             return await _specService
                 .GetSpecificationWithResultsByFundingPeriodIdAndFundingStreamId(fundingPeriodId, fundingStreamId);
         }
 
-        [Route("api/specs/specifications-by-fundingperiod-and-fundingstream/{fundingPeriodId}/{fundingStreamId}/approved")]
+        [Route("api/specs/specifications-by-fundingperiod-and-fundingstream/{fundingStreamId}/{fundingPeriodId}/approved")]
         [HttpGet]
         [Produces(typeof(IEnumerable<SpecificationSummary>))]
         public async Task<IActionResult> GetApprovedSpecificationsByFundingPeriodIdAndFundingStreamId(
-            [FromRoute] string fundingPeriodId, [FromRoute] string fundingStreamId)
+            [FromRoute] string fundingStreamId, [FromRoute] string fundingPeriodId)
         {
             return await _specService
                 .GetApprovedSpecificationsByFundingPeriodIdAndFundingStreamId(fundingPeriodId, fundingStreamId);
         }
 
-        [Route("api/specs/specifications-by-fundingperiod-and-fundingstream/{fundingPeriodId}/{fundingStreamId}/selected")]
+        [Route("api/specs/specifications-by-fundingperiod-and-fundingstream/{fundingStreamId}/{fundingPeriodId}/selected")]
         [HttpGet]
         [Produces(typeof(IEnumerable<SpecificationSummary>))]
         public async Task<IActionResult> GetSelectedSpecificationsByFundingPeriodIdAndFundingStreamId(
-    [FromRoute] string fundingPeriodId, [FromRoute] string fundingStreamId)
+            [FromRoute] string fundingStreamId, [FromRoute] string fundingPeriodId)
         {
             return await _specService
                 .GetSelectedSpecificationsByFundingPeriodIdAndFundingStreamId(fundingPeriodId, fundingStreamId);
