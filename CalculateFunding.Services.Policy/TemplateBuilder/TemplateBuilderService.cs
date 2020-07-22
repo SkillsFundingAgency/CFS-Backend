@@ -60,7 +60,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
 
         public async Task<ServiceHealth> IsHealthOk()
         {
-            ServiceHealth templateRepoHealth = await ((IHealthChecker)_templateRepository).IsHealthOk();
+            ServiceHealth templateRepoHealth = await ((IHealthChecker) _templateRepository).IsHealthOk();
             ServiceHealth templateVersionRepoHealth = await _templateVersionRepository.IsHealthOk();
             (bool Ok, string Message) = await _searchRepository.IsHealthOk();
 
@@ -70,7 +70,8 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             };
             health.Dependencies.AddRange(templateRepoHealth.Dependencies);
             health.Dependencies.AddRange(templateVersionRepoHealth.Dependencies);
-            health.Dependencies.Add(new DependencyHealth { HealthOk = Ok, DependencyName = _searchRepository.GetType().GetFriendlyName(), Message = Message });
+            health.Dependencies.Add(new DependencyHealth
+                {HealthOk = Ok, DependencyName = _searchRepository.GetType().GetFriendlyName(), Message = Message});
 
             return health;
         }
@@ -116,7 +117,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             int itemsPerPage)
         {
             Guard.ArgumentNotNull(templateId, nameof(templateId));
-            
+
             TemplateVersionListResponse response = new TemplateVersionListResponse();
 
             var templateTask = _templateRepository.GetTemplate(templateId);
@@ -128,7 +129,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
                 .Select(v => MapSummaryResponse(v, template))
                 .OrderByDescending(x => x.LastModificationDate)
                 .ToList();
-            
+
             if (page < 1 || itemsPerPage < 1)
             {
                 response.PageResults = results;
@@ -140,7 +141,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
                     .Take(itemsPerPage);
                 response.TotalCount = results.Count();
             }
-            
+
             return response;
         }
 
@@ -154,7 +155,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             {
                 tasks.Add(_templateRepository.GetTemplate(templateId));
             }
-            
+
             await Task.WhenAll(tasks.ToArray());
 
             foreach (var task in tasks)
@@ -238,7 +239,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
                     };
                 }
 
-                string errorMessage = $"Failed to create a new template with name {templateName} in Cosmos. Status code {(int)result}";
+                string errorMessage = $"Failed to create a new template with name {templateName} in Cosmos. Status code {(int) result}";
                 _logger.Error(errorMessage);
 
                 return new CommandResult
@@ -344,7 +345,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
                     };
                 }
 
-                string errorMessage = $"Failed to create a new template with name {templateName} in Cosmos. Status code {(int)result}";
+                string errorMessage = $"Failed to create a new template with name {templateName} in Cosmos. Status code {(int) result}";
                 _logger.Error(errorMessage);
                 return CommandResult.Fail(errorMessage);
             }
@@ -397,7 +398,8 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             return await UpdateOrRestoreTemplateContent(originalCommand, author, restore: true);
         }
 
-        private async Task<CommandResult> UpdateOrRestoreTemplateContent(TemplateFundingLinesUpdateCommand originalCommand, Reference author, bool restore = false)
+        private async Task<CommandResult> UpdateOrRestoreTemplateContent(TemplateFundingLinesUpdateCommand originalCommand, Reference author,
+            bool restore = false)
         {
             ValidationResult validatorResult = await _validatorFactory.Validate(originalCommand);
             validatorResult.Errors.AddRange((await _validatorFactory.Validate(author))?.Errors);
@@ -418,7 +420,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             (ValidationFailure error, TemplateJsonContentUpdateCommand updateCommand) = MapCommand(originalCommand);
             if (error != null)
             {
-                return CommandResult.ValidationFail(new ValidationResult(new[] { error }));
+                return CommandResult.ValidationFail(new ValidationResult(new[] {error}));
             }
 
             if (!restore && template.Current.TemplateJson == updateCommand.TemplateJson)
@@ -426,7 +428,8 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
                 return CommandResult.Success();
             }
 
-            CommandResult validationError = await ValidateTemplateContent(updateCommand.TemplateJson, template.Current.FundingStreamId, template.Current.FundingPeriodId);
+            CommandResult validationError = await ValidateTemplateContent(updateCommand.TemplateJson, template.Current.FundingStreamId,
+                template.Current.FundingPeriodId);
             if (validationError != null)
                 return validationError;
 
@@ -512,8 +515,15 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
                 templateVersion = await _templateVersionRepository.GetTemplateVersion(command.TemplateId, command.VersionNumber);
                 if (templateVersion == null)
                 {
-                    return CommandResult.ValidationFail(nameof(command.Version), $"Version '{command.Version}' could not be found for template '{command.TemplateId}'");
+                    return CommandResult.ValidationFail(nameof(command.Version),
+                        $"Version '{command.Version}' could not be found for template '{command.TemplateId}'");
                 }
+            }
+
+            if (templateVersion.TemplateJson.IsNullOrEmpty())
+            {
+                return CommandResult.ValidationFail(nameof(templateVersion.TemplateJson), 
+                    "Template doesn't contain any template content. Please ensure the template has the correct content before publishing.");
             }
 
             if (templateVersion.Status == TemplateStatus.Published)
@@ -607,7 +617,8 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             };
         }
 
-        private async Task<HttpStatusCode> UpdateTemplateContent(TemplateJsonContentUpdateCommand command, Reference author, Template template, int majorVersion, int minorVersion)
+        private async Task<HttpStatusCode> UpdateTemplateContent(TemplateJsonContentUpdateCommand command, Reference author, Template template,
+            int majorVersion, int minorVersion)
         {
             // create new version and save it
             TemplateVersion newVersion = Map(template,
@@ -659,12 +670,14 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
 
         private (ValidationFailure, TemplateJsonContentUpdateCommand) MapCommand(TemplateFundingLinesUpdateCommand command)
         {
-            (IEnumerable<SchemaJsonFundingLine> fundingLines, string errorMessage) = Deserialise<IEnumerable<SchemaJsonFundingLine>>(command.TemplateFundingLinesJson);
+            (IEnumerable<SchemaJsonFundingLine> fundingLines, string errorMessage) =
+                Deserialise<IEnumerable<SchemaJsonFundingLine>>(command.TemplateFundingLinesJson);
             if (!errorMessage.IsNullOrEmpty())
             {
                 _logger.Error("Updating Template: Input Validation: Failed to deserialise json template: " + errorMessage);
                 return (new ValidationFailure(nameof(command.TemplateFundingLinesJson), errorMessage), null);
             }
+
             var templateJson = new SchemaJson
             {
                 Schema = "https://fundingschemas.blob.core.windows.net/schemas/funding-template-schema-1.1.json",
@@ -681,10 +694,12 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
                 TemplateJson = templateJson.AsJson()
             });
         }
+
         private async Task<CommandResult> ValidateTemplateContent(string templateJson, string fundingStreamId, string fundingPeriodId)
         {
             // template json validation
-            FundingTemplateValidationResult validationResult = await _fundingTemplateValidationService.ValidateFundingTemplate(templateJson, fundingStreamId, fundingPeriodId);
+            FundingTemplateValidationResult validationResult =
+                await _fundingTemplateValidationService.ValidateFundingTemplate(templateJson, fundingStreamId, fundingPeriodId);
 
             if (!validationResult.IsValid)
             {
@@ -730,7 +745,7 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
                 templateIndex
             });
         }
-        
+
         private TemplateSummaryResponse MapSummaryResponse(TemplateVersion source, Template template)
         {
             return new TemplateSummaryResponse
