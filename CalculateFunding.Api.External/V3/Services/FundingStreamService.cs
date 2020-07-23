@@ -109,8 +109,13 @@ namespace CalculateFunding.Api.External.V3.Services
             ApiResponse<string> fundingTemplateSourceFileApiResponse
                 = await _policiesApiClientPolicy.ExecuteAsync(() =>
                     _policiesApiClient.GetFundingTemplateSourceFile(fundingStreamId, fundingPeriodId, $"{majorVersion}.{minorVersion}"));
-
-            return new ObjectResult(fundingTemplateSourceFileApiResponse.Content) { StatusCode = fundingTemplateSourceFileApiResponse.StatusCode.GetHashCode() };
+            
+            return new ContentResult
+            {
+                Content = fundingTemplateSourceFileApiResponse.Content,
+                ContentType = "application/json",
+                StatusCode = (int)fundingTemplateSourceFileApiResponse.StatusCode
+            };
         }
 
         public async Task<IActionResult> GetPublishedFundingTemplates(string fundingStreamId, string fundingPeriodId)

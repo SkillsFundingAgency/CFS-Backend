@@ -213,6 +213,8 @@ namespace CalculateFunding.Api.External.UnitTests.Version3.Services
         [TestMethod]
         public async Task ReturnsPublishedFundingTemplatesForGivenFundingStreamAndPeriod()
         {
+            DateTime expectedPublishDate = new RandomDateTime();
+            
             IEnumerable<PolicyApiClientModel.PublishedFundingTemplate> publishedFundingTemplates =
                 new List<PolicyApiClientModel.PublishedFundingTemplate>
                 {
@@ -220,7 +222,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version3.Services
                     {
                         AuthorName = "AuthName",
                         AuthorId = "AuthId",
-                        PublishDate = new DateTime(2020,06,16, 10, 30, 40, 00),
+                        PublishDate = expectedPublishDate,
                         PublishNote = "SomeComments",
                         SchemaVersion = "1.2",
                         TemplateVersion= "2.3"
@@ -229,23 +231,29 @@ namespace CalculateFunding.Api.External.UnitTests.Version3.Services
 
             GivenApiPublishedFundingTemplates(_fundingStreamId, _fundingPeriodId, publishedFundingTemplates);
 
-            IActionResult result = await WhenGetPublishedFundingTemplates(_fundingStreamId, _fundingPeriodId);
+            OkObjectResult result = await WhenGetPublishedFundingTemplates(_fundingStreamId, _fundingPeriodId) as OkObjectResult;
 
             result
                 .Should()
-                .BeOfType<OkObjectResult>()
-                .Which
-                .Value
-                .Should()
-                .BeAssignableTo<IEnumerable<PublishedFundingTemplate>>();
+                .NotBeNull();
+            
+            PublishedFundingTemplate template = result.Value.As<IEnumerable<PublishedFundingTemplate>>().FirstOrDefault();
 
-            var template = ((ObjectResult)result).Value.As<IEnumerable<PublishedFundingTemplate>>().First();
-            template.MajorVersion.Should().Be("2");
-            template.MinorVersion.Should().Be("3");
-            template.PublishNote.Should().Be("SomeComments");
-            template.AuthorName.Should().Be("AuthName");
-            template.PublishDate.Should().Be(new DateTime(2020, 06, 16, 10, 30, 40, 00));
-            template.SchemaVersion.Should().Be("1.2");
+            template
+                .Should()
+                .NotBeNull();
+            
+            template
+                .Should()
+                .BeEquivalentTo(new PublishedFundingTemplate
+                {
+                    AuthorName = "AuthName",
+                    PublishNote = "SomeComments",
+                    MinorVersion = "3",
+                    MajorVersion = "2",
+                    PublishDate = expectedPublishDate,
+                    SchemaVersion = "1.2"
+                });
         }
 
         [TestMethod]
@@ -347,19 +355,21 @@ namespace CalculateFunding.Api.External.UnitTests.Version3.Services
 
         private void ThenTemplateContentMatches(IActionResult result, string expectedResponse)
         {
-            result
-                .Should()
-                .BeOfType<ObjectResult>()
-                .Which
-                .Value
-                .Should()
-                .BeOfType<string>();
+            ContentResult contentResult = result as ContentResult;
 
-            string actualResponse = (result as ObjectResult).Value as string;
+            contentResult
+                .Should()
+                .NotBeNull();
 
-            actualResponse
+            contentResult
+                .Content
                 .Should()
                 .Be(expectedResponse);
+
+            contentResult
+                .ContentType
+                .Should()
+                .Be("application/json");
         }
 
         private void ThenFundingPeriodResultMatches(IActionResult result)
