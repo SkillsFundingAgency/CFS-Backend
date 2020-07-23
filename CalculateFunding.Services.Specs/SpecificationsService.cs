@@ -30,6 +30,7 @@ using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Specs.Interfaces;
 using FluentValidation;
+using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
 using Newtonsoft.Json;
@@ -65,6 +66,7 @@ namespace CalculateFunding.Services.Specs
         private readonly AsyncPolicy _providersApiClientPolicy;
         private readonly ISpecificationIndexer _specificationIndexer;
         private readonly ISpecificationTemplateVersionChangedHandler _templateVersionChangedHandler;
+        private readonly IValidator<AssignSpecificationProviderVersionModel> _assignSpecificationProviderVersionModelValidator;
         private readonly IResultsApiClient _results;
         private readonly AsyncPolicy _resultsApiClientPolicy; 
 
@@ -89,7 +91,8 @@ namespace CalculateFunding.Services.Specs
             IProvidersApiClient providersApiClient,
             ISpecificationIndexer specificationIndexer,
             IResultsApiClient results,
-            ISpecificationTemplateVersionChangedHandler templateVersionChangedHandler)
+            ISpecificationTemplateVersionChangedHandler templateVersionChangedHandler,
+            IValidator<AssignSpecificationProviderVersionModel> assignSpecificationProviderVersionModelValidator)
         {
             Guard.ArgumentNotNull(mapper, nameof(mapper));
             Guard.ArgumentNotNull(specificationsRepository, nameof(specificationsRepository));
@@ -117,6 +120,7 @@ namespace CalculateFunding.Services.Specs
             Guard.ArgumentNotNull(specificationIndexer, nameof(specificationIndexer));
             Guard.ArgumentNotNull(results, nameof(results));
             Guard.ArgumentNotNull(templateVersionChangedHandler, nameof(templateVersionChangedHandler));
+            Guard.ArgumentNotNull(assignSpecificationProviderVersionModelValidator, nameof(assignSpecificationProviderVersionModelValidator));
 
             _mapper = mapper;
             _specificationsRepository = specificationsRepository;
@@ -140,6 +144,7 @@ namespace CalculateFunding.Services.Specs
             _specificationIndexer = specificationIndexer;
             _results = results;
             _templateVersionChangedHandler = templateVersionChangedHandler;
+            _assignSpecificationProviderVersionModelValidator = assignSpecificationProviderVersionModelValidator;
             _providersApiClientPolicy = resiliencePolicies.ProvidersApiClient;
             _resultsApiClientPolicy = resiliencePolicies.ResultsApiClient;
         }
@@ -1564,6 +1569,32 @@ WHERE   s.documentType = @DocumentType",
                 await _specificationsRepository.GetDistinctFundingStreamsForSpecifications();
 
             return new OkObjectResult(fundingStreamIds);
+        }
+
+        public async Task<IActionResult> SetProviderVersion(AssignSpecificationProviderVersionModel assignSpecificationProviderVersionModel, Reference user)
+        {
+            ValidationResult validationResult = await _assignSpecificationProviderVersionModelValidator.ValidateAsync(assignSpecificationProviderVersionModel);
+
+            if(!validationResult.IsValid)
+            {
+                if(validationResult.Errors.Any(x => x.PropertyName == "SpecificationId" && x.ErrorMessage.Contains("Specification not found for SpecificationId")))
+                {
+                    return new NotFoundObjectResult("Specification not found");
+                }
+
+                return validationResult.PopulateModelState();
+            }
+
+            Specification specification = await _specificationsRepository.GetSpecificationById(assignSpecificationProviderVersionModel.SpecificationId);
+            SpecificationVersion previousSpecificationVersion = specification.Current;
+            SpecificationVersion specificationVersion = specification.Current.DeepCopy();
+
+            specificationVersion.ProviderVersionId = assignSpecificationProviderVersionModel.ProviderVersionId;
+            specificationVersion.Author = user;
+
+            HttpStatusCode statusCode = await UpdateSpecification(specification, specificationVersion, previousSpecificationVersion);
+
+            return statusCode.IsSuccess() ? new OkResult() : new StatusCodeResult((int)statusCode);
         }
     }
 }

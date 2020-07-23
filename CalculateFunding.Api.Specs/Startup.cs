@@ -135,6 +135,7 @@ namespace CalculateFunding.Api.Specs
             builder.AddSingleton<IValidator<SpecificationCreateModel>, SpecificationCreateModelValidator>();
             builder.AddSingleton<IValidator<SpecificationEditModel>, SpecificationEditModelValidator>();
             builder.AddSingleton<IValidator<AssignDefinitionRelationshipMessage>, AssignDefinitionRelationshipMessageValidator>();
+            builder.AddSingleton<IValidator<AssignSpecificationProviderVersionModel>, AssignSpecificationProviderVersionModelValidator>();
             builder
                 .AddSingleton<ISpecificationsSearchService, SpecificationsSearchService>()
                 .AddSingleton<IHealthChecker, SpecificationsSearchService>();

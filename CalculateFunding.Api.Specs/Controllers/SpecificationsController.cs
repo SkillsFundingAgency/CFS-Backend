@@ -129,7 +129,7 @@ namespace CalculateFunding.Api.Specs.Controllers
         [Produces(typeof(SpecificationSummary))]
         public async Task<IActionResult> SpecificationsCommands([FromBody]SpecificationCreateModel specificationCreateModel)
         {
-            Reference user = ControllerContext.HttpContext.Request.GetUser();
+            Reference user = Request.GetUser();
             string correlationId = ControllerContext.HttpContext.Request.GetCorrelationId();
 
             return await _specService.CreateSpecification(specificationCreateModel, user, correlationId);
@@ -140,7 +140,7 @@ namespace CalculateFunding.Api.Specs.Controllers
         [Produces(typeof(Specification))]
         public async Task<IActionResult> EditSpecification([FromQuery] string specificationId, [FromBody] SpecificationEditModel specificationEditModel)
         {
-            Reference user = ControllerContext.HttpContext.Request.GetUser();
+            Reference user = Request.GetUser();
             string correlationId = ControllerContext.HttpContext.Request.GetCorrelationId();
 
             return await _specService.EditSpecification(specificationId, specificationEditModel, user, correlationId);
@@ -151,7 +151,7 @@ namespace CalculateFunding.Api.Specs.Controllers
         [Produces(typeof(PublishStatusResultModel))]
         public async Task<IActionResult> EditSpecificationStatus([FromQuery] string specificationId, [FromBody] EditStatusModel editStatusModel)
         {
-            Reference user = ControllerContext.HttpContext.Request.GetUser();
+            Reference user = Request.GetUser();
 
             return await _specService.EditSpecificationStatus(specificationId, editStatusModel, user);
         }
@@ -308,7 +308,7 @@ namespace CalculateFunding.Api.Specs.Controllers
         [Produces(typeof(bool))]
         public async Task<IActionResult> SoftDeleteSpecificationById([FromRoute] string specificationId)
         {
-            Reference user = ControllerContext.HttpContext.Request.GetUser();
+            Reference user = Request.GetUser();
             string correlationId = ControllerContext.HttpContext.Request.GetCorrelationId();
 
             return await _specService.SoftDeleteSpecificationById(specificationId, user, correlationId);
@@ -319,7 +319,7 @@ namespace CalculateFunding.Api.Specs.Controllers
         [Produces(typeof(bool))]
         public async Task<IActionResult> PermanentDeleteSpecificationById([FromRoute] string specificationId)
         {
-            Reference user = ControllerContext.HttpContext.Request.GetUser();
+            Reference user = Request.GetUser();
             string correlationId = ControllerContext.HttpContext.Request.GetCorrelationId();
 
             // only allow permenant delete if in development
@@ -356,12 +356,22 @@ namespace CalculateFunding.Api.Specs.Controllers
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         public async Task<IActionResult> ReIndexSpecification([FromRoute] string specificationId)
         {
-            Reference user = ControllerContext.HttpContext.Request.GetUser();
+            Reference user = Request.GetUser();
             string correlationId = ControllerContext.HttpContext.Request.GetCorrelationId();
 
             return await _specificationIndexingService.QueueSpecificationIndexJob(specificationId,
                 user,
                 correlationId);
+        }
+
+        [HttpPatch("api/specs/{specificationId}/providerversion")]
+        [Produces(typeof(HttpStatusCode))]
+        [ProducesResponseType((int)HttpStatusCode.NotFound)]
+        public async Task<IActionResult> SetProviderVersion([FromRoute] string specificationId, [FromBody] string providerVersionId)
+        {
+            Reference user = Request.GetUser();            
+            AssignSpecificationProviderVersionModel model = new AssignSpecificationProviderVersionModel(specificationId, providerVersionId);
+            return await _specService.SetProviderVersion(model, user);
         }
     }
 }

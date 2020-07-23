@@ -69,5 +69,6 @@ namespace CalculateFunding.Services.Specs.Interfaces
         Task<IActionResult> DeleteSpecification(Message message);
         Task<IActionResult> DeselectSpecificationForFunding(string specificationId);
         Task<IActionResult> GetDistinctFundingStreamsForSpecifications();
+        Task<IActionResult> SetProviderVersion(AssignSpecificationProviderVersionModel assignSpecificationProviderVersionModel, Reference user);
     }
 }

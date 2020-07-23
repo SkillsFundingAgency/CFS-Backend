@@ -210,5 +210,10 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         }
 
         public Task<ApiResponse<JobModel>> ReIndexSpecification(string specificationId) => throw new NotImplementedException();
+
+        public Task<HttpStatusCode> SetProviderVersion(string specificationId, string providerVersionId)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

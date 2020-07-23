@@ -124,7 +124,8 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             IQueueDeleteSpecificationJobActions queueDeleteSpecificationJobActions = null,
             IFeatureToggle featureToggle = null,
             ICalculationsApiClient calcsApiClient = null,
-            IProvidersApiClient providersApiClient = null)
+            IProvidersApiClient providersApiClient = null,
+            IValidator<AssignSpecificationProviderVersionModel> assignSpecificationProviderVersionModelValidator = null)
         {
             return new SpecificationsService(
                 mapper ?? CreateMapper(),
@@ -147,7 +148,8 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 providersApiClient ?? Substitute.For<IProvidersApiClient>(),
                 _specificationIndexer,
                 _resultsApiClient,
-                _templateVersionChangedHandler);
+                _templateVersionChangedHandler,
+                assignSpecificationProviderVersionModelValidator ?? CreateAssignSpecificationProviderVersionModelValidator());
         }
 
         private async Task AndAMergeSpecificationInformationJobWasQueued(SpecificationVersion specification)
@@ -285,6 +287,22 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             validator
                .ValidateAsync(Arg.Any<AssignDefinitionRelationshipMessage>())
+               .Returns(validationResult);
+
+            return validator;
+        }
+
+        protected IValidator<AssignSpecificationProviderVersionModel> CreateAssignSpecificationProviderVersionModelValidator(ValidationResult validationResult = null)
+        {
+            if (validationResult == null)
+            {
+                validationResult = new ValidationResult();
+            }
+
+            IValidator<AssignSpecificationProviderVersionModel> validator = Substitute.For<IValidator<AssignSpecificationProviderVersionModel>>();
+
+            validator
+               .ValidateAsync(Arg.Any<AssignSpecificationProviderVersionModel>())
                .Returns(validationResult);
 
             return validator;
