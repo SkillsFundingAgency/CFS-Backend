@@ -182,5 +182,13 @@ namespace CalculateFunding.Models.Publishing
 
         [JsonProperty("localGovernmentGroupTypeName")]
         public string LocalGovernmentGroupTypeName { get; set; }
+
+        [JsonProperty("paymentOrganisationIdentifier")]
+        [VariationReasonValue(VariationReason.PaymentOrganisationIdentifierFieldUpdated)]
+        public string PaymentOrganisationIdentifier { get; set; }
+
+        [JsonProperty("paymentOrganisationName")]
+        [VariationReasonValue(VariationReason.PaymentOrganisationNameFieldUpdated)]
+        public string PaymentOrganisationName { get; set; }
     }
 }

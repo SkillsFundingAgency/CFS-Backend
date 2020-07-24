@@ -113,5 +113,9 @@ namespace CalculateFunding.Repositories.Common.Search.Results
         public string Locality { get; set; }
 
         public string Address3 { get; set; }
+
+        public string PaymentOrganisationIdentifier { get; set; }
+
+        public string PaymentOrganisationName { get; set; }
     }
 }

@@ -95,6 +95,12 @@ namespace CalculateFunding.Models.Publishing
         CountryCodeFieldUpdated,
 
         [EnumMember(Value = nameof(CountryNameFieldUpdated))]
-        CountryNameFieldUpdated
+        CountryNameFieldUpdated,
+
+        [EnumMember(Value = nameof(PaymentOrganisationIdentifierFieldUpdated))]
+        PaymentOrganisationIdentifierFieldUpdated,
+
+        [EnumMember(Value = nameof(PaymentOrganisationNameFieldUpdated))]
+        PaymentOrganisationNameFieldUpdated
     }
 }

@@ -184,7 +184,9 @@ namespace CalculateFunding.Services.Providers
                     LocalGovernmentGroupTypeName = x.LocalGovernmentGroupTypeName,
                     Street = x.Street,
                     Locality = x.Locality,
-                    Address3 = x.Address3
+                    Address3 = x.Address3,
+                    PaymentOrganisationIdentifier = x.PaymentOrganisationIdentifier,
+                    PaymentOrganisationName = x.PaymentOrganisationName
                 });
 
             await _cacheProvider.KeyDeleteAsync<ProviderSummary>(cacheKeyScopedListCacheKey);

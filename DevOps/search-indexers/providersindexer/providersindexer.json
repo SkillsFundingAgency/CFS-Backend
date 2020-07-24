@@ -223,6 +223,14 @@
     {
       "sourceFieldName": "/address3",
       "targetFieldName": "address3"
+    },
+    {
+      "sourceFieldName": "/paymentOrganisationIdentifier",
+      "targetFieldName": "paymentOrganisationIdentifier"
+    },
+    {
+      "sourceFieldName": "/paymentOrganisationName",
+      "targetFieldName": "paymentOrganisationName"
     }
   ],
   "parameters": {

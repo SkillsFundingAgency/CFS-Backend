@@ -446,7 +446,9 @@ namespace CalculateFunding.Services.Providers
                     LocalGovernmentGroupTypeName = m.Result.LocalGovernmentGroupTypeName,
                     Street = m.Result.Street,
                     Locality = m.Result.Locality,
-                    Address3 = m.Result.Address3
+                    Address3 = m.Result.Address3,
+                    PaymentOrganisationIdentifier = m.Result.PaymentOrganisationIdentifier,
+                    PaymentOrganisationName = m.Result.PaymentOrganisationName
                 });
             }
         }

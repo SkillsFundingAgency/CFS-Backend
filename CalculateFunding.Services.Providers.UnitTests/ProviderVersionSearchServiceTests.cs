@@ -1180,7 +1180,9 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 LocalGovernmentGroupTypeName = "LocalGovernmentGroupTypeName",
                 Street = "Street",
                 Locality = "Locality",
-                Address3 = "Address3"
+                Address3 = "Address3",
+                PaymentOrganisationIdentifier = "PaymentOrganisationIdentifier",
+                PaymentOrganisationName = "PaymentOrganisationName"
             };
         }
 

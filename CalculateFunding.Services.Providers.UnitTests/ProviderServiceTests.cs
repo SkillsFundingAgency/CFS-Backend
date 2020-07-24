@@ -148,7 +148,9 @@ namespace CalculateFunding.Services.Providers.UnitTests
                     x.First().LocalGovernmentGroupTypeName == provider.LocalGovernmentGroupTypeName &&
                     x.First().Street == provider.Street &&
                     x.First().Locality == provider.Locality &&
-                    x.First().Address3 == provider.Address3
+                    x.First().Address3 == provider.Address3 &&
+                    x.First().PaymentOrganisationIdentifier == provider.PaymentOrganisationIdentifier &&
+                    x.First().PaymentOrganisationName == provider.PaymentOrganisationName
                 ), Arg.Is(cacheKeyForList));
 
             await cacheProvider
@@ -591,7 +593,9 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 CountryCode = provider.CountryCode,
                 CountryName = provider.CountryName,
                 LocalGovernmentGroupTypeCode = provider.LocalGovernmentGroupTypeCode,
-                LocalGovernmentGroupTypeName = provider.LocalGovernmentGroupTypeName
+                LocalGovernmentGroupTypeName = provider.LocalGovernmentGroupTypeName,
+                PaymentOrganisationIdentifier = provider.PaymentOrganisationIdentifier,
+                PaymentOrganisationName = provider.PaymentOrganisationName
             };
         }
 
@@ -649,7 +653,9 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 LocalGovernmentGroupTypeName = "LocalGovernmentGroupTypeName",
                 Street = "Street",
                 Locality = "Locality",
-                Address3 = "Address3"
+                Address3 = "Address3",
+                PaymentOrganisationIdentifier = "PaymentOrganisationIdentifier",
+                PaymentOrganisationName = "PaymentOrganisationName"
             };
         }
 

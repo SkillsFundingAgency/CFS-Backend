@@ -84,6 +84,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
             yield return VariationExample(_ => _.ParliamentaryConstituencyCode = NewRandomString(), VariationReason.ParliamentaryConstituencyCodeFieldUpdated);
             yield return VariationExample(_ => _.CountryCode = NewRandomString(), VariationReason.CountryCodeFieldUpdated);
             yield return VariationExample(_ => _.CountryName = NewRandomString(), VariationReason.CountryNameFieldUpdated);
+            yield return VariationExample(_ => _.PaymentOrganisationIdentifier = NewRandomString(), VariationReason.PaymentOrganisationIdentifierFieldUpdated);
+            yield return VariationExample(_ => _.PaymentOrganisationName = NewRandomString(), VariationReason.PaymentOrganisationNameFieldUpdated);
             yield return VariationExample(_ => _.LocalGovernmentGroupTypeCode = NewRandomString());
             yield return VariationExample(_ => _.LocalGovernmentGroupTypeName = NewRandomString());
             yield return VariationExample(_ => _.ProviderVersionId = NewRandomString());

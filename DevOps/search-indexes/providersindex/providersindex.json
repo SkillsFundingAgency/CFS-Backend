@@ -438,6 +438,22 @@
       "filterable": false,
       "sortable": false,
       "facetable": false
+    },
+    {
+      "name": "paymentOrganisationIdentifier",
+      "type": "Edm.String",
+      "searchable": false,
+      "filterable": false,
+      "sortable": false,
+      "facetable": false
+    },
+    {
+      "name": "paymentOrganisationName",
+      "type": "Edm.String",
+      "searchable": false,
+      "filterable": false,
+      "sortable": false,
+      "facetable": false
     }
   ]
 }
