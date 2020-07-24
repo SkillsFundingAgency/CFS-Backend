@@ -68,6 +68,7 @@ namespace CalculateFunding.Services.Publishing
             IEnumerable<string> variationReasons)
         {
             return $@"FROM publishedFunding p
+                {VariationReasonsJoin(variationReasons)}
                 WHERE p.documentType = 'PublishedFundingVersion'
                 AND p.deleted = false
                 {FundingStreamsPredicate(fundingStreamIds)}
@@ -86,12 +87,22 @@ namespace CalculateFunding.Services.Publishing
             => InPredicateFor(groupingReasons, "p.content.groupingReason");
 
         private string VariationReasonsPredicate(IEnumerable<string> variationReasons)
-            => InPredicateFor(variationReasons, "p.content.variationReasons");
+            => InPredicateFor(variationReasons, "variationReasons");
+
+        private string VariationReasonsJoin(IEnumerable<string> variationReasons)
+            => JoinQueryFor(variationReasons, "p.content.variationReasons", "variationReasons");
 
         private string InPredicateFor(IEnumerable<string> matches, string field)
         {
             return !matches.IsNullOrEmpty() ?
                 $"AND {field} IN ({string.Join(",", matches.Select(_ => $"'{_}'"))})" :
+                null;
+        }
+
+        private string JoinQueryFor(IEnumerable<string> matches, string field, string fieldCode)
+        {
+            return !matches.IsNullOrEmpty() ?
+                $"JOIN {fieldCode} IN {field}" :
                 null;
         }
 

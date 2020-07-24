@@ -97,6 +97,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                     AS DocumentPath,
                     p.deleted
                 FROM publishedFunding p
+                
                 WHERE p.documentType = 'PublishedFundingVersion'
                 AND p.deleted = false
                 AND p.content.fundingStreamId IN ('DSG','PSG')
@@ -139,6 +140,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                     AS DocumentPath,
                     p.deleted
                 FROM publishedFunding p
+                
                 WHERE p.documentType = 'PublishedFundingVersion'
                 AND p.deleted = false
                 AND p.content.fundingStreamId IN ('DSG')
@@ -181,6 +183,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                     AS DocumentPath,
                     p.deleted
                 FROM publishedFunding p
+                
                 WHERE p.documentType = 'PublishedFundingVersion'
                 AND p.deleted = false
                 AND p.content.fundingStreamId IN ('PSG')
@@ -223,12 +226,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                     AS DocumentPath,
                     p.deleted
                 FROM publishedFunding p
+                JOIN variationReasons IN p.content.variationReasons
                 WHERE p.documentType = 'PublishedFundingVersion'
                 AND p.deleted = false
                 AND p.content.fundingStreamId IN ('PSG')
                 
                 
-                AND p.content.variationReasons IN ('AuthorityFieldUpdated','EstablishmentNumberFieldUpdated')
+                AND variationReasons IN ('AuthorityFieldUpdated','EstablishmentNumberFieldUpdated')
                 ORDER BY p.documentType,
 				p.content.statusChangedDate, 
 				p.content.id,
@@ -265,12 +269,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                     AS DocumentPath,
                     p.deleted
                 FROM publishedFunding p
+                JOIN variationReasons IN p.content.variationReasons
                 WHERE p.documentType = 'PublishedFundingVersion'
                 AND p.deleted = false
                 AND p.content.fundingStreamId IN ('DSG','PSG')
                 AND p.content.fundingPeriod.id IN ('AY-1921','AY-2020')
                 AND p.content.groupingReason IN ('Payment','Information')
-                AND p.content.variationReasons IN ('AuthorityFieldUpdated','EstablishmentNumberFieldUpdated')
+                AND variationReasons IN ('AuthorityFieldUpdated','EstablishmentNumberFieldUpdated')
                 ORDER BY p.documentType,
 				p.content.statusChangedDate, 
 				p.content.id,
@@ -293,6 +298,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 @"SELECT
                    VALUE COUNT(1)
                 FROM publishedFunding p
+                
                 WHERE p.documentType = 'PublishedFundingVersion'
                 AND p.deleted = false
                 AND p.content.fundingStreamId IN ('DSG','PSG')"
@@ -306,6 +312,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 @"SELECT
                    VALUE COUNT(1)
                 FROM publishedFunding p
+                
                 WHERE p.documentType = 'PublishedFundingVersion'
                 AND p.deleted = false
                 AND p.content.fundingStreamId IN ('DSG')
@@ -320,6 +327,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 @"SELECT
                    VALUE COUNT(1)
                 FROM publishedFunding p
+                
                 WHERE p.documentType = 'PublishedFundingVersion'
                 AND p.deleted = false
                 AND p.content.fundingStreamId IN ('PSG')
@@ -335,12 +343,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 @"SELECT
                    VALUE COUNT(1)
                 FROM publishedFunding p
+                JOIN variationReasons IN p.content.variationReasons
                 WHERE p.documentType = 'PublishedFundingVersion'
                 AND p.deleted = false
                 AND p.content.fundingStreamId IN ('PSG')
                 
                 
-                AND p.content.variationReasons IN ('AuthorityFieldUpdated','EstablishmentNumberFieldUpdated')"
+                AND variationReasons IN ('AuthorityFieldUpdated','EstablishmentNumberFieldUpdated')"
             };
             yield return new object[]
             {
@@ -351,12 +360,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 @"SELECT
                    VALUE COUNT(1)
                 FROM publishedFunding p
+                JOIN variationReasons IN p.content.variationReasons
                 WHERE p.documentType = 'PublishedFundingVersion'
                 AND p.deleted = false
                 AND p.content.fundingStreamId IN ('DSG','PSG')
                 AND p.content.fundingPeriod.id IN ('AY-1921','AY-2020')
                 AND p.content.groupingReason IN ('Payment','Information')
-                AND p.content.variationReasons IN ('AuthorityFieldUpdated','EstablishmentNumberFieldUpdated')"
+                AND variationReasons IN ('AuthorityFieldUpdated','EstablishmentNumberFieldUpdated')"
             };
         }
 
