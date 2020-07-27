@@ -21,7 +21,7 @@ namespace CalculateFunding.Repositories.Common.Search
 
         Task<SearchResults<T>> Search(string searchText, SearchParameters searchParameters = null, bool allResults = false);
 
-        Task<T> SearchById(string id, string IdFieldOverride = "");
+        Task<T> SearchById(string id);
 
         Task DeleteIndex();
     }

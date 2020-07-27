@@ -7,6 +7,7 @@ using Microsoft.Rest.Azure;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Specs.UnitTests
@@ -377,13 +378,15 @@ namespace CalculateFunding.Services.Specs.UnitTests
 
             ISearchIndexClient searchIndexClient = Substitute.For<ISearchIndexClient>();
 
-            SpecificationIndex specificationIndexSearchResult = new SpecificationIndex { Id = existingId };
+            Microsoft.Azure.Search.Models.SearchResult<SpecificationIndex> specificationIndexSearchResult = new Microsoft.Azure.Search.Models.SearchResult<SpecificationIndex>(new SpecificationIndex { Id = existingId });
 
-            AzureOperationResponse<SpecificationIndex> getResult =
-                new AzureOperationResponse<SpecificationIndex> { Body = specificationIndexSearchResult };
+            AzureOperationResponse<DocumentSearchResult<SpecificationIndex>> documentSearchResult =
+                new AzureOperationResponse<DocumentSearchResult<SpecificationIndex>> { Body = new DocumentSearchResult<SpecificationIndex>(new[] { specificationIndexSearchResult }, null, null, null, null) };
 
             IDocumentsOperations documentsOperations = Substitute.For<IDocumentsOperations>();
-            documentsOperations.GetWithHttpMessagesAsync<SpecificationIndex>(Arg.Any<string>(), Arg.Any<IEnumerable<string>>()).Returns(Task.FromResult(getResult));
+            documentsOperations
+                .SearchWithHttpMessagesAsync<SpecificationIndex>(Arg.Any<string>(), Arg.Any<SearchParameters>())
+                .Returns(Task.FromResult(documentSearchResult));
 
             ISearchServiceClient searchServiceClient = Substitute.For<ISearchServiceClient>();
             searchIndexClient.Documents.Returns(documentsOperations);

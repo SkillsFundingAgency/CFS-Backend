@@ -170,36 +170,31 @@ namespace CalculateFunding.Repositories.Common.Search
             }
         }
 
-        public async Task<T> SearchById(string id, string IdFieldOverride = "")
+        public async Task<T> SearchById(string id)
         {
             var client = await GetOrCreateIndex();
 
             try
             {
-                IEnumerable<string> retrievableFieldNames = GetRetrievableFields();
+                SearchParameters searchParameters = new SearchParameters
+                {
+                    SearchFields = new List<string> { "id" },
+                    Top = 1
+                };
 
-                AzureOperationResponse<T> azureSearchResult = await client.Documents.GetWithHttpMessagesAsync<T>(id, retrievableFieldNames);
+                DocumentSearchResult<T> azureSearchResult = await client.Documents.SearchAsync<T>(id, searchParameters ?? DefaultParameters);
 
-                return azureSearchResult?.Body;
+                if (azureSearchResult == null || azureSearchResult?.Results == null)
+                {
+                    return null;
+                }
+
+                return azureSearchResult.Results.FirstOrDefault()?.Document;
             }
             catch (Exception ex)
             {
                 throw new FailedToQuerySearchException("Failed to query search", ex);
             }
-        }
-
-        private static IEnumerable<string> GetRetrievableFields()
-        {
-            return typeof(T)
-                .GetProperties()
-                .Where(
-                    p =>
-                        p.GetCustomAttributes(typeof(IsRetrievableAttribute), true)
-                        .Where(ca => ((IsRetrievableAttribute)ca).IsRetrievable)
-                        .Any()
-                    )
-                .Select(x=>(x.GetCustomAttributes(typeof(JsonPropertyAttribute), true).First() as JsonPropertyAttribute)?.PropertyName)
-                .ToList();
         }
 
         private async Task<IEnumerable<IndexError>> Index(IEnumerable<T> documents, Func<T, IndexAction<T>> action)
