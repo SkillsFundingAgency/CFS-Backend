@@ -1347,6 +1347,8 @@ namespace CalculateFunding.Services.Datasets.Services
             DateTimeOffset datasetDate = NewRandomDateTime();
             string datasetAuthorId = NewRandomString();
             string datasetAuthorName = NewRandomString();
+            string datasetName = NewRandomString();
+            string datasetDescription = NewRandomString();
 
             ILogger logger = CreateLogger();
 
@@ -1367,7 +1369,8 @@ namespace CalculateFunding.Services.Datasets.Services
             {
                 NewDataset(_ =>_
                     .WithId(NewRandomString())
-                    .WithName(NewRandomString())
+                    .WithName(datasetName)
+                    .WithDescription(datasetDescription)
                     .WithHistory(
                         NewDatasetVersion(dv=> dv
                             .WithVersion(datasetVersion)
@@ -1404,6 +1407,20 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Count()
                 .Should()
                 .Be(1);
+
+            sourceModel
+               .Datasets
+               .First()
+               .Name
+               .Should()
+               .Be(datasetName);
+
+            sourceModel
+               .Datasets
+               .First()
+               .Description
+               .Should()
+               .Be(datasetDescription);
 
             sourceModel
                 .Datasets

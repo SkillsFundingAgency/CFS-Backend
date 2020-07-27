@@ -273,6 +273,7 @@ namespace CalculateFunding.Services.Datasets
                         {
                             Id = dataset.Id,
                             Name = dataset.Name,
+                            Description = dataset.Description,
                             SelectedVersion = (relationship.DatasetVersion != null && relationship.DatasetVersion.Id == dataset.Id) ? relationship.DatasetVersion.Version : null as int?,
                             Versions = dataset.History.Select(m => new DatasetVersionModel
                             { 

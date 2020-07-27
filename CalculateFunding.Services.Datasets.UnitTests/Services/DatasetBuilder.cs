@@ -10,6 +10,7 @@ namespace CalculateFunding.Services.Datasets.Services
     {
         private string _id;
         private string _name;
+        private string _description;
         private Reference _definition;
         private DatasetVersion _current;
         private IEnumerable<DatasetVersion> _history;
@@ -24,6 +25,13 @@ namespace CalculateFunding.Services.Datasets.Services
         public DatasetBuilder WithName(string name)
         {
             _name = name;
+
+            return this;
+        }
+
+        public DatasetBuilder WithDescription(string description)
+        {
+            _description = description;
 
             return this;
         }
@@ -57,7 +65,8 @@ namespace CalculateFunding.Services.Datasets.Services
                 Definition = _definition,
                 Current = _current,
                 History = _history?.ToList(),
-                Name = _name ?? NewRandomString()
+                Name = _name ?? NewRandomString(),
+                Description = _description ?? NewRandomString()
             };
         }
     }
