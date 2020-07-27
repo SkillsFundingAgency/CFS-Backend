@@ -607,61 +607,80 @@ namespace CalculateFunding.Services.Specs
 
             specification.Current = specificationVersion;
 
-            IDictionary<string, string> defaultTemplateVersions = new Dictionary<string, string>();
+            IDictionary<string, string> templateVersions = new Dictionary<string, string>();
 
             foreach (string fundingStreamId in specification.Current.FundingStreams.Select(m => m.Id))
             {
-                ApiResponse<PolicyModels.FundingConfig.FundingConfiguration> fundingConfigResponse =
+                if (createModel.AssignedTemplateIds?.ContainsKey(fundingStreamId) ?? false)
+                {
+                    ApiResponse<PolicyModels.FundingTemplateContents> publishedFundingTemplateResponse =
+                        await _policiesApiClientPolicy.ExecuteAsync(() =>
+                            _policiesApiClient.GetFundingTemplate(fundingStreamId,
+                                specification.Current.FundingPeriod.Id, createModel.AssignedTemplateIds[fundingStreamId]));
+
+                    if (!publishedFundingTemplateResponse.StatusCode.IsSuccess())
+                    {
+                        return new InternalServerErrorResult(
+                            $"No published funding template returned for funding stream id '{fundingStreamId}' and funding period id " +
+                            $"'{specification.Current.FundingPeriod.Id}' and template version '{createModel.AssignedTemplateIds[fundingStreamId]}'");
+                    }
+
+                    templateVersions.Add(fundingStreamId, createModel.AssignedTemplateIds[fundingStreamId]);
+                }
+                else
+                {
+                    ApiResponse<PolicyModels.FundingConfig.FundingConfiguration> fundingConfigResponse =
                     await _policiesApiClientPolicy.ExecuteAsync(() =>
                         _policiesApiClient.GetFundingConfiguration(fundingStreamId,
                             specification.Current.FundingPeriod.Id));
 
-                if (!fundingConfigResponse.StatusCode.IsSuccess())
-                {
-                    return new InternalServerErrorResult(
-                        $"No funding configuration returned for funding stream id '{fundingStreamId}' and funding period id '{specification.Current.FundingPeriod.Id}'");
-                }
-
-                PolicyModels.FundingConfig.FundingConfiguration fundingConfiguration = fundingConfigResponse.Content;
-
-                if (!string.IsNullOrEmpty(fundingConfiguration?.DefaultTemplateVersion))
-                {
-                    defaultTemplateVersions.Add(fundingStreamId, fundingConfiguration.DefaultTemplateVersion);
-                }
-                else
-                {
-                    ApiResponse<IEnumerable<PolicyModels.PublishedFundingTemplate>> publishedFundingTemplatesResponse =
-                        await _policiesApiClientPolicy.ExecuteAsync(() =>
-                            _policiesApiClient.GetFundingTemplates(fundingStreamId,
-                                specification.Current.FundingPeriod.Id));
-
-                    if (!publishedFundingTemplatesResponse.StatusCode.IsSuccess())
+                    if (!fundingConfigResponse.StatusCode.IsSuccess())
                     {
                         return new InternalServerErrorResult(
-                            $"No published funding template returned for funding stream id '{fundingStreamId}' and funding period id '{specification.Current.FundingPeriod.Id}'");
+                            $"No funding configuration returned for funding stream id '{fundingStreamId}' and funding period id '{specification.Current.FundingPeriod.Id}'");
                     }
 
-                    if (!publishedFundingTemplatesResponse.Content.Any())
+                    PolicyModels.FundingConfig.FundingConfiguration fundingConfiguration = fundingConfigResponse.Content;
+
+                    if (!string.IsNullOrEmpty(fundingConfiguration?.DefaultTemplateVersion))
                     {
-                        return new InternalServerErrorResult(
-                            $"Default Template Version is empty for funding stream id '{fundingStreamId}' and funding period id '{specification.Current.FundingPeriod.Id}'");
+                        templateVersions.Add(fundingStreamId, fundingConfiguration.DefaultTemplateVersion);
                     }
-
-                    IEnumerable<string> templateVersionStrings = publishedFundingTemplatesResponse.Content.Select(_ => _.TemplateVersion);
-
-                    List<decimal> templateVersions = new List<decimal>();
-                    foreach (string templateVersionString in templateVersionStrings)
+                    else
                     {
-                        bool parsed = decimal.TryParse(templateVersionString, out var parsedTemplateVersion);
+                        ApiResponse<IEnumerable<PolicyModels.PublishedFundingTemplate>> publishedFundingTemplatesResponse =
+                            await _policiesApiClientPolicy.ExecuteAsync(() =>
+                                _policiesApiClient.GetFundingTemplates(fundingStreamId,
+                                    specification.Current.FundingPeriod.Id));
 
-                        if (parsed)
+                        if (!publishedFundingTemplatesResponse.StatusCode.IsSuccess())
                         {
-                            templateVersions.Add(parsedTemplateVersion);
+                            return new InternalServerErrorResult(
+                                $"No published funding template returned for funding stream id '{fundingStreamId}' and funding period id '{specification.Current.FundingPeriod.Id}'");
                         }
-                    }
 
-                    decimal templateVersion = templateVersions.Max();
-                    defaultTemplateVersions.Add(fundingStreamId, templateVersion.ToString());
+                        if (!publishedFundingTemplatesResponse.Content.Any())
+                        {
+                            return new InternalServerErrorResult(
+                                $"Default Template Version is empty for funding stream id '{fundingStreamId}' and funding period id '{specification.Current.FundingPeriod.Id}'");
+                        }
+
+                        IEnumerable<string> templateVersionStrings = publishedFundingTemplatesResponse.Content.Select(_ => _.TemplateVersion);
+
+                        List<decimal> templateVersionValues = new List<decimal>();
+                        foreach (string templateVersionString in templateVersionStrings)
+                        {
+                            bool parsed = decimal.TryParse(templateVersionString, out var parsedTemplateVersion);
+
+                            if (parsed)
+                            {
+                                templateVersionValues.Add(parsedTemplateVersion);
+                            }
+                        }
+
+                        decimal templateVersion = templateVersionValues.Max();
+                        templateVersions.Add(fundingStreamId, templateVersion.ToString());
+                    }
                 }
             }
 
@@ -683,11 +702,11 @@ namespace CalculateFunding.Services.Specs
 
             foreach (string fundingStreamId in specification.Current.FundingStreams.Select(m => m.Id))
             {
-                if (defaultTemplateVersions.ContainsKey(fundingStreamId))
+                if (templateVersions.ContainsKey(fundingStreamId))
                 {
                     await _calcsApiClientPolicy.ExecuteAsync(() =>
                         _calcsApiClient.AssociateTemplateIdWithSpecification(specification.Id,
-                            defaultTemplateVersions[fundingStreamId], fundingStreamId));
+                            templateVersions[fundingStreamId], fundingStreamId));
                 }
             }
 
