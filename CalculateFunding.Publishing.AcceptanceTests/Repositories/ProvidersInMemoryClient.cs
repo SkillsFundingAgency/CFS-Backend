@@ -239,5 +239,15 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         public Task<ApiResponse<ProviderVersionSearchResults>> SearchCurrentProviderVersionForFundingStream(string fundingStreamId,
             SearchModel search) =>
             throw new NotImplementedException();
+
+        public Task<ApiResponse<IEnumerable<string>>> GetLocalAuthorityNamesByProviderVersionId(string providerVersionId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ApiResponse<IEnumerable<string>>> GetLocalAuthorityNamesByFundingStreamId(string fundingStreamId)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
