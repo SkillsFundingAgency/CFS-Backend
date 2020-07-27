@@ -4,11 +4,12 @@ using CalculateFunding.Services.FundingDataZone.SqlModels;
 
 namespace CalculateFunding.Services.FundingDataZone.MappingProfiles
 {
-    public class FDZMappingProfiles : Profile
+    public class FundingDataZoneMappingProfiles : Profile
     {
-        public FDZMappingProfiles()
+        public FundingDataZoneMappingProfiles()
         {
             CreateMap<PublishingAreaProvider, Provider>();
         }
     }
 }
+ 

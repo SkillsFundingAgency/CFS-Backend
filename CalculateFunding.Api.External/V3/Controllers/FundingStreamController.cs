@@ -38,7 +38,7 @@ namespace CalculateFunding.Api.External.V3.Controllers
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(string))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GetFundingTemplateSourceFile(
-            string fundingStreamId, string fundingPeriodId, string majorVersion, string minorVersion)
+            string fundingStreamId, string fundingPeriodId, int majorVersion, int minorVersion)
         {
             return await _fundingStreamService.GetFundingTemplateSourceFile(
                 fundingStreamId,

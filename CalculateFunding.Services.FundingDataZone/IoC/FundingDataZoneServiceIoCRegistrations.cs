@@ -28,7 +28,7 @@ namespace CalculateFunding.Services.FundingDataZone.IoC
 
             MapperConfiguration fdzConfig = new MapperConfiguration(c =>
             {
-                c.AddProfile<FDZMappingProfiles>();
+                c.AddProfile<FundingDataZoneMappingProfiles>();
             });
 
             serviceCollection.AddSingleton(fdzConfig.CreateMapper());

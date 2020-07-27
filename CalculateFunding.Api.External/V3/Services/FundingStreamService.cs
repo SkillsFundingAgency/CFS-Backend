@@ -89,22 +89,10 @@ namespace CalculateFunding.Api.External.V3.Services
         }
 
         public async Task<IActionResult> GetFundingTemplateSourceFile(
-            string fundingStreamId, string fundingPeriodId, string majorVersion, string minorVersion)
+            string fundingStreamId, string fundingPeriodId, int majorVersion, int minorVersion)
         {
             Guard.IsNullOrWhiteSpace(fundingStreamId, nameof(fundingStreamId));
             Guard.IsNullOrWhiteSpace(fundingPeriodId, nameof(fundingPeriodId));
-            Guard.IsNullOrWhiteSpace(majorVersion, nameof(majorVersion));
-            Guard.IsNullOrWhiteSpace(minorVersion, nameof(minorVersion));
-
-            if (!int.TryParse(majorVersion, out _))
-            {
-                return new BadRequestObjectResult($"{nameof(majorVersion)} should be integer");
-            }
-
-            if (!int.TryParse(minorVersion, out _))
-            {
-                return new BadRequestObjectResult($"{nameof(minorVersion)} should be integer");
-            }
 
             ApiResponse<string> fundingTemplateSourceFileApiResponse
                 = await _policiesApiClientPolicy.ExecuteAsync(() =>

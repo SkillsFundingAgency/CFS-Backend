@@ -10,6 +10,7 @@ namespace CalculateFunding.Services.Specs.MappingProfiles
         public SpecificationsMappingProfile()
         {
             CreateMap<Specification, SpecificationSummary>()
+                .ForMember(_ => _.ProviderSource, opt => opt.MapFrom(s => s.Current.ProviderSource))
                 .ForMember(_ => _.LastEditedDate, opt => opt.MapFrom(s => s.Current.Date))
                 .ForMember(_ => _.Description, opt => opt.MapFrom(s => s.Current.Description))
                 .ForMember(_ => _.FundingPeriod, opt => opt.MapFrom(s => s.Current.FundingPeriod))

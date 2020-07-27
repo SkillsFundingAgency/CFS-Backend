@@ -16,6 +16,12 @@ namespace CalculateFunding.Services.Providers
         public AsyncPolicy JobsApiClient { get; set; }
         
         public AsyncPolicy PoliciesApiClient { get; set; }
+        
+        public AsyncPolicy SpecificationsApiClient { get; set; }
+        
+        public AsyncPolicy ResultsApiClient { get; set; }
+        
+        public AsyncPolicy CacheProvider { get; set; }
     }
 }
 

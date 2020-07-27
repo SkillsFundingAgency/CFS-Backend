@@ -1,5 +1,7 @@
+using System.Collections.Generic;
 using CalculateFunding.Models.Providers;
 using CalculateFunding.Tests.Common.Helpers;
+using ProviderVersion = CalculateFunding.Models.Providers.ProviderVersion;
 
 namespace CalculateFunding.Services.Providers.UnitTests
 {
@@ -9,6 +11,14 @@ namespace CalculateFunding.Services.Providers.UnitTests
         private string _type;
         private int? _version;
         private string _fundingStream;
+        private IEnumerable<Provider> _providers;
+
+        public ProviderVersionBuilder WithProviders(params Provider[] providers)
+        {
+            _providers = providers;
+
+            return this;
+        }
 
         public ProviderVersionBuilder WithName(string name)
         {
@@ -46,6 +56,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 Version = _version.GetValueOrDefault(NewRandomNumberBetween(1, 100)),
                 FundingStream = _fundingStream ?? NewRandomString(),
                 ProviderVersionTypeString = _type ?? NewRandomString(),
+                Providers = _providers
             };
         }
     }

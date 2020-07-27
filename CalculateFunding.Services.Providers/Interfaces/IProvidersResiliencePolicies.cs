@@ -9,5 +9,9 @@ namespace CalculateFunding.Services.Providers.Interfaces
         AsyncPolicy BlobRepositoryPolicy { get; set; }
         AsyncPolicy JobsApiClient { get; set; }
         AsyncPolicy PoliciesApiClient { get; set; }
+        AsyncPolicy SpecificationsApiClient { get; set; }
+        AsyncPolicy ResultsApiClient { get; set; }
+        AsyncPolicy CacheProvider { get; set; }
+        
     }
 }

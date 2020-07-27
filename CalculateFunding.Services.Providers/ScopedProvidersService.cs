@@ -3,10 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Text;
 using System.Threading.Tasks;
-using AutoMapper;
-using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Results;
@@ -27,35 +24,33 @@ using CalculateFunding.Services.Providers.Caching;
 using CalculateFunding.Services.Providers.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
-using Newtonsoft.Json;
 using Polly;
 using Serilog;
+using ProviderSource = CalculateFunding.Common.ApiClient.Models.ProviderSource;
 
 namespace CalculateFunding.Services.Providers
 {
     public class ScopedProvidersService : IScopedProvidersService, IHealthChecker
     {
-        private const string getSpecificationSummary = "specs/specification-summary-by-id?specificationId={0}";
-        private const string getProviderVersion = "providers/versions/{0}";
-        private const string getScopedProviderIdsUrl = "results/get-scoped-providerids?specificationId=";
-
+        private const string SpecificationId = "specification-id";
+        private const string JobId = "jobId";
+        
         private readonly ICacheProvider _cacheProvider;
         private readonly IResultsApiClient _resultsApiClient;
         private readonly ISpecificationsApiClient _specificationsApiClient;
         private readonly IProviderVersionService _providerVersionService;
-        private readonly IMapper _mapper;
         private readonly IScopedProvidersServiceSettings _scopedProvidersServiceSettings;
         private readonly IFileSystemCache _fileSystemCache;
         private readonly IJobManagement _jobManagement;
+        private readonly AsyncPolicy _specificationsPolicy;
+        private readonly AsyncPolicy _resultsPolicy;
+        private readonly AsyncPolicy _cachePolicy;
         private readonly ILogger _logger;
-        private const string SpecificationId = "specification-id";
-        private const string JobId = "jobId";
 
         public ScopedProvidersService(ICacheProvider cacheProvider,
             IResultsApiClient resultsApiClient,
             ISpecificationsApiClient specificationsApiClient,
             IProviderVersionService providerVersionService,
-            IMapper mapper,
             IScopedProvidersServiceSettings scopedProvidersServiceSettings,
             IFileSystemCache fileSystemCache,
             IJobManagement jobManagement,
@@ -66,18 +61,21 @@ namespace CalculateFunding.Services.Providers
             Guard.ArgumentNotNull(resultsApiClient, nameof(resultsApiClient));
             Guard.ArgumentNotNull(specificationsApiClient, nameof(specificationsApiClient));
             Guard.ArgumentNotNull(providerVersionService, nameof(providerVersionService));
-            Guard.ArgumentNotNull(mapper, nameof(mapper));
             Guard.ArgumentNotNull(scopedProvidersServiceSettings, nameof(scopedProvidersServiceSettings));
             Guard.ArgumentNotNull(fileSystemCache, nameof(fileSystemCache));
             Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
-            Guard.ArgumentNotNull(providersResiliencePolicies, nameof(providersResiliencePolicies));
+            Guard.ArgumentNotNull(providersResiliencePolicies?.SpecificationsApiClient, nameof(providersResiliencePolicies.SpecificationsApiClient));
+            Guard.ArgumentNotNull(providersResiliencePolicies?.ResultsApiClient, nameof(providersResiliencePolicies.ResultsApiClient));
+            Guard.ArgumentNotNull(providersResiliencePolicies?.CacheProvider, nameof(providersResiliencePolicies.CacheProvider));
             Guard.ArgumentNotNull(logger, nameof(logger));
 
+            _cachePolicy = providersResiliencePolicies.CacheProvider;
+            _specificationsPolicy = providersResiliencePolicies.SpecificationsApiClient;
+            _resultsPolicy = providersResiliencePolicies.ResultsApiClient;
             _cacheProvider = cacheProvider;
             _resultsApiClient = resultsApiClient;
             _specificationsApiClient = specificationsApiClient;
             _providerVersionService = providerVersionService;
-            _mapper = mapper;
             _fileSystemCache = fileSystemCache;
             _scopedProvidersServiceSettings = scopedProvidersServiceSettings;
             _jobManagement = jobManagement;
@@ -89,13 +87,18 @@ namespace CalculateFunding.Services.Providers
             ServiceHealth providerVersionServiceHealth = await _providerVersionService.IsHealthOk();
             (bool Ok, string Message) cacheRepoHealth = await _cacheProvider.IsHealthOk();
 
-            ServiceHealth health = new ServiceHealth()
+            ServiceHealth health = new ServiceHealth
             {
                 Name = nameof(ScopedProvidersService)
             };
 
             health.Dependencies.AddRange(providerVersionServiceHealth.Dependencies);
-            health.Dependencies.Add(new DependencyHealth { HealthOk = cacheRepoHealth.Ok, DependencyName = cacheRepoHealth.GetType().GetFriendlyName(), Message = cacheRepoHealth.Message });
+            health.Dependencies.Add(new DependencyHealth
+            {
+                HealthOk = cacheRepoHealth.Ok,
+                DependencyName = cacheRepoHealth.GetType().GetFriendlyName(),
+                Message = cacheRepoHealth.Message
+            });
 
             return health;
         }
@@ -105,32 +108,39 @@ namespace CalculateFunding.Services.Providers
             Guard.ArgumentNotNull(message, nameof(message));
 
             string jobId = message.GetUserProperty<string>(JobId);
-
             string specificationId = message.GetUserProperty<string>(SpecificationId);
 
             string scopedProviderSummariesCountCacheKey = $"{CacheKeys.ScopedProviderSummariesCount}{specificationId}";
             string cacheKeyScopedListCacheKey = $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}";
-            
+
             await _jobManagement.UpdateJobStatus(jobId, 0, null);
 
-            ApiResponse<SpecificationSummary> spec =
-                 await _specificationsApiClient.GetSpecificationSummaryById(specificationId);
+            SpecificationSummary specificationSummary =  await GetSpecificationSummary(specificationId);
 
-            if (string.IsNullOrWhiteSpace(spec?.Content.ProviderVersionId))
+            string providerVersionId = specificationSummary?.ProviderVersionId;
+            
+            if (string.IsNullOrWhiteSpace(providerVersionId))
             {
                 return;
             }
 
-            ProviderVersion providerVersion = await _providerVersionService.GetProvidersByVersion(spec.Content.ProviderVersionId);
+            ProviderVersion providerVersion = await _providerVersionService.GetProvidersByVersion(providerVersionId);
 
             if (providerVersion == null)
             {
                 return;
             }
 
-            IEnumerable<string> scopedProviderIds = await GetScopedProviderIdsBySpecification(specificationId);
+            IEnumerable<Provider> sourceProviders = providerVersion.Providers;
 
-            IEnumerable<ProviderSummary> providerSummaries = providerVersion.Providers.Where(p => scopedProviderIds.Contains(p.ProviderId))
+            if (specificationSummary.ProviderSource == ProviderSource.CFS)
+            {
+                HashSet<string> scopedProviderIds = (await GetScopedProviderIdsBySpecification(specificationId)).ToHashSet();
+
+                sourceProviders = sourceProviders.Where(_ => scopedProviderIds.Contains(_.ProviderId));
+            }
+
+            IEnumerable<ProviderSummary> providerSummaries = sourceProviders
                 .Select(x => new ProviderSummary
                 {
                     Name = x.Name,
@@ -189,32 +199,37 @@ namespace CalculateFunding.Services.Providers
                     PaymentOrganisationName = x.PaymentOrganisationName
                 });
 
-            await _cacheProvider.KeyDeleteAsync<ProviderSummary>(cacheKeyScopedListCacheKey);
+            await _cachePolicy.ExecuteAsync(() => _cacheProvider.KeyDeleteAsync<ProviderSummary>(cacheKeyScopedListCacheKey));
 
             // Batch to get around redis timeouts
             foreach (IEnumerable<ProviderSummary> batch in providerSummaries.ToBatches(1000))
             {
                 // Create list is an upsert into the redis list
-                await _cacheProvider.CreateListAsync(batch, cacheKeyScopedListCacheKey);
-                await _cacheProvider.SetExpiry<ProviderSummary>(cacheKeyScopedListCacheKey, DateTime.UtcNow.AddDays(7));
+                await _cachePolicy.ExecuteAsync(() => _cacheProvider.CreateListAsync(batch, cacheKeyScopedListCacheKey));
+                await _cachePolicy.ExecuteAsync(() => _cacheProvider.SetExpiry<ProviderSummary>(cacheKeyScopedListCacheKey, DateTime.UtcNow.AddDays(7)));
             }
 
-            await _cacheProvider.SetAsync(scopedProviderSummariesCountCacheKey, providerSummaries.Count().ToString(), TimeSpan.FromDays(7), true);
+            await _cachePolicy.ExecuteAsync(() =>
+                _cacheProvider.SetAsync(scopedProviderSummariesCountCacheKey, 
+                    providerSummaries.Count().ToString(), TimeSpan.FromDays(7), true));
 
             string filesystemCacheKey = $"{CacheKeys.ScopedProviderSummariesFilesystemKeyPrefix}{specificationId}";
-            await _cacheProvider.KeyDeleteAsync<string>(filesystemCacheKey);
+            await _cachePolicy.ExecuteAsync(() => _cacheProvider.KeyDeleteAsync<string>(filesystemCacheKey));
 
             // Mark job as complete
-            _logger.Information($"Marking populate scoped providers job complete");
+            _logger.Information("Marking populate scoped providers job complete");
 
-            await _jobManagement.UpdateJobStatus(jobId, 0, 0, true, null);
-            _logger.Information($"Populate scoped providers job complete");
+            await _jobManagement.UpdateJobStatus(jobId, 0, 0, true);
+            _logger.Information("Populate scoped providers job complete");
         }
 
-        public async Task<IActionResult> PopulateProviderSummariesForSpecification(string specificationId, string correlationId, Reference user, bool setCachedProviders)
+        public async Task<IActionResult> PopulateProviderSummariesForSpecification(string specificationId,
+            string correlationId,
+            Reference user,
+            bool setCachedProviders)
         {
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
-            
+
             return new OkObjectResult(await RegenerateScopedProvidersForSpecification(specificationId, setCachedProviders));
         }
 
@@ -230,7 +245,7 @@ namespace CalculateFunding.Services.Providers
             }
 
             string filesystemCacheKey = $"{CacheKeys.ScopedProviderSummariesFilesystemKeyPrefix}{specificationId}";
-            string cacheGuid = await _cacheProvider.GetAsync<string>(filesystemCacheKey);
+            string cacheGuid = await _cachePolicy.ExecuteAsync(() => _cacheProvider.GetAsync<string>(filesystemCacheKey));
 
             if (cacheGuid.IsNullOrEmpty())
             {
@@ -242,17 +257,19 @@ namespace CalculateFunding.Services.Providers
 
             if (fileSystemCacheEnabled && _fileSystemCache.Exists(cacheKey))
             {
-                using Stream cachedStream = _fileSystemCache.Get(cacheKey);
+                await using Stream cachedStream = _fileSystemCache.Get(cacheKey);
+
                 return GetActionResultForStream(cachedStream, specificationId);
             }
 
-            IEnumerable<ProviderSummary> providerSummaries = await this.GetScopedProvidersForSpecification(specificationId);
+            IEnumerable<ProviderSummary> providerSummaries = await GetScopedProvidersForSpecification(specificationId);
+
             if (providerSummaries.IsNullOrEmpty())
             {
                 return new NoContentResult();
             }
 
-            using MemoryStream stream = new MemoryStream(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(providerSummaries)))
+            await using MemoryStream stream = new MemoryStream(providerSummaries.AsJsonBytes())
             {
                 Position = 0
             };
@@ -279,45 +296,71 @@ namespace CalculateFunding.Services.Providers
 
         private async Task<IEnumerable<string>> GetScopedProviderIdsBySpecification(string specificationId)
         {
-            if (string.IsNullOrWhiteSpace(specificationId))
+            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
+
+            SpecificationSummary specificationSummary = await GetSpecificationSummary(specificationId);
+
+            if (specificationSummary == null)
             {
-                throw new ArgumentNullException(nameof(specificationId));
+                throw new ArgumentOutOfRangeException(nameof(specificationId), $"No specification located with Id {specificationId}");
             }
 
-            Common.ApiClient.Models.ApiResponse<IEnumerable<string>> scopedProviderIdsRequest =
-                    await _resultsApiClient.GetScopedProviderIdsBySpecificationId(specificationId);
-
-            if (scopedProviderIdsRequest == null || scopedProviderIdsRequest.Content == null || scopedProviderIdsRequest.StatusCode != HttpStatusCode.OK)
+            if (specificationSummary.ProviderSource == ProviderSource.CFS)
             {
-                throw new InvalidOperationException("Unable to obtain scoped provider IDs from results service");
+                ApiResponse<IEnumerable<string>> scopedProviderIdsRequest =
+                    await _resultsPolicy.ExecuteAsync(() => _resultsApiClient.GetScopedProviderIdsBySpecificationId(specificationId));
+
+                if (scopedProviderIdsRequest?.Content == null || scopedProviderIdsRequest.StatusCode != HttpStatusCode.OK)
+                {
+                    throw new InvalidOperationException("Unable to obtain scoped provider IDs from results service");
+                }
+
+                return scopedProviderIdsRequest.Content;
+            }
+            
+            ContentResult coreProviderData = await FetchCoreProviderData(specificationId) as ContentResult;
+
+            string contentLiteral = coreProviderData?.Content;
+            
+            if (contentLiteral?.IsNullOrWhitespace() == true)
+            {
+                throw new ArgumentOutOfRangeException(nameof(specificationId), 
+                    $"Could not fetch core provider data for specification Id {specificationId}");
             }
 
-            return scopedProviderIdsRequest.Content;
+            IEnumerable<ProviderSummary> providers = contentLiteral.AsPoco<IEnumerable<ProviderSummary>>();
 
+            return providers.Select(_ => _.Id).ToArray();
         }
 
         private async Task<IEnumerable<ProviderSummary>> GetScopedProvidersForSpecification(string specificationId)
         {
             string cacheKeyScopedListCacheKey = $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}";
-            long scopedProviderRedisListCount = await _cacheProvider.ListLengthAsync<ProviderSummary>(cacheKeyScopedListCacheKey);
+            long scopedProviderRedisListCount = await _cachePolicy.ExecuteAsync(() => _cacheProvider.ListLengthAsync<ProviderSummary>(cacheKeyScopedListCacheKey));
 
-            return await _cacheProvider.ListRangeAsync<ProviderSummary>(cacheKeyScopedListCacheKey, 0, (int)scopedProviderRedisListCount);
+            return await _cachePolicy.ExecuteAsync(() => 
+                _cacheProvider.ListRangeAsync<ProviderSummary>(cacheKeyScopedListCacheKey, 0, (int) scopedProviderRedisListCount));
         }
 
-        private async Task<bool> RegenerateScopedProvidersForSpecification(string specificationId, bool setCachedProviders)
+        private async Task<bool> RegenerateScopedProvidersForSpecification(string specificationId,
+            bool setCachedProviders)
         {
             string scopedProviderSummariesCountCacheKey = $"{CacheKeys.ScopedProviderSummariesCount}{specificationId}";
-            string currentProviderCount = await _cacheProvider.GetAsync<string>(scopedProviderSummariesCountCacheKey);
+            string currentProviderCount = await _cachePolicy.ExecuteAsync(() => _cacheProvider.GetAsync<string>(scopedProviderSummariesCountCacheKey));
 
             string cacheKeyScopedListCacheKey = $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}";
-            long scopedProviderRedisListCount = await _cacheProvider.ListLengthAsync<ProviderSummary>(cacheKeyScopedListCacheKey);
+            long scopedProviderRedisListCount = await _cachePolicy.ExecuteAsync(() => _cacheProvider.ListLengthAsync<ProviderSummary>(cacheKeyScopedListCacheKey));
 
             if (string.IsNullOrWhiteSpace(currentProviderCount) || int.Parse(currentProviderCount) != scopedProviderRedisListCount || setCachedProviders)
             {
-                JobSummary latestJob = await _jobManagement.GetLatestJobForSpecification(specificationId, new[] { JobConstants.DefinitionNames.PopulateScopedProvidersJob });
+                JobSummary latestJob = await _jobManagement.GetLatestJobForSpecification(specificationId,
+                    new[]
+                    {
+                        JobConstants.DefinitionNames.PopulateScopedProvidersJob
+                    });
 
                 // the populate scoped providers job is already running so don't need to queue another job
-                if(latestJob != null && latestJob?.RunningStatus == RunningStatus.InProgress)
+                if (latestJob?.RunningStatus == RunningStatus.InProgress)
                 {
                     return true;
                 }
@@ -333,20 +376,21 @@ namespace CalculateFunding.Services.Providers
                         Message = "Triggered for specification changes"
                     },
                     Properties = new Dictionary<string, string>
-                {
-                    {"specification-id", specificationId}
-                }
+                    {
+                        {
+                            "specification-id", specificationId
+                        }
+                    }
                 });
 
                 return true;
             }
-            else
-            {
-                return false;
-            }
+
+            return false;
         }
 
-        private IActionResult GetActionResultForStream(Stream stream, string specificationId)
+        private IActionResult GetActionResultForStream(Stream stream,
+            string specificationId)
         {
             if (stream == null || stream.Length == 0)
             {
@@ -364,11 +408,14 @@ namespace CalculateFunding.Services.Providers
                 {
                     Content = providerVersionString,
                     ContentType = "application/json",
-                    StatusCode = (int)HttpStatusCode.OK
+                    StatusCode = (int) HttpStatusCode.OK
                 };
             }
 
             return new NoContentResult();
         }
+
+        private async Task<SpecificationSummary> GetSpecificationSummary(string specificationId)
+            => (await _specificationsPolicy.ExecuteAsync(() => _specificationsApiClient.GetSpecificationSummaryById(specificationId)))?.Content;
     }
 }

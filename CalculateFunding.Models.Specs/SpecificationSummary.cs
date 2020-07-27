@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using CalculateFunding.Common.Models;
+using CalculateFunding.Models.Providers;
 using CalculateFunding.Models.Versioning;
 using Newtonsoft.Json;
 
@@ -8,6 +9,9 @@ namespace CalculateFunding.Models.Specs
 {
     public class SpecificationSummary : Reference
     {
+        [JsonProperty("providerSource")]
+        public ProviderSource ProviderSource { get; set; }
+        
         [JsonProperty("fundingPeriod")]
         public Reference FundingPeriod { get; set; }
 
