@@ -120,7 +120,7 @@ Background: Existing published funding
 		| FundingStreamId | PSG      |
 		| FundingPeriodId | AY-1920  |
 		| TemplateVersion | 1.0      |
-		| Status          | Approved |
+		| Status          | Released |
 		| TotalFunding    | 30000    |
 		| MajorVersion    | 0        |
 		| MinorVersion    | 1        |
@@ -169,7 +169,7 @@ Background: Existing published funding
 		| FundingStreamId | PSG      |
 		| FundingPeriodId | AY-1920  |
 		| TemplateVersion | 1.0      |
-		| Status          | Approved |
+		| Status          | Released |
 		| TotalFunding    | 40000    |
 		| MajorVersion    | 0        |
 		| MinorVersion    | 1        |
@@ -211,7 +211,7 @@ Background: Existing published funding
 		| FundingStreamId | PSG      |
 		| FundingPeriodId | AY-1920  |
 		| TemplateVersion | 1.0      |
-		| Status          | Approved |
+		| Status          | Released |
 		| TotalFunding    | 24000    |
 		| MajorVersion    | 0        |
 		| MinorVersion    | 1        |

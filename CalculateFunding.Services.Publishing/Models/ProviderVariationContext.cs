@@ -42,18 +42,9 @@ namespace CalculateFunding.Services.Publishing.Models
 
         /// <summary>
         /// The publisher provider version to use as the comparison for previous state
-        /// this is the current released version if there is one else the current version
-        /// on the published provider being varied
+        /// this is the currently released version 
         /// </summary>
-        public PublishedProviderVersion PriorState
-        {
-            get
-            {
-                PublishedProvider publishedProviderOriginalSnapShot = GetPublishedProviderOriginalSnapShot(ProviderId);
-
-                return publishedProviderOriginalSnapShot?.Released ?? publishedProviderOriginalSnapShot?.Current;
-            }
-        }
+        public PublishedProviderVersion PriorState => GetPublishedProviderOriginalSnapShot(ProviderId)?.Released;
 
         public PublishedProvider AddMissingProvider(PublishedProvider missingProvider)
         {

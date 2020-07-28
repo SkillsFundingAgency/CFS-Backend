@@ -18,9 +18,9 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
 
             PublishedProviderVersion priorState = providerVariationContext.PriorState;
             
-            if (priorState.Provider.Status == Closed || 
-                providerVariationContext.UpdatedProvider.Status == Closed ||
-                providerVariationContext.UpdatedTotalFunding == priorState.TotalFunding)
+            if (priorState == null ||
+                priorState.Provider.Status == Closed || 
+                providerVariationContext.UpdatedProvider.Status == Closed)
             {
                 return Task.CompletedTask;
             }

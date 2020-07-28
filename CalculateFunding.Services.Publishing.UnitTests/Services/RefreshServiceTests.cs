@@ -634,7 +634,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                             .WithFundingLines(new[] { new FundingLine { FundingLineCode = _fundingLines[0].FundingLineCode, TemplateLineId  = _fundingLines[0].TemplateLineId, Value = 9} })
                             .WithFundingCalculations(new[] {new FundingCalculation { Value = _calculationResults[0].Value, TemplateCalculationId = _calculationTemplateIds[0].TemplateCalculationId },
                                                             new FundingCalculation { Value = _calculationResults[1].Value, TemplateCalculationId = _calculationTemplateIds[1].TemplateCalculationId },
-                                                            new FundingCalculation { Value = _calculationResults[2].Value, TemplateCalculationId = _calculationTemplateIds[2].TemplateCalculationId } }))))).ToList();
+                                                            new FundingCalculation { Value = _calculationResults[2].Value, TemplateCalculationId = _calculationTemplateIds[2].TemplateCalculationId } })))
+                        .WithReleased(NewPublishedProviderVersion(ppv => ppv.WithProvider(_.DeepCopy())
+                                .WithFundingStreamId(FundingStreamId)
+                                .WithProviderId(_.ProviderId)
+                                .WithTotalFunding(9)
+                                .WithFundingLines(new[] { new FundingLine { FundingLineCode = _fundingLines[0].FundingLineCode, TemplateLineId  = _fundingLines[0].TemplateLineId, Value = 9} })
+                                .WithFundingCalculations(new[] {new FundingCalculation { Value = _calculationResults[0].Value, TemplateCalculationId = _calculationTemplateIds[0].TemplateCalculationId },
+                                    new FundingCalculation { Value = _calculationResults[1].Value, TemplateCalculationId = _calculationTemplateIds[1].TemplateCalculationId },
+                                    new FundingCalculation { Value = _calculationResults[2].Value, TemplateCalculationId = _calculationTemplateIds[2].TemplateCalculationId } }))))).ToList();
 
             Provider providerToVary = _scopedProviders.Last();
             _providerIdVaried = providerToVary.ProviderId;

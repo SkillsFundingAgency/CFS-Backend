@@ -25,15 +25,18 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
             Provider updatedProvider = providerVariationContext.UpdatedProvider;
 
             string successorId = updatedProvider.Successor;
+
+            PublishedProviderVersion priorState = providerVariationContext.PriorState;
             
-            if (providerVariationContext.PriorState.Provider.Status == Closed || 
+            if (priorState == null ||
+                priorState.Provider.Status == Closed || 
                 updatedProvider.Status != Closed ||
                 successorId.IsNullOrWhitespace())
             {
                 return;
             }
             
-            if (providerVariationContext.UpdatedTotalFunding != providerVariationContext.PriorState.TotalFunding)
+            if (providerVariationContext.UpdatedTotalFunding != priorState.TotalFunding)
             {
                 providerVariationContext.RecordErrors("Unable to run Closure with Successor variation as TotalFunding has changed during the refresh funding");
 

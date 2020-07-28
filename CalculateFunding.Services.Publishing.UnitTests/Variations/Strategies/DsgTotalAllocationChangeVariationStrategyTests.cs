@@ -44,20 +44,20 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
         }
 
         [TestMethod]
-        public async Task FailsPreconditionCheckIfTotalAllocationNotChanged()
+        public async Task PassesPreconditionCheckEvenIfTotalAllocationNotChanged()
         {
             GivenTheOtherwiseValidVariationContext(_ =>
             {
                 _.PriorState.TotalFunding = 100;
                 _.RefreshState.TotalFunding = 100;
+                _.PriorState.Provider.Status = NewRandomString();
+                _.UpdatedProvider.Status = NewRandomString();
             });
             
             await WhenTheVariationsAreDetermined();
-            
-            VariationContext
-                .QueuedChanges
-                .Should()
-                .BeEmpty();   
+
+            ThenTheVariationChangeWasQueued<AdjustDsgProfilesForUnderOverPaymentChange>();
+            AndTheVariationChangeWasQueued<ReAdjustFundingValuesForProfileValuesChange>();  
         }
         
         [TestMethod]

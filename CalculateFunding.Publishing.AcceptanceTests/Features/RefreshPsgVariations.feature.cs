@@ -440,7 +440,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Features
                         "1.0"});
             table650.AddRow(new string[] {
                         "Status",
-                        "Approved"});
+                        "Released"});
             table650.AddRow(new string[] {
                         "TotalFunding",
                         "30000"});
@@ -620,7 +620,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Features
                         "1.0"});
             table657.AddRow(new string[] {
                         "Status",
-                        "Approved"});
+                        "Released"});
             table657.AddRow(new string[] {
                         "TotalFunding",
                         "40000"});
@@ -767,7 +767,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Features
                         "1.0"});
             table663.AddRow(new string[] {
                         "Status",
-                        "Approved"});
+                        "Released"});
             table663.AddRow(new string[] {
                         "TotalFunding",
                         "24000"});
