@@ -190,7 +190,7 @@ namespace CalculateFunding.Services.Providers
         {
             Guard.IsNullOrWhiteSpace(providerVersionId, nameof(providerVersionId));
 
-            string blobName = $"{providerVersionId}.json";
+            string blobName = $"{providerVersionId.ToLowerInvariant()}.json";
 
             bool fileSystemCacheEnabled = _providerVersionServiceSettings.IsFileSystemCacheEnabled;
 
@@ -260,7 +260,7 @@ namespace CalculateFunding.Services.Providers
         {
             Guard.ArgumentNotNull(providerVersionId, nameof(providerVersionId));
 
-            string blobName = providerVersionId + ".json";
+            string blobName = $"{providerVersionId.ToLowerInvariant()}.json";
 
             return await _blobClient.BlobExistsAsync(blobName.ToLowerInvariant());
         }
