@@ -282,8 +282,7 @@ namespace CalculateFunding.Services.Datasets
                                 Date = m.Date,
                                 Author = m.Author,
                                 Comment = m.Comment
-                            } )
-                        }
+                            } )}
                 });
                 }
             }

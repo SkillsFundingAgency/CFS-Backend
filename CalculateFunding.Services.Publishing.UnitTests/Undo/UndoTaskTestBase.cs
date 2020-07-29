@@ -25,7 +25,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo
         protected ILogger Logger;
         protected PublishedFundingUndoTaskContext TaskContext;
         protected PublishedFundingUndoJobParameters Parameters;
-        protected CorrelationIdDetails TaskDetails;
+        protected UndoTaskDetails TaskDetails;
 
         [TestInitialize]
         public void UndoTaskTestBaseSetUp()

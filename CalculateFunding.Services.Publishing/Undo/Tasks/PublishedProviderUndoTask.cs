@@ -33,11 +33,9 @@ namespace CalculateFunding.Services.Publishing.Undo.Tasks
             
             Guard.ArgumentNotNull(taskContext?.PublishedProviderDetails, nameof(taskContext.PublishedProviderDetails));
             
-            CorrelationIdDetails details = taskContext.PublishedProviderDetails;
+            UndoTaskDetails details = taskContext.PublishedProviderDetails;
 
-            ICosmosDbFeedIterator<PublishedProvider> feed = Cosmos.GetPublishedProviders(details.FundingStreamId,
-                details.FundingPeriodId,
-                details.TimeStamp);
+            ICosmosDbFeedIterator<PublishedProvider> feed = GetPublishedProvidersFeed(details);
 
             FeedContext<PublishedProvider> feedContext = new FeedContext<PublishedProvider>(taskContext, feed);
 
@@ -53,6 +51,11 @@ namespace CalculateFunding.Services.Publishing.Undo.Tasks
             
             LogCompletedTask();
         }
+
+        protected virtual ICosmosDbFeedIterator<PublishedProvider> GetPublishedProvidersFeed(UndoTaskDetails details) =>
+            Cosmos.GetPublishedProviders(details.FundingStreamId,
+                details.FundingPeriodId,
+                details.TimeStamp);
 
         private async Task<(bool isComplete, IEnumerable<PublishedProvider> items)> ProducePublishedProviders(CancellationToken cancellationToken,
             dynamic context)
@@ -101,11 +104,11 @@ namespace CalculateFunding.Services.Publishing.Undo.Tasks
             await TaskHelper.WhenAllAndThrow(cosmosUpdates);
         }
 
-        protected async Task<PublishedProviderVersion> GetPreviousPublishedProviderVersion(string providerId, 
+        protected virtual async Task<PublishedProviderVersion> GetPreviousPublishedProviderVersion(string providerId, 
             PublishedFundingUndoTaskContext taskContext,
             PublishedProviderStatus? status = null)
         {
-            CorrelationIdDetails details = taskContext.PublishedProviderVersionDetails;
+            UndoTaskDetails details = taskContext.PublishedProviderVersionDetails;
             
             LogInformation($"Querying latest earlier published provider version for '{taskContext.Parameters}'");
 

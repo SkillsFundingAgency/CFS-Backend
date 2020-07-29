@@ -29,11 +29,9 @@ namespace CalculateFunding.Services.Publishing.Undo.Tasks
             
             Guard.ArgumentNotNull(taskContext?.PublishedFundingVersionDetails, nameof(taskContext.PublishedFundingVersionDetails));
             
-            CorrelationIdDetails details = taskContext.PublishedFundingVersionDetails;
+            UndoTaskDetails details = taskContext.PublishedFundingVersionDetails;
 
-            ICosmosDbFeedIterator<PublishedFundingVersion> feed = Cosmos.GetPublishedFundingVersions(details.FundingStreamId,
-                details.FundingPeriodId,
-                details.TimeStamp);
+            ICosmosDbFeedIterator<PublishedFundingVersion> feed = GetPublishedFundingVersionsFeed(details);
 
             FeedContext<PublishedFundingVersion> feedContext = new FeedContext<PublishedFundingVersion>(taskContext, feed);
 
@@ -49,7 +47,12 @@ namespace CalculateFunding.Services.Publishing.Undo.Tasks
             
             LogCompletedTask();
         }
-        
+
+        protected virtual ICosmosDbFeedIterator<PublishedFundingVersion> GetPublishedFundingVersionsFeed(UndoTaskDetails details) =>
+            Cosmos.GetPublishedFundingVersions(details.FundingStreamId,
+                details.FundingPeriodId,
+                details.TimeStamp);
+
         private async Task<(bool isComplete, IEnumerable<PublishedFundingVersion> items)> ProducePublishedFundingVersions(CancellationToken cancellationToken,
             dynamic context)
         {

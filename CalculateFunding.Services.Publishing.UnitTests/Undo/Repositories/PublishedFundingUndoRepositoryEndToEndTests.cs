@@ -36,7 +36,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Repositories
 
             _configuration.Bind("CosmosDbSettings", cosmosDbSettings);
 
-            cosmosDbSettings.ContainerName = "publishedfunding";
+            cosmosDbSettings.ContainerName = "publishedfunding-copy";
 
             _repository = new PublishedFundingUndoCosmosRepository(new ResiliencePolicies
             {
@@ -47,12 +47,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Repositories
         [TestMethod]
         public async Task GetCorrelationDetailsForPublishedProviders()
         {
-            CorrelationIdDetails correlationIdDetails = await _repository
+            UndoTaskDetails undoTaskDetails = await _repository
                 .GetCorrelationDetailsForPublishedProviders(CorrelationId);
 
-            correlationIdDetails
+            undoTaskDetails
                 .Should()
-                .BeEquivalentTo(new CorrelationIdDetails
+                .BeEquivalentTo(new UndoTaskDetails
                 {
                     FundingStreamId = "DSG",
                     FundingPeriodId = "FY-2021-7db621f6-ff28-4910-a3b2-5440c2cd80b0",
@@ -77,16 +77,34 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Repositories
                 .Should()
                 .NotBeEmpty();
         }
+        
+        [TestMethod]
+        public async Task GetPublishedProvidersFromVersion()
+        {
+            ICosmosDbFeedIterator<PublishedProvider> feed = _repository.GetPublishedProvidersFromVersion("DSG",
+                "FY-2021",
+                2M);
+
+            feed.HasMoreResults
+                .Should()
+                .BeTrue();
+
+            IEnumerable<PublishedProvider> documents = await feed.ReadNext();
+
+            documents
+                .Should()
+                .NotBeEmpty();
+        }
 
         [TestMethod]
         public async Task GetCorrelationIdDetailsForPublishedProviderVersions()
         {
-            CorrelationIdDetails correlationIdDetails = await _repository
+            UndoTaskDetails undoTaskDetails = await _repository
                 .GetCorrelationIdDetailsForPublishedProviderVersions(CorrelationId);
 
-            correlationIdDetails
+            undoTaskDetails
                 .Should()
-                .BeEquivalentTo(new CorrelationIdDetails
+                .BeEquivalentTo(new UndoTaskDetails
                 {
                     FundingStreamId = "DSG",
                     FundingPeriodId = "FY-2021",
@@ -113,14 +131,32 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Repositories
         }
         
         [TestMethod]
+        public async Task GetPublishedProviderVersionsFromVersion()
+        {
+            ICosmosDbFeedIterator<PublishedProviderVersion> feed = _repository.GetPublishedProviderVersionsFromVersion("DSG",
+                "FY-2021",
+                2M);
+
+            feed.HasMoreResults
+                .Should()
+                .BeTrue();
+
+            IEnumerable<PublishedProviderVersion> documents = await feed.ReadNext();
+
+            documents
+                .Should()
+                .NotBeEmpty();
+        }
+        
+        [TestMethod]
         public async Task GetCorrelationIdDetailsForPublishedFundingVersions()
         {
-            CorrelationIdDetails correlationIdDetails = await _repository
+            UndoTaskDetails undoTaskDetails = await _repository
                 .GetCorrelationIdDetailsForPublishedFundingVersions(CorrelationId);
 
-            correlationIdDetails
+            undoTaskDetails
                 .Should()
-                .BeEquivalentTo(new CorrelationIdDetails
+                .BeEquivalentTo(new UndoTaskDetails
                 {
                     FundingStreamId = "DSG",
                     FundingPeriodId = "FY-2021",
@@ -147,14 +183,32 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Repositories
         }
         
         [TestMethod]
+        public async Task GetPublishedFundingVersionsFromVersion()
+        {
+            ICosmosDbFeedIterator<PublishedFundingVersion> feed = _repository.GetPublishedFundingVersionsFromVersion("DSG",
+                "FY-2021",
+                2M);
+
+            feed.HasMoreResults
+                .Should()
+                .BeTrue();
+
+            IEnumerable<PublishedFundingVersion> documents = await feed.ReadNext();
+
+            documents
+                .Should()
+                .NotBeEmpty();
+        }
+        
+        [TestMethod]
         public async Task GetCorrelationIdDetailsForPublishedFunding()
         {
-            CorrelationIdDetails correlationIdDetails = await _repository
+            UndoTaskDetails undoTaskDetails = await _repository
                 .GetCorrelationIdDetailsForPublishedFunding(CorrelationId);
 
-            correlationIdDetails
+            undoTaskDetails
                 .Should()
-                .BeEquivalentTo(new CorrelationIdDetails
+                .BeEquivalentTo(new UndoTaskDetails
                 {
                     FundingStreamId = "DSG",
                     FundingPeriodId = "FY-2021",
@@ -182,6 +236,24 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Repositories
         }
         
         [TestMethod]
+        public async Task GetPublishedFundingFromVersion()
+        {
+            ICosmosDbFeedIterator<PublishedFunding> feed = _repository.GetPublishedFundingFromVersion("DSG",
+                "FY-2021",
+                4M);
+
+            feed.HasMoreResults
+                .Should()
+                .BeTrue();
+            
+            IEnumerable<PublishedFunding> documents = await feed.ReadNext();
+
+            documents
+                .Should()
+                .NotBeEmpty();
+        }
+        
+        [TestMethod]
         public async Task GetLatestEarlierPublishedFundingVersion()
         {
             PublishedFundingVersion document = await _repository.GetLatestEarlierPublishedFundingVersion("DSG",
@@ -198,19 +270,47 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Repositories
         }
         
         [TestMethod]
+        public async Task GetLatestEarlierPublishedFundingVersionFromVersion()
+        {
+            PublishedFundingVersion document = await _repository.GetLatestEarlierPublishedFundingVersionFromVersion("DSG",
+                "FY-2021",
+                4M, 
+                "LACode",
+                "213",
+                ModelGroupingReason.Information);
+
+            document?
+                .MajorVersion
+                .Should()
+                .Be(3);
+        }
+        
+        [TestMethod]
         public async Task GetLatestEarlierPublishedProviderVersion()
         {
             PublishedProviderVersion document = await _repository.GetLatestEarlierPublishedProviderVersion("DSG",
                 "FY-2021",
                 1584355885, //timestamp is v3 so should yield v2
                 "10007322");
-            
-            
 
             document?
                 .Version
                 .Should()
                 .Be(2);
+        }
+        
+        [TestMethod]
+        public async Task GetLatestEarlierPublishedProviderVersionFromVersion()
+        {
+            PublishedProviderVersion document = await _repository.GetLatestEarlierPublishedProviderVersionFromVersion("DSG",
+                "FY-2021",
+                2, //timestamp is v3 so should yield v2
+                "10007322");
+
+            document?
+                .MajorVersion
+                .Should()
+                .Be(1);
         }
     }
 }

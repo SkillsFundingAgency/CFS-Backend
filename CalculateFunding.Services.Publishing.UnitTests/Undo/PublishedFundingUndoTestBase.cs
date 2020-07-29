@@ -46,9 +46,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo
             return fundingPeriodBuilder.Build();
         }
 
-        protected CorrelationIdDetails NewCorrelationIdDetails(Action<CorrelationIdDetailsBuilder> setUp = null)
+        protected UndoTaskDetails NewUndoTaskDetails(Action<UndoTaskDetailsBuilder> setUp = null)
         {
-            CorrelationIdDetailsBuilder detailsBuilder = new CorrelationIdDetailsBuilder();
+            UndoTaskDetailsBuilder detailsBuilder = new UndoTaskDetailsBuilder();
 
             setUp?.Invoke(detailsBuilder);
             
@@ -82,6 +82,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo
         }
 
         protected string NewRandomString() => new RandomString();
+        
+        protected int NewRandomInteger() => new RandomNumberBetween(1, 99);
         
         protected int NewRandomTimeStamp() => new RandomNumberBetween(10000, int.MaxValue);
         

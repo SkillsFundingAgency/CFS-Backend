@@ -17,13 +17,13 @@ namespace CalculateFunding.Services.Publishing.Undo
 
         public PublishedFundingUndoJobParameters Parameters { get; }
         
-        public CorrelationIdDetails PublishedProviderDetails { get; set; }
+        public UndoTaskDetails PublishedProviderDetails { get; set; }
         
-        public CorrelationIdDetails PublishedProviderVersionDetails { get; set; }
+        public UndoTaskDetails PublishedProviderVersionDetails { get; set; }
         
-        public CorrelationIdDetails PublishedFundingDetails { get; set; }
+        public UndoTaskDetails PublishedFundingDetails { get; set; }
         
-        public CorrelationIdDetails PublishedFundingVersionDetails { get; set; }
+        public UndoTaskDetails PublishedFundingVersionDetails { get; set; }
         
         public ICollection<Exception> Errors { get; } = new List<Exception>();
 

@@ -33,11 +33,9 @@ namespace CalculateFunding.Services.Publishing.Undo.Tasks
             
             Guard.ArgumentNotNull(taskContext?.PublishedFundingDetails, nameof(taskContext.PublishedFundingDetails));
             
-            CorrelationIdDetails details = taskContext.PublishedFundingDetails;
+            UndoTaskDetails details = taskContext.PublishedFundingDetails;
 
-            ICosmosDbFeedIterator<PublishedFunding> feed = Cosmos.GetPublishedFunding(details.FundingStreamId,
-                details.FundingPeriodId,
-                details.TimeStamp);
+            ICosmosDbFeedIterator<PublishedFunding> feed = GetPublishedFundingFeed(details);
             
             FeedContext<PublishedFunding> feedContext = new FeedContext<PublishedFunding>(taskContext, feed);
             
@@ -53,7 +51,12 @@ namespace CalculateFunding.Services.Publishing.Undo.Tasks
             
             LogCompletedTask();
         }
-        
+
+        protected virtual ICosmosDbFeedIterator<PublishedFunding> GetPublishedFundingFeed(UndoTaskDetails details) =>
+            Cosmos.GetPublishedFunding(details.FundingStreamId,
+                details.FundingPeriodId,
+                details.TimeStamp);
+
         private async Task<(bool isComplete, IEnumerable<PublishedFunding> items)> ProducePublishedFunding(CancellationToken cancellationToken,
             dynamic context)
         {
@@ -92,12 +95,12 @@ namespace CalculateFunding.Services.Publishing.Undo.Tasks
             await TaskHelper.WhenAllAndThrow(updateTasks);
         }
         
-        protected async Task<PublishedFundingVersion> GetPreviousPublishedFundingVersion(PublishedFundingVersion currentVersion, 
+        protected virtual async Task<PublishedFundingVersion> GetPreviousPublishedFundingVersion(PublishedFundingVersion currentVersion, 
             PublishedFundingUndoTaskContext taskContext)
         {
             LogInformation($"Querying latest earlier published funding version for '{taskContext.Parameters}'");
             
-            CorrelationIdDetails details = taskContext.PublishedFundingVersionDetails;
+            UndoTaskDetails details = taskContext.PublishedFundingVersionDetails;
 
             return await Cosmos.GetLatestEarlierPublishedFundingVersion(details.FundingStreamId,
                 details.FundingPeriodId,

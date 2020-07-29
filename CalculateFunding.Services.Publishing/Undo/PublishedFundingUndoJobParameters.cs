@@ -9,6 +9,10 @@ namespace CalculateFunding.Services.Publishing.Undo
         public const string ForCorrelationIdPropertyName = "for-correlation-id";
         public const string IsHardDeletePropertyName = "is-hard-delete";
 
+        public PublishedFundingUndoJobParameters()
+        {
+        }
+
         public PublishedFundingUndoJobParameters(Message message)
         {
             Guard.ArgumentNotNull(message, nameof(message));
@@ -29,12 +33,9 @@ namespace CalculateFunding.Services.Publishing.Undo
             return new PublishedFundingUndoJobParameters(message);
         }
 
-        public override string ToString()
-        {
-            return $"JobId: {JobId}, ForCorrelationId: {ForCorrelationId}, IsHardDelete: {IsHardDelete}";
-        }
+        public override string ToString() => $"JobId: {JobId}, ForCorrelationId: {ForCorrelationId}, IsHardDelete: {IsHardDelete}";
 
-        private static string GetUserProperty(Message message, string name) 
+        protected static string GetUserProperty(Message message, string name) 
             => message.UserProperties.TryGetValue(name, out object property) ? property?.ToString() : 
                throw new ArgumentOutOfRangeException(name, $"Did not locate user property {name}");
     }

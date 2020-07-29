@@ -21,8 +21,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Tasks
             _isHardDelete = NewRandomFlag();
             
             TaskContext = NewPublishedFundingUndoTaskContext(_ => 
-                _.WithPublishedProviderDetails(NewCorrelationIdDetails())
-                    .WithPublishedProviderVersionDetails(NewCorrelationIdDetails()));
+                _.WithPublishedProviderDetails(NewUndoTaskDetails())
+                    .WithPublishedProviderVersionDetails(NewUndoTaskDetails()));
 
             TaskDetails = TaskContext.PublishedProviderDetails;
             
@@ -128,7 +128,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Tasks
 
         protected void AndThePreviousLatestVersion(PublishedProviderVersion current, PublishedProviderVersion previous)
         {
-            CorrelationIdDetails publishedProviderVersionDetails = TaskContext.PublishedProviderVersionDetails;
+            UndoTaskDetails publishedProviderVersionDetails = TaskContext.PublishedProviderVersionDetails;
             
             Cosmos.Setup(_ => _.GetLatestEarlierPublishedProviderVersion(publishedProviderVersionDetails.FundingStreamId,
                     publishedProviderVersionDetails.FundingPeriodId,
@@ -140,7 +140,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Tasks
         
         protected void AndThePreviousLatestReleasedVersion(PublishedProviderVersion current, PublishedProviderVersion previousReleased)
         {
-            CorrelationIdDetails publishedProviderVersionDetails = TaskContext.PublishedProviderVersionDetails;
+            UndoTaskDetails publishedProviderVersionDetails = TaskContext.PublishedProviderVersionDetails;
             
             Cosmos.Setup(_ => _.GetLatestEarlierPublishedProviderVersion(publishedProviderVersionDetails.FundingStreamId,
                     publishedProviderVersionDetails.FundingPeriodId,

@@ -57,15 +57,20 @@ namespace CalculateFunding.Services.Publishing.Undo
         {
             PublishedFundingUndoJobParameters parameters = message;
 
+            await PerformUndo(parameters);
+        }
+
+        protected async Task PerformUndo(PublishedFundingUndoJobParameters parameters)
+        {
             try
             {
                 LogInformation($"Starting job tracking for {parameters}");
-            
-                if (!await _jobTracker.TryStartTrackingJob(parameters.JobId, PublishedFundingUndoJob))
+
+                if (!await TryStartTrackingJob(parameters))
                 {
                     return;
                 }
-            
+
                 IPublishedFundingUndoTaskFactory taskFactory = _factoryLocator.GetTaskFactoryFor(parameters);
 
                 IPublishedFundingUndoJobTask initialiseContextTask = taskFactory.CreateContextInitialisationTask();
@@ -75,37 +80,41 @@ namespace CalculateFunding.Services.Publishing.Undo
                 IPublishedFundingUndoJobTask undoPublishedFundingVersionTask = taskFactory.CreatePublishedFundingVersionUndoTask();
 
                 PublishedFundingUndoTaskContext taskContext = new PublishedFundingUndoTaskContext(parameters);
-            
+
                 await initialiseContextTask.Run(taskContext);
 
                 Task[] undoTasks = new[]
                 {
-                    undoPublishedFundingTask.Run(taskContext),
-                    undoPublishedFundingVersionTask.Run(taskContext),
-                    undoPublishedProviderTask.Run(taskContext),
-                    undoPublishedProviderVersionTask.Run(taskContext)
+                    undoPublishedFundingTask.Run(taskContext), undoPublishedFundingVersionTask.Run(taskContext), undoPublishedProviderTask.Run(taskContext), undoPublishedProviderVersionTask.Run(taskContext)
                 };
 
                 await TaskHelper.WhenAllAndThrow(undoTasks);
-                
+
                 EnsureNoTaskErrors(taskContext);
-            
+
                 LogInformation($"Completed {PublishedFundingUndoJob}. Completing job tracking.");
 
-                await _jobTracker.CompleteTrackingJob(parameters.JobId);
+                await CompleteTrackingJob(parameters);
             }
             catch (Exception e)
             {
                 string errorMessage = $"Unable to complete {PublishedFundingUndoJob} for correlationId: {parameters.ForCorrelationId}.\n{e.Message}";
-                
-                await _jobTracker.FailJob(errorMessage, 
-                    parameters.JobId);
-                
+
+                await FailJob(errorMessage, parameters);
+
                 LogError(e, errorMessage);
-                
+
                 throw new NonRetriableException(errorMessage, e);
             }
         }
+
+        protected virtual async Task FailJob(string message,
+            PublishedFundingUndoJobParameters parameters) => await _jobTracker.FailJob(message,
+            parameters.JobId);
+
+        protected virtual async Task CompleteTrackingJob(PublishedFundingUndoJobParameters parameters) => await _jobTracker.CompleteTrackingJob(parameters.JobId);
+
+        protected virtual async Task<bool> TryStartTrackingJob(PublishedFundingUndoJobParameters parameters) => await _jobTracker.TryStartTrackingJob(parameters.JobId, PublishedFundingUndoJob);
 
         private void EnsureNoTaskErrors(PublishedFundingUndoTaskContext taskContext)
         {

@@ -21,8 +21,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Tasks
             _isHardDelete = NewRandomFlag();
 
             TaskContext = NewPublishedFundingUndoTaskContext(_ =>
-                _.WithPublishedFundingDetails(NewCorrelationIdDetails())
-                    .WithPublishedFundingVersionDetails(NewCorrelationIdDetails()));
+                _.WithPublishedFundingDetails(NewUndoTaskDetails())
+                    .WithPublishedFundingVersionDetails(NewUndoTaskDetails()));
 
             TaskDetails = TaskContext.PublishedFundingDetails;
 
@@ -114,7 +114,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo.Tasks
         protected void AndThePreviousLatestVersion(PublishedFundingVersion current,
             PublishedFundingVersion previous)
         {
-            CorrelationIdDetails publishedFundingVersionDetails = TaskContext.PublishedFundingVersionDetails;
+            UndoTaskDetails publishedFundingVersionDetails = TaskContext.PublishedFundingVersionDetails;
 
             Cosmos.Setup(_ => _.GetLatestEarlierPublishedFundingVersion(publishedFundingVersionDetails.FundingStreamId,
                     publishedFundingVersionDetails.FundingPeriodId,

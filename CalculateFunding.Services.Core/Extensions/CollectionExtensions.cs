@@ -1,11 +1,21 @@
 ﻿using System;
 using CalculateFunding.Common.Utility;
 using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
+using Microsoft.IdentityModel.Tokens;
 
 namespace CalculateFunding.Services.Core.Extensions
 {
     public static class CollectionExtensions
     {
+        public static KeyValuePair<TKey, TItem>[] ToKeyValuePairs<TKey, TItem>(this IEnumerable<TItem> items,
+            Func<TItem, TKey> keyAccessor)
+        {
+            return items?.Select(_ => new KeyValuePair<TKey, TItem>(keyAccessor(_), _))
+                .ToArray();
+        }
+        
         public static void AddRange<T>(this ICollection<T> parent, IEnumerable<T> collectionToAdd)
         {
             Guard.ArgumentNotNull(parent, nameof(parent));

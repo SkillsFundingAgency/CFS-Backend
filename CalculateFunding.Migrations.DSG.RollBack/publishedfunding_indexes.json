@@ -1,0 +1,306 @@
+{
+    "indexingMode": "consistent",
+    "automatic": true,
+    "includedPaths": [
+        {
+            "path": "/*"
+        }
+    ],
+    "excludedPaths": [
+        {
+            "path": "/\"_etag\"/?"
+        }
+    ],
+    "compositeIndexes": [
+        [
+            {
+                "path": "/documentType",
+                "order": "ascending"
+            },
+            {
+                "path": "/content/statusChangedDate",
+                "order": "ascending"
+            },
+            {
+                "path": "/content/id",
+                "order": "ascending"
+            },
+            {
+                "path": "/content/fundingStreamId",
+                "order": "ascending"
+            },
+            {
+                "path": "/content/fundingPeriod/id",
+                "order": "ascending"
+            },
+            {
+                "path": "/content/groupingReason",
+                "order": "ascending"
+            },
+            {
+                "path": "/deleted",
+                "order": "ascending"
+            }
+        ],
+        [
+            {
+                "path": "/documentType",
+                "order": "ascending"
+            },
+            {
+                "path": "/_ts",
+                "order": "descending"
+            },
+            {
+                "path": "/content/statusChangedDate",
+                "order": "ascending"
+            },
+            {
+                "path": "/content/id",
+                "order": "ascending"
+            },
+            {
+                "path": "/content/fundingStreamId",
+                "order": "ascending"
+            },
+            {
+                "path": "/content/fundingPeriod/id",
+                "order": "ascending"
+            },
+            {
+                "path": "/content/groupingReason",
+                "order": "ascending"
+            },
+            {
+                "path": "/deleted",
+                "order": "ascending"
+            }
+        ],
+        [
+            {
+                "path": "/documentType",
+                "order": "ascending"
+            },
+            {
+                "path": "/content/majorVersion",
+                "order": "descending"
+            },
+            {
+                "path": "/content/minorVersion",
+                "order": "descending"
+            },
+            {
+                "path": "/content/id",
+                "order": "ascending"
+            },
+            {
+                "path": "/content/fundingStreamId",
+                "order": "ascending"
+            },
+            {
+                "path": "/content/fundingPeriod/id",
+                "order": "ascending"
+            },
+            {
+                "path": "/content/groupingReason",
+                "order": "ascending"
+            },
+            {
+                "path": "/deleted",
+                "order": "ascending"
+            }
+        ],
+        [
+            {
+                "path": "/documentType",
+                "order": "ascending"
+            },
+            {
+                "path": "/_ts",
+                "order": "descending"
+            },
+            {
+                "path": "/content/current/fundingStreamId",
+                "order": "ascending"
+            },
+            {
+                "path": "/content/current/fundingPeriodId",
+                "order": "ascending"
+            },
+            {
+                "path": "/deleted",
+                "order": "ascending"
+            }
+        ],
+        [
+            {
+                "path": "/documentType",
+                "order": "ascending"
+            },
+            {
+                "path": "/content/current/majorVersion",
+                "order": "descending"
+            },
+            {
+                "path": "/content/current/minorVersion",
+                "order": "descending"
+            },
+            {
+                "path": "/content/current/fundingStreamId",
+                "order": "ascending"
+            },
+            {
+                "path": "/content/current/fundingPeriodId",
+                "order": "ascending"
+            },
+            {
+                "path": "/deleted",
+                "order": "ascending"
+            }
+        ],
+        [
+            {
+                "path": "/documentType",
+                "order": "ascending"
+            },
+            {
+                "path": "/_ts",
+                "order": "descending"
+            },
+            {
+                "path": "/content/fundingStreamId",
+                "order": "ascending"
+            },
+            {
+                "path": "/content/fundingPeriodId",
+                "order": "ascending"
+            },
+            {
+                "path": "/content/providerId",
+                "order": "ascending"
+            },
+            {
+                "path": "/deleted",
+                "order": "ascending"
+            }
+        ],
+        [
+            {
+                "path": "/documentType",
+                "order": "ascending"
+            },
+            {
+                "path": "/content/majorVersion",
+                "order": "descending"
+            },
+            {
+                "path": "/content/minorVersion",
+                "order": "descending"
+            },
+            {
+                "path": "/content/fundingStreamId",
+                "order": "ascending"
+            },
+            {
+                "path": "/content/fundingPeriodId",
+                "order": "ascending"
+            },
+            {
+                "path": "/content/providerId",
+                "order": "ascending"
+            },
+            {
+                "path": "/deleted",
+                "order": "ascending"
+            }
+        ],
+        [
+            {
+                "path": "/documentType",
+                "order": "ascending"
+            },
+            {
+                "path": "/_ts",
+                "order": "descending"
+            },
+            {
+                "path": "/content/fundingStreamId",
+                "order": "ascending"
+            },
+            {
+                "path": "/content/fundingPeriod/id",
+                "order": "ascending"
+            },
+            {
+                "path": "/content/organisationGroupTypeIdentifier",
+                "order": "ascending"
+            },
+            {
+                "path": "/content/organisationGroupIdentifierValue",
+                "order": "ascending"
+            },
+            {
+                "path": "/content/groupingReason",
+                "order": "ascending"
+            },
+            {
+                "path": "/deleted",
+                "order": "ascending"
+            }
+        ],
+        [
+            {
+                "path": "/documentType",
+                "order": "ascending"
+            },
+            {
+                "path": "/content/majorVersion",
+                "order": "descending"
+            },
+            {
+                "path": "/content/minorVersion",
+                "order": "descending"
+            },
+            {
+                "path": "/content/fundingStreamId",
+                "order": "ascending"
+            },
+            {
+                "path": "/content/fundingPeriod/id",
+                "order": "ascending"
+            },
+            {
+                "path": "/content/organisationGroupTypeIdentifier",
+                "order": "ascending"
+            },
+            {
+                "path": "/content/organisationGroupIdentifierValue",
+                "order": "ascending"
+            },
+            {
+                "path": "/content/groupingReason",
+                "order": "ascending"
+            }
+        ],
+        [
+            {
+                "path": "/content/majorVersion",
+                "order": "descending"
+            },
+            {
+                "path": "/content/minorVersion",
+                "order": "descending"
+            }
+        ],
+        [
+            {
+                "path": "/content/current/majorVersion",
+                "order": "descending"
+            },
+            {
+                "path": "/content/current/minorVersion",
+                "order": "descending"
+            }
+        ]
+    ]
+}

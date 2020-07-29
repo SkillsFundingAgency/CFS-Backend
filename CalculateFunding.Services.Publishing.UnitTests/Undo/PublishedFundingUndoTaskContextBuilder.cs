@@ -6,10 +6,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo
     public class PublishedFundingUndoTaskContextBuilder : TestEntityBuilder
     {
         private PublishedFundingUndoJobParameters _parameters;
-        private CorrelationIdDetails _publishedFundingDetails;
-        private CorrelationIdDetails _publishedFundingVersionDetails;
-        private CorrelationIdDetails _publishedProviderDetails;
-        private CorrelationIdDetails _publishedProviderVersionDetails;
+        private UndoTaskDetails _publishedFundingDetails;
+        private UndoTaskDetails _publishedFundingVersionDetails;
+        private UndoTaskDetails _publishedProviderDetails;
+        private UndoTaskDetails _publishedProviderVersionDetails;
 
         public PublishedFundingUndoTaskContextBuilder WithParameters(PublishedFundingUndoJobParameters parameters)
         {
@@ -18,28 +18,28 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Undo
             return this;
         }
 
-        public PublishedFundingUndoTaskContextBuilder WithPublishedFundingDetails(CorrelationIdDetails details)
+        public PublishedFundingUndoTaskContextBuilder WithPublishedFundingDetails(UndoTaskDetails details)
         {
             _publishedFundingDetails = details;
 
             return this;
         }
         
-        public PublishedFundingUndoTaskContextBuilder WithPublishedFundingVersionDetails(CorrelationIdDetails details)
+        public PublishedFundingUndoTaskContextBuilder WithPublishedFundingVersionDetails(UndoTaskDetails details)
         {
             _publishedFundingVersionDetails = details;
 
             return this;
         }
         
-        public PublishedFundingUndoTaskContextBuilder WithPublishedProviderVersionDetails(CorrelationIdDetails details)
+        public PublishedFundingUndoTaskContextBuilder WithPublishedProviderVersionDetails(UndoTaskDetails details)
         {
             _publishedProviderVersionDetails = details;
 
             return this;
         }
         
-        public PublishedFundingUndoTaskContextBuilder WithPublishedProviderDetails(CorrelationIdDetails details)
+        public PublishedFundingUndoTaskContextBuilder WithPublishedProviderDetails(UndoTaskDetails details)
         {
             _publishedProviderDetails = details;
 

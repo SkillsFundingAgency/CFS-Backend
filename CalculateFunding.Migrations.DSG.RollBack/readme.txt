@@ -1,0 +1,1 @@
+The cosmos sql will need the published funding collection to be setup with the composite indexes specified in publishedfunding_indexes.json

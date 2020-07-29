@@ -33,7 +33,7 @@ namespace CalculateFunding.Services.Publishing.Undo
             JobTracker = jobTracker;
         }   
         
-        public IPublishedFundingUndoJobTask CreateContextInitialisationTask()
+        public virtual IPublishedFundingUndoJobTask CreateContextInitialisationTask()
         {
             return new PublishedFundingUndoContextInitialisationTask(Cosmos,
                 BlobStore,

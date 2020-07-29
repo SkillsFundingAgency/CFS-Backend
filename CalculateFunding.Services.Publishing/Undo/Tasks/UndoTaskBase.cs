@@ -147,11 +147,13 @@ namespace CalculateFunding.Services.Publishing.Undo.Tasks
 
         private string FormattedLogMessage(string message) => $"[{GetType().Name}] {message}";
 
-        protected async Task NotifyJobProgress(PublishedFundingUndoTaskContext taskContext)
+        protected  async Task NotifyJobProgress(PublishedFundingUndoTaskContext taskContext)
         {
             taskContext.IncrementCompletedTaskCount();
 
-            await JobTracker.NotifyProgress(taskContext.CompletedTaskCount, taskContext.Parameters.JobId);
+            await NotifyProgress(taskContext);
         }
+
+        protected virtual async Task NotifyProgress(PublishedFundingUndoTaskContext taskContext) => await JobTracker.NotifyProgress(taskContext.CompletedTaskCount, taskContext.Parameters.JobId);
     }
 }
