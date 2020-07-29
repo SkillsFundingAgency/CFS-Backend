@@ -262,7 +262,7 @@ namespace CalculateFunding.Services.Providers
 
             string blobName = providerVersionId + ".json";
 
-            return await _blobClient.BlobExistsAsync(blobName);
+            return await _blobClient.BlobExistsAsync(blobName.ToLowerInvariant());
         }
 
         public async Task<bool> Exists(ProviderVersionViewModel providerVersionModel)
