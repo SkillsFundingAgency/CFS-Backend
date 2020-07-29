@@ -771,7 +771,8 @@ namespace CalculateFunding.Services.Calcs
                         $"Did not locate Template Mapping for funding stream id {FundingStream.Id} and specification id {specificationId}");
                 }
 
-                ApiResponse<TemplateMetadataContents> templateMetadataContentsResponse = await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingTemplateContents(FundingStream.Id, FundingPeriod.Id, templateIds[FundingStream.Id]));
+                ApiResponse<TemplateMetadataContents> templateMetadataContentsResponse = 
+                    await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingTemplateContents(FundingStream.Id, FundingPeriod.Id, templateIds[FundingStream.Id.ToLowerInvariant()]));
 
                 if (templateMetadataContentsResponse?.Content == null)
                 {

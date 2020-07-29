@@ -22,5 +22,8 @@ namespace CalculateFunding.Models.Calcs
 
         [JsonProperty("calcResults")]
         public List<CalculationResult> CalculationResults { get; set; }
+
+        [JsonProperty("fundingLineResults")]
+        public List<FundingLineResult> FundingLineResults { get; set; }
     }
 }

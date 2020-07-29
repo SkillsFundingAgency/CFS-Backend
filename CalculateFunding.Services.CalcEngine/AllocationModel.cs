@@ -13,11 +13,13 @@ using CalculateFunding.Services.CalcEngine.Interfaces;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.FeatureToggles;
 using Serilog;
+
 namespace CalculateFunding.Services.CalcEngine
 {
     public class AllocationModel : IAllocationModel
     {
-        private readonly List<(MemberInfo, CalculationResult)> _funcs = new List<(MemberInfo, CalculationResult)>();
+        private readonly List<(MemberInfo, CalculationResult)> _calculationResultFuncs = new List<(MemberInfo, CalculationResult)>();
+        private readonly List<(MemberInfo, FundingLineResult)> _fundingLineResultFuncs = new List<(MemberInfo, FundingLineResult)>();
         private readonly Dictionary<string, PropertyInfo> _datasetSetters = new Dictionary<string, PropertyInfo>();
         private readonly object _instance;
         private readonly object _datasetsInstance;
@@ -55,7 +57,7 @@ namespace CalculateFunding.Services.CalcEngine
 
             _mainMethod = allocationType.GetMethods().FirstOrDefault(x => x.Name == "MainCalc");
 
-            _funcs = PopulateMembers(executeFuncs.ToList<MemberInfo>(), (attributes) =>
+            _calculationResultFuncs = PopulateMembers(executeFuncs.ToList<MemberInfo>(), (attributes) =>
             {
                 CustomAttributeData calcAttribute = attributes.FirstOrDefault(x => x.AttributeType.Name == "CalculationAttribute");
                 if (calcAttribute != null)
@@ -64,6 +66,22 @@ namespace CalculateFunding.Services.CalcEngine
                     {
                         Calculation = GetReference(attributes, "Calculation"),
                         CalculationDataType = GetCalculationDataType(attributes, "Calculation")
+                    };
+
+                    return result;
+                }
+
+                return null;
+            });
+
+            _fundingLineResultFuncs = PopulateMembers(executeFuncs.ToList<MemberInfo>(), (attributes) =>
+            {
+                CustomAttributeData fundingLineAttribute = attributes.FirstOrDefault(x => x.AttributeType.Name == "FundingLineAttribute");
+                if (fundingLineAttribute != null)
+                {
+                    FundingLineResult result = new FundingLineResult
+                    {
+                        FundingLine = GetReference(attributes, "FundingLine"),
                     };
 
                     return result;
@@ -145,7 +163,9 @@ namespace CalculateFunding.Services.CalcEngine
 
         private Dictionary<string, Type> DatasetTypes { get; }
 
-        public IEnumerable<CalculationResult> Execute(List<ProviderSourceDataset> datasets, ProviderSummary providerSummary, IDictionary<string, Funding> fundingStreamLines, IEnumerable<CalculationAggregation> aggregationValues = null)
+        public CalculationResultContainer Execute(List<ProviderSourceDataset> datasets, ProviderSummary providerSummary,
+            IDictionary<string, Funding> fundingStreamLines,
+            IEnumerable<CalculationAggregation> aggregationValues = null)
         {
             HashSet<string> datasetNamesUsed = new HashSet<string>();
             foreach (ProviderSourceDataset dataset in datasets)
@@ -173,9 +193,18 @@ namespace CalculateFunding.Services.CalcEngine
             SetMissingDatasetDefaultObjects(datasetNamesUsed, _datasetSetters, _datasetsInstance);
 
             // get all calculation results
-            Dictionary<string, string[]> results = (Dictionary<string, string[]>)_mainMethod.Invoke(_instance, new object[] { true });
+            ValueTuple<Dictionary<string, string[]>, Dictionary<string, string[]>> results =
+                (ValueTuple<Dictionary<string, string[]>, Dictionary<string, string[]>>)
+                    _mainMethod.Invoke(_instance, new object[] { true });
 
-            return ProcessCalculationResults(results, _funcs);
+            IEnumerable<CalculationResult> calculationResults = ProcessCalculationResults(results.Item1, _calculationResultFuncs);
+            IEnumerable<FundingLineResult> fundingLineResults = ProcessFundingLineResults(results.Item2, _fundingLineResultFuncs);
+
+            return new CalculationResultContainer
+            {
+                CalculationResults = calculationResults,
+                FundingLineResults = fundingLineResults
+            };
         }
 
         /// <summary>
@@ -221,6 +250,35 @@ namespace CalculateFunding.Services.CalcEngine
             return calculationResults;
         }
 
+        private IList<FundingLineResult> ProcessFundingLineResults(Dictionary<string, string[]> results,
+    List<(MemberInfo, FundingLineResult)> funcs)
+        {
+            IList<FundingLineResult> fundingLineResults = new List<FundingLineResult>();
+
+            foreach (KeyValuePair<string, string[]> flResult in results)
+            {
+                if (flResult.Value.Length < 1)
+                {
+                    _logger.Error("The number of items returned from the key value pair in the calculation results is under the minimum required.");
+                    continue;
+                }
+
+                (MemberInfo field, FundingLineResult result) = funcs.FirstOrDefault(m =>
+                    string.Equals(m.Item2.FundingLine.Id, flResult.Key, StringComparison.InvariantCultureIgnoreCase));
+
+                if (field != null)
+                {
+                    FundingLineResult fundingLineResult = result;
+
+                    ProcessFundingLineResult(fundingLineResult, flResult);
+
+                    fundingLineResults.Add(fundingLineResult);
+                }
+            }
+
+            return fundingLineResults;
+        }
+
         private static void ProcessCalculationResult(CalculationResult calculationResult, KeyValuePair<string, string[]> calcResult)
         {
             const int exceptionTypeIndex = 1;
@@ -247,6 +305,27 @@ namespace CalculateFunding.Services.CalcEngine
             }
         }
 
+        private static void ProcessFundingLineResult(FundingLineResult fundingLineResult, KeyValuePair<string, string[]> calcResult)
+        {
+            const int valueIndex = 0;
+            const int exceptionTypeIndex = 1;
+            const int exceptionMessageIndex = 2;
+            const int exceptionStackTraceIndex = 3;
+
+            fundingLineResult.Value = calcResult.Value[valueIndex].GetValueOrNull<decimal>();
+
+            if (calcResult.Value.Length > exceptionMessageIndex)
+            {
+                fundingLineResult.ExceptionType = calcResult.Value[exceptionTypeIndex];
+                fundingLineResult.ExceptionMessage = calcResult.Value[exceptionMessageIndex];
+
+                if (calcResult.Value.Length > exceptionStackTraceIndex)
+                {
+                    fundingLineResult.ExceptionStackTrace = calcResult.Value[exceptionStackTraceIndex];
+                }
+            }
+        }
+
         private static void SetCalculationResultValue(CalculationResult calculationResult, KeyValuePair<string, string[]> calcResult)
         {
             const int valueIndex = 0;
@@ -258,7 +337,6 @@ namespace CalculateFunding.Services.CalcEngine
                 CalculationDataType.Boolean => calcResult.Value[valueIndex].GetValueOrNull<bool>(),
                 CalculationDataType.Enum => calcResult.Value[valueIndex]?.ToString(),
                 _ => throw new ArgumentOutOfRangeException(),
-                
             };
         }
 

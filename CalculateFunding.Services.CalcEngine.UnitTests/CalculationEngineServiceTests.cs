@@ -119,7 +119,7 @@ namespace CalculateFunding.Services.Calculator
             IAllocationModel mockAllocationModel = Substitute.For<IAllocationModel>();
             mockAllocationModel
                 .Execute(Arg.Any<List<ProviderSourceDataset>>(), Arg.Any<ProviderSummary>(), Arg.Any<IDictionary<string, Funding>>())
-                .Returns(new List<CalculationResult>());
+                .Returns(new CalculationResultContainer());
 
             _calculationEngineServiceTestsHelper
                 .MockCacheProvider
@@ -190,7 +190,7 @@ namespace CalculateFunding.Services.Calculator
             IAllocationModel mockAllocationModel = Substitute.For<IAllocationModel>();
             mockAllocationModel
                 .Execute(Arg.Any<List<ProviderSourceDataset>>(), Arg.Any<ProviderSummary>(), Arg.Any<IDictionary<string, Funding>>())
-                .Returns(new List<CalculationResult>());
+                .Returns(new CalculationResultContainer());
 
             _calculationEngineServiceTestsHelper
                 .MockCacheProvider
@@ -308,7 +308,7 @@ namespace CalculateFunding.Services.Calculator
             IAllocationModel mockAllocationModel = Substitute.For<IAllocationModel>();
             mockAllocationModel
                 .Execute(Arg.Any<List<ProviderSourceDataset>>(), Arg.Any<ProviderSummary>(), Arg.Any<IDictionary<string, Funding>>())
-                .Returns(new List<CalculationResult>());
+                .Returns(new CalculationResultContainer());
 
             _calculationEngineServiceTestsHelper
                 .MockCacheProvider
@@ -432,7 +432,7 @@ namespace CalculateFunding.Services.Calculator
             IAllocationModel mockAllocationModel = Substitute.For<IAllocationModel>();
             mockAllocationModel
                 .Execute(Arg.Any<List<ProviderSourceDataset>>(), Arg.Any<ProviderSummary>(), Arg.Any<IDictionary<string, Funding>>())
-                .Returns(new List<CalculationResult>());
+                .Returns(new CalculationResultContainer());
 
             _calculationEngineServiceTestsHelper
                 .MockCacheProvider
@@ -577,7 +577,7 @@ namespace CalculateFunding.Services.Calculator
             IAllocationModel mockAllocationModel = Substitute.For<IAllocationModel>();
             mockAllocationModel
                 .Execute(Arg.Any<List<ProviderSourceDataset>>(), Arg.Any<ProviderSummary>(), Arg.Any<IDictionary<string, Funding>>())
-                .Returns(new List<CalculationResult>());
+                .Returns(new CalculationResultContainer());
 
             _calculationEngineServiceTestsHelper
                 .MockCacheProvider
@@ -692,7 +692,7 @@ namespace CalculateFunding.Services.Calculator
             IAllocationModel mockAllocationModel = Substitute.For<IAllocationModel>();
             mockAllocationModel
                 .Execute(Arg.Any<List<ProviderSourceDataset>>(), Arg.Any<ProviderSummary>(), Arg.Any<IDictionary<string, Funding>>())
-                .Returns(new List<CalculationResult>());
+                .Returns(new CalculationResultContainer());
 
             _calculationEngineServiceTestsHelper
                 .MockCacheProvider
@@ -798,7 +798,7 @@ namespace CalculateFunding.Services.Calculator
             IAllocationModel mockAllocationModel = Substitute.For<IAllocationModel>();
             mockAllocationModel
                 .Execute(Arg.Any<List<ProviderSourceDataset>>(), Arg.Any<ProviderSummary>(), Arg.Any<IDictionary<string, Funding>>())
-                .Returns(new List<CalculationResult>());
+                .Returns(new CalculationResultContainer());
 
             _calculationEngineServiceTestsHelper
                 .MockCacheProvider
@@ -1006,7 +1006,7 @@ namespace CalculateFunding.Services.Calculator
             IAllocationModel mockAllocationModel = Substitute.For<IAllocationModel>();
             mockAllocationModel
                 .Execute(Arg.Any<List<ProviderSourceDataset>>(), Arg.Any<ProviderSummary>(), Arg.Any<IDictionary<string, Funding>>())
-                .Returns(new List<CalculationResult>());
+                .Returns(new CalculationResultContainer());
 
             _calculationEngineServiceTestsHelper
                 .MockCacheProvider
@@ -1145,7 +1145,7 @@ namespace CalculateFunding.Services.Calculator
             IAllocationModel mockAllocationModel = Substitute.For<IAllocationModel>();
             mockAllocationModel
                 .Execute(Arg.Any<List<ProviderSourceDataset>>(), Arg.Any<ProviderSummary>(), Arg.Any<IDictionary<string, Funding>>())
-                .Returns(new List<CalculationResult>());
+                .Returns(new CalculationResultContainer());
 
             _calculationEngineServiceTestsHelper
                 .MockCacheProvider
@@ -1283,7 +1283,7 @@ namespace CalculateFunding.Services.Calculator
             IAllocationModel mockAllocationModel = Substitute.For<IAllocationModel>();
             mockAllocationModel
                 .Execute(Arg.Any<List<ProviderSourceDataset>>(), Arg.Any<ProviderSummary>(), Arg.Any<IDictionary<string, Funding>>())
-                .Returns(new List<CalculationResult>());
+                .Returns(new CalculationResultContainer());
 
             _calculationEngineServiceTestsHelper
                 .MockCacheProvider
@@ -1406,7 +1406,7 @@ namespace CalculateFunding.Services.Calculator
             IAllocationModel mockAllocationModel = Substitute.For<IAllocationModel>();
             mockAllocationModel
                 .Execute(Arg.Any<List<ProviderSourceDataset>>(), Arg.Any<ProviderSummary>(), Arg.Any<IDictionary<string, Funding>>())
-                .Returns(new List<CalculationResult>());
+                .Returns(new CalculationResultContainer());
 
             _calculationEngineServiceTestsHelper
                 .MockCacheProvider

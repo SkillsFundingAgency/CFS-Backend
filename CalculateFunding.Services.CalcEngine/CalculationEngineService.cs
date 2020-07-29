@@ -639,7 +639,7 @@ namespace CalculateFunding.Services.CalcEngine
                         $"Did not locate Template Mapping for funding stream id {fundingStream.Id} and specification id {specificationSummary.Id}");
                 }
 
-                ApiResponse<Common.TemplateMetadata.Models.TemplateMetadataContents> templateMetadataContentsResponse = await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingTemplateContents(fundingStream.Id, specificationSummary.FundingPeriod.Id, specificationSummary.TemplateIds[fundingStream.Id]));
+                ApiResponse<Common.TemplateMetadata.Models.TemplateMetadataContents> templateMetadataContentsResponse = await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingTemplateContents(fundingStream.Id, specificationSummary.FundingPeriod.Id, specificationSummary.TemplateIds[fundingStream.Id.ToLowerInvariant()]));
 
                 if (templateMetadataContentsResponse?.Content == null)
                 {

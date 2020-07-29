@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 using CalculateFunding.Generators.Funding.Models;
 
 namespace CalculateFunding.Services.CalcEngine

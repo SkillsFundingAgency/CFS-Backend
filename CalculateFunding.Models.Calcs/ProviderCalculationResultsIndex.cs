@@ -130,5 +130,48 @@ namespace CalculateFunding.Models.Calcs
         [IsRetrievable(true)]
         [JsonProperty("calculationExceptionMessage")]
         public string[] CalculationExceptionMessage { get; set; }
+
+        [IsSearchable]
+        [IsFilterable]
+        [IsFacetable]
+        [IsRetrievable(true)]
+        [JsonProperty("fundingLineName")]
+        public string[] FundingLineName { get; set; }
+
+        [IsRetrievable(true)]
+        [JsonProperty("fundingLineFundingStreamId")]
+        public string[] FundingLineFundingStreamId { get; set; }
+
+        [IsSearchable]
+        [IsFilterable]
+        [IsFacetable]
+        [IsRetrievable(true)]
+        [JsonProperty("fundingLineId")]
+        public string[] FundingLineId { get; set; }
+
+        [IsRetrievable(true)]
+        [JsonProperty("fundingLineResult")]
+        public string[] FundingLineResult { get; set; }
+
+        [IsFacetable]
+        [IsSearchable]
+        [IsFilterable]
+        [IsRetrievable(true)]
+        [JsonProperty("fundingLineException")]
+        public string[] FundingLineException { get; set; }
+
+        [IsFacetable]
+        [IsSearchable]
+        [IsFilterable]
+        [IsRetrievable(true)]
+        [JsonProperty("fundingLineExceptionType")]
+        public string[] FundingLineExceptionType { get; set; }
+
+        [IsFacetable]
+        [IsSearchable]
+        [IsFilterable]
+        [IsRetrievable(true)]
+        [JsonProperty("fundingLineExceptionMessage")]
+        public string[] FundingLineExceptionMessage { get; set; }
     }
 }

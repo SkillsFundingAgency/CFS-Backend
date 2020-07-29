@@ -70,6 +70,15 @@ namespace CalculateFunding.Services.Calculator
                             Value = 1112.3M
                         }
                     },
+                    FundingLineResults = new List<FundingLineResult>
+                    {
+                        new FundingLineResult
+                        {
+                            FundingLine = new Reference { Id = "fl1", Name = "funding line one" },
+                            FundingLineFundingStreamId = "FS1",
+                            Value = 112.3M
+                        }
+                    },
                     Id = Guid.NewGuid().ToString(),
                     Provider = new ProviderSummary
                     {
@@ -130,6 +139,15 @@ namespace CalculateFunding.Services.Calculator
                             Calculation = new Reference { Id = "calc1", Name = "calculation one" },
                             CalculationType = CalculationType.Template,
                             Value = null
+                        }
+                    },
+                    FundingLineResults = new List<FundingLineResult>
+                    {
+                        new FundingLineResult
+                        {
+                            FundingLine = new Reference { Id = "fl1", Name = "funding line one" },
+                            FundingLineFundingStreamId = "FS1",
+                            Value = 112.3M
                         }
                     },
                     Id = Guid.NewGuid().ToString(),
@@ -267,6 +285,15 @@ namespace CalculateFunding.Services.Calculator
                             Value = 1112.3M
                         }
                     },
+                    FundingLineResults = new List<FundingLineResult>
+                    {
+                        new FundingLineResult
+                        {
+                            FundingLine = new Reference { Id = "fl1", Name = "funding line one" },
+                            FundingLineFundingStreamId = "FS1",
+                            Value = 112.3M
+                        }
+                    },
                     Id = Guid.NewGuid().ToString(),
                     Provider = new ProviderSummary
                     {
@@ -298,6 +325,10 @@ namespace CalculateFunding.Services.Calculator
                 r.First().CalculationId.First() == results.First().CalculationResults.First().Calculation.Id &&
                 r.First().CalculationName.Any() &&
                 r.First().CalculationName.First() == results.First().CalculationResults.First().Calculation.Name &&
+                r.First().FundingLineId.Any() &&
+                r.First().FundingLineId.First() == results.First().FundingLineResults.First().FundingLine.Id &&
+                r.First().FundingLineName.Any() &&
+                r.First().FundingLineName.First() == results.First().FundingLineResults.First().FundingLine.Name &&
                 r.First().ProviderId == results.First().Provider.Id &&
                 r.First().ProviderName == results.First().Provider.Name &&
                 r.First().ProviderType == results.First().Provider.ProviderType &&
@@ -309,8 +340,10 @@ namespace CalculateFunding.Services.Calculator
                 r.First().EstablishmentNumber == results.First().Provider.EstablishmentNumber &&
                 r.First().OpenDate == results.First().Provider.DateOpened &&
                 r.First().CalculationResult.Any() &&
-                r.First().CalculationResult.First() == results.First().CalculationResults.First().Value.ToString()));
-            
+                r.First().CalculationResult.First() == results.First().CalculationResults.First().Value.ToString() &&
+                r.First().FundingLineResult.Any() &&
+                r.First().FundingLineResult.First() == results.First().FundingLineResults.First().Value.ToString()));
+
             await _resultsApiClient.Received(1)
                 .QueueMergeSpecificationInformationForProviderJobForProvider(Arg.Is<SpecificationInformation>(_ =>
                         _.Id == specificationSummary.Id &&
@@ -354,6 +387,15 @@ namespace CalculateFunding.Services.Calculator
                             Value = null
                         }
                     },
+                    FundingLineResults = new List<FundingLineResult>
+                    {
+                        new FundingLineResult
+                        {
+                            FundingLine = new Reference { Id = "fl1", Name = "funding line one" },
+                            FundingLineFundingStreamId = "FS1",
+                            Value = null
+                        }
+                    },
                     Id = Guid.NewGuid().ToString(),
                     Provider = new ProviderSummary
                     {
@@ -388,6 +430,10 @@ namespace CalculateFunding.Services.Calculator
                r.First().CalculationId.First() == results.First().CalculationResults.First().Calculation.Id &&
                r.First().CalculationName.Any() &&
                r.First().CalculationName.First() == results.First().CalculationResults.First().Calculation.Name &&
+               r.First().FundingLineId.Any() &&
+               r.First().FundingLineId.First() == results.First().FundingLineResults.First().FundingLine.Id &&
+               r.First().FundingLineName.Any() &&
+               r.First().FundingLineName.First() == results.First().FundingLineResults.First().FundingLine.Name &&
                r.First().ProviderId == results.First().Provider.Id &&
                r.First().ProviderName == results.First().Provider.Name &&
                r.First().ProviderType == results.First().Provider.ProviderType &&
@@ -399,7 +445,9 @@ namespace CalculateFunding.Services.Calculator
                r.First().EstablishmentNumber == results.First().Provider.EstablishmentNumber &&
                r.First().OpenDate == results.First().Provider.DateOpened &&
                r.First().CalculationResult.Any() &&
-               r.First().CalculationResult.First() == "null"));
+               r.First().CalculationResult.First() == "null" &&
+               r.First().FundingLineResult.Any() &&
+               r.First().FundingLineResult.First() == "null"));
         }
 
         private ProviderResultsRepository CreateProviderResultsRepository(

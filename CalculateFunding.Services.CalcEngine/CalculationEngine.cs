@@ -32,18 +32,27 @@ namespace CalculateFunding.Services.CalcEngine
             return _allocationFactory.CreateAllocationModel(assembly);
         }
 
-        public ProviderResult CalculateProviderResults(IAllocationModel model, string specificationId, IEnumerable<CalculationSummaryModel> calculations,
-            ProviderSummary provider, IEnumerable<ProviderSourceDataset> providerSourceDatasets, IDictionary<string, Funding> fundingStreamLines, IEnumerable<CalculationAggregation> aggregations = null)
+        public ProviderResult CalculateProviderResults(
+            IAllocationModel model, 
+            string specificationId,
+            IEnumerable<CalculationSummaryModel> calculations, 
+            ProviderSummary provider,
+            IEnumerable<ProviderSourceDataset> providerSourceDatasets, 
+            IDictionary<string, Funding> fundingStreamLines,
+            IEnumerable<CalculationAggregation> aggregations = null)
         {
             var stopwatch = new Stopwatch();
             stopwatch.Start();
 
-            IEnumerable<CalculationResult> calculationResults = model.Execute(providerSourceDatasets != null ? providerSourceDatasets.ToList() : new List<ProviderSourceDataset>(), provider, fundingStreamLines, aggregations).ToArray();
+            CalculationResultContainer calculationResultContainer = 
+                model.Execute(providerSourceDatasets != null ? providerSourceDatasets.ToList() : new List<ProviderSourceDataset>(), provider, fundingStreamLines, aggregations);
 
-            var providerCalcResults = calculationResults.ToDictionary(x => x.Calculation?.Id);
+            IEnumerable<CalculationResult> calculationResultItems = calculationResultContainer.CalculationResults;
+
+            var providerCalcResults = calculationResultItems?.ToDictionary(x => x.Calculation?.Id);
             stopwatch.Stop();
 
-            if (providerCalcResults.Count > 0)
+            if (providerCalcResults?.Count > 0)
             {
                 _logger.Debug($"{providerCalcResults.Count} calcs in {stopwatch.ElapsedMilliseconds}ms ({stopwatch.ElapsedMilliseconds / providerCalcResults.Count: 0.0000}ms)");
             }
@@ -61,7 +70,7 @@ namespace CalculateFunding.Services.CalcEngine
             byte[] plainTextBytes = System.Text.Encoding.UTF8.GetBytes($"{providerResult.Provider.Id}-{providerResult.SpecificationId}");
             providerResult.Id = Convert.ToBase64String(plainTextBytes);
 
-            List<CalculationResult> results = new List<CalculationResult>();
+            List<CalculationResult> calculationResults = new List<CalculationResult>();
 
             if (calculations != null)
             {
@@ -100,12 +109,26 @@ namespace CalculateFunding.Services.CalcEngine
                         result.ExceptionStackTrace = calculationResult.ExceptionStackTrace;
                     }
 
-                    results.Add(result);
+                    calculationResults.Add(result);
+                }
+            }
+
+            IEnumerable<FundingLineResult> fundingLineResults = calculationResultContainer.FundingLineResults;
+
+            if (fundingLineResults != null)
+            {
+                foreach (FundingLineResult fundingLineResult in fundingLineResults)
+                {
+                    KeyValuePair<string, Funding> matchingFunding = fundingStreamLines
+                        .SingleOrDefault(_ => _.Value.FundingLines.Any(fl => fl.Name == fundingLineResult.FundingLine.Name) == true);
+
+                    fundingLineResult.FundingLineFundingStreamId = matchingFunding.Key;
                 }
             }
 
             //we need a stable sort of results to enable the cache checks by overall SHA hash on the results json
-            providerResult.CalculationResults = results.OrderBy(_ => _.Calculation.Id).ToList();
+            providerResult.CalculationResults = calculationResults.OrderBy(_ => _.Calculation.Id).ToList();
+            providerResult.FundingLineResults = fundingLineResults.OrderBy(_ => _.FundingLine.Id).ToList();
 
             return providerResult;
         }

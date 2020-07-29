@@ -124,7 +124,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
 
             builder.AppendLine();
             builder.AppendLine("<System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)>");
-            builder.AppendLine($"Public Function MainCalc(allCalculations As Boolean) As Dictionary(Of String, String())");
+            builder.AppendLine($"Public Function MainCalc(allCalculations As Boolean) As (CalculationResults As Dictionary(Of String, String()), FundingLineResults As Dictionary(Of String, String()))");
             builder.AppendLine();
 
             if (_compilerOptions.UseDiagnosticsMode)
@@ -175,7 +175,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                 builder.AppendLine();
             }
 
-            builder.AppendLine("Return Dictionary");
+            builder.AppendLine("Return (CalculationResults:=Dictionary, FundingLineResults:=FundingLineDictionary)");
             builder.AppendLine("End Function");
             builder.AppendLine();
 
