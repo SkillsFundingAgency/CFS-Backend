@@ -40,8 +40,8 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
 
                 if (variationPointers.IsNullOrEmpty())
                 {
-                    RecordErrors($"Unable to {_changeName} for provider id {VariationContext.ProviderId}");
-                    
+                    RecordMissingProfileVariationPointers();
+
                     return;
                 }
 
@@ -54,6 +54,11 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
             {
                 RecordErrors($"Unable to {_changeName} for provider id {VariationContext.ProviderId}. {exception.Message}");
             }
+        }
+
+        protected virtual void RecordMissingProfileVariationPointers()
+        {
+            RecordErrors($"Unable to {_changeName} for provider id {VariationContext.ProviderId}");
         }
 
         protected abstract void MakeAdjustmentsFromProfileVariationPointer(ProfileVariationPointer variationPointer);

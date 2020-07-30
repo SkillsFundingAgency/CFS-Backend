@@ -1,8 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Models;
+using CalculateFunding.Services.Publishing.Variations;
 using CalculateFunding.Services.Publishing.Variations.Changes;
 using CalculateFunding.Services.Publishing.Variations.Strategies;
 using FluentAssertions;
@@ -24,6 +26,23 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
             _fundingLineCode = NewRandomString();
         }
 
+        [TestMethod]
+        public async Task FailsPreconditionCheckIfNoPriorStateYet()
+        {
+            GivenTheOtherwiseValidVariationContext(_ =>
+            {
+                _.AllPublishedProviderSnapShots = new Dictionary<string, PublishedProviderSnapShots>();
+                _.AllPublishedProvidersRefreshStates = new Dictionary<string, PublishedProvider>();
+            });
+            
+            await WhenTheVariationsAreDetermined();
+            
+            VariationContext
+                .QueuedChanges
+                .Should()
+                .BeEmpty();
+        }
+        
         [TestMethod]
         public async Task FailsPreconditionCheckIfCurrentProviderClosed()
         {
@@ -139,7 +158,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Strategies
             PublishedProvider publishedProvider =
                 VariationContext.GetPublishedProviderOriginalSnapShot(VariationContext.ProviderId);
 
-            var publishedProviderCurrent = publishedProvider.Current;
+            if (publishedProvider == null)
+            {
+                return;
+            }
+
+            PublishedProviderVersion publishedProviderCurrent = publishedProvider.Current;
 
             publishedProviderCurrent.FundingLines = new[] {NewFundingLine(_ => _.WithFundingLineCode(_fundingLineCode)
                 .WithOrganisationGroupingReason(OrganisationGroupingReason.Payment)

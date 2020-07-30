@@ -20,7 +20,8 @@ namespace CalculateFunding.Services.Publishing.Variations.Strategies
 
             PublishedProviderVersion priorState = providerVariationContext.PriorState;
 
-            if (providerVariationContext.ReleasedState == null ||
+            if (priorState == null ||
+                providerVariationContext.ReleasedState == null ||
                 priorState.Provider.Status == Closed ||
                 providerVariationContext.UpdatedProvider.Status == Closed ||
                 HasNoProfilingChanges(priorState, providerVariationContext.RefreshState))
