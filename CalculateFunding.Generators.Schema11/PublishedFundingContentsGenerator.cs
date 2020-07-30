@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
@@ -9,6 +10,7 @@ using CalculateFunding.Services.Publishing.Interfaces;
 using Newtonsoft.Json;
 using AggregationType = CalculateFunding.Common.TemplateMetadata.Enums.AggregationType;
 using FundingLine = CalculateFunding.Models.Publishing.FundingLine;
+using TemplateFundingLine = CalculateFunding.Common.TemplateMetadata.Models.FundingLine;
 
 namespace CalculateFunding.Generators.Schema11
 {
@@ -39,9 +41,6 @@ namespace CalculateFunding.Generators.Schema11
             public IEnumerable<SchemaJsonCalculation> Calculations { get; set; }
 
             public IEnumerable<dynamic> DistributionPeriods { get; set; }
-
-            [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-            public IEnumerable<SchemaJsonFundingLine> FundingLines { get; set; }
         }
 
         private class SchemaJsonCalculation
@@ -68,9 +67,6 @@ namespace CalculateFunding.Generators.Schema11
             
             [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
             public IEnumerable<string> AllowedEnumTypeValues { get; set; }
-
-            [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-            public IEnumerable<SchemaJsonCalculation> Calculations { get; set; }
         }
 
         public class SchemaJsonPercentageChangeBetweenAandB
@@ -94,6 +90,9 @@ namespace CalculateFunding.Generators.Schema11
         {
             Guard.ArgumentNotNull(publishedFundingVersion, nameof(publishedFundingVersion));
             Guard.ArgumentNotNull(templateMetadataContents, nameof(templateMetadataContents));
+
+            IEnumerable<TemplateFundingLine> fundingLines = templateMetadataContents.RootFundingLines?.Flatten(x => x.FundingLines);
+            IEnumerable<Calculation> calculations = fundingLines?.SelectMany(fl => fl.Calculations.Flatten(cal => cal.Calculations));
 
             SchemaJson contents = new SchemaJson
             {
@@ -139,42 +138,31 @@ namespace CalculateFunding.Generators.Schema11
                     FundingValue = new
                     {
                         TotalValue = publishedFundingVersion.TotalFunding,
-                        FundingLines = templateMetadataContents.RootFundingLines?.Select(rootFundingLine => BuildSchemaJsonFundingLines(publishedFundingVersion.Calculations,
-                            publishedFundingVersion.FundingLines,
-                            rootFundingLine,
-                            publishedFundingVersion.OrganisationGroupTypeIdentifier,
-                            publishedFundingVersion.OrganisationGroupIdentifierValue))
+                        FundingLines = fundingLines?.DistinctBy(x => x.TemplateLineId).Select(rootFundingLine => 
+                            BuildSchemaJsonFundingLines(publishedFundingVersion.FundingLines,
+                                rootFundingLine)).ToDictionary(_ => _.TemplateLineId),
+                        Calculations = calculations?.DistinctBy(x => x.TemplateCalculationId).Where(IsAggregationOrHasChildCalculations).Select(calculation =>
+                            BuildSchemaJsonCalculations(publishedFundingVersion.Calculations,
+                                calculation,
+                                publishedFundingVersion.OrganisationGroupTypeIdentifier,
+                                publishedFundingVersion.OrganisationGroupIdentifierValue)).ToDictionary(_ => _.TemplateCalculationId)
                     },
                     ProviderFundings = publishedFundingVersion.ProviderFundings.ToArray(),
                     publishedFundingVersion.GroupingReason,
                     publishedFundingVersion.StatusChangedDate,
                     publishedFundingVersion.ExternalPublicationDate,
-                    publishedFundingVersion.EarliestPaymentAvailableDate,
-                    VariationReasons = publishedFundingVersion.VariationReasons?.ToArray()
+                    publishedFundingVersion.EarliestPaymentAvailableDate
                 }
             };
 
             return contents.AsJson();
         }
 
-        private SchemaJsonFundingLine BuildSchemaJsonFundingLines(IEnumerable<FundingCalculation> fundingCalculations,
-            IEnumerable<FundingLine> fundingLines,
-            Common.TemplateMetadata.Models.FundingLine templateFundingLine,
-            string organisationGroupTypeIdentifier,
-            string organisationGroupIdentifierValue)
+        private SchemaJsonFundingLine BuildSchemaJsonFundingLines(IEnumerable<FundingLine> fundingLines,
+            TemplateFundingLine templateFundingLine)
         {
             FundingLine publishedFundingLine = fundingLines.FirstOrDefault(_ => _.TemplateLineId == templateFundingLine.TemplateLineId);
 
-            SchemaJsonFundingLine[] schemaJsonFundingLines = templateFundingLine.FundingLines?.Where(_ => _ != null).Select(fundingLine =>
-                    BuildSchemaJsonFundingLines(fundingCalculations,
-                        fundingLines,
-                        fundingLine,
-                        organisationGroupTypeIdentifier,
-                        organisationGroupIdentifierValue))
-                .ToArray();
-
-            schemaJsonFundingLines = schemaJsonFundingLines?.Any() == true ? schemaJsonFundingLines : null;
-            
             return new SchemaJsonFundingLine
             {
                 Name = templateFundingLine.Name,
@@ -182,11 +170,6 @@ namespace CalculateFunding.Generators.Schema11
                 Value = publishedFundingLine.Value.DecimalAsObject(),
                 TemplateLineId = templateFundingLine.TemplateLineId,
                 Type = templateFundingLine.Type.ToString(),
-                Calculations = templateFundingLine.Calculations?.Where(IsAggregationOrHasChildCalculations).Select(calculation =>
-                    BuildSchemaJsonCalculations(fundingCalculations,
-                        calculation,
-                        organisationGroupTypeIdentifier,
-                        organisationGroupIdentifierValue)),
                 DistributionPeriods = publishedFundingLine.DistributionPeriods?.Where(_ => _ != null).Select(distributionPeriod => new
                 {
                     Value = distributionPeriod.Value.DecimalAsObject(),
@@ -200,8 +183,7 @@ namespace CalculateFunding.Generators.Schema11
                         ProfiledValue = profilePeriod.ProfiledValue.DecimalAsObject(),
                         profilePeriod.DistributionPeriodId
                     }).ToArray()
-                }).ToArray() ?? new dynamic[0],
-                FundingLines = schemaJsonFundingLines
+                }).ToArray() ?? new dynamic[0]
             };
         }
 
@@ -313,13 +295,7 @@ namespace CalculateFunding.Generators.Schema11
                     Value = publishedFundingCalculation.Value,
                     TemplateCalculationId = templateCalculation.TemplateCalculationId,
                     ValueFormat = templateCalculation.ValueFormat.ToString(),
-                    AllowedEnumTypeValues = templateCalculation.AllowedEnumTypeValues?.Any() == true ? templateCalculation.AllowedEnumTypeValues : null,
-                    Calculations = templateCalculation.Calculations?.Where(IsAggregationOrHasChildCalculations)
-                        .Select(nestedCalculation =>
-                            BuildSchemaJsonCalculations(publishedFundingCalculations,
-                                nestedCalculation,
-                                organisationGroupTypeIdentifier,
-                                organisationGroupIdentifierValue))
+                    AllowedEnumTypeValues = templateCalculation.AllowedEnumTypeValues?.Any() == true ? templateCalculation.AllowedEnumTypeValues : null
                 };
         }
 

@@ -46,9 +46,6 @@ namespace CalculateFunding.Generators.Schema11
 
             [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
             public IEnumerable<string> AllowedEnumTypeValues { get; set; }
-
-            [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-            public IEnumerable<SchemaJsonCalculation> Calculations { get; set; }
         }
 
         public class SchemaJsonPercentageChangeBetweenAandB
@@ -76,6 +73,9 @@ namespace CalculateFunding.Generators.Schema11
             Guard.ArgumentNotNull(templateMapping, nameof(templateMapping));
 
             Guard.ArgumentNotNull(publishedProviderVersion.Provider, nameof(publishedProviderVersion.Provider));
+
+            IEnumerable<TemplateFundingLine> fundingLines = templateMetadataContents.RootFundingLines?.Flatten(x => x.FundingLines);
+            IEnumerable<Calculation> calculations = fundingLines?.SelectMany(fl => fl.Calculations.Flatten(cal => cal.Calculations));
 
             dynamic contents = new
             {
@@ -130,10 +130,11 @@ namespace CalculateFunding.Generators.Schema11
                 FundingValue = new
                 {
                     TotalValue = publishedProviderVersion.TotalFunding,
-                    FundingLines = templateMetadataContents.RootFundingLines?.Select(x => ToFundingLine(x,
-                        publishedProviderVersion.FundingLines,
-                        publishedProviderVersion.Calculations,
-                        publishedProviderVersion.ProviderId))
+                    FundingLines = fundingLines?.DistinctBy(x => x.TemplateLineId).Select(x => ToFundingLine(x,
+                        publishedProviderVersion.FundingLines)).ToDictionary(_ => _.TemplateLineId),
+                    Calculations = calculations?.DistinctBy(x => x.TemplateCalculationId).Select(calculation => BuildCalculations(publishedProviderVersion.Calculations,
+                        calculation,
+                        publishedProviderVersion.ProviderId)).ToDictionary(_ => _.TemplateCalculationId)
                 },
                 publishedProviderVersion.VariationReasons,
                 Successors = string.IsNullOrWhiteSpace(publishedProviderVersion.Provider.Successor)
@@ -172,9 +173,7 @@ namespace CalculateFunding.Generators.Schema11
         }
 
         private dynamic ToFundingLine(TemplateFundingLine fundingLine,
-            IEnumerable<FundingLine> fundingLineValues,
-            IEnumerable<FundingCalculation> calculationResults,
-            string providerId)
+            IEnumerable<FundingLine> fundingLineValues)
         {
             FundingLine fundingLineValue = fundingLineValues.First(_ =>
                 _.TemplateLineId == fundingLine.TemplateLineId);
@@ -186,15 +185,6 @@ namespace CalculateFunding.Generators.Schema11
                 Value = fundingLineValue.Value.DecimalAsObject(),
                 fundingLine.TemplateLineId,
                 Type = fundingLine.Type.ToString(),
-                Calculations = fundingLine.Calculations?.Select(calculation =>
-                    BuildCalculations(calculationResults,
-                        calculation,
-                        providerId)),
-                FundingLines = fundingLine.FundingLines?.Select(nestedCalculation =>
-                    ToFundingLine(nestedCalculation,
-                        fundingLineValues,
-                        calculationResults,
-                        providerId)),
                 fundingLineValue.DistributionPeriods
             };
         }
@@ -298,12 +288,7 @@ namespace CalculateFunding.Generators.Schema11
                     Value = publishedFundingCalculation.Value,
                     TemplateCalculationId = templateCalculation.TemplateCalculationId,
                     ValueFormat = templateCalculation.ValueFormat.ToString(),
-                    AllowedEnumTypeValues = templateCalculation.AllowedEnumTypeValues?.Any() == true ? templateCalculation.AllowedEnumTypeValues : null,
-                    Calculations = templateCalculation.Calculations?.Where(IsAggregationOrHasChildCalculations)
-                        .Select(nestedCalculation =>
-                            BuildCalculations(publishedFundingCalculations,
-                                nestedCalculation,
-                                providerId))
+                    AllowedEnumTypeValues = templateCalculation.AllowedEnumTypeValues?.Any() == true ? templateCalculation.AllowedEnumTypeValues : null
                 };
         }
 

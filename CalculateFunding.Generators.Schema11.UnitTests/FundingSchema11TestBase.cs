@@ -29,13 +29,11 @@ namespace CalculateFunding.Generators.Schema11.UnitTests
         {
             ICollection<ValidationError> errors = FundingSchema.Validate(json);
 
-            const string fundingLineCode = nameof(fundingLineCode);
-            const string publishedFundings = nameof(publishedFundings);
+            const string providerFundings = nameof(providerFundings);
 
             //has to conform to the schema apparently apart from for provider fundings (just take the id list whereas the schema wants an entity list)
             //and funding line codes where there will be null apart from for payment lines (the schema wants them all to have codes) 
-            errors = errors.Where(_ => !_.ToString().Contains(fundingLineCode) &&
-                                       _.ToString().Contains(publishedFundings))
+            errors = errors.Where(_ => !_.ToString().Contains(providerFundings))
                 .ToList();
 
             if (errors.Count == 0)

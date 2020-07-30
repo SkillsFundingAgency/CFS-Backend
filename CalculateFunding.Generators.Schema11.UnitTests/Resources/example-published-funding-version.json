@@ -334,7 +334,7 @@
       "distributionPeriods": [
         {
           "value": 5485111187.0,
-          "distributionPeriodId": "FY2021",
+          "distributionPeriodId": "FY-2021",
           "profilePeriods": [
             {
               "type": "CalendarMonth",
@@ -342,7 +342,7 @@
               "year": 2020,
               "occurrence": 1,
               "profiledValue": 219404447.0,
-              "distributionPeriodId": "FY2021"
+              "distributionPeriodId": "FY-2021"
             },
             {
               "type": "CalendarMonth",
@@ -350,7 +350,7 @@
               "year": 2020,
               "occurrence": 2,
               "profiledValue": 219404447.0,
-              "distributionPeriodId": "FY2021"
+              "distributionPeriodId": "FY-2021"
             },
             {
               "type": "CalendarMonth",
@@ -358,7 +358,7 @@
               "year": 2020,
               "occurrence": 3,
               "profiledValue": 219404447.0,
-              "distributionPeriodId": "FY2021"
+              "distributionPeriodId": "FY-2021"
             },
             {
               "type": "CalendarMonth",
@@ -366,7 +366,7 @@
               "year": 2020,
               "occurrence": 1,
               "profiledValue": 219404447.0,
-              "distributionPeriodId": "FY2021"
+              "distributionPeriodId": "FY-2021"
             },
             {
               "type": "CalendarMonth",
@@ -374,7 +374,7 @@
               "year": 2020,
               "occurrence": 2,
               "profiledValue": 219404447.0,
-              "distributionPeriodId": "FY2021"
+              "distributionPeriodId": "FY-2021"
             },
             {
               "type": "CalendarMonth",
@@ -382,7 +382,7 @@
               "year": 2020,
               "occurrence": 1,
               "profiledValue": 219404447.0,
-              "distributionPeriodId": "FY2021"
+              "distributionPeriodId": "FY-2021"
             },
             {
               "type": "CalendarMonth",
@@ -390,7 +390,7 @@
               "year": 2020,
               "occurrence": 2,
               "profiledValue": 219404447.0,
-              "distributionPeriodId": "FY2021"
+              "distributionPeriodId": "FY-2021"
             },
             {
               "type": "CalendarMonth",
@@ -398,7 +398,7 @@
               "year": 2020,
               "occurrence": 1,
               "profiledValue": 219404447.0,
-              "distributionPeriodId": "FY2021"
+              "distributionPeriodId": "FY-2021"
             },
             {
               "type": "CalendarMonth",
@@ -406,7 +406,7 @@
               "year": 2020,
               "occurrence": 2,
               "profiledValue": 219404447.0,
-              "distributionPeriodId": "FY2021"
+              "distributionPeriodId": "FY-2021"
             },
             {
               "type": "CalendarMonth",
@@ -414,7 +414,7 @@
               "year": 2020,
               "occurrence": 1,
               "profiledValue": 219404447.0,
-              "distributionPeriodId": "FY2021"
+              "distributionPeriodId": "FY-2021"
             },
             {
               "type": "CalendarMonth",
@@ -422,7 +422,7 @@
               "year": 2020,
               "occurrence": 2,
               "profiledValue": 219404447.0,
-              "distributionPeriodId": "FY2021"
+              "distributionPeriodId": "FY-2021"
             },
             {
               "type": "CalendarMonth",
@@ -430,7 +430,7 @@
               "year": 2020,
               "occurrence": 1,
               "profiledValue": 219404447.0,
-              "distributionPeriodId": "FY2021"
+              "distributionPeriodId": "FY-2021"
             },
             {
               "type": "CalendarMonth",
@@ -438,7 +438,7 @@
               "year": 2020,
               "occurrence": 2,
               "profiledValue": 219404447.0,
-              "distributionPeriodId": "FY2021"
+              "distributionPeriodId": "FY-2021"
             },
             {
               "type": "CalendarMonth",
@@ -446,7 +446,7 @@
               "year": 2020,
               "occurrence": 1,
               "profiledValue": 219404447.0,
-              "distributionPeriodId": "FY2021"
+              "distributionPeriodId": "FY-2021"
             },
             {
               "type": "CalendarMonth",
@@ -454,7 +454,7 @@
               "year": 2020,
               "occurrence": 2,
               "profiledValue": 219404447.0,
-              "distributionPeriodId": "FY2021"
+              "distributionPeriodId": "FY-2021"
             },
             {
               "type": "CalendarMonth",
@@ -462,7 +462,7 @@
               "year": 2020,
               "occurrence": 1,
               "profiledValue": 219404447.0,
-              "distributionPeriodId": "FY2021"
+              "distributionPeriodId": "FY-2021"
             },
             {
               "type": "CalendarMonth",
@@ -470,7 +470,7 @@
               "year": 2020,
               "occurrence": 2,
               "profiledValue": 219404447.0,
-              "distributionPeriodId": "FY2021"
+              "distributionPeriodId": "FY-2021"
             },
             {
               "type": "CalendarMonth",
@@ -478,7 +478,7 @@
               "year": 2020,
               "occurrence": 1,
               "profiledValue": 219404447.0,
-              "distributionPeriodId": "FY2021"
+              "distributionPeriodId": "FY-2021"
             },
             {
               "type": "CalendarMonth",
@@ -486,7 +486,7 @@
               "year": 2020,
               "occurrence": 2,
               "profiledValue": 219404447.0,
-              "distributionPeriodId": "FY2021"
+              "distributionPeriodId": "FY-2021"
             },
             {
               "type": "CalendarMonth",
@@ -494,7 +494,7 @@
               "year": 2021,
               "occurrence": 1,
               "profiledValue": 219404447.0,
-              "distributionPeriodId": "FY2021"
+              "distributionPeriodId": "FY-2021"
             },
             {
               "type": "CalendarMonth",
@@ -502,7 +502,7 @@
               "year": 2021,
               "occurrence": 2,
               "profiledValue": 219404447.0,
-              "distributionPeriodId": "FY2021"
+              "distributionPeriodId": "FY-2021"
             },
             {
               "type": "CalendarMonth",
@@ -510,7 +510,7 @@
               "year": 2021,
               "occurrence": 1,
               "profiledValue": 219404447.0,
-              "distributionPeriodId": "FY2021"
+              "distributionPeriodId": "FY-2021"
             },
             {
               "type": "CalendarMonth",
@@ -518,7 +518,7 @@
               "year": 2021,
               "occurrence": 2,
               "profiledValue": 219404447.0,
-              "distributionPeriodId": "FY2021"
+              "distributionPeriodId": "FY-2021"
             },
             {
               "type": "CalendarMonth",
@@ -526,7 +526,7 @@
               "year": 2021,
               "occurrence": 1,
               "profiledValue": 219404447.0,
-              "distributionPeriodId": "FY2021"
+              "distributionPeriodId": "FY-2021"
             },
             {
               "type": "CalendarMonth",
@@ -534,7 +534,7 @@
               "year": 2021,
               "occurrence": 2,
               "profiledValue": 219404459.0,
-              "distributionPeriodId": "FY2021"
+              "distributionPeriodId": "FY-2021"
             }
           ]
         }
@@ -1213,9 +1213,5 @@
   "date": "0001-01-01T00:00:00+00:00",
   "author": null,
   "comment": null,
-  "publishStatus": "Approved",
-  "variationReasons": [
-    "AuthorityFieldUpdated",
-    "EstablishmentNumberFieldUpdated"
-  ]
+  "publishStatus": "Approved"
 }

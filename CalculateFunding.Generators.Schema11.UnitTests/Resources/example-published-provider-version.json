@@ -1,17 +1,17 @@
 {
-	"id": "publishedprovider-1000999-FY2021-DSG-1",
-	"fundingId": "DSG-Fy2021-1000999-3_0",
+	"id": "publishedprovider-1000999-FY-2021-DSG-1",
+	"fundingId": "DSG-FY-2021-1000999-3_0",
 	"fundingStreamId": "DSG",
-	"fundingPeriodId": "FY2021",
+	"fundingPeriodId": "FY-2021",
 	"profilePatternKeys": [],
 	"customProfiles": [],
 	"hasCustomProfiles": false,
 	"specificationId": "cee08e58-ffca-406f-9e75-77b7af9a7499",
 	"templateVersion": "1.1",
-	"entityId": "publishedprovider-1000999-FY2021-DSG",
+	"entityId": "publishedprovider-1000999-FY-2021-DSG",
 	"status": "Released",
 	"providerId": "1000999",
-	"partitionKey": "publishedprovider-1000999-FY2021-DSG",
+	"partitionKey": "publishedprovider-1000999-FY-2021-DSG",
 	"fundingLines": [
 		{
 			"name": "Pupil Led Factors",
@@ -262,7 +262,7 @@
 			"distributionPeriods": [
 				{
 					"value": 5485111187.0,
-					"distributionPeriodId": "FY2021",
+					"distributionPeriodId": "FY-2021",
 					"profilePeriods": [
 						{
 							"type": "CalendarMonth",
@@ -270,7 +270,7 @@
 							"year": 2020,
 							"occurrence": 1,
 							"profiledValue": 219404447.0,
-							"distributionPeriodId": "FY2021"
+							"distributionPeriodId": "FY-2021"
 						},
 						{
 							"type": "CalendarMonth",
@@ -278,7 +278,7 @@
 							"year": 2020,
 							"occurrence": 2,
 							"profiledValue": 219404447.0,
-							"distributionPeriodId": "FY2021"
+							"distributionPeriodId": "FY-2021"
 						},
 						{
 							"type": "CalendarMonth",
@@ -286,7 +286,7 @@
 							"year": 2020,
 							"occurrence": 3,
 							"profiledValue": 219404447.0,
-							"distributionPeriodId": "FY2021"
+							"distributionPeriodId": "FY-2021"
 						},
 						{
 							"type": "CalendarMonth",
@@ -294,7 +294,7 @@
 							"year": 2020,
 							"occurrence": 1,
 							"profiledValue": 219404447.0,
-							"distributionPeriodId": "FY2021"
+							"distributionPeriodId": "FY-2021"
 						},
 						{
 							"type": "CalendarMonth",
@@ -302,7 +302,7 @@
 							"year": 2020,
 							"occurrence": 2,
 							"profiledValue": 219404447.0,
-							"distributionPeriodId": "FY2021"
+							"distributionPeriodId": "FY-2021"
 						},
 						{
 							"type": "CalendarMonth",
@@ -310,7 +310,7 @@
 							"year": 2020,
 							"occurrence": 1,
 							"profiledValue": 219404447.0,
-							"distributionPeriodId": "FY2021"
+							"distributionPeriodId": "FY-2021"
 						},
 						{
 							"type": "CalendarMonth",
@@ -318,7 +318,7 @@
 							"year": 2020,
 							"occurrence": 2,
 							"profiledValue": 219404447.0,
-							"distributionPeriodId": "FY2021"
+							"distributionPeriodId": "FY-2021"
 						},
 						{
 							"type": "CalendarMonth",
@@ -326,7 +326,7 @@
 							"year": 2020,
 							"occurrence": 1,
 							"profiledValue": 219404447.0,
-							"distributionPeriodId": "FY2021"
+							"distributionPeriodId": "FY-2021"
 						},
 						{
 							"type": "CalendarMonth",
@@ -334,7 +334,7 @@
 							"year": 2020,
 							"occurrence": 2,
 							"profiledValue": 219404447.0,
-							"distributionPeriodId": "FY2021"
+							"distributionPeriodId": "FY-2021"
 						},
 						{
 							"type": "CalendarMonth",
@@ -342,7 +342,7 @@
 							"year": 2020,
 							"occurrence": 1,
 							"profiledValue": 219404447.0,
-							"distributionPeriodId": "FY2021"
+							"distributionPeriodId": "FY-2021"
 						},
 						{
 							"type": "CalendarMonth",
@@ -350,7 +350,7 @@
 							"year": 2020,
 							"occurrence": 2,
 							"profiledValue": 219404447.0,
-							"distributionPeriodId": "FY2021"
+							"distributionPeriodId": "FY-2021"
 						},
 						{
 							"type": "CalendarMonth",
@@ -358,7 +358,7 @@
 							"year": 2020,
 							"occurrence": 1,
 							"profiledValue": 219404447.0,
-							"distributionPeriodId": "FY2021"
+							"distributionPeriodId": "FY-2021"
 						},
 						{
 							"type": "CalendarMonth",
@@ -366,7 +366,7 @@
 							"year": 2020,
 							"occurrence": 2,
 							"profiledValue": 219404447.0,
-							"distributionPeriodId": "FY2021"
+							"distributionPeriodId": "FY-2021"
 						},
 						{
 							"type": "CalendarMonth",
@@ -374,7 +374,7 @@
 							"year": 2020,
 							"occurrence": 1,
 							"profiledValue": 219404447.0,
-							"distributionPeriodId": "FY2021"
+							"distributionPeriodId": "FY-2021"
 						},
 						{
 							"type": "CalendarMonth",
@@ -382,7 +382,7 @@
 							"year": 2020,
 							"occurrence": 2,
 							"profiledValue": 219404447.0,
-							"distributionPeriodId": "FY2021"
+							"distributionPeriodId": "FY-2021"
 						},
 						{
 							"type": "CalendarMonth",
@@ -390,7 +390,7 @@
 							"year": 2020,
 							"occurrence": 1,
 							"profiledValue": 219404447.0,
-							"distributionPeriodId": "FY2021"
+							"distributionPeriodId": "FY-2021"
 						},
 						{
 							"type": "CalendarMonth",
@@ -398,7 +398,7 @@
 							"year": 2020,
 							"occurrence": 2,
 							"profiledValue": 219404447.0,
-							"distributionPeriodId": "FY2021"
+							"distributionPeriodId": "FY-2021"
 						},
 						{
 							"type": "CalendarMonth",
@@ -406,7 +406,7 @@
 							"year": 2020,
 							"occurrence": 1,
 							"profiledValue": 219404447.0,
-							"distributionPeriodId": "FY2021"
+							"distributionPeriodId": "FY-2021"
 						},
 						{
 							"type": "CalendarMonth",
@@ -414,7 +414,7 @@
 							"year": 2020,
 							"occurrence": 2,
 							"profiledValue": 219404447.0,
-							"distributionPeriodId": "FY2021"
+							"distributionPeriodId": "FY-2021"
 						},
 						{
 							"type": "CalendarMonth",
@@ -422,7 +422,7 @@
 							"year": 2021,
 							"occurrence": 1,
 							"profiledValue": 219404447.0,
-							"distributionPeriodId": "FY2021"
+							"distributionPeriodId": "FY-2021"
 						},
 						{
 							"type": "CalendarMonth",
@@ -430,7 +430,7 @@
 							"year": 2021,
 							"occurrence": 2,
 							"profiledValue": 219404447.0,
-							"distributionPeriodId": "FY2021"
+							"distributionPeriodId": "FY-2021"
 						},
 						{
 							"type": "CalendarMonth",
@@ -438,7 +438,7 @@
 							"year": 2021,
 							"occurrence": 1,
 							"profiledValue": 219404447.0,
-							"distributionPeriodId": "FY2021"
+							"distributionPeriodId": "FY-2021"
 						},
 						{
 							"type": "CalendarMonth",
@@ -446,7 +446,7 @@
 							"year": 2021,
 							"occurrence": 2,
 							"profiledValue": 219404447.0,
-							"distributionPeriodId": "FY2021"
+							"distributionPeriodId": "FY-2021"
 						},
 						{
 							"type": "CalendarMonth",
@@ -454,7 +454,7 @@
 							"year": 2021,
 							"occurrence": 1,
 							"profiledValue": 219404447.0,
-							"distributionPeriodId": "FY2021"
+							"distributionPeriodId": "FY-2021"
 						},
 						{
 							"type": "CalendarMonth",
@@ -462,7 +462,7 @@
 							"year": 2021,
 							"occurrence": 2,
 							"profiledValue": 219404459.0,
-							"distributionPeriodId": "FY2021"
+							"distributionPeriodId": "FY-2021"
 						}
 					]
 				}

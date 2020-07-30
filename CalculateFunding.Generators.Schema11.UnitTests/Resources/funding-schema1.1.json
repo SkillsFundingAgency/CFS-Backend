@@ -695,19 +695,41 @@
         "fundingLines": {
           "$ref": "#/definitions/fundingLines-schema",
           "description": "The lines that make up this funding"
+        },
+        "calculations": {
+          "$ref": "#/definitions/calculationsList-schema",
+          "description": "The lines that make up all the calculations"
         }
       },
       "required": [
         "totalValue",
-        "fundingLines"
+        "fundingLines",
+        "calculations"
       ],
       "additionalProperties": false
     },
     "fundingLines-schema": {
-      "type": "array",
-      "items": {
-        "$ref": "#/definitions/fundingLine-schema"
+      "patternProperties": {
+        "^\\d+$": {
+          "$ref": "#/definitions/fundingLine-schema",
+          "additionalProperties": false
+        }
       },
+      "additionalProperties": false,
+      "type": [
+        "object"
+      ]
+    },
+    "calculationsList-schema": {
+      "patternProperties": {
+        "^\\d+$": {
+          "$ref": "#/definitions/calculation-schema",
+          "additionalProperties": false
+        }
+      },
+      "type": [
+        "object"
+      ],
       "additionalProperties": false
     },
     "fundingLine-schema": {
@@ -735,31 +757,9 @@
           "type": "number",
           "description": "The funding value in pence."
         },
-        "fundingLines": {
-          "oneOf": [
-            {
-              "type": "null"
-            },
-            {
-              "$ref": "#/definitions/fundingLines-schema"
-            }
-          ],
-          "description": "Sub funding lines that make up this funding line"
-        },
         "distributionPeriods": {
           "description": "An array showing the amounts by the periods (envelopes) they are paid in (e.g. for PE + Sport there are 2 periods per year, with a 7/5 split)",
           "$ref": "#/definitions/distributionPeriods-schema"
-        },
-        "calculations": {
-          "oneOf": [
-            {
-              "type": "null"
-            },
-            {
-              "$ref": "#/definitions/calculations-schema"
-            }
-          ],
-          "description": "Calculations that make up this funding line"
         }
       },
       "allOf": [
@@ -962,17 +962,6 @@
             "Boolean",
             "String"
           ]
-        },
-        "calculations": {
-          "oneOf": [
-            {
-              "type": "null"
-            },
-            {
-              "$ref": "#/definitions/calculations-schema"
-            }
-          ],
-          "description": "Sub level calculations"
         },
         "aggregationType": {
           "type": "string",
