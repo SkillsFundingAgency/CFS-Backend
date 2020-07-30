@@ -287,7 +287,7 @@ namespace CalculateFunding.Services.Results
                             EstablishmentNumber = result.Result.EstablishmentNumber,
                             CalculationId = calculationId,
                             CalculationName = result.Result.CalculationName[calculationIdIndex],
-                            CalculationResult = result.Result.CalculationResult[calculationIdIndex].GetValueOrNull<double>(),
+                            CalculationResult = result.Result.CalculationResult[calculationIdIndex].GetObjectOrNull(),
                             CalculationExceptionType = !result.Result.CalculationExceptionType.IsNullOrEmpty() ? result.Result.CalculationExceptionType[calculationIdIndex] : string.Empty,
                             CalculationExceptionMessage = !result.Result.CalculationExceptionMessage.IsNullOrEmpty() ? result.Result.CalculationExceptionMessage[calculationIdIndex] : string.Empty,
                         };

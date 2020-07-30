@@ -36,7 +36,7 @@ namespace CalculateFunding.Repositories.Common.Search.Results
 
         public string CalculationName { get; set; }
 
-        public double? CalculationResult { get; set; }
+        public object CalculationResult { get; set; }
 
         public string CalculationExceptionType { get; set; }
 
