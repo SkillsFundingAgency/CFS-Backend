@@ -144,30 +144,6 @@ namespace CalculateFunding.Services.Providers
             }
         }
 
-        public async Task<IActionResult> GetProviderByIdFromMaster(string providerId)
-        {
-            MasterProviderVersion masterProviderVersion = await _providerVersionService.GetMasterProviderVersion();
-
-            if (masterProviderVersion != null)
-            {
-                return await GetProviderById(masterProviderVersion.ProviderVersionId, providerId);
-            }
-
-            return new NotFoundResult();
-        }
-
-        public async Task<IActionResult> SearchMasterProviders(SearchModel searchModel)
-        {
-            MasterProviderVersion masterProviderVersion = await _providerVersionService.GetMasterProviderVersion();
-
-            if (masterProviderVersion != null)
-            {
-                return await SearchProviders(masterProviderVersion.ProviderVersionId, searchModel);
-            }
-
-            return new NotFoundResult();
-        }
-
         public async Task<IActionResult> SearchProviders(int year, int month, int day, SearchModel searchModel)
         {
             Guard.ArgumentNotNull(day, nameof(day));

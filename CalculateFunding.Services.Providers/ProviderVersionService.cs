@@ -165,18 +165,6 @@ namespace CalculateFunding.Services.Providers
             return masterProviderVersion;
         }
 
-        public async Task<IActionResult> GetAllMasterProviders()
-        {
-            MasterProviderVersion masterProviderVersion = await GetMasterProviderVersion();
-
-            if (masterProviderVersion != null)
-            {
-                return await GetAllProviders(masterProviderVersion.ProviderVersionId);
-            }
-
-            return new NotFoundResult();
-        }
-
         public async Task<ProviderVersion> GetProvidersByVersion(string providerVersionId)
         {
             Guard.IsNullOrWhiteSpace(providerVersionId, nameof(providerVersionId));
@@ -303,33 +291,6 @@ namespace CalculateFunding.Services.Providers
             {
                 _logger.Error($"Failed to retrieve provider version with id: {providerVersionId}");
             }
-
-            return new NoContentResult();
-        }
-
-        public async Task<IActionResult> SetMasterProviderVersion(MasterProviderVersionViewModel masterProviderVersionViewModel)
-        {
-            Guard.ArgumentNotNull(masterProviderVersionViewModel, nameof(masterProviderVersionViewModel));
-
-            MasterProviderVersion newMasterProviderVersion = _mapper.Map<MasterProviderVersion>(masterProviderVersionViewModel);
-
-            bool exists = await Exists(newMasterProviderVersion.ProviderVersionId);
-
-            if (!exists)
-            {
-                string error = $"Failed to retrieve provider version with id: {newMasterProviderVersion.ProviderVersionId}";
-                _logger.Error(error);
-                return new PreconditionFailedResult(error);
-            }
-
-            MasterProviderVersion masterProviderVersion = await _cacheProvider.GetAsync<MasterProviderVersion>(CacheKeys.MasterProviderVersion);
-
-            if (masterProviderVersion != null)
-            {
-                await _cacheProvider.RemoveAsync<MasterProviderVersion>(CacheKeys.MasterProviderVersion);
-            }
-
-            await _providerVersionMetadataRepositoryPolicy.ExecuteAsync(() => _providerVersionMetadataRepository.UpsertMaster(newMasterProviderVersion));
 
             return new NoContentResult();
         }
