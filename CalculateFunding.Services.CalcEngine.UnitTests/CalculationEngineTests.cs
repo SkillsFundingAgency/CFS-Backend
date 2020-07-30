@@ -72,7 +72,10 @@ namespace CalculateFunding.Services.Calculator
                     Arg.Any<ProviderSummary>(),
                     Arg.Any<IDictionary<string, Funding>>(),
                     Arg.Any<IEnumerable<CalculationAggregation>>())
-                .Returns(new CalculationResultContainer());
+                .Returns(new CalculationResultContainer
+                {
+                    FundingLineResults =  new List<FundingLineResult>()
+                });
 
             CalculationEngine calculationEngine = CreateCalculationEngine();
             ProviderSummary providerSummary = CreateDummyProviderSummary();

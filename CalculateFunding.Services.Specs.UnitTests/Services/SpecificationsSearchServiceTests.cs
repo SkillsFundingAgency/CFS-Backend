@@ -27,11 +27,12 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             return Substitute.For<ILogger>();
         }
 
-        static SearchModel CreateSearchModel()
+        static SearchModel CreateSearchModel(params string[] searchFields)
         {
             return new SearchModel()
             {
                 SearchTerm = "SearchTermTest",
+                SearchFields = searchFields,
                 PageNumber = 1,
                 Top = 20,
                 Filters = new Dictionary<string, string[]>

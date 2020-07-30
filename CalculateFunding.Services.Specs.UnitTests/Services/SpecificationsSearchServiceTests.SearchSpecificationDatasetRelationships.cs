@@ -127,10 +127,18 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         }
 
         [TestMethod]
-        public async Task SearchSpecificationDatasetRelationships_GivenSearchReturnsResults_ReturnsOKResult()
+        [DataRow("one", "two")]
+        [DataRow("one")]
+        [DataRow(null)]
+        public async Task SearchSpecificationDatasetRelationships_GivenSearchReturnsResults_ReturnsOKResult(params string[] expectedSearchFields)
         {
             //Arrange
-            SearchModel model = CreateSearchModel();
+            SearchModel model = CreateSearchModel(expectedSearchFields);
+
+            expectedSearchFields ??= new[]
+            {
+                "name"
+            };
             
             SearchResults<SpecificationIndex> searchResults = new SearchResults<SpecificationIndex>
             {
@@ -139,7 +147,9 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             ISearchRepository<SpecificationIndex> searchRepository = CreateSearchRepository();
             searchRepository
-                .Search(Arg.Is("SearchTermTest"), Arg.Any<SearchParameters>())
+                .Search(Arg.Is("SearchTermTest"), Arg.Is<SearchParameters>(sp =>
+                    sp.SearchFields != null &&
+                    sp.SearchFields.SequenceEqual(expectedSearchFields)))
                 .Returns(searchResults);
 
             ILogger logger = CreateLogger();
