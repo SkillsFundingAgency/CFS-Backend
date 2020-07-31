@@ -93,7 +93,7 @@ namespace CalculateFunding.Api.Results.Controllers
 
         [Route("api/results/calculation-provider-results-search")]
         [HttpPost]
-        [Produces(typeof(CalculationProviderResultSearchResults))]
+        [Produces(typeof(Repositories.Common.Search.Results.CalculationProviderResultSearchResults))]
         public async Task<IActionResult> RunCalculationProviderResultsSearch([FromBody] SearchModel searchModel)
         {
             return await _providerCalculationResultsSearchService.SearchCalculationProviderResults(searchModel);

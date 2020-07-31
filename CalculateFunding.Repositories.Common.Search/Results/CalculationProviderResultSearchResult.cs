@@ -41,5 +41,15 @@ namespace CalculateFunding.Repositories.Common.Search.Results
         public string CalculationExceptionType { get; set; }
 
         public string CalculationExceptionMessage { get; set; }
+
+        public string FundingLineId { get; set; }
+
+        public string FundingLineName { get; set; }
+
+        public decimal? FundingLineResult { get; set; }
+
+        public string FundingLineExceptionType { get; set; }
+
+        public string FundingLineExceptionMessage { get; set; }
     }
 }

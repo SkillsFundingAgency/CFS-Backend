@@ -18,6 +18,8 @@ namespace CalculateFunding.Services.Results.UnitTests
     [TestClass]
     public class ProviderCalculationResultsSearchServiceTests
     {
+        private const int ProviderCalculationResultsFacetCount = 11;
+
         [TestMethod]
         public async Task SearchCalculationProviderResults_GivenNullModel_ReturnsBadRequest()
         {
@@ -158,12 +160,12 @@ namespace CalculateFunding.Services.Results.UnitTests
 
             await
                 searchRepository
-                    .Received(model.FacetCount)
+                    .Received(ProviderCalculationResultsFacetCount + 2)
                     .Search(Arg.Any<string>(), Arg.Is<SearchParameters>(c => c.SearchFields.Any(f => f == "providerName")));
 
             await
                 searchRepository
-                    .Received(1)
+                    .Received(2)
                     .Search(Arg.Any<string>(), Arg.Is<SearchParameters>(c => c.SearchFields.Any(f => f == "providerName") && c.SearchFields.Any(f => f == "ukPrn") && c.SearchFields.Any(f => f == "urn") && c.SearchFields.Any(f => f == "establishmentNumber")));
         }
 
@@ -236,12 +238,12 @@ namespace CalculateFunding.Services.Results.UnitTests
 
             await
                 searchRepository
-                    .Received(model.FacetCount)
+                    .Received(ProviderCalculationResultsFacetCount + 2)
                     .Search(Arg.Any<string>(), Arg.Is<SearchParameters>(c => c.SearchFields.Any(f => f == "providerName")));
 
             await
                 searchRepository
-                    .Received(1)
+                    .Received(2)
                     .Search(Arg.Any<string>(), Arg.Is<SearchParameters>(c => c.SearchFields.Any(f => f == "providerName") && c.SearchFields.Any(f => f == "ukPrn") && c.SearchFields.Any(f => f == "urn") && c.SearchFields.Any(f => f == "establishmentNumber")));
         }
 
@@ -282,7 +284,7 @@ namespace CalculateFunding.Services.Results.UnitTests
 
             await
                searchRepository
-               .Received(model.FacetCount - 1)
+               .Received(ProviderCalculationResultsFacetCount + 1)
                    .Search(model.SearchTerm, Arg.Is<SearchParameters>(c =>
                        model.Filters.Keys.All(f => c.Filter.Contains(f))
                        && !string.IsNullOrWhiteSpace(c.Filter)
@@ -326,7 +328,7 @@ namespace CalculateFunding.Services.Results.UnitTests
 
             await
                 searchRepository
-                .Received(model.FacetCount - 1)
+                .Received(ProviderCalculationResultsFacetCount + 1)
                     .Search(model.SearchTerm, Arg.Is<SearchParameters>(c =>
                         model.Filters.Keys.All(f => c.Filter.Contains(f))
                         && !string.IsNullOrWhiteSpace(c.Filter)
