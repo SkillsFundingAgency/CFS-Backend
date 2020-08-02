@@ -767,7 +767,7 @@ namespace CalculateFunding.Services.Specs
                 }
             }
 
-            SpecificationVersion specificationVersion = specification.Current.DeepCopy();
+            SpecificationVersion specificationVersion = specification.Current.DeepCopy(useCamelCase: false);
 
             specificationVersion.ProviderVersionId = editModel.ProviderVersionId;
             specificationVersion.Name = editModel.Name;
@@ -1252,7 +1252,7 @@ WHERE   s.documentType = @DocumentType",
             }
 
             SpecificationVersion currentSpecificationVersion = specification.Current;
-            SpecificationVersion newSpecificationVersion = specification.Current.DeepCopy();
+            SpecificationVersion newSpecificationVersion = specification.Current.DeepCopy(useCamelCase: false);
 
             newSpecificationVersion.AddOrUpdateTemplateId(fundingStreamId, templateVersion);
             HttpStatusCode updateSpecificationResult =
@@ -1606,7 +1606,7 @@ WHERE   s.documentType = @DocumentType",
 
             Specification specification = await _specificationsRepository.GetSpecificationById(assignSpecificationProviderVersionModel.SpecificationId);
             SpecificationVersion previousSpecificationVersion = specification.Current;
-            SpecificationVersion specificationVersion = specification.Current.DeepCopy();
+            SpecificationVersion specificationVersion = specification.Current.DeepCopy(useCamelCase: false);
 
             specificationVersion.ProviderVersionId = assignSpecificationProviderVersionModel.ProviderVersionId;
             specificationVersion.Author = user;

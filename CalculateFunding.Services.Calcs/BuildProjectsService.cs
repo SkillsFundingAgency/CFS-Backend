@@ -772,7 +772,7 @@ namespace CalculateFunding.Services.Calcs
                 }
 
                 ApiResponse<TemplateMetadataContents> templateMetadataContentsResponse = 
-                    await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingTemplateContents(FundingStream.Id, FundingPeriod.Id, templateIds[FundingStream.Id.ToLowerInvariant()]));
+                    await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingTemplateContents(FundingStream.Id, FundingPeriod.Id, templateIds[FundingStream.Id]));
 
                 if (templateMetadataContentsResponse?.Content == null)
                 {

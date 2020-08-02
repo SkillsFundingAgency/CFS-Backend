@@ -49,10 +49,10 @@ namespace CalculateFunding.Services.Core.Extensions
             return poco == null ? null : JsonConvert.SerializeObject(poco, NewJsonSerializerSettings(useCamelCase));
         }
 
-        public static TPoco DeepCopy<TPoco>(this TPoco poco)
+        public static TPoco DeepCopy<TPoco>(this TPoco poco, bool useCamelCase = true)
             where TPoco : class
         {
-            return poco.AsJson().AsPoco<TPoco>();
+            return poco.AsJson(useCamelCase).AsPoco<TPoco>();
         }
 
         private static JsonSerializerSettings NewJsonSerializerSettings(bool useCamelCase)

@@ -280,7 +280,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 ProviderVersionId = _specification.Current.ProviderVersionId,
                 AssignedTemplateIds =  new Dictionary<string, string>()
             };
-            SpecificationVersion newSpecVersion = _specification.Current.DeepCopy();
+            SpecificationVersion newSpecVersion = _specification.Current.DeepCopy(useCamelCase: false);
             newSpecVersion.Name = specificationEditModel.Name;
             newSpecVersion.FundingPeriod.Id = specificationEditModel.FundingPeriodId;
             newSpecVersion.FundingStreams = new[] { new Reference { Id = "fs11" } };

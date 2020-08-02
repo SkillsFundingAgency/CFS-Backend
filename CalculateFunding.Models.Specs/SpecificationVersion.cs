@@ -57,8 +57,6 @@ namespace CalculateFunding.Models.Specs
         public void AddOrUpdateTemplateId(string fundingStreamId,
             string templateId)
         {
-            fundingStreamId = fundingStreamId.ToLowerInvariant();
-
             if (TemplateIds.ContainsKey(fundingStreamId))
                 TemplateIds[fundingStreamId] = templateId;
             else
@@ -67,7 +65,7 @@ namespace CalculateFunding.Models.Specs
 
         public bool TemplateVersionHasChanged(string fundingStreamId,
             string templateId)
-            => !TemplateIds.TryGetValue(fundingStreamId.ToLowerInvariant(), out string currentTemplate) ||
+            => !TemplateIds.TryGetValue(fundingStreamId, out string currentTemplate) ||
                currentTemplate != templateId;
 
         public override VersionedItem Clone()

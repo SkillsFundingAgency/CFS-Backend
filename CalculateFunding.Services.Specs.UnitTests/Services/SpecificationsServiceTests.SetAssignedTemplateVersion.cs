@@ -291,13 +291,11 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             Dictionary<string,string> templateIds = clonedSpecificationVersion?
                 .TemplateIds;
 
-            string serializedFundingStreamId = fundingStreamId.ToLowerInvariant();
-
-            templateIds?.ContainsKey(serializedFundingStreamId)
+            templateIds?.ContainsKey(fundingStreamId)
                 .Should()
                 .BeTrue();
 
-            templateIds?[serializedFundingStreamId]
+            templateIds?[fundingStreamId]
                 .Should()
                 .Be(templateVersion);
 

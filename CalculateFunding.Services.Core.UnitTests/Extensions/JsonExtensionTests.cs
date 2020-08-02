@@ -52,7 +52,7 @@ namespace CalculateFunding.Services.Core.Extensions
             bool useCamelCase,
             string jsonLiteral)
         {
-            PocoOne deepCopy = originalPoco.DeepCopy();
+            PocoOne deepCopy = originalPoco.DeepCopy(useCamelCase);
 
             deepCopy
                 .Should()
