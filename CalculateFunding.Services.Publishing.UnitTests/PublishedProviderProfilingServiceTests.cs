@@ -254,7 +254,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             ThenResultReturnedAs(result, HttpStatusCode.OK);
             AndProfilePatternKeyUpdated(newPublishedProviderVersion, profilePatternKey);
-            AndPublishedProviderProcessed(newPublishedProviderVersion);
+            AndPublishedProviderProcessed(publishedProvider);
         }
 
         [TestMethod]
@@ -322,7 +322,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             ThenResultReturnedAs(result, HttpStatusCode.OK);
             AndProfilePatternKeyUpdated(newPublishedProviderVersion, profilePatternKey);
             AndPaidProfilePeriodExists(distributionPeriodId, paidProfilePeriod, profilePatternKey);
-            AndPublishedProviderProcessed(newPublishedProviderVersion);
+            AndPublishedProviderProcessed(publishedProvider);
         }
 
         private void GivenGetPublishedProvider(PublishedProvider publishedProvider)
@@ -441,11 +441,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             Assert.AreEqual(publishedProviderVersion.ProfilePatternKeys.SingleOrDefault(_ => _.FundingLineCode == profilePatternKey.FundingLineCode), profilePatternKey);
         }
 
-        private void AndPublishedProviderProcessed(PublishedProviderVersion publishedProviderVersion)
+        private void AndPublishedProviderProcessed(PublishedProvider publishedProvider)
         {
             _publishedProviderErrorDetection
                 .Received(1)
-                .ProcessPublishedProvider(publishedProviderVersion);
+                .ProcessPublishedProvider(publishedProvider, Arg.Any<Func<IDetectPublishedProviderErrors, bool>>());
         }
 
         private bool PublishedProviderMatches(IEnumerable<PublishedProvider> publishedProviders, PublishedProvider expectedPublishedProvider)

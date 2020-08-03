@@ -5,6 +5,7 @@ using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Publishing.Errors;
 using CalculateFunding.Services.Publishing.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Polly;
@@ -94,7 +95,7 @@ namespace CalculateFunding.Services.Publishing
 
             await ProfileFundingLineValues(newPublishedProviderVersion, profilePatternKey);
 
-            await _publishedProviderErrorDetection.ProcessPublishedProvider(newPublishedProviderVersion);
+            await _publishedProviderErrorDetection.ProcessPublishedProvider(publishedProvider, _ => _ is FundingLineValueProfileMismatchErrorDetector);
 
             await SavePublishedProvider(publishedProvider, newPublishedProviderVersion);
 

@@ -32,11 +32,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private ICalculationPrerequisiteCheckerService _calculationApprovalCheckerService;
         private IJobManagement _jobManagement;
         private ILogger _logger;
-        private IOrganisationGroupGenerator _organisationGroupGenerator;
-        private IPoliciesService _policiesService;
-        private IMapper _mapper;
-        private IPublishedFundingDataService _publishedFundingDataService;
-        private IPublishingResiliencePolicies _publishingResiliencePolicies;
         private RefreshPrerequisiteChecker _refreshPrerequisiteChecker;
 
         [TestInitialize]
@@ -48,22 +43,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             _calculationApprovalCheckerService = Substitute.For<ICalculationPrerequisiteCheckerService>();
             _jobManagement = Substitute.For<IJobManagement>();
             _logger = Substitute.For<ILogger>();
-            _organisationGroupGenerator = Substitute.For<IOrganisationGroupGenerator>();
-            _policiesService = Substitute.For<IPoliciesService>();
-            _publishedFundingDataService = Substitute.For<IPublishedFundingDataService>();
-            _publishingResiliencePolicies = new ResiliencePolicies
-            {
-                PublishedFundingRepository = Policy.NoOpAsync(),
-                CalculationsApiClient = Policy.NoOpAsync(),
-                SpecificationsApiClient = Policy.NoOpAsync(),
-                SpecificationsRepositoryPolicy = Policy.NoOpAsync(),
-                CacheProvider = Policy.NoOpAsync(),
-                PoliciesApiClient = Policy.NoOpAsync()
-            };
-            _mapper = new MapperConfiguration(_ =>
-            {
-                _.AddProfile<PublishingServiceMappingProfile>();
-            }).CreateMapper();
 
             _refreshPrerequisiteChecker = new RefreshPrerequisiteChecker(
                 _specificationFundingStatusService, 
@@ -71,12 +50,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 _jobsRunning,
                 _calculationApprovalCheckerService,
                 _jobManagement,
-                _logger,
-                _organisationGroupGenerator,
-                _policiesService,
-                _mapper,
-                _publishedFundingDataService,
-                _publishingResiliencePolicies);
+                _logger);
         }
 
         [TestMethod]
@@ -161,7 +135,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             string errorMessage = $"{JobConstants.DefinitionNames.CreateInstructAllocationJob} is still running";
 
-            GivenTheCurrentPublishedFundingForTheSpecification(specificationId, Enumerable.Empty<PublishedFunding>());
             GivenTheSpecificationFundingStatusForTheSpecification(specificationSummary, SpecificationFundingStatus.AlreadyChosen);
             GivenCalculationEngineRunningStatusForTheSpecification(specificationId, JobConstants.DefinitionNames.CreateInstructAllocationJob);
             GivenValidationErrorsForTheSpecification(specificationSummary, Enumerable.Empty<string>());
@@ -191,7 +164,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             string errorMessage = "Error message";
 
-            GivenTheCurrentPublishedFundingForTheSpecification(specificationId, Enumerable.Empty<PublishedFunding>());
             GivenTheSpecificationFundingStatusForTheSpecification(specificationSummary, SpecificationFundingStatus.AlreadyChosen);
             GivenCalculationEngineRunningStatusForTheSpecification(specificationId);
             GivenValidationErrorsForTheSpecification(specificationSummary, new List<string> { errorMessage });
@@ -213,7 +185,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         }
 
         [TestMethod]
-        public void ReturnsErrorMessageWhenTrustIdMisatch()
+        public async Task ReturnsErrorMessageWhenTrustIdMisatch()
         {
             // Arrange
             string specificationId = NewRandomString();
@@ -295,26 +267,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                                                                 .WithOrganisationGroupTypeIdentifier(groupTypeIdentifier))))
             };
 
-            FundingConfiguration fundingConfiguration = NewFundingConfiguration(_ => _.WithId(fundingConfigurationId));
-            GivenTheCurrentPublishedFundingForTheSpecification(specificationId, publishedFundings);
-            GivenTheFundingConfigurationForFundingStreamAndPeriod(fundingStreamId, fundingPeriodId, fundingConfiguration);
-            GivenTheOrganisationGroupsForTheFundingConfiguration(fundingConfiguration, providers, providerVersionId, organisationGroupResults);
-
             // Act
-            Func<Task> invocation
-                = () => WhenThePreRequisitesAreChecked(specificationSummary, publishedProviders, providers);
+            await WhenThePreRequisitesAreChecked(specificationSummary, publishedProviders, providers);
 
             // Assert
-            invocation
-                .Should()
-                .Throw<NonRetriableException>()
-                .Where(_ =>
-                    _.Message == $"Specification with id: '{specificationSummary.Id} has prerequisites which aren't complete.");
-
-            _logger
-                .Received()
-                .Error(errorMessage);
-
+            publishedProviders
+                .All(_ => _.Current.HasErrors);
         }
 
         private void GivenTheSpecificationFundingStatusForTheSpecification(SpecificationSummary specification, SpecificationFundingStatus specificationFundingStatus)
@@ -339,27 +297,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         {
             _calculationApprovalCheckerService.VerifyCalculationPrerequisites(specification)
                 .Returns(validationErrors);
-        }
-
-        private void GivenTheCurrentPublishedFundingForTheSpecification(string specificationId, IEnumerable<PublishedFunding> publishedFundings)
-        {
-            _publishedFundingDataService.GetCurrentPublishedFunding(specificationId)
-                .Returns(publishedFundings);
-        }
-
-        private void GivenTheOrganisationGroupsForTheFundingConfiguration(FundingConfiguration fundingConfiguration, IEnumerable<Provider> scopedProviders, string providerVersionId, IEnumerable<OrganisationGroupResult> organisationGroupResults)
-        {
-            _organisationGroupGenerator.GenerateOrganisationGroup(
-                Arg.Is<FundingConfiguration>(f => f.Id == fundingConfiguration.Id), 
-                Arg.Is<IEnumerable<Common.ApiClient.Providers.Models.Provider>>(p => p.All(i => scopedProviders.Any(sp => sp.ProviderId == i.ProviderId))), 
-                providerVersionId)
-                .Returns(organisationGroupResults);
-        }
-
-        private void GivenTheFundingConfigurationForFundingStreamAndPeriod(string fundingStreamId, string fundingPeriodId, FundingConfiguration fundingConfiguration)
-        {
-            _policiesService.GetFundingConfiguration(fundingStreamId, fundingPeriodId)
-                .Returns(fundingConfiguration);
         }
 
         private async Task WhenThePreRequisitesAreChecked(SpecificationSummary specification, IEnumerable<PublishedProvider> publishedProviders, IEnumerable<Provider> providers)

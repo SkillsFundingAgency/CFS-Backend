@@ -23,17 +23,17 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
         [TestMethod]
         public async Task OnlyChecksProfiledValuesIfTheProviderHasAProfilePatternKey()
         {
-            PublishedProviderVersion publishedProvider = NewPublishedProviderVersion(_ => _.WithFundingLines(
+            PublishedProvider publishedProvider = NewPublishedProvider(_ => _.WithCurrent(NewPublishedProviderVersion(ppv => ppv.WithFundingLines(
                 NewFundingLine(fl => fl.WithOrganisationGroupingReason(OrganisationGroupingReason.Payment)
                     .WithValue(999)
                     .WithDistributionPeriods(NewDistributionPeriod(dp =>
                         dp.WithProfilePeriods(
                             NewProfilePeriod(pp =>
-                                pp.WithAmount(10))))))));
+                                pp.WithAmount(10))))))))));
 
             await WhenErrorsAreDetectedOnThePublishedProvider(publishedProvider);
 
-            publishedProvider
+            publishedProvider.Current
                 .Errors
                 .Should()
                 .BeNullOrEmpty();
@@ -46,7 +46,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
             string fundingLineCode2 = NewRandomString();
             string fundingLineCode3 = NewRandomString();
 
-            PublishedProviderVersion publishedProvider = NewPublishedProviderVersion(_ => _.WithProfilePatternKeys(
+            PublishedProvider publishedProvider = NewPublishedProvider(_ => _.WithCurrent(NewPublishedProviderVersion(ppv => ppv.WithProfilePatternKeys(
                     NewProfilePatternKey(pk => pk.WithFundingLineCode(fundingLineCode1)))
                 .WithFundingLines(
                 NewFundingLine(fl => fl.WithOrganisationGroupingReason(OrganisationGroupingReason.Payment)
@@ -69,16 +69,16 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
                     .WithDistributionPeriods(NewDistributionPeriod(dp =>
                         dp.WithProfilePeriods(
                             NewProfilePeriod(pp =>
-                                pp.WithAmount(999))))))));
+                                pp.WithAmount(999))))))))));
 
             await WhenErrorsAreDetectedOnThePublishedProvider(publishedProvider);
 
-            publishedProvider
+            publishedProvider.Current
                 .Errors
                 .Should()
                 .NotBeNullOrEmpty();
 
-            AndPublishedProviderShouldHaveTheErrors(publishedProvider,
+            AndPublishedProviderShouldHaveTheErrors(publishedProvider.Current,
                 NewError(_ => _.WithFundingLineCode(fundingLineCode1)
                     .WithType(PublishedProviderErrorType.FundingLineValueProfileMismatch)
                     .WithDescription("Expected total funding line to be 999 but custom profiles total 10")));
@@ -96,7 +96,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
             foreach (PublishedProviderError expectedError in expectedErrors)
             {
                 PublishedProviderError actualError = providerVersion.Errors
-                    .SingleOrDefault(_ => _.FundingLineCode == expectedError.FundingLineCode);
+                    .SingleOrDefault(_ => _.Identifier == expectedError.Identifier);
 
                 actualError
                     .Should()
@@ -104,9 +104,18 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
             }
         }
 
-        private async Task WhenErrorsAreDetectedOnThePublishedProvider(PublishedProviderVersion publishedProviderVersion)
+        private async Task WhenErrorsAreDetectedOnThePublishedProvider(PublishedProvider publishedProvider)
         {
-            await _errorDetector.DetectErrors(publishedProviderVersion);
+            await _errorDetector.DetectErrors(publishedProvider, null);
+        }
+
+        private static PublishedProvider NewPublishedProvider(Action<PublishedProviderBuilder> setUp = null)
+        {
+            PublishedProviderBuilder publishedProviderBuilder = new PublishedProviderBuilder();
+
+            setUp?.Invoke(publishedProviderBuilder);
+
+            return publishedProviderBuilder.Build();
         }
 
         private static PublishedProviderVersion NewPublishedProviderVersion(Action<PublishedProviderVersionBuilder> setUp = null)

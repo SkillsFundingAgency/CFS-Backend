@@ -1,12 +1,9 @@
 using System;
-using System.Threading.Tasks;
 using CalculateFunding.Models.Publishing;
-using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
 
 namespace CalculateFunding.Services.Publishing.UnitTests
 {
@@ -14,20 +11,17 @@ namespace CalculateFunding.Services.Publishing.UnitTests
     public class ReApplyCustomProfilesTests
     {
         private ReApplyCustomProfiles _reApplyCustomProfiles;
-        private Mock<IPublishedProviderErrorDetection> _errorDetection;
 
         [TestInitialize]
         public void SetUp()
         {
-            _errorDetection = new Mock<IPublishedProviderErrorDetection>();
-
-            _reApplyCustomProfiles = new ReApplyCustomProfiles(_errorDetection.Object);
+            _reApplyCustomProfiles = new ReApplyCustomProfiles();
         }
 
         [TestMethod]
         public void GuardsAgainstNoPublishedProviderVersionBeingSupplied()
         {
-            Func<Task> invocation = () => WhenThePublishedProviderIsProcessed(null);
+            Action invocation = () => WhenThePublishedProviderIsProcessed(null);
 
             invocation
                 .Should()
@@ -47,7 +41,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 _.WithCustomProfiles(NewFundingLineOverrides(fl =>
                     fl.WithFundingLineCode(missingFundingLineCode))));
 
-            Func<Task> invocation = () => WhenThePublishedProviderIsProcessed(publishedProviderVersion);
+            Action invocation = () => WhenThePublishedProviderIsProcessed(publishedProviderVersion);
 
             invocation
                 .Should()
@@ -59,7 +53,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         }
 
         [TestMethod]
-        public async Task OverridesDistributionPeriodsOnFundingLinesWhereThereIsACustomProfileOnThePublishedProviderVersionAndChecksForErrors()
+        public void OverridesDistributionPeriodsOnFundingLinesWhereThereIsACustomProfileOnThePublishedProviderVersionAndChecksForErrors()
         {
             string fundingLineWithCustomProfile = NewRandomString();
             string fundingLineCodeTwo = NewRandomString();
@@ -83,7 +77,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .WithFundingLines(fundingLineForCustomProfile,
                     fundingLineWithProfiling));
 
-            await WhenThePublishedProviderIsProcessed(publishedProviderVersion);
+            WhenThePublishedProviderIsProcessed(publishedProviderVersion);
 
             fundingLineForCustomProfile
                 .DistributionPeriods
@@ -94,9 +88,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .DistributionPeriods
                 .Should()
                 .BeEquivalentTo(profiledDistributionPeriod);
-
-            _errorDetection.Verify(_ => _.ProcessPublishedProvider(publishedProviderVersion),
-                Times.Once);
         }
 
         private static RandomString NewRandomString()
@@ -104,9 +95,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             return new RandomString();
         }
 
-        private async Task WhenThePublishedProviderIsProcessed(PublishedProviderVersion publishedProviderVersion)
+        private void WhenThePublishedProviderIsProcessed(PublishedProviderVersion publishedProviderVersion)
         {
-            await _reApplyCustomProfiles.ProcessPublishedProvider(publishedProviderVersion);
+            _reApplyCustomProfiles.ProcessPublishedProvider(publishedProviderVersion);
         }
 
         private PublishedProviderVersion NewPublishedProviderVersion(Action<PublishedProviderVersionBuilder> setUp = null)

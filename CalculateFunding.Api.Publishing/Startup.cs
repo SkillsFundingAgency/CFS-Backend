@@ -232,6 +232,7 @@ namespace CalculateFunding.Api.Publishing
             builder
                 .AddSingleton<IPublishedProviderProfilingService, PublishedProviderProfilingService>()
                 .AddSingleton<IPublishedProviderErrorDetection, PublishedProviderErrorDetection>()
+                .AddSingleton<IDetectPublishedProviderErrors, FundingLineValueProfileMismatchErrorDetector>()
                 .AddSingleton<IProfilingService, ProfilingService>()
                 .AddSingleton<IHealthChecker, ProfilingService>()
                 .AddSingleton<IPublishedProviderVersioningService, PublishedProviderVersioningService>();

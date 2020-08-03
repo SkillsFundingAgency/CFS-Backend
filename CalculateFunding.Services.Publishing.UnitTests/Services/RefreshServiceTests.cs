@@ -41,6 +41,7 @@ using TemplateFundingLine = CalculateFunding.Common.TemplateMetadata.Models.Fund
 using CalculateFunding.Tests.Common.Helpers;
 using CalculateFunding.Common.ServiceBus.Interfaces;
 using CalculateFunding.Generators.OrganisationGroup.Interfaces;
+using CalculateFunding.Services.Publishing.Errors;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.Services
 {
@@ -80,6 +81,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         private IEnumerable<PublishedProvider> _publishedProviders;
         private ISpecificationsApiClient _specificationsApiClient;
         private IVariationStrategyServiceLocator _variationStrategyServiceLocator;
+        private IPublishedProviderErrorDetection _detection;
         private IDetectProviderVariations _detectProviderVariation;
         private IApplyProviderVariations _applyProviderVariation;
         private IRecordVariationErrors _recordVariationErrors;
@@ -140,13 +142,20 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             _organisationGroupGenerator = Substitute.For<IOrganisationGroupGenerator>();
             _policiesService = Substitute.For<IPoliciesService>();
             _prerequisiteCheckerLocator.GetPreReqChecker(PrerequisiteCheckerType.Refresh)
-                .Returns(new RefreshPrerequisiteChecker(_specificationFundingStatusService,
-                _specificationService, _jobsRunning, _calculationApprovalCheckerService, _jobManagement, _logger, _organisationGroupGenerator,
-                _policiesService, _mapper, _publishedFundingDataService, _publishingResiliencePolicies));
+                .Returns(new RefreshPrerequisiteChecker(_specificationFundingStatusService, 
+                _specificationService, _jobsRunning, _calculationApprovalCheckerService, _jobManagement, _logger));
             _transactionFactory = new TransactionFactory(_logger, new TransactionResiliencePolicies { TransactionPolicy = Policy.NoOpAsync() });
             _publishedProviderVersionService = Substitute.For<IPublishedProviderVersionService>();
             _generateCsvJobsLocator = Substitute.For<IGeneratePublishedFundingCsvJobsCreationLocator>();
             _reApplyCustomProfiles = new Mock<IReApplyCustomProfiles>();
+            IDetectPublishedProviderErrors[] detectPublishedProviderErrors = typeof(IDetectPublishedProviderErrors).Assembly.GetTypes()
+                .Where(_ => _.Implements(typeof(IDetectPublishedProviderErrors)) &&
+                            !_.IsAbstract &&
+                            _.GetConstructors().Any(ci => !ci.GetParameters().Any()))
+                .Select(_ => (IDetectPublishedProviderErrors)Activator.CreateInstance(_))
+                .ToArray();
+            detectPublishedProviderErrors.Concat(new[] { new TrustIdMismatchErrorDetector(_organisationGroupGenerator, _mapper, _publishedFundingDataService, _publishingResiliencePolicies) });
+            _detection = new PublishedProviderErrorDetection(detectPublishedProviderErrors);
             _policiesApiClient = new Mock<IPoliciesApiClient>();
             _cacheProvider = new Mock<ICacheProvider>();
 
@@ -186,7 +195,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 _publishedProviderVersionService,
                 _policiesService,
                 _generateCsvJobsLocator,
-                _reApplyCustomProfiles.Object);
+                _reApplyCustomProfiles.Object,
+                _detection);
         }
 
         [TestMethod]
@@ -536,7 +546,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             _fundingLineValueOverride
                 .Received(1)
                 .TryOverridePreviousFundingLineValues(Arg.Any<PublishedProviderVersion>(), Arg.Any<GeneratedProviderResult>());
-
         }
 
         [TestMethod]

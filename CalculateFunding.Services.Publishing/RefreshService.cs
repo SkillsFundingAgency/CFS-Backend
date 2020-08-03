@@ -49,6 +49,7 @@ namespace CalculateFunding.Services.Publishing
         private readonly IPoliciesService _policiesService;
         private readonly IVariationService _variationService;
         private readonly IReApplyCustomProfiles _reApplyCustomProfiles;
+        private readonly IPublishedProviderErrorDetection _detection;
 
         public RefreshService(IPublishedProviderStatusUpdateService publishedProviderStatusUpdateService,
             IPublishedFundingDataService publishedFundingDataService,
@@ -70,8 +71,9 @@ namespace CalculateFunding.Services.Publishing
             ITransactionFactory transactionFactory,
             IPublishedProviderVersionService publishedProviderVersionService,
             IPoliciesService policiesService,
-            IGeneratePublishedFundingCsvJobsCreationLocator generateCsvJobsLocator,
-            IReApplyCustomProfiles reApplyCustomProfiles)
+            IGeneratePublishedFundingCsvJobsCreationLocator generateCsvJobsLocator, 
+            IReApplyCustomProfiles reApplyCustomProfiles,
+            IPublishedProviderErrorDetection detection)
         {
             Guard.ArgumentNotNull(generateCsvJobsLocator, nameof(generateCsvJobsLocator));
             Guard.ArgumentNotNull(publishedProviderStatusUpdateService, nameof(publishedProviderStatusUpdateService));
@@ -95,6 +97,7 @@ namespace CalculateFunding.Services.Publishing
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(prerequisiteCheckerLocator, nameof(prerequisiteCheckerLocator));
             Guard.ArgumentNotNull(reApplyCustomProfiles, nameof(reApplyCustomProfiles));
+            Guard.ArgumentNotNull(detection, nameof(detection));
 
             _publishedProviderStatusUpdateService = publishedProviderStatusUpdateService;
             _publishedFundingDataService = publishedFundingDataService;
@@ -112,6 +115,7 @@ namespace CalculateFunding.Services.Publishing
             _variationService = variationService;
             _generateCsvJobsLocator = generateCsvJobsLocator;
             _reApplyCustomProfiles = reApplyCustomProfiles;
+            _detection = detection;
             _publishedProviderIndexerService = publishedProviderIndexerService;
 
             _publishingResiliencePolicy = publishingResiliencePolicies.PublishedFundingRepository;
@@ -303,6 +307,10 @@ namespace CalculateFunding.Services.Publishing
             //we need enumerate a readonly cut of this as we add to it in some variations now (for missing providers not in scope)
             Dictionary<string, PublishedProvider> publishedProvidersReadonlyDictionary = publishedProviders.ToDictionary(_ => _.Key, _ => _.Value);
 
+            // set up the published providers context for error detection laterawait 
+            FundingConfiguration fundingConfiguration = await _policiesService.GetFundingConfiguration(fundingStream.Id, specification.FundingPeriod.Id);
+            _detection.PreparePublishedProviders(scopedProviders.Values, specification.Id, specification.ProviderVersionId, fundingConfiguration);
+
             foreach (KeyValuePair<string, PublishedProvider> publishedProvider in publishedProvidersReadonlyDictionary)
             {
                 PublishedProviderVersion publishedProviderVersion = publishedProvider.Value.Current;
@@ -344,12 +352,13 @@ namespace CalculateFunding.Services.Publishing
                     newProviders.ContainsKey(publishedProvider.Key));
 
                 //reapply any custom profiles this provider has and internally check for errors
-                await _reApplyCustomProfiles.ProcessPublishedProvider(publishedProviderVersion);
+                _reApplyCustomProfiles.ProcessPublishedProvider(publishedProviderVersion);
+
+                // process published provider and detect errors
+                await _detection.ProcessPublishedProvider(publishedProvider.Value);
 
                 if (publishedProviderUpdated && existingPublishedProviders.AnyWithNullCheck())
                 {
-                    FundingConfiguration fundingConfiguration = await _policiesService.GetFundingConfiguration(fundingStream.Id, specification.FundingPeriod.Id);
-
                     IDictionary<string, PublishedProvider> newPublishedProviders = await _variationService.PrepareVariedProviders(generatedProviderResult.TotalFunding,
                         publishedProviders,
                         publishedProvider.Value,

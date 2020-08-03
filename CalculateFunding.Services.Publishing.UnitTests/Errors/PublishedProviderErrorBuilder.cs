@@ -35,7 +35,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
             return new PublishedProviderError
             {
                 Type = _type.GetValueOrDefault(NewRandomEnum<PublishedProviderErrorType>()),
-                FundingLineCode = _fundingLineCode ?? NewRandomString(),
+                Identifier = _fundingLineCode ?? NewRandomString(),
                 Description = _description ?? NewRandomString()
             };
         }    

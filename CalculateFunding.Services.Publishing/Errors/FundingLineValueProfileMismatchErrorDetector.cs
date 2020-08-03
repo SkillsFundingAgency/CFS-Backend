@@ -3,17 +3,23 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Models.Publishing;
+using CalculateFunding.Services.Publishing.Models;
 using CalculateFunding.Services.Publishing.Profiling;
 
 namespace CalculateFunding.Services.Publishing.Errors
 {
     public class FundingLineValueProfileMismatchErrorDetector : PublishedProviderErrorDetector
     {
-        protected override Task<ErrorCheck> HasErrors(PublishedProviderVersion publishedProviderVersion)
+        protected override void ClearErrors(PublishedProviderVersion publishedProviderVersion)
+        {
+            publishedProviderVersion.Errors?.RemoveAll(_ => _.Type == PublishedProviderErrorType.FundingLineValueProfileMismatch);
+        }
+
+        protected override Task<ErrorCheck> HasErrors(PublishedProvider publishedProvider, PublishedProvidersContext publishedProvidersContext)
         {
             ErrorCheck errorCheck = new ErrorCheck();
 
-            foreach (FundingLine fundingLine in CustomPaymentFundingLinesFor(publishedProviderVersion))
+            foreach (FundingLine fundingLine in CustomPaymentFundingLinesFor(publishedProvider.Current))
             {
                 decimal fundingLineValue = fundingLine.Value.GetValueOrDefault();
                 decimal profiledValue = GetProfiledSum(fundingLine);
@@ -22,7 +28,7 @@ namespace CalculateFunding.Services.Publishing.Errors
                 {
                     errorCheck.AddError(new PublishedProviderError
                     {
-                        FundingLineCode = fundingLine.FundingLineCode,
+                        Identifier = fundingLine.FundingLineCode,
                         Type = PublishedProviderErrorType.FundingLineValueProfileMismatch,
                         Description = $"Expected total funding line to be {fundingLineValue} but custom profiles total {profiledValue}"
                     });

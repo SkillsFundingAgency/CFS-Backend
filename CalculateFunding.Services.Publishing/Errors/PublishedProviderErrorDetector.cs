@@ -4,24 +4,29 @@ using System.Threading.Tasks;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
+using CalculateFunding.Services.Publishing.Models;
 
 namespace CalculateFunding.Services.Publishing.Errors
 {
     public abstract class PublishedProviderErrorDetector : IDetectPublishedProviderErrors
     {
-        public async Task DetectErrors(PublishedProviderVersion publishedProviderVersion)
+        public async Task DetectErrors(PublishedProvider publishedProvider, PublishedProvidersContext publishedProvidersContext)
         {
-            Guard.ArgumentNotNull(publishedProviderVersion, nameof(publishedProviderVersion));
+            Guard.ArgumentNotNull(publishedProvider, nameof(publishedProvider));
 
-            ErrorCheck errorCheck = await HasErrors(publishedProviderVersion);
+            ClearErrors(publishedProvider.Current);
+
+            ErrorCheck errorCheck = await HasErrors(publishedProvider, publishedProvidersContext);
 
             if (errorCheck.HasErrors)
             {
-                publishedProviderVersion.AddErrors(errorCheck.Errors);
+                publishedProvider.Current.AddErrors(errorCheck.Errors);
             }
         }
 
-        protected abstract Task<ErrorCheck> HasErrors(PublishedProviderVersion publishedProviderVersion);
+        protected abstract void ClearErrors(PublishedProviderVersion publishedProviderVersion);
+
+        protected abstract Task<ErrorCheck> HasErrors(PublishedProvider publishedProvider, PublishedProvidersContext publishedProvidersContext);
 
         protected class ErrorCheck
         {

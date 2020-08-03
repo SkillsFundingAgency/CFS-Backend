@@ -8,6 +8,7 @@ namespace CalculateFunding.Models.Publishing
     public enum PublishedProviderErrorType
     {
         Undefined = 0,
-        FundingLineValueProfileMismatch
+        FundingLineValueProfileMismatch,
+        TrustIdMismatch
     }
 }

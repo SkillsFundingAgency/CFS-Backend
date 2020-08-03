@@ -2,7 +2,7 @@ namespace CalculateFunding.Models.Publishing
 {
     public class PublishedProviderError
     {
-        public string FundingLineCode { get; set; }
+        public string Identifier { get; set; }
         
         public PublishedProviderErrorType Type { get; set; }
         

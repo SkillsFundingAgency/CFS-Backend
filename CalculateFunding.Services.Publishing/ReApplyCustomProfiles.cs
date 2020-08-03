@@ -1,26 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Services.Publishing.Interfaces;
 
 namespace CalculateFunding.Services.Publishing
 {
     public class ReApplyCustomProfiles : IReApplyCustomProfiles
     {
-        private readonly IPublishedProviderErrorDetection _detection;
-
-        public ReApplyCustomProfiles(IPublishedProviderErrorDetection detection)
-        {
-            Guard.ArgumentNotNull(detection, nameof(detection));
-            
-            _detection = detection;
-        }
-
-        public async Task ProcessPublishedProvider(PublishedProviderVersion publishedProviderVersion)
+        public void ProcessPublishedProvider(PublishedProviderVersion publishedProviderVersion)
         {
             Guard.ArgumentNotNull(publishedProviderVersion, nameof(publishedProviderVersion));
 
@@ -44,8 +33,6 @@ namespace CalculateFunding.Services.Publishing
 
                 fundingLine.DistributionPeriods = customProfile.DistributionPeriods.DeepCopy();
             }
-
-            await _detection.ProcessPublishedProvider(publishedProviderVersion);
         }
     }
 }

@@ -33,11 +33,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
         }
 
         [TestMethod]
-        public async Task ResetsErrorsOnPublishedProviderAndDelegatesToEachConfiguredErrorDetector()
+        public async Task DelegatesToEachConfiguredErrorDetector()
         {
-            PublishedProviderVersion publishedProviderVersion = NewPublishedProviderVersion();
+            PublishedProvider publishedProvider = NewPublishedProvider();
 
-            publishedProviderVersion.AddErrors(new[]
+            publishedProvider.Current.AddErrors(new[]
             {
                 new PublishedProviderError(),
                 new PublishedProviderError(),
@@ -45,18 +45,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
                 new PublishedProviderError()
             });
 
-            await _errorDetection.ProcessPublishedProvider(publishedProviderVersion);
+            await _errorDetection.ProcessPublishedProvider(publishedProvider);
 
-            publishedProviderVersion.Errors
-                .Should()
-                .BeEmpty();
-
-            _detectorOne.Verify(_ => _.DetectErrors(publishedProviderVersion), Times.Once);
-            _detectorTwo.Verify(_ => _.DetectErrors(publishedProviderVersion), Times.Once);
-            _detectorThree.Verify(_ => _.DetectErrors(publishedProviderVersion), Times.Once);
+            _detectorOne.Verify(_ => _.DetectErrors(publishedProvider, null), Times.Once);
+            _detectorTwo.Verify(_ => _.DetectErrors(publishedProvider, null), Times.Once);
+            _detectorThree.Verify(_ => _.DetectErrors(publishedProvider, null), Times.Once);
         }
 
-        private PublishedProviderVersion NewPublishedProviderVersion() => new PublishedProviderVersionBuilder()
+        private PublishedProvider NewPublishedProvider() => new PublishedProviderBuilder()
             .Build();
         private Mock<IDetectPublishedProviderErrors> NewDetectorMock() => new Mock<IDetectPublishedProviderErrors>();
     }

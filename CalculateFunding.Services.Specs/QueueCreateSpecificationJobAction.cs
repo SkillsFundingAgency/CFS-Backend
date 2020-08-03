@@ -76,20 +76,6 @@ namespace CalculateFunding.Services.Specs
                     createSpecificationJob.Id)).ToArray();
 
             await TaskHelper.WhenAllAndThrow(createAssignTemplateJobTasks);
-
-            Task<ApiResponse<FundingConfiguration>>[] queryFundingConfigurationTasks
-                = specificationVersion.FundingStreams.Select(_ =>
-                    _policyResiliencePolicy.ExecuteAsync(() => _policies.GetFundingConfiguration(_.Id,
-                        fundingPeriodId))).ToArray();
-
-            await TaskHelper.WhenAllAndThrow(queryFundingConfigurationTasks);
-
-            IEnumerable<Task<ApiResponse<TemplateMetadataContents>>> queryTemplateContentsTasks
-                = queryFundingConfigurationTasks.Where(_ => !string.IsNullOrWhiteSpace(_?.Result?.Content?.DefaultTemplateVersion))
-                    .Select(_ => _policyResiliencePolicy.ExecuteAsync(() => _policies.GetFundingTemplateContents(
-                        _.Result.Content.FundingStreamId, _.Result.Content.FundingPeriodId, _.Result.Content.DefaultTemplateVersion)));
-
-            await TaskHelper.WhenAllAndThrow(queryTemplateContentsTasks.ToArray());
         }
 
         private async Task CreateAssignCalculationJobForFundingStream(string fundingStreamId,
