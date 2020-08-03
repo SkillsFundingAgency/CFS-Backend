@@ -6,6 +6,6 @@ namespace CalculateFunding.Services.Publishing.Interfaces
 {
     public interface IProfilingService
     {
-        Task ProfileFundingLines(IEnumerable<FundingLine> fundingLineTotals, string fundingStreamId, string fundingPeriodId, string profilePatternKey = null);
+        Task<IEnumerable<ProfilePatternKey>> ProfileFundingLines(IEnumerable<FundingLine> fundingLines, string fundingStreamId, string fundingPeriodId, IEnumerable<ProfilePatternKey> profilePatternKeys = null, string providerType = null, string providerSubType = null);
     }
 }

@@ -164,7 +164,7 @@ namespace CalculateFunding.Services.Publishing
                     new[] { fundingLine },
                     newPublishedProviderVersion.FundingStreamId,
                     newPublishedProviderVersion.FundingPeriodId,
-                    profilePatternKey.Key);
+                    new[] { profilePatternKey });
         }
 
         private void RemovePaidProfilePeriods(FundingLine fundingLine, IEnumerable<ProfilePeriod> paidProfilePeriods)

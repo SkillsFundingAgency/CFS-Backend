@@ -109,7 +109,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
 
             _publishedProviderStatusUpdateService = Substitute.For<IPublishedProviderStatusUpdateService>();
             _publishedFundingDataService = Substitute.For<IPublishedFundingDataService>();
-            _publishingResiliencePolicies = new ResiliencePolicies { PublishedFundingRepository = Policy.NoOpAsync(), 
+            _publishingResiliencePolicies = new ResiliencePolicies
+            {
+                PublishedFundingRepository = Policy.NoOpAsync(),
                 CalculationsApiClient = Policy.NoOpAsync(),
                 SpecificationsApiClient = Policy.NoOpAsync(),
                 SpecificationsRepositoryPolicy = Policy.NoOpAsync(),
@@ -138,7 +140,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             _organisationGroupGenerator = Substitute.For<IOrganisationGroupGenerator>();
             _policiesService = Substitute.For<IPoliciesService>();
             _prerequisiteCheckerLocator.GetPreReqChecker(PrerequisiteCheckerType.Refresh)
-                .Returns(new RefreshPrerequisiteChecker(_specificationFundingStatusService, 
+                .Returns(new RefreshPrerequisiteChecker(_specificationFundingStatusService,
                 _specificationService, _jobsRunning, _calculationApprovalCheckerService, _jobManagement, _logger, _organisationGroupGenerator,
                 _policiesService, _mapper, _publishedFundingDataService, _publishingResiliencePolicies));
             _transactionFactory = new TransactionFactory(_logger, new TransactionResiliencePolicies { TransactionPolicy = Policy.NoOpAsync() });
@@ -207,7 +209,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             AndUpdateStatusThrowsAnError(error);
 
             Func<Task> invocation = WhenMessageReceivedWithJobIdAndCorrelationId;
- 
+
             invocation
                 .Should()
                 .Throw<Exception>()
@@ -224,7 +226,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         [TestMethod]
         public async Task RefreshResults_WhenAnUpdatePublishStatusCompletesWithoutError_PublishedProviderUpdated()
         {
-            GivenJobCanBeProcessed();            
+            GivenJobCanBeProcessed();
             AndSpecification();
             AndCalculationResultsBySpecificationId();
             AndTemplateMetadataContents();
@@ -246,7 +248,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                     Arg.Is(PublishedProviderStatus.Updated),
                     Arg.Is(JobId),
                     Arg.Is(CorrelationId));
-            
+
             AndTheCustomProfilesWereReApplied();
         }
 
@@ -473,6 +475,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             AndScopedProviders();
             AndScopedProviderCalculationResults();
             AndTemplateMapping();
+            AndPublishedProviders();
             AndProfilingThrowsExeption();
 
             Func<Task> invocation = WhenMessageReceivedWithJobIdAndCorrelationId;
@@ -485,6 +488,33 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             _logger
                 .Received(1)
                 .Error(Arg.Is(ex), "Exception during generating provider profiling");
+        }
+
+        [TestMethod]
+        public async Task RefreshResults_WhenProfilingExistingProvider_ShouldUseProfilePatternKeySavedInTheProvider()
+        {
+            string profilePatternKey = NewRandomString();
+            GivenJobCanBeProcessed();
+            AndSpecification();
+            AndCalculationResultsBySpecificationId();
+            AndTemplateMetadataContents();
+            AndTheFundingPeriodId(_specificationSummary.FundingPeriod.Id);
+            AndScopedProviders(profilePatternKeyPrefix: profilePatternKey);
+            AndScopedProviderCalculationResults();
+            AndTemplateMapping();
+            AndPublishedProviders();
+
+            await WhenMessageReceivedWithJobIdAndCorrelationId();
+
+            await _profilingService
+                .Received(3)
+                .ProfileFundingLines(
+               Arg.Any<IEnumerable<FundingLine>>(),
+               FundingStreamId,
+               _specificationSummary.FundingPeriod.Id,
+               Arg.Is<IEnumerable<ProfilePatternKey>>(x => x.All(pk => pk.Key.StartsWith(profilePatternKey))),
+               null,
+               null);
         }
 
         [TestMethod]
@@ -563,7 +593,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         private void AndTemplateMetadataContents()
         {
             _calculationTemplateIds = new[] { new TemplateCalculationBuilder().Build(), new TemplateCalculationBuilder().Build(), new TemplateCalculationBuilder().Build() };
-            _fundingLines = new[] { NewTemplateFundingLine(fl => fl.WithCalculations(_calculationTemplateIds))};
+            _fundingLines = new[] { NewTemplateFundingLine(fl => fl.WithCalculations(_calculationTemplateIds)) };
             _templateMetadataContents = NewTemplateMetadataContents(_ => _.WithFundingLines(_fundingLines));
 
             _policiesService
@@ -573,7 +603,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
 
         private void GivenFundingConfiguration(params IVariationStrategy[] variations)
         {
-            _fundingConfiguration = new FundingConfiguration { Variations = variations.Select(_ => new FundingVariation { Name = _.Name })};
+            _fundingConfiguration = new FundingConfiguration { Variations = variations.Select(_ => new FundingVariation { Name = _.Name }) };
             _policiesService
                 .GetFundingConfiguration(FundingStreamId, _specificationSummary.FundingPeriod.Id)
                 .Returns(_fundingConfiguration);
@@ -581,7 +611,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
 
         private void AndTemplateMapping()
         {
-            TemplateMappingItem[] templateMappingItems = new[] { new TemplateMappingItem { TemplateId = _calculationTemplateIds[0].TemplateCalculationId, 
+            TemplateMappingItem[] templateMappingItems = new[] { new TemplateMappingItem { TemplateId = _calculationTemplateIds[0].TemplateCalculationId,
                                                                         CalculationId = _calculationResults[0].Id },
                                                                  new TemplateMappingItem { TemplateId = _calculationTemplateIds[1].TemplateCalculationId,
                                                                         CalculationId = _calculationResults[1].Id },
@@ -603,7 +633,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
 
         private void AndProfilingThrowsExeption()
         {
-            _profilingService.ProfileFundingLines(Arg.Any<IEnumerable<FundingLine>>(), FundingStreamId, _specificationSummary.FundingPeriod.Id)
+            _profilingService.ProfileFundingLines(
+                Arg.Any<IEnumerable<FundingLine>>(),
+                FundingStreamId,
+                _specificationSummary.FundingPeriod.Id,
+                Arg.Any<IEnumerable<ProfilePatternKey>>(),
+                Arg.Any<string>(),
+                Arg.Any<string>())
                 .Throws(new Exception());
         }
 
@@ -621,7 +657,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 .Throws(new Exception());
         }
 
-        private void AndScopedProviders(Action<Provider> variationAction = null)
+        private void AndScopedProviders(Action<Provider> variationAction = null, string profilePatternKeyPrefix = null)
         {
             _scopedProviders = new[] { NewProvider(), NewProvider(), NewProvider() };
 
@@ -631,7 +667,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                             .WithFundingStreamId(FundingStreamId)
                             .WithProviderId(_.ProviderId)
                             .WithTotalFunding(9)
-                            .WithFundingLines(new[] { new FundingLine { FundingLineCode = _fundingLines[0].FundingLineCode, TemplateLineId  = _fundingLines[0].TemplateLineId, Value = 9} })
+                            .WithProfilePatternKeys(new ProfilePatternKey() { FundingLineCode = _fundingLines[0].FundingLineCode, Key = $"{profilePatternKeyPrefix}-{NewRandomString()}" })
+                            .WithFundingLines(new[] { new FundingLine { FundingLineCode = _fundingLines[0].FundingLineCode, TemplateLineId = _fundingLines[0].TemplateLineId, Value = 9 } })
                             .WithFundingCalculations(new[] {new FundingCalculation { Value = _calculationResults[0].Value, TemplateCalculationId = _calculationTemplateIds[0].TemplateCalculationId },
                                                             new FundingCalculation { Value = _calculationResults[1].Value, TemplateCalculationId = _calculationTemplateIds[1].TemplateCalculationId },
                                                             new FundingCalculation { Value = _calculationResults[2].Value, TemplateCalculationId = _calculationTemplateIds[2].TemplateCalculationId } })))
@@ -639,7 +676,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                                 .WithFundingStreamId(FundingStreamId)
                                 .WithProviderId(_.ProviderId)
                                 .WithTotalFunding(9)
-                                .WithFundingLines(new[] { new FundingLine { FundingLineCode = _fundingLines[0].FundingLineCode, TemplateLineId  = _fundingLines[0].TemplateLineId, Value = 9} })
+                                .WithFundingLines(new[] { new FundingLine { FundingLineCode = _fundingLines[0].FundingLineCode, TemplateLineId = _fundingLines[0].TemplateLineId, Value = 9 } })
                                 .WithFundingCalculations(new[] {new FundingCalculation { Value = _calculationResults[0].Value, TemplateCalculationId = _calculationTemplateIds[0].TemplateCalculationId },
                                     new FundingCalculation { Value = _calculationResults[1].Value, TemplateCalculationId = _calculationTemplateIds[1].TemplateCalculationId },
                                     new FundingCalculation { Value = _calculationResults[2].Value, TemplateCalculationId = _calculationTemplateIds[2].TemplateCalculationId } }))))).ToList();
@@ -656,7 +693,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         private void GivenPublishedProviderClosedWithSuccessor()
         {
             PublishedProvider predecessor = _publishedProviders.Single(_ => _.Current.ProviderId == _providerIdVaried);
-            
+
             _missingProvider = predecessor.DeepCopy();
             _missingProvider.Current.ProviderId = Successor;
             _missingProvider.Current.Provider.ProviderId = Successor;
@@ -664,7 +701,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
 
             _providerService
                 .CreateMissingPublishedProviderForPredecessor(
-                    Arg.Is<PublishedProvider>(_ => _.Current.ProviderId == predecessor.Current.ProviderId), 
+                    Arg.Is<PublishedProvider>(_ => _.Current.ProviderId == predecessor.Current.ProviderId),
                     Arg.Is(Successor),
                     Arg.Is(providerVersionId))
                 .Returns(_missingProvider);
@@ -679,14 +716,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
 
         private void AndJobsRunning()
         {
-            string[] jobTypes = new string[] 
-            { 
-                JobConstants.DefinitionNames.CreateInstructAllocationJob, 
+            string[] jobTypes = new string[]
+            {
+                JobConstants.DefinitionNames.CreateInstructAllocationJob,
                 JobConstants.DefinitionNames.ApproveAllProviderFundingJob,
                 JobConstants.DefinitionNames.ApproveBatchProviderFundingJob,
                 JobConstants.DefinitionNames.PublishAllProviderFundingJob,
                 JobConstants.DefinitionNames.PublishBatchProviderFundingJob,
-                JobConstants.DefinitionNames.ReIndexPublishedProvidersJob 
+                JobConstants.DefinitionNames.ReIndexPublishedProvidersJob
             };
 
             _jobsRunning
@@ -724,7 +761,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 .RetrieveJobAndCheckCanBeProcessed(JobId)
                 .Throws(new JobNotFoundException($"Could not find the job with id: '{JobId}'", JobId));
         }
-        
+
         private void GivenJobCannotBeProcessed()
         {
             JobViewModel jobViewModel = NewJobViewModel(_ => _.WithCompletionStatus(CompletionStatus.Superseded));

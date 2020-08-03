@@ -246,7 +246,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             AndAssemblePublishedProviderCreateVersionRequests(publishedProvider, publishedProviderCreateVersionRequest);
             AndCreateVersion(publishedProvider, publishedProviderCreateVersionRequest);
             AndGetProfileVariationPointers(null, specificationId);
-            AndProfileFundingLines(newProfilePatterFundingKey);
+            AndProfileFundingLines(profilePatternKey);
             AndSaveVersion(HttpStatusCode.OK, existingPublishedProviderVersion);
             AndUpsertPublishedProvider(HttpStatusCode.OK, publishedProvider);
 
@@ -313,7 +313,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             AndAssemblePublishedProviderCreateVersionRequests(publishedProvider, publishedProviderCreateVersionRequest);
             AndCreateVersion(publishedProvider, publishedProviderCreateVersionRequest);
             AndGetProfileVariationPointers(profileVariationPointers, specificationId);
-            AndProfileFundingLines(newProfilePatterFundingKey);
+            AndProfileFundingLines(profilePatternKey);
             AndSaveVersion(HttpStatusCode.OK, existingPublishedProviderVersion);
             AndUpsertPublishedProvider(HttpStatusCode.OK, publishedProvider);
 
@@ -321,7 +321,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             ThenResultReturnedAs(result, HttpStatusCode.OK);
             AndProfilePatternKeyUpdated(newPublishedProviderVersion, profilePatternKey);
-            AndPaidProfilePeriodExists(distributionPeriodId, paidProfilePeriod, profilePatternKey.Key);
+            AndPaidProfilePeriodExists(distributionPeriodId, paidProfilePeriod, profilePatternKey);
             AndPublishedProviderProcessed(newPublishedProviderVersion);
         }
 
@@ -356,7 +356,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .Returns(Task.FromResult(new ApiResponse<IEnumerable<ProfileVariationPointer>>(HttpStatusCode.OK, profileVariationPointers)));
         }
 
-        private void AndProfileFundingLines(string profilePatternKey)
+        private void AndProfileFundingLines(ProfilePatternKey profilePatternKey)
         {
             _profilingService
                .ProfileFundingLines(
@@ -364,7 +364,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                         FundingLinesMatches(_)),
                         _fundingStreamId,
                         _fundingPeriodId,
-                        profilePatternKey)
+                        Arg.Is<IEnumerable<ProfilePatternKey>>(_ => _.Any(k => k.FundingLineCode == profilePatternKey.FundingLineCode && k.Key == profilePatternKey.Key)))
                .Returns(_ =>
                {
                    IEnumerable<FundingLine> fundingLines = _.Arg<IEnumerable<FundingLine>>();
@@ -484,7 +484,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 lastProfilePeriod.Year == _profilePeriod2Year;
         }
 
-        private void AndPaidProfilePeriodExists(string distributionId, ProfilePeriod profilePeriod, string profilePatternKey)
+        private void AndPaidProfilePeriodExists(string distributionId, ProfilePeriod profilePeriod, ProfilePatternKey profilePatternKey)
         {
             _profilingService
                 .Received(1)
@@ -492,7 +492,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                     PaidProfileFundingLinesMatches(_, distributionId, profilePeriod)),
                     _fundingStreamId,
                     _fundingPeriodId,
-                    profilePatternKey);
+                    Arg.Is<IEnumerable<ProfilePatternKey>>(_ => _.Any(k => k.FundingLineCode == profilePatternKey.FundingLineCode && k.Key == profilePatternKey.Key)));
         }
 
         private bool PaidProfileFundingLinesMatches(IEnumerable<FundingLine> fundingLines, string distributionId, ProfilePeriod profilePeriod)

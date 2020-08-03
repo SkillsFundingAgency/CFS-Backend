@@ -254,6 +254,52 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                     m.FundingValue == 500));
         }
 
+        [TestMethod] 
+        public async Task SaveFundingTotals_GivenPublishedProfilingRequestsReturnProfilePatternKey()
+        {
+            //Arrange
+            IEnumerable<FundingLine> fundingLines = SetUpInput();
+            IEnumerable<ProfilePatternKey> profilePatternKeys = SetUpProfilePatternKeyt();
+
+            ILogger logger = CreateLogger();
+
+            ValidatedApiResponse<ProviderProfilingResponseModel> profileResponse = SetUpProviderProfilingResponse();
+
+            IProfilingApiClient providerProfilingRepository = Substitute.For<IProfilingApiClient>();
+            providerProfilingRepository
+                .GetProviderProfilePeriods(Arg.Any<ProviderProfilingRequestModel>())
+                .Returns(Task.FromResult(profileResponse));
+
+            ProfilingService serviceapi = CreateProfilingService(
+            logger: logger,
+               profilingApiClient: providerProfilingRepository);
+
+            //Act
+            IEnumerable<ProfilePatternKey> result = await serviceapi.ProfileFundingLines(fundingLines, "PSG", "AY-1819", 
+                profilePatternKeys, "productType", "productSubType");
+
+            //Assert 
+            fundingLines.Where(y => y.Type == OrganisationGroupingReason.Payment)
+                .Select(r => r.DistributionPeriods)
+                .Should()
+                .NotBeNullOrEmpty();
+
+            IEnumerable<FundingLine> expectedFundingLines;
+            expectedFundingLines = ExpectedOutput();
+            JsonConvert
+                .SerializeObject(expectedFundingLines)
+                .Should()
+                .BeEquivalentTo(JsonConvert.SerializeObject(fundingLines));
+
+            await providerProfilingRepository
+                .Received(1)
+                .GetProviderProfilePeriods(Arg.Is<ProviderProfilingRequestModel>(m =>
+                    m.FundingValue == 500));
+
+            result.Select(m => m.Key)
+                .Should()
+                .BeEquivalentTo("ProfilePatthernKey1");
+        }
 
         private static IEnumerable<FundingLine> SetUpInput()
         {
@@ -263,6 +309,16 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             };
 
             return fundingLines;
+        }
+
+        private static IEnumerable<ProfilePatternKey> SetUpProfilePatternKeyt()
+        {
+            List<ProfilePatternKey> profilePatternKey = new List<ProfilePatternKey>
+            {
+                new ProfilePatternKey { Key = "key1"}
+            };
+
+            return profilePatternKey;
         }
 
         private static IEnumerable<FundingLine> ExpectedOutput()
@@ -302,7 +358,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 DistributionPeriods = new List<DistributionPeriods>
                  {
                     new DistributionPeriods { DistributionPeriodCode = "2018-2019",   Value = 82190.0M }
-                 }
+                 },
+                ProfilePatternKey = "ProfilePatthernKey1"
+
             });
         }
 

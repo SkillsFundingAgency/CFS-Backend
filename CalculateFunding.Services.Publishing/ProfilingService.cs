@@ -35,24 +35,27 @@ namespace CalculateFunding.Services.Publishing
         /// <param name="fundingStreamId">Funding Stream ID</param>
         /// <param name="fundingPeriodId">Funding Period ID</param>
         /// <returns></returns>
-        public async Task ProfileFundingLines(IEnumerable<FundingLine> fundingLineTotals, string fundingStreamId, string fundingPeriodId, string profilePatternKey = null)
+        public async Task<IEnumerable<ProfilePatternKey>> ProfileFundingLines(IEnumerable<FundingLine> fundingLines, string fundingStreamId, string fundingPeriodId, IEnumerable<ProfilePatternKey> profilePatternKeys = null, string providerType = null, string providerSubType = null)
         {
-            Guard.ArgumentNotNull(fundingLineTotals, nameof(fundingLineTotals));
+            Guard.ArgumentNotNull(fundingLines, nameof(fundingLines));
             Guard.IsNullOrWhiteSpace(fundingStreamId, nameof(fundingStreamId));
             Guard.IsNullOrWhiteSpace(fundingPeriodId, nameof(fundingPeriodId));
 
+            List<ProfilePatternKey> profilePatternKeysToReturn = new List<ProfilePatternKey>();
+
             Dictionary<decimal?, ProviderProfilingResponseModel> response =
-                  new Dictionary<decimal?, ProviderProfilingResponseModel>();
+                 new Dictionary<decimal?, ProviderProfilingResponseModel>();
 
             Dictionary<string, Dictionary<decimal?, ProviderProfilingResponseModel>> profilingResponses =
                 new Dictionary<string, Dictionary<decimal?, ProviderProfilingResponseModel>>();
 
-            if (fundingLineTotals.IsNullOrEmpty())
+            if (fundingLines.IsNullOrEmpty())
             {
-                throw new ArgumentNullException($"Null or empty publsihed profiling fundingLineTotals.");
+                throw new ArgumentNullException($"Null or empty publsihed profiling fundingLines.");
             }
 
-            var fundingValues = fundingLineTotals
+            //Change the key to FundingLineCode + ProfilePatternKey + ProviderType + ProviderSubType
+            var fundingValues = fundingLines
                 .Select(k => new { k.FundingLineCode, k.Value })
                 .Distinct()
                 .ToList();
@@ -63,20 +66,22 @@ namespace CalculateFunding.Services.Publishing
 
                 _logger.Error(errorMessage);
 
-                return;
+                return profilePatternKeysToReturn;
             }
-                          
+
             foreach (var value in fundingValues)
             {
                 ProviderProfilingRequestModel requestModel = ConstructProfilingRequest(fundingPeriodId,
                                                                 fundingStreamId,
                                                                 value.FundingLineCode,
                                                                 value.Value,
-                                                                profilePatternKey);
-                   
-                ValidatedApiResponse<ProviderProfilingResponseModel> publishedProvider = await GetProviderProfilePeriods(requestModel);
-                    
-                if (publishedProvider?.Content == null)
+                                                                profilePatternKey: profilePatternKeys?.FirstOrDefault(x => x.FundingLineCode == value.FundingLineCode)?.Key,
+                                                                providerType: providerType,
+                                                                providerSubType: providerSubType);
+
+                ValidatedApiResponse<ProviderProfilingResponseModel> providerProfilingResponse = await GetProviderProfilePeriods(requestModel);
+
+                if (providerProfilingResponse?.Content == null)
                 {
                     string errorMessage = $"Failed to Get Profile Periods for updating for Requested FundingPeriodId: '{fundingPeriodId}' and FundingStreamId: '{fundingStreamId}'";
 
@@ -85,12 +90,19 @@ namespace CalculateFunding.Services.Publishing
                     throw new NonRetriableException(errorMessage);
                 }
 
-                AddOrUpdateResponseDictionary(ref response, value.Value, publishedProvider.Content);
+                if(!profilePatternKeysToReturn.Any(x => x.FundingLineCode == value.FundingLineCode))
+                {
+                    profilePatternKeysToReturn.Add(new ProfilePatternKey() { FundingLineCode = value.FundingLineCode, Key = providerProfilingResponse.Content.ProfilePatternKey });
+                }
+                
+                AddOrUpdateResponseDictionary(ref response, value.Value, providerProfilingResponse.Content);
 
                 AddOrUpdateDictionaryProfilingResponses(profilingResponses, value.FundingLineCode, response);
             }
-                
-            SaveFundingLineTotals(ref fundingLineTotals, profilingResponses);
+
+            SaveFundingLineTotals(ref fundingLines, profilingResponses);
+
+            return profilePatternKeysToReturn;
         }
 
         private async Task<ValidatedApiResponse<ProviderProfilingResponseModel>> GetProviderProfilePeriods(ProviderProfilingRequestModel requestModel)
@@ -183,7 +195,7 @@ namespace CalculateFunding.Services.Publishing
             return addedOrUpdated;
         }
 
-        private ProviderProfilingRequestModel ConstructProfilingRequest(string fundingPeriodId,string fundingStreamId, string fundingLineCodes, decimal? fundingValue, string profilePatternKey)
+        private ProviderProfilingRequestModel ConstructProfilingRequest(string fundingPeriodId,string fundingStreamId, string fundingLineCodes, decimal? fundingValue, string profilePatternKey = null, string providerType = null, string providerSubType = null)
         {
             ProviderProfilingRequestModel requestModel = new ProviderProfilingRequestModel
             {
@@ -191,7 +203,9 @@ namespace CalculateFunding.Services.Publishing
                 FundingStreamId = fundingStreamId,
                 FundingLineCode = fundingLineCodes,
                 FundingValue = fundingValue,
-                ProfilePatternKey = profilePatternKey
+                ProfilePatternKey = profilePatternKey,
+                ProviderType = providerType,
+                ProviderSubType = providerSubType
             };
 
             return requestModel;
@@ -214,5 +228,7 @@ namespace CalculateFunding.Services.Publishing
 
             return health;
         }
+
+       
     }
 }
