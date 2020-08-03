@@ -182,7 +182,11 @@ namespace CalculateFunding.Services.Results.UnitTests
                             m.First().UKPRN == "ukprn" &&
                             m.First().UPIN == "upin" &&
                             m.First().URN == "urn" &&
-                            m.First().EstablishmentNumber == "12345"
+                            m.First().EstablishmentNumber == "12345" &&
+                            m.First().FundingLineId.SequenceEqual(new[] { "funding-line-id-1", "funding-line-id-2" }) &&
+                            m.First().FundingLineName.SequenceEqual(new[] { "funding line name 1", "funding line name 2" }) &&
+                            m.First().FundingLineResult.SequenceEqual(new[] { "124", "125" }) &&
+                            m.First().FundingLineFundingStreamId.SequenceEqual(new[] { "fs1", "fs2" })
                     ));
         }
 
@@ -293,6 +297,21 @@ namespace CalculateFunding.Services.Results.UnitTests
                         Value = 10,
                         CalculationType = CalculationType.Template
                     }
+                },
+                FundingLineResults = new List<FundingLineResult>
+                {
+                    new FundingLineResult
+                    {
+                        FundingLine = new Reference { Id = "funding-line-id-1", Name = "funding line name 1" },
+                        Value = 124,
+                        FundingLineFundingStreamId = "fs1"
+                    },
+                    new FundingLineResult
+                    {
+                        FundingLine = new Reference { Id = "funding-line-id-2", Name = "funding line name 2" },
+                        Value = 125,
+                        FundingLineFundingStreamId = "fs2"
+                    },
                 },
                 Provider = new ProviderSummary
                 {
