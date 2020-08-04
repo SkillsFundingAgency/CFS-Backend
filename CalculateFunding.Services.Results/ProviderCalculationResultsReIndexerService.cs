@@ -118,12 +118,16 @@ namespace CalculateFunding.Services.Results
                                 OpenDate = providerResult.Provider?.DateOpened,
                                 CalculationId = providerResult.CalculationResults.Select(m => m.Calculation.Id).ToArraySafe(),
                                 CalculationName = providerResult.CalculationResults.Select(m => m.Calculation.Name).ToArraySafe(),
-                                CalculationResult = providerResult.CalculationResults.Select(m => !string.IsNullOrEmpty(m.Value?.ToString()) ? m.Value.ToString() : "null").ToArraySafe(),
-                                FundingLineName = providerResult.FundingLineResults.Select(m => m.FundingLine.Name).ToArraySafe(),
-                                FundingLineFundingStreamId = providerResult.FundingLineResults.Select(m => m.FundingLineFundingStreamId).ToArraySafe(),
-                                FundingLineId = providerResult.FundingLineResults.Select(m => m.FundingLine.Id).ToArraySafe(),
-                                FundingLineResult = providerResult.FundingLineResults.Select(m => !string.IsNullOrEmpty(m.Value?.ToString()) ? m.Value.ToString() : "null").ToArraySafe()
+                                CalculationResult = providerResult.CalculationResults.Select(m => !string.IsNullOrEmpty(m.Value?.ToString()) ? m.Value.ToString() : "null").ToArraySafe()
                             };
+
+                            if(providerResult.FundingLineResults != null)
+                            {
+                                calculationResult.FundingLineName = providerResult.FundingLineResults?.Select(m => m.FundingLine.Name).ToArraySafe();
+                                calculationResult.FundingLineFundingStreamId = providerResult.FundingLineResults?.Select(m => m.FundingLineFundingStreamId).ToArraySafe();
+                                calculationResult.FundingLineId = providerResult.FundingLineResults?.Select(m => m.FundingLine.Id).ToArraySafe();
+                                calculationResult.FundingLineResult = providerResult.FundingLineResults?.Select(m => !string.IsNullOrEmpty(m.Value?.ToString()) ? m.Value.ToString() : "null").ToArraySafe();
+                            }
 
                             if (_featureToggle.IsExceptionMessagesEnabled())
                             {
@@ -140,18 +144,21 @@ namespace CalculateFunding.Services.Results
                                     .Select(m => m.ExceptionMessage ?? string.Empty)
                                     .ToArraySafe();
 
-                                calculationResult.FundingLineException = providerResult.FundingLineResults
+                                if (providerResult.FundingLineResults != null)
+                                {
+                                    calculationResult.FundingLineException = providerResult.FundingLineResults
                                     .Where(m => !string.IsNullOrWhiteSpace(m.ExceptionType))
                                     .Select(e => e.FundingLine.Id)
                                     .ToArraySafe();
 
-                                calculationResult.FundingLineExceptionType = providerResult.FundingLineResults
-                                    .Select(m => m.ExceptionType ?? string.Empty)
-                                    .ToArraySafe();
+                                    calculationResult.FundingLineExceptionType = providerResult.FundingLineResults
+                                        .Select(m => m.ExceptionType ?? string.Empty)
+                                        .ToArraySafe();
 
-                                calculationResult.FundingLineExceptionMessage = providerResult.FundingLineResults
-                                    .Select(m => m.ExceptionMessage ?? string.Empty)
-                                    .ToArraySafe();
+                                    calculationResult.FundingLineExceptionMessage = providerResult.FundingLineResults
+                                        .Select(m => m.ExceptionMessage ?? string.Empty)
+                                        .ToArraySafe();
+                                }
                             }
 
                             results.Add(calculationResult);

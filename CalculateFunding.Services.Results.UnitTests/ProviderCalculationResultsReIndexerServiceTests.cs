@@ -191,6 +191,71 @@ namespace CalculateFunding.Services.Results.UnitTests
         }
 
         [TestMethod]
+        public async Task ReIndexCalculationResults_GivenResultReturnedFromDatabaseWithCalcResultAndEmptyFundingLineResults_UpdatesSearch()
+        {
+            //Arrange
+            Message message = new Message();
+
+            ProviderResult providerResult = CreateProviderResultWithNullFundingLineResults();
+
+            ISearchRepository<ProviderCalculationResultsIndex> searchRepository = CreateSearchRepository();
+
+            SpecModel.SpecificationSummary specificationSummary = new SpecModel.SpecificationSummary()
+            {
+                Id = providerResult.SpecificationId,
+                Name = "spec name",
+            };
+
+            ICalculationResultsRepository calculationResultsRepository = CreateCalculationResultsRepository();
+            calculationResultsRepository
+                .WhenForAnyArgs(x => x.ProviderResultsBatchProcessing(default, default)).Do(x =>
+                {
+                    var y = x.Arg<Func<List<ProviderResult>, Task>>();
+                    y(new List<ProviderResult> { providerResult }).GetAwaiter().GetResult();
+                });
+
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+            specificationsApiClient
+                .GetSpecificationSummaries()
+                .Returns(new ApiResponse<IEnumerable<SpecModel.SpecificationSummary>>(HttpStatusCode.OK, new List<SpecModel.SpecificationSummary> { specificationSummary }));
+
+            ProviderCalculationResultsReIndexerService service = CreateService(
+                resultsRepository: calculationResultsRepository,
+                providerCalculationResultsSearchRepository: searchRepository,
+                specificationsApiClient: specificationsApiClient);
+
+            //Act
+            await service.ReIndexCalculationResults(message);
+
+            //Assert
+            await
+                searchRepository
+                    .Received(1)
+                    .Index(Arg.Is<IEnumerable<ProviderCalculationResultsIndex>>(m => m.Count() == 1));
+
+            await
+                searchRepository
+                    .Received(1)
+                    .Index(Arg.Is<IEnumerable<ProviderCalculationResultsIndex>>(
+                        m =>
+                            m.First().Id == "spec-id_prov-id" &&
+                            m.First().SpecificationId == "spec-id" &&
+                            m.First().SpecificationName == "spec name" &&
+                            m.First().CalculationId.SequenceEqual(new[] { "calc-id-1", "calc-id-2" }) &&
+                            m.First().CalculationName.SequenceEqual(new[] { "calc name 1", "calc name 2" }) &&
+                            m.First().CalculationResult.SequenceEqual(new[] { "123", "10" }) &&
+                            m.First().ProviderId == "prov-id" &&
+                            m.First().ProviderName == "prov name" &&
+                            m.First().ProviderType == "prov type" &&
+                            m.First().ProviderSubType == "prov sub type" &&
+                            m.First().UKPRN == "ukprn" &&
+                            m.First().UPIN == "upin" &&
+                            m.First().URN == "urn" &&
+                            m.First().EstablishmentNumber == "12345"
+                    ));
+        }
+
+        [TestMethod]
         public async Task ReIndexCalculationResults_GivenRequest_AddsServiceBusMessage()
         {
             //Arrange
@@ -274,6 +339,45 @@ namespace CalculateFunding.Services.Results.UnitTests
                 .Returns(featureToggleEnabled);
 
             return featureToggle;
+        }
+
+        static ProviderResult CreateProviderResultWithNullFundingLineResults()
+        {
+            return new ProviderResult
+            {
+                CreatedAt = DateTime.Now,
+                SpecificationId = "spec-id",
+                CalculationResults = new List<CalculationResult>
+                {
+                    new CalculationResult
+                    {
+                        Calculation = new Reference { Id = "calc-id-1", Name = "calc name 1" },
+                        Value = 123,
+                        CalculationType = CalculationType.Template,
+                        ExceptionType = "Exception"
+                    },
+                    new CalculationResult
+                    {
+                        Calculation = new Reference { Id = "calc-id-2", Name = "calc name 2" },
+                        Value = 10,
+                        CalculationType = CalculationType.Template
+                    }
+                },
+                Provider = new ProviderSummary
+                {
+                    Id = "prov-id",
+                    Name = "prov name",
+                    ProviderType = "prov type",
+                    ProviderSubType = "prov sub type",
+                    Authority = "authority",
+                    UKPRN = "ukprn",
+                    UPIN = "upin",
+                    URN = "urn",
+                    EstablishmentNumber = "12345",
+                    LACode = "la code",
+                    DateOpened = DateTime.Now.AddDays(-7)
+                }
+            };
         }
 
         static ProviderResult CreateProviderResult()
