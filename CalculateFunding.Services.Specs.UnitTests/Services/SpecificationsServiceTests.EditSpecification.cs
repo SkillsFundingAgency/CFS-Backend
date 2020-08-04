@@ -31,7 +31,8 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         private readonly PolicyModels.FundingPeriod _fundingPeriod = new PolicyModels.FundingPeriod
         {
             Id = "fp10",
-            Name = "fp 10"
+            Name = "fp 10",
+            Period = "p10"
         };
         private readonly ApiResponse<PolicyModels.FundingPeriod> _fundingPeriodResponse;
 
@@ -278,16 +279,22 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 FundingPeriodId = "fp10",
                 Name = "new spec name",
                 ProviderVersionId = _specification.Current.ProviderVersionId,
+                Description = "new spec description",
                 AssignedTemplateIds =  new Dictionary<string, string>()
             };
+
+            Reference user = new Reference();
+
             SpecificationVersion newSpecVersion = _specification.Current.DeepCopy(useCamelCase: false);
             newSpecVersion.Name = specificationEditModel.Name;
             newSpecVersion.FundingPeriod.Id = specificationEditModel.FundingPeriodId;
-            newSpecVersion.FundingStreams = new[] { new Reference { Id = "fs11" } };
+            newSpecVersion.FundingPeriod.Name = "p10";
+            newSpecVersion.Author = user;
+            newSpecVersion.Description = specificationEditModel.Description;
+            //newSpecVersion.FundingStreams = new[] { new Reference { Id = "fs11" } };
 
             SpecificationsService service = CreateSpecificationsService(newSpecVersion);
             
-            Reference user = new Reference();
             string correlationId = NewRandomString();
 
             SpecificationVersion previousSpecificationVersion = _specification.Current;
@@ -319,7 +326,8 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             await _templateVersionChangedHandler
                 .Received(1)
-                .HandleTemplateVersionChanged(Arg.Is(previousSpecificationVersion), 
+                .HandleTemplateVersionChanged(Arg.Is(previousSpecificationVersion),
+                    Arg.Is<SpecificationVersion>(_ => newSpecVersion.AsJson(true) == _.AsJson(true)),
                     Arg.Is(specificationEditModel.AssignedTemplateIds), 
                     Arg.Is(user),
                      Arg.Is(correlationId));

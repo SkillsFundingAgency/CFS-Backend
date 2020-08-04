@@ -11,14 +11,19 @@ namespace CalculateFunding.Models.Specs
         [JsonIgnore]
         public string SpecificationId { get; set; }
 
+        [JsonProperty("providerVersionId")]
         public string ProviderVersionId { get; set; }
 
+        [JsonProperty("fundingPeriodId")]
         public string FundingPeriodId { get; set; }
-        
+
+        [JsonProperty("assignedTemplateIds")]
         public IDictionary<string, string> AssignedTemplateIds { get; set; }
 
+        [JsonProperty("description")]
         public string Description { get; set; }
 
+        [JsonProperty("name")]
         public string Name { get; set; }
     }
 }

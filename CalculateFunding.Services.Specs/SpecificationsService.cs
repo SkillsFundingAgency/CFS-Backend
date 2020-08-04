@@ -684,6 +684,21 @@ namespace CalculateFunding.Services.Specs
                 }
             }
 
+            specification.Current = specificationVersion = await _specificationVersionRepository.CreateVersion(specificationVersion);
+
+            List<Task> tasks = new List<Task>();
+
+            foreach (string fundingStreamId in specification.Current.FundingStreams.Select(m => m.Id))
+            {
+                if (templateVersions.ContainsKey(fundingStreamId))
+                {
+                    specificationVersion.AddOrUpdateTemplateId(fundingStreamId, templateVersions[fundingStreamId]);
+                    tasks.Add(_calcsApiClientPolicy.ExecuteAsync(() =>
+                        _calcsApiClient.ProcessTemplateMappings(specification.Id,
+                            templateVersions[fundingStreamId], fundingStreamId)));
+                }
+            }
+
             DocumentEntity<Specification> repositoryCreateResult =
                 await _specificationsRepository.CreateSpecification(specification);
 
@@ -692,23 +707,13 @@ namespace CalculateFunding.Services.Specs
                 return new InternalServerErrorResult("Error creating specification in repository");
             }
 
-            specification.Current = specificationVersion = await _specificationVersionRepository.CreateVersion(specificationVersion);
-
             await _specificationVersionRepository.SaveVersion(specificationVersion);
+
+            await TaskHelper.WhenAllAndThrow(tasks.ToArraySafe());
 
             await _specificationIndexer.Index(specification);
 
             await ClearSpecificationCacheItems(specificationVersion.FundingPeriod.Id);
-
-            foreach (string fundingStreamId in specification.Current.FundingStreams.Select(m => m.Id))
-            {
-                if (templateVersions.ContainsKey(fundingStreamId))
-                {
-                    await _calcsApiClientPolicy.ExecuteAsync(() =>
-                        _calcsApiClient.AssociateTemplateIdWithSpecification(specification.Id,
-                            templateVersions[fundingStreamId], fundingStreamId));
-                }
-            }
 
             await _queueCreateSpecificationJobAction.Run(specificationVersion, user, correlationId);
 
@@ -750,8 +755,6 @@ namespace CalculateFunding.Services.Specs
 
             SpecificationVersion previousSpecificationVersion = specification.Current;
             
-            await _templateVersionChangedHandler.HandleTemplateVersionChanged(previousSpecificationVersion, editModel.AssignedTemplateIds, user, correlationId);
-
             if(previousSpecificationVersion.ProviderVersionId != editModel.ProviderVersionId)
             {
                 ApiResponse<bool> refreshCacheFromApi = await _providersApiClientPolicy.ExecuteAsync(() => 
@@ -791,16 +794,10 @@ namespace CalculateFunding.Services.Specs
                         $"Unable to find funding period with ID '{editModel.FundingPeriodId}'.");
                 }
 
-                PolicyModels.FundingPeriod fundingPeriod = new PolicyModels.FundingPeriod
-                {
-                    Id = content.Id,
-                    Name = content.Period,
-                    StartDate = content.StartDate,
-                    EndDate = content.EndDate
-                };
-
-                specificationVersion.FundingPeriod = new Reference {Id = fundingPeriod.Id, Name = fundingPeriod.Name};
+                specificationVersion.FundingPeriod = new Reference {Id = content.Id, Name = content.Period};
             }
+
+            await _templateVersionChangedHandler.HandleTemplateVersionChanged(previousSpecificationVersion, specificationVersion, editModel.AssignedTemplateIds, user, correlationId);
 
             HttpStatusCode statusCode =
                 await UpdateSpecification(specification, specificationVersion, previousSpecificationVersion);
@@ -1211,56 +1208,6 @@ WHERE   s.documentType = @DocumentType",
         {
             return specificationsInFundingPeriod.Any(_ =>
                 fundingStreams.Intersect(_.Current?.FundingStreams?.Select(fs => fs.Id) ?? ArraySegment<string>.Empty ).Any());
-        }
-
-        public async Task<IActionResult> SetAssignedTemplateVersion(string specificationId, string fundingStreamId,
-            string templateVersion)
-        {
-            Guard.ArgumentNotNull(specificationId, nameof(specificationId));
-            Guard.ArgumentNotNull(fundingStreamId, nameof(fundingStreamId));
-            Guard.ArgumentNotNull(templateVersion, nameof(templateVersion));
-
-            Specification specification = await _specificationsRepository.GetSpecificationById(specificationId);
-            if (specification == null)
-            {
-                string message =
-                    $"No specification ID {specificationId} were returned from the repository, result came back null";
-                _logger.Error(message);
-                return new PreconditionFailedResult(message);
-            }
-
-            bool specificationContainsGivenFundingStream =
-                specification.Current.FundingStreams.Any(x => x.Id == fundingStreamId);
-            if (!specificationContainsGivenFundingStream)
-            {
-                string message =
-                    $"Specification ID {specificationId} does not contains given funding stream with ID {fundingStreamId}";
-                _logger.Error(message);
-                return new PreconditionFailedResult(message);
-            }
-
-            ApiResponse<PolicyModels.FundingTemplateContents> fundingTemplateContents =
-                await _policiesApiClientPolicy.ExecuteAsync(() =>
-                    _policiesApiClient.GetFundingTemplate(fundingStreamId, specification.Current.FundingPeriod.Id,
-                    templateVersion));
-            if (fundingTemplateContents.StatusCode != HttpStatusCode.OK)
-            {
-                string message =
-                    $"Retrieve funding template with fundingStreamId: {fundingStreamId}, fundingPeriodId: {specification.Current.FundingPeriod.Id} and templateId: {templateVersion} did not return OK.";
-                _logger.Error(message);
-                return new PreconditionFailedResult(message);
-            }
-
-            SpecificationVersion currentSpecificationVersion = specification.Current;
-            SpecificationVersion newSpecificationVersion = specification.Current.DeepCopy(useCamelCase: false);
-
-            newSpecificationVersion.AddOrUpdateTemplateId(fundingStreamId, templateVersion);
-            HttpStatusCode updateSpecificationResult =
-                await UpdateSpecification(specification, newSpecificationVersion, currentSpecificationVersion);
-
-            await _templateVersionChangedHandler.HandleTemplateVersionChanged(currentSpecificationVersion, fundingStreamId, templateVersion);
-
-            return new OkObjectResult(updateSpecificationResult);
         }
 
         private async Task<HttpStatusCode> UpdateSpecification(Specification specification,

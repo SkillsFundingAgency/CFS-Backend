@@ -11,7 +11,7 @@
 
     <PackageReference Include="CalculateFunding.Common" Version="2.1.0" />
 
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Providers" Version="4.0.0" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Providers" Version="4.1.0" />
 
     <PackageReference Include="CalculateFunding.Common.JobManagement" Version="2.2.0" />
     <PackageReference Include="CalculateFunding.Common.ServiceBus" Version="1.0.0" />

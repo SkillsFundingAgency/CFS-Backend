@@ -23,6 +23,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
 using CalculationResult = CalculateFunding.Models.Calcs.CalculationResult;
+using FundingLineResult = CalculateFunding.Models.Calcs.FundingLineResult;
 using CalculationType = CalculateFunding.Models.Calcs.CalculationType;
 using ProviderResult = CalculateFunding.Models.Calcs.ProviderResult;
 using ProviderSummary = CalculateFunding.Models.ProviderLegacy.ProviderSummary;

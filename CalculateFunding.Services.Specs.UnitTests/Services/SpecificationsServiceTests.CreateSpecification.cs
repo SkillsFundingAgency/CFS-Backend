@@ -481,7 +481,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             await calculationsApiClient
                 .Received(1)
-                .AssociateTemplateIdWithSpecification(Arg.Is(specificationSummary.Id), templateVersion, fundingStreamId);
+                .ProcessTemplateMappings(Arg.Is(specificationSummary.Id), templateVersion, fundingStreamId);
         }
 
         [TestMethod]
@@ -727,7 +727,8 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                        m.FundingStreams.Any() &&
                        m.Name == "Specification Name" &&
                        m.Version == 1 &&
-                       m.ProviderSource == Models.Providers.ProviderSource.CFS
+                       m.ProviderSource == Models.Providers.ProviderSource.CFS &&
+                       m.TemplateIds[fundingStreamId] == "10.0"
                    ));
 
             await createSpecificationJobAction
@@ -751,7 +752,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             await calculationsApiClient
                 .Received(1)
-                .AssociateTemplateIdWithSpecification(Arg.Is(specificationSummary.Id), "10.0", fundingStreamId);
+                .ProcessTemplateMappings(Arg.Is(specificationSummary.Id), "10.0", fundingStreamId);
         }
 
         [TestMethod]
@@ -807,7 +808,9 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             ApiResponse<PolicyModels.FundingStream> fundingStreamResponse = new ApiResponse<PolicyModels.FundingStream>(HttpStatusCode.OK, fundingStream);
 
-            FundingConfiguration fundingConfiguration = NewFundingConfiguration(_ => _.WithDefaultTemplateVersion(NewRandomString()));
+            string templateVersion = NewRandomString();
+
+            FundingConfiguration fundingConfiguration = NewFundingConfiguration(_ => _.WithDefaultTemplateVersion(templateVersion));
 
             ApiResponse<FundingConfiguration> fundingConfigResponse = new ApiResponse<FundingConfiguration>(HttpStatusCode.OK, fundingConfiguration);
 
@@ -831,7 +834,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 FundingPeriod = new Reference("fp1", "Funding Period 1"),
                 Date = createdDate,
                 PublishStatus = Models.Versioning.PublishStatus.Draft,
-                FundingStreams = new List<Reference>() { new Reference(FundingStreamId, "Funding Stream 1") },
+                FundingStreams = new List<Reference>() { new Reference(fundingStreamId, "Funding Stream 1") },
                 Name = "Specification Name",
                 Version = 1,
                 SpecificationId = SpecificationId
@@ -894,7 +897,8 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                        m.FundingStreams.Any() &&
                        m.Name == "Specification Name" &&
                        m.Version == 1 &&
-                       m.ProviderSource == Models.Providers.ProviderSource.CFS
+                       m.ProviderSource == Models.Providers.ProviderSource.CFS &&
+                       m.TemplateIds[fundingStreamId] == templateVersion
                    ));
 
             await createSpecificationJobAction

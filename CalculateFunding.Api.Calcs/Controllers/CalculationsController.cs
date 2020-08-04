@@ -266,9 +266,9 @@ namespace CalculateFunding.Api.Calcs.Controllers
         [Route("api/calcs/specifications/{specificationId}/templates/{fundingStreamId}")]
         [HttpPut]
         [Produces(typeof(TemplateMappingSummary))]
-        public async Task<IActionResult> AssociateTemplateIdWithSpecification([FromRoute]string specificationId, [FromRoute]string fundingStreamId, [FromBody] string templateId)
+        public async Task<IActionResult> ProcessTemplateMappings([FromRoute]string specificationId, [FromRoute]string fundingStreamId, [FromBody] string templateId)
         {
-            return await _calcsService.AssociateTemplateIdWithSpecification(specificationId, templateId, fundingStreamId);
+            return await _calcsService.ProcessTemplateMappings(specificationId, templateId, fundingStreamId);
         }
 
         [Route("api/calcs/specifications/{specificationId}/templatemapping/{fundingStreamId}")]

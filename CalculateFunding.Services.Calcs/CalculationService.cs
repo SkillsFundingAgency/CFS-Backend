@@ -871,7 +871,7 @@ namespace CalculateFunding.Services.Calcs
             await _sourceCodeService.DeleteAssembly(specificationId);
         }
 
-        public async Task<IActionResult> AssociateTemplateIdWithSpecification(string specificationId, string templateVersion, string fundingStreamId)
+        public async Task<IActionResult> ProcessTemplateMappings(string specificationId, string templateVersion, string fundingStreamId)
         {
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
             Guard.IsNullOrWhiteSpace(templateVersion, nameof(templateVersion));
@@ -930,7 +930,7 @@ namespace CalculateFunding.Services.Calcs
                 {
                     FundingStreamId = fundingStreamId,
                     SpecificationId = specificationId,
-                    TemplateMappingItems = new List<TemplateMappingItem>(),
+                    TemplateMappingItems = new List<TemplateMappingItem>()
                 };
             }
             else
@@ -941,15 +941,6 @@ namespace CalculateFunding.Services.Calcs
             IEnumerable<CalculationMetadata> currentCalculations = await _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCalculationsMetatadataBySpecificationId(specificationId));
 
             ProcessTemplateMappingChanges(templateMapping, templateMetadataContents);
-
-            HttpStatusCode setAssignedTemplateVersionStatusCode = await _specificationsApiClientPolicy.ExecuteAsync(() => _specificationsApiClient.SetAssignedTemplateVersion(specificationId, templateVersion, fundingStreamId));
-            if (setAssignedTemplateVersionStatusCode != HttpStatusCode.OK)
-            {
-                string message = $"Unable to set assigned template version for funding stream: {fundingStreamId} and templateId: {templateVersion} for specification ID {specificationId}, did not return OK, but {setAssignedTemplateVersionStatusCode}";
-                _logger.Error(message);
-
-                return new PreconditionFailedResult(message);
-            }
 
             // Only save if changed
             if (existingSaveVersionOfTemplateMapping != JsonConvert.SerializeObject(templateMapping))

@@ -43,27 +43,13 @@ namespace CalculateFunding.Services.Specs
             _calculationsPolicy = resiliencePolicies.CalcsApiClient;
         }
 
-        public async Task HandleTemplateVersionChanged(SpecificationVersion specificationVersion,
-            string fundingStreamId,
-            string templateVersionId)
-        {
-            await HandleTemplateVersionChanged(specificationVersion,
-                new Dictionary<string, string>
-                {
-                    {
-                        fundingStreamId, templateVersionId
-                    }
-                },
-                null,
-                null);
-        }
-
-        public async Task HandleTemplateVersionChanged(SpecificationVersion specificationVersion,
+        public async Task HandleTemplateVersionChanged(SpecificationVersion previousSpecificationVersion,
+            SpecificationVersion specificationVersion,
             IDictionary<string, string> assignedTemplateIds,
             Reference user,
             string correlationId)
         {
-            Guard.ArgumentNotNull(specificationVersion, nameof(specificationVersion));
+            Guard.ArgumentNotNull(previousSpecificationVersion, nameof(previousSpecificationVersion));
 
             if (assignedTemplateIds.IsNullOrEmpty())
             {
@@ -71,15 +57,15 @@ namespace CalculateFunding.Services.Specs
                 return;
             }
 
-            string specificationId = specificationVersion.SpecificationId;
-            string fundingPeriodId = specificationVersion.FundingPeriod.Id;
+            string specificationId = previousSpecificationVersion.SpecificationId;
+            string fundingPeriodId = previousSpecificationVersion.FundingPeriod.Id;
 
             foreach (KeyValuePair<string, string> assignedTemplateId in assignedTemplateIds)
             {
                 string fundingStreamId = assignedTemplateId.Key;
                 string templateVersionId = assignedTemplateId.Value;
 
-                if (!specificationVersion.TemplateVersionHasChanged(fundingStreamId, templateVersionId))
+                if (!previousSpecificationVersion.TemplateVersionHasChanged(fundingStreamId, templateVersionId))
                 {
                     LogInformation($"FundingStream {fundingStreamId} template version id {templateVersionId} not changed in specification {specificationId}.");
 
@@ -88,7 +74,7 @@ namespace CalculateFunding.Services.Specs
 
                 LogInformation($"FundingStream {fundingStreamId} template version id {templateVersionId} changed for specification {specificationId}.");
 
-                await AssignTemplateWithSpecification(specificationId, templateVersionId, fundingStreamId, fundingPeriodId);
+                await AssignTemplateWithSpecification(specificationVersion, templateVersionId, fundingStreamId, fundingPeriodId);
                 await QueueAssignTemplateCalculationsJob(user, correlationId, specificationId, fundingStreamId, fundingPeriodId, templateVersionId);
             }
         }
@@ -128,18 +114,20 @@ namespace CalculateFunding.Services.Specs
                 }
             });
 
-        private async Task AssignTemplateWithSpecification(string specificationId,
+        private async Task AssignTemplateWithSpecification(SpecificationVersion specificationVersion,
             string templateVersionId,
             string fundingStreamId,
             string fundingPeriodId)
         {
-            ApiResponse<TemplateMapping> mappingResponse = await _calculationsPolicy.ExecuteAsync(() => _calculations.AssociateTemplateIdWithSpecification(specificationId,
+            specificationVersion.AddOrUpdateTemplateId(fundingStreamId, templateVersionId);
+
+            ApiResponse<TemplateMapping> mappingResponse = await _calculationsPolicy.ExecuteAsync(() => _calculations.ProcessTemplateMappings(specificationVersion.SpecificationId,
                 templateVersionId,
                 fundingStreamId));
 
             if (mappingResponse?.StatusCode.IsSuccess() != true)
             {
-                string message = $"Unable to associate template version {templateVersionId} for funding stream {fundingStreamId} and period {fundingPeriodId} on specification {specificationId}";
+                string message = $"Unable to associate template version {templateVersionId} for funding stream {fundingStreamId} and period {fundingPeriodId} on specification {specificationVersion.SpecificationId}";
 
                 LogError(message);
 

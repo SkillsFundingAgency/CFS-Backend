@@ -8,8 +8,8 @@
 
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="9.0.0" />
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Datasets" Version="5.0.0" />
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Results" Version="3.1.1" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Datasets" Version="5.1.1" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Results" Version="3.3.0" />
     <PackageReference Include="FluentValidation" Version="8.6.0" />
     <PackageReference Include="Microsoft.Azure.Functions.Extensions" Version="1.0.0" />
     <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.ServiceBus" Version="3.1.0" />

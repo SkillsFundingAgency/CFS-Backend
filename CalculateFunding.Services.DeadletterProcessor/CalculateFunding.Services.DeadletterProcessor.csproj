@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CalculateFunding.Common.ApiClient.Jobs" Version="2.1.0" />
+    <PackageReference Include="CalculateFunding.Common.ApiClient.Jobs" Version="2.2.0" />
     <PackageReference Include="CalculateFunding.Common.JobManagement" Version="2.2.0" />
     <PackageReference Include="Microsoft.Azure.ServiceBus" Version="4.0.0" />
     <PackageReference Include="Polly" Version="7.1.0" />

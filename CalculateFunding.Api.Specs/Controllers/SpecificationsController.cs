@@ -244,14 +244,6 @@ namespace CalculateFunding.Api.Specs.Controllers
             return await _specService.DeselectSpecificationForFunding(specificationId);
         }
 
-        [Route("api/specs/{specificationId}/templates/{fundingStreamId}/")]
-        [HttpPut]
-        [Produces(typeof(HttpStatusCode))]
-        public async Task<IActionResult> RunSetAssignedTemplateVersion([FromRoute]string specificationId, [FromRoute]string fundingStreamId, [FromBody]string templateVersion)
-        {
-            return await _specService.SetAssignedTemplateVersion(specificationId, fundingStreamId, templateVersion);
-        }
-
         [Route("/api/specs/{specificationId}/publishdates")]
         [HttpGet]
         [Produces(typeof(SpecificationPublishDateModel))]

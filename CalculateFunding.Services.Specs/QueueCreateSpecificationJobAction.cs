@@ -84,20 +84,14 @@ namespace CalculateFunding.Services.Specs
             Reference user,
             string correlationId,
             string parentJobId)
-        {
-            ApiResponse<FundingConfiguration> fundingConfigurationResponse = await _policyResiliencePolicy.ExecuteAsync(
-                () => _policies.GetFundingConfiguration(fundingStreamId,
-                    fundingPeriodId));
-
-            FundingConfiguration fundingConfiguration = fundingConfigurationResponse.Content;
-
-            string templateVersion = fundingConfiguration?.DefaultTemplateVersion;
+        { 
+            string templateVersion = specificationVersion.TemplateIds.ContainsKey(fundingStreamId) ? specificationVersion.TemplateIds[fundingStreamId] : string.Empty;
 
             if (string.IsNullOrEmpty(templateVersion)) return;
 
             ApiResponse<TemplateMetadataContents> templateContents = await _policyResiliencePolicy.ExecuteAsync(
                 () => _policies.GetFundingTemplateContents(fundingStreamId, fundingPeriodId,
-                    fundingConfiguration.DefaultTemplateVersion));
+                    templateVersion));
 
             IEnumerable<FundingLine> flattenedFundingLines = templateContents?.Content?.RootFundingLines.Flatten(_ => _.FundingLines)
                                                              ?? new FundingLine[0];

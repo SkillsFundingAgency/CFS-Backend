@@ -69,16 +69,16 @@ namespace CalculateFunding.Services.Specs.UnitTests
         [TestMethod]
         public async Task QueuesParentJobAndAssignCalculationsJobsWhereConfigurationHasADefaultTemplateVersion()
         {
-            string fundingSteam1 = NewRandomString();
-            string fundingSteam2 = NewRandomString();
-            string fundingSteam3 = NewRandomString();
+            string fundingStream1 = NewRandomString();
+            string fundingStream2 = NewRandomString();
+            string fundingStream3 = NewRandomString();
 
             string specificationId = NewRandomString();
             string[] fundingStreamIds =
             {
-                fundingSteam1,
-                fundingSteam2,
-                fundingSteam3
+                fundingStream1,
+                fundingStream2,
+                fundingStream3
             };
 
             string templateVersion1 = NewRandomString();
@@ -94,29 +94,27 @@ namespace CalculateFunding.Services.Specs.UnitTests
 
             SpecificationVersion specificationVersion = NewSpecificationVersion(_ => _.WithSpecificationId(specificationId)
                 .WithFundingStreamsIds(fundingStreamIds)
-                .WithFundingPeriodId(fundingPeriodId));
+                .WithFundingPeriodId(fundingPeriodId)
+                .WithTemplateIds((fundingStream1, templateVersion1), (fundingStream3, templateVersion2)));
 
             string expectedParentJobId = NewRandomString();
 
             Job createSpecificationJob = NewJob(_ => _.WithId(expectedParentJobId));
 
-            GivenTheFundingConfigurationForPeriodAndStream(fundingPeriodId, fundingSteam1,
-                NewFundingConfiguration(_ => _.WithDefaultTemplateVersion(templateVersion1)
-                    .WithFundingStreamId(fundingSteam1)
-                    .WithFundingPeriodId(fundingPeriodId)),
-                NewTemplateMetadataContents(_ => _.WithFundingLines(
-                    NewFundingLine(fl => fl.WithCalculations(NewCalculation(cal => cal.WithReferenceData(NewReferenceData(), NewReferenceData()).WithTemplateCalculationId(templateCalculationId1)))),
-                    NewFundingLine(fl => fl.WithCalculations(NewCalculation(cal => cal.WithTemplateCalculationId(templateCalculationId2)), NewCalculation(cal => cal.WithTemplateCalculationId(templateCalculationId3))))))); //item count 5
-            AndTheFundingConfigurationForPeriodAndStream(fundingPeriodId, fundingSteam2, NewFundingConfiguration(), NewTemplateMetadataContents());
-            AndTheFundingConfigurationForPeriodAndStream(fundingPeriodId, fundingSteam3,
-                NewFundingConfiguration(_ => _.WithDefaultTemplateVersion(templateVersion2)
-                    .WithFundingStreamId(fundingSteam3)
-                    
-                    .WithFundingPeriodId(fundingPeriodId)),
+            GivenTheFundingTemplateContentsForPeriodAndStream(fundingPeriodId, fundingStream1,
+                templateVersion1,
+                 NewTemplateMetadataContents(_ => _.WithFundingLines(
+                     NewFundingLine(fl => fl.WithCalculations(NewCalculation(cal => cal.WithReferenceData(NewReferenceData(), NewReferenceData()).WithTemplateCalculationId(templateCalculationId1)))),
+                     NewFundingLine(fl => fl.WithCalculations(NewCalculation(cal => cal.WithTemplateCalculationId(templateCalculationId2)), NewCalculation(cal => cal.WithTemplateCalculationId(templateCalculationId3))))))); //item count 5
+            AndTheFundingTemplateContentsForPeriodAndStream(fundingPeriodId, fundingStream2, string.Empty, NewTemplateMetadataContents());
+            AndTheFundingTemplateContentsForPeriodAndStream(fundingPeriodId, fundingStream3,
+                templateVersion2,
                 NewTemplateMetadataContents(_ => _.WithFundingLines(
                     NewFundingLine(fl => fl.WithCalculations(NewCalculation(cal => cal.WithReferenceData(NewReferenceData()).WithTemplateCalculationId(templateCalculationId4)))),
                     NewFundingLine(fl => fl.WithCalculations(NewCalculation(cal => cal.WithTemplateCalculationId(templateCalculationId5))))))); //item count 3
-            AndTheJobIsCreateForARequestModelMatching(CreateJobModelMatching(_ => _.JobDefinitionId == JobConstants.DefinitionNames.CreateSpecificationJob &&
+
+
+            AndTheJobIsCreatedForARequestModelMatching(CreateJobModelMatching(_ => _.JobDefinitionId == JobConstants.DefinitionNames.CreateSpecificationJob &&
                                                                                   HasProperty(_, SpecificationId, specificationId) &&
                                                                                   _.ParentJobId == null),
                 createSpecificationJob);
@@ -129,7 +127,7 @@ namespace CalculateFunding.Services.Specs.UnitTests
                                             _.ItemCount == 5 &&
                                             HasProperty(_, TemplateVersion, templateVersion1) && 
                                             HasProperty(_, SpecificationId, specificationId) &&
-                                            HasProperty(_, FundingStreamId, fundingSteam1) &&
+                                            HasProperty(_, FundingStreamId, fundingStream1) &&
                                             HasProperty(_, FundingPeriodId, fundingPeriodId)));
             await AndTheAssignTemplateCalculationJobWasCreated(
                 CreateJobModelMatching(_ => _.JobDefinitionId == AssignTemplateCalculationsJob &&
@@ -137,13 +135,13 @@ namespace CalculateFunding.Services.Specs.UnitTests
                                             _.ItemCount == 3 &&
                                             HasProperty(_, TemplateVersion, templateVersion2) && 
                                             HasProperty(_, SpecificationId, specificationId) &&
-                                            HasProperty(_, FundingStreamId, fundingSteam3) &&
+                                            HasProperty(_, FundingStreamId, fundingStream3) &&
                                             HasProperty(_, FundingPeriodId, fundingPeriodId)));
             await AndTheAssignTemplateCalculationJobWasNotCreated(
                 CreateJobModelMatching(_ => _.JobDefinitionId == AssignTemplateCalculationsJob &&
                                             _.ParentJobId == expectedParentJobId &&
                                             HasProperty(_, SpecificationId, specificationId) &&
-                                            HasProperty(_, FundingStreamId, fundingSteam2) &&
+                                            HasProperty(_, FundingStreamId, fundingStream2) &&
                                             HasProperty(_, FundingPeriodId, fundingPeriodId)));
         }
 
@@ -179,27 +177,24 @@ namespace CalculateFunding.Services.Specs.UnitTests
         {
             await _action.Run(specificationVersion, user, correlationId);
         }
-
-        private void GivenTheFundingConfigurationForPeriodAndStream(string fundingPeriodId,
-            string fundingStreamId,
-            FundingConfiguration fundingConfiguration,
-            TemplateMetadataContents templateContents)
+        private void GivenTheFundingTemplateContentsForPeriodAndStream(string fundingPeriodId,
+           string fundingStreamId,
+           string templateVersionId,
+           TemplateMetadataContents templateContents)
         {
-            _policies.GetFundingConfiguration(fundingStreamId, fundingPeriodId)
-                .Returns(new ApiResponse<FundingConfiguration>(HttpStatusCode.OK, fundingConfiguration));
-            _policies.GetFundingTemplateContents(fundingStreamId, fundingPeriodId,fundingConfiguration.DefaultTemplateVersion)
+            _policies.GetFundingTemplateContents(fundingStreamId, fundingPeriodId, templateVersionId)
                 .Returns(new ApiResponse<TemplateMetadataContents>(HttpStatusCode.OK, templateContents));
         }
 
-        private void AndTheFundingConfigurationForPeriodAndStream(string fundingPeriodId,
+        private void AndTheFundingTemplateContentsForPeriodAndStream(string fundingPeriodId,
             string fundingStreamId,
-            FundingConfiguration fundingConfiguration,
+           string templateVersionId,
             TemplateMetadataContents templateContents)
         {
-            GivenTheFundingConfigurationForPeriodAndStream(fundingPeriodId, fundingStreamId, fundingConfiguration, templateContents);
+            GivenTheFundingTemplateContentsForPeriodAndStream(fundingPeriodId, fundingStreamId, templateVersionId, templateContents);
         }
 
-        private void AndTheJobIsCreateForARequestModelMatching(Expression<Predicate<JobCreateModel>> jobCreateModelMatching, Job job)
+        private void AndTheJobIsCreatedForARequestModelMatching(Expression<Predicate<JobCreateModel>> jobCreateModelMatching, Job job)
         {
             _jobs.QueueJob(Arg.Is(jobCreateModelMatching))
                 .Returns(job);

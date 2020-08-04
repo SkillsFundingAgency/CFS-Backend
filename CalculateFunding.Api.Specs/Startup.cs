@@ -38,6 +38,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
+using Newtonsoft.Json.Converters;
+using Newtonsoft.Json.Serialization;
 using Polly.Bulkhead;
 using Serilog;
 using BlobClient = CalculateFunding.Common.Storage.BlobClient;

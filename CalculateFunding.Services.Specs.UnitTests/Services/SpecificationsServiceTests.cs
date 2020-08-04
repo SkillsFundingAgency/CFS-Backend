@@ -334,7 +334,8 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                     PublishStatus = Models.Versioning.PublishStatus.Draft,
                     Version = 1,
                     ProviderSource = Models.Providers.ProviderSource.CFS,
-                    ProviderSnapshotId = 0
+                    ProviderSnapshotId = 0,
+                    SpecificationId = SpecificationId
                 }
             };
         }

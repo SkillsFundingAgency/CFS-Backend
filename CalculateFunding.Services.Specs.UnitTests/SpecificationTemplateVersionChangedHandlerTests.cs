@@ -7,6 +7,7 @@ using CalculateFunding.Common.ApiClient.Calcs;
 using CalculateFunding.Common.ApiClient.Calcs.Models;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.Extensions;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Specs;
@@ -45,16 +46,17 @@ namespace CalculateFunding.Services.Specs.UnitTests
 
         private void GivenAllTheAssociateTemplateIdWithSpecificationCallsSucceed()
         {
-            _calculations.Setup(_ => _.AssociateTemplateIdWithSpecification(It.IsAny<string>(),
+            _calculations.Setup(_ => _.ProcessTemplateMappings(It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<string>()))
                 .ReturnsAsync(new ApiResponse<TemplateMapping>(HttpStatusCode.OK));
         }
 
         [TestMethod]
-        public void GuardsAgainstMissingSpecificationVersion()
+        public void GuardsAgainstMissingPreviousSpecificationVersion()
         {
             Func<Task> invocation = () => WhenTemplateVersionChangeIsHandled(null,
+                null,
                 null,
                 null,
                 null);
@@ -65,7 +67,7 @@ namespace CalculateFunding.Services.Specs.UnitTests
                 .Which
                 .ParamName
                 .Should()
-                .Be("specificationVersion");
+                .Be("previousSpecificationVersion");
         }
 
         [TestMethod]
@@ -73,10 +75,11 @@ namespace CalculateFunding.Services.Specs.UnitTests
         {
             await WhenTemplateVersionChangeIsHandled(NewSpecificationVersion(), 
                 null, 
+                null,
                 NewUser(), 
                 NewRandomString());
-            
-            ThenNoTemplateVersionsWereAssigned();
+
+            ThenNoProcessMappingsCalled();
             AndNoAssignTemplateCalculationJobsWereCreated();
         }
 
@@ -92,16 +95,20 @@ namespace CalculateFunding.Services.Specs.UnitTests
             string specificationId = NewRandomString();
             string fundingPeriodId = NewRandomString();
             
-            SpecificationVersion specificationVersion = NewSpecificationVersion(_ => _.WithSpecificationId(specificationId)
+            SpecificationVersion previousSpecificationVersion = NewSpecificationVersion(_ => _.WithSpecificationId(specificationId)
                 .WithFundingPeriodId(fundingPeriodId)
                 .WithTemplateIds((fundingStream, existingTemplateId)));
+
+            SpecificationVersion specificationVersion = NewSpecificationVersion(_ => _.WithSpecificationId(specificationId)
+                .WithFundingPeriodId(fundingPeriodId));
 
             Reference user = NewUser();
             
             string correlationId = NewRandomString();
             
 
-            Func<Task> invocation = () => WhenTemplateVersionChangeIsHandled(specificationVersion,
+            Func<Task> invocation = () => WhenTemplateVersionChangeIsHandled(previousSpecificationVersion,
+                specificationVersion,
                 assignedTemplateIds,
                 user,
                 correlationId);
@@ -136,11 +143,13 @@ namespace CalculateFunding.Services.Specs.UnitTests
             string specificationId = NewRandomString();
             string fundingPeriodId = NewRandomString();
             
-            SpecificationVersion specificationVersion = NewSpecificationVersion(_ => _.WithSpecificationId(specificationId)
+            SpecificationVersion previousSpecificationVersion = NewSpecificationVersion(_ => _.WithSpecificationId(specificationId)
                 .WithFundingPeriodId(fundingPeriodId)
                 .WithTemplateIds((fundingStreamOne, existingTemplateIdOne),
                 (fundingStreamTwo, existingTemplateIdTwo),
                 (fundingStreamThree, existingTemplateIdThree)));
+
+            SpecificationVersion specificationVersion = previousSpecificationVersion.DeepCopy();
 
             Reference user = NewUser();
             
@@ -148,19 +157,21 @@ namespace CalculateFunding.Services.Specs.UnitTests
             
             GivenAllTheAssociateTemplateIdWithSpecificationCallsSucceed();
 
-            await WhenTemplateVersionChangeIsHandled(specificationVersion,
+            await WhenTemplateVersionChangeIsHandled(previousSpecificationVersion,
+                specificationVersion,
                 assignedTemplateIds,
                 user,
                 correlationId);
-            
-            ThenTheTemplateVersionWasAssigned(fundingStreamTwo, changedTemplateIdTwo, specificationId);
-            AndTheTemplateVersionWasNotAssigned(fundingStreamTwo, existingTemplateIdTwo, specificationId);
-            AndTheTemplateVersionWasNotAssigned(fundingStreamOne, existingTemplateIdOne, specificationId);
-            AndTheTemplateVersionWasNotAssigned(fundingStreamThree, existingTemplateIdThree, specificationId);
+
+            ThenTheProcessMappingsWasCalled(fundingStreamTwo, changedTemplateIdTwo, specificationId);
+            AndTheProcessMappingsWasNotCalled(fundingStreamTwo, existingTemplateIdTwo, specificationId);
+            AndTheProcessMappingsWasNotCalled(fundingStreamOne, existingTemplateIdOne, specificationId);
+            AndTheProcessMappingsWasNotCalled(fundingStreamThree, existingTemplateIdThree, specificationId);
             AndTheAssignTemplateCalculationJobWasCreated(user, correlationId, specificationId, fundingStreamTwo,  fundingPeriodId, changedTemplateIdTwo);            
             AndTheAssignTemplateCalculationJobWasNotCreated(user, correlationId, specificationId, fundingStreamTwo,  fundingPeriodId, existingTemplateIdTwo);            
             AndTheAssignTemplateCalculationJobWasNotCreated(user, correlationId, specificationId, fundingStreamOne,  fundingPeriodId, existingTemplateIdOne);            
-            AndTheAssignTemplateCalculationJobWasNotCreated(user, correlationId, specificationId, fundingStreamOne,  fundingPeriodId, existingTemplateIdThree);            
+            AndTheAssignTemplateCalculationJobWasNotCreated(user, correlationId, specificationId, fundingStreamOne,  fundingPeriodId, existingTemplateIdThree);
+            AndTheSpecVersionTemplateVersionsAssigned(specificationVersion, fundingStreamTwo, changedTemplateIdTwo);
         }
 
         [TestMethod]
@@ -172,54 +183,72 @@ namespace CalculateFunding.Services.Specs.UnitTests
             string specificationId = NewRandomString();
             string fundingPeriodId = NewRandomString();
             
-            SpecificationVersion specificationVersion = NewSpecificationVersion(_ => _.WithSpecificationId(specificationId)
+            SpecificationVersion previousSpecificationVersion = NewSpecificationVersion(_ => _.WithSpecificationId(specificationId)
                 .WithFundingPeriodId(fundingPeriodId)
                 .WithTemplateIds((fundingStream, existingTemplateId)));
+
+            SpecificationVersion specificationVersion = previousSpecificationVersion.DeepCopy(); 
             
+            Reference user = NewUser();
+
+            string correlationId = NewRandomString();
+
             GivenAllTheAssociateTemplateIdWithSpecificationCallsSucceed();
             
-            await WhenTemplateVersionChangeIsHandled(specificationVersion,
-                fundingStream,
-                changedTemplateId);
+            await WhenTemplateVersionChangeIsHandled(previousSpecificationVersion,
+                specificationVersion,
+                new Dictionary<string, string>
+                {
+                    { fundingStream , changedTemplateId }
+                },
+                user,
+                correlationId);
 
-            ThenTheTemplateVersionWasAssigned(fundingStream, changedTemplateId, specificationId);     
+            ThenTheProcessMappingsWasCalled(fundingStream, changedTemplateId, specificationId);     
             AndTheAssignTemplateCalculationJobWasNotCreated(specificationId, fundingStream,  fundingPeriodId, existingTemplateId);               
         }
 
-        private void ThenTheTemplateVersionWasAssigned(string fundingStreamId,
+        private void AndTheSpecVersionTemplateVersionsAssigned(SpecificationVersion specificationVersion, string fundingStreamId, string expectedVersion)
+        {
+            specificationVersion.TemplateIds[fundingStreamId]
+                .Should()
+                .Be(expectedVersion);
+        }
+
+        private void ThenTheProcessMappingsWasCalled(string fundingStreamId,
             string templateVersion,
             string specificationId)
         {
-            AndTheTemplateVersionWasAssignedXTimes(fundingStreamId,
+            AndTheProcessMappingsWasCalledXTimes(fundingStreamId,
                 templateVersion,
                 specificationId,
                 Times.Once());
         }
         
-        private void AndTheTemplateVersionWasNotAssigned(string fundingStreamId,
+        private void AndTheProcessMappingsWasNotCalled(string fundingStreamId,
             string templateVersion,
             string specificationId)
         {
-            AndTheTemplateVersionWasAssignedXTimes(fundingStreamId,
+            AndTheProcessMappingsWasCalledXTimes(fundingStreamId,
                 templateVersion,
                 specificationId,
                 Times.Never());
         }
         
-        private void AndTheTemplateVersionWasAssignedXTimes(string fundingStreamId,
+        private void AndTheProcessMappingsWasCalledXTimes(string fundingStreamId,
             string templateVersion,
             string specificationId,
             Times times)
         {
-            _calculations.Verify(_ => _.AssociateTemplateIdWithSpecification(specificationId,
+            _calculations.Verify(_ => _.ProcessTemplateMappings(specificationId,
                     templateVersion,
                     fundingStreamId),
                 times);    
         }
 
-        private void ThenNoTemplateVersionsWereAssigned()
+        private void ThenNoProcessMappingsCalled()
         {
-            _calculations.Verify(_ => _.AssociateTemplateIdWithSpecification(It.IsAny<string>(),
+            _calculations.Verify(_ => _.ProcessTemplateMappings(It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<string>()),
                 Times.Never);
@@ -305,16 +334,12 @@ namespace CalculateFunding.Services.Specs.UnitTests
         
         private string NewRandomString() => new RandomString();
         
-        private async Task WhenTemplateVersionChangeIsHandled(SpecificationVersion specificationVersion,
-            string fundingStreamId,
-            string templateVersionId)
-            => await _changedHandler.HandleTemplateVersionChanged(specificationVersion, fundingStreamId, templateVersionId);
-
-        private async Task WhenTemplateVersionChangeIsHandled(SpecificationVersion specificationVersion,
+        private async Task WhenTemplateVersionChangeIsHandled(SpecificationVersion previousSpecificationVersion,
+            SpecificationVersion specificationVersion,
             IDictionary<string, string> assignedTemplateIds,
             Reference user,
             string correlationId)
-            => await _changedHandler.HandleTemplateVersionChanged(specificationVersion, assignedTemplateIds, user, correlationId);
+            => await _changedHandler.HandleTemplateVersionChanged(previousSpecificationVersion, specificationVersion, assignedTemplateIds, user, correlationId);
 
         private SpecificationVersion NewSpecificationVersion(Action<SpecificationVersionBuilder> setUp = null)
         {

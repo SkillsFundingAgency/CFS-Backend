@@ -50,8 +50,6 @@ namespace CalculateFunding.Services.Specs.Interfaces
 
         Task<IActionResult> SelectSpecificationForFunding(string specificationId);
 
-        Task<IActionResult> SetAssignedTemplateVersion(string specificationId, string fundingStreamId, string templateVersion);
-
         Task<IActionResult> GetPublishDates(string specificationId);
 
         Task<IActionResult> GetProfileVariationPointers(string specificationId);

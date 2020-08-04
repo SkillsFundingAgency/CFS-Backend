@@ -45,11 +45,6 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             _calculationMetadata = calculationMetadata.ToArray();
         }
 
-        public Task<ApiResponse<TemplateMapping>> AssociateTemplateIdWithSpecification(string specificationId, string templateVersion, string fundingStreamId)
-        {
-            throw new NotImplementedException();
-        }
-
         public Task<ApiResponse<BooleanResponseModel>> CheckHasAllApprovedTemplateCalculationsForSpecificationId(string specificationId)
         {
             throw new NotImplementedException();
@@ -160,6 +155,11 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         }
 
         public Task<ApiResponse<SearchResults<CalculationSearchResult>>> SearchCalculationsForSpecification(string specificationId, Common.ApiClient.Calcs.Models.CalculationType calculationType, PublishStatus? status, string searchTerm = null, int? page = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ApiResponse<TemplateMapping>> ProcessTemplateMappings(string specificationId, string templateVersion, string fundingStreamId)
         {
             throw new NotImplementedException();
         }

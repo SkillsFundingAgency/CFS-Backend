@@ -26,7 +26,7 @@ namespace CalculateFunding.Services.Calcs.Services
     public partial class CalculationServiceTests
     {
         [TestMethod]
-        public async Task AssociateTemplateIdWithSpecification_WhenValidTemplateProvidedAndNoExistingTemplateMappingExists_ThenTemplateMappingIsCreated()
+        public async Task ProcessTemplateMappings_WhenValidTemplateProvidedAndNoExistingTemplateMappingExists_ThenTemplateMappingIsCreated()
         {
             // Arrange
             string specificationId = "spec1";
@@ -167,7 +167,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 cacheProvider: cacheProvider);
 
             // Act
-            var result = await service.AssociateTemplateIdWithSpecification(specificationId, templateVersion, fundingStreamId);
+            var result = await service.ProcessTemplateMappings(specificationId, templateVersion, fundingStreamId);
 
             // Assert
             await policiesApiClient
@@ -244,7 +244,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task AssociateTemplateIdWithSpecification_WhenValidTemplateProvidedAndNoExistingTemplateMappingExistsAndNoCalculationsOrReferenceDataExist_ThenTemplateMappingIsCreated()
+        public async Task ProcessTemplateMappings_WhenValidTemplateProvidedAndNoExistingTemplateMappingExistsAndNoCalculationsOrReferenceDataExist_ThenTemplateMappingIsCreated()
         {
             // Arrange
             string specificationId = "spec1";
@@ -315,7 +315,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 cacheProvider: cacheProvider);
 
             // Act
-            var result = await service.AssociateTemplateIdWithSpecification(specificationId, templateVersion, fundingStreamId);
+            var result = await service.ProcessTemplateMappings(specificationId, templateVersion, fundingStreamId);
 
             // Assert
             await policiesApiClient
@@ -348,7 +348,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task AssociateTemplateIdWithSpecification_WhenConfigurationIsTheSame_ThenTemplateMappingIsNotUpdated()
+        public async Task ProcessTemplateMappings_WhenConfigurationIsTheSame_ThenTemplateMappingIsNotUpdated()
         {
             // Arrange
             string specificationId = "spec1";
@@ -490,7 +490,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 policiesApiClient: policiesApiClient);
 
             // Act
-            var result = await service.AssociateTemplateIdWithSpecification(specificationId, templateVersion, fundingStreamId);
+            var result = await service.ProcessTemplateMappings(specificationId, templateVersion, fundingStreamId);
 
             // Assert
             await calculationsRepository
@@ -507,7 +507,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task AssociateTemplateIdWithSpecification_WhenValidTemplateProvidedAndExistingTemplateMappingExistsWithCalculationsWithNewCalculationsToAdd_ThenTemplateMappingIsCreated()
+        public async Task ProcessTemplateMappings_WhenValidTemplateProvidedAndExistingTemplateMappingExistsWithCalculationsWithNewCalculationsToAdd_ThenTemplateMappingIsCreated()
         {
             // Arrange
             string specificationId = "spec1";
@@ -635,7 +635,7 @@ namespace CalculateFunding.Services.Calcs.Services
                .UpdateTemplateMapping(Arg.Is(specificationId), Arg.Is(fundingStreamId), Arg.Do<TemplateMapping>(r => savedTemplateMapping = r));
 
             // Act
-            var result = await service.AssociateTemplateIdWithSpecification(specificationId, templateVersion, fundingStreamId);
+            var result = await service.ProcessTemplateMappings(specificationId, templateVersion, fundingStreamId);
 
             // Assert
             await calculationsRepository
@@ -695,7 +695,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task AssociateTemplateIdWithSpecification_WhenValidTemplateProvidedAndExistingTemplateMappingExistsWithCalculationsWithNewCalculationsToAddInNesting_ThenTemplateMappingIsCreated()
+        public async Task ProcessTemplateMappings_WhenValidTemplateProvidedAndExistingTemplateMappingExistsWithCalculationsWithNewCalculationsToAddInNesting_ThenTemplateMappingIsCreated()
         {
             // Arrange
             string specificationId = "spec1";
@@ -844,7 +844,7 @@ namespace CalculateFunding.Services.Calcs.Services
                .UpdateTemplateMapping(Arg.Is(specificationId), Arg.Is(fundingStreamId), Arg.Do<TemplateMapping>(r => savedTemplateMapping = r));
 
             // Act
-            var result = await service.AssociateTemplateIdWithSpecification(specificationId, templateVersion, fundingStreamId);
+            var result = await service.ProcessTemplateMappings(specificationId, templateVersion, fundingStreamId);
 
             // Assert
             await calculationsRepository
@@ -919,7 +919,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
 
         [TestMethod]
-        public async Task AssociateTemplateIdWithSpecification_WhenValidTemplateProvidedAndExistingTemplateMappingExistsWithReferenceDataWithNewReferenceDataToAdd_ThenTemplateMappingIsCreated()
+        public async Task ProcessTemplateMappings_WhenValidTemplateProvidedAndExistingTemplateMappingExistsWithReferenceDataWithNewReferenceDataToAdd_ThenTemplateMappingIsCreated()
         {
             // Arrange
             string specificationId = "spec1";
@@ -1066,7 +1066,7 @@ namespace CalculateFunding.Services.Calcs.Services
                .UpdateTemplateMapping(Arg.Is(specificationId), Arg.Is(fundingStreamId), Arg.Do<TemplateMapping>(r => savedTemplateMapping = r));
 
             // Act
-            var result = await service.AssociateTemplateIdWithSpecification(specificationId, templateVersion, fundingStreamId);
+            var result = await service.ProcessTemplateMappings(specificationId, templateVersion, fundingStreamId);
 
             // Assert
             await calculationsRepository
@@ -1133,7 +1133,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task AssociateTemplateIdWithSpecification_WhenExistingMappedCalculationIsRemovedFromTemplate_ThenTemplateMappingIsUnmapped()
+        public async Task ProcessTemplateMappings_WhenExistingMappedCalculationIsRemovedFromTemplate_ThenTemplateMappingIsUnmapped()
         {
             // Arrange
             string specificationId = "spec1";
@@ -1253,7 +1253,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 cacheProvider: cacheProvider);
 
             // Act
-            var result = await service.AssociateTemplateIdWithSpecification(specificationId, templateVersion, fundingStreamId);
+            var result = await service.ProcessTemplateMappings(specificationId, templateVersion, fundingStreamId);
 
             // Assert
             await calculationsRepository
@@ -1306,7 +1306,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task AssociateTemplateIdWithSpecification_WhenExistingMappedReferenceDataIsRemovedFromTemplate_ThenTemplateMappingIsUnmapped()
+        public async Task ProcessTemplateMappings_WhenExistingMappedReferenceDataIsRemovedFromTemplate_ThenTemplateMappingIsUnmapped()
         {
             // Arrange
             string specificationId = "spec1";
@@ -1428,7 +1428,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 cacheProvider: cacheProvider);
 
             // Act
-            var result = await service.AssociateTemplateIdWithSpecification(specificationId, templateVersion, fundingStreamId);
+            var result = await service.ProcessTemplateMappings(specificationId, templateVersion, fundingStreamId);
 
             // Assert
             await calculationsRepository
@@ -1488,7 +1488,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task AssociateTemplateIdWithSpecification_WhenExistingMappedCalculationCalculationsAreMapppedToCalculationIdsAndNewCalculationIsAdded_ThenExistingMappingIsKept()
+        public async Task ProcessTemplateMappings_WhenExistingMappedCalculationCalculationsAreMapppedToCalculationIdsAndNewCalculationIsAdded_ThenExistingMappingIsKept()
         {
             // Arrange
             string specificationId = "spec1";
@@ -1647,7 +1647,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 cacheProvider: cacheProvider);
 
             // Act
-            var result = await service.AssociateTemplateIdWithSpecification(specificationId, templateVersion, fundingStreamId);
+            var result = await service.ProcessTemplateMappings(specificationId, templateVersion, fundingStreamId);
 
             // Assert
             await calculationsRepository
@@ -1707,7 +1707,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task AssociateTemplateIdWithSpecification_WhenExistingMappedCalculationCalculationsAreMapppedToCalculationIdsAndCalculationIsRenamed_ThenExistingMappingIsKeptAndNameIsUpdated()
+        public async Task ProcessTemplateMappings_WhenExistingMappedCalculationCalculationsAreMapppedToCalculationIdsAndCalculationIsRenamed_ThenExistingMappingIsKeptAndNameIsUpdated()
         {
             // Arrange
             string specificationId = "spec1";
@@ -1866,7 +1866,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 cacheProvider: cacheProvider);
 
             // Act
-            var result = await service.AssociateTemplateIdWithSpecification(specificationId, templateVersion, fundingStreamId);
+            var result = await service.ProcessTemplateMappings(specificationId, templateVersion, fundingStreamId);
 
             // Assert
             await calculationsRepository
@@ -1926,7 +1926,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public void AssociateTemplateIdWithSpecification_SpecificationIsNull_ReturnsBadRequestObjectResult()
+        public void ProcessTemplateMappings_SpecificationIsNull_ReturnsBadRequestObjectResult()
         {
             //Arrange
             ILogger logger = CreateLogger();
@@ -1935,7 +1935,7 @@ namespace CalculateFunding.Services.Calcs.Services
             CalculationService service = CreateCalculationService(logger: logger);
 
             // Act
-            Func<Task<IActionResult>> func = () => service.AssociateTemplateIdWithSpecification(specificationId, null, null);
+            Func<Task<IActionResult>> func = () => service.ProcessTemplateMappings(specificationId, null, null);
 
             //Assert
             func
@@ -1944,7 +1944,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public void AssociateTemplateIdWithSpecification_TemplateIdIsNull_ReturnsBadRequestObjectResult()
+        public void ProcessTemplateMappings_TemplateIdIsNull_ReturnsBadRequestObjectResult()
         {
             //Arrange
             ILogger logger = CreateLogger();
@@ -1954,7 +1954,7 @@ namespace CalculateFunding.Services.Calcs.Services
             CalculationService service = CreateCalculationService(logger: logger);
 
             // Act
-            Func<Task<IActionResult>> func = () => service.AssociateTemplateIdWithSpecification(specificationId, templateId, null);
+            Func<Task<IActionResult>> func = () => service.ProcessTemplateMappings(specificationId, templateId, null);
 
             //Assert
             func
@@ -1963,7 +1963,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public void AssociateTemplateIdWithSpecification_FundingStreamIdIsNull_ReturnsBadRequestObjectResult()
+        public void ProcessTemplateMappings_FundingStreamIdIsNull_ReturnsBadRequestObjectResult()
         {
             //Arrange
             ILogger logger = CreateLogger();
@@ -1974,7 +1974,7 @@ namespace CalculateFunding.Services.Calcs.Services
             CalculationService service = CreateCalculationService(logger: logger);
 
             // Act
-            Func<Task<IActionResult>> func = () => service.AssociateTemplateIdWithSpecification(specificationId, templateId, fundingStreamId);
+            Func<Task<IActionResult>> func = () => service.ProcessTemplateMappings(specificationId, templateId, fundingStreamId);
 
             //Assert
             func
@@ -1983,7 +1983,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task AssociateTemplateIdWithSpecification_SpecDoesNotExistsInSystem_Returns412WithErrorMessage()
+        public async Task ProcessTemplateMappings_SpecDoesNotExistsInSystem_Returns412WithErrorMessage()
         {
             //Arrange
             ILogger logger = CreateLogger();
@@ -2001,7 +2001,7 @@ namespace CalculateFunding.Services.Calcs.Services
             CalculationService service = CreateCalculationService(logger: logger, specificationsApiClient: specificationsApiClient);
 
             // Act
-            IActionResult result = await service.AssociateTemplateIdWithSpecification(specificationId, templateId, fundingStreamId);
+            IActionResult result = await service.ProcessTemplateMappings(specificationId, templateId, fundingStreamId);
 
             //Assert
             result
@@ -2018,7 +2018,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task AssociateTemplateIdWithSpecification_FundingStreamDoesNotExistsOnSpecification_Returns412WithErrorMessage()
+        public async Task ProcessTemplateMappins_FundingStreamDoesNotExistsOnSpecification_Returns412WithErrorMessage()
         {
             //Arrange
             ILogger logger = CreateLogger();
@@ -2038,7 +2038,7 @@ namespace CalculateFunding.Services.Calcs.Services
             CalculationService service = CreateCalculationService(logger: logger, specificationsApiClient: specificationsApiClient);
 
             // Act
-            IActionResult result = await service.AssociateTemplateIdWithSpecification(specificationId, templateId, fundingStreamId);
+            IActionResult result = await service.ProcessTemplateMappings(specificationId, templateId, fundingStreamId);
 
             //Assert
             result
@@ -2055,7 +2055,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task AssociateTemplateIdWithSpecification_FundingTemplateDoesNotExistsOnSystem_Returns412WithErrorMessage()
+        public async Task ProcessTemplateMappings_FundingTemplateDoesNotExistsOnSystem_Returns412WithErrorMessage()
         {
             //Arrange
             ILogger logger = CreateLogger();
@@ -2097,7 +2097,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 policiesApiClient: policiesApiClient);
 
             // Act
-            IActionResult result = await service.AssociateTemplateIdWithSpecification(specificationId, templateId, fundingStreamId);
+            IActionResult result = await service.ProcessTemplateMappings(specificationId, templateId, fundingStreamId);
 
             //Assert
             result

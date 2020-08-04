@@ -44,7 +44,7 @@ namespace CalculateFunding.Services.Calcs.Interfaces
 
         Task<IActionResult> GetCalculationsMetadataForSpecification(string specificationId);
 
-        Task<IActionResult> AssociateTemplateIdWithSpecification(string specificationId, string templateVersion, string fundingStreamId);
+        Task<IActionResult> ProcessTemplateMappings(string specificationId, string templateVersion, string fundingStreamId);
 
         Task<IActionResult> GetMappedCalculationsOfSpecificationTemplate(string specificationId, string fundingStreamId);
 
