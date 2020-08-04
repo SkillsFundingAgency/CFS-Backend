@@ -14,12 +14,12 @@ namespace CalculateFunding.Services.Results.UnitTests
     [TestClass]
     public class ProviderResultsToCsvRowTransformationTests
     {
-        private ProverResultsToCsvRowsTransformation _transformation;
+        private ProviderResultsToCsvRowsTransformation _transformation;
 
         [TestInitialize]
         public void SetUp()
         {
-            _transformation = new ProverResultsToCsvRowsTransformation();
+            _transformation = new ProviderResultsToCsvRowsTransformation();
         }
 
         [TestMethod]
@@ -58,7 +58,14 @@ namespace CalculateFunding.Services.Results.UnitTests
                             .WithValue(123M)),
                         NewCalculationResult(cr => cr.WithCalculationType(CalculationType.Template)
                             .WithCalculation(NewReference(rf => rf.WithName("calc2")))
-                            .WithValue(null))));
+                            .WithValue(null)))
+                    .WithFundingLineResults(
+                        NewFundingLineResult(flr => flr
+                            .WithFundingLine(NewReference(rf => rf.WithName("fundingLine1")))
+                            .WithValue(333M)),
+                        NewFundingLineResult(flr => flr
+                            .WithFundingLine(NewReference(rf => rf.WithName("fundingLine2")))
+                            .WithValue(555M))));
 
             dynamic[] expectedCsvRows = {
                 new Dictionary<string, object>
@@ -84,6 +91,8 @@ namespace CalculateFunding.Services.Results.UnitTests
                     {"LA Name", "laname2"},
                     {"Provider Type", "pt2"},
                     {"Provider SubType", "pst2"},
+                    {"FL fundingLine1", 333M.ToString(CultureInfo.InvariantCulture)},
+                    {"FL fundingLine2", 555M.ToString(CultureInfo.InvariantCulture)},
                     {"calc1", 123M.ToString(CultureInfo.InvariantCulture)},
                     {"calc2", null},
                 }
@@ -127,6 +136,15 @@ namespace CalculateFunding.Services.Results.UnitTests
             setUp?.Invoke(calculationResultBuilder);
 
             return calculationResultBuilder.Build();
+        }
+
+        private static FundingLineResult NewFundingLineResult(Action<FundingLineResultBuilder> setUp = null)
+        {
+            FundingLineResultBuilder fundingLineResultBuilder = new FundingLineResultBuilder();
+
+            setUp?.Invoke(fundingLineResultBuilder);
+
+            return fundingLineResultBuilder.Build();
         }
 
         private static Reference NewReference(Action<ReferenceBuilder> setUp = null)

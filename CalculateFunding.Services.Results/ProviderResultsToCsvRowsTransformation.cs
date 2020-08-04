@@ -8,7 +8,7 @@ using CalculateFunding.Services.Results.Interfaces;
 
 namespace CalculateFunding.Services.Results
 {
-    public class ProverResultsToCsvRowsTransformation : IProverResultsToCsvRowsTransformation
+    public class ProviderResultsToCsvRowsTransformation : IProviderResultsToCsvRowsTransformation
     {
         private readonly ArrayPool<ExpandoObject> _expandoObjectsPool 
             = ArrayPool<ExpandoObject>.Create(ProviderResultsCsvGeneratorService.BatchSize, 4);
@@ -34,6 +34,14 @@ namespace CalculateFunding.Services.Results
                 row["LA Name"] = providerSummary.Authority;
                 row["Provider Type"] = providerSummary.ProviderType;
                 row["Provider SubType"] = providerSummary.ProviderSubType;
+
+                if (result.FundingLineResults != null)
+                {
+                    foreach (FundingLineResult fundingLineResult in result.FundingLineResults)
+                    {
+                        row[$"FL {fundingLineResult.FundingLine.Name}"] = fundingLineResult.Value?.ToString();
+                    }
+                }
 
                 //all of the provider results inside a single specification id will share the same 
                 //lists of template calculations so we don't really need to handle missing calc results

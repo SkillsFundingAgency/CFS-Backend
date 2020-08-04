@@ -87,7 +87,7 @@ namespace CalculateFunding.Functions.Results
                 .AddTransient<IProviderResultsCsvGeneratorService, ProviderResultsCsvGeneratorService>()
                 .AddTransient<IHealthChecker, ProviderResultsCsvGeneratorService>();
 
-            builder.AddTransient<IProverResultsToCsvRowsTransformation, ProverResultsToCsvRowsTransformation>();
+            builder.AddTransient<IProviderResultsToCsvRowsTransformation, ProviderResultsToCsvRowsTransformation>();
             builder.AddSingleton<IFileSystemAccess, FileSystemAccess>();
             builder.AddSingleton<IFileSystemCacheSettings, FileSystemCacheSettings>();
 

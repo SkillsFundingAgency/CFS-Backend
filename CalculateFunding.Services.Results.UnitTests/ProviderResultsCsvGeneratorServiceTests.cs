@@ -28,7 +28,7 @@ namespace CalculateFunding.Services.Results.UnitTests
         private ICsvUtils _csvUtils;
         private IBlobClient _blobClient;
         private ICloudBlob _cloudBlob; 
-        private IProverResultsToCsvRowsTransformation _transformation;
+        private IProviderResultsToCsvRowsTransformation _transformation;
         private ICalculationResultsRepository _calculationResultsRepository;
         private IFileSystemAccess _fileSystemAccess;
         private IFileSystemCacheSettings _fileSystemCacheSettings;
@@ -43,7 +43,7 @@ namespace CalculateFunding.Services.Results.UnitTests
             _calculationResultsRepository = Substitute.For<ICalculationResultsRepository>();
             _blobClient = Substitute.For<IBlobClient>();
             _csvUtils = Substitute.For<ICsvUtils>();
-            _transformation = Substitute.For<IProverResultsToCsvRowsTransformation>();
+            _transformation = Substitute.For<IProviderResultsToCsvRowsTransformation>();
             _cloudBlob = Substitute.For<ICloudBlob>();
             _fileSystemAccess = Substitute.For<IFileSystemAccess>();
             _fileSystemCacheSettings = Substitute.For<IFileSystemCacheSettings>();

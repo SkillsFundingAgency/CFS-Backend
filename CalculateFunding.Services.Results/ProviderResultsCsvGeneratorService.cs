@@ -26,7 +26,7 @@ namespace CalculateFunding.Services.Results
         private readonly IBlobClient _blobClient;
         private readonly ICalculationResultsRepository _resultsRepository;
         private readonly ICsvUtils _csvUtils;
-        private readonly IProverResultsToCsvRowsTransformation _resultsToCsvRowsTransformation;
+        private readonly IProviderResultsToCsvRowsTransformation _resultsToCsvRowsTransformation;
         private readonly IFileSystemAccess _fileSystemAccess;
         private readonly IFileSystemCacheSettings _fileSystemCacheSettings;
         private readonly AsyncPolicy _blobClientPolicy;
@@ -37,7 +37,7 @@ namespace CalculateFunding.Services.Results
             ICalculationResultsRepository resultsRepository,
             IResultsResiliencePolicies policies,
             ICsvUtils csvUtils,
-            IProverResultsToCsvRowsTransformation resultsToCsvRowsTransformation,
+            IProviderResultsToCsvRowsTransformation resultsToCsvRowsTransformation,
             IFileSystemAccess fileSystemAccess,
             IFileSystemCacheSettings fileSystemCacheSettings)
         {

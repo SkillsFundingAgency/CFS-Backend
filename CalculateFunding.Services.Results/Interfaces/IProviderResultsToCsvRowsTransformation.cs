@@ -5,7 +5,7 @@ using CalculateFunding.Models.Calcs;
 
 namespace CalculateFunding.Services.Results.Interfaces
 {
-    public interface IProverResultsToCsvRowsTransformation
+    public interface IProviderResultsToCsvRowsTransformation
     {
         IEnumerable<ExpandoObject> TransformProviderResultsIntoCsvRows(IEnumerable<ProviderResult> providerResults);
     }

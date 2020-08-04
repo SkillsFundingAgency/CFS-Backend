@@ -91,7 +91,14 @@ namespace CalculateFunding.Services.Results.Repositories
     	                            calcResult.exceptionType as exceptionType,
     	                            calcResult.exceptionMessage as exceptionMessage,
     	                            calcResult.calculationType as calculationType
-    	                            FROM calcResult IN c.content.calcResults) AS calcResults
+    	                            FROM calcResult IN c.content.calcResults) AS calcResults,
+                                ARRAY(
+                                    SELECT fundingLineResult.fundingLine as fundingLine,
+                                    fundingLineResult.fundingLineFundingStreamId as fundingLineFundingStreamId,
+                                    fundingLineResult[""value""],
+    	                            fundingLineResult.exceptionType as exceptionType,
+    	                            fundingLineResult.exceptionMessage as exceptionMessage
+                                    FROM fundingLineResult IN c.content.fundingLineResults) AS fundingLineResults
                             FROM    calculationresults c
                             WHERE   c.content.specificationId = @SpecificationId 
                                     AND c.documentType = 'ProviderResult' 

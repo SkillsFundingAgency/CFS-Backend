@@ -10,7 +10,8 @@ namespace CalculateFunding.Services.Results.UnitTests
     {
         private ProviderSummary _providerSummary;
         private IEnumerable<CalculationResult> _calculationResults;
-        
+        private IEnumerable<FundingLineResult> _fundingLineResults;
+
         public ProviderResultBuilder WithProviderSummary(ProviderSummary providerSummary)
         {
             _providerSummary = providerSummary;
@@ -24,13 +25,21 @@ namespace CalculateFunding.Services.Results.UnitTests
 
             return this;
         }
-        
+
+        public ProviderResultBuilder WithFundingLineResults(params FundingLineResult[] fundingLineResults)
+        {
+            _fundingLineResults = fundingLineResults;
+
+            return this;
+        }
+
         public ProviderResult Build()
         {
             return new ProviderResult
             {
                 Provider = _providerSummary,
-                CalculationResults =  _calculationResults?.ToList() ?? new List<CalculationResult>()
+                CalculationResults =  _calculationResults?.ToList() ?? new List<CalculationResult>(),
+                FundingLineResults = _fundingLineResults?.ToList() ?? new List<FundingLineResult>()
             };
         }
     }
