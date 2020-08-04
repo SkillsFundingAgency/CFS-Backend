@@ -73,24 +73,7 @@ namespace CalculateFunding.Services.Policy.Validators
             WhenTheFundingConfigurationIsValidated();
 
             ThenTheValidationResultShouldBe(expectedFlag);
-        }
-
-        [TestMethod]
-        public void FailsValidationIfNoPaymentOrganisationSourceNotSupplied()
-        {
-            string defaultTemplateVersion = NewRandomString();
-            string fundingStreamId = NewRandomString();
-            string fundingPeriodId = NewRandomString();
-
-            GivenTheFundingConfiguration(_ => _.WithPaymentOrganisationSource(PaymentOrganisationSource.Undefined)
-                .WithFundingStreamId(fundingStreamId)
-                .WithDefaultTemplateVersion(defaultTemplateVersion));
-            AndTheTemplateExistsCheck(fundingStreamId, fundingPeriodId, defaultTemplateVersion, true);
-
-            WhenTheFundingConfigurationIsValidated();
-
-            ThenTheValidationResultShouldBe(false);
-        }
+        }       
 
         public static IEnumerable<object[]> FlagExamples()
         {

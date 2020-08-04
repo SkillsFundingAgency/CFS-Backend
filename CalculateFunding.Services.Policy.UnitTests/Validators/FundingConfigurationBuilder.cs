@@ -64,7 +64,7 @@ namespace CalculateFunding.Services.Policy.Validators
                 DefaultTemplateVersion = _defaultTemplateVersion,
                 ApprovalMode = _approvalMode.GetValueOrDefault(NewRandomEnum(ApprovalMode.Undefined)),
                 ProviderSource = _providerSource.GetValueOrDefault(NewRandomEnum(ProviderSource.CFS)),
-                PaymentOrganisationSource = _paymentOrganisationSource.GetValueOrDefault(NewRandomEnum(PaymentOrganisationSource.Undefined))
+                PaymentOrganisationSource = _paymentOrganisationSource.GetValueOrDefault(NewRandomEnum(PaymentOrganisationSource.PaymentOrganisationAsProvider))
             };
         }
     }

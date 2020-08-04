@@ -154,7 +154,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
 
             FundingConfiguration fundingConfigurationResult = ((OkObjectResult)result).Value.As<FundingConfiguration>();            
             fundingConfigurationResult.ProviderSource.Should().Be(CalculateFunding.Models.Providers.ProviderSource.CFS);
-            fundingConfigurationResult.PaymentOrganisationSource.Should().Be(PaymentOrganisationSource.Undefined);
+            fundingConfigurationResult.PaymentOrganisationSource.Should().Be(PaymentOrganisationSource.PaymentOrganisationAsProvider);
         }
 
         [TestMethod]

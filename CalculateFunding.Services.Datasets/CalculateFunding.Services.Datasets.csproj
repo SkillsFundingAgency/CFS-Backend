@@ -9,13 +9,13 @@
   <ItemGroup>
 
 
-    <PackageReference Include="CalculateFunding.Common.ApiClient.Policies" Version="5.2.0" />
+    <PackageReference Include="CalculateFunding.Common.ApiClient.Policies" Version="5.2.1" />
 
 
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Calcs" Version="2.3.0" />
 
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Jobs" Version="2.1.0" />
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Policies" Version="3.2.0" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Policies" Version="3.2.1" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Providers" Version="4.0.0" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Specifications" Version="3.5.0" />
     <PackageReference Include="CalculateFunding.Common.JobManagement" Version="2.2.0" />

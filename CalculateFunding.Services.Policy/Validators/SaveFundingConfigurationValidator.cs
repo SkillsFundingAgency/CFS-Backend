@@ -1,4 +1,5 @@
-﻿using System.Data;
+﻿using System;
+using System.Data;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Policy;
 using CalculateFunding.Models.Policy.FundingPolicy;
@@ -62,11 +63,8 @@ namespace CalculateFunding.Services.Policy.Validators
                     if (!string.IsNullOrWhiteSpace(fundingStreamId) && !string.IsNullOrWhiteSpace(fundingPeriodId) && !string.IsNullOrWhiteSpace(defaultTemplateVersion))
                         if (!await fundingTemplateService.TemplateExists(fundingStreamId, fundingPeriodId, defaultTemplateVersion))
                             context.AddFailure("Default template not found");
-                });
-
-            RuleFor(_ => _.PaymentOrganisationSource)
-                .Must(_ => _ != PaymentOrganisationSource.Undefined)
-                .WithMessage("No valid PaymentOrganisationSource was selected");
+                });        
+          
         }
     }
 }
