@@ -71,7 +71,7 @@ namespace CalculateFunding.Services.Results
             return health;
         }
 
-        async public Task<IActionResult> SearchCalculationProviderResults(SearchModel searchModel)
+        async public Task<IActionResult> SearchCalculationProviderResults(SearchModel searchModel, bool useCalculationId = true)
         {
             if (searchModel == null || searchModel.PageNumber < 1 || searchModel.Top < 1)
             {
@@ -82,7 +82,7 @@ namespace CalculateFunding.Services.Results
 
             try
             {
-                CalculationProviderResultSearchResults results = await SearchCalculationProviderResultsInternal(searchModel);
+                CalculationProviderResultSearchResults results = await SearchCalculationProviderResultsInternal(searchModel, useCalculationId);
                 return new OkObjectResult(results);
             }
             catch (FailedToQuerySearchException exception)
@@ -93,12 +93,13 @@ namespace CalculateFunding.Services.Results
             }
         }
 
-        private async Task<CalculationProviderResultSearchResults> SearchCalculationProviderResultsInternal(SearchModel searchModel)
+        private async Task<CalculationProviderResultSearchResults> SearchCalculationProviderResultsInternal(SearchModel searchModel, bool useCalculationId)
         {
-            string calculationId = GetSearchModelFilterValue(searchModel, "calculationId");
-            string fundingLineId = GetSearchModelFilterValue(searchModel, "fundingLineId");
+            string entityFieldName = useCalculationId ? "calculationId" : "fundingLineId";
+            string entityValue = GetSearchModelFilterValue(searchModel, entityFieldName);
+            string entityExceptionFieldName = useCalculationId ? "calculationException" : "fundingLineException";
 
-            IEnumerable<Task<SearchResults<ProviderCalculationResultsIndex>>> searchTasks = BuildSearchTasks(searchModel, calculationId, fundingLineId);
+            IEnumerable <Task<SearchResults<ProviderCalculationResultsIndex>>> searchTasks = BuildSearchTasks(searchModel, entityValue, entityFieldName, entityExceptionFieldName);
 
             await TaskHelper.WhenAllAndThrow(searchTasks.ToArraySafe());
 
@@ -106,7 +107,7 @@ namespace CalculateFunding.Services.Results
 
             foreach (Task<SearchResults<ProviderCalculationResultsIndex>> searchTask in searchTasks)
             {
-                ProcessSearchResults(searchTask.Result, results, calculationId, fundingLineId);
+                ProcessSearchResults(searchTask.Result, results, entityValue, entityExceptionFieldName, useCalculationId);
             }
 
             return results;
@@ -161,7 +162,7 @@ namespace CalculateFunding.Services.Results
             return facetDictionary;
         }
 
-        IEnumerable<Task<SearchResults<ProviderCalculationResultsIndex>>> BuildSearchTasks(SearchModel searchModel, string calculationId, string fundingLineId)
+        IEnumerable<Task<SearchResults<ProviderCalculationResultsIndex>>> BuildSearchTasks(SearchModel searchModel, string entityValue, string entityFieldName, string entityExceptionFieldName)
         {
             IDictionary<string, string> facetDictionary = BuildFacetDictionary(searchModel);
 
@@ -189,71 +190,36 @@ namespace CalculateFunding.Services.Results
                 }
             }
 
-            if (_featureToggle.IsExceptionMessagesEnabled())
+            if (facetDictionary.ContainsKey(entityFieldName) && !string.IsNullOrWhiteSpace(entityValue))
             {
-                if (facetDictionary.ContainsKey("calculationId"))
+                if (_featureToggle.IsExceptionMessagesEnabled())
                 {
                     searchTasks = searchTasks.Concat(new[]
                     {
-                        BuildCalculationErrorsSearchTask(facetDictionary["calculationId"], calculationId)
+                        BuildCalculationErrorsSearchTask(facetDictionary[entityFieldName], entityValue, entityFieldName, entityExceptionFieldName)
                     });
                 }
 
-                if (facetDictionary.ContainsKey("fundingLineId"))
-                {
-                    searchTasks = searchTasks.Concat(new[]
-                    {
-                        BuildFundingLineErrorsSearchTask(facetDictionary["fundingLineId"], fundingLineId)
-                    });
-                }
-            }
-
-            if (facetDictionary.ContainsKey("calculationId"))
-            {
                 searchTasks = searchTasks.Concat(new[]
                 {
-                    BuildCalculationItemsSearchTask(facetDictionary, searchModel, calculationId)
-                });
-            }
-
-            if (facetDictionary.ContainsKey("fundingLineId"))
-            {
-                searchTasks = searchTasks.Concat(new[]
-                {
-                    BuildFundingLineItemsSearchTask(facetDictionary, searchModel, fundingLineId)
+                    BuildCalculationItemsSearchTask(facetDictionary, searchModel, entityValue, entityExceptionFieldName)
                 });
             }
 
             return searchTasks;
         }
 
-        Task<SearchResults<ProviderCalculationResultsIndex>> BuildCalculationErrorsSearchTask(string calculationIdFilter, string calculationId)
+        Task<SearchResults<ProviderCalculationResultsIndex>> BuildCalculationErrorsSearchTask(string entityValueFilter, string entityValue, string entityFieldName, string entityExceptionFieldName)
         {
             return Task.Run(() =>
             {
                 return _searchRepositoryPolicy.ExecuteAsync(() => _searchRepository.Search(null, new SearchParameters
                 {
-                    Facets = new[] { "calculationId", "calculationException" },
+                    Facets = new[] { entityFieldName, entityExceptionFieldName },
                     Top = 0,
                     SearchMode = SearchMode.All,
                     IncludeTotalResultCount = true,
-                    Filter = calculationIdFilter + $" and calculationException/any(x: x eq '{calculationId}')",
-                    QueryType = QueryType.Full
-                }));
-            });
-        }
-
-        Task<SearchResults<ProviderCalculationResultsIndex>> BuildFundingLineErrorsSearchTask(string fundingLineIdFilter, string fundingLineId)
-        {
-            return Task.Run(() =>
-            {
-                return _searchRepositoryPolicy.ExecuteAsync(() => _searchRepository.Search(null, new SearchParameters
-                {
-                    Facets = new[] { "fundingLineId", "fundingLineException" },
-                    Top = 0,
-                    SearchMode = SearchMode.All,
-                    IncludeTotalResultCount = true,
-                    Filter = fundingLineIdFilter + $" and fundingLineException/any(x: x eq '{fundingLineId}')",
+                    Filter = entityValueFilter + $" and {entityExceptionFieldName}/any(x: x eq '{entityValue}')",
                     QueryType = QueryType.Full
                 }));
             });
@@ -262,43 +228,15 @@ namespace CalculateFunding.Services.Results
         Task<SearchResults<ProviderCalculationResultsIndex>> BuildCalculationItemsSearchTask(
             IDictionary<string, string> facetDictionary, 
             SearchModel searchModel, 
-            string calculationId)
+            string entityValue,
+            string entityExceptionFieldName)
         {
             int skip = (searchModel.PageNumber - 1) * searchModel.Top;
-            List<string> errorToggleWhere = !searchModel.ErrorToggle.HasValue
+            List<string> errorToggleWhere = (!searchModel.ErrorToggle.HasValue || string.IsNullOrWhiteSpace(entityValue))
                 ? new List<string>()
                 : searchModel.ErrorToggle.Value
-                    ? new List<string> { $"calculationException/any(x: x eq '{calculationId}')" }
-                    : new List<string> { $"calculationException/all(x: x ne '{calculationId}')" };
-
-            IEnumerable<string> where = facetDictionary.Values.Where(x => !string.IsNullOrWhiteSpace(x)).Concat(errorToggleWhere);
-            return Task.Run(() =>
-            {
-                return _searchRepositoryPolicy.ExecuteAsync(() => _searchRepository.Search(searchModel.SearchTerm, new SearchParameters
-                {
-                    Skip = skip,
-                    Top = searchModel.Top,
-                    SearchMode = (SearchMode)searchModel.SearchMode,
-                    SearchFields = new List<string> { "providerName", "ukPrn", "urn", "upin", "establishmentNumber" },
-                    IncludeTotalResultCount = true,
-                    Filter = string.Join(" and ", where),
-                    OrderBy = searchModel.OrderBy.IsNullOrEmpty() ? DefaultOrderBy.ToList() : searchModel.OrderBy.ToList(),
-                    QueryType = QueryType.Full
-                }));
-            });
-        }
-
-        Task<SearchResults<ProviderCalculationResultsIndex>> BuildFundingLineItemsSearchTask(
-            IDictionary<string, string> facetDictionary,
-            SearchModel searchModel,
-            string fundingLineId)
-        {
-            int skip = (searchModel.PageNumber - 1) * searchModel.Top;
-            List<string> errorToggleWhere = !searchModel.ErrorToggle.HasValue
-                ? new List<string>()
-                : searchModel.ErrorToggle.Value
-                    ? new List<string> { $"fundingLineException/any(x: x eq '{fundingLineId}')" }
-                    : new List<string> { $"fundingLineException/all(x: x ne '{fundingLineId}')" };
+                    ? new List<string> { $"{entityExceptionFieldName}/any(x: x eq '{entityValue}')" }
+                    : new List<string> { $"{entityExceptionFieldName}/all(x: x ne '{entityValue}')" };
 
             IEnumerable<string> where = facetDictionary.Values.Where(x => !string.IsNullOrWhiteSpace(x)).Concat(errorToggleWhere);
             return Task.Run(() =>
@@ -320,12 +258,13 @@ namespace CalculateFunding.Services.Results
         private void ProcessSearchResults(
             SearchResults<ProviderCalculationResultsIndex> searchResult, 
             CalculationProviderResultSearchResults results, 
-            string calculationId,
-            string fundingLineId)
+            string entityValue,
+            string entityExceptionFieldName,
+            bool useCalculationId)
         {
             if (!searchResult.Facets.IsNullOrEmpty())
             {
-                if (_featureToggle.IsExceptionMessagesEnabled() && searchResult.Facets.Any(f => f.Name == "calculationException" || f.Name == "fundingLineException"))
+                if (_featureToggle.IsExceptionMessagesEnabled() && searchResult.Facets.Any(f => f.Name == entityExceptionFieldName))
                 {
                     results.TotalErrorCount = (int)(searchResult?.TotalCount ?? 0);
                 }
@@ -344,8 +283,7 @@ namespace CalculateFunding.Services.Results
                 {
                     foreach (CalculateFunding.Repositories.Common.Search.SearchResult<ProviderCalculationResultsIndex> result in searchResult.Results)
                     {
-                        int calculationIdIndex = Array.IndexOf(result.Result.CalculationId, calculationId);
-                        int fundingLineIdIndex = Array.IndexOf(result.Result.CalculationId, fundingLineId);
+                        int valueIndex = Array.IndexOf(useCalculationId ? result.Result.CalculationId : result.Result.FundingLineId, entityValue);
 
                         CalculationProviderResultSearchResult calculationResult = new CalculationProviderResultSearchResult
                         {
@@ -365,22 +303,24 @@ namespace CalculateFunding.Services.Results
                             EstablishmentNumber = result.Result.EstablishmentNumber,
                         };
 
-                        if(calculationIdIndex >= 0)
+                        if(valueIndex >= 0)
                         {
-                            calculationResult.CalculationId = calculationId;
-                            calculationResult.CalculationName = result.Result.CalculationName[calculationIdIndex];
-                            calculationResult.CalculationResult = result.Result.CalculationResult[calculationIdIndex].GetObjectOrNull();
-                            calculationResult.CalculationExceptionType = !result.Result.CalculationExceptionType.IsNullOrEmpty() ? result.Result.CalculationExceptionType[calculationIdIndex] : string.Empty;
-                            calculationResult.CalculationExceptionMessage = !result.Result.CalculationExceptionMessage.IsNullOrEmpty() ? result.Result.CalculationExceptionMessage[calculationIdIndex] : string.Empty;
-                        }
-
-                        if(fundingLineIdIndex >= 0)
-                        {
-                            calculationResult.FundingLineId = fundingLineId;
-                            calculationResult.FundingLineName = result.Result.FundingLineName[fundingLineIdIndex];
-                            calculationResult.FundingLineResult = result.Result.FundingLineResult[fundingLineIdIndex].GetValueOrNull<decimal>();
-                            calculationResult.FundingLineExceptionType = !result.Result.FundingLineExceptionType.IsNullOrEmpty() ? result.Result.FundingLineExceptionType[fundingLineIdIndex] : string.Empty;
-                            calculationResult.FundingLineExceptionMessage = !result.Result.FundingLineExceptionMessage.IsNullOrEmpty() ? result.Result.FundingLineExceptionMessage[fundingLineIdIndex] : string.Empty;
+                            if (useCalculationId)
+                            {
+                                calculationResult.CalculationId = entityValue;
+                                calculationResult.CalculationName = result.Result.CalculationName[valueIndex];
+                                calculationResult.CalculationResult = result.Result.CalculationResult[valueIndex].GetObjectOrNull();
+                                calculationResult.CalculationExceptionType = !result.Result.CalculationExceptionType.IsNullOrEmpty() ? result.Result.CalculationExceptionType[valueIndex] : string.Empty;
+                                calculationResult.CalculationExceptionMessage = !result.Result.CalculationExceptionMessage.IsNullOrEmpty() ? result.Result.CalculationExceptionMessage[valueIndex] : string.Empty;
+                            }
+                            else
+                            {
+                                calculationResult.FundingLineId = entityValue;
+                                calculationResult.FundingLineName = result.Result.FundingLineName[valueIndex];
+                                calculationResult.FundingLineResult = result.Result.FundingLineResult[valueIndex].GetValueOrNull<decimal>();
+                                calculationResult.FundingLineExceptionType = !result.Result.FundingLineExceptionType.IsNullOrEmpty() ? result.Result.FundingLineExceptionType[valueIndex] : string.Empty;
+                                calculationResult.FundingLineExceptionMessage = !result.Result.FundingLineExceptionMessage.IsNullOrEmpty() ? result.Result.FundingLineExceptionMessage[valueIndex] : string.Empty;
+                            }
                         }
 
                         calculationResults.Add(calculationResult);

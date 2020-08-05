@@ -6,6 +6,6 @@ namespace CalculateFunding.Services.Results.Interfaces
 {
     public interface IProviderCalculationResultsSearchService
     {
-        Task<IActionResult> SearchCalculationProviderResults(SearchModel searchModel);
+        Task<IActionResult> SearchCalculationProviderResults(SearchModel searchModel, bool useCalculationId = true);
     }
 }

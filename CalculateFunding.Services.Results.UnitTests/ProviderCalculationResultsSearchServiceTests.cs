@@ -103,6 +103,10 @@ namespace CalculateFunding.Services.Results.UnitTests
                 PageNumber = 1,
                 IncludeFacets = false,
                 Top = 50,
+                Filters = new Dictionary<string, string[]>()
+                {
+                    { "calculationId", new string []{ "test" } }
+                }
             };
             ILogger logger = CreateLogger();
 
@@ -137,7 +141,11 @@ namespace CalculateFunding.Services.Results.UnitTests
             {
                 PageNumber = 1,
                 Top = 50,
-                IncludeFacets = true
+                IncludeFacets = true,
+                Filters = new Dictionary<string, string[]>()
+                {
+                    { "calculationId", new string []{ "test" } }
+                }
             };
             ILogger logger = CreateLogger();
 
@@ -160,12 +168,12 @@ namespace CalculateFunding.Services.Results.UnitTests
 
             await
                 searchRepository
-                    .Received(ProviderCalculationResultsFacetCount + 2)
+                    .Received(ProviderCalculationResultsFacetCount + 1)
                     .Search(Arg.Any<string>(), Arg.Is<SearchParameters>(c => c.SearchFields.Any(f => f == "providerName")));
 
             await
                 searchRepository
-                    .Received(2)
+                    .Received(1)
                     .Search(Arg.Any<string>(), Arg.Is<SearchParameters>(c => c.SearchFields.Any(f => f == "providerName") && c.SearchFields.Any(f => f == "ukPrn") && c.SearchFields.Any(f => f == "urn") && c.SearchFields.Any(f => f == "establishmentNumber")));
         }
 
@@ -177,7 +185,11 @@ namespace CalculateFunding.Services.Results.UnitTests
             {
                 PageNumber = 1,
                 Top = 50,
-                IncludeFacets = true
+                IncludeFacets = true,
+                Filters = new Dictionary<string, string[]>()
+                {
+                    { "calculationId", new string []{ "test" } }
+                }
             };
 
             ILogger logger = CreateLogger();
@@ -238,13 +250,8 @@ namespace CalculateFunding.Services.Results.UnitTests
 
             await
                 searchRepository
-                    .Received(ProviderCalculationResultsFacetCount + 2)
+                    .Received(ProviderCalculationResultsFacetCount)
                     .Search(Arg.Any<string>(), Arg.Is<SearchParameters>(c => c.SearchFields.Any(f => f == "providerName")));
-
-            await
-                searchRepository
-                    .Received(2)
-                    .Search(Arg.Any<string>(), Arg.Is<SearchParameters>(c => c.SearchFields.Any(f => f == "providerName") && c.SearchFields.Any(f => f == "ukPrn") && c.SearchFields.Any(f => f == "urn") && c.SearchFields.Any(f => f == "establishmentNumber")));
         }
 
         [TestMethod]
@@ -284,7 +291,7 @@ namespace CalculateFunding.Services.Results.UnitTests
 
             await
                searchRepository
-               .Received(ProviderCalculationResultsFacetCount + 1)
+               .Received(ProviderCalculationResultsFacetCount)
                    .Search(model.SearchTerm, Arg.Is<SearchParameters>(c =>
                        model.Filters.Keys.All(f => c.Filter.Contains(f))
                        && !string.IsNullOrWhiteSpace(c.Filter)
@@ -328,7 +335,7 @@ namespace CalculateFunding.Services.Results.UnitTests
 
             await
                 searchRepository
-                .Received(ProviderCalculationResultsFacetCount + 1)
+                .Received(ProviderCalculationResultsFacetCount)
                     .Search(model.SearchTerm, Arg.Is<SearchParameters>(c =>
                         model.Filters.Keys.All(f => c.Filter.Contains(f))
                         && !string.IsNullOrWhiteSpace(c.Filter)
