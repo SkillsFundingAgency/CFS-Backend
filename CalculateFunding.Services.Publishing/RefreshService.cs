@@ -282,13 +282,16 @@ namespace CalculateFunding.Services.Publishing
                 {
                     bool isNewProvider = newProviders.ContainsKey(publishedProvider.Key);
                     PublishedProviderVersion publishedProviderVersion = publishedProvider.Value.Current;
-                    publishedProviderVersion.ProfilePatternKeys = (await _profilingService.ProfileFundingLines(
-                                                                                        generatedPublishedProviderData.First(x => x.Key == publishedProviderVersion.ProviderId).Value.FundingLines.Where(f => f.Type == OrganisationGroupingReason.Payment),
+                    if (generatedPublishedProviderData.ContainsKey(publishedProviderVersion.ProviderId))
+                    {
+                        publishedProviderVersion.ProfilePatternKeys = (await _profilingService.ProfileFundingLines(
+                                                                                        generatedPublishedProviderData[publishedProviderVersion.ProviderId].FundingLines.Where(f => f.Type == OrganisationGroupingReason.Payment),
                                                                                         fundingStream.Id,
                                                                                         fundingPeriodId,
-                                                                                        profilePatternKeys: isNewProvider? null : publishedProviderVersion.ProfilePatternKeys,
+                                                                                        profilePatternKeys: isNewProvider ? null : publishedProviderVersion.ProfilePatternKeys,
                                                                                         providerType: isNewProvider ? publishedProviderVersion.Provider.ProviderType : null,
-                                                                                        providerSubType: isNewProvider ? publishedProviderVersion.Provider.ProviderSubType: null)).ToList();
+                                                                                        providerSubType: isNewProvider ? publishedProviderVersion.Provider.ProviderSubType : null)).ToList();
+                    }
                 }
             }
             catch (Exception ex)
