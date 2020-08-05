@@ -1,5 +1,6 @@
+using CalculateFunding.Services.Core.Extensions;
+using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Hosting;
 
 namespace CalculateFunding.Api.FundingDataZone
 {
@@ -7,14 +8,16 @@ namespace CalculateFunding.Api.FundingDataZone
     {
         public static void Main(string[] args)
         {
-            CreateHostBuilder(args).Build().Run();
+            BuildWebHost(args).Run();
         }
-
-        public static IHostBuilder CreateHostBuilder(string[] args) =>
-            Host.CreateDefaultBuilder(args)
-                .ConfigureWebHostDefaults(webBuilder =>
+        
+        public static IWebHost BuildWebHost(string[] args) =>
+            WebHost.CreateDefaultBuilder(args)
+                .ConfigureAppConfiguration((builderContext, config) =>
                 {
-                    webBuilder.UseStartup<Startup>();
-                });
+                    ConfigHelper.LoadConfiguration(config);
+                })
+                .UseStartup<Startup>()
+                .Build();
     }
 }

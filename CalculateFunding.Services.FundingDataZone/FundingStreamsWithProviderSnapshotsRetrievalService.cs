@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.FundingDataZone.Interfaces;
 
 namespace CalculateFunding.Services.FundingDataZone
@@ -10,6 +11,8 @@ namespace CalculateFunding.Services.FundingDataZone
 
         public FundingStreamsWithProviderSnapshotsRetrievalService(IPublishingAreaRepository publishingAreaRepository)
         {
+            Guard.ArgumentNotNull(publishingAreaRepository, nameof(publishingAreaRepository));
+            
             _publishingAreaRepository = publishingAreaRepository;
         }
 

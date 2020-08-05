@@ -1,5 +1,7 @@
-﻿using System.Threading.Tasks;
+﻿using System.Diagnostics.Contracts;
+using System.Threading.Tasks;
 using AutoMapper;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.FundingDataZone;
 using CalculateFunding.Services.FundingDataZone.Interfaces;
 using CalculateFunding.Services.FundingDataZone.SqlModels;
@@ -15,6 +17,9 @@ namespace CalculateFunding.Services.FundingDataZone
             IPublishingAreaRepository publishingAreaRepository,
             IMapper mapper)
         {
+            Guard.ArgumentNotNull(publishingAreaRepository, nameof(publishingAreaRepository));
+            Guard.ArgumentNotNull(mapper, nameof(mapper));
+            
             _publishingAreaRepository = publishingAreaRepository;
             _mapper = mapper;
         }

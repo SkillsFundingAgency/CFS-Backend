@@ -24,11 +24,7 @@ namespace CalculateFunding.Services.FundingDataZone
             // Was unable to use @TableName - possible SQL injection
             string sql = $"SELECT * FROM {tableName}";
 
-            return await QuerySql<object>(sql,
-                new
-                {
-                    TableName = tableName
-                });
+            return await QuerySql<object>(sql);
         }
 
         public async Task<IEnumerable<PublishingAreaDatasetMetadata>> GetDatasetMetadata(string fundingStreamId) =>

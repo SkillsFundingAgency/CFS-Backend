@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Extensions;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.FundingDataZone;
 using CalculateFunding.Services.FundingDataZone.Interfaces;
 using CalculateFunding.Services.FundingDataZone.SqlModels;
@@ -14,96 +16,83 @@ namespace CalculateFunding.Services.FundingDataZone
 
         public DatasetsForFundingStreamService(IPublishingAreaRepository publishingAreaRepository)
         {
+            Guard.ArgumentNotNull(publishingAreaRepository, nameof(publishingAreaRepository));
+
             _publishingAreaRepository = publishingAreaRepository;
         }
 
         public async Task<IEnumerable<Dataset>> GetDatasetsForFundingStream(string fundingStreamId)
         {
-            IEnumerable<PublishingAreaDatasetMetadata> sqlResults = await _publishingAreaRepository.GetDatasetMetadata(fundingStreamId);
+            Guard.IsNullOrWhiteSpace(fundingStreamId, nameof(fundingStreamId));
 
+            IEnumerable<IGrouping<string, PublishingAreaDatasetMetadata>> datasetVersions = (await _publishingAreaRepository.GetDatasetMetadata(fundingStreamId))
+                .GroupBy(_ => _.DatasetName);
 
-            var datasetVersions = sqlResults.GroupBy(c => c.DatasetName);
+            return datasetVersions.Select(MapToDataset).Where(_ => _ != null).ToArray();
+        }
 
-            List<Dataset> results = new List<Dataset>(datasetVersions.Count());
+        private Dataset MapToDataset(IGrouping<string, PublishingAreaDatasetMetadata> datasetVersion)
+        {
+            //I'm not certain about just skipping the bad rows, we should maybe throw an exception to block the extract and let some one fix the data
+            
+            string createdDateString = ExtendedPropertyValue(datasetVersion, "CreatedDate");
 
-            foreach (var ds in datasetVersions)
+            if (!DateTime.TryParse(createdDateString, out DateTime createdDate))
             {
-                string createdDateString = ds.SingleOrDefault(f => f.ExtendedProperty == "CreatedDate")?.ExtendedPropertyValue;
-                DateTime? createdDate = null;
-                if (!string.IsNullOrWhiteSpace(createdDateString))
-                {
-                    try
-                    {
-                        createdDate = DateTime.Parse(createdDateString);
-                    }
-                    catch (FormatException)
-                    {
-                        continue;
-                    }
-                }
-
-                string groupingLevelString = ds.SingleOrDefault(f => f.ExtendedProperty == "GroupingLevel")?.ExtendedPropertyValue;
-                if (string.IsNullOrWhiteSpace(groupingLevelString))
-                {
-                    continue;
-                }
-
-                GroupingLevel groupingLevel = Enum.Parse<GroupingLevel>(groupingLevelString);
-
-                string identiferTypeString = ds.SingleOrDefault(f => f.ExtendedProperty == "ProviderIdentifierType")?.ExtendedPropertyValue;
-                if (string.IsNullOrWhiteSpace(identiferTypeString))
-                {
-                    continue;
-                }
-
-                IdentifierType identifierType = Enum.Parse<IdentifierType>(identiferTypeString);
-
-                int version = 0;
-                string versionString = ds.SingleOrDefault(f => f.ExtendedProperty == "SnapshotVersion")?.ExtendedPropertyValue;
-                if (string.IsNullOrWhiteSpace(versionString))
-                {
-                    continue;
-                }
-
-                try
-                {
-                    version = int.Parse(versionString);
-                }
-                catch (FormatException)
-                {
-                    continue;
-                }
-
-                var customPropertiesMetadata = ds.Where(p => p.ExtendedProperty.StartsWith("Prop_", StringComparison.InvariantCultureIgnoreCase));
-
-                Dictionary<string, string> customProperties = new Dictionary<string, string>();
-                foreach (var property in customPropertiesMetadata)
-                {
-                    customProperties.Add(property.ExtendedProperty.Substring(5, property.ExtendedProperty.Length - 5), property.ExtendedPropertyValue);
-                }
-
-                Dataset dataset = new Dataset()
-                {
-                    CreatedDate = createdDate,
-                    DatasetCode = ds.SingleOrDefault(f => f.ExtendedProperty == "DatasetCode")?.ExtendedPropertyValue,
-                    Description = ds.SingleOrDefault(f => f.ExtendedProperty == "Description")?.ExtendedPropertyValue,
-                    DisplayName = ds.SingleOrDefault(f => f.ExtendedProperty == "DisplayName")?.ExtendedPropertyValue,
-                    FundingStreamId = ds.SingleOrDefault(f => f.ExtendedProperty == "FundingStreamId")?.ExtendedPropertyValue,
-                    GroupingLevel = groupingLevel,
-                    IdentifierColumnName = ds.SingleOrDefault(f => f.ExtendedProperty == "ProviderIdentifierColumnName")?.ExtendedPropertyValue,
-                    IdentifierType = identifierType,
-                    OriginatingSystem = ds.SingleOrDefault(f => f.ExtendedProperty == "OriginatingSystem")?.ExtendedPropertyValue,
-                    OriginatingSystemVersion = ds.SingleOrDefault(f => f.ExtendedProperty == "OriginatingSystemVersion")?.ExtendedPropertyValue,
-                    ProviderSnapshotId = ds.SingleOrDefault(f => f.ExtendedProperty == "ProviderSnapshotId")?.ExtendedPropertyValue,
-                    TableName = ds.Key,
-                    Version = version,
-                    Properties = customProperties,
-                };
-
-                results.Add(dataset);
+                return null;
             }
 
-            return results;
+            if (!TryGetExtendedProperty(datasetVersion, "GroupingLevel", out string groupingLevelString))
+            {
+                return null;
+            }
+
+            if (!TryGetExtendedProperty(datasetVersion, "ProviderIdentifierType", out string providerIdentifierType))
+            {
+                return null;
+            }
+
+            string versionLiteral = ExtendedPropertyValue(datasetVersion, "SnapshotVersion");
+
+            if (!int.TryParse(versionLiteral, out int version))
+            {
+                return null;
+            }
+
+            Dictionary<string, string> customProperties = datasetVersion.Where(_ =>
+                    _.ExtendedProperty.StartsWith("Prop_", StringComparison.InvariantCultureIgnoreCase))
+                .ToDictionary(_ => _.ExtendedProperty.Remove(0, 5), _ => _.ExtendedPropertyValue);
+
+            return new Dataset
+            {
+                CreatedDate = createdDate,
+                DatasetCode = ExtendedPropertyValue(datasetVersion, "DatasetCode"),
+                Description = ExtendedPropertyValue(datasetVersion, "Description"),
+                DisplayName = ExtendedPropertyValue(datasetVersion, "DisplayName"),
+                FundingStreamId = ExtendedPropertyValue(datasetVersion, "FundingStreamId"),
+                GroupingLevel = groupingLevelString.AsEnum<GroupingLevel>(),
+                IdentifierColumnName = ExtendedPropertyValue(datasetVersion, "ProviderIdentifierColumnName"),
+                IdentifierType = providerIdentifierType.AsEnum<IdentifierType>(),
+                OriginatingSystem = ExtendedPropertyValue(datasetVersion, "OriginatingSystem"),
+                OriginatingSystemVersion = ExtendedPropertyValue(datasetVersion, "OriginatingSystemVersion"),
+                ProviderSnapshotId = ExtendedPropertyValue(datasetVersion, "ProviderSnapshotId"),
+                TableName = datasetVersion.Key,
+                Version = version,
+                Properties = customProperties
+            };
         }
+
+        private bool TryGetExtendedProperty(IGrouping<string, PublishingAreaDatasetMetadata> datasetVersion,
+            string extendedPropertyName,
+            out string extendedPropertyValue)
+        {
+            extendedPropertyValue = ExtendedPropertyValue(datasetVersion, extendedPropertyName);
+
+            return extendedPropertyValue.IsNotNullOrWhitespace();
+        }
+
+        private static string ExtendedPropertyValue(IGrouping<string, PublishingAreaDatasetMetadata> datasetVersion,
+            string extendedPropertyName) =>
+            datasetVersion.SingleOrDefault(_ => _.ExtendedProperty == extendedPropertyName)?.ExtendedPropertyValue;
     }
 }
