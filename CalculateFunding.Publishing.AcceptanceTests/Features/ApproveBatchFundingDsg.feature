@@ -91,7 +91,7 @@ Scenario Outline: Successful approve of funding
 		| FundingStreamId | <FundingStreamId> |
 		| FundingPeriodId | <FundingPeriodId> |
 		| TemplateVersion | <TemplateVersion> |
-		| Status          | Draft	          |
+		| Status          | Draft             |
 		| TotalFunding    | 12000             |
 		| MajorVersion    | 0                 |
 		| MinorVersion    | 1                 |
@@ -808,8 +808,8 @@ Scenario Outline: Successful approve of funding
 		| TrustName                     |                          |
 		| TrustStatus                   | Not Supported By A Trust |
 		| UKPRN                         | 1000002                  |
-		| UPIN                          | 123456				   |
-		| URN                           | 1234567				   |
+		| UPIN                          | 123456                   |
+		| URN                           | 1234567                  |
 		| WardCode                      |                          |
 		| WardName                      |                          |
 	And the Published Provider is available in the repository for this specification
@@ -1093,15 +1093,16 @@ Scenario Outline: Successful approve of funding
 		| 320   | 8fdd4341-88ea-47f2-ba81-511951ca7efd |
 		| 320   | 5cfb28de-88d6-4faa-a936-d81a065fb596 |
 	When partial funding is approved
-		| Ids |
+		| Ids     |
 		| 1000002 |
 	Then the following published provider ids are upserted
-		| PublishedProviderId                                           | Status  |
-		| publishedprovider-1000000-<FundingPeriodId>-<FundingStreamId> | Draft|
-		| publishedprovider-1000002-<FundingPeriodId>-<FundingStreamId> | Approved|
+		| PublishedProviderId                                           | Status   |
+		| publishedprovider-1000000-<FundingPeriodId>-<FundingStreamId> | Draft    |
+		| publishedprovider-1000002-<FundingPeriodId>-<FundingStreamId> | Approved |
 	And the following published provider search index items is produced for providerid with '<FundingStreamId>' and '<FundingPeriodId>'
-		| ID                  | ProviderType				| ProviderSubType | LocalAuthority	 | FundingStatus | ProviderName			   | UKPRN		| FundingValue | SpecificationId   | FundingStreamId   | FundingPeriodId   |UPIN		| URN		|
-		| 1000002-FY-2021-DSG | LA maintained schools		| Community school | Local Authority 1| Approved      | Maintained School 2	   | 1000002    | 12000        | specForPublishing | <FundingStreamId> | <FundingPeriodId> |123456		| 1234567	|
+		| ID                  | ProviderType          | ProviderSubType  | LocalAuthority    | FundingStatus | ProviderName        | UKPRN   | FundingValue | SpecificationId   | FundingStreamId   | FundingPeriodId   | UPIN   | URN     |
+		| DSG-FY-2021-1000002 | LA maintained schools | Community school | Local Authority 1 | Approved      | Maintained School 2 | 1000002 | 12000        | specForPublishing | <FundingStreamId> | <FundingPeriodId> | 123456 | 1234567 |
+
 	Examples:
 		| FundingStreamId | FundingPeriodId | FundingPeriodName      | TemplateVersion | ProviderVersionId |
 		| DSG             | FY-2021         | Financial Year 2020-21 | 1.0             | dsg-providers-1.0 |

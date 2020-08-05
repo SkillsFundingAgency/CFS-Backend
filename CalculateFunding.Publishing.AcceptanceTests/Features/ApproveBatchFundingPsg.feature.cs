@@ -4872,7 +4872,7 @@ this.ScenarioInitialize(scenarioInfo);
                             "UPIN",
                             "URN"});
                 table220.AddRow(new string[] {
-                            "1000201-AY-1920-PSG",
+                            "PSG-AY-1920-1000201",
                             "Special schools",
                             "Non-maintained special school",
                             "Local Authority 1",

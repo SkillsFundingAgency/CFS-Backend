@@ -1099,7 +1099,7 @@ Scenario Outline: Successful approve of funding
 		| publishedprovider-1000002-<FundingPeriodId>-<FundingStreamId> | Approved|
 	And the following published provider search index items is produced for providerid with '<FundingStreamId>' and '<FundingPeriodId>'
 		| ID                  | ProviderType				| ProviderSubType | LocalAuthority	 | FundingStatus | ProviderName			   | UKPRN		| FundingValue | SpecificationId   | FundingStreamId   | FundingPeriodId   |UPIN		| URN		|
-		| 1000002-FY-2021-DSG | LA maintained schools		|  Community school        |Local Authority 1| Approved      | Maintained School 2	   | 1000002    | 12000        | specForPublishing | <FundingStreamId> | <FundingPeriodId> |123456		| 1234567	|
+		| DSG-FY-2021-1000002 | LA maintained schools		|  Community school        |Local Authority 1| Approved      | Maintained School 2	   | 1000002    | 12000        | specForPublishing | <FundingStreamId> | <FundingPeriodId> |123456		| 1234567	|
 	Examples:
 		| FundingStreamId | FundingPeriodId | FundingPeriodName      | TemplateVersion | ProviderVersionId |
 		| DSG             | FY-2021         | Financial Year 2020-21 | 1.0             | dsg-providers-1.0 |

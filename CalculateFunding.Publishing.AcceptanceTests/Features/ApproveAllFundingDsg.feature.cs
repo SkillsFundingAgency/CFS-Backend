@@ -3941,7 +3941,7 @@ this.ScenarioInitialize(scenarioInfo);
                             "UPIN",
                             "URN"});
                 table32.AddRow(new string[] {
-                            "1000002-FY-2021-DSG",
+                            "DSG-FY-2021-1000002",
                             "LA maintained schools",
                             "Community school",
                             "Local Authority 1",

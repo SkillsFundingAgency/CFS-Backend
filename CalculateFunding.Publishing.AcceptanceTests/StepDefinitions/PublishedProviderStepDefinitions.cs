@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Publishing.AcceptanceTests.Contexts;
-using CalculateFunding.Publishing.AcceptanceTests.Properties;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.Azure.Storage.Blob;
@@ -75,7 +74,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
 
             foreach (PublishedProviderIndex pubProvider in providers)
             {
-                string key = $"{pubProvider.UKPRN}-{fundingPeriodId}-{fundingStreamId}";
+                string key = $"{fundingStreamId}-{fundingPeriodId}-{pubProvider.UKPRN}";
                 ConcurrentDictionary<string, PublishedProviderIndex> searchIndex = _publishedProviderStepContext.SearchRepo.PublishedProviderIndex;
                 searchIndex.TryGetValue(key, out PublishedProviderIndex actual);
 

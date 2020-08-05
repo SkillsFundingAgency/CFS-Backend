@@ -1,4 +1,9 @@
-﻿using CalculateFunding.Common.CosmosDb;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Threading.Tasks;
+using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Migrations.Specification.Etl.Migrations;
 using CalculateFunding.Models.Calcs;
@@ -10,11 +15,6 @@ using CalculateFunding.Service.Core.Extensions;
 using Microsoft.Azure.Storage;
 using Microsoft.Azure.Storage.Auth;
 using Microsoft.Azure.Storage.Blob;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Migrations.Specifications.Etl.Migrations
 {
@@ -49,49 +49,49 @@ namespace CalculateFunding.Migrations.Specifications.Etl.Migrations
 
         public async Task Run(string specificationId, string deleteSpecificationId = null)
         {
-                if (await PreRequisites(specificationId))
+            if (await PreRequisites(specificationId))
+            {
+                foreach (Container container in _sourceContainers)
                 {
-                    foreach (Container container in _sourceContainers)
+                    int? currentThroughPut = null;
+
+                    try
                     {
-                        int? currentThroughPut = null;
+                        currentThroughPut = await _destinationDb.SetThroughPut(container.MaxThroughPut, container.Name);
 
-                        try
+                        container.Query = string.Format(container.Query, specificationId);
+                        Console.WriteLine($"Started migrating specification '{specificationId}' documents from '{container.Name}' cosmos container");
+                        string filename = @".\Tools\dt.exe";
+                        string arguments = $"/ErrorLog:\"{container.Name}-errors.csv\" /OverwriteErrorLog:true /s:DocumentDB /s.ConnectionString:\"{_sourceDb.ConnectionString}\" /s.Collection:{container.Name} /s.Query:\"{container.Query} order by c._ts desc\" /t:DocumentDB /t.ConnectionString:\"{_destinationDb.ConnectionString}\" /t.Collection:{container.Name} /t.CollectionThroughput:{container.MaxThroughPut}" + (container.PartitionKey != null ? $" /t.PartitionKey:\"{container.PartitionKey}\"" : string.Empty);
+                        Console.WriteLine(filename + " " + arguments);
+                        var proc = new Process();
+                        proc.StartInfo.FileName = filename;
+                        proc.StartInfo.Arguments = arguments;
+                        proc.Start();
+                        await proc.WaitForExitAsync(TimeSpan.FromMinutes(10));
+                        var exitCode = proc.ExitCode;
+                        proc.Close();
+                        Console.WriteLine($"Finished migrating specification '{specificationId}' documents from '{container.Name}' cosmos container");
+                    }
+                    finally
+                    {
+                        if (currentThroughPut.HasValue)
                         {
-                            currentThroughPut = await _destinationDb.SetThroughPut(container.MaxThroughPut, container.Name);
-
-                            container.Query = string.Format(container.Query, specificationId);
-                            Console.WriteLine($"Started migrating specification '{specificationId}' documents from '{container.Name}' cosmos container");
-                            string filename = @".\Tools\dt.exe";
-                            string arguments = $"/ErrorLog:\"{container.Name}-errors.csv\" /OverwriteErrorLog:true /s:DocumentDB /s.ConnectionString:\"{_sourceDb.ConnectionString}\" /s.Collection:{container.Name} /s.Query:\"{container.Query} order by c._ts desc\" /t:DocumentDB /t.ConnectionString:\"{_destinationDb.ConnectionString}\" /t.Collection:{container.Name} /t.CollectionThroughput:{container.MaxThroughPut}" + (container.PartitionKey != null ? $" /t.PartitionKey:\"{container.PartitionKey}\"" : string.Empty);
-                            Console.WriteLine(filename + " " + arguments);
-                            var proc = new Process();
-                            proc.StartInfo.FileName = filename;
-                            proc.StartInfo.Arguments = arguments;
-                            proc.Start();
-                            await proc.WaitForExitAsync(TimeSpan.FromMinutes(10));
-                            var exitCode = proc.ExitCode;
-                            proc.Close();
-                            Console.WriteLine($"Finished migrating specification '{specificationId}' documents from '{container.Name}' cosmos container");
-                        }
-                        finally
-                        {
-                            if(currentThroughPut.HasValue)
-                            {
-                                await _destinationDb.SetThroughPut(currentThroughPut.Value, container.Name, true);
-                            }
+                            await _destinationDb.SetThroughPut(currentThroughPut.Value, container.Name, true);
                         }
                     }
+                }
 
-                    // carry out post migration here
-                    if (!await PostMigration(specificationId, deleteSpecificationId))
-                    {
-                        Console.Write("Post migration steps failure.");
-                    }
-                }
-                else
+                // carry out post migration here
+                if (!await PostMigration(specificationId, deleteSpecificationId))
                 {
-                    Console.Write("Pre-requisites failure.");
+                    Console.Write("Post migration steps failure.");
                 }
+            }
+            else
+            {
+                Console.Write("Pre-requisites failure.");
+            }
         }
 
         private async Task<bool> PreRequisites(string specificationId)
@@ -265,7 +265,7 @@ namespace CalculateFunding.Migrations.Specifications.Etl.Migrations
                             }
                         case "datasets":
                             {
-                                if(datasetBlobName != null)
+                                if (datasetBlobName != null)
                                 {
                                     Console.WriteLine($"Copying source blobs from source:{_.sourceContainer.AccountName} to destination:{_.destinationContainer.AccountName}");
                                     StorageCredentials destStorageCredentials = new StorageCredentials(_.destinationContainer.AccountName, _.destinationContainer.AccountKey);
@@ -539,7 +539,7 @@ namespace CalculateFunding.Migrations.Specifications.Etl.Migrations
                                         DefinitionId = item.content.Definition.id,
                                         DefinitionName = item.content.Definition.name,
                                         Id = item.content.id,
-                                        LastUpdatedDate = !string.IsNullOrWhiteSpace(Convert.ToString(item.updatedAt)) ?  DateTimeOffset.Parse(Convert.ToString(item.updatedAt)) : null,
+                                        LastUpdatedDate = !string.IsNullOrWhiteSpace(Convert.ToString(item.updatedAt)) ? DateTimeOffset.Parse(Convert.ToString(item.updatedAt)) : null,
                                         Name = item.content.name,
                                         Status = item.content.current.publishStatus,
                                         Description = item.content.description,
@@ -549,7 +549,7 @@ namespace CalculateFunding.Migrations.Specifications.Etl.Migrations
                                         LastUpdatedById = item.content.current.author?.id
                                     };
 
-                                    await searchRepository.Index(new DatasetIndex[] { datasetIndex});
+                                    await searchRepository.Index(new DatasetIndex[] { datasetIndex });
 
                                     SearchRepository<DatasetVersionIndex> searchVersionRepository = new SearchRepository<DatasetVersionIndex>(searchRepositorySettings);
 
@@ -609,8 +609,8 @@ namespace CalculateFunding.Migrations.Specifications.Etl.Migrations
 
                                     SearchRepository<PublishedProviderIndex> publishProviderRepository = new SearchRepository<PublishedProviderIndex>(searchRepositorySettings);
 
-                                    SearchResults<PublishedProviderIndex> results =  await publishProviderRepository.Search("", new Microsoft.Azure.Search.Models.SearchParameters { Filter = $"specificationId eq '{deleteSpecificationId}'" }, allResults: true);
-                                    
+                                    SearchResults<PublishedProviderIndex> results = await publishProviderRepository.Search("", new Microsoft.Azure.Search.Models.SearchParameters { Filter = $"specificationId eq '{deleteSpecificationId}'" }, allResults: true);
+
                                     IEnumerable<IndexError> errors = await publishProviderRepository.Remove(results.Results.Select(providerResult => providerResult.Result));
                                 }
 
@@ -632,7 +632,7 @@ namespace CalculateFunding.Migrations.Specifications.Etl.Migrations
                                 {
                                     return new PublishedProviderIndex
                                     {
-                                        Id = $"{provider.content.current.providerId}-{provider.content.current.fundingPeriodId}-{provider.content.current.fundingStreamId}",
+                                        Id = $"{provider.content.current.fundingStreamId}-{provider.content.current.fundingPeriodId}-{provider.content.current.providerId}",
                                         ProviderType = provider.content.current.provider.ProviderType,
                                         ProviderSubType = provider.content.provider.ProviderSubType,
                                         LocalAuthority = provider.content.current.provider.LocalAuthorityName,

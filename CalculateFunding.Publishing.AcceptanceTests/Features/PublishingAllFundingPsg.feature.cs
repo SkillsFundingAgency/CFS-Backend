@@ -2519,7 +2519,7 @@ this.ScenarioInitialize(scenarioInfo);
                             "FundingStreamId",
                             "FundingPeriodId"});
                 table355.AddRow(new string[] {
-                            "1000102-AY-1920-PSG",
+                            "PSG-AY-1920-1000102",
                             "Academies",
                             "Academy special sponsor led",
                             "Local Authority 1",
@@ -2531,7 +2531,7 @@ this.ScenarioInitialize(scenarioInfo);
                             string.Format("{0}", fundingStreamId),
                             string.Format("{0}", fundingPeriodId)});
                 table355.AddRow(new string[] {
-                            "1000201-AY-1920-PSG",
+                            "PSG-AY-1920-1000201",
                             "Special schools",
                             "Non-maintained special school",
                             "Local Authority 1",
@@ -2543,7 +2543,7 @@ this.ScenarioInitialize(scenarioInfo);
                             string.Format("{0}", fundingStreamId),
                             string.Format("{0}", fundingPeriodId)});
                 table355.AddRow(new string[] {
-                            "1000101-AY-1920-PSG",
+                            "PSG-AY-1920-1000101",
                             "Academies",
                             "Academy special sponsor led",
                             "Local Authority 1",
@@ -2555,7 +2555,7 @@ this.ScenarioInitialize(scenarioInfo);
                             string.Format("{0}", fundingStreamId),
                             string.Format("{0}", fundingPeriodId)});
                 table355.AddRow(new string[] {
-                            "1000002-AY-1920-PSG",
+                            "PSG-AY-1920-1000002",
                             "LA maintained schools",
                             "Community school",
                             "Local Authority 1",
@@ -2567,7 +2567,7 @@ this.ScenarioInitialize(scenarioInfo);
                             string.Format("{0}", fundingStreamId),
                             string.Format("{0}", fundingPeriodId)});
                 table355.AddRow(new string[] {
-                            "1000202-AY-1920-PSG",
+                            "PSG-AY-1920-1000202",
                             "Special schools",
                             "Non-maintained special school",
                             "Local Authority 1",

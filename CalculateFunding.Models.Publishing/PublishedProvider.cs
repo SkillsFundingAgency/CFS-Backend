@@ -19,6 +19,12 @@ namespace CalculateFunding.Models.Publishing
             $"publishedprovider-{Current.ProviderId}-{Current.FundingPeriodId}-{Current.FundingStreamId}";
 
         /// <summary>
+        /// Logical ID for this published provider to identify it between datastores and consistent between versions
+        /// </summary>
+        [JsonProperty("publishedProviderId")]
+        public string PublishedProviderId => Current.PublishedProviderId;
+
+        /// <summary>
         /// Current version of the provider
         /// </summary>
         [JsonProperty("current")]
@@ -55,7 +61,7 @@ namespace CalculateFunding.Models.Publishing
             {
                 return;
             }
-            
+
             currentPredecessors.Add(providerId);
         }
 

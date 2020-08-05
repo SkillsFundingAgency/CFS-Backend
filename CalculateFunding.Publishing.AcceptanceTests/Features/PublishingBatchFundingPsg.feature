@@ -142,18 +142,18 @@ Scenario Outline: Successful publishing of funding
 		| 5                     | 1000  |
 		| 6                     | 20    |
 	And the Published Provider has the following provider information
-		| Field                         | Value                    |
-		| ProviderId                    | 1000000                  |
-		| Name                          | Maintained School 1      |
-		| Authority                     | Local Authority 1        |
-		| DateOpened                    | 2012-03-15               |
-		| LACode                        | 200                      |
-		| LocalAuthorityName            | Maintained School 1      |
-		| ProviderType                  | LA maintained schools    |
-		| ProviderSubType               | Community school         |
-		| ProviderVersionId             | <ProviderVersionId>      |
-		| TrustStatus                   | Not Supported By A Trust |
-		| UKPRN                         | 1000000                  |
+		| Field              | Value                    |
+		| ProviderId         | 1000000                  |
+		| Name               | Maintained School 1      |
+		| Authority          | Local Authority 1        |
+		| DateOpened         | 2012-03-15               |
+		| LACode             | 200                      |
+		| LocalAuthorityName | Maintained School 1      |
+		| ProviderType       | LA maintained schools    |
+		| ProviderSubType    | Community school         |
+		| ProviderVersionId  | <ProviderVersionId>      |
+		| TrustStatus        | Not Supported By A Trust |
+		| UKPRN              | 1000000                  |
 	And the Published Provider is available in the repository for this specification
 	And the following Published Provider has been previously generated for the current specification
 		| Field           | Value             |
@@ -184,18 +184,18 @@ Scenario Outline: Successful publishing of funding
 		| 5                     | 1000  |
 		| 6                     | 20    |
 	And the Published Provider has the following provider information
-		| Field                         | Value                    |
-		| ProviderId                    | 1000002                  |
-		| Name                          | Maintained School 2      |
-		| Authority                     | Local Authority 1        |
-		| DateOpened                    | 2013-04-16               |
-		| LACode                        | 200                      |
-		| LocalAuthorityName            | Local Authority 1        |
-		| ProviderType                  | LA maintained schools    |
-		| ProviderSubType               | Community school         |
-		| ProviderVersionId             | <ProviderVersionId>      |
-		| TrustStatus                   | Not Supported By A Trust |
-		| UKPRN                         | 1000002                  |
+		| Field              | Value                    |
+		| ProviderId         | 1000002                  |
+		| Name               | Maintained School 2      |
+		| Authority          | Local Authority 1        |
+		| DateOpened         | 2013-04-16               |
+		| LACode             | 200                      |
+		| LocalAuthorityName | Local Authority 1        |
+		| ProviderType       | LA maintained schools    |
+		| ProviderSubType    | Community school         |
+		| ProviderVersionId  | <ProviderVersionId>      |
+		| TrustStatus        | Not Supported By A Trust |
+		| UKPRN              | 1000002                  |
 	And the Published Provider is available in the repository for this specification
 	# PublishedProviders - Academy Trusts
 	And the following Published Provider has been previously generated for the current specification
@@ -227,19 +227,19 @@ Scenario Outline: Successful publishing of funding
 		| 5                     | 1000  |
 		| 6                     | 20    |
 	And the Published Provider has the following provider information
-		| Field                         | Value                         |
-		| ProviderId                    | 1000101                       |
-		| Name                          | Academy 1                     |
-		| Authority                     | Local Authority 1             |
-		| DateOpened                    | 2013-04-16                    |
-		| LACode                        | 200                           |
-		| LocalAuthorityName            | Local Authority 1             |
-		| ProviderType                  | Academies                     |
-		| ProviderSubType               | Academy special sponsor led   |
-		| ProviderVersionId             | <ProviderVersionId>           |
-		| TrustCode                     | 1001                          |
-		| TrustStatus                   | SupportedByAMultiAcademyTrust |
-		| UKPRN                         | 1000101                       |
+		| Field              | Value                         |
+		| ProviderId         | 1000101                       |
+		| Name               | Academy 1                     |
+		| Authority          | Local Authority 1             |
+		| DateOpened         | 2013-04-16                    |
+		| LACode             | 200                           |
+		| LocalAuthorityName | Local Authority 1             |
+		| ProviderType       | Academies                     |
+		| ProviderSubType    | Academy special sponsor led   |
+		| ProviderVersionId  | <ProviderVersionId>           |
+		| TrustCode          | 1001                          |
+		| TrustStatus        | SupportedByAMultiAcademyTrust |
+		| UKPRN              | 1000101                       |
 	And the Published Provider is available in the repository for this specification
 	And the following Published Provider has been previously generated for the current specification
 		| Field           | Value             |
@@ -270,19 +270,19 @@ Scenario Outline: Successful publishing of funding
 		| 5                     | 1000  |
 		| 6                     | 20    |
 	And the Published Provider has the following provider information
-		| Field                         | Value                         |
-		| ProviderId                    | 1000102                       |
-		| Name                          | Academy 2                     |
-		| Authority                     | Local Authority 1             |
-		| DateOpened                    | 2013-04-16                    |
-		| LACode                        | 400                           |
-		| LocalAuthorityName            | Local Authority 1             |
-		| ProviderType                  | Academies                     |
-		| ProviderSubType               | Academy special sponsor led   |
-		| ProviderVersionId             | <ProviderVersionId>           |
-		| TrustCode                     | 1001                          |
-		| TrustStatus                   | SupportedByAMultiAcademyTrust |
-		| UKPRN                         | 1000102                       |
+		| Field              | Value                         |
+		| ProviderId         | 1000102                       |
+		| Name               | Academy 2                     |
+		| Authority          | Local Authority 1             |
+		| DateOpened         | 2013-04-16                    |
+		| LACode             | 400                           |
+		| LocalAuthorityName | Local Authority 1             |
+		| ProviderType       | Academies                     |
+		| ProviderSubType    | Academy special sponsor led   |
+		| ProviderVersionId  | <ProviderVersionId>           |
+		| TrustCode          | 1001                          |
+		| TrustStatus        | SupportedByAMultiAcademyTrust |
+		| UKPRN              | 1000102                       |
 	And the Published Provider is available in the repository for this specification
 	# PublishedProviders - Providers - Non-maintained special school
 	And the following Published Provider has been previously generated for the current specification
@@ -315,19 +315,19 @@ Scenario Outline: Successful publishing of funding
 		| 5                     | 1000  |
 		| 6                     | 20    |
 	And the Published Provider has the following provider information
-		| Field                         | Value                         |
-		| ProviderId                    | 1000201                       |
-		| Name                          | Non-Maintained School 1       |
-		| Authority                     | Local Authority 1             |
-		| DateOpened                    | 2013-04-16                    |
-		| LACode                        | 200                           |
-		| LocalAuthorityName            | Local Authority 1             |
-		| ProviderType                  | Special schools               |
-		| ProviderSubType               | Non-maintained special school |
-		| ProviderVersionId             | <ProviderVersionId>           |
-		| TrustCode                     | 1001                          |
-		| TrustStatus                   | SupportedByAMultiAcademyTrust |
-		| UKPRN                         | 1000201                       |
+		| Field              | Value                         |
+		| ProviderId         | 1000201                       |
+		| Name               | Non-Maintained School 1       |
+		| Authority          | Local Authority 1             |
+		| DateOpened         | 2013-04-16                    |
+		| LACode             | 200                           |
+		| LocalAuthorityName | Local Authority 1             |
+		| ProviderType       | Special schools               |
+		| ProviderSubType    | Non-maintained special school |
+		| ProviderVersionId  | <ProviderVersionId>           |
+		| TrustCode          | 1001                          |
+		| TrustStatus        | SupportedByAMultiAcademyTrust |
+		| UKPRN              | 1000201                       |
 	And the Published Provider is available in the repository for this specification
 	And the following Published Provider has been previously generated for the current specification
 		| Field           | Value             |
@@ -358,253 +358,253 @@ Scenario Outline: Successful publishing of funding
 		| 5                     | 1000  |
 		| 6                     | 20    |
 	And the Published Provider has the following provider information
-		| Field                         | Value                         |
-		| ProviderId                    | 1000202                       |
-		| Name                          | Non-Maintained School 1       |
-		| Authority                     | Local Authority 1             |
-		| DateOpened                    | 2013-04-16                    |
-		| LACode                        | 200                           |
-		| LocalAuthorityName            | Local Authority 1             |
-		| ProviderType                  | Special schools               |
-		| ProviderSubType               | Non-maintained special school |
-		| ProviderVersionId             | <ProviderVersionId>           |
-		| TrustCode                     | 1001                          |
-		| TrustStatus                   | SupportedByAMultiAcademyTrust |
-		| UKPRN                         | 1000202                       |
+		| Field              | Value                         |
+		| ProviderId         | 1000202                       |
+		| Name               | Non-Maintained School 1       |
+		| Authority          | Local Authority 1             |
+		| DateOpened         | 2013-04-16                    |
+		| LACode             | 200                           |
+		| LocalAuthorityName | Local Authority 1             |
+		| ProviderType       | Special schools               |
+		| ProviderSubType    | Non-maintained special school |
+		| ProviderVersionId  | <ProviderVersionId>           |
+		| TrustCode          | 1001                          |
+		| TrustStatus        | SupportedByAMultiAcademyTrust |
+		| UKPRN              | 1000202                       |
 	And the Published Provider is available in the repository for this specification
 	# Maintained schools in Core Provider Data
 	And the following provider exists within core provider data in provider version '<ProviderVersionId>'
-		| Field                         | Value                    |
-		| ProviderId                    | 1000000                  |
-		| Name                          | Maintained School 1      |
-		| Authority                     | Local Authority 1        |
-		| DateOpened                    | 2012-03-15               |
-		| LACode                        | 200                      |
-		| LocalAuthorityName            | Maintained School 1      |
-		| ProviderType                  | LA maintained schools    |
-		| ProviderSubType               | Community school         |
-		| ProviderVersionId             | <ProviderVersionId>      |
-		| TrustStatus                   | Not Supported By A Trust |
-		| UKPRN                         | 1000000                  |
+		| Field              | Value                    |
+		| ProviderId         | 1000000                  |
+		| Name               | Maintained School 1      |
+		| Authority          | Local Authority 1        |
+		| DateOpened         | 2012-03-15               |
+		| LACode             | 200                      |
+		| LocalAuthorityName | Maintained School 1      |
+		| ProviderType       | LA maintained schools    |
+		| ProviderSubType    | Community school         |
+		| ProviderVersionId  | <ProviderVersionId>      |
+		| TrustStatus        | Not Supported By A Trust |
+		| UKPRN              | 1000000                  |
 	And the provider with id '1000000' should be a scoped provider in the current specification in provider version '<ProviderVersionId>'
 	And the following provider exists within core provider data in provider version '<ProviderVersionId>'
-		| Field                         | Value                    |
-		| ProviderId                    | 1000002                  |
-		| Name                          | Maintained School 2      |
-		| Authority                     | Local Authority 1        |
-		| DateOpened                    | 2013-04-16               |
-		| LACode                        | 200                      |
-		| LocalAuthorityName            | Local Authority 1        |
-		| ProviderType                  | LA maintained schools    |
-		| ProviderSubType               | Community school         |
-		| ProviderVersionId             | <ProviderVersionId>      |
-		| TrustStatus                   | Not Supported By A Trust |
-		| UKPRN                         | 1000002                  |
+		| Field              | Value                    |
+		| ProviderId         | 1000002                  |
+		| Name               | Maintained School 2      |
+		| Authority          | Local Authority 1        |
+		| DateOpened         | 2013-04-16               |
+		| LACode             | 200                      |
+		| LocalAuthorityName | Local Authority 1        |
+		| ProviderType       | LA maintained schools    |
+		| ProviderSubType    | Community school         |
+		| ProviderVersionId  | <ProviderVersionId>      |
+		| TrustStatus        | Not Supported By A Trust |
+		| UKPRN              | 1000002                  |
 	And the provider with id '1000002' should be a scoped provider in the current specification in provider version '<ProviderVersionId>'
 	And the following provider exists within core provider data in provider version '<ProviderVersionId>'
-		| Field                         | Value                    |
-		| ProviderId                    | 1000003                  |
-		| Name                          | Maintained School 3      |
-		| Authority                     | Local Authority 1        |
-		| DateOpened                    | 2013-04-16               |
-		| LACode                        | 200                      |
-		| LocalAuthorityName            | Local Authority 1        |
-		| ProviderType                  | LA maintained schools    |
-		| ProviderSubType               | Community school         |
-		| ProviderVersionId             | <ProviderVersionId>      |
-		| TrustStatus                   | Not Supported By A Trust |
-		| UKPRN                         | 1000003                  |
+		| Field              | Value                    |
+		| ProviderId         | 1000003                  |
+		| Name               | Maintained School 3      |
+		| Authority          | Local Authority 1        |
+		| DateOpened         | 2013-04-16               |
+		| LACode             | 200                      |
+		| LocalAuthorityName | Local Authority 1        |
+		| ProviderType       | LA maintained schools    |
+		| ProviderSubType    | Community school         |
+		| ProviderVersionId  | <ProviderVersionId>      |
+		| TrustStatus        | Not Supported By A Trust |
+		| UKPRN              | 1000003                  |
 	And the provider with id '1000003' should be a scoped provider in the current specification in provider version '<ProviderVersionId>'
 	And the following provider exists within core provider data in provider version '<ProviderVersionId>'
-		| Field                         | Value                    |
-		| ProviderId                    | 1000004                  |
-		| Name                          | Maintained School 4      |
-		| Authority                     | Local Authority 2        |
-		| DateOpened                    | 2013-04-16               |
-		| LACode                        | 202                      |
-		| LocalAuthorityName            | Local Authority 2        |
-		| ProviderType                  | LA maintained schools    |
-		| ProviderSubType               | Community school         |
-		| ProviderVersionId             | <ProviderVersionId>      |
-		| TrustStatus                   | Not Supported By A Trust |
-		| UKPRN                         | 1000004                  |
+		| Field              | Value                    |
+		| ProviderId         | 1000004                  |
+		| Name               | Maintained School 4      |
+		| Authority          | Local Authority 2        |
+		| DateOpened         | 2013-04-16               |
+		| LACode             | 202                      |
+		| LocalAuthorityName | Local Authority 2        |
+		| ProviderType       | LA maintained schools    |
+		| ProviderSubType    | Community school         |
+		| ProviderVersionId  | <ProviderVersionId>      |
+		| TrustStatus        | Not Supported By A Trust |
+		| UKPRN              | 1000004                  |
 	And the provider with id '1000004' should be a scoped provider in the current specification in provider version '<ProviderVersionId>'
 	And the following provider exists within core provider data in provider version '<ProviderVersionId>'
-		| Field                         | Value                    |
-		| ProviderId                    | 1000005                  |
-		| Name                          | Maintained School 5      |
-		| Authority                     | Local Authority 2        |
-		| DateOpened                    | 2013-04-16               |
-		| LACode                        | 202                      |
-		| LocalAuthorityName            | Local Authority 2        |
-		| ProviderType                  | LA maintained schools    |
-		| ProviderSubType               | Community school         |
-		| ProviderVersionId             | <ProviderVersionId>      |
-		| TrustStatus                   | Not Supported By A Trust |
-		| UKPRN                         | 1000005                  |
+		| Field              | Value                    |
+		| ProviderId         | 1000005                  |
+		| Name               | Maintained School 5      |
+		| Authority          | Local Authority 2        |
+		| DateOpened         | 2013-04-16               |
+		| LACode             | 202                      |
+		| LocalAuthorityName | Local Authority 2        |
+		| ProviderType       | LA maintained schools    |
+		| ProviderSubType    | Community school         |
+		| ProviderVersionId  | <ProviderVersionId>      |
+		| TrustStatus        | Not Supported By A Trust |
+		| UKPRN              | 1000005                  |
 	And the provider with id '1000005' should be a scoped provider in the current specification in provider version '<ProviderVersionId>'
 	And the following provider exists within core provider data in provider version '<ProviderVersionId>'
-		| Field                         | Value                                                                       |
-		| ProviderId                    | 1000009                                                                     |
-		| Name                          | Maintained School 9  - Excluded for funding, but in scope for specification |
-		| Authority                     | Local Authority 3                                                           |
-		| DateOpened                    | 2013-04-16                                                                  |
-		| LACode                        | 203                                                                         |
-		| LocalAuthorityName            | Local Authority 3                                                           |
-		| ProviderType                  | LA maintained schools                                                       |
-		| ProviderSubType               | Community school                                                            |
-		| ProviderVersionId             | <ProviderVersionId>                                                         |
-		| TrustStatus                   | Not Supported By A Trust                                                    |
-		| UKPRN                         | 1000009                                                                     |
+		| Field              | Value                                                                       |
+		| ProviderId         | 1000009                                                                     |
+		| Name               | Maintained School 9  - Excluded for funding, but in scope for specification |
+		| Authority          | Local Authority 3                                                           |
+		| DateOpened         | 2013-04-16                                                                  |
+		| LACode             | 203                                                                         |
+		| LocalAuthorityName | Local Authority 3                                                           |
+		| ProviderType       | LA maintained schools                                                       |
+		| ProviderSubType    | Community school                                                            |
+		| ProviderVersionId  | <ProviderVersionId>                                                         |
+		| TrustStatus        | Not Supported By A Trust                                                    |
+		| UKPRN              | 1000009                                                                     |
 	And the provider with id '1000009' should be a scoped provider in the current specification in provider version '<ProviderVersionId>'
 	# Academy providers
 	And the following provider exists within core provider data in provider version '<ProviderVersionId>'
-		| Field                         | Value                         |
-		| ProviderId                    | 1000101                       |
-		| Name                          | Academy 1                     |
-		| Authority                     | Local Authority 1             |
-		| DateOpened                    | 2013-04-16                    |
-		| LACode                        | 200                           |
-		| LocalAuthorityName            | Local Authority 1             |
-		| ProviderType                  | Academies                     |
-		| ProviderSubType               | Academy special sponsor led   |
-		| ProviderVersionId             | <ProviderVersionId>           |
-		| TrustCode                     | 1001                          |
-		| TrustStatus                   | SupportedByAMultiAcademyTrust |
-		| UKPRN                         | 1000101                       |
+		| Field              | Value                         |
+		| ProviderId         | 1000101                       |
+		| Name               | Academy 1                     |
+		| Authority          | Local Authority 1             |
+		| DateOpened         | 2013-04-16                    |
+		| LACode             | 200                           |
+		| LocalAuthorityName | Local Authority 1             |
+		| ProviderType       | Academies                     |
+		| ProviderSubType    | Academy special sponsor led   |
+		| ProviderVersionId  | <ProviderVersionId>           |
+		| TrustCode          | 1001                          |
+		| TrustStatus        | SupportedByAMultiAcademyTrust |
+		| UKPRN              | 1000101                       |
 	And the provider with id '1000101' should be a scoped provider in the current specification in provider version '<ProviderVersionId>'
 	And the following provider exists within core provider data in provider version '<ProviderVersionId>'
-		| Field                         | Value                         |
-		| ProviderId                    | 1000102                       |
-		| Name                          | Academy 2                     |
-		| Authority                     | Local Authority 1             |
-		| DateOpened                    | 2013-04-16                    |
-		| LACode                        | 200                           |
-		| LocalAuthorityName            | Local Authority 1             |
-		| ProviderType                  | Academies                     |
-		| ProviderSubType               | Academy special sponsor led   |
-		| ProviderVersionId             | <ProviderVersionId>           |
-		| TrustCode                     | 1001                          |
-		| TrustStatus                   | SupportedByAMultiAcademyTrust |
-		| UKPRN                         | 1000102                       |
+		| Field              | Value                         |
+		| ProviderId         | 1000102                       |
+		| Name               | Academy 2                     |
+		| Authority          | Local Authority 1             |
+		| DateOpened         | 2013-04-16                    |
+		| LACode             | 200                           |
+		| LocalAuthorityName | Local Authority 1             |
+		| ProviderType       | Academies                     |
+		| ProviderSubType    | Academy special sponsor led   |
+		| ProviderVersionId  | <ProviderVersionId>           |
+		| TrustCode          | 1001                          |
+		| TrustStatus        | SupportedByAMultiAcademyTrust |
+		| UKPRN              | 1000102                       |
 	And the provider with id '1000102' should be a scoped provider in the current specification in provider version '<ProviderVersionId>'
 	And the following provider exists within core provider data in provider version '<ProviderVersionId>'
-		| Field                         | Value                         |
-		| ProviderId                    | 1000103                       |
-		| Name                          | Academy 3                     |
-		| Authority                     | Local Authority 2             |
-		| DateOpened                    | 2013-04-16                    |
-		| LACode                        | 200                           |
-		| LocalAuthorityName            | Local Authority 2             |
-		| ProviderType                  | Free Schools                  |
-		| ProviderSubType               | Free Schools                  |
-		| ProviderVersionId             | <ProviderVersionId>           |
-		| TrustCode                     | 1002                          |
-		| TrustStatus                   | SupportedByAMultiAcademyTrust |
-		| UKPRN                         | 1000103                       |
+		| Field              | Value                         |
+		| ProviderId         | 1000103                       |
+		| Name               | Academy 3                     |
+		| Authority          | Local Authority 2             |
+		| DateOpened         | 2013-04-16                    |
+		| LACode             | 200                           |
+		| LocalAuthorityName | Local Authority 2             |
+		| ProviderType       | Free Schools                  |
+		| ProviderSubType    | Free Schools                  |
+		| ProviderVersionId  | <ProviderVersionId>           |
+		| TrustCode          | 1002                          |
+		| TrustStatus        | SupportedByAMultiAcademyTrust |
+		| UKPRN              | 1000103                       |
 	And the provider with id '1000103' should be a scoped provider in the current specification in provider version '<ProviderVersionId>'
 	# Non-Maintained schools in Core Provider Data
 	And the following provider exists within core provider data in provider version '<ProviderVersionId>'
-		| Field                         | Value                         |
-		| Field                         | Value                         |
-		| ProviderId                    | 1000201                       |
-		| Name                          | Non-Maintained School 1       |
-		| Authority                     | Local Authority 1             |
-		| DateOpened                    | 2013-04-16                    |
-		| LACode                        | 200                           |
-		| LocalAuthorityName            | Local Authority 1             |
-		| ProviderType                  | Special schools               |
-		| ProviderSubType               | Non-maintained special school |
-		| ProviderVersionId             | <ProviderVersionId>           |
-		| TrustCode                     | 1001                          |
-		| TrustStatus                   | SupportedByAMultiAcademyTrust |
-		| UKPRN                         | 1000201                       |
+		| Field              | Value                         |
+		| Field              | Value                         |
+		| ProviderId         | 1000201                       |
+		| Name               | Non-Maintained School 1       |
+		| Authority          | Local Authority 1             |
+		| DateOpened         | 2013-04-16                    |
+		| LACode             | 200                           |
+		| LocalAuthorityName | Local Authority 1             |
+		| ProviderType       | Special schools               |
+		| ProviderSubType    | Non-maintained special school |
+		| ProviderVersionId  | <ProviderVersionId>           |
+		| TrustCode          | 1001                          |
+		| TrustStatus        | SupportedByAMultiAcademyTrust |
+		| UKPRN              | 1000201                       |
 	And the provider with id '1000201' should be a scoped provider in the current specification in provider version '<ProviderVersionId>'
 	And the following provider exists within core provider data in provider version '<ProviderVersionId>'
-		| Field                         | Value                         |
-		| Field                         | Value                         |
-		| ProviderId                    | 1000202                       |
-		| Name                          | Non-Maintained School 1       |
-		| Authority                     | Local Authority 1             |
-		| DateOpened                    | 2013-04-16                    |
-		| LACode                        | 200                           |
-		| LocalAuthorityName            | Local Authority 1             |
-		| ProviderType                  | Special schools               |
-		| ProviderSubType               | Non-maintained special school |
-		| ProviderVersionId             | <ProviderVersionId>           |
-		| TrustCode                     | 1001                          |
-		| TrustStatus                   | SupportedByAMultiAcademyTrust |
-		| UKPRN                         | 1000202                       |
+		| Field              | Value                         |
+		| Field              | Value                         |
+		| ProviderId         | 1000202                       |
+		| Name               | Non-Maintained School 1       |
+		| Authority          | Local Authority 1             |
+		| DateOpened         | 2013-04-16                    |
+		| LACode             | 200                           |
+		| LocalAuthorityName | Local Authority 1             |
+		| ProviderType       | Special schools               |
+		| ProviderSubType    | Non-maintained special school |
+		| ProviderVersionId  | <ProviderVersionId>           |
+		| TrustCode          | 1001                          |
+		| TrustStatus        | SupportedByAMultiAcademyTrust |
+		| UKPRN              | 1000202                       |
 	And the provider with id '1000202' should be a scoped provider in the current specification in provider version '<ProviderVersionId>'
 	# Local Authorities in Core Provider Data
 	And the following provider exists within core provider data in provider version '<ProviderVersionId>'
-		| Field                         | Value                    |
-		| ProviderId                    | 9000000                  |
-		| Name                          | Local Authority 1        |
-		| Authority                     | Local Authority 1        |
-		| DateOpened                    | 2012-03-15               |
-		| LACode                        | 200                      |
-		| LocalAuthorityName            | Local Authority 1        |
-		| ProviderType                  | Local Authority          |
-		| ProviderSubType               | Local Authority          |
-		| ProviderVersionId             | <ProviderVersionId>      |
-		| TrustStatus                   | Not Supported By A Trust |
-		| UKPRN                         | 9000000                  |
+		| Field              | Value                    |
+		| ProviderId         | 9000000                  |
+		| Name               | Local Authority 1        |
+		| Authority          | Local Authority 1        |
+		| DateOpened         | 2012-03-15               |
+		| LACode             | 200                      |
+		| LocalAuthorityName | Local Authority 1        |
+		| ProviderType       | Local Authority          |
+		| ProviderSubType    | Local Authority          |
+		| ProviderVersionId  | <ProviderVersionId>      |
+		| TrustStatus        | Not Supported By A Trust |
+		| UKPRN              | 9000000                  |
 	And the following provider exists within core provider data in provider version '<ProviderVersionId>'
-		| Field                         | Value                    |
-		| ProviderId                    | 9000002                  |
-		| Name                          | Local Authority 2        |
-		| Authority                     | Local Authority 2        |
-		| DateOpened                    | 2012-03-15               |
-		| LACode                        | 202                      |
-		| LocalAuthorityName            | Local Authority 2        |
-		| ProviderType                  | Local Authority          |
-		| ProviderSubType               | Local Authority          |
-		| ProviderVersionId             | <ProviderVersionId>      |
-		| TrustStatus                   | Not Supported By A Trust |
-		| UKPRN                         | 9000002                  |
+		| Field              | Value                    |
+		| ProviderId         | 9000002                  |
+		| Name               | Local Authority 2        |
+		| Authority          | Local Authority 2        |
+		| DateOpened         | 2012-03-15               |
+		| LACode             | 202                      |
+		| LocalAuthorityName | Local Authority 2        |
+		| ProviderType       | Local Authority          |
+		| ProviderSubType    | Local Authority          |
+		| ProviderVersionId  | <ProviderVersionId>      |
+		| TrustStatus        | Not Supported By A Trust |
+		| UKPRN              | 9000002                  |
 	And the following provider exists within core provider data in provider version '<ProviderVersionId>'
-		| Field                         | Value                    |
-		| ProviderId                    | 9000003                  |
-		| Name                          | Local Authority 3        |
-		| Authority                     | Local Authority 3        |
-		| DateOpened                    | 2012-03-15               |
-		| LACode                        | 202                      |
-		| LocalAuthorityName            | Local Authority 3        |
-		| ProviderType                  | Local Authority          |
-		| ProviderSubType               | Local Authority          |
-		| ProviderVersionId             | <ProviderVersionId>      |
-		| TrustStatus                   | Not Supported By A Trust |
-		| UKPRN                         | 9000003                  |
+		| Field              | Value                    |
+		| ProviderId         | 9000003                  |
+		| Name               | Local Authority 3        |
+		| Authority          | Local Authority 3        |
+		| DateOpened         | 2012-03-15               |
+		| LACode             | 202                      |
+		| LocalAuthorityName | Local Authority 3        |
+		| ProviderType       | Local Authority          |
+		| ProviderSubType    | Local Authority          |
+		| ProviderVersionId  | <ProviderVersionId>      |
+		| TrustStatus        | Not Supported By A Trust |
+		| UKPRN              | 9000003                  |
 	# Academy Trusts
 	And the following provider exists within core provider data in provider version '<ProviderVersionId>'
-		| Field                         | Value                    |
-		| ProviderId                    | 8000001                  |
-		| Name                          | Academy Trust 1          |
-		| Authority                     | Local Authority 1        |
-		| DateOpened                    | 2012-03-15               |
-		| LACode                        | 202                      |
-		| LocalAuthorityName            | Local Authority 1        |
-		| ProviderType                  | Academy trust            |
-		| ProviderSubType               | Academy trust            |
-		| ProviderVersionId             | <ProviderVersionId>      |
-		| TrustCode                     | 1001                     |
-		| TrustStatus                   | Not Supported By A Trust |
-		| UKPRN                         | 8000001                  |
+		| Field              | Value                    |
+		| ProviderId         | 8000001                  |
+		| Name               | Academy Trust 1          |
+		| Authority          | Local Authority 1        |
+		| DateOpened         | 2012-03-15               |
+		| LACode             | 202                      |
+		| LocalAuthorityName | Local Authority 1        |
+		| ProviderType       | Academy trust            |
+		| ProviderSubType    | Academy trust            |
+		| ProviderVersionId  | <ProviderVersionId>      |
+		| TrustCode          | 1001                     |
+		| TrustStatus        | Not Supported By A Trust |
+		| UKPRN              | 8000001                  |
 	And the following provider exists within core provider data in provider version '<ProviderVersionId>'
-		| Field                         | Value                    |
-		| ProviderId                    | 8000002                  |
-		| Name                          | Academy Trust 2          |
-		| Authority                     | Local Authority 2        |
-		| DateOpened                    | 2012-03-15               |
-		| LACode                        | 202                      |
-		| LocalAuthorityName            | Academy Trust 1          |
-		| ProviderType                  | Academy Trust            |
-		| ProviderSubType               | Academy Trust            |
-		| ProviderVersionId             | <ProviderVersionId>      |
-		| TrustCode                     | 1002                     |
-		| TrustStatus                   | Not Supported By A Trust |
-		| UKPRN                         | 8000001                  |
+		| Field              | Value                    |
+		| ProviderId         | 8000002                  |
+		| Name               | Academy Trust 2          |
+		| Authority          | Local Authority 2        |
+		| DateOpened         | 2012-03-15               |
+		| LACode             | 202                      |
+		| LocalAuthorityName | Academy Trust 1          |
+		| ProviderType       | Academy Trust            |
+		| ProviderSubType    | Academy Trust            |
+		| ProviderVersionId  | <ProviderVersionId>      |
+		| TrustCode          | 1002                     |
+		| TrustStatus        | Not Supported By A Trust |
+		| UKPRN              | 8000001                  |
 	And calculations exists
 		| Value | Id           |
 		| 24000 | calculation1 |
@@ -613,7 +613,7 @@ Scenario Outline: Successful publishing of funding
 		| 1000  | calculation4 |
 		| 20    | calculation5 |
 	When batch funding is published
-		| Ids |
+		| Ids     |
 		| 1000000 |
 		| 1000002 |
 		| 1000101 |
@@ -669,10 +669,10 @@ Scenario Outline: Successful publishing of funding
 		| <FundingStreamId>-<FundingPeriodId>-Payment-AcademyTrust-8000001-1_0.json   |
 		| <FundingStreamId>-<FundingPeriodId>-Payment-LocalAuthority-9000000-1_0.json |
 	And the published funding document produced has following metadata
-		| PublishedFundingFiles												   | MetadataKey | MetadataValue | 
-		| <FundingStreamId>-<FundingPeriodId>-Information-Provider-1000201-1_0.json | specification-id | specForPublishing |
-		| <FundingStreamId>-<FundingPeriodId>-Information-Provider-1000202-1_0.json | specification-id | specForPublishing |
-		| <FundingStreamId>-<FundingPeriodId>-Payment-AcademyTrust-8000001-1_0.json | specification-id | specForPublishing |
+		| PublishedFundingFiles                                                       | MetadataKey      | MetadataValue     |
+		| <FundingStreamId>-<FundingPeriodId>-Information-Provider-1000201-1_0.json   | specification-id | specForPublishing |
+		| <FundingStreamId>-<FundingPeriodId>-Information-Provider-1000202-1_0.json   | specification-id | specForPublishing |
+		| <FundingStreamId>-<FundingPeriodId>-Payment-AcademyTrust-8000001-1_0.json   | specification-id | specForPublishing |
 		| <FundingStreamId>-<FundingPeriodId>-Payment-LocalAuthority-9000000-1_0.json | specification-id | specForPublishing |
 	And the published provider document produced is saved to blob storage for following file name
 		| PublishedProviderFiles                               |
@@ -683,7 +683,7 @@ Scenario Outline: Successful publishing of funding
 		| <FundingStreamId>-<FundingPeriodId>-1000201-1_0.json |
 		| <FundingStreamId>-<FundingPeriodId>-1000202-1_0.json |
 	And the published provider document produced has following metadata
-		| PublishedFundingFiles												   | MetadataKey | MetadataValue | 
+		| PublishedFundingFiles                                | MetadataKey      | MetadataValue     |
 		| <FundingStreamId>-<FundingPeriodId>-1000000-1_0.json | specification-id | specForPublishing |
 		| <FundingStreamId>-<FundingPeriodId>-1000002-1_0.json | specification-id | specForPublishing |
 		| <FundingStreamId>-<FundingPeriodId>-1000101-1_0.json | specification-id | specForPublishing |
@@ -691,9 +691,9 @@ Scenario Outline: Successful publishing of funding
 		| <FundingStreamId>-<FundingPeriodId>-1000201-1_0.json | specification-id | specForPublishing |
 		| <FundingStreamId>-<FundingPeriodId>-1000202-1_0.json | specification-id | specForPublishing |
 	And the following published provider search index items is produced for providerid with '<FundingStreamId>' and '<FundingPeriodId>'
-		| ID                  | ProviderType          | ProviderSubType | LocalAuthority    | FundingStatus | ProviderName            | UKPRN   | FundingValue | SpecificationId   | FundingStreamId   | FundingPeriodId   |
-		| 1000101-AY-1920-PSG | Academies             | Academy special sponsor led | Local Authority 1 | Released      | Academy 1               | 1000101 | 24000        | specForPublishing | <FundingStreamId> | <FundingPeriodId> |
-		| 1000002-AY-1920-PSG | LA maintained schools | Community school |Local Authority 1 | Released      | Maintained School 2     | 1000002 | 24000        | specForPublishing | <FundingStreamId> | <FundingPeriodId> |
+		| ID                  | ProviderType          | ProviderSubType             | LocalAuthority    | FundingStatus | ProviderName        | UKPRN   | FundingValue | SpecificationId   | FundingStreamId   | FundingPeriodId   |
+		| PSG-AY-1920-1000101 | Academies             | Academy special sponsor led | Local Authority 1 | Released      | Academy 1           | 1000101 | 24000        | specForPublishing | <FundingStreamId> | <FundingPeriodId> |
+		| PSG-AY-1920-1000002 | LA maintained schools | Community school            | Local Authority 1 | Released      | Maintained School 2 | 1000002 | 24000        | specForPublishing | <FundingStreamId> | <FundingPeriodId> |
 	And the following job is requested is completed for the current specification
 		| Field                  | Value             |
 		| JobDefinitionId        | PublishFundingJob |

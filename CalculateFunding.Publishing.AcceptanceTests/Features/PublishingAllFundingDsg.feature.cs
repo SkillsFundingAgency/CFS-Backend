@@ -3956,7 +3956,7 @@ this.ScenarioInitialize(scenarioInfo);
                             "FundingStreamId",
                             "FundingPeriodId"});
                 table260.AddRow(new string[] {
-                            "1000000-FY-2021-DSG",
+                            "DSG-FY-2021-1000000",
                             "LA maintained schools",
                             "Community school",
                             "Local Authority 1",
@@ -3968,7 +3968,7 @@ this.ScenarioInitialize(scenarioInfo);
                             string.Format("{0}", fundingStreamId),
                             string.Format("{0}", fundingPeriodId)});
                 table260.AddRow(new string[] {
-                            "1000002-FY-2021-DSG",
+                            "DSG-FY-2021-1000002",
                             "LA maintained schools",
                             "Community school",
                             "Local Authority 1",

@@ -113,11 +113,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
 
             //Act
             await publishedProviderIndexerService.IndexPublishedProvider(publishedProviderVersion);
-            
+
             await searchRepository
                 .Received(1)
                 .Index(Arg.Is<IEnumerable<PublishedProviderIndex>>(
-                    d => d.First().Id == $"{publishedProviderVersion.ProviderId}-{publishedProviderVersion.FundingPeriodId}-{publishedProviderVersion.FundingStreamId}" &&
+                    d => d.First().Id == publishedProviderVersion.PublishedProviderId &&
                     d.First().ProviderType == publishedProviderVersion.Provider.ProviderType &&
                     d.First().ProviderSubType == publishedProviderVersion.Provider.ProviderSubType &&
                     d.First().LocalAuthority == publishedProviderVersion.Provider.Authority &&

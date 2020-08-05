@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
@@ -71,7 +70,7 @@ namespace CalculateFunding.Services.Publishing
             catch
             {
                 string errorMessage = "Job cannot be run";
-                
+
                 _logger.Error(errorMessage);
 
                 throw new NonRetriableException(errorMessage);
@@ -90,7 +89,7 @@ namespace CalculateFunding.Services.Publishing
                 {
                     results.Add(new PublishedProviderIndex
                     {
-                        Id = publishedProvider.Current.FundingId,
+                        Id = publishedProvider.PublishedProviderId,
                         ProviderType = publishedProvider.Current.Provider.ProviderType,
                         ProviderSubType = publishedProvider.Current.Provider.ProviderSubType,
                         LocalAuthority = publishedProvider.Current.Provider.Authority,
@@ -105,7 +104,7 @@ namespace CalculateFunding.Services.Publishing
                         URN = publishedProvider.Current.Provider.URN
                     });
                 }
-                
+
                 IEnumerable<IndexError> errors = await _searchRepositoryResilience.ExecuteAsync(() => _searchRepository.Index(results));
 
                 if (errors?.Any() == true)

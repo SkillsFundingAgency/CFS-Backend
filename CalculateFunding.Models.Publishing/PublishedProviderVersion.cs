@@ -21,6 +21,12 @@ namespace CalculateFunding.Models.Publishing
         public string FundingId => $"{FundingStreamId}-{FundingPeriodId}-{ProviderId}-{MajorVersion}_{MinorVersion}";
 
         /// <summary>
+        /// Logical ID for this published provider to identify it between datastores and consistent between versions
+        /// </summary>
+        [JsonProperty("publishedProviderId")]
+        public string PublishedProviderId => $"{FundingStreamId}-{FundingPeriodId}-{ProviderId}";
+
+        /// <summary>
         /// Funding Stream ID. eg PSG, DSG
         /// </summary>
         [JsonProperty("fundingStreamId")]
@@ -31,27 +37,27 @@ namespace CalculateFunding.Models.Publishing
         /// </summary>
         [JsonProperty("fundingPeriodId")]
         public string FundingPeriodId { get; set; }
-        
+
         /// <summary>
         /// The none default profiling patterns used for this provider
         /// in this period and funding stream keyed by funding line
         /// </summary>
         [JsonProperty("profilePatternKeys")]
         public ICollection<ProfilePatternKey> ProfilePatternKeys { get; set; }
-        
+
         /// <summary>
         /// The custom profile periods used for this provider
         /// in this period and funding stream keyed by funding line
         /// </summary>
         [JsonProperty("customProfiles")]
         public IEnumerable<FundingLineProfileOverrides> CustomProfiles { get; set; }
-        
+
         /// <summary>
         /// Flag indicating whether this provider has any custom profiles 
         /// </summary>
         [JsonProperty("hasCustomProfiles")]
         public bool HasCustomProfiles => CustomProfiles?.Any() == true;
-        
+
         /// <summary>
         /// Specification this ID is associated with
         /// </summary>
@@ -178,7 +184,7 @@ namespace CalculateFunding.Models.Publishing
         /// </summary>
         [JsonProperty("correlationId")]
         public string CorrelationId { get; set; }
-        
+
         /// <summary>
         /// Collection of any over payments keyed by funding line for the funding period
         /// this published provider version is in
@@ -192,7 +198,7 @@ namespace CalculateFunding.Models.Publishing
             {
                 throw new ArgumentOutOfRangeException(nameof(fundingLineId), fundingLineId, "Funding Line Id cannot be missing");
             }
-            
+
             if (overpayment <= 0)
             {
                 throw new ArgumentOutOfRangeException(nameof(overpayment), overpayment, "Over payments must be greater than zero");
@@ -204,7 +210,7 @@ namespace CalculateFunding.Models.Publishing
 
         [JsonIgnore]
         public bool HasResults => Calculations?.Any() == true;
-        
+
         public override VersionedItem Clone()
         {
             // Serialise to perform a deep copy
@@ -220,13 +226,13 @@ namespace CalculateFunding.Models.Publishing
         public override int GetHashCode()
         {
             return HashCode.Combine(
-                FundingStreamId, 
-                FundingPeriodId, 
-                SpecificationId, 
-                TemplateVersion, 
-                Status, 
-                ProviderId, 
-                MajorVersion, 
+                FundingStreamId,
+                FundingPeriodId,
+                SpecificationId,
+                TemplateVersion,
+                Status,
+                ProviderId,
+                MajorVersion,
                 MinorVersion);
         }
     }

@@ -128,7 +128,7 @@ namespace CalculateFunding.Services.Publishing
         private PublishedProviderIndex CreatePublishedProviderIndex(PublishedProviderVersion publishedProviderVersion) =>
             new PublishedProviderIndex
             {
-                Id = $"{publishedProviderVersion.ProviderId}-{publishedProviderVersion.FundingPeriodId}-{publishedProviderVersion.FundingStreamId}",
+                Id = publishedProviderVersion.PublishedProviderId,
                 ProviderType = publishedProviderVersion.Provider.ProviderType,
                 ProviderSubType = publishedProviderVersion.Provider.ProviderSubType,
                 LocalAuthority = publishedProviderVersion.Provider.Authority,
