@@ -43,6 +43,7 @@ namespace CalculateFunding.Services.FundingDataZone.IoC
             serviceCollection.AddScoped<IProvidersInSnapshotRetrievalService, ProvidersInSnapshotRetrievalService>();
             serviceCollection.AddScoped<IProviderSnapshotForFundingStreamService, ProviderSnapshotForFundingStreamService>();
             serviceCollection.AddScoped<IPublishingAreaRepository, PublishingAreaRepository>();
+            serviceCollection.AddSingleton<ISqlPolicyFactory, SqlPolicyFactory>();
 
             AddFundingDataZoneDBSettings(serviceCollection, configuration);
 

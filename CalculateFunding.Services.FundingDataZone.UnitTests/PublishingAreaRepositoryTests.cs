@@ -11,12 +11,14 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Moq.Dapper;
+using Polly;
 
 namespace CalculateFunding.Services.FundingDataZone.UnitTests
 {
     [TestClass]
     public class PublishingAreaRepositoryTests
     {
+        private Mock<ISqlPolicyFactory> _policyFactory;
         private Mock<ISqlConnectionFactory> _connectionFactory;
         private Mock<IDbConnection> _connection;
 
@@ -25,13 +27,20 @@ namespace CalculateFunding.Services.FundingDataZone.UnitTests
         [TestInitialize]
         public void SetUp()
         {
+            _policyFactory = new Mock<ISqlPolicyFactory>();
             _connectionFactory = new Mock<ISqlConnectionFactory>();
             _connection = new Mock<IDbConnection>();
 
             _connectionFactory.Setup(_ => _.CreateConnection())
                 .Returns(_connection.Object);
 
-            _repository = new PublishingAreaRepository(_connectionFactory.Object);
+            _policyFactory.Setup(_ => _.CreateConnectionOpenPolicy())
+                .Returns(Policy.NoOp);
+            _policyFactory.Setup(_ => _.CreateQueryAsyncPolicy())
+                .Returns(Policy.NoOpAsync);
+
+            _repository = new PublishingAreaRepository(_connectionFactory.Object,
+                _policyFactory.Object);
         }
 
         [TestMethod]

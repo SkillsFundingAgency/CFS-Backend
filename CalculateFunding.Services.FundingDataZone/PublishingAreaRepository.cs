@@ -12,8 +12,8 @@ namespace CalculateFunding.Services.FundingDataZone
 {
     public class PublishingAreaRepository : SqlRepository, IPublishingAreaRepository, IHealthChecker
     {
-        public PublishingAreaRepository(ISqlConnectionFactory connectionFactory)
-            : base(connectionFactory)
+        public PublishingAreaRepository(ISqlConnectionFactory connectionFactory, ISqlPolicyFactory sqlPolicyFactory)
+            : base(connectionFactory, sqlPolicyFactory)
         {
         }
 
