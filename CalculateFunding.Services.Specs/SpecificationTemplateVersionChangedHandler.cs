@@ -91,6 +91,7 @@ namespace CalculateFunding.Services.Specs
                 InvokerUserId = user?.Id,
                 InvokerUserDisplayName = user?.Name,
                 CorrelationId = correlationId,
+                SpecificationId = specificationId,
                 Trigger = new Trigger
                 {
                     Message = "Changed template version for specification",
