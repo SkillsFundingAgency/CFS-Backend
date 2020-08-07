@@ -136,15 +136,15 @@ namespace CalculateFunding.Api.Publishing.Controllers
         /// Approve funding for batch providers within given specification
         /// </summary>
         /// <param name="specificationId">The specification id</param>
-        /// <param name="approveProvidersRequest"></param>
+        /// <param name="publishedProviderIdsRequest"></param>
         /// <returns></returns>
         [HttpPost("api/specifications/{specificationId}/approve-providers")]
         [ProducesResponseType(200, Type = typeof(JobCreationResponse))]
-        public async Task<IActionResult> ApproveBatchProviderFunding([FromRoute] string specificationId, [FromBody] ApproveProvidersRequest approveProvidersRequest)
+        public async Task<IActionResult> ApproveBatchProviderFunding([FromRoute] string specificationId, [FromBody] PublishedProviderIdsRequest publishedProviderIdsRequest)
         {
             return await _specificationPublishingService.ApproveBatchProviderFunding(
                 specificationId,
-                approveProvidersRequest,
+                publishedProviderIdsRequest,
                 Request.GetUser(),
                 GetCorrelationId());
         }
@@ -167,15 +167,15 @@ namespace CalculateFunding.Api.Publishing.Controllers
         /// Publish funding for batch providers within given specification
         /// </summary>
         /// <param name="specificationId">The specification id</param>
-        /// <param name="publishProvidersRequest"></param>
+        /// <param name="publishedProviderIdsRequest"></param>
         /// <returns></returns>
         [HttpPost("api/specifications/{specificationId}/publish-providers")]
         [ProducesResponseType(200, Type = typeof(JobCreationResponse))]
-        public async Task<IActionResult> PublishBatchProvidersFunding([FromRoute] string specificationId, [FromBody] PublishProvidersRequest publishProvidersRequest)
+        public async Task<IActionResult> PublishBatchProvidersFunding([FromRoute] string specificationId, [FromBody] PublishedProviderIdsRequest publishedProviderIdsRequest)
         {
             return await _providerFundingPublishingService.PublishBatchProvidersFunding(
                 specificationId,
-                publishProvidersRequest,
+                publishedProviderIdsRequest,
                 Request.GetUser(),
                 GetCorrelationId());
         }

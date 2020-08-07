@@ -29,7 +29,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
         private ICreateApproveBatchFundingJobs _approveProviderFundingJobs;
         private ICacheProvider _cacheProvider;
         private ISpecificationFundingStatusService _specificationFundingStatusService;
-        private ApproveProvidersRequest _approveProvidersRequest;
+        private PublishedProviderIdsRequest _approveProvidersRequest;
 
         [TestInitialize]
         public void SetUp()
@@ -311,7 +311,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
 
             Dictionary<string, string> messageProperties = new Dictionary<string, string>
             {
-                {JobConstants.MessagePropertyNames.ApproveProvidersRequest, JsonExtensions.AsJson(_approveProvidersRequest) }
+                {JobConstants.MessagePropertyNames.PublishedProviderIdsRequest, JsonExtensions.AsJson(_approveProvidersRequest) }
             };
 
             GivenTheApiResponseDetailsForTheSuppliedId(specificationSummary);
@@ -408,9 +408,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
                 .Returns(new ApiResponse<IEnumerable<ApiSpecificationSummary>>(HttpStatusCode.OK, specificationSummaries));
         }
 
-        private ApproveProvidersRequest BuildApproveProvidersRequest(Action<ApproveProvidersRequestBuilder> setUp = null)
+        private PublishedProviderIdsRequest BuildApproveProvidersRequest(Action<PublishedProviderIdsRequestBuilder> setUp = null)
         {
-            ApproveProvidersRequestBuilder approveProvidersRequestBuilder = new ApproveProvidersRequestBuilder();
+            PublishedProviderIdsRequestBuilder approveProvidersRequestBuilder = new PublishedProviderIdsRequestBuilder();
 
             setUp?.Invoke(approveProvidersRequestBuilder);
 

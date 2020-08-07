@@ -33,7 +33,7 @@ namespace CalculateFunding.Services.Publishing.IoC
             serviceCollection.AddSingleton<IProviderFundingPublishingService, ProviderFundingPublishingService>();
             serviceCollection.AddSingleton<IHealthChecker, ProviderFundingPublishingService>();
             serviceCollection.AddSingleton<ISpecificationIdServiceRequestValidator, PublishSpecificationValidator>();
-            serviceCollection.AddSingleton<IProviderIdsServiceRequestValidator, PublishProvidersValidator>();
+            serviceCollection.AddSingleton<IPublishedProviderIdsServiceRequestValidator, PublishedProviderIdsValidator>();
             serviceCollection.AddSingleton<IPublishedProviderFundingService, PublishedProviderFundingService>();
             serviceCollection.AddSingleton<ISpecificationService, SpecificationService>();
             serviceCollection.AddSingleton<IProviderService, ProviderService>();

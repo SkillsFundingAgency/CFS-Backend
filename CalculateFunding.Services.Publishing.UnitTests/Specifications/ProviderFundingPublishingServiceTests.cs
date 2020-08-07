@@ -26,7 +26,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
         private ProviderFundingPublishingService _service;
         private IPublishedFundingRepository _publishedFundingRepository;
         private ICreateBatchPublishProviderFundingJobs _createBatchPublishProviderFundingJobs;
-        private PublishProvidersRequest _publishProvidersRequest;
+        private PublishedProviderIdsRequest _publishProvidersRequest;
 
         [TestInitialize]
         public void SetUp()
@@ -205,7 +205,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
 
             Dictionary<string, string> messageProperties = new Dictionary<string, string>
             {
-                {JobConstants.MessagePropertyNames.PublishProvidersRequest, JsonExtensions.AsJson(_publishProvidersRequest) }
+                {JobConstants.MessagePropertyNames.PublishedProviderIdsRequest, JsonExtensions.AsJson(_publishProvidersRequest) }
             };
 
             AndTheApiResponseDetailsForSpecificationsBatchProvidersJob(publishFundingJob, messageProperties);
@@ -352,9 +352,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
             _publishedFundingRepository.IsHealthOk().Returns(serviceHealth);
         }
 
-        private PublishProvidersRequest BuildPublishProvidersRequest(Action<PublishProvidersRequestBuilder> setUp = null)
+        private PublishedProviderIdsRequest BuildPublishProvidersRequest(Action<PublishedProviderIdsRequestBuilder> setUp = null)
         {
-            PublishProvidersRequestBuilder publishProvidersRequestBuilder = new PublishProvidersRequestBuilder();
+            PublishedProviderIdsRequestBuilder publishProvidersRequestBuilder = new PublishedProviderIdsRequestBuilder();
 
             setUp?.Invoke(publishProvidersRequestBuilder);
 

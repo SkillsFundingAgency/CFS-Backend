@@ -938,7 +938,7 @@ Scenario Outline: Successful publishing of funding
 		| 320   | 5cfb28de-88d6-4faa-a936-d81a065fb596 |
 	When batch funding is published
 		| Ids     |
-		| 1000000 |
+		| <FundingStreamId>-<FundingPeriodId>-1000000 |
 	Then the following published funding is produced
 		| Field                            | Value             |
 		| GroupingReason                   | Payment           |

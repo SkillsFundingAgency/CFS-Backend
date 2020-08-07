@@ -78,8 +78,7 @@
 
         public static class MessagePropertyNames
         {
-            public const string ApproveProvidersRequest = "approve-providers-request";
-            public const string PublishProvidersRequest = "publish-providers-request";
+            public const string PublishedProviderIdsRequest = "published-providerIds-request";
         }
 
         public const string NotificationsHubName = "notifications";

@@ -3,16 +3,17 @@ using FluentValidation;
 
 namespace CalculateFunding.Services.Publishing.Validators
 {
-    public class PublishProvidersValidator : AbstractValidator<string[]>, IProviderIdsServiceRequestValidator
+    public class PublishedProviderIdsValidator : AbstractValidator<string[]>, IPublishedProviderIdsServiceRequestValidator
     {
-        public PublishProvidersValidator()
+        public PublishedProviderIdsValidator()
         {
             RuleFor(_ => _)
                 .NotEmpty()
-                .WithMessage("No provider Ids were provided");
+                .WithMessage("No published provider Ids were provided");
 
             RuleForEach(_ => _)
-                .SetValidator(new PublishProviderValidator());
+                .NotEmpty()
+                .WithMessage("No published provider Id was provided");
         }
     }
 }

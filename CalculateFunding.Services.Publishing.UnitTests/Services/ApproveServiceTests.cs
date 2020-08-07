@@ -320,7 +320,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         }
 
         [TestMethod]
-        public void ApproveAllProvidersResults_ExistsEarlyIfAnyOfThePublishedProvidersAreInError()
+        public void ApproveAllProvidersResults_ExitsEarlyIfAnyOfThePublishedProvidersAreInError()
         {
             PublishedProvider[] expectedPublishedProviders =
             {
@@ -348,7 +348,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         }
 
         [TestMethod]
-        public void ApproveBatchProvidersResults_ExistsEarlyIfAnyOfThePublishedProvidersAreInError()
+        public void ApproveBatchProvidersResults_ExitsEarlyIfAnyOfThePublishedProvidersAreInError()
         {
             PublishedProvider[] expectedPublishedProviders =
             {
@@ -424,15 +424,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
 
             string specificationId = NewRandomString();
             string fundingLineCode = NewRandomString();
-            string providerId = NewRandomString();
-            string[] providerIds = new[] { providerId };
+            string publishedProviderId = NewRandomString();
+            string[] publishedProviderIds = new[] { publishedProviderId };
             
             GivenTheMessageHasACorrelationId();
             GivenTheMessageHasTheSpecificationId(specificationId);
-            GivenTheMessageHasTheApproveProvidersRequest(BuildApproveProvidersRequest(_ => _.WithProviders(providerIds)));
+            GivenTheMessageHasTheApproveProvidersRequest(BuildApproveProvidersRequest(_ => _.WithProviders(publishedProviderIds)));
             GivenTheMessageHasTheFundingLineCode(fundingLineCode);
             AndTheMessageIsOtherwiseValid();
-            AndTheSpecificationHasTheHeldUnApprovedPublishedProviders(specificationId, providerIds, expectedPublishedProviders);
+            AndTheSpecificationHasTheHeldUnApprovedPublishedProviders(specificationId, publishedProviderIds, expectedPublishedProviders);
 
             AndRetrieveJobAndCheckCanBeProcessedSuccessfully();
             AndNumberOfApprovedPublishedProvidersIsReturned(expectedPublishedProviders);
@@ -504,9 +504,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             GivenTheUserProperty("specification-id", specificationId);
         }
 
-        private void GivenTheMessageHasTheApproveProvidersRequest(ApproveProvidersRequest approveProvidersRequest)
+        private void GivenTheMessageHasTheApproveProvidersRequest(PublishedProviderIdsRequest approveProvidersRequest)
         {
-            GivenTheUserProperty(JobConstants.MessagePropertyNames.ApproveProvidersRequest, JsonExtensions.AsJson(approveProvidersRequest));
+            GivenTheUserProperty(JobConstants.MessagePropertyNames.PublishedProviderIdsRequest, JsonExtensions.AsJson(approveProvidersRequest));
         }
 
         private void GivenTheMessageHasTheFundingLineCode(string fundingLineCode)
@@ -519,9 +519,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             GivenTheMessageHasAJobId();
         }
 
-        private void AndTheSpecificationHasTheHeldUnApprovedPublishedProviders(string specificationId, string[] providerIds = null, params PublishedProvider[] publishedProviders)
+        private void AndTheSpecificationHasTheHeldUnApprovedPublishedProviders(string specificationId, string[] publishedProviderIds = null, params PublishedProvider[] publishedProviders)
         {
-            _publishedFundingDataService.GetPublishedProvidersForApproval(specificationId, Arg.Is<string[]>(_ => _ == null || _.SequenceEqual(providerIds)))
+            _publishedFundingDataService.GetPublishedProvidersForApproval(specificationId, Arg.Is<string[]>(_ => _ == null || _.SequenceEqual(publishedProviderIds)))
                 .Returns(publishedProviders);
         }
 
@@ -583,9 +583,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 .Returns(_job);
         }
 
-        private ApproveProvidersRequest BuildApproveProvidersRequest(Action<ApproveProvidersRequestBuilder> setUp = null)
+        private PublishedProviderIdsRequest BuildApproveProvidersRequest(Action<PublishedProviderIdsRequestBuilder> setUp = null)
         {
-            ApproveProvidersRequestBuilder approveProvidersRequestBuilder = new ApproveProvidersRequestBuilder();
+            PublishedProviderIdsRequestBuilder approveProvidersRequestBuilder = new PublishedProviderIdsRequestBuilder();
 
             setUp?.Invoke(approveProvidersRequestBuilder);
 

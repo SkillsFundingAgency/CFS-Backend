@@ -31,7 +31,7 @@ namespace CalculateFunding.Services.Publishing.Specifications
 
         public SpecificationPublishingService(
             ISpecificationIdServiceRequestValidator specificationIdValidator,
-            IProviderIdsServiceRequestValidator providerIdsValidator,
+            IPublishedProviderIdsServiceRequestValidator publishedProviderIdsValidator,
             ISpecificationsApiClient specifications,
             IPublishingResiliencePolicies resiliencePolicies,
             ICacheProvider cacheProvider,
@@ -40,7 +40,7 @@ namespace CalculateFunding.Services.Publishing.Specifications
             ICreateApproveBatchFundingJobs approveProviderFundingJobs,
             ISpecificationFundingStatusService specificationFundingStatusService,
             IFundingConfigurationService fundingConfigurationService) : 
-            base(specificationIdValidator, providerIdsValidator, specifications, resiliencePolicies, fundingConfigurationService)
+            base(specificationIdValidator, publishedProviderIdsValidator, specifications, resiliencePolicies, fundingConfigurationService)
         {
             Guard.ArgumentNotNull(refreshFundingJobs, nameof(refreshFundingJobs));
             Guard.ArgumentNotNull(approveSpecificationFundingJobs, nameof(approveSpecificationFundingJobs));
@@ -131,7 +131,7 @@ namespace CalculateFunding.Services.Publishing.Specifications
             return ProcessJobResponse(job, specificationId, JobConstants.DefinitionNames.ApproveAllProviderFundingJob);
         }
 
-        public async Task<IActionResult> ApproveBatchProviderFunding(string specificationId, ApproveProvidersRequest approveProvidersRequest, Reference user, string correlationId)
+        public async Task<IActionResult> ApproveBatchProviderFunding(string specificationId, PublishedProviderIdsRequest publishedProviderIdsRequest, Reference user, string correlationId)
         {
             ValidationResult specificationIdValidationResult = SpecificationIdValidator.Validate(specificationId);
             if (!specificationIdValidationResult.IsValid)
@@ -139,10 +139,10 @@ namespace CalculateFunding.Services.Publishing.Specifications
                 return specificationIdValidationResult.AsBadRequest();
             }
 
-            ValidationResult providerIdsValidationResult = ProviderIdsValidator.Validate(approveProvidersRequest.Providers.ToArray());
-            if (!providerIdsValidationResult.IsValid)
+            ValidationResult publishedProviderIdsValidationResult = PublishedProviderIdsValidator.Validate(publishedProviderIdsRequest.PublishedProviderIds.ToArray());
+            if (!publishedProviderIdsValidationResult.IsValid)
             {
-                return providerIdsValidationResult.AsBadRequest();
+                return publishedProviderIdsValidationResult.AsBadRequest();
             }
 
             IActionResult actionResult = await IsReadyForApproval(specificationId, ApprovalMode.Batches);
@@ -153,7 +153,7 @@ namespace CalculateFunding.Services.Publishing.Specifications
 
             Dictionary<string, string> messageProperties = new Dictionary<string, string>
             {
-                { JobConstants.MessagePropertyNames.ApproveProvidersRequest, JsonExtensions.AsJson(approveProvidersRequest) }
+                { JobConstants.MessagePropertyNames.PublishedProviderIdsRequest, JsonExtensions.AsJson(publishedProviderIdsRequest) }
             };
 
             ApiJob job = await _approveProviderFundingJobs.CreateJob(specificationId, user, correlationId, messageProperties);

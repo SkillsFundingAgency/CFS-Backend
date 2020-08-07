@@ -207,7 +207,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
             return await _repository.UpsertAsync(publishedFunding, publishedFunding.ParitionKey);
         }
 
-        public async Task<IEnumerable<KeyValuePair<string, string>>> GetPublishedProviderIdsForApproval(string fundingStreamId, string fundingPeriodId, string[] providerIds = null)
+        public async Task<IEnumerable<KeyValuePair<string, string>>> GetPublishedProviderIdsForApproval(string fundingStreamId, string fundingPeriodId, string[] publishedProviderIds = null)
         {
             Guard.IsNullOrWhiteSpace(fundingStreamId, nameof(fundingStreamId));
             Guard.IsNullOrWhiteSpace(fundingPeriodId, nameof(fundingPeriodId));
@@ -224,12 +224,12 @@ namespace CalculateFunding.Services.Publishing.Repositories
                 new CosmosDbQueryParameter("@fundingPeriodId", fundingPeriodId)
             };
 
-            if (providerIds != null && providerIds.Any())
+            if (publishedProviderIds != null && publishedProviderIds.Any())
             {
-                string providerIdQueryText = string.Join(',', providerIds.Select((_, index) => $"@providerId_{index}"));
-                queryTextBuilder.Append($" AND c.content.current.providerId IN ({providerIdQueryText})");
+                string publishedProviderIdQueryText = string.Join(',', publishedProviderIds.Select((_, index) => $"@publishedProviderId_{index}"));
+                queryTextBuilder.Append($" AND c.content.publishedProviderId IN ({publishedProviderIdQueryText})");
 
-                cosmosDbQueryParameters.AddRange(providerIds.Select((_, index) => new CosmosDbQueryParameter($"@providerId_{index}", _)));
+                cosmosDbQueryParameters.AddRange(publishedProviderIds.Select((_, index) => new CosmosDbQueryParameter($"@publishedProviderId_{index}", _)));
             }
 
             CosmosDbQuery cosmosDbQuery = new CosmosDbQuery

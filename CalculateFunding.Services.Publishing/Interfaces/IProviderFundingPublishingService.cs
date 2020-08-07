@@ -13,7 +13,7 @@ namespace CalculateFunding.Services.Publishing.Interfaces
             string correlationId);
 
         Task<IActionResult> PublishBatchProvidersFunding(string specificationId,
-            PublishProvidersRequest publishProvidersRequest,
+            PublishedProviderIdsRequest publishProvidersRequest,
             Reference user,
             string correlationId);
 

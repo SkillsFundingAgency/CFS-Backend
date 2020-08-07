@@ -143,12 +143,12 @@ namespace CalculateFunding.Services.Publishing
 
             string correlationId = message.GetUserProperty<string>(SfaCorrelationId);
 
-            PublishProvidersRequest publishProvidersRequest = null;
+            PublishedProviderIdsRequest publishedProviderIdsRequest = null;
 
             if(batched)
             {
-                string publishProvidersRequestJson = message.GetUserProperty<string>(JobConstants.MessagePropertyNames.PublishProvidersRequest);
-                publishProvidersRequest = publishProvidersRequestJson.AsPoco<PublishProvidersRequest>();
+                string publishedProviderIdsRequestJson = message.GetUserProperty<string>(JobConstants.MessagePropertyNames.PublishedProviderIdsRequest);
+                publishedProviderIdsRequest = publishedProviderIdsRequestJson.AsPoco<PublishedProviderIdsRequest>();
             }
 
             foreach (Reference fundingStream in specification.FundingStreams)
@@ -158,8 +158,8 @@ namespace CalculateFunding.Services.Publishing
                     jobId, 
                     author, 
                     correlationId,
-                    batched ? PrerequisiteCheckerType.ReleaseBatchProviders : PrerequisiteCheckerType.ReleaseAllProviders, 
-                    publishProvidersRequest?.Providers?.ToArray());
+                    batched ? PrerequisiteCheckerType.ReleaseBatchProviders : PrerequisiteCheckerType.ReleaseAllProviders,
+                    publishedProviderIdsRequest?.PublishedProviderIds?.ToArray());
             }
 
             _logger.Information($"Running search reindexer for published funding");
@@ -203,7 +203,7 @@ namespace CalculateFunding.Services.Publishing
             Reference author,
             string correlationId,
             PrerequisiteCheckerType prerequisiteCheckerType,
-            string[] batchProviderIds = null)
+            string[] batchPublishedProviderIds = null)
         {
             _logger.Information($"Processing Publish Funding for {fundingStream.Id} in specification {specification.Id}");
 
@@ -220,10 +220,12 @@ namespace CalculateFunding.Services.Publishing
                 IDictionary<string, PublishedProvider> scopedPublishedProviders) = await _providerService.GetPublishedProviders(fundingStream,
                         specification);
 
+            IDictionary<string, PublishedProvider> publishedProvidersByPublishedProviderId = publishedProvidersForFundingStream.Values.ToDictionary(_ => _.PublishedProviderId);
+
             IEnumerable<PublishedProvider> selectedPublishedProviders =
-                batchProviderIds.IsNullOrEmpty() ?
+                batchPublishedProviderIds.IsNullOrEmpty() ?
                 publishedProvidersForFundingStream.Values :
-                batchProviderIds.Where(_ => publishedProvidersForFundingStream.ContainsKey(_)).Select(_ => publishedProvidersForFundingStream[_]);
+                batchPublishedProviderIds.Where(_ => publishedProvidersByPublishedProviderId.ContainsKey(_)).Select(_ => publishedProvidersByPublishedProviderId[_]);
             
             AddInitialPublishVariationReasons(selectedPublishedProviders);
 

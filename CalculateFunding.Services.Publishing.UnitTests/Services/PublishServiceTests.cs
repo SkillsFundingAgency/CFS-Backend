@@ -81,14 +81,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         private const string FundingStreamId = "PSG";
         private const string CorrelationId = "CorrelationId";
 
-        private string _providerId;
-        private string[] _providerIds;
+        private string _publishedProviderId;
+        private string[] _publishedProviderIds;
 
         [TestInitialize]
         public void Setup()
         {
-            _providerId = NewRandomString();
-            _providerIds = new[] { _providerId };
+            _publishedProviderId = NewRandomString();
+            _publishedProviderIds = new[] { _publishedProviderId };
 
             _publishedFundingStatusUpdateService = Substitute.For<IPublishedFundingStatusUpdateService>();
             _publishingResiliencePolicies = new ResiliencePolicies
@@ -239,7 +239,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             AndUpdateStatusThrowsAnError(error);
             AndTemplateMapping();
 
-            Func<Task> invocation = () => WhenPublishBatchProvidersMessageReceivedWithJobIdAndCorrelationId(BuildPublishProvidersRequest(_ => _.WithProviders(_providerIds)));
+            Func<Task> invocation = () => WhenPublishBatchProvidersMessageReceivedWithJobIdAndCorrelationId(BuildPublishProvidersRequest(_ => _.WithProviders(_publishedProviderIds)));
 
             invocation
                 .Should()
@@ -303,7 +303,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             AndUpdateFundingStatusThrowsAnError(error);
             AndTemplateMapping();
 
-            Func<Task> invocation = () => WhenPublishBatchProvidersMessageReceivedWithJobIdAndCorrelationId(BuildPublishProvidersRequest(_ => _.WithProviders(_providerIds)));
+            Func<Task> invocation = () => WhenPublishBatchProvidersMessageReceivedWithJobIdAndCorrelationId(BuildPublishProvidersRequest(_ => _.WithProviders(_publishedProviderIds)));
 
             invocation
                 .Should()
@@ -351,7 +351,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             AndTemplateMetadataContents();
             AndPublishedProviders();
 
-            Func<Task> invocation = () => WhenPublishBatchProvidersMessageReceivedWithJobIdAndCorrelationId(BuildPublishProvidersRequest(_ => _.WithProviders(_providerIds)));
+            Func<Task> invocation = () => WhenPublishBatchProvidersMessageReceivedWithJobIdAndCorrelationId(BuildPublishProvidersRequest(_ => _.WithProviders(_publishedProviderIds)));
 
             invocation
                 .Should()
@@ -383,7 +383,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         {
             GivenJobCanBeProcessed();
 
-            Func<Task> invocation = () => WhenPublishBatchProvidersMessageReceivedWithJobIdAndCorrelationId(BuildPublishProvidersRequest(_ => _.WithProviders(_providerIds)));
+            Func<Task> invocation = () => WhenPublishBatchProvidersMessageReceivedWithJobIdAndCorrelationId(BuildPublishProvidersRequest(_ => _.WithProviders(_publishedProviderIds)));
 
             invocation
                 .Should()
@@ -419,7 +419,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 .RetrieveJobAndCheckCanBeProcessed(JobId)
                 .Throws(new JobNotFoundException(string.Empty, JobId));
 
-            Func<Task> invocation = () => WhenPublishBatchProvidersMessageReceivedWithJobIdAndCorrelationId(BuildPublishProvidersRequest(_ => _.WithProviders(_providerIds)));
+            Func<Task> invocation = () => WhenPublishBatchProvidersMessageReceivedWithJobIdAndCorrelationId(BuildPublishProvidersRequest(_ => _.WithProviders(_publishedProviderIds)));
 
             invocation
                 .Should()
@@ -467,7 +467,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             AndPublishedProviders();
             AndCalculationEngineRunningForPublishBatchProviders();
 
-            Func<Task> invocation = () => WhenPublishBatchProvidersMessageReceivedWithJobIdAndCorrelationId(BuildPublishProvidersRequest(_ => _.WithProviders(_providerIds)));
+            Func<Task> invocation = () => WhenPublishBatchProvidersMessageReceivedWithJobIdAndCorrelationId(BuildPublishProvidersRequest(_ => _.WithProviders(_publishedProviderIds)));
 
             invocation
                 .Should()
@@ -746,21 +746,21 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             await _publishService.PublishProviderFundingResults(message);
         }
 
-        private async Task WhenPublishBatchProvidersMessageReceivedWithJobIdAndCorrelationId(PublishProvidersRequest publishProvidersRequest)
+        private async Task WhenPublishBatchProvidersMessageReceivedWithJobIdAndCorrelationId(PublishedProviderIdsRequest publishProvidersRequest)
         {
             Message message = NewMessage(_ => _
                 .WithUserProperty("specification-id",SpecificationId)
                 .WithUserProperty("jobId",JobId)
                 .WithUserProperty("sfa-correlationId", CorrelationId)
                 .WithUserProperty(
-                    JobConstants.MessagePropertyNames.PublishProvidersRequest, publishProvidersRequest.AsJson()));
+                    JobConstants.MessagePropertyNames.PublishedProviderIdsRequest, publishProvidersRequest.AsJson()));
 
             await _publishService.PublishProviderFundingResults(message, batched: true);
         }
 
-        private PublishProvidersRequest BuildPublishProvidersRequest(Action<PublishProvidersRequestBuilder> setUp = null)
+        private PublishedProviderIdsRequest BuildPublishProvidersRequest(Action<PublishedProviderIdsRequestBuilder> setUp = null)
         {
-            PublishProvidersRequestBuilder publishProvidersRequestBuilder = new PublishProvidersRequestBuilder();
+            PublishedProviderIdsRequestBuilder publishProvidersRequestBuilder = new PublishedProviderIdsRequestBuilder();
 
             setUp?.Invoke(publishProvidersRequestBuilder);
 

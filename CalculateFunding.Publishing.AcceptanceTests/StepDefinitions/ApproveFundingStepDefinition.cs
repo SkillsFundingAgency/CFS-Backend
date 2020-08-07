@@ -59,14 +59,14 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
             Message message = new Message();
 
             string[] providerIds = table.AsStrings();
-            ApproveProvidersRequest approveProvidersRequest = new ApproveProvidersRequest { Providers = providerIds };
+            PublishedProviderIdsRequest approveProvidersRequest = new PublishedProviderIdsRequest { PublishedProviderIds = providerIds };
             string approveProvidersRequestJson = JsonExtensions.AsJson(approveProvidersRequest);
 
             message.UserProperties.Add("user-id", _currentUserStepContext.UserId);
             message.UserProperties.Add("user-name", _currentUserStepContext.UserName);
             message.UserProperties.Add("specification-id", _currentSpecificationStepContext.SpecificationId);
             message.UserProperties.Add("jobId", _currentJobStepContext.JobId);
-            message.UserProperties.Add(JobConstants.MessagePropertyNames.ApproveProvidersRequest, approveProvidersRequestJson);
+            message.UserProperties.Add(JobConstants.MessagePropertyNames.PublishedProviderIdsRequest, approveProvidersRequestJson);
 
             await _approveService.ApproveResults(message, batched: true);
         }

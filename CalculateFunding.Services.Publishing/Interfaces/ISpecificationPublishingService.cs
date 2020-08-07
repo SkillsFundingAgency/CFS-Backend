@@ -18,7 +18,7 @@ namespace CalculateFunding.Services.Publishing.Interfaces
         Task<IActionResult> CanChooseForFunding(string specificationId);
 
         Task<IActionResult> ApproveBatchProviderFunding(string specificationId,
-            ApproveProvidersRequest approveProvidersRequest, 
+            PublishedProviderIdsRequest approveProvidersRequest, 
             Reference user, 
             string correlationId);
     }

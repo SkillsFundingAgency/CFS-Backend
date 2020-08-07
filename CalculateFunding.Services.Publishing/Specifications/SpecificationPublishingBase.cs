@@ -7,26 +7,26 @@ namespace CalculateFunding.Services.Publishing.Specifications
     public abstract class SpecificationPublishingBase
     {
         protected readonly ISpecificationIdServiceRequestValidator SpecificationIdValidator;
-        protected readonly IProviderIdsServiceRequestValidator ProviderIdsValidator;
+        protected readonly IPublishedProviderIdsServiceRequestValidator PublishedProviderIdsValidator;
         protected readonly ISpecificationsApiClient Specifications;
         protected readonly IFundingConfigurationService _fundingConfigurationService;
         private readonly IPublishingResiliencePolicies _resiliencePolicies;
 
         protected SpecificationPublishingBase(
             ISpecificationIdServiceRequestValidator specificationIdValidator,
-            IProviderIdsServiceRequestValidator providerIdsValidator,
+            IPublishedProviderIdsServiceRequestValidator publishedProviderIdsValidator,
             ISpecificationsApiClient specifications,
             IPublishingResiliencePolicies resiliencePolicies,
             IFundingConfigurationService fundingConfigurationService)
         {
             Guard.ArgumentNotNull(specificationIdValidator, nameof(specificationIdValidator));
-            Guard.ArgumentNotNull(providerIdsValidator, nameof(providerIdsValidator));
+            Guard.ArgumentNotNull(publishedProviderIdsValidator, nameof(publishedProviderIdsValidator));
             Guard.ArgumentNotNull(specifications, nameof(specifications));
             Guard.ArgumentNotNull(resiliencePolicies?.SpecificationsRepositoryPolicy, nameof(resiliencePolicies.SpecificationsRepositoryPolicy));
             Guard.ArgumentNotNull(fundingConfigurationService, nameof(fundingConfigurationService));
 
             SpecificationIdValidator = specificationIdValidator;
-            ProviderIdsValidator = providerIdsValidator;
+            PublishedProviderIdsValidator = publishedProviderIdsValidator;
             Specifications = specifications;
             _resiliencePolicies = resiliencePolicies;
             _fundingConfigurationService = fundingConfigurationService;

@@ -28,14 +28,14 @@ namespace CalculateFunding.Services.Publishing.Specifications
 
         public ProviderFundingPublishingService(
             ISpecificationIdServiceRequestValidator specificationIdValidator,
-            IProviderIdsServiceRequestValidator providerIdsValidator,
+            IPublishedProviderIdsServiceRequestValidator publishedProviderIdsValidator,
             ISpecificationsApiClient specifications,
             IPublishingResiliencePolicies resiliencePolicies,
             ICreateAllPublishProviderFundingJobs createAllPublishProviderFundingJobs,
             ICreateBatchPublishProviderFundingJobs createBatchPublishProviderFundingJobs,
             IPublishedFundingRepository publishedFundingRepository,
             IFundingConfigurationService fundingConfigurationService) : 
-            base(specificationIdValidator, providerIdsValidator, specifications,resiliencePolicies, fundingConfigurationService)
+            base(specificationIdValidator, publishedProviderIdsValidator, specifications,resiliencePolicies, fundingConfigurationService)
         {
             Guard.ArgumentNotNull(createAllPublishProviderFundingJobs, nameof(createAllPublishProviderFundingJobs));
             Guard.ArgumentNotNull(createBatchPublishProviderFundingJobs, nameof(createBatchPublishProviderFundingJobs));
@@ -80,7 +80,7 @@ namespace CalculateFunding.Services.Publishing.Specifications
         }
 
         public async Task<IActionResult> PublishBatchProvidersFunding(string specificationId,
-            PublishProvidersRequest publishProvidersRequest,
+            PublishedProviderIdsRequest publishedProviderIdsRequest,
             Reference user,
             string correlationId)
         {
@@ -90,10 +90,10 @@ namespace CalculateFunding.Services.Publishing.Specifications
                 return specificationIdValidationResult.AsBadRequest();
             }
 
-            ValidationResult providerIdsValidationResult = ProviderIdsValidator.Validate(publishProvidersRequest.Providers.ToArray());
-            if (!providerIdsValidationResult.IsValid)
+            ValidationResult publishedProviderIdsValidationResult = PublishedProviderIdsValidator.Validate(publishedProviderIdsRequest.PublishedProviderIds.ToArray());
+            if (!publishedProviderIdsValidationResult.IsValid)
             {
-                return providerIdsValidationResult.AsBadRequest();
+                return publishedProviderIdsValidationResult.AsBadRequest();
             }
 
             IActionResult actionResult = await IsSpecificationReadyForPublish(specificationId, ApprovalMode.Batches);
@@ -104,7 +104,7 @@ namespace CalculateFunding.Services.Publishing.Specifications
 
             Dictionary<string, string> messageProperties = new Dictionary<string, string>
             {
-                { JobConstants.MessagePropertyNames.PublishProvidersRequest, JsonExtensions.AsJson(publishProvidersRequest) }
+                { JobConstants.MessagePropertyNames.PublishedProviderIdsRequest, JsonExtensions.AsJson(publishedProviderIdsRequest) }
             };
 
             ApiJob job = await _createBatchPublishProviderFundingJobs.CreateJob(specificationId, user, correlationId, messageProperties);

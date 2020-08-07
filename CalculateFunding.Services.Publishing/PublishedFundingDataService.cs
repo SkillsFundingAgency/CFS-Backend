@@ -49,7 +49,7 @@ namespace CalculateFunding.Services.Publishing
             _policiesService = policiesService;
         }
 
-        public async Task<IEnumerable<PublishedProvider>> GetPublishedProvidersForApproval(string specificationId, string[] providerIds = null)
+        public async Task<IEnumerable<PublishedProvider>> GetPublishedProvidersForApproval(string specificationId, string[] publishedProviderIds = null)
         {
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
 
@@ -68,12 +68,12 @@ namespace CalculateFunding.Services.Publishing
 
             foreach (Common.Models.Reference fundingStream in specificationSummary.FundingStreams)
             {
-                IEnumerable<KeyValuePair<string, string>> publishedProviderIds = await _publishedFundingRepositoryPolicy.ExecuteAsync(
-                                    () => _publishedFundingRepository.GetPublishedProviderIdsForApproval(fundingStream.Id, fundingPeriodId, providerIds));
+                IEnumerable<KeyValuePair<string, string>> publishedProviders = await _publishedFundingRepositoryPolicy.ExecuteAsync(
+                                    () => _publishedFundingRepository.GetPublishedProviderIdsForApproval(fundingStream.Id, fundingPeriodId, publishedProviderIds));
 
                 List<Task> allTasks = new List<Task>();
                 SemaphoreSlim throttler = new SemaphoreSlim(initialCount: _publishingEngineOptions.GetPublishedProvidersForApprovalConcurrencyCount);
-                foreach (var cosmosDocumentInformation in publishedProviderIds)
+                foreach (var cosmosDocumentInformation in publishedProviders)
                 {
                     await throttler.WaitAsync();
                     allTasks.Add(

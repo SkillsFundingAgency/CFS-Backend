@@ -79,15 +79,15 @@ namespace CalculateFunding.Services.Publishing
 
             string specificationId = message.GetUserProperty<string>("specification-id");
 
-            ApproveProvidersRequest approveProvidersRequest = null;
+            PublishedProviderIdsRequest publishedProviderIdsRequest = null;
 
             string logApproveProcessingMessage = $"Processing approve specification funding job. JobId='{jobId}'. SpecificationId='{specificationId}'.";
 
             if (batched)
             {
-                string approveProvidersRequestJson = message.GetUserProperty<string>(JobConstants.MessagePropertyNames.ApproveProvidersRequest);
-                logApproveProcessingMessage += $" Request = {approveProvidersRequestJson}.";
-                approveProvidersRequest = JsonExtensions.AsPoco<ApproveProvidersRequest>(approveProvidersRequestJson);
+                string publishedProviderIdsRequestJson = message.GetUserProperty<string>(JobConstants.MessagePropertyNames.PublishedProviderIdsRequest);
+                logApproveProcessingMessage += $" Request = {publishedProviderIdsRequestJson}.";
+                publishedProviderIdsRequest = JsonExtensions.AsPoco<PublishedProviderIdsRequest>(publishedProviderIdsRequestJson);
             }
 
             await PerformPrerequisiteChecks(specificationId, 
@@ -98,7 +98,7 @@ namespace CalculateFunding.Services.Publishing
 
             _logger.Information("Fetching published providers for specification funding approval");
             
-            IEnumerable<PublishedProvider> publishedProviders = await GetPublishedProvidersForApproval(specificationId, approveProvidersRequest?.Providers?.ToArray());
+            IEnumerable<PublishedProvider> publishedProviders = await GetPublishedProvidersForApproval(specificationId, publishedProviderIdsRequest?.PublishedProviderIds?.ToArray());
             
             CheckPublishedProviderForErrors(specificationId, publishedProviders);
 
@@ -112,13 +112,13 @@ namespace CalculateFunding.Services.Publishing
             _logger.Information($"Approve provider funding job complete. JobId='{jobId}'");
         }
 
-        private async Task<IEnumerable<PublishedProvider>> GetPublishedProvidersForApproval(string specificationId, string[] providerIds = null)
+        private async Task<IEnumerable<PublishedProvider>> GetPublishedProvidersForApproval(string specificationId, string[] publishedProviderIds = null)
         {
             _logger.Information("Fetching published providers for funding approval");
 
             Stopwatch existingPublishedProvidersStopwatch = Stopwatch.StartNew();
             IEnumerable<PublishedProvider> publishedProviders =
-               await _publishedFundingDataService.GetPublishedProvidersForApproval(specificationId, providerIds);
+               await _publishedFundingDataService.GetPublishedProvidersForApproval(specificationId, publishedProviderIds);
 
             existingPublishedProvidersStopwatch.Stop();
             _logger.Information($"Fetched {publishedProviders.Count()} published providers for approval in {existingPublishedProvidersStopwatch.ElapsedMilliseconds} ms");

@@ -35,7 +35,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
         protected string FundingPeriodId { get; private set; }
         protected Reference User { get; private set; }
         protected ISpecificationIdServiceRequestValidator SpecificationIdValidator { get; private set; }
-        protected IProviderIdsServiceRequestValidator ProviderIdsValidator { get; private set; }
+        protected IPublishedProviderIdsServiceRequestValidator ProviderIdsValidator { get; private set; }
         protected ResiliencePolicies ResiliencePolicies { get; private set; }
         protected IFundingConfigurationService FundingConfigurationService { get; private set; }
 
@@ -54,7 +54,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
             User = NewUser();
             Jobs = Substitute.For<TJobCreation>();
             SpecificationIdValidator = Substitute.For<ISpecificationIdServiceRequestValidator>();
-            ProviderIdsValidator = Substitute.For<IProviderIdsServiceRequestValidator>();
+            ProviderIdsValidator = Substitute.For<IPublishedProviderIdsServiceRequestValidator>();
 
             SpecificationIdValidator.Validate(SpecificationId)
                 .Returns(_validationResult);

@@ -2,7 +2,7 @@
 
 namespace CalculateFunding.Services.Publishing.Interfaces
 {
-    public interface IProviderIdsServiceRequestValidator
+    public interface IPublishedProviderIdsServiceRequestValidator
     {
         ValidationResult Validate(string[] providerIds);
     }

@@ -3480,7 +3480,7 @@ this.ScenarioInitialize(scenarioInfo);
                 TechTalk.SpecFlow.Table table389 = new TechTalk.SpecFlow.Table(new string[] {
                             "Ids"});
                 table389.AddRow(new string[] {
-                            "1000000"});
+                            string.Format("{0}-{1}-1000000", fundingStreamId, fundingPeriodId)});
 #line 939
  testRunner.When("batch funding is published", ((string)(null)), table389, "When ");
 #line hidden
