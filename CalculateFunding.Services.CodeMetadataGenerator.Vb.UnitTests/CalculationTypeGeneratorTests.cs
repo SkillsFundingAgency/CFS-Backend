@@ -149,6 +149,50 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.Vb.UnitTests
         }
 
         [TestMethod]
+        public void GenerateCalculations_GivenNoAdditionalCalculations_ThenFundingLineMembersCreated()
+        {
+            Calculation dsg = NewCalculation(_ => _.WithFundingStream(NewReference(rf => rf.WithId("DSG")))
+                .WithSourceCodeName("One")
+                .WithCalculationNamespaceType(CalculationNamespace.Template)
+                .WithSourceCode("return 456"));
+            Calculation psg = NewCalculation(_ => _.WithFundingStream(NewReference(rf => rf.WithId("PSG")))
+                .WithCalculationNamespaceType(CalculationNamespace.Template)
+                .WithSourceCodeName("Two")
+                .WithSourceCode("return DSG.One() + 100"));
+
+            FundingLine dsgfl = NewFundingLine(_ => _.WithCalculations(new[] { NewFundingLineCalculation(_ => _.WithId(1)
+                .WithCalculationNamespaceType(CalculationNamespace.Template))})
+                .WithId(1)
+                .WithName("One")
+                .WithSourceCodeName("One")
+                .WithNamespace("DSG"));
+
+            FundingLine psgfl = NewFundingLine(_ => _.WithCalculations(new[] { NewFundingLineCalculation(_ => _.WithId(1)
+                .WithCalculationNamespaceType(CalculationNamespace.Template))})
+                .WithId(2)
+                .WithName("Two")
+                .WithSourceCodeName("Two")
+                .WithNamespace("PSG"));
+
+            IDictionary<string, Funding> fundingLines = new Dictionary<string, Funding> {
+                {"DSG", NewFunding(_ => _.WithFundingLines(new[] { dsgfl }))},
+                {"PSG", NewFunding(_ => _.WithFundingLines(new[] { psgfl }))}
+            };
+
+            IEnumerable<SourceFile> results = new CalculationTypeGenerator(new CompilerOptions()).GenerateCalcs(new[] { dsg, psg }, fundingLines);
+
+            results.Should().HaveCount(1);
+            results.First()
+                .SourceCode
+                .Should()
+                .ContainAll(
+                    "<FundingLine(Id:=\"1\", Name:=\"One\")>",
+                    "Public One As Func(Of decimal?) = Nothing",
+                    "<FundingLine(Id:=\"2\", Name:=\"Two\")>",
+                    "Public Two As Func(Of decimal?) = Nothing");
+        }
+
+        [TestMethod]
         public void GenerateCalculations_GiveEnumCalculationType()
         {
             Calculation dsg = NewCalculation(_ => _.WithFundingStream(NewReference(rf => rf.WithId("DSG")))

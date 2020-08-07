@@ -11,6 +11,7 @@ namespace CalculateFunding.Services.Calculator.Caching
         private string _specificationId;
         private string _providerId;
         private IEnumerable<CalculationResult> _calculationResults;
+        private IEnumerable<FundingLineResult> _fundingLineResults;
 
         public ProviderResultBuilder WithProviderId(string id)
         {
@@ -33,6 +34,13 @@ namespace CalculateFunding.Services.Calculator.Caching
             return this;
         }
 
+        public ProviderResultBuilder WithFundingLineResults(params FundingLineResult[] fundingLineResults)
+        {
+            _fundingLineResults = fundingLineResults;
+
+            return this;
+        }
+
         public ProviderResult Build()
         {
             return new ProviderResult
@@ -42,7 +50,8 @@ namespace CalculateFunding.Services.Calculator.Caching
                     Id = _providerId ?? NewRandomString()
                 },
                 SpecificationId = _specificationId ?? NewRandomString(),
-                CalculationResults = _calculationResults?.ToList() ?? new List<CalculationResult>()
+                CalculationResults = _calculationResults?.ToList() ?? new List<CalculationResult>(),
+                FundingLineResults = _fundingLineResults?.ToList() ?? new List<FundingLineResult>()
             };
         }
     }

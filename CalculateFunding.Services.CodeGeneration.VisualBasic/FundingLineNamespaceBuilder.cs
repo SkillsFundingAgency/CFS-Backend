@@ -88,6 +88,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                 sourceCode.AppendLine("    End If");
                 sourceCode.AppendLine("End If");
 
+                sourceCode.AppendLine($"Dim userCalculationCodeImplementation As Func(Of Decimal?) = Function() As Decimal?");
                 sourceCode.AppendLine($"Dim calcs As List(Of Decimal?) = New List(Of Decimal?)");
 
                 foreach (FundingLineCalculation calculation in fundingLine.Calculations)
@@ -96,10 +97,10 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                 }
 
                 sourceCode.AppendLine($"Return calcs.Sum()");
-                sourceCode.AppendLine();
+                sourceCode.AppendLine("End Function");
 
                 sourceCode.AppendLine("Try");
-                sourceCode.AppendLine($"Dim executedFundingLineResult As Decimal? = {fundingLine.SourceCodeName}()");
+                sourceCode.AppendLine($"Dim executedFundingLineResult As Decimal?  = userCalculationCodeImplementation()");
                 sourceCode.AppendLine();
                 sourceCode.AppendLine(
                     $"calculationContext.FundingLineDictionary.Add(\"{fundingLine.Id}\", {{If(executedFundingLineResult.HasValue, executedFundingLineResult.ToString(), \"\")}})");

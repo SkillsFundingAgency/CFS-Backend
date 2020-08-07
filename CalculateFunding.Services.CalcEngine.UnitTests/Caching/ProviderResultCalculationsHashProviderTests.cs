@@ -91,9 +91,14 @@ namespace CalculateFunding.Services.Calculator.Caching
         [TestMethod]
         public void CreatesNewDictionaryIfNoneCachedForProviderIdAndSpecificationIdYet()
         {
-            ProviderResult providerResult = NewProviderResult(_ => _.WithCalculationResults(NewCalculationResult(),
-                NewCalculationResult()));
-            string expectedCachedHash = GetComputedHash(providerResult.CalculationResults);
+            ProviderResult providerResult = NewProviderResult(_ => _
+            .WithCalculationResults(
+                NewCalculationResult(),
+                NewCalculationResult())
+            .WithFundingLineResults(
+                NewFundingLineResult(), 
+                NewFundingLineResult()));
+            string expectedCachedHash = GetComputedHash(providerResult.CalculationResults, providerResult.FundingLineResults);
             
             WhenTheBatchIsStarted();
             
@@ -114,9 +119,14 @@ namespace CalculateFunding.Services.Calculator.Caching
         [TestMethod]
         public void UpdatesCacheEntryIfCachedHashDiffersForProviderIdAndSpecificationId()
         {
-            ProviderResult providerResult = NewProviderResult(_ => _.WithCalculationResults(NewCalculationResult(),
-                NewCalculationResult()));
-            string expectedCachedHash = GetComputedHash(providerResult.CalculationResults);
+            ProviderResult providerResult = NewProviderResult(_ => _
+            .WithCalculationResults(
+                NewCalculationResult(),
+                NewCalculationResult())
+            .WithFundingLineResults(
+                NewFundingLineResult(),
+                NewFundingLineResult()));
+            string expectedCachedHash = GetComputedHash(providerResult.CalculationResults, providerResult.FundingLineResults);
             
             GivenTheExistingResultsHashesForSpecification(_providerId, "a different hash", "a second provider", "a different hash");
             
@@ -142,7 +152,7 @@ namespace CalculateFunding.Services.Calculator.Caching
         {
             ProviderResult providerResult = NewProviderResult(_ => _.WithCalculationResults(NewCalculationResult(),
                 NewCalculationResult()));
-            string expectedCachedHash = GetComputedHash(providerResult.CalculationResults);
+            string expectedCachedHash = GetComputedHash(providerResult.CalculationResults, providerResult.FundingLineResults);
             
             GivenTheExistingResultsHashesForSpecification(_providerId, expectedCachedHash, "a second provider", "a different hash");
 
@@ -187,16 +197,23 @@ namespace CalculateFunding.Services.Calculator.Caching
             _calculationsHashProvider.EndBatch(_specificationId, _partitionIndex, _partitionSize);   
         }
         
-        private string GetComputedHash(IEnumerable<CalculationResult> calculationResults)
+        private string GetComputedHash(IEnumerable<CalculationResult> calculationResults, IEnumerable<FundingLineResult> fundingLineResults)
         {
-            return calculationResults
-                .AsJson()
-                .ComputeSHA1Hash();
+            return (calculationResults?.AsJson() + fundingLineResults?.AsJson()).ComputeSHA1Hash();
         }
 
         private CalculationResult NewCalculationResult(Action<CalculationResultBuilder> setUp = null)
         {
             CalculationResultBuilder builder = new CalculationResultBuilder();
+
+            setUp?.Invoke(builder);
+
+            return builder.Build();
+        }
+
+        private FundingLineResult NewFundingLineResult(Action<FundingLineResultBuilder> setUp = null)
+        {
+            FundingLineResultBuilder builder = new FundingLineResultBuilder();
 
             setUp?.Invoke(builder);
 

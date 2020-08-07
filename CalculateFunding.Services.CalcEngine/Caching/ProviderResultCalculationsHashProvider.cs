@@ -75,7 +75,10 @@ namespace CalculateFunding.Services.CalcEngine.Caching
             lock (GetKeyLock(specificationBatchKey))
             {
                 string calculationResultsJson = providerResult.CalculationResults.AsJson();
-                string latestResultsHash = calculationResultsJson.ComputeSHA1Hash();
+                string fundingLineResultsJson = providerResult.FundingLineResults?.AsJson();
+
+                string resultsJson = calculationResultsJson + fundingLineResultsJson;
+                string latestResultsHash = resultsJson.ComputeSHA1Hash();
 
                 Dictionary<string, string> providerCalculationResultHashes = GetSpecificationBatchHashContainer(specificationBatchKey);
 

@@ -48,16 +48,13 @@ namespace CalculateFunding.Services.CalcEngine
                 }
             }
 
-            PropertyInfo providerSetter = allocationType.GetProperty("Provider");
-            Type providerType = providerSetter.PropertyType;
-
-            IEnumerable<PropertyInfo> allocationTypeCalculationProperties = allocationType.GetTypeInfo().DeclaredProperties.Where(m => m.PropertyType.BaseType.Name == "BaseCalculation");
-
-            List<FieldInfo> executeFuncs = GetExecuteFuncs(allocationTypeCalculationProperties);
-
             _mainMethod = allocationType.GetMethods().FirstOrDefault(x => x.Name == "MainCalc");
 
-            _calculationResultFuncs = PopulateMembers(executeFuncs.ToList<MemberInfo>(), (attributes) =>
+            IEnumerable<PropertyInfo> allocationTypeCalculationProperties = 
+                allocationType.GetTypeInfo().DeclaredProperties.Where(m => m.PropertyType.BaseType.Name == "BaseCalculation");
+
+            List<FieldInfo> calcExecuteFuncs = GetExecuteFuncs(allocationTypeCalculationProperties);
+            _calculationResultFuncs = PopulateMembers(calcExecuteFuncs.ToList<MemberInfo>(), (attributes) =>
             {
                 CustomAttributeData calcAttribute = attributes.FirstOrDefault(x => x.AttributeType.Name == "CalculationAttribute");
                 if (calcAttribute != null)
@@ -74,7 +71,10 @@ namespace CalculateFunding.Services.CalcEngine
                 return null;
             });
 
-            _fundingLineResultFuncs = PopulateMembers(executeFuncs.ToList<MemberInfo>(), (attributes) =>
+            Type fundingStreamType = allocationType.GetNestedTypes().FirstOrDefault(x => x.Name.EndsWith("FundingLines"));
+            List<FieldInfo> fundingLineExecuteFuncs = fundingStreamType.GetTypeInfo().DeclaredFields.Where(x => x.FieldType == typeof(Func<decimal?>)).ToList();
+
+            _fundingLineResultFuncs = PopulateMembers(fundingLineExecuteFuncs.ToList<MemberInfo>(), (attributes) =>
             {
                 CustomAttributeData fundingLineAttribute = attributes.FirstOrDefault(x => x.AttributeType.Name == "FundingLineAttribute");
                 if (fundingLineAttribute != null)
@@ -89,6 +89,9 @@ namespace CalculateFunding.Services.CalcEngine
 
                 return null;
             });
+
+            PropertyInfo providerSetter = allocationType.GetProperty("Provider");
+            Type providerType = providerSetter.PropertyType;
 
             _instance = Activator.CreateInstance(allocationType);
             _datasetsInstance = Activator.CreateInstance(datasetType);
