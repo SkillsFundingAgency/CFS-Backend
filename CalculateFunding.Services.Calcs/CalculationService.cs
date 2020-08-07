@@ -977,7 +977,7 @@ namespace CalculateFunding.Services.Calcs
             string cacheKey = $"{CacheKeys.TemplateMapping}{specificationId}-{fundingStreamId}";
             TemplateMapping templateMapping = await _cachePolicy.ExecuteAsync(() => _cacheProvider.GetAsync<TemplateMapping>(cacheKey));
 
-            if (templateMapping == null)
+            if (templateMapping == null || templateMapping.TemplateMappingItems.Any(tm => tm.CalculationId == null))
             {
                 templateMapping = await _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetTemplateMapping(specificationId, fundingStreamId));
                 if (templateMapping?.TemplateMappingItems == null)
