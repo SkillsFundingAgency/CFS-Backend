@@ -94,7 +94,10 @@ namespace CalculateFunding.Services.Results.UnitTests
         }
 
         [TestMethod]
-        public async Task SearchCalculationProviderResults_GivenSearchRequestFails_ThenBadRequestReturned()
+        [DataRow(true, "calculationId")]
+        [DataRow(false, "fundingLineId")]
+        public async Task SearchCalculationProviderResults_GivenSearchRequestFails_ThenBadRequestReturned(
+            bool useCalculationId, string idFilterName)
         {
             //Arrange
             SearchModel model = new SearchModel()
@@ -105,7 +108,7 @@ namespace CalculateFunding.Services.Results.UnitTests
                 Top = 50,
                 Filters = new Dictionary<string, string[]>()
                 {
-                    { "calculationId", new string []{ "test" } }
+                    { idFilterName, new string []{ "test" } }
                 }
             };
             ILogger logger = CreateLogger();
@@ -120,7 +123,7 @@ namespace CalculateFunding.Services.Results.UnitTests
             ProviderCalculationResultsSearchService service = CreateTestResultsSearchService(logger, searchRepository);
 
             //Act
-            IActionResult result = await service.SearchCalculationProviderResults(model);
+            IActionResult result = await service.SearchCalculationProviderResults(model, useCalculationId);
 
             //Assert
             logger
@@ -134,7 +137,10 @@ namespace CalculateFunding.Services.Results.UnitTests
         }
 
         [TestMethod]
-        public async Task SearchTestScenarioResults_GivenValidModelAndIncludesGettingFacets_CallsSearchCorrectNumberOfTimes()
+        [DataRow(true, "calculationId")]
+        [DataRow(false, "fundingLineId")]
+        public async Task SearchTestScenarioResults_GivenValidModelAndIncludesGettingFacets_CallsSearchCorrectNumberOfTimes(
+            bool useCalculationId, string idFilterName)
         {
             //Arrange
             SearchModel model = new SearchModel
@@ -144,7 +150,7 @@ namespace CalculateFunding.Services.Results.UnitTests
                 IncludeFacets = true,
                 Filters = new Dictionary<string, string[]>()
                 {
-                    { "calculationId", new string []{ "test" } }
+                    { idFilterName, new string []{ "test" } }
                 }
             };
             ILogger logger = CreateLogger();
@@ -159,7 +165,7 @@ namespace CalculateFunding.Services.Results.UnitTests
             ProviderCalculationResultsSearchService service = CreateTestResultsSearchService(logger, searchRepository);
 
             //Act
-            IActionResult result = await service.SearchCalculationProviderResults(model);
+            IActionResult result = await service.SearchCalculationProviderResults(model, useCalculationId);
 
             //Assert
             result
@@ -178,7 +184,10 @@ namespace CalculateFunding.Services.Results.UnitTests
         }
 
         [TestMethod]
-        public async Task SearchTestScenarioResults_GivenValidModelAndIncludesGettingFacets_CallsSearchOnceForErrorCount()
+        [DataRow(true, "calculationId", "calculationException")]
+        [DataRow(false, "fundingLineId", "fundingLineException")]
+        public async Task SearchTestScenarioResults_GivenValidModelAndIncludesGettingFacets_CallsSearchOnceForErrorCount(
+            bool useCalculationId, string idFilterName, string exceptionFilterName)
         {
             //Arrange
             SearchModel model = new SearchModel
@@ -188,7 +197,7 @@ namespace CalculateFunding.Services.Results.UnitTests
                 IncludeFacets = true,
                 Filters = new Dictionary<string, string[]>()
                 {
-                    { "calculationId", new string []{ "test" } }
+                    { idFilterName, new string []{ "test" } }
                 }
             };
 
@@ -204,7 +213,7 @@ namespace CalculateFunding.Services.Results.UnitTests
             ProviderCalculationResultsSearchService service = CreateTestResultsSearchService(logger, searchRepository);
 
             //Act
-            IActionResult result = await service.SearchCalculationProviderResults(model);
+            IActionResult result = await service.SearchCalculationProviderResults(model, useCalculationId);
 
             //Assert
             result
@@ -214,7 +223,7 @@ namespace CalculateFunding.Services.Results.UnitTests
             await
                 searchRepository
                     .Received(1)
-                    .Search(Arg.Any<string>(), Arg.Is<SearchParameters>(c => c.Facets.Any(f => f == "calculationException")), Arg.Any<bool>());
+                    .Search(Arg.Any<string>(), Arg.Is<SearchParameters>(c => c.Facets.Any(f => f == exceptionFilterName)), Arg.Any<bool>());
         }
 
         [TestMethod]
@@ -255,7 +264,10 @@ namespace CalculateFunding.Services.Results.UnitTests
         }
 
         [TestMethod]
-        public async Task SearchTestScenarioResults_GivenValidModelWithOneFilter_ThenSearchIsPerformed()
+        [DataRow(true, "calculationId")]
+        [DataRow(false, "fundingLineId")]
+        public async Task SearchTestScenarioResults_GivenValidModelWithOneFilter_ThenSearchIsPerformed(
+            bool useCalculationId, string idFilterName)
         {
             //Arrange
             SearchModel model = new SearchModel
@@ -265,7 +277,7 @@ namespace CalculateFunding.Services.Results.UnitTests
                 IncludeFacets = true,
                 Filters = new Dictionary<string, string[]>()
                 {
-                    { "calculationId", new string []{ "test" } }
+                    { idFilterName, new string []{ "test" } }
                 },
                 SearchTerm = "testTerm",
             };
@@ -282,7 +294,7 @@ namespace CalculateFunding.Services.Results.UnitTests
             ProviderCalculationResultsSearchService service = CreateTestResultsSearchService(logger, searchRepository);
 
             //Act
-            IActionResult result = await service.SearchCalculationProviderResults(model);
+            IActionResult result = await service.SearchCalculationProviderResults(model, useCalculationId);
 
             //Assert
             result
@@ -299,7 +311,10 @@ namespace CalculateFunding.Services.Results.UnitTests
         }
 
         [TestMethod]
-        public async Task SearchTestScenarioResults_GivenValidModelWithOneFilterWhichIsMultiValueFacet_ThenSearchIsPerformed()
+        [DataRow(true, "calculationId")]
+        [DataRow(false, "fundingLineId")]
+        public async Task SearchTestScenarioResults_GivenValidModelWithOneFilterWhichIsMultiValueFacet_ThenSearchIsPerformed(
+            bool useCalculationId, string idFilterName)
         {
             //Arrange
             SearchModel model = new SearchModel
@@ -309,7 +324,7 @@ namespace CalculateFunding.Services.Results.UnitTests
                 IncludeFacets = true,
                 Filters = new Dictionary<string, string[]>()
                 {
-                    { "calculationId", new string []{ "test" } }
+                    { idFilterName, new string []{ "test" } }
                 },
                 SearchTerm = "testTerm",
             };
@@ -326,7 +341,7 @@ namespace CalculateFunding.Services.Results.UnitTests
             ProviderCalculationResultsSearchService service = CreateTestResultsSearchService(logger, searchRepository);
 
             //Act
-            IActionResult result = await service.SearchCalculationProviderResults(model);
+            IActionResult result = await service.SearchCalculationProviderResults(model, useCalculationId);
 
             //Assert
             result
@@ -343,7 +358,10 @@ namespace CalculateFunding.Services.Results.UnitTests
         }
 
         [TestMethod]
-        public async Task SearchTestScenarioResults_GivenValidModelWithOneFilterAndOverrridesFacets_ThenSearchIsPerformedWithTwoFilters()
+        [DataRow(true, "calculationId")]
+        [DataRow(false, "fundingLineId")]
+        public async Task SearchTestScenarioResults_GivenValidModelWithOneFilterAndOverrridesFacets_ThenSearchIsPerformedWithTwoFilters(
+            bool useCalculationId, string filterName)
         {
             //Arrange
             SearchModel model = new SearchModel
@@ -353,10 +371,10 @@ namespace CalculateFunding.Services.Results.UnitTests
                 IncludeFacets = true,
                 Filters = new Dictionary<string, string[]>()
                 {
-                    { "calculationId", new string []{ "test" } }
+                    { filterName, new string []{ "test" } }
                 },
                 SearchTerm = "testTerm",
-                OverrideFacetFields = new[] { "providerId", "calculationId" }
+                OverrideFacetFields = new[] { "providerId", filterName }
             };
 
             ILogger logger = CreateLogger();
@@ -371,7 +389,7 @@ namespace CalculateFunding.Services.Results.UnitTests
             ProviderCalculationResultsSearchService service = CreateTestResultsSearchService(logger, searchRepository);
 
             //Act
-            IActionResult result = await service.SearchCalculationProviderResults(model);
+            IActionResult result = await service.SearchCalculationProviderResults(model, useCalculationId);
 
             //Assert
             result

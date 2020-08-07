@@ -96,7 +96,15 @@ namespace CalculateFunding.Api.Results.Controllers
         [Produces(typeof(Repositories.Common.Search.Results.CalculationProviderResultSearchResults))]
         public async Task<IActionResult> RunCalculationProviderResultsSearch([FromBody] SearchModel searchModel)
         {
-            return await _providerCalculationResultsSearchService.SearchCalculationProviderResults(searchModel);
+            return await _providerCalculationResultsSearchService.SearchCalculationProviderResults(searchModel, useCalculationId: true);
+        }
+
+        [Route("api/results/funding-line-provider-results-search")]
+        [HttpPost]
+        [Produces(typeof(Repositories.Common.Search.Results.CalculationProviderResultSearchResults))]
+        public async Task<IActionResult> RunFundingLineProviderResultsSearch([FromBody] SearchModel searchModel)
+        {
+            return await _providerCalculationResultsSearchService.SearchCalculationProviderResults(searchModel, useCalculationId: false);
         }
 
         [Route("api/results/get-scoped-providerids")]
