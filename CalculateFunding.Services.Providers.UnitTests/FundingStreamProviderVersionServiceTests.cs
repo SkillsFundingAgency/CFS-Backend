@@ -236,7 +236,6 @@ namespace CalculateFunding.Services.Providers.UnitTests
         public async Task SearchCurrentProviderVersionsForFundingStream_SearchesInTheCurrentProviderVersion()
         {
             string fundingStreamId = NewRandomString();
-            string providerId = NewRandomString();
             string providerVersionId = NewRandomString();
             SearchModel search = new SearchModel();
             CurrentProviderVersion currentProviderVersion = NewCurrentProviderVersion(_ => _.WithProviderVersionId(providerVersionId));

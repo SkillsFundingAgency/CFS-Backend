@@ -24,6 +24,7 @@ namespace CalculateFunding.Services.Providers
         private readonly IProviderVersionSearchService _providerVersionSearch;
         private readonly IValidator<SetFundingStreamCurrentProviderVersionRequest> _setCurrentRequestValidator;
         private readonly AsyncPolicy _providerVersionMetadataPolicy;
+        private readonly AsyncPolicy _providerVersionSearchPolicy;
         private readonly ILogger _logger;
 
         public FundingStreamProviderVersionService(IProviderVersionsMetadataRepository providerVersionMetadata,
@@ -37,10 +38,12 @@ namespace CalculateFunding.Services.Providers
             Guard.ArgumentNotNull(providerVersionService, nameof(providerVersionService));
             Guard.ArgumentNotNull(providerVersionSearch, nameof(providerVersionSearch));
             Guard.ArgumentNotNull(resiliencePolicies?.ProviderVersionMetadataRepository, nameof(resiliencePolicies.ProviderVersionMetadataRepository));
+            Guard.ArgumentNotNull(resiliencePolicies?.ProviderVersionsSearchRepository, nameof(resiliencePolicies.ProviderVersionsSearchRepository));
             Guard.ArgumentNotNull(logger, nameof(logger));
 
             _providerVersionMetadata = providerVersionMetadata;
             _providerVersionMetadataPolicy = resiliencePolicies.ProviderVersionMetadataRepository;
+            _providerVersionSearchPolicy = resiliencePolicies.ProviderVersionsSearchRepository;
             _logger = logger;
             _providerVersionSearch = providerVersionSearch;
             _setCurrentRequestValidator = setCurrentRequestValidator;
@@ -106,7 +109,8 @@ namespace CalculateFunding.Services.Providers
                 return new NotFoundResult();
             }
 
-            return await _providerVersionSearch.GetProviderById(currentProviderVersion.ProviderVersionId, providerId);
+            return await _providerVersionSearchPolicy.ExecuteAsync(() 
+                => _providerVersionSearch.GetProviderById(currentProviderVersion.ProviderVersionId, providerId));
         }
 
         public async Task<IActionResult> SearchCurrentProviderVersionsForFundingStream(string fundingStreamId,
@@ -125,7 +129,8 @@ namespace CalculateFunding.Services.Providers
                 return new NotFoundResult();
             }
 
-            return await _providerVersionSearch.SearchProviders(currentProviderVersion.ProviderVersionId, search);
+            return await _providerVersionSearchPolicy.ExecuteAsync(() 
+                => _providerVersionSearch.SearchProviders(currentProviderVersion.ProviderVersionId, search));
         }
 
         public async Task<ServiceHealth> IsHealthOk()

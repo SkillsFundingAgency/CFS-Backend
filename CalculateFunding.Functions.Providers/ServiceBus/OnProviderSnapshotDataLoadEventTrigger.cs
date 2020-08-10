@@ -9,6 +9,7 @@ using Microsoft.Azure.WebJobs;
 using Serilog;
 using System;
 using System.Threading.Tasks;
+using CalculateFunding.Services.Providers.Interfaces;
 
 namespace CalculateFunding.Functions.Providers.ServiceBus
 {

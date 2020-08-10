@@ -36,6 +36,8 @@ namespace CalculateFunding.Services.Providers
         private readonly IProviderVersionsMetadataRepository _providerVersionMetadataRepository;
         private readonly AsyncPolicy _providerVersionMetadataRepositoryPolicy;
         private readonly AsyncPolicy _blobRepositoryPolicy;
+        private readonly AsyncPolicy _cachePolicy;
+        private readonly AsyncPolicy _providersSearchPolicy;
         private readonly IMapper _mapper;
         private readonly IFileSystemCache _fileSystemCache;
         private readonly IProviderVersionServiceSettings _providerVersionServiceSettings;
@@ -58,6 +60,8 @@ namespace CalculateFunding.Services.Providers
             Guard.ArgumentNotNull(providerVersionModelValidator, nameof(providerVersionModelValidator));
             Guard.ArgumentNotNull(resiliencePolicies?.ProviderVersionMetadataRepository, nameof(resiliencePolicies.ProviderVersionMetadataRepository));
             Guard.ArgumentNotNull(resiliencePolicies?.BlobRepositoryPolicy, nameof(resiliencePolicies.BlobRepositoryPolicy));
+            Guard.ArgumentNotNull(resiliencePolicies?.CacheProvider, nameof(resiliencePolicies.CacheProvider));
+            Guard.ArgumentNotNull(resiliencePolicies?.ProviderVersionsSearchRepository, nameof(resiliencePolicies.ProviderVersionsSearchRepository));
             Guard.ArgumentNotNull(mapper, nameof(mapper));
             Guard.ArgumentNotNull(fileSystemCache, nameof(fileSystemCache));
             Guard.ArgumentNotNull(providerVersionServiceSettings, nameof(providerVersionServiceSettings));
@@ -70,6 +74,8 @@ namespace CalculateFunding.Services.Providers
             _providerVersionModelValidator = providerVersionModelValidator;
             _providerVersionMetadataRepository = providerVersionMetadataRepository;
             _providerVersionMetadataRepositoryPolicy = resiliencePolicies.ProviderVersionMetadataRepository;
+            _providersSearchPolicy = resiliencePolicies.ProviderVersionsSearchRepository;
+            _cachePolicy = resiliencePolicies.CacheProvider;
             _blobRepositoryPolicy = resiliencePolicies.BlobRepositoryPolicy;
             _mapper = mapper;
             _fileSystemCache = fileSystemCache;
@@ -127,13 +133,15 @@ namespace CalculateFunding.Services.Providers
 
         public async Task<ProviderVersionByDate> GetProviderVersionByDate(int year, int month, int day)
         {
-            string localCacheKey = $"{CacheKeys.ProviderVersionByDate}{year}{month:00}{day:00}";
-            ProviderVersionByDate providerVersionByDate = await _cacheProvider.GetAsync<ProviderVersionByDate>(localCacheKey);
+            string cacheKey = $"{CacheKeys.ProviderVersionByDate}{year}{month:00}{day:00}";
+            
+            ProviderVersionByDate providerVersionByDate = await _cachePolicy.ExecuteAsync(() 
+                => _cacheProvider.GetAsync<ProviderVersionByDate>(cacheKey));
 
             if (providerVersionByDate == null)
             {
                 providerVersionByDate = await _providerVersionMetadataRepositoryPolicy.ExecuteAsync(() => _providerVersionMetadataRepository.GetProviderVersionByDate(year, month, day));
-                await _cacheProvider.SetAsync(localCacheKey, providerVersionByDate, TimeSpan.FromDays(CACHE_DURATION), true);
+                await _cacheProvider.SetAsync(cacheKey, providerVersionByDate, TimeSpan.FromDays(CACHE_DURATION), true);
             }
 
             return providerVersionByDate;
@@ -154,7 +162,8 @@ namespace CalculateFunding.Services.Providers
 
         public async Task<MasterProviderVersion> GetMasterProviderVersion()
         {
-            MasterProviderVersion masterProviderVersion = await _cacheProvider.GetAsync<MasterProviderVersion>(CacheKeys.MasterProviderVersion);
+            MasterProviderVersion masterProviderVersion = await _cachePolicy.ExecuteAsync(() => 
+                _cacheProvider.GetAsync<MasterProviderVersion>(CacheKeys.MasterProviderVersion));
 
             if (masterProviderVersion == null)
             {
@@ -207,7 +216,8 @@ namespace CalculateFunding.Services.Providers
 
             }
 
-            await using Stream blobClientStream = await _blobClient.DownloadToStreamAsync(blob);
+            await using Stream blobClientStream = await _blobRepositoryPolicy.ExecuteAsync(() 
+                => _blobClient.DownloadToStreamAsync(blob));
 
             if (fileSystemCacheEnabled)
             {
@@ -250,7 +260,8 @@ namespace CalculateFunding.Services.Providers
 
             string blobName = $"{providerVersionId.ToLowerInvariant()}.json";
 
-            return await _blobClient.BlobExistsAsync(blobName.ToLowerInvariant());
+            return await _blobRepositoryPolicy.ExecuteAsync(() => 
+                _blobClient.BlobExistsAsync(blobName.ToLowerInvariant()));
         }
 
         public async Task<bool> Exists(ProviderVersionViewModel providerVersionModel)
@@ -282,7 +293,7 @@ namespace CalculateFunding.Services.Providers
 
                 if (providerVersionByDate != null)
                 {
-                    await _cacheProvider.RemoveAsync<ProviderVersionByDate>(localCacheKey);
+                    await _cachePolicy.ExecuteAsync(() => _cacheProvider.RemoveAsync<ProviderVersionByDate>(localCacheKey));
                 }
 
                 await _providerVersionMetadataRepositoryPolicy.ExecuteAsync(() => _providerVersionMetadataRepository.UpsertProviderVersionByDate(newProviderVersionByDate));
@@ -330,7 +341,7 @@ namespace CalculateFunding.Services.Providers
             HttpStatusCode result = await _providerVersionMetadataRepositoryPolicy.ExecuteAsync(() => _providerVersionMetadataRepository.CreateProviderVersion(providerVersionMetadata));
 
             if (result.IsSuccess())
-                await _searchRepository.RunIndexer();
+                await _providersSearchPolicy.ExecuteAsync(() => _searchRepository.RunIndexer());
 
             return (true, null);
         }
@@ -364,7 +375,7 @@ namespace CalculateFunding.Services.Providers
 
             string cacheKey = $"{CacheKeys.ProviderVersionMetadata}:{providerVersionId}";
 
-            ProviderVersionMetadataDto result = await _cacheProvider.GetAsync<ProviderVersionMetadataDto>(cacheKey);
+            ProviderVersionMetadataDto result = await _cachePolicy.ExecuteAsync(() => _cacheProvider.GetAsync<ProviderVersionMetadataDto>(cacheKey));
 
             if (result == null)
             {
@@ -374,7 +385,7 @@ namespace CalculateFunding.Services.Providers
                 {
                     result = _mapper.Map<ProviderVersionMetadataDto>(providerVersionMetadata);
 
-                    await _cacheProvider.SetAsync(cacheKey, result);
+                    await _cachePolicy.ExecuteAsync(() => _cacheProvider.SetAsync(cacheKey, result));
                 }
             }
 

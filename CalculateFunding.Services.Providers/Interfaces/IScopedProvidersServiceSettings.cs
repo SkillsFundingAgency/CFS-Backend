@@ -1,4 +1,4 @@
-namespace CalculateFunding.Services.Providers
+namespace CalculateFunding.Services.Providers.Interfaces
 {
     public interface IScopedProvidersServiceSettings
     {

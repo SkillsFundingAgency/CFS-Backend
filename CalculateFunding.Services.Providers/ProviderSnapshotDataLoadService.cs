@@ -30,7 +30,7 @@ namespace CalculateFunding.Services.Providers
         private readonly ILogger _logger;
         private readonly ISpecificationsApiClient _specificationsApiClient;
         private readonly IProviderVersionService _providerVersionService;
-        private readonly AsyncPolicy _specificaitonsApiClientPolicy;
+        private readonly AsyncPolicy _specificationsApiClientPolicy;
         private readonly IFundingDataZoneApiClient _fundingDataZoneApiClient;
         private readonly IMapper _mapper;
         private readonly AsyncPolicy _fundingDataZoneApiClientPolicy;
@@ -53,7 +53,7 @@ namespace CalculateFunding.Services.Providers
             _logger = logger;
             _specificationsApiClient = specificationsApiClient;
             _providerVersionService = providerVersionService;
-            _specificaitonsApiClientPolicy = resiliencePolicies.SpecificationsApiClient;
+            _specificationsApiClientPolicy = resiliencePolicies.SpecificationsApiClient;
             _fundingDataZoneApiClientPolicy = resiliencePolicies.FundingDataZoneApiClient;
             _fundingDataZoneApiClient = fundingDataZoneApiClient;
             _mapper = mapper;
@@ -106,7 +106,7 @@ namespace CalculateFunding.Services.Providers
                 }
             }
 
-            HttpStatusCode httpStatusCode = await _specificaitonsApiClientPolicy.ExecuteAsync(() => _specificationsApiClient.SetProviderVersion(specificationId, providerVersionId));
+            HttpStatusCode httpStatusCode = await _specificationsApiClientPolicy.ExecuteAsync(() => _specificationsApiClient.SetProviderVersion(specificationId, providerVersionId));
 
             if(!httpStatusCode.IsSuccess())
             {

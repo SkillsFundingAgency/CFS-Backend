@@ -1250,7 +1250,9 @@ namespace CalculateFunding.Services.Providers.UnitTests
         {
             IProvidersResiliencePolicies providersResiliencePolicies = Substitute.For<IProvidersResiliencePolicies>();
             providersResiliencePolicies.ProviderVersionMetadataRepository = Policy.NoOpAsync();
+            providersResiliencePolicies.ProviderVersionsSearchRepository = Policy.NoOpAsync();
             providersResiliencePolicies.BlobRepositoryPolicy = Policy.NoOpAsync();
+            providersResiliencePolicies.CacheProvider = Policy.NoOpAsync();
             return providersResiliencePolicies;
         }
 
