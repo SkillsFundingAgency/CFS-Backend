@@ -56,7 +56,7 @@ namespace CalculateFunding.Services.Publishing.Reporting.FundingLines
                     {
                         row[fundingLine.Name] = fundingLine.Value.GetValueOrDefault().ToString(CultureInfo.InvariantCulture);
                     }
-
+                    
                     itemCount++;
                     yield return (ExpandoObject)row;
                 }

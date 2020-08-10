@@ -44,7 +44,7 @@ namespace CalculateFunding.Services.Publishing.Reporting
                 row["Allocation DateTime"] = publishedProviderVersion.Date.ToString("s");
                 
                 TransformFundingLine(row, publishedProviderVersion);
-                TransformProviderDetials(row, publishedProviderVersion);
+                TransformProviderDetails(row, publishedProviderVersion);
 
                 yield return (ExpandoObject) row;
             }
@@ -60,7 +60,7 @@ namespace CalculateFunding.Services.Publishing.Reporting
             }
         }
 
-        protected virtual void TransformProviderDetials(IDictionary<string, object> row, PublishedProviderVersion publishedProviderVersion)
+        protected virtual void TransformProviderDetails(IDictionary<string, object> row, PublishedProviderVersion publishedProviderVersion)
         {
         }
 

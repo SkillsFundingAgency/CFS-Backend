@@ -410,5 +410,19 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 
             return Task.FromResult(results);
         }
+
+        public Task PublishedFundingBatchProcessing(string specificationId,
+            string fundingStreamId,
+            string fundingPeriodId,
+            Func<List<PublishedFunding>, Task> batchProcessor,
+            int batchSize) =>
+            throw new NotImplementedException();
+
+        public Task PublishedFundingVersionBatchProcessing(string specificationId,
+            string fundingStreamId,
+            string fundingPeriodId,
+            Func<List<PublishedFundingVersion>, Task> batchProcessor,
+            int batchSize) =>
+            throw new NotImplementedException();
     }
 }

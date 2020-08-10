@@ -1,11 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using CalculateFunding.Common.ApiClient.Specifications.Models;
-using CalculateFunding.Generators.OrganisationGroup.Enums;
-using CalculateFunding.Generators.OrganisationGroup.Models;
 using CalculateFunding.Models.Publishing;
-using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Reporting.FundingLines;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -18,82 +15,16 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
     [TestClass]
     public class PublishedFundingOrganisationGroupCsvBatchProcessorTests : BatchProcessorTestBase
     {
-        private Mock<IPublishedFundingOrganisationGroupingService> _publishedFundingOrganisationGroupingService;
-        private Mock<ISpecificationService> _specificationService;
-        private Mock<IPublishedFundingDataService> _publishedFundingDataService;
-
         [TestInitialize]
         public void SetUp()
         {
-            _publishedFundingOrganisationGroupingService = new Mock<IPublishedFundingOrganisationGroupingService>();
-            _specificationService = new Mock<ISpecificationService>();
-            _publishedFundingDataService = new Mock<IPublishedFundingDataService>();
-
-            BatchProcessor = new PublishedFundingOrganisationGroupCsvBatchProcessor(_publishedFundingOrganisationGroupingService.Object,
-                _specificationService.Object,
-                _publishedFundingDataService.Object,
-                new ResiliencePolicies
+            BatchProcessor = new PublishedFundingOrganisationGroupCsvBatchProcessor(new ResiliencePolicies
                 {
                     PublishedFundingRepository = Policy.NoOpAsync()
                 },
                 FileSystemAccess.Object,
-                CsvUtils.Object);
-        }
-
-        [TestMethod]
-        public async Task ReturnsFalseIfNoResultsProcessed()
-        {
-            string specificationId = NewRandomString();
-            string fundingLineCode = NewRandomString();
-            string fundingStreamId = NewRandomString();
-            string fundingPeriodConfigId = NewRandomString();
-            string fundingPeriodId = NewRandomString();
-
-            SpecificationSummary specificationSummary = NewSpecificationSummary(_ => _.WithFundingPeriodId(fundingPeriodConfigId));
- 
-            IEnumerable<PublishedFunding> publishedFunding = new List<PublishedFunding>
-            {
-                new PublishedFunding
-                {
-                    Current = new PublishedFundingVersion()
-                }
-            };
-
-            IEnumerable<PublishedFundingOrganisationGrouping> publishedFundingOrganisationGroupings = new List<PublishedFundingOrganisationGrouping>
-            {
-                new PublishedFundingOrganisationGrouping
-                {
-                    OrganisationGroupResult = new OrganisationGroupResult
-                    {
-                        GroupTypeCode = OrganisationGroupTypeCode.LocalAuthority
-                    }
-                }
-            };
-
-            ExpandoObject[] transformedRowsOne = new ExpandoObject[0];
-
-            string expectedCsvOne = NewRandomString();
-
-            GivenSpecificationSummaryRetrieved(specificationSummary);
-            AndTheCurrentPublishedFundingRetrieved(publishedFunding);
-            AndThePublishedFundingOrganisationGroupingGenerated(publishedFundingOrganisationGroupings);
-            AndTheCsvRowTransformation(
-                publishedFundingOrganisationGroupings
-                    .OrderBy(_ => _.OrganisationGroupResult.GroupTypeCode.ToString()),
-                transformedRowsOne,
-                expectedCsvOne,
-                true);
-
-            bool processedResults = await WhenTheCsvIsGenerated(FundingLineCsvGeneratorJobType.CurrentOrganisationGroupValues,
-                specificationId,
-                fundingPeriodId,
-                NewRandomString(),
-                fundingLineCode,
-                fundingStreamId);
-
-            processedResults
-                .Should()
-                .BeFalse();
+                CsvUtils.Object,
+                PublishedFunding.Object);
         }
 
         [TestMethod]
@@ -105,7 +36,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
         [DataRow(FundingLineCsvGeneratorJobType.CurrentProfileValues, false)]
         [DataRow(FundingLineCsvGeneratorJobType.CurrentOrganisationGroupValues, true)]
         [DataRow(FundingLineCsvGeneratorJobType.HistoryOrganisationGroupValues, false)]
-
+        [DataRow(FundingLineCsvGeneratorJobType.HistoryPublishedProviderEstate, false)]
         public void SupportedJobTypes(FundingLineCsvGeneratorJobType jobType,
             bool expectedIsSupportedFlag)
         {
@@ -115,95 +46,100 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Reporting.FundingLines
         }
 
         [TestMethod]
-        [DataRow(FundingLineCsvGeneratorJobType.CurrentOrganisationGroupValues)]
-        public async Task TransformsPublishedProvidersForSpecificationInBatchesAndCreatesCsvWithResults(
-            FundingLineCsvGeneratorJobType jobType)
+        public async Task ReturnsFalseIfNoResultsProcessed()
         {
             string specificationId = NewRandomString();
+            string fundingPeriodId = NewRandomString();
+
+            bool processedResults = await WhenTheCsvIsGenerated(FundingLineCsvGeneratorJobType.CurrentOrganisationGroupValues,
+                specificationId,
+                fundingPeriodId,
+                NewRandomString(),
+                NewRandomString(),
+                NewRandomString());
+
+            processedResults
+                .Should()
+                .BeFalse();
+        }
+
+        [TestMethod]
+        public async Task TransformsPublishedFundingForSpecificationInBatchesAndCreatesCsvWithResults()
+        {
+            string specificationId = NewRandomString();
+            string fundingPeriodId = NewRandomString();
             string fundingLineCode = NewRandomString();
             string fundingStreamId = NewRandomString();
-            string fundingPeriodConfigId = NewRandomString();
-            string fundingPeriodId = NewRandomString();
 
             string expectedInterimFilePath = NewRandomString();
 
-            SpecificationSummary specificationSummary = NewSpecificationSummary(_ => _.WithFundingPeriodId(fundingPeriodConfigId));
-
-            IEnumerable<PublishedFunding> publishedFunding = new List<PublishedFunding>
+            IEnumerable<PublishedFunding> publishedFundingOne = new[]
             {
-                new PublishedFunding
-                {
-                    Current = new PublishedFundingVersion()
-                }
+                NewPublishedFunding()
             };
-
-            IEnumerable<PublishedFundingOrganisationGrouping> publishedFundingOrganisationGroupings = new List<PublishedFundingOrganisationGrouping>
+            IEnumerable<PublishedFunding> publishedFundingVersionsTwo = new[]
             {
-                new PublishedFundingOrganisationGrouping
-                {
-                    OrganisationGroupResult = new OrganisationGroupResult
-                    {
-                        GroupTypeCode = OrganisationGroupTypeCode.LocalAuthority
-                    }
-                },
-                new PublishedFundingOrganisationGrouping
-                {
-                    OrganisationGroupResult = new OrganisationGroupResult
-                    {
-                        GroupTypeCode = OrganisationGroupTypeCode.Country
-                    }
-                }
+                NewPublishedFunding(), NewPublishedFunding(), NewPublishedFunding()
             };
 
-            ExpandoObject[] transformedRowsOne = {
-                new ExpandoObject(),
-                new ExpandoObject(),
+            ExpandoObject[] transformedRowsOne =
+            {
+                new ExpandoObject(), new ExpandoObject(), new ExpandoObject(), new ExpandoObject()
             };
-            
+            ExpandoObject[] transformedRowsTwo =
+            {
+                new ExpandoObject(), new ExpandoObject(), new ExpandoObject(), new ExpandoObject()
+            };
+
             string expectedCsvOne = NewRandomString();
+            string expectedCsvTwo = NewRandomString();
 
-            GivenSpecificationSummaryRetrieved(specificationSummary);
-            AndTheCurrentPublishedFundingRetrieved(publishedFunding);
-            AndThePublishedFundingOrganisationGroupingGenerated(publishedFundingOrganisationGroupings);
-            AndTheCsvRowTransformation(
-                publishedFundingOrganisationGroupings
-                    .OrderBy(_ => _.OrganisationGroupResult.GroupTypeCode.ToString()), 
-                    transformedRowsOne, 
-                    expectedCsvOne, 
-                    true);
+            GivenTheCsvRowTransformation(publishedFundingOne, transformedRowsOne, expectedCsvOne, true);
+            AndTheCsvRowTransformation(publishedFundingVersionsTwo, transformedRowsTwo, expectedCsvTwo, false);
 
-            bool processedResults = await WhenTheCsvIsGenerated(jobType, specificationId, fundingPeriodId, expectedInterimFilePath, fundingLineCode, fundingStreamId);
+            PublishedFunding.Setup(_ => _.PublishedFundingBatchProcessing(specificationId,
+                    fundingStreamId,
+                    fundingPeriodId,
+                    It.IsAny<Func<List<PublishedFunding>, Task>>(),
+                    100))
+                .Callback<string, string, string, Func<List<PublishedFunding>, Task>, int>((spec,
+                    stream,
+                    period,
+                    batchProcessor,
+                    batchSize) =>
+                {
+                    batchProcessor(publishedFundingOne.ToList())
+                        .GetAwaiter()
+                        .GetResult();
+
+                    batchProcessor(publishedFundingVersionsTwo.ToList())
+                        .GetAwaiter()
+                        .GetResult();
+                })
+                .Returns(Task.CompletedTask);
+
+            bool processedResults = await WhenTheCsvIsGenerated(FundingLineCsvGeneratorJobType.CurrentOrganisationGroupValues,
+                specificationId,
+                fundingPeriodId,
+                expectedInterimFilePath,
+                fundingLineCode,
+                fundingStreamId);
 
             processedResults
                 .Should()
                 .BeTrue();
 
             FileSystemAccess
-                .Verify(_ => _.Append(expectedInterimFilePath, 
-                        expectedCsvOne, 
+                .Verify(_ => _.Append(expectedInterimFilePath,
+                        expectedCsvOne,
                         default),
                     Times.Once);
-        }
 
-        private void GivenSpecificationSummaryRetrieved(SpecificationSummary specificationSummary)
-        {
-            _specificationService
-                .Setup(_ => _.GetSpecificationSummaryById(It.IsAny<string>()))
-                .Returns(Task.FromResult(specificationSummary));
-        }
-
-        private void AndTheCurrentPublishedFundingRetrieved(IEnumerable<PublishedFunding> publishedFunding)
-        {
-            _publishedFundingDataService
-                .Setup(_ => _.GetCurrentPublishedFunding(It.IsAny<string>(), It.IsAny<string>()))
-                .Returns(Task.FromResult(publishedFunding));
-        }
-
-        private void AndThePublishedFundingOrganisationGroupingGenerated(IEnumerable<PublishedFundingOrganisationGrouping> organisationGroupings)
-        {
-            _publishedFundingOrganisationGroupingService
-                .Setup(_ => _.GeneratePublishedFundingOrganisationGrouping(It.IsAny<bool>(), It.IsAny<string>(), It.IsAny<SpecificationSummary>(), It.IsAny<IEnumerable<PublishedFundingVersion>>()))
-                .Returns(Task.FromResult(organisationGroupings));
+            FileSystemAccess
+                .Verify(_ => _.Append(expectedInterimFilePath,
+                        expectedCsvTwo,
+                        default),
+                    Times.Once);
         }
     }
 }

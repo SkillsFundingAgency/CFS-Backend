@@ -6,6 +6,7 @@ using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Models.Publishing;
+using CalculateFunding.Services.Core.Caching.FileSystem;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Repositories;
 using CalculateFunding.Tests.Common.Helpers;
@@ -325,6 +326,154 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
                 .DynamicQuery(Arg.Is<CosmosDbQuery>(_ => _.QueryText == queryText &&
                     HasParameter(_, "@publishedProviderVersion", _publishedProviderVersion)));
         }
+
+        [TestMethod]
+        public async Task PublishedFundingVersionBatchProcessing()
+        {
+            string specificationId = NewRandomString();
+            string fundingStreamId = NewRandomString();
+            string fundingPeriodId = NewRandomString();
+            int batchSize = NewRandomNumber();
+
+            Task BatchProcessor(List<PublishedFundingVersion> _)
+            {
+                return Task.CompletedTask;
+            }
+
+            await WhenPublishedFundingVersionBatchProcessingIsUsed(specificationId,
+                fundingStreamId,
+                fundingPeriodId,
+                BatchProcessor,
+                batchSize);
+
+            string queryText = @"SELECT 
+                                c.content.id,
+                                c.content.organisationGroupTypeCode,
+                                c.content.organisationGroupName,
+                                c.content.fundingStreamId,
+                                {
+                                      'id' : c.content.fundingPeriod.id
+                                } AS FundingPeriod,
+                                c.content.specificationId,
+                                c.content.status,
+                                c.content.version,
+                                c.content.majorVersion,
+                                c.content.minorVersion,
+                                c.content.date,
+                                {
+                                    'name' : c.content.author.name
+                                } AS Author,
+                                ARRAY(
+                                    SELECT fundingLine.name,
+                                    fundingLine['value']
+                                    FROM fundingLine IN c.content.fundingLines
+                                ) AS FundingLines,
+                                c.content.providerFundings
+                                FROM     publishedFundingVersions c
+                                WHERE    c.documentType = 'PublishedFundingVersion'
+                                AND      c.content.specificationId = @specificationId
+                                AND      c.content.fundingPeriod.id = @fundingPeriodId
+                                AND      c.content.fundingStreamId = @fundingStreamId
+                                AND      c.deleted = false
+                                ORDER BY c.content.organisationGroupTypeCode ASC,
+                                c.content.date DESC";
+
+            await _cosmosRepository
+                .Received(1)
+                .DocumentsBatchProcessingAsync(
+                    Arg.Is((Func<List<PublishedFundingVersion>, Task>) BatchProcessor),
+                    Arg.Is<CosmosDbQuery>(_ => _.QueryText == queryText &&
+                                               HasParameter(_, "@fundingPeriodId", fundingPeriodId) &&
+                                               HasParameter(_, "@fundingStreamId", fundingStreamId) &&
+                                               HasParameter(_, "@specificationId", specificationId)),
+                    Arg.Is(batchSize));
+        }
+
+        private async Task WhenPublishedFundingVersionBatchProcessingIsUsed(string specificationId,
+            string fundingStreamId,
+            string fundingPeriodId,
+            Func<List<PublishedFundingVersion>, Task> batchProcessor,
+            int batchSize)
+            => await _repository.PublishedFundingVersionBatchProcessing(specificationId,
+                fundingStreamId,
+                fundingPeriodId,
+                batchProcessor,
+                batchSize);
+
+        [TestMethod]
+        public async Task PublishedFundingBatchProcessing()
+        {
+            string specificationId = NewRandomString();
+            string fundingStreamId = NewRandomString();
+            string fundingPeriodId = NewRandomString();
+            int batchSize = NewRandomNumber();
+
+            Task BatchProcessor(List<PublishedFunding> _)
+            {
+                return Task.CompletedTask;
+            }
+
+            await WhenPublishedFundingBatchProcessingIsUsed(specificationId,
+                fundingStreamId,
+                fundingPeriodId,
+                BatchProcessor,
+                batchSize);
+
+            string queryText = @"SELECT 
+                                c.content.id,
+                                {
+                                    'organisationGroupTypeCode' : c.content.current.organisationGroupTypeCode,
+                                    'organisationGroupName' : c.content.current.organisationGroupName,
+                                    'fundingStreamId' : c.content.current.fundingStreamId,
+                                    'fundingPeriod' : {
+                                      'id' : c.content.current.fundingPeriod.id
+                                    },
+                                    'specificationId' : c.content.current.specificationId,
+                                    'status' : c.content.current.status,
+                                    'version' : c.content.current.version,
+                                    'majorVersion' : c.content.current.majorVersion,
+                                    'minorVersion' : c.content.current.minorVersion,
+                                    'date' : c.content.current.date,
+                                    'providerFundings' : c.content.current.providerFundings,
+                                    'author' : {
+                                        'name' : c.content.current.author.name
+                                    },
+                                    'fundingLines' : ARRAY(
+                                        SELECT fundingLine.name,
+                                        fundingLine['value']
+                                        FROM fundingLine IN c.content.current.fundingLines
+                                    )
+                                } AS Current
+                                FROM     publishedFunding c
+                                WHERE    c.documentType = 'PublishedFunding'
+                                AND      c.content.current.specificationId = @specificationId
+                                AND      c.content.current.fundingPeriod.id = @fundingPeriodId
+                                AND      c.content.current.fundingStreamId = @fundingStreamId
+                                AND      c.deleted = false
+                                ORDER BY c.content.current.organisationGroupTypeCode ASC,
+                                c.content.current.date DESC";
+
+            await _cosmosRepository
+                .Received(1)
+                .DocumentsBatchProcessingAsync(
+                    Arg.Is((Func<List<PublishedFunding>, Task>) BatchProcessor),
+                    Arg.Is<CosmosDbQuery>(_ => _.QueryText == queryText &&
+                                               HasParameter(_, "@fundingPeriodId", fundingPeriodId) &&
+                                               HasParameter(_, "@fundingStreamId", fundingStreamId) &&
+                                               HasParameter(_, "@specificationId", specificationId)),
+                    Arg.Is(batchSize));
+        }
+
+        private async Task WhenPublishedFundingBatchProcessingIsUsed(string specificationId,
+            string fundingStreamId,
+            string fundingPeriodId,
+            Func<List<PublishedFunding>, Task> batchProcessor,
+            int batchSize)
+            => await _repository.PublishedFundingBatchProcessing(specificationId,
+                fundingStreamId,
+                fundingPeriodId,
+                batchProcessor,
+                batchSize);
 
         [TestMethod]
         public async Task PublishedGroupBatchProcessingShouldRetrieveBySpecificationId()
