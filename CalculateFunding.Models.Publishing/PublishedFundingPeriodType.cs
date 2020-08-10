@@ -53,5 +53,10 @@ namespace CalculateFunding.Models.Publishing
         /// Non-Levy Apprenticeships
         /// </summary>
         NONLEVY,
+
+        /// <summary>
+        /// Academies and Schools Academic Year
+        /// </summary>
+        AS
     }
 }

@@ -84,15 +84,15 @@ namespace CalculateFunding.Services.Policy
                 return new BadRequestObjectResult("Null or empty funding period Id provided");
             }
 
-            string cachKey = $"{CacheKeys.FundingConfig}{fundingStreamId}-{fundingPeriodId}";
+            string cacheKey = $"{CacheKeys.FundingConfig}{fundingStreamId}-{fundingPeriodId}";
             string configId = $"config-{fundingStreamId}-{fundingPeriodId}";
 
-            FundingConfiguration fundingConfiguration = await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.GetAsync<FundingConfiguration>(cachKey));
+            FundingConfiguration fundingConfiguration = await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.GetAsync<FundingConfiguration>(cacheKey));
 
             if (fundingConfiguration == null)
             {
                 fundingConfiguration = await _policyRepositoryPolicy.ExecuteAsync(() => _policyRepository.GetFundingConfiguration(configId));
-                await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync(cachKey, fundingConfiguration));
+                await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync(cacheKey, fundingConfiguration));
             }
 
             if (fundingConfiguration == null)
@@ -188,9 +188,11 @@ namespace CalculateFunding.Services.Policy
                 return new InternalServerErrorResult(errorMessage);
             }
 
-            string cacheKey = $"{CacheKeys.FundingConfig}{fundingStreamId}-{fundingPeriodId}";
+            string fundingPeriodFundingConfigurationCacheKey = $"{CacheKeys.FundingConfig}{fundingStreamId}-{fundingPeriodId}";
+            await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync(fundingPeriodFundingConfigurationCacheKey, fundingConfiguration));
 
-            await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync(cacheKey, fundingConfiguration));
+            string fundingStreamFundingConfigurationCacheKey = $"{CacheKeys.FundingConfig}{fundingStreamId}";
+            await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.RemoveAsync<List<FundingConfiguration>>(fundingStreamFundingConfigurationCacheKey));
 
             _logger.Information($"Successfully saved configuration file for funding stream id: {fundingStreamId} and period id: {fundingPeriodId} to cosmos db");
 

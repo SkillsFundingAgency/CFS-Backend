@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
 using AutoMapper;
@@ -10,6 +11,7 @@ using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Policy.Interfaces;
 using CalculateFunding.Services.Policy.MappingProfiles;
+using CalculateFunding.Services.Policy.Validators;
 using FluentAssertions;
 using FluentValidation;
 using FluentValidation.Results;
@@ -266,6 +268,68 @@ namespace CalculateFunding.Services.Policy.UnitTests
         }
 
         [TestMethod]
+        [DataRow("1234", "5678")]
+        async public Task SaveFundingConfiguration_GivenValidConfiguration_ReturnsStatusCode(
+            string fundingStreamId, string fundingPeriodId)
+        {
+            FundingStream fundingStream = NewFundingStream(_ => _.WithId(fundingStreamId));
+            FundingPeriod fundingPeriod = NewFundingPeriod(_ => _.WithId(fundingPeriodId));
+
+            ILogger logger = CreateLogger();
+
+            HttpStatusCode statusCode = HttpStatusCode.OK;
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+            cacheProvider
+                .RemoveAsync<List<FundingConfiguration>>($"{CacheKeys.FundingConfig}{fundingStreamId}")
+                .Returns(Task.CompletedTask);
+
+            cacheProvider
+                .SetAsync(
+                    $"{CacheKeys.FundingConfig}{fundingStreamId}-{fundingPeriodId}",
+                    Arg.Is<FundingConfiguration>(_ => _.FundingStreamId == fundingStreamId && _.FundingPeriodId == fundingPeriodId))
+                .Returns(Task.CompletedTask);
+
+            IPolicyRepository policyRepository = CreatePolicyRepository();
+            policyRepository
+                .GetFundingStreamById(Arg.Is(fundingStreamId))
+                .Returns(fundingStream);
+
+            policyRepository
+                .GetFundingPeriodById(Arg.Is(fundingPeriodId))
+                .Returns(fundingPeriod);
+
+            policyRepository
+                .SaveFundingConfiguration(Arg.Is<FundingConfiguration>(x => x.FundingStreamId == fundingStreamId && x.FundingPeriodId == fundingPeriodId))
+                .Returns(statusCode);
+
+            FundingConfigurationService fundingConfigurationsService = CreateFundingConfigurationService(
+                logger: logger, 
+                policyRepository: policyRepository,
+                cacheProvider: cacheProvider);
+
+            FundingConfigurationViewModel fundingConfigurationViewModel = CreateConfigurationModel();
+
+            //Act
+            IActionResult result = await fundingConfigurationsService.SaveFundingConfiguration("Action", "Controller", fundingConfigurationViewModel, fundingStreamId, fundingPeriodId);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<CreatedAtActionResult>();
+
+            await cacheProvider
+                .Received(1)
+                .SetAsync(
+                    $"{CacheKeys.FundingConfig}{fundingStreamId}-{fundingPeriodId}",
+                    Arg.Is<FundingConfiguration>(_ => _.FundingStreamId == fundingStreamId && _.FundingPeriodId == fundingPeriodId));
+
+            await cacheProvider
+                .Received(1)
+                .RemoveAsync<List<FundingConfiguration>>($"{CacheKeys.FundingConfig}{fundingStreamId}");
+        }
+
+        [TestMethod]
         public async Task GetFundingConfigurationsByFundingStreamId_GivenEmptyFundingStreamId_ReturnsBadRequestRequest()
         {
             // Arrange
@@ -470,6 +534,24 @@ namespace CalculateFunding.Services.Policy.UnitTests
         private static IPolicyRepository CreatePolicyRepository()
         {
             return Substitute.For<IPolicyRepository>();
+        }
+
+        protected FundingPeriod NewFundingPeriod(Action<FundingPeriodBuilder> setUp = null)
+        {
+            FundingPeriodBuilder fundingPeriodBuilder = new FundingPeriodBuilder();
+
+            setUp?.Invoke(fundingPeriodBuilder);
+
+            return fundingPeriodBuilder.Build();
+        }
+
+        protected FundingStream NewFundingStream(Action<FundingStreamBuilder> setUp = null)
+        {
+            FundingStreamBuilder fundingStreamBuilder = new FundingStreamBuilder();
+
+            setUp?.Invoke(fundingStreamBuilder);
+
+            return fundingStreamBuilder.Build();
         }
     }
 }
