@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.Design.Serialization;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -175,7 +174,7 @@ namespace CalculateFunding.Services.Jobs.Services
             JobManagementService jobManagementService = CreateJobManagementService(jobDefinitionsService: jobDefinitionsService, jobRepository: jobRepository);
 
             //Act
-            Func<Task> invocation = async() => await jobManagementService.CreateJobs(jobs, user);
+            Func<Task> invocation = async () => await jobManagementService.CreateJobs(jobs, user);
 
             //Assert
             invocation
@@ -1294,8 +1293,8 @@ namespace CalculateFunding.Services.Jobs.Services
                 messengerService
                     .Received(1)
                     .SendToQueueAsJson(
-                        Arg.Is("TestQueue"), 
-                        Arg.Is("a message"), 
+                        Arg.Is("TestQueue"),
+                        Arg.Is("a message"),
                         Arg.Is<Dictionary<string, string>>(
                             m => m.ContainsKey("specificationId") &&
                             m["specificationId"] == "spec-id-1" &&
@@ -1395,8 +1394,8 @@ namespace CalculateFunding.Services.Jobs.Services
                 messengerService
                     .Received(0)
                     .SendToQueueAsJson(
-                        Arg.Any<string>(), 
-                        Arg.Is("a message"), 
+                        Arg.Any<string>(),
+                        Arg.Is("a message"),
                         Arg.Is<Dictionary<string, string>>(
                             m => m.ContainsKey("specificationId") &&
                             m["specificationId"] == "spec-id-1" &&
@@ -1406,7 +1405,7 @@ namespace CalculateFunding.Services.Jobs.Services
                             m[SfaCorrelationId] == correlationId
                 ));
         }
-        
+
         [TestMethod]
         public async Task CreateJobs_GivenCreateJobForQueueingToRunInSession_EnsuresMessageIsPlacedOnQueue()
         {
@@ -1660,7 +1659,7 @@ namespace CalculateFunding.Services.Jobs.Services
             //Arrange
             string jobId = NewRandomString();
             string correlationId = NewRandomString();
-            
+
             IEnumerable<JobCreateModel> jobs = new[]
             {
                 new JobCreateModel
@@ -1782,8 +1781,8 @@ namespace CalculateFunding.Services.Jobs.Services
                 messengerService
                     .Received(1)
                     .SendToTopicAsJson(Arg.Is("TestTopic"), Arg.Any<string>(),
-                            Arg.Is<Dictionary<string, string>>(m => 
-                                m.ContainsKey("jobId") && 
+                            Arg.Is<Dictionary<string, string>>(m =>
+                                m.ContainsKey("jobId") &&
                                 m["jobId"] == jobId &&
                                 m.ContainsKey(SfaCorrelationId) &&
                                 m[SfaCorrelationId] == correlationId));
@@ -1892,7 +1891,7 @@ namespace CalculateFunding.Services.Jobs.Services
 
             IMessengerService messengerService = CreateMessengerService();
             messengerService
-                .When(x => x.SendToTopicAsJson(Arg.Is("TestTopic"), Arg.Any<string>(), Arg.Any<Dictionary<string,string>>()))
+                .When(x => x.SendToTopicAsJson(Arg.Is("TestTopic"), Arg.Any<string>(), Arg.Any<Dictionary<string, string>>()))
                 .Do(x => { throw new Exception("Failed to send to topic"); });
 
 
@@ -1903,20 +1902,18 @@ namespace CalculateFunding.Services.Jobs.Services
                 logger: logger, messengerService: messengerService);
 
             //Act
-            IActionResult actionResult = await jobManagementService.CreateJobs(jobs, null);
+
+            Func<Task> result = new Func<Task>(async () => { await jobManagementService.CreateJobs(jobs, null); });
 
             //Assert
-            actionResult
+            result
                 .Should()
-                .BeOfType<OkObjectResult>()
-                .Which
-                .Value
-                .Should()
-                .NotBeNull();
+                .Throw<Exception>()
+                .WithMessage("Failed to send to topic");
 
             logger
                 .Received(1)
-                .Error(Arg.Is<Exception>(m => m.Message == "Failed to send to topic"), Arg.Is($"Failed to queue job with id: {jobId} on Queue/topic TestTopic"));
+                .Error(Arg.Is<Exception>(m => m.Message == "Failed to send to topic"), Arg.Is($"Failed to queue job with id: {jobId} on Queue/topic TestTopic. Exception type: 'System.Exception'"));
         }
 
         private string NewRandomString() => new RandomString();

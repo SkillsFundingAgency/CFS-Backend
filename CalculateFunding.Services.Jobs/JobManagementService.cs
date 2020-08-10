@@ -417,7 +417,8 @@ namespace CalculateFunding.Services.Jobs
             {
                 IEnumerable<JobCreateModel> jobModels = jobDefinition.PreCompletionJobs.Select(_ =>
                 {
-                    return new JobCreateModel {
+                    return new JobCreateModel
+                    {
                         CorrelationId = parentJob.CorrelationId,
                         InvokerUserId = parentJob.InvokerUserId,
                         InvokerUserDisplayName = parentJob.InvokerUserDisplayName,
@@ -426,7 +427,8 @@ namespace CalculateFunding.Services.Jobs
                         Properties = parentJob.Properties,
                         ParentJobId = parentJob.JobId,
                         SpecificationId = parentJob.SpecificationId,
-                        Trigger = parentJob.Trigger };
+                        Trigger = parentJob.Trigger
+                    };
 
                 });
 
@@ -690,7 +692,7 @@ namespace CalculateFunding.Services.Jobs
             string sessionId = null;
 
             const string jobId = "jobId";
-            
+
             if (messageProperties == null)
             {
                 messageProperties = new Dictionary<string, string>
@@ -738,7 +740,8 @@ namespace CalculateFunding.Services.Jobs
             }
             catch (Exception ex)
             {
-                _logger.Error(ex, $"Failed to queue job with id: {job.Id} on Queue/topic {queueOrTopic}");
+                _logger.Error(ex, $"Failed to queue job with id: {job.Id} on Queue/topic {queueOrTopic}. Exception type: '{ex.GetType()}'");
+                throw;
             }
         }
 
