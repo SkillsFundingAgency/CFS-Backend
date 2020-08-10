@@ -27,7 +27,7 @@
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Providers" Version="4.1.0" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Specifications" Version="3.8.0" />
 
-    <PackageReference Include="CalculateFunding.Common.JobManagement" Version="2.2.0" />
+    <PackageReference Include="CalculateFunding.Common.JobManagement" Version="3.0.0" />
 
     <PackageReference Include="CalculateFunding.Common.Storage" Version="2.0.1" />
 
@@ -36,7 +36,7 @@
 
 
     <PackageReference Include="FluentValidation" Version="8.6.0" />
-    <PackageReference Include="Microsoft.Azure.Storage.Blob" Version="11.0.1" />
+    <PackageReference Include="Microsoft.Azure.Storage.Blob" Version="11.2.0" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="System.Threading.Tasks" Version="4.3.0" />
     <PackageReference Include="Microsoft.FeatureManagement" Version="2.0.0-preview-010610001-1263" />
