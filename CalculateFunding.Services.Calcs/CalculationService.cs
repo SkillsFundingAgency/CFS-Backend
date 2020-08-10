@@ -938,8 +938,6 @@ namespace CalculateFunding.Services.Calcs
                 existingSaveVersionOfTemplateMapping = JsonConvert.SerializeObject(templateMapping);
             }
 
-            IEnumerable<CalculationMetadata> currentCalculations = await _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCalculationsMetatadataBySpecificationId(specificationId));
-
             ProcessTemplateMappingChanges(templateMapping, templateMetadataContents);
 
             // Only save if changed
@@ -1327,6 +1325,7 @@ namespace CalculateFunding.Services.Calcs
                     if (existingItem.Name != calculation.Name)
                     {
                         existingItem.Name = calculation.Name;
+                        madeChanges = true;
                     }
                 }
             }
@@ -1354,6 +1353,7 @@ namespace CalculateFunding.Services.Calcs
                     if (existingItem.Name != referenceData.Name)
                     {
                         existingItem.Name = referenceData.Name;
+                        madeChanges = true;
                     }
                 }
             }

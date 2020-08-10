@@ -16,7 +16,6 @@ using Newtonsoft.Json;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Serilog;
-using Funding = CalculateFunding.Services.CalcEngine.Funding;
 
 namespace CalculateFunding.Services.Calculator
 {
@@ -32,12 +31,9 @@ namespace CalculateFunding.Services.Calculator
             // Arrange
             CalculationEngine calcEngine = CreateCalculationEngine();
 
-            IDictionary<string, Funding> fundingLines = new Dictionary<string, Funding>();
-
             IAllocationModel mockAllocationModel = Substitute.For<IAllocationModel>();
             mockAllocationModel
-                .Execute(Arg.Any<List<ProviderSourceDataset>>(), Arg.Any<ProviderSummary>(),
-                    Arg.Any<IDictionary<string, Funding>>())
+                .Execute(Arg.Any<List<ProviderSourceDataset>>(), Arg.Any<ProviderSummary>())
                 .Throws(new DivideByZeroException());
 
             List<CalculationSummaryModel> models = new List<CalculationSummaryModel>
@@ -51,8 +47,7 @@ namespace CalculateFunding.Services.Calculator
             // Act
             Action calculateProviderResultMethod = () =>
             {
-                calcEngine.CalculateProviderResults(mockAllocationModel, CreateBuildProject().SpecificationId, models, provider, sourceDataset,
-                    fundingLines);
+                calcEngine.CalculateProviderResults(mockAllocationModel, CreateBuildProject().SpecificationId, models, provider, sourceDataset);
             };
 
             // Assert
@@ -70,7 +65,6 @@ namespace CalculateFunding.Services.Calculator
                 .Execute(
                     Arg.Any<List<ProviderSourceDataset>>(), 
                     Arg.Any<ProviderSummary>(),
-                    Arg.Any<IDictionary<string, Funding>>(),
                     Arg.Any<IEnumerable<CalculationAggregation>>())
                 .Returns(new CalculationResultContainer
                 {
@@ -87,8 +81,7 @@ namespace CalculateFunding.Services.Calculator
                 buildProject.SpecificationId, 
                 null,
                 providerSummary, 
-                new List<ProviderSourceDataset>(),
-                new Dictionary<string, Funding>());
+                new List<ProviderSourceDataset>());
 
             // Assert
             result.CalculationResults.Should().BeEmpty();
@@ -149,11 +142,13 @@ namespace CalculateFunding.Services.Calculator
             
             calculationResultContainer.CalculationResults = calculationResults;
 
+            string fundingStreamId = "FS1";
+
             FundingLineResult fundingLineResult = new FundingLineResult
             {
                 Value = 1000,
                 FundingLine = fundingLineCalcReference,
-                FundingLineFundingStreamId = "FS1"
+                FundingLineFundingStreamId = fundingStreamId
             };
 
             List<FundingLineResult> fundingLineResults = new List<FundingLineResult>
@@ -165,8 +160,7 @@ namespace CalculateFunding.Services.Calculator
 
             IAllocationModel mockAllocationModel = Substitute.For<IAllocationModel>();
             mockAllocationModel
-                .Execute(Arg.Any<List<ProviderSourceDataset>>(), Arg.Any<ProviderSummary>(),
-                    Arg.Any<IDictionary<string, Funding>>())
+                .Execute(Arg.Any<List<ProviderSourceDataset>>(), Arg.Any<ProviderSummary>())
                 .Returns(calculationResultContainer);
 
             CalculationEngine calculationEngine = CreateCalculationEngine();
@@ -206,25 +200,9 @@ namespace CalculateFunding.Services.Calculator
                 nonMatchingCalculationModel
             };
 
-            string fundingStreamId = "FS1";
-            IDictionary<string, Funding> fundingLines = new Dictionary<string, Funding>();
-            Funding funding = new Funding
-            {
-                FundingLines = new List<CalculateFunding.Generators.Funding.Models.FundingLine>
-                {
-                    new CalculateFunding.Generators.Funding.Models.FundingLine
-                    {
-                        Name = fundingLineCalcReference.Name
-                    }
-                }
-            };
-
-            fundingLines.Add(fundingStreamId, funding);
-
             // Act
             var calculateProviderResults = calculationEngine.CalculateProviderResults(mockAllocationModel, buildProject.SpecificationId, calculationSummaryModels,
-                providerSummary, new List<ProviderSourceDataset>(),
-                fundingLines);
+                providerSummary, new List<ProviderSourceDataset>());
             ProviderResult result = calculateProviderResults;
 
             // Assert

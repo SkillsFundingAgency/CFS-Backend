@@ -81,6 +81,7 @@ namespace CalculateFunding.Services.CalcEngine
                 {
                     FundingLineResult result = new FundingLineResult
                     {
+                        FundingLineFundingStreamId = GetFundingStream(attributes, "FundingLine"),
                         FundingLine = GetReference(attributes, "FundingLine"),
                     };
 
@@ -167,7 +168,6 @@ namespace CalculateFunding.Services.CalcEngine
         private Dictionary<string, Type> DatasetTypes { get; }
 
         public CalculationResultContainer Execute(List<ProviderSourceDataset> datasets, ProviderSummary providerSummary,
-            IDictionary<string, Funding> fundingStreamLines,
             IEnumerable<CalculationAggregation> aggregationValues = null)
         {
             HashSet<string> datasetNamesUsed = new HashSet<string>();
@@ -254,7 +254,7 @@ namespace CalculateFunding.Services.CalcEngine
         }
 
         private IList<FundingLineResult> ProcessFundingLineResults(Dictionary<string, string[]> results,
-    List<(MemberInfo, FundingLineResult)> funcs)
+            List<(MemberInfo, FundingLineResult)> funcs)
         {
             IList<FundingLineResult> fundingLineResults = new List<FundingLineResult>();
 
@@ -267,7 +267,7 @@ namespace CalculateFunding.Services.CalcEngine
                 }
 
                 (MemberInfo field, FundingLineResult result) = funcs.FirstOrDefault(m =>
-                    string.Equals(m.Item2.FundingLine.Id, flResult.Key, StringComparison.InvariantCultureIgnoreCase));
+                    string.Equals($"{m.Item2.FundingLineFundingStreamId}-{m.Item2.FundingLine.Id}", flResult.Key, StringComparison.InvariantCultureIgnoreCase));
 
                 if (field != null)
                 {
@@ -308,23 +308,23 @@ namespace CalculateFunding.Services.CalcEngine
             }
         }
 
-        private static void ProcessFundingLineResult(FundingLineResult fundingLineResult, KeyValuePair<string, string[]> calcResult)
+        private static void ProcessFundingLineResult(FundingLineResult fundingLineResult, KeyValuePair<string, string[]> flResult)
         {
             const int valueIndex = 0;
             const int exceptionTypeIndex = 1;
             const int exceptionMessageIndex = 2;
             const int exceptionStackTraceIndex = 3;
 
-            fundingLineResult.Value = calcResult.Value[valueIndex].GetValueOrNull<decimal>();
+            fundingLineResult.Value = flResult.Value[valueIndex].GetValueOrNull<decimal>();
 
-            if (calcResult.Value.Length > exceptionMessageIndex)
+            if (flResult.Value.Length > exceptionMessageIndex)
             {
-                fundingLineResult.ExceptionType = calcResult.Value[exceptionTypeIndex];
-                fundingLineResult.ExceptionMessage = calcResult.Value[exceptionMessageIndex];
+                fundingLineResult.ExceptionType = flResult.Value[exceptionTypeIndex];
+                fundingLineResult.ExceptionMessage = flResult.Value[exceptionMessageIndex];
 
-                if (calcResult.Value.Length > exceptionStackTraceIndex)
+                if (flResult.Value.Length > exceptionStackTraceIndex)
                 {
-                    fundingLineResult.ExceptionStackTrace = calcResult.Value[exceptionStackTraceIndex];
+                    fundingLineResult.ExceptionStackTrace = flResult.Value[exceptionStackTraceIndex];
                 }
             }
         }
@@ -694,6 +694,17 @@ namespace CalculateFunding.Services.CalcEngine
             }
 
             return calculationDataType;
+        }
+
+        private static string GetFundingStream(IList<CustomAttributeData> attributes, string attributeName)
+        {
+            CustomAttributeData attribute = attributes.FirstOrDefault(x => x.AttributeType.Name.StartsWith(attributeName));
+            if (attribute != null)
+            {
+                return GetProperty(attribute, "FundingStream");
+            }
+
+            return null;
         }
 
         private static string GetProperty(CustomAttributeData attribute, string propertyName)

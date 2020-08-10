@@ -247,8 +247,6 @@ namespace CalculateFunding.Services.CalcEngine
 
             IEnumerable<CalculationAggregation> aggregations = await BuildAggregations(messageProperties);
 
-            IDictionary<string, Funding> fundingStreamLines = await BuildFundingLines(specificationSummary);
-
             int totalProviderResults = 0;
 
             bool calculationResultsHaveExceptions = false;
@@ -263,7 +261,6 @@ namespace CalculateFunding.Services.CalcEngine
                 CalculationResultsModel calculationResults = await CalculateResults(specificationId, 
                     summaries,
                     calculations,
-                    fundingStreamLines,
                     aggregations,
                     dataRelationshipIds,
                     assembly,
@@ -363,7 +360,6 @@ namespace CalculateFunding.Services.CalcEngine
 
         private async Task<CalculationResultsModel> CalculateResults(string specificationId, IEnumerable<ProviderSummary> summaries,
             IEnumerable<CalculationSummaryModel> calculations,
-            IDictionary<string, Funding> fundingStreamLines,
             IEnumerable<CalculationAggregation> aggregations,
             IEnumerable<string> dataRelationshipIds,
             byte[] assemblyForSpecification,
@@ -414,7 +410,7 @@ namespace CalculateFunding.Services.CalcEngine
                     throw new Exception($"Provider source dataset not found for {provider.Id}.");
                 }
 
-                ProviderResult result = _calculationEngine.CalculateProviderResults(allocationModel, specificationId, calculations, provider, providerDatasets, fundingStreamLines, aggregations);
+                ProviderResult result = _calculationEngine.CalculateProviderResults(allocationModel, specificationId, calculations, provider, providerDatasets, aggregations);
 
                 if (result == null)
                 {
@@ -622,37 +618,6 @@ namespace CalculateFunding.Services.CalcEngine
             }
 
             return aggregations;
-        }
-
-        private async Task<IDictionary<string, Funding>> BuildFundingLines(SpecificationSummary specificationSummary)
-        {
-            Dictionary<string, Funding> fundingStreamLines = new Dictionary<string, Funding>();
-
-            foreach (Reference fundingStream in specificationSummary.FundingStreams)
-            {
-                TemplateMapping templateMapping = await _calculationsRepositoryPolicy.ExecuteAsync(
-                        () => _calculationsRepository.GetTemplateMapping(specificationSummary.Id, fundingStream.Id));
-
-                if (templateMapping == null)
-                {
-                    LogAndThrowException<Exception>(
-                        $"Did not locate Template Mapping for funding stream id {fundingStream.Id} and specification id {specificationSummary.Id}");
-                }
-
-                ApiResponse<Common.TemplateMetadata.Models.TemplateMetadataContents> templateMetadataContentsResponse = await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingTemplateContents(fundingStream.Id, specificationSummary.FundingPeriod.Id, specificationSummary.TemplateIds[fundingStream.Id]));
-
-                if (templateMetadataContentsResponse?.Content == null)
-                {
-                    continue;
-                }
-
-                fundingStreamLines.Add(fundingStream.Id, new Funding {
-                    Mappings = templateMapping.TemplateMappingItems.ToDictionary(_=> _.TemplateId, _=> _.CalculationId),
-                    FundingLines = _mapper.Map<IEnumerable<FundingLine>>(templateMetadataContentsResponse.Content.RootFundingLines)
-                });
-            }
-
-            return fundingStreamLines;
         }
 
         private async Task CompleteBatch(GenerateAllocationMessageProperties messageProperties, Dictionary<string, List<object>> cachedCalculationAggregationsBatch, int itemsProcessed, int totalProviderResults)

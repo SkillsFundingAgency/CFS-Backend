@@ -46,7 +46,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             {
                 StringBuilder sourceCode = new StringBuilder();
                 fundingLine.SourceCodeName ??= GenerateIdentifier(fundingLine.Name);
-                sourceCode.AppendLine($"<FundingLine(Id := \"{fundingLine.Id}\", Name := \"{fundingLine.SourceCodeName}\")>");
+                sourceCode.AppendLine($"<FundingLine(FundingStream := \"{@namespace}\", Id := \"{fundingLine.Id}\", Name := \"{fundingLine.SourceCodeName}\")>");
                 sourceCode.AppendLine($"Public {fundingLine.SourceCodeName} As Func(Of decimal?) = Nothing");
                 sourceCode.AppendLine();
                 yield return ParseSourceCodeToStatementSyntax(sourceCode);
@@ -73,9 +73,9 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                 sourceCode.AppendLine($"{fundingLine.SourceCodeName} = Function() As Decimal?");
                 sourceCode.AppendLine();
                 sourceCode.AppendLine("Dim existingCacheItem as String() = Nothing");
-                sourceCode.AppendLine($"If calculationContext.FundingLineDictionary.TryGetValue(\"{fundingLine.Id}\", existingCacheItem) Then");
+                sourceCode.AppendLine($"If calculationContext.FundingLineDictionary.TryGetValue(\"{@namespace}-{fundingLine.Id}\", existingCacheItem) Then");
                 sourceCode.AppendLine("Dim existingFundingLineResultDecimal As Decimal? = Nothing");
-                sourceCode.AppendLine($"   If calculationContext.FundingLineDictionaryValues.TryGetValue(\"{fundingLine.Id}\", existingFundingLineResultDecimal) Then");
+                sourceCode.AppendLine($"   If calculationContext.FundingLineDictionaryValues.TryGetValue(\"{@namespace}-{fundingLine.Id}\", existingFundingLineResultDecimal) Then");
                 sourceCode.AppendLine("        Return existingFundingLineResultDecimal");
                 sourceCode.AppendLine("    End If");
 
@@ -103,11 +103,11 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                 sourceCode.AppendLine($"Dim executedFundingLineResult As Decimal?  = userCalculationCodeImplementation()");
                 sourceCode.AppendLine();
                 sourceCode.AppendLine(
-                    $"calculationContext.FundingLineDictionary.Add(\"{fundingLine.Id}\", {{If(executedFundingLineResult.HasValue, executedFundingLineResult.ToString(), \"\")}})");
-                sourceCode.AppendLine($"calculationContext.FundingLineDictionaryValues.Add(\"{fundingLine.Id}\", executedFundingLineResult)");
+                    $"calculationContext.FundingLineDictionary.Add(\"{@namespace}-{fundingLine.Id}\", {{If(executedFundingLineResult.HasValue, executedFundingLineResult.ToString(), \"\")}})");
+                sourceCode.AppendLine($"calculationContext.FundingLineDictionaryValues.Add(\"{@namespace}-{fundingLine.Id}\", executedFundingLineResult)");
                 sourceCode.AppendLine("Return executedFundingLineResult");
                 sourceCode.AppendLine("Catch ex as System.Exception");
-                sourceCode.AppendLine($"   calculationContext.FundingLineDictionary.Add(\"{fundingLine.Id}\", {{\"\", ex.GetType().Name, ex.Message}})");
+                sourceCode.AppendLine($"   calculationContext.FundingLineDictionary.Add(\"{@namespace}-{fundingLine.Id}\", {{\"\", ex.GetType().Name, ex.Message}})");
                 sourceCode.AppendLine("    Throw");
                 sourceCode.AppendLine("End Try");
                 sourceCode.AppendLine();

@@ -9,7 +9,6 @@ namespace CalculateFunding.Services.CalcEngine.Interfaces
     public interface IAllocationModel
     {
         CalculationResultContainer Execute(List<ProviderSourceDataset> datasets, ProviderSummary providerSummary,
-                                           IDictionary<string, Funding> fundingStreamLines,
                                            IEnumerable<CalculationAggregation> aggregationValues = null);
     }
 }

@@ -186,9 +186,9 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.Vb.UnitTests
                 .SourceCode
                 .Should()
                 .ContainAll(
-                    "<FundingLine(Id:=\"1\", Name:=\"One\")>",
+                    "<FundingLine(FundingStream:=\"DSG\", Id:=\"1\", Name:=\"One\")>",
                     "Public One As Func(Of decimal?) = Nothing",
-                    "<FundingLine(Id:=\"2\", Name:=\"Two\")>",
+                    "<FundingLine(FundingStream:=\"PSG\", Id:=\"2\", Name:=\"Two\")>",
                     "Public Two As Func(Of decimal?) = Nothing");
         }
 

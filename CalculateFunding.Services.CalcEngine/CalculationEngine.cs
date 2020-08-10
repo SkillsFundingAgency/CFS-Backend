@@ -38,14 +38,13 @@ namespace CalculateFunding.Services.CalcEngine
             IEnumerable<CalculationSummaryModel> calculations, 
             ProviderSummary provider,
             IEnumerable<ProviderSourceDataset> providerSourceDatasets, 
-            IDictionary<string, Funding> fundingStreamLines,
             IEnumerable<CalculationAggregation> aggregations = null)
         {
             var stopwatch = new Stopwatch();
             stopwatch.Start();
 
             CalculationResultContainer calculationResultContainer = 
-                model.Execute(providerSourceDatasets != null ? providerSourceDatasets.ToList() : new List<ProviderSourceDataset>(), provider, fundingStreamLines, aggregations);
+                model.Execute(providerSourceDatasets != null ? providerSourceDatasets.ToList() : new List<ProviderSourceDataset>(), provider, aggregations);
 
             IEnumerable<CalculationResult> calculationResultItems = calculationResultContainer.CalculationResults;
 
@@ -113,22 +112,9 @@ namespace CalculateFunding.Services.CalcEngine
                 }
             }
 
-            IEnumerable<FundingLineResult> fundingLineResults = calculationResultContainer.FundingLineResults;
-
-            if (fundingLineResults != null)
-            {
-                foreach (FundingLineResult fundingLineResult in fundingLineResults)
-                {
-                    KeyValuePair<string, Funding> matchingFunding = fundingStreamLines
-                        .SingleOrDefault(_ => _.Value.FundingLines.Any(fl => fl.Name == fundingLineResult.FundingLine.Name) == true);
-
-                    fundingLineResult.FundingLineFundingStreamId = matchingFunding.Key;
-                }
-            }
-
             //we need a stable sort of results to enable the cache checks by overall SHA hash on the results json
             providerResult.CalculationResults = calculationResults.OrderBy(_ => _.Calculation.Id).ToList();
-            providerResult.FundingLineResults = fundingLineResults.OrderBy(_ => _.FundingLine.Id).ToList();
+            providerResult.FundingLineResults = calculationResultContainer.FundingLineResults.OrderBy(_ => _.FundingLine.Id).ToList();
 
             return providerResult;
         }
