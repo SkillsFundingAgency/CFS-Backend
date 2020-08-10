@@ -224,6 +224,37 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.Vb.UnitTests
         }
 
         [TestMethod]
+        public void GenerateCalculations_GivenSpaceInEnumReturnsValidEnumCalculationType()
+        {
+            Calculation dsg = NewCalculation(_ => _.WithFundingStream(NewReference(rf => rf.WithId("DSG")))
+            .WithName("MethodologyType")
+            .WithValueType(CalculationValueType.String)
+            .WithDataType(CalculationDataType.Enum)
+            .WithAllowedEnumTypeValues(new[] { "Type1 ", "Type2", "Type3" })
+               .WithSourceCodeName("One")
+               .WithCalculationNamespaceType(CalculationNamespace.Template)
+               .WithSourceCode("return Nothing"));
+
+            FundingLine dsgfl = NewFundingLine(_ => _.WithCalculations(new[] { NewFundingLineCalculation(_ => _.WithId(1)
+                .WithCalculationNamespaceType(CalculationNamespace.Template))})
+                .WithId(2)
+                .WithName("Two")
+                .WithSourceCodeName("Two")
+                .WithNamespace("DSG"));
+
+            IDictionary<string, Funding> fundingLines = new Dictionary<string, Funding> {
+                {"DSG", NewFunding(_ => _.WithFundingLines(new[] { dsgfl }))}
+            };
+
+            IEnumerable<SourceFile> results = new CalculationTypeGenerator(new CompilerOptions()).GenerateCalcs(new[] { dsg }, fundingLines).ToList();
+
+            results.Should().HaveCount(1);
+
+            results.First().SourceCode.Should().Contain("Enum MethodologyTypeOptions");
+            results.First().SourceCode.Should().Contain("Public One As Func(Of MethodologyTypeOptions?) = Nothing");
+        }
+
+        [TestMethod]
         public void GenerateCalculations_GivenNoCalculations_ThenSingleInnerClassForAdditionalCreated()
         {
             Dictionary<string, Funding> fundingLines = new Dictionary<string, Funding>();

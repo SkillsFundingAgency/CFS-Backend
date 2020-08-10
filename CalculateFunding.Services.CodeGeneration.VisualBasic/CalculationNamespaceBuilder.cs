@@ -144,7 +144,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                 sourceCode.AppendLine($"Enum {GetEnumVariableName(calculation.Name)}");
                 foreach (string value in calculation.Current.AllowedEnumTypeValues)
                 {
-                    sourceCode.AppendLine($"    {value}");
+                    sourceCode.AppendLine($"    {VisualBasicTypeGenerator.GenerateIdentifier(value)}");
                 }
                 sourceCode.AppendLine("End Enum");
                 sourceCode.AppendLine();
