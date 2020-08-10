@@ -21,5 +21,7 @@
         public const string PopulateScopedProviders = "on-populate-scopedproviders-event";
 
         public const string PopulateScopedProvidersPoisoned = "on-populate-scopedproviders-event-poisoned";
+
+        public const string ProviderSnapshotDataLoad = "on-provider-snapshot-data-load";
     }
 }

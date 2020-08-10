@@ -58,6 +58,7 @@ namespace CalculateFunding.Services.Specs
         private readonly IResultsRepository _resultsRepository;
         private readonly IVersionRepository<Models.Specs.SpecificationVersion> _specificationVersionRepository;
         private readonly IQueueCreateSpecificationJobActions _queueCreateSpecificationJobAction;
+        private readonly IQueueEditSpecificationJobActions _queueEditSpecificationJobActions;
         private readonly IQueueDeleteSpecificationJobActions _queueDeleteSpecificationJobAction;
         private readonly ICalculationsApiClient _calcsApiClient;
         private readonly AsyncPolicy _calcsApiClientPolicy;
@@ -85,6 +86,7 @@ namespace CalculateFunding.Services.Specs
             IVersionRepository<Models.Specs.SpecificationVersion> specificationVersionRepository,
             ISpecificationsResiliencePolicies resiliencePolicies,
             IQueueCreateSpecificationJobActions queueCreateSpecificationJobAction,
+            IQueueEditSpecificationJobActions queueEditSpecificationJobActions,
             IQueueDeleteSpecificationJobActions queueDeleteSpecificationJobAction,
             ICalculationsApiClient calcsApiClient,
             IFeatureToggle featureToggle,
@@ -113,6 +115,7 @@ namespace CalculateFunding.Services.Specs
             Guard.ArgumentNotNull(resiliencePolicies?.ProvidersApiClient, nameof(resiliencePolicies.ProvidersApiClient));
             Guard.ArgumentNotNull(resiliencePolicies?.ResultsApiClient, nameof(resiliencePolicies.ResultsApiClient));
             Guard.ArgumentNotNull(queueCreateSpecificationJobAction, nameof(queueCreateSpecificationJobAction));
+            Guard.ArgumentNotNull(queueEditSpecificationJobActions, nameof(queueEditSpecificationJobActions));
             Guard.ArgumentNotNull(queueDeleteSpecificationJobAction, nameof(queueDeleteSpecificationJobAction));
             Guard.ArgumentNotNull(calcsApiClient, nameof(calcsApiClient));
             Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
@@ -136,6 +139,7 @@ namespace CalculateFunding.Services.Specs
             _resultsRepository = resultsRepository;
             _specificationVersionRepository = specificationVersionRepository;
             _queueCreateSpecificationJobAction = queueCreateSpecificationJobAction;
+            _queueEditSpecificationJobActions = queueEditSpecificationJobActions;
             _queueDeleteSpecificationJobAction = queueDeleteSpecificationJobAction;
             _calcsApiClient = calcsApiClient;
             _featureToggle = featureToggle;
@@ -819,6 +823,8 @@ namespace CalculateFunding.Services.Specs
             await SendSpecificationComparisonModelMessageToTopic(specificationId,
                 ServiceBusConstants.TopicNames.EditSpecification, specification.Current, previousSpecificationVersion,
                 user, correlationId);
+
+            await _queueEditSpecificationJobActions.Run(specificationVersion, user, correlationId);
 
             return new OkObjectResult(specification);
         }

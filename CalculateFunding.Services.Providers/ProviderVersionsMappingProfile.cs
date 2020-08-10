@@ -29,6 +29,16 @@ namespace CalculateFunding.Services.Providers
                 .ForMember(c => c.Id, opt => opt.MapFrom(s => MASTER_KEY));
 
             CreateMap<ProviderVersionMetadata, ProviderVersionMetadataDto>();
+
+            CreateMap<Common.ApiClient.FundingDataZone.Models.Provider, Models.Providers.Provider>()
+                .ForMember(c => c.ProviderProfileIdType, opt => opt.Ignore())
+                .ForMember(c => c.Street, opt => opt.Ignore())
+                .ForMember(c => c.Locality, opt => opt.Ignore())
+                .ForMember(c => c.Address3, opt => opt.Ignore())
+                .ForMember(c => c.PaymentOrganisationIdentifier, opt => opt.Ignore())
+                .ForMember(c => c.ProviderVersionIdProviderId, opt => opt.Ignore())
+                .ForMember(c => c.ProviderVersionId, opt => opt.Ignore())
+                .ForMember(c => c.TrustStatusViewModelString, opt => opt.Ignore());
         }
     }
 }

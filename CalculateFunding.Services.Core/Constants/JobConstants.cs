@@ -34,6 +34,8 @@
 
             public const string AssignTemplateCalculationsJob = nameof(AssignTemplateCalculationsJob);
 
+            public const string ProviderSnapshotDataLoadJob = nameof(ProviderSnapshotDataLoadJob);
+
             public const string ReIndexPublishedProvidersJob = nameof(ReIndexPublishedProvidersJob);
 
             public const string DeleteSpecificationJob = nameof(DeleteSpecificationJob);

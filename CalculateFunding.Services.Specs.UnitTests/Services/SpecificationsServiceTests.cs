@@ -121,6 +121,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             IResultsRepository resultsRepository = null,
             IVersionRepository<Models.Specs.SpecificationVersion> specificationVersionRepository = null,
             IQueueCreateSpecificationJobActions queueCreateSpecificationJobActions = null,
+            IQueueEditSpecificationJobActions queueEditSpecificationJobActions = null,
             IQueueDeleteSpecificationJobActions queueDeleteSpecificationJobActions = null,
             IFeatureToggle featureToggle = null,
             ICalculationsApiClient calcsApiClient = null,
@@ -142,6 +143,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 specificationVersionRepository ?? CreateVersionRepository(),
                 SpecificationsResilienceTestHelper.GenerateTestPolicies(),
                 queueCreateSpecificationJobActions ?? Substitute.For<IQueueCreateSpecificationJobActions>(),
+                queueEditSpecificationJobActions ?? CreateQueueEditSpecificationJobActions(),
                 queueDeleteSpecificationJobActions ?? Substitute.For<IQueueDeleteSpecificationJobActions>(),
                 calcsApiClient ?? CreateCalcsApiClient(),
                 featureToggle ?? Substitute.For<IFeatureToggle>(),
@@ -217,6 +219,11 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         protected IProvidersApiClient CreateProvidersApiClient()
         {
             return Substitute.For<IProvidersApiClient>();
+        }
+
+        protected IQueueEditSpecificationJobActions CreateQueueEditSpecificationJobActions()
+        {
+            return Substitute.For<IQueueEditSpecificationJobActions>();
         }
 
         protected IJobManagement CreateJobManagement()

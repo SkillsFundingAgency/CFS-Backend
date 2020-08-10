@@ -35,6 +35,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             Period = "p10"
         };
         private readonly ApiResponse<PolicyModels.FundingPeriod> _fundingPeriodResponse;
+        IQueueEditSpecificationJobActions _editSpecificationJobActions;
 
         public SpecificationsServiceTests()
         {
@@ -47,6 +48,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             _messengerService = CreateMessengerService();
             _versionRepository = CreateVersionRepository();
             _providersApiClient = CreateProvidersApiClient();
+            _editSpecificationJobActions = CreateQueueEditSpecificationJobActions();
             _fundingPeriodResponse = new ApiResponse<PolicyModels.FundingPeriod>(
                 HttpStatusCode.OK, _fundingPeriod);
         }
@@ -333,6 +335,76 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                      Arg.Is(correlationId));
         }
 
+        [TestMethod]
+        public async Task EditSpecification_GivenChanges_QueueEditSpecificationJobActions()
+        {
+            //Arrange
+            SpecificationEditModel specificationEditModel = new SpecificationEditModel
+            {
+                FundingPeriodId = "fp10",
+                Name = "new spec name",
+                ProviderVersionId = _specification.Current.ProviderVersionId,
+                AssignedTemplateIds = new Dictionary<string, string>()
+            };
+            Reference user = new Reference();
+
+            SpecificationVersion newSpecVersion = _specification.Current.DeepCopy(useCamelCase: false);
+            newSpecVersion.Name = specificationEditModel.Name;
+            newSpecVersion.FundingPeriod.Id = specificationEditModel.FundingPeriodId;
+            newSpecVersion.FundingStreams = new[] { new Reference { Id = "fs11" } };
+            newSpecVersion.FundingPeriod.Name = "p10";
+            newSpecVersion.Author = user;
+            newSpecVersion.Description = specificationEditModel.Description;
+          
+
+            SpecificationsService service = CreateSpecificationsService(newSpecVersion);
+          
+            string correlationId = NewRandomString();
+
+            SpecificationVersion previousSpecificationVersion = _specification.Current;
+
+            //Act
+            await service.EditSpecification(SpecificationId, specificationEditModel, user, correlationId);
+
+            await _specificationIndexer
+                .Received(1)
+                .Index(Arg.Is<Specification>(_ => ReferenceEquals(_.Current, newSpecVersion)));
+
+            await
+                _cacheProvider
+                    .Received(1)
+                    .RemoveAsync<SpecificationSummary>(Arg.Is($"{CacheKeys.SpecificationSummaryById}{_specification.Id}"));
+            await
+                _messengerService
+                    .Received(1)
+                    .SendToTopic(Arg.Is(ServiceBusConstants.TopicNames.EditSpecification),
+                                Arg.Is<SpecificationVersionComparisonModel>(
+                                    m => m.Id == SpecificationId &&
+                                    m.Current.Name == "new spec name" &&
+                                    m.Previous.Name == "Spec name"
+                                    ), Arg.Any<IDictionary<string, string>>(), Arg.Is(true));
+            await
+              _versionRepository
+               .Received(1)
+               .SaveVersion(Arg.Is(newSpecVersion));
+
+            await _templateVersionChangedHandler
+                .Received(1)
+                .HandleTemplateVersionChanged(Arg.Is(previousSpecificationVersion),
+                    Arg.Any<SpecificationVersion>(),
+                    Arg.Is(specificationEditModel.AssignedTemplateIds),
+                    Arg.Is(user),
+                     Arg.Is(correlationId));
+
+            await _editSpecificationJobActions
+                .Received(1)
+                .Run(Arg.Is<SpecificationVersion>(
+                        m => !string.IsNullOrWhiteSpace(m.EntityId)  &&
+                             m.Name == specificationEditModel.Name),
+                    Arg.Any<Reference>(),
+                    Arg.Any<string>());
+        }
+
         private SpecificationsService CreateSpecificationsService(Models.Specs.SpecificationVersion newSpecVersion)
         {
             _specificationsRepository
@@ -352,7 +424,8 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 policiesApiClient: _policiesApiClient, searchRepository: _searchRepository,
                 cacheProvider: _cacheProvider, messengerService: _messengerService,
                 specificationVersionRepository: _versionRepository,
-                providersApiClient: _providersApiClient);
+                providersApiClient: _providersApiClient,
+                queueEditSpecificationJobActions: _editSpecificationJobActions);
             return service;
         }
 

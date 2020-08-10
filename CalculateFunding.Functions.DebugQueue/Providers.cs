@@ -39,5 +39,20 @@ namespace CalculateFunding.Functions.DebugQueue
                 log.LogInformation($"C# Queue trigger function processed: {item}");
             }
         }
+
+        [FunctionName(FunctionConstants.ProviderSnapshotDataLoad)]
+        public static async Task RunOnProviderSnapshotDataLoadEventTrigger([QueueTrigger(ServiceBusConstants.QueueNames.ProviderSnapshotDataLoad, Connection = "AzureConnectionString")] string item, ILogger log)
+        {
+            using (IServiceScope scope = Functions.Providers.Startup.RegisterComponents(new ServiceCollection()).CreateScope())
+            {
+                Message message = Helpers.ConvertToMessage<string>(item);
+
+                OnProviderSnapshotDataLoadEventTrigger function = scope.ServiceProvider.GetService<OnProviderSnapshotDataLoadEventTrigger>();
+
+                await function.Run(message);
+
+                log.LogInformation($"C# Queue trigger function processed: {item}");
+            }
+        }
     }
 }

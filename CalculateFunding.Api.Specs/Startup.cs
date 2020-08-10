@@ -108,6 +108,7 @@ namespace CalculateFunding.Api.Specs
                 .AddSingleton<IHealthChecker, ControllerResolverHealthCheck>();
 
             builder.AddSingleton<IQueueCreateSpecificationJobActions, QueueCreateSpecificationJobAction>();
+            builder.AddSingleton<IQueueEditSpecificationJobActions, QueueEditSpecificationJobActions>();
             builder.AddSingleton<IQueueDeleteSpecificationJobActions, QueueDeleteSpecificationJobAction>();
 
             builder.AddSingleton<ISpecificationsRepository, SpecificationsRepository>((ctx) =>

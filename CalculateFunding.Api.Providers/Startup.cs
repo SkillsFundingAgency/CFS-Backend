@@ -231,7 +231,8 @@ namespace CalculateFunding.Api.Providers
                 PoliciesApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                 SpecificationsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                 ResultsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-                CacheProvider = ResiliencePolicyHelpers.GenerateRedisPolicy()
+                CacheProvider = ResiliencePolicyHelpers.GenerateRedisPolicy(),
+                FundingDataZoneApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
             };
         }
     }

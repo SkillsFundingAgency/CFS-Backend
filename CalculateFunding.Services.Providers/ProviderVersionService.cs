@@ -208,7 +208,7 @@ namespace CalculateFunding.Services.Providers
             }
 
             await using Stream blobClientStream = await _blobClient.DownloadToStreamAsync(blob);
-            
+
             if (fileSystemCacheEnabled)
             {
                 _fileSystemCache.Add(cacheKey, blobClientStream);
@@ -228,7 +228,7 @@ namespace CalculateFunding.Services.Providers
             stream.Position = 0;
 
             using StreamReader reader = new StreamReader(stream);
-            
+
             string providerVersionString = reader.ReadToEnd();
 
             if (!string.IsNullOrWhiteSpace(providerVersionString))
@@ -305,8 +305,18 @@ namespace CalculateFunding.Services.Providers
             Guard.IsNullOrWhiteSpace(providerVersionId, nameof(providerVersionId));
             Guard.ArgumentNotNull(providerVersionModel, nameof(providerVersionModel));
 
+            (bool success, IActionResult actionResult) = await UploadProviderVersion(providerVersionId, providerVersionModel);
+
+            return success ? new CreatedAtActionResult(actionName, controller, new { providerVersionId }, providerVersionId) : actionResult;
+        }
+
+        public async Task<(bool Success, IActionResult ActionResult)> UploadProviderVersion(string providerVersionId, ProviderVersionViewModel providerVersionModel)
+        {
+            Guard.IsNullOrWhiteSpace(providerVersionId, nameof(providerVersionId));
+            Guard.ArgumentNotNull(providerVersionModel, nameof(providerVersionModel));
+
             IActionResult validationResult = await UploadProviderVersionValidate(providerVersionModel, providerVersionId);
-            if (validationResult != null) return validationResult;
+            if (validationResult != null) return (false, validationResult);
 
             ProviderVersion providerVersion = _mapper.Map<ProviderVersion>(providerVersionModel);
             providerVersion.Id = $"providerVersion-{providerVersionId}";
@@ -322,7 +332,7 @@ namespace CalculateFunding.Services.Providers
             if (result.IsSuccess())
                 await _searchRepository.RunIndexer();
 
-            return new CreatedAtActionResult(actionName, controller, new { providerVersionId }, providerVersionId);
+            return (true, null);
         }
 
         private async Task UploadProviderVersionBlob(string providerVersionId, ProviderVersion providerVersion)
@@ -330,7 +340,7 @@ namespace CalculateFunding.Services.Providers
             ICloudBlob blob = _blobClient.GetBlockBlobReference(providerVersionId.ToLowerInvariant() + ".json");
 
             await using MemoryStream stream = new MemoryStream(providerVersion.AsJsonBytes());
-            
+
             await _blobRepositoryPolicy.ExecuteAsync(() => blob.UploadFromStreamAsync(stream));
         }
 

@@ -30,7 +30,7 @@ using CalculateFunding.Services.DeadletterProcessor;
 using ServiceCollectionExtensions = CalculateFunding.Services.Core.Extensions.ServiceCollectionExtensions;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Services.Core.Services;
-
+using CalculateFunding.Common.Config.ApiClient.FundingDataZone;
 
 [assembly: FunctionsStartup(typeof(CalculateFunding.Functions.Providers.Startup))]
 
@@ -62,6 +62,7 @@ namespace CalculateFunding.Functions.Providers
             {
                 builder.AddScoped<OnPopulateScopedProvidersEventTrigger>();
                 builder.AddScoped<OnPopulateScopedProvidersEventTriggerFailure>();
+                builder.AddScoped<OnProviderSnapshotDataLoadEventTrigger>();
             }
 
             builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();
@@ -71,6 +72,10 @@ namespace CalculateFunding.Functions.Providers
             builder
                 .AddSingleton<IProviderVersionService, ProviderVersionService>()
                 .AddSingleton<IHealthChecker, ProviderVersionService>();
+
+            builder
+                .AddSingleton<IProviderSnapshotDataLoadService, ProviderSnapshotDataLoadService>()
+                .AddSingleton<IHealthChecker, ProviderSnapshotDataLoadService>();
 
             builder
                 .AddSingleton<IScopedProvidersService, ScopedProvidersService>()
@@ -85,6 +90,7 @@ namespace CalculateFunding.Functions.Providers
             builder.AddJobsInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
             builder.AddSpecificationsInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
             builder.AddResultsInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
+            builder.AddFundingDataServiceInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
             builder.AddSingleton<IJobHelperService, JobHelperService>();
 
             builder.AddCaching(config);
@@ -188,7 +194,8 @@ namespace CalculateFunding.Functions.Providers
                 JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                 SpecificationsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                 ResultsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-                CacheProvider = ResiliencePolicyHelpers.GenerateRedisPolicy()
+                CacheProvider = ResiliencePolicyHelpers.GenerateRedisPolicy(),
+                FundingDataZoneApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
             };
         }
     }

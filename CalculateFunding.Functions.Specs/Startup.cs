@@ -67,6 +67,7 @@ namespace CalculateFunding.Functions.Specs
             builder.AddSingleton<ISpecificationTemplateVersionChangedHandler, SpecificationTemplateVersionChangedHandler>();
 
             builder.AddSingleton<IQueueCreateSpecificationJobActions, QueueCreateSpecificationJobAction>();
+            builder.AddSingleton<IQueueEditSpecificationJobActions, QueueEditSpecificationJobActions>();
             builder.AddSingleton<IQueueDeleteSpecificationJobActions, QueueDeleteSpecificationJobAction>();
 
             // These registrations of the functions themselves are just for the DebugQueue. Ideally we don't want these registered in production

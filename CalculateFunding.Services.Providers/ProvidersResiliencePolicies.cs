@@ -22,6 +22,8 @@ namespace CalculateFunding.Services.Providers
         public AsyncPolicy ResultsApiClient { get; set; }
         
         public AsyncPolicy CacheProvider { get; set; }
+
+        public AsyncPolicy FundingDataZoneApiClient { get; set; }
     }
 }
 

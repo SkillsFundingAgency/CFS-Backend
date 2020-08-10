@@ -142,6 +142,8 @@
             public const string MergeSpecificationInformationForProviderPoisoned = "merge-specification-information-for-provider-with-results/$DeadLetterQueue";
             
             public const string MergeSpecificationInformationForProviderPoisonedLocal = "merge-specification-information-poisoned";
+
+            public const string ProviderSnapshotDataLoad = "provider-snapshot-data-load";
         }
 
         public static class TopicNames

@@ -76,6 +76,26 @@ namespace CalculateFunding.Services.Specs
                     createSpecificationJob.Id)).ToArray();
 
             await TaskHelper.WhenAllAndThrow(createAssignTemplateJobTasks);
+
+            Reference fundingStream = specificationVersion.FundingStreams.FirstOrDefault();
+            if(fundingStream != null && specificationVersion.ProviderSource == Models.Providers.ProviderSource.FDZ)
+            {
+                errorMessage = $"Unable to queue ProviderSnapshotDataLoadJob for specification - {versionSpecificationId}";
+                Job createProviderSnapshotDataLoadJob = await CreateJob(errorMessage,
+                NewJobCreateModel(versionSpecificationId,
+                    "Assigning ProviderVersionId for specification",
+                    JobConstants.DefinitionNames.ProviderSnapshotDataLoadJob,
+                    correlationId,
+                    user,
+                    new Dictionary<string, string>
+                    {
+                        {"specification-id", versionSpecificationId},
+                        {"fundingstream-id", fundingStream.Id},
+                        {"providerSanpshot-id", specificationVersion.ProviderSnapshotId?.ToString() }
+                    }));
+
+                GuardAgainstNullJob(createProviderSnapshotDataLoadJob, errorMessage);
+            }
         }
 
         private async Task CreateAssignCalculationJobForFundingStream(string fundingStreamId,

@@ -10,9 +10,10 @@
 
     <PackageReference Include="CalculateFunding.Common.ApiClient.Policies" Version="5.3.0" />
 
+
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Calcs" Version="3.0.0" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Results" Version="3.3.0" />
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Specifications" Version="3.7.0" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Specifications" Version="3.8.0" />
     <PackageReference Include="CalculateFunding.Common.JobManagement" Version="2.2.0" />
     <PackageReference Include="CalculateFunding.Common.Storage" Version="2.0.1" />
 
