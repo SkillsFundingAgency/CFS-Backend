@@ -141,12 +141,6 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
             }
 
             [TestMethod]
-            public void Returns_correct_PublishStatus()
-            {
-                _result.PublishStatus.Should().Be(_templateVersion.PublishStatus);
-            }
-
-            [TestMethod]
             public void Returns_correct_LastModificationDate()
             {
                 _result.LastModificationDate.Should().Be(_templateVersion.Date.DateTime);
@@ -313,12 +307,6 @@ namespace CalculateFunding.Services.Policy.TemplateBuilderServiceTests
             public void Returns_correct_Status()
             {
                 _result.Status.Should().Be(_templateVersionPrevious.Status);
-            }
-
-            [TestMethod]
-            public void Returns_correct_PublishStatus()
-            {
-                _result.PublishStatus.Should().Be(_templateVersionPrevious.PublishStatus);
             }
 
             [TestMethod]

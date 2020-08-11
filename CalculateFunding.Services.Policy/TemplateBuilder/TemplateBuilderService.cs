@@ -611,7 +611,6 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
                 AuthorId = templateVersion.Author.Id,
                 AuthorName = templateVersion.Author.Name,
                 LastModificationDate = templateVersion.Date.DateTime,
-                PublishStatus = templateVersion.PublishStatus,
                 Comments = templateVersion.Comment,
                 Description = template.Description
             };
@@ -760,7 +759,6 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
                 MinorVersion = source.MinorVersion,
                 AuthorName = source.Author.Name,
                 AuthorId = source.Author.Id,
-                PublishStatus = source.PublishStatus,
                 SchemaVersion = source.SchemaVersion,
                 LastModificationDate = source.Date.DateTime,
                 FundingStreamId = template.FundingStream.Id,

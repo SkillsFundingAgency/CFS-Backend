@@ -34,8 +34,6 @@ namespace CalculateFunding.Services.Policy.Models
         /// </summary>
         public TemplateStatus Status { get; set; }
         
-        public PublishStatus PublishStatus { get; set; }
-        
         public string Comments { get; set; }
         
         public int Version { get; set; }
