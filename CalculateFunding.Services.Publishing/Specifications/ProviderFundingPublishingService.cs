@@ -123,6 +123,7 @@ namespace CalculateFunding.Services.Publishing.Specifications
 
             return new OkObjectResult(providerVersions?.Select(_ => new PublishedProviderTransaction
             {
+                PublishedProviderId = _.PublishedProviderId,
                 Author = _.Author,
                 Date = _.Date,
                 Status = _.Status,

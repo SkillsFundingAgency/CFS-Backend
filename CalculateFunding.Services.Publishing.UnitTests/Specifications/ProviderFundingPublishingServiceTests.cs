@@ -78,7 +78,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
         [TestMethod]
         public async Task ReturnsBadRequestWhenSuppliedSpecificationIdFailsValidationForPublishAllProvidersFunding()
         {
-            string[] expectedErrors = { NewRandomString(), NewRandomString() };
+            string[] expectedErrors =
+            {
+                NewRandomString(), NewRandomString()
+            };
 
             GivenTheValidationErrors(expectedErrors);
 
@@ -90,7 +93,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
         [TestMethod]
         public async Task ReturnsBadRequestWhenSuppliedSpecificationIdFailsValidationForPublishBatchProvidersFunding()
         {
-            string[] expectedErrors = { NewRandomString(), NewRandomString() };
+            string[] expectedErrors =
+            {
+                NewRandomString(), NewRandomString()
+            };
 
             GivenTheValidationErrors(expectedErrors);
 
@@ -136,7 +142,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
         {
             GivenTheApiResponseDetailsForTheSuppliedId(NewApiSpecificationSummary(_ =>
                 _.WithIsSelectedForFunding(false)));
-            
+
             await WhenBatchProvidersFundingIsPublished();
 
             ThenTheResponseShouldBe<PreconditionFailedResult>(_ =>
@@ -148,7 +154,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
         {
             GivenTheApiResponseDetailsForTheSuppliedId(NewApiSpecificationSummary(_ =>
                 _.WithIsSelectedForFunding(true)
-                .WithId(SpecificationId)));
+                    .WithId(SpecificationId)));
             AndTheFundingConfigurationsForSpecificationSummary(NewApiFundingConfiguration(_ => _.WithApprovalMode(ApprovalMode.Batches)));
 
             await WhenAllProvidersFundingIsPublished();
@@ -162,7 +168,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
         {
             GivenTheApiResponseDetailsForTheSuppliedId(NewApiSpecificationSummary(_ =>
                 _.WithIsSelectedForFunding(true)
-                .WithId(SpecificationId)));
+                    .WithId(SpecificationId)));
             AndTheFundingConfigurationsForSpecificationSummary(NewApiFundingConfiguration(_ => _.WithApprovalMode(ApprovalMode.All)));
 
             await WhenBatchProvidersFundingIsPublished();
@@ -205,7 +211,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
 
             Dictionary<string, string> messageProperties = new Dictionary<string, string>
             {
-                {JobConstants.MessagePropertyNames.PublishedProviderIdsRequest, JsonExtensions.AsJson(_publishProvidersRequest) }
+                {
+                    JobConstants.MessagePropertyNames.PublishedProviderIdsRequest, _publishProvidersRequest.AsJson()
+                }
             };
 
             AndTheApiResponseDetailsForSpecificationsBatchProvidersJob(publishFundingJob, messageProperties);
@@ -250,19 +258,26 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
         [TestMethod]
         public async Task GetsPublishedProviderTransactionForSuppliedSpecificationAndProvider()
         {
-            PublishedProviderVersion publishedProviderVersion = NewPublishedProviderVersion(_ => 
-                _.WithAuthor(new Reference { Id = Guid.NewGuid().ToString() })
-                .WithFundingLines(NewFundingLine()));
+            PublishedProviderVersion publishedProviderVersion = NewPublishedProviderVersion(_ =>
+                _.WithAuthor(new Reference
+                    {
+                        Id = Guid.NewGuid().ToString()
+                    })
+                    .WithFundingLines(NewFundingLine()));
 
             AndThePublishedFundingRepositoryReturnsPublishedProviderVersions(publishedProviderVersion);
 
             await WhenGetPublishedProviderTransactionsIsCalled(publishedProviderVersion);
 
-            PublishedProviderTransaction[] expectedPublishedProviderTransaction = new[] { NewPublishedProviderTransaction(_ => _.WithAuthor(publishedProviderVersion.Author)
-            .WithDate(publishedProviderVersion.Date)
-            .WithPublishedProviderStatus(publishedProviderVersion.Status)
-            .WithTotalFunding(publishedProviderVersion.TotalFunding)
-            .WithFundingLines(publishedProviderVersion.FundingLines.ToArray())) };
+            PublishedProviderTransaction[] expectedPublishedProviderTransaction =
+            {
+                NewPublishedProviderTransaction(_ => _.WithAuthor(publishedProviderVersion.Author)
+                    .WithPublishedProviderId(publishedProviderVersion.PublishedProviderId)
+                    .WithDate(publishedProviderVersion.Date)
+                    .WithPublishedProviderStatus(publishedProviderVersion.Status)
+                    .WithTotalFunding(publishedProviderVersion.TotalFunding)
+                    .WithFundingLines(publishedProviderVersion.FundingLines.ToArray()))
+            };
 
             ActionResult
                 .Should()
@@ -270,7 +285,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
                 .Which
                 .Value
                 .Should()
-                .BeEquivalentTo(expectedPublishedProviderTransaction); ;
+                .BeEquivalentTo(expectedPublishedProviderTransaction);
         }
 
         private void AndTheApiResponseDetailsForPublishedVersionMetaSupplied(
@@ -282,12 +297,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
                     publishedProviderVersion?.Version.ToString())
                 .Returns(publishedProviderVersion);
         }
-        
+
         private void AndThePublishedFundingRepositoryReturnsPublishedProviderVersions(PublishedProviderVersion publishedProviderVersion)
         {
             _publishedFundingRepository.GetPublishedProviderVersions(publishedProviderVersion?.SpecificationId,
                     publishedProviderVersion?.ProviderId)
-                .Returns(new[] { publishedProviderVersion });
+                .Returns(new[]
+                {
+                    publishedProviderVersion
+                });
         }
 
         private async Task WhenGetPublishedProviderVersionIsCalled(PublishedProviderVersion publishedProviderVersion)
@@ -361,7 +379,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
             return publishProvidersRequestBuilder.Build();
         }
 
-        protected void AndTheApiResponseDetailsForSpecificationsBatchProvidersJob(ApiJob job, Dictionary<string, string> messageProperties)
+        protected void AndTheApiResponseDetailsForSpecificationsBatchProvidersJob(ApiJob job,
+            Dictionary<string, string> messageProperties)
         {
             _createBatchPublishProviderFundingJobs.CreateJob(SpecificationId, User, CorrelationId, Arg.Is<Dictionary<string, string>>(_ => _.SequenceEqual(messageProperties)))
                 .Returns(job);

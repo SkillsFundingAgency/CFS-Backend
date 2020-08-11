@@ -15,7 +15,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private DateTimeOffset? _date;
         private decimal? _totalFunding;
         private IEnumerable<FundingLine> _fundingLines;
+        private string _publishedProviderId;
 
+        public PublishedProviderTransactionBuilder WithPublishedProviderId(string publishedProviderId)
+        {
+            _publishedProviderId = publishedProviderId;
+
+            return this;
+        }
+        
         public PublishedProviderTransactionBuilder WithAuthor(Reference author)
         {
             _author = author;
@@ -55,9 +63,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         {
             return new PublishedProviderTransaction
             {
+                PublishedProviderId = _publishedProviderId ?? NewRandomString(),
                 Status = _status.GetValueOrDefault(NewRandomEnum<PublishedProviderStatus>()),
                 Author = _author,
-                Date = _date ?? this.NewRandomDateTime(),
+                Date = _date.GetValueOrDefault(NewRandomDateTime()),
                 TotalFunding = _totalFunding,
                 FundingLines = _fundingLines
             };

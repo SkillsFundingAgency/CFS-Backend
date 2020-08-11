@@ -8,6 +8,9 @@ namespace CalculateFunding.Models.Publishing
 {
     public class PublishedProviderTransaction
     {
+        [JsonProperty("publishedProviderId")]
+        public string PublishedProviderId { get; set; }
+        
         /// <summary>
         /// Published Provider Approval Status
         /// </summary>

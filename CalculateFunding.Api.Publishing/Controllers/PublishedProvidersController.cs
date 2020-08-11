@@ -111,7 +111,7 @@ namespace CalculateFunding.Api.Publishing.Controllers
         }
 
         [HttpGet("api/publishedproviderversion/{publishedProviderVersionId}/body")]
-        [ProducesResponseType(200, Type = typeof(PublishedProviderVersion))]
+        [ProducesResponseType(200, Type = typeof(string))]
         public async Task<IActionResult> GetPublishedProviderVersionBody([FromRoute] string publishedProviderVersionId)
         {
             return await _publishedProviderVersionService.GetPublishedProviderVersionBody(publishedProviderVersionId);
