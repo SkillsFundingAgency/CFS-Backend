@@ -107,7 +107,12 @@ namespace CalculateFunding.Services.Jobs.Repositories
 
         public async Task<IEnumerable<Job>> GetNonCompletedJobs()
         {
-            return (await _cosmosRepository.Query<Job>((m) => !m.Content.CompletionStatus.HasValue));
+            return (await _cosmosRepository.Query<Job>((m) => 
+                m.Content.CompletionStatus != CompletionStatus.Cancelled &&
+                m.Content.CompletionStatus != CompletionStatus.Failed &&
+                m.Content.CompletionStatus != CompletionStatus.Succeeded &&
+                m.Content.CompletionStatus != CompletionStatus.Superseded &&
+                m.Content.CompletionStatus != CompletionStatus.TimedOut));
         }
 
         public async Task<Job> GetLatestJobBySpecificationId(string specificationId, IEnumerable<string> jobDefinitionIds = null)
