@@ -123,7 +123,7 @@ namespace CalculateFunding.Services.CalcEngine
             List<FieldInfo> executeFuncs = new List<FieldInfo>();
             foreach (PropertyInfo propertyInfo in allocationTypeCalculationProperties)
             {
-                IEnumerable<FieldInfo> fieldInfos = propertyInfo.PropertyType.GetTypeInfo().DeclaredFields.Where(x => x.FieldType == typeof(Func<decimal?>));
+                IEnumerable<FieldInfo> fieldInfos = propertyInfo.PropertyType.GetTypeInfo().DeclaredFields;
 
                 executeFuncs.AddRange(fieldInfos);
             }
