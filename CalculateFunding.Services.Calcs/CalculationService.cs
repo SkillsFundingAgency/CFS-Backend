@@ -524,7 +524,7 @@ namespace CalculateFunding.Services.Calcs
                 calculationVersion.ValueType = calculationEditModel.ValueType.Value;
                 calculationVersion.SourceCodeName = VisualBasicTypeGenerator.GenerateIdentifier(calculationEditModel.Name);
                 calculationVersion.Description = calculationEditModel.Description;
-                calculationVersion.DataType = calculationEditModel.ValueType.Value.ToCalculationDataType();
+               
 
                 UpdateCalculationResult result = await UpdateCalculation(calculation, calculationVersion, author);
 
