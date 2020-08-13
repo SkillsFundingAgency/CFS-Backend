@@ -1,6 +1,4 @@
-﻿using System;
-using System.Data;
-using CalculateFunding.Common.Utility;
+﻿using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Policy;
 using CalculateFunding.Models.Policy.FundingPolicy;
 using CalculateFunding.Services.Policy.Interfaces;

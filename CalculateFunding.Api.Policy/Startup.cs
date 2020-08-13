@@ -23,7 +23,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.OpenApi.Models;
 using Polly.Bulkhead;
 using Serilog;
 using CalculateFunding.Common.Models;
@@ -123,6 +122,10 @@ namespace CalculateFunding.Api.Policy
                 .AddSingleton<IHealthChecker, FundingTemplateValidationService>();
 
             builder
+                .AddSingleton<IFundingDateService, FundingDateService>()
+                .AddSingleton<IHealthChecker, FundingDateService>();
+
+            builder
                 .AddSingleton<IBlobContainerRepository, BlobContainerRepository>();
 
             builder
@@ -186,6 +189,7 @@ namespace CalculateFunding.Api.Policy
 
             builder.AddSingleton<IValidator<FundingConfiguration>, SaveFundingConfigurationValidator>();
             builder.AddSingleton<IValidator<FundingPeriodsJsonModel>, FundingPeriodJsonModelValidator>();
+            builder.AddSingleton<IValidator<FundingDate>, SaveFundingDateValidator>();
 
             RegisterTemplateBuilderComponents(builder);
 

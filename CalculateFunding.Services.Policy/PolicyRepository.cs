@@ -109,5 +109,20 @@ namespace CalculateFunding.Services.Policy
 
             await _cosmosRepository.BulkUpsertAsync<FundingPeriod>(fundingPeriods.ToList());
         }
+
+        public async Task<FundingDate> GetFundingDate(
+            string fundingDateId)
+        {
+            Guard.IsNullOrWhiteSpace(fundingDateId, nameof(fundingDateId));
+
+            return (await _cosmosRepository.ReadDocumentByIdPartitionedAsync<FundingDate>(fundingDateId, fundingDateId))?.Content;
+        }
+
+        public async Task<HttpStatusCode> SaveFundingDate(FundingDate fundingDate)
+        {
+            Guard.ArgumentNotNull(fundingDate, nameof(fundingDate));
+
+            return await _cosmosRepository.UpsertAsync(fundingDate, fundingDate.Id, true);
+        }
     }
 }

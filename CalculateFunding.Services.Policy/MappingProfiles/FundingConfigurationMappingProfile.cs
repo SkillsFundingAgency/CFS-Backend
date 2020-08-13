@@ -15,6 +15,15 @@ namespace CalculateFunding.Services.Policy.MappingProfiles
                 {
                     dest.Id = $"config-{dest.FundingStreamId}-{dest.FundingPeriodId}";
                 });
+
+            CreateMap<FundingDateViewModel, FundingDate>()
+                .ForMember(dest => dest.FundingStreamId, opt => opt.MapFrom((src, dest, destMember, context) => context.Items[nameof(FundingDate.FundingStreamId)]))
+                .ForMember(dest => dest.FundingPeriodId, opt => opt.MapFrom((src, dest, destMember, context) => context.Items[nameof(FundingDate.FundingPeriodId)]))
+                .ForMember(dest => dest.FundingLineId, opt => opt.MapFrom((src, dest, destMember, context) => context.Items[nameof(FundingDate.FundingLineId)]))
+                .AfterMap((source, dest) =>
+                {
+                    dest.Id = $"fundingdate-{dest.FundingStreamId}-{dest.FundingPeriodId}-{dest.FundingLineId}";
+                });
         }
     }
 }

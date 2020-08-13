@@ -30,5 +30,9 @@ namespace CalculateFunding.Services.Policy.Interfaces
         Task<IEnumerable<FundingConfiguration>> GetFundingConfigurationsByFundingStreamId(string fundingStreamId);
 
         Task<IEnumerable<FundingConfiguration>> GetFundingConfigurations();
+
+        Task<FundingDate> GetFundingDate(string fundingDateId);
+
+        Task<HttpStatusCode> SaveFundingDate(FundingDate fundingDate);
     }
 }
