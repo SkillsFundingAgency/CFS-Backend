@@ -1,4 +1,5 @@
 using AutoMapper;
+using CacheCow.Server.Core.Mvc;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Storage;
@@ -26,12 +27,14 @@ using Microsoft.Extensions.Hosting;
 using Polly.Bulkhead;
 using Serilog;
 using CalculateFunding.Common.Models;
+using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Models.Policy.TemplateBuilder;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Policy.TemplateBuilder;
 using TemplateMetadataSchema10 = CalculateFunding.Common.TemplateMetadata.Schema10;
 using TemplateMetadataSchema11 = CalculateFunding.Common.TemplateMetadata.Schema11;
 using CalculateFunding.Services.Core.AspNet.Extensions;
+using CalculateFunding.Services.Policy.Caching.Http;
 
 namespace CalculateFunding.Api.Policy
 {
@@ -88,6 +91,9 @@ namespace CalculateFunding.Api.Policy
 
         public void RegisterComponents(IServiceCollection builder)
         {
+            builder.AddHttpCachingMvc();
+            builder.AddQueryProviderAndExtractorForViewModelMvc<TemplateMetadataContents, TemplateMetadataContentsTimedETagProvider, TemplateMatadataContentsTimedETagExtractor>(false);
+            
             builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();
 
             builder.AddSingleton<IIoCValidatorFactory, ValidatorFactory>()

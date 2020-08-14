@@ -59,7 +59,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             return Task.FromResult(result);
         }
 
-        public async Task<ApiResponse<TemplateMetadataContents>> GetFundingTemplateContents(string fundingStreamId, string fundingPeriodId, string templateVersion)
+        public async Task<ApiResponse<TemplateMetadataContents>> GetFundingTemplateContents(string fundingStreamId, string fundingPeriodId, string templateVersion, string etag = null)
         {
             ApiResponse<string> fundingSourceFile = await GetFundingTemplateSourceFile(fundingStreamId, fundingPeriodId, templateVersion);
             if (fundingSourceFile.StatusCode != System.Net.HttpStatusCode.OK)
@@ -180,5 +180,16 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         {
             throw new NotImplementedException();
         }
+
+        public Task<ApiResponse<FundingDate>> GetFundingDate(string fundingStreamId,
+            string fundingPeriodId,
+            string fundingLineId) =>
+            throw new NotImplementedException();
+
+        public Task<ApiResponse<FundingDate>> SaveFundingDate(string fundingStreamId,
+            string fundingPeriodId,
+            string fundingLineId,
+            FundingDateUpdateViewModel configuration) =>
+            throw new NotImplementedException();
     }
 }

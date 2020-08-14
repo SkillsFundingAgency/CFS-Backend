@@ -187,7 +187,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
         
         private void GivenTheTemplateMetadataContents(TemplateMetadataContents templateMetadataContents)
         {
-            _policies.Setup(_ => _.GetFundingTemplateContents(_fundingStreamId, _fundingPeriodId, _templateVersion))
+            _policies.Setup(_ => _.GetFundingTemplateContents(_fundingStreamId, _fundingPeriodId, _templateVersion, null))
                 .ReturnsAsync(new ApiResponse<TemplateMetadataContents>(HttpStatusCode.OK, templateMetadataContents));
         }
 

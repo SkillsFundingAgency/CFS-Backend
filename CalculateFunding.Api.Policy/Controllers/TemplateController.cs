@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using CacheCow.Server.Core.Mvc;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Policy;
@@ -60,6 +62,7 @@ namespace CalculateFunding.Api.Policy.Controllers
         /// <returns></returns>
         [HttpGet("api/templates/{fundingStreamId}/{fundingPeriodId}/{templateVersion}/metadata")]
         [ProducesResponseType(200, Type = typeof(TemplateMetadataContents))]
+        [HttpCacheFactory(0, ViewModelType = typeof(TemplateMetadataContents))]
         public async Task<IActionResult> GetFundingTemplateContents([FromRoute] string fundingStreamId, [FromRoute] string fundingPeriodId, [FromRoute] string templateVersion)
         {
             return await _fundingTemplateService.GetFundingTemplateContents(fundingStreamId, fundingPeriodId, templateVersion);

@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CalculateFunding.Common.JobManagement" Version="3.0.0" />
+    <PackageReference Include="CalculateFunding.Common.JobManagement" Version="3.1.0" />
     <PackageReference Include="FluentValidation" Version="8.6.0" />
   </ItemGroup>
 

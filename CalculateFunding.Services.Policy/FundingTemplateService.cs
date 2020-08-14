@@ -24,6 +24,20 @@ using Serilog;
 
 namespace CalculateFunding.Services.Policy
 {
+    public struct FundingTemplateVersionBlobName
+    {
+        public FundingTemplateVersionBlobName(string fundingStreamId,
+            string fundingPeriodId,
+            string templateVersion)
+        {
+            Value = $"{fundingStreamId}/{fundingPeriodId}/{templateVersion}.json";
+        }
+
+        public string Value { get; private set; }
+
+        public static implicit operator string(FundingTemplateVersionBlobName blobName) => blobName.Value;
+    }
+    
     public class FundingTemplateService : IFundingTemplateService, IHealthChecker
     {
         private readonly ILogger _logger;
@@ -178,10 +192,8 @@ namespace CalculateFunding.Services.Policy
             }
         }
 
-        private string GetBlobNameFor(string fundingStreamId, string fundingPeriodId, string templateVersion)
-        {
-            return $"{fundingStreamId}/{fundingPeriodId}/{templateVersion}.json";
-        }
+        private static string GetBlobNameFor(string fundingStreamId, string fundingPeriodId, string templateVersion) 
+            => new FundingTemplateVersionBlobName(fundingStreamId, fundingPeriodId, templateVersion);
 
         private async Task SaveFundingTemplateVersion(string blobName, byte[] templateBytes)
         {
@@ -319,7 +331,16 @@ namespace CalculateFunding.Services.Policy
 
                     return new PreconditionFailedResult(message);
                 }
+
+                string blobName = GetBlobNameFor(fundingStreamId, fundingPeriodId, templateVersion);
+                
                 fundingTemplateContentMetadata = templateMetadataGenerator.GetMetadata(fundingTemplateContentSourceFile);
+                
+                fundingTemplateContentMetadata.FundingStreamId = fundingStreamId;
+                fundingTemplateContentMetadata.FundingPeriodId = fundingPeriodId;
+                fundingTemplateContentMetadata.TemplateVersion = templateVersion;
+                fundingTemplateContentMetadata.LastModified = await _fundingTemplateRepositoryPolicy.ExecuteAsync(() => _fundingTemplateRepository.GetLastModifiedDate(blobName));
+                
                 await _cacheProvider.SetAsync($"{CacheKeys.FundingTemplateContentMetadata}{fundingStreamId}:{fundingPeriodId}:{templateVersion}", fundingTemplateContentMetadata);
             }
 

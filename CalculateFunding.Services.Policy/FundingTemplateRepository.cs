@@ -1,8 +1,11 @@
-﻿using CalculateFunding.Common.Storage;
+﻿using System;
+using CalculateFunding.Common.Storage;
 using CalculateFunding.Models.Policy;
 using CalculateFunding.Services.Policy.Interfaces;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Utility;
+using Microsoft.Azure.Storage.Blob;
 
 namespace CalculateFunding.Services.Policy
 {
@@ -23,6 +26,16 @@ namespace CalculateFunding.Services.Policy
         public async Task<string> GetFundingTemplateVersion(string blobName)
         {
             return await GetVersion(blobName);
+        }
+
+        public async Task<DateTimeOffset> GetLastModifiedDate(string blobName)
+        {
+            ICloudBlob blob = await GetBlobReferenceFromServerAsync(blobName);
+            
+            Guard.Ensure(blob != null,
+                $"Didn't locate a blob reference for blob name {blobName}");
+
+            return (blob.Properties?.LastModified ?? blob.Properties?.Created).GetValueOrDefault();
         }
 
         public async Task<IEnumerable<PublishedFundingTemplate>> SearchTemplates(string blobNamePrefix)

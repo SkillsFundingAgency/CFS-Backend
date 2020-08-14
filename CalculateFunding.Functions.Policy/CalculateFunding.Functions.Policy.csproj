@@ -6,12 +6,12 @@
         <UserSecretsId>b697c5aa-1ccf-4a9c-b457-590e583dc059</UserSecretsId>
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="CalculateFunding.Common.TemplateMetadata" Version="2.1.0" />
-        <PackageReference Include="CalculateFunding.Common.TemplateMetadata.Schema10" Version="2.0.0" />
+        <PackageReference Include="CalculateFunding.Common.TemplateMetadata" Version="2.2.0" />
+        <PackageReference Include="CalculateFunding.Common.TemplateMetadata.Schema10" Version="2.1.0" />
         <PackageReference Include="Microsoft.Azure.Functions.Extensions" Version="1.0.0" />
         <PackageReference Include="Microsoft.Azure.WebJobs.ServiceBus" Version="3.0.0-beta8" />
         <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Jobs" Version="2.2.0" />
-        <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Policies" Version="3.3.0" />
+        <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Policies" Version="3.6.1" />
         <PackageReference Include="Microsoft.Azure.WebJobs.ServiceBus" Version="3.0.0-beta8" />
         <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.ServiceBus" Version="3.1.0" />
         <PackageReference Include="Microsoft.FeatureManagement.AspNetCore" Version="2.0.0-preview-010610001-1263" />

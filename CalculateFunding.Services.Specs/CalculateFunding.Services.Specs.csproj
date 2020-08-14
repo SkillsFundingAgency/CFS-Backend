@@ -13,15 +13,15 @@
 
     <PackageReference Include="CalculateFunding.Common.ApiClient.Datasets" Version="5.3.1" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Calcs" Version="3.0.0" />
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Jobs" Version="2.2.0" />
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Policies" Version="3.3.0" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Jobs" Version="2.3.0" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Policies" Version="3.6.1" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Providers" Version="4.1.0" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Results" Version="3.3.0" />
     <PackageReference Include="CalculateFunding.Common.Storage" Version="2.0.1" />
-    <PackageReference Include="CalculateFunding.Common.JobManagement" Version="3.0.0" />
+    <PackageReference Include="CalculateFunding.Common.JobManagement" Version="3.1.0" />
 
 
-    <PackageReference Include="CalculateFunding.Common.TemplateMetadata" Version="2.1.0" />
+    <PackageReference Include="CalculateFunding.Common.TemplateMetadata" Version="2.2.0" />
     <PackageReference Include="FluentValidation" Version="8.6.0" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="YamlDotNet" Version="6.1.2" />
