@@ -1,20 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Threading.Tasks;
 using AutoMapper;
+using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.ApiClient.Specifications;
+using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Users;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Common.Caching;
 using CalculateFunding.Services.Users.Interfaces;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
-using CalculateFunding.Common.ApiClient.Specifications;
-using CalculateFunding.Common.ApiClient.Models;
-using System.Net;
 using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
 
 namespace CalculateFunding.Services.Users
@@ -263,7 +263,13 @@ namespace CalculateFunding.Services.Users
                     CanCreateQaTests = false,
                     CanEditQaTests = false,
                     CanRefreshFunding = false,
-                    CanDeleteSpecification = true
+                    CanDeleteSpecification = true,
+                    CanApproveCalculations = true,
+                    CanApplyCustomProfilePattern = false,
+                    CanApproveAnyCalculations = false,
+                    CanAssignProfilePattern = false,
+                    CanDeleteCalculations = false,
+                    CanDeleteQaTests = false,
                 });
 
             await cacheProvider
@@ -346,13 +352,13 @@ namespace CalculateFunding.Services.Users
                 CanCreateQaTests = false,
                 CanEditQaTests = false,
                 CanRefreshFunding = false,
-                CanCreateProfilePattern = false ,
+                CanCreateProfilePattern = false,
                 CanEditProfilePattern = false,
                 CanDeleteProfilePattern = false,
                 CanAssignProfilePattern = false,
                 CanApplyCustomProfilePattern = false,
                 CanApproveCalculations = true,
-                CanApproveAnyCalculations = false
+                CanApproveAnyCalculations = false,
             };
 
             userRepository
@@ -388,6 +394,13 @@ namespace CalculateFunding.Services.Users
                     CanCreateQaTests = false,
                     CanEditQaTests = false,
                     CanRefreshFunding = false,
+                    CanApproveCalculations = true,
+                    CanApplyCustomProfilePattern = false,
+                    CanApproveAnyCalculations = false,
+                    CanAssignProfilePattern = false,
+                    CanDeleteCalculations = false,
+                    CanDeleteQaTests = false,
+                    CanDeleteSpecification = false,
                 });
 
             await cacheProvider
@@ -720,7 +733,14 @@ namespace CalculateFunding.Services.Users
                 CanAssignProfilePattern = false,
                 CanApplyCustomProfilePattern = false,
                 CanApproveCalculations = true,
-                CanApproveAnyCalculations = false
+                CanApproveAnyCalculations = false,
+                CanApproveTemplates = false,
+                CanCreateTemplates = false,
+                CanDeleteCalculations = false,
+                CanDeleteQaTests = false,
+                CanDeleteSpecification = false,
+                CanDeleteTemplates = false,
+                CanEditTemplates = false,
             };
 
             userRepository
@@ -760,6 +780,13 @@ namespace CalculateFunding.Services.Users
                     CanCreateQaTests = false,
                     CanEditQaTests = false,
                     CanRefreshFunding = false,
+                    CanApproveAnyCalculations = false,
+                    CanAssignProfilePattern = false,
+                    CanDeleteSpecification = false,
+                    CanDeleteQaTests = false,
+                    CanDeleteCalculations = false,
+                    CanApplyCustomProfilePattern = false,
+                    CanApproveCalculations = true,
                 });
 
             await cacheProvider

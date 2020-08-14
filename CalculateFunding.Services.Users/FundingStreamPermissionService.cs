@@ -330,10 +330,10 @@ namespace CalculateFunding.Services.Users
                     CanDeleteSpecification = false,
                     CanDeleteCalculations = false,
                     CanDeleteQaTests = false,
-                    CanCreateTemplates = false,
-                    CanEditTemplates = false,
-                    CanDeleteTemplates = false,
-                    CanApproveTemplates = false
+                    CanApplyCustomProfilePattern = false,
+                    CanApproveAnyCalculations = false,
+                    CanApproveCalculations = false,
+                    CanAssignProfilePattern = false,
                 };
             }
 
@@ -357,10 +357,10 @@ namespace CalculateFunding.Services.Users
                 CanDeleteSpecification = permissionsForUser.All(p => p.CanDeleteSpecification),
                 CanDeleteCalculations = permissionsForUser.All(p => p.CanDeleteCalculations),
                 CanDeleteQaTests = permissionsForUser.All(p => p.CanDeleteQaTests),
-                CanCreateTemplates = permissionsForUser.All(p => p.CanCreateTemplates),
-                CanEditTemplates = permissionsForUser.All(p => p.CanEditTemplates),
-                CanDeleteTemplates = permissionsForUser.All(p => p.CanDeleteTemplates),
-                CanApproveTemplates = permissionsForUser.All(p => p.CanApproveTemplates)
+                CanApplyCustomProfilePattern = permissionsForUser.All(p => p.CanApplyCustomProfilePattern),
+                CanAssignProfilePattern = permissionsForUser.All(p => p.CanAssignProfilePattern),
+                CanApproveCalculations = permissionsForUser.All(p => p.CanApproveCalculations),
+                CanApproveAnyCalculations = permissionsForUser.All(p => p.CanApproveAnyCalculations)
             };
         }
 
