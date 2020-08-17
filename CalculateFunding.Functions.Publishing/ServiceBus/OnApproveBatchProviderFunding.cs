@@ -17,6 +17,7 @@ namespace CalculateFunding.Functions.Publishing.ServiceBus
     {
         private readonly ILogger _logger;
         private readonly IApproveService _approveService;
+        private readonly bool _useAzureStorage;
         public const string FunctionName = FunctionConstants.PublishingApproveBatchProviderFunding;
         public const string QueueName = ServiceBusConstants.QueueNames.PublishingApproveBatchProviderFunding;
 
@@ -32,6 +33,7 @@ namespace CalculateFunding.Functions.Publishing.ServiceBus
 
             _logger = logger;
             _approveService = approveService;
+            _useAzureStorage = useAzureStorage;
         }
 
         [FunctionName(FunctionName)]
@@ -44,7 +46,14 @@ namespace CalculateFunding.Functions.Publishing.ServiceBus
             {
                 try
                 {
-                    await _approveService.ApproveResults(message, batched: true);
+                    if (!_useAzureStorage)
+                    {
+                        await _approveService.ApproveResults(message, batched: true, deliveryCount: message.SystemProperties.DeliveryCount);
+                    }
+                    else
+                    {
+                        await _approveService.ApproveResults(message, batched: true);
+                    }
                 }
                 catch (NonRetriableException ex)
                 {

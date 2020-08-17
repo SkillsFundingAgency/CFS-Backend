@@ -5,10 +5,10 @@
     <LangVersion>8</LangVersion>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.FundingDataZone" Version="1.1.1" />  
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Jobs" Version="2.2.0" />
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Specifications" Version="3.8.0" />
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Results" Version="3.5.0" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.FundingDataZone" Version="1.2.0" />  
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Jobs" Version="2.3.0" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Specifications" Version="3.9.0" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Results" Version="3.6.0" />
     <PackageReference Include="Microsoft.Azure.Functions.Extensions" Version="1.0.0" />
     <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.ServiceBus" Version="3.1.0" />
     <PackageReference Include="Microsoft.Azure.WebJobs.ServiceBus" Version="3.0.0-beta8" />

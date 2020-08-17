@@ -52,7 +52,7 @@ using IBlobClient = CalculateFunding.Services.Core.Interfaces.AzureStorage.IBlob
 using CommonBlobClient = CalculateFunding.Common.Storage.BlobClient;
 using ServiceCollectionExtensions = CalculateFunding.Services.Core.Extensions.ServiceCollectionExtensions;
 using CalculateFunding.Common.Models;
-
+using CalculateFunding.Common.ServiceBus.Interfaces;
 
 [assembly: FunctionsStartup(typeof(Startup))]
 
@@ -114,9 +114,30 @@ namespace CalculateFunding.Functions.Publishing
             // These registrations of the functions themselves are just for the DebugQueue. Ideally we don't want these registered in production
             if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
             {
-                builder.AddScoped<OnRefreshFunding>();
-                builder.AddScoped<OnApproveAllProviderFunding>();
-                builder.AddScoped<OnPublishAllProviderFunding>();
+                builder.AddScoped(_ =>
+                {
+                    return new OnRefreshFunding(_.GetService<ILogger>(),
+                        _.GetService<IRefreshService>(),
+                        _.GetService<IMessengerService>(),
+                        _.GetService<IUserProfileProvider>(),
+                        true);
+                });
+                builder.AddScoped(_ =>
+                {
+                    return new OnApproveAllProviderFunding(_.GetService<ILogger>(),
+                        _.GetService<IApproveService>(),
+                        _.GetService<IMessengerService>(),
+                        _.GetService<IUserProfileProvider>(),
+                        true);
+                });
+                builder.AddScoped(_ =>
+                {
+                    return new OnPublishAllProviderFunding(_.GetService<ILogger>(),
+                        _.GetService<IPublishService>(),
+                        _.GetService<IMessengerService>(),
+                        _.GetService<IUserProfileProvider>(),
+                        true);
+                });
                 builder.AddScoped<OnRefreshFundingFailure>();
                 builder.AddScoped<OnApproveAllProviderFundingFailure>();
                 builder.AddScoped<OnPublishAllProviderFundingFailure>();
@@ -126,9 +147,23 @@ namespace CalculateFunding.Functions.Publishing
                 builder.AddScoped<OnGeneratePublishedFundingCsvFailure>();
                 builder.AddScoped<OnGeneratePublishedProviderEstateCsv>();
                 builder.AddScoped<OnGeneratePublishedProviderEstateCsvFailure>();
-                builder.AddScoped<OnApproveBatchProviderFunding>();
+                builder.AddScoped(_ =>
+                {
+                    return new OnApproveBatchProviderFunding(_.GetService<ILogger>(),
+                        _.GetService<IApproveService>(),
+                        _.GetService<IMessengerService>(),
+                        _.GetService<IUserProfileProvider>(),
+                        true);
+                });
                 builder.AddScoped<OnApproveBatchProviderFundingFailure>();
-                builder.AddScoped<OnPublishBatchProviderFunding>();
+                builder.AddScoped(_ =>
+                {
+                    return new OnPublishBatchProviderFunding(_.GetService<ILogger>(),
+                        _.GetService<IPublishService>(),
+                        _.GetService<IMessengerService>(),
+                        _.GetService<IUserProfileProvider>(),
+                        true);
+                });
                 builder.AddScoped<OnPublishBatchProviderFundingFailure>();
                 builder.AddScoped<OnPublishedFundingUndo>();
             }

@@ -17,6 +17,7 @@ namespace CalculateFunding.Functions.Publishing.ServiceBus
     {
         private readonly ILogger _logger;
         private readonly IPublishService _publishService;
+        private readonly bool _useAzureStorage;
         public const string FunctionName = FunctionConstants.PublishingPublishAllProviderFunding;
         public const string QueueName = ServiceBusConstants.QueueNames.PublishingPublishAllProviderFunding;
 
@@ -32,6 +33,7 @@ namespace CalculateFunding.Functions.Publishing.ServiceBus
 
             _logger = logger;
             _publishService = publishService;
+            _useAzureStorage = useAzureStorage;
         }
 
         [FunctionName(FunctionName)]
@@ -44,7 +46,14 @@ namespace CalculateFunding.Functions.Publishing.ServiceBus
             {
                 try
                 {
-                    await _publishService.PublishProviderFundingResults(message);
+                    if (!_useAzureStorage)
+                    {
+                        await _publishService.PublishProviderFundingResults(message, deliveryCount: message.SystemProperties.DeliveryCount);
+                    }
+                    else
+                    {
+                        await _publishService.PublishProviderFundingResults(message);
+                    }
                 }
                 catch (NonRetriableException ex)
                 {

@@ -20,7 +20,8 @@ namespace CalculateFunding.Services.Publishing
     public class ApproveService : IApproveService
     {
         private const string SfaCorrelationId = "sfa-correlationId";
-        
+        private const int MaxDeliveryCount = 5;
+
         private readonly IJobManagement _jobManagement;
         private readonly ILogger _logger;
         private readonly IPublishedProviderStatusUpdateService _publishedProviderStatusUpdateService;
@@ -64,7 +65,7 @@ namespace CalculateFunding.Services.Publishing
             _publishedProviderVersionService = publishedProviderVersionService;
         }
 
-        public async Task ApproveResults(Message message, bool batched = false)
+        public async Task ApproveResults(Message message, bool batched = false, int deliveryCount = 1)
         {
             Guard.ArgumentNotNull(message, nameof(message));
             _logger.Information("Starting approve provider funding job");
@@ -105,7 +106,12 @@ namespace CalculateFunding.Services.Publishing
             Reference author = message.GetUserDetails();
             string correlationId = message.GetUserProperty<string>(SfaCorrelationId);
 
-            await ApproveProviders(publishedProviders, specificationId, jobId, author, correlationId);
+            await ApproveProviders(publishedProviders, 
+                specificationId, 
+                jobId, 
+                author, 
+                correlationId, 
+                deliveryCount);
 
             _logger.Information($"Completing approve provider funding job. JobId='{jobId}'");
             await _jobManagement.UpdateJobStatus(jobId, 0, 0, true, null);
@@ -126,7 +132,12 @@ namespace CalculateFunding.Services.Publishing
             return publishedProviders;
         }
 
-        private async Task ApproveProviders(IEnumerable<PublishedProvider> publishedProviders, string specificationId, string jobId, Reference author, string correlationId)
+        private async Task ApproveProviders(IEnumerable<PublishedProvider> publishedProviders, 
+            string specificationId, 
+            string jobId, 
+            Reference author, 
+            string correlationId,
+            int deliveryCount)
         {
             string fundingPeriodId = publishedProviders.First().Current?.FundingPeriodId;
 
@@ -164,9 +175,12 @@ namespace CalculateFunding.Services.Publishing
 
                 transaction.Complete();
             }
-            catch
+            catch (Exception ex)
             {
-                await transaction.Compensate();
+                if (deliveryCount == MaxDeliveryCount || ex is NonRetriableException)
+                {
+                    await transaction.Compensate();
+                }
 
                 throw;
             }

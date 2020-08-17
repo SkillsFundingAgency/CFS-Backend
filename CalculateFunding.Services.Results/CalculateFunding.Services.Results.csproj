@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
@@ -11,9 +11,9 @@
     <PackageReference Include="CalculateFunding.Common.ApiClient.Policies" Version="5.5.2" />
 
 
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Calcs" Version="3.0.0" />
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Results" Version="3.3.0" />
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Specifications" Version="3.8.0" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Calcs" Version="3.1.0" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Results" Version="3.6.0" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Specifications" Version="3.9.0" />
     <PackageReference Include="CalculateFunding.Common.JobManagement" Version="3.1.0" />
     <PackageReference Include="CalculateFunding.Common.Storage" Version="2.0.1" />
 

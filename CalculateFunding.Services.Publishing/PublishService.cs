@@ -25,6 +25,7 @@ namespace CalculateFunding.Services.Publishing
     public class PublishService : IPublishService
     {
         private const string SfaCorrelationId = "sfa-correlationId";
+        private const int MaxDeliveryCount = 5;
         
         private readonly IPublishedFundingStatusUpdateService _publishedFundingStatusUpdateService;
         private readonly ISpecificationService _specificationService;
@@ -118,7 +119,7 @@ namespace CalculateFunding.Services.Publishing
             _policiesService = policiesService;
         }
 
-        public async Task PublishProviderFundingResults(Message message, bool batched = false)
+        public async Task PublishProviderFundingResults(Message message, bool batched = false, int deliveryCount = 1)
         {
             Guard.ArgumentNotNull(message, nameof(message));
 
@@ -159,6 +160,7 @@ namespace CalculateFunding.Services.Publishing
                     author, 
                     correlationId,
                     batched ? PrerequisiteCheckerType.ReleaseBatchProviders : PrerequisiteCheckerType.ReleaseAllProviders,
+                    deliveryCount,
                     publishedProviderIdsRequest?.PublishedProviderIds?.ToArray());
             }
 
@@ -203,6 +205,7 @@ namespace CalculateFunding.Services.Publishing
             Reference author,
             string correlationId,
             PrerequisiteCheckerType prerequisiteCheckerType,
+            int deliveryCount,
             string[] batchPublishedProviderIds = null)
         {
             _logger.Information($"Processing Publish Funding for {fundingStream.Id} in specification {specification.Id}");
@@ -292,9 +295,12 @@ namespace CalculateFunding.Services.Publishing
 
                 transaction.Complete();
             }
-            catch
+            catch(Exception ex)
             {
-                await transaction.Compensate();
+                if (deliveryCount == MaxDeliveryCount || ex is NonRetriableException)
+                {
+                    await transaction.Compensate();
+                }
 
                 throw;
             }

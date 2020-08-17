@@ -25,6 +25,7 @@ namespace CalculateFunding.Services.Publishing
     public class RefreshService : IRefreshService
     {
         private const string SfaCorrelationId = "sfa-correlationId";
+        private const int MaxDeliveryCount = 5;
 
         private readonly IPublishedProviderStatusUpdateService _publishedProviderStatusUpdateService;
         private readonly IPublishedFundingDataService _publishedFundingDataService;
@@ -126,7 +127,7 @@ namespace CalculateFunding.Services.Publishing
             _policiesService = policiesService;
         }
 
-        public async Task RefreshResults(Message message)
+        public async Task RefreshResults(Message message, int deliveryCount = 1)
         {
             Guard.ArgumentNotNull(message, nameof(message));
 
@@ -205,7 +206,16 @@ namespace CalculateFunding.Services.Publishing
             {
                 foreach (Reference fundingStream in specification.FundingStreams)
                 {
-                    await RefreshFundingStream(fundingStream, specification, scopedProviders, allCalculationResults, jobId, author, correlationId, existingPublishedProvidersByFundingStream[fundingStream.Id], fundingPeriodId);
+                    await RefreshFundingStream(fundingStream, 
+                        specification, 
+                        scopedProviders, 
+                        allCalculationResults, 
+                        jobId, 
+                        author, 
+                        correlationId, 
+                        existingPublishedProvidersByFundingStream[fundingStream.Id], 
+                        fundingPeriodId, 
+                        deliveryCount);
                 }
             }
             finally
@@ -219,7 +229,15 @@ namespace CalculateFunding.Services.Publishing
             _logger.Information("Refresh complete");
         }
 
-        private async Task RefreshFundingStream(Reference fundingStream, SpecificationSummary specification, IDictionary<string, Provider> scopedProviders, IDictionary<string, ProviderCalculationResult> allCalculationResults, string jobId, Reference author, string correlationId, IEnumerable<PublishedProvider> existingPublishedProviders, string fundingPeriodId)
+        private async Task RefreshFundingStream(Reference fundingStream, 
+            SpecificationSummary specification, 
+            IDictionary<string, Provider> scopedProviders, 
+            IDictionary<string, ProviderCalculationResult> allCalculationResults, 
+            string jobId, Reference author, 
+            string correlationId, 
+            IEnumerable<PublishedProvider> existingPublishedProviders, 
+            string fundingPeriodId,
+            int deliveryCount)
         {
             TemplateMetadataContents templateMetadataContents = await _policiesService.GetTemplateMetadataContents(fundingStream.Id, specification.FundingPeriod.Id, specification.TemplateIds[fundingStream.Id]);
 
@@ -294,17 +312,14 @@ namespace CalculateFunding.Services.Publishing
                     }
                 }
             }
-            catch (NonRetriableException nonRetriableExcetion)
-            {
-                _logger.Error(nonRetriableExcetion, "Non retriable exception during generating provider profiling");
-
-                await _jobManagement.UpdateJobStatus(jobId, 0, 0, false, "Refresh job failed during generating provider profiling.");
-
-                throw;
-            }
             catch (Exception ex)
             {
                 _logger.Error(ex, "Exception during generating provider profiling");
+
+                if (ex is NonRetriableException)
+                {
+                    await _jobManagement.UpdateJobStatus(jobId, 0, 0, false, "Refresh job failed during generating provider profiling.");
+                }
 
                 throw;
             }
@@ -442,9 +457,12 @@ namespace CalculateFunding.Services.Publishing
 
                             transaction.Complete();
                         }
-                        catch
+                        catch (Exception ex)
                         {
-                            await transaction.Compensate();
+                            if (deliveryCount == MaxDeliveryCount || ex is NonRetriableException)
+                            {
+                                await transaction.Compensate();
+                            }
 
                             throw;
                         }
