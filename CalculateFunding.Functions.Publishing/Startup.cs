@@ -343,6 +343,7 @@ namespace CalculateFunding.Functions.Publishing
                 IPublishedFundingIdGenerator v10Generator = new Generators.Schema10.PublishedFundingIdGenerator();
 
                 resolver.Register("1.0", v10Generator);
+                resolver.Register("1.1", v10Generator);
 
                 return resolver;
             });
