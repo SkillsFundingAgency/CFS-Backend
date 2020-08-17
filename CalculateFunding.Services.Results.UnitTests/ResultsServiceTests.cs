@@ -4,6 +4,8 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using AutoMapper;
+using CalculateFunding.Common.ApiClient.Calcs;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.Caching;
@@ -11,6 +13,7 @@ using CalculateFunding.Common.Models;
 using CalculateFunding.Common.ServiceBus.Interfaces;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets;
+using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Models.Messages;
 using CalculateFunding.Models.ProviderLegacy;
 using CalculateFunding.Repositories.Common.Search;
@@ -29,6 +32,7 @@ using Newtonsoft.Json;
 using NSubstitute;
 using Serilog;
 using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
+using CalcModel = CalculateFunding.Common.ApiClient.Calcs.Models;
 
 namespace CalculateFunding.Services.Results.UnitTests
 {
@@ -112,14 +116,19 @@ namespace CalculateFunding.Services.Results.UnitTests
             //Arrange
             ILogger logger = CreateLogger();
 
-            ProviderResult providerResult = new ProviderResult();
+            ProviderResult providerResult = CreateProviderResult();
 
             ICalculationResultsRepository resultsRepository = CreateResultsRepository();
             resultsRepository
                 .GetProviderResult(Arg.Is(providerId), Arg.Is(specificationId))
                 .Returns(providerResult);
 
-            ResultsService service = CreateResultsService(logger, resultsRepository);
+            ICalculationsApiClient calculationsApiClient = CreateCalculationsApiClient();
+            calculationsApiClient
+                .GetCalculationMetadataForSpecification(Arg.Is(specificationId))
+                .Returns(new ApiResponse<IEnumerable<CalcModel.CalculationMetadata>>(HttpStatusCode.OK, CreateCalculationMetadata()));
+
+            ResultsService service = CreateResultsService(logger, resultsRepository, calculationsApiClient:calculationsApiClient);
 
             //Act
             IActionResult result = await service.GetProviderResults(providerId, specificationId);
@@ -1068,6 +1077,7 @@ namespace CalculateFunding.Services.Results.UnitTests
             IProviderSourceDatasetRepository providerSourceDatasetRepository = null,
             ISearchRepository<ProviderCalculationResultsIndex> calculationProviderResultsSearchRepository = null,
             ISpecificationsApiClient specificationsApiClient = null,
+            ICalculationsApiClient calculationsApiClient = null,
             IResultsResiliencePolicies resiliencePolicies = null,
             IMessengerService messengerService = null,
             ICalculationsRepository calculationsRepository = null)
@@ -1081,9 +1091,11 @@ namespace CalculateFunding.Services.Results.UnitTests
                 providerSourceDatasetRepository ?? CreateProviderSourceDatasetRepository(),
                 calculationProviderResultsSearchRepository ?? CreateCalculationProviderResultsSearchRepository(),
                 specificationsApiClient ?? CreateSpecificationsApiClient(),
+                calculationsApiClient ?? CreateCalculationsApiClient(),
                 resiliencePolicies ?? ResultsResilienceTestHelper.GenerateTestPolicies(),
                 messengerService ?? CreateMessengerService(),
-                calculationsRepository ?? CreateCalculationsRepository());
+                calculationsRepository ?? CreateCalculationsRepository(),
+                CreateMapper());
         }
 
         private static IBlobClient CreateBlobClient()
@@ -1131,23 +1143,44 @@ namespace CalculateFunding.Services.Results.UnitTests
             return Substitute.For<ISpecificationsApiClient>();
         }
 
+        static ICalculationsApiClient CreateCalculationsApiClient()
+        {
+            return Substitute.For<ICalculationsApiClient>();
+        }
+
         static ICalculationsRepository CreateCalculationsRepository()
         {
             return Substitute.For<ICalculationsRepository>();
+        }
+
+        static IMapper CreateMapper()
+        {
+            MapperConfiguration mapperConfig = new MapperConfiguration(c =>
+            {
+                c.AddProfile<ResultsMappingProfile>();
+            });
+
+            return mapperConfig.CreateMapper();
         }
         #endregion "Dependency creation"
 
         #region "Test data"
 
-        static DocumentEntity<ProviderResult> CreateDocumentEntity()
+        static IEnumerable<CalcModel.CalculationMetadata> CreateCalculationMetadata()
         {
-            return new DocumentEntity<ProviderResult>
+            return new[]
             {
-                UpdatedAt = DateTime.Now,
-                Content = new ProviderResult
-                {
-                    SpecificationId = "spec-id",
-                    CalculationResults = new List<CalculationResult>
+                new CalcModel.CalculationMetadata { CalculationId = "calc-id-1", ValueType = CalcModel.CalculationValueType.Number },
+                new CalcModel.CalculationMetadata { CalculationId = "calc-id-2", ValueType = CalcModel.CalculationValueType.Currency }
+            };
+        }
+
+        static ProviderResult CreateProviderResult()
+        {
+            return new ProviderResult
+            {
+                SpecificationId = "spec-id",
+                CalculationResults = new List<CalculationResult>
                     {
                         new CalculationResult
                         {
@@ -1162,21 +1195,29 @@ namespace CalculateFunding.Services.Results.UnitTests
                             CalculationType = CalculationType.Template
                         }
                     },
-                    Provider = new ProviderSummary
-                    {
-                        Id = "prov-id",
-                        Name = "prov name",
-                        ProviderType = "prov type",
-                        ProviderSubType = "prov sub type",
-                        Authority = "authority",
-                        UKPRN = "ukprn",
-                        UPIN = "upin",
-                        URN = "urn",
-                        EstablishmentNumber = "12345",
-                        LACode = "la code",
-                        DateOpened = DateTime.Now.AddDays(-7)
-                    }
+                Provider = new ProviderSummary
+                {
+                    Id = "prov-id",
+                    Name = "prov name",
+                    ProviderType = "prov type",
+                    ProviderSubType = "prov sub type",
+                    Authority = "authority",
+                    UKPRN = "ukprn",
+                    UPIN = "upin",
+                    URN = "urn",
+                    EstablishmentNumber = "12345",
+                    LACode = "la code",
+                    DateOpened = DateTime.Now.AddDays(-7)
                 }
+            };
+        }
+
+        static DocumentEntity<ProviderResult> CreateDocumentEntity()
+        {
+            return new DocumentEntity<ProviderResult>
+            {
+                UpdatedAt = DateTime.Now,
+                Content = CreateProviderResult()
             };
         }
 

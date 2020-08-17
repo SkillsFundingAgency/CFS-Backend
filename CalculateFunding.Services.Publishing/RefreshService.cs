@@ -294,9 +294,16 @@ namespace CalculateFunding.Services.Publishing
                     }
                 }
             }
+            catch (NonRetriableException nonRetriableExcetion)
+            {
+                _logger.Error(nonRetriableExcetion, "Non retriable exception during generating provider profiling");
+
+                await _jobManagement.UpdateJobStatus(jobId, 0, 0, false, "Refresh job failed during generating provider profiling.");
+
+                throw;
+            }
             catch (Exception ex)
             {
-
                 _logger.Error(ex, "Exception during generating provider profiling");
 
                 throw;

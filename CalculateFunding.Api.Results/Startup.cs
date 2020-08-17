@@ -174,6 +174,13 @@ namespace CalculateFunding.Api.Results
             builder.AddJobsInterServiceClient(Configuration);
             builder.AddPoliciesInterServiceClient(Configuration);
 
+            MapperConfiguration resultsConfig = new MapperConfiguration(c =>
+            {
+                c.AddProfile<ResultsMappingProfile>();
+            });
+
+            builder.AddSingleton(resultsConfig.CreateMapper());
+
             builder.AddPolicySettings(Configuration);
 
             builder.AddHttpContextAccessor();
@@ -200,6 +207,7 @@ namespace CalculateFunding.Api.Results
                     ProviderChangesRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
                     ProviderCalculationResultsSearchRepository = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
                     PoliciesApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                    CalculationsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
                 };
             });
 

@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Calcs;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
@@ -24,6 +25,9 @@ using Microsoft.Azure.Search.Models;
 using Microsoft.Azure.ServiceBus;
 using Serilog;
 using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
+using CalcModels = CalculateFunding.Common.ApiClient.Calcs.Models;
+using ApiModels = CalculateFunding.Common.ApiClient.Models;
+using AutoMapper;
 
 namespace CalculateFunding.Services.Results
 {
@@ -40,7 +44,10 @@ namespace CalculateFunding.Services.Results
         private readonly IMessengerService _messengerService;
         private readonly ICalculationsRepository _calculationRepository;
         private readonly Polly.AsyncPolicy _calculationsRepositoryPolicy;
+        private readonly ICalculationsApiClient _calculationsApiClient;
+        private readonly Polly.AsyncPolicy _calculationsApiClientPolicy;
         private readonly IFeatureToggle _featureToggle;
+        private readonly IMapper _mapper;
 
         public ResultsService(ILogger logger,
             IFeatureToggle featureToggle,
@@ -48,30 +55,38 @@ namespace CalculateFunding.Services.Results
             IProviderSourceDatasetRepository providerSourceDatasetRepository,
             ISearchRepository<ProviderCalculationResultsIndex> calculationProviderResultsSearchRepository,
             ISpecificationsApiClient specificationsApiClient,
+            ICalculationsApiClient calculationsApiClient,
             IResultsResiliencePolicies resiliencePolicies,
             IMessengerService messengerService,
-            ICalculationsRepository calculationRepository)
+            ICalculationsRepository calculationRepository,
+            IMapper mapper)
         {
             Guard.ArgumentNotNull(resultsRepository, nameof(resultsRepository));
             Guard.ArgumentNotNull(providerSourceDatasetRepository, nameof(providerSourceDatasetRepository));
             Guard.ArgumentNotNull(calculationProviderResultsSearchRepository, nameof(calculationProviderResultsSearchRepository));
             Guard.ArgumentNotNull(specificationsApiClient, nameof(specificationsApiClient));
+            Guard.ArgumentNotNull(calculationsApiClient, nameof(calculationsApiClient));
             Guard.ArgumentNotNull(resiliencePolicies?.ResultsRepository, nameof(resiliencePolicies.ResultsRepository));
             Guard.ArgumentNotNull(resiliencePolicies?.ResultsSearchRepository, nameof(resiliencePolicies.ResultsSearchRepository));
             Guard.ArgumentNotNull(resiliencePolicies?.SpecificationsApiClient, nameof(resiliencePolicies.SpecificationsApiClient));
+            Guard.ArgumentNotNull(resiliencePolicies?.CalculationsApiClient, nameof(resiliencePolicies.CalculationsApiClient));
             Guard.ArgumentNotNull(resiliencePolicies?.CalculationsRepository, nameof(resiliencePolicies.CalculationsRepository));
             Guard.ArgumentNotNull(messengerService, nameof(messengerService));
             Guard.ArgumentNotNull(calculationRepository, nameof(calculationRepository));
             Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
+            Guard.ArgumentNotNull(mapper, nameof(mapper));
 
             _logger = logger;
+            _mapper = mapper;
             _resultsRepository = resultsRepository;
             _providerSourceDatasetRepository = providerSourceDatasetRepository;
             _calculationProviderResultsSearchRepository = calculationProviderResultsSearchRepository;
             _resultsRepositoryPolicy = resiliencePolicies.ResultsRepository;
             _specificationsApiClient = specificationsApiClient;
+            _calculationsApiClient = calculationsApiClient;
             _resultsSearchRepositoryPolicy = resiliencePolicies.ResultsSearchRepository;
             _specificationsApiClientPolicy = resiliencePolicies.SpecificationsApiClient;
+            _calculationsApiClientPolicy = resiliencePolicies.CalculationsApiClient;
             _messengerService = messengerService;
             _calculationRepository = calculationRepository;
             _calculationsRepositoryPolicy = resiliencePolicies.CalculationsRepository;
@@ -115,7 +130,26 @@ namespace CalculateFunding.Services.Results
             {
                 _logger.Information($"A result was found for provider id {providerId}, specification id {specificationId}");
 
-                return new OkObjectResult(providerResult);
+                ApiModels.ApiResponse<IEnumerable<CalcModels.CalculationMetadata>> calculationsResponse = await _calculationsApiClientPolicy.ExecuteAsync(() => _calculationsApiClient.GetCalculationMetadataForSpecification(specificationId));
+
+                if (calculationsResponse?.Content == null)
+                {
+                    string error = $"Did not locate any calculation metadata for specification {specificationId}.";
+                    _logger.Error(error);
+
+                    return new BadRequestObjectResult(error);
+                }
+
+                IDictionary<string, CalcModels.CalculationMetadata> calculations = calculationsResponse.Content.ToDictionary(_ => _.CalculationId);
+
+                ProviderResultResponse providerResultResponse = _mapper.Map<ProviderResultResponse>(providerResult);
+
+                foreach(CalculationResultResponse calculationResult in providerResultResponse.CalculationResults)
+                {
+                    calculationResult.CalculationValueType = _mapper.Map<CalculationValueType>(calculations[calculationResult.Calculation.Id].ValueType);
+                }
+
+                return new OkObjectResult(providerResultResponse);
             }
 
             _logger.Information($"A result was not found for provider id {providerId}, specification id {specificationId}");

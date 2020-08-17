@@ -10,6 +10,7 @@ using CalculateFunding.Services.Results.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using CalculationType = CalculateFunding.Models.Calcs.CalculationType;
 using ProviderResult = CalculateFunding.Models.Calcs.ProviderResult;
+using ProviderResultResponse = CalculateFunding.Models.Calcs.ProviderResultResponse;
 using ProviderWithResultsForSpecifications = CalculateFunding.Services.Results.Models.ProviderWithResultsForSpecifications;
 using SpecificationInformation = CalculateFunding.Services.Results.Models.SpecificationInformation;
 
@@ -53,7 +54,7 @@ namespace CalculateFunding.Api.Results.Controllers
 
         [Route("api/results/get-provider-results")]
         [HttpGet]
-        [Produces(typeof(ProviderResult))]
+        [Produces(typeof(ProviderResultResponse))]
         public async Task<IActionResult> RunGetProviderResults([FromQuery] string providerId, [FromQuery] string specificationId)
         {
             return await _resultsService.GetProviderResults(providerId, specificationId);

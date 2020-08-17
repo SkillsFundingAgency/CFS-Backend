@@ -13,6 +13,8 @@ namespace CalculateFunding.Services.Results
 
         public AsyncPolicy SpecificationsApiClient { get; set; }
 
+        public AsyncPolicy CalculationsApiClient { get; set; }
+
         public AsyncPolicy ProviderProfilingRepository { get; set; }
 
         public AsyncPolicy PublishedProviderCalculationResultsRepository { get; set; }
