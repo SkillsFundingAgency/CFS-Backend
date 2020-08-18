@@ -74,6 +74,7 @@ namespace CalculateFunding.Functions.Datasets
                 builder.AddScoped<OnDatasetValidationEvent>();
                 builder.AddScoped<OnDatasetEventFailure>();
                 builder.AddScoped<OnDatasetValidationEventFailure>();
+                builder.AddScoped<OnMapFdzDatasetsEventFired>();
             }
             
             builder.AddSingleton<IDateTimeProvider, DateTimeProvider>();

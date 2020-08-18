@@ -2,7 +2,6 @@ using System;
 using System.Linq.Expressions;
 using System.Net;
 using System.Threading.Tasks;
-using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies;
@@ -11,6 +10,7 @@ using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Models.Specs;
+using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Tests.Common.Helpers;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -30,7 +30,8 @@ namespace CalculateFunding.Services.Specs.UnitTests
         private const string FundingPeriodId = "fundingperiod-id";
         private const string TemplateVersion = "template-version";
         private const string ProviderSnapshotId = "providerSanpshot-id";
-
+        private const string ProviderCacheKeyKey = "provider-cache-key";
+        private const string SpecificationSummaryCacheKeyKey = "specification-summary-cache-key";
 
         private IPoliciesApiClient _policies;
         private IJobManagement _jobs;
@@ -165,23 +166,13 @@ namespace CalculateFunding.Services.Specs.UnitTests
                                                                                       .WithFundingPeriodId(fundingPeriodId)
                                                                                       .WithProviderSource(Models.Providers.ProviderSource.FDZ)
                                                                                       .WithProviderSnapshotId(providerSnapshotId));
-            //GivenTheFundingConfigurationForPeriodAndStream(fundingPeriodId, fundingStreamId,
-            //    NewFundingConfiguration(_ => _.WithDefaultTemplateVersion(templateVersion1)
-            //                                    .WithFundingStreamId(fundingStreamId)
-            //                                    .WithFundingPeriodId(fundingPeriodId)),
-            //NewTemplateMetadataContents(_ => _.WithFundingLines(
-            //NewFundingLine(fl => fl.WithCalculations(NewCalculation(cal => cal.WithReferenceData(NewReferenceData(), NewReferenceData()).WithTemplateCalculationId(templateCalculationId1)))),
-            //NewFundingLine(fl => fl.WithCalculations(NewCalculation(cal => cal.WithTemplateCalculationId(templateCalculationId2)), NewCalculation(cal => cal.WithTemplateCalculationId(templateCalculationId3)))))));
-
+            
             GivenTheFundingTemplateContentsForPeriodAndStream(fundingPeriodId, fundingStreamId,
                 templateVersion1,
                  NewTemplateMetadataContents(_ => _.WithFundingLines(
                      NewFundingLine(fl => fl.WithCalculations(NewCalculation(cal => cal.WithReferenceData(NewReferenceData(), NewReferenceData()).WithTemplateCalculationId(templateCalculationId1)))),
                      NewFundingLine(fl => fl.WithCalculations(NewCalculation(cal => cal.WithTemplateCalculationId(templateCalculationId2)), NewCalculation(cal => cal.WithTemplateCalculationId(templateCalculationId3))))))); //item count 5
-           // AndTheFundingTemplateContentsForPeriodAndStream(fundingPeriodId, fundingStreamId, string.Empty, NewTemplateMetadataContents());
            
-
-
             await WhenTheQueueCreateSpecificationJobActionIsRun(specificationVersion, _user, _correlationId);
 
             await ThenProviderSnapshotDataLoadJobWasCreated(
@@ -189,6 +180,41 @@ namespace CalculateFunding.Services.Specs.UnitTests
                                             HasProperty(_, SpecificationId, specificationId) &&
                                             HasProperty(_, FundingStreamId, fundingStreamId) &&
                                             HasProperty(_, ProviderSnapshotId, providerSnapshotId.ToString()))
+                );
+        }
+
+        [TestMethod]
+        public async Task ShouldQueueMapScopedDatasetJobWhenSpecificationProviverSoruceIsCFSAndHaveProviderVersionId()
+        {
+            string fundingStreamId = NewRandomString();
+            string specificationId = NewRandomString();
+            string providerVersionId = NewRandomString();
+            string fundingPeriodId = NewRandomString();
+
+            string templateVersion1 = NewRandomString();
+            uint templateCalculationId1 = NewRandomUint();
+            uint templateCalculationId2 = NewRandomUint();
+            uint templateCalculationId3 = NewRandomUint();
+
+            SpecificationVersion specificationVersion = NewSpecificationVersion(_ => _.WithFundingStreamsIds(fundingStreamId)
+                                                                                      .WithSpecificationId(specificationId)
+                                                                                      .WithFundingPeriodId(fundingPeriodId)
+                                                                                      .WithProviderSource(Models.Providers.ProviderSource.CFS)
+                                                                                      .WithProviderVersionId(providerVersionId));
+
+            GivenTheFundingTemplateContentsForPeriodAndStream(fundingPeriodId, fundingStreamId,
+                templateVersion1,
+                 NewTemplateMetadataContents(_ => _.WithFundingLines(
+                     NewFundingLine(fl => fl.WithCalculations(NewCalculation(cal => cal.WithReferenceData(NewReferenceData(), NewReferenceData()).WithTemplateCalculationId(templateCalculationId1)))),
+                     NewFundingLine(fl => fl.WithCalculations(NewCalculation(cal => cal.WithTemplateCalculationId(templateCalculationId2)), NewCalculation(cal => cal.WithTemplateCalculationId(templateCalculationId3))))))); //item count 5
+
+            await WhenTheQueueCreateSpecificationJobActionIsRun(specificationVersion, _user, _correlationId);
+
+            await ThenProviderSnapshotDataLoadJobWasCreated(
+                CreateJobModelMatching(_ => _.JobDefinitionId == JobConstants.DefinitionNames.MapScopedDatasetJob &&
+                                            HasProperty(_, SpecificationId, specificationId) &&
+                                            HasProperty(_, ProviderCacheKeyKey, $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}") &&
+                                            HasProperty(_, SpecificationSummaryCacheKeyKey, $"{CacheKeys.SpecificationSummaryById}{specificationId}"))
                 );
         }
 

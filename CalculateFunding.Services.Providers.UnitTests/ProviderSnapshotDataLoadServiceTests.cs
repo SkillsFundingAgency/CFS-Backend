@@ -1,9 +1,12 @@
 ﻿using AutoMapper;
 using CalculateFunding.Common.ApiClient.FundingDataZone;
 using CalculateFunding.Common.ApiClient.FundingDataZone.Models;
+using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Specifications;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Models.Providers.ViewModels;
+using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Providers.Interfaces;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
@@ -30,7 +33,8 @@ namespace CalculateFunding.Services.Providers.UnitTests
         private IFundingDataZoneApiClient _fundingDataZoneApiClient;
         private IMapper _mapper;
         private ProvidersResiliencePolicies _providerResiliencePolicies;
-        private ProviderSnapshotDataLoadService _service;
+        private IJobManagement _jobManagement;
+        private IProviderSnapshotDataLoadService _service;
 
         [TestInitialize]
         public void Setup()
@@ -48,6 +52,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 SpecificationsApiClient = Policy.NoOpAsync(),
                 FundingDataZoneApiClient = Policy.NoOpAsync(),
             };
+            _jobManagement = Substitute.For<IJobManagement>();
 
             _service = new ProviderSnapshotDataLoadService(
                 _logger,
@@ -55,7 +60,8 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 _providerVersionService,
                 _providerResiliencePolicies,
                 _fundingDataZoneApiClient,
-                _mapper);
+                _mapper,
+                _jobManagement);
         }
 
         [TestMethod]
@@ -109,6 +115,65 @@ namespace CalculateFunding.Services.Providers.UnitTests
         }
 
         [TestMethod]
+        public async Task ShouldQueueMapFdzDatasetsJobForGivenSpecificationAndProviderSnapshot()
+        {
+            // Arrange
+            string specificationId = NewRandomString();
+            string fundingStreamId = NewRandomString();
+            string jobId = NewRandomString();
+            int providerSnapshotId = NewRandomInt();
+            Job mapFdzDatasetsJob = new Job() { Id = NewRandomString() };
+
+            Message message = CreateMessage(jobId, specificationId, fundingStreamId, providerSnapshotId);
+            ProviderSnapshot providerSnapshot = CreateProviderSnapshot(fundingStreamId, providerSnapshotId);
+            string providerVersionId = $"{fundingStreamId}-{providerSnapshot.TargetDate:yyyy}-{providerSnapshot.TargetDate:MM}-{providerSnapshot.TargetDate:dd}-{providerSnapshotId}";
+
+            _fundingDataZoneApiClient.GetProviderSnapshotsForFundingStream(Arg.Is(fundingStreamId))
+                .Returns(new ApiResponse<IEnumerable<ProviderSnapshot>>(HttpStatusCode.OK, new[] { providerSnapshot }));
+            _providerVersionService.Exists(providerVersionId)
+                .Returns(true);
+            _specificationsApiClient.SetProviderVersion(Arg.Is(specificationId), Arg.Is(providerVersionId))
+                .Returns(HttpStatusCode.OK);
+
+            _jobManagement.QueueJob(Arg.Is<JobCreateModel>(_ => _.JobDefinitionId == JobConstants.DefinitionNames.MapFdzDatasetsJob
+                                                             && _.SpecificationId == specificationId
+                                                             && _.Properties.ContainsKey("specification-id")
+                                                             && _.Properties["specification-id"] == specificationId))
+                .Returns(new Job());
+
+            // Act
+            await _service.LoadProviderSnapshotData(message);
+
+            // Assert
+            await _fundingDataZoneApiClient
+                .Received(1)
+                .GetProviderSnapshotsForFundingStream(Arg.Is(fundingStreamId));
+
+            await _providerVersionService
+                .Received(1)
+                .Exists(providerVersionId);
+
+            await _fundingDataZoneApiClient
+                .Received(0)
+                .GetProvidersInSnapshot(Arg.Is(providerSnapshotId));
+
+            await _providerVersionService
+                 .Received(0)
+                 .UploadProviderVersion(Arg.Is(providerVersionId), Arg.Is<ProviderVersionViewModel>(_ => _.Name == providerSnapshot.Name));
+
+            await _specificationsApiClient
+                .Received(1)
+                .SetProviderVersion(Arg.Is(specificationId), Arg.Is(providerVersionId));
+
+            await _jobManagement
+                .Received(1)
+                .QueueJob(Arg.Is<JobCreateModel>(_ => _.JobDefinitionId == JobConstants.DefinitionNames.MapFdzDatasetsJob
+                                                             && _.SpecificationId == specificationId
+                                                             && _.Properties.ContainsKey("specification-id")
+                                                             && _.Properties["specification-id"] == specificationId));
+        }
+
+        [TestMethod]
         public void ShouldProviderVersionFDZProvidersThrowsExceptionWhenUploadProviderVersionReturnsError()
         {
             // Arrange
@@ -117,7 +182,6 @@ namespace CalculateFunding.Services.Providers.UnitTests
             string fundingStreamId = NewRandomString();
             string jobId = NewRandomString();
             int providerSnapshotId = NewRandomInt();
-           
 
             Message message = CreateMessage(jobId, specificationId, fundingStreamId, providerSnapshotId);
             ProviderSnapshot providerSnapshot = CreateProviderSnapshot(fundingStreamId, providerSnapshotId);
@@ -147,8 +211,6 @@ namespace CalculateFunding.Services.Providers.UnitTests
                .Message
                .Should()
                .Be(errorMessage);
-
-          
         }
 
         [TestMethod]
@@ -160,7 +222,6 @@ namespace CalculateFunding.Services.Providers.UnitTests
             string fundingStreamId = NewRandomString();
             string jobId = NewRandomString();
             int providerSnapshotId = NewRandomInt();
-
 
             Message message = CreateMessage(jobId, specificationId, fundingStreamId, providerSnapshotId);
             ProviderSnapshot providerSnapshot = CreateProviderSnapshot(fundingStreamId, providerSnapshotId);
@@ -190,8 +251,6 @@ namespace CalculateFunding.Services.Providers.UnitTests
                .Message
                .Should()
                .Be(errorMessage);
-
-
         }
 
         [TestMethod]
@@ -203,7 +262,6 @@ namespace CalculateFunding.Services.Providers.UnitTests
             string fundingStreamId = NewRandomString();
             string jobId = NewRandomString();
             int providerSnapshotId = NewRandomInt();
-
 
             Message message = CreateMessage(jobId, specificationId, fundingStreamId, providerSnapshotId);
             ProviderSnapshot providerSnapshot = CreateProviderSnapshot(fundingStreamId, providerSnapshotId);
@@ -233,8 +291,47 @@ namespace CalculateFunding.Services.Providers.UnitTests
                .Message
                .Should()
                .Be(errorMessage);
+        }
 
+        [TestMethod]
+        public async Task ShouldThrowAnExceptionIfAnyMapFdzDatasetsJobFailedToQueue()
+        {
+            // Arrange
+            string specificationId = NewRandomString();
+            string fundingStreamId = NewRandomString();
+            string jobId = NewRandomString();
+            int providerSnapshotId = NewRandomInt();
+            string errorMessage = $"Failed to queue MapFdzDatasetsJob for specification - {specificationId}";
 
+            Message message = CreateMessage(jobId, specificationId, fundingStreamId, providerSnapshotId);
+            ProviderSnapshot providerSnapshot = CreateProviderSnapshot(fundingStreamId, providerSnapshotId);
+            string providerVersionId = $"{fundingStreamId}-{providerSnapshot.TargetDate:yyyy}-{providerSnapshot.TargetDate:MM}-{providerSnapshot.TargetDate:dd}-{providerSnapshotId}";
+
+            _fundingDataZoneApiClient.GetProviderSnapshotsForFundingStream(Arg.Is(fundingStreamId))
+                .Returns(new ApiResponse<IEnumerable<ProviderSnapshot>>(HttpStatusCode.OK, new[] { providerSnapshot }));
+            _providerVersionService.Exists(providerVersionId)
+                .Returns(true);
+            _specificationsApiClient.SetProviderVersion(Arg.Is(specificationId), Arg.Is(providerVersionId))
+                .Returns(HttpStatusCode.OK);
+
+            _jobManagement.QueueJob(Arg.Is<JobCreateModel>(_ => _.JobDefinitionId == JobConstants.DefinitionNames.MapFdzDatasetsJob
+                                                             && _.SpecificationId == specificationId
+                                                             && _.Properties.ContainsKey("specification-id")
+                                                             && _.Properties["specification-id"] == specificationId))
+                .Returns<Task<Job>>(a => { throw new Exception(errorMessage); });
+
+            // Act
+            // Act
+            Func<Task> invocation = async () => await _service.LoadProviderSnapshotData(message);
+
+            // Assert
+            invocation
+               .Should()
+               .ThrowExactly<Exception>()
+               .Which
+               .Message
+               .Should()
+               .Be(errorMessage);
         }
 
         private static Message CreateMessage(string jobId, string specificationId, string fundingStreamId, int providerSnapshotId)

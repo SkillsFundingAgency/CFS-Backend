@@ -12,6 +12,7 @@ using CalculateFunding.Common.Models;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Specs;
+using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Specs.Interfaces;
@@ -95,6 +96,25 @@ namespace CalculateFunding.Services.Specs
                     }));
 
                 GuardAgainstNullJob(createProviderSnapshotDataLoadJob, errorMessage);
+            }
+
+            if (specificationVersion.ProviderSource == Models.Providers.ProviderSource.CFS && !string.IsNullOrWhiteSpace(specificationVersion.ProviderVersionId))
+            {
+                errorMessage = $"Unable to queue MapScopedDatasetJob for specification - {specificationVersion.SpecificationId}";
+                Job mapScopedDatasetJob = await CreateJob(errorMessage,
+                    NewJobCreateModel(specificationVersion.SpecificationId,
+                    "Mapping datasets for all providers",
+                    JobConstants.DefinitionNames.MapScopedDatasetJob,
+                    correlationId,
+                    user,
+                    new Dictionary<string, string>
+                    {
+                        {"specification-id", specificationVersion.SpecificationId},
+                        {"provider-cache-key", $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationVersion.SpecificationId}"},
+                        {"specification-summary-cache-key", $"{CacheKeys.SpecificationSummaryById}{specificationVersion.SpecificationId}"}
+                    }));
+
+                GuardAgainstNullJob(mapScopedDatasetJob, errorMessage);
             }
         }
 

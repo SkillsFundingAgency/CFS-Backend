@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Tests.Common.Helpers;
@@ -15,6 +16,7 @@ namespace CalculateFunding.Services.Datasets.Builders
         private IEnumerable<string> _fundingStreamIds = Enumerable.Empty<string>();
         private bool _withNoId;
         private string _providerVersionId;
+        private ProviderSource? _providerSource;
 
         public SpecificationSummaryBuilder WithNoId()
         {
@@ -65,6 +67,11 @@ namespace CalculateFunding.Services.Datasets.Builders
             return this;
         }
 
+        public SpecificationSummaryBuilder WithProviderSource(ProviderSource providerSource)
+        {
+            _providerSource = providerSource;
+            return this;
+        }
 
         public SpecificationSummary Build()
         {
@@ -79,7 +86,8 @@ namespace CalculateFunding.Services.Datasets.Builders
                 FundingStreams = _fundingStreamIds.Select(_ => new Reference
                 {
                     Id = _
-                }).ToArray()
+                }).ToArray(),
+                ProviderSource = _providerSource ?? ProviderSource.CFS
             };
         }
     }

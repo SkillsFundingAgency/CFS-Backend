@@ -2,15 +2,14 @@
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Specs;
+using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Tests.Common.Helpers;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
 using System;
-using System.Collections.Generic;
 using System.Linq.Expressions;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Specs.UnitTests
@@ -21,6 +20,8 @@ namespace CalculateFunding.Services.Specs.UnitTests
         private const string SpecificationIdKey = "specification-id";
         private const string FundingStreamIdKey = "fundingstream-id";
         private const string ProviderSnapshotIdKey = "providerSanpshot-id";
+        private const string ProviderCacheKeyKey = "provider-cache-key";
+        private const string SpecificationSummaryCacheKeyKey = "specification-summary-cache-key";
 
         private QueueEditSpecificationJobActions _action;
         private IJobManagement _jobManagement;
@@ -87,6 +88,27 @@ namespace CalculateFunding.Services.Specs.UnitTests
                                             HasProperty(_, SpecificationIdKey, specificationId) &&
                                             HasProperty(_, FundingStreamIdKey, fundingStreamId) &&
                                             HasProperty(_, ProviderSnapshotIdKey, providerSnapshotId.ToString()))
+                );
+        }
+
+        [TestMethod]
+        public async Task ShouldQueueMapScopedDatasetJobWhenSpecificationProviverSoruceIsCFSAndHaveProviderVersionId()
+        {
+            string fundingStreamId = NewRandomString();
+            string specificationId = NewRandomString();
+            string providerVersionId = NewRandomString();
+            SpecificationVersion specificationVersion = NewSpecificationVersion(_ => _.WithFundingStreamsIds(fundingStreamId)
+                                                                                      .WithSpecificationId(specificationId)
+                                                                                      .WithProviderSource(Models.Providers.ProviderSource.CFS)
+                                                                                      .WithProviderVersionId(providerVersionId));
+
+            await WhenTheQueueEditSpecificationJobActionsIsRun(specificationVersion, _user, _correlationId);
+
+            await ThenProviderSnapshotDataLoadJobWasCreated(
+                CreateJobModelMatching(_ => _.JobDefinitionId == JobConstants.DefinitionNames.MapScopedDatasetJob &&
+                                            HasProperty(_, SpecificationIdKey, specificationId) &&
+                                            HasProperty(_, ProviderCacheKeyKey, $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}") &&
+                                            HasProperty(_, SpecificationSummaryCacheKeyKey, $"{CacheKeys.SpecificationSummaryById}{specificationId}"))
                 );
         }
 

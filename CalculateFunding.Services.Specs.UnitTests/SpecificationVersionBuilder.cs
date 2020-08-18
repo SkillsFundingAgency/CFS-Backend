@@ -22,6 +22,7 @@ namespace CalculateFunding.Services.Specs.UnitTests
         private Dictionary<string, string> _templateIds;
         private int? _providerSnapshotId;
         private ProviderSource? _providerSource;
+        private string _providerVersionId;
 
         public SpecificationVersionBuilder WithTemplateIds(params (string fundingStreamId, string templateId)[] assignedTemplateIds)
         {
@@ -95,6 +96,13 @@ namespace CalculateFunding.Services.Specs.UnitTests
             return this;
         }
 
+        public SpecificationVersionBuilder WithProviderVersionId(string providerVersionId)
+        {
+            _providerVersionId = providerVersionId;
+
+            return this;
+        }
+
         public SpecificationVersionBuilder WithProviderSource(ProviderSource providerSource)
         {
             _providerSource = providerSource;
@@ -115,7 +123,8 @@ namespace CalculateFunding.Services.Specs.UnitTests
                 PublishStatus = _publishStatus.GetValueOrDefault(NewRandomEnum<PublishStatus>()),
                 TemplateIds = _templateIds ?? new Dictionary<string, string>(),
                 ProviderSnapshotId = _providerSnapshotId ?? NewRandomNumberBetween(1, 10),
-                ProviderSource = _providerSource.GetValueOrDefault(NewRandomEnum(ProviderSource.CFS))
+                ProviderSource = _providerSource.GetValueOrDefault(NewRandomEnum(ProviderSource.CFS)),
+                ProviderVersionId = _providerVersionId
             };
         }
 

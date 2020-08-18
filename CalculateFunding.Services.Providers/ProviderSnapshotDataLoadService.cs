@@ -18,6 +18,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using CalculateFunding.Common.JobManagement;
+using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.Models;
+using CalculateFunding.Services.Core.Constants;
 
 namespace CalculateFunding.Services.Providers
 {
@@ -33,6 +37,7 @@ namespace CalculateFunding.Services.Providers
         private readonly AsyncPolicy _specificationsApiClientPolicy;
         private readonly IFundingDataZoneApiClient _fundingDataZoneApiClient;
         private readonly IMapper _mapper;
+        private readonly IJobManagement _jobManagement;
         private readonly AsyncPolicy _fundingDataZoneApiClientPolicy;
 
         public ProviderSnapshotDataLoadService(ILogger logger,
@@ -40,7 +45,8 @@ namespace CalculateFunding.Services.Providers
             IProviderVersionService providerVersionService,
             IProvidersResiliencePolicies resiliencePolicies,
             IFundingDataZoneApiClient fundingDataZoneApiClient,
-            IMapper mapper)
+            IMapper mapper,
+            IJobManagement jobManagement)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(specificationsApiClient, nameof(specificationsApiClient));
@@ -49,6 +55,7 @@ namespace CalculateFunding.Services.Providers
             Guard.ArgumentNotNull(resiliencePolicies?.FundingDataZoneApiClient, nameof(resiliencePolicies.FundingDataZoneApiClient));
             Guard.ArgumentNotNull(fundingDataZoneApiClient, nameof(fundingDataZoneApiClient));
             Guard.ArgumentNotNull(mapper, nameof(mapper));
+            Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
 
             _logger = logger;
             _specificationsApiClient = specificationsApiClient;
@@ -57,6 +64,7 @@ namespace CalculateFunding.Services.Providers
             _fundingDataZoneApiClientPolicy = resiliencePolicies.FundingDataZoneApiClient;
             _fundingDataZoneApiClient = fundingDataZoneApiClient;
             _mapper = mapper;
+            _jobManagement = jobManagement;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -80,6 +88,8 @@ namespace CalculateFunding.Services.Providers
             string specificationId = message.GetUserProperty<string>(SpecificationIdKey);
             string fundingStreamId = message.GetUserProperty<string>(FundingStreamIdKey);
             string providerSnapshotIdValue = message.GetUserProperty<string>(ProviderSnapshotIdKey);
+            Reference user = message.GetUserDetails();
+            string correlationId = message.GetCorrelationId();
 
             if (string.IsNullOrWhiteSpace(providerSnapshotIdValue) || !int.TryParse(providerSnapshotIdValue, out int providerSnapshotId))
             {
@@ -113,6 +123,37 @@ namespace CalculateFunding.Services.Providers
                 string errorMessage = $"Unable to update the specification - {specificationId}, with provider version id  - {providerVersionId}. HttpStatusCode - {httpStatusCode}";
                 _logger.Error(errorMessage);
                 throw new Exception(errorMessage);
+            }
+
+            JobCreateModel mapFdzDatasetsJobCreateModel = new JobCreateModel
+            {
+                Trigger = new Trigger
+                {
+                    EntityId = specificationId,
+                    EntityType = "Specification",
+                    Message = "Map datasets for all relationships in specification"
+                },
+                InvokerUserId = user.Id,
+                InvokerUserDisplayName = user.Name,
+                JobDefinitionId = JobConstants.DefinitionNames.MapFdzDatasetsJob,
+                ParentJobId = null,
+                SpecificationId = specificationId,
+                CorrelationId = correlationId,
+                Properties = new Dictionary<string, string>
+                    {
+                        {"specification-id", specificationId}
+                    }
+            };
+
+            try
+            {
+                Job mapFdzDatasetsJob = await _jobManagement.QueueJob(mapFdzDatasetsJobCreateModel);
+            }
+            catch (Exception ex)
+            {
+                string errorMessage = $"Failed to queue MapFdzDatasetsJob for specification - {specificationId}";
+                _logger.Error(ex, errorMessage);
+                throw;
             }
         }
 

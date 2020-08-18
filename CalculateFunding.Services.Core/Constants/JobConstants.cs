@@ -20,6 +20,8 @@
 
             public const string MapScopedDatasetJob = "MapScopedDatasetJob";
 
+            public const string MapFdzDatasetsJob = "MapFdzDatasetsJob";
+
             public const string RefreshFundingJob = "RefreshFundingJob";
 
             public const string PublishAllProviderFundingJob = nameof(PublishAllProviderFundingJob);

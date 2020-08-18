@@ -9,5 +9,7 @@ namespace CalculateFunding.Services.Datasets.Interfaces
         Task ProcessDataset(Message message);
 
         Task<IActionResult> GetDatasetAggregationsBySpecificationId(string specificationId);
+
+        Task MapFdzDatasets(Message message);
     }
 }

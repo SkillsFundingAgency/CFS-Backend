@@ -9,6 +9,7 @@ namespace CalculateFunding.Services.Datasets.Services
         private Reference _datasetDefinition;
         private DatasetRelationshipVersion _datasetVersion;
         private bool _isSetAsProviderData;
+        private string _id;
 
         public DefinitionSpecificationRelationshipBuilder WithDatasetDefinition(Reference datasetDefinition)
         {
@@ -31,13 +32,20 @@ namespace CalculateFunding.Services.Datasets.Services
             return this;
         }
 
+        public DefinitionSpecificationRelationshipBuilder WithId(string id)
+        {
+            _id = id;
+            return this;
+        }
+
         public DefinitionSpecificationRelationship Build()
         {
             return new DefinitionSpecificationRelationship
             {
                 DatasetDefinition = _datasetDefinition,
                 DatasetVersion = _datasetVersion,
-                IsSetAsProviderData = _isSetAsProviderData
+                IsSetAsProviderData = _isSetAsProviderData,
+                Id = _id
             };
         }
     }

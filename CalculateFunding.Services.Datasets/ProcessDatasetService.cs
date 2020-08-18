@@ -319,7 +319,7 @@ namespace CalculateFunding.Services.Datasets
                 //use of Polly policies is so inconsistent in this service method
                 await _specsApiClient.ReIndexSpecification(specificationId);
 
-                if (isScopedJob)
+                if (isScopedJob && specification.ProviderSource != ProviderSource.FDZ)
                 {
                     IEnumerable<DefinitionSpecificationRelationship> relationships = await _datasetRepository.GetDefinitionSpecificationRelationshipsByQuery(c => c.Content.Specification.Id == specificationId);
 
@@ -399,6 +399,91 @@ namespace CalculateFunding.Services.Datasets
             }
 
             return new OkObjectResult(aggregates);
+        }
+
+        public async Task MapFdzDatasets(Message message)
+         {
+            Guard.ArgumentNotNull(message, nameof(message));
+
+            string jobId = message.GetUserProperty<string>("jobId");
+
+            JobViewModel jobResponse = await _jobManagement.GetJobById(jobId);
+
+            if (jobResponse == null)
+            {
+                string errorMessage = $"Error occurred while retireving the job. JobId {jobId}";
+                _logger.Error(errorMessage);
+                throw new Exception(errorMessage);
+            }
+
+            string specificationId = message.GetUserProperty<string>("specification-id");
+            if (string.IsNullOrWhiteSpace(specificationId))
+            {
+                _logger.Error("Specification Id key is missing in MapFdzDatasets message properties");
+                await _jobManagement.UpdateJobStatus(jobId, 100, false, "Failed to Process - specification id not provided");
+                return;
+            }
+
+            Reference user = message.GetUserDetails();
+
+            string correlationId = message.GetCorrelationId();
+
+            try
+            {
+                IEnumerable<DefinitionSpecificationRelationship> relationships = await _datasetRepository.GetDefinitionSpecificationRelationshipsByQuery(r => r.Content.Specification.Id == specificationId);
+
+                Dictionary<string, Dataset> datasets = new Dictionary<string, Dataset>();
+
+                foreach (DefinitionSpecificationRelationship relationship in relationships)
+                {
+                    if (!datasets.TryGetValue(relationship.DatasetVersion.Id, out Dataset dataset))
+                    {
+                        dataset = await _datasetRepository.GetDatasetByDatasetId(relationship.DatasetVersion.Id);
+                        datasets.Add(relationship.DatasetVersion.Id, dataset);
+                    }
+
+                    Trigger trigger = new Trigger
+                    {
+                        EntityId = dataset.Id,
+                        EntityType = nameof(Dataset),
+                        Message = $"Mapping dataset: '{dataset.Id}'"
+                    };
+
+                    JobCreateModel mapDatasetJob = new JobCreateModel
+                    {
+                        InvokerUserDisplayName = user?.Name,
+                        InvokerUserId = user?.Id,
+                        JobDefinitionId = DefinitionNames.MapDatasetJob,
+                        MessageBody = JsonConvert.SerializeObject(dataset),
+                        Properties = new Dictionary<string, string>
+                                            {
+                                                { "specification-id", specificationId },
+                                                { "relationship-id", relationship.Id },
+                                                { "user-id", user?.Id},
+                                                { "user-name", user?.Name},
+                                                { "disableQueueCalculationJob", "true" }
+                                            },
+                        SpecificationId = specificationId,
+                        Trigger = trigger,
+                        ParentJobId = jobId,
+                        CorrelationId = correlationId,
+                    };
+
+                    await _jobManagement.QueueJob(mapDatasetJob);
+                }
+
+                await _jobManagement.UpdateJobStatus(jobId, 100, true, "Mapped FDZ Datasets");
+            }
+            catch (NonRetriableException ex)
+            {
+                _logger.Error(ex, $"Failed to run MapFdzDatasets with exception: {ex.Message}, for specification id '{specificationId}'");
+                await _jobManagement.UpdateJobStatus(jobId, 100, false, $"Failed to run MapFdzDatasets - {ex.Message}");
+            }
+            catch (Exception exception)
+            {
+                _logger.Error(exception, $"Failed to run MapFdzDatasets with exception: {exception.Message}, for specification id '{specificationId}'");
+                throw;
+            }
         }
 
         private DatasetAggregations GenerateAggregations(DatasetDefinition datasetDefinition, TableLoadResult tableLoadResult, string specificationId, Reference datasetRelationship)
@@ -797,35 +882,38 @@ namespace CalculateFunding.Services.Datasets
             // need to remove all calculation result batches so that all calcs are created on calc run
             await _cacheProvider.RemoveByPatternAsync($"{CacheKeys.CalculationResults}{specification.Id}");
 
-            bool jobCompletedSuccessfully = await _jobManagement.QueueJobAndWait(async () =>
-                {
-                    ApiResponse<bool> refreshCacheFromApi = await _providersApiClientPolicy.ExecuteAsync(() =>
-                                    _providersApiClient.RegenerateProviderSummariesForSpecification(specification.Id, forceRefreshScopedProviders));
-
-                    if (!refreshCacheFromApi.StatusCode.IsSuccess() || refreshCacheFromApi?.Content == null)
+            if (specification.ProviderSource != ProviderSource.FDZ)
+            {
+                bool jobCompletedSuccessfully = await _jobManagement.QueueJobAndWait(async () =>
                     {
-                        string errorMessage = $"Unable to re-generate providers while updating dataset '{relationshipId}' for specification '{specification.Id}' with status code: {refreshCacheFromApi.StatusCode}";
+                        ApiResponse<bool> refreshCacheFromApi = await _providersApiClientPolicy.ExecuteAsync(() =>
+                                        _providersApiClient.RegenerateProviderSummariesForSpecification(specification.Id, forceRefreshScopedProviders));
 
-                        _logger.Error(errorMessage);
+                        if (!refreshCacheFromApi.StatusCode.IsSuccess() || refreshCacheFromApi?.Content == null)
+                        {
+                            string errorMessage = $"Unable to re-generate providers while updating dataset '{relationshipId}' for specification '{specification.Id}' with status code: {refreshCacheFromApi.StatusCode}";
 
-                        throw new NonRetriableException(errorMessage);
-                    }
+                            _logger.Error(errorMessage);
+
+                            throw new NonRetriableException(errorMessage);
+                        }
 
                     // returns true if job queued
                     return Convert.ToBoolean(refreshCacheFromApi?.Content);
-                },
-                DefinitionNames.PopulateScopedProvidersJob,
-                specification.Id,
-                correlationId,
-                ServiceBusConstants.TopicNames.JobNotifications);
+                    },
+                    DefinitionNames.PopulateScopedProvidersJob,
+                    specification.Id,
+                    correlationId,
+                    ServiceBusConstants.TopicNames.JobNotifications);
 
-            if (!jobCompletedSuccessfully)
-            {
-                string errorMessage = $"Unable to re-generate providers while updating dataset '{relationshipId}' for specification '{specification.Id}' job didn't complete successfully in time";
+                if (!jobCompletedSuccessfully)
+                {
+                    string errorMessage = $"Unable to re-generate providers while updating dataset '{relationshipId}' for specification '{specification.Id}' job didn't complete successfully in time";
 
-                _logger.Information(errorMessage);
+                    _logger.Information(errorMessage);
 
-                throw new RetriableException(errorMessage);
+                    throw new RetriableException(errorMessage);
+                }
             }
         }
 

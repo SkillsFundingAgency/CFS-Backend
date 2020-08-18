@@ -526,6 +526,62 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
+        public async Task ProcessDataset_GivenPayloadAndTableResultsWithSpecificationProviderSourceFDZButNotAggregateFields_SavesDatasetButDoesNotSaveAggregatesAndNotUpdatedScopedProviders()
+        {
+            GivenTheMessageProperties(("specification-id", SpecificationId), ("relationship-id", _relationshipId), ("jobId", "job1"),
+                ("user-id", UserId), ("user-name", Username));
+            AndTheMessageBody(NewDataset(_ => _.WithCurrent(NewDatasetVersion())
+                .WithDefinition(NewReference(rf => rf.WithId(DataDefintionId)))
+                .WithHistory(NewDatasetVersion())));
+            AndTheJobDetails("job1", JobConstants.DefinitionNames.MapDatasetJob);
+            AndTheSpecification(SpecificationId, NewSpecification(_ =>
+            _.WithId(SpecificationId)
+            .WithProviderVersionId(ProviderVersionId)
+            .WithProviderSource(ProviderSource.FDZ)
+            ));
+            AndTheRelationship(_relationshipId, NewRelationship(_ => _.WithDatasetDefinition(NewReference(
+                    rf => rf.WithId(DataDefintionId)))
+                .WithDatasetVersion(NewRelationshipVersion())));
+
+            DatasetDefinition datasetDefinition = NewDatasetDefinition(_ => _.WithTableDefinitions(NewTableDefinition(tb =>
+                tb.WithFieldDefinitions(NewFieldDefinition(fld => fld.WithName(Upin)
+                    .WithIdentifierFieldType(IdentifierFieldType.UPIN))))));
+
+            AndTheDatasetDefinitions(datasetDefinition);
+            AndTheBuildProject(SpecificationId, NewBuildProject(_ => _.WithRelationships(NewRelationshipSummary(summary =>
+                summary.WithRelationship(NewReference(rf => rf.WithId(_relationshipId)
+                    .WithName(_relationshipName)))
+                    .WithDatasetDefinition(NewDatasetDefinition())))));
+            AndThePopulationOfProviderSummeriesForSpecification(false, false);
+
+            ICloudBlob cloudBlob = NewCloudBlob();
+
+            AndTheCloudBlob(BlobPath, cloudBlob);
+
+            Stream tableStream = NewStream(new byte[1]);
+
+            AndTheCloudStream(cloudBlob, tableStream);
+
+            TableLoadResult tableLoadResult = NewTableLoadResult(_ => _.WithRows(NewRowLoadResult(
+                row => row.WithFields((Upin, _upin)))));
+
+            AndTheCachedTableLoadResults(_datasetCacheKey, tableLoadResult);
+            AndTheTableLoadResultsFromExcel(tableStream, datasetDefinition, tableLoadResult);
+            AndTheCoreProviderData(NewApiProviderSummary(_ => _.WithId(_providerId)
+                .WithUPIN(_upin)));
+            AndTheCoreProviderVersion(NewApiProviderVersion(_ => _.WithProviders(new ApiProvider[] { new ApiProvider { ProviderId = _providerId, UPIN = _upin } })));
+
+            await WhenTheProcessDatasetMessageIsProcessed();
+
+            await ThenTheProviderSourceDatasetWasUpdated();
+            await AndTheProviderDatasetVersionKeyWasInvalidated();
+            await AndNoAggregationsWereCreated();
+            await AndTheCachedAggregationsWereInvalidated();
+            await AndTheCachedCalculationResultsWereInvalidated();
+            await AndTheScopedProvidersWereNotUpdated();
+        }
+
+        [TestMethod]
         [DataRow(true, 1)]
         [DataRow(false, 0)]
         public async Task ProcessDataset_GivenPayloadAndTableResultsWithProviderIdsWithProviderMissing_SavesDataset(bool cleanup, int operations)
@@ -2080,6 +2136,13 @@ namespace CalculateFunding.Services.Datasets.Services
         {
             await _providersApiClient
                 .Received(1)
+                .RegenerateProviderSummariesForSpecification(SpecificationId);
+        }
+
+        private async Task AndTheScopedProvidersWereNotUpdated()
+        {
+            await _providersApiClient
+                .Received(0)
                 .RegenerateProviderSummariesForSpecification(SpecificationId);
         }
 

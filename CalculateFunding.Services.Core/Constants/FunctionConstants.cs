@@ -23,5 +23,7 @@
         public const string PopulateScopedProvidersPoisoned = "on-populate-scopedproviders-event-poisoned";
 
         public const string ProviderSnapshotDataLoad = "on-provider-snapshot-data-load";
+
+        public const string MapFdzDatasets = "on-map-fdz-datasets";
     }
 }
