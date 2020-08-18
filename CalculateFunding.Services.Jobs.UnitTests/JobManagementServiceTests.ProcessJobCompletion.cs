@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Caching;
 using CalculateFunding.Models.Jobs;
+using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Jobs.Interfaces;
 using FluentAssertions;
 using Microsoft.Azure.ServiceBus;
@@ -224,6 +226,67 @@ namespace CalculateFunding.Services.Jobs.Services
             await jobRepository
                 .Received(1)
                 .UpdateJob(Arg.Is<Job>(j => j.Id == parentJobId && j.RunningStatus == RunningStatus.Completed && j.Completed.HasValue && j.Outcome == "All child jobs completed"));
+        }
+
+        [TestMethod]
+        public async Task ProcessJobCompletion_JobHasParentOnlyOneChild_ThenCacheUpdated()
+        {
+            // Arrange
+            string parentJobId = "parent123";
+            string jobId = "child123";
+
+            Job job = new Job { Id = jobId, ParentJobId = parentJobId, CompletionStatus = CompletionStatus.Succeeded, RunningStatus = RunningStatus.Completed };
+
+            Job parentJob = new Job { Id = parentJobId, RunningStatus = RunningStatus.InProgress };
+
+            ILogger logger = CreateLogger();
+            IJobRepository jobRepository = CreateJobRepository();
+            jobRepository
+                .GetJobById(Arg.Is(jobId))
+                .Returns(job);
+
+            jobRepository
+                .GetJobById(Arg.Is(parentJobId))
+                .Returns(parentJob);
+
+            jobRepository
+                .GetChildJobsForParent(Arg.Is(parentJobId))
+                .Returns(new List<Job> { job });
+
+            string cacheKey = $"{CacheKeys.LatestJobs}:{job.SpecificationId}:{job.JobDefinitionId}";
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+            cacheProvider
+                .SetAsync(cacheKey, Arg.Is<Job>(_ => _.Id == job.Id))
+                .Returns(Task.CompletedTask);
+
+            JobManagementService jobManagementService = CreateJobManagementService(
+                jobRepository, 
+                logger: logger,
+                cacheProvider: cacheProvider);
+
+            JobNotification jobNotification = new JobNotification { JobId = jobId, RunningStatus = RunningStatus.Completed };
+
+            string json = JsonConvert.SerializeObject(jobNotification);
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
+            message.UserProperties["jobId"] = jobId;
+
+            // Act
+            await jobManagementService.ProcessJobNotification(message);
+
+            // Assert
+            await jobRepository
+                .Received(1)
+                .UpdateJob(Arg.Is<Job>(j => 
+                    j.Id == parentJobId && 
+                    j.RunningStatus == RunningStatus.Completed && 
+                    j.Completed.HasValue && 
+                    j.Outcome == "All child jobs completed"));
+
+            await
+                cacheProvider
+                .Received(1)
+                .SetAsync(cacheKey, Arg.Is<Job>(_ => _.Id == job.Id));
         }
 
         [TestMethod]

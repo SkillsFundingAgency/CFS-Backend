@@ -1,6 +1,6 @@
-﻿using CalculateFunding.Common.ServiceBus.Interfaces;
+﻿using CalculateFunding.Common.Caching;
+using CalculateFunding.Common.ServiceBus.Interfaces;
 using CalculateFunding.Models.Jobs;
-using CalculateFunding.Services.Jobs;
 using CalculateFunding.Services.Jobs.Interfaces;
 using FluentValidation;
 using FluentValidation.Results;
@@ -14,6 +14,7 @@ namespace CalculateFunding.Services.Jobs.Services
     public partial class JobManagementServiceTests
     {
         const string jobDefinitionId = "JobDefinition";
+        const string jobDefinitionIdTwo = "JobDefinitionTwo";
 
         public JobManagementService CreateJobManagementService(
             IJobRepository jobRepository = null,
@@ -22,7 +23,8 @@ namespace CalculateFunding.Services.Jobs.Services
             IJobsResiliencePolicies resiliencePolicies = null,
             ILogger logger = null,
             IValidator<CreateJobValidationModel> createJobValidator = null,
-            IMessengerService messengerService = null)
+            IMessengerService messengerService = null,
+            ICacheProvider cacheProvider = null)
         {
             return new JobManagementService(
                     jobRepository ?? CreateJobRepository(),
@@ -31,11 +33,16 @@ namespace CalculateFunding.Services.Jobs.Services
                     resiliencePolicies ?? CreateResiliencePolicies(),
                     logger ?? CreateLogger(),
                     createJobValidator ?? CreateNewCreateJobValidator(),
-                    messengerService ?? CreateMessengerService()
+                    messengerService ?? CreateMessengerService(),
+                    cacheProvider ?? CreateCacheProvider()
                 );
         }
 
-      
+        private ICacheProvider CreateCacheProvider()
+        {
+            return Substitute.For<ICacheProvider>();
+        }
+
         private IJobRepository CreateJobRepository()
         {
             return Substitute.For<IJobRepository>();

@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using CalculateFunding.Common.Caching;
 using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Services.Jobs.Interfaces;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -9,9 +10,21 @@ namespace CalculateFunding.Services.Jobs
     [TestClass]
     public partial class JobServiceTests
     {
-        public IJobService CreateJobService(IJobRepository jobRepository = null, IMapper mapper = null)
+        public IJobService CreateJobService(
+            IJobRepository jobRepository = null, 
+            IMapper mapper = null,
+            ICacheProvider cacheProvider = null)
         {
-            return new JobService(jobRepository ?? CreateJobRepository(), mapper ?? CreateMapper(), JobsResilienceTestHelper.GenerateTestPolicies());
+            return new JobService(
+                jobRepository ?? CreateJobRepository(), 
+                mapper ?? CreateMapper(), 
+                JobsResilienceTestHelper.GenerateTestPolicies(),
+                cacheProvider ?? CreateCacheProvider());
+        }
+
+        private ICacheProvider CreateCacheProvider()
+        {
+            return Substitute.For<ICacheProvider>();
         }
 
         private IJobRepository CreateJobRepository()

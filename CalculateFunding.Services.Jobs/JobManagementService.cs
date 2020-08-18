@@ -4,12 +4,14 @@ using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.ServiceBus.Interfaces;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Jobs;
 using CalculateFunding.Models.Messages;
+using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Jobs.Interfaces;
@@ -31,9 +33,11 @@ namespace CalculateFunding.Services.Jobs
         private readonly AsyncPolicy _jobsRepositoryPolicy;
         private readonly AsyncPolicy _jobDefinitionsRepositoryPolicy;
         private readonly AsyncPolicy _messengerServicePolicy;
+        private readonly AsyncPolicy _cacheProviderPolicy;
         private readonly ILogger _logger;
         private readonly IValidator<CreateJobValidationModel> _createJobValidator;
         private readonly IMessengerService _messengerService;
+        private readonly ICacheProvider _cacheProvider;
         private readonly static SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1, 1);
 
         public JobManagementService(
@@ -43,7 +47,8 @@ namespace CalculateFunding.Services.Jobs
             IJobsResiliencePolicies resiliencePolicies,
             ILogger logger,
             IValidator<CreateJobValidationModel> createJobValidator,
-            IMessengerService messengerService)
+            IMessengerService messengerService,
+            ICacheProvider cacheProvider)
         {
             Guard.ArgumentNotNull(jobRepository, nameof(jobRepository));
             Guard.ArgumentNotNull(notificationService, nameof(notificationService));
@@ -54,6 +59,8 @@ namespace CalculateFunding.Services.Jobs
             Guard.ArgumentNotNull(resiliencePolicies?.JobRepository, nameof(resiliencePolicies.JobRepository));
             Guard.ArgumentNotNull(resiliencePolicies?.JobDefinitionsRepository, nameof(resiliencePolicies.JobDefinitionsRepository));
             Guard.ArgumentNotNull(resiliencePolicies?.MessengerServicePolicy, nameof(resiliencePolicies.MessengerServicePolicy));
+            Guard.ArgumentNotNull(resiliencePolicies?.CacheProviderPolicy, nameof(resiliencePolicies.CacheProviderPolicy));
+            Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
 
             _jobRepository = jobRepository;
             _notificationService = notificationService;
@@ -63,7 +70,9 @@ namespace CalculateFunding.Services.Jobs
             _logger = logger;
             _createJobValidator = createJobValidator;
             _messengerService = messengerService;
+            _cacheProvider = cacheProvider;
             _messengerServicePolicy = resiliencePolicies.MessengerServicePolicy;
+            _cacheProviderPolicy = resiliencePolicies.CacheProviderPolicy;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -159,7 +168,22 @@ namespace CalculateFunding.Services.Jobs
 
             await QueueNotifications(createdJobs, jobDefinitionsToSupersede);
 
+            await CacheJobs(createdJobs);
+
             return createdJobs;
+        }
+
+        private async Task CacheJobs(IList<Job> jobs)
+        {
+            IEnumerable<Job> latestJobs = jobs
+                .GroupBy(_ => _.JobDefinitionId)
+                .Select(group => group.OrderByDescending(_ => _.Created).FirstOrDefault());
+
+            foreach (Job latestJob in latestJobs)
+            {
+                string cacheKey = $"{CacheKeys.LatestJobs}:{latestJob.SpecificationId}:{latestJob.JobDefinitionId}";
+                await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync(cacheKey, latestJob));
+            }
         }
 
         private async Task<Job> JobFromJobCreateModel(JobCreateModel job, Reference user)
@@ -372,6 +396,9 @@ namespace CalculateFunding.Services.Jobs
 
                         try
                         {
+                            string cacheKey = $"{CacheKeys.LatestJobs}:{job.SpecificationId}:{job.JobDefinitionId}";
+                            await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync(cacheKey, job));
+
                             Job parentJob = await _jobsRepositoryPolicy.ExecuteAsync(() => _jobRepository.GetJobById(job.ParentJobId));
 
                             IEnumerable<JobDefinition> jobDefinitions = await _jobDefinitionsService.GetAllJobDefinitions();

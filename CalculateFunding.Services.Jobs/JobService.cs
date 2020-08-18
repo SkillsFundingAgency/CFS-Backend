@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
+using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Jobs;
+using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Jobs.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -17,28 +19,41 @@ namespace CalculateFunding.Services.Jobs
         private readonly IJobRepository _jobRepository;
         private readonly IMapper _mapper;
         private readonly Polly.AsyncPolicy _jobsRepositoryPolicy;
+        private readonly ICacheProvider _cacheProvider;
+        private readonly Polly.AsyncPolicy _cacheProviderPolicy;
 
-        public JobService(IJobRepository jobRepository, IMapper mapper, IJobsResiliencePolicies resiliencePolicies)
+        public JobService(
+            IJobRepository jobRepository, 
+            IMapper mapper, 
+            IJobsResiliencePolicies resiliencePolicies,
+            ICacheProvider cacheProvider)
         {
             Guard.ArgumentNotNull(jobRepository, nameof(jobRepository));
             Guard.ArgumentNotNull(mapper, nameof(mapper));
             Guard.ArgumentNotNull(resiliencePolicies, nameof(resiliencePolicies));
             Guard.ArgumentNotNull(resiliencePolicies?.JobRepository, nameof(resiliencePolicies.JobRepository));
-            
+            Guard.ArgumentNotNull(resiliencePolicies?.CacheProviderPolicy, nameof(resiliencePolicies.CacheProviderPolicy));
+            Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
+
             _jobRepository = jobRepository;
             _mapper = mapper;
             _jobsRepositoryPolicy = resiliencePolicies.JobRepository;
+            _cacheProviderPolicy = resiliencePolicies.CacheProviderPolicy;
+            _cacheProvider = cacheProvider;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
         {
             ServiceHealth jobsRepoHealth = await ((IHealthChecker)_jobRepository).IsHealthOk();
+            (bool Ok, string Message) cacheRepoHealth = await _cacheProvider.IsHealthOk();
 
             ServiceHealth health = new ServiceHealth()
             {
                 Name = nameof(JobManagementService)
             };
             health.Dependencies.AddRange(jobsRepoHealth.Dependencies);
+            health.Dependencies.Add(new DependencyHealth { HealthOk = cacheRepoHealth.Ok, DependencyName = cacheRepoHealth.GetType().GetFriendlyName(), Message = cacheRepoHealth.Message });
+
             return health;
         }
 
@@ -152,22 +167,61 @@ namespace CalculateFunding.Services.Jobs
         {
             Guard.ArgumentNotNull(specificationId, nameof(specificationId));
 
-            string[] jobDefinitionIds = null;
+            Job latestJob = null;
+            List<string> cachedJobDefinitionIds = new List<string>();
 
-            if (!string.IsNullOrEmpty(jobTypes))
+            string[] jobDefinitionIds =
+                !string.IsNullOrEmpty(jobTypes) ?
+                jobTypes.Split(new[] { "," }, StringSplitOptions.RemoveEmptyEntries)
+                : Array.Empty<string>();
+
+            if (jobDefinitionIds != null)
             {
-                jobDefinitionIds = jobTypes.Split(new[] { "," }, StringSplitOptions.RemoveEmptyEntries);
+                foreach (var jobDefinitionId in jobDefinitionIds)
+                {
+                    string cacheKey = $"{CacheKeys.LatestJobs}:{specificationId}:{jobDefinitionId}";
+
+                    Job job = await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.GetAsync<Job>(cacheKey));
+
+                    if(job != null)
+                    {
+                        cachedJobDefinitionIds.Add(jobDefinitionId);
+
+                        if (latestJob == null || job.Created > latestJob.Created)
+                        {
+                            latestJob = job;
+                        }
+                    }
+                }
             }
 
-            Job job = await _jobRepository.GetLatestJobBySpecificationId(specificationId, jobDefinitionIds);
-  
-            if (job == null)
+            IEnumerable<string> uncachedJobDefinitionsIds = jobDefinitionIds.Except(cachedJobDefinitionIds.ToArray());
+
+            Job retrievedJob = null;
+
+            if (uncachedJobDefinitionsIds.Any() || !jobDefinitionIds.Any())
+            {
+                retrievedJob = await _jobRepository.GetLatestJobBySpecificationId(specificationId, uncachedJobDefinitionsIds);
+
+                if (retrievedJob != null)
+                {
+                    string cacheKey = $"{CacheKeys.LatestJobs}:{specificationId}:{retrievedJob.JobDefinitionId}";
+                    await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync(cacheKey, retrievedJob));
+                }
+            }
+
+            if (latestJob == null || retrievedJob?.Created > latestJob.Created)
+            {
+                latestJob = retrievedJob;
+            }
+
+            if (latestJob == null)
             {
                 return new NoContentResult();
             }
             else
             {
-                return new OkObjectResult(_mapper.Map<JobSummary>(job));
+                return new OkObjectResult(_mapper.Map<JobSummary>(latestJob));
             }
         }
 

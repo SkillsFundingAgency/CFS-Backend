@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Caching;
 using CalculateFunding.Models.Jobs;
+using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Jobs.Interfaces;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
@@ -157,7 +159,7 @@ namespace CalculateFunding.Services.Jobs
 
             IJobRepository jobRepository = CreateJobRepository();
             jobRepository
-                .GetLatestJobBySpecificationId(Arg.Is(specificationId))
+                .GetLatestJobBySpecificationId(Arg.Is(specificationId), Arg.Is<IEnumerable<string>>(_ => _ == null || !_.Any()))
                 .Returns(
                     new Job
                     {
@@ -189,6 +191,130 @@ namespace CalculateFunding.Services.Jobs
                 .Subject;
 
             summary.JobId.Should().Be("job1");
+        }
+
+        [TestMethod]
+        public async Task GetLatestJob_WhenOnlyOneJobForSpecification_AndExistsInCache_ReturnJobFromCache()
+        {
+            // Arrange
+            string specificationId = "spec123";
+            string jobType = "jobType1";
+
+            Job job = new Job
+            {
+                Created = DateTimeOffset.UtcNow.AddHours(-1),
+                Id = "job1",
+                InvokerUserDisplayName = "test",
+                InvokerUserId = "test1",
+                JobDefinitionId = jobType,
+                LastUpdated = DateTimeOffset.UtcNow.AddHours(-1),
+                RunningStatus = RunningStatus.InProgress,
+                SpecificationId = specificationId,
+                Trigger = new Trigger { EntityId = "calc1", EntityType = "Calculation", Message = "Calc run started" }
+            };
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+
+            string cacheKey = $"{CacheKeys.LatestJobs}:{specificationId}:{jobType}";
+            cacheProvider
+                .GetAsync<Job>(cacheKey)
+                .Returns(job);
+
+            IJobService service = CreateJobService(
+                cacheProvider: cacheProvider);
+
+            // Act
+            IActionResult result = await service.GetLatestJob(specificationId, jobType);
+
+            // Assert
+            OkObjectResult okResult = result
+                .Should()
+                .BeOfType<OkObjectResult>()
+                .Subject;
+
+            JobSummary summary = okResult.Value
+                .Should()
+                .BeOfType<JobSummary>()
+                .Subject;
+
+            summary.JobId.Should().Be("job1");
+        }
+
+        [TestMethod]
+        public async Task GetLatestJob_WhenTwoJobsForSpecification_AndOneExistsInCache_AndOneDoesNotExistsInCache_ReturnLatestJob()
+        {
+            // Arrange
+            string specificationId = "spec123";
+            string jobType = "jobType1";
+            string jobTypeTwo = "jobType2";
+
+            Job job = new Job
+            {
+                Created = DateTimeOffset.UtcNow.AddHours(-1),
+                Id = "job1",
+                InvokerUserDisplayName = "test",
+                InvokerUserId = "test1",
+                JobDefinitionId = jobType,
+                LastUpdated = DateTimeOffset.UtcNow.AddHours(-1),
+                RunningStatus = RunningStatus.InProgress,
+                SpecificationId = specificationId,
+                Trigger = new Trigger { EntityId = "calc1", EntityType = "Calculation", Message = "Calc run started" }
+            };
+
+            Job jobTwo = new Job
+            {
+                Created = DateTimeOffset.UtcNow.AddMinutes(-1),
+                Id = "job2",
+                InvokerUserDisplayName = "test",
+                InvokerUserId = "test1",
+                JobDefinitionId = jobTypeTwo,
+                LastUpdated = DateTimeOffset.UtcNow.AddHours(-1),
+                RunningStatus = RunningStatus.InProgress,
+                SpecificationId = specificationId,
+                Trigger = new Trigger { EntityId = "calc1", EntityType = "Calculation", Message = "Calc run started" }
+            };
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+
+            string cacheKey = $"{CacheKeys.LatestJobs}:{specificationId}:{jobType}";
+            cacheProvider
+                .GetAsync<Job>(cacheKey)
+                .Returns(job);
+
+            string cacheKeyTwo = $"{CacheKeys.LatestJobs}:{specificationId}:{jobTypeTwo}";
+            cacheProvider
+                .SetAsync(jobTypeTwo, Arg.Is<Job>(_ => _.JobDefinitionId == jobTypeTwo))
+                .Returns(Task.CompletedTask);
+
+
+            IJobRepository jobRepository = CreateJobRepository();
+            jobRepository
+                .GetLatestJobBySpecificationId(specificationId, Arg.Is<IEnumerable<string>>(_ => _.SingleOrDefault() == jobTypeTwo))
+                .Returns(Task.FromResult(jobTwo));
+
+            IJobService service = CreateJobService(
+                jobRepository: jobRepository,
+                cacheProvider: cacheProvider);
+
+            // Act
+            IActionResult result = await service.GetLatestJob(specificationId, $"{jobType},{jobTypeTwo}");
+
+            // Assert
+            OkObjectResult okResult = result
+                .Should()
+                .BeOfType<OkObjectResult>()
+                .Subject;
+
+            JobSummary summary = okResult.Value
+                .Should()
+                .BeOfType<JobSummary>()
+                .Subject;
+
+            summary.JobId.Should().Be("job2");
+
+            await cacheProvider
+                .Received(1)
+                .SetAsync(cacheKeyTwo, Arg.Is<Job>(_ => _.JobDefinitionId == jobTypeTwo));
         }
 
         [TestMethod]

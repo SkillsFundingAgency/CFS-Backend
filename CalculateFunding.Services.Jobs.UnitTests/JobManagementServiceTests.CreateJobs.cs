@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.ServiceBus.Interfaces;
 using CalculateFunding.Models.Jobs;
+using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Jobs.Interfaces;
 using CalculateFunding.Tests.Common.Helpers;
@@ -344,7 +346,10 @@ namespace CalculateFunding.Services.Jobs.Services
 
             ILogger logger = CreateLogger();
 
-            JobManagementService jobManagementService = CreateJobManagementService(jobDefinitionsService: jobDefinitionsService, jobRepository: jobRepository, logger: logger);
+            JobManagementService jobManagementService = CreateJobManagementService(
+                jobDefinitionsService: jobDefinitionsService, 
+                jobRepository: jobRepository, 
+                logger: logger);
 
             //Act
             IActionResult actionResult = await jobManagementService.CreateJobs(jobs, null);
@@ -357,6 +362,126 @@ namespace CalculateFunding.Services.Jobs.Services
                 .Value
                 .Should()
                 .NotBeNull();
+        }
+
+        [TestMethod]
+        public async Task CreateJobs_GivenCreateJobReturnsJob_ReturnsOKObjectResultAndCacheJobs()
+        {
+            //Arrange
+            IEnumerable<JobCreateModel> jobs = new[]
+            {
+                new JobCreateModel
+                {
+                    JobDefinitionId = jobDefinitionId,
+                    Trigger = new Trigger(),
+                    InvokerUserId = "authorId",
+                    InvokerUserDisplayName = "authorname",
+                    Properties = new Dictionary<string, string>
+                    {
+                        { "user-id", "authorId" },
+                        { "user-name", "authorname" }
+                    }
+                },
+                new JobCreateModel
+                {
+                    JobDefinitionId = jobDefinitionIdTwo,
+                    Trigger = new Trigger(),
+                    InvokerUserId = "authorId",
+                    InvokerUserDisplayName = "authorname",
+                    Properties = new Dictionary<string, string>
+                    {
+                        { "user-id", "authorId" },
+                        { "user-name", "authorname" }
+                    }
+                },
+                new JobCreateModel
+                {
+                    JobDefinitionId = jobDefinitionIdTwo,
+                    Trigger = new Trigger(),
+                    InvokerUserId = "authorId",
+                    InvokerUserDisplayName = "authorname",
+                    Properties = new Dictionary<string, string>
+                    {
+                        { "user-id", "authorId" },
+                        { "user-name", "authorname" }
+                    }
+                },
+            };
+
+            IEnumerable<JobDefinition> jobDefinitions = new[]
+            {
+                new JobDefinition
+                {
+                    Id = jobDefinitionId
+                },
+                new JobDefinition
+                {
+                    Id = jobDefinitionIdTwo
+                }
+            };
+
+            Job job = new Job
+            {
+                JobDefinitionId = jobDefinitionId
+            };
+
+            Job jobTwo = new Job
+            {
+                JobDefinitionId = jobDefinitionIdTwo
+            };
+
+            IJobDefinitionsService jobDefinitionsService = CreateJobDefinitionsService();
+            jobDefinitionsService
+                .GetAllJobDefinitions()
+                .Returns(jobDefinitions);
+
+            IJobRepository jobRepository = CreateJobRepository();
+            jobRepository
+                .CreateJob(Arg.Is<Job>(_ => _.JobDefinitionId == jobDefinitionIdTwo))
+                .Returns(jobTwo);
+
+            jobRepository
+                .CreateJob(Arg.Is<Job>(_ => _.JobDefinitionId == jobDefinitionId))
+                .Returns(job);
+
+            ILogger logger = CreateLogger();
+            ICacheProvider cacheProvider = CreateCacheProvider();
+
+            string cacheKey = $"{CacheKeys.LatestJobs}:{job.SpecificationId}:{job.JobDefinitionId}";
+            cacheProvider
+                .SetAsync(cacheKey, Arg.Is<Job>(_ => _.JobDefinitionId == jobDefinitionId))
+                .Returns(Task.CompletedTask);
+
+            string cacheKeyTwo = $"{CacheKeys.LatestJobs}:{jobTwo.SpecificationId}:{jobTwo.JobDefinitionId}";
+            cacheProvider
+                .SetAsync(cacheKeyTwo, Arg.Is<Job>(_ => _.JobDefinitionId == jobDefinitionIdTwo))
+                .Returns(Task.CompletedTask);
+
+            JobManagementService jobManagementService = CreateJobManagementService(
+                jobDefinitionsService: jobDefinitionsService,
+                jobRepository: jobRepository,
+                logger: logger,
+                cacheProvider: cacheProvider);
+
+            //Act
+            IActionResult actionResult = await jobManagementService.CreateJobs(jobs, null);
+
+            //Assert
+            actionResult
+                .Should()
+                .BeOfType<OkObjectResult>()
+                .Which
+                .Value
+                .Should()
+                .NotBeNull();
+
+            await cacheProvider
+                .Received(1)
+                .SetAsync(cacheKey, Arg.Is<Job>(_ => _.JobDefinitionId == jobDefinitionId));
+
+            await cacheProvider
+                .Received(1)
+                .SetAsync(cacheKeyTwo, Arg.Is<Job>(_ => _.JobDefinitionId == jobDefinitionIdTwo));
         }
 
         [TestMethod]
@@ -1789,7 +1914,7 @@ namespace CalculateFunding.Services.Jobs.Services
         }
 
         [TestMethod]
-        public async Task CreateJobs_GivenCreateJobForQueueingOnTopicButThrowsException_LogsException()
+        public void CreateJobs_GivenCreateJobForQueueingOnTopicButThrowsException_LogsException()
         {
             //Arrange
             string jobId = Guid.NewGuid().ToString();
