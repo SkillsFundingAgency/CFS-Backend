@@ -11,6 +11,7 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Filtering;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Publishing.Interfaces;
+using CalculateFunding.Services.Publishing.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Search.Models;
 using Serilog;
@@ -25,6 +26,11 @@ namespace CalculateFunding.Services.Publishing
             new FacetFilterType("providerSubType"),
             new FacetFilterType("localAuthority"),
             new FacetFilterType("fundingStatus")
+        };
+
+        private static readonly string[] IntegerFields =
+        {
+            "fundingValue"
         };
 
         private readonly ILogger _logger;
@@ -81,6 +87,50 @@ namespace CalculateFunding.Services.Publishing
             health.Dependencies.Add(new DependencyHealth { HealthOk = Ok, DependencyName = SearchRepository.GetType().GetFriendlyName(), Message = Message });
 
             return health;
+        }
+
+        public async Task<IActionResult> SearchPublishedProviderIds(PublishedProviderIdSearchModel searchModel)
+        {
+            if (searchModel == null)
+            {
+                _logger.Error("A null or invalid search model was provided for searching published provider ids");
+
+                return new BadRequestObjectResult("An invalid search model was provided");
+            }
+
+            try
+            {
+                List<string> searchFields = searchModel.SearchFields?.ToList();
+
+                IDictionary<string, string[]> searchModelDictionary = searchModel.Filters;
+                List<Filter> filters = searchModelDictionary
+                    .Select(keyValueFilterPair => new Filter(
+                        keyValueFilterPair.Key,
+                        keyValueFilterPair.Value,
+                        IntegerFields.Contains(keyValueFilterPair.Key),
+                        "eq"))
+                    .ToList();
+                FilterHelper filterHelper = new FilterHelper(filters);
+
+                SearchResults<PublishedProviderIndex> searchResults = await Task.Run(() =>
+                {
+                    return SearchRepository.Search(searchModel.SearchTerm, new SearchParameters
+                    {
+                        SearchFields = searchFields,
+                        Filter = filterHelper.BuildAndFilterQuery()
+                    });
+                });
+
+                IEnumerable<string> results = searchResults.Results.Select(_ => _.Result.Id).ToList();
+
+                return new OkObjectResult(results);
+            }
+            catch (FailedToQuerySearchException exception)
+            {
+                _logger.Error(exception, $"Failed to query search with term: {searchModel.SearchTerm}");
+
+                return new InternalServerErrorResult($"Failed to query search, with exception: {exception.Message}");
+            }
         }
 
         public async Task<IActionResult> SearchPublishedProviders(SearchModel searchModel)

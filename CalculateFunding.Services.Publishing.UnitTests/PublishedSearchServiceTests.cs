@@ -6,6 +6,7 @@ using CalculateFunding.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Repositories.Common.Search.Results;
+using CalculateFunding.Services.Publishing.Models;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
@@ -199,6 +200,76 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .BeEquivalentTo(matchingTwoWordFacetName);
         }
 
+        [TestMethod]
+        public async Task GetsSearchPublishedProviderIds()
+        {
+            string providerIdOne = new RandomString();
+            string providerIdTwo = new RandomString();
+
+            string searchTerm = new RandomString();
+
+            PublishedProviderIdSearchModel searchModel = new PublishedProviderIdSearchModel
+            {
+                SearchTerm = searchTerm
+            };
+
+            SearchResults<PublishedProviderIndex> searchResults = new SearchResults<PublishedProviderIndex>
+            {
+                Results = new List<CalculateFunding.Repositories.Common.Search.SearchResult<PublishedProviderIndex>>
+                {
+                    new CalculateFunding.Repositories.Common.Search.SearchResult<PublishedProviderIndex>
+                    {
+                        Result = new PublishedProviderIndex
+                        {
+                            Id = providerIdOne
+                        }
+                    },
+                    new CalculateFunding.Repositories.Common.Search.SearchResult<PublishedProviderIndex>
+                    {
+                        Result = new PublishedProviderIndex
+                        {
+                            Id = providerIdTwo
+                        }
+                    }
+                }
+            };
+
+            AndTheSearchResults(new SearchModel { SearchTerm = searchTerm }, searchResults);
+
+            IActionResult result = await WhenSearchPublishedProviderIdsIsMade(searchModel);
+
+            result
+                .Should()
+                .BeOfType<OkObjectResult>()
+                .Should()
+                .NotBeNull();
+
+            OkObjectResult okObjectResult = result as OkObjectResult;
+
+            okObjectResult
+                .Value
+                .Should()
+                .NotBeNull()
+                .And
+                .BeOfType<List<string>>();
+
+            List<string> publishedProviderIds = okObjectResult.Value as List<string>;
+
+            publishedProviderIds
+                .Should()
+                .HaveCount(2);
+
+            publishedProviderIds
+                .First()
+                .Should()
+                .BeEquivalentTo(providerIdOne);
+
+            publishedProviderIds
+                .Last()
+                .Should()
+                .BeEquivalentTo(providerIdTwo);
+        }
+
         private SearchModel NewSearchModel(Action<SearchModelBuilder> setUp = null)
         {
             SearchModelBuilder searchModelBuilder = new SearchModelBuilder();
@@ -221,6 +292,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private async Task<IActionResult> WhenSearchLocalAuthorityIsMade(string searchText, string fundingStreamId = null, string fundingPeriodId = null)
         {
             return await _service.SearchPublishedProviderLocalAuthorities(searchText, fundingStreamId, fundingPeriodId);
+        }
+
+        private async Task<IActionResult> WhenSearchPublishedProviderIdsIsMade(
+            PublishedProviderIdSearchModel publishedProviderIdSearchModel)
+        {
+            return await _service.SearchPublishedProviderIds(publishedProviderIdSearchModel);
         }
 
         private void ThenTheErrorWasLogged(string error)

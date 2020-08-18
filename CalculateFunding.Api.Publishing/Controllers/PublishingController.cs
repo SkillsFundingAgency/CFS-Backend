@@ -208,6 +208,14 @@ namespace CalculateFunding.Api.Publishing.Controllers
             return await _publishedSearchService.SearchPublishedProviders(searchModel);
         }
 
+        [Route("api/publishedprovider/publishedprovider-id-search")]
+        [HttpPost]
+        [ProducesResponseType(200, Type = typeof(IEnumerable<string>))]
+        public async Task<IActionResult> SearchPublishedProviderIds([FromBody] PublishedProviderIdSearchModel searchModel)
+        {
+            return await _publishedSearchService.SearchPublishedProviderIds(searchModel);
+        }
+
         [HttpGet("api/publishedprovider/reindex")]
         [ProducesResponseType(204)]
         public async Task<IActionResult> ReIndex()
