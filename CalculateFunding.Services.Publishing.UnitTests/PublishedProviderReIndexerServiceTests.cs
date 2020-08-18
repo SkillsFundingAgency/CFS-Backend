@@ -25,6 +25,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private IPublishedFundingRepository _publishedFundingRepository;
         private IJobManagement _jobManagement;
         private const string JobId = "jobId";
+        private const string SpecificationId = "specification-id";
 
         [TestInitialize]
         public void SetUp()
@@ -45,7 +46,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         }
 
         [TestMethod]
-        public async Task DeletesThenReIndexesAllPublishedProvidersIfJobCanBeProcessed()
+        public async Task ReIndexesAllPublishedProvidersIfJobCanBeProcessed()
         {
             Message message = new Message();
 
@@ -60,13 +61,35 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .Received(1)
                 .UpdateJobStatus(JobId, 0, 0, null, null);
 
-            await _searchRepository
+            await _publishedFundingRepository
                 .Received(1)
-                .DeleteIndex();
+                .AllPublishedProviderBatchProcessing(Arg.Any<Func<List<PublishedProvider>, Task>>(), Arg.Is(1000), null);
+
+            await _jobManagement
+                .Received(1)
+                .UpdateJobStatus(JobId, 0, 0, true, null);
+        }
+
+        [TestMethod]
+        public async Task ReIndexesAllSpecificationPublishedProvidersIfJobCanBeProcessed()
+        {
+            Message message = new Message();
+
+            message.UserProperties.Add("jobId", JobId);
+            message.UserProperties.Add("specification-id", SpecificationId);
+
+            _jobManagement.RetrieveJobAndCheckCanBeProcessed(JobId)
+                .Returns(NewJobViewModel());
+
+            await _service.Run(message);
+
+            await _jobManagement
+                .Received(1)
+                .UpdateJobStatus(JobId, 0, 0, null, null);
 
             await _publishedFundingRepository
                 .Received(1)
-                .AllPublishedProviderBatchProcessing(Arg.Any<Func<List<PublishedProvider>, Task>>(), Arg.Is(1000));
+                .AllPublishedProviderBatchProcessing(Arg.Any<Func<List<PublishedProvider>, Task>>(), Arg.Is(1000), Arg.Is(SpecificationId));
 
             await _jobManagement
                 .Received(1)

@@ -151,7 +151,7 @@ namespace CalculateFunding.Services.Publishing
             return new NoContentResult();
         }
 
-        public async Task<Job> CreateReIndexJob(Reference user, string correlationId)
+        public async Task<Job> CreateReIndexJob(Reference user, string correlationId, string specificationId = null)
         {
             try
             {
@@ -167,6 +167,14 @@ namespace CalculateFunding.Services.Publishing
                         EntityType = nameof(PublishedProviderIndex),
                     }
                 });
+
+                if (!string.IsNullOrWhiteSpace(specificationId))
+                {
+                    job.Properties = new Dictionary<string, string>
+                    {
+                        {"specification-id", specificationId}
+                    };
+                }
 
                 if (job != null)
                 {

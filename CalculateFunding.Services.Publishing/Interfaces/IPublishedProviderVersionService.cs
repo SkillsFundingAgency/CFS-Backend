@@ -13,6 +13,6 @@ namespace CalculateFunding.Services.Publishing.Interfaces
         
         Task<IActionResult> ReIndex(Reference user, string correlationId);
 
-        Task<Job> CreateReIndexJob(Reference user, string correlationId);
+        Task<Job> CreateReIndexJob(Reference user, string correlationId, string specificationId = null);
     }
 }

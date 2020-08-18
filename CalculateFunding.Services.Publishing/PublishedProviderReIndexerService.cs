@@ -63,6 +63,8 @@ namespace CalculateFunding.Services.Publishing
 
             Guard.IsNullOrWhiteSpace(jobId, nameof(jobId));
 
+            string specificationId = message.GetUserProperty<string>("specification-id");
+
             try
             {
                 await _jobManagement.RetrieveJobAndCheckCanBeProcessed(jobId);
@@ -78,8 +80,6 @@ namespace CalculateFunding.Services.Publishing
 
             // Update job to set status to processing
             await _jobManagement.UpdateJobStatus(jobId, 0, 0, null, null);
-
-            await _searchRepositoryResilience.ExecuteAsync(() => _searchRepository.DeleteIndex());
 
             await _publishedFundingResilience.ExecuteAsync(() => _publishedFundingRepository.AllPublishedProviderBatchProcessing(async providerVersions =>
             {
@@ -116,7 +116,8 @@ namespace CalculateFunding.Services.Publishing
                     throw new RetriableException(errorMessage);
                 }
             },
-            BatchSize));
+            BatchSize,
+            specificationId));
 
             _logger.Information($"Completing published provider reindex job. JobId='{jobId}'");
             await _jobManagement.UpdateJobStatus(jobId, 0, 0, true, null);

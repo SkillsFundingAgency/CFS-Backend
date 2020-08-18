@@ -880,7 +880,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
                 });
         }
 
-        public async Task AllPublishedProviderBatchProcessing(Func<List<PublishedProvider>, Task> persistIndexBatch, int batchSize)
+        public async Task AllPublishedProviderBatchProcessing(Func<List<PublishedProvider>, Task> persistIndexBatch, int batchSize, string specificationId)
         {
             CosmosDbQuery query = new CosmosDbQuery
             {
@@ -911,6 +911,15 @@ namespace CalculateFunding.Services.Publishing.Repositories
                                WHERE    c.documentType = 'PublishedProvider' 
                                AND      c.deleted = false"
             };
+
+            if (!string.IsNullOrWhiteSpace(specificationId))
+            {
+                query.QueryText += $"{query.QueryText} AND c.content.current.specificationId = @specificationId";
+                query.Parameters = new[]
+                {
+                    new CosmosDbQueryParameter("@specificationId", specificationId)
+                };
+            }
 
             await _repository.DocumentsBatchProcessingAsync(persistBatchToIndex: persistIndexBatch,
                 cosmosDbQuery: query,
