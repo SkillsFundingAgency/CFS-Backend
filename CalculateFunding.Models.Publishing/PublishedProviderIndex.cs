@@ -15,7 +15,7 @@ namespace CalculateFunding.Models.Publishing
         [IsFilterable, IsFacetable, IsRetrievable(true)]
         [JsonProperty("providerType")]
         public string ProviderType { get; set; }
-        
+
         [IsFilterable, IsFacetable, IsRetrievable(true)]
         [JsonProperty("providerSubType")]
         public string ProviderSubType { get; set; }
@@ -44,7 +44,7 @@ namespace CalculateFunding.Models.Publishing
         [JsonProperty("urn")]
         public string URN { get; set; }
 
-        [IsFilterable, IsSortable, IsRetrievable(true)]
+        [IsSortable, IsRetrievable(true)]
         [JsonProperty("fundingValue")]
         public double FundingValue { get; set; }
 
@@ -59,7 +59,7 @@ namespace CalculateFunding.Models.Publishing
         [IsFilterable, IsRetrievable(true)]
         [JsonProperty("fundingPeriodId")]
         public string FundingPeriodId { get; set; }
-        
+
         [IsFilterable, IsRetrievable(true)]
         [JsonProperty("hasErrors")]
         public bool HasErrors { get; set; }
