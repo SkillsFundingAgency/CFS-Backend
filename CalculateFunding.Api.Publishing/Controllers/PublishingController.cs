@@ -240,6 +240,30 @@ namespace CalculateFunding.Api.Publishing.Controllers
                 .GetProviderStatusCounts(specificationId, providerType, localAuthority, status);
         }
 
+        /// <summary>
+        ///     Get the funding total and count for providers in the supplied batch
+        ///     where they are ready for release
+        /// </summary>
+        /// <param name="providerIds">the provider ids making up the batch</param>
+        /// <param name="specificationId">the specification id to limit the published provider ids to</param>
+        /// <returns>PublishedProviderFundingCount</returns>
+        [HttpPost("api/specifications/{specificationId}/publishedproviders/publishingstatus-for-release")]
+        [ProducesResponseType(200, Type = typeof(PublishedProviderFundingCount))]
+        public async Task<IActionResult> GetProviderBatchForReleaseCount([FromBody] PublishedProviderIdsRequest providerIds, [FromRoute] string specificationId) =>
+            await _publishedProviderStatusService.GetProviderBatchCountForRelease(providerIds, specificationId);
+
+        /// <summary>
+        ///     Get the funding total and count for providers in the supplied batch
+        ///     where they are ready for approval
+        /// </summary>
+        /// <param name="providerIds">the provider ids making up the batch</param>
+        /// <param name="specificationId">the specification id to limit the published provider ids to</param>
+        /// <returns>PublishedProviderFundingCount</returns>
+        [HttpPost("api/specifications/{specificationId}/publishedproviders/publishingstatus-for-approval")]
+        [ProducesResponseType(200, Type = typeof(PublishedProviderFundingCount))]
+        public async Task<IActionResult> GetProviderBatchForApprovalCount([FromBody] PublishedProviderIdsRequest providerIds, [FromRoute] string specificationId) =>
+            await _publishedProviderStatusService.GetProviderBatchCountForApproval(providerIds, specificationId);
+
         [HttpGet("api/publishedproviders/{fundingStreamId}/{fundingPeriodId}/localauthorities")]
         [ProducesResponseType(200, Type = typeof(IEnumerable<string>))]
         public async Task<IActionResult> SearchPublishedProviderLocalAuthorities([FromQuery] string searchText, [FromRoute] string fundingStreamId, [FromRoute] string fundingPeriodId)

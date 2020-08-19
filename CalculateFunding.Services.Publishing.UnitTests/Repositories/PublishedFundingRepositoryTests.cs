@@ -1,13 +1,14 @@
 using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Models.Publishing;
-using CalculateFunding.Services.Core.Caching.FileSystem;
 using CalculateFunding.Services.Publishing.Interfaces;
+using CalculateFunding.Services.Publishing.Models;
 using CalculateFunding.Services.Publishing.Repositories;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
@@ -115,7 +116,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
             IEnumerable<string> groupingReasons = EnumerableFor(NewRandomString());
             IEnumerable<string> variationReasons = EnumerableFor(NewRandomString());
 
-            IEnumerable<PublishedFundingIndex> expectedResults = new PublishedFundingIndex[0];
             CosmosDbQuery query = new CosmosDbQuery();
 
             GivenTheCosmosDbCountQuery(fundingStreamIds,
@@ -175,6 +175,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
                 .DynamicQuery(query)
                 .Returns(expectedResults);
         }
+        
+        
 
         private int NewRandomNumber() => new RandomNumberBetween(1, 10000);
         
@@ -517,12 +519,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
         }
 
         [TestMethod]
-        public async Task QueryPublishedProviderShouldRetrievePublishedProvidersBySpecificationAndFunidngIds()
+        public async Task QueryPublishedProviderShouldRetrievePublishedProvidersBySpecificationAndFundingIds()
         {
             const string specificationId = "spec-1";
             IEnumerable<string> fundingIds = new[] { "fid1", "fid2" };
 
-            IEnumerable<PublishedProvider> publishedProviders = await WhenQueryPublishedProvider(specificationId, fundingIds);
+            await WhenQueryPublishedProvider(specificationId, fundingIds);
 
             string queryText = $@"SELECT 
                             c.content.released.fundingId,
@@ -553,6 +555,150 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
                 && HasArrayParameter(_, "@fundingIds", fundingIds)));
         }
 
+        [TestMethod]
+        public void GetPublishedProviderStatusCountGuardsAgainstMissingSpecificationId()
+        {
+            Func<Task<PublishedProviderFundingCount>> invocation = () => WhenThePublishedProviderStatusCountIsQueried(AsArray(NewRandomString()),
+                null,
+                NewRandomStatus());
+
+            invocation
+                .Should()
+                .Throw<ArgumentNullException>()
+                .Which
+                .ParamName
+                .Should()
+                .Be("specificationId");
+        }
+        
+        [TestMethod]
+        public void GetPublishedProviderStatusCountGuardsAgainstEmptyPublishedProviderIds()
+        {
+            Func<Task<PublishedProviderFundingCount>> invocation = () => WhenThePublishedProviderStatusCountIsQueried(AsArray<string>(),
+                NewRandomString(),
+                NewRandomStatus());
+
+            invocation
+                .Should()
+                .Throw<ArgumentNullException>()
+                .Which
+                .ParamName
+                .Should()
+                .Be("publishedProviderIds");
+        }
+        
+        [TestMethod]
+        public void GetPublishedProviderStatusCountGuardsAgainstTooManyPublishedProviderIds()
+        {
+            Func<Task<PublishedProviderFundingCount>> invocation = () => WhenThePublishedProviderStatusCountIsQueried(new string[101],
+                NewRandomString(),
+                NewRandomStatus());
+
+            invocation
+                .Should()
+                .Throw<InvalidOperationException>()
+                .Which
+                .Message
+                .Should()
+                .Be("You can only filter against 100 published provider ids at a time");
+        }
+        
+        [TestMethod]
+        public void GetPublishedProviderStatusCountGuardsAgainstMissingPublishedProviderIds()
+        {
+            Func<Task<PublishedProviderFundingCount>> invocation = () => WhenThePublishedProviderStatusCountIsQueried(null,
+                NewRandomString(),
+                NewRandomStatus());
+
+            invocation
+                .Should()
+                .Throw<ArgumentNullException>()
+                .Which
+                .ParamName
+                .Should()
+                .Be("publishedProviderIds");
+        }
+
+        [TestMethod]
+        public void GetPublishedProviderStatusCountGuardsAgainstMissingStatuses()
+        {
+            Func<Task<PublishedProviderFundingCount>> invocation = () => WhenThePublishedProviderStatusCountIsQueried(AsArray(NewRandomString()),
+                NewRandomString());
+
+            invocation
+                .Should()
+                .Throw<ArgumentNullException>()
+                .Which
+                .ParamName
+                .Should()
+                .Be("statuses");
+        }
+
+        [TestMethod]
+        public async Task GetPublishedProviderStatusCount()
+        {
+            string[] publishedProviderIds = AsArray(NewRandomString(),
+                NewRandomString(),
+                NewRandomString(),
+                NewRandomString());
+            PublishedProviderStatus[] statuses = AsArray(NewRandomStatus(),
+                NewRandomStatus());
+            string specificationId = NewRandomString();
+
+            int expectedCount = NewRandomNumber();
+            decimal expectedTotalFunding = NewRandomNumber();
+            
+            dynamic result = new ExpandoObject();
+
+            result.count = expectedCount;
+            result.totalFundingSum = expectedTotalFunding;
+
+            GivenTheDynamicResultsForTheQuery(QueryMatch(specificationId, publishedProviderIds, statuses),
+                AsArray(result));
+
+            PublishedProviderFundingCount fundingCount = await WhenThePublishedProviderStatusCountIsQueried(publishedProviderIds, specificationId, statuses);
+
+            fundingCount
+                .Should()
+                .BeEquivalentTo(new PublishedProviderFundingCount
+                {
+                    Count = expectedCount,
+                    TotalFunding = expectedTotalFunding
+                });
+
+            Func<CosmosDbQuery, bool> QueryMatch(string s,
+                string[] strings,
+                PublishedProviderStatus[] publishedProviderStatuses) =>
+                _ => _.QueryText == @"
+                              SELECT 
+                                  COUNT(1) AS count, 
+                                  SUM(c.content.current.totalFunding) AS totalFundingSum
+                              FROM publishedProvider c
+                              WHERE c.documentType = 'PublishedProvider'
+                              AND c.deleted = false 
+                              AND c.content.current.specificationId = @specificationId
+                              AND c.content.current.publishedProviderId IN (@publishedProviderIds) 
+                              AND c.content.current.status IN (@statuses)
+                              AND c.deleted = false" &&
+                     HasParameter(_, "@specificationId", s) &&
+                     HasArrayParameter(_, "@publishedProviderIds", strings) &&
+                     HasArrayParameter(_, "@statuses", publishedProviderStatuses.Select(sts => sts.ToString()));
+        }
+        
+        private void GivenTheDynamicResultsForTheQuery(Func<CosmosDbQuery, bool> queryMatch, IEnumerable<object> expectedResults)
+        {
+            _cosmosRepository
+                .DynamicQuery(Arg.Is<CosmosDbQuery>(_ => queryMatch(_)))
+                .Returns(expectedResults);
+        }
+        
+        private TItem[] AsArray<TItem>(params TItem[] items) => items;
+
+        private async Task<PublishedProviderFundingCount> WhenThePublishedProviderStatusCountIsQueried(IEnumerable<string> publishedProviderIds,
+            string specificationId,
+            params PublishedProviderStatus[] statuses)
+            => await _repository.GetPublishedProviderStatusCount(publishedProviderIds, specificationId, statuses);
+
         private async Task WhenThePublishedProvidersAreDeleted()
         {
             await _repository.DeleteAllPublishedProvidersByFundingStreamAndPeriod(_fundingStreamId, _fundingPeriodId);
@@ -582,9 +728,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
             await _repository.PublishedGroupBatchProcessing(specificationId, batchProcessor, batchSize);
         }
 
-        private async Task<IEnumerable<PublishedProvider>> WhenQueryPublishedProvider(string specificationId, IEnumerable<string> fundingIds)
+        private async Task WhenQueryPublishedProvider(string specificationId,
+            IEnumerable<string> fundingIds)
         {
-            return await _repository.QueryPublishedProvider(specificationId, fundingIds);
+            await _repository.QueryPublishedProvider(specificationId, fundingIds);
         }
 
         private bool HasParameter(CosmosDbQuery query, string name, string value)
@@ -595,7 +742,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
         private bool HasArrayParameter(CosmosDbQuery query, string name, IEnumerable<string> value)
         {
             return query.Parameters?.Any(_ => _.Name == name &&
-                                              (IEnumerable<string>)_.Value == value) == true;
+                                              ((IEnumerable<string>)_.Value).All(value.Contains)) == true;
         }
 
         private void GivenTheRepositoryServiceHealth(bool expectedIsOkFlag, string expectedMessage)
@@ -604,5 +751,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
         }
 
         private string NewRandomString() => new RandomString();
+        
+        private PublishedProviderStatus NewRandomStatus() => new RandomEnum<PublishedProviderStatus>();
     }
 }

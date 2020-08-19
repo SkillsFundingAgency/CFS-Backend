@@ -424,5 +424,10 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             Func<List<PublishedFundingVersion>, Task> batchProcessor,
             int batchSize) =>
             throw new NotImplementedException();
+
+        public Task<PublishedProviderFundingCount> GetPublishedProviderStatusCount(IEnumerable<string> publishedProviderIds,
+            string specificationId,
+            params PublishedProviderStatus[] statuses) =>
+            throw new NotImplementedException();
     }
 }

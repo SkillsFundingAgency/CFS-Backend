@@ -15,6 +15,7 @@ namespace CalculateFunding.Services.Publishing.Specifications
 {
     public class PublishedProviderStatusService : IPublishedProviderStatusService
     {
+        private readonly IPublishedProviderFundingCountProcessor _fundingCountProcessor;
         private readonly ISpecificationIdServiceRequestValidator _validator;
         private readonly ISpecificationService _specificationService;
         private readonly IPublishedFundingRepository _publishedFundingRepository;
@@ -25,7 +26,8 @@ namespace CalculateFunding.Services.Publishing.Specifications
             ISpecificationIdServiceRequestValidator validator,
             ISpecificationService specificationService,
             IPublishedFundingRepository publishedFundingRepository,
-            IPublishingResiliencePolicies publishingResiliencePolicies)
+            IPublishingResiliencePolicies publishingResiliencePolicies,
+            IPublishedProviderFundingCountProcessor fundingCountProcessor)
         {
             Guard.ArgumentNotNull(validator, nameof(validator));
             Guard.ArgumentNotNull(specificationService, nameof(specificationService));
@@ -33,12 +35,33 @@ namespace CalculateFunding.Services.Publishing.Specifications
             Guard.ArgumentNotNull(publishingResiliencePolicies, nameof(publishingResiliencePolicies));
             Guard.ArgumentNotNull(publishingResiliencePolicies.PublishedFundingRepository, nameof(publishingResiliencePolicies.PublishedFundingRepository));
             Guard.ArgumentNotNull(publishingResiliencePolicies.SpecificationsRepositoryPolicy, nameof(publishingResiliencePolicies.SpecificationsRepositoryPolicy));
+            Guard.ArgumentNotNull(fundingCountProcessor, nameof(fundingCountProcessor));
 
             _validator = validator;
             _specificationService = specificationService;
             _publishedFundingRepository = publishedFundingRepository;
+            _fundingCountProcessor = fundingCountProcessor;
             _publishedFundingRepositoryResilience = publishingResiliencePolicies.PublishedFundingRepository;
             _specificationsRepositoryPolicy = publishingResiliencePolicies.SpecificationsRepositoryPolicy;
+        }
+
+        public async Task<IActionResult> GetProviderBatchCountForApproval(PublishedProviderIdsRequest providerIds,
+            string specificationId)
+            => await GetProviderBatchCountForStatuses(providerIds, specificationId, PublishedProviderStatus.Draft, PublishedProviderStatus.Updated);
+
+        public async Task<IActionResult> GetProviderBatchCountForRelease(PublishedProviderIdsRequest providerIds,
+            string specificationId)
+            => await GetProviderBatchCountForStatuses(providerIds, specificationId, PublishedProviderStatus.Approved);
+
+        private async Task<IActionResult> GetProviderBatchCountForStatuses(PublishedProviderIdsRequest providerIds,
+            string specificationId,
+            params PublishedProviderStatus[] statuses)
+        {
+            PublishedProviderFundingCount fundingCount = await _fundingCountProcessor.GetFundingCount(providerIds.PublishedProviderIds,
+                specificationId,
+                statuses);
+
+            return new ObjectResult(fundingCount);
         }
 
         public async Task<IActionResult> GetProviderStatusCounts(string specificationId, string providerType, string localAuthority, string status)

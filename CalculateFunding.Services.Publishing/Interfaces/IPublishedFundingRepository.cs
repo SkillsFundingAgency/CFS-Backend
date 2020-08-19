@@ -120,5 +120,9 @@ namespace CalculateFunding.Services.Publishing.Interfaces
             string fundingPeriodId,
             Func<List<PublishedFundingVersion>, Task> batchProcessor,
             int batchSize);
+
+        Task<PublishedProviderFundingCount> GetPublishedProviderStatusCount(IEnumerable<string> publishedProviderIds,
+            string specificationId,
+            params PublishedProviderStatus[] statuses);
     }
 }

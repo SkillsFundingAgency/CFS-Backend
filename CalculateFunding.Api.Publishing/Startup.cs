@@ -342,6 +342,8 @@ namespace CalculateFunding.Api.Publishing
 
             });
 
+            builder.AddSingleton<IPublishedProviderFundingCountProcessor, PublishedProviderFundingCountProcessor>();
+
             builder.ConfigureSwaggerServices(title: "Publishing Microservice API");
         }
     }

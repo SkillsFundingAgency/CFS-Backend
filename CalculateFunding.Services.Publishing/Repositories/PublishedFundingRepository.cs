@@ -13,6 +13,7 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
+using StackExchange.Redis;
 
 namespace CalculateFunding.Services.Publishing.Repositories
 {
@@ -924,6 +925,56 @@ namespace CalculateFunding.Services.Publishing.Repositories
             await _repository.DocumentsBatchProcessingAsync(persistBatchToIndex: persistIndexBatch,
                 cosmosDbQuery: query,
                 itemsPerPage: batchSize);
+        }
+
+        /// <summary>
+        ///     Get count and sum of total funding for all published provider ids with the supplied status
+        ///     NB ensure that the ids count is not greater than 100 as this is max permitted per query for an IN
+        ///     clause in cosmos sql
+        /// </summary>
+        /// <param name="publishedProviderIds">the ids from the batch of published providers</param>
+        /// <param name="specificationId"></param>
+        /// <param name="statuses">the statuses to restrict to</param>
+        /// <returns></returns>
+        public async Task<PublishedProviderFundingCount> GetPublishedProviderStatusCount(IEnumerable<string> publishedProviderIds,
+            string specificationId,
+            params PublishedProviderStatus[] statuses)
+        {
+            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
+            Guard.IsNotEmpty(publishedProviderIds, nameof(publishedProviderIds));
+            Guard.Ensure(publishedProviderIds.Count() <= 100, "You can only filter against 100 published provider ids at a time");
+            Guard.IsNotEmpty(statuses, nameof(statuses));
+
+            CosmosDbQuery query = new CosmosDbQuery
+            {
+                QueryText = @"
+                              SELECT 
+                                  COUNT(1) AS count, 
+                                  SUM(c.content.current.totalFunding) AS totalFundingSum
+                              FROM publishedProvider c
+                              WHERE c.documentType = 'PublishedProvider'
+                              AND c.deleted = false 
+                              AND c.content.current.specificationId = @specificationId
+                              AND c.content.current.publishedProviderId IN (@publishedProviderIds) 
+                              AND c.content.current.status IN (@statuses)
+                              AND c.deleted = false",
+                Parameters = new[]
+                {
+                    new CosmosDbQueryParameter("@specificationId", specificationId), 
+                    new CosmosDbQueryParameter("@publishedProviderIds", publishedProviderIds.ToArray()), 
+                    new CosmosDbQueryParameter("@statuses", statuses?.Select(_ => _.ToString()).ToArray())
+                }
+            };
+
+            dynamic result = (await _repository
+                    .DynamicQuery(query))
+                .FirstOrDefault();
+
+            return new PublishedProviderFundingCount
+            {
+                Count = ((int?) result?.count).GetValueOrDefault(),
+                TotalFunding = ((decimal?) result?.totalFundingSum).GetValueOrDefault()
+            };
         }
 
         public async Task<IEnumerable<PublishedProviderFundingStreamStatus>> GetPublishedProviderStatusCounts(string specificationId, string providerType, string localAuthority, string status)

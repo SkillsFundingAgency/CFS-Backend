@@ -26,6 +26,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
         private ValidationResult _validationResult;
         private ISpecificationService _specificationService;
         private IPublishedFundingRepository _publishedFundingRepository;
+        private IPublishedProviderFundingCountProcessor _fundingCountProcessor;
 
         private string _specificationId;
 
@@ -45,12 +46,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
 
             _specificationService = Substitute.For<ISpecificationService>();
             _publishedFundingRepository = Substitute.For<IPublishedFundingRepository>();
+            _fundingCountProcessor = Substitute.For<IPublishedProviderFundingCountProcessor>();
 
             _service = new PublishedProviderStatusService(_validator, _specificationService, _publishedFundingRepository, new ResiliencePolicies
             {
                 PublishedFundingRepository = Polly.Policy.NoOpAsync(),
                 SpecificationsRepositoryPolicy = Polly.Policy.NoOpAsync()
-            });
+            },
+                _fundingCountProcessor);
         }
 
         [TestMethod]
@@ -138,6 +141,67 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
                 }, new ProviderFundingStreamStatusResponseComparer()));
         }
 
+        [TestMethod]
+        public async Task GetProviderBatchCountForApproval()
+        {
+            IEnumerable<string> publishedProviderIds = ArraySegment<string>.Empty;
+            string specificationId = NewRandomString();
+
+            PublishedProviderFundingCount expectedFundingCount = NewPublishedProviderFundingCount();
+            
+            GivenTheFundingCount(expectedFundingCount, publishedProviderIds, specificationId,  PublishedProviderStatus.Draft, PublishedProviderStatus.Updated);
+
+            OkObjectResult result = await WhenTheBatchCountForApprovalIsQueried(publishedProviderIds, specificationId) as OkObjectResult;
+
+            result
+                ?.Value
+                .Should()
+                .BeSameAs(expectedFundingCount);
+        }
+        
+        [TestMethod]
+        public async Task GetProviderBatchCountForRelease()
+        {
+            IEnumerable<string> publishedProviderIds = ArraySegment<string>.Empty;
+            string specificationId = NewRandomString();
+
+            PublishedProviderFundingCount expectedFundingCount = NewPublishedProviderFundingCount();
+            
+            GivenTheFundingCount(expectedFundingCount, publishedProviderIds, specificationId,  PublishedProviderStatus.Approved);
+
+            OkObjectResult result = await WhenTheBatchCountForApprovalIsQueried(publishedProviderIds, specificationId) as OkObjectResult;
+
+            result
+                ?.Value
+                .Should()
+                .BeSameAs(expectedFundingCount);     
+        }
+
+        private async Task<IActionResult> WhenTheBatchCountForApprovalIsQueried(IEnumerable<string> publishedProviderIds,
+            string specificationId)
+            => await _service.GetProviderBatchCountForApproval(NewPublishedProviderIdsRequest(_ => _.WithProviders(publishedProviderIds.ToArray())),
+                specificationId);
+        
+        private async Task<IActionResult> WhenTheBatchCountForReleaseIsQueried(IEnumerable<string> publishedProviderIds,
+            string specificationId)
+            => await _service.GetProviderBatchCountForRelease(NewPublishedProviderIdsRequest(_ => _.WithProviders(publishedProviderIds.ToArray())),
+                specificationId);
+        
+
+        private void GivenTheFundingCount(PublishedProviderFundingCount fundingCount,
+            IEnumerable<string> publishedProviderIds,
+            string specificationId,
+            params PublishedProviderStatus[] statuses)
+        {
+            _fundingCountProcessor.GetFundingCount(Arg.Is(publishedProviderIds),
+                    Arg.Is(specificationId),
+                    Arg.Is<PublishedProviderStatus[]>(sts => sts.SequenceEqual(statuses)))
+                .Returns(fundingCount);
+        }
+        
+        private PublishedProviderFundingCount NewPublishedProviderFundingCount() => new PublishedProviderFundingCountBuilder()
+            .Build();
+
         private void AndTheSpecificationSummaryIsRetrieved(SpecificationSummary specificationSummary)
         {
             _specificationSummary = specificationSummary;
@@ -162,6 +226,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
             setUp?.Invoke(builder);
 
             return builder.Build();
+        }
+
+        private PublishedProviderIdsRequest NewPublishedProviderIdsRequest(Action<PublishedProviderIdsRequestBuilder> setUp = null)
+        {
+            PublishedProviderIdsRequestBuilder publishedProviderIdsRequestBuilder = new PublishedProviderIdsRequestBuilder();
+
+            setUp?.Invoke(publishedProviderIdsRequestBuilder);
+            
+            return publishedProviderIdsRequestBuilder.Build();
         }
 
         private void GivenThePublishedProvidersForTheSpecificationId(params PublishedProviderFundingStreamStatus[] publishedProviderFundingStreamStatuses )

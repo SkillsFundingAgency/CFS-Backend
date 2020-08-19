@@ -6,7 +6,7 @@ namespace CalculateFunding.Services.Core.Threading
 {
     public class PagedContext<TItem>
     {
-        private const int PageSize = 5;
+        private const int DefaultPageSize = 5;
 
         private static readonly TItem[] EmptyItems = new TItem[0];
 
@@ -14,7 +14,7 @@ namespace CalculateFunding.Services.Core.Threading
         private volatile int _page;
         private readonly int _pageSize;
 
-        public PagedContext(IEnumerable<TItem> items, int pageSize = PageSize)
+        public PagedContext(IEnumerable<TItem> items, int pageSize = DefaultPageSize)
         {
             _pageSize = pageSize;
             _items = items?.ToArray() ?? EmptyItems;
@@ -27,9 +27,9 @@ namespace CalculateFunding.Services.Core.Threading
 
             Interlocked.Increment(ref _page);
 
-            return _items.Skip(skipCount).Take(PageSize).ToArray();
+            return _items.Skip(skipCount).Take(_pageSize).ToArray();
         }
 
-        public bool HasPages => _items.Length >= _page * PageSize;
+        public bool HasPages => _items.Length > _page * _pageSize;
     }    
 }
