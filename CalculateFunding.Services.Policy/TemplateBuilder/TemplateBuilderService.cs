@@ -415,8 +415,6 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
                 return CommandResult.ValidationFail(nameof(originalCommand.TemplateId), "Template doesn't exist");
             }
 
-            await EnsureBackwardsCompatibility(template);
-
             (ValidationFailure error, TemplateJsonContentUpdateCommand updateCommand) = MapCommand(originalCommand);
             if (error != null)
             {
@@ -450,12 +448,6 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             return commandResult;
         }
 
-        private async Task EnsureBackwardsCompatibility(Template template)
-        {
-            template.FundingStream ??= await _policyRepository.GetFundingStreamById(template.Current.FundingStreamId);
-            template.FundingPeriod ??= await _policyRepository.GetFundingPeriodById(template.Current.FundingPeriodId);
-        }
-
         public async Task<CommandResult> UpdateTemplateDescription(TemplateDescriptionUpdateCommand command, Reference author)
         {
             ValidationResult validatorResult = await _validatorFactory.Validate(command);
@@ -471,8 +463,6 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             {
                 return CommandResult.ValidationFail(nameof(command.TemplateId), "Template doesn't exist");
             }
-
-            await EnsureBackwardsCompatibility(template);
 
             if (template.Description == command.Description)
             {
@@ -553,6 +543,8 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             {
                 return CommandResult.Fail($"Failed to approve template: {templateUpdateResult}");
             }
+            
+            await CreateTemplateIndexItem(template, command.Author);
 
             // finally add to blob so it's available to the rest of CFS
             return await _templateBlobService.PublishTemplate(template);
