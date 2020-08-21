@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -181,32 +182,91 @@ namespace CalculateFunding.Services.Jobs.Services
             //Assert
             invocation
                 .Should()
-                .ThrowExactly<Exception>();
+                .ThrowExactly<JobCreateException>();
 
             await
                 jobRepository
                     .Received(1)
                     .CreateJob(Arg.Is<Job>(m => m.InvokerUserDisplayName == "authorname" && m.InvokerUserId == "authorId"));
         }
+        
+        [TestMethod]
+        public async Task TryCreateJobs_GivenCreateJobReturnsNull_ReturnsResultWithErrorDetails()
+        {
+            //Arrange
+            JobCreateModel jobCreateModel = new JobCreateModel
+            {
+                JobDefinitionId = jobDefinitionId,
+                Trigger = new Trigger(),
+                InvokerUserId = "authorId",
+                InvokerUserDisplayName = "authorname",
+                Properties = new Dictionary<string, string>
+                {
+                    { "user-id", "authorId" },
+                    { "user-name", "authorname" }
+                }
+            };
+            
+            IEnumerable<JobCreateModel> jobs = new[]
+            {
+                jobCreateModel
+            };
+
+            IEnumerable<JobDefinition> jobDefinitions = new[]
+            {
+                new JobDefinition
+                {
+                    Id = jobDefinitionId
+                }
+            };
+
+            IJobDefinitionsService jobDefinitionsService = CreateJobDefinitionsService();
+            jobDefinitionsService
+                .GetAllJobDefinitions()
+                .Returns(jobDefinitions);
+
+            IJobRepository jobRepository = CreateJobRepository();
+            jobRepository
+                .CreateJob(Arg.Any<Job>())
+                .Returns((Job)null);
+
+            ILogger logger = CreateLogger();
+
+            JobManagementService jobManagementService = CreateJobManagementService(jobDefinitionsService: jobDefinitionsService, jobRepository: jobRepository, logger: logger);
+
+            //Act
+            OkObjectResult actionResult =  await jobManagementService.TryCreateJobs(jobs, null) as OkObjectResult;
+
+            IEnumerable<JobCreateResult> jobCreateResults = actionResult?.Value as IEnumerable<JobCreateResult>;
+            
+            jobCreateResults?.Should()
+                .BeEquivalentTo(new JobCreateResult
+                {
+                    CreateRequest = jobCreateModel,
+                    Error = $"Failed to save new job with definition id {jobDefinitionId}"
+                });
+        }
 
         [TestMethod]
         public void CreateJobs_GivenCreateJobReturnsNull_ReturnsNewInternalServerError()
         {
             //Arrange
+            JobCreateModel jobCreateModel = new JobCreateModel
+            {
+                JobDefinitionId = jobDefinitionId,
+                Trigger = new Trigger(),
+                InvokerUserId = "authorId",
+                InvokerUserDisplayName = "authorname",
+                Properties = new Dictionary<string, string>
+                {
+                    { "user-id", "authorId" },
+                    { "user-name", "authorname" }
+                }
+            };
+            
             IEnumerable<JobCreateModel> jobs = new[]
             {
-                new JobCreateModel
-                {
-                    JobDefinitionId = jobDefinitionId,
-                    Trigger = new Trigger(),
-                    InvokerUserId = "authorId",
-                    InvokerUserDisplayName = "authorname",
-                    Properties = new Dictionary<string, string>
-                    {
-                        { "user-id", "authorId" },
-                        { "user-name", "authorname" }
-                    }
-                }
+                jobCreateModel
             };
 
             IEnumerable<JobDefinition> jobDefinitions = new[]
@@ -237,32 +297,37 @@ namespace CalculateFunding.Services.Jobs.Services
             //Assert
             invocation
                 .Should()
-                .ThrowExactly<Exception>()
-                .WithMessage($"Failed to create a job for job definition id: {jobDefinitionId}");
-
-            logger
-                .Received(1)
-                .Error($"Failed to create a job for job definition id: {jobDefinitionId}");
+                .Throw<JobCreateException>()
+                .Which
+                .Details
+                .Should()
+                .BeEquivalentTo(new JobCreateErrorDetails
+                {
+                    Error = $"Failed to save new job with definition id {jobDefinitionId}",
+                    CreateRequest = jobCreateModel
+                });
         }
 
         [TestMethod]
         public void CreateJobs_GivenCreateJobReturnsThrowsException_ReturnsNewInternalServerError()
         {
             //Arrange
+            JobCreateModel jobCreateModel = new JobCreateModel
+            {
+                JobDefinitionId = jobDefinitionId,
+                Trigger = new Trigger(),
+                InvokerUserId = "authorId",
+                InvokerUserDisplayName = "authorname",
+                Properties = new Dictionary<string, string>
+                {
+                    { "user-id", "authorId" },
+                    { "user-name", "authorname" }
+                }
+            };
+            
             IEnumerable<JobCreateModel> jobs = new[]
             {
-                new JobCreateModel
-                {
-                    JobDefinitionId = jobDefinitionId,
-                    Trigger = new Trigger(),
-                    InvokerUserId = "authorId",
-                    InvokerUserDisplayName = "authorname",
-                    Properties = new Dictionary<string, string>
-                    {
-                        { "user-id", "authorId" },
-                        { "user-name", "authorname" }
-                    }
-                }
+                jobCreateModel
             };
 
             IEnumerable<JobDefinition> jobDefinitions = new[]
@@ -293,12 +358,15 @@ namespace CalculateFunding.Services.Jobs.Services
             //Assert
             invocation
                 .Should()
-                .ThrowExactly<Exception>()
-                .WithMessage($"Failed to create a job for job definition id: {jobDefinitionId}");
-
-            logger
-                .Received(1)
-                .Error($"Failed to create a job for job definition id: {jobDefinitionId}");
+                .Throw<JobCreateException>()
+                .Which
+                .Details
+                .Should()
+                .BeEquivalentTo(new JobCreateErrorDetails
+                {
+                    Error = $"Exception of type 'System.Exception' was thrown.",
+                    CreateRequest = jobCreateModel
+                });
         }
 
         [TestMethod]
@@ -1919,21 +1987,23 @@ namespace CalculateFunding.Services.Jobs.Services
             //Arrange
             string jobId = Guid.NewGuid().ToString();
 
+            JobCreateModel jobCreateModel = new JobCreateModel
+            {
+                JobDefinitionId = jobDefinitionId,
+                Trigger = new Trigger(),
+                InvokerUserId = "authorId",
+                InvokerUserDisplayName = "authorname",
+                SpecificationId = "spec-id-1",
+                Properties = new Dictionary<string, string>
+                {
+                    { "user-id", "authorId" },
+                    { "user-name", "authorname" }
+                }
+            };
+            
             IEnumerable<JobCreateModel> jobs = new[]
             {
-                new JobCreateModel
-                {
-                    JobDefinitionId = jobDefinitionId,
-                    Trigger = new Trigger(),
-                    InvokerUserId = "authorId",
-                    InvokerUserDisplayName = "authorname",
-                    SpecificationId = "spec-id-1",
-                    Properties = new Dictionary<string, string>
-                    {
-                        { "user-id", "authorId" },
-                        { "user-name", "authorname" }
-                    }
-                }
+                jobCreateModel
             };
 
             IEnumerable<JobDefinition> jobDefinitions = new[]
@@ -2033,8 +2103,15 @@ namespace CalculateFunding.Services.Jobs.Services
             //Assert
             result
                 .Should()
-                .Throw<Exception>()
-                .WithMessage("Failed to send to topic");
+                .Throw<JobCreateException>()
+                .Which
+                .Details
+                .Should()
+                .BeEquivalentTo(new JobCreateErrorDetails
+                {
+                    Error = $"Failed to queue job with id: {job.JobId} on Queue/topic TestTopic. Exception type: 'System.Exception'",
+                    CreateRequest = jobCreateModel
+                });
 
             logger
                 .Received(1)

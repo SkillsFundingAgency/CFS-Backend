@@ -22,5 +22,6 @@ namespace CalculateFunding.Services.Jobs.Interfaces
         Task CheckAndProcessTimedOutJobs();
 
         Task<IActionResult> DeleteJobs(Message message);
+        Task<IActionResult> TryCreateJobs(IEnumerable<JobCreateModel> jobs, Reference user);
     }
 }

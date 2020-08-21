@@ -13,7 +13,7 @@
 
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Providers" Version="4.2.0" />
 
-    <PackageReference Include="CalculateFunding.Common.JobManagement" Version="3.1.0" />
+    <PackageReference Include="CalculateFunding.Common.JobManagement" Version="3.2.0" />
     <PackageReference Include="CalculateFunding.Common.ServiceBus" Version="2.0.0" />
     <PackageReference Include="CalculateFunding.Common.Caching" Version="2.0.0" />
     <PackageReference Include="CalculateFunding.Common.CosmosDb" Version="5.1.0" />
