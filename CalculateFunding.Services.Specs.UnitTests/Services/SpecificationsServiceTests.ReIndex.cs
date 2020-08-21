@@ -19,39 +19,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
     public partial class SpecificationsServiceTests
     {
         [TestMethod]
-        public async Task ReIndex_GivenDeleteIndexThrowsException_ReturnsInternalServerError()
-        {
-            //Arrange
-            ISearchRepository<SpecificationIndex> searchRepository = CreateSearchRepository();
-            searchRepository
-                .When(x => x.DeleteIndex())
-                .Do(x => { throw new Exception(); });
-
-            ILogger logger = CreateLogger();
-
-            ISpecificationsService service = CreateService(searchRepository: searchRepository, logs: logger);
-
-            //Act
-            IActionResult result = await service.ReIndex();
-
-            //Assert
-            logger
-                .Received(1)
-                .Error(Arg.Any<Exception>(), Arg.Is("Failed re-indexing specifications"));
-
-            result
-                .Should()
-                .BeOfType<StatusCodeResult>();
-
-            StatusCodeResult statusCodeResult = result as StatusCodeResult;
-
-            statusCodeResult
-                .StatusCode
-                .Should()
-                .Be(500);
-        }
-
-        [TestMethod]
         public async Task ReIndex_GivenGetAllSpecificationDocumentsThrowsException_ReturnsInternalServerError()
         {
             //Arrange

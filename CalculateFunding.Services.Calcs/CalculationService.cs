@@ -681,8 +681,6 @@ namespace CalculateFunding.Services.Calcs
 
         public async Task<IActionResult> ReIndex()
         {
-            await _searchRepository.DeleteIndex();
-
             IEnumerable<Calculation> calculations = await _calculationsRepository.GetAllCalculations();
 
             IList<CalculationIndex> calcIndexItems = new List<CalculationIndex>();
@@ -712,7 +710,8 @@ namespace CalculateFunding.Services.Calcs
                 //resilient to breaks in referential integrity between calcs and specs
                 if (specification == null)
                 {
-                    _logger.Warning($"Did not locate the specification for calculation {calculation.Id} with id {calculation.SpecificationId}. Skipping indexing this calculation");
+                    _logger.Warning($"Did not locate the specification for calculation {calculation.Id} " +
+                                    $"with id {calculation.SpecificationId}. Skipping indexing this calculation");
                     
                     continue;
                 }

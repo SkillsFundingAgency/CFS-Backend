@@ -1026,8 +1026,6 @@ namespace CalculateFunding.Services.Specs
         {
             try
             {
-                await _searchRepository.DeleteIndex();
-
                 CosmosDbQuery cosmosDbQuery = new CosmosDbQuery
                 {
                     QueryText = @"

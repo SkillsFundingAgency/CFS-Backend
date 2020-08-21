@@ -84,8 +84,6 @@ namespace CalculateFunding.Services.Policy.TemplateBuilder
             {
                 await _jobManagement.UpdateJobStatus(jobId, 0, 0, null);
 
-                await _searchRepositoryResilience.ExecuteAsync(() => _searchRepository.DeleteIndex());
-
                 await _templatesRepositoryResilience.ExecuteAsync(() => _templatesRepository.GetTemplatesForIndexing(
                     async templates =>
                     {
