@@ -21,6 +21,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
         private ILogger _logger;
         private IPublishedProviderVersionService _publishedProviderVersionService;
+        private IPublishedProviderVersioningService _publishedProviderVersioningService;
         private IPublishedProviderIndexerService _publishedProviderIndexerService;
 
         private const string key = "providerVersionProviderId";
@@ -35,11 +36,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         {
             _logger = Substitute.For<ILogger>();
             _publishedProviderVersionService = Substitute.For<IPublishedProviderVersionService>();
+            _publishedProviderVersioningService = Substitute.For<IPublishedProviderVersioningService>();
             _publishedProviderIndexerService = Substitute.For<IPublishedProviderIndexerService>();
             IConfiguration configuration = Substitute.For<IConfiguration>();
 
             _publishedProviderContentPersistanceService = new PublishedProviderContentPersistanceService(
                 _publishedProviderVersionService,
+                _publishedProviderVersioningService,
                 _publishedProviderIndexerService,
                 _logger,
                 new PublishingEngineOptions(configuration));

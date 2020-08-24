@@ -30,6 +30,8 @@
 
             public const string ApproveAllProviderFundingJob = nameof(ApproveAllProviderFundingJob);
 
+            public const string PublishIntegrityCheckJob = nameof(PublishIntegrityCheckJob);
+
             public const string ApproveBatchProviderFundingJob = nameof(ApproveBatchProviderFundingJob);
 
             public const string CreateSpecificationJob = nameof(CreateSpecificationJob);

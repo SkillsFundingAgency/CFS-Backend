@@ -26,6 +26,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
         private ProviderFundingPublishingService _service;
         private IPublishedFundingRepository _publishedFundingRepository;
         private ICreateBatchPublishProviderFundingJobs _createBatchPublishProviderFundingJobs;
+        private ICreatePublishIntegrityJob _createPublishIntegrityJob;
         private PublishedProviderIdsRequest _publishProvidersRequest;
 
         [TestInitialize]
@@ -33,6 +34,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
         {
             _publishedFundingRepository = Substitute.For<IPublishedFundingRepository>();
             _createBatchPublishProviderFundingJobs = Substitute.For<ICreateBatchPublishProviderFundingJobs>();
+            _createPublishIntegrityJob = Substitute.For<ICreatePublishIntegrityJob>();
 
             _service = new ProviderFundingPublishingService(
                 SpecificationIdValidator,
@@ -42,7 +44,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
                 Jobs,
                 _createBatchPublishProviderFundingJobs,
                 _publishedFundingRepository,
-                FundingConfigurationService);
+                FundingConfigurationService,
+                _createPublishIntegrityJob);
 
             _publishProvidersRequest = BuildPublishProvidersRequest(_ => _.WithProviders(ProviderIds));
         }

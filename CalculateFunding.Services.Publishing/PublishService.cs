@@ -25,7 +25,6 @@ namespace CalculateFunding.Services.Publishing
     public class PublishService : IPublishService
     {
         private const string SfaCorrelationId = "sfa-correlationId";
-        private const int MaxDeliveryCount = 5;
         
         private readonly IPublishedFundingStatusUpdateService _publishedFundingStatusUpdateService;
         private readonly ISpecificationService _specificationService;
@@ -49,6 +48,7 @@ namespace CalculateFunding.Services.Publishing
         private readonly IPublishedFundingService _publishedFundingService;
         private readonly IPublishedFundingDataService _publishedFundingDataService;
         private readonly IPoliciesService _policiesService;
+        private readonly ICreatePublishIntegrityJob _createPublishIntegrityJob;
 
         public PublishService(IPublishedFundingStatusUpdateService publishedFundingStatusUpdateService,
             IPublishingResiliencePolicies publishingResiliencePolicies,
@@ -70,7 +70,8 @@ namespace CalculateFunding.Services.Publishing
             IPublishedProviderVersionService publishedProviderVersionService,
             IPublishedFundingService publishedFundingService,
             IPublishedFundingDataService publishedFundingDataService,
-            IPoliciesService policiesService)
+            IPoliciesService policiesService,
+            ICreatePublishIntegrityJob createPublishIntegrityJob)
         {
             Guard.ArgumentNotNull(generateCsvJobsLocator, nameof(generateCsvJobsLocator));
             Guard.ArgumentNotNull(publishedFundingStatusUpdateService, nameof(publishedFundingStatusUpdateService));
@@ -95,6 +96,7 @@ namespace CalculateFunding.Services.Publishing
             Guard.ArgumentNotNull(publishedProviderVersionService, nameof(publishedProviderVersionService));
             Guard.ArgumentNotNull(publishedFundingDataService, nameof(publishedFundingDataService));
             Guard.ArgumentNotNull(policiesService, nameof(policiesService));
+            Guard.ArgumentNotNull(createPublishIntegrityJob, nameof(createPublishIntegrityJob));
 
             _publishedFundingStatusUpdateService = publishedFundingStatusUpdateService;
             _publishedFundingDataService = publishedFundingDataService;
@@ -117,13 +119,15 @@ namespace CalculateFunding.Services.Publishing
             _providerService = providerService;
             _publishedFundingService = publishedFundingService;
             _policiesService = policiesService;
+            _createPublishIntegrityJob = createPublishIntegrityJob;
         }
 
-        public async Task PublishProviderFundingResults(Message message, bool batched = false, int deliveryCount = 1)
+        public async Task PublishProviderFundingResults(Message message, bool batched = false)
         {
             Guard.ArgumentNotNull(message, nameof(message));
 
-            _logger.Information("Starting PublishBatchProviderFundingResults job");
+            string logMessage = batched ? "Batch" : "All";
+            _logger.Information($"Starting Publish{logMessage}ProviderFundingResults job");
 
             Reference author = message.GetUserDetails();
 
@@ -146,7 +150,7 @@ namespace CalculateFunding.Services.Publishing
 
             PublishedProviderIdsRequest publishedProviderIdsRequest = null;
 
-            if(batched)
+            if (batched)
             {
                 string publishedProviderIdsRequestJson = message.GetUserProperty<string>(JobConstants.MessagePropertyNames.PublishedProviderIdsRequest);
                 publishedProviderIdsRequest = publishedProviderIdsRequestJson.AsPoco<PublishedProviderIdsRequest>();
@@ -160,7 +164,6 @@ namespace CalculateFunding.Services.Publishing
                     author, 
                     correlationId,
                     batched ? PrerequisiteCheckerType.ReleaseBatchProviders : PrerequisiteCheckerType.ReleaseAllProviders,
-                    deliveryCount,
                     publishedProviderIdsRequest?.PublishedProviderIds?.ToArray());
             }
 
@@ -205,7 +208,6 @@ namespace CalculateFunding.Services.Publishing
             Reference author,
             string correlationId,
             PrerequisiteCheckerType prerequisiteCheckerType,
-            int deliveryCount,
             string[] batchPublishedProviderIds = null)
         {
             _logger.Information($"Processing Publish Funding for {fundingStream.Id} in specification {specification.Id}");
@@ -248,10 +250,17 @@ namespace CalculateFunding.Services.Publishing
             using Transaction transaction = _transactionFactory.NewTransaction<PublishService>();
             try
             {
-                // if any error occurs while updating or indexing then we need to re-index all published providers for consistency
+                // if any error occurs while updating or indexing then we need to re-index all published providers and persist published funding for consistency
                 transaction.Enroll(async () =>
                 {
                     await _publishedProviderVersionService.CreateReIndexJob(author, correlationId, specification.Id);
+                    await _createPublishIntegrityJob.CreateJob(specification.Id, 
+                        author, 
+                        correlationId,
+                        batchPublishedProviderIds.IsNullOrEmpty() ? null : new Dictionary<string, string>
+                        {
+                            { "providers-batch", JsonExtensions.AsJson(selectedPublishedProviders.Select(_ => _.PublishedProviderId)) }
+                        });
                 });
 
                 await SavePublishedProvidersAsReleased(jobId, author, selectedPublishedProviders, correlationId);
@@ -276,7 +285,7 @@ namespace CalculateFunding.Services.Publishing
 
                 // Save a version of published funding and set this version to current
                 _logger.Information($"Saving published funding");
-                await _publishedFundingStatusUpdateService.UpdatePublishedFundingStatus(publishedFundingToSave, author, PublishedFundingStatus.Released,jobId,correlationId);
+                await _publishedFundingStatusUpdateService.UpdatePublishedFundingStatus(publishedFundingToSave, author, PublishedFundingStatus.Released, jobId,correlationId);
                 _logger.Information($"Finished saving published funding");
 
                 // Save contents to blob storage and search for the feed
@@ -297,10 +306,7 @@ namespace CalculateFunding.Services.Publishing
             }
             catch(Exception ex)
             {
-                if (deliveryCount == MaxDeliveryCount || ex is NonRetriableException)
-                {
-                    await transaction.Compensate();
-                }
+                await transaction.Compensate();
 
                 throw;
             }

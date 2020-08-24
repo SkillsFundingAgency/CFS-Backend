@@ -48,6 +48,12 @@
 
             public const string PublishingApproveAllProviderFunding = "publishing-approve-all-provider-funding";
 
+            public const string PublishIntegrityCheck = "publish-integrity-check";
+
+            public const string PublishIntegrityCheckPoisoned = "publish-integrity-check/$DeadLetterQueue";
+
+            public const string PublishIntegrityCheckPoisonedLocal = "publish-integrity-check-poisoned";
+
             public const string PublishingApproveAllProviderFundingPoisoned = "publishing-approve-all-provider-funding/$DeadLetterQueue";
 
             public const string PublishingApproveAllProviderFundingPoisonedLocal = "publishing-approve-all-provider-funding-poisoned";

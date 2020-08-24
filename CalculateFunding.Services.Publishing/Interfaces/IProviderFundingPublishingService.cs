@@ -12,6 +12,11 @@ namespace CalculateFunding.Services.Publishing.Interfaces
             Reference user,
             string correlationId);
 
+        Task<IActionResult> PublishIntegrityCheck(string specificationId,
+            Reference user,
+            string correlationId,
+            bool publishAll = false);
+
         Task<IActionResult> PublishBatchProvidersFunding(string specificationId,
             PublishedProviderIdsRequest publishProvidersRequest,
             Reference user,

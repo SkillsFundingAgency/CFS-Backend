@@ -73,6 +73,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         private IOrganisationGroupGenerator _organisationGroupGenerator;
         private IPublishedFundingDateService _publishedFundingDateService;
         private ISpecificationFundingStatusService _specificationFundingStatusService;
+        private ICreatePublishIntegrityJob _createPublishIntegrityJob;
         private IJobsRunning _jobsRunning;
         
         private const string SpecificationId = "SpecificationId";
@@ -129,6 +130,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             _publishedFundingChangeDetectorService = Substitute.For<IPublishedFundingChangeDetectorService>();
             _publishedFundingDateService = Substitute.For<IPublishedFundingDateService>();
             _publishedFundingDataService = Substitute.For<IPublishedFundingDataService>();
+            _createPublishIntegrityJob = Substitute.For<ICreatePublishIntegrityJob>();
 
             _publishedFundingService = new PublishedFundingService(_publishedFundingDataService,
                 _publishingResiliencePolicies,
@@ -159,7 +161,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 _publishedProviderVersionService,
                 _publishedFundingService,
                 _publishedFundingDataService,
-                _policiesService
+                _policiesService,
+                _createPublishIntegrityJob
             );
         }
 

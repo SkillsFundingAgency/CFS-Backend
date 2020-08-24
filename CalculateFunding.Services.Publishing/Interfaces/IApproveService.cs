@@ -3,8 +3,8 @@ using Microsoft.Azure.ServiceBus;
 
 namespace CalculateFunding.Services.Publishing.Interfaces
 {
-    public interface IApproveService
+    public interface IPublishIntegrityCheckService
     {
-        Task ApproveResults(Message message, bool batched = false, int deliveryCount = 1);
+        Task Run(Message message);
     }
 }

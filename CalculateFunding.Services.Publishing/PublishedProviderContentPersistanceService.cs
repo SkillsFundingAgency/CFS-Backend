@@ -17,11 +17,13 @@ namespace CalculateFunding.Services.Publishing
     {
         private readonly ILogger _logger;
         private readonly IPublishedProviderVersionService _publishedProviderVersionService;
+        private readonly IPublishedProviderVersioningService _publishedProviderVersioningService;
         private readonly IPublishedProviderIndexerService _publishedProviderIndexerService;
         private readonly IPublishingEngineOptions _publishingEngineOptions;
 
         public PublishedProviderContentPersistanceService(
             IPublishedProviderVersionService publishedProviderVersionService,
+            IPublishedProviderVersioningService publishedProviderVersioningService,
             IPublishedProviderIndexerService publishedProviderIndexerService,
             ILogger logger,
             IPublishingEngineOptions publishingEngineOptions)
@@ -30,14 +32,16 @@ namespace CalculateFunding.Services.Publishing
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(publishedProviderIndexerService, nameof(publishedProviderIndexerService));
             Guard.ArgumentNotNull(publishingEngineOptions, nameof(publishingEngineOptions));
+            Guard.ArgumentNotNull(publishedProviderVersioningService, nameof(publishedProviderVersioningService));
 
             _publishedProviderIndexerService = publishedProviderIndexerService;
             _publishedProviderVersionService = publishedProviderVersionService;
+            _publishedProviderVersioningService = publishedProviderVersioningService;
             _logger = logger;
             _publishingEngineOptions = publishingEngineOptions;
         }
 
-        public async Task SavePublishedProviderContents(TemplateMetadataContents templateMetadataContents, TemplateMapping templateMapping, IEnumerable<PublishedProvider> publishedProvidersToUpdate, IPublishedProviderContentsGenerator generator)
+        public async Task SavePublishedProviderContents(TemplateMetadataContents templateMetadataContents, TemplateMapping templateMapping, IEnumerable<PublishedProvider> publishedProvidersToUpdate, IPublishedProviderContentsGenerator generator, bool publishAll = false)
         {
             _logger.Information("Saving published provider contents");
             List<Task> allTasks = new List<Task>();
@@ -50,32 +54,37 @@ namespace CalculateFunding.Services.Publishing
                     {
                         try
                         {
-                            PublishedProviderVersion publishedProviderVersion = provider.Current;
+                            IEnumerable<PublishedProviderVersion> publishedProviderVersions = publishAll ? 
+                                await _publishedProviderVersioningService.GetVersions(provider) :  
+                                new[] { provider.Current };
 
-                            string contents = generator.GenerateContents(publishedProviderVersion, templateMetadataContents, templateMapping);
+                            foreach (PublishedProviderVersion publishedProviderVersion in publishedProviderVersions)
+                            {
+                                string contents = generator.GenerateContents(publishedProviderVersion, templateMetadataContents, templateMapping);
 
-                            if (string.IsNullOrWhiteSpace(contents))
-                            {
-                                throw new RetriableException($"Generator failed to generate content for published provider version with id: '{publishedProviderVersion.Id}'");
-                            }
+                                if (string.IsNullOrWhiteSpace(contents))
+                                {
+                                    throw new RetriableException($"Generator failed to generate content for published provider version with id: '{publishedProviderVersion.Id}'");
+                                }
 
-                            try
-                            {
-                                await _publishedProviderVersionService.SavePublishedProviderVersionBody(
-                                    publishedProviderVersion.FundingId, contents, publishedProviderVersion.SpecificationId);
-                            }
-                            catch (Exception ex)
-                            {
-                                throw new RetriableException(ex.Message);
-                            }
+                                try
+                                {
+                                    await _publishedProviderVersionService.SavePublishedProviderVersionBody(
+                                        publishedProviderVersion.FundingId, contents, publishedProviderVersion.SpecificationId);
+                                }
+                                catch (Exception ex)
+                                {
+                                    throw new RetriableException(ex.Message);
+                                }
 
-                            try
-                            {
-                                await _publishedProviderIndexerService.IndexPublishedProvider(publishedProviderVersion);
-                            }
-                            catch (Exception ex)
-                            {
-                                throw new RetriableException(ex.Message);
+                                try
+                                {
+                                    await _publishedProviderIndexerService.IndexPublishedProvider(publishedProviderVersion);
+                                }
+                                catch (Exception ex)
+                                {
+                                    throw new RetriableException(ex.Message);
+                                }
                             }
                         }
                         finally

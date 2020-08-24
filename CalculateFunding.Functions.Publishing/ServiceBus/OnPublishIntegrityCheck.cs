@@ -13,25 +13,25 @@ using Serilog;
 
 namespace CalculateFunding.Functions.Publishing.ServiceBus
 {
-    public class OnApproveAllProviderFunding : SmokeTest
+    public class OnPublishIntegrityCheck : SmokeTest
     {
         private readonly ILogger _logger;
-        private readonly IApproveService _approveService;
-        public const string FunctionName = FunctionConstants.PublishingApproveAllProviderFunding;
-        public const string QueueName = ServiceBusConstants.QueueNames.PublishingApproveAllProviderFunding;
+        private readonly IPublishIntegrityCheckService _publishIntegrityCheckService;
+        public const string FunctionName = FunctionConstants.PublishIntegrityCheck;
+        public const string QueueName = ServiceBusConstants.QueueNames.PublishIntegrityCheck;
 
-        public OnApproveAllProviderFunding(
+        public OnPublishIntegrityCheck(
             ILogger logger,
-            IApproveService approveService,
+            IPublishIntegrityCheckService publishIntegrityCheckService,
             IMessengerService messengerService,
             IUserProfileProvider userProfileProvider, bool useAzureStorage = false) 
             : base(logger, messengerService, FunctionName, useAzureStorage, userProfileProvider)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
-            Guard.ArgumentNotNull(approveService, nameof(approveService));
+            Guard.ArgumentNotNull(publishIntegrityCheckService, nameof(publishIntegrityCheckService));
 
             _logger = logger;
-            _approveService = approveService;
+            _publishIntegrityCheckService = publishIntegrityCheckService;
         }
 
         [FunctionName(FunctionName)]
@@ -44,7 +44,7 @@ namespace CalculateFunding.Functions.Publishing.ServiceBus
             {
                 try
                 {
-                    await _approveService.ApproveResults(message);
+                    await _publishIntegrityCheckService.Run(message);
                 }
                 catch (NonRetriableException ex)
                 {

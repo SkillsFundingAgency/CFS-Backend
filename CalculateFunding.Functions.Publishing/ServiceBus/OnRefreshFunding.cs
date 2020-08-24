@@ -17,7 +17,6 @@ namespace CalculateFunding.Functions.Publishing.ServiceBus
     {
         private readonly ILogger _logger;
         private readonly IRefreshService _refreshService;
-        private readonly bool _useAzureStorage;
         public const string FunctionName = "on-publishing-refresh-funding";
 
         public OnRefreshFunding(
@@ -32,7 +31,6 @@ namespace CalculateFunding.Functions.Publishing.ServiceBus
 
             _logger = logger;
             _refreshService = refreshService;
-            _useAzureStorage = useAzureStorage;
         }
 
         [FunctionName(FunctionName)]
@@ -45,14 +43,7 @@ namespace CalculateFunding.Functions.Publishing.ServiceBus
             {
                 try
                 {
-                    if (!_useAzureStorage)
-                    {
-                        await _refreshService.RefreshResults(message, message.SystemProperties.DeliveryCount);
-                    }
-                    else
-                    {
-                        await _refreshService.RefreshResults(message);
-                    }
+                    await _refreshService.RefreshResults(message);
                 }
                 catch (NonRetriableException ex)
                 {

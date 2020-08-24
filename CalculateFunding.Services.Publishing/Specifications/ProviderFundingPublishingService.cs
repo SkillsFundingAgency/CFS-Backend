@@ -24,6 +24,7 @@ namespace CalculateFunding.Services.Publishing.Specifications
     {
         private readonly ICreateAllPublishProviderFundingJobs _createAllPublishProviderFundingJobs;
         private readonly ICreateBatchPublishProviderFundingJobs _createBatchPublishProviderFundingJobs;
+        private readonly ICreatePublishIntegrityJob _createPublishIntegrityJob;
         private readonly IPublishedFundingRepository _publishedFundingRepository;
 
         public ProviderFundingPublishingService(
@@ -34,16 +35,19 @@ namespace CalculateFunding.Services.Publishing.Specifications
             ICreateAllPublishProviderFundingJobs createAllPublishProviderFundingJobs,
             ICreateBatchPublishProviderFundingJobs createBatchPublishProviderFundingJobs,
             IPublishedFundingRepository publishedFundingRepository,
-            IFundingConfigurationService fundingConfigurationService) : 
+            IFundingConfigurationService fundingConfigurationService,
+            ICreatePublishIntegrityJob createPublishIntegrityJob) : 
             base(specificationIdValidator, publishedProviderIdsValidator, specifications,resiliencePolicies, fundingConfigurationService)
         {
             Guard.ArgumentNotNull(createAllPublishProviderFundingJobs, nameof(createAllPublishProviderFundingJobs));
             Guard.ArgumentNotNull(createBatchPublishProviderFundingJobs, nameof(createBatchPublishProviderFundingJobs));
             Guard.ArgumentNotNull(publishedFundingRepository, nameof(publishedFundingRepository));
+            Guard.ArgumentNotNull(createPublishIntegrityJob, nameof(createPublishIntegrityJob));
 
             _createAllPublishProviderFundingJobs = createAllPublishProviderFundingJobs;
             _createBatchPublishProviderFundingJobs = createBatchPublishProviderFundingJobs;
             _publishedFundingRepository = publishedFundingRepository;
+            _createPublishIntegrityJob = createPublishIntegrityJob;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -77,6 +81,30 @@ namespace CalculateFunding.Services.Publishing.Specifications
 
             ApiJob job = await _createAllPublishProviderFundingJobs.CreateJob(specificationId, user, correlationId);
             return ProcessJobResponse(job, specificationId, JobConstants.DefinitionNames.PublishAllProviderFundingJob);
+        }
+
+        public async Task<IActionResult> PublishIntegrityCheck(string specificationId,
+            Reference user,
+            string correlationId,
+            bool publishAll = false)
+        {
+            ValidationResult validationResult = SpecificationIdValidator.Validate(specificationId);
+
+            if (!validationResult.IsValid)
+            {
+                return validationResult.AsBadRequest();
+            }
+
+            ApiJob job = await _createPublishIntegrityJob.CreateJob(specificationId, 
+                user, 
+                correlationId, 
+                publishAll ? new Dictionary<string, string>
+                        {
+                            { "publish-all", "True" }
+                        } : 
+                        null);
+
+            return ProcessJobResponse(job, specificationId, JobConstants.DefinitionNames.PublishIntegrityCheckJob);
         }
 
         public async Task<IActionResult> PublishBatchProvidersFunding(string specificationId,

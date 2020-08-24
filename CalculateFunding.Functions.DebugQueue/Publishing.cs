@@ -199,6 +199,32 @@ namespace CalculateFunding.Functions.DebugQueue
             log.LogInformation($"C# Queue trigger function processed: {item}");
         }
 
+        [FunctionName(FunctionConstants.PublishIntegrityCheck)]
+        public static async Task RunPublishIntegrityCheck([QueueTrigger(ServiceBusConstants.QueueNames.PublishIntegrityCheck, Connection = "AzureConnectionString")] string item, ILogger log)
+        {
+            using IServiceScope scope = Functions.Publishing.Startup.RegisterComponents(new ServiceCollection()).CreateScope();
+            Message message = Helpers.ConvertToMessage<string>(item);
+
+            OnPublishIntegrityCheck function = scope.ServiceProvider.GetService<OnPublishIntegrityCheck>();
+
+            await function.Run(message);
+
+            log.LogInformation($"C# Queue trigger function processed: {item}");
+        }
+
+        [FunctionName(FunctionConstants.PublishIntegrityCheckPoisoned)]
+        public static async Task RunPublishIntegrityCheckFailure([QueueTrigger(ServiceBusConstants.QueueNames.PublishIntegrityCheckPoisonedLocal, Connection = "AzureConnectionString")] string item, ILogger log)
+        {
+            using IServiceScope scope = Functions.Publishing.Startup.RegisterComponents(new ServiceCollection()).CreateScope();
+            Message message = Helpers.ConvertToMessage<string>(item);
+
+            OnPublishIntegrityCheckFailure function = scope.ServiceProvider.GetService<OnPublishIntegrityCheckFailure>();
+
+            await function.Run(message);
+
+            log.LogInformation($"C# Queue trigger function processed: {item}");
+        }
+
         [FunctionName(FunctionConstants.PublishingPublishBatchProviderFunding)]
         public static async Task RunPublishBatchProviderFunding([QueueTrigger(ServiceBusConstants.QueueNames.PublishingPublishBatchProviderFunding, Connection = "AzureConnectionString")] string item, ILogger log)
         {

@@ -23,6 +23,7 @@ namespace CalculateFunding.Functions.Publishing.SmokeTests
         private static IApproveService _approveService;
         private static IRefreshService _refreshService;
         private static IPublishService _publishService;
+        private static IPublishIntegrityCheckService _publishIntegrityCheckService;
         private static IPublishedProviderReIndexerService _publishedProviderReIndexerService;
         private static IDeletePublishedProvidersService _deletePublishedProvidersService;
         private static IUserProfileProvider _userProfileProvider;
@@ -104,6 +105,22 @@ namespace CalculateFunding.Functions.Publishing.SmokeTests
 
             SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.PublishingPublishBatchProviderFunding,
                 (Message smokeResponse) => onPublishFunding.Run(smokeResponse), useSession: true);
+
+            response
+                .Should()
+                .NotBeNull();
+        }
+
+        public async Task OnPublishIntegrityCheck_SmokeTestsSucceeds()
+        {
+            OnPublishIntegrityCheck onPublishIntegrityCheck = new OnPublishIntegrityCheck(_logger,
+                _publishIntegrityCheckService,
+                Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                _userProfileProvider,
+                IsDevelopment);
+
+            SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.PublishIntegrityCheck,
+                (Message smokeResponse) => onPublishIntegrityCheck.Run(smokeResponse), useSession: true);
 
             response
                 .Should()

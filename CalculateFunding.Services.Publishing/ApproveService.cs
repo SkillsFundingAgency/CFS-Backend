@@ -20,7 +20,6 @@ namespace CalculateFunding.Services.Publishing
     public class ApproveService : IApproveService
     {
         private const string SfaCorrelationId = "sfa-correlationId";
-        private const int MaxDeliveryCount = 5;
 
         private readonly IJobManagement _jobManagement;
         private readonly ILogger _logger;
@@ -65,7 +64,7 @@ namespace CalculateFunding.Services.Publishing
             _publishedProviderVersionService = publishedProviderVersionService;
         }
 
-        public async Task ApproveResults(Message message, bool batched = false, int deliveryCount = 1)
+        public async Task ApproveResults(Message message, bool batched = false)
         {
             Guard.ArgumentNotNull(message, nameof(message));
             _logger.Information("Starting approve provider funding job");
@@ -110,8 +109,7 @@ namespace CalculateFunding.Services.Publishing
                 specificationId, 
                 jobId, 
                 author, 
-                correlationId, 
-                deliveryCount);
+                correlationId);
 
             _logger.Information($"Completing approve provider funding job. JobId='{jobId}'");
             await _jobManagement.UpdateJobStatus(jobId, 0, 0, true, null);
@@ -136,8 +134,7 @@ namespace CalculateFunding.Services.Publishing
             string specificationId, 
             string jobId, 
             Reference author, 
-            string correlationId,
-            int deliveryCount)
+            string correlationId)
         {
             string fundingPeriodId = publishedProviders.First().Current?.FundingPeriodId;
 
@@ -177,10 +174,7 @@ namespace CalculateFunding.Services.Publishing
             }
             catch (Exception ex)
             {
-                if (deliveryCount == MaxDeliveryCount || ex is NonRetriableException)
-                {
-                    await transaction.Compensate();
-                }
+                await transaction.Compensate();
 
                 throw;
             }

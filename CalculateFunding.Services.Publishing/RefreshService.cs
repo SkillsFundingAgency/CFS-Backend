@@ -26,7 +26,6 @@ namespace CalculateFunding.Services.Publishing
     public class RefreshService : IRefreshService
     {
         private const string SfaCorrelationId = "sfa-correlationId";
-        private const int MaxDeliveryCount = 5;
 
         private readonly IPublishedProviderStatusUpdateService _publishedProviderStatusUpdateService;
         private readonly IPublishedFundingDataService _publishedFundingDataService;
@@ -128,7 +127,7 @@ namespace CalculateFunding.Services.Publishing
             _policiesService = policiesService;
         }
 
-        public async Task RefreshResults(Message message, int deliveryCount = 1)
+        public async Task RefreshResults(Message message)
         {
             Guard.ArgumentNotNull(message, nameof(message));
 
@@ -215,8 +214,7 @@ namespace CalculateFunding.Services.Publishing
                         author, 
                         correlationId, 
                         existingPublishedProvidersByFundingStream[fundingStream.Id], 
-                        fundingPeriodId, 
-                        deliveryCount);
+                        fundingPeriodId);
                 }
             }
             finally
@@ -237,8 +235,7 @@ namespace CalculateFunding.Services.Publishing
             string jobId, Reference author, 
             string correlationId, 
             IEnumerable<PublishedProvider> existingPublishedProviders, 
-            string fundingPeriodId,
-            int deliveryCount)
+            string fundingPeriodId)
         {
             TemplateMetadataContents templateMetadataContents = await _policiesService.GetTemplateMetadataContents(fundingStream.Id, specification.FundingPeriod.Id, specification.TemplateIds[fundingStream.Id]);
 
@@ -468,10 +465,7 @@ namespace CalculateFunding.Services.Publishing
                         }
                         catch (Exception ex)
                         {
-                            if (deliveryCount == MaxDeliveryCount || ex is NonRetriableException)
-                            {
-                                await transaction.Compensate();
-                            }
+                            await transaction.Compensate();
 
                             throw;
                         }

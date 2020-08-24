@@ -189,6 +189,13 @@ namespace CalculateFunding.Services.Publishing
             }
         }
 
+        public async Task<IEnumerable<PublishedProviderVersion>> GetVersions(PublishedProvider publishedProvider)
+        {
+            Guard.ArgumentNotNull(publishedProvider, nameof(publishedProvider));
+
+            return await _versionRepository.GetVersions(publishedProvider.Id);
+        }
+
         public async Task SaveVersions(IEnumerable<PublishedProvider> publishedProviders)
         {
             Guard.ArgumentNotNull(publishedProviders, nameof(publishedProviders));

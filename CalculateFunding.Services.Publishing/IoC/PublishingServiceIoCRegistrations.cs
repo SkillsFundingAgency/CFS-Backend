@@ -47,6 +47,7 @@ namespace CalculateFunding.Services.Publishing.IoC
             serviceCollection.AddSingleton<ICreateApproveAllFundingJobs, ApproveAllFundingJobCreation>();
             serviceCollection.AddSingleton<ICreateApproveBatchFundingJobs, ApproveBatchFundingJobCreation>();
             serviceCollection.AddSingleton<ICreateAllPublishProviderFundingJobs, AllPublishProviderFundingJobCreation>();
+            serviceCollection.AddSingleton<ICreatePublishIntegrityJob, PublishIntegrityCheckJobCreation>();
             serviceCollection.AddSingleton<ICreateBatchPublishProviderFundingJobs, BatchPublishProviderFundingJobCreation>();
             serviceCollection.AddSingleton<ICreateDeleteSpecificationJobs, DeleteSpecificationJobCreation>();
             serviceCollection.AddSingleton<ICreateDeletePublishedProvidersJobs, DeletePublishedProvidersJobCreation>();

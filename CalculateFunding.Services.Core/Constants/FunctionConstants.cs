@@ -4,6 +4,10 @@
     {
         public const string PublishingApproveAllProviderFunding = "on-publishing-approve-all-provider-funding";
 
+        public const string PublishIntegrityCheck = "on-publish-integrity-check";
+
+        public const string PublishIntegrityCheckPoisoned = "on-publish-integrity-check-poisoned";
+
         public const string PublishingApproveAllProviderFundingPoisoned = "on-publishing-approve-all-provider-funding-poisoned";
 
         public const string PublishingApproveBatchProviderFunding = "on-publishing-approve-batch-provider-funding";

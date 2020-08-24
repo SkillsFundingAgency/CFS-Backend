@@ -3,8 +3,8 @@ using Microsoft.Azure.ServiceBus;
 
 namespace CalculateFunding.Services.Publishing.Interfaces
 {
-    public interface IRefreshService
+    public interface IApproveService
     {
-        Task RefreshResults(Message message);
+        Task ApproveResults(Message message, bool batched = false);
     }
 }

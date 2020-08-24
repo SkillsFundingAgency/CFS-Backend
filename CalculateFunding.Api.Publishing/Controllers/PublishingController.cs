@@ -164,6 +164,36 @@ namespace CalculateFunding.Api.Publishing.Controllers
         }
 
         /// <summary>
+        /// Publish integrity check
+        /// </summary>
+        /// <param name="specificationId">The specification id</param>
+        /// <returns></returns>
+        [HttpPost("api/specifications/{specificationId}/publishintegritycheck")]
+        [ProducesResponseType(200, Type = typeof(JobCreationResponse))]
+        public async Task<IActionResult> PublishIntegrityCheck([FromRoute] string specificationId)
+        {
+            return await _providerFundingPublishingService.PublishIntegrityCheck(specificationId,
+                GetUser(),
+                GetCorrelationId());
+        }
+
+        /// <summary>
+        /// Publish integrity check
+        /// </summary>
+        /// <param name="specificationId">The specification id</param>
+        /// <param name="publishAll">Whether to publish all funding contents</param>
+        /// <returns></returns>
+        [HttpPost("api/specifications/{specificationId}/publishintegritycheck/{publishAll}")]
+        [ProducesResponseType(200, Type = typeof(JobCreationResponse))]
+        public async Task<IActionResult> PublishIntegrityCheck([FromRoute] string specificationId, [FromRoute] bool publishAll)
+        {
+            return await _providerFundingPublishingService.PublishIntegrityCheck(specificationId,
+                GetUser(),
+                GetCorrelationId(),
+                publishAll);
+        }
+
+        /// <summary>
         /// Publish funding for batch providers within given specification
         /// </summary>
         /// <param name="specificationId">The specification id</param>

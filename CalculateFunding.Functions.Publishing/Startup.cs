@@ -141,6 +141,8 @@ namespace CalculateFunding.Functions.Publishing
                 builder.AddScoped<OnRefreshFundingFailure>();
                 builder.AddScoped<OnApproveAllProviderFundingFailure>();
                 builder.AddScoped<OnPublishAllProviderFundingFailure>();
+                builder.AddScoped<OnPublishIntegrityCheck>();
+                builder.AddScoped<OnPublishIntegrityCheckFailure>();
                 builder.AddScoped<OnDeletePublishedProviders>();
                 builder.AddScoped<OnReIndexPublishedProviders>();
                 builder.AddScoped<OnGeneratePublishedFundingCsv>();
@@ -346,6 +348,8 @@ namespace CalculateFunding.Functions.Publishing
             builder.AddSingleton<IPublishedProviderDataPopulator, PublishedProviderDataPopulator>();
 
             builder.AddSingleton<ICalculationsService, CalculationsService>();
+
+            builder.AddSingleton<IPublishIntegrityCheckService, PublishIntegrityCheckService>();
 
             builder.AddSingleton<IPublishedProviderContentsGeneratorResolver>(ctx =>
             {
