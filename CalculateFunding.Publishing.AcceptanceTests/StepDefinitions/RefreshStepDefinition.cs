@@ -78,7 +78,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
         [When(@"funding is refreshed")]
         public async Task WhenFundingIsRefreshed()
         {
-            var message = new Message();
+            Message message = new Message();
 
             message.UserProperties.Add("user-id", _currentUserStepContext.UserId);
             message.UserProperties.Add("user-name", _currentUserStepContext.UserName);
@@ -103,29 +103,29 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
         public void ThenTheUpsertedProviderVersionForHasTheFollowingFundingLineProfilePeriods(string providerId,
             IEnumerable<ExpectedFundingLineProfileValues> expectedFundingLineProfileValues)
         {
-            var publishedProviderVersion = GetUpsertedPublishedProviderVersion(providerId);
+            PublishedProviderVersion publishedProviderVersion = GetUpsertedPublishedProviderVersion(providerId);
 
-            foreach (var expectedFundingLineProfileValue in expectedFundingLineProfileValues)
+            foreach (ExpectedFundingLineProfileValues expectedFundingLineProfileValue in expectedFundingLineProfileValues)
             {
-                var fundingLine = publishedProviderVersion.FundingLines.SingleOrDefault(_ =>
+                FundingLine fundingLine = publishedProviderVersion.FundingLines.SingleOrDefault(_ =>
                     _.FundingLineCode == expectedFundingLineProfileValue.FundingLineCode);
 
                 fundingLine
                     .Should()
                     .NotBeNull();
 
-                foreach (var expectedDistributionPeriod in expectedFundingLineProfileValue.ExpectedDistributionPeriods)
+                foreach (ExpectedDistributionPeriod expectedDistributionPeriod in expectedFundingLineProfileValue.ExpectedDistributionPeriods)
                 {
-                    var distributionPeriod = fundingLine.DistributionPeriods.SingleOrDefault(_ =>
+                    DistributionPeriod distributionPeriod = fundingLine.DistributionPeriods.SingleOrDefault(_ =>
                         _.DistributionPeriodId == expectedDistributionPeriod.DistributionPeriodId);
 
                     distributionPeriod
                         .Should()
                         .NotBeNull();
 
-                    foreach (var expectedProfileValue in expectedDistributionPeriod.ExpectedProfileValues)
+                    foreach (ExpectedProfileValue expectedProfileValue in expectedDistributionPeriod.ExpectedProfileValues)
                     {
-                        var profilePeriod = distributionPeriod
+                        ProfilePeriod profilePeriod = distributionPeriod
                             .ProfilePeriods.SingleOrDefault(
                                 _ => _.Type == expectedProfileValue.Type &&
                                      _.TypeValue == expectedProfileValue.TypeValue &&
@@ -149,7 +149,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
         public void ThenTheUpsertedProviderVersionForHasTheFollowingPredecessors(string providerId,
             IEnumerable<ExpectedPredecessor> expectedPredecessors)
         {
-            var publishedProviderVersion = GetUpsertedPublishedProviderVersion(providerId);
+            PublishedProviderVersion publishedProviderVersion = GetUpsertedPublishedProviderVersion(providerId);
 
             publishedProviderVersion
                 .Predecessors
@@ -166,9 +166,9 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
         public void ThenTheUpsertedProviderVersionForHasTheFundingLineTotals(string providerId,
             IEnumerable<ExpectedFundingLineTotal> expectedFundingLineTotals)
         {
-            var publishedProviderVersion = GetUpsertedPublishedProviderVersion(providerId);
+            PublishedProviderVersion publishedProviderVersion = GetUpsertedPublishedProviderVersion(providerId);
 
-            foreach (var expectedFundingLineTotal in expectedFundingLineTotals)
+            foreach (ExpectedFundingLineTotal expectedFundingLineTotal in expectedFundingLineTotals)
                 publishedProviderVersion.FundingLines
                     .SingleOrDefault(_ => _.FundingLineCode == expectedFundingLineTotal.FundingLineCode)
                     ?.Value
@@ -191,11 +191,11 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
             Dictionary<string, IEnumerable<VariationReason>> variationReasons =
                 expectedVariationReasons.ToDictionary(_ => _.ProviderId, _ => _.Reasons);
 
-            foreach (var publishedProviderVersion in _providerVersionInMemoryRepository
+            foreach (PublishedProviderVersion publishedProviderVersion in _providerVersionInMemoryRepository
                 .UpsertedPublishedProviderVersions)
             {
-                var key = publishedProviderVersion.ProviderId;
-                var latestPublishedProviderVersion = publishedProviderVersion;
+                string key = publishedProviderVersion.ProviderId;
+                PublishedProviderVersion latestPublishedProviderVersion = publishedProviderVersion;
 
                 if (variationReasons.ContainsKey(key))
                     latestPublishedProviderVersion
@@ -218,10 +218,10 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
         public void ThenTheUpsertedProviderVersionForHasNoFundingLineOverPaymentsForFundingLine(string providerId,
             string fundingLineCode)
         {
-            var publishedProviderVersion = GetUpsertedPublishedProviderVersion(providerId);
+            PublishedProviderVersion publishedProviderVersion = GetUpsertedPublishedProviderVersion(providerId);
 
-            (publishedProviderVersion.FundingLineOverPayments ?? new Dictionary<string, decimal>())
-                .ContainsKey(fundingLineCode)
+            (publishedProviderVersion.CarryOvers ?? new List<ProfilingCarryOver>())
+                .Any(_ => _.FundingLineCode == fundingLineCode)
                 .Should()
                 .BeFalse();
         }
@@ -230,23 +230,24 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
         public void ThenTheUpsertedProviderVersionForHasTheFollowingFundingLineOverPayments(string providerId,
             IEnumerable<ExpectedFundingLineOverPayment> expectedFundingLineOverPayments)
         {
-            var publishedProviderVersion = GetUpsertedPublishedProviderVersion(providerId);
+            PublishedProviderVersion publishedProviderVersion = GetUpsertedPublishedProviderVersion(providerId);
 
-            IDictionary<string, decimal> overPayments =
-                publishedProviderVersion.FundingLineOverPayments ?? new Dictionary<string, decimal>();
+            IEnumerable<ProfilingCarryOver> carryOvers = publishedProviderVersion.CarryOvers ?? new List<ProfilingCarryOver>();
 
-            foreach (var expectedFundingLineOverPayment in expectedFundingLineOverPayments)
+            foreach (ExpectedFundingLineOverPayment expectedFundingLineOverPayment in expectedFundingLineOverPayments)
             {
-                var fundingLineCode = expectedFundingLineOverPayment.FundingLineCode;
+                string fundingLineCode = expectedFundingLineOverPayment.FundingLineCode;
 
-                overPayments
-                    .ContainsKey(fundingLineCode)
-                    .Should()
-                    .BeTrue();
+                ProfilingCarryOver carryOver = carryOvers.FirstOrDefault(_ => _.FundingLineCode == fundingLineCode);
 
-                overPayments[fundingLineCode]
+                carryOver
                     .Should()
-                    .Be(expectedFundingLineOverPayment.OverPayment);
+                    .BeEquivalentTo(new ProfilingCarryOver
+                    {
+                        FundingLineCode = fundingLineCode,
+                        Type = ProfilingCarryOverType.DSGReProfiling,
+                        Amount = expectedFundingLineOverPayment.OverPayment
+                    });
             }
         }
 

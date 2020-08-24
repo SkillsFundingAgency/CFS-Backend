@@ -19,10 +19,12 @@ namespace CalculateFunding.Services.Publishing.Errors
         {
             ErrorCheck errorCheck = new ErrorCheck();
 
-            foreach (FundingLine fundingLine in CustomPaymentFundingLinesFor(publishedProvider.Current))
+            PublishedProviderVersion publishedProviderVersion = publishedProvider.Current;
+            
+            foreach (FundingLine fundingLine in CustomPaymentFundingLinesFor(publishedProviderVersion))
             {
                 decimal fundingLineValue = fundingLine.Value.GetValueOrDefault();
-                decimal profiledValue = GetProfiledSum(fundingLine);
+                decimal profiledValue = GetProfiledSum(fundingLine, publishedProviderVersion);
 
                 if (fundingLineValue != profiledValue)
                 {
@@ -56,9 +58,8 @@ namespace CalculateFunding.Services.Publishing.Errors
                                                                     && fundingLineCodes.Contains(_.FundingLineCode)); 
         }
 
-        private static decimal GetProfiledSum(FundingLine fundingLine)
-        {
-            return new YearMonthOrderedProfilePeriods(fundingLine).Sum(_ => _.ProfiledValue);
-        }
+        private static decimal GetProfiledSum(FundingLine fundingLine, PublishedProviderVersion publishedProviderVersion) 
+            => new YearMonthOrderedProfilePeriods(fundingLine).Sum(_ => _.ProfiledValue) 
+               + publishedProviderVersion.GetCarryOverTotalForFundingLine(fundingLine.FundingLineCode).GetValueOrDefault();
     }
 }

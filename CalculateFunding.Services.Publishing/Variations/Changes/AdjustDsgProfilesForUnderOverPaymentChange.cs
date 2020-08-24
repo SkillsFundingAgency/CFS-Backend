@@ -73,7 +73,7 @@ namespace CalculateFunding.Services.Publishing.Variations.Changes
                     orderRefreshProfilePeriods,
                     out decimal remainingOverPayment))
                 {
-                    RefreshState.AddFundingLineOverPayment(fundingLineId, remainingOverPayment);
+                    RefreshState.AddCarryOver(fundingLineId, ProfilingCarryOverType.DSGReProfiling, remainingOverPayment);
                 }
             }
             else

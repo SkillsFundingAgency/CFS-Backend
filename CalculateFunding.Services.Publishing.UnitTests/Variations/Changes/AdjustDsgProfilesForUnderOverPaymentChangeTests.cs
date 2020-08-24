@@ -152,7 +152,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
 
         private void AndTheFundingLineOverPaymentShouldBe(decimal? expectedOverPayment)
         {
-            IDictionary<string, decimal> overPayments = VariationContext.RefreshState.FundingLineOverPayments;
+           IEnumerable<ProfilingCarryOver> overPayments = VariationContext.RefreshState.CarryOvers;
             
             if (expectedOverPayment == null)
             {
@@ -162,13 +162,16 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Variations.Changes
             }
             else
             {
-                overPayments.TryGetValue(_fundingLineCode, out decimal actualOverPayment)
-                    .Should()
-                    .BeTrue();
+                ProfilingCarryOver carryOver = overPayments.FirstOrDefault(_ => _.FundingLineCode == _fundingLineCode);
 
-                actualOverPayment
+                carryOver
                     .Should()
-                    .Be(expectedOverPayment);
+                    .BeEquivalentTo(new ProfilingCarryOver
+                    {
+                        Type = ProfilingCarryOverType.DSGReProfiling,
+                        Amount = expectedOverPayment.GetValueOrDefault(),
+                        FundingLineCode = _fundingLineCode
+                    });
             }
         }
 

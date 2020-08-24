@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
@@ -17,26 +18,37 @@ namespace CalculateFunding.Models.UnitTests.Publishing
             _publishedProviderVersion = new PublishedProviderVersion();
         }
         
-        
-        [DataTestMethod]
-        [DataRow(0)]
-        [DataRow(-1)]
-        public void AddFundingLineOverPaymentGuardsAgainstValuesLessThanOrEqualToZero(int overpayment)
+        [TestMethod]
+        public void AddCarryOversGuardsAgainstUndefinedType()
         {
-            Action invocation = () => WhenTheFundingLineOverPaymentIsAdded(NewRandomString(), overpayment);
+            Action invocation = () => WhenTheFundingLineCarryOverIsAdded(NewRandomString(), NewRandomNumber(), ProfilingCarryOverType.Undefined);
 
             invocation
                 .Should()
                 .ThrowExactly<ArgumentOutOfRangeException>()
-                .WithMessage("Over payments must be greater than zero*");
+                .WithMessage($"Unsupported {nameof(ProfilingCarryOverType)} (Parameter 'type')");
+        }
+        
+        
+        [DataTestMethod]
+        [DataRow(0)]
+        [DataRow(-1)]
+        public void AddCarryOversGuardsAgainstValuesLessThanOrEqualToZero(int overpayment)
+        {
+            Action invocation = () => WhenTheFundingLineCarryOverIsAdded(NewRandomString(), overpayment, ProfilingCarryOverType.DSGReProfiling);
+
+            invocation
+                .Should()
+                .ThrowExactly<ArgumentOutOfRangeException>()
+                .WithMessage("Carry overs must be greater than zero*");
         }
         
         [DataTestMethod]
         [DataRow("")]
         [DataRow(null)]
-        public void AddFundingLineOverPaymentGuardsAgainstMissingFundingLineIds(string fundingLineId)
+        public void AddCarryOversGuardsAgainstMissingFundingLineIds(string fundingLineId)
         {
-            Action invocation = () => WhenTheFundingLineOverPaymentIsAdded(fundingLineId, NewRandomNumber());
+            Action invocation = () => WhenTheFundingLineCarryOverIsAdded(fundingLineId, NewRandomNumber(), ProfilingCarryOverType.DSGReProfiling);
 
             invocation
                 .Should()
@@ -45,31 +57,34 @@ namespace CalculateFunding.Models.UnitTests.Publishing
         }
 
         [TestMethod]
-        public void AddFundingLineOverPaymentAddsToInternalCollection()
+        public void AddCarryOversAddsToInternalCollection()
         {
             string fundingLineId = NewRandomString();
             decimal overPayment = NewRandomNumber();
+            ProfilingCarryOverType type = new RandomEnum<ProfilingCarryOverType>(ProfilingCarryOverType.Undefined);
             
-            WhenTheFundingLineOverPaymentIsAdded(fundingLineId, overPayment);
+            WhenTheFundingLineCarryOverIsAdded(fundingLineId, overPayment, type);
 
             _publishedProviderVersion
-                .FundingLineOverPayments
+                .CarryOvers
                 .Should()
                 .NotBeNull();
 
-            _publishedProviderVersion
-                .FundingLineOverPayments.TryGetValue(fundingLineId, out decimal actualOverpayment)
-                .Should()
-                .BeTrue();
+            ProfilingCarryOver carryOver = _publishedProviderVersion.CarryOvers.FirstOrDefault(_ => _.FundingLineCode == fundingLineId);
 
-            actualOverpayment
+            carryOver
                 .Should()
-                .Be(overPayment);
+                .BeEquivalentTo(new ProfilingCarryOver
+                {
+                    Type = type,
+                    Amount = overPayment,
+                    FundingLineCode = fundingLineId
+                });
         }
         
-        private void WhenTheFundingLineOverPaymentIsAdded(string fundingLineId, decimal overPayment)
+        private void WhenTheFundingLineCarryOverIsAdded(string fundingLineId, decimal overPayment, ProfilingCarryOverType type)
         {
-            _publishedProviderVersion.AddFundingLineOverPayment(fundingLineId, overPayment);
+            _publishedProviderVersion.AddCarryOver(fundingLineId, type, overPayment);
         }
         
         private string NewRandomString() => new RandomString();

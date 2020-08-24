@@ -30,7 +30,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private IEnumerable<ProfilePatternKey> _profilePatternKeys;
         private IEnumerable<FundingLineProfileOverrides> _customProfiles;
         private IEnumerable<PublishedProviderError> _errors;
+        private IEnumerable<ProfilingCarryOver> _carryOvers;
 
+        public PublishedProviderVersionBuilder WithCarryOvers(params ProfilingCarryOver[] carryOvers)
+        {
+            _carryOvers = carryOvers;
+
+            return this;
+        }
+        
         public PublishedProviderVersionBuilder WithErrors(params PublishedProviderError[] errors)
         {
             _errors = errors;
@@ -194,7 +202,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 VariationReasons = _variationReasons,
                 ProfilePatternKeys = _profilePatternKeys?.ToList(),
                 CustomProfiles = _customProfiles,
-                Errors = _errors?.ToList()
+                Errors = _errors?.ToList(),
+                CarryOvers = _carryOvers?.ToList()
             };
         }
     }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Versioning;
 using CalculateFunding.Models.Versioning;
 using Newtonsoft.Json;
 
@@ -191,21 +192,43 @@ namespace CalculateFunding.Models.Publishing
         /// </summary>
         [JsonProperty("fundingLineOverPayments")]
         public IDictionary<string, decimal> FundingLineOverPayments { get; set; }
+        
+        /// <summary>
+        /// Collection of carry over payments keyed by funding line for the funding period
+        /// this published provider version is in
+        /// </summary>
+        [JsonProperty("carryOvers")]
+        public ICollection<ProfilingCarryOver> CarryOvers { get; set; }
 
-        public void AddFundingLineOverPayment(string fundingLineId, decimal overpayment)
+        public decimal? GetCarryOverTotalForFundingLine(string fundingLineCode)
+            => CarryOvers?.Where(_ => _.FundingLineCode == fundingLineCode).Sum(_ => _.Amount);
+        
+        public void AddCarryOver(string fundingLineCode,
+            ProfilingCarryOverType type,
+            decimal amount)
         {
-            if (string.IsNullOrWhiteSpace(fundingLineId))
+            if (type == ProfilingCarryOverType.Undefined)
             {
-                throw new ArgumentOutOfRangeException(nameof(fundingLineId), fundingLineId, "Funding Line Id cannot be missing");
+                throw new ArgumentOutOfRangeException(nameof(type), $"Unsupported {nameof(ProfilingCarryOverType)}");
+            }
+            
+            if (string.IsNullOrWhiteSpace(fundingLineCode))
+            {
+                throw new ArgumentOutOfRangeException(nameof(fundingLineCode), fundingLineCode, "Funding Line Id cannot be missing");
             }
 
-            if (overpayment <= 0)
+            if (amount <= 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(overpayment), overpayment, "Over payments must be greater than zero");
+                throw new ArgumentOutOfRangeException(nameof(amount), amount, "Carry overs must be greater than zero");
             }
-
-            FundingLineOverPayments ??= new Dictionary<string, decimal>();
-            FundingLineOverPayments[fundingLineId] = overpayment;
+            
+            CarryOvers ??= new List<ProfilingCarryOver>();
+            CarryOvers.Add(new ProfilingCarryOver
+            {
+                FundingLineCode = fundingLineCode,
+                Type = type,
+                Amount = amount
+            });
         }
 
         [JsonIgnore]

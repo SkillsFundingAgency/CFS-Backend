@@ -38,6 +38,33 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
                 .Should()
                 .BeNullOrEmpty();
         }
+        
+        [TestMethod]
+        public async Task TakesCarryOversIntoAccountWhenCheckingValueMismatchErrorForEachPaymentFundingLineWithValueMismatchesWhereWeHaveACustomProfile()
+        {
+            string fundingLineCode1 = NewRandomString();
+
+            PublishedProvider publishedProvider = NewPublishedProvider(_ => _.WithCurrent(NewPublishedProviderVersion(ppv => ppv.WithProfilePatternKeys(
+                    NewProfilePatternKey(pk => pk.WithFundingLineCode(fundingLineCode1)))
+                .WithCarryOvers(NewProfilingCarryOver(pco => pco.WithAmount(989)
+                    .WithFundingLineCode(fundingLineCode1)
+                    .WithType(ProfilingCarryOverType.CustomProfile)))
+                .WithFundingLines(
+                NewFundingLine(fl => fl.WithOrganisationGroupingReason(OrganisationGroupingReason.Payment)
+                    .WithFundingLineCode(fundingLineCode1)
+                    .WithValue(999)
+                    .WithDistributionPeriods(NewDistributionPeriod(dp =>
+                        dp.WithProfilePeriods(
+                            NewProfilePeriod(pp =>
+                                pp.WithAmount(10))))))))));
+
+            await WhenErrorsAreDetectedOnThePublishedProvider(publishedProvider);
+
+            publishedProvider.Current
+                .Errors
+                .Should()
+                .BeNullOrEmpty();
+        }
 
         [TestMethod]
         public async Task AddsProfiledValueMismatchErrorForEachPaymentFundingLineWithValueMismatchesWhereWeHaveACustomProfile()
@@ -170,6 +197,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
             setUp?.Invoke(patternKeyBuilder);
 
             return patternKeyBuilder.Build();
+        }
+
+        private ProfilingCarryOver NewProfilingCarryOver(Action<ProfilingCarryOverBuilder> setUp = null)
+        {
+            ProfilingCarryOverBuilder profilingCarryOverBuilder = new ProfilingCarryOverBuilder();
+
+            setUp?.Invoke(profilingCarryOverBuilder);
+            
+            return profilingCarryOverBuilder.Build();
         }
 
         private string NewRandomString() => new RandomString();

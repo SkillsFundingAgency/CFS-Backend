@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Errors;
 using CalculateFunding.Services.Publishing.Interfaces;
+using CalculateFunding.Services.Publishing.Models;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -45,11 +46,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
                 new PublishedProviderError()
             });
 
-            await _errorDetection.ProcessPublishedProvider(publishedProvider);
+            PublishedProvidersContext publishedProvidersContext = new PublishedProvidersContext();
+            
+            await _errorDetection.ProcessPublishedProvider(publishedProvider, publishedProvidersContext);
 
-            _detectorOne.Verify(_ => _.DetectErrors(publishedProvider, null), Times.Once);
-            _detectorTwo.Verify(_ => _.DetectErrors(publishedProvider, null), Times.Once);
-            _detectorThree.Verify(_ => _.DetectErrors(publishedProvider, null), Times.Once);
+            _detectorOne.Verify(_ => _.DetectErrors(publishedProvider, publishedProvidersContext), Times.Once);
+            _detectorTwo.Verify(_ => _.DetectErrors(publishedProvider, publishedProvidersContext), Times.Once);
+            _detectorThree.Verify(_ => _.DetectErrors(publishedProvider, publishedProvidersContext), Times.Once);
         }
 
         private PublishedProvider NewPublishedProvider() => new PublishedProviderBuilder()

@@ -17,6 +17,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using CalculateFunding.Services.Publishing.Models;
 
 namespace CalculateFunding.Services.Publishing.UnitTests
 {
@@ -445,7 +446,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         {
             _publishedProviderErrorDetection
                 .Received(1)
-                .ProcessPublishedProvider(publishedProvider, Arg.Any<Func<IDetectPublishedProviderErrors, bool>>());
+                .ProcessPublishedProvider(publishedProvider, Arg.Any<Func<IDetectPublishedProviderErrors, bool>>(), Arg.Any<PublishedProvidersContext>());
         }
 
         private bool PublishedProviderMatches(IEnumerable<PublishedProvider> publishedProviders, PublishedProvider expectedPublishedProvider)

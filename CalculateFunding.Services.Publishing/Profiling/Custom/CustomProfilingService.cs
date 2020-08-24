@@ -75,6 +75,13 @@ namespace CalculateFunding.Services.Publishing.Profiling.Custom
                 FundingLine fundingLine = fundingLines[profileOverride.FundingLineCode];
 
                 fundingLine.DistributionPeriods = profileOverride.DistributionPeriods.DeepCopy();
+
+                if (profileOverride.HasCarryOver)
+                {
+                    current.AddCarryOver(fundingLine.FundingLineCode,
+                        ProfilingCarryOverType.CustomProfile,
+                        profileOverride.CarryOver.GetValueOrDefault());
+                }
             }
 
             await _publishedProviderVersionCreation.UpdatePublishedProviderStatus(new[] {publishedProvider}, 

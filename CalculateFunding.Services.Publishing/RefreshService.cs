@@ -10,6 +10,7 @@ using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Common.Utility;
+using CalculateFunding.Generators.OrganisationGroup.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Extensions;
@@ -334,7 +335,15 @@ namespace CalculateFunding.Services.Publishing
 
             // set up the published providers context for error detection laterawait 
             FundingConfiguration fundingConfiguration = await _policiesService.GetFundingConfiguration(fundingStream.Id, specification.FundingPeriod.Id);
-            _detection.PreparePublishedProviders(scopedProviders.Values, specification.Id, specification.ProviderVersionId, fundingConfiguration);
+            
+            PublishedProvidersContext publishedProvidersContext = new PublishedProvidersContext
+            {
+                ScopedProviders = scopedProviders.Values,
+                SpecificationId = specification.Id,
+                ProviderVersionId = specification.ProviderVersionId,
+                OrganisationGroupResultsData = new Dictionary<string, IEnumerable<OrganisationGroupResult>>(),
+                FundingConfiguration = fundingConfiguration
+            };
 
             foreach (KeyValuePair<string, PublishedProvider> publishedProvider in publishedProvidersReadonlyDictionary)
             {
@@ -380,7 +389,7 @@ namespace CalculateFunding.Services.Publishing
                 _reApplyCustomProfiles.ProcessPublishedProvider(publishedProviderVersion);
 
                 // process published provider and detect errors
-                await _detection.ProcessPublishedProvider(publishedProvider.Value);
+                await _detection.ProcessPublishedProvider(publishedProvider.Value, publishedProvidersContext);
 
                 if (publishedProviderUpdated && existingPublishedProviders.AnyWithNullCheck())
                 {

@@ -32,7 +32,7 @@ namespace CalculateFunding.Services.Publishing.Errors
         {
             public bool HasErrors => Errors?.Any() == true;
             
-            public ICollection<PublishedProviderError> Errors {get; } = new List<PublishedProviderError>();
+            public ICollection<PublishedProviderError> Errors { get; } = new List<PublishedProviderError>();
 
             public void AddError(PublishedProviderError error)
             {
