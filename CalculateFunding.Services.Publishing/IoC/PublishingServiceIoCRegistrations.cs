@@ -64,6 +64,9 @@ namespace CalculateFunding.Services.Publishing.IoC
             serviceCollection.AddSingleton<IOrganisationGroupTargetProviderLookup, OrganisationGroupTargetProviderLookup>();
             serviceCollection.AddSingleton<IOrganisationGroupGenerator, OrganisationGroupGenerator>();
 
+            serviceCollection.AddSingleton<IJobsRunning, JobsRunning>();
+            serviceCollection.AddSingleton<ICalculationPrerequisiteCheckerService, CalculationPrerequisiteCheckerService>();
+
             serviceCollection.AddScoped<IPrerequisiteCheckerLocator, PrerequisiteCheckerLocator>();
             serviceCollection.AddScoped<IPrerequisiteChecker, RefreshPrerequisiteChecker>();
             serviceCollection.AddScoped<IPrerequisiteChecker, PublishAllPrerequisiteChecker>();

@@ -34,7 +34,11 @@ namespace CalculateFunding.Api.Publishing.UnitTests
                 { "providerProfilingAzureBearerTokenOptions:GrantType", "client_credentials" },
                 { "providerProfilingAzureBearerTokenOptions:Scope", "https://wahetever-scope" },
                 { "providerProfilingAzureBearerTokenOptions:ClientId", "client-id" },
-                { "providerProfilingAzureBearerTokenOptions:ClientSecret", "client-secret"}
+                { "providerProfilingAzureBearerTokenOptions:ClientSecret", "client-secret"},
+                { "graphClient:ApiEndpoint", "https://localhost:7011/api/" },
+                { "graphClient:ApiKey", "Local" },
+                { "calcsClient:ApiEndpoint", "https://localhost:7011/api/" },
+                { "calcsClient:ApiKey", "Local" },
             };
         }
         

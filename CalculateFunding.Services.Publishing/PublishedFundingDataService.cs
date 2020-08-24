@@ -218,7 +218,6 @@ namespace CalculateFunding.Services.Publishing
             }
             await TaskHelper.WhenAllAndThrow(allTasks.ToArray());
 
-
             return results;
         }
 

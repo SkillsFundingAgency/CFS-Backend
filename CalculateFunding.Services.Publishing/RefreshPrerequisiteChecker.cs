@@ -6,15 +6,10 @@ using AutoMapper;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Utility;
-using CalculateFunding.Generators.OrganisationGroup;
-using CalculateFunding.Generators.OrganisationGroup.Interfaces;
-using CalculateFunding.Generators.OrganisationGroup.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Publishing.Interfaces;
 using Serilog;
-using Polly;
-using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
 
 namespace CalculateFunding.Services.Publishing
 {
@@ -63,7 +58,10 @@ namespace CalculateFunding.Services.Publishing
             }, publishedProviders, providers);
         }
 
-        protected override async Task<IEnumerable<string>> PerformChecks<T>(T prereqObject, IEnumerable<PublishedProvider> publishedProviders, IEnumerable<Provider> providers)
+        protected override async Task<IEnumerable<string>> PerformChecks<T>(
+            T prereqObject, 
+            IEnumerable<PublishedProvider> publishedProviders, 
+            IEnumerable<Provider> providers)
         {
             SpecificationSummary specification = prereqObject as SpecificationSummary;
 

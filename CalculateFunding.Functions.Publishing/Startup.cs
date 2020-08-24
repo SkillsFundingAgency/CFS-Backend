@@ -345,10 +345,6 @@ namespace CalculateFunding.Functions.Publishing
 
             builder.AddSingleton<IPublishedProviderDataPopulator, PublishedProviderDataPopulator>();
 
-            builder.AddSingleton<IJobsRunning, JobsRunning>();
-
-            builder.AddSingleton<ICalculationPrerequisiteCheckerService, CalculationPrerequisiteCheckerService>();
-
             builder.AddSingleton<ICalculationsService, CalculationsService>();
 
             builder.AddSingleton<IPublishedProviderContentsGeneratorResolver>(ctx =>

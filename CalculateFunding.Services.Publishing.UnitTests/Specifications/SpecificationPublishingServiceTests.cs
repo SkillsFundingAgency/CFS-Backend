@@ -7,15 +7,18 @@ using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies.Models;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Models.Publishing;
+using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
 using CalculateFunding.Services.Publishing.Specifications;
+using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using ApiJob = CalculateFunding.Common.ApiClient.Jobs.Models.Job;
 using ApiSpecificationSummary = CalculateFunding.Common.ApiClient.Specifications.Models.SpecificationSummary;
 
@@ -30,6 +33,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
         private ICacheProvider _cacheProvider;
         private ISpecificationFundingStatusService _specificationFundingStatusService;
         private PublishedProviderIdsRequest _approveProvidersRequest;
+        private IPrerequisiteCheckerLocator _prerequisiteCheckerLocator;
+        private IPrerequisiteChecker _prerequisiteChecker;
 
         [TestInitialize]
         public void SetUp()
@@ -38,6 +43,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
             _approveProviderFundingJobs = Substitute.For<ICreateApproveBatchFundingJobs>();
             _cacheProvider = Substitute.For<ICacheProvider>();
             _specificationFundingStatusService = Substitute.For<ISpecificationFundingStatusService>();
+            _prerequisiteCheckerLocator = Substitute.For<IPrerequisiteCheckerLocator>();
+            _prerequisiteChecker = Substitute.For<IPrerequisiteChecker>();
 
             _service = new SpecificationPublishingService(
                 SpecificationIdValidator,
@@ -49,7 +56,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
                 _approveSpecificationFundingJobs,
                 _approveProviderFundingJobs,
                 _specificationFundingStatusService,
-                FundingConfigurationService);
+                FundingConfigurationService,
+                _prerequisiteCheckerLocator);
 
             _approveProvidersRequest = BuildApproveProvidersRequest(_ => _.WithProviders(ProviderIds));
         }
@@ -101,13 +109,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
             ThenTheResponseShouldBe<ConflictResult>();
         }
 
-        private void AndTheSpecificationSummaryConflictsWithAnotherForThatFundingPeriod(ApiSpecificationSummary specificationSummary)
-        {
-            _specificationFundingStatusService
-                .CheckChooseForFundingStatus(Arg.Is(specificationSummary))
-                .Returns(SpecificationFundingStatus.SharesAlreadyChosenFundingStream);
-        }
-
         [TestMethod]
         public async Task CreatesPublishSpecificationJobForSuppliedSpecificationId()
         {
@@ -124,6 +125,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
 
             GivenTheApiResponseDetailsForTheSuppliedId(specificationSummary);
             AndTheApiResponseDetailsForTheFundingPeriodId(fundingPeriodId);
+            AndGetPreReqCheckerLocatorReturnsRefreshPreReqChecker();
             AndTheApiResponseDetailsForSpecificationsJob(refreshFundingJob);
 
             JobCreationResponse expectedJobCreationResponse = NewJobCreationResponse(_ => _.WithJobId(refreshFundingJobId));
@@ -137,6 +139,36 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
                 .Value
                 .Should()
                 .BeEquivalentTo(expectedJobCreationResponse);
+        }
+
+        [TestMethod]
+        public async Task Returns400IfPrereqChecksFails()
+        {
+            string fundingPeriodId = NewRandomString();
+            string preReqCheckFailedErrorMessage = "Prerequisite check for refresh failed";
+
+            ApiSpecificationSummary specificationSummary =
+                NewApiSpecificationSummary(_ => _
+                    .WithIsSelectedForFunding(true)
+                    .WithFundingPeriodId(fundingPeriodId)
+                    .WithFundingStreamIds(NewRandomString(),
+                        NewRandomString(),
+                        NewRandomString()));
+
+            GivenTheApiResponseDetailsForTheSuppliedId(specificationSummary);
+            AndTheApiResponseDetailsForTheFundingPeriodId(fundingPeriodId);
+            AndGetPreReqCheckerLocatorReturnsRefreshPreReqChecker();
+            AndPrereqChecksFails(specificationSummary);
+
+            await WhenTheSpecificationIsPublished();
+
+            ActionResult
+                .Should()
+                .BeOfType<BadRequestObjectResult>()
+                .Which
+                .Value
+                .Should()
+                .BeEquivalentTo(preReqCheckFailedErrorMessage);
         }
 
         [TestMethod]
@@ -360,6 +392,32 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
                 .Value
                 .Should()
                 .BeEquivalentTo(new SpecificationCheckChooseForFundingResult { Status = status });
+        }
+
+        private void AndTheSpecificationSummaryConflictsWithAnotherForThatFundingPeriod(ApiSpecificationSummary specificationSummary)
+        {
+            _specificationFundingStatusService
+                .CheckChooseForFundingStatus(Arg.Is(specificationSummary))
+                .Returns(SpecificationFundingStatus.SharesAlreadyChosenFundingStream);
+        }
+
+        private void AndGetPreReqCheckerLocatorReturnsRefreshPreReqChecker()
+        {
+            _prerequisiteCheckerLocator
+                .GetPreReqChecker(PrerequisiteCheckerType.Refresh)
+                .Returns(_prerequisiteChecker);
+        }
+
+        private void AndPrereqChecksFails(
+            ApiSpecificationSummary specificationSummary)
+        {
+            _prerequisiteChecker
+                .PerformChecks(
+                    Arg.Is(specificationSummary),
+                    null,
+                    Arg.Is<IEnumerable<PublishedProvider>>(_ => !_.Any()),
+                    Arg.Is<IEnumerable<Provider>>(_ => !_.Any()))
+                .Throws(new NonRetriableException());
         }
 
         private void AndTheSpecificationHasTheStatus(ApiSpecificationSummary specificationSummary,

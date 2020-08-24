@@ -48,10 +48,12 @@ namespace CalculateFunding.Services.Publishing
 
             if (!results.IsNullOrEmpty())
             {
+                if (!string.IsNullOrEmpty(jobId))
+                {
+                    await _jobManagement.UpdateJobStatus(jobId, completedSuccessfully: false, outcome: string.Join(", ", results));
+                }
+
                 string errorMessage = $"Specification with id: '{specificationId} has prerequisites which aren't complete.";
-
-                await _jobManagement.UpdateJobStatus(jobId, completedSuccessfully: false, outcome: string.Join(", ", results));
-
                 throw new NonRetriableException(errorMessage);
             }
         }

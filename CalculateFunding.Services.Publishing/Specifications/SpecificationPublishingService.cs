@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Models;
@@ -10,6 +11,7 @@ using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
+using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Interfaces;
@@ -28,6 +30,7 @@ namespace CalculateFunding.Services.Publishing.Specifications
         private readonly ICreateApproveBatchFundingJobs _approveProviderFundingJobs;
         private readonly ICacheProvider _cacheProvider;
         private readonly ISpecificationFundingStatusService _specificationFundingStatusService;
+        private readonly IPrerequisiteCheckerLocator _prerequisiteCheckerLocator;
 
         public SpecificationPublishingService(
             ISpecificationIdServiceRequestValidator specificationIdValidator,
@@ -39,20 +42,23 @@ namespace CalculateFunding.Services.Publishing.Specifications
             ICreateApproveAllFundingJobs approveSpecificationFundingJobs,
             ICreateApproveBatchFundingJobs approveProviderFundingJobs,
             ISpecificationFundingStatusService specificationFundingStatusService,
-            IFundingConfigurationService fundingConfigurationService) : 
-            base(specificationIdValidator, publishedProviderIdsValidator, specifications, resiliencePolicies, fundingConfigurationService)
+            IFundingConfigurationService fundingConfigurationService,
+            IPrerequisiteCheckerLocator prerequisiteCheckerLocator)
+            : base(specificationIdValidator, publishedProviderIdsValidator, specifications, resiliencePolicies, fundingConfigurationService)
         {
             Guard.ArgumentNotNull(refreshFundingJobs, nameof(refreshFundingJobs));
             Guard.ArgumentNotNull(approveSpecificationFundingJobs, nameof(approveSpecificationFundingJobs));
             Guard.ArgumentNotNull(approveProviderFundingJobs, nameof(approveProviderFundingJobs));
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
             Guard.ArgumentNotNull(specificationFundingStatusService, nameof(specificationFundingStatusService));
+            Guard.ArgumentNotNull(prerequisiteCheckerLocator, nameof(prerequisiteCheckerLocator));
 
             _refreshFundingJobs = refreshFundingJobs;
             _cacheProvider = cacheProvider;
             _approveSpecificationFundingJobs = approveSpecificationFundingJobs;
             _approveProviderFundingJobs = approveProviderFundingJobs;
             _specificationFundingStatusService = specificationFundingStatusService;
+            _prerequisiteCheckerLocator = prerequisiteCheckerLocator;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -95,6 +101,21 @@ namespace CalculateFunding.Services.Publishing.Specifications
             if (chooseCheck == SpecificationFundingStatus.SharesAlreadyChosenFundingStream)
             {
                 return new ConflictResult();
+            }
+
+            // Check prerequisites for this specification to be chosen/refreshed
+            IPrerequisiteChecker prerequisiteChecker = _prerequisiteCheckerLocator.GetPreReqChecker(PrerequisiteCheckerType.Refresh);
+            try
+            {
+                await prerequisiteChecker.PerformChecks(
+                        specificationSummary,
+                        null,
+                        Array.Empty<PublishedProvider>(),
+                        Array.Empty<Provider>());
+            }
+            catch (NonRetriableException)
+            {
+                return new BadRequestObjectResult("Prerequisite check for refresh failed");
             }
 
             ApiJob refreshFundingJob = await _refreshFundingJobs.CreateJob(specificationId, user, correlationId);
