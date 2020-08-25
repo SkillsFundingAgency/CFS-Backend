@@ -12,12 +12,18 @@ namespace CalculateFunding.Services.FundingDataZone
 {
     public class PublishingAreaRepository : SqlRepository, IPublishingAreaRepository, IHealthChecker
     {
-        public PublishingAreaRepository(ISqlConnectionFactory connectionFactory, ISqlPolicyFactory sqlPolicyFactory)
+        public PublishingAreaRepository(ISqlConnectionFactory connectionFactory,
+            ISqlPolicyFactory sqlPolicyFactory)
             : base(connectionFactory, sqlPolicyFactory)
         {
         }
 
-        public Task<IEnumerable<PublishingAreaOrganisation>> GetAllOrganisations(int providerSnapshotId) => throw new NotImplementedException();
+        public async Task<IEnumerable<PublishingAreaOrganisation>> GetAllOrganisations(int providerSnapshotId)
+            => await Query<PublishingAreaOrganisation>("sp_GetAllPaymentOrganisationsBySnapshotId",
+                new
+                {
+                    ProviderSnapshotId = providerSnapshotId
+                });
 
         public async Task<object> GetDataForTable(string tableName)
         {
@@ -38,12 +44,13 @@ namespace CalculateFunding.Services.FundingDataZone
 
         public Task<IEnumerable<string>> GetFundingStreamsWithProviderSnapshots() => throw new NotImplementedException();
 
-        public async Task<IEnumerable<PublishingAreaOrganisation>> GetLocalAuthorities(int providerSnapshotId) 
+        public async Task<IEnumerable<PublishingAreaOrganisation>> GetLocalAuthorities(int providerSnapshotId)
             => await Query<PublishingAreaOrganisation>("sp_GetPaymentOrganisationDetailsBySnapshotId",
-            new {
-                ProviderSnapshotId = providerSnapshotId,
-                PaymentOrganisationType = PaymentOrganisationType.LocalAuthority.ToString()
-            });
+                new
+                {
+                    ProviderSnapshotId = providerSnapshotId,
+                    PaymentOrganisationType = PaymentOrganisationType.LocalAuthority.ToString()
+                });
 
         public async Task<PublishingAreaProvider> GetProviderInSnapshot(int providerSnapshotId,
             string providerId) =>

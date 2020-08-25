@@ -130,6 +130,28 @@ namespace CalculateFunding.Services.FundingDataZone.UnitTests
         }
         
         [TestMethod]
+        public async Task GetAllOrganisations()
+        {
+            PublishingAreaOrganisation[] expectedPublishingAreaOrganisations =
+            {
+                NewPublishingAreaOrganisation(), NewPublishingAreaOrganisation()
+            };
+
+            int snapShotId = NewRandomNumber();
+            
+            GivenTheDapperReturnFor("sp_GetAllPaymentOrganisationsBySnapshotId", 
+                _ => _.ProviderSnapshotId == snapShotId, 
+                expectedPublishingAreaOrganisations,
+                CommandType.StoredProcedure);
+
+            IEnumerable<PublishingAreaOrganisation> actualPublishAreaProviders = await WhenThePaymentOrganisationsInSnapshotAreQueried(snapShotId);
+
+            actualPublishAreaProviders
+                .Should()
+                .BeEquivalentTo<PublishingAreaOrganisation>(expectedPublishingAreaOrganisations);
+        }
+        
+        [TestMethod]
         public async Task GetProviderSnapshots()
         {
             PublishingAreaProviderSnapshot[] expectedPublishAreaProviders =
@@ -220,6 +242,9 @@ namespace CalculateFunding.Services.FundingDataZone.UnitTests
         private async Task<string> WhenTheTableNameIsQueried(string code,
             int version)
             => await _repository.GetTableNameForDataset(code, version);
+        
+        private async Task<IEnumerable<PublishingAreaOrganisation>> WhenThePaymentOrganisationsInSnapshotAreQueried(int snapshotId)
+            => await _repository.GetAllOrganisations(snapshotId);
         
         private async Task<IEnumerable<PublishingAreaOrganisation>> WhenTheLocalAuthoritiesInSnapshotAreQueried(int snapshotId)
             => await _repository.GetLocalAuthorities(snapshotId);
