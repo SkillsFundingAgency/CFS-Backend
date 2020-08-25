@@ -107,6 +107,29 @@ namespace CalculateFunding.Services.FundingDataZone.UnitTests
         }
         
         [TestMethod]
+        public async Task GetLocalAuthorities()
+        {
+            PublishingAreaOrganisation[] expectedPublishingAreaOrganisations =
+            {
+                NewPublishingAreaOrganisation(), NewPublishingAreaOrganisation()
+            };
+
+            int snapShotId = NewRandomNumber();
+            
+            GivenTheDapperReturnFor("sp_GetPaymentOrganisationDetailsBySnapshotId", 
+                _ => _.ProviderSnapshotId == snapShotId &&
+                _.PaymentOrganisationType == PaymentOrganisationType.LocalAuthority.ToString(), 
+                expectedPublishingAreaOrganisations,
+                CommandType.StoredProcedure);
+
+            IEnumerable<PublishingAreaOrganisation> actualPublishAreaProviders = await WhenTheLocalAuthoritiesInSnapshotAreQueried(snapShotId);
+
+            actualPublishAreaProviders
+                .Should()
+                .BeEquivalentTo<PublishingAreaOrganisation>(expectedPublishingAreaOrganisations);
+        }
+        
+        [TestMethod]
         public async Task GetProviderSnapshots()
         {
             PublishingAreaProviderSnapshot[] expectedPublishAreaProviders =
@@ -198,6 +221,9 @@ namespace CalculateFunding.Services.FundingDataZone.UnitTests
             int version)
             => await _repository.GetTableNameForDataset(code, version);
         
+        private async Task<IEnumerable<PublishingAreaOrganisation>> WhenTheLocalAuthoritiesInSnapshotAreQueried(int snapshotId)
+            => await _repository.GetLocalAuthorities(snapshotId);
+        
         private async Task<IEnumerable<PublishingAreaProvider>> WhenTheProvidersInSnapshotAreQueried(int snapshotId)
             => await _repository.GetProvidersInSnapshot(snapshotId);
         
@@ -275,6 +301,15 @@ namespace CalculateFunding.Services.FundingDataZone.UnitTests
             setUp?.Invoke(publishingAreaDatasetMetadataBuilder);
             
             return publishingAreaDatasetMetadataBuilder.Build();
+        }
+        
+        private PublishingAreaOrganisation NewPublishingAreaOrganisation(Action<PublishingAreaOrganisationBuilder> setUp = null)
+        {
+            PublishingAreaOrganisationBuilder publishingAreaOrganisationBuilder = new PublishingAreaOrganisationBuilder();
+
+            setUp?.Invoke(publishingAreaOrganisationBuilder);
+            
+            return publishingAreaOrganisationBuilder.Build();
         }
         
         private DataRow NewRandomRow() => new DataRow

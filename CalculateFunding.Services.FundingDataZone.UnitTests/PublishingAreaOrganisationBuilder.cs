@@ -9,7 +9,16 @@ namespace CalculateFunding.Services.FundingDataZone.UnitTests
         {
             return new PublishingAreaOrganisation
             {
-                Name = NewRandomString()
+                Name = NewRandomString(),
+                Ukprn = NewRandomString(),
+                Upin = NewRandomString(),
+                Urn = NewRandomString(),
+                LaCode = NewRandomString(),
+                TrustCode = NewRandomString(),
+                CompanyHouseNumber = NewRandomString(),
+                PaymentOrganisationId = NewRandomNumberBetween(1, int.MaxValue),
+                PaymentOrganisationType = NewRandomString(),
+                ProviderSnapshotId = NewRandomNumberBetween(1, int.MaxValue)
             };
         }
     }

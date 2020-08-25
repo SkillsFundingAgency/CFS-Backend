@@ -38,7 +38,12 @@ namespace CalculateFunding.Services.FundingDataZone
 
         public Task<IEnumerable<string>> GetFundingStreamsWithProviderSnapshots() => throw new NotImplementedException();
 
-        public Task<IEnumerable<PublishingAreaOrganisation>> GetLocalAuthorities(int providerSnapshotId) => throw new NotImplementedException();
+        public async Task<IEnumerable<PublishingAreaOrganisation>> GetLocalAuthorities(int providerSnapshotId) 
+            => await Query<PublishingAreaOrganisation>("sp_GetPaymentOrganisationDetailsBySnapshotId",
+            new {
+                ProviderSnapshotId = providerSnapshotId,
+                PaymentOrganisationType = PaymentOrganisationType.LocalAuthority.ToString()
+            });
 
         public async Task<PublishingAreaProvider> GetProviderInSnapshot(int providerSnapshotId,
             string providerId) =>
