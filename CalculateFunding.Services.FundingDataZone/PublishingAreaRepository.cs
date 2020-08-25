@@ -67,6 +67,13 @@ namespace CalculateFunding.Services.FundingDataZone
                 {
                     ProviderSnapshotId = providerSnapshotId
                 });
+        
+        public async Task<PublishingAreaProviderSnapshot> GetProviderSnapshotMetadata(int providerSnapshotId) =>
+            await QuerySingle<PublishingAreaProviderSnapshot>("sp_GetProviderSnapshotMetadata",
+                new
+                {
+                    ProviderSnapshotId = providerSnapshotId
+                });
 
         public async Task<IEnumerable<PublishingAreaProviderSnapshot>> GetProviderSnapshots(string fundingStreamId) =>
             await Query<PublishingAreaProviderSnapshot>("sp_getProviderSnapshotsByFundingStream",

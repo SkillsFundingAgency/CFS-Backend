@@ -130,6 +130,24 @@ namespace CalculateFunding.Services.FundingDataZone.UnitTests
         }
         
         [TestMethod]
+        public async Task GetProviderSnapshotMetadata()
+        {
+            PublishingAreaProviderSnapshot expectedMetadata = NewPublishingAreaProviderSnapshot();
+
+            int providerSnapshotId = NewRandomNumber();
+            
+            GivenTheSingleDapperReturnFor("sp_GetProviderSnapshotMetadata", 
+                _ => _.ProviderSnapshotId == providerSnapshotId, 
+                expectedMetadata);
+
+            PublishingAreaProviderSnapshot actualMetadata = await WhenThenSnapshotMetadataIsQueried(providerSnapshotId);
+
+            actualMetadata
+                .Should()
+                .BeEquivalentTo(expectedMetadata);
+        }
+        
+        [TestMethod]
         public async Task GetAllOrganisations()
         {
             PublishingAreaOrganisation[] expectedPublishingAreaOrganisations =
@@ -254,6 +272,9 @@ namespace CalculateFunding.Services.FundingDataZone.UnitTests
         
         private async Task<IEnumerable<PublishingAreaProviderSnapshot>> WhenThenSnapshotsAreQueried(string fundingStreamId)
             => await _repository.GetProviderSnapshots(fundingStreamId);
+        
+        private async Task<PublishingAreaProviderSnapshot> WhenThenSnapshotMetadataIsQueried(int providerSnapshotId)
+            => await _repository.GetProviderSnapshotMetadata(providerSnapshotId);
         
         private async Task<PublishingAreaProvider> WhenTheProviderInSnapshotIsQueried(int snapshotId, 
             string providerId)

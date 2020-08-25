@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.FundingDataZone;
 using CalculateFunding.Services.FundingDataZone.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -12,14 +14,21 @@ namespace CalculateFunding.Api.FundingDataZone.Controllers
     public class ProviderMetadataController : ControllerBase
     {
         private readonly IFundingStreamsWithProviderSnapshotsRetrievalService _fundingStreamsWithProviderSnapshotsRetrievalService;
+        private readonly IProviderSnapshotMetadataRetrievalService _providerSnapshotMetadataRetrievalService;
         private readonly IProviderSnapshotForFundingStreamService _providerSnapshotForFundingStreamService;
 
         public ProviderMetadataController(
             IFundingStreamsWithProviderSnapshotsRetrievalService fundingStreamsWithProviderSnapshotsRetrievalService,
-            IProviderSnapshotForFundingStreamService providerSnapshotForFundingStreamService)
+            IProviderSnapshotForFundingStreamService providerSnapshotForFundingStreamService,
+            IProviderSnapshotMetadataRetrievalService providerSnapshotMetadataRetrievalService)
         {
+            Guard.ArgumentNotNull(fundingStreamsWithProviderSnapshotsRetrievalService, nameof(fundingStreamsWithProviderSnapshotsRetrievalService));
+            Guard.ArgumentNotNull(providerSnapshotMetadataRetrievalService, nameof(providerSnapshotMetadataRetrievalService));
+            Guard.ArgumentNotNull(providerSnapshotForFundingStreamService, nameof(providerSnapshotForFundingStreamService));
+            
             _fundingStreamsWithProviderSnapshotsRetrievalService = fundingStreamsWithProviderSnapshotsRetrievalService;
             _providerSnapshotForFundingStreamService = providerSnapshotForFundingStreamService;
+            _providerSnapshotMetadataRetrievalService = providerSnapshotMetadataRetrievalService;
         }
 
         private const string ListFundingStreamsWithProviderSnapshotsDescription = @"
@@ -85,7 +94,7 @@ Used as input for:
 ";
 
         /// <summary>
-        /// Get provider snapshot metadata
+        ///     Get provider snapshot metadata
         /// </summary>
         /// <param name="providerSnapshotId">Provider Snapshot Id</param>
         /// <returns></returns>
@@ -93,9 +102,19 @@ Used as input for:
         [HttpGet("api/providers/snapshots/{providerSnapshotId}")]
         [Produces(typeof(IEnumerable<Provider>))]
         public async Task<ActionResult<IEnumerable<Provider>>> GetProviderSnapshotMetadata(
-            [FromRoute]int providerSnapshotId)
+            [FromRoute] int providerSnapshotId)
         {
-            return new OkObjectResult(Enumerable.Empty<IEnumerable<Provider>>());
+            ProviderSnapshot snapshot = await _providerSnapshotMetadataRetrievalService.GetProviderSnapshotsMetadata(providerSnapshotId);
+
+            if (snapshot == null)
+            {
+                return new NotFoundObjectResult(new ProblemDetails
+                {
+                    Title = "No provider snapshot shot found for providerSnapshotId"
+                });
+            }
+
+            return new OkObjectResult(snapshot);
         }
     }
 }
