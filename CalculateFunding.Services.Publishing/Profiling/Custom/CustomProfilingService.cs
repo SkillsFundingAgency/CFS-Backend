@@ -82,6 +82,8 @@ namespace CalculateFunding.Services.Publishing.Profiling.Custom
                         ProfilingCarryOverType.CustomProfile,
                         profileOverride.CarryOver.GetValueOrDefault());
                 }
+
+                current.AddProfilingAudit(profileOverride.FundingLineCode, author);
             }
 
             await _publishedProviderVersionCreation.UpdatePublishedProviderStatus(new[] {publishedProvider}, 

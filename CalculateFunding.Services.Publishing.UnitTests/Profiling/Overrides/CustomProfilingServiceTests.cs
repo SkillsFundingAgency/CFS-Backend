@@ -117,7 +117,24 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling.Overrides
 
             AndTheCustomProfilePeriodsWereUsedOn(fundingLineOne, fundingLines, customProfiles);
             AndTheCustomProfilePeriodsWereUsedOn(fundingLineTwo, fundingLines, customProfiles);
-            AndANewProviderVersionWasCreatedFor(publishedProvider, expectedRequestedStatus, author);            
+            AndANewProviderVersionWasCreatedFor(publishedProvider, expectedRequestedStatus, author);
+            AndProfilingAuditUpdatedForFundingLines(publishedProvider, new[] { fundingLineOne, fundingLineTwo }, author);
+        }
+
+        private void AndProfilingAuditUpdatedForFundingLines(PublishedProvider publishedProvider, string[] fundingLines, Reference author)
+        {
+            foreach (string fundingLineCode in fundingLines)
+            {
+                publishedProvider
+                    .Current
+                    .ProfilingAudits
+                    .Should()
+                    .Contain(a => a.FundingLineCode == fundingLineCode
+                                && a.User != null
+                                && a.User.Id == author.Id
+                                && a.User.Name == author.Name
+                                && a.Date.Date == DateTime.Today);
+            }
         }
 
         private void AndTheCustomProfilePeriodsWereUsedOn(string fundingLineCode, 

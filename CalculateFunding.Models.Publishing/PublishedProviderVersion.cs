@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Versioning;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Versioning;
 using Newtonsoft.Json;
 
@@ -192,7 +193,7 @@ namespace CalculateFunding.Models.Publishing
         /// </summary>
         [JsonProperty("fundingLineOverPayments")]
         public IDictionary<string, decimal> FundingLineOverPayments { get; set; }
-        
+
         /// <summary>
         /// Collection of carry over payments keyed by funding line for the funding period
         /// this published provider version is in
@@ -200,9 +201,15 @@ namespace CalculateFunding.Models.Publishing
         [JsonProperty("carryOvers")]
         public ICollection<ProfilingCarryOver> CarryOvers { get; set; }
 
+        /// <summary>
+        /// Collection of profiling audits for each funding line profile updates
+        /// </summary>
+        [JsonProperty("profilingAudits")]
+        public ICollection<ProfilingAudit> ProfilingAudits { get; set; }
+
         public decimal? GetCarryOverTotalForFundingLine(string fundingLineCode)
             => CarryOvers?.Where(_ => _.FundingLineCode == fundingLineCode).Sum(_ => _.Amount);
-        
+
         public void AddCarryOver(string fundingLineCode,
             ProfilingCarryOverType type,
             decimal amount)
@@ -211,7 +218,7 @@ namespace CalculateFunding.Models.Publishing
             {
                 throw new ArgumentOutOfRangeException(nameof(type), $"Unsupported {nameof(ProfilingCarryOverType)}");
             }
-            
+
             if (string.IsNullOrWhiteSpace(fundingLineCode))
             {
                 throw new ArgumentOutOfRangeException(nameof(fundingLineCode), fundingLineCode, "Funding Line Id cannot be missing");
@@ -221,7 +228,7 @@ namespace CalculateFunding.Models.Publishing
             {
                 throw new ArgumentOutOfRangeException(nameof(amount), amount, "Carry overs must be greater than zero");
             }
-            
+
             CarryOvers ??= new List<ProfilingCarryOver>();
             CarryOvers.Add(new ProfilingCarryOver
             {
@@ -229,6 +236,36 @@ namespace CalculateFunding.Models.Publishing
                 Type = type,
                 Amount = amount
             });
+        }
+
+        public void AddProfilingAudit(string fundingLineCode, Reference user)
+        {
+            if (string.IsNullOrWhiteSpace(fundingLineCode))
+            {
+                throw new ArgumentOutOfRangeException(nameof(fundingLineCode), fundingLineCode, "Funding Line Id cannot be null or empty");
+            }
+
+            if (user == null)
+            {
+                throw new ArgumentOutOfRangeException(nameof(user), user, "Audit user cannot be null");
+            }
+
+            if (ProfilingAudits == null)
+            {
+                ProfilingAudits = new List<ProfilingAudit>();
+            }
+
+            ProfilingAudit profilingAudit = ProfilingAudits.SingleOrDefault(a => a.FundingLineCode == fundingLineCode);
+
+            if (profilingAudit == null)
+            {
+                ProfilingAudits.Add(new ProfilingAudit() { FundingLineCode = fundingLineCode, User = user, Date = DateTime.Now.ToLocalTime() });
+            }
+            else
+            {
+                profilingAudit.User = user;
+                profilingAudit.Date = DateTime.Now.ToLocalTime();
+            }
         }
 
         [JsonIgnore]

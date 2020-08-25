@@ -91,7 +91,7 @@ namespace CalculateFunding.Services.Publishing
 
             PublishedProviderVersion newPublishedProviderVersion = publishedProvider.Current;
 
-            SetProfilePatternKey(newPublishedProviderVersion, profilePatternKey);
+            SetProfilePatternKey(newPublishedProviderVersion, profilePatternKey, author);
 
             await ProfileFundingLineValues(newPublishedProviderVersion, profilePatternKey);
 
@@ -226,7 +226,8 @@ namespace CalculateFunding.Services.Publishing
 
         private void SetProfilePatternKey(
             PublishedProviderVersion publishedProviderVersion, 
-            ProfilePatternKey profilePatternKey)
+            ProfilePatternKey profilePatternKey,
+            Reference author)
         {
             if (publishedProviderVersion.ProfilePatternKeys?.Any(_ => _.FundingLineCode == profilePatternKey.FundingLineCode) == true)
             {
@@ -243,6 +244,8 @@ namespace CalculateFunding.Services.Publishing
 
                 publishedProviderVersion.ProfilePatternKeys.Add(profilePatternKey);
             }
+
+            publishedProviderVersion.AddProfilingAudit(profilePatternKey.FundingLineCode, author);
         }
 
         private async Task SavePublishedProvider(

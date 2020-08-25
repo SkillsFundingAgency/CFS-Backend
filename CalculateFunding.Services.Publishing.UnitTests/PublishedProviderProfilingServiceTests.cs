@@ -256,6 +256,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             ThenResultReturnedAs(result, HttpStatusCode.OK);
             AndProfilePatternKeyUpdated(newPublishedProviderVersion, profilePatternKey);
             AndPublishedProviderProcessed(publishedProvider);
+            AndProfilingAuditUpdatedForFundingLine(publishedProvider, profilePatternKey.FundingLineCode, _author);
         }
 
         [TestMethod]
@@ -324,6 +325,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             AndProfilePatternKeyUpdated(newPublishedProviderVersion, profilePatternKey);
             AndPaidProfilePeriodExists(distributionPeriodId, paidProfilePeriod, profilePatternKey);
             AndPublishedProviderProcessed(publishedProvider);
+            AndProfilingAuditUpdatedForFundingLine(publishedProvider, profilePatternKey.FundingLineCode, _author);
         }
 
         private void GivenGetPublishedProvider(PublishedProvider publishedProvider)
@@ -447,6 +449,20 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             _publishedProviderErrorDetection
                 .Received(1)
                 .ProcessPublishedProvider(publishedProvider, Arg.Any<Func<IDetectPublishedProviderErrors, bool>>(), Arg.Any<PublishedProvidersContext>());
+        }
+
+        private void AndProfilingAuditUpdatedForFundingLine(PublishedProvider publishedProvider, string fundingLineCode, Reference author)
+        {
+            publishedProvider
+                .Current
+                .ProfilingAudits
+                .Should()
+                .Contain(a => a.FundingLineCode == fundingLineCode
+                            && a.User != null
+                            && a.User.Id == author.Id
+                            && a.User.Name == author.Name
+                            && a.Date.Date == DateTime.Today);
+
         }
 
         private bool PublishedProviderMatches(IEnumerable<PublishedProvider> publishedProviders, PublishedProvider expectedPublishedProvider)
