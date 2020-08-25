@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using CalculateFunding.Common.Models;
-using CalculateFunding.Models.Versioning;
 using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Messages

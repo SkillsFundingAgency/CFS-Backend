@@ -10,6 +10,8 @@ namespace CalculateFunding.Models.Specs
 
         public string ProviderVersionId { get; set; }
 
+        public int? ProviderSnapshotId { get; set; }
+
         public string Description { get; set; }
 
         public string Name { get; set; }

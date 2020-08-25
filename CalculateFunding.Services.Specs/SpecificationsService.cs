@@ -565,7 +565,7 @@ namespace CalculateFunding.Services.Specs
             ApiResponse<PolicyModels.FundingPeriod> fundingPeriodResponse =
                 await _policiesApiClientPolicy.ExecuteAsync(() =>
                     _policiesApiClient.GetFundingPeriodById(createModel.FundingPeriodId));
-            PolicyModels.FundingPeriod content = fundingPeriodResponse.Content;
+            PolicyModels.FundingPeriod fundingPeriod = fundingPeriodResponse.Content;
 
             Specification specification = new Specification()
             {
@@ -577,7 +577,7 @@ namespace CalculateFunding.Services.Specs
             {
                 Name = createModel.Name,
                 ProviderVersionId = createModel.ProviderVersionId,
-                FundingPeriod = new Reference(content.Id, content.Name),
+                FundingPeriod = new Reference(fundingPeriod.Id, fundingPeriod.Name),
                 Description = createModel.Description,
                 DataDefinitionRelationshipIds = new List<string>(),
                 Author = user,
@@ -615,12 +615,25 @@ namespace CalculateFunding.Services.Specs
 
             foreach (string fundingStreamId in specification.Current.FundingStreams.Select(m => m.Id))
             {
+                ApiResponse<PolicyModels.FundingConfig.FundingConfiguration> fundingConfigResponse =
+                    await _policiesApiClientPolicy.ExecuteAsync(() =>
+                        _policiesApiClient.GetFundingConfiguration(fundingStreamId,
+                            fundingPeriod.Id));
+
+                if (!fundingConfigResponse.StatusCode.IsSuccess())
+                {
+                    return new InternalServerErrorResult(
+                        $"No funding configuration returned for funding stream id '{fundingStreamId}' and funding period id '{specification.Current.FundingPeriod.Id}'");
+                }
+
+                PolicyModels.FundingConfig.FundingConfiguration fundingConfiguration = fundingConfigResponse.Content;
+
                 if (createModel.AssignedTemplateIds?.ContainsKey(fundingStreamId) ?? false)
                 {
                     ApiResponse<PolicyModels.FundingTemplateContents> publishedFundingTemplateResponse =
                         await _policiesApiClientPolicy.ExecuteAsync(() =>
                             _policiesApiClient.GetFundingTemplate(fundingStreamId,
-                                specification.Current.FundingPeriod.Id, createModel.AssignedTemplateIds[fundingStreamId]));
+                                fundingPeriod.Id, createModel.AssignedTemplateIds[fundingStreamId]));
 
                     if (!publishedFundingTemplateResponse.StatusCode.IsSuccess())
                     {
@@ -633,19 +646,6 @@ namespace CalculateFunding.Services.Specs
                 }
                 else
                 {
-                    ApiResponse<PolicyModels.FundingConfig.FundingConfiguration> fundingConfigResponse =
-                    await _policiesApiClientPolicy.ExecuteAsync(() =>
-                        _policiesApiClient.GetFundingConfiguration(fundingStreamId,
-                            specification.Current.FundingPeriod.Id));
-
-                    if (!fundingConfigResponse.StatusCode.IsSuccess())
-                    {
-                        return new InternalServerErrorResult(
-                            $"No funding configuration returned for funding stream id '{fundingStreamId}' and funding period id '{specification.Current.FundingPeriod.Id}'");
-                    }
-
-                    PolicyModels.FundingConfig.FundingConfiguration fundingConfiguration = fundingConfigResponse.Content;
-
                     if (!string.IsNullOrEmpty(fundingConfiguration?.DefaultTemplateVersion))
                     {
                         templateVersions.Add(fundingStreamId, fundingConfiguration.DefaultTemplateVersion);
@@ -684,6 +684,30 @@ namespace CalculateFunding.Services.Specs
 
                         decimal templateVersion = templateVersionValues.Max();
                         templateVersions.Add(fundingStreamId, templateVersion.ToString());
+                    }
+                }
+
+                if (specification.Current.FundingStreams.FirstOrDefault()?.Id == fundingStreamId)
+                {
+                    specificationVersion.ProviderSource = fundingConfiguration.ProviderSource switch
+                    {
+                        ProviderSource.CFS => Models.Providers.ProviderSource.CFS,
+                        ProviderSource.FDZ => Models.Providers.ProviderSource.FDZ,
+                        _ => throw new ArgumentOutOfRangeException(
+                            nameof(fundingConfiguration.ProviderSource), 
+                            $"Provider Source of Funding config: {fundingConfiguration.ProviderSource} is not allowed")
+                    };
+
+                    if (fundingConfiguration.ProviderSource == ProviderSource.FDZ)
+                    {
+                        if (!createModel.ProviderSnapshotId.HasValue)
+                        {
+                            return new PreconditionFailedResult(
+                                $"{nameof(createModel.ProviderSnapshotId)} not set when provider source is FDZ for " +
+                                $"funding stream ID '{fundingStreamId}' and funding period ID '{createModel.FundingPeriodId}'.");
+                        }
+
+                        specificationVersion.ProviderSnapshotId = createModel.ProviderSnapshotId;
                     }
                 }
             }
@@ -726,7 +750,11 @@ namespace CalculateFunding.Services.Specs
             return new OkObjectResult(specificationSummary);
         }
 
-        public async Task<IActionResult> EditSpecification(string specificationId, SpecificationEditModel editModel, Reference user, string correlationId)
+        public async Task<IActionResult> EditSpecification(
+            string specificationId, 
+            SpecificationEditModel editModel, 
+            Reference user, 
+            string correlationId)
         {
             if (string.IsNullOrWhiteSpace(specificationId))
             {
@@ -791,17 +819,59 @@ namespace CalculateFunding.Services.Specs
                 ApiResponse<PolicyModels.FundingPeriod> fundingPeriodResponse =
                     await _policiesApiClientPolicy.ExecuteAsync(() =>
                         _policiesApiClient.GetFundingPeriodById(editModel.FundingPeriodId));
-                PolicyModels.FundingPeriod content = fundingPeriodResponse?.Content;
-                if (content == null)
+                PolicyModels.FundingPeriod fundingPeriod = fundingPeriodResponse?.Content;
+                if (fundingPeriod == null)
                 {
                     return new PreconditionFailedResult(
                         $"Unable to find funding period with ID '{editModel.FundingPeriodId}'.");
                 }
 
-                specificationVersion.FundingPeriod = new Reference {Id = content.Id, Name = content.Period};
+                specificationVersion.FundingPeriod = new Reference {Id = fundingPeriod.Id, Name = fundingPeriod.Period};
             }
 
-            await _templateVersionChangedHandler.HandleTemplateVersionChanged(previousSpecificationVersion, specificationVersion, editModel.AssignedTemplateIds, user, correlationId);
+            string fundingStreamId = specification.Current.FundingStreams.FirstOrDefault().Id;
+
+            ApiResponse<PolicyModels.FundingConfig.FundingConfiguration> fundingConfigResponse =
+                await _policiesApiClientPolicy.ExecuteAsync(() =>
+                    _policiesApiClient.GetFundingConfiguration(fundingStreamId,
+                        editModel.FundingPeriodId));
+
+            if (!fundingConfigResponse.StatusCode.IsSuccess())
+            {
+                return new InternalServerErrorResult(
+                    $"No funding configuration returned for funding stream id " +
+                    $"'{fundingStreamId}' and funding period id '{specification.Current.FundingPeriod.Id}'");
+            }
+
+            PolicyModels.FundingConfig.FundingConfiguration fundingConfiguration = fundingConfigResponse.Content;
+
+            specificationVersion.ProviderSource = fundingConfiguration.ProviderSource switch
+            {
+                ProviderSource.CFS => Models.Providers.ProviderSource.CFS,
+                ProviderSource.FDZ => Models.Providers.ProviderSource.FDZ,
+                _ => throw new ArgumentOutOfRangeException(
+                            nameof(fundingConfiguration.ProviderSource),
+                            $"Provider Source of Funding config: {fundingConfiguration.ProviderSource} is not allowed")
+            };
+
+            if (fundingConfiguration.ProviderSource == ProviderSource.FDZ)
+            {
+                if (!editModel.ProviderSnapshotId.HasValue)
+                {
+                    return new PreconditionFailedResult(
+                        $"{nameof(editModel.ProviderSnapshotId)} not set when provider source is FDZ for " +
+                        $"funding stream ID '{fundingStreamId}' and fundint period ID '{editModel.FundingPeriodId}'.");
+                }
+
+                specificationVersion.ProviderSnapshotId = editModel.ProviderSnapshotId;
+            }
+
+            await _templateVersionChangedHandler.HandleTemplateVersionChanged(
+                previousSpecificationVersion, 
+                specificationVersion, 
+                editModel.AssignedTemplateIds, 
+                user, 
+                correlationId);
 
             HttpStatusCode statusCode =
                 await UpdateSpecification(specification, specificationVersion, previousSpecificationVersion);

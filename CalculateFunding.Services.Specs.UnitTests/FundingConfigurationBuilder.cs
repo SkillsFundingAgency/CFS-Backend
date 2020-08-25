@@ -1,3 +1,4 @@
+using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
 using CalculateFunding.Tests.Common.Helpers;
 
@@ -8,6 +9,7 @@ namespace CalculateFunding.Services.Specs.UnitTests
         private string _defaultTemplateVersion;
         private string _fundingStreamId;
         private string _fundingPeriodId;
+        private ProviderSource _providerSource;
 
         public FundingConfigurationBuilder WithFundingPeriodId(string fundingPeriodId)
         {
@@ -30,13 +32,21 @@ namespace CalculateFunding.Services.Specs.UnitTests
             return this;
         }
 
+        public FundingConfigurationBuilder WithProviderSource(ProviderSource providerSource)
+        {
+            _providerSource = providerSource;
+
+            return this;
+        }
+
         public FundingConfiguration Build()
         {
             return new FundingConfiguration
             {
                 FundingPeriodId = _fundingPeriodId ?? NewRandomString(),
                 FundingStreamId = _fundingStreamId ?? NewRandomString(),
-                DefaultTemplateVersion = _defaultTemplateVersion
+                DefaultTemplateVersion = _defaultTemplateVersion,
+                ProviderSource = _providerSource
             };
         }
     }

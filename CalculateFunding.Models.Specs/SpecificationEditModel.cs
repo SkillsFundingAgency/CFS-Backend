@@ -14,6 +14,9 @@ namespace CalculateFunding.Models.Specs
         [JsonProperty("providerVersionId")]
         public string ProviderVersionId { get; set; }
 
+        [JsonProperty("providerSnapshotId")]
+        public int? ProviderSnapshotId { get; set; }
+
         [JsonProperty("fundingPeriodId")]
         public string FundingPeriodId { get; set; }
 

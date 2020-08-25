@@ -4,10 +4,10 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Messages;
 using CalculateFunding.Models.Specs;
-using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Constants;
@@ -15,14 +15,11 @@ using CalculateFunding.Services.Core.Extensions;
 using FluentAssertions;
 using FluentValidation;
 using FluentValidation.Results;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Primitives;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using PolicyModels = CalculateFunding.Common.ApiClient.Policies.Models;
 using SpecificationVersion = CalculateFunding.Models.Specs.SpecificationVersion;
-
 
 namespace CalculateFunding.Services.Specs.UnitTests.Services
 {
@@ -174,6 +171,11 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             _specificationsRepository
                 .UpdateSpecification(Arg.Any<Specification>())
                 .Returns(HttpStatusCode.BadRequest);
+
+            AndGetFundingConfiguration(
+                _specification.Current.FundingStreams.FirstOrDefault().Id,
+                specificationEditModel.FundingPeriodId);
+
             SpecificationsService service = CreateService(mapper: _mapper, logs: _logger, specificationsRepository: _specificationsRepository, policiesApiClient: _policiesApiClient);
 
             //Act
@@ -206,6 +208,10 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             _providersApiClient.RegenerateProviderSummariesForSpecification(_specification.Id, true)
                 .Returns(new ApiResponse<bool>(HttpStatusCode.OK, true));
+
+            AndGetFundingConfiguration(
+                _specification.Current.FundingStreams.FirstOrDefault().Id,
+                specificationEditModel.FundingPeriodId);
 
             SpecificationsService service = CreateSpecificationsService(newSpecVersion);
 
@@ -293,7 +299,10 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             newSpecVersion.FundingPeriod.Name = "p10";
             newSpecVersion.Author = user;
             newSpecVersion.Description = specificationEditModel.Description;
-            //newSpecVersion.FundingStreams = new[] { new Reference { Id = "fs11" } };
+
+            AndGetFundingConfiguration(
+                _specification.Current.FundingStreams.FirstOrDefault().Id,
+                specificationEditModel.FundingPeriodId);
 
             SpecificationsService service = CreateSpecificationsService(newSpecVersion);
             
@@ -336,6 +345,118 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         }
 
         [TestMethod]
+        public async Task EditSpecification_GivenChangesWithFDZProviderSourceAndProviderSnapshotIdNotSet_ReturnsPreconditionFailedResult()
+        {
+            //Arrange
+            SpecificationEditModel specificationEditModel = new SpecificationEditModel
+            {
+                FundingPeriodId = "fp10",
+                Name = "new spec name",
+                ProviderVersionId = _specification.Current.ProviderVersionId,
+                Description = "new spec description",
+                AssignedTemplateIds = new Dictionary<string, string>()
+            };
+
+            Reference user = new Reference();
+
+            SpecificationVersion newSpecVersion = _specification.Current.DeepCopy(useCamelCase: false);
+            newSpecVersion.Name = specificationEditModel.Name;
+            newSpecVersion.FundingPeriod.Id = specificationEditModel.FundingPeriodId;
+            newSpecVersion.FundingPeriod.Name = "p10";
+            newSpecVersion.Author = user;
+            newSpecVersion.Description = specificationEditModel.Description;
+
+            AndGetFundingConfiguration(
+                _specification.Current.FundingStreams.FirstOrDefault().Id,
+                specificationEditModel.FundingPeriodId,
+                ProviderSource.FDZ);
+
+            SpecificationsService service = CreateSpecificationsService(newSpecVersion);
+
+            string correlationId = NewRandomString();
+
+            SpecificationVersion previousSpecificationVersion = _specification.Current;
+
+            //Act
+            IActionResult actionResult =
+                await service.EditSpecification(SpecificationId, specificationEditModel, user, correlationId);
+
+            actionResult
+                .Should()
+                .BeOfType<PreconditionFailedResult>();
+        }
+
+        [TestMethod]
+        public async Task EditSpecification_GivenChangesWithFDZProviderSource_UpdatesSearchAndSendsMessage()
+        {
+            //Arrange
+            SpecificationEditModel specificationEditModel = new SpecificationEditModel
+            {
+                FundingPeriodId = "fp10",
+                Name = "new spec name",
+                ProviderVersionId = _specification.Current.ProviderVersionId,
+                Description = "new spec description",
+                AssignedTemplateIds = new Dictionary<string, string>(),
+                ProviderSnapshotId = 1
+            };
+
+            Reference user = new Reference();
+
+            SpecificationVersion newSpecVersion = _specification.Current.DeepCopy(useCamelCase: false);
+            newSpecVersion.Name = specificationEditModel.Name;
+            newSpecVersion.FundingPeriod.Id = specificationEditModel.FundingPeriodId;
+            newSpecVersion.FundingPeriod.Name = "p10";
+            newSpecVersion.Author = user;
+            newSpecVersion.Description = specificationEditModel.Description;
+            newSpecVersion.ProviderSnapshotId = 1;
+            newSpecVersion.ProviderSource = Models.Providers.ProviderSource.FDZ;
+
+            AndGetFundingConfiguration(
+                _specification.Current.FundingStreams.FirstOrDefault().Id,
+                specificationEditModel.FundingPeriodId,
+                ProviderSource.FDZ);
+
+            SpecificationsService service = CreateSpecificationsService(newSpecVersion);
+
+            string correlationId = NewRandomString();
+
+            SpecificationVersion previousSpecificationVersion = _specification.Current;
+
+            //Act
+            await service.EditSpecification(SpecificationId, specificationEditModel, user, correlationId);
+
+            await _specificationIndexer
+                .Received(1)
+                .Index(Arg.Is<Specification>(_ => ReferenceEquals(_.Current, newSpecVersion)));
+
+            await
+                _cacheProvider
+                    .Received(1)
+                    .RemoveAsync<SpecificationSummary>(Arg.Is($"{CacheKeys.SpecificationSummaryById}{_specification.Id}"));
+            await
+                _messengerService
+                    .Received(1)
+                    .SendToTopic(Arg.Is(ServiceBusConstants.TopicNames.EditSpecification),
+                                Arg.Is<SpecificationVersionComparisonModel>(
+                                    m => m.Id == SpecificationId &&
+                                    m.Current.Name == "new spec name" &&
+                                    m.Previous.Name == "Spec name"
+                                    ), Arg.Any<IDictionary<string, string>>(), Arg.Is(true));
+            await
+              _versionRepository
+               .Received(1)
+               .SaveVersion(Arg.Is(newSpecVersion));
+
+            await _templateVersionChangedHandler
+                .Received(1)
+                .HandleTemplateVersionChanged(Arg.Is(previousSpecificationVersion),
+                    Arg.Is<SpecificationVersion>(_ => newSpecVersion.AsJson(true) == _.AsJson(true)),
+                    Arg.Is(specificationEditModel.AssignedTemplateIds),
+                    Arg.Is(user),
+                     Arg.Is(correlationId));
+        }
+
+        [TestMethod]
         public async Task EditSpecification_GivenChanges_QueueEditSpecificationJobActions()
         {
             //Arrange
@@ -355,7 +476,10 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             newSpecVersion.FundingPeriod.Name = "p10";
             newSpecVersion.Author = user;
             newSpecVersion.Description = specificationEditModel.Description;
-          
+
+            AndGetFundingConfiguration(
+                _specification.Current.FundingStreams.FirstOrDefault().Id,
+                specificationEditModel.FundingPeriodId);
 
             SpecificationsService service = CreateSpecificationsService(newSpecVersion);
           
@@ -420,9 +544,13 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .CreateVersion(Arg.Any<Models.Specs.SpecificationVersion>(), Arg.Any<Models.Specs.SpecificationVersion>())
                 .Returns(newSpecVersion);
             SpecificationsService service = CreateService(
-                mapper: _mapper, logs: _logger, specificationsRepository: _specificationsRepository,
-                policiesApiClient: _policiesApiClient, searchRepository: _searchRepository,
-                cacheProvider: _cacheProvider, messengerService: _messengerService,
+                mapper: _mapper, 
+                logs: _logger, 
+                specificationsRepository: _specificationsRepository,
+                policiesApiClient: _policiesApiClient, 
+                searchRepository: _searchRepository,
+                cacheProvider: _cacheProvider, 
+                messengerService: _messengerService,
                 specificationVersionRepository: _versionRepository,
                 providersApiClient: _providersApiClient,
                 queueEditSpecificationJobActions: _editSpecificationJobActions);
@@ -448,6 +576,10 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             _versionRepository
                 .CreateVersion(Arg.Any<Models.Specs.SpecificationVersion>(), Arg.Any<Models.Specs.SpecificationVersion>())
                 .Returns(newSpecVersion);
+            AndGetFundingConfiguration(
+                _specification.Current.FundingStreams.FirstOrDefault().Id,
+                specificationEditModel.FundingPeriodId);
+
             SpecificationsService service = CreateSpecificationsService(newSpecVersion);
 
             //Act
@@ -481,17 +613,13 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         public async Task EditSpecification_GivenChangesAndSpecContainsCalculations_UpdatesSearchAndSendsMessage()
         {
             //Arrange
-            var existingFundingStreams = _specification.Current.FundingStreams;
             SpecificationEditModel specificationEditModel = new SpecificationEditModel
             {
                 FundingPeriodId = "fp10",
                 Name = "new spec name",
                 ProviderVersionId = _specification.Current.ProviderVersionId
             };
-            PolicyModels.FundingStream fundingStream = new PolicyModels.FundingStream
-            {
-                Id = existingFundingStreams.First().Id
-            };
+            
             Models.Specs.SpecificationVersion newSpecVersion = _specification.Current.Clone() as Models.Specs.SpecificationVersion;
             newSpecVersion.Name = specificationEditModel.Name;
             newSpecVersion.FundingPeriod.Id = specificationEditModel.FundingPeriodId;
@@ -499,6 +627,11 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             _versionRepository
                 .CreateVersion(Arg.Any<Models.Specs.SpecificationVersion>(), Arg.Any<Models.Specs.SpecificationVersion>())
                 .Returns(newSpecVersion);
+
+            AndGetFundingConfiguration(
+                            _specification.Current.FundingStreams.FirstOrDefault().Id,
+                            specificationEditModel.FundingPeriodId);
+
             var service = CreateSpecificationsService(newSpecVersion);
 
             //Act
@@ -526,6 +659,25 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                _versionRepository
                 .Received(1)
                 .SaveVersion(Arg.Is(newSpecVersion));
+        }
+
+        private void AndGetFundingConfiguration(
+            string fundingStreamId,
+            string fundingPeriodId,
+            ProviderSource providerSource = ProviderSource.CFS)
+        {
+            FundingConfiguration fundingConfiguration = NewFundingConfiguration(_ => _
+                .WithDefaultTemplateVersion(NewRandomString())
+                .WithProviderSource(providerSource));
+
+            ApiResponse<FundingConfiguration> fundingConfigResponse =
+                new ApiResponse<FundingConfiguration>(HttpStatusCode.OK, fundingConfiguration);
+
+            _policiesApiClient
+                .GetFundingConfiguration(
+                    Arg.Is(fundingStreamId),
+                    Arg.Is(fundingPeriodId))
+                .Returns(fundingConfigResponse);
         }
     }
 }
