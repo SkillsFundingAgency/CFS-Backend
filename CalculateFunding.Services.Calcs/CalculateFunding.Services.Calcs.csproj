@@ -21,7 +21,7 @@
     <PackageReference Include="CalculateFunding.Common.ApiClient.Policies" Version="5.5.2" />
 
     <PackageReference Include="CalculateFunding.Common.ApiClient.Specifications" Version="6.10.0" />
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Calcs" Version="3.1.0" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Calcs" Version="3.2.0" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Jobs" Version="2.4.0" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Policies" Version="3.6.1" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Providers" Version="4.2.0" />

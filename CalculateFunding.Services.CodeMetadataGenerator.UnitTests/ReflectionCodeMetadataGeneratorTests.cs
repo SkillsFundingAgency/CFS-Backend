@@ -378,13 +378,103 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.UnitTests
 
             IEnumerable<PropertyInformation> providerProperties = result.FirstOrDefault(m => m.Name == "Provider").Properties;
 
-            foreach(string propertyName in propertyNames)
+            foreach (string propertyName in propertyNames)
             {
                 providerProperties
                     .FirstOrDefault(m => m.Name == propertyName)
                     .Should()
                     .NotBeNull();
             }
+        }
+
+        [TestMethod]
+        public void GetTypeInformation_WhenCompiledAssembly_EnsuresEnumsWithValuesPresent()
+        {
+            // Arrange
+            ICodeMetadataGeneratorService generator = GetCodeGenerator();
+            byte[] assembly = GetCalculationsWithEnumsExampleAssembly();
+            string[] expectedEnumValues = new[] { "Type1", "Type2", "Type3" };
+
+            // Act
+            IEnumerable<TypeInformation> result = generator.GetTypeInformation(assembly);
+
+            // Assert
+            result.Should().NotBeNull("Result should not be null");
+
+            TypeInformation enumTypeInformation = result.FirstOrDefault(t => t.Name == "TypeOfFundingOptions");
+            enumTypeInformation.Should().NotBeNull();
+            enumTypeInformation.EnumValues.Should().BeEquivalentTo(expectedEnumValues);
+            enumTypeInformation.Type.Should().Be("CalculationContext+DSGCalculations+TypeOfFundingOptions");
+        }
+
+        [TestMethod]
+        public void GetTypeInformation_WhenCompiledAssembly_EnsuresBooleanValueReturnMethodsPresent()
+        {
+            // Arrange
+            ICodeMetadataGeneratorService generator = GetCodeGenerator();
+            byte[] assembly = GetCalculationsWithEnumsExampleAssembly();
+
+            // Act
+            IEnumerable<TypeInformation> result = generator.GetTypeInformation(assembly);
+
+            // Assert
+            result.Should().NotBeNull("Result should not be null");
+
+            TypeInformation dsgCalcTypeInformation = result.FirstOrDefault(t => t.Name == "DSGCalculations");
+            dsgCalcTypeInformation.Should().NotBeNull();
+            MethodInformation booleanValueMethodInfo = dsgCalcTypeInformation.Methods.FirstOrDefault(x => x.Name == "Eligibilty");
+            booleanValueMethodInfo.Should().NotBeNull();
+            booleanValueMethodInfo.ReturnType.Should().Be("Nullable(Of System.Boolean)");
+        }
+
+        [TestMethod]
+        public void GetTypeInformation_WhenCompiledAssembly_EnsuresFilteredMethodsNotPresent()
+        {
+            // Arrange
+            ICodeMetadataGeneratorService generator = GetCodeGenerator();
+            byte[] assembly = GetCalculationsWithEnumsExampleAssembly();
+            string[] filteredMethodNames = new[]{
+                                                    "ToString",
+                                                    "GetHashCode",
+                                                    "Equals",
+                                                    "GetType",
+                                                    "Initialise",
+                                                    "GetTypeCode"
+                                                };
+
+            // Act
+            IEnumerable<TypeInformation> result = generator.GetTypeInformation(assembly);
+
+            // Assert
+            result.Should().NotBeNull("Result should not be null");
+
+            List<string> methodNames = result.SelectMany(x => (x.Methods??new List<MethodInformation>()).Select(m => m.Name)).ToList();
+            methodNames.Should().NotContain(filteredMethodNames);
+        }
+
+        [TestMethod]
+        public void GetTypeInformation_WhenCompiledAssembly_EnsuresFilteredPropertiesNotPresent()
+        {
+            // Arrange
+            ICodeMetadataGeneratorService generator = GetCodeGenerator();
+            byte[] assembly = GetCalculationsWithEnumsExampleAssembly();
+            string[] filteredPropertyNames = new[]{
+                                                    "Dictionary",
+                                                    "DictionaryDecimalValues",
+                                                    "DictionaryBooleanValues",
+                                                    "DictionaryStringValues",
+                                                    "FundingLineDictionary",
+                                                    "FundingLineDictionaryValues"
+                                                };
+
+            // Act
+            IEnumerable<TypeInformation> result = generator.GetTypeInformation(assembly);
+
+            // Assert
+            result.Should().NotBeNull("Result should not be null");
+
+            List<string> propertyNames = result.SelectMany(x => (x.Properties ?? new List<PropertyInformation>()).Select(m => m.Name)).ToList();
+            propertyNames.Should().NotContain(filteredPropertyNames);
         }
 
         private static ICodeMetadataGeneratorService GetCodeGenerator()
@@ -419,6 +509,12 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.UnitTests
         {
             // Read this generated DLL as example input, it should be copied to the output directory to be read by the tests
             return File.ReadAllBytes(Path.Combine(Environment.CurrentDirectory, "TestNewProviderProperties.dll.dat"));
+        }
+
+        private byte[] GetCalculationsWithEnumsExampleAssembly()
+        {
+            // Read this generated DLL as example input, it should be copied to the output directory to be read by the tests
+            return File.ReadAllBytes(Path.Combine(Environment.CurrentDirectory, "calculationsWithEnums.dll.dat"));
         }
     }
 }

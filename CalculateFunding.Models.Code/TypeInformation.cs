@@ -4,7 +4,7 @@ namespace CalculateFunding.Models.Code
 {
     public class TypeInformation
     {
-        public TypeInformation(){}
+        public TypeInformation() { }
 
         public TypeInformation(string name)
         {
@@ -34,5 +34,10 @@ namespace CalculateFunding.Models.Code
         public IEnumerable<PropertyInformation> Properties { get; set; }
 
         public string Type { get; set; }
+
+        /// <summary>
+        /// Enum values
+        /// </summary>
+        public IEnumerable<string> EnumValues { get; set; }
     }
 }

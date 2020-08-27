@@ -6,7 +6,6 @@ using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Common.ApiClient.DataSets;
-using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies;
@@ -42,9 +41,9 @@ using static CalculateFunding.Services.Core.Constants.JobConstants;
 using CalculationEntity = CalculateFunding.Models.Graph.Entity<CalculateFunding.Common.ApiClient.Graph.Models.Calculation, CalculateFunding.Common.ApiClient.Graph.Models.Relationship>;
 using FundingLine = CalculateFunding.Models.Calcs.FundingLine;
 using GraphCalculation = CalculateFunding.Common.ApiClient.Graph.Models.Calculation;
-using TemplateFundingLine = CalculateFunding.Common.TemplateMetadata.Models.FundingLine;
 using TemplateCalculation = CalculateFunding.Common.TemplateMetadata.Models.Calculation;
 using TemplateCalculationType = CalculateFunding.Common.TemplateMetadata.Enums.CalculationType;
+using TemplateFundingLine = CalculateFunding.Common.TemplateMetadata.Models.FundingLine;
 
 namespace CalculateFunding.Services.Calcs
 {
@@ -709,7 +708,7 @@ namespace CalculateFunding.Services.Calcs
             func ??= c => c.FundingLines;
 
             return enumerable
-                .SelectMany(cfl => 
+                .SelectMany(cfl =>
                 {
                     // flatten calculations under current funding line
                     cfl.Calculations?
@@ -722,14 +721,15 @@ namespace CalculateFunding.Services.Calcs
                             .SelectMany(fl => fl.Calculations?
                                 // flatten and only include cash calculations
                                 .Flatten(calc => calc.Calculations.Where(_ => calc.Type == TemplateCalculationType.Cash))) ?? Enumerable.Empty<TemplateCalculation>());
-                    
+
                     return FlattenFundingLines(func(cfl), cfl => cfl.FundingLines);
                 }).Concat(enumerable);
         }
 
         private static IEnumerable<FundingLine> GetFundingLines(TemplateMetadataContents templateMetadataContents, string fundingStreamId)
         {
-            return FlattenFundingLines(templateMetadataContents.RootFundingLines).Select(_ => {
+            return FlattenFundingLines(templateMetadataContents.RootFundingLines).Select(_ =>
+            {
                 return new FundingLine
                 {
                     Id = _.TemplateLineId,
@@ -760,34 +760,55 @@ namespace CalculateFunding.Services.Calcs
 
             Dictionary<string, Funding> funding = new Dictionary<string, Funding>();
 
+            Dictionary<string, Task<TemplateMapping>> templateMappingForFundingStreams = new Dictionary<string, Task<TemplateMapping>>();
+
+            Dictionary<string, Task<ApiResponse<TemplateMetadataContents>>> templateMetadataContentsResponses = new Dictionary<string, Task<ApiResponse<TemplateMetadataContents>>>();
+
             foreach ((Reference FundingStream, Reference FundingPeriod) in fundingStreamAndPeriods)
             {
-                TemplateMapping templateMapping = await _calculationsRepositoryPolicy.ExecuteAsync(
-                            () => _calculationsRepository.GetTemplateMapping(specificationId, FundingStream.Id));
+                templateMappingForFundingStreams.Add(FundingStream.Id, _calculationsRepositoryPolicy.ExecuteAsync(
+                             () => _calculationsRepository.GetTemplateMapping(specificationId, FundingStream.Id)));
+
+                templateMetadataContentsResponses.Add(FundingStream.Id,
+                     _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingTemplateContents(FundingStream.Id, FundingPeriod.Id, templateIds[FundingStream.Id])));
+
+            }
+
+            Task<ApiResponse<IEnumerable<Common.ApiClient.DataSets.Models.DatasetSpecificationRelationshipViewModel>>> datasetsRequest = _datasetsApiClientPolicy.ExecuteAsync(() => _datasetsApiClient.GetCurrentRelationshipsBySpecificationId(specificationId));
+
+            await TaskHelper.WhenAllAndThrow(
+                 Task.Run(() => templateMappingForFundingStreams.Values),
+                 Task.Run(() => templateMetadataContentsResponses.Values),
+                 Task.Run(() => datasetsRequest));
+
+            foreach ((Reference fundingStream, Reference FundingPeriod) in fundingStreamAndPeriods)
+            {
+
+                TemplateMapping templateMapping = templateMappingForFundingStreams[fundingStream.Id].Result;
 
                 if (templateMapping == null)
                 {
                     LogAndThrowException<Exception>(
-                        $"Did not locate Template Mapping for funding stream id {FundingStream.Id} and specification id {specificationId}");
+                        $"Did not locate Template Mapping for funding stream id {fundingStream.Id} and specification id {specificationId}");
                 }
 
-                ApiResponse<TemplateMetadataContents> templateMetadataContentsResponse = 
-                    await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingTemplateContents(FundingStream.Id, FundingPeriod.Id, templateIds[FundingStream.Id]));
 
-                if (templateMetadataContentsResponse?.Content == null)
+
+                if (templateMetadataContentsResponses[fundingStream.Id].Result?.Content == null)
                 {
                     continue;
                 }
 
-                funding.Add(FundingStream.Id, new Funding {
-                        Mappings = templateMapping.TemplateMappingItems.ToDictionary(_ => _.TemplateId, _ => _.CalculationId),
-                        FundingLines = GetFundingLines(templateMetadataContentsResponse.Content, FundingStream.Id)
+                funding.Add(fundingStream.Id, new Funding
+                {
+                    Mappings = templateMapping.TemplateMappingItems.ToDictionary(_ => _.TemplateId, _ => _.CalculationId),
+                    FundingLines = GetFundingLines(templateMetadataContentsResponses[fundingStream.Id].Result.Content, fundingStream.Id)
                 });
             }
 
             buildproject.FundingLines = funding;
 
-            ApiResponse<IEnumerable<Common.ApiClient.DataSets.Models.DatasetSpecificationRelationshipViewModel>> datasetsApiClientResponse = await _datasetsApiClientPolicy.ExecuteAsync(() => _datasetsApiClient.GetCurrentRelationshipsBySpecificationId(specificationId));
+            ApiResponse<IEnumerable<Common.ApiClient.DataSets.Models.DatasetSpecificationRelationshipViewModel>> datasetsApiClientResponse = datasetsRequest.Result;
 
             if (!datasetsApiClientResponse.StatusCode.IsSuccess())
             {
@@ -849,7 +870,7 @@ namespace CalculateFunding.Services.Calcs
             return buildproject;
         }
 
-        private void LogAndThrowException<T>(string message) where T:Exception
+        private void LogAndThrowException<T>(string message) where T : Exception
         {
             _logger.Error(message);
             throw (T)Activator.CreateInstance(typeof(T), message);

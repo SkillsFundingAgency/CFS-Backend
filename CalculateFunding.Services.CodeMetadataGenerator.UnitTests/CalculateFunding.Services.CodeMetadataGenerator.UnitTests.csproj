@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <None Remove="calculationsWithDescriptions.dll.dat" />
+    <None Remove="calculationsWithEnums.dll.dat" />
     <None Remove="calculationsWithListDatasets.dll.dat" />
     <None Remove="out.dll.dat" />
   </ItemGroup>
@@ -37,6 +38,12 @@
   <ItemGroup>
     <ProjectReference Include="..\CalculateFunding.Services.CodeMetadataGenerator\CalculateFunding.Services.CodeMetadataGenerator.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Core\CalculateFunding.Services.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="calculationsWithEnums.dll.dat">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>

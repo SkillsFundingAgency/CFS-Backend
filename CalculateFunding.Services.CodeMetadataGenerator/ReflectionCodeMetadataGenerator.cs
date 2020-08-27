@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using CalculateFunding.Models.Code;
 using CalculateFunding.Services.CodeMetadataGenerator.Interfaces;
 
@@ -9,6 +10,17 @@ namespace CalculateFunding.Services.CodeMetadataGenerator
 {
     public class ReflectionCodeMetadataGenerator : ICodeMetadataGeneratorService
     {
+        private static readonly Regex regex = new Regex("^System\\.Func`1\\[\\[System\\.Nullable`1\\[\\[(([a-z]|[A-Z]|\\+|\\.)+),");
+
+        private static readonly string[] filteredPropertyNames = {
+                                "Dictionary",
+                                "DictionaryDecimalValues",
+                                "DictionaryBooleanValues",
+                                "DictionaryStringValues",
+                                "FundingLineDictionary",
+                                "FundingLineDictionaryValues"
+                            };
+
         public IEnumerable<TypeInformation> GetTypeInformation(byte[] rawAssembly)
         {
             if (rawAssembly == null || rawAssembly.Length == 0)
@@ -41,9 +53,25 @@ namespace CalculateFunding.Services.CodeMetadataGenerator
                         "ToString",
                         "GetHashCode",
                         "Equals",
-                        "GetType"
+                        "GetType",
+                        "Initialise",
+                        "GetTypeCode",
                     };
 
+                    if (typeInfo.Name.EndsWith("Exception", StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        continue;
+                    }
+
+                    if (typeInfo.Name.StartsWith("_Closure$", StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        continue;
+                    }
+
+                    if (typeInfo.Name.Equals("ProjectData", StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        continue;
+                    }
 
                     List<MethodInformation> methods = new List<MethodInformation>();
                     foreach (MethodInfo methodInfo in typeInfo.GetMethods())
@@ -109,7 +137,7 @@ namespace CalculateFunding.Services.CodeMetadataGenerator
                                 {
                                     methods.Add(methodInformation);
                                 }
-                            }
+                            }                            
                         }
                     }
 
@@ -117,10 +145,21 @@ namespace CalculateFunding.Services.CodeMetadataGenerator
 
                     FieldInfo[] fieldInfos = typeInfo.DeclaredFields.ToArray();
 
-                    foreach (FieldInfo fieldInfo in fieldInfos.Where(m => m.FieldType == typeof(Func<decimal?>)).ToList())
+                    List<string> enumValues = new List<string>();
+
+                    foreach (FieldInfo fieldInfo in fieldInfos.Where(m => m.FieldType == typeof(Func<decimal?>)
+                    || m.FieldType == typeof(Func<bool?>)
+                    || m.CustomAttributes.Any(c => c.AttributeType.Name == "CalculationAttribute")
+                    || m.IsLiteral).ToList())
                     {
                         if (!fieldInfo.IsSpecialName)
                         {
+                            if (fieldInfo.IsLiteral)
+                            {
+                                enumValues.Add(fieldInfo.Name);
+                                continue;
+                            }
+
                             string entityId = null;
 
                             bool isCustom = false;
@@ -133,10 +172,11 @@ namespace CalculateFunding.Services.CodeMetadataGenerator
                                 isCustom = true;
                             }
 
+
                             MethodInformation methodInformation = new MethodInformation()
                             {
                                 Name = fieldInfo.Name,
-                                ReturnType = ConvertTypeName(fieldInfo.ReflectedType),
+                                ReturnType = ConvertTypeName(fieldInfo.FieldType),
                                 EntityId = entityId,
                                 IsCustom = isCustom
                             };
@@ -162,8 +202,16 @@ namespace CalculateFunding.Services.CodeMetadataGenerator
 
                     foreach (PropertyInfo property in typeInfo.GetProperties())
                     {
-                       if (!property.IsSpecialName && property.MemberType == MemberTypes.Property)
+                        if (!property.IsSpecialName && property.MemberType == MemberTypes.Property)
+
                         {
+                            
+
+                            if (filteredPropertyNames.Contains(property.Name))
+                            {
+                                continue;
+                            }
+
                             PropertyInformation propertyInformation = new PropertyInformation()
                             {
                                 Name = property.Name,
@@ -195,7 +243,7 @@ namespace CalculateFunding.Services.CodeMetadataGenerator
                                 propertyInformation.IsAggregable = GetAttributeProperty(property.CustomAttributes, "IsAggregable", "IsAggregable");
                             }
 
-                            if(property.GetCustomAttribute<System.ComponentModel.EditorBrowsableAttribute>()?.State != System.ComponentModel.EditorBrowsableState.Never)
+                            if (property.GetCustomAttribute<System.ComponentModel.EditorBrowsableAttribute>()?.State != System.ComponentModel.EditorBrowsableState.Never)
                             {
                                 properties.Add(propertyInformation);
                             }
@@ -204,6 +252,7 @@ namespace CalculateFunding.Services.CodeMetadataGenerator
 
                     typeInformationModel.Methods = methods;
                     typeInformationModel.Properties = properties;
+                    typeInformationModel.EnumValues = enumValues;
 
                     results.Add(typeInformationModel);
                 }
@@ -241,6 +290,15 @@ namespace CalculateFunding.Services.CodeMetadataGenerator
         {
             if (type.IsGenericType && type.GenericTypeArguments != null && type.GenericTypeArguments.Length > 0)
             {
+                
+
+                if (regex.IsMatch(type.FullName))
+                {
+                    string[] split = regex.Split(type.FullName);
+
+                    return $"Nullable(Of {ConvertTypeName(split[1])})";
+                }
+
                 Type genericType = type.GenericTypeArguments.First();
                 string name = type.Name;
                 if (name.Contains("`1"))

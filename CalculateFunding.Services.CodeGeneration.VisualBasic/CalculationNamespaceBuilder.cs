@@ -141,7 +141,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             {
                 StringBuilder sourceCode = new StringBuilder();
 
-                sourceCode.AppendLine($"Enum {GetEnumVariableName(calculation.Name)}");
+                sourceCode.AppendLine($"Public Enum {GetEnumVariableName(calculation.Name)}");
                 foreach (string value in calculation.Current.AllowedEnumTypeValues)
                 {
                     sourceCode.AppendLine($"    {VisualBasicTypeGenerator.GenerateIdentifier(value)}");

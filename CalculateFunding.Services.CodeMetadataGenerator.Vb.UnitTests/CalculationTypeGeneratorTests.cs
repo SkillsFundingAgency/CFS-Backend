@@ -219,7 +219,7 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.Vb.UnitTests
 
             results.Should().HaveCount(1);
 
-            results.First().SourceCode.Should().Contain("Enum MethodologyTypeOptions");
+            results.First().SourceCode.Should().Contain("Public Enum MethodologyTypeOptions");
             results.First().SourceCode.Should().Contain("Public One As Func(Of MethodologyTypeOptions?) = Nothing");
         }
 
