@@ -195,8 +195,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
             Guard.IsNullOrWhiteSpace(providerId, nameof(providerId));
             Guard.IsNullOrWhiteSpace(version, nameof(version));
 
-
-            string id = $"publishedprovider-{fundingStreamId}-{fundingPeriodId}-{providerId}-{version}";
+            string id = $"publishedprovider-{providerId}-{fundingPeriodId}-{fundingStreamId}-{version}";
 
             return (await _repository.ReadDocumentByIdPartitionedAsync<PublishedProviderVersion>(id, id))?.Content;
         }
