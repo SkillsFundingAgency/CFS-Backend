@@ -1,5 +1,6 @@
 ﻿using System.Globalization;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Functions.Datasets.ServiceBus;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Services.Core.Constants;
@@ -22,6 +23,8 @@ namespace CalculateFunding.Functions.DebugQueue
 
                 OnDatasetEvent function = scope.ServiceProvider.GetService<OnDatasetEvent>();
 
+                Guard.ArgumentNotNull(function, nameof(OnDatasetEvent));
+                
                 await function.Run(message);
 
                 log.LogInformation($"C# Queue trigger function processed: {item}");
@@ -36,6 +39,8 @@ namespace CalculateFunding.Functions.DebugQueue
                 Message message = Helpers.ConvertToMessage<string>(item);
 
                 OnDatasetEventFailure function = scope.ServiceProvider.GetService<OnDatasetEventFailure>();
+                
+                Guard.ArgumentNotNull(function, nameof(OnDatasetEventFailure));
 
                 await function.Run(message);
 
@@ -52,6 +57,8 @@ namespace CalculateFunding.Functions.DebugQueue
                 Message message = Helpers.ConvertToMessage<GetDatasetBlobModel>(item);
 
                 OnDatasetValidationEvent function = scope.ServiceProvider.GetService<OnDatasetValidationEvent>();
+                
+                Guard.ArgumentNotNull(function, nameof(OnDatasetValidationEvent));
 
                 await function.Run(message);
 
@@ -68,6 +75,8 @@ namespace CalculateFunding.Functions.DebugQueue
 
                 OnDatasetValidationEventFailure function = scope.ServiceProvider.GetService<OnDatasetValidationEventFailure>();
 
+                Guard.ArgumentNotNull(function, nameof(OnDatasetValidationEventFailure));
+
                 await function.Run(message);
 
                 log.LogInformation($"C# Queue trigger function processed: {item}");
@@ -82,6 +91,8 @@ namespace CalculateFunding.Functions.DebugQueue
                 Message message = Helpers.ConvertToMessage<string>(item);
 
                 OnMapFdzDatasetsEventFired function = scope.ServiceProvider.GetService<OnMapFdzDatasetsEventFired>();
+
+                Guard.ArgumentNotNull(function, nameof(OnMapFdzDatasetsEventFired));
 
                 await function.Run(message);
 
