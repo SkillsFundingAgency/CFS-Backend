@@ -61,7 +61,26 @@ namespace CalculateFunding.Services.FundingDataZone.UnitTests
                 .Should()
                 .BeEquivalentTo<string>(expectedFundingStreams);    
         }
-        
+
+        [TestMethod]
+        public async Task GeFundingStreamsWithProviderSnapshots()
+        {
+            string[] expectedFundingStreamIds =
+            {
+               NewRandomString(), NewRandomString()
+            };
+
+            GivenTheDapperReturnFor("sp_getFundingStreamsWithProviderSnapshots",
+                expectedFundingStreamIds,
+                CommandType.StoredProcedure);
+
+            IEnumerable<string> actualFundingStreamIds = await WhenTheFundingStreamsWithProviderSnapshotsAreQueried();
+
+            actualFundingStreamIds
+                .Should()
+                .BeEquivalentTo<string>(expectedFundingStreamIds);
+        }
+
         [TestMethod]
         public async Task GetDatasetMetadata()
         {
@@ -285,10 +304,13 @@ namespace CalculateFunding.Services.FundingDataZone.UnitTests
         
         private async Task<IEnumerable<string>> WhenTheFundingStreamsWithDatasetsAreQueried()
             => await _repository.GetFundingStreamsWithDatasets();
-        
+
+        private async Task<IEnumerable<string>> WhenTheFundingStreamsWithProviderSnapshotsAreQueried()
+            => await _repository.GetFundingStreamsWithProviderSnapshots();
+
         private void GivenTheDapperReturnFor<TReturn>(string sql,
             IEnumerable<TReturn> items,
-            CommandType commandType)
+            CommandType commandType) 
         {
             GivenTheDapperReturnFor(sql, _ => true, items, commandType);
         }
