@@ -100,7 +100,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 VariationReasons = new List<VariationReason> { VariationReason.NameFieldUpdated, VariationReason.FundingUpdated },
                 Errors = hasErrors ? new List<PublishedProviderError>
                 {
-                    new PublishedProviderError()
+                    new PublishedProviderError
+                    {
+                        SummaryErrorMessage = "summary error message"
+                    }
                 } : null
             };
 
@@ -130,7 +133,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                     d.First().SpecificationId == publishedProviderVersion.SpecificationId &&
                     d.First().FundingStreamId == "PSG" &&
                     d.First().FundingPeriodId == publishedProviderVersion.FundingPeriodId &&
-                    d.First().HasErrors == publishedProviderVersion.HasErrors
+                    d.First().HasErrors == publishedProviderVersion.HasErrors &&
+                    d.First().Errors.Any() == publishedProviderVersion.HasErrors &&
+                    (!hasErrors || d.First().Errors.First() == "summary error message")
               ));
         }
 

@@ -141,7 +141,14 @@ namespace CalculateFunding.Services.Publishing
                 FundingPeriodId = publishedProviderVersion.FundingPeriodId,
                 HasErrors = publishedProviderVersion.HasErrors,
                 UPIN = publishedProviderVersion.Provider.UPIN,
-                URN = publishedProviderVersion.Provider.URN
+                URN = publishedProviderVersion.Provider.URN,
+                Errors = publishedProviderVersion.Errors != null ? publishedProviderVersion
+                    .Errors
+                    .Select(_ => _.SummaryErrorMessage)
+                    .Where(_ => !string.IsNullOrEmpty(_))
+                    .Distinct()
+                    .ToArraySafe()
+                : Array.Empty<string>()
             };
     }
 }

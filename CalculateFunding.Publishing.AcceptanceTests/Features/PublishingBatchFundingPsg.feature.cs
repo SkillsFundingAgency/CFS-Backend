@@ -2359,7 +2359,8 @@ this.ScenarioInitialize(scenarioInfo);
                             "FundingValue",
                             "SpecificationId",
                             "FundingStreamId",
-                            "FundingPeriodId"});
+                            "FundingPeriodId",
+                            "Errors"});
                 table485.AddRow(new string[] {
                             "PSG-AY-1920-1000101",
                             "Academies",
@@ -2371,7 +2372,8 @@ this.ScenarioInitialize(scenarioInfo);
                             "24000",
                             "specForPublishing",
                             string.Format("{0}", fundingStreamId),
-                            string.Format("{0}", fundingPeriodId)});
+                            string.Format("{0}", fundingPeriodId),
+                            ""});
                 table485.AddRow(new string[] {
                             "PSG-AY-1920-1000002",
                             "LA maintained schools",
@@ -2383,7 +2385,8 @@ this.ScenarioInitialize(scenarioInfo);
                             "24000",
                             "specForPublishing",
                             string.Format("{0}", fundingStreamId),
-                            string.Format("{0}", fundingPeriodId)});
+                            string.Format("{0}", fundingPeriodId),
+                            ""});
 #line 693
  testRunner.And(string.Format("the following published provider search index items is produced for providerid wi" +
                             "th \'{0}\' and \'{1}\'", fundingStreamId, fundingPeriodId), ((string)(null)), table485, "And ");

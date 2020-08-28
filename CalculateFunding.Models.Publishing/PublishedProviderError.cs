@@ -6,6 +6,12 @@ namespace CalculateFunding.Models.Publishing
         
         public PublishedProviderErrorType Type { get; set; }
         
-        public string Description { get; set; }
+        public string SummaryErrorMessage { get; set; }
+
+        public string DetailedErrorMessage { get; set; }
+
+        public string FundingLine { get; set; }
+
+        public string FundingStreamId { get; set; }
     }
 }

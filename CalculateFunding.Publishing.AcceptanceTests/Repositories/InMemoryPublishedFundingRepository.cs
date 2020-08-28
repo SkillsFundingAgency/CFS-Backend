@@ -429,5 +429,16 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             string specificationId,
             params PublishedProviderStatus[] statuses) =>
             throw new NotImplementedException();
+
+        public Task<IEnumerable<string>> GetPublishedProviderErrorSummaries(string specificationId)
+        {
+            IEnumerable<string> errorMessageSummaries = _repo.PublishedProviders
+                .SelectMany(c => c.Value)
+                .Where(_ => _.Current.Errors != null && _.Current.Errors.Any())
+                .SelectMany(_ => _.Current.Errors)
+                .Select(_ => _.SummaryErrorMessage);
+
+            return Task.FromResult(errorMessageSummaries);
+        }
     }
 }

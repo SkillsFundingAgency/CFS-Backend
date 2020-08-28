@@ -247,7 +247,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
                 results.Add((string)item.id, (string)item.partitionKey);
             }
 
-            return await Task.FromResult(results);
+            return results;
         }
 
         public async Task<PublishedProvider> GetPublishedProviderById(string cosmosId, string partitionKey)
@@ -296,7 +296,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
                 results.Add((string)item.id, (string)item.partitionKey);
             }
 
-            return await Task.FromResult(results);
+            return results;
         }
 
         public async Task<IEnumerable<KeyValuePair<string, string>>> GetPublishedFundingIds(string fundingStreamId, string fundingPeriodId)
@@ -325,7 +325,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
                 results.Add((string)item.id, (string)item.partitionKey);
             }
 
-            return await Task.FromResult(results);
+            return results;
         }
 
         public async Task<IEnumerable<KeyValuePair<string, string>>> GetPublishedFundingIds(string specificationId)
@@ -351,7 +351,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
                 results.Add((string)item.id, (string)item.partitionKey);
             }
 
-            return await Task.FromResult(results);
+            return results;
         }
 
         public async Task<IEnumerable<KeyValuePair<string, string>>> GetPublishedFundingVersionIds(string fundingStreamId, string fundingPeriodId)
@@ -380,7 +380,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
                 results.Add((string)item.id, (string)item.partitionKey);
             }
 
-            return await Task.FromResult(results);
+            return results;
         }
 
         public async Task<PublishedFunding> GetPublishedFundingById(string cosmosId, string partitionKey)
@@ -976,6 +976,40 @@ namespace CalculateFunding.Services.Publishing.Repositories
             };
         }
 
+        public async Task<IEnumerable<string>> GetPublishedProviderErrorSummaries(string specificationId)
+        {
+            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
+
+            List<string> results = new List<string>();
+
+            CosmosDbQuery query = new CosmosDbQuery
+            {
+                QueryText = @"
+                              SELECT 
+                                  DISTINCT e.summaryErrorMessage
+                              FROM publishedProvider c
+                              JOIN e IN c.content.current.errors
+                              WHERE c.documentType = 'PublishedProvider'
+                              AND c.content.current.specificationId = @specificationId
+                              AND c.deleted = false
+                              AND IS_NULL(c.content.current.errors) = false",
+                Parameters = new[]
+                {
+                    new CosmosDbQueryParameter("@specificationId", specificationId),
+                }
+            };
+
+            dynamic queryResults = (await _repository
+                    .DynamicQuery(query));
+
+            foreach (dynamic item in queryResults)
+            {
+                results.Add((string)item.summaryErrorMessage);
+            }
+
+            return results;
+        }
+
         public async Task<IEnumerable<PublishedProviderFundingStreamStatus>> GetPublishedProviderStatusCounts(string specificationId, string providerType, string localAuthority, string status)
         {
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
@@ -1027,7 +1061,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
                 });
             }
 
-            return await Task.FromResult(results);
+            return results;
         }
 
         public async Task RefreshedProviderVersionBatchProcessing(

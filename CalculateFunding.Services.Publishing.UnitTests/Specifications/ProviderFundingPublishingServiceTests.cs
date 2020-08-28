@@ -259,6 +259,52 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
         }
 
         [TestMethod]
+        public async Task GetPublishedProviderErrorSummariesForSpecificationId()
+        {
+            string specificationId = NewRandomString();
+
+            IEnumerable<string> errorSummaries = new List<string>
+            {
+                "summary 1",
+                "summary 2"
+            };
+
+            AndTheApiResponseDetailsForPublishedProviderErrorSummaries(specificationId, errorSummaries);
+
+            await WhenGetPublishedProviderErrorSummariesIsCalled(specificationId);
+
+            ActionResult
+                .Should()
+                .BeOfType<OkObjectResult>();
+
+            OkObjectResult objectResult = ActionResult as OkObjectResult;
+
+            objectResult
+                .Value
+                .Should()
+                .NotBeNull()
+                .And
+                .BeOfType<List<string>>();
+
+            List<string> result = objectResult.Value as List<string>;
+
+            result
+                .Count()
+                .Should()
+                .Be(2);
+
+            result
+                .FirstOrDefault()
+                .Should()
+                .Be("summary 1");
+
+            result
+                .LastOrDefault()
+                .Should()
+                .Be("summary 2");
+        }
+
+        [TestMethod]
         public async Task GetsPublishedProviderTransactionForSuppliedSpecificationAndProvider()
         {
             PublishedProviderVersion publishedProviderVersion = NewPublishedProviderVersion(_ =>
@@ -301,6 +347,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
                 .Returns(publishedProviderVersion);
         }
 
+        private void AndTheApiResponseDetailsForPublishedProviderErrorSummaries(
+            string specificationId,
+            IEnumerable<string> errorSummaries)
+        {
+            _publishedFundingRepository.GetPublishedProviderErrorSummaries(specificationId)
+                .Returns(errorSummaries);
+        }
+
         private void AndThePublishedFundingRepositoryReturnsPublishedProviderVersions(PublishedProviderVersion publishedProviderVersion)
         {
             _publishedFundingRepository.GetPublishedProviderVersions(publishedProviderVersion?.SpecificationId,
@@ -317,6 +371,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
                 publishedProviderVersion.FundingPeriodId,
                 publishedProviderVersion.ProviderId,
                 publishedProviderVersion.Version.ToString());
+        }
+
+        private async Task WhenGetPublishedProviderErrorSummariesIsCalled(string specificationId)
+        {
+            ActionResult = await _service.GetPublishedProviderErrorSummaries(specificationId);
         }
 
         private async Task WhenGetPublishedProviderTransactionsIsCalled(PublishedProviderVersion publishedProviderVersion)

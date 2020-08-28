@@ -4,7 +4,6 @@ using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Generators.OrganisationGroup.Interfaces;
 using CalculateFunding.Generators.OrganisationGroup.Models;
 using CalculateFunding.Models.Publishing;
-using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Publishing.Errors;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
@@ -25,7 +24,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
     {
         private TrustIdMismatchErrorDetector _errorDetector;
         private IOrganisationGroupGenerator _organisationGroupGenerator;
-        private IPoliciesService _policiesService;
         private IMapper _mapper;
         private IPublishedFundingDataService _publishedFundingDataService;
         private IPublishingResiliencePolicies _publishingResiliencePolicies;
@@ -76,7 +74,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
             string fundingConfigurationId = NewRandomString();
             Generators.OrganisationGroup.Enums.OrganisationGroupTypeIdentifier groupTypeIdentifier = Generators.OrganisationGroup.Enums.OrganisationGroupTypeIdentifier.UKPRN;
 
-            string errorMessage = $"TrustId {groupTypeIdentifier}-{identifierValue2} not matched.";
+            string summaryErrorMessage = "TrustId  not matched";
+            string detailedErrorMessage = $"TrustId {groupTypeIdentifier}-{identifierValue2} not matched.";
 
             SpecificationSummary specificationSummary = NewSpecificationSummary(_ => _.WithId(specificationId).WithProviderVersionId(providerVersionId));
             PublishedProvider publishedProvider = NewPublishedProvider(_ => _
@@ -144,9 +143,17 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
                 .Current
                 .Errors
                 .First()
-                .Description
+                .DetailedErrorMessage
                 .Should()
-                .Be(errorMessage);
+                .Be(detailedErrorMessage);
+
+            publishedProvider
+                .Current
+                .Errors
+                .First()
+                .SummaryErrorMessage
+                .Should()
+                .Be(summaryErrorMessage);
         }
 
         private async Task WhenErrorsAreDetectedOnThePublishedProvider(PublishedProvider publishedProvider, IEnumerable<Provider> providers, string specificationId, string providerVersionId, FundingConfiguration fundingConfiguration)

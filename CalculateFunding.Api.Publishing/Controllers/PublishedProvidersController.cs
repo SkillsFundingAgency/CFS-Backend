@@ -138,5 +138,12 @@ namespace CalculateFunding.Api.Publishing.Controllers
         {
             return await _customProfileService.ApplyCustomProfile(request, Request.GetUser());
         }
+
+        [HttpGet("api/publishedprovidererrors/{specificationId}")]
+        [ProducesResponseType(200, Type = typeof(IEnumerable<string>))]
+        public async Task<IActionResult> GetPublishedProviderErrors([FromRoute] string specificationId)
+        {
+            return await _providerFundingPublishingService.GetPublishedProviderErrorSummaries(specificationId);
+        }
     }
 }

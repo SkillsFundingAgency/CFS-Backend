@@ -6,8 +6,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
     public class PublishedProviderErrorBuilder : TestEntityBuilder
     {
         private PublishedProviderErrorType? _type;
+        private string _identifier;
+        private string _summaryErrorMessage;
+        private string _detailedErrorMessage;
+        private string _fundingStreamId;
         private string _fundingLineCode;
-        private string _description;
 
         public PublishedProviderErrorBuilder WithType(PublishedProviderErrorType type)
         {
@@ -18,25 +21,49 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
 
         public PublishedProviderErrorBuilder WithFundingLineCode(string fundingLineCode)
         {
+            _identifier = fundingLineCode;
+
+            return this;
+        }
+
+        public PublishedProviderErrorBuilder WithFundingStreamId(string fundingStreamId)
+        {
+            _fundingStreamId = fundingStreamId;
+
+            return this;
+        }
+
+        public PublishedProviderErrorBuilder WithSummaryErrorMessage(string summaryErrorMessage)
+        {
+            _summaryErrorMessage = summaryErrorMessage;
+
+            return this;
+        }
+
+        public PublishedProviderErrorBuilder WithDetailedErrorMessage(string detailedErrorMessage)
+        {
+            _detailedErrorMessage = detailedErrorMessage;
+
+            return this;
+        }
+
+        public PublishedProviderErrorBuilder WithFundingLine(string fundingLineCode)
+        {
             _fundingLineCode = fundingLineCode;
 
             return this;
         }
 
-        public PublishedProviderErrorBuilder WithDescription(string description)
-        {
-            _description = description;
-
-            return this;
-        }
-        
         public PublishedProviderError Build()
         {
             return new PublishedProviderError
             {
                 Type = _type.GetValueOrDefault(NewRandomEnum<PublishedProviderErrorType>()),
-                Identifier = _fundingLineCode ?? NewRandomString(),
-                Description = _description ?? NewRandomString()
+                Identifier = _identifier ?? NewRandomString(),
+                SummaryErrorMessage = _summaryErrorMessage ?? NewRandomString(),
+                DetailedErrorMessage = _detailedErrorMessage ?? NewRandomString(),
+                FundingStreamId = _fundingStreamId ?? NewRandomString(),
+                FundingLine = _fundingLineCode ?? NewRandomString()
             };
         }    
     }

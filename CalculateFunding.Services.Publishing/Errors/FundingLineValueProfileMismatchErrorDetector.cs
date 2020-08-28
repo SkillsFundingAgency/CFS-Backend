@@ -32,7 +32,11 @@ namespace CalculateFunding.Services.Publishing.Errors
                     {
                         Identifier = fundingLine.FundingLineCode,
                         Type = PublishedProviderErrorType.FundingLineValueProfileMismatch,
-                        Description = $"Expected total funding line to be {fundingLineValue} but custom profiles total {profiledValue}"
+                        SummaryErrorMessage = "A funding line profile doesn't match allocation value.",
+                        DetailedErrorMessage = $"Funding line profile doesn't match allocation value. " +
+                        $"The allocation value is £{fundingLineValue}, but the profile value is set to £{profiledValue}",
+                        FundingLine = fundingLine.FundingLineCode,
+                        FundingStreamId = publishedProviderVersion.FundingStreamId
                     });
                 }
             }

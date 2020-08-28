@@ -124,5 +124,7 @@ namespace CalculateFunding.Services.Publishing.Interfaces
         Task<PublishedProviderFundingCount> GetPublishedProviderStatusCount(IEnumerable<string> publishedProviderIds,
             string specificationId,
             params PublishedProviderStatus[] statuses);
+
+        Task<IEnumerable<string>> GetPublishedProviderErrorSummaries(string specificationId);
     }
 }

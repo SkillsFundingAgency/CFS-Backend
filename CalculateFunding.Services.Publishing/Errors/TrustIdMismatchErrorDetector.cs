@@ -41,7 +41,9 @@ namespace CalculateFunding.Services.Publishing.Errors
             publishedProviderVersion.Errors?.RemoveAll(_ => _.Type == PublishedProviderErrorType.TrustIdMismatch);
         }
 
-        protected override async Task<ErrorCheck> HasErrors(PublishedProvider publishedProvider, PublishedProvidersContext publishedProvidersContext)
+        protected override async Task<ErrorCheck> HasErrors(
+            PublishedProvider publishedProvider, 
+            PublishedProvidersContext publishedProvidersContext)
         {
             Guard.ArgumentNotNull(publishedProvidersContext, nameof(publishedProvidersContext));
 
@@ -53,12 +55,18 @@ namespace CalculateFunding.Services.Publishing.Errors
                 return errorCheck;
             }
 
-            IEnumerable<Common.ApiClient.Providers.Models.Provider> apiClientProviders = _mapper.Map<IEnumerable<Common.ApiClient.Providers.Models.Provider>>(publishedProvidersContext.ScopedProviders);
+            IEnumerable<Common.ApiClient.Providers.Models.Provider> apiClientProviders = 
+                _mapper.Map<IEnumerable<Common.ApiClient.Providers.Models.Provider>>(publishedProvidersContext.ScopedProviders);
 
-            static string OrganisationGroupsKey(string fundingStreamId, string fundingPeriodId) => $"{fundingStreamId}:{fundingPeriodId}";
+            static string OrganisationGroupsKey(string fundingStreamId, string fundingPeriodId) => 
+                $"{fundingStreamId}:{fundingPeriodId}";
             
-            IList<PublishedFunding> paymentPublishedFundings = (await _publishingResiliencePolicy.ExecuteAsync(() => _publishedFundingDataService.GetCurrentPublishedFunding(publishedProvidersContext.SpecificationId)))
-                                                                .Where(x => x.Current.GroupingReason == CalculateFunding.Models.Publishing.GroupingReason.Payment).ToList();
+            IList<PublishedFunding> paymentPublishedFundings = 
+                (await _publishingResiliencePolicy.ExecuteAsync(() => 
+                    _publishedFundingDataService.GetCurrentPublishedFunding(publishedProvidersContext.SpecificationId)))
+                        .Where(x => x.Current.GroupingReason == CalculateFunding.Models.Publishing.GroupingReason.Payment)
+                        .ToList();
+            
             IEnumerable<OrganisationGroupResult> organisationGroups;
             string keyForOrganisationGroups = OrganisationGroupsKey(publishedProvider.Current.FundingStreamId, publishedProvider.Current.FundingPeriodId);
 
@@ -68,14 +76,21 @@ namespace CalculateFunding.Services.Publishing.Errors
             }
             else
             {
-                organisationGroups = await _organisationGroupGenerator.GenerateOrganisationGroup(publishedProvidersContext.FundingConfiguration, apiClientProviders, publishedProvidersContext.ProviderVersionId);
+                organisationGroups = await _organisationGroupGenerator.GenerateOrganisationGroup(
+                    publishedProvidersContext.FundingConfiguration, 
+                    apiClientProviders, 
+                    publishedProvidersContext.ProviderVersionId);
                 publishedProvidersContext.OrganisationGroupResultsData.Add(keyForOrganisationGroups, organisationGroups);
             }
 
-            IEnumerable<PublishedFunding> unmatchedPublishedFundings = paymentPublishedFundings
-                                                                    .Where(x => organisationGroups.Any(t => t.Identifiers.Any(i => x.Current.OrganisationGroupIdentifierValue == i.Value && x.Current.OrganisationGroupTypeIdentifier == i.Type.ToString()))
-                                                                           && !x.Current.ProviderFundings.Any(pv => pv == publishedProvider.Released.FundingId))
-                                                                    .ToList();
+            IEnumerable<PublishedFunding> unmatchedPublishedFundings 
+                = paymentPublishedFundings
+                    .Where(x => organisationGroups.Any(t =>
+                        t.Identifiers.Any(i => 
+                            x.Current.OrganisationGroupIdentifierValue == i.Value && 
+                            x.Current.OrganisationGroupTypeIdentifier == i.Type.ToString()))
+                        && !x.Current.ProviderFundings.Any(pv => pv == publishedProvider.Released.FundingId))
+                    .ToList();
 
             if (unmatchedPublishedFundings.Any())
             {
@@ -84,7 +99,9 @@ namespace CalculateFunding.Services.Publishing.Errors
                     {
                         Type = PublishedProviderErrorType.TrustIdMismatch,
                         Identifier = $"{x.Current.OrganisationGroupTypeIdentifier}-{x.Current.OrganisationGroupIdentifierValue}",
-                        Description = $"TrustId {x.Current.OrganisationGroupTypeIdentifier}-{x.Current.OrganisationGroupIdentifierValue} not matched."
+                        DetailedErrorMessage = $"TrustId {x.Current.OrganisationGroupTypeIdentifier}-{x.Current.OrganisationGroupIdentifierValue} not matched.",
+                        SummaryErrorMessage = "TrustId  not matched",
+                        FundingStreamId = publishedProvider.Current.FundingStreamId
                     });
                 });
             }

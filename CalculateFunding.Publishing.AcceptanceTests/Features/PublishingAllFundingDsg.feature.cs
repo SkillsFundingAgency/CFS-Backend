@@ -3954,7 +3954,8 @@ this.ScenarioInitialize(scenarioInfo);
                             "FundingValue",
                             "SpecificationId",
                             "FundingStreamId",
-                            "FundingPeriodId"});
+                            "FundingPeriodId",
+                            "Errors"});
                 table260.AddRow(new string[] {
                             "DSG-FY-2021-1000000",
                             "LA maintained schools",
@@ -3966,7 +3967,8 @@ this.ScenarioInitialize(scenarioInfo);
                             "12000",
                             "specForPublishing",
                             string.Format("{0}", fundingStreamId),
-                            string.Format("{0}", fundingPeriodId)});
+                            string.Format("{0}", fundingPeriodId),
+                            ""});
                 table260.AddRow(new string[] {
                             "DSG-FY-2021-1000002",
                             "LA maintained schools",
@@ -3978,7 +3980,8 @@ this.ScenarioInitialize(scenarioInfo);
                             "12000",
                             "specForPublishing",
                             string.Format("{0}", fundingStreamId),
-                            string.Format("{0}", fundingPeriodId)});
+                            string.Format("{0}", fundingPeriodId),
+                            ""});
 #line 1090
  testRunner.And(string.Format("the following published provider search index items is produced for providerid wi" +
                             "th \'{0}\' and \'{1}\'", fundingStreamId, fundingPeriodId), ((string)(null)), table260, "And ");

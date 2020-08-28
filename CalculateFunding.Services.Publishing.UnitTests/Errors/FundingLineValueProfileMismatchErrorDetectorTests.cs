@@ -75,8 +75,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
 
             PublishedProvider publishedProvider = NewPublishedProvider(_ => _.WithCurrent(NewPublishedProviderVersion(ppv => ppv.WithProfilePatternKeys(
                     NewProfilePatternKey(pk => pk.WithFundingLineCode(fundingLineCode1)))
-                .WithFundingLines(
-                NewFundingLine(fl => fl.WithOrganisationGroupingReason(OrganisationGroupingReason.Payment)
+            .WithFundingStreamId("fs1")
+                .WithFundingLines(NewFundingLine(fl => fl.WithOrganisationGroupingReason(OrganisationGroupingReason.Payment)
+                    .WithName("fl1")
                     .WithFundingLineCode(fundingLineCode1)
                     .WithValue(999)
                     .WithDistributionPeriods(NewDistributionPeriod(dp =>
@@ -108,8 +109,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Errors
             AndPublishedProviderShouldHaveTheErrors(publishedProvider.Current,
                 NewError(_ => _.WithFundingLineCode(fundingLineCode1)
                     .WithType(PublishedProviderErrorType.FundingLineValueProfileMismatch)
-                    .WithDescription("Expected total funding line to be 999 but custom profiles total 10")));
-
+                    .WithSummaryErrorMessage("A funding line profile doesn't match allocation value.")
+                    .WithDetailedErrorMessage("Funding line profile doesn't match allocation value. The allocation value is £999, but the profile value is set to £10")
+                    .WithFundingStreamId("fs1")
+                    .WithFundingLine(fundingLineCode1)));
         }
 
         private void AndPublishedProviderShouldHaveTheErrors(PublishedProviderVersion providerVersion,

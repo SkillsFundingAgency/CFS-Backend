@@ -181,6 +181,16 @@ namespace CalculateFunding.Services.Publishing.Specifications
             return new OkObjectResult(providerVersion);
         }
 
+        public async Task<IActionResult> GetPublishedProviderErrorSummaries(string specificationId)
+        {
+            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
+
+            IEnumerable<string> errorSummaries = await ResiliencePolicy.ExecuteAsync(() =>
+                _publishedFundingRepository.GetPublishedProviderErrorSummaries(specificationId));
+
+            return new OkObjectResult(errorSummaries);
+        }
+
         private IActionResult ProcessJobResponse(ApiJob job, string specificationId, string jobType)
         {
             if (job != null)
