@@ -633,12 +633,12 @@ namespace CalculateFunding.Migrations.Specifications.Etl.Migrations
                                     return new PublishedProviderIndex
                                     {
                                         Id = $"{provider.content.current.fundingStreamId}-{provider.content.current.fundingPeriodId}-{provider.content.current.providerId}",
-                                        ProviderType = provider.content.current.provider.ProviderType,
-                                        ProviderSubType = provider.content.provider.ProviderSubType,
-                                        LocalAuthority = provider.content.current.provider.LocalAuthorityName,
+                                        ProviderType = provider.content.current.provider.providerType,
+                                        ProviderSubType = provider.content.current.provider.providerSubType,
+                                        LocalAuthority = provider.content.current.provider.localAuthorityName,
                                         FundingStatus = provider.content.current.status.ToString(),
                                         ProviderName = provider.content.current.provider.name,
-                                        UKPRN = provider.content.current.provider.ukPrn,
+                                        UKPRN = provider.content.current.provider.ukprn,
                                         FundingValue = Convert.ToDouble(provider.content.current.totalFunding),
                                         SpecificationId = provider.content.current.specificationId,
                                         FundingStreamId = provider.content.current.fundingStreamId,

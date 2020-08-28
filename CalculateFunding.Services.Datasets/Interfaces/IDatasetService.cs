@@ -38,6 +38,6 @@ namespace CalculateFunding.Services.Datasets.Interfaces
 
         Task UpdateDatasetAndVersionDefinitionName(Reference datsetDefinitionReference);
 
-        Task<IActionResult> DeleteDatasets(Message message);
+        Task DeleteDatasets(Message message);
     }
 }

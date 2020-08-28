@@ -1407,10 +1407,12 @@ namespace CalculateFunding.Services.Datasets.Services
         public async Task DeleteDatasets_Deletes_Dependencies_Using_Correct_SpecificationId_And_DeletionType(string specificationId, DeletionType deletionType)
         {
             const string dataDefinitionRelationshipId = "22";
+            const string jobId = "job-id";
             Message message = new Message
             {
                 UserProperties =
                 {
+                    new KeyValuePair<string, object>("jobId", jobId),
                     new KeyValuePair<string, object>("specification-id", specificationId),
                     new KeyValuePair<string, object>("deletion-type", (int)deletionType)
                 }
@@ -1430,13 +1432,12 @@ namespace CalculateFunding.Services.Datasets.Services
                 datasetRepository:datasetRepository,
                 specificationsApiClient:specificationsApiClient);
 
-            IActionResult result = await service.DeleteDatasets(message);
+            await service.DeleteDatasets(message);
 
             await providerSourceDatasetRepository.Received(1).DeleteProviderSourceDataset(dataDefinitionRelationshipId, deletionType); 
             await providerSourceDatasetRepository.Received(1).DeleteProviderSourceDatasetVersion(dataDefinitionRelationshipId, deletionType);
             await datasetRepository.Received(1).DeleteDefinitionSpecificationRelationshipBySpecificationId(specificationId, deletionType);
             await datasetRepository.Received(1).DeleteDatasetsBySpecificationId(specificationId, deletionType);
-            result.Should().BeOfType<OkResult>();
         }
     }
 }

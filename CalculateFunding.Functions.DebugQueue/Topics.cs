@@ -113,11 +113,11 @@ namespace CalculateFunding.Functions.DebugQueue
                 }
             }
 
-            using (IServiceScope scope = Scenarios.Startup.RegisterComponents(new ServiceCollection()).CreateScope())
+            using (IServiceScope scope = Functions.Scenarios.Startup.RegisterComponents(new ServiceCollection()).CreateScope())
             {
                 try
                 {
-                    Scenarios.ServiceBus.OnDataDefinitionChanges function = scope.ServiceProvider.GetService<Scenarios.ServiceBus.OnDataDefinitionChanges>();
+                    Functions.Scenarios.ServiceBus.OnDataDefinitionChanges function = scope.ServiceProvider.GetService<Functions.Scenarios.ServiceBus.OnDataDefinitionChanges>();
 
                     await function.Run(message);
                 }

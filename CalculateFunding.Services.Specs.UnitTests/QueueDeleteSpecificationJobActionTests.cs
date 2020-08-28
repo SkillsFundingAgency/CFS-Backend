@@ -29,8 +29,7 @@ namespace CalculateFunding.Services.Specs.UnitTests
             [JobConstants.DefinitionNames.DeleteCalculationsJob] = "Deleting Calculations",
             [JobConstants.DefinitionNames.DeleteDatasetsJob] = "Deleting Datasets",
             [JobConstants.DefinitionNames.DeleteTestResultsJob] = "Deleting Test Results",
-            [JobConstants.DefinitionNames.DeleteTestsJob] = "Deleting Tests",
-            [JobConstants.DefinitionNames.DeleteJobsJob] = "Deleting Jobs"
+            [JobConstants.DefinitionNames.DeleteTestsJob] = "Deleting Tests"
         };
         private IJobManagement _jobs;
         private QueueDeleteSpecificationJobAction _action;

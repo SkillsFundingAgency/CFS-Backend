@@ -23,7 +23,7 @@ namespace CalculateFunding.Functions.Jobs.UnitTests
             return configData;
         }
         
-        protected override Assembly EntryAssembly => typeof(OnDeleteJobs).Assembly;
+        protected override Assembly EntryAssembly => typeof(OnJobNotification).Assembly;
 
         protected override void RegisterDependencies()
         {            

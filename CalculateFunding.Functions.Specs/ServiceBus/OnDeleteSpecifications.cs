@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.ServiceBus.Interfaces;
 using CalculateFunding.Common.Utility;
+using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Functions;
 using CalculateFunding.Services.Specs.Interfaces;
@@ -42,9 +43,14 @@ namespace CalculateFunding.Functions.Specs.ServiceBus
                 {
                     await _specificationsService.DeleteSpecification(message);
                 }
+                catch (NonRetriableException ex)
+                {
+                    _logger.Error(ex, $"Job threw non retriable exception: {ServiceBusConstants.QueueNames.DeleteSpecifications}");
+                }
                 catch (Exception exception)
                 {
-                    _logger.Error(exception, $"An error occurred getting message from queue: {ServiceBusConstants.QueueNames.DeleteSpecifications}");
+                    _logger.Error(exception, $"An error occurred getting message from topic: {ServiceBusConstants.QueueNames.DeleteSpecifications}");
+
                     throw;
                 }
             },

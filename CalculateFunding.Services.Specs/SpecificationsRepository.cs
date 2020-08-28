@@ -12,6 +12,7 @@ using CalculateFunding.Models.Specs;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Specs.Interfaces;
+using SpecificationVersion = CalculateFunding.Models.Specs.SpecificationVersion;
 
 namespace CalculateFunding.Services.Specs
 {
@@ -146,6 +147,16 @@ namespace CalculateFunding.Services.Specs
             }
             else if (deletionType == DeletionType.PermanentDelete)
             {
+                IEnumerable<SpecificationVersion> specifications =
+                    await _repository.Query<SpecificationVersion>(m => m.Content.SpecificationId == specificationId);
+
+                List<SpecificationVersion> specificationsList = specifications.ToList();
+
+                if(specificationsList.Any())
+                {
+                    await _repository.BulkDeleteAsync(specificationsList.Select(_ => new KeyValuePair<string, SpecificationVersion>(null, _)), hardDelete: true);
+                }
+
                 await _repository.DeleteAsync<Specification>(specificationId, null, hardDelete: true);
             }
         }

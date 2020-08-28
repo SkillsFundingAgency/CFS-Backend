@@ -115,8 +115,6 @@
 
             public const string DeleteTests = "tests-delete";
 
-            public const string DeleteJobs = "jobs-delete";
-
             public const string DeleteSpecifications = "specifications-delete";
             
             public const string ReIndexSingleSpecification = "publishing-reindex-specification";

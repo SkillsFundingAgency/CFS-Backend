@@ -75,6 +75,7 @@ namespace CalculateFunding.Functions.Specs
             {
                 builder.AddScoped<OnAddRelationshipEvent>();
                 builder.AddScoped<OnReIndexSpecification>();
+                builder.AddScoped<OnDeleteSpecifications>();
             }
 
             builder.AddSingleton<ISpecificationsRepository, SpecificationsRepository>((ctx) =>

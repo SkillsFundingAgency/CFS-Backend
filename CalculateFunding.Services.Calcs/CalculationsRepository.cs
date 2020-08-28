@@ -68,6 +68,11 @@ namespace CalculateFunding.Services.Calcs
             return await _cosmosRepository.Query<Calculation>(x => x.Content.SpecificationId == specificationId);
         }
 
+        public async Task<IEnumerable<TemplateMapping>> GetTemplateMappinsBySpecificationId(string specificationId)
+        {
+            return await _cosmosRepository.Query<TemplateMapping>(x => x.Content.SpecificationId == specificationId);
+        }
+
         public async Task<Calculation> GetCalculationsBySpecificationIdAndCalculationName(string specificationId, string calculationName)
         {
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
@@ -99,29 +104,30 @@ namespace CalculateFunding.Services.Calcs
 
             List<Calculation> existingCalculations = calculations.ToList();
 
-            if (existingCalculations.Any())
+            if (!existingCalculations.Any())
                 return;
 
             if (deletionType == DeletionType.SoftDelete)
-                await _cosmosRepository.BulkDeleteAsync(existingCalculations.ToDictionary(c => c.Id), hardDelete:false);
+                await _cosmosRepository.BulkDeleteAsync(existingCalculations.Select(c => new KeyValuePair<string, Calculation>(null, c)), hardDelete:false);
             if (deletionType == DeletionType.PermanentDelete)
-                await _cosmosRepository.BulkDeleteAsync(existingCalculations.ToDictionary(c => c.Id), hardDelete:true);
+                await _cosmosRepository.BulkDeleteAsync(existingCalculations.Select(c => new KeyValuePair<string, Calculation>(null, c)), hardDelete:true);
         }
-        
-        public async Task DeleteCalculationResultsBySpecificationId(string specificationId, DeletionType deletionType)
+
+        public async Task DeleteTemplateMappingsBySpecificationId(string specificationId, DeletionType deletionType)
         {
-            IEnumerable<ProviderResult> calculationResults = await GetCalculationResultsBySpecificationId(specificationId);
+            IEnumerable<TemplateMapping> mappings = await GetTemplateMappinsBySpecificationId(specificationId);
 
-            List<ProviderResult> calculationResultList = calculationResults.ToList();
+            List<TemplateMapping> existingmappings = mappings.ToList();
 
-            if (!calculationResultList.Any())
+            if (!existingmappings.Any())
                 return;
 
             if (deletionType == DeletionType.SoftDelete)
-                await _cosmosRepository.BulkDeleteAsync(calculationResultList.ToDictionary(c => c.Id), hardDelete:false);
+                await _cosmosRepository.BulkDeleteAsync(existingmappings.Select(c => new KeyValuePair<string, TemplateMapping>(null, c)), hardDelete: false);
             if (deletionType == DeletionType.PermanentDelete)
-                await _cosmosRepository.BulkDeleteAsync(calculationResultList.ToDictionary(c => c.Id), hardDelete:true);
+                await _cosmosRepository.BulkDeleteAsync(existingmappings.Select(c => new KeyValuePair<string, TemplateMapping>(null, c)), hardDelete: true);
         }
+
         public async Task<StatusCounts> GetStatusCounts(string specificationId)
         {
             StatusCounts statusCounts = new StatusCounts();
@@ -234,12 +240,6 @@ namespace CalculateFunding.Services.Calcs
 
             IEnumerable<int> result = await _cosmosRepository.RawQuery<int>(cosmosDbQuery, 1);
             return result;
-        }
-
-        private async Task<IEnumerable<ProviderResult>> GetCalculationResultsBySpecificationId(string specificationId)
-        {
-
-            return await _cosmosRepository.Query<ProviderResult>(x => x.Content.SpecificationId == specificationId);
         }
     }
 }

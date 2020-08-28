@@ -24,6 +24,6 @@ namespace CalculateFunding.Services.Scenarios.Interfaces
 
         Task ResetScenarioForFieldDefinitionChanges(IEnumerable<DatasetSpecificationRelationshipViewModel> relationships, string specificationId, IEnumerable<string> currentFieldDefinitionNames);
 
-        Task<IActionResult> DeleteTests(Message message);
+        Task DeleteTests(Message message);
     }
 }

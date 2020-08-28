@@ -6,6 +6,7 @@ using System.Net;
 using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Common.ApiClient.Calcs;
+using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.ApiClient.Providers;
@@ -13,6 +14,7 @@ using CalculateFunding.Common.ApiClient.Results;
 using CalculateFunding.Common.ApiClient.Results.Models;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.ServiceBus.Interfaces;
@@ -69,7 +71,8 @@ namespace CalculateFunding.Services.Specs
         private readonly ISpecificationTemplateVersionChangedHandler _templateVersionChangedHandler;
         private readonly IValidator<AssignSpecificationProviderVersionModel> _assignSpecificationProviderVersionModelValidator;
         private readonly IResultsApiClient _results;
-        private readonly AsyncPolicy _resultsApiClientPolicy; 
+        private readonly AsyncPolicy _resultsApiClientPolicy;
+        private readonly IJobManagement _jobManagement;
 
         public SpecificationsService(
             IMapper mapper,
@@ -94,7 +97,8 @@ namespace CalculateFunding.Services.Specs
             ISpecificationIndexer specificationIndexer,
             IResultsApiClient results,
             ISpecificationTemplateVersionChangedHandler templateVersionChangedHandler,
-            IValidator<AssignSpecificationProviderVersionModel> assignSpecificationProviderVersionModelValidator)
+            IValidator<AssignSpecificationProviderVersionModel> assignSpecificationProviderVersionModelValidator,
+            IJobManagement jobManagement)
         {
             Guard.ArgumentNotNull(mapper, nameof(mapper));
             Guard.ArgumentNotNull(specificationsRepository, nameof(specificationsRepository));
@@ -124,6 +128,7 @@ namespace CalculateFunding.Services.Specs
             Guard.ArgumentNotNull(results, nameof(results));
             Guard.ArgumentNotNull(templateVersionChangedHandler, nameof(templateVersionChangedHandler));
             Guard.ArgumentNotNull(assignSpecificationProviderVersionModelValidator, nameof(assignSpecificationProviderVersionModelValidator));
+            Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
 
             _mapper = mapper;
             _specificationsRepository = specificationsRepository;
@@ -151,6 +156,7 @@ namespace CalculateFunding.Services.Specs
             _assignSpecificationProviderVersionModelValidator = assignSpecificationProviderVersionModelValidator;
             _providersApiClientPolicy = resiliencePolicies.ProvidersApiClient;
             _resultsApiClientPolicy = resiliencePolicies.ResultsApiClient;
+            _jobManagement = jobManagement;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -1586,22 +1592,65 @@ WHERE   s.documentType = @DocumentType",
             return new OkObjectResult(true);
         }
 
-        public async Task<IActionResult> DeleteSpecification(Message message)
+        public async Task DeleteSpecification(Message message)
         {
-            string specificationId = message.UserProperties["specification-id"].ToString();
-            if (string.IsNullOrEmpty(specificationId))
-                return new BadRequestObjectResult("Null or empty specification Id provided");
+            Guard.ArgumentNotNull(message, nameof(message));
 
-            string deletionTypeProperty = message.UserProperties["deletion-type"].ToString();
-            if (string.IsNullOrEmpty(deletionTypeProperty))
-                return new BadRequestObjectResult("Null or empty deletion type provided");
+            string jobId = message.GetUserProperty<string>("jobId");
 
-            DeletionType deletionType = deletionTypeProperty.ToDeletionType();
+            Guard.IsNullOrWhiteSpace(jobId, nameof(jobId));
 
-            await _specificationsRepository.DeleteSpecifications(specificationId, deletionType);
+            try
+            {
+                // Update job to set status to processing
+                await _jobManagement.UpdateJobStatus(jobId, 0, 0, null, null);
 
-            return new OkResult();
+                string specificationId = message.UserProperties["specification-id"].ToString();
+                if (string.IsNullOrEmpty(specificationId))
+                {
+                    string error = "Null or empty specification Id provided";
+                    _logger.Error(error);
+                    throw new Exception(error);
+                }
+
+                string deletionTypeProperty = message.UserProperties["deletion-type"].ToString();
+                if (string.IsNullOrEmpty(deletionTypeProperty))
+                {
+                    string error = "Null or empty deletion type provided";
+                    _logger.Error(error);
+                    throw new Exception(error);
+                }
+
+                DeletionType deletionType = deletionTypeProperty.ToDeletionType();
+
+                await _specificationsRepository.DeleteSpecifications(specificationId, deletionType);
+
+                await _jobManagement.UpdateJobStatus(jobId, 0, 0, true, null);
+            }
+            catch (Exception exception)
+            {
+                _logger.Error(exception, "Unable to complete delete specification job");
+
+                await TrackJobFailed(jobId, exception);
+
+                throw new NonRetriableException("Unable to delete specification.", exception);
+            }
         }
+
+        private async Task TrackJobFailed(string jobId, Exception exception)
+        {
+            await AddJobTracking(jobId, new JobLogUpdateModel
+            {
+                CompletedSuccessfully = false,
+                Outcome = exception.ToString()
+            });
+        }
+
+        private async Task AddJobTracking(string jobId, JobLogUpdateModel tracking)
+        {
+            await _jobManagement.AddJobLog(jobId, tracking);
+        }
+
 
         public async Task<IActionResult> GetDistinctFundingStreamsForSpecifications()
         {

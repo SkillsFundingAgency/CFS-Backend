@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.ServiceBus.Interfaces;
 using CalculateFunding.Common.Utility;
+using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Functions;
 using CalculateFunding.Services.Datasets.Interfaces;
@@ -43,9 +44,14 @@ namespace CalculateFunding.Functions.Datasets.ServiceBus
                 {
                     await _datasetService.DeleteDatasets(message);
                 }
+                catch (NonRetriableException ex)
+                {
+                    _logger.Error(ex, $"Job threw non retriable exception: {ServiceBusConstants.QueueNames.DeleteDatasets}");
+                }
                 catch (Exception exception)
                 {
-                    _logger.Error(exception, $"An error occurred getting message from queue: {ServiceBusConstants.QueueNames.DeleteDatasets}");
+                    _logger.Error(exception, $"An error occurred getting message from topic: {ServiceBusConstants.QueueNames.DeleteDatasets}");
+
                     throw;
                 }
             },

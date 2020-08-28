@@ -24,13 +24,12 @@ namespace CalculateFunding.Services.Specs
         private readonly IJobManagement _jobManagement;
         private readonly ILogger _logger;
         private readonly Dictionary<string, string> _specificationChildJobDefinitions = new Dictionary<string, string>
-        {
+        { 
             [JobConstants.DefinitionNames.DeleteCalculationResultsJob] = "Deleting Calculation Results",
             [JobConstants.DefinitionNames.DeleteCalculationsJob] = "Deleting Calculations",
             [JobConstants.DefinitionNames.DeleteDatasetsJob] = "Deleting Datasets",
             [JobConstants.DefinitionNames.DeleteTestResultsJob] = "Deleting Test Results",
-            [JobConstants.DefinitionNames.DeleteTestsJob] = "Deleting Tests",
-            [JobConstants.DefinitionNames.DeleteJobsJob] = "Deleting Jobs"
+            [JobConstants.DefinitionNames.DeleteTestsJob] = "Deleting Tests"
         };
 
         public QueueDeleteSpecificationJobAction(
@@ -56,7 +55,9 @@ namespace CalculateFunding.Services.Specs
                 new Dictionary<string, string>
                 {
                     {"specification-id", specificationId},
-                    {"deletion-type", deletionTypeValue}
+                    {"deletion-type", deletionTypeValue},
+                    {"user-id", user.Id },
+                    {"user-name", user.Name }
                 }));
 
             IEnumerable<Task> specificationChildJobs = _specificationChildJobDefinitions.Select(childJob => CreateJob(
@@ -68,7 +69,9 @@ namespace CalculateFunding.Services.Specs
                         new Dictionary<string, string>
                         {
                             {"specification-id", specificationId},
-                            {"deletion-type", deletionTypeValue}
+                            {"deletion-type", deletionTypeValue},
+                            {"user-id", user.Id },
+                            {"user-name", user.Name }
                         },
                         deleteSpecificationJob.Id)));
 

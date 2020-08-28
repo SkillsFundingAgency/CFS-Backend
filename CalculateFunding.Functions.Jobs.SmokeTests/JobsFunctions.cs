@@ -33,23 +33,6 @@ namespace CalculateFunding.Functions.Jobs.SmokeTests
         }
 
         [TestMethod]
-        public async Task OnDeleteJobs_SmokeTestSucceeds()
-        {
-            OnDeleteJobs onDeleteJobs = new OnDeleteJobs(_logger,
-                _jobManagementService,
-                Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
-                 _userProfileProvider,
-                IsDevelopment);
-
-            SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.DeleteJobs,
-                (Message smokeResponse) => onDeleteJobs.Run(smokeResponse));
-
-            response
-                .Should()
-                .NotBeNull();
-        }
-
-        [TestMethod]
         public async Task OnJobNotification_SmokeTestSucceeds()
         {
             OnJobNotification onJobNotification = new OnJobNotification(_logger,

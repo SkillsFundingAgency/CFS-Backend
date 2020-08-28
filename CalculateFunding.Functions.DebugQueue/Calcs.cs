@@ -37,6 +37,19 @@ namespace CalculateFunding.Functions.DebugQueue
             log.LogInformation($"C# Queue trigger function processed: {item}");
         }
 
+        [FunctionName("on-delete-calculations")]
+        public static async Task RunOnDeleteCalculations([QueueTrigger(ServiceBusConstants.QueueNames.DeleteCalculations, Connection = "AzureConnectionString")] string item, ILogger log)
+        {
+            using IServiceScope scope = Functions.Calcs.Startup.RegisterComponents(new ServiceCollection()).CreateScope();
+            Message message = Helpers.ConvertToMessage<string>(item);
+
+            OnDeleteCalculations function = scope.ServiceProvider.GetService<OnDeleteCalculations>();
+
+            await function.Run(message);
+
+            log.LogInformation($"C# Queue trigger function processed: {item}");
+        }
+
         [FunctionName("on-calcs-instruct-allocations-poisoned")]
         public static async Task RunOnCalcsInstructAllocationResultsFailure([QueueTrigger(ServiceBusConstants.QueueNames.CalculationJobInitialiserPoisonedLocal, Connection = "AzureConnectionString")] string item, ILogger log)
         {

@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Messages;
 using CalculateFunding.Services.Results.Models;
 
 
@@ -28,5 +29,6 @@ namespace CalculateFunding.Services.Results.Interfaces
         Task<ProviderWithResultsForSpecifications> GetProviderWithResultsForSpecificationsByProviderId(string providerId);
         Task UpsertSpecificationWithProviderResults(params ProviderWithResultsForSpecifications[] providerWithResultsForSpecifications); 
         ICosmosDbFeedIterator<ProviderWithResultsForSpecifications> GetProvidersWithResultsForSpecificationBySpecificationId(string specificationId);
+        Task DeleteCalculationResultsBySpecificationId(string specificationId, DeletionType deletionType);
     }
 }

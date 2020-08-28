@@ -44,6 +44,7 @@ using ApiClientProviders = CalculateFunding.Common.ApiClient.Providers;
 using JobCreateModel = CalculateFunding.Common.ApiClient.Jobs.Models.JobCreateModel;
 using Trigger = CalculateFunding.Common.ApiClient.Jobs.Models.Trigger;
 using PoliciesApiModels = CalculateFunding.Common.ApiClient.Policies.Models;
+using CalculateFunding.Common.ApiClient.Jobs.Models;
 
 namespace CalculateFunding.Services.Datasets
 {
@@ -938,49 +939,87 @@ namespace CalculateFunding.Services.Datasets
             }
         }
 
-        public async Task<IActionResult> DeleteDatasets(Message message)
+        public async Task DeleteDatasets(Message message)
         {
-            string specificationId = message.UserProperties["specification-id"].ToString();
-            if (string.IsNullOrEmpty(specificationId))
-                return new BadRequestObjectResult("Null or empty specification Id provided for deleting datasets");
+            Guard.ArgumentNotNull(message, nameof(message));
 
-            string deletionTypeProperty = message.UserProperties["deletion-type"].ToString();
-            if (string.IsNullOrEmpty(deletionTypeProperty))
-                return new BadRequestObjectResult("Null or empty deletion type provided for deleting datasets");
+            string jobId = message.GetUserProperty<string>("jobId");
 
-            DeletionType deletionType = deletionTypeProperty.ToDeletionType();
+            Guard.IsNullOrWhiteSpace(jobId, nameof(jobId));
 
-            SpecificationSummary specificationSummary;
-            ApiResponse<SpecificationSummary> specificationSummaryApiResponse = 
-	            await _specificationsApiClient.GetSpecificationSummaryById(specificationId);
-
-            if (specificationSummaryApiResponse.StatusCode == HttpStatusCode.OK)
+            try
             {
-                specificationSummary = specificationSummaryApiResponse.Content;
-            }
-            else
-            {
-                if (specificationSummaryApiResponse.StatusCode == HttpStatusCode.BadRequest)
+                // Update job to set status to processing
+                await _jobManagement.UpdateJobStatus(jobId, 0, 0, null, null);
+
+                string specificationId = message.UserProperties["specification-id"].ToString();
+                if (string.IsNullOrEmpty(specificationId))
                 {
-                    return new BadRequestResult();
+                    string error = "Null or empty specification Id provided for deleting datasets";
+                    _logger.Error(error);
+                    throw new Exception(error);
                 }
 
-                return new InternalServerErrorResult(
-	                $"There was an issue with retrieving specification '{specificationId}'");
-            }
+                string deletionTypeProperty = message.UserProperties["deletion-type"].ToString();
+                if (string.IsNullOrEmpty(deletionTypeProperty))
+                {
+                    string error = "Null or empty deletion type provided for deleting datasets";
+                    _logger.Error(error);
+                    throw new Exception(error);
+                }
 
-            foreach (var id in specificationSummary.DataDefinitionRelationshipIds)
+                DeletionType deletionType = deletionTypeProperty.ToDeletionType();
+
+                SpecificationSummary specificationSummary;
+                ApiResponse<SpecificationSummary> specificationSummaryApiResponse =
+                    await _specificationsApiClient.GetSpecificationSummaryById(specificationId);
+
+                if (specificationSummaryApiResponse.StatusCode == HttpStatusCode.OK)
+                {
+                    specificationSummary = specificationSummaryApiResponse.Content;
+                }
+                else
+                {
+                    string error = $"There was an issue with retrieving specification '{specificationId}'";
+                    _logger.Error(error);
+                    throw new Exception(error);
+                }
+
+                foreach (var id in specificationSummary.DataDefinitionRelationshipIds)
+                {
+                    await _providerSourceDatasetRepository.DeleteProviderSourceDatasetVersion(id, deletionType);
+
+                    await _providerSourceDatasetRepository.DeleteProviderSourceDataset(id, deletionType);
+                }
+
+                await _datasetRepository.DeleteDefinitionSpecificationRelationshipBySpecificationId(specificationId, deletionType);
+
+                await _datasetRepository.DeleteDatasetsBySpecificationId(specificationId, deletionType);
+
+                await _jobManagement.UpdateJobStatus(jobId, 0, 0, true, null);
+            }
+            catch (Exception exception)
             {
-                await _providerSourceDatasetRepository.DeleteProviderSourceDatasetVersion(id, deletionType);
+                _logger.Error(exception, "Unable to complete delete datasets job");
 
-                await _providerSourceDatasetRepository.DeleteProviderSourceDataset(id, deletionType);
+                await TrackJobFailed(jobId, exception);
+
+                throw new NonRetriableException("Unable to delete datasets.", exception);
             }
+        }
 
-            await _datasetRepository.DeleteDefinitionSpecificationRelationshipBySpecificationId(specificationId, deletionType);
-   
-            await _datasetRepository.DeleteDatasetsBySpecificationId(specificationId, deletionType);
+        private async Task TrackJobFailed(string jobId, Exception exception)
+        {
+            await AddJobTracking(jobId, new JobLogUpdateModel
+            {
+                CompletedSuccessfully = false,
+                Outcome = exception.ToString()
+            });
+        }
 
-            return new OkResult();
+        private async Task AddJobTracking(string jobId, JobLogUpdateModel tracking)
+        {
+            await _jobManagement.AddJobLog(jobId, tracking);
         }
 
         private async Task<Dataset> SaveNewDatasetAndVersion(

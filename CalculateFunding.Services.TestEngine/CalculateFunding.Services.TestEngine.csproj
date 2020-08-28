@@ -12,6 +12,7 @@
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Calcs" Version="3.2.0" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Providers" Version="4.2.0" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Specifications" Version="3.9.0" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Jobs" Version="2.4.0" />
     <PackageReference Include="gherkin" Version="5.0.0" />
     <PackageReference Include="Microsoft.ApplicationInsights" Version="2.13.1" />
     <PackageReference Include="Polly" Version="7.1.0" />

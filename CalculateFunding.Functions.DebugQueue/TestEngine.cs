@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using CalculateFunding.Functions.Scenarios.ServiceBus;
 using CalculateFunding.Functions.TestEngine.ServiceBus;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Services.Core.Constants;
@@ -19,6 +20,21 @@ namespace CalculateFunding.Functions.DebugQueue
                 Message message = Helpers.ConvertToMessage<BuildProject>(item);
 
                 OnTestExecution function = scope.ServiceProvider.GetService<OnTestExecution>();
+
+                await function.Run(message);
+
+                log.LogInformation($"C# Queue trigger function processed: {item}");
+            }
+        }
+
+        [FunctionName("on-delete-testresults")]
+        public static async Task RunDeleteTestResults([QueueTrigger(ServiceBusConstants.QueueNames.DeleteTestResults, Connection = "AzureConnectionString")] string item, ILogger log)
+        {
+            using (IServiceScope scope = Functions.TestEngine.Startup.RegisterComponents(new ServiceCollection()).CreateScope())
+            {
+                Message message = Helpers.ConvertToMessage<string>(item);
+
+                OnDeleteTestResults function = scope.ServiceProvider.GetService<OnDeleteTestResults>();
 
                 await function.Run(message);
 

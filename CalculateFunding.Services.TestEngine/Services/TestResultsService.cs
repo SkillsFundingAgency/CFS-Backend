@@ -1,10 +1,13 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using AutoMapper;
+using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Providers;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
@@ -37,6 +40,7 @@ namespace CalculateFunding.Services.TestRunner.Services
         private readonly Polly.AsyncPolicy _testResultsPolicy;
         private readonly Polly.AsyncPolicy _testResultsSearchPolicy;
         private readonly IProvidersApiClient _providersApiClient;
+        private readonly IJobManagement _jobManagement;
 
         public TestResultsService(ITestResultsRepository testResultsRepository,
             ISearchRepository<TestScenarioResultIndex> searchRepository,
@@ -44,7 +48,8 @@ namespace CalculateFunding.Services.TestRunner.Services
             ILogger logger,
             ITelemetry telemetry,
             ITestRunnerResiliencePolicies policies,
-            IProvidersApiClient providersApiClient)
+            IProvidersApiClient providersApiClient,
+            IJobManagement jobManagement)
         {
             Guard.ArgumentNotNull(searchRepository, nameof(searchRepository));
             Guard.ArgumentNotNull(testResultsRepository, nameof(testResultsRepository));
@@ -54,6 +59,7 @@ namespace CalculateFunding.Services.TestRunner.Services
             Guard.ArgumentNotNull(policies?.TestResultsRepository, nameof(policies.TestResultsRepository));
             Guard.ArgumentNotNull(policies?.TestResultsSearchRepository, nameof(policies.TestResultsSearchRepository));
             Guard.ArgumentNotNull(providersApiClient, nameof(providersApiClient));
+            Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
 
             _testResultsRepository = testResultsRepository;
             _searchRepository = searchRepository;
@@ -63,6 +69,7 @@ namespace CalculateFunding.Services.TestRunner.Services
             _testResultsPolicy = policies.TestResultsRepository;
             _testResultsSearchPolicy = policies.TestResultsSearchRepository;
             _providersApiClient = providersApiClient;
+            _jobManagement = jobManagement;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -276,19 +283,61 @@ namespace CalculateFunding.Services.TestRunner.Services
             }
         }
 
-        public async Task<IActionResult> DeleteTestResults(Message message)
+        public async Task DeleteTestResults(Message message)
         {
-            string specificationId = message.UserProperties["specification-id"].ToString();
-            if (string.IsNullOrEmpty(specificationId))
-                return new BadRequestObjectResult("Null or empty specification Id provided for deleting test results");
+            Guard.ArgumentNotNull(message, nameof(message));
 
-            string deletionTypeProperty = message.UserProperties["deletion-type"].ToString();
-            if (string.IsNullOrEmpty(deletionTypeProperty))
-                return new BadRequestObjectResult("Null or empty deletion type provided for deleting test results");
+            string jobId = message.GetUserProperty<string>("jobId");
 
-            await  _testResultsRepository.DeleteTestResultsBySpecificationId(specificationId, deletionTypeProperty.ToDeletionType());
+            Guard.IsNullOrWhiteSpace(jobId, nameof(jobId));
 
-            return new OkResult();
+            try
+            {
+                // Update job to set status to processing
+                await _jobManagement.UpdateJobStatus(jobId, 0, 0, null, null);
+
+                string specificationId = message.UserProperties["specification-id"].ToString();
+                if (string.IsNullOrEmpty(specificationId))
+                {
+                    string error = "Null or empty specification Id provided for deleting test results";
+                    _logger.Error(error);
+                    throw new Exception(error);
+                }
+
+                string deletionTypeProperty = message.UserProperties["deletion-type"].ToString();
+                if (string.IsNullOrEmpty(deletionTypeProperty))
+                {
+                    string error = "Null or empty deletion type provided for deleting test results";
+                    _logger.Error(error);
+                    throw new Exception(error);
+                }
+
+                await _testResultsRepository.DeleteTestResultsBySpecificationId(specificationId, deletionTypeProperty.ToDeletionType());
+
+                await _jobManagement.UpdateJobStatus(jobId, 0, 0, true, null);
+            }
+            catch (Exception exception)
+            {
+                _logger.Error(exception, "Unable to complete delete test results job");
+
+                await TrackJobFailed(jobId, exception);
+
+                throw new NonRetriableException("Unable to delete test results.", exception);
+            }
+        }
+
+        private async Task TrackJobFailed(string jobId, Exception exception)
+        {
+            await AddJobTracking(jobId, new JobLogUpdateModel
+            {
+                CompletedSuccessfully = false,
+                Outcome = exception.ToString()
+            });
+        }
+
+        private async Task AddJobTracking(string jobId, JobLogUpdateModel tracking)
+        {
+            await _jobManagement.AddJobLog(jobId, tracking);
         }
 
         public async Task CleanupTestResultsForSpecificationProviders(Message message)

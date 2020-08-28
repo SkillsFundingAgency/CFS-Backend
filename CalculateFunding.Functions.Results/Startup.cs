@@ -72,6 +72,7 @@ namespace CalculateFunding.Functions.Results
                 builder.AddScoped<OnCalculationResultsCsvGenerationTimer>();
                 builder.AddScoped<OnMergeSpecificationInformationForProviderWithResults>();
                 builder.AddScoped<OnMergeSpecificationInformationForProviderWithResultsFailure>();
+                builder.AddScoped<OnDeleteCalculationResults>();
             }
             builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();
             builder.AddScoped<ISpecificationsWithProviderResultsService, SpecificationsWithProviderResultsService>();

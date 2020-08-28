@@ -151,7 +151,8 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 _specificationIndexer,
                 _resultsApiClient,
                 _templateVersionChangedHandler,
-                assignSpecificationProviderVersionModelValidator ?? CreateAssignSpecificationProviderVersionModelValidator());
+                assignSpecificationProviderVersionModelValidator ?? CreateAssignSpecificationProviderVersionModelValidator(),
+                CreateJobManagement());
         }
 
         private async Task AndAMergeSpecificationInformationJobWasQueued(SpecificationVersion specification)

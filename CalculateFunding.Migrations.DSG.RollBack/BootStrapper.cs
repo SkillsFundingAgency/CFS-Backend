@@ -31,11 +31,9 @@ namespace CalculateFunding.Migrations.DSG.RollBack
             .GetName()
             .Name;
         
-        private static readonly IConfigurationRoot Configuration = new ConfigurationBuilder()
-            .AddUserSecrets("df0d69d5-a6db-4598-909f-262fc39cb8c8")
-            .Build();
-        
-         public static IServiceProvider BuildServiceProvider(string collectionName)
+        private static readonly IConfigurationRoot Configuration = ConfigHelper.AddConfig();
+
+        public static IServiceProvider BuildServiceProvider(string collectionName)
         {
             IServiceCollection builder = new ServiceCollection();
 

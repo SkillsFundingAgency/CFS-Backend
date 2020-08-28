@@ -18,6 +18,6 @@ namespace CalculateFunding.Services.TestRunner.Interfaces
 
         Task UpdateTestResultsForSpecification(Message message);
 
-        Task<IActionResult> DeleteTestResults(Message message);
+        Task DeleteTestResults(Message message);
     }
 }

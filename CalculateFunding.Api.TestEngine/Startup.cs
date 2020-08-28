@@ -1,10 +1,12 @@
 ﻿using AutoMapper;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Config.ApiClient.Calcs;
+using CalculateFunding.Common.Config.ApiClient.Jobs;
 using CalculateFunding.Common.Config.ApiClient.Providers;
 using CalculateFunding.Common.Config.ApiClient.Scenarios;
 using CalculateFunding.Common.Config.ApiClient.Specifications;
 using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.WebApi.Extensions;
@@ -183,6 +185,9 @@ namespace CalculateFunding.Api.TestRunner
                 c.AddProfile<TestEngineMappingProfile>();               
             });
 
+
+            builder.AddScoped<IJobManagement, JobManagement>();
+
             builder
                 .AddSingleton(mapperConfig.CreateMapper());
 
@@ -194,11 +199,13 @@ namespace CalculateFunding.Api.TestRunner
             builder
                 .AddSingleton<ISearchRepository<TestScenarioResultIndex>, SearchRepository<TestScenarioResultIndex>>();
 
+            builder.AddServiceBus(Configuration);
 
             builder.AddCalculationsInterServiceClient(Configuration);
             builder.AddSpecificationsInterServiceClient(Configuration);
             builder.AddScenariosInterServiceClient(Configuration);
             builder.AddProvidersInterServiceClient(Configuration);
+            builder.AddJobsInterServiceClient(Configuration);
 
             builder.AddCaching(Configuration);
 
@@ -236,6 +243,19 @@ namespace CalculateFunding.Api.TestRunner
                     TestResultsSearchRepository = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy)
                 };
             }));
+
+            builder.AddSingleton<IJobManagementResiliencePolicies>((ctx) =>
+            {
+                PolicySettings policySettings = ctx.GetService<PolicySettings>();
+
+                AsyncBulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
+
+                return new JobManagementResiliencePolicies()
+                {
+                    JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                };
+
+            });
 
             builder.AddHealthCheckMiddleware();
 

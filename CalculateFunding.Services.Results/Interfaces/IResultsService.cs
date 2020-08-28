@@ -31,5 +31,7 @@ namespace CalculateFunding.Services.Results.Interfaces
         Task<IActionResult> HasCalculationResults(string calculationId);
 
         Task QueueCsvGenerationMessages();
+
+        Task DeleteCalculationResults(Message message);
     }
 }

@@ -48,7 +48,6 @@ namespace CalculateFunding.Functions.Jobs
             {
                 builder.AddScoped<OnJobNotification>();
                 builder.AddScoped<OnCheckForJobTimeout>();
-                builder.AddScoped<OnDeleteJobs>();
             }
 
             builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();

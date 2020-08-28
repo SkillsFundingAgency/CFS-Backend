@@ -38,5 +38,19 @@ namespace CalculateFunding.Functions.DebugQueue
 
             log.LogInformation($"C# Queue trigger function processed: {item}");
         }
+
+        [FunctionName("on-delete-specifications")]
+        public static async Task RunDeleteSpecs([QueueTrigger(ServiceBusConstants.QueueNames.DeleteSpecifications, Connection = "AzureConnectionString")]string item, ILogger log)
+        {
+            using IServiceScope scope = Functions.Specs.Startup.RegisterComponents(new ServiceCollection()).CreateScope();
+
+            Message message = Helpers.ConvertToMessage<string>(item);
+
+            OnDeleteSpecifications function = scope.ServiceProvider.GetService<OnDeleteSpecifications>();
+
+            await function.Run(message);
+
+            log.LogInformation($"C# Queue trigger function processed: {item}");
+        }
     }
 }

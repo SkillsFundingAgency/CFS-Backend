@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "CalculateFunding.Migrations.DSG.RollBack": {
+      "commandName": "Project",
+      "commandLineArgs": "--collection-name \"publishedfunding\" --document-version \"3.1\" --funding-period \"FY-2021\"",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "DOTNET_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}

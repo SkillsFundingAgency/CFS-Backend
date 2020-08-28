@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Common.ApiClient.Providers;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Messages;
@@ -453,10 +454,13 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
         [DataRow("SpecId1", DeletionType.PermanentDelete)]
         public async Task DeleteTestResults_Deletes_Dependencies_Using_Correct_SpecificationId_And_DeletionType(string specificationId, DeletionType deletionType)
         {
+            string jobId = "job-id";
+
             Message message = new Message
             {
                 UserProperties =
                 {
+                    new KeyValuePair<string, object>("jobId", jobId),
                     new KeyValuePair<string, object>("specification-id", specificationId),
                     new KeyValuePair<string, object>("deletion-type", (int)deletionType)
                 }
@@ -464,10 +468,9 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
             ITestResultsRepository testResultsRepository = CreateTestResultsRepository();
             TestResultsService service = CreateTestResultsService(testResultsRepository:testResultsRepository);
 
-            IActionResult actionResult = await service.DeleteTestResults(message);
+            await service.DeleteTestResults(message);
 
             await testResultsRepository.Received(1).DeleteTestResultsBySpecificationId(specificationId, deletionType);
-            actionResult.Should().BeOfType<OkResult>();
         }
 
         private TestResultsService CreateTestResultsService(
@@ -486,8 +489,13 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
                 logger ?? CreateLogger(),
                 telemetry ?? CreateTelemetry(),
                 policies ?? TestRunnerResilienceTestHelper.GenerateTestPolicies(),
-                providersApiClient ?? CreateProviderApiClient()
-                );
+                providersApiClient ?? CreateProviderApiClient(),
+                CreateJobManagement());
+        }
+
+        private IJobManagement CreateJobManagement()
+        {
+            return Substitute.For<IJobManagement>();
         }
 
         private ITestResultsRepository CreateTestResultsRepository()

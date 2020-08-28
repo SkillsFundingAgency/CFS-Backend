@@ -107,6 +107,23 @@ namespace CalculateFunding.Functions.Results.SmokeTests
                 .NotBeNull();
         }
 
+        [TestMethod]
+        public async Task OnDeleteCalculationResults_SmokeTestSucceeds()
+        {
+            OnDeleteCalculationResults onDeleteCalculationResults = new OnDeleteCalculationResults(_logger,
+                _resultsService,
+                Services.BuildServiceProvider().GetRequiredService<IMessengerService>(),
+                _userProfileProvider,
+                IsDevelopment);
+
+            SmokeResponse response = await RunSmokeTest(ServiceBusConstants.QueueNames.DeleteCalculationResults,
+                (Message smokeResponse) => onDeleteCalculationResults.Run(smokeResponse));
+
+            response
+                .Should()
+                .NotBeNull();
+        }
+
         private static ILogger CreateLogger()
         {
             return Substitute.For<ILogger>();

@@ -33,6 +33,7 @@ using NSubstitute;
 using Serilog;
 using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalcModel = CalculateFunding.Common.ApiClient.Calcs.Models;
+using CalculateFunding.Common.JobManagement;
 
 namespace CalculateFunding.Services.Results.UnitTests
 {
@@ -41,6 +42,7 @@ namespace CalculateFunding.Services.Results.UnitTests
     {
         const string providerId = "123456";
         const string specificationId = "888999";
+        const string jobId = "job-id";
 
         [TestMethod]
         public async Task GetProviderResults_GivenNullOrEmptyProviderId_ReturnsBadRequest()
@@ -1070,6 +1072,28 @@ namespace CalculateFunding.Services.Results.UnitTests
                     Arg.Is<Dictionary<string, string>>(_ => _["specification-id"] == specificationId && _["specification-name"] == specificationName ));
         }
 
+        [TestMethod]
+        [DataRow("SpecId1", DeletionType.SoftDelete)]
+        [DataRow("SpecId1", DeletionType.PermanentDelete)]
+        public async Task DeleteCalculationResults_Deletes_Dependencies_Using_Correct_SpecificationId_And_DeletionType(string specificationId, DeletionType deletionType)
+        {
+            Message message = new Message
+            {
+                UserProperties =
+                {
+                    new KeyValuePair<string, object>("jobId", jobId),
+                    new KeyValuePair<string, object>("specification-id", specificationId),
+                    new KeyValuePair<string, object>("deletion-type", (int)deletionType)
+                }
+            };
+            ICalculationResultsRepository calculationsRepository = CreateResultsRepository();
+            ResultsService resultsService = CreateResultsService(resultsRepository: calculationsRepository);
+
+            await resultsService.DeleteCalculationResults(message);
+
+            await calculationsRepository.Received(1).DeleteCalculationResultsBySpecificationId(specificationId, deletionType);
+        }
+
         #region "Dependency creation"
         static ResultsService CreateResultsService(
             ILogger logger = null,
@@ -1095,7 +1119,13 @@ namespace CalculateFunding.Services.Results.UnitTests
                 resiliencePolicies ?? ResultsResilienceTestHelper.GenerateTestPolicies(),
                 messengerService ?? CreateMessengerService(),
                 calculationsRepository ?? CreateCalculationsRepository(),
-                CreateMapper());
+                CreateMapper(),
+                CreateJobManagement());
+        }
+
+        private static IJobManagement CreateJobManagement()
+        {
+            return Substitute.For<IJobManagement>();
         }
 
         private static IBlobClient CreateBlobClient()

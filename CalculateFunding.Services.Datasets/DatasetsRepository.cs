@@ -13,6 +13,7 @@ using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.Messages;
 using CalculateFunding.Services.Datasets.Interfaces;
+using Microsoft.Azure.Cosmos;
 
 namespace CalculateFunding.Services.Datasets
 {
@@ -119,6 +120,10 @@ namespace CalculateFunding.Services.Datasets
         public async Task<IEnumerable<Dataset>> GetDatasetsByQuery(Expression<Func<DocumentEntity<Dataset>, bool>> query)
         {
             return await _cosmosRepository.Query<Dataset>(query);
+        }
+        public async Task<IEnumerable<DatasetVersion>> GetDatasetVersionsByQuery(Expression<Func<DocumentEntity<DatasetVersion>, bool>> query)
+        {
+            return await _cosmosRepository.Query<DatasetVersion>(query);
         }
 
         public Task<HttpStatusCode> SaveDefinitionSpecificationRelationship(DefinitionSpecificationRelationship relationship)
@@ -245,9 +250,20 @@ namespace CalculateFunding.Services.Datasets
                 return;
 
             if (deletionType == DeletionType.SoftDelete)
-                await _cosmosRepository.BulkDeleteAsync(datasets.ToDictionary(c => c.Id), hardDelete:false);
+                await _cosmosRepository.BulkDeleteAsync(datasets.Select(c => new KeyValuePair<string, Dataset>(null, c)), hardDelete:false);
             if (deletionType == DeletionType.PermanentDelete)
-                await _cosmosRepository.BulkDeleteAsync(datasets.ToDictionary(c => c.Id), hardDelete:true);
+            {
+                IEnumerable<DatasetVersion> datasetVersions = await GetDatasetVersionsByQuery(d => d.Id == specificationId);
+
+                List<DatasetVersion> datasetVersionsList = datasetVersions.ToList();
+
+                if (datasetVersionsList.Any())
+                {
+                    await _cosmosRepository.BulkDeleteAsync(datasetVersions.Select(c => new KeyValuePair<string, DatasetVersion>(null, c)), hardDelete: true);
+                }
+
+                await _cosmosRepository.BulkDeleteAsync(datasets.Select(c => new KeyValuePair<string, Dataset>(null, c)), hardDelete: true);
+            }
         }
 
         public async Task DeleteDefinitionSpecificationRelationshipBySpecificationId(string specificationId, DeletionType deletionType)
@@ -261,9 +277,9 @@ namespace CalculateFunding.Services.Datasets
                 return;
 
             if (deletionType == DeletionType.SoftDelete)
-                await _cosmosRepository.BulkDeleteAsync(definitionSpecificationRelationshipList.ToDictionary(c => c.Id), hardDelete:false);
+                await _cosmosRepository.BulkDeleteAsync(definitionSpecificationRelationshipList.Select(c => new KeyValuePair<string, DefinitionSpecificationRelationship>(null, c)), hardDelete:false);
             if (deletionType == DeletionType.PermanentDelete)
-                await _cosmosRepository.BulkDeleteAsync(definitionSpecificationRelationshipList.ToDictionary(c => c.Id), hardDelete:true);
+                await _cosmosRepository.BulkDeleteAsync(definitionSpecificationRelationshipList.Select(c => new KeyValuePair<string, DefinitionSpecificationRelationship>(null, c)), hardDelete:true);
         }
     }
 }

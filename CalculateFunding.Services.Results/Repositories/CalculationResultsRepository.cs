@@ -9,6 +9,7 @@ using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Messages;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Results.Interfaces;
 using CalculateFunding.Services.Results.Models;
@@ -45,6 +46,21 @@ namespace CalculateFunding.Services.Results.Repositories
                 .Query<ProviderResult>(x => x.Content.Provider.Id == providerId && x.Content.SpecificationId == specificationId, 1);
 
             return result.FirstOrDefault();
+        }
+
+        public async Task DeleteCalculationResultsBySpecificationId(string specificationId, DeletionType deletionType)
+        {
+            IEnumerable<ProviderResult> calculationResults = await GetCalculationResultsBySpecificationId(specificationId);
+
+            List<ProviderResult> calculationResultList = calculationResults.ToList();
+
+            if (!calculationResultList.Any())
+                return;
+
+            if (deletionType == DeletionType.SoftDelete)
+                await _cosmosRepository.BulkDeleteAsync(calculationResultList.ToDictionary(c => c.Provider.Id), hardDelete: false);
+            if (deletionType == DeletionType.PermanentDelete)
+                await _cosmosRepository.BulkDeleteAsync(calculationResultList.ToDictionary(c => c.Provider.Id), hardDelete: true);
         }
 
         public async Task<ProviderResult> GetProviderResultByCalculationType(string providerId, string specificationId, CalculationType calculationType)
@@ -317,6 +333,11 @@ namespace CalculateFunding.Services.Results.Repositories
             if (providerResults.IsNullOrEmpty()) return null;
 
             return providerResults.First();
+        }
+
+        private async Task<IEnumerable<ProviderResult>> GetCalculationResultsBySpecificationId(string specificationId)
+        {
+            return await _cosmosRepository.Query<ProviderResult>(x => x.Content.SpecificationId == specificationId);
         }
     }
 }

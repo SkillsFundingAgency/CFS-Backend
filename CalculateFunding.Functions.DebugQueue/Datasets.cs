@@ -31,6 +31,22 @@ namespace CalculateFunding.Functions.DebugQueue
             }
         }
 
+        [FunctionName("on-delete-datasets")]
+        public static async Task RunDeleteDatasets([QueueTrigger(ServiceBusConstants.QueueNames.DeleteDatasets, Connection = "AzureConnectionString")] string item, ILogger log)
+        {
+            using (IServiceScope scope = Functions.Datasets.Startup.RegisterComponents(new ServiceCollection()).CreateScope())
+            {
+                CultureInfo.CurrentCulture = new CultureInfo("en-GB");
+                Message message = Helpers.ConvertToMessage<string>(item);
+
+                OnDeleteDatasets function = scope.ServiceProvider.GetService<OnDeleteDatasets>();
+
+                await function.Run(message);
+
+                log.LogInformation($"C# Queue trigger function processed: {item}");
+            }
+        }
+
         [FunctionName("on-dataset-event-poisoned")]
         public static async Task RunPublishProviderResultsFailure([QueueTrigger(ServiceBusConstants.QueueNames.ProcessDatasetPoisonedLocal, Connection = "AzureConnectionString")] string item, ILogger log)
         {

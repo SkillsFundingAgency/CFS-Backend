@@ -46,7 +46,6 @@
             public const string DeleteCalculationResultsJob = nameof(DeleteCalculationResultsJob);
             public const string DeleteCalculationsJob = nameof(DeleteCalculationsJob);
             public const string DeleteDatasetsJob = nameof(DeleteDatasetsJob);
-            public const string DeleteJobsJob = nameof(DeleteJobsJob);
             public const string DeleteTestResultsJob = nameof(DeleteTestResultsJob);
             public const string DeleteTestsJob = nameof(DeleteTestsJob);
 

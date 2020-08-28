@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ServiceBus;
+using CalculateFunding.Functions.Calcs.ServiceBus;
 using CalculateFunding.Functions.Results.ServiceBus;
 using CalculateFunding.Functions.Results.Timer;
 using CalculateFunding.Services.Core.Constants;
@@ -70,6 +71,20 @@ namespace CalculateFunding.Functions.DebugQueue
             Message message = Helpers.ConvertToMessage<string>(item);
 
             OnReIndexCalculationResults function = scope.ServiceProvider.GetService<OnReIndexCalculationResults>();
+
+            await function.Run(message);
+
+            log.LogInformation($"C# Queue trigger function processed: {item}");
+        }
+
+        [FunctionName("on-delete-calculation-results")]
+        public static async Task RunDeleteCalculationResults([QueueTrigger(ServiceBusConstants.QueueNames.DeleteCalculationResults, Connection = "AzureConnectionString")] string item, ILogger log)
+        {
+            using IServiceScope scope = Functions.Results.Startup.RegisterComponents(new ServiceCollection()).CreateScope();
+
+            Message message = Helpers.ConvertToMessage<string>(item);
+
+            OnDeleteCalculationResults function = scope.ServiceProvider.GetService<OnDeleteCalculationResults>();
 
             await function.Run(message);
 

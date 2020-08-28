@@ -47,6 +47,7 @@ namespace CalculateFunding.Services.Calcs.Services
             {
                 UserProperties =
                 {
+                    new KeyValuePair<string, object>("jobId", JobId),
                     new KeyValuePair<string, object>("specification-id", specificationId),
                     new KeyValuePair<string, object>("deletion-type", (int)deletionType)
                 }
@@ -54,32 +55,9 @@ namespace CalculateFunding.Services.Calcs.Services
             ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
             CalculationService calculationService = CreateCalculationService(calculationsRepository: calculationsRepository);
 
-            IActionResult actionResult = await calculationService.DeleteCalculations(message);
+            await calculationService.DeleteCalculations(message);
 
             await calculationsRepository.Received(1).DeleteCalculationsBySpecificationId(specificationId, deletionType);
-            actionResult.Should().BeOfType<OkResult>();
-        }
-
-        [TestMethod]
-        [DataRow("SpecId1", DeletionType.SoftDelete)]
-        [DataRow("SpecId1", DeletionType.PermanentDelete)]
-        public async Task DeleteCalculationResults_Deletes_Dependencies_Using_Correct_SpecificationId_And_DeletionType(string specificationId, DeletionType deletionType)
-        {
-            Message message = new Message
-            {
-                UserProperties =
-                {
-                    new KeyValuePair<string, object>("specification-id", specificationId),
-                    new KeyValuePair<string, object>("deletion-type", (int)deletionType)
-                }
-            };
-            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
-            CalculationService calculationService = CreateCalculationService(calculationsRepository: calculationsRepository);
-
-            IActionResult actionResult = await calculationService.DeleteCalculationResults(message);
-
-            await calculationsRepository.Received(1).DeleteCalculationResultsBySpecificationId(specificationId, deletionType);
-            actionResult.Should().BeOfType<OkResult>();
         }
     }
 }

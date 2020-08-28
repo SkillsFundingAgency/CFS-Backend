@@ -60,6 +60,7 @@ namespace CalculateFunding.Functions.Scenarios
                 builder.AddScoped<OnDataDefinitionChanges>();
                 builder.AddScoped<OnEditCalculationEvent>();
                 builder.AddScoped<OnEditSpecificationEvent>();
+                builder.AddScoped<OnDeleteTests>();
             }
 
             builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();

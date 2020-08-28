@@ -96,7 +96,7 @@ namespace CalculateFunding.Services.Results.Repositories
         public async Task DeleteProviderSourceDatasetVersion(string providerSourceDatasetId, DeletionType deletionType)
         {
             IEnumerable<ProviderSourceDatasetVersion> providerSourceDatasets = 
-                await _cosmosRepository.Query<ProviderSourceDatasetVersion>(m => m.Id == providerSourceDatasetId);
+                await _cosmosRepository.Query<ProviderSourceDatasetVersion>(m => m.Content.ProviderSourceDatasetId == providerSourceDatasetId);
 
             List<ProviderSourceDatasetVersion> providerSourceDatasetList = providerSourceDatasets.ToList();
 

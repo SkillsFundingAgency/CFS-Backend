@@ -4,6 +4,7 @@ using CalculateFunding.Common.Models;
 using CalculateFunding.Common.ServiceBus.Interfaces;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Calcs.Interfaces;
+using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Functions;
 using Microsoft.Azure.ServiceBus;
@@ -43,9 +44,14 @@ namespace CalculateFunding.Functions.Calcs.ServiceBus
                 {
                     await _calculationService.DeleteCalculations(message);
                 }
+                catch (NonRetriableException ex)
+                {
+                    _logger.Error(ex, $"Job threw non retriable exception: {ServiceBusConstants.QueueNames.DeleteCalculations}");
+                }
                 catch (Exception exception)
                 {
-                    _logger.Error(exception, $"An error occurred getting message from queue: {ServiceBusConstants.QueueNames.DeleteCalculations}");
+                    _logger.Error(exception, $"An error occurred getting message from topic: {ServiceBusConstants.QueueNames.DeleteCalculations}");
+
                     throw;
                 }
             },

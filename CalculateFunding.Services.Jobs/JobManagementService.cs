@@ -578,21 +578,6 @@ namespace CalculateFunding.Services.Jobs
 
         }
 
-        public async Task<IActionResult> DeleteJobs(Message message)
-        {
-            string specificationId = message.UserProperties["specification-id"].ToString();
-            if (string.IsNullOrEmpty(specificationId))
-                return new BadRequestObjectResult("Null or empty specification Id provided for deleting calculation results");
-
-            string deletionTypeProperty = message.UserProperties["deletion-type"].ToString();
-            if (string.IsNullOrEmpty(deletionTypeProperty))
-                return new BadRequestObjectResult("Null or empty deletion type provided for deleting calculation results");
-
-            await _jobRepository.DeleteJobsBySpecificationId(specificationId, deletionTypeProperty.ToDeletionType());
-
-            return new OkResult();
-        }
-
         private async Task TimeoutJob(Job runningJob)
         {
             runningJob.Completed = DateTimeOffset.UtcNow;

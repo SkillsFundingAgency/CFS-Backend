@@ -23,7 +23,7 @@ namespace CalculateFunding.Functions.DebugQueue
 
             log.LogInformation($"C# Queue trigger function processed: {item}");
         }
-        
+
         [FunctionName("on-publishing-generate-published-funding-csv")]
         public static async Task RunGeneratePublishedFundingCsv([QueueTrigger(ServiceBusConstants.QueueNames.GeneratePublishedFundingCsv, 
             Connection = "AzureConnectionString")] string item, ILogger log)

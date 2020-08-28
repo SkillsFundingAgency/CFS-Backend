@@ -397,10 +397,13 @@ namespace CalculateFunding.Services.Scenarios.Services
         [DataRow("SpecId1", DeletionType.PermanentDelete)]
         public async Task DeleteTestResults_Deletes_Dependencies_Using_Correct_SpecificationId_And_DeletionType(string specificationId, DeletionType deletionType)
         {
+            string jobId = "job-id";
+
             Message message = new Message
             {
                 UserProperties =
                 {
+                    new KeyValuePair<string, object>("jobId", jobId),
                     new KeyValuePair<string, object>("specification-id", specificationId),
                     new KeyValuePair<string, object>("deletion-type", (int)deletionType)
                 }
@@ -424,10 +427,9 @@ namespace CalculateFunding.Services.Scenarios.Services
                 scenariosResiliencePolicies
             );
 
-            IActionResult actionResult = await service.DeleteTests(message);
+            await service.DeleteTests(message);
 
             await testsRepository.Received(1).DeleteTestsBySpecificationId(specificationId, deletionType);
-            actionResult.Should().BeOfType<OkResult>();
         }
 
         private static DatasetDefinitionFieldChangesProcessor CreateProcessor(

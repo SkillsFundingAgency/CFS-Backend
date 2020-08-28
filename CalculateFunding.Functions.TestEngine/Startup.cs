@@ -2,10 +2,12 @@
 using System.Threading;
 using AutoMapper;
 using CalculateFunding.Common.Config.ApiClient.Calcs;
+using CalculateFunding.Common.Config.ApiClient.Jobs;
 using CalculateFunding.Common.Config.ApiClient.Providers;
 using CalculateFunding.Common.Config.ApiClient.Scenarios;
 using CalculateFunding.Common.Config.ApiClient.Specifications;
 using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Functions.TestEngine.ServiceBus;
 using CalculateFunding.Models.Scenarios;
@@ -61,6 +63,7 @@ namespace CalculateFunding.Functions.TestEngine
                 builder.AddScoped<OnTestSpecificationProviderResultsCleanup>();
                 builder.AddScoped<OnEditSpecificationEvent>();
                 builder.AddScoped<OnTestExecution>();
+                builder.AddScoped<OnDeleteTestResults>();
             }
 
             builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();
@@ -142,6 +145,8 @@ namespace CalculateFunding.Functions.TestEngine
 
             builder.AddSingleton<ITestResultsCountsService, TestResultsCountsService>();
 
+            builder.AddSingleton<IJobManagement, JobManagement>();
+
             MapperConfiguration mappingConfiguration = new MapperConfiguration(c =>
             {
                 c.AddProfile<TestEngineMappingProfile>();
@@ -160,6 +165,7 @@ namespace CalculateFunding.Functions.TestEngine
             builder.AddScenariosInterServiceClient(config);
             builder.AddCalculationsInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
             builder.AddProvidersInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
+            builder.AddJobsInterServiceClient(config, handlerLifetime: Timeout.InfiniteTimeSpan);
 
             builder.AddCaching(config);
 
@@ -199,6 +205,19 @@ namespace CalculateFunding.Functions.TestEngine
 
                 return resiliencePolicies;
             }));
+
+            builder.AddSingleton<IJobManagementResiliencePolicies>((ctx) =>
+            {
+                PolicySettings policySettings = ctx.GetService<PolicySettings>();
+
+                AsyncBulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
+
+                return new JobManagementResiliencePolicies()
+                {
+                    JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                };
+
+            });
 
             builder.AddScoped<IUserProfileProvider, UserProfileProvider>();
 

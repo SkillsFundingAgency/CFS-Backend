@@ -23,7 +23,7 @@ namespace CalculateFunding.Services.Calcs.Interfaces
 
         Task DeleteCalculationsBySpecificationId(string specificationId, DeletionType deletionType);
 
-        Task DeleteCalculationResultsBySpecificationId(string specificationId, DeletionType deletionType);
+        Task DeleteTemplateMappingsBySpecificationId(string specificationId, DeletionType deletionType);
 
         Task<StatusCounts> GetStatusCounts(string specificationId);
 
