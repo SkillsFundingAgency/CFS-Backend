@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
@@ -190,6 +191,22 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             string fundingPeriodId,
             string fundingLineId,
             FundingDateUpdateViewModel configuration) =>
+            throw new NotImplementedException();
+
+        public Task<NoValidatedContentApiResponse> UpdateFundingStructureLastModified(UpdateFundingStructureLastModifiedRequest request) 
+            => Task.FromResult(new NoValidatedContentApiResponse(HttpStatusCode.OK));
+
+        public Task<ApiResponse<FundingStructure>> GetFundingStructure(string fundingStreamId,
+            string fundingPeriodId,
+            string specificationId,
+            string etag = null) =>
+            throw new NotImplementedException();
+
+        public Task<ApiResponse<FundingStructure>> GetFundingStructureResults(string fundingStreamId,
+            string fundingPeriodId,
+            string specificationId,
+            string providerId = null,
+            string etag = null) =>
             throw new NotImplementedException();
     }
 }

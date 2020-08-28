@@ -1,5 +1,7 @@
+using System.Threading;
 using AutoMapper;
 using CacheCow.Server.Core.Mvc;
+using CalculateFunding.Common.Config.ApiClient.Calcs;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Storage;
@@ -7,6 +9,8 @@ using CalculateFunding.Common.TemplateMetadata;
 using CalculateFunding.Common.WebApi.Extensions;
 using CalculateFunding.Common.WebApi.Middleware;
 using CalculateFunding.Common.Config.ApiClient.Jobs;
+using CalculateFunding.Common.Config.ApiClient.Results;
+using CalculateFunding.Common.Config.ApiClient.Specifications;
 using CalculateFunding.Models.Policy;
 using CalculateFunding.Models.Policy.FundingPolicy;
 using CalculateFunding.Services.Core.AspNet.HealthChecks;
@@ -28,6 +32,7 @@ using Polly.Bulkhead;
 using Serilog;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.TemplateMetadata.Models;
+using CalculateFunding.Models.Policy.FundingPolicy.ViewModels;
 using CalculateFunding.Models.Policy.TemplateBuilder;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Policy.TemplateBuilder;
@@ -92,7 +97,13 @@ namespace CalculateFunding.Api.Policy
         public void RegisterComponents(IServiceCollection builder)
         {
             builder.AddHttpCachingMvc();
-            builder.AddQueryProviderAndExtractorForViewModelMvc<TemplateMetadataContents, TemplateMetadataContentsTimedETagProvider, TemplateMatadataContentsTimedETagExtractor>(false);
+            builder.AddQueryProviderAndExtractorForViewModelMvc<FundingStructure, TemplateMetadataContentsTimedETagProvider, TemplateMatadataContentsTimedETagExtractor>(false);
+            
+            builder.AddSingleton<IFundingStructureService, FundingStructureService>()
+                .AddSingleton<IValidator<UpdateFundingStructureLastModifiedRequest>, UpdateFundingStructureLastModifiedRequestValidator>()
+                .AddSpecificationsInterServiceClient(Configuration, handlerLifetime: Timeout.InfiniteTimeSpan)
+                .AddCalculationsInterServiceClient(Configuration, handlerLifetime: Timeout.InfiniteTimeSpan)
+                .AddResultsInterServiceClient(Configuration, handlerLifetime: Timeout.InfiniteTimeSpan);
             
             builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();
 
@@ -190,6 +201,9 @@ namespace CalculateFunding.Api.Policy
                     TemplatesSearchRepository = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
                     JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                     TemplatesRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                    SpecificationsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                    ResultsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                    CalculationsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
                 };
             });
 
@@ -254,13 +268,13 @@ namespace CalculateFunding.Api.Policy
                 .AddSingleton<ITemplateVersionRepository, TemplateVersionRepository>(ctx => new TemplateVersionRepository(cosmos))
                 .AddSingleton<ITemplateMetadataResolver>(ctx =>
                 {
-                    var resolver = new TemplateMetadataResolver();
-                    var logger = ctx.GetService<ILogger>();
+                    TemplateMetadataResolver resolver = new TemplateMetadataResolver();
+                    ILogger logger = ctx.GetService<ILogger>();
                     
-                    var schema10Generator = new TemplateMetadataSchema10.TemplateMetadataGenerator(logger);
+                    TemplateMetadataSchema10.TemplateMetadataGenerator schema10Generator = new TemplateMetadataSchema10.TemplateMetadataGenerator(logger);
                     resolver.Register("1.0", schema10Generator);
 
-                    var schema11Generator = new TemplateMetadataSchema11.TemplateMetadataGenerator(logger);
+                    TemplateMetadataSchema11.TemplateMetadataGenerator schema11Generator = new TemplateMetadataSchema11.TemplateMetadataGenerator(logger);
                     resolver.Register("1.1", schema11Generator);
 
                     return resolver;

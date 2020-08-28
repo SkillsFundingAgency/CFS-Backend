@@ -5,6 +5,7 @@ using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Models;
@@ -226,6 +227,10 @@ namespace CalculateFunding.Services.Calcs.Services
             {
                 Id = calculation.SpecificationId,
                 Name = "Test Spec Name",
+                FundingPeriod = new Reference
+                {
+                    Id = new RandomString()
+                },
                 FundingStreams = new []
                 {
                     new Reference(calculation.FundingStreamId, "funding stream name")
@@ -261,6 +266,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 .QueueJob(Arg.Any<JobCreateModel>())
                 .Returns(new Job { Id = "job-id-1" });
 
+            IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();
+
             CalculationService service = CreateCalculationService(
                 logger: logger,
                 calculationsRepository: calculationsRepository,
@@ -270,7 +277,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 sourceCodeService: sourceCodeService,
                 jobManagement: jobManagement,
                 buildProjectsService: buildProjectsService,
-                cacheProvider: cacheProvider);
+                cacheProvider: cacheProvider,
+                policiesApiClient: policiesApiClient);
 
             // Act
             IActionResult result = await service.EditCalculation(SpecificationId, CalculationId, calculationEditModel, author, CorrelationId);
@@ -299,6 +307,14 @@ namespace CalculateFunding.Services.Calcs.Services
                 cacheProvider
                     .Received(1)
                     .RemoveAsync<List<CalculationMetadata>>(Arg.Is(cacheKey));
+            
+            await policiesApiClient
+                .Received(1)
+                .UpdateFundingStructureLastModified(Arg.Is<UpdateFundingStructureLastModifiedRequest>(req =>
+                    req.LastModified.Date == DateTimeOffset.UtcNow.Date &&
+                    req.SpecificationId == calculation.SpecificationId &&
+                    req.FundingStreamId == calculation.FundingStreamId &&
+                    req.FundingPeriodId == specificationSummary.FundingPeriod.Id));
         }
 
         [TestMethod]

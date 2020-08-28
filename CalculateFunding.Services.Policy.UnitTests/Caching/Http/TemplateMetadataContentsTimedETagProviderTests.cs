@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using CacheCow.Server;
 using CalculateFunding.Services.Policy.Interfaces;
@@ -6,6 +8,7 @@ using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.Primitives;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 
@@ -15,39 +18,38 @@ namespace CalculateFunding.Services.Policy.Caching.Http
     public class TemplateMetadataContentsTimedETagProviderTests
     {
         private HttpContext _httpContext;
-        private Mock<IFundingTemplateRepository> _fundingTemplates;
+        private Mock<IFundingStructureService> _fundingStructures;
         private TemplateMetadataContentsTimedETagProvider _provider;
-        private RouteValueDictionary _routeValueDictionary;
+        private Mock<IQueryCollection> _queryCollection;
 
         [TestInitialize]
         public void SetUp()
         {
-            _routeValueDictionary = new RouteValueDictionary();
+            _queryCollection = new Mock<IQueryCollection>();
+            _queryCollection.Setup(_ => _.GetEnumerator())
+                .Returns(Enumerable.Empty<KeyValuePair<string, StringValues>>().GetEnumerator);
+            
             _httpContext = new DefaultHttpContext()
             {
                 Request =
                 {
-                    RouteValues = _routeValueDictionary
+                    Query = _queryCollection.Object
                 }
             };
             
-            _fundingTemplates = new Mock<IFundingTemplateRepository>();
+            _fundingStructures = new Mock<IFundingStructureService>();
 
-            _provider = new TemplateMetadataContentsTimedETagProvider(_fundingTemplates.Object,
-                new PolicyResiliencePolicies
-                {
-                    FundingTemplateRepository = Polly.Policy.NoOpAsync()
-                });
+            _provider = new TemplateMetadataContentsTimedETagProvider(_fundingStructures.Object);
         }
 
         [TestMethod]
         public void GuardsAgainstMissingFundingPeriodRouteData()
         {
             string fundingStreamId = NewRandomString();
-            string templateVersion = NewRandomString();
+            string specificationId = NewRandomString();
 
-            GivenTheRouteData((nameof(fundingStreamId), fundingStreamId),
-                (nameof(templateVersion), templateVersion));
+            GivenTheQueryData((nameof(fundingStreamId), fundingStreamId),
+                (nameof(specificationId), specificationId));
 
             Func<Task<TimedEntityTagHeaderValue>> invocation = WhenTheRequestIsQueried;
 
@@ -64,10 +66,10 @@ namespace CalculateFunding.Services.Policy.Caching.Http
         public void GuardsAgainstMissingFundingStreamRouteData()
         {
             string fundingPeriodId = NewRandomString();
-            string templateVersion = NewRandomString();
+            string specificationId = NewRandomString();
 
-            GivenTheRouteData((nameof(fundingPeriodId), fundingPeriodId),
-                (nameof(templateVersion), templateVersion));
+            GivenTheQueryData((nameof(fundingPeriodId), fundingPeriodId),
+                (nameof(specificationId), specificationId));
 
             Func<Task<TimedEntityTagHeaderValue>> invocation = WhenTheRequestIsQueried;
 
@@ -81,12 +83,12 @@ namespace CalculateFunding.Services.Policy.Caching.Http
         }
         
         [TestMethod]
-        public void GuardsAgainstMissingTemplateVersionRouteData()
+        public void GuardsAgainstMissingSpecificationIdRouteData()
         {
             string fundingPeriodId = NewRandomString();
             string fundingStreamId = NewRandomString();
 
-            GivenTheRouteData((nameof(fundingPeriodId), fundingPeriodId),
+            GivenTheQueryData((nameof(fundingPeriodId), fundingPeriodId),
                 (nameof(fundingStreamId), fundingStreamId));
 
             Func<Task<TimedEntityTagHeaderValue>> invocation = WhenTheRequestIsQueried;
@@ -97,7 +99,7 @@ namespace CalculateFunding.Services.Policy.Caching.Http
                 .Which
                 .ParamName
                 .Should()
-                .Be("templateVersion");
+                .Be("specificationId");
         }
 
         [TestMethod]
@@ -105,18 +107,17 @@ namespace CalculateFunding.Services.Policy.Caching.Http
         {
             string fundingPeriodId = NewRandomString();
             string fundingStreamId = NewRandomString();
-            string templateVersion = NewRandomString();
-
-            string blobName = new FundingTemplateVersionBlobName(fundingStreamId,
-                fundingPeriodId,
-                templateVersion);
+            string specificationId = NewRandomString();
 
             DateTimeOffset lastModified = NewRandomDateTimeOffset();
                 
-            GivenTheRouteData((nameof(fundingStreamId), fundingStreamId),
+            GivenTheQueryData((nameof(fundingStreamId), fundingStreamId),
                 (nameof(fundingPeriodId), fundingPeriodId),
-                (nameof(templateVersion), templateVersion));
-            AndTheLastModifiedDateForTheBlobName(blobName, lastModified);
+                (nameof(specificationId), specificationId));
+            AndTheLastModifiedDateForTheFundingStructure(fundingStreamId,
+                fundingPeriodId,
+                specificationId,
+                lastModified);
 
             TimedEntityTagHeaderValue headerValue = await WhenTheRequestIsQueried();
 
@@ -130,18 +131,25 @@ namespace CalculateFunding.Services.Policy.Caching.Http
         private async Task<TimedEntityTagHeaderValue> WhenTheRequestIsQueried()
             => await _provider.QueryAsync(_httpContext);
 
-        private void GivenTheRouteData(params (string key, string value)[] routeData)
+        private void GivenTheQueryData(params (string key, string value)[] queryData)
         {
-            foreach ((string key, string value) routeValue in routeData)
+            foreach ((string key, string value) queryValue in queryData)
             {
-                _routeValueDictionary.Add(routeValue.key, routeValue.value);
+                StringValues expectedValue = queryValue.value;
+
+                _queryCollection.Setup(_ => _.TryGetValue(queryValue.key, out expectedValue))
+                    .Returns(true);
             }   
         }
 
-        private void AndTheLastModifiedDateForTheBlobName(string blobName,
+        private void AndTheLastModifiedDateForTheFundingStructure(string fundingStreamId,
+            string fundingPeriodId,
+            string specificationId,
             DateTimeOffset lastModifiedDate)
         {
-            _fundingTemplates.Setup(_ => _.GetLastModifiedDate(blobName))
+            _fundingStructures.Setup(_ => _.GetFundingStructureTimeStamp(fundingStreamId,
+                    fundingPeriodId,
+                    specificationId))
                 .ReturnsAsync(lastModifiedDate);
         }
         

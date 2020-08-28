@@ -19,6 +19,12 @@ namespace CalculateFunding.Api.Policy.UnitTests
                 { "SearchServiceKey", "test" },
                 { "jobsClient:ApiEndpoint", "https://localhost:7010/api/"},
                 { "jobsClient:ApiKey", "Local"},
+                { "specificationsClient:ApiKey", "Local"},
+                { "specificationsClient:ApiEndpoint", "https://localhost:7010/api/"},
+                { "resultsClient:ApiKey", "Local"},
+                { "resultsClient:ApiEndpoint", "https://localhost:7010/api/"},
+                { "calcsClient:ApiKey", "Local"},
+                { "calcsClient:ApiEndpoint", "https://localhost:7010/api/"},
             };
 
             return configData;

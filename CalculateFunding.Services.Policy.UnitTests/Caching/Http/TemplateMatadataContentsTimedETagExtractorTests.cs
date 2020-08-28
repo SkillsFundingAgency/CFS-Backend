@@ -1,6 +1,6 @@
 using System;
 using CacheCow.Server;
-using CalculateFunding.Common.TemplateMetadata.Models;
+using CalculateFunding.Models.Policy;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -20,7 +20,7 @@ namespace CalculateFunding.Services.Policy.Caching.Http
         [TestMethod]
         public void ExtractsHeaderValueOffViewModelLastModifiedProperty()
         {
-            TemplateMetadataContents metadataContents = NewTemplateMetadataContents();
+            FundingStructure metadataContents = NewFundingStructure();
 
             TimedEntityTagHeaderValue headerValue = WhenTheHeaderValueIsExtracted(metadataContents);
 
@@ -48,7 +48,7 @@ namespace CalculateFunding.Services.Policy.Caching.Http
         private TimedEntityTagHeaderValue WhenTheHeaderValueIsExtracted(object viewModel)
             => _extractor.Extract(viewModel);
         
-        private TemplateMetadataContents NewTemplateMetadataContents() => new TemplateMetadataContentsBuilder()
+        private FundingStructure NewFundingStructure() => new FundingStructureBuilder()
             .Build();
     }
 }

@@ -18,6 +18,8 @@
 
         public const string CalculationResults = "calculationresults:";
 
+        public const string FundingLineStructureTimestamp = "funding-line-structure-timestamp:";
+
         public static string SpecificationSummaryById { get; set; } = "specification-summary:";
 
         public static string SpecificationSummariesByFundingPeriodId { get; set; } = "specification-summaries-funding-period:";

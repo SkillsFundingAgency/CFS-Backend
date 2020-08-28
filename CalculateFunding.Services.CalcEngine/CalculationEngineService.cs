@@ -354,7 +354,7 @@ namespace CalculateFunding.Services.CalcEngine
             }
             else
             {
-                await CompleteBatch(messageProperties, cachedCalculationAggregationsBatch, summaries.Count(), totalProviderResults);
+                await CompleteBatch(specificationSummary, messageProperties, cachedCalculationAggregationsBatch, summaries.Count(), totalProviderResults);
             }
         }
 
@@ -620,7 +620,11 @@ namespace CalculateFunding.Services.CalcEngine
             return aggregations;
         }
 
-        private async Task CompleteBatch(GenerateAllocationMessageProperties messageProperties, Dictionary<string, List<object>> cachedCalculationAggregationsBatch, int itemsProcessed, int totalProviderResults)
+        private async Task CompleteBatch(SpecificationSummary specificationSummary,
+            GenerateAllocationMessageProperties messageProperties, 
+            Dictionary<string, List<object>> cachedCalculationAggregationsBatch, 
+            int itemsProcessed, 
+            int totalProviderResults)
         {
             int itemsSucceeded = totalProviderResults;
             int itemsFailed = itemsProcessed - itemsSucceeded;
@@ -641,6 +645,14 @@ namespace CalculateFunding.Services.CalcEngine
                 ItemsProcessed = itemsProcessed,
                 Outcome = outcome
             });
+
+            await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.UpdateFundingStructureLastModified(new UpdateFundingStructureLastModifiedRequest
+            {
+                LastModified = DateTimeOffset.UtcNow,
+                SpecificationId = messageProperties.SpecificationId,
+                FundingPeriodId = specificationSummary.FundingPeriod?.Id,
+                FundingStreamId = specificationSummary.FundingStreams?.FirstOrDefault().Id
+            }));
         }
 
         private void PopulateCachedCalculationAggregationsBatch(IEnumerable<ProviderResult> providerResults, Dictionary<string, List<object>> cachedCalculationAggregationsBatch, GenerateAllocationMessageProperties messageProperties)

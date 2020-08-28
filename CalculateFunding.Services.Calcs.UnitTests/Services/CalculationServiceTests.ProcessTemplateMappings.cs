@@ -167,7 +167,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 cacheProvider: cacheProvider);
 
             // Act
-            var result = await service.ProcessTemplateMappings(specificationId, templateVersion, fundingStreamId);
+            IActionResult result = await service.ProcessTemplateMappings(specificationId, templateVersion, fundingStreamId);
 
             // Assert
             await policiesApiClient
@@ -241,6 +241,14 @@ namespace CalculateFunding.Services.Calcs.Services
             await cacheProvider
                 .Received(1)
                 .RemoveAsync<TemplateMapping>(cacheKey);
+            
+            await policiesApiClient
+                .Received(1)
+                .UpdateFundingStructureLastModified(Arg.Is<UpdateFundingStructureLastModifiedRequest>(req =>
+                    req.LastModified <= DateTimeOffset.UtcNow &&
+                    req.SpecificationId == specificationId &&
+                    req.FundingStreamId == fundingStreamId &&
+                    req.FundingPeriodId == fundingPeriodId));
         }
 
         [TestMethod]
@@ -315,7 +323,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 cacheProvider: cacheProvider);
 
             // Act
-            var result = await service.ProcessTemplateMappings(specificationId, templateVersion, fundingStreamId);
+            IActionResult result = await service.ProcessTemplateMappings(specificationId, templateVersion, fundingStreamId);
 
             // Assert
             await policiesApiClient
@@ -490,7 +498,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 policiesApiClient: policiesApiClient);
 
             // Act
-            var result = await service.ProcessTemplateMappings(specificationId, templateVersion, fundingStreamId);
+            IActionResult result = await service.ProcessTemplateMappings(specificationId, templateVersion, fundingStreamId);
 
             // Assert
             await calculationsRepository
@@ -635,7 +643,7 @@ namespace CalculateFunding.Services.Calcs.Services
                .UpdateTemplateMapping(Arg.Is(specificationId), Arg.Is(fundingStreamId), Arg.Do<TemplateMapping>(r => savedTemplateMapping = r));
 
             // Act
-            var result = await service.ProcessTemplateMappings(specificationId, templateVersion, fundingStreamId);
+            IActionResult result = await service.ProcessTemplateMappings(specificationId, templateVersion, fundingStreamId);
 
             // Assert
             await calculationsRepository
@@ -844,7 +852,7 @@ namespace CalculateFunding.Services.Calcs.Services
                .UpdateTemplateMapping(Arg.Is(specificationId), Arg.Is(fundingStreamId), Arg.Do<TemplateMapping>(r => savedTemplateMapping = r));
 
             // Act
-            var result = await service.ProcessTemplateMappings(specificationId, templateVersion, fundingStreamId);
+            IActionResult result = await service.ProcessTemplateMappings(specificationId, templateVersion, fundingStreamId);
 
             // Assert
             await calculationsRepository
@@ -1066,7 +1074,7 @@ namespace CalculateFunding.Services.Calcs.Services
                .UpdateTemplateMapping(Arg.Is(specificationId), Arg.Is(fundingStreamId), Arg.Do<TemplateMapping>(r => savedTemplateMapping = r));
 
             // Act
-            var result = await service.ProcessTemplateMappings(specificationId, templateVersion, fundingStreamId);
+            IActionResult result = await service.ProcessTemplateMappings(specificationId, templateVersion, fundingStreamId);
 
             // Assert
             await calculationsRepository
@@ -1253,7 +1261,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 cacheProvider: cacheProvider);
 
             // Act
-            var result = await service.ProcessTemplateMappings(specificationId, templateVersion, fundingStreamId);
+            IActionResult result = await service.ProcessTemplateMappings(specificationId, templateVersion, fundingStreamId);
 
             // Assert
             await calculationsRepository
@@ -1428,7 +1436,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 cacheProvider: cacheProvider);
 
             // Act
-            var result = await service.ProcessTemplateMappings(specificationId, templateVersion, fundingStreamId);
+            IActionResult result = await service.ProcessTemplateMappings(specificationId, templateVersion, fundingStreamId);
 
             // Assert
             await calculationsRepository
@@ -1647,7 +1655,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 cacheProvider: cacheProvider);
 
             // Act
-            var result = await service.ProcessTemplateMappings(specificationId, templateVersion, fundingStreamId);
+            IActionResult result = await service.ProcessTemplateMappings(specificationId, templateVersion, fundingStreamId);
 
             // Assert
             await calculationsRepository
@@ -1866,7 +1874,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 cacheProvider: cacheProvider);
 
             // Act
-            var result = await service.ProcessTemplateMappings(specificationId, templateVersion, fundingStreamId);
+            IActionResult result = await service.ProcessTemplateMappings(specificationId, templateVersion, fundingStreamId);
 
             // Assert
             await calculationsRepository
@@ -2085,7 +2093,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetSpecificationSummaryById(specificationId)
                 .Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
 
-            var fundingTemplateApiResponse = new ApiResponse<TemplateMetadataContents>(HttpStatusCode.NotFound, null);
+            ApiResponse<TemplateMetadataContents> fundingTemplateApiResponse = new ApiResponse<TemplateMetadataContents>(HttpStatusCode.NotFound, null);
 
             policiesApiClient
                 .GetFundingTemplateContents(Arg.Is(fundingStreamId), Arg.Is(fundingPeriodId), Arg.Is(templateId))

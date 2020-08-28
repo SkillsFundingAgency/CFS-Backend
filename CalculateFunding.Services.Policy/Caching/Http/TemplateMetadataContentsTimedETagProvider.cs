@@ -1,50 +1,46 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using CacheCow.Server;
-using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Common.Utility;
+using CalculateFunding.Models.Policy;
 using CalculateFunding.Services.Policy.Interfaces;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Routing;
-using Polly;
+using Microsoft.Extensions.Primitives;
 
 namespace CalculateFunding.Services.Policy.Caching.Http
 {
-    public class TemplateMetadataContentsTimedETagProvider : ITimedETagQueryProvider<TemplateMetadataContents>
+    public class TemplateMetadataContentsTimedETagProvider : ITimedETagQueryProvider<FundingStructure>
     {
-        private readonly AsyncPolicy _fundingTemplatesPolicy;
-        private readonly IFundingTemplateRepository _fundingTemplates;
+        private readonly IFundingStructureService _fundingStructureService;
 
-        public TemplateMetadataContentsTimedETagProvider(IFundingTemplateRepository fundingTemplates,
-            IPolicyResiliencePolicies resiliencePolicies)
+        public TemplateMetadataContentsTimedETagProvider(IFundingStructureService fundingStructureService)
         {
-            Guard.ArgumentNotNull(fundingTemplates, nameof(fundingTemplates));
-            Guard.ArgumentNotNull(resiliencePolicies?.FundingTemplateRepository, nameof(resiliencePolicies.FundingTemplateRepository));
+            Guard.ArgumentNotNull(fundingStructureService, nameof(fundingStructureService));
             
-            _fundingTemplates = fundingTemplates;
-            _fundingTemplatesPolicy = resiliencePolicies.FundingTemplateRepository;
+            _fundingStructureService = fundingStructureService;
         }
 
         public async Task<TimedEntityTagHeaderValue> QueryAsync(HttpContext context)
         {
-            RouteData routeData = context.GetRouteData();
+            IQueryCollection queryData = context.Request.Query;
 
-            string fundingStreamId = GetRouteData(nameof(fundingStreamId), routeData);
-            string fundingPeriodId = GetRouteData(nameof(fundingPeriodId), routeData);
-            string templateVersion = GetRouteData(nameof(templateVersion), routeData);
+            string fundingStreamId = GetQueryData(nameof(fundingStreamId), queryData);
+            string fundingPeriodId = GetQueryData(nameof(fundingPeriodId), queryData);
+            string specificationId = GetQueryData(nameof(specificationId), queryData);
 
-            string blobName = new FundingTemplateVersionBlobName(fundingStreamId, fundingPeriodId, templateVersion);
+            DateTimeOffset fundingStructureLastModified = await _fundingStructureService.GetFundingStructureTimeStamp(fundingStreamId,
+                fundingPeriodId,
+                specificationId);
 
-            DateTimeOffset lastModified = await _fundingTemplatesPolicy.ExecuteAsync(() => _fundingTemplates.GetLastModifiedDate(blobName));
-
-            string eTagString = lastModified.ToETagString();
+            string etag = fundingStructureLastModified.ToETagString();
             
-            return new TimedEntityTagHeaderValue(eTagString);
+            return new TimedEntityTagHeaderValue(etag);
         }
 
-        private string GetRouteData(string key,
-            RouteData routeData)
-            => routeData.Values.TryGetValue(key, out object value) ? value?.ToString() 
+        private string GetQueryData(string key,
+            IQueryCollection queryData)
+            => queryData.TryGetValue(key, out StringValues value) ? value.FirstOrDefault()
                 : throw new ArgumentOutOfRangeException(key, $"Expected route data to contain {key} parameter");
 
         public void Dispose()

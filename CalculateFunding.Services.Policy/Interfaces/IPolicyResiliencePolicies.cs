@@ -1,19 +1,26 @@
 ﻿using CalculateFunding.Services.DeadletterProcessor;
+using Polly;
 
 namespace CalculateFunding.Services.Policy.Interfaces
 {
     public interface IPolicyResiliencePolicies : IJobHelperResiliencePolicies
     {
-        Polly.AsyncPolicy PolicyRepository { get; set; }
+        AsyncPolicy PolicyRepository { get; set; }
 
-        Polly.AsyncPolicy CacheProvider { get; set; }
+        AsyncPolicy CacheProvider { get; set; }
 
-        Polly.AsyncPolicy FundingSchemaRepository { get; set; }
+        AsyncPolicy FundingSchemaRepository { get; set; }
 
-        Polly.AsyncPolicy FundingTemplateRepository { get; set; }
+        AsyncPolicy FundingTemplateRepository { get; set; }
 
-        Polly.AsyncPolicy TemplatesSearchRepository { get; set; }
+        AsyncPolicy TemplatesSearchRepository { get; set; }
         
-        Polly.AsyncPolicy TemplatesRepository { get; set; }
+        AsyncPolicy SpecificationsApiClient { get; set; }
+        
+        AsyncPolicy ResultsApiClient { get; set; }
+
+        AsyncPolicy CalculationsApiClient { get; set; }
+        
+        AsyncPolicy TemplatesRepository { get; set; }
     }
 }
