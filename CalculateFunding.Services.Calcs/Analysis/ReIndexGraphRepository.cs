@@ -16,6 +16,7 @@ using ApiDataset = CalculateFunding.Common.ApiClient.Graph.Models.Dataset;
 using ApiDatasetDefinition = CalculateFunding.Common.ApiClient.Graph.Models.DatasetDefinition;
 using ApiEntitySpecification = CalculateFunding.Common.ApiClient.Graph.Models.Entity<CalculateFunding.Common.ApiClient.Graph.Models.Specification>;
 using ApiEntityCalculation = CalculateFunding.Common.ApiClient.Graph.Models.Entity<CalculateFunding.Common.ApiClient.Graph.Models.Calculation>;
+using ApiRelationship = CalculateFunding.Common.ApiClient.Graph.Models.Relationship;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Models.Graph;
 using CalculateFunding.Common.Extensions;
@@ -51,6 +52,11 @@ namespace CalculateFunding.Services.Calcs.Analysis
                     _graphApiClient.GetAllEntitiesRelatedToSpecification(specificationCalculationRelationships.Specification.SpecificationId));
 
             IEnumerable<ApiEntitySpecification> entities = apiResponse?.Content;
+
+            if (Common.Extensions.IEnumerableExtensions.IsNullOrEmpty(entities))
+            {
+                return null;
+            }
 
             IEnumerable<Calculation> removedSpecificationCalculations = RemoveCalculationSpecificationRelationships(specificationCalculationRelationships.Calculations, entities);
             IEnumerable<CalculationRelationship> removedCalculationRelationships = RemoveCalculationCalculationRelationships(specificationCalculationRelationships.CalculationRelationships, entities);
@@ -93,20 +99,34 @@ namespace CalculateFunding.Services.Calcs.Analysis
 
                 IEnumerable<ApiEntityCalculation> entities = apiResponse?.Content;
 
-                if (entities != null)
+                IEnumerable<ApiRelationship> entityRelationships = entities?.Where(_ => _.Relationships != null).SelectMany(_ => _.Relationships);
+
+                if (Common.Extensions.IEnumerableExtensions.AnyWithNullCheck(entityRelationships))
                 {
-                    calculationDatasetReferencesList = calculationDatasetReferencesList.Concat(entities.SelectMany(_ =>
-                    _.Relationships.Where(rel => rel.Type == "ReferencesDataField")
+                    calculationDatasetReferencesList = calculationDatasetReferencesList.Concat(entityRelationships
+                    .Where(rel => rel.Type == "ReferencesDataField")?
                     .Select(datasetRelationship => new CalculationDataFieldRelationship
                     {
                         Calculation = ((object)datasetRelationship.One).AsJson().AsPoco<Calculation>(),
                         DataField = ((object)datasetRelationship.Two).AsJson().AsPoco<DataField>()
-                    })));
+                    }));
                 }
             }
 
-            // retrieve all dataset referenced from the current graph related to the calculationc
-            IDictionary<string, CalculationDataFieldRelationship> calculationDatasetReferences = calculationDatasetReferencesList.ToDictionary(_ => $"{_.Calculation.CalculationId}{_.DataField.DataFieldId}");
+            // no relationships exist in the current graph for any of the calculations
+            if (Common.Extensions.IEnumerableExtensions.IsNullOrEmpty(calculationDatasetReferencesList))
+            {
+                return null;
+            }
+
+            // retrieve all dataset referenced from the current graph related to the calculations
+            IDictionary<string, CalculationDataFieldRelationship> calculationDatasetReferences = calculationDatasetReferencesList?.ToDictionary(_ => $"{_.Calculation.CalculationId}{_.DataField.DataFieldId}");
+
+            // there are no dataset references in the new set of calculations so need to delete all current references
+            if (Common.Extensions.IEnumerableExtensions.IsNullOrEmpty(datasetReferences))
+            {
+                return calculationDatasetReferences?.Values;
+            }
 
             // retrieve all the new dataset fields related to the calculations
             IDictionary<string, CalculationDataFieldRelationship> newCalculationDatafields = datasetReferences.ToDictionary(_ => $"{_.Calculation.CalculationId}{_.DataField.DataFieldId}");
@@ -145,9 +165,12 @@ namespace CalculateFunding.Services.Calcs.Analysis
             try
             {
                 Guard.ArgumentNotNull(specificationCalculationRelationships, nameof(specificationCalculationRelationships));
-                Guard.ArgumentNotNull(specificationCalculationUnusedRelationships, nameof(specificationCalculationUnusedRelationships));
 
-                await DeleteSpecificationRelationshipGraph(specificationCalculationUnusedRelationships);
+                if (specificationCalculationUnusedRelationships != null)
+                {
+                    await DeleteSpecificationRelationshipGraph(specificationCalculationUnusedRelationships);
+                }
+
                 await InsertSpecificationGraph(specificationCalculationRelationships);
             }
             catch (Exception e)
@@ -169,7 +192,10 @@ namespace CalculateFunding.Services.Calcs.Analysis
 
             await DeleteCalculationRelationships(specificationCalculationUnusedRelationships.CalculationRelationships);
 
-            await DeleteDatasetRelationships(specificationCalculationUnusedRelationships.CalculationDataFieldRelationships);
+            if (specificationCalculationUnusedRelationships.CalculationDataFieldRelationships != null)
+            {
+                await DeleteDatasetRelationships(specificationCalculationUnusedRelationships.CalculationDataFieldRelationships);
+            }
         }
 
         private async Task InsertSpecificationGraph(SpecificationCalculationRelationships specificationCalculationRelationships)

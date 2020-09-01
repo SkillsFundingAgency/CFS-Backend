@@ -195,8 +195,6 @@ namespace CalculateFunding.Services.Jobs
 
             await QueueNotifications(successfulCreateResults, jobDefinitionsToSupersede);
 
-            await CacheJobs(successfullyCreatedJobs);
-
             JobCreateErrorDetails[] errorDetails = createJobResults
                 .Where(_ => _.HasError)
                 .Select(_ => new JobCreateErrorDetails
@@ -214,17 +212,10 @@ namespace CalculateFunding.Services.Jobs
             return createJobResults;
         }
 
-        private async Task CacheJobs(IEnumerable<Job> jobs)
+        private async Task CacheJob(Job job)
         {
-            IEnumerable<Job> latestJobs = jobs
-                .GroupBy(_ => _.JobDefinitionId)
-                .Select(group => group.OrderByDescending(_ => _.Created).FirstOrDefault());
-
-            foreach (Job latestJob in latestJobs)
-            {
-                string cacheKey = $"{CacheKeys.LatestJobs}:{latestJob.SpecificationId}:{latestJob.JobDefinitionId}";
-                await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync(cacheKey, latestJob));
-            }
+            string cacheKey = $"{CacheKeys.LatestJobs}:{job.SpecificationId}:{job.JobDefinitionId}";
+            await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync(cacheKey, job));
         }
 
         private async Task<JobCreateResult> TryCreateNewJob(JobCreateModel job, Reference user)
@@ -331,7 +322,7 @@ namespace CalculateFunding.Services.Jobs
 
             if (saveJob)
             {
-                HttpStatusCode statusCode = await _jobsRepositoryPolicy.ExecuteAsync(() => _jobRepository.UpdateJob(job));
+                HttpStatusCode statusCode = await UpdateJob(job);
 
                 if (!statusCode.IsSuccess())
                 {
@@ -389,7 +380,7 @@ namespace CalculateFunding.Services.Jobs
                 runningJob.SupersededByJobId = replacementJob.Id;
                 runningJob.RunningStatus = RunningStatus.Completed;
 
-                HttpStatusCode statusCode = await _jobsRepositoryPolicy.ExecuteAsync(() => _jobRepository.UpdateJob(runningJob));
+                HttpStatusCode statusCode = await UpdateJob(runningJob);
 
                 if (statusCode.IsSuccess())
                 {
@@ -441,9 +432,6 @@ namespace CalculateFunding.Services.Jobs
 
                         try
                         {
-                            string cacheKey = $"{CacheKeys.LatestJobs}:{job.SpecificationId}:{job.JobDefinitionId}";
-                            await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync(cacheKey, job));
-
                             Job parentJob = await _jobsRepositoryPolicy.ExecuteAsync(() => _jobRepository.GetJobById(job.ParentJobId));
 
                             IEnumerable<JobDefinition> jobDefinitions = await _jobDefinitionsService.GetAllJobDefinitions();
@@ -504,7 +492,7 @@ namespace CalculateFunding.Services.Jobs
 
                 parentJob.RunningStatus = RunningStatus.Completing;
 
-                await _jobsRepositoryPolicy.ExecuteAsync(() => _jobRepository.UpdateJob(parentJob));
+                await UpdateJob(parentJob);
             }
         }
 
@@ -521,13 +509,32 @@ namespace CalculateFunding.Services.Jobs
                 parentJob.CompletionStatus = DetermineCompletionStatus(childJobs);
                 parentJob.Outcome = "All child jobs completed";
 
-                await _jobsRepositoryPolicy.ExecuteAsync(() => _jobRepository.UpdateJob(parentJob));
+                await UpdateJob(parentJob);
+
                 _logger.Information(
                     "Parent Job {ParentJobId} of Completed Job {JobId} has been completed because all child jobs are now complete",
                     job.ParentJobId, jobId);
 
                 await _notificationService.SendNotification(CreateJobNotificationFromJob(parentJob));
             }
+        }
+
+        private async Task<HttpStatusCode> UpdateJob(Job job)
+        {
+            // don't cache the job if it's been superseded
+            if (job.CompletionStatus != CompletionStatus.Superseded)
+            {
+                await CacheJob(job);
+            }
+
+            return await _jobsRepositoryPolicy.ExecuteAsync(() => _jobRepository.UpdateJob(job));
+        }
+
+        private async Task<Job> CreateJob(Job job)
+        {
+            await CacheJob(job);
+
+            return await _jobsRepositoryPolicy.ExecuteAsync(() => _jobRepository.CreateJob(job));
         }
 
         public async Task CheckAndProcessTimedOutJobs()
@@ -584,7 +591,7 @@ namespace CalculateFunding.Services.Jobs
             runningJob.CompletionStatus = CompletionStatus.TimedOut;
             runningJob.RunningStatus = RunningStatus.Completed;
 
-            HttpStatusCode statusCode = await _jobsRepositoryPolicy.ExecuteAsync(() => _jobRepository.UpdateJob(runningJob));
+            HttpStatusCode statusCode = await UpdateJob(runningJob);
 
             if (statusCode.IsSuccess())
             {
@@ -697,7 +704,7 @@ namespace CalculateFunding.Services.Jobs
             {
                 
                 
-                createResult.Job = await _jobDefinitionsRepositoryPolicy.ExecuteAsync(() => _jobRepository.CreateJob(newJob));
+                createResult.Job = await CreateJob(newJob);
 
                 if (createResult.Job == null)
                 {

@@ -286,7 +286,7 @@ namespace CalculateFunding.Services.Jobs.Services
             await
                 cacheProvider
                 .Received(1)
-                .SetAsync(cacheKey, Arg.Is<Job>(_ => _.Id == job.Id));
+                .SetAsync(cacheKey, Arg.Is<Job>(_ => _.Id == parentJob.Id));
         }
 
         [TestMethod]

@@ -461,19 +461,7 @@ namespace CalculateFunding.Services.Jobs.Services
                         { "user-id", "authorId" },
                         { "user-name", "authorname" }
                     }
-                },
-                new JobCreateModel
-                {
-                    JobDefinitionId = jobDefinitionIdTwo,
-                    Trigger = new Trigger(),
-                    InvokerUserId = "authorId",
-                    InvokerUserDisplayName = "authorname",
-                    Properties = new Dictionary<string, string>
-                    {
-                        { "user-id", "authorId" },
-                        { "user-name", "authorname" }
-                    }
-                },
+                }
             };
 
             IEnumerable<JobDefinition> jobDefinitions = new[]
