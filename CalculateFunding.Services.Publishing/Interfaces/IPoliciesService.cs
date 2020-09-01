@@ -1,9 +1,7 @@
-﻿using CalculateFunding.Common.ApiClient.Policies.Models;
+﻿using CalculateFunding.Common.ApiClient.Policies;
+using CalculateFunding.Common.ApiClient.Policies.Models;
 using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
 using CalculateFunding.Common.TemplateMetadata.Models;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Publishing.Interfaces
@@ -14,5 +12,9 @@ namespace CalculateFunding.Services.Publishing.Interfaces
         Task<FundingPeriod> GetFundingPeriodByConfigurationId(string fundingPeriodConfigId);
         Task<string> GetFundingPeriodId(string fundingPeriodConfigId);
         Task<TemplateMetadataContents> GetTemplateMetadataContents(string fundingStreamId, string fundingPeriodId, string templateId);
+        Task<FundingDate> GetFundingDate(
+            string fundingStreamId,
+            string fundingPeriodId,
+            string fundingLineId);
     }
 }

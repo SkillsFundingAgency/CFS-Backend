@@ -4,6 +4,7 @@ using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Specifications;
+using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Services.Publishing.Specifications;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
@@ -79,6 +80,60 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
                 .Message
                 .Should()
                 .Be($"Failed to select specification with id '{specificationId}' for funding.");
+        }
+
+        [TestMethod]
+        public async Task GetProfileVariationPointers__GivenNotFoundResponse_ReturnsNull()
+        {
+            string specificationId = new RandomString();
+            _specifications.GetProfileVariationPointers(Arg.Is(specificationId))
+                .Returns(new ApiResponse<IEnumerable<ProfileVariationPointer>>(HttpStatusCode.NotFound, null));
+
+            IEnumerable<ProfileVariationPointer> profileVariationPointers =
+                await _service.GetProfileVariationPointers(specificationId);
+
+            profileVariationPointers
+                .Should()
+                .BeNull();
+        }
+
+        [TestMethod]
+        public void GetProfileVariationPointers__GivenNonSuccessResponse_ThrowsException()
+        {
+            //Arrange
+            string specificationId = new RandomString();
+
+            _specifications.GetProfileVariationPointers(Arg.Is(specificationId))
+                .Returns(new ApiResponse<IEnumerable<ProfileVariationPointer>>(HttpStatusCode.InternalServerError, null));
+
+            //Act
+            Func<Task> test = async () => await _service.GetProfileVariationPointers(specificationId);
+
+            //Assert
+            test
+                .Should()
+                .ThrowExactly<Exception>()
+                .Which
+                .Message
+                .Should()
+                .Be($"Failed to select get profile variation prointer with specification id '{specificationId}'");
+        }
+
+        [TestMethod]
+        public async Task GetProfileVariationPointers__GivenSuccessResponse_ReturnsProfileVariationPointers()
+        {
+            string specificationId = new RandomString();
+            IEnumerable<ProfileVariationPointer> expectedProfileVariationPointers = new List<ProfileVariationPointer>();
+
+            _specifications.GetProfileVariationPointers(Arg.Is(specificationId))
+                .Returns(new ApiResponse<IEnumerable<ProfileVariationPointer>>(HttpStatusCode.OK, expectedProfileVariationPointers));
+
+            IEnumerable<ProfileVariationPointer> profileVariationPointers =
+                await _service.GetProfileVariationPointers(specificationId);
+
+            profileVariationPointers
+                .Should()
+                .BeSameAs(expectedProfileVariationPointers);
         }
 
         private void GivenTheApiResponseContentForTheSpecificationId(ApiSpecificationSummary specificationSummary,

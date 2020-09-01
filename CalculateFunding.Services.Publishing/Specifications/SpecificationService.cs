@@ -9,6 +9,7 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Interfaces;
 using Polly;
 using ApiSpecificationSummary = CalculateFunding.Common.ApiClient.Specifications.Models.SpecificationSummary;
+using ApiProfileVariationPointer = CalculateFunding.Common.ApiClient.Specifications.Models.ProfileVariationPointer;
 
 namespace CalculateFunding.Services.Publishing.Specifications
 {
@@ -64,6 +65,26 @@ namespace CalculateFunding.Services.Publishing.Specifications
             {
                 throw new Exception($"Failed to select specification with id '{specificationId}' for funding.");
             }
+        }
+
+        public async Task<IEnumerable<ApiProfileVariationPointer>> GetProfileVariationPointers(string specificationId)
+        {
+            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
+
+            ApiResponse<IEnumerable<ApiProfileVariationPointer>> profileVariationPointerResponse =
+                await _resiliencePolicy.ExecuteAsync(() => _specifications.GetProfileVariationPointers(specificationId));
+
+            if (profileVariationPointerResponse.StatusCode == HttpStatusCode.NotFound)
+            {
+                return null;
+            }
+
+            if (!profileVariationPointerResponse.StatusCode.IsSuccess())
+            {
+                throw new Exception($"Failed to select get profile variation prointer with specification id '{specificationId}'");
+            }
+
+            return profileVariationPointerResponse.Content;
         }
     }
 }

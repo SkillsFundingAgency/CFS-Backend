@@ -11,5 +11,7 @@ namespace CalculateFunding.Services.Publishing.Interfaces
         Task<IEnumerable<SpecificationSummary>> GetSpecificationsSelectedForFundingByPeriod(string fundingPeriodId);
 
         Task SelectSpecificationForFunding(string specificationId);
+
+        Task<IEnumerable<ProfileVariationPointer>> GetProfileVariationPointers(string specificationId);
     }
 }

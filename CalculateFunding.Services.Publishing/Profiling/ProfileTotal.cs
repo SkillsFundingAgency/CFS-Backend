@@ -15,6 +15,12 @@ namespace CalculateFunding.Services.Publishing.Profiling
         
         public bool IsPaid { get; set; }
 
+        public int InstallmentNumber { get; set; }
+
+        public decimal? ProfileRemainingPercentage { get; set; }
+
+        public DateTimeOffset? ActualDate { get; set; }
+
         public override bool Equals(object obj)
         {
             return GetHashCode().Equals(obj?.GetHashCode());
@@ -26,7 +32,10 @@ namespace CalculateFunding.Services.Publishing.Profiling
                 TypeValue, 
                 Occurrence, 
                 Value,
-                IsPaid);
+                IsPaid,
+                InstallmentNumber,
+                ProfileRemainingPercentage,
+                ActualDate);
         }
     }
 }

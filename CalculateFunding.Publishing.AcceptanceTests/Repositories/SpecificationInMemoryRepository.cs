@@ -39,5 +39,10 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             _specifications.Add(specificationSummary.Id, specificationSummary);
             return Task.FromResult(specificationSummary);
         }
+
+        public Task<IEnumerable<ProfileVariationPointer>> GetProfileVariationPointers(string specificationId)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

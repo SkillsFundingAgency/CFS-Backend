@@ -13,12 +13,12 @@ namespace CalculateFunding.Services.Publishing.Profiling
         public YearMonthOrderedProfilePeriods(FundingLine fundingLine)
         {
             _orderedProfilePeriods = fundingLine.DistributionPeriods?
-                .SelectMany(_ => _.ProfilePeriods ?? new ProfilePeriod[0])
+                .SelectMany(_ => _.ProfilePeriods ?? Array.Empty<ProfilePeriod>())
                 .Where(_ => _.Type == ProfilePeriodType.CalendarMonth)
                 .OrderBy(_ => _.Year )
                 .ThenBy(_ => MonthNumberFor(_.TypeValue))
                 .ThenBy(_ => _.Occurrence)
-                .ToArray() ?? new ProfilePeriod[0];
+                .ToArray() ?? Array.Empty<ProfilePeriod>();
         }
 
         public IEnumerator<ProfilePeriod> GetEnumerator()

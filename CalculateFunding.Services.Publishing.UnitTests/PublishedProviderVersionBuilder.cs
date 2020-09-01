@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Publishing;
-using CalculateFunding.Services.Core;
 using CalculateFunding.Tests.Common.Helpers;
 
 namespace CalculateFunding.Services.Publishing.UnitTests
@@ -31,6 +30,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private IEnumerable<FundingLineProfileOverrides> _customProfiles;
         private IEnumerable<PublishedProviderError> _errors;
         private IEnumerable<ProfilingCarryOver> _carryOvers;
+        private IEnumerable<ProfilingAudit> _profilingAudits;
+
+        public PublishedProviderVersionBuilder WithProfilingAudits(params ProfilingAudit[] profilingAudits)
+        {
+            _profilingAudits = profilingAudits;
+
+            return this;
+        }
 
         public PublishedProviderVersionBuilder WithCarryOvers(params ProfilingCarryOver[] carryOvers)
         {
@@ -203,7 +210,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 ProfilePatternKeys = _profilePatternKeys?.ToList(),
                 CustomProfiles = _customProfiles,
                 Errors = _errors?.ToList(),
-                CarryOvers = _carryOvers?.ToList()
+                CarryOvers = _carryOvers?.ToList(),
+                ProfilingAudits = _profilingAudits?.ToList()
             };
         }
     }

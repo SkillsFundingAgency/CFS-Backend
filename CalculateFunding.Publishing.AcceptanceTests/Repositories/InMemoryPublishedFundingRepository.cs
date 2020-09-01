@@ -440,5 +440,11 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 
             return Task.FromResult(errorMessageSummaries);
         }
+
+        public Task<PublishedProviderVersion> GetLatestPublishedProviderVersionBySpecificationId(
+            string specificationId, 
+            string fundingStreamId, 
+            string providerId) =>
+            throw new NotImplementedException();
     }
 }

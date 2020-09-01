@@ -30,6 +30,30 @@ namespace CalculateFunding.Services.Publishing.Profiling
                 .ToArray();
         }
 
+        public PaymentFundingLineProfileTotals(
+            PublishedProviderVersion publishedProviderVersion,
+            string fundingLineId)
+        {
+            _profileTotals = publishedProviderVersion
+                .FundingLines.Where(_ => _.Type == OrganisationGroupingReason.Payment)
+                .Where(_ => _.FundingLineCode == fundingLineId)
+                .SelectMany(paymentFundingLine => new YearMonthOrderedProfilePeriods(paymentFundingLine))
+                .GroupBy(orderProfilePeriod => new
+                {
+                    orderProfilePeriod.Year,
+                    orderProfilePeriod.TypeValue,
+                    orderProfilePeriod.Occurrence
+                })
+                .Select(grouping => new ProfileTotal
+                {
+                    Occurrence = grouping.Key.Occurrence,
+                    Year = grouping.Key.Year,
+                    TypeValue = grouping.Key.TypeValue,
+                    Value = grouping.Sum(profilePeriod => profilePeriod.ProfiledValue)
+                })
+                .ToArray();
+        }
+
         public IEnumerator<ProfileTotal> GetEnumerator() => _profileTotals
             .AsEnumerable()
             .GetEnumerator();

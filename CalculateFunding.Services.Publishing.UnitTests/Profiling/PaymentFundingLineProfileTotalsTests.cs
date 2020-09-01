@@ -10,6 +10,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
     [TestClass]
     public class PaymentFundingLineProfileTotalsTests : ProfilingTestBase
     {
+        private const string FundingLineCode = "funding-line-1";
+
         [TestMethod]
         [DynamicData(nameof(ProfileTotalExamples), DynamicDataSourceType.Method)]
         public void SumsProfileValuesAcrossPaymentFundingLines(PublishedProviderVersion publishedProviderVersion,
@@ -20,6 +22,81 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
             actualProfileTotals
                 .Should()
                 .BeEquivalentTo(expectedProfileTotals);
+        }
+
+        [TestMethod]
+        [DynamicData(nameof(ProfileTotalFundingLineExamples), DynamicDataSourceType.Method)]
+        public void SumsProfileValuesAcrossPaymentFundingLinesForFundingLine(
+            PublishedProviderVersion publishedProviderVersion,
+            string fundingLineId,
+            IEnumerable<ProfileTotal> expectedProfileTotals)
+        {
+            IEnumerable<ProfileTotal> actualProfileTotals = 
+                new PaymentFundingLineProfileTotals(publishedProviderVersion, fundingLineId);
+
+            actualProfileTotals
+                .Should()
+                .BeEquivalentTo(expectedProfileTotals);
+        }
+
+        private static IEnumerable<object[]> ProfileTotalFundingLineExamples()
+        {
+            yield return new object[]
+            {
+                NewPublishedProviderVersion(_ => _.WithFundingLines(NewFundingLine(fl =>
+                    fl.WithOrganisationGroupingReason(OrganisationGroupingReason.Information)
+                        .WithDistributionPeriods(NewDistributionPeriod(dp =>
+                            dp.WithProfilePeriods(NewProfilePeriod(pp => pp.WithAmount(123)
+                                    .WithTypeValue("January")
+                                    .WithOccurence(0)
+                                    .WithYear(2021)),
+                                NewProfilePeriod(pp => pp.WithAmount(999)
+                                    .WithTypeValue("January")
+                                    .WithOccurence(1)
+                                    .WithYear(2021)),
+                                NewProfilePeriod(pp => pp.WithAmount(666)
+                                    .WithTypeValue("February")
+                                    .WithOccurence(0)
+                                    .WithYear(2021)))))))),
+                FundingLineCode,
+                Array.Empty<ProfileTotal>()
+            };
+            yield return new object[]
+            {
+                NewPublishedProviderVersion(_ => _.WithFundingLines(NewFundingLine(fl =>
+                    fl.WithFundingLineCode(FundingLineCode)
+                        .WithOrganisationGroupingReason(OrganisationGroupingReason.Payment)
+                        .WithDistributionPeriods(NewDistributionPeriod(dp =>
+                                dp.WithProfilePeriods(
+                                    NewProfilePeriod(pp => pp.WithAmount(999)
+                                        .WithTypeValue("January")
+                                        .WithOccurence(1)
+                                        .WithYear(2021)),
+                                    NewProfilePeriod(pp => pp.WithAmount(666)
+                                        .WithTypeValue("February")
+                                        .WithOccurence(0)
+                                        .WithYear(2021)))))),
+                NewFundingLine(fl =>
+                    fl.WithFundingLineCode("funding-line-2")
+                        .WithOrganisationGroupingReason(OrganisationGroupingReason.Payment)
+                        .WithDistributionPeriods(NewDistributionPeriod(dp =>
+                                dp.WithProfilePeriods(NewProfilePeriod(pp => pp.WithAmount(123)
+                                        .WithTypeValue("January")
+                                        .WithOccurence(0)
+                                        .WithYear(2021)))))))),
+                FundingLineCode,
+                new[]
+                {
+                    NewProfileTotal(_ => _.WithYear(2021)
+                        .WithValue(999)
+                        .WithTypeValue("January")
+                        .WithOccurrence(1)),
+                    NewProfileTotal(_ => _.WithYear(2021)
+                        .WithValue(666)
+                        .WithTypeValue("February")
+                        .WithOccurrence(0))
+                }
+            };
         }
 
         private static IEnumerable<object[]> ProfileTotalExamples()
@@ -41,7 +118,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
                                     .WithTypeValue("February")
                                     .WithOccurence(0)
                                     .WithYear(2021)))))))),
-                new ProfileTotal[0]
+                Array.Empty<ProfileTotal>()
             };
             yield return new object[]
             {

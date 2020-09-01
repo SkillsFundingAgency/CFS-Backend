@@ -84,8 +84,16 @@ namespace CalculateFunding.Services.Policy
 
             string fundingDateId = $"fundingdate-{fundingStreamId}-{fundingPeriodId}-{fundingLineId}";
 
-            FundingDate fundingDate = 
-                await _policyRepositoryPolicy.ExecuteAsync(() => _policyRepository.GetFundingDate(fundingDateId));
+            FundingDate fundingDate = null;
+
+            try
+            {
+                fundingDate = await _policyRepositoryPolicy.ExecuteAsync(() => _policyRepository.GetFundingDate(fundingDateId));
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, $"No funding Dates were found for funding stream id : {fundingStreamId}");
+            }
 
             if (fundingDate == null)
             {

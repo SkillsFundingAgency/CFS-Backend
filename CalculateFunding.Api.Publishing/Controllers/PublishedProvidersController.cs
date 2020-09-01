@@ -145,5 +145,14 @@ namespace CalculateFunding.Api.Publishing.Controllers
         {
             return await _providerFundingPublishingService.GetPublishedProviderErrorSummaries(specificationId);
         }
+
+        [HttpGet("api/publishedproviderfundinglinedetails/{specificationId}/{providerId}/{fundingStreamId}/{fundingLineId}")]
+        public async Task<IActionResult> GetFundingLinePublishedProviderDetails(
+            [FromRoute] string specificationId,
+            [FromRoute] string providerId,
+            [FromRoute] string fundingStreamId,
+            [FromRoute] string fundingLineId)
+                => await _profileTotalsService.GetPublishedProviderProfileTotalsForSpecificationForProviderForFundingLine
+                    (specificationId, providerId, fundingStreamId, fundingLineId);
     }
 }

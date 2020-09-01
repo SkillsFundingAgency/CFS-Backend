@@ -116,11 +116,48 @@ namespace CalculateFunding.Services.Publishing.Repositories
                 .SingleOrDefault();
         }
 
+        public async Task<PublishedProvider> GetPublishedProviderBySpecificationId(
+            string specificationId,
+            string fundingStreamId,
+            string providerId)
+        {
+            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
+            Guard.IsNullOrWhiteSpace(fundingStreamId, nameof(fundingStreamId));
+            Guard.IsNullOrWhiteSpace(providerId, nameof(providerId));
+
+            return (await _repository
+                .QuerySql<PublishedProvider>(new CosmosDbQuery
+                {
+                    QueryText = @"SELECT *
+                                 FROM c
+                                 WHERE c.documentType = 'PublishedProvider'
+                                 AND c.deleted = false
+                                 AND c.content.current.providerId = @providerId
+                                 AND c.content.current.fundingStreamId = @fundingStreamId
+                                 AND c.content.current.specificationId = @specificationId",
+                    Parameters = new[]
+                    {
+                        new CosmosDbQueryParameter("@fundingStreamId", fundingStreamId),
+                        new CosmosDbQueryParameter("@specificationId", specificationId),
+                        new CosmosDbQueryParameter("@providerId", providerId)
+                    }
+                }))
+                .SingleOrDefault();
+        }
+
         public async Task<PublishedProviderVersion> GetLatestPublishedProviderVersion(string fundingStreamId,
             string fundingPeriodId,
             string providerId)
         {
             return (await GetPublishedProvider(fundingStreamId, fundingPeriodId, providerId))?.Current;
+        }
+
+        public async Task<PublishedProviderVersion> GetLatestPublishedProviderVersionBySpecificationId(
+            string specificationId,
+            string fundingStreamId,
+            string providerId)
+        {
+            return (await GetPublishedProviderBySpecificationId(specificationId, fundingStreamId, providerId))?.Current;
         }
 
         public async Task<IEnumerable<PublishedProviderVersion>> GetPublishedProviderVersions(string fundingStreamId,
