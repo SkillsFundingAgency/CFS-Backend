@@ -60,7 +60,10 @@ namespace CalculateFunding.Api.Jobs
 
             app.UseHttpsRedirection();
 
-            app.ConfigureSwagger(title: "Jobs Microservice API");
+            if (Configuration.IsSwaggerEnabled())
+            {
+                app.ConfigureSwagger(title: "Jobs Microservice API");
+            }
 
             app.MapWhen(
                     context => !context.Request.Path.Value.StartsWith("/swagger"),
@@ -172,7 +175,10 @@ namespace CalculateFunding.Api.Jobs
 
             builder.AddHealthCheckMiddleware();
 
-            builder.ConfigureSwaggerServices(title: "Jobs Microservice API");
+            if (Configuration.IsSwaggerEnabled())
+            {
+                builder.ConfigureSwaggerServices(title: "Jobs Microservice API");
+            }
         }
     }
 }

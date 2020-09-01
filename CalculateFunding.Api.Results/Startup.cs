@@ -70,7 +70,10 @@ namespace CalculateFunding.Api.Results
 
             app.UseHttpsRedirection();
 
-            app.ConfigureSwagger(title: "Results Microservice API");
+            if (Configuration.IsSwaggerEnabled())
+            {
+                app.ConfigureSwagger(title: "Results Microservice API");
+            }
 
             app.MapWhen(
                     context => !context.Request.Path.Value.StartsWith("/swagger"),
@@ -227,7 +230,10 @@ namespace CalculateFunding.Api.Results
 
             builder.AddHealthCheckMiddleware();
 
-            builder.ConfigureSwaggerServices(title: "Results Microservice API");
+            if (Configuration.IsSwaggerEnabled())
+            {
+                builder.ConfigureSwaggerServices(title: "Results Microservice API");
+            }
 
         }
     }

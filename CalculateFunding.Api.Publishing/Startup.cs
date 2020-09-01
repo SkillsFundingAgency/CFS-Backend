@@ -94,7 +94,10 @@ namespace CalculateFunding.Api.Publishing
 
             app.UseHttpsRedirection();
 
-            app.ConfigureSwagger(title: "Publishing Microservice API");
+            if (Configuration.IsSwaggerEnabled())
+            {
+                app.ConfigureSwagger(title: "Publishing Microservice API");
+            }
 
             app.MapWhen(
                     context => !context.Request.Path.Value.StartsWith("/swagger"),
@@ -344,7 +347,10 @@ namespace CalculateFunding.Api.Publishing
 
             builder.AddSingleton<IPublishedProviderFundingCountProcessor, PublishedProviderFundingCountProcessor>();
 
-            builder.ConfigureSwaggerServices(title: "Publishing Microservice API");
+            if (Configuration.IsSwaggerEnabled())
+            {
+                builder.ConfigureSwaggerServices(title: "Publishing Microservice API");
+            }
         }
     }
 }

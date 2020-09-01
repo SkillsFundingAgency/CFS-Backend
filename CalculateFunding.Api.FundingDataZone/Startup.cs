@@ -50,7 +50,10 @@ namespace CalculateFunding.Api.FundingDataZone
 
             app.UseHttpsRedirection();
 
-            app.ConfigureSwagger(title: Title);
+            if (Configuration.IsSwaggerEnabled())
+            {
+                app.ConfigureSwagger(title: Title);
+            }
 
             app.MapWhen(
                     context => !context.Request.Path.Value.StartsWith("/swagger"),
@@ -83,7 +86,10 @@ namespace CalculateFunding.Api.FundingDataZone
             builder.AddApiKeyMiddlewareSettings((IConfigurationRoot)Configuration);
             builder.AddHealthCheckMiddleware();
 
-            builder.ConfigureSwaggerServices(title: Title);
+            if (Configuration.IsSwaggerEnabled())
+            {
+                builder.ConfigureSwaggerServices(title: Title);
+            }
         }
     }
 }

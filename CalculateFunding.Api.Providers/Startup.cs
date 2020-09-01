@@ -77,7 +77,10 @@ namespace CalculateFunding.Api.Providers
 
             app.UseHttpsRedirection();
 
-            app.ConfigureSwagger(title: "Provider Microservice API");
+            if (Configuration.IsSwaggerEnabled())
+            {
+                app.ConfigureSwagger(title: "Provider Microservice API");
+            }
 
             app.MapWhen(
                     context => !context.Request.Path.Value.StartsWith("/swagger"),
@@ -217,7 +220,10 @@ namespace CalculateFunding.Api.Providers
 
             builder.AddSearch(Configuration);
 
-            builder.ConfigureSwaggerServices(title: "Provider Microservice API");
+            if (Configuration.IsSwaggerEnabled())
+            {
+                builder.ConfigureSwaggerServices(title: "Provider Microservice API");
+            }
         }
 
         private static ProvidersResiliencePolicies CreateResiliencePolicies(AsyncBulkheadPolicy totalNetworkRequestsPolicy)

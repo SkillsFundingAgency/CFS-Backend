@@ -82,7 +82,10 @@ namespace CalculateFunding.Api.Datasets
 
             app.UseHttpsRedirection();
 
-            app.ConfigureSwagger(title: "Datasets Microservice API");
+            if (Configuration.IsSwaggerEnabled())
+            {
+                app.ConfigureSwagger(title: "Datasets Microservice API");
+            }
 
             app.MapWhen(
                     context => !context.Request.Path.Value.StartsWith("/swagger"),
@@ -274,7 +277,10 @@ namespace CalculateFunding.Api.Datasets
 
             builder.AddHealthCheckMiddleware();
 
-            builder.ConfigureSwaggerServices(title: "Datasets Microservice API");
+            if (Configuration.IsSwaggerEnabled())
+            {
+                builder.ConfigureSwaggerServices(title: "Datasets Microservice API");
+            }
         }
 
         private CosmosRepository CreateCosmosDbSettings(string containerName)

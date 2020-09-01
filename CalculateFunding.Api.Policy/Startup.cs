@@ -76,7 +76,10 @@ namespace CalculateFunding.Api.Policy
 
             app.UseHttpsRedirection();
 
-            app.ConfigureSwagger(title: "Policy Microservice API");
+            if (Configuration.IsSwaggerEnabled())
+            {
+                app.ConfigureSwagger(title: "Policy Microservice API");
+            }
 
             app.MapWhen(
                     context => !context.Request.Path.Value.StartsWith("/swagger"),
@@ -244,7 +247,10 @@ namespace CalculateFunding.Api.Policy
             builder.AddHttpContextAccessor();           
             builder.AddHealthCheckMiddleware();
 
-            builder.ConfigureSwaggerServices(title: "Policy Microservice API");
+            if (Configuration.IsSwaggerEnabled())
+            {
+                builder.ConfigureSwaggerServices(title: "Policy Microservice API");
+            }
         }
 
         public void RegisterTemplateBuilderComponents(IServiceCollection builder)

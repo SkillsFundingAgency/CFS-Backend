@@ -68,7 +68,10 @@ namespace CalculateFunding.Api.Scenarios
 
             app.UseHttpsRedirection();
 
-            app.ConfigureSwagger(title: "Scenarios Microservice API");
+            if (Configuration.IsSwaggerEnabled())
+            {
+                app.ConfigureSwagger(title: "Scenarios Microservice API");
+            }
 
             app.MapWhen(
                     context => !context.Request.Path.Value.StartsWith("/swagger"),
@@ -214,7 +217,10 @@ namespace CalculateFunding.Api.Scenarios
 
             });
 
-            builder.ConfigureSwaggerServices(title: "Scenarios Microservice API");
+            if (Configuration.IsSwaggerEnabled())
+            {
+                builder.ConfigureSwaggerServices(title: "Scenarios Microservice API");
+            }
         }
     }
 }

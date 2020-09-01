@@ -56,7 +56,10 @@ namespace CalculateFunding.Api.Graph
 
             app.UseHttpsRedirection();
 
-            app.ConfigureSwagger(title: "Graph Microservice API");
+            if (Configuration.IsSwaggerEnabled())
+            {
+                app.ConfigureSwagger(title: "Graph Microservice API");
+            }
 
             app.MapWhen(
                     context => !context.Request.Path.Value.StartsWith("/swagger"),
@@ -118,7 +121,10 @@ namespace CalculateFunding.Api.Graph
             builder.AddApplicationInsightsServiceName(Configuration, "CalculateFunding.Api.Graph");
             builder.AddLogging("CalculateFunding.Api.Graph");
 
-            builder.ConfigureSwaggerServices(title: "Graph Microservice API");
+            if (Configuration.IsSwaggerEnabled())
+            {
+                builder.ConfigureSwaggerServices(title: "Graph Microservice API");
+            }
         }
     }
 }

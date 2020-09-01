@@ -70,7 +70,10 @@ namespace CalculateFunding.Api.TestRunner
 
             app.UseHttpsRedirection();
 
-            app.ConfigureSwagger(title: "TestRunner Microservice API");
+            if (Configuration.IsSwaggerEnabled())
+            {
+                app.ConfigureSwagger(title: "TestRunner Microservice API");
+            }
 
             app.MapWhen(
                     context => !context.Request.Path.Value.StartsWith("/swagger"),
@@ -259,7 +262,10 @@ namespace CalculateFunding.Api.TestRunner
 
             builder.AddHealthCheckMiddleware();
 
-            builder.ConfigureSwaggerServices(title: "TestRunner Microservice API");
+            if (Configuration.IsSwaggerEnabled())
+            {
+                builder.ConfigureSwaggerServices(title: "TestRunner Microservice API");
+            }
         }
     }
 }

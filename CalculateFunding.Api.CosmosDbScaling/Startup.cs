@@ -61,7 +61,10 @@ namespace CalculateFunding.API.CosmosDbScaling
 
             app.UseHttpsRedirection();
 
-            app.ConfigureSwagger(title: "CosmosDbScaling Microservice API");
+            if (Configuration.IsSwaggerEnabled())
+            {
+                app.ConfigureSwagger(title: "CosmosDbScaling Microservice API");
+            }
 
             app.MapWhen(
                     context => !context.Request.Path.Value.StartsWith("/swagger"),
@@ -151,7 +154,10 @@ namespace CalculateFunding.API.CosmosDbScaling
             builder.AddHttpContextAccessor();           
             builder.AddHealthCheckMiddleware();
 
-            builder.ConfigureSwaggerServices(title: "CosmosDbScaling Microservice API", version: "v1");
+            if (Configuration.IsSwaggerEnabled())
+            {
+                builder.ConfigureSwaggerServices(title: "CosmosDbScaling Microservice API", version: "v1");
+            }
         }
     }
 }

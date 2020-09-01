@@ -62,7 +62,10 @@ namespace CalculateFunding.Api.Users
 
             app.UseHttpsRedirection();
 
-            app.ConfigureSwagger(title: "Users Microservice API");
+            if (Configuration.IsSwaggerEnabled())
+            {
+                app.ConfigureSwagger(title: "Users Microservice API");
+            }
 
             app.MapWhen(
                     context => !context.Request.Path.Value.StartsWith("/swagger"),
@@ -160,7 +163,10 @@ namespace CalculateFunding.Api.Users
            
             builder.AddSpecificationsInterServiceClient(Configuration);
 
-            builder.ConfigureSwaggerServices(title: "Users Microservice API");
+            if (Configuration.IsSwaggerEnabled())
+            {
+                builder.ConfigureSwaggerServices(title: "Users Microservice API");
+            }
         }
 
     }

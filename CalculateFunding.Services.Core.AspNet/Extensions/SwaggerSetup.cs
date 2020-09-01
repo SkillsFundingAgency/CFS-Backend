@@ -5,6 +5,7 @@ using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Core.AspNet.OperationFilters;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Filters;
@@ -95,5 +96,7 @@ namespace CalculateFunding.Services.Core.AspNet.Extensions
                 }
             });
         }
+
+        public static bool IsSwaggerEnabled(this IConfiguration configuration) => configuration.GetValue("FeatureManagement:EnableSwagger", false);
     }
 }

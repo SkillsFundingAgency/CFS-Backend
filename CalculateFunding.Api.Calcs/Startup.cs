@@ -85,7 +85,10 @@ namespace CalculateFunding.Api.Calcs
 
             app.UseHttpsRedirection();
 
-            app.ConfigureSwagger(title: "Calcs Microservice API");
+            if (Configuration.IsSwaggerEnabled())
+            {
+                app.ConfigureSwagger(title: "Calcs Microservice API");
+            }
 
             app.MapWhen(
                     context => !context.Request.Path.Value.StartsWith("/swagger"),
@@ -291,7 +294,10 @@ namespace CalculateFunding.Api.Calcs
 
             builder.AddHealthCheckMiddleware();
 
-            builder.ConfigureSwaggerServices(title: "Calcs Microservice API", version: "v1");
+            if (Configuration.IsSwaggerEnabled())
+            {
+                builder.ConfigureSwaggerServices(title: "Calcs Microservice API", version: "v1");
+            }
         }
 
         private static ResiliencePolicies CreateResiliencePolicies(AsyncPolicy totalNetworkRequestsPolicy)

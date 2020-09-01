@@ -99,7 +99,10 @@ namespace CalculateFunding.Api.External
 
             RegisterComponents(services);
 
-            SwaggerSetup.ConfigureSwaggerServices(services);
+            if (Configuration.IsSwaggerEnabled())
+            {
+                SwaggerSetup.ConfigureSwaggerServices(services);
+            }
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -114,7 +117,10 @@ namespace CalculateFunding.Api.External
                 app.UseHsts();
             }
 
-            app.ConfigureSwagger(provider: provider);
+            if (Configuration.IsSwaggerEnabled())
+            {
+                app.ConfigureSwagger(provider: provider);
+            }
 
             app.MapWhen(
                     context => !context.Request.Path.Value.StartsWith("/docs"),
