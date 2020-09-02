@@ -59,7 +59,9 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
         }
 
         [TestMethod]
-        public async Task DeletesThenInsertsGraphForSpecification()
+        [DataRow(false)]
+        [DataRow(true)]
+        public async Task DeletesThenInsertsGraphForSpecification(bool withCallsCalculation)
         {
             string specificationId = NewRandomString();
 
@@ -78,13 +80,17 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
                     Relationships = new[] { 
                         new ApiRelationship { One = NewGraphCalculation(_ => _.WithId(calculationIdFive)), Type = "BelongsToSpecification", Two = specification } 
                     } 
-                },
-                new ApiEntitySpecification
-                {
-                    Node = new ApiSpecification { SpecificationId = specificationId },
-                    Relationships = new[] { new ApiRelationship { One = NewGraphCalculation(_ => _.WithId(calculationIdFour)), Type = "CallsCalculation", Two = NewGraphCalculation(_ => _.WithId(calculationIdFive)) } } 
                 }
             };
+
+            if (withCallsCalculation)
+            {
+                existingEntities = existingEntities.Concat(new[] {new ApiEntitySpecification
+                {
+                    Node = new ApiSpecification { SpecificationId = specificationId },
+                    Relationships = new[] { new ApiRelationship { One = NewGraphCalculation(_ => _.WithId(calculationIdFour)), Type = "CallsCalculation", Two = NewGraphCalculation(_ => _.WithId(calculationIdFive)) } }
+                } });
+            }
 
             IEnumerable<ApiEntityCalculation> existingCalculationEntities = new[] { new ApiEntityCalculation
             {
@@ -112,11 +118,16 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
                 NewCalculationRelationship(_ => _.WithCalculationOneId(calculationIdFour)
                     .WithCalculationTwoId(calculationIdThree))
             };
-            CalculationRelationship[] unusedCalculationRelationships = new[]
+            IEnumerable<CalculationRelationship> unusedCalculationRelationships = new CalculationRelationship[0];
+
+            if (withCallsCalculation)
             {
-                NewCalculationRelationship(_ => _.WithCalculationOneId(calculationIdFour)
-                    .WithCalculationTwoId(calculationIdFive))
-            };
+                unusedCalculationRelationships = unusedCalculationRelationships.Concat(new[]
+                {
+                    NewCalculationRelationship(_ => _.WithCalculationOneId(calculationIdFour)
+                        .WithCalculationTwoId(calculationIdFive))
+                });
+            }
 
             CalculationDataFieldRelationship[] dataFieldRelationships = calculations.Select(_ => new CalculationDataFieldRelationship
             {

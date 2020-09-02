@@ -141,9 +141,17 @@ namespace CalculateFunding.Services.Calcs.Analysis
         private IEnumerable<CalculationRelationship> RemoveCalculationCalculationRelationships(IEnumerable<CalculationRelationship> calculationRelationships, IEnumerable<ApiEntitySpecification> entities)
         {
             // retrieve all calculation to calculation relationships from current graph
-            IDictionary<string, CalculationRelationship> calculationCalculationRelations = entities.SelectMany(_ =>
+            IEnumerable<ApiRelationship> calculationCalculationRelations = entities.SelectMany(_ =>
                 _.Relationships.Where(rel =>
-                    rel.Type == "CallsCalculation")).Select(_ =>
+                    rel.Type == "CallsCalculation"));
+
+            // if there are no calculation relationships to remove then exit early
+            if (Common.Extensions.IEnumerableExtensions.IsNullOrEmpty(calculationCalculationRelations))
+            {
+                return null;
+            }
+
+            IDictionary<string, CalculationRelationship> calculationCalculationRelationsDictionary = calculationCalculationRelations.Select(_ =>
                     new CalculationRelationship
                     {
                         CalculationOneId = ((object)_.One).AsJson().AsPoco<Calculation>().CalculationId,
@@ -154,7 +162,7 @@ namespace CalculateFunding.Services.Calcs.Analysis
             IDictionary<string, CalculationRelationship> calculationRelationshipsDictionary = calculationRelationships.ToDictionary(_ => $"{_.CalculationOneId}{_.CalculationTwoId}");
 
             // retrieve all calculation to calculation relationships from current graph not in the new result set
-            IEnumerable<CalculationRelationship> removedCalculationRelationships = calculationCalculationRelations
+            IEnumerable<CalculationRelationship> removedCalculationRelationships = calculationCalculationRelationsDictionary
                 .Where(_ => !calculationRelationshipsDictionary.ContainsKey(_.Key)).Select(_ => _.Value);
 
             return removedCalculationRelationships;
@@ -190,7 +198,10 @@ namespace CalculateFunding.Services.Calcs.Analysis
             await DeleteSpecificationCalculationRelationships(specification, 
                 specificationCalculationUnusedRelationships.Calculations);
 
-            await DeleteCalculationRelationships(specificationCalculationUnusedRelationships.CalculationRelationships);
+            if (specificationCalculationUnusedRelationships.CalculationRelationships != null)
+            {
+                await DeleteCalculationRelationships(specificationCalculationUnusedRelationships.CalculationRelationships);
+            }
 
             if (specificationCalculationUnusedRelationships.CalculationDataFieldRelationships != null)
             {
