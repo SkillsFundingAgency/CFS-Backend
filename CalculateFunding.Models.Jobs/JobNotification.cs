@@ -65,5 +65,11 @@ namespace CalculateFunding.Models.Jobs
         /// </summary>
         [JsonProperty("outcome")]
         public string Outcome { get; set; }
+
+        /// <summary>
+        /// DateTimeOffset for when job was created
+        /// </summary>
+        [JsonProperty("jobCreatedDateTime")]
+        public DateTimeOffset JobCreatedDateTime { get; set; }
     }
 }

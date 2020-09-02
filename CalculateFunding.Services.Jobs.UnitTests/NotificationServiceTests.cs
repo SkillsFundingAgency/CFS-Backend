@@ -148,7 +148,8 @@ namespace CalculateFunding.Services.Jobs.Services
                     EntityId = Guid.NewGuid().ToString(),
                     EntityType = "Calculation",
                     Message = "Calculation Run requested"
-                }
+                },
+                JobCreatedDateTime = new DateTimeOffset(new DateTime(2020, 1, 1))
             };
         }
 

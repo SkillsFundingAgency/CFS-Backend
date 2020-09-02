@@ -27,9 +27,9 @@ namespace CalculateFunding.Services.Jobs
     public class JobManagementService : IJobManagementService, IHealthChecker
     {
         private const string SfaCorrelationId = "sfa-correlationId";
-        
+
         private static readonly SemaphoreSlim SemaphoreSlim = new SemaphoreSlim(1, 1);
-        
+
         private readonly IJobRepository _jobRepository;
         private readonly INotificationService _notificationService;
         private readonly IJobDefinitionsService _jobDefinitionsService;
@@ -85,7 +85,7 @@ namespace CalculateFunding.Services.Jobs
             health.Dependencies.AddRange(jobsRepoHealth.Dependencies);
             return health;
         }
-        
+
         public async Task<IActionResult> TryCreateJobs(IEnumerable<JobCreateModel> jobs, Reference user)
         {
             (bool valid, IEnumerable<JobDefinition> jobDefinitions, IActionResult validationFailureResponse) validation = await ValidateCreateJobsRequests(jobs);
@@ -104,7 +104,7 @@ namespace CalculateFunding.Services.Jobs
             }
 
             IEnumerable<Job> newJobs = (await CreateAllJobs(jobs, user, validation.jobDefinitions)).Select(_ => _.Job);
-            
+
             return new OkObjectResult(newJobs);
         }
 
@@ -115,10 +115,10 @@ namespace CalculateFunding.Services.Jobs
             if (!jobs.Any())
             {
                 string message = "Empty collection of job create models was provided";
-                
+
                 _logger.Warning(message);
 
-                return (false, ArraySegment<JobDefinition>.Empty,  new BadRequestObjectResult(message));
+                return (false, ArraySegment<JobDefinition>.Empty, new BadRequestObjectResult(message));
             }
 
             IEnumerable<JobDefinition> jobDefinitions = await _jobDefinitionsService.GetAllJobDefinitions();
@@ -126,9 +126,9 @@ namespace CalculateFunding.Services.Jobs
             if (jobDefinitions.IsNullOrEmpty())
             {
                 string message = "Failed to retrieve job definitions";
-                
+
                 _logger.Error(message);
-                
+
                 return (false, ArraySegment<JobDefinition>.Empty, new InternalServerErrorResult(message));
             }
 
@@ -144,10 +144,10 @@ namespace CalculateFunding.Services.Jobs
                 if (jobDefinition == null)
                 {
                     string message = $"A job definition could not be found for id: {jobCreateModel.JobDefinitionId}";
-                   
+
                     _logger.Warning(message);
 
-                    return (false, ArraySegment<JobDefinition>.Empty,  new PreconditionFailedResult(message));
+                    return (false, ArraySegment<JobDefinition>.Empty, new PreconditionFailedResult(message));
                 }
 
                 CreateJobValidationModel createJobValidationModel = new CreateJobValidationModel
@@ -165,7 +165,7 @@ namespace CalculateFunding.Services.Jobs
 
             if (validationResults.Any())
             {
-                return (false, ArraySegment<JobDefinition>.Empty,  new BadRequestObjectResult(validationResults));
+                return (false, ArraySegment<JobDefinition>.Empty, new BadRequestObjectResult(validationResults));
             }
 
             return (true, jobDefinitions, null);
@@ -186,7 +186,7 @@ namespace CalculateFunding.Services.Jobs
             JobCreateResult[] successfulCreateResults = createJobResults
                 .Where(_ => _.WasCreated)
                 .ToArray();
-            
+
             Job[] successfullyCreatedJobs = successfulCreateResults
                 .Select(_ => _.Job)
                 .ToArray();
@@ -203,7 +203,7 @@ namespace CalculateFunding.Services.Jobs
                     Error = _.Error
                 })
                 .ToArray();
-            
+
             if (throwOnCreateOrQueueErrors && errorDetails.Any())
             {
                 throw new JobCreateException(errorDetails);
@@ -224,7 +224,7 @@ namespace CalculateFunding.Services.Jobs
 
             job.InvokerUserId ??= user?.Id;
             job.InvokerUserDisplayName ??= user?.Name;
-            
+
             return await CreateJob(job);
         }
 
@@ -657,7 +657,8 @@ namespace CalculateFunding.Services.Jobs
                 SpecificationId = job.SpecificationId,
                 StatusDateTime = DateTimeOffset.UtcNow,
                 SupersededByJobId = job.SupersededByJobId,
-                Trigger = job.Trigger
+                Trigger = job.Trigger,
+                JobCreatedDateTime = job.Created
             };
         }
 
@@ -685,7 +686,7 @@ namespace CalculateFunding.Services.Jobs
             {
                 CreateRequest = job
             };
-            
+
             Job newJob = new Job
             {
                 JobDefinitionId = job.JobDefinitionId,
@@ -702,8 +703,8 @@ namespace CalculateFunding.Services.Jobs
 
             try
             {
-                
-                
+
+
                 createResult.Job = await CreateJob(newJob);
 
                 if (createResult.Job == null)
@@ -740,7 +741,8 @@ namespace CalculateFunding.Services.Jobs
                 StatusDateTime = DateTimeOffset.UtcNow,
                 OverallItemsFailed = jobLog.ItemsFailed,
                 OverallItemsProcessed = jobLog.ItemsProcessed,
-                OverallItemsSucceeded = jobLog.ItemsSucceeded
+                OverallItemsSucceeded = jobLog.ItemsSucceeded,
+                JobCreatedDateTime = job.Created
             };
 
             await _notificationService.SendNotification(jobNotification);
@@ -786,9 +788,9 @@ namespace CalculateFunding.Services.Jobs
                     if (!job.Properties.ContainsKey(jobDefinition.SessionMessageProperty))
                     {
                         string errorMessage = $"Missing session property on job with id '{job.Id}";
-                        
+
                         _logger.Error(errorMessage);
-                        
+
                         throw new Exception(errorMessage);
                     }
 
@@ -810,9 +812,9 @@ namespace CalculateFunding.Services.Jobs
             catch (Exception ex)
             {
                 string message = $"Failed to queue job with id: {job.Id} on Queue/topic {queueOrTopic}. Exception type: '{ex.GetType()}'";
-                
+
                 _logger.Error(ex, message);
-                
+
                 throw new QueueJobException(message, ex);
             }
         }

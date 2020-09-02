@@ -207,6 +207,7 @@ namespace CalculateFunding.Services.Notifications.UnitTests
                     EntityType = "triggerEntityType",
                     Message = "message"
                 },
+                JobCreatedDateTime = new DateTimeOffset(new DateTime(2020, 1, 1))
             };
 
 
@@ -241,7 +242,8 @@ namespace CalculateFunding.Services.Notifications.UnitTests
                   ((JobNotification)c.Arguments.First()).SupersededByJobId == "jobId" &&
                   ((JobNotification)c.Arguments.First()).Trigger.EntityId == "triggerEntity" &&
                   ((JobNotification)c.Arguments.First()).Trigger.EntityType == "triggerEntityType" &&
-                  ((JobNotification)c.Arguments.First()).Trigger.Message == "message"
+                  ((JobNotification)c.Arguments.First()).Trigger.Message == "message" &&
+                  ((JobNotification)c.Arguments.First()).JobCreatedDateTime == new DateTimeOffset(new DateTime(2020, 1, 1))
                   ));
         }
 
