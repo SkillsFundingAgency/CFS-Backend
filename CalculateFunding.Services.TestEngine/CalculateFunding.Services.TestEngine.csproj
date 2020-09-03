@@ -8,7 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="CalculateFunding.Common.ApiClient.Scenarios" Version="1.3.0" />
-    <PackageReference Include="CalculateFunding.Common.ApiClient.Specifications" Version="6.10.0" />
+    <PackageReference Include="CalculateFunding.Common.ApiClient.Specifications" Version="6.12.0" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Calcs" Version="3.2.0" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Providers" Version="4.2.0" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Specifications" Version="3.9.0" />

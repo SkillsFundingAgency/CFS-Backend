@@ -241,6 +241,14 @@ namespace CalculateFunding.Api.Datasets.Controllers
             return _datasetService.GetCurrentDatasetVersionByDatasetId(datasetId);
         }
 
+        [Route("api/datasets/get-dataset-by-datasetid")]
+        [HttpGet]
+        [Produces(typeof(DatasetViewModel))]
+        public Task<IActionResult> GetDatasetByDatasetId([FromQuery] string datasetId)
+        {
+            return _datasetService.GetDatasetByDatasetId(datasetId);
+        }
+
         [Route("api/datasets/get-schema-download-url")]
         [HttpPost]
         [Produces(typeof(DatasetSchemaSasUrlResponseModel))]

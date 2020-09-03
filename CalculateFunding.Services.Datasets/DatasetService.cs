@@ -231,6 +231,29 @@ namespace CalculateFunding.Services.Datasets
             return new OkObjectResult(responseModel);
         }
 
+        public async Task<IActionResult> GetDatasetByDatasetId(string datasetId)
+        {
+            if (string.IsNullOrWhiteSpace(datasetId))
+            {
+                _logger.Error("No dataset id was provided to GetDatasetByDatasetId");
+
+                return new BadRequestObjectResult("Null or empty dataset id provided");
+            }
+
+            Dataset dataset = await _datasetRepository.GetDatasetByDatasetId(datasetId);
+
+            if (dataset == null)
+            {
+                _logger.Information($"Dataset was not found for id: {datasetId}");
+
+                return new NotFoundResult();
+            }
+
+            _logger.Information($"Dataset found for id: {datasetId}");
+
+            return new OkObjectResult(_mapper.Map<DatasetViewModel>(dataset));
+        }
+
         public async Task<IActionResult> GetDatasetByName(HttpRequest request)
         {
             request.Query.TryGetValue("datasetName", out Microsoft.Extensions.Primitives.StringValues dsName);

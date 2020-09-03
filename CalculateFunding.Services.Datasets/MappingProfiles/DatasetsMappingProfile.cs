@@ -25,7 +25,7 @@ namespace CalculateFunding.Services.Datasets.MappingProfiles
                 .ForMember(c => c.Version, opt => opt.Ignore());
 
             CreateMap<Dataset, DatasetViewModel>()
-                .ForMember(m => m.Versions, opt => opt.MapFrom(s => s.History))
+                .ForMember(m => m.History, opt => opt.MapFrom(s => s.History))
                 .ForMember(m => m.FundingStream, opt => opt.MapFrom(s => s.Current.FundingStream));
 
             CreateMap<DatasetVersion, DatasetVersionViewModel>();

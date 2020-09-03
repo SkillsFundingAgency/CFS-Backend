@@ -7,6 +7,9 @@ namespace CalculateFunding.Models.Datasets.ViewModels
         public Reference Author { get; set; }
 
         public int Version { get; set; }
+
+        public string BlobName { get; set; }
+
         public Reference FundingStream { get; set; }
     }
 }

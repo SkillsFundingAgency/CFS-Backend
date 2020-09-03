@@ -23,6 +23,7 @@ using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
+using CalculateFunding.Models.Datasets.ViewModels;
 using CalculateFunding.Models.Messages;
 using CalculateFunding.Models.ProviderLegacy;
 using CalculateFunding.Services.CodeGeneration.VisualBasic;

@@ -183,41 +183,6 @@ namespace CalculateFunding.Services.Specs.UnitTests
                 );
         }
 
-        [TestMethod]
-        public async Task ShouldQueueMapScopedDatasetJobWhenSpecificationProviverSoruceIsCFSAndHaveProviderVersionId()
-        {
-            string fundingStreamId = NewRandomString();
-            string specificationId = NewRandomString();
-            string providerVersionId = NewRandomString();
-            string fundingPeriodId = NewRandomString();
-
-            string templateVersion1 = NewRandomString();
-            uint templateCalculationId1 = NewRandomUint();
-            uint templateCalculationId2 = NewRandomUint();
-            uint templateCalculationId3 = NewRandomUint();
-
-            SpecificationVersion specificationVersion = NewSpecificationVersion(_ => _.WithFundingStreamsIds(fundingStreamId)
-                                                                                      .WithSpecificationId(specificationId)
-                                                                                      .WithFundingPeriodId(fundingPeriodId)
-                                                                                      .WithProviderSource(Models.Providers.ProviderSource.CFS)
-                                                                                      .WithProviderVersionId(providerVersionId));
-
-            GivenTheFundingTemplateContentsForPeriodAndStream(fundingPeriodId, fundingStreamId,
-                templateVersion1,
-                 NewTemplateMetadataContents(_ => _.WithFundingLines(
-                     NewFundingLine(fl => fl.WithCalculations(NewCalculation(cal => cal.WithReferenceData(NewReferenceData(), NewReferenceData()).WithTemplateCalculationId(templateCalculationId1)))),
-                     NewFundingLine(fl => fl.WithCalculations(NewCalculation(cal => cal.WithTemplateCalculationId(templateCalculationId2)), NewCalculation(cal => cal.WithTemplateCalculationId(templateCalculationId3))))))); //item count 5
-
-            await WhenTheQueueCreateSpecificationJobActionIsRun(specificationVersion, _user, _correlationId);
-
-            await ThenProviderSnapshotDataLoadJobWasCreated(
-                CreateJobModelMatching(_ => _.JobDefinitionId == JobConstants.DefinitionNames.MapScopedDatasetJob &&
-                                            HasProperty(_, SpecificationId, specificationId) &&
-                                            HasProperty(_, ProviderCacheKeyKey, $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}") &&
-                                            HasProperty(_, SpecificationSummaryCacheKeyKey, $"{CacheKeys.SpecificationSummaryById}{specificationId}"))
-                );
-        }
-
         private Expression<Predicate<JobCreateModel>> CreateJobModelMatching(Predicate<JobCreateModel> extraChecks)
         {
             return _ => _.CorrelationId == _correlationId &&
