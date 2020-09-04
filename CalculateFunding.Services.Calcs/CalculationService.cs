@@ -489,7 +489,15 @@ namespace CalculateFunding.Services.Calcs
             return await UpdateCalculationCodeOnCalculationChange(oldCalcSourceCodeName, newCalcSourceCodeName, comparison.SpecificationId, user);
         }
 
-        public async Task<IActionResult> EditCalculation(string specificationId, string calculationId, CalculationEditModel calculationEditModel, Reference author, string correlationId, bool setAdditional = false, bool skipInstruct = false)
+        public async Task<IActionResult> EditCalculation(string specificationId,
+            string calculationId,
+            CalculationEditModel calculationEditModel,
+            Reference author,
+            string correlationId,
+            bool setAdditional = false,
+            bool skipInstruct = false,
+            bool skipValidation = false,
+            Calculation existingCalculation = null)
         {
             Guard.ArgumentNotNull(calculationEditModel, nameof(calculationEditModel));
             Guard.ArgumentNotNull(author, nameof(author));
@@ -499,14 +507,17 @@ namespace CalculateFunding.Services.Calcs
 
             try
             {
-                BadRequestObjectResult validationResult = (await _calculationEditModelValidator.ValidateAsync(calculationEditModel)).PopulateModelState();
-
-                if (validationResult != null)
+                if (!skipValidation)
                 {
-                    return validationResult;
+                    BadRequestObjectResult validationResult = (await _calculationEditModelValidator.ValidateAsync(calculationEditModel)).PopulateModelState();
+
+                    if (validationResult != null)
+                    {
+                        return validationResult;
+                    }
                 }
 
-                Calculation calculation = await _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCalculationById(calculationId));
+                Calculation calculation = existingCalculation ?? await _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCalculationById(calculationId));
 
                 if (calculation == null)
                 {
@@ -525,7 +536,7 @@ namespace CalculateFunding.Services.Calcs
 
                 calculationVersion.SourceCode = calculationEditModel.SourceCode;
                 calculationVersion.Name = calculationEditModel.Name;
-                calculationVersion.ValueType = calculationEditModel.ValueType.Value;
+                calculationVersion.ValueType = calculationEditModel.ValueType.GetValueOrDefault();
                 calculationVersion.SourceCodeName = VisualBasicTypeGenerator.GenerateIdentifier(calculationEditModel.Name);
                 calculationVersion.Description = calculationEditModel.Description;
                
@@ -536,14 +547,12 @@ namespace CalculateFunding.Services.Calcs
 
                 await _cachePolicy.ExecuteAsync(() => _cacheProvider.RemoveAsync<List<CalculationMetadata>>(cacheKey));
 
-                Job job = null;
-
                 if(skipInstruct)
                 {
                     return new OkObjectResult(result.CurrentVersion);
                 }
 
-               job = await SendInstructAllocationsToJobService(result.BuildProject.SpecificationId, author.Id, author.Name, new Trigger
+                Job job = await SendInstructAllocationsToJobService(result.BuildProject.SpecificationId, author.Id, author.Name, new Trigger
                 {
                     EntityId = calculation.Id,
                     EntityType = nameof(Calculation),

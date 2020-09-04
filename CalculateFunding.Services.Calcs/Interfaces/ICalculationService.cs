@@ -22,7 +22,15 @@ namespace CalculateFunding.Services.Calcs.Interfaces
 
         Task<IActionResult> GetCalculationHistory(string specificationId);
 
-        Task<IActionResult> EditCalculation(string specificationId, string calculationId, CalculationEditModel calculationEditModel, Reference author, string correlationId, bool setAdditional = false, bool skipInstruct = false);
+        Task<IActionResult> EditCalculation(string specificationId,
+            string calculationId,
+            CalculationEditModel calculationEditModel,
+            Reference author,
+            string correlationId,
+            bool setAdditional = false,
+            bool skipInstruct = false,
+            bool skipValidation = false,
+            Calculation existingCalculation = null);
 
         Task<IActionResult> UpdateCalculationStatus(string calculationId, EditStatusModel editStatusModel);
 

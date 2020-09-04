@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
@@ -9,6 +10,7 @@ using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Models;
+using CalculateFunding.Common.TemplateMetadata.Enums;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Calcs;
@@ -20,6 +22,7 @@ using Microsoft.Azure.ServiceBus;
 using Polly;
 using Serilog;
 using Calculation = CalculateFunding.Common.TemplateMetadata.Models.Calculation;
+using CalculationType = CalculateFunding.Models.Calcs.CalculationType;
 using FundingLine = CalculateFunding.Common.TemplateMetadata.Models.FundingLine;
 
 namespace CalculateFunding.Services.Calcs
@@ -27,7 +30,6 @@ namespace CalculateFunding.Services.Calcs
     public class ApplyTemplateCalculationsService : IApplyTemplateCalculationsService
     {
         private readonly IApplyTemplateCalculationsJobTrackerFactory _jobTrackerFactory;
-        private readonly ITemplateContentsCalculationQuery _templateContentsCalculationQuery;
         private readonly ICreateCalculationService _createCalculationService;
         private readonly ICalculationsRepository _calculationsRepository;
         private readonly IPoliciesApiClient _policiesApiClient;
@@ -45,7 +47,6 @@ namespace CalculateFunding.Services.Calcs
             IPoliciesApiClient policiesApiClient,
             ICalcsResiliencePolicies calculationsResiliencePolicies,
             ICalculationsRepository calculationsRepository,
-            ITemplateContentsCalculationQuery templateContentsCalculationQuery,
             IApplyTemplateCalculationsJobTrackerFactory jobTrackerFactory,
             IInstructionAllocationJobCreation instructionAllocationJobCreation,
             ILogger logger,
@@ -61,7 +62,6 @@ namespace CalculateFunding.Services.Calcs
             Guard.ArgumentNotNull(calculationsRepository, nameof(calculationsRepository));
             Guard.ArgumentNotNull(calculationsResiliencePolicies?.PoliciesApiClient, nameof(calculationsResiliencePolicies.PoliciesApiClient));
             Guard.ArgumentNotNull(calculationsResiliencePolicies?.CalculationsRepository, nameof(calculationsResiliencePolicies.CalculationsRepository));
-            Guard.ArgumentNotNull(templateContentsCalculationQuery, nameof(templateContentsCalculationQuery));
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(calculationService, nameof(calculationService));
             Guard.ArgumentNotNull(calculationsResiliencePolicies?.CacheProviderPolicy, nameof(calculationsResiliencePolicies.CacheProviderPolicy));
@@ -74,7 +74,6 @@ namespace CalculateFunding.Services.Calcs
             _policiesApiClient = policiesApiClient;
             _policiesResiliencePolicy = calculationsResiliencePolicies.PoliciesApiClient;
             _calculationsRepositoryPolicy = calculationsResiliencePolicies.CalculationsRepository;
-            _templateContentsCalculationQuery = templateContentsCalculationQuery;
             _logger = logger;
             _instructionAllocationJobCreation = instructionAllocationJobCreation;
             _jobTrackerFactory = jobTrackerFactory;
@@ -138,46 +137,47 @@ namespace CalculateFunding.Services.Calcs
                 TemplateMappingItem[] mappingsWithoutCalculations = templateMapping.TemplateMappingItems.Where(_ => _.CalculationId.IsNullOrWhitespace())
                     .ToArray();
 
-                IEnumerable<FundingLine> flattenedFundingLines = templateMetadataContents.RootFundingLines.Flatten(_ => _.FundingLines)
-                                                                 ?? new FundingLine[0];
+                FundingLine[] flattenedFundingLines = templateMetadataContents.RootFundingLines.Flatten(_ => _.FundingLines).ToArray();
 
-                IEnumerable<Calculation> flattenedCalculations = flattenedFundingLines.SelectMany(_ => _.Calculations.Flatten(cal => cal.Calculations)) ?? new Calculation[0];
+                IDictionary<uint, Calculation> uniqueTemplateCalculations = flattenedFundingLines
+                    .SelectMany(_ => _.Calculations.Flatten(cal => cal.Calculations))
+                    .GroupBy(x => x.TemplateCalculationId)
+                    .Select(x => x.FirstOrDefault())
+                    .ToDictionary(_ => _.TemplateCalculationId);
 
-                IEnumerable<Calculation> uniqueflattenedCalculations = flattenedCalculations.GroupBy(x => x.TemplateCalculationId).Select(x => x.FirstOrDefault());
-
+                TemplateMappingItem[] missingMappings = templateMapping.TemplateMappingItems.Except(templateMapping.TemplateMappingItems.Where(item => uniqueTemplateCalculations.ContainsKey(item.TemplateId))).ToArray();
+                
                 Func<TemplateMappingItem, Task<bool>> isMissingCalculation = IsMissingCalculation(specificationId,
                         author,
                         correlationId,
-                        templateMapping.TemplateMappingItems.Except(templateMapping.TemplateMappingItems.Where(item => flattenedCalculations.Any(calc => item.TemplateId == calc.TemplateCalculationId))));
+                        missingMappings);
 
                 templateMapping.TemplateMappingItems.RemoveAll(mappingItem => isMissingCalculation(mappingItem).GetAwaiter().GetResult());
 
                 TemplateMappingItem[] mappingsWithCalculations = templateMapping.TemplateMappingItems.Where(_ => !_.CalculationId.IsNullOrWhitespace())
                     .ToArray();
 
-                int itemCount = uniqueflattenedCalculations?.Count() + uniqueflattenedCalculations?.Sum(
-                       cal => (cal.ReferenceData?.Count())
-                           .GetValueOrDefault()) ?? 0;
+                int itemCount = uniqueTemplateCalculations.Count;
 
                 int startingItemCount = itemCount - mappingsWithoutCalculations.Length - mappingsWithCalculations.Length;
 
                 await jobTracker.NotifyProgress(startingItemCount + 1);
 
                 await EnsureAllRequiredCalculationsExist(mappingsWithoutCalculations,
-                    templateMetadataContents,
                     fundingStreamId,
                     specificationSummary,
                     author,
                     correlationId,
                     startingItemCount,
                     jobTracker,
-                    templateMapping);
+                    templateMapping,
+                    uniqueTemplateCalculations);
 
                 await EnsureAllExistingCalculationsModified(mappingsWithCalculations,
                     specificationSummary,
                     correlationId,
                     author,
-                    flattenedFundingLines,
+                    uniqueTemplateCalculations,
                     jobTracker,
                     startingItemCount + mappingsWithoutCalculations.Length);
 
@@ -199,26 +199,22 @@ namespace CalculateFunding.Services.Calcs
             SpecificationSummary specification,
             string correlationId,
             Reference author,
-            IEnumerable<FundingLine> flattenedFundingLines,
+            IDictionary<uint, Calculation> uniqueTemplateCalculations,
             IApplyTemplateCalculationsJobTracker jobTracker,
             int startingItemCount)
         {
             if (!mappingsWithCalculations.Any()) return;
 
-            IEnumerable<Calculation> flattenedCalculations = flattenedFundingLines
-                .Where(_ => _.Calculations != null)
-                .SelectMany(_ => _.Calculations)
-                .Flatten(_ => _?.Calculations)
-                ?? new Calculation[0];
-
             IEnumerable<Models.Calcs.Calculation> existingCalculations = await _calculationsRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCalculationsBySpecificationId(specification.Id));
+            IDictionary<string, Models.Calcs.Calculation> existingCalculationsById = existingCalculations.ToDictionary(_ => _.Id);
 
             for (int calculationCount = 0; calculationCount < mappingsWithCalculations.Length; calculationCount++)
             {
                 TemplateMappingItem mappingWithCalculations = mappingsWithCalculations[calculationCount];
-                Calculation templateCalculation = flattenedCalculations.FirstOrDefault(_ => _.TemplateCalculationId == mappingWithCalculations.TemplateId);
-                Models.Calcs.Calculation existingCalculation = existingCalculations.SingleOrDefault(_ => _.Id == mappingWithCalculations.CalculationId);
 
+                uniqueTemplateCalculations.TryGetValue(mappingWithCalculations.TemplateId, out Calculation templateCalculation);
+                existingCalculationsById.TryGetValue(mappingWithCalculations.CalculationId, out Models.Calcs.Calculation existingCalculation);
+                
                 if ((calculationCount + 1) % 10 == 0) await jobTracker.NotifyProgress(startingItemCount + calculationCount + 1);
 
                 if (templateCalculation?.Name == existingCalculation?.Current.Name && templateCalculation?.ValueFormat.AsMatchingEnum<CalculationValueType>() == existingCalculation?.Current.ValueType)
@@ -234,7 +230,15 @@ namespace CalculateFunding.Services.Calcs
                     ValueType = templateCalculation.ValueFormat.AsMatchingEnum<CalculationValueType>()
                 };
 
-                IActionResult editCalculationResult = await _calculationService.EditCalculation(specification.Id, mappingWithCalculations.CalculationId, calculationEditModel, author, correlationId);
+                IActionResult editCalculationResult = await _calculationService.EditCalculation(specification.Id,
+                    mappingWithCalculations.CalculationId,
+                    calculationEditModel,
+                    author,
+                    correlationId,
+                    false,
+                    false,
+                    true,
+                    existingCalculation);
 
                 if (!(editCalculationResult is OkObjectResult))
                 {
@@ -244,29 +248,27 @@ namespace CalculateFunding.Services.Calcs
         }
 
         private async Task EnsureAllRequiredCalculationsExist(TemplateMappingItem[] mappingsWithoutCalculations,
-            TemplateMetadataContents templateMetadataContents,
             string fundingStreamId,
             SpecificationSummary specification,
             Reference author,
             string correlationId,
             int startingItemCount,
             IApplyTemplateCalculationsJobTracker jobTracker,
-            TemplateMapping templateMapping)
+            TemplateMapping templateMapping,
+            IDictionary<uint, Calculation> uniqueTemplateCalculations)
         {
             if (!mappingsWithoutCalculations.Any()) return;
-
-            List<Models.Calcs.Calculation> calculations = new List<Models.Calcs.Calculation>();
 
             for (int calculationCount = 0; calculationCount < mappingsWithoutCalculations.Length; calculationCount++)
             {
                 TemplateMappingItem mappingWithCalculation = mappingsWithoutCalculations[calculationCount];
 
-                calculations.Add(await CreateDefaultCalculationForTemplateItem(mappingWithCalculation,
-                    templateMetadataContents,
+                await CreateDefaultCalculationForTemplateItem(mappingWithCalculation,
                     fundingStreamId,
                     specification.Id,
                     author,
-                    correlationId));
+                    correlationId,
+                    uniqueTemplateCalculations);
 
                 await RefreshTemplateMapping(specification.Id, fundingStreamId, templateMapping);
 
@@ -292,7 +294,15 @@ namespace CalculateFunding.Services.Calcs
                             ValueType = existingCalculation.Current.ValueType,
                         };
 
-                        IActionResult editCalculationResult = await _calculationService.EditCalculation(specificationId, mapping.CalculationId, calculationEditModel, author, correlationId, true);
+                        IActionResult editCalculationResult = await _calculationService.EditCalculation(specificationId, 
+                            mapping.CalculationId, 
+                            calculationEditModel, 
+                            author, 
+                            correlationId, 
+                            true,
+                            false,
+                            true,
+                            existingCalculation);
 
                         if (!(editCalculationResult is OkObjectResult))
                         {
@@ -321,16 +331,14 @@ namespace CalculateFunding.Services.Calcs
                 correlationId);
         }
 
-        private async Task<Models.Calcs.Calculation> CreateDefaultCalculationForTemplateItem(TemplateMappingItem templateMapping,
-            TemplateMetadataContents templateMetadataContents,
+        private async Task CreateDefaultCalculationForTemplateItem(TemplateMappingItem templateMapping,
             string fundingStreamId,
             string specificationId,
             Reference author,
-            string correlationId)
+            string correlationId,
+            IDictionary<uint, Calculation> uniqueTemplatesCalculations)
         {
-            Calculation templateCalculation = _templateContentsCalculationQuery.GetTemplateContentsForMappingItem(templateMapping, templateMetadataContents);
-
-            if (templateCalculation == null)
+            if (!uniqueTemplatesCalculations.TryGetValue(templateMapping.TemplateId, out Calculation templateCalculation))
                 LogAndThrowException($"Unable to locate template contents for template calculation id {templateMapping.TemplateId}");
 
             CalculationValueType calculationValueType = templateCalculation.ValueFormat.AsMatchingEnum<CalculationValueType>();
@@ -359,8 +367,6 @@ namespace CalculateFunding.Services.Calcs
                  LogAndThrowException("Unable to create new default template calculation for template mapping");
 
             templateMapping.CalculationId = createCalculationResponse.Calculation.Id;
-
-            return createCalculationResponse.Calculation;
         }
 
         private string UserPropertyFrom(Message message, string key)

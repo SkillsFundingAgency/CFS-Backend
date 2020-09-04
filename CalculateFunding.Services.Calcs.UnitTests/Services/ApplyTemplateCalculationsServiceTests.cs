@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Net;
 using System.Threading.Tasks;
-using CalculateFunding.Common.ApiClient.Graph;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies;
@@ -14,29 +14,28 @@ using CalculateFunding.Common.Models;
 using CalculateFunding.Common.TemplateMetadata.Enums;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Models.Calcs;
-
 using CalculateFunding.Services.Calcs.Interfaces;
+using CalculateFunding.Services.Calcs.Services;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Newtonsoft.Json;
 using NSubstitute;
 using Polly;
 using Serilog;
 using Calculation = CalculateFunding.Models.Calcs.Calculation;
+using FundingLine = CalculateFunding.Common.TemplateMetadata.Models.FundingLine;
 using TemplateCalculation = CalculateFunding.Common.TemplateMetadata.Models.Calculation;
 
-namespace CalculateFunding.Services.Calcs.Services
+namespace CalculateFunding.Services.Calcs.UnitTests.Services
 {
     [TestClass]
     public class ApplyTemplateCalculationsServiceTests : TemplateMappingTestBase
     {
         private ICreateCalculationService _createCalculationService;
         private ICalculationsRepository _calculationsRepository;
-        private ITemplateContentsCalculationQuery _calculationQuery;
         private IApplyTemplateCalculationsJobTrackerFactory _jobTrackerFactory;
         private IApplyTemplateCalculationsJobTracker _jobTracker;
         private IInstructionAllocationJobCreation _instructionAllocationJobCreation;
@@ -57,8 +56,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
         private const string SpecificationId = "specification-id";
         private const string FundingStreamId = "fundingstream-id";
-        private const string FundingPeriodId = "fundingPeriod-id"
-;        private const string TemplateVersion = "template-version";
+        private const string TemplateVersion = "template-version";
         private const string CorrelationId = "sfa-correlationId";
         private const string UserId = "user-id";
         private const string UserName = "user-name";
@@ -72,7 +70,6 @@ namespace CalculateFunding.Services.Calcs.Services
             _specificationApiClient = Substitute.For<ISpecificationsApiClient>();
             _graphRepository = Substitute.For<IGraphRepository>();
             _createCalculationService = Substitute.For<ICreateCalculationService>();
-            _calculationQuery = Substitute.For<ITemplateContentsCalculationQuery>();
             _calculationsRepository = Substitute.For<ICalculationsRepository>();
             _jobTrackerFactory = Substitute.For<IApplyTemplateCalculationsJobTrackerFactory>();
             _jobTracker = Substitute.For<IApplyTemplateCalculationsJobTracker>();
@@ -113,7 +110,6 @@ namespace CalculateFunding.Services.Calcs.Services
                     SpecificationsApiClient = Policy.NoOpAsync()
                 },
                 _calculationsRepository,
-                _calculationQuery,
                 _jobTrackerFactory,
                 _instructionAllocationJobCreation,
                 Substitute.For<ILogger>(),
@@ -178,7 +174,7 @@ namespace CalculateFunding.Services.Calcs.Services
         {
             TemplateMappingItem mappingWithMissingCalculation1 = NewTemplateMappingItem();
             TemplateMapping templateMapping = NewTemplateMapping(_ => _.WithItems(mappingWithMissingCalculation1));
-            TemplateMetadataContents templateMetadataContents = NewTemplateMetadataContents();
+            TemplateMetadataContents templateMetadataContents = NewTemplateMetadataContents(_ => _.WithFundingLines(NewFundingLine(fl => fl.WithCalculations(NewTemplateMappingCalculation()))));
             TemplateCalculation templateCalculationOne = NewTemplateMappingCalculation(_ => _.WithName("template calculation 1"));
 
             GivenAValidMessage();
@@ -239,11 +235,6 @@ namespace CalculateFunding.Services.Calcs.Services
             CalculationValueType calculationValueTypeThree = templateCalculationThree.ValueFormat.AsMatchingEnum<CalculationValueType>();
             CalculationValueType calculationValueTypeFour = templateCalculationFour.ValueFormat.AsMatchingEnum<CalculationValueType>();
 
-            TemplateCalculationType templateCalculationTypeOne = templateCalculationOne.Type.AsMatchingEnum<TemplateCalculationType>();
-            TemplateCalculationType templateCalculationTypeTwo = templateCalculationTwo.Type.AsMatchingEnum<TemplateCalculationType>();
-            TemplateCalculationType templateCalculationTypeThree = templateCalculationThree.Type.AsMatchingEnum<TemplateCalculationType>();
-            TemplateCalculationType templateCalculationTypeFour = templateCalculationFour.Type.AsMatchingEnum<TemplateCalculationType>();
-
             AndTheCalculationIsCreatedForRequestMatching(_ => _.Name == templateCalculationOne.Name &&
                                                               _.SourceCode == calculationValueTypeOne.GetDefaultSourceCode() &&
                                                               _.SpecificationId == _specificationId &&
@@ -294,7 +285,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             AndTheTemplateMappingWasUpdated(templateMapping, 5);
             AndTheJobsStartWasLogged();
-            AndTheJobCompletionWasLogged(4);
+            AndTheJobCompletionWasLogged();
             AndACalculationRunWasInitialised();
         }
 
@@ -369,9 +360,6 @@ namespace CalculateFunding.Services.Calcs.Services
             CalculationValueType calculationValueTypeOne = templateCalculationOne.ValueFormat.AsMatchingEnum<CalculationValueType>();
             CalculationValueType calculationValueTypeTwo = templateCalculationTwo.ValueFormat.AsMatchingEnum<CalculationValueType>();
 
-            TemplateCalculationType templateCalculationTypeOne = templateCalculationOne.Type.AsMatchingEnum<TemplateCalculationType>();
-            TemplateCalculationType templateCalculationTypeTwo = templateCalculationTwo.Type.AsMatchingEnum<TemplateCalculationType>();
-
             AndTheCalculationIsCreatedForRequestMatching(_ => _.Name == templateCalculationOne.Name &&
                                                               _.SourceCode == calculationValueTypeOne.GetDefaultSourceCode() &&
                                                               _.SpecificationId == _specificationId &&
@@ -399,7 +387,8 @@ namespace CalculateFunding.Services.Calcs.Services
                                                 _.ValueType == calculationValueType3 &&
                                                 _.Description == null &&
                                                 _.SourceCode == null,
-                calculationId3);
+                calculationId3,
+                missingCalculation);
 
             AndTheTemplateContentsCalculation(mappingWithMissingCalculation1, templateMetadataContents, templateCalculationOne);
             AndTheTemplateContentsCalculation(mappingWithMissingCalculation2, templateMetadataContents, templateCalculationTwo);
@@ -420,8 +409,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             AndTheTemplateMappingWasUpdated(templateMapping, 3);
             AndTheJobsStartWasLogged();
-            AndTheProgressNotificationsWereMade(-1);
-            AndTheJobCompletionWasLogged(3);
+            AndTheJobCompletionWasLogged();
             AndACalculationRunWasInitialised();
         }
 
@@ -480,9 +468,6 @@ namespace CalculateFunding.Services.Calcs.Services
             CalculationValueType calculationValueTypeOne = templateCalculationOne.ValueFormat.AsMatchingEnum<CalculationValueType>();
             CalculationValueType calculationValueTypeTwo = templateCalculationTwo.ValueFormat.AsMatchingEnum<CalculationValueType>();
 
-            TemplateCalculationType templateCalculationTypeOne = templateCalculationOne.Type.AsMatchingEnum<TemplateCalculationType>();
-            TemplateCalculationType templateCalculationTypeTwo = templateCalculationTwo.Type.AsMatchingEnum<TemplateCalculationType>();
-
             AndTheCalculationIsCreatedForRequestMatching(_ => _.Name == templateCalculationOne.Name &&
                                                               _.SourceCode == calculationValueTypeOne.GetDefaultSourceCode() &&
                                                               _.SpecificationId == _specificationId &&
@@ -513,8 +498,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             AndTheTemplateMappingWasUpdated(templateMapping, 3);
             AndTheJobsStartWasLogged();
-            AndTheProgressNotificationsWereMade(0);
-            AndTheJobCompletionWasLogged(4);
+            AndTheJobCompletionWasLogged();
             AndACalculationRunWasInitialised();
 
             AndCalculationEdited(_ => _.Name == calculationName1 &&
@@ -569,20 +553,27 @@ namespace CalculateFunding.Services.Calcs.Services
                 Arg.Is(calculationId),
                 Arg.Is(editModelMatching),
                 Arg.Is<Reference>(_ => _.Id == _userId &&
-                                           _.Name == _userName),
-                Arg.Is(_correlationId))
+                                       _.Name == _userName),
+                Arg.Is(_correlationId),
+                Arg.Is(false),
+                Arg.Is(false),
+                 Arg.Is(true),
+                Arg.Any<Calculation>())
                 .Returns(new OkObjectResult(null));
         }
 
-        private void AndTheMissingCalculationIsEditedForRequestMatching(Expression<Predicate<CalculationEditModel>> editModelMatching, string calculationId)
+        private void AndTheMissingCalculationIsEditedForRequestMatching(Expression<Predicate<CalculationEditModel>> editModelMatching, string calculationId, Calculation existingCalculation)
         {
             _calculationService.EditCalculation(Arg.Is(_specificationId),
                 Arg.Is(calculationId),
                 Arg.Is(editModelMatching),
                 Arg.Is<Reference>(_ => _.Id == _userId &&
-                                           _.Name == _userName),
+                                       _.Name == _userName),
                 Arg.Is(_correlationId),
-                Arg.Is(true))
+                 Arg.Is(true),
+                Arg.Is(false),
+                Arg.Is(true),
+                Arg.Is(existingCalculation))
                 .Returns(new OkObjectResult(null));
         }
 
@@ -646,8 +637,14 @@ namespace CalculateFunding.Services.Calcs.Services
             TemplateMetadataContents templateMetadataContents,
             TemplateCalculation calculation)
         {
-            _calculationQuery.GetTemplateContentsForMappingItem(mappingItem, templateMetadataContents)
-                .Returns(calculation);
+            calculation.TemplateCalculationId = mappingItem.TemplateId;
+            
+            FundingLine fundingLine = templateMetadataContents.RootFundingLines.First();
+
+            fundingLine.Calculations = fundingLine.Calculations.Concat(new[]
+            {
+                calculation
+            });
         }
 
         private void AndTheCalculations(IEnumerable<Calculation> calculations)
@@ -675,19 +672,11 @@ namespace CalculateFunding.Services.Calcs.Services
                 .TryStartTrackingJob();
         }
 
-        private void AndTheProgressNotificationsWereMade(params int[] itemCount)
-        {
-            foreach (int count in itemCount)
-                _jobTracker
-                    .Received(1)
-                    .NotifyProgress(count + 1);
-        }
-
-        private void AndTheJobCompletionWasLogged(int itemCount)
+        private void AndTheJobCompletionWasLogged()
         {
             _jobTracker
                 .Received(1)
-                .CompleteTrackingJob("Completed Successfully", itemCount);
+                .CompleteTrackingJob("Completed Successfully", Arg.Any<int>());
         }
 
         private void AndCalculationEdited(Expression<Predicate<CalculationEditModel>> editModelMatching, string calculationId, int requiredNumberOfCalls)

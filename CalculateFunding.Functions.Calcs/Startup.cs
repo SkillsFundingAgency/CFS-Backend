@@ -106,7 +106,6 @@ namespace CalculateFunding.Functions.Calcs
                 return new CalculationsRepository(resultsRepostory);
             });
 
-            builder.AddSingleton<ITemplateContentsCalculationQuery, TemplateContentsCalculationQuery>();
             builder.AddScoped<IApplyTemplateCalculationsJobTrackerFactory, ApplyTemplateCalculationsJobTrackerFactory>();
             builder.AddScoped<ICalculationService, CalculationService>()
                 .AddScoped<IInstructionAllocationJobCreation, InstructionAllocationJobCreation>()
