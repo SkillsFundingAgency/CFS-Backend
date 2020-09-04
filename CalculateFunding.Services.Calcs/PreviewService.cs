@@ -191,13 +191,13 @@ namespace CalculateFunding.Services.Calcs
             {
                 _logger.Information($"Build compiled successfully for calculation id {calculationToPreview.Id}");
 
-                string calculationIdentifier = $"{calculationToPreview.Namespace}.{VisualBasicTypeGenerator.GenerateIdentifier(calculationToPreview.Name)}";
+                string calculationIdentifier = $"{VisualBasicTypeGenerator.GenerateIdentifier(calculationToPreview.Namespace)}.{VisualBasicTypeGenerator.GenerateIdentifier(calculationToPreview.Name)}";
 
                 IDictionary<string, string> functions = _sourceCodeService.GetCalculationFunctions(compilerOutput.SourceFiles);
                 IDictionary<string, string> calculationIdentifierMap = calculations
                     .Select(_ => new 
                     { 
-                        Identifier = $"{_.Namespace}.{VisualBasicTypeGenerator.GenerateIdentifier(_.Name)}", 
+                        Identifier = $"{VisualBasicTypeGenerator.GenerateIdentifier(_.Namespace)}.{VisualBasicTypeGenerator.GenerateIdentifier(_.Name)}", 
                         CalcName = _.Name 
                     })
                     .ToDictionary(d => d.Identifier, d => d.CalcName);

@@ -19,6 +19,7 @@ using FluentAssertions;
 using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
@@ -2467,7 +2468,7 @@ End Class";
         {
             static string BuildCalcName(Calculation calc, string name)
             {
-                return $"{calc.Namespace}.{name}";
+                return $"{char.ToUpper((calc.Namespace)[0])}{calc.Namespace.Substring(1)}.{name}";
             }
 
             //Arrange

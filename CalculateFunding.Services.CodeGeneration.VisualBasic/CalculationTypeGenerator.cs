@@ -154,7 +154,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                 // Reset baseline stack frame count before executing calc
                 builder.AppendLine("StackFrameStartingCount = New System.Diagnostics.StackTrace().FrameCount");
 
-                builder.AppendLine($"{calc.Namespace}.{calc.Current.SourceCodeName}()");
+                builder.AppendLine($"{GenerateIdentifier(calc.Namespace)}.{calc.Current.SourceCodeName}()");
 
                 builder.AppendLine();
 

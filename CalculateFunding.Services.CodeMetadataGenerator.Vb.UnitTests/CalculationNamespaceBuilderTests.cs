@@ -36,14 +36,14 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.Vb.UnitTests
         public void CreatesInnerClassForEachNamespaceInSpecification()
         {
             const string Psg = "PSG";
-            const string Dsg = "DSG";
+            const string _1619 = "1619";
 
             GivenTheCalculations(NewCalculationWithNamespace(Psg),
-                NewCalculationWithNamespace(Dsg));
+                NewCalculationWithNamespace(_1619));
 
             WhenTheCalculationNamespacesAreBuilt();
 
-            ThenResultContainsNamespaceDefinitionsFor(Psg, Dsg, Additional);
+            ThenResultContainsNamespaceDefinitionsFor(Psg, $"_{_1619}", Additional);
         }
 
         [TestMethod]

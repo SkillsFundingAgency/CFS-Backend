@@ -107,7 +107,7 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.Vb.UnitTests
         [TestMethod]
         public void GenerateCalculations_GivenNoAdditionalCalculations_ThenSingleInnerClassForAdditionalStillCreated()
         {
-            Calculation dsg = NewCalculation(_ => _.WithFundingStream(NewReference(rf => rf.WithId("DSG")))
+            Calculation _1619 = NewCalculation(_ => _.WithFundingStream(NewReference(rf => rf.WithId("1619")))
                 .WithSourceCodeName("One")
                 .WithCalculationNamespaceType(CalculationNamespace.Template)
                 .WithSourceCode("return 456"));
@@ -116,12 +116,12 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.Vb.UnitTests
                 .WithSourceCodeName("One")
                 .WithSourceCode("return DSG.One() + 100"));
 
-            FundingLine dsgfl = NewFundingLine(_ => _.WithCalculations(new[] { NewFundingLineCalculation(_ => _.WithId(1)
+            FundingLine _1619fl = NewFundingLine(_ => _.WithCalculations(new[] { NewFundingLineCalculation(_ => _.WithId(1)
                 .WithCalculationNamespaceType(CalculationNamespace.Template))})
                 .WithId(1)
                 .WithName("One")
                 .WithSourceCodeName("One")
-                .WithNamespace("DSG"));
+                .WithNamespace("1619"));
 
             FundingLine psgfl = NewFundingLine(_ => _.WithCalculations(new[] { NewFundingLineCalculation(_ => _.WithId(1)
                 .WithCalculationNamespaceType(CalculationNamespace.Template))})
@@ -131,41 +131,41 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.Vb.UnitTests
                 .WithNamespace("PSG"));
 
             IDictionary<string, Funding> fundingLines = new Dictionary<string, Funding> {
-                {"DSG", NewFunding(_ => _.WithFundingLines(new[] { dsgfl }))},
+                {"1619", NewFunding(_ => _.WithFundingLines(new[] { _1619fl }))},
                 {"PSG", NewFunding(_ => _.WithFundingLines(new[] { psgfl }))}
             };
 
-            IEnumerable<SourceFile> results = new CalculationTypeGenerator(new CompilerOptions()).GenerateCalcs(new[] { dsg, psg }, fundingLines);
+            IEnumerable<SourceFile> results = new CalculationTypeGenerator(new CompilerOptions()).GenerateCalcs(new[] { _1619, psg }, fundingLines);
 
             results.Should().HaveCount(1);
             results.First()
                 .SourceCode
                 .Should()
                 .ContainAll("Public Class PSGCalculations",
-                    "Public Class DSGCalculations",
+                    "Public Class _1619Calculations",
                     "Public Class AdditionalCalculations",
                     "Public Class PSGFundingLines",
-                    "Public Class DSGFundingLines");
+                    "Public Class _1619FundingLines");
         }
 
         [TestMethod]
         public void GenerateCalculations_GivenNoAdditionalCalculations_ThenFundingLineMembersCreated()
         {
-            Calculation dsg = NewCalculation(_ => _.WithFundingStream(NewReference(rf => rf.WithId("DSG")))
+            Calculation _1619 = NewCalculation(_ => _.WithFundingStream(NewReference(rf => rf.WithId("DSG")))
                 .WithSourceCodeName("One")
                 .WithCalculationNamespaceType(CalculationNamespace.Template)
                 .WithSourceCode("return 456"));
             Calculation psg = NewCalculation(_ => _.WithFundingStream(NewReference(rf => rf.WithId("PSG")))
                 .WithCalculationNamespaceType(CalculationNamespace.Template)
                 .WithSourceCodeName("Two")
-                .WithSourceCode("return DSG.One() + 100"));
+                .WithSourceCode("return _1619.One() + 100"));
 
-            FundingLine dsgfl = NewFundingLine(_ => _.WithCalculations(new[] { NewFundingLineCalculation(_ => _.WithId(1)
+            FundingLine _1619fl = NewFundingLine(_ => _.WithCalculations(new[] { NewFundingLineCalculation(_ => _.WithId(1)
                 .WithCalculationNamespaceType(CalculationNamespace.Template))})
                 .WithId(1)
                 .WithName("One")
                 .WithSourceCodeName("One")
-                .WithNamespace("DSG"));
+                .WithNamespace("1619"));
 
             FundingLine psgfl = NewFundingLine(_ => _.WithCalculations(new[] { NewFundingLineCalculation(_ => _.WithId(1)
                 .WithCalculationNamespaceType(CalculationNamespace.Template))})
@@ -175,18 +175,18 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.Vb.UnitTests
                 .WithNamespace("PSG"));
 
             IDictionary<string, Funding> fundingLines = new Dictionary<string, Funding> {
-                {"DSG", NewFunding(_ => _.WithFundingLines(new[] { dsgfl }))},
+                {"1619", NewFunding(_ => _.WithFundingLines(new[] { _1619fl }))},
                 {"PSG", NewFunding(_ => _.WithFundingLines(new[] { psgfl }))}
             };
 
-            IEnumerable<SourceFile> results = new CalculationTypeGenerator(new CompilerOptions()).GenerateCalcs(new[] { dsg, psg }, fundingLines);
+            IEnumerable<SourceFile> results = new CalculationTypeGenerator(new CompilerOptions()).GenerateCalcs(new[] { _1619, psg }, fundingLines);
 
             results.Should().HaveCount(1);
             results.First()
                 .SourceCode
                 .Should()
                 .ContainAll(
-                    "<FundingLine(FundingStream:=\"DSG\", Id:=\"1\", Name:=\"One\")>",
+                    "<FundingLine(FundingStream:=\"1619\", Id:=\"1\", Name:=\"One\")>",
                     "Public One As Func(Of decimal?) = Nothing",
                     "<FundingLine(FundingStream:=\"PSG\", Id:=\"2\", Name:=\"Two\")>",
                     "Public Two As Func(Of decimal?) = Nothing");
@@ -195,7 +195,7 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.Vb.UnitTests
         [TestMethod]
         public void GenerateCalculations_GiveEnumCalculationType()
         {
-            Calculation dsg = NewCalculation(_ => _.WithFundingStream(NewReference(rf => rf.WithId("DSG")))
+            Calculation _1619 = NewCalculation(_ => _.WithFundingStream(NewReference(rf => rf.WithId("1619")))
             .WithName("MethodologyType")
             .WithValueType(CalculationValueType.String)
             .WithDataType(CalculationDataType.Enum)
@@ -204,18 +204,18 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.Vb.UnitTests
                .WithCalculationNamespaceType(CalculationNamespace.Template)
                .WithSourceCode("return Nothing"));
 
-            FundingLine dsgfl = NewFundingLine(_ => _.WithCalculations(new[] { NewFundingLineCalculation(_ => _.WithId(1)
+            FundingLine _1619fl = NewFundingLine(_ => _.WithCalculations(new[] { NewFundingLineCalculation(_ => _.WithId(1)
                 .WithCalculationNamespaceType(CalculationNamespace.Template))})
                 .WithId(2)
                 .WithName("Two")
                 .WithSourceCodeName("Two")
-                .WithNamespace("DSG"));
+                .WithNamespace("1619"));
 
             IDictionary<string, Funding> fundingLines = new Dictionary<string, Funding> {
-                {"DSG", NewFunding(_ => _.WithFundingLines(new[] { dsgfl }))}
+                {"1619", NewFunding(_ => _.WithFundingLines(new[] { _1619fl }))}
             };
 
-            IEnumerable<SourceFile> results = new CalculationTypeGenerator(new CompilerOptions()).GenerateCalcs(new[] { dsg }, fundingLines).ToList();
+            IEnumerable<SourceFile> results = new CalculationTypeGenerator(new CompilerOptions()).GenerateCalcs(new[] { _1619 }, fundingLines).ToList();
 
             results.Should().HaveCount(1);
 
@@ -226,7 +226,7 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.Vb.UnitTests
         [TestMethod]
         public void GenerateCalculations_GivenSpaceInEnumReturnsValidEnumCalculationType()
         {
-            Calculation dsg = NewCalculation(_ => _.WithFundingStream(NewReference(rf => rf.WithId("DSG")))
+            Calculation _1619 = NewCalculation(_ => _.WithFundingStream(NewReference(rf => rf.WithId("1619")))
             .WithName("MethodologyType")
             .WithValueType(CalculationValueType.String)
             .WithDataType(CalculationDataType.Enum)
@@ -235,18 +235,18 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.Vb.UnitTests
                .WithCalculationNamespaceType(CalculationNamespace.Template)
                .WithSourceCode("return Nothing"));
 
-            FundingLine dsgfl = NewFundingLine(_ => _.WithCalculations(new[] { NewFundingLineCalculation(_ => _.WithId(1)
+            FundingLine _1619fl = NewFundingLine(_ => _.WithCalculations(new[] { NewFundingLineCalculation(_ => _.WithId(1)
                 .WithCalculationNamespaceType(CalculationNamespace.Template))})
                 .WithId(2)
                 .WithName("Two")
                 .WithSourceCodeName("Two")
-                .WithNamespace("DSG"));
+                .WithNamespace("1619"));
 
             IDictionary<string, Funding> fundingLines = new Dictionary<string, Funding> {
-                {"DSG", NewFunding(_ => _.WithFundingLines(new[] { dsgfl }))}
+                {"1619", NewFunding(_ => _.WithFundingLines(new[] { _1619fl }))}
             };
 
-            IEnumerable<SourceFile> results = new CalculationTypeGenerator(new CompilerOptions()).GenerateCalcs(new[] { dsg }, fundingLines).ToList();
+            IEnumerable<SourceFile> results = new CalculationTypeGenerator(new CompilerOptions()).GenerateCalcs(new[] { _1619 }, fundingLines).ToList();
 
             results.Should().HaveCount(1);
 
@@ -271,7 +271,7 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.Vb.UnitTests
         [TestMethod]
         public void GenerateCalculations_GivenCalculationsInDifferentNamespaces_ThenInnerClassPerNamespaceCreated()
         {
-            Calculation dsg = NewCalculation(_ => _.WithFundingStream(NewReference(rf => rf.WithId("DSG")))
+            Calculation _1619 = NewCalculation(_ => _.WithFundingStream(NewReference(rf => rf.WithId("1619")))
                 .WithSourceCodeName("One")
                 .WithCalculationNamespaceType(CalculationNamespace.Template)
                 .WithSourceCode("return 456"));
@@ -290,14 +290,14 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.Vb.UnitTests
 
             Dictionary<string, Funding> fundingLines = new Dictionary<string, Funding>();
 
-            IEnumerable<SourceFile> results = new CalculationTypeGenerator(new CompilerOptions()).GenerateCalcs(new[] { dsg, psg, additionalOne, additionalTwo }, fundingLines);
+            IEnumerable<SourceFile> results = new CalculationTypeGenerator(new CompilerOptions()).GenerateCalcs(new[] { _1619, psg, additionalOne, additionalTwo }, fundingLines);
 
             results.Should().HaveCount(1);
             results.First()
                 .SourceCode
                 .Should()
                 .ContainAll("Public Class PSGCalculations",
-                    "Public Class DSGCalculations",
+                    "Public Class _1619Calculations",
                     "Public Class AdditionalCalculations");
         }
 

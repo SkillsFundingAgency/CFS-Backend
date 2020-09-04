@@ -20,7 +20,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             {
                 ClassBlockSyntax @class = SyntaxFactory.ClassBlock(
                                     SyntaxFactory.ClassStatement(
-                                            $"{@namespace}FundingLines"
+                                            GenerateIdentifier($"{@namespace}FundingLines")
                                         )
                                         .WithModifiers(
                                             SyntaxFactory.TokenList(
@@ -31,7 +31,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                                     SyntaxFactory.EndClassStatement()
                                 );
 
-                result.InnerClasses.Add(new NamespaceClassDefinition(@namespace, @class, "FundingLines", "FundingLines"));
+                result.InnerClasses.Add(new NamespaceClassDefinition(GenerateIdentifier(@namespace), @class, "FundingLines", "FundingLines"));
             }
 
             return result;
@@ -52,7 +52,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                 yield return ParseSourceCodeToStatementSyntax(sourceCode);
             }
 
-            yield return ParseSourceCodeToStatementSyntax($"Public Property {@namespace} As {@namespace}Calculations");
+            yield return ParseSourceCodeToStatementSyntax($"Public Property {GenerateIdentifier(@namespace)} As {GenerateIdentifier(@namespace)}Calculations");
 
             // create funding line initialise method
             yield return CreateInitialiseMethod(fundingLines.Where(_ => _.Namespace == @namespace), @namespace);
@@ -63,7 +63,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             StringBuilder sourceCode = new StringBuilder();
 
             sourceCode.AppendLine("Public Sub Initialise(calculationContext As CalculationContext)");
-            sourceCode.AppendLine($"{@namespace} = calculationContext.{@namespace}");
+            sourceCode.AppendLine($"{GenerateIdentifier(@namespace)} = calculationContext.{GenerateIdentifier(@namespace)}");
             sourceCode.AppendLine();
 
             foreach (FundingLine fundingLine in fundingLines.Where(_ => !_.Calculations.IsNullOrEmpty()))
@@ -93,7 +93,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
 
                 foreach (FundingLineCalculation calculation in fundingLine.Calculations)
                 {
-                    sourceCode.AppendLine($"calcs.Add({calculation.Namespace}.{calculation.SourceCodeName}())");
+                    sourceCode.AppendLine($"calcs.Add({GenerateIdentifier(calculation.Namespace)}.{calculation.SourceCodeName}())");
                 }
 
                 sourceCode.AppendLine($"Return calcs.Sum()");

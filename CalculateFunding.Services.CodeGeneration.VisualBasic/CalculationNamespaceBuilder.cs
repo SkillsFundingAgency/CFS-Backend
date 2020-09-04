@@ -31,19 +31,19 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                 .ToArray();
 
             IEnumerable<string> propertyAssignments = CreatePropertyAssignments(fundingStreamNamespaces);
-            IEnumerable<StatementSyntax> propertyDefinitions = CreateProperties(fundingStreamNamespaces);
+            IEnumerable<(StatementSyntax Syntax, bool IsFundingLines, string Namespace)> propertyDefinitions = CreateProperties(fundingStreamNamespaces);
 
-            result.PropertiesDefinitions = propertyDefinitions.ToArray();
+            result.PropertiesDefinitions = propertyDefinitions.Where(_ => !_.IsFundingLines).Select(_ => _.Syntax).ToArray();
 
             foreach (IGrouping<string, Calculation> fundingStreamCalculationGroup in fundingStreamCalculationGroups)
-                result.InnerClasses.Add(CreateNamespaceDefinition(fundingStreamCalculationGroup.Key,
+                result.InnerClasses.Add(CreateNamespaceDefinition(GenerateIdentifier(fundingStreamCalculationGroup.Key),
                     fundingStreamCalculationGroup,
-                    propertyDefinitions,
+                    propertyDefinitions.Where(_ => _.Namespace == fundingStreamCalculationGroup.Key || string.IsNullOrWhiteSpace(_.Namespace)).Select(_ => _.Syntax),
                     propertyAssignments));
 
             result.InnerClasses.Add(CreateNamespaceDefinition("Calculations",
                 additionalCalculations,
-                propertyDefinitions,
+                propertyDefinitions.Where(_ => !_.IsFundingLines).Select(_ => _.Syntax),
                 propertyAssignments,
                 "AdditionalCalculations"));
 
@@ -58,7 +58,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             string className = null)
         {
             ClassStatementSyntax classStatement = SyntaxFactory
-                .ClassStatement(GenerateIdentifier(className ?? $"{@namespace}Calculations"))
+                .ClassStatement(className ?? $"{@namespace}Calculations")
                 .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)));
 
             SyntaxList<InheritsStatementSyntax> inherits = SyntaxFactory.SingletonList(SyntaxFactory.InheritsStatement(_compilerOptions.UseLegacyCode
@@ -68,8 +68,6 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             IEnumerable<StatementSyntax> enums = CreateEnums(calculationsInNamespace);
 
             IEnumerable<StatementSyntax> namespaceFunctionPointers = CreateNamespaceFunctionPointers(calculationsInNamespace);
-
-            StatementSyntax calcNameFunction = CreateCalculationNameFunctionPointer();
 
             StatementSyntax initialiseMethodDefinition = CreateInitialiseMethod(calculationsInNamespace, propertyAssignments, className);
 
@@ -81,7 +79,6 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                     .Concat(namespaceFunctionPointers)
                     .Concat(new[]
                     {
-                        calcNameFunction,
                         initialiseMethodDefinition
                     }).ToArray()),
                 SyntaxFactory.EndClassStatement());
@@ -91,7 +88,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
 
         private static IEnumerable<string> CreatePropertyAssignments(IEnumerable<string> namespaces)
         {
-            return namespaces.Select(@namespace => $"{@namespace} = calculationContext.{@namespace}")
+            return namespaces.Select(@namespace => string.Format("{0} = calculationContext.{0}", GenerateIdentifier(@namespace)))
                 .Concat(new[]
                 {
                     "Calculations = calculationContext.Calculations"
@@ -99,10 +96,10 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                 .ToArray();
         }
 
-        private static IEnumerable<StatementSyntax> CreateProperties(IEnumerable<string> namespaces)
+        private static IEnumerable<(StatementSyntax Syntax, bool IsFundingLines, string @namespace)> CreateProperties(IEnumerable<string> namespaces)
         {
-            yield return CreateProperty("Provider");
-            yield return CreateProperty("Datasets");
+            yield return (CreateProperty("Provider"), false, null);
+            yield return (CreateProperty("Datasets"), false, null);
 
             SyntaxList<AttributeListSyntax> list = new SyntaxList<AttributeListSyntax>(SyntaxFactory.AttributeList(
                             SyntaxFactory.SingletonSeparatedList(
@@ -117,22 +114,13 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                                         )
                                     }))))));
 
-            yield return CreateProperty("Calculations", "AdditionalCalculations", list);
+            yield return (CreateProperty("Calculations", "AdditionalCalculations", list), false, null);
 
             foreach (var @namespace in namespaces)
             {
-                yield return CreateProperty(@namespace, $"{@namespace}Calculations", list);
-                yield return CreateProperty($"FundingLines", $"{@namespace}FundingLines");
+                yield return (CreateProperty(@namespace, $"{@namespace}Calculations", list), false, @namespace);
+                yield return (CreateProperty("FundingLines", $"{@namespace}FundingLines"), true, @namespace);
             }
-        }
-
-        private static StatementSyntax CreateCalculationNameFunctionPointer()
-        {
-            StringBuilder sourceCode = new StringBuilder();
-            sourceCode.AppendLine("Public calcname As Func(Of String)");
-            sourceCode.AppendLine();
-
-            return ParseSourceCodeToStatementSyntax(sourceCode);
         }
 
         private static IEnumerable<StatementSyntax> CreateEnums(IEnumerable<Calculation> calculations)
@@ -197,10 +185,6 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                 sourceCode.AppendLine();
 
                 sourceCode.AppendLine($"{calculation.Current.SourceCodeName} = Function() As {GetDataType(calculation.Current.DataType, calculation.Name)}");
-                sourceCode.AppendLine($"{calculation.Namespace}.calcname = Function() As String");
-                sourceCode.AppendLine($"Return \"{calculation.Namespace}.{calculation.Current.SourceCodeName}\"");
-                sourceCode.AppendLine("End Function");
-                sourceCode.AppendLine();
                 sourceCode.AppendLine("Dim existingCacheItem as String() = Nothing");
                 sourceCode.AppendLine($"If calculationContext.Dictionary.TryGetValue(\"{calculation.Id}\", existingCacheItem) Then");
                 sourceCode.AppendLine($"   Dim existingCalculationResult{GetVariableName(calculation.Current.DataType)} As {GetExistingCalculationResultDataType(calculation.Current.DataType)} = Nothing");
