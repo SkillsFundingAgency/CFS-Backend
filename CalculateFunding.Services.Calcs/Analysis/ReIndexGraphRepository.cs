@@ -141,7 +141,7 @@ namespace CalculateFunding.Services.Calcs.Analysis
         private IEnumerable<CalculationRelationship> RemoveCalculationCalculationRelationships(IEnumerable<CalculationRelationship> calculationRelationships, IEnumerable<ApiEntitySpecification> entities)
         {
             // retrieve all calculation to calculation relationships from current graph
-            IEnumerable<ApiRelationship> calculationCalculationRelations = entities.SelectMany(_ =>
+            IEnumerable<ApiRelationship> calculationCalculationRelations = entities?.Where(_ => _.Relationships != null).SelectMany(_ =>
                 _.Relationships.Where(rel =>
                     rel.Type == "CallsCalculation"));
 
