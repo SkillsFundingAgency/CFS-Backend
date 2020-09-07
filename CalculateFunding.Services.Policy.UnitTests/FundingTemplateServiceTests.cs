@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using AutoMapper;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.TemplateMetadata;
 using CalculateFunding.Common.TemplateMetadata.Models;
@@ -14,6 +15,7 @@ using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Policy.Interfaces;
+using CalculateFunding.Services.Policy.MappingProfiles;
 using CalculateFunding.Services.Policy.Models;
 using CalculateFunding.Services.Policy.UnitTests;
 using CalculateFunding.Tests.Common.Helpers;
@@ -277,6 +279,10 @@ namespace CalculateFunding.Services.Policy
             await cacheProvider
                 .Received(1)
                 .RemoveAsync<TemplateMetadataContents>($"{CacheKeys.FundingTemplateContentMetadata}pes:ay-2020:1.5");
+
+            await cacheProvider
+                .Received(1)
+                .RemoveAsync<TemplateMetadataDistinctContents>($"{CacheKeys.FundingTemplateContentMetadataDistinct}pes:ay-2020:1.5");
         }
 
         [TestMethod]
@@ -805,14 +811,139 @@ namespace CalculateFunding.Services.Policy
                 .BeAssignableTo<NotFoundResult>();
         }
 
+        [TestMethod]
+        public async Task GetDistinctFundingTemplateMetadataFundingLinesContents_GivenTemplateIsInBlob_ReturnsOkObjecResultstWithDistinctFundingLinesAndCalculations()
+        {
+            //Arrange
+            const string fundingStreamId = "PES";
+            const string fundingPeriodId = "AY-2020";
+            const string templateVersion = "1.0";
+
+            string template = CreateJsonFile("CalculateFunding.Services.Policy.Resources.LogicalModelTemplateForDistinctMetadataContents.json");
+
+            string blobNamePrefix = $"{fundingStreamId}/{ fundingPeriodId}/{templateVersion}";
+
+            IFundingTemplateRepository fundingTemplateRepository = CreateFundingTemplateRepository();
+            fundingTemplateRepository
+                .TemplateVersionExists(Arg.Is<string>(_ => _.Contains(blobNamePrefix)))
+                .Returns(true);
+            fundingTemplateRepository.GetFundingTemplateVersion(Arg.Is<string>(_ => _.Contains(blobNamePrefix)))
+                .Returns(template);
+
+            ILogger logger = CreateLogger();
+            ICacheProvider cacheProvider = CreateCacheProvider();
+
+            FundingTemplateService fundingTemplateService = CreateFundingTemplateService(
+               logger,
+               fundingTemplateRepository: fundingTemplateRepository,
+               cacheProvider: cacheProvider);
+
+            //Act
+            IActionResult result = await fundingTemplateService.GetDistinctFundingTemplateMetadataContents(fundingStreamId, fundingPeriodId, templateVersion);
+
+            //Assert
+            result
+                .Should()
+                .BeAssignableTo<OkObjectResult>();
+
+            TemplateMetadataDistinctContents contents = ((OkObjectResult)result).Value.As<TemplateMetadataDistinctContents>();
+            contents.Should().NotBeNull();
+            contents.FundingLines.Count().Should().Be(2);
+            contents.Calculations.Count().Should().Be(2);
+            contents.FundingStreamId.Should().Be(fundingStreamId);
+            contents.FundingPeriodId.Should().Be(fundingPeriodId);
+            contents.TemplateVersion.Should().Be(templateVersion);
+
+            string cacheKey = $"{CacheKeys.FundingTemplateContentMetadataDistinct}{fundingStreamId}:{fundingPeriodId}:{templateVersion}".ToLowerInvariant();
+            await cacheProvider
+                .Received(1)
+                .SetAsync(cacheKey,
+                Arg.Is<TemplateMetadataDistinctContents>(_ => _.FundingStreamId == fundingStreamId && _.FundingPeriodId == fundingPeriodId && _.TemplateVersion == templateVersion),
+                TimeSpan.FromDays(365),
+                true,
+                null);
+        }
+
+        [TestMethod]
+        public async Task GetDistinctFundingTemplateMetadataFundingLinesContents_GivenContentsInCache_ReturnsOkObjecWithResultsFromCache()
+        {
+            //Arrange
+            const string fundingStreamId = "PES";
+            const string fundingPeriodId = "AY-2020";
+            const string templateVersion = "1.0";
+            string cacheKey = $"{CacheKeys.FundingTemplateContentMetadataDistinct}{fundingStreamId}:{fundingPeriodId}:{templateVersion}".ToLowerInvariant();
+
+            string blobNamePrefix = $"{fundingStreamId}/{ fundingPeriodId}/{templateVersion}";
+
+            IFundingTemplateRepository fundingTemplateRepository = CreateFundingTemplateRepository();
+            fundingTemplateRepository
+                .TemplateVersionExists(Arg.Is<string>(_ => _.Contains(blobNamePrefix)))
+                .Returns(true);
+            fundingTemplateRepository.GetFundingTemplateVersion(Arg.Is<string>(_ => _.Contains(blobNamePrefix)))
+                .Returns(string.Empty);
+
+            ILogger logger = CreateLogger();
+            ICacheProvider cacheProvider = CreateCacheProvider();
+
+            cacheProvider.GetAsync<TemplateMetadataDistinctContents>(cacheKey)
+                .Returns(new TemplateMetadataDistinctContents() { 
+                    FundingStreamId = fundingStreamId, 
+                    FundingPeriodId = fundingPeriodId, 
+                    TemplateVersion = templateVersion});
+
+            FundingTemplateService fundingTemplateService = CreateFundingTemplateService(
+               logger,
+               fundingTemplateRepository: fundingTemplateRepository,
+               cacheProvider: cacheProvider);
+
+            //Act
+            IActionResult result = await fundingTemplateService.GetDistinctFundingTemplateMetadataContents(fundingStreamId, fundingPeriodId, templateVersion);
+
+            //Assert
+            result
+                .Should()
+                .BeAssignableTo<OkObjectResult>();
+
+            TemplateMetadataDistinctContents contents = ((OkObjectResult)result).Value.As<TemplateMetadataDistinctContents>();
+            contents.Should().NotBeNull();
+            contents.FundingStreamId.Should().Be(fundingStreamId);
+            contents.FundingPeriodId.Should().Be(fundingPeriodId);
+            contents.TemplateVersion.Should().Be(templateVersion);
+
+            await cacheProvider
+                .Received(1).GetAsync<TemplateMetadataDistinctContents>(cacheKey);
+
+            await fundingTemplateRepository
+                .Received(0).GetFundingTemplateVersion(Arg.Is<string>(_ => _.Contains(blobNamePrefix)));
+
+            await cacheProvider
+                .Received(0)
+                .SetAsync(cacheKey,
+                Arg.Is<TemplateMetadataDistinctContents>(_ => _.FundingStreamId == fundingStreamId && _.FundingPeriodId == fundingPeriodId && _.TemplateVersion == templateVersion),
+                TimeSpan.FromDays(365),
+                true,
+                null);
+        }
+
         private static FundingTemplateService CreateFundingTemplateService(
             ILogger logger = null,
             IFundingTemplateRepository fundingTemplateRepository = null,
             IFundingTemplateValidationService fundingTemplateValidationService = null,
             ICacheProvider cacheProvider = null,
             ITemplateMetadataResolver templateMetadataResolver = null,
-            ITemplateBuilderService templateBuilderService = null)
+            ITemplateBuilderService templateBuilderService = null,
+            IMapper mapper = null)
         {
+            if(mapper == null)
+            {
+                MapperConfiguration fundingConfMappingConfig = new MapperConfiguration(c =>
+                {
+                    c.AddProfile<FundingConfigurationMappingProfile>();
+                });
+
+                mapper = fundingConfMappingConfig.CreateMapper();
+            }
+
             return new FundingTemplateService(
                    logger ?? CreateLogger(),
                    fundingTemplateRepository ?? CreateFundingTemplateRepository(),
@@ -820,7 +951,8 @@ namespace CalculateFunding.Services.Policy
                    fundingTemplateValidationService ?? CreateFundingTemplateValidationService(),
                    cacheProvider ?? CreateCacheProvider(),
                    templateMetadataResolver ?? CreateMetadataResolver(),
-                   templateBuilderService ?? CreateTemplateBuilderService()
+                   templateBuilderService ?? CreateTemplateBuilderService(),
+                   mapper
                 );
         }
 

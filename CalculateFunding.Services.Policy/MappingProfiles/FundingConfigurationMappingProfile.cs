@@ -1,4 +1,6 @@
 ﻿using AutoMapper;
+using CalculateFunding.Common.TemplateMetadata.Models;
+using CalculateFunding.Models.Policy;
 using CalculateFunding.Models.Policy.FundingPolicy;
 using CalculateFunding.Models.Policy.FundingPolicy.ViewModels;
 
@@ -24,6 +26,9 @@ namespace CalculateFunding.Services.Policy.MappingProfiles
                 {
                     dest.Id = $"fundingdate-{dest.FundingStreamId}-{dest.FundingPeriodId}-{dest.FundingLineId}";
                 });
+
+            CreateMap<FundingLine, TemplateMetadataFundingLine>();
+            CreateMap<Calculation, TemplateMetadataCalculation>();
         }
     }
 }

@@ -12,7 +12,7 @@
         <PackageReference Include="Microsoft.Azure.WebJobs.ServiceBus" Version="3.0.0-beta8" />
 
         <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Jobs" Version="3.0.0" />
-        <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Policies" Version="3.8.1" />
+        <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Policies" Version="3.9.0" />
 
         <PackageReference Include="Microsoft.Azure.WebJobs.ServiceBus" Version="3.0.0-beta8" />
         <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.ServiceBus" Version="3.1.0" />

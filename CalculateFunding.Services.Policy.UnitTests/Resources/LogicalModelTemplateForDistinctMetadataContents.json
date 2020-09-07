@@ -1,0 +1,440 @@
+{
+  "$schema": "http://example.org/#schema",
+  "schemaVersion": "1.0",
+  "funding": {
+    "id": "PESports_AY1920_LocalAuthority_Camden_1.0",
+    "fundingVersion": "1.0",
+    "status": "Released",
+    "fundingStream": {
+      "templateVersion": "2.1",
+      "code": "PESports",
+      "name": "PE + Sport Premium"
+    },
+    "fundingPeriod": {
+      "code": "AY1920",
+      "name": "Academic year 2019-20",
+      "type": "AY",
+      "startDate": "2019-09-01T01:00:00+01:00",
+      "endDate": "2020-08-31T01:00:00+01:00"
+    },
+    "organisationGroup": {
+      "name": "Camden",
+      "type": "LocalAuthority",
+      "searchableName": "Camden",
+      "identifiers": [
+        {
+          "type": "LACode",
+          "value": "203"
+        },
+        {
+          "type": "UKPRN",
+          "value": "12345678"
+        }
+      ]
+    },
+    "fundingValue": {
+      "totalValue": 2400,
+      "fundingLines": [
+        {
+          "name": "Total funding line",
+          "fundingLineCode": "TotalFundingLine",
+          "value": 700,
+          "templateLineId": 1,
+          "type": "Payment",
+          "distributionPeriods": [
+            {
+              "value": 2800,
+              "distributionPeriodId": "FY1920",
+              "profilePeriods": [
+                {
+                  "type": "CalendarMonth",
+                  "typeValue": "October",
+                  "year": 2019,
+                  "occurrence": 1,
+                  "profiledValue": 2800,
+                  "distributionPeriodId": "FY1920"
+                }
+              ]
+            },
+            {
+              "value": 2000,
+              "distributionPeriodId": "FY2021",
+              "profilePeriods": [
+                {
+                  "type": "CalendarMonth",
+                  "typeValue": "October",
+                  "year": 2020,
+                  "occurrence": 1,
+                  "profiledValue": 2000,
+                  "distributionPeriodId": "FY2021"
+                }
+              ]
+            }
+          ],
+          "calculations": [
+            {
+              "name": "Number of pupils",
+              "templateCalculationId": 1,
+              "value": "456",
+              "valueFormat": "Number",
+              "type": "PupilNumber",
+              "formulaText": "Something * something",
+              "aggregationType": "Sum",
+              "referenceData": [
+                {
+                  "name": "Academic year 2018 to 2019 pupil number on roll",
+                  "templateReferenceId": 1,
+                  "format": "Number",
+                  "value": "1",
+                  "aggregationType": "Sum"
+                }
+              ]
+            },
+            {
+              "name": "Number of pupils2",
+              "templateCalculationId": 2,
+              "value": "123",
+              "valueFormat": "Number",
+              "type": "PupilNumber",
+              "formulaText": "Something * something",
+              "aggregationType": "Sum",
+              "referenceData": [
+                {
+                  "name": "Academic year 2018 to 2019 pupil number on roll",
+                  "templateReferenceId": 1,
+                  "format": "Number",
+                  "value": "1",
+                  "aggregationType": "Sum"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Total funding line2",
+          "fundingLineCode": "TotalFundingLine2",
+          "value": 700,
+          "templateLineId": 2,
+          "type": "Payment",
+          "distributionPeriods": [
+            {
+              "value": 2800,
+              "distributionPeriodId": "FY1920",
+              "profilePeriods": [
+                {
+                  "type": "CalendarMonth",
+                  "typeValue": "October",
+                  "year": 2019,
+                  "occurrence": 1,
+                  "profiledValue": 2800,
+                  "distributionPeriodId": "FY1920"
+                }
+              ]
+            },
+            {
+              "value": 2000,
+              "distributionPeriodId": "FY2021",
+              "profilePeriods": [
+                {
+                  "type": "CalendarMonth",
+                  "typeValue": "October",
+                  "year": 2020,
+                  "occurrence": 1,
+                  "profiledValue": 2000,
+                  "distributionPeriodId": "FY2021"
+                }
+              ]
+            }
+          ],
+          "calculations": [
+            {
+              "name": "Number of pupils",
+              "templateCalculationId": 1,
+              "value": "456",
+              "valueFormat": "Number",
+              "type": "PupilNumber",
+              "formulaText": "Something * something",
+              "aggregationType": "Sum",
+              "referenceData": [
+                {
+                  "name": "Academic year 2018 to 2019 pupil number on roll",
+                  "templateReferenceId": 1,
+                  "format": "Number",
+                  "value": "1",
+                  "aggregationType": "Sum"
+                }
+              ]
+            },
+            {
+              "name": "Number of pupils2",
+              "templateCalculationId": 2,
+              "value": "123",
+              "valueFormat": "Number",
+              "type": "PupilNumber",
+              "formulaText": "Something * something",
+              "aggregationType": "Sum",
+              "referenceData": [
+                {
+                  "name": "Academic year 2018 to 2019 pupil number on roll",
+                  "templateReferenceId": 1,
+                  "format": "Number",
+                  "value": "1",
+                  "aggregationType": "Sum"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Total funding line2",
+          "fundingLineCode": "TotalFundingLine2",
+          "value": 700,
+          "templateLineId": 2,
+          "type": "Payment",
+          "distributionPeriods": [
+            {
+              "value": 2800,
+              "distributionPeriodId": "FY1920",
+              "profilePeriods": [
+                {
+                  "type": "CalendarMonth",
+                  "typeValue": "October",
+                  "year": 2019,
+                  "occurrence": 1,
+                  "profiledValue": 2800,
+                  "distributionPeriodId": "FY1920"
+                }
+              ]
+            },
+            {
+              "value": 2000,
+              "distributionPeriodId": "FY2021",
+              "profilePeriods": [
+                {
+                  "type": "CalendarMonth",
+                  "typeValue": "October",
+                  "year": 2020,
+                  "occurrence": 1,
+                  "profiledValue": 2000,
+                  "distributionPeriodId": "FY2021"
+                }
+              ]
+            }
+          ],
+          "calculations": [
+            {
+              "name": "Number of pupils",
+              "templateCalculationId": 1,
+              "value": "456",
+              "valueFormat": "Number",
+              "type": "PupilNumber",
+              "formulaText": "Something * something",
+              "aggregationType": "Sum",
+              "referenceData": [
+                {
+                  "name": "Academic year 2018 to 2019 pupil number on roll",
+                  "templateReferenceId": 1,
+                  "format": "Number",
+                  "value": "1",
+                  "aggregationType": "Sum"
+                }
+              ]
+            },
+            {
+              "name": "Number of pupils2",
+              "templateCalculationId": 2,
+              "value": "123",
+              "valueFormat": "Number",
+              "type": "PupilNumber",
+              "formulaText": "Something * something",
+              "aggregationType": "Sum",
+              "referenceData": [
+                {
+                  "name": "Academic year 2018 to 2019 pupil number on roll",
+                  "templateReferenceId": 1,
+                  "format": "Number",
+                  "value": "1",
+                  "aggregationType": "Sum"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "providerFundings": [
+      {
+        "id": "PESports_AY1920_87654321_1.0",
+        "organisation": {
+          "name": "Example School 1",
+          "searchableName": "ExampleSchool1",
+          "identifiers": [
+            {
+              "type": "URN",
+              "value": "123453"
+            },
+            {
+              "type": "UKPRN",
+              "value": "87654321"
+            }
+          ],
+          "providerVersionId": null,
+          "providerType": "School",
+          "providerSubType": null,
+          "organisationDetails": null
+        },
+        "fundingStreamCode": "PESports",
+        "fundingPeriodCode": "AY1920",
+        "fundingValue": {
+          "totalValue": 1200,
+          "fundingLines": [
+                {
+                  "name": "Total funding line",
+                  "fundingLineCode": "TotalFundingLine",
+                  "value": 700,
+                  "templateLineId": 1,
+                  "type": "Payment",
+                  "distributionPeriods": [
+                    {
+                      "value": 2800,
+                      "distributionPeriodId": "FY1920",
+                      "profilePeriods": [
+                        {
+                          "type": "CalendarMonth",
+                          "typeValue": "October",
+                          "year": 2019,
+                          "occurrence": 1,
+                          "profiledValue": 2800,
+                          "distributionPeriodId": "FY1920"
+                        }
+                      ]
+                    },
+                    {
+                      "value": 2000,
+                      "distributionPeriodId": "FY2021",
+                      "profilePeriods": [
+                        {
+                          "type": "CalendarMonth",
+                          "typeValue": "October",
+                          "year": 2020,
+                          "occurrence": 1,
+                          "profiledValue": 2000,
+                          "distributionPeriodId": "FY2021"
+                        }
+                      ]
+                    }
+                  ],
+                  "calculations": [
+                    {
+                      "name": "Number of pupils",
+                      "templateCalculationId": 1,
+                      "value": "456",
+                      "valueFormat": "Number",
+                      "type": "PupilNumber",
+                      "formulaText": "Something * something",
+                      "aggregationType": "Sum",
+                      "referenceData": [
+                        {
+                          "name": "Academic year 2018 to 2019 pupil number on roll",
+                          "templateReferenceId": 1,
+                          "format": "Number",
+                          "value": "1",
+                          "aggregationType": "Sum"
+                        }
+                      ]
+                    },
+                    {
+                      "name": "Number of pupils",
+                      "templateCalculationId": 2,
+                      "value": "123",
+                      "valueFormat": "Number",
+                      "type": "PupilNumber",
+                      "formulaText": "Something * something",
+                      "aggregationType": "Sum",
+                      "referenceData": [
+                        {
+                          "name": "Academic year 2018 to 2019 pupil number on roll",
+                          "templateReferenceId": 1,
+                          "format": "Number",
+                          "value": "1",
+                          "aggregationType": "Sum"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+      },
+      {
+        "id": "PESports_AY1920_87654322_1.0",
+        "organisation": {
+          "name": "Example School 2",
+          "searchableName": "ExampleSchool2",
+          "identifiers": [
+            {
+              "type": "URN",
+              "value": "123453"
+            },
+            {
+              "type": "UKPRN",
+              "value": "87654322"
+            }
+          ],
+          "providerVersionId": null,
+          "providerType": "School",
+          "providerSubType": null,
+          "organisationDetails": null
+        },
+        "fundingStreamCode": "PESports",
+        "fundingPeriodCode": "AY1920",
+        "fundingValue": {
+          "totalValue": 1200,
+          "fundingLines": [
+            {
+              "name": "Total funding line",
+              "fundingLineCode": "TotalFundingLine",
+              "value": 700,
+              "templateLineId": 2,
+              "type": "Payment",
+              "distributionPeriods": [
+                {
+                  "value": 2800,
+                  "distributionPeriodId": "FY1920",
+                  "profilePeriods": [
+                    {
+                      "type": "CalendarMonth",
+                      "typeValue": "October",
+                      "year": 2019,
+                      "occurrence": 1,
+                      "profiledValue": 2800,
+                      "distributionPeriodId": "FY1920"
+                    }
+                  ]
+                },
+                {
+                  "value": 2000,
+                  "distributionPeriodId": "FY2021",
+                  "profilePeriods": [
+                    {
+                      "type": "CalendarMonth",
+                      "typeValue": "October",
+                      "year": 2020,
+                      "occurrence": 1,
+                      "profiledValue": 2000,
+                      "distributionPeriodId": "FY2021"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      }
+    ],
+    "groupingReason": "Payment",
+    "statusChangedDate": "2019-06-28T13:50:06.0597291+01:00",
+    "externalPublicationDate": "2019-09-01T00:00:00+01:00",
+    "paymentDate": "2019-06-28T13:50:06.059725+01:00"
+  }
+}

@@ -15,7 +15,7 @@
   <ItemGroup>
     <PackageReference Include="CalculateFunding.Common.ApiClient.Results" Version="4.9.0" />
 	<PackageReference Include="CalculateFunding.Common.Config.ApiClient.FundingDataZone" Version="1.3.0" />
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Policies" Version="3.8.1" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Policies" Version="3.9.0" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Results" Version="3.6.0" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Specifications" Version="3.9.0" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Jobs" Version="3.0.0" />

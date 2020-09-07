@@ -113,5 +113,47 @@ The template is validated against the schema and associated rules.";
         {
             return await _fundingTemplateService.GetFundingTemplates(fundingStreamId, fundingPeriodId);
         }
+
+        /// <summary>
+        /// Gets distinct fundingline and calculation contents for a template in the common metadata output
+        /// </summary>
+        /// <param name="fundingStreamId">Funding stream ID</param>
+        /// <param name="fundingPeriodId">Funding Period ID</param>
+        /// <param name="templateVersion">Template Version</param>
+        /// <returns></returns>
+        [HttpGet("api/templates/{fundingStreamId}/{fundingPeriodId}/{templateVersion}/metadata/distinct")]
+        [ProducesResponseType(200, Type = typeof(TemplateMetadataDistinctContents))]
+        public async Task<IActionResult> GetDistinctTemplateMetadataContents([FromRoute] string fundingStreamId, [FromRoute] string fundingPeriodId, [FromRoute] string templateVersion)
+        {
+            return await _fundingTemplateService.GetDistinctFundingTemplateMetadataContents(fundingStreamId, fundingPeriodId, templateVersion);
+        }
+
+        /// <summary>
+        /// Gets distinct fundinglines contents for a template in the common metadata output
+        /// </summary>
+        /// <param name="fundingStreamId">Funding stream ID</param>
+        /// <param name="fundingPeriodId">Funding Period ID</param>
+        /// <param name="templateVersion">Template Version</param>
+        /// <returns></returns>
+        [HttpGet("api/templates/{fundingStreamId}/{fundingPeriodId}/{templateVersion}/metadata/distinct/funding-lines")]
+        [ProducesResponseType(200, Type = typeof(TemplateMetadataDistinctFundingLinesContents))]
+        public async Task<IActionResult> GetDistinctTemplateMetadataFundingLinesContents([FromRoute] string fundingStreamId, [FromRoute] string fundingPeriodId, [FromRoute] string templateVersion)
+        {
+            return await _fundingTemplateService.GetDistinctFundingTemplateMetadataFundingLinesContents(fundingStreamId, fundingPeriodId, templateVersion);
+        }
+
+        /// <summary>
+        /// Gets distinct calculations contents for a template in the common metadata output
+        /// </summary>
+        /// <param name="fundingStreamId">Funding stream ID</param>
+        /// <param name="fundingPeriodId">Funding Period ID</param>
+        /// <param name="templateVersion">Template Version</param>
+        /// <returns></returns>
+        [HttpGet("api/templates/{fundingStreamId}/{fundingPeriodId}/{templateVersion}/metadata/distinct/calculations")]
+        [ProducesResponseType(200, Type = typeof(TemplateMetadataDistinctCalculationsContents))]
+        public async Task<IActionResult> GetDistinctTemplateMetadataCalculationsContents([FromRoute] string fundingStreamId, [FromRoute] string fundingPeriodId, [FromRoute] string templateVersion)
+        {
+            return await _fundingTemplateService.GetDistinctFundingTemplateMetadataCalculationsContents(fundingStreamId, fundingPeriodId, templateVersion);
+        }
     }
 }

@@ -78,6 +78,8 @@
 
         public static string FundingTemplateContentMetadata { get; set; } = "funding-template-content-metadata:";
 
+        public static string FundingTemplateContentMetadataDistinct { get; set; } = "funding-template-content-metadata-distinct:";
+
         public static string TemplateMapping { get; set; } = "template-mapping:";
 
         public static string LatestJobs { get; set; } = "jobs-latest:";

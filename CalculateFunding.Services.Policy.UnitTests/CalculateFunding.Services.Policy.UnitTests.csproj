@@ -13,6 +13,7 @@
     <None Remove="Resources\LogicalModelInvalidVersion.json" />
     <None Remove="Resources\LogicalModelNoVersion.json" />
     <None Remove="Resources\LogicalModelTemplate.json" />
+    <None Remove="Resources\LogicalModelTemplateForDistinctMetadataContents.json" />
     <None Remove="Resources\LogicalModelTemplateNoProfilePeriods.json" />
   </ItemGroup>
 
@@ -20,6 +21,7 @@
     <EmbeddedResource Include="Resources\LogicalModelInvalidVersion.json" />
     <EmbeddedResource Include="Resources\LogicalModelNoVersion.json" />
     <EmbeddedResource Include="Resources\LogicalModel.json" />
+    <EmbeddedResource Include="Resources\LogicalModelTemplateForDistinctMetadataContents.json" />
     <EmbeddedResource Include="Resources\LogicalModelTemplateNoProfilePeriods.json" />
     <EmbeddedResource Include="Resources\LogicalModelTemplate.json" />
   </ItemGroup>

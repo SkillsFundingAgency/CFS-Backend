@@ -11,5 +11,8 @@ namespace CalculateFunding.Services.Policy.Interfaces
         Task<IActionResult> GetFundingTemplate(string fundingStreamId, string fundingPeriodId, string templateVersion);
         Task<bool> TemplateExists(string fundingStreamId, string fundingPeriodId, string templateVersion);
         Task<IActionResult> GetFundingTemplates(string fundingStreamId, string fundingPeriodId);
+        Task<IActionResult> GetDistinctFundingTemplateMetadataContents(string fundingStreamId, string fundingPeriodId, string templateVersion);
+        Task<IActionResult> GetDistinctFundingTemplateMetadataFundingLinesContents(string fundingStreamId, string fundingPeriodId, string templateVersion);
+        Task<IActionResult> GetDistinctFundingTemplateMetadataCalculationsContents(string fundingStreamId, string fundingPeriodId, string templateVersion);
     }
 }
