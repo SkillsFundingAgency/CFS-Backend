@@ -20,6 +20,7 @@ using ApiRelationship = CalculateFunding.Common.ApiClient.Graph.Models.Relations
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Models.Graph;
 using CalculateFunding.Common.Extensions;
+using Nito.AsyncEx;
 
 namespace CalculateFunding.Services.Calcs.Analysis
 {
@@ -73,16 +74,24 @@ namespace CalculateFunding.Services.Calcs.Analysis
 
         private IEnumerable<Calculation> RemoveCalculationSpecificationRelationships(IEnumerable<Calculation> calculations, IEnumerable<ApiEntitySpecification> entities)
         {
-            // retrieve all calculations from the current graph related to the specification
-            IEnumerable<Calculation> specificationCalculations = entities.SelectMany(_ =>
-                _.Relationships.Where(rel => rel.Type == "BelongsToSpecification")
-                .Select(calc => ((object)calc.One).AsJson().AsPoco<Calculation>())).Distinct();
+            // retrieve all calculation to specification relationships from current graph
+            IEnumerable<ApiRelationship> specificationCalculations = entities?.Where(_ => _.Relationships != null).SelectMany(_ =>
+                _.Relationships.Where(rel =>
+                    rel.Type == "BelongsToSpecification"));
+
+            // if there are no calculation relationships to remove then exit early
+            if (Common.Extensions.IEnumerableExtensions.IsNullOrEmpty(specificationCalculations))
+            {
+                return null;
+            }
 
             // retrieve all the new calculations related to the specification
             HashSet<string> newSpecificationCalculations = calculations.Select(_ => _.CalculationId).ToHashSet();
 
             // retrieve all calculations which exist in the current graph but not in the new result set
             IEnumerable<Calculation> removedSpecificationCalculations = specificationCalculations
+                .Select(calc => ((object)calc.One).AsJson().AsPoco<Calculation>())
+                .Distinct()
                 .Where(_ => !newSpecificationCalculations.Contains(_.CalculationId));
 
             return removedSpecificationCalculations;
@@ -195,8 +204,11 @@ namespace CalculateFunding.Services.Calcs.Analysis
 
             Guard.ArgumentNotNull(specification, nameof(specification));
 
-            await DeleteSpecificationCalculationRelationships(specification, 
-                specificationCalculationUnusedRelationships.Calculations);
+            if (specificationCalculationUnusedRelationships.Calculations != null)
+            {
+                await DeleteSpecificationCalculationRelationships(specification,
+                    specificationCalculationUnusedRelationships.Calculations);
+            }
 
             if (specificationCalculationUnusedRelationships.CalculationRelationships != null)
             {
@@ -211,13 +223,17 @@ namespace CalculateFunding.Services.Calcs.Analysis
 
         private async Task InsertSpecificationGraph(SpecificationCalculationRelationships specificationCalculationRelationships)
         {
-            await InsertSpecificationNode(specificationCalculationRelationships.Specification);
-            await InsertCalculationNodes(specificationCalculationRelationships.Calculations);
-            await InsertSpecificationRelationships(specificationCalculationRelationships);
-            await InsertCalculationRelationships(specificationCalculationRelationships.CalculationRelationships);
-            await InsertDataFieldRelationships(specificationCalculationRelationships.CalculationDataFieldRelationships);
-            await InsertDatasetDataFieldRelationships(specificationCalculationRelationships.DatasetDataFieldRelationships, specificationCalculationRelationships.Specification.SpecificationId);
-            await InsertDatasetDatasetDefinitionRelationships(specificationCalculationRelationships.DatasetDatasetDefinitionRelationships);
+            List<Task> tasks = new List<Task>();
+
+            tasks.Add(InsertSpecificationNode(specificationCalculationRelationships.Specification));
+            tasks.Add(InsertCalculationNodes(specificationCalculationRelationships.Calculations));
+            tasks.Add(InsertSpecificationRelationships(specificationCalculationRelationships));
+            tasks.Add(InsertCalculationRelationships(specificationCalculationRelationships.CalculationRelationships));
+            tasks.Add(InsertDataFieldRelationships(specificationCalculationRelationships.CalculationDataFieldRelationships));
+            tasks.Add(InsertDatasetDataFieldRelationships(specificationCalculationRelationships.DatasetDataFieldRelationships, specificationCalculationRelationships.Specification.SpecificationId));
+            tasks.Add(InsertDatasetDatasetDefinitionRelationships(specificationCalculationRelationships.DatasetDatasetDefinitionRelationships));
+
+            await Core.Helpers.TaskHelper.WhenAllAndThrow(tasks.ToArraySafe());
         }
 
         private async Task DeleteSpecificationCalculationRelationships(Specification specification, IEnumerable<Calculation> calculations)

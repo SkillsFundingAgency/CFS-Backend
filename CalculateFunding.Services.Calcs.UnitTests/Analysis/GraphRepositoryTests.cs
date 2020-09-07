@@ -59,9 +59,10 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
         }
 
         [TestMethod]
-        [DataRow(false)]
-        [DataRow(true)]
-        public async Task DeletesThenInsertsGraphForSpecification(bool withCallsCalculation)
+        [DataRow(false, true)]
+        [DataRow(true, true)]
+        [DataRow(false, false)]
+        public async Task DeletesThenInsertsGraphForSpecification(bool withCallsCalculation, bool withBelongsToSpecification)
         {
             string specificationId = NewRandomString();
 
@@ -77,19 +78,21 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
             IEnumerable<ApiEntitySpecification> existingEntities = new[] { 
                 new ApiEntitySpecification {
                     Node = new ApiSpecification { SpecificationId = specificationId},
-                    Relationships = new[] { 
+                    Relationships = withBelongsToSpecification ? new[] { 
                         new ApiRelationship { One = NewGraphCalculation(_ => _.WithId(calculationIdFive)), Type = "BelongsToSpecification", Two = specification } 
-                    } 
+                    } : null
                 }
             };
 
             if (withCallsCalculation)
             {
-                existingEntities = existingEntities.Concat(new[] {new ApiEntitySpecification
-                {
-                    Node = new ApiSpecification { SpecificationId = specificationId },
-                    Relationships = new[] { new ApiRelationship { One = NewGraphCalculation(_ => _.WithId(calculationIdFour)), Type = "CallsCalculation", Two = NewGraphCalculation(_ => _.WithId(calculationIdFive)) } }
-                } });
+                existingEntities = existingEntities.Concat(new[] {
+                    new ApiEntitySpecification
+                    {
+                        Node = new ApiSpecification { SpecificationId = specificationId },
+                        Relationships = new[] { new ApiRelationship { One = NewGraphCalculation(_ => _.WithId(calculationIdFour)), Type = "CallsCalculation", Two = NewGraphCalculation(_ => _.WithId(calculationIdFive)) } }
+                    } 
+                });
             }
 
             IEnumerable<ApiEntityCalculation> existingCalculationEntities = new[] { new ApiEntityCalculation
@@ -200,7 +203,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
             });
 
             AndTheCollectionMapping(calculations, apiCalculations);
-            AndTheSpecificationRelationshipsAreDeleted(calculationIdFive, specificationId, unusedCalculationRelationships, unusedDataFieldRelationships);
+            AndTheSpecificationRelationshipsAreDeleted(calculationIdFive, specificationId, unusedCalculationRelationships, unusedDataFieldRelationships, withBelongsToSpecification);
             AndTheSpecificationIsCreated(apiSpecification);
             AndTheCalculationsAreCreated(apiCalculations);
             AndTheSpecificationCalculationRelationshipsWereCreated(specificationId, new []
@@ -224,11 +227,14 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Analysis
             _graphApiClient.VerifyAll();
         }
 
-        private void AndTheSpecificationRelationshipsAreDeleted(string calculationId, string specificationId, IEnumerable<CalculationRelationship> calculationRelationships, IEnumerable<CalculationDataFieldRelationship> datasetFieldRelationships)
+        private void AndTheSpecificationRelationshipsAreDeleted(string calculationId, string specificationId, IEnumerable<CalculationRelationship> calculationRelationships, IEnumerable<CalculationDataFieldRelationship> datasetFieldRelationships, bool withBelongsToSpecification)
         {
-            _graphApiClient.Setup(_ => _.DeleteCalculationSpecificationRelationship(calculationId, specificationId))
-                .ReturnsAsync(HttpStatusCode.OK)
-                .Verifiable();
+            if (withBelongsToSpecification)
+            {
+                _graphApiClient.Setup(_ => _.DeleteCalculationSpecificationRelationship(calculationId, specificationId))
+                    .ReturnsAsync(HttpStatusCode.OK)
+                    .Verifiable();
+            }
 
             foreach(CalculationRelationship calculationRelation in calculationRelationships)
             {
