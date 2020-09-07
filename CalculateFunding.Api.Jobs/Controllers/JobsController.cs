@@ -97,9 +97,11 @@ namespace CalculateFunding.Api.Jobs.Controllers
         [HttpGet]
         [Route("api/jobs/latest")]
         [ProducesResponseType(200, Type = typeof(JobSummary))]
-        public async Task<IActionResult> GetLatestJob([FromQuery] string specificationId,
-            [FromQuery] string jobTypes) =>
-            await _jobService.GetLatestJob(specificationId, jobTypes);
+        public async Task<IActionResult> GetLatestJobs([FromQuery] string specificationId, [FromQuery] string jobTypes)
+        {
+            return await _jobService.GetLatestJobs(specificationId, jobTypes);
+        }
+
 
         [HttpGet]
         [Route("api/jobs/{jobId}/logs")]

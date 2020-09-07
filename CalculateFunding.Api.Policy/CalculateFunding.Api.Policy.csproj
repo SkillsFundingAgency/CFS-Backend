@@ -15,7 +15,7 @@
   <ItemGroup>
     <PackageReference Include="CacheCow.Server" Version="2.7.4" />
     <PackageReference Include="CacheCow.Server.Core.Mvc" Version="2.7.4" />
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Jobs" Version="2.4.0" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Jobs" Version="3.0.0" />
     <PackageReference Include="CalculateFunding.Common.TemplateMetadata" Version="2.2.0" />
     <PackageReference Include="CalculateFunding.Common.TemplateMetadata.Schema10" Version="2.1.0" />
     <PackageReference Include="CalculateFunding.Common.TemplateMetadata.Schema11" Version="2.1.0" />

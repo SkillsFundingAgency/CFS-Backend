@@ -107,7 +107,7 @@ namespace CalculateFunding.Services.Jobs.Repositories
 
         public async Task<IEnumerable<Job>> GetNonCompletedJobs()
         {
-            return (await _cosmosRepository.Query<Job>((m) => 
+            return (await _cosmosRepository.Query<Job>((m) =>
                 m.Content.CompletionStatus != CompletionStatus.Cancelled &&
                 m.Content.CompletionStatus != CompletionStatus.Failed &&
                 m.Content.CompletionStatus != CompletionStatus.Succeeded &&
@@ -115,9 +115,9 @@ namespace CalculateFunding.Services.Jobs.Repositories
                 m.Content.CompletionStatus != CompletionStatus.TimedOut));
         }
 
-        public async Task<Job> GetLatestJobBySpecificationId(string specificationId, IEnumerable<string> jobDefinitionIds = null)
+        public async Task<Job> GetLatestJobBySpecificationIdAndDefinitionId(string specificationId, string jobDefinitionId)
         {
-            string query = @"SELECT TOP 1 r.content.id AS id, 
+            string query = @"SELECT r.content.id AS id, 
                                     r.content.jobDefinitionId AS jobDefinitionId, 
                                     r.content.runningStatus AS runningStatus, 
                                     r.content.completionStatus AS completionStatus, 
@@ -140,64 +140,59 @@ namespace CalculateFunding.Services.Jobs.Repositories
                             FROM    r 
                             WHERE   r.documentType = 'Job' 
                                     AND r.deleted = false 
-                                    AND r.content.specificationId = @SpecificationId";
+                                    AND r.content.specificationId = @SpecificationId
+                                    AND r.content.jobDefinitionId = @JobDefinitionId
+                                    ORDER BY r.content.created DESC";
 
             List<CosmosDbQueryParameter> cosmosDbQueryParameters = new List<CosmosDbQueryParameter>
             {
-                new CosmosDbQueryParameter("@SpecificationId", specificationId)
+                new CosmosDbQueryParameter("@SpecificationId", specificationId),
+                new CosmosDbQueryParameter("@JobDefinitionId", jobDefinitionId),
             };
 
-            string[] jobDefinitionIdsArray = jobDefinitionIds.ToArray();
+            IEnumerable<dynamic> latestJobResults = await _cosmosRepository.DynamicQuery(new CosmosDbQuery(query, cosmosDbQueryParameters));
 
-            if (!jobDefinitionIds.IsNullOrEmpty())
+            if (latestJobResults == null || latestJobResults.Count() == 0)
             {
-                IList<string> jobDefinitionIdFilters = new List<string>();
-
-                for (int cnt = 0; cnt < jobDefinitionIds.Count(); cnt++)
-                {
-                    jobDefinitionIdFilters.Add($"r.content.jobDefinitionId = @JobDefinitionId{cnt}");
-                    cosmosDbQueryParameters.Add(new CosmosDbQueryParameter($"@JobDefinitionId{cnt}", jobDefinitionIdsArray[cnt]));
-                }
-                query += $" AND ({string.Join(" or ", jobDefinitionIdFilters)})";
+                return null;
             }
 
-            query += " ORDER BY r.content.created DESC";
+            dynamic latestJob = latestJobResults.First();
 
-            IEnumerable<dynamic> existingResults = await _cosmosRepository.DynamicQuery(new CosmosDbQuery(query, cosmosDbQueryParameters), 1);
-
-            dynamic existingResult = existingResults.FirstOrDefault();
-
-            if (existingResult == null) return null;
-
-            string runningStatus = existingResult.runningStatus;
-            string completionStatus = existingResult.completionStatus;
-
-            return new Job
+            if (latestJob != null)
             {
-                Id = existingResult.id,
-                JobDefinitionId = existingResult.jobDefinitionId,
-                RunningStatus = Enum.Parse<RunningStatus>(runningStatus),
-                CompletionStatus = string.IsNullOrWhiteSpace(completionStatus) ? default(CompletionStatus?) : Enum.Parse<CompletionStatus>(completionStatus),
-                InvokerUserId = existingResult.invokeUserId,
-                InvokerUserDisplayName = existingResult.invokerDisplayName,
-                ItemCount = existingResult.itemCount,
-                SpecificationId = existingResult.specificationId,
-                Trigger = new Trigger
+                string runningStatus = latestJob.runningStatus;
+                string completionStatus = latestJob.completionStatus;
+
+                return new Job
                 {
-                    Message = existingResult.triggerMessage ?? string.Empty,
-                    EntityId = existingResult.triggerEntityId ?? string.Empty,
-                    EntityType = existingResult.triggerEntityType ?? string.Empty
-                },
-                ParentJobId = existingResult.parentJobId,
-                SupersededByJobId = existingResult.supersededByJobId,
-                CorrelationId = existingResult.correlationId,
-                Properties = existingResult.properties == null ? new Dictionary<string, string>() : ((JObject)existingResult.properties).ToObject<Dictionary<string, string>>(),
-                MessageBody = existingResult.messageBody,
-                Created = (DateTimeOffset)existingResult.created,
-                Completed = (DateTimeOffset?)existingResult.completed,
-                Outcome = existingResult.outcome,
-                LastUpdated = (DateTimeOffset)existingResult.lastUpdated
-            };
+                    Id = latestJob.id,
+                    JobDefinitionId = latestJob.jobDefinitionId,
+                    RunningStatus = Enum.Parse<RunningStatus>(runningStatus),
+                    CompletionStatus = string.IsNullOrWhiteSpace(completionStatus) ? default(CompletionStatus?) : Enum.Parse<CompletionStatus>(completionStatus),
+                    InvokerUserId = latestJob.invokeUserId,
+                    InvokerUserDisplayName = latestJob.invokerDisplayName,
+                    ItemCount = latestJob.itemCount,
+                    SpecificationId = latestJob.specificationId,
+                    Trigger = new Trigger
+                    {
+                        Message = latestJob.triggerMessage ?? string.Empty,
+                        EntityId = latestJob.triggerEntityId ?? string.Empty,
+                        EntityType = latestJob.triggerEntityType ?? string.Empty
+                    },
+                    ParentJobId = latestJob.parentJobId,
+                    SupersededByJobId = latestJob.supersededByJobId,
+                    CorrelationId = latestJob.correlationId,
+                    Properties = latestJob.properties == null ? new Dictionary<string, string>() : ((JObject)latestJob.properties).ToObject<Dictionary<string, string>>(),
+                    MessageBody = latestJob.messageBody,
+                    Created = (DateTimeOffset)latestJob.created,
+                    Completed = (DateTimeOffset?)latestJob.completed,
+                    Outcome = latestJob.outcome,
+                    LastUpdated = (DateTimeOffset)latestJob.lastUpdated
+                };
+            }
+
+            return null;
         }
 
         public async Task<IEnumerable<Job>> GetRunningJobsWithinTimeFrame(string dateTimeFrom, string dateTimeTo)
@@ -287,9 +282,9 @@ namespace CalculateFunding.Services.Jobs.Repositories
                 return;
 
             if (deletionType == DeletionType.SoftDelete)
-                await _cosmosRepository.BulkDeleteAsync(jobsList.ToDictionary(c => c.Id), hardDelete:false);
+                await _cosmosRepository.BulkDeleteAsync(jobsList.ToDictionary(c => c.Id), hardDelete: false);
             if (deletionType == DeletionType.PermanentDelete)
-                await _cosmosRepository.BulkDeleteAsync(jobsList.ToDictionary(c => c.Id), hardDelete:true);
+                await _cosmosRepository.BulkDeleteAsync(jobsList.ToDictionary(c => c.Id), hardDelete: true);
         }
 
         private async Task<IEnumerable<Job>> GetJobsBySpecificationId(string specificationId)

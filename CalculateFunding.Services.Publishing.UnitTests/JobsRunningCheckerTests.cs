@@ -17,7 +17,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
     {
         private IJobManagement _jobs;
-        private JobSummary _job;
+        private IEnumerable<JobSummary> _job;
         private string _specificationId;
         private string[] _jobTypes;
 
@@ -91,7 +91,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             _job = jobSummaryBuilder.Build();
 
-            _jobs.GetLatestJobForSpecification(_specificationId, Arg.Is<IEnumerable<string>>(_ => _.Single() == JobConstants.DefinitionNames.CreateInstructAllocationJob))
+            _jobs.GetLatestJobsForSpecification(_specificationId, Arg.Is<IEnumerable<string>>(_ => _.Single() == JobConstants.DefinitionNames.CreateInstructAllocationJob))
                 .Returns(_job);
         }
 

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -189,7 +188,7 @@ namespace CalculateFunding.Services.Jobs.Services
                     .Received(1)
                     .CreateJob(Arg.Is<Job>(m => m.InvokerUserDisplayName == "authorname" && m.InvokerUserId == "authorId"));
         }
-        
+
         [TestMethod]
         public async Task TryCreateJobs_GivenCreateJobReturnsNull_ReturnsResultWithErrorDetails()
         {
@@ -206,7 +205,7 @@ namespace CalculateFunding.Services.Jobs.Services
                     { "user-name", "authorname" }
                 }
             };
-            
+
             IEnumerable<JobCreateModel> jobs = new[]
             {
                 jobCreateModel
@@ -235,10 +234,10 @@ namespace CalculateFunding.Services.Jobs.Services
             JobManagementService jobManagementService = CreateJobManagementService(jobDefinitionsService: jobDefinitionsService, jobRepository: jobRepository, logger: logger);
 
             //Act
-            OkObjectResult actionResult =  await jobManagementService.TryCreateJobs(jobs, null) as OkObjectResult;
+            OkObjectResult actionResult = await jobManagementService.TryCreateJobs(jobs, null) as OkObjectResult;
 
             IEnumerable<JobCreateResult> jobCreateResults = actionResult?.Value as IEnumerable<JobCreateResult>;
-            
+
             jobCreateResults?.Should()
                 .BeEquivalentTo(new JobCreateResult
                 {
@@ -263,7 +262,7 @@ namespace CalculateFunding.Services.Jobs.Services
                     { "user-name", "authorname" }
                 }
             };
-            
+
             IEnumerable<JobCreateModel> jobs = new[]
             {
                 jobCreateModel
@@ -324,7 +323,7 @@ namespace CalculateFunding.Services.Jobs.Services
                     { "user-name", "authorname" }
                 }
             };
-            
+
             IEnumerable<JobCreateModel> jobs = new[]
             {
                 jobCreateModel
@@ -415,8 +414,8 @@ namespace CalculateFunding.Services.Jobs.Services
             ILogger logger = CreateLogger();
 
             JobManagementService jobManagementService = CreateJobManagementService(
-                jobDefinitionsService: jobDefinitionsService, 
-                jobRepository: jobRepository, 
+                jobDefinitionsService: jobDefinitionsService,
+                jobRepository: jobRepository,
                 logger: logger);
 
             //Act
@@ -503,12 +502,12 @@ namespace CalculateFunding.Services.Jobs.Services
             ILogger logger = CreateLogger();
             ICacheProvider cacheProvider = CreateCacheProvider();
 
-            string cacheKey = $"{CacheKeys.LatestJobs}:{job.SpecificationId}:{job.JobDefinitionId}";
+            string cacheKey = $"{CacheKeys.LatestJobs}{job.SpecificationId}:{job.JobDefinitionId}";
             cacheProvider
                 .SetAsync(cacheKey, Arg.Is<Job>(_ => _.JobDefinitionId == jobDefinitionId))
                 .Returns(Task.CompletedTask);
 
-            string cacheKeyTwo = $"{CacheKeys.LatestJobs}:{jobTwo.SpecificationId}:{jobTwo.JobDefinitionId}";
+            string cacheKeyTwo = $"{CacheKeys.LatestJobs}{jobTwo.SpecificationId}:{jobTwo.JobDefinitionId}";
             cacheProvider
                 .SetAsync(cacheKeyTwo, Arg.Is<Job>(_ => _.JobDefinitionId == jobDefinitionIdTwo))
                 .Returns(Task.CompletedTask);
@@ -1988,7 +1987,7 @@ namespace CalculateFunding.Services.Jobs.Services
                     { "user-name", "authorname" }
                 }
             };
-            
+
             IEnumerable<JobCreateModel> jobs = new[]
             {
                 jobCreateModel

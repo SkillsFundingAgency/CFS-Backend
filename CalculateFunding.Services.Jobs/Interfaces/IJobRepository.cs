@@ -26,10 +26,10 @@ namespace CalculateFunding.Services.Jobs.Interfaces
 
         Task<IEnumerable<Job>> GetNonCompletedJobs();
 
-        Task<Job> GetLatestJobBySpecificationId(string specificationId, IEnumerable<string> jobDefinitionIds = null);
-
         Task<IEnumerable<Job>> GetRunningJobsWithinTimeFrame(string dateTimeFrom, string dateTimeTo);
 
         Task DeleteJobsBySpecificationId(string specificationId, DeletionType deletionType);
+
+        Task<Job> GetLatestJobBySpecificationIdAndDefinitionId(string specificationId, string jobDefinitionId);
     }
 }

@@ -18,6 +18,7 @@ using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Models;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using ApiJob = CalculateFunding.Common.ApiClient.Jobs.Models.Job;
 using ApiSpecificationSummary = CalculateFunding.Common.ApiClient.Specifications.Models.SpecificationSummary;
 
@@ -113,9 +114,9 @@ namespace CalculateFunding.Services.Publishing.Specifications
                         Array.Empty<PublishedProvider>(),
                         Array.Empty<Provider>());
             }
-            catch (NonRetriableException)
+            catch (NonRetriableException ex)
             {
-                return new BadRequestObjectResult("Prerequisite check for refresh failed");
+                return new BadRequestObjectResult(new [] {$"Prerequisite check for refresh failed {ex.Message}"}.ToModelStateDictionary());
             }
 
             ApiJob refreshFundingJob = await _refreshFundingJobs.CreateJob(specificationId, user, correlationId);

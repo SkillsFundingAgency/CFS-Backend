@@ -25,12 +25,9 @@ namespace CalculateFunding.Services.Publishing
         {
             Guard.ArgumentNotNull(jobTypes, nameof(jobTypes));
 
-            IEnumerable<Task<JobSummary>> jobResponses = jobTypes
-                .Select(async _ => await _jobManagement.GetLatestJobForSpecification(specificationId, new string[] { _ }));
+            IEnumerable<JobSummary> jobSummaries = await _jobManagement.GetLatestJobsForSpecification(specificationId, jobTypes);
 
-            await TaskHelper.WhenAllAndThrow(jobResponses.ToArraySafe());
-
-            return jobResponses.Select(_ => _.Result).Where(_ =>  _ != null && _.RunningStatus == RunningStatus.InProgress).Select(_ => _.JobType);
+            return jobSummaries.Where(_ =>  _ != null && _.RunningStatus == RunningStatus.InProgress).Select(_ => _.JobType);
         }
     }
 }

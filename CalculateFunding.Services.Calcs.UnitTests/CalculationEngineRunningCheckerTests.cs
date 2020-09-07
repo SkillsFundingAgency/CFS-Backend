@@ -91,8 +91,8 @@ namespace CalculateFunding.Services.Calcs.UnitTests
 
             _job = jobSummaryBuilder.Build();
 
-            _jobs.GetLatestJobForSpecification(_specificationId, Arg.Is<IEnumerable<string>>(_ => _.Single() == JobConstants.DefinitionNames.CreateInstructAllocationJob))
-                .Returns(_job);
+            _jobs.GetLatestJobsForSpecification(_specificationId, Arg.Is<IEnumerable<string>>(_ => _.Single() == JobConstants.DefinitionNames.CreateInstructAllocationJob))
+                .Returns(new[] { _job });
         }
 
         private async Task<bool> WhenTheCalculationEngineRunningStatusIsChecked()

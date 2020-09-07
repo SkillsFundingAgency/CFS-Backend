@@ -253,7 +253,7 @@ namespace CalculateFunding.Services.Jobs.Services
                 .GetChildJobsForParent(Arg.Is(parentJobId))
                 .Returns(new List<Job> { job });
 
-            string cacheKey = $"{CacheKeys.LatestJobs}:{job.SpecificationId}:{job.JobDefinitionId}";
+            string cacheKey = $"{CacheKeys.LatestJobs}{job.SpecificationId}:{job.JobDefinitionId}";
 
             ICacheProvider cacheProvider = CreateCacheProvider();
             cacheProvider
@@ -261,7 +261,7 @@ namespace CalculateFunding.Services.Jobs.Services
                 .Returns(Task.CompletedTask);
 
             JobManagementService jobManagementService = CreateJobManagementService(
-                jobRepository, 
+                jobRepository,
                 logger: logger,
                 cacheProvider: cacheProvider);
 
@@ -277,10 +277,10 @@ namespace CalculateFunding.Services.Jobs.Services
             // Assert
             await jobRepository
                 .Received(1)
-                .UpdateJob(Arg.Is<Job>(j => 
-                    j.Id == parentJobId && 
-                    j.RunningStatus == RunningStatus.Completed && 
-                    j.Completed.HasValue && 
+                .UpdateJob(Arg.Is<Job>(j =>
+                    j.Id == parentJobId &&
+                    j.RunningStatus == RunningStatus.Completed &&
+                    j.Completed.HasValue &&
                     j.Outcome == "All child jobs completed"));
 
             await
@@ -403,7 +403,7 @@ namespace CalculateFunding.Services.Jobs.Services
             // Arrange
             string parentJobId = "parent123";
             string jobId = "child123";
-            
+
             Job job = new Job { Id = jobId, ParentJobId = parentJobId, CompletionStatus = CompletionStatus.Succeeded, RunningStatus = RunningStatus.Completed };
 
             Job job2 = new Job { Id = "child456", ParentJobId = parentJobId, CompletionStatus = CompletionStatus.Succeeded, RunningStatus = RunningStatus.Completed };
@@ -455,7 +455,7 @@ namespace CalculateFunding.Services.Jobs.Services
             Job job = new Job { Id = jobId, ParentJobId = parentJobId, CompletionStatus = CompletionStatus.Succeeded, RunningStatus = RunningStatus.Completed };
 
             Job job2 = new Job { Id = "child456", ParentJobId = parentJobId, RunningStatus = RunningStatus.Completed, CompletionStatus = CompletionStatus.TimedOut };
-            
+
             Job parentJob = new Job { Id = parentJobId, RunningStatus = RunningStatus.InProgress };
 
             ILogger logger = CreateLogger();
@@ -681,15 +681,21 @@ namespace CalculateFunding.Services.Jobs.Services
 
             Job job3 = new Job { Id = "child789", ParentJobId = parentJobId, RunningStatus = RunningStatus.Completed, CompletionStatus = CompletionStatus.Succeeded };
 
-            Job preCompletionJob = new Job { Id = "preCompletionJob",
+            Job preCompletionJob = new Job
+            {
+                Id = "preCompletionJob",
                 ParentJobId = parentJobId,
                 JobDefinitionId = preCompletionJobDefinition,
-                RunningStatus = RunningStatus.InProgress };
+                RunningStatus = RunningStatus.InProgress
+            };
 
-            Job parentJob = new Job { Id = parentJobId,
+            Job parentJob = new Job
+            {
+                Id = parentJobId,
                 RunningStatus = RunningStatus.InProgress,
                 JobDefinitionId = jobDefinitionId,
-                Trigger = new Trigger { } };
+                Trigger = new Trigger { }
+            };
 
             ILogger logger = CreateLogger();
             IJobRepository jobRepository = CreateJobRepository();
@@ -716,8 +722,8 @@ namespace CalculateFunding.Services.Jobs.Services
                 .Returns(new[] { new JobDefinition { Id = jobDefinitionId, PreCompletionJobs = new[] { preCompletionJobDefinition } },
                     new JobDefinition { Id = preCompletionJobDefinition } });
 
-            JobManagementService jobManagementService = CreateJobManagementService(jobRepository, 
-                logger: logger, 
+            JobManagementService jobManagementService = CreateJobManagementService(jobRepository,
+                logger: logger,
                 jobDefinitionsService: jobDefinitionsService);
 
             JobNotification jobNotification = new JobNotification { JobId = jobId, RunningStatus = RunningStatus.Completed };

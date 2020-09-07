@@ -214,7 +214,7 @@ namespace CalculateFunding.Services.Jobs
 
         private async Task CacheJob(Job job)
         {
-            string cacheKey = $"{CacheKeys.LatestJobs}:{job.SpecificationId}:{job.JobDefinitionId}";
+            string cacheKey = $"{CacheKeys.LatestJobs}{job.SpecificationId}:{job.JobDefinitionId}";
             await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync(cacheKey, job));
         }
 
@@ -703,8 +703,6 @@ namespace CalculateFunding.Services.Jobs
 
             try
             {
-
-
                 createResult.Job = await CreateJob(newJob);
 
                 if (createResult.Job == null)

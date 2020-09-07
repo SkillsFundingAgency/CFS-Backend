@@ -145,7 +145,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
         public async Task Returns400IfPrereqChecksFails()
         {
             string fundingPeriodId = NewRandomString();
-            string preReqCheckFailedErrorMessage = "Prerequisite check for refresh failed";
+            string preReqCheckFailedErrorMessage = "Prerequisite check for refresh failed Error in the application." ;
 
             ApiSpecificationSummary specificationSummary =
                 NewApiSpecificationSummary(_ => _
@@ -162,13 +162,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
 
             await WhenTheSpecificationIsPublished();
 
-            ActionResult
+            var result = ActionResult
                 .Should()
                 .BeOfType<BadRequestObjectResult>()
                 .Which
-                .Value
+                .Value;
+
+            ((result as ICollection<KeyValuePair<string, object>>).First().Value as string[]).First()
                 .Should()
-                .BeEquivalentTo(preReqCheckFailedErrorMessage);
+                .Be(preReqCheckFailedErrorMessage);
         }
 
         [TestMethod]

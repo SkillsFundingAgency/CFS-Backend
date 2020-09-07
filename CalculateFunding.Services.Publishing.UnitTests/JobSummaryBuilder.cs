@@ -23,13 +23,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             return this;
         }
 
-        public JobSummary Build()
+        public IEnumerable<JobSummary> Build()
         {
-            return new JobSummary
+            return new List<JobSummary> { new JobSummary
             {
                 RunningStatus = _inProgressStatus,
                 JobType = _jobType
-            };
+            } };
         }
     }
 }

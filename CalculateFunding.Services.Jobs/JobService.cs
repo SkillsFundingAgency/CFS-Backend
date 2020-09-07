@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Common.Caching;
@@ -9,6 +11,7 @@ using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Jobs;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Jobs.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -23,8 +26,8 @@ namespace CalculateFunding.Services.Jobs
         private readonly Polly.AsyncPolicy _cacheProviderPolicy;
 
         public JobService(
-            IJobRepository jobRepository, 
-            IMapper mapper, 
+            IJobRepository jobRepository,
+            IMapper mapper,
             IJobsResiliencePolicies resiliencePolicies,
             ICacheProvider cacheProvider)
         {
@@ -163,66 +166,61 @@ namespace CalculateFunding.Services.Jobs
             return new OkObjectResult(jobQueryResponse);
         }
 
-        public async Task<IActionResult> GetLatestJob(string specificationId, string jobTypes)
+        public async Task<IActionResult> GetLatestJobs(string specificationId, string jobTypes)
         {
             Guard.ArgumentNotNull(specificationId, nameof(specificationId));
-
-            Job latestJob = null;
-            List<string> cachedJobDefinitionIds = new List<string>();
 
             string[] jobDefinitionIds =
                 !string.IsNullOrEmpty(jobTypes) ?
                 jobTypes.Split(new[] { "," }, StringSplitOptions.RemoveEmptyEntries)
                 : Array.Empty<string>();
 
-            if (jobDefinitionIds != null)
+            if (!jobDefinitionIds.Any())
             {
-                foreach (var jobDefinitionId in jobDefinitionIds)
+                return new BadRequestObjectResult("JobTypes must be provided to get latest jobs.");
+            }
+
+            ConcurrentDictionary<string, Job> jobsByDefinition = new ConcurrentDictionary<string, Job>();
+
+            List<Task> allTasks = new List<Task>();
+
+            foreach (string jobDefinitionId in jobDefinitionIds.Distinct())
+            {
+                allTasks.Add(
+                Task.Run(async () =>
                 {
-                    string cacheKey = $"{CacheKeys.LatestJobs}:{specificationId}:{jobDefinitionId}";
+                    string cacheKey = $"{CacheKeys.LatestJobs}{specificationId}:{jobDefinitionId}";
 
                     Job job = await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.GetAsync<Job>(cacheKey));
 
-                    if(job != null)
+                    if (job != null)
                     {
-                        cachedJobDefinitionIds.Add(jobDefinitionId);
-
-                        if (latestJob == null || job.Created > latestJob.Created)
+                        jobsByDefinition[jobDefinitionId] = job;
+                    }
+                    else
+                    {
+                        job = await _jobRepository.GetLatestJobBySpecificationIdAndDefinitionId(specificationId, jobDefinitionId);
+                        if (job != null)
                         {
-                            latestJob = job;
+                            await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync(cacheKey, job));
+
+                            jobsByDefinition[jobDefinitionId] = job;
                         }
                     }
-                }
+                }));
             }
 
-            IEnumerable<string> uncachedJobDefinitionsIds = jobDefinitionIds.Except(cachedJobDefinitionIds.ToArray());
+            await TaskHelper.WhenAllAndThrow(allTasks.ToArray());
 
-            Job retrievedJob = null;
+            IEnumerable<JobSummary> jobSummaries = _mapper.Map<IEnumerable<JobSummary>>(jobsByDefinition.Values);
 
-            if (uncachedJobDefinitionsIds.Any() || !jobDefinitionIds.Any())
+            JobSummary[] results = new JobSummary[jobDefinitionIds.Length];
+            for (int i = 0; i < jobDefinitionIds.Length; i++)
             {
-                retrievedJob = await _jobRepository.GetLatestJobBySpecificationId(specificationId, uncachedJobDefinitionsIds);
-
-                if (retrievedJob != null)
-                {
-                    string cacheKey = $"{CacheKeys.LatestJobs}:{specificationId}:{retrievedJob.JobDefinitionId}";
-                    await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync(cacheKey, retrievedJob));
-                }
+                results[i] = jobSummaries.FirstOrDefault(x => string.Equals(x.JobDefinitionId, jobDefinitionIds[i], StringComparison.InvariantCultureIgnoreCase));
             }
 
-            if (latestJob == null || retrievedJob?.Created > latestJob.Created)
-            {
-                latestJob = retrievedJob;
-            }
-
-            if (latestJob == null)
-            {
-                return new NoContentResult();
-            }
-            else
-            {
-                return new OkObjectResult(_mapper.Map<JobSummary>(latestJob));
-            }
+            return new OkObjectResult(results);
         }
 
         public async Task<IActionResult> GetCreatedJobsWithinTimeFrame(DateTimeOffset dateTimeFrom, DateTimeOffset dateTimeTo)
@@ -230,7 +228,7 @@ namespace CalculateFunding.Services.Jobs
             Guard.ArgumentNotNull(dateTimeFrom, nameof(dateTimeFrom));
             Guard.ArgumentNotNull(dateTimeTo, nameof(dateTimeFrom));
 
-            if(dateTimeFrom > DateTimeOffset.UtcNow)
+            if (dateTimeFrom > DateTimeOffset.UtcNow)
             {
                 return new BadRequestObjectResult($"{nameof(dateTimeFrom)} cannot be in the future");
             }
@@ -246,7 +244,7 @@ namespace CalculateFunding.Services.Jobs
             IEnumerable<Job> jobs = await _jobsRepositoryPolicy.ExecuteAsync(() => _jobRepository.GetRunningJobsWithinTimeFrame(dateTimeFromAsString, dateTimeToAsString));
 
             return new OkObjectResult(jobs.Select(_mapper.Map<JobSummary>));
-         }
+        }
 
         public Task<IActionResult> UpdateJob(string jobId, JobUpdateModel jobUpdate)
         {

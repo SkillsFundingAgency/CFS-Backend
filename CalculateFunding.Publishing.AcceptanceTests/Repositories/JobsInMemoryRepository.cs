@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs;
@@ -159,9 +160,9 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             throw new NotImplementedException();
         }
 
-        public Task<ApiResponse<JobSummary>> GetLatestJobForSpecification(string specificationId, IEnumerable<string> jobTypes)
+        public Task<ApiResponse<IEnumerable<JobSummary>>> GetLatestJobsForSpecification(string specificationId, IEnumerable<string> jobTypes)
         {
-            return Task.FromResult(new ApiResponse<JobSummary>(HttpStatusCode.OK, new JobSummary()));
+            return Task.FromResult(new ApiResponse<IEnumerable<JobSummary>>(HttpStatusCode.OK, jobTypes.Select(x => new JobSummary())));
         }
 
         public Task<List<JobLog>> GetLatestJobForSpecification(string jobId)

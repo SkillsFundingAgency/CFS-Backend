@@ -13,10 +13,15 @@
   </PropertyGroup>
   
   <ItemGroup>
+
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Jobs" Version="3.0.0" />
+
     <PackageReference Include="CalculateFunding.Common.ApiClient.Specifications" Version="6.12.0" />
+
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Calcs" Version="3.2.0" />
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Jobs" Version="2.4.0" />
+
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Policies" Version="3.8.1" />
+
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Profiling" Version="1.5.0" />   
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Providers" Version="4.2.0" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Specifications" Version="3.9.0" />

@@ -353,14 +353,14 @@ namespace CalculateFunding.Services.Providers
 
             if (string.IsNullOrWhiteSpace(currentProviderCount) || int.Parse(currentProviderCount) != scopedProviderRedisListCount || setCachedProviders)
             {
-                JobSummary latestJob = await _jobManagement.GetLatestJobForSpecification(specificationId,
+                IEnumerable<JobSummary> latestJob = await _jobManagement.GetLatestJobsForSpecification(specificationId,
                     new[]
                     {
                         JobConstants.DefinitionNames.PopulateScopedProvidersJob
                     });
 
                 // the populate scoped providers job is already running so don't need to queue another job
-                if (latestJob?.RunningStatus == RunningStatus.InProgress)
+                if (latestJob?.FirstOrDefault()?.RunningStatus == RunningStatus.InProgress)
                 {
                     return true;
                 }
