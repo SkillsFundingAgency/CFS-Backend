@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Caching;
@@ -244,14 +245,19 @@ namespace CalculateFunding.Services.Jobs.Services
             jobRepository
                 .GetJobById(Arg.Is(jobId))
                 .Returns(job);
-
             jobRepository
                 .GetJobById(Arg.Is(parentJobId))
                 .Returns(parentJob);
-
             jobRepository
                 .GetChildJobsForParent(Arg.Is(parentJobId))
                 .Returns(new List<Job> { job });
+            var moreRecentJob = new Job {Id = "newer-job-id"};
+            jobRepository
+                .GetLatestJobBySpecificationIdAndDefinitionId(Arg.Any<string>(), Arg.Any<string>())
+                .Returns(moreRecentJob);
+            jobRepository
+                .UpdateJob(Arg.Any<Job>())
+                .Returns(HttpStatusCode.OK);
 
             string cacheKey = $"{CacheKeys.LatestJobs}{job.SpecificationId}:{job.JobDefinitionId}";
 
@@ -286,7 +292,7 @@ namespace CalculateFunding.Services.Jobs.Services
             await
                 cacheProvider
                 .Received(1)
-                .SetAsync(cacheKey, Arg.Is<Job>(_ => _.Id == parentJob.Id));
+                .SetAsync(cacheKey, Arg.Is<Job>(_ => _.Id == moreRecentJob.Id));
         }
 
         [TestMethod]

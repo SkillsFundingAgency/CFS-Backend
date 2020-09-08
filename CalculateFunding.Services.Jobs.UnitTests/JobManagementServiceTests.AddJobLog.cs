@@ -71,6 +71,9 @@ namespace CalculateFunding.Services.Jobs.Services
             jobRepository
                 .GetJobById(Arg.Is(jobId))
                 .Returns(job);
+            jobRepository
+                .GetLatestJobBySpecificationIdAndDefinitionId(Arg.Any<string>(), Arg.Any<string>())
+                .Returns(job);
 
             jobRepository
                 .UpdateJob(Arg.Is(job))

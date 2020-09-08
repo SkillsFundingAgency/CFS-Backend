@@ -228,7 +228,9 @@ namespace CalculateFunding.Services.Jobs.Services
             jobRepository
                 .CreateJob(Arg.Any<Job>())
                 .Returns((Job)null);
-
+            jobRepository
+                .GetLatestJobBySpecificationIdAndDefinitionId(Arg.Any<string>(), Arg.Any<string>())
+                .Returns(new Job());
             ILogger logger = CreateLogger();
 
             JobManagementService jobManagementService = CreateJobManagementService(jobDefinitionsService: jobDefinitionsService, jobRepository: jobRepository, logger: logger);
@@ -253,6 +255,7 @@ namespace CalculateFunding.Services.Jobs.Services
             JobCreateModel jobCreateModel = new JobCreateModel
             {
                 JobDefinitionId = jobDefinitionId,
+                SpecificationId = "spec-id",
                 Trigger = new Trigger(),
                 InvokerUserId = "authorId",
                 InvokerUserDisplayName = "authorname",
@@ -285,7 +288,10 @@ namespace CalculateFunding.Services.Jobs.Services
             jobRepository
                 .CreateJob(Arg.Any<Job>())
                 .Returns((Job)null);
-
+            jobRepository
+                .GetLatestJobBySpecificationIdAndDefinitionId(Arg.Any<string>(), Arg.Any<string>())
+                .Returns((Job)null);
+            
             ILogger logger = CreateLogger();
 
             JobManagementService jobManagementService = CreateJobManagementService(jobDefinitionsService: jobDefinitionsService, jobRepository: jobRepository, logger: logger);
@@ -989,11 +995,12 @@ namespace CalculateFunding.Services.Jobs.Services
             jobRepository
                 .CreateJob(Arg.Any<Job>())
                 .Returns(job);
-
+            jobRepository
+                .GetLatestJobBySpecificationIdAndDefinitionId(Arg.Any<string>(), Arg.Any<string>())
+                .Returns(job);
             jobRepository
                 .UpdateJob(Arg.Any<Job>())
                 .Returns(HttpStatusCode.BadRequest);
-
             jobRepository
                 .GetRunningJobsForSpecificationAndJobDefinitionId(Arg.Is(jobs.First().SpecificationId), Arg.Is(jobDefinitionId))
                 .Returns(currentJobs);

@@ -178,16 +178,19 @@ namespace CalculateFunding.Services.Jobs.Services
         public async Task CheckAndProcessTimedOutJobs_GivenNonCompletedJobsAndHasTimeOutButFailedToUpdate_LogsError()
         {
             //Arrange
+            Job job = new Job {Id = "job-id-1", JobDefinitionId = "job-def-2", Created = DateTimeOffset.Now.AddHours(-13)};
             IEnumerable<Job> nonCompletedJobs = new[]
             {
-                new Job {Id = "job-id-1", JobDefinitionId = "job-def-2", Created = DateTimeOffset.Now.AddHours(-13)},
+                job
             };
 
             IJobRepository jobRepository = CreateJobRepository();
             jobRepository
                 .GetNonCompletedJobs()
                 .Returns(nonCompletedJobs);
-
+            jobRepository
+                .GetLatestJobBySpecificationIdAndDefinitionId(Arg.Any<string>(), Arg.Any<string>())
+                .Returns(job);
             jobRepository
                 .UpdateJob(Arg.Any<Job>())
                 .Returns(HttpStatusCode.BadRequest);
@@ -305,7 +308,9 @@ namespace CalculateFunding.Services.Jobs.Services
             jobRepository
                 .GetNonCompletedJobs()
                 .Returns(nonCompletedJobs);
-
+            jobRepository
+                .GetLatestJobBySpecificationIdAndDefinitionId(Arg.Any<string>(), Arg.Any<string>())
+                .Returns(nonCompletedJobs.First());
             jobRepository
                 .UpdateJob(Arg.Any<Job>())
                 .Returns(HttpStatusCode.OK, HttpStatusCode.BadRequest);
