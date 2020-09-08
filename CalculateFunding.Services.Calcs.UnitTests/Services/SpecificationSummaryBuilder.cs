@@ -17,7 +17,15 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
         private IEnumerable<string> _fundingStreamIds = Enumerable.Empty<string>();
         private bool _withNoId;
         private string _providerVersionId;
+        private IDictionary<string, string> _templateVersions;
 
+        public SpecificationSummaryBuilder WithTemplateVersions(params (string fundingStream, string templateVersion)[] templateVersions)
+        {
+            _templateVersions = templateVersions?.ToDictionary(_ => _.fundingStream, _ => _.templateVersion);
+
+            return this;
+        }
+        
         public SpecificationSummaryBuilder WithNoId()
         {
             _withNoId = true;
@@ -73,6 +81,7 @@ namespace CalculateFunding.Services.Calcs.UnitTests.Services
             return new SpecificationSummary
             {
                 Id = _withNoId ? null : _id ?? NewRandomString(),
+                TemplateIds = _templateVersions,
                 FundingPeriod = _withNoFundingPeriod
                     ? null
                     : new Reference(_fundingPeriodId ?? NewRandomString(), NewRandomString()),

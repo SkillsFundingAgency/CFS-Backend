@@ -20,68 +20,71 @@
 
         public const string FundingLineStructureTimestamp = "funding-line-structure-timestamp:";
 
-        public static string SpecificationSummaryById { get; set; } = "specification-summary:";
+        public const string SpecificationSummaryById  = "specification-summary:";
 
-        public static string SpecificationSummariesByFundingPeriodId { get; set; } = "specification-summaries-funding-period:";
+        public const string SpecificationSummariesByFundingPeriodId  = "specification-summaries-funding-period:";
 
-        public static string SpecificationSummaries { get; set; } = "specification-summaries";
+        public const string SpecificationSummaries  = "specification-summaries";
 
-        public static string CurrentCalculationsForSpecification { get; set; } = "calculations-current-for-specification:";
+        public const string CurrentCalculationsForSpecification  = "calculations-current-for-specification:";
 
-        public static string CalculationsSummariesForSpecification { get; set; } = "calculation-summaries-for-specification:";
+        public const string CalculationsSummariesForSpecification  = "calculation-summaries-for-specification:";
 
-        public static string CalculationsMetadataForSpecification { get; set; } = "calculations-metadata-for-specification:";
+        public const string CalculationsMetadataForSpecification  = "calculations-metadata-for-specification:";
 
-        public static string CurrentCalculation { get; set; } = "calculation-current:";
-        public static string CalculationsForSpecification { get; set; } = "calculations-for-specification:";
+        public const string CurrentCalculation  = "calculation-current:";
+        
+        public const string CalculationsForSpecification  = "calculations-for-specification:";
 
-        public static string ScopedProviderSummariesCount { get; set; } = "scoped-provider-summaries-count:";
+        public const string ScopedProviderSummariesCount  = "scoped-provider-summaries-count:";
 
-        public static string AllFundingStreams { get; set; } = "all-funding-streams";
+        public const string AllFundingStreams  = "all-funding-streams";
 
-        public static string UserById { get; set; } = "users";
+        public const string UserById  = "users";
 
-        public static string DatasetRows { get; set; } = "ds-table-rows";
+        public const string DatasetRows  = "ds-table-rows";
 
-        public static string DatasetValidationStatus { get; set; } = "ds-validation-status";
+        public const string DatasetValidationStatus  = "ds-validation-status";
 
-        public static string AllocationLineResultStatusUpdates { get; set; } = "allocation-line-status-updates:";
+        public const string AllocationLineResultStatusUpdates  = "allocation-line-status-updates:";
 
-        public static string AllCosmosScalingConfigs { get; set; } = "all-cosmos-scaling-configs";
+        public const string AllCosmosScalingConfigs  = "all-cosmos-scaling-configs";
 
-        public static string FundingTemplatePrefix { get; set; } = "funding-template:";
+        public const string FundingTemplatePrefix  = "funding-template:";
 
         /// <summary>
         /// Effective Permissions - eg effective-permissions:userId
         /// </summary>
-        public static string EffectivePermissions { get; set; } = "effective-permissions";
+        public const string EffectivePermissions  = "effective-permissions";
 
-        public static string DatasetRelationshipFieldsForSpecification { get; set; } = "dataset-relationship-fields-for-specification:";
+        public const string DatasetRelationshipFieldsForSpecification  = "dataset-relationship-fields-for-specification:";
 
-        public static string DatasetAggregationsForSpecification { get; set; } = "dataset-aggregations-for-specification:";
+        public const string DatasetAggregationsForSpecification  = "dataset-aggregations-for-specification:";
 
-        public static string ApproveFundingForSpecification { get; set; } = "approved-funding-for-specification:";
+        public const string ApproveFundingForSpecification  = "approved-funding-for-specification:";
 
-        public static string JobDefinitions { get; set; } = "job-definitions";
+        public const string JobDefinitions  = "job-definitions";
 
-        public static string CalculationAggregations { get; set; } = "calculation-aggregations:";
+        public const string CalculationAggregations  = "calculation-aggregations:";
 
-        public static string ProviderVersionMetadata { get; set; } = "provider-version-metadata";
+        public const string ProviderVersionMetadata  = "provider-version-metadata";
 
-        public static string MasterProviderVersion { get; set; } = "master-version-provider";
+        public const string MasterProviderVersion  = "master-version-provider";
 
-        public static string ProviderVersion { get; set; } = "provider-version:";
+        public const string ProviderVersion  = "provider-version:";
 
-        public static string ProviderVersionByDate { get; set; } = "provider-version-by-date:";
+        public const string ProviderVersionByDate  = "provider-version-by-date:";
 
-        public static string FundingTemplateContents { get; set; } = "funding-template-contents:";
+        public const string FundingTemplateContents  = "funding-template-contents:";
 
-        public static string FundingTemplateContentMetadata { get; set; } = "funding-template-content-metadata:";
+        public const string FundingTemplateContentMetadata  = "funding-template-content-metadata:";
+        
+        public const string FundingTemplateContentMetadataDistinct = "funding-template-content-metadata-distinct:";
 
-        public static string FundingTemplateContentMetadataDistinct { get; set; } = "funding-template-content-metadata-distinct:";
+        public const string TemplateMapping  = "template-mapping:";
 
-        public static string TemplateMapping { get; set; } = "template-mapping:";
+        public const string LatestJobs = "jobs-latest:";
 
-        public static string LatestJobs { get; set; } = "jobs-latest:";
+        public const string CalculationFundingLines = "calculation-funding-lines:";
     }
 }

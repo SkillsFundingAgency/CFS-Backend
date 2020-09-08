@@ -108,6 +108,8 @@ namespace CalculateFunding.Api.Calcs
 
         public void RegisterComponents(IServiceCollection builder)
         {
+            builder.AddSingleton<ICalculationFundingLineQueryService, CalculationFundingLineQueryService>();
+            
             builder.AddSingleton<IUserProfileProvider, UserProfileProvider>();
 
             builder.AddSingleton(Configuration);

@@ -249,6 +249,10 @@ namespace CalculateFunding.Services.Calcs.Services
                     req.SpecificationId == specificationId &&
                     req.FundingStreamId == fundingStreamId &&
                     req.FundingPeriodId == fundingPeriodId));
+
+            await cacheProvider
+                .Received(1)
+                .RemoveByPatternAsync($"{CacheKeys.CalculationFundingLines}{specificationId}");
         }
 
         [TestMethod]

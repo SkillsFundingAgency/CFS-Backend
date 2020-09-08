@@ -7,8 +7,16 @@ namespace CalculateFunding.Services.Calcs.Services
     {
         private string _id;
         private string _specificationId;
+        private string _fundingStreamId;
         private CalculationVersion _calculationVersion;
 
+        public CalculationBuilder WithFundingStreamId(string fundingStreamId)
+        {
+            _fundingStreamId = fundingStreamId;
+
+            return this;
+        }
+        
         public CalculationBuilder WithId(string id)
         {
             _id = id;
@@ -35,6 +43,7 @@ namespace CalculateFunding.Services.Calcs.Services
             return new Calculation
             {
                 Id = _id ?? NewRandomString(),
+                FundingStreamId = _fundingStreamId ?? NewRandomString(),
                 Current = _calculationVersion,
                 SpecificationId = _specificationId ?? NewRandomString()
             };

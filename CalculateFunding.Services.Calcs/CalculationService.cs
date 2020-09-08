@@ -911,11 +911,11 @@ namespace CalculateFunding.Services.Calcs
                 return new PreconditionFailedResult(message);
             }
 
-            Common.ApiClient.Models.ApiResponse<Common.TemplateMetadata.Models.TemplateMetadataContents> fundingTemplateContentsResponse =
+            ApiResponse<TemplateMetadataContents> fundingTemplateContentsResponse =
                 await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingTemplateContents(fundingStreamId, 
                 specificationSummary.FundingPeriod.Id,  templateVersion));
 
-            if (fundingTemplateContentsResponse.StatusCode != HttpStatusCode.OK)
+            if (fundingTemplateContentsResponse?.StatusCode != HttpStatusCode.OK)
             {
                 string message = $"Retrieve funding template with fundingStreamId: {fundingStreamId}, fundingPeriodId: {specificationSummary.FundingPeriod.Id} and templateId: {templateVersion} did not return OK.";
                 _logger.Error(message);
@@ -923,7 +923,7 @@ namespace CalculateFunding.Services.Calcs
                 return new PreconditionFailedResult(message);
             }
 
-            if (fundingTemplateContentsResponse == null || fundingTemplateContentsResponse.Content == null)
+            if (fundingTemplateContentsResponse.Content == null)
             {
                 string message = $"Retrieved funding template with fundingStreamId: {fundingStreamId} and templateId: {templateVersion} has null content. Can not use it for further processing.";
                 _logger.Error(message);
@@ -966,6 +966,7 @@ namespace CalculateFunding.Services.Calcs
                     FundingStreamId = fundingStreamId,
                     SpecificationId = specificationId
                 }));
+                await _cachePolicy.ExecuteAsync(() => _cacheProvider.RemoveByPatternAsync($"{CacheKeys.CalculationFundingLines}{specificationId}"));
             }
 
             return new OkObjectResult(templateMapping.ToSummaryResponseModel());
