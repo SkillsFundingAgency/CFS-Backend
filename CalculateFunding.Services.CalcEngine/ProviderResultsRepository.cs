@@ -192,6 +192,7 @@ namespace CalculateFunding.Services.CalcEngine
                                 Id = specification.Id,
                                 Name = specification.Name,
                                 FundingPeriodId = specification.FundingPeriod.Id,
+                                FundingStreamIds = specification.FundingStreams?.Select(_ => _.Id).ToArray(),
                                 LastEditDate = specification.LastEditedDate
                             },
                             providerResult.Provider.Id));

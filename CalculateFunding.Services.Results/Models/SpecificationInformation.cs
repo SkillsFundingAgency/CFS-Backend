@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Newtonsoft.Json;
 
 namespace CalculateFunding.Services.Results.Models
@@ -16,6 +17,9 @@ namespace CalculateFunding.Services.Results.Models
         
         [JsonProperty("fundingPeriodId")]
         public string FundingPeriodId { get; set; }
+        
+        [JsonProperty("fundingStreamIds")]
+        public IEnumerable<string> FundingStreamIds { get; set; }
             
         [JsonProperty("fundingPeriodEnd")]
         public DateTimeOffset? FundingPeriodEnd { get; set; }

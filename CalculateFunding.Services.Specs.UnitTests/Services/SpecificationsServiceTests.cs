@@ -162,6 +162,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                     _.Id == specification.Id &&
                     _.Name == specification.Name &&
                     _.LastEditDate == specification.Date &&
+                    _.FundingStreamIds.SequenceEqual(specification.FundingStreams.Select(fs => fs.Id).ToArray()) &&
                     _.FundingPeriodId == specification.FundingPeriod.Id));
         }
 

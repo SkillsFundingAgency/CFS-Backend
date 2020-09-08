@@ -1002,6 +1002,7 @@ namespace CalculateFunding.Services.Specs
                 Id = specification.Id,
                 Name = specification.Name,
                 FundingPeriodId = specification.FundingPeriod?.Id,
+                FundingStreamIds = specification.FundingStreams?.Select(_ => _.Id).ToArray(),
                 LastEditDate = specification.Date
             }));
         }

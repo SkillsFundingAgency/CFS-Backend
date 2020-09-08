@@ -268,7 +268,22 @@ namespace CalculateFunding.Services.Calculator
                 {
                     Id = NewRandomString()
                 },
-                LastEditedDate = new RandomDateTime()
+                LastEditedDate = new RandomDateTime(),
+                FundingStreams = new []
+                {
+                    new Reference
+                    {
+                        Id = NewRandomString()
+                    }, 
+                    new Reference
+                    {
+                        Id = NewRandomString()
+                    }, 
+                    new Reference
+                    {
+                        Id = NewRandomString()
+                    }
+                }
             };
             
             specificationsApiClient.GetSpecificationSummaryById(Arg.Any<string>()).Returns(new ApiResponse<SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
@@ -350,6 +365,7 @@ namespace CalculateFunding.Services.Calculator
                         _.Id == specificationSummary.Id &&
                         _.Name == specificationSummary.Name &&
                         _.LastEditDate == specificationSummary.LastEditedDate &&
+                        _.FundingStreamIds.SequenceEqual(specificationSummary.FundingStreams.Select(fs => fs.Id).ToArray()) &&
                         _.FundingPeriodId == specificationSummary.FundingPeriod.Id),
                     "prov1");
         }

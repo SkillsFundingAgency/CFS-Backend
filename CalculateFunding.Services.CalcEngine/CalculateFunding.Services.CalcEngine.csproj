@@ -8,7 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="CalculateFunding.Common.ApiClient.Datasets" Version="5.5.0" />
-    <PackageReference Include="CalculateFunding.Common.ApiClient.Results" Version="4.9.0" />
+    <PackageReference Include="CalculateFunding.Common.ApiClient.Results" Version="4.10.0" />
     <PackageReference Include="CalculateFunding.Common.ApiClient.Specifications" Version="6.12.0" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Calcs" Version="3.2.0" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Jobs" Version="3.0.0" />
