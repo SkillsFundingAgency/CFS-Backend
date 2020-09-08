@@ -51,7 +51,12 @@ namespace CalculateFunding.Services.CosmosDbScaling
                         CosmosCollectionType.PublishedFunding,
                     };
                     break;
-
+                case JobConstants.DefinitionNames.MergeSpecificationInformationForProviderJob:
+                    cosmosDbScalingRequestModel.RepositoryTypes = new[]
+                    {
+                        CosmosCollectionType.CalculationProviderResults
+                    };
+                    break;
             }
 
             return cosmosDbScalingRequestModel;
