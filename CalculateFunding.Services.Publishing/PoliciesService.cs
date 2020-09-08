@@ -8,6 +8,8 @@ using CalculateFunding.Common.ApiClient.Models;
 using System;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Common.ApiClient.Policies.Models;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace CalculateFunding.Services.Publishing
 {
@@ -105,6 +107,29 @@ namespace CalculateFunding.Services.Publishing
                     fundingLineId));
 
             return templateMetadataContentsResponse?.Content;
+        }
+
+        public async Task<IEnumerable<FundingStream>> GetFundingStreams()
+        {
+            ApiResponse<IEnumerable<FundingStream>> fundingStreamsResponse = 
+                await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingStreams());
+
+            return fundingStreamsResponse?.Content;
+        }
+
+        public async Task<TemplateMetadataDistinctFundingLinesContents> GetDistinctTemplateMetadataFundingLinesContents(
+            string fundingStreamId, string fundingPeriodId, string templateVersion)
+        {
+            Guard.IsNullOrWhiteSpace(fundingStreamId, nameof(fundingStreamId));
+            Guard.IsNullOrWhiteSpace(fundingPeriodId, nameof(fundingPeriodId));
+            Guard.IsNullOrWhiteSpace(templateVersion, nameof(templateVersion));
+
+            ApiResponse<TemplateMetadataDistinctFundingLinesContents> distinctTemplateMetadataFundingLinesContentsResponse =
+                await _policiesApiClientPolicy.ExecuteAsync(() => 
+                _policiesApiClient.GetDistinctTemplateMetadataFundingLinesContents(
+                    fundingStreamId, fundingPeriodId, templateVersion));
+
+            return distinctTemplateMetadataFundingLinesContentsResponse?.Content;
         }
     }
 }

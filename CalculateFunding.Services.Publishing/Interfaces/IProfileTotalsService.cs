@@ -19,6 +19,18 @@ namespace CalculateFunding.Services.Publishing.Interfaces
             string specificationId,
             string providerId,
             string fundingStreamId,
-            string fundingLineId);
+            string fundingLineCode);
+
+        Task<IActionResult> PreviousProfileExistsForSpecificationForProviderForFundingLine(
+            string specificationId,
+            string providerId,
+            string fundingStreamId,
+            string fundingLineCode);
+
+        Task<IActionResult> GetPreviousProfilesForSpecificationForProviderForFundingLine(
+            string specificationId,
+            string providerId,
+            string fundingStreamId,
+            string fundingLineCode);
     }
 }

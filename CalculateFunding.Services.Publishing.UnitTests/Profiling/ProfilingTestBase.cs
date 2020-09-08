@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using CalculateFunding.Common.ApiClient.Policies;
+using CalculateFunding.Common.ApiClient.Policies.Models;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Publishing;
@@ -175,6 +176,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
             return fundingDateBuilder.Build();
         }
 
+        protected static FundingStream NewFundingStream(Action<FundingStreamBuilder> setUp = null)
+        {
+            FundingStreamBuilder fundingStreamBuilder = new FundingStreamBuilder();
+
+            setUp?.Invoke(fundingStreamBuilder);
+
+            return fundingStreamBuilder.Build();
+        }
+
         protected static FundingDatePattern NewFundingDatePattern(Action<FundingDatePatternBuilder> setUp = null)
         {
             FundingDatePatternBuilder fundingDatePatternBuilder = new FundingDatePatternBuilder();
@@ -182,6 +192,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
             setUp?.Invoke(fundingDatePatternBuilder);
 
             return fundingDatePatternBuilder.Build();
+        }
+
+        protected static FundingLineChange NewFundingLineChange(Action<FundingLineChangeBuilder> setUp = null)
+        {
+            FundingLineChangeBuilder fundingLineChangeBuilder = new FundingLineChangeBuilder();
+
+            setUp?.Invoke(fundingLineChangeBuilder);
+
+            return fundingLineChangeBuilder.Build();
         }
 
         protected static IEnumerable<FundingDatePattern> NewFundingDatePatterns(

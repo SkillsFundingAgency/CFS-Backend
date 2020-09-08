@@ -2,6 +2,7 @@
 using CalculateFunding.Common.ApiClient.Policies.Models;
 using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
 using CalculateFunding.Common.TemplateMetadata.Models;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Publishing.Interfaces
@@ -16,5 +17,8 @@ namespace CalculateFunding.Services.Publishing.Interfaces
             string fundingStreamId,
             string fundingPeriodId,
             string fundingLineId);
+        Task<IEnumerable<FundingStream>> GetFundingStreams();
+        Task<TemplateMetadataDistinctFundingLinesContents> GetDistinctTemplateMetadataFundingLinesContents(
+            string fundingStreamId, string fundingPeriodId, string templateVersion);
     }
 }

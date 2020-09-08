@@ -154,5 +154,23 @@ namespace CalculateFunding.Api.Publishing.Controllers
             [FromRoute] string fundingLineId)
                 => await _profileTotalsService.GetPublishedProviderProfileTotalsForSpecificationForProviderForFundingLine
                     (specificationId, providerId, fundingStreamId, fundingLineId);
+
+        [HttpGet("api/publishedproviderfundinglinedetails/{specificationId}/{providerId}/{fundingStreamId}/{fundingLineCode}/change-exists")]
+        public async Task<IActionResult> PreviousProfileExistsForSpecificationForProviderForFundingLine(
+            [FromRoute] string specificationId,
+            [FromRoute] string providerId,
+            [FromRoute] string fundingStreamId,
+            [FromRoute] string fundingLineCode)
+                => await _profileTotalsService.PreviousProfileExistsForSpecificationForProviderForFundingLine
+                    (specificationId, providerId, fundingStreamId, fundingLineCode);
+
+        [HttpGet("api/publishedproviderfundinglinedetails/{specificationId}/{providerId}/{fundingStreamId}/{fundingLineCode}/changes")]
+        public async Task<IActionResult> GetPreviousProfilesForSpecificationForProviderForFundingLine(
+            [FromRoute] string specificationId,
+            [FromRoute] string providerId,
+            [FromRoute] string fundingStreamId,
+            [FromRoute] string fundingLineCode)
+                => await _profileTotalsService.GetPreviousProfilesForSpecificationForProviderForFundingLine
+                    (specificationId, providerId, fundingStreamId, fundingLineCode);
     }
 }

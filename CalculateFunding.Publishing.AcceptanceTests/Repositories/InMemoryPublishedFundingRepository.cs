@@ -442,9 +442,22 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         }
 
         public Task<PublishedProviderVersion> GetLatestPublishedProviderVersionBySpecificationId(
+            string specificationId,
+            string fundingStreamId,
+            string providerId) =>
+            Task.FromResult(
+                _repo.PublishedProviders
+                    .SelectMany(c => c.Value)
+                    .SingleOrDefault(_ =>
+                        _.Current.SpecificationId == specificationId &&
+                        _.Current.FundingStreamId == fundingStreamId &&
+                        _.Current.ProviderId == providerId)
+                    ?.Current);
+
+        public Task<IEnumerable<PublishedProviderVersion>> GetPublishedProviderVersionsForApproval(
             string specificationId, 
             string fundingStreamId, 
             string providerId) =>
-            throw new NotImplementedException();
+                throw new NotImplementedException();
     }
 }

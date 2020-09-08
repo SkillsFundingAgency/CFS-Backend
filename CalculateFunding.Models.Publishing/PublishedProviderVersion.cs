@@ -203,6 +203,12 @@ namespace CalculateFunding.Models.Publishing
         public decimal? GetCarryOverTotalForFundingLine(string fundingLineCode)
             => CarryOvers?.Where(_ => _.FundingLineCode == fundingLineCode).Sum(_ => _.Amount);
 
+        public decimal? GetFundingLineTotal(string fundingLineCode)
+            => FundingLines?.FirstOrDefault(_ => _.FundingLineCode == fundingLineCode)?.Value;
+
+        public ProfilingAudit GetLatestFundingLineAudit(string fundingLineCode)
+            => ProfilingAudits?.Where(_ => _.FundingLineCode == fundingLineCode)?.OrderByDescending(_ => _.Date)?.FirstOrDefault();
+
         public void AddCarryOver(string fundingLineCode,
             ProfilingCarryOverType type,
             decimal amount)

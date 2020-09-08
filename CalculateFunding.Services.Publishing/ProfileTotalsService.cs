@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Policies;
+using CalculateFunding.Common.ApiClient.Policies.Models;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
@@ -86,11 +87,11 @@ namespace CalculateFunding.Services.Publishing
             string specificationId,
             string providerId,
             string fundingStreamId,
-            string fundingLineId)
+            string fundingLineCode)
         {
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
             Guard.IsNullOrWhiteSpace(fundingStreamId, nameof(fundingStreamId));
-            Guard.IsNullOrWhiteSpace(fundingLineId, nameof(fundingLineId));
+            Guard.IsNullOrWhiteSpace(fundingLineCode, nameof(fundingLineCode));
             Guard.IsNullOrWhiteSpace(providerId, nameof(providerId));
 
             PublishedProviderVersion latestPublishedProviderVersion = await _resilience.ExecuteAsync(() =>
@@ -115,22 +116,22 @@ namespace CalculateFunding.Services.Publishing
             FundingLineProfile fundingLineProfile = new FundingLineProfile
             {
                 ProfilePatternKey = latestPublishedProviderVersion.ProfilePatternKeys?
-                    .SingleOrDefault(_ => _.FundingLineCode == fundingLineId)?.Key,
+                    .SingleOrDefault(_ => _.FundingLineCode == fundingLineCode)?.Key,
                 ProviderName = latestPublishedProviderVersion.Provider.Name,
-                CarryOverAmount = latestPublishedProviderVersion.GetCarryOverTotalForFundingLine(fundingLineId) ?? 0
+                CarryOverAmount = latestPublishedProviderVersion.GetCarryOverTotalForFundingLine(fundingLineCode) ?? 0
             };
 
             ProfileVariationPointer currentProfileVariationPointer
                 = profileVariationPointers.SingleOrDefault(_ => 
-                    _.FundingStreamId == fundingStreamId && _.FundingLineId == fundingLineId);
+                    _.FundingStreamId == fundingStreamId && _.FundingLineId == fundingLineCode);
 
-            ProfileTotal[] profileTotals = new PaymentFundingLineProfileTotals(latestPublishedProviderVersion, fundingLineId)
+            ProfileTotal[] profileTotals = new PaymentFundingLineProfileTotals(latestPublishedProviderVersion, fundingLineCode)
                 .ToArray();
 
             fundingLineProfile.TotalAllocation = latestPublishedProviderVersion
                 .FundingLines
                 .Where(_ => _.Type == OrganisationGroupingReason.Payment)
-                .SingleOrDefault(_ => _.FundingLineCode == fundingLineId)
+                .SingleOrDefault(_ => _.FundingLineCode == fundingLineCode)
                 ?.Value;
 
             fundingLineProfile.ProfileTotalAmount = profileTotals.Sum(_ => _.Value);
@@ -138,7 +139,7 @@ namespace CalculateFunding.Services.Publishing
             FundingDate fundingDate = await _policiesService.GetFundingDate(
                 fundingStreamId, 
                 latestPublishedProviderVersion.FundingPeriodId, 
-                fundingLineId);
+                fundingLineCode);
 
             for (int index = 0; index < profileTotals.Count(); index++)
             {
@@ -164,16 +165,151 @@ namespace CalculateFunding.Services.Publishing
 
             fundingLineProfile.ProfileTotals = profileTotals;
 
-            ProfilingAudit lastUpdateProfilingAudit = latestPublishedProviderVersion
-                .ProfilingAudits
-                ?.Where(_ => _.FundingLineCode == fundingLineId)
-                ?.OrderByDescending(_ => _.Date)
-                ?.FirstOrDefault();
+            ProfilingAudit latestUpdateProfilingAudit = latestPublishedProviderVersion.GetLatestFundingLineAudit(fundingLineCode);
 
-            fundingLineProfile.LastUpdatedDate = lastUpdateProfilingAudit?.Date;
-            fundingLineProfile.LastUpdatedUser = lastUpdateProfilingAudit?.User;
+            fundingLineProfile.LastUpdatedDate = latestUpdateProfilingAudit?.Date;
+            fundingLineProfile.LastUpdatedUser = latestUpdateProfilingAudit?.User;
 
             return new OkObjectResult(fundingLineProfile);
+        }
+
+        public async Task<IActionResult> PreviousProfileExistsForSpecificationForProviderForFundingLine(
+            string specificationId,
+            string providerId,
+            string fundingStreamId,
+            string fundingLineCode)
+        {
+            IEnumerable<PublishedProviderVersion> publishedProviderVersions = await _resilience.ExecuteAsync(() =>
+                _publishedFunding.GetPublishedProviderVersionsForApproval(
+                    specificationId,
+                    fundingStreamId,
+                    providerId));
+
+            PublishedProviderVersion latestPublishedProviderVersion = publishedProviderVersions.FirstOrDefault();
+
+            if(latestPublishedProviderVersion == null)
+            {
+                return new NotFoundResult();
+            }
+
+            decimal? latestFundingLineValue = latestPublishedProviderVersion
+                .FundingLines
+                ?.FirstOrDefault(_ => _.FundingLineCode == fundingLineCode)
+                .Value;
+
+            decimal? latestCarryOverAmount = latestPublishedProviderVersion
+                .CarryOvers
+                ?.Where(_ => _.FundingLineCode == fundingLineCode)
+                ?.Sum(_ => _.Amount);
+
+            if (FundingLineValueChanged(publishedProviderVersions, fundingLineCode, latestFundingLineValue))
+            {
+                return new OkObjectResult(true);
+            }
+
+            if (CarryOverChanged(publishedProviderVersions, fundingLineCode, latestCarryOverAmount))
+            {
+                return new OkObjectResult(true);
+            }
+
+            return new OkObjectResult(false);
+        }
+
+        public async Task<IActionResult> GetPreviousProfilesForSpecificationForProviderForFundingLine(
+            string specificationId,
+            string providerId,
+            string fundingStreamId,
+            string fundingLineCode)
+        {
+            IEnumerable<PublishedProviderVersion> publishedProviderVersions = await _resilience.ExecuteAsync(() =>
+                _publishedFunding.GetPublishedProviderVersionsForApproval(
+                    specificationId,
+                    fundingStreamId,
+                    providerId));
+            PublishedProviderVersion latestPublishedProviderVersion = publishedProviderVersions.FirstOrDefault();
+
+            if (latestPublishedProviderVersion == null)
+            {
+                return new NotFoundResult();
+            }
+
+            IEnumerable<PublishedProviderVersion> historyPublishedProviderVersions = 
+                publishedProviderVersions.Except(new[] { latestPublishedProviderVersion });
+
+            latestPublishedProviderVersion = historyPublishedProviderVersions.FirstOrDefault();
+
+            List<FundingLineChange> fundingLineChanges = new List<FundingLineChange>();
+
+            IEnumerable<FundingStream> fundingStreams = await _policiesService.GetFundingStreams();
+
+            foreach (PublishedProviderVersion publishedProviderVersion in 
+                historyPublishedProviderVersions.Except(new[] { latestPublishedProviderVersion }))
+            {
+                if(publishedProviderVersion.GetFundingLineTotal(fundingLineCode) 
+                    != latestPublishedProviderVersion.GetFundingLineTotal(fundingLineCode) ||
+                    publishedProviderVersion.GetCarryOverTotalForFundingLine(fundingLineCode)
+                    != latestPublishedProviderVersion.GetCarryOverTotalForFundingLine(fundingLineCode))
+                {
+                    TemplateMetadataDistinctFundingLinesContents templateMetadataDistinctFundingLinesContents =
+                        await _policiesService.GetDistinctTemplateMetadataFundingLinesContents(
+                            fundingStreamId,
+                            latestPublishedProviderVersion.FundingPeriodId,
+                            latestPublishedProviderVersion.TemplateVersion);
+
+                    FundingLineChange fundingLineChange = new FundingLineChange
+                    {
+                        FundingLineTotal = latestPublishedProviderVersion.GetFundingLineTotal(fundingLineCode),
+                        PreviousFundingLineTotal = publishedProviderVersion.GetFundingLineTotal(fundingLineCode),
+                        FundingStreamName = fundingStreams.SingleOrDefault(_ => _.Id == latestPublishedProviderVersion.FundingStreamId)?.Name,
+                        FundingLineName = templateMetadataDistinctFundingLinesContents?.FundingLines?
+                            .FirstOrDefault(_ => _.FundingLineCode == fundingLineCode)?.Name,
+                        CarryOverAmount = latestPublishedProviderVersion.GetCarryOverTotalForFundingLine(fundingLineCode),
+                        LastUpdatedUser = latestPublishedProviderVersion.GetLatestFundingLineAudit(fundingLineCode)?.User,
+                        LastUpdatedDate = latestPublishedProviderVersion.Date
+                    };
+
+                    ProfileTotal[] profileTotals = new PaymentFundingLineProfileTotals(latestPublishedProviderVersion, fundingLineCode).ToArray();
+
+                    FundingDate fundingDate = await _policiesService.GetFundingDate(
+                        fundingStreamId,
+                        latestPublishedProviderVersion.FundingPeriodId,
+                        fundingLineCode);
+
+                    for (int index = 0; index < profileTotals.Count(); index++)
+                    {
+                        ProfileTotal profileTotal = profileTotals[index];
+                        profileTotal.InstallmentNumber = index + 1;
+
+                        profileTotal.ActualDate = fundingDate?.Patterns?.SingleOrDefault(_ =>
+                            _.Occurrence == profileTotal.Occurrence &&
+                            _.Period == profileTotal.TypeValue &&
+                            _.PeriodYear == profileTotal.Year)?.PaymentDate;
+                    }
+
+                    fundingLineChange.ProfileTotals = profileTotals;
+                    fundingLineChanges.Add(fundingLineChange);
+                }
+
+                latestPublishedProviderVersion = publishedProviderVersion;
+            }
+
+            return new OkObjectResult(fundingLineChanges);
+        }
+
+        private bool FundingLineValueChanged(
+            IEnumerable<PublishedProviderVersion> publishedProviderVersions,
+            string fundingLineCode,
+            decimal? latestFundingLineValue)
+        {
+            return publishedProviderVersions.Any(_ =>_.GetFundingLineTotal(fundingLineCode) != latestFundingLineValue);
+        }
+
+        private bool CarryOverChanged(
+            IEnumerable<PublishedProviderVersion> publishedProviderVersions, 
+            string fundingLineCode,
+            decimal? latestCarryOverAmount)
+        {
+            return publishedProviderVersions.Any(_ =>_.GetCarryOverTotalForFundingLine(fundingLineCode) != latestCarryOverAmount);
         }
 
         private bool IsProfileTotalPaid(

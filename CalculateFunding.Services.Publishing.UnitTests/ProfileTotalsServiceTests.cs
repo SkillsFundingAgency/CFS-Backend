@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Policies;
+using CalculateFunding.Common.ApiClient.Policies.Models;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Publishing;
@@ -157,13 +158,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         [TestMethod]
         [DynamicData(nameof(MissingIdExamples), DynamicDataSourceType.Method)]
         public void WhenGetPublishedProviderProfileTotalsForSpecificationForProviderForFundingLine_GuardsAgainstMissingFundingLineId(
-    string fundingLineId)
+    string fundingLineCode)
         {
             Func<Task<IActionResult>> invocation = () => WhenGetPublishedProviderProfileTotalsForSpecificationForProviderForFundingLine(
                 NewRandomString(),
                 NewRandomString(),
                 NewRandomString(),
-                fundingLineId);
+                fundingLineCode);
 
             invocation
                 .Should()
@@ -171,7 +172,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .And
                 .ParamName
                 .Should()
-                .Be(nameof(fundingLineId));
+                .Be(nameof(fundingLineCode));
         }
 
         [TestMethod]
@@ -458,8 +459,248 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             _publishedFunding.VerifyAll();
         }
 
-        private string NewRandomString() => new RandomString();
-        private DateTime NewRandomDateTime() => new RandomDateTime();
+        [TestMethod]
+        public async Task Returns404ResponseIfNoPublishedProviderForApprovalLocatedForPreviousRecordsExistsCheck()
+        {
+            IActionResult result = await WhenTheProfilesCheckForPreviousRecordExists(
+                NewRandomString(),
+                NewRandomString(),
+                NewRandomString(),
+                NewRandomString());
+
+            result
+                .Should()
+                .BeOfType<NotFoundResult>();
+        }
+
+        [TestMethod]
+        public async Task LocatesAllPublishedProviderVersionProfileChangesWhenCarryOverAmountChanged()
+        {
+            string specificationId = NewRandomString();
+            string fundingStreamId = NewRandomString();
+            string fundingLineCode = NewRandomString();
+            string providerId = NewRandomString();
+
+            IEnumerable<PublishedProviderVersion> publishedProviderVersions = new[]
+            {
+                NewPublishedProviderVersion(_ =>
+                    _.WithCarryOvers(new []{ NewProfilingCarryOver(co => co.WithAmount(1).WithFundingLineCode(fundingLineCode)) })),
+                NewPublishedProviderVersion(_ =>
+                    _.WithCarryOvers(new []{ NewProfilingCarryOver(co => co.WithAmount(2).WithFundingLineCode(fundingLineCode)) })),
+            };
+
+            GivenPublishedProviderVersionsForApproval(specificationId, providerId, fundingStreamId, publishedProviderVersions);
+
+            IActionResult result = await WhenTheProfilesCheckForPreviousRecordExists(
+                specificationId,
+                providerId,
+                fundingStreamId,
+                fundingLineCode);
+
+            OkObjectResult objectResult = result as OkObjectResult;
+
+            objectResult?.Value
+                .Should()
+                .BeEquivalentTo(true);
+        }
+
+        [TestMethod]
+        public async Task LocatesAllPublishedProviderVersionProfileChangesWhenFundingLineTotalAmountChanged()
+        {
+            string specificationId = NewRandomString();
+            string fundingStreamId = NewRandomString();
+            string fundingLineCode = NewRandomString();
+            string providerId = NewRandomString();
+
+            IEnumerable<PublishedProviderVersion> publishedProviderVersions = new[]
+            {
+                NewPublishedProviderVersion(_ =>
+                    _.WithFundingLines(new []{ NewFundingLine(fl => fl.WithValue(1).WithFundingLineCode(fundingLineCode)) })),
+                NewPublishedProviderVersion(_ =>
+                    _.WithFundingLines(new []{ NewFundingLine(fl => fl.WithValue(2).WithFundingLineCode(fundingLineCode)) }))
+            };
+
+            GivenPublishedProviderVersionsForApproval(specificationId, providerId, fundingStreamId, publishedProviderVersions);
+
+            IActionResult result = await WhenTheProfilesCheckForPreviousRecordExists(
+                specificationId,
+                providerId,
+                fundingStreamId,
+                fundingLineCode);
+
+            OkObjectResult objectResult = result as OkObjectResult;
+
+            objectResult?.Value
+                .Should()
+                .BeEquivalentTo(true);
+        }
+
+        [TestMethod]
+        public async Task LocatesNoPublishedProviderVersionProfileChangesWhenFundingLineTotalAmountAndCarryOverAmounNotChanged()
+        {
+            string specificationId = NewRandomString();
+            string fundingStreamId = NewRandomString();
+            string fundingLineCode = NewRandomString();
+            string providerId = NewRandomString();
+
+            IEnumerable<PublishedProviderVersion> publishedProviderVersions = new[]
+            {
+                NewPublishedProviderVersion(_ => _
+                    .WithFundingLines(new []{ NewFundingLine(fl => fl.WithValue(100).WithFundingLineCode(fundingLineCode)) })
+                    .WithCarryOvers(new []{ NewProfilingCarryOver(co => co.WithAmount(1000).WithFundingLineCode(fundingLineCode)) })),
+                NewPublishedProviderVersion(_ =>_
+                    .WithFundingLines(new []{ NewFundingLine(fl => fl.WithValue(100).WithFundingLineCode(fundingLineCode)) })
+                    .WithCarryOvers(new []{ NewProfilingCarryOver(co => co.WithAmount(1000).WithFundingLineCode(fundingLineCode)) }))
+            };
+
+            GivenPublishedProviderVersionsForApproval(specificationId, providerId, fundingStreamId, publishedProviderVersions);
+
+            IActionResult result = await WhenTheProfilesCheckForPreviousRecordExists(
+                specificationId,
+                providerId,
+                fundingStreamId,
+                fundingLineCode);
+
+            OkObjectResult objectResult = result as OkObjectResult;
+
+            objectResult?.Value
+                .Should()
+                .BeEquivalentTo(false);
+        }
+
+        [TestMethod]
+        public async Task Returns404ResponseIfNoPublishedProviderForApprovalLocatedForPreviousRecords()
+        {
+            IActionResult result = await WhenTheProfilesCheckForPreviousRecords(
+                NewRandomString(),
+                NewRandomString(),
+                NewRandomString(),
+                NewRandomString());
+
+            result
+                .Should()
+                .BeOfType<NotFoundResult>();
+        }
+
+        [TestMethod]
+        public async Task ReturnsPublishedProviderVersionProfileChangesWhenFundingLineTotalAmountAndCarryOverAmounChanged()
+        {
+            string specificationId = NewRandomString();
+            string fundingStreamId = NewRandomString();
+            string fundingLineCode = NewRandomString();
+            string fundingLineName = NewRandomString();
+            string providerId = NewRandomString();
+            string fundingStreamName = NewRandomString();
+            string fundingPeriodId = NewRandomString();
+            string templateVersion = NewRandomString();
+
+            DateTimeOffset paymentDate = NewRandomDateTime();
+            Reference user = NewReference();
+
+            IEnumerable<PublishedProviderVersion> publishedProviderVersions = new[]
+            {
+                NewPublishedProviderVersion(),
+                NewPublishedProviderVersion(_ =>_
+                    .WithFundingLines(new []{
+                        NewFundingLine(fl => fl
+                            .WithValue(200)
+                            .WithOrganisationGroupingReason(OrganisationGroupingReason.Payment)
+                            .WithFundingLineCode(fundingLineCode)
+                            .WithDistributionPeriods(new []{
+                                NewDistributionPeriod(dp => dp.WithProfilePeriods(new []{
+                                    NewProfilePeriod(pp => pp
+                                        .WithOccurence(1)
+                                        .WithTypeValue("August")
+                                        .WithYear(2020)
+                                        .WithType(ProfilePeriodType.CalendarMonth)
+                                        .WithAmount(200))
+                                }))
+                            }))
+                    })
+                    .WithCarryOvers(new []{ NewProfilingCarryOver(co => co.WithAmount(2000).WithFundingLineCode(fundingLineCode)) })
+                    .WithFundingStreamId(fundingStreamId)
+                    .WithDate("2020-01-02T00:00:00")
+                    .WithFundingPeriodId(fundingPeriodId)
+                    .WithTemplateVersion(templateVersion)
+                    .WithProfilingAudits(new [] {
+                        NewProfilingAudit(pa => pa
+                            .WithFundingLineCode(fundingLineCode)
+                            .WithDate(DateTime.Parse("2020-01-02T01:00:00"))
+                            .WithUser(user))
+                    })),
+                NewPublishedProviderVersion(_ => _
+                    .WithFundingLines(new []{ NewFundingLine(fl => fl.WithValue(100).WithFundingLineCode(fundingLineCode)) })
+                    .WithCarryOvers(new []{ NewProfilingCarryOver(co => co.WithAmount(1000).WithFundingLineCode(fundingLineCode)) })
+                    .WithFundingStreamId(fundingStreamId)
+                    .WithDate("2020-01-01T00:00:00")),
+            };
+
+            GivenPublishedProviderVersionsForApproval(specificationId, providerId, fundingStreamId, publishedProviderVersions);
+            GivenFundingStreams(new[] { NewFundingStream(_ => _.WithId(fundingStreamId).WithName(fundingStreamName)) });
+            GivenFundingDate(
+                fundingStreamId,
+                fundingPeriodId,
+                fundingLineCode,
+                NewFundingDate(_ => _.WithPatterns(new[] {
+                    NewFundingDatePattern(fdp => fdp.WithOccurrence(1).WithPeriod("August").WithPeriodYear(2020).WithPaymentDate(paymentDate))
+                })));
+            GivenDistinctTemplateMetadataFundingLinesContents(
+                fundingStreamId,
+                fundingPeriodId,
+                templateVersion,
+                new TemplateMetadataDistinctFundingLinesContents
+                {
+                    FundingLines = new TemplateMetadataFundingLine[]{
+                        new TemplateMetadataFundingLine {
+                            FundingLineCode = fundingLineCode,
+                            Name = fundingLineName
+                        } 
+                    }
+                });
+
+            IActionResult result = await WhenTheProfilesCheckForPreviousRecords(
+                specificationId,
+                providerId,
+                fundingStreamId,
+                fundingLineCode);
+
+            OkObjectResult objectResult = result as OkObjectResult;
+
+            objectResult?.Value
+                .Should()
+                .BeOfType<List<FundingLineChange>>();
+
+            List<FundingLineChange> fundingLineChanges = objectResult.Value as List<FundingLineChange>;
+
+            fundingLineChanges.Count().Should().Be(1);
+
+            FundingLineChange fundingLineChange = fundingLineChanges.FirstOrDefault();
+
+            FundingLineChange expectedFundingLineChange = NewFundingLineChange(_ => _
+                .WithFundingLineTotal(200)
+                .WithPreviousFundingLineTotal(100)
+                .WithFundingStreamName(fundingStreamName)
+                .WithCarryOverAmount(2000)
+                .WithLastUpdatedUser(user)
+                .WithLastUpdatedDate(DateTime.Parse("2020-01-02T00:00:00"))
+                .WithFundingLineName(fundingLineName)
+                .WithProfileTotals(new[] { 
+                    NewProfileTotal(fp => fp
+                        .WithOccurrence(1)
+                        .WithTypeValue("August")
+                        .WithYear(2020)
+                        .WithValue(200)
+                        .WithInstallmentNumber(1)
+                        .WithActualDate(paymentDate))}));
+
+            fundingLineChange.Should().BeEquivalentTo(expectedFundingLineChange);
+
+            fundingLineChange
+                .ProfileTotals
+                .FirstOrDefault()
+                .Should()
+                .BeEquivalentTo(expectedFundingLineChange.ProfileTotals.FirstOrDefault());
+        }
 
         private async Task<IActionResult> WhenTheProfileTotalsAreQueried(string fundingStreamId,
             string fundingPeriodId,
@@ -468,6 +709,32 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             return await _service.GetPaymentProfileTotalsForFundingStreamForProvider(fundingStreamId,
                 fundingPeriodId,
                 providerId);
+        }
+
+        private async Task<IActionResult> WhenTheProfilesCheckForPreviousRecordExists(
+            string specificationId,
+            string providerId,
+            string fundingStreamId,
+            string fundingLineCode)
+        {
+            return await _service.PreviousProfileExistsForSpecificationForProviderForFundingLine(
+                specificationId,
+                providerId,
+                fundingStreamId,
+                fundingLineCode);
+        }
+
+        private async Task<IActionResult> WhenTheProfilesCheckForPreviousRecords(
+            string specificationId,
+            string providerId,
+            string fundingStreamId,
+            string fundingLineCode)
+        {
+            return await _service.GetPreviousProfilesForSpecificationForProviderForFundingLine(
+                specificationId,
+                providerId,
+                fundingStreamId,
+                fundingLineCode);
         }
 
         private async Task<IActionResult> WhenAllTheProfileTotalsAreQueried(string fundingStreamId,
@@ -483,13 +750,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             string specificationId,
             string providerId,
             string fundingStreamId,
-            string fundingLineId)
+            string fundingLineCode)
         {
             return await _service.GetPublishedProviderProfileTotalsForSpecificationForProviderForFundingLine(
                 specificationId,
                 providerId,
                 fundingStreamId,
-                fundingLineId);
+                fundingLineCode);
         }
 
         private void GivenThePublishedProviderVersion(string fundingStreamId,
@@ -541,6 +808,26 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .Verifiable();
         }
 
+        private void GivenFundingStreams(IEnumerable<FundingStream> fundingStreams)
+        {
+            _policiesService
+                .Setup(_ => _.GetFundingStreams())
+                .ReturnsAsync(fundingStreams)
+                .Verifiable();
+        }
+
+        private void GivenDistinctTemplateMetadataFundingLinesContents(
+            string fundingStreamId,
+            string fundingPeriodId,
+            string templateVersion,
+            TemplateMetadataDistinctFundingLinesContents templateMetadataDistinctFundingLinesContents)
+        {
+            _policiesService
+                .Setup(_ => _.GetDistinctTemplateMetadataFundingLinesContents(fundingStreamId, fundingPeriodId, templateVersion))
+                .ReturnsAsync(templateMetadataDistinctFundingLinesContents)
+                .Verifiable();
+        }
+
         private void GivenAllThePublishedProviderVersions(string fundingStreamId,
             string fundingPeriodId,
             string providerId,
@@ -551,6 +838,20 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                     providerId,
                     "Released"))
                 .ReturnsAsync(new[] { publishedProviderVersion })
+                .Verifiable();
+        }
+
+        private void GivenPublishedProviderVersionsForApproval(
+            string specificationId,
+            string providerId,
+            string fundingStreamId,
+            IEnumerable<PublishedProviderVersion> publishedProviderVersions)
+        {
+            _publishedFunding.Setup(_ => _.GetPublishedProviderVersionsForApproval(
+                    specificationId,
+                    fundingStreamId,
+                    providerId))
+                .ReturnsAsync(publishedProviderVersions)
                 .Verifiable();
         }
 
@@ -579,5 +880,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             return fundingLineProfileBuilder.Build();
         }
+
+        private string NewRandomString() => new RandomString();
+        private DateTime NewRandomDateTime() => new RandomDateTime();
+
     }
 }

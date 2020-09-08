@@ -221,6 +221,34 @@ namespace CalculateFunding.Services.Publishing.Repositories
              });
         }
 
+        public async Task<IEnumerable<PublishedProviderVersion>> GetPublishedProviderVersionsForApproval(
+            string specificationId,
+            string fundingStreamId,
+            string providerId)
+        {
+            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
+            Guard.IsNullOrWhiteSpace(fundingStreamId, nameof(fundingStreamId));
+            Guard.IsNullOrWhiteSpace(providerId, nameof(providerId));
+
+            return await _repository
+             .QuerySql<PublishedProviderVersion>(new CosmosDbQuery
+             {
+                 QueryText = @"SELECT * FROM c
+                                WHERE c.content.specificationId = @specificationId
+                                AND c.content.providerId = @providerId
+                                AND c.content.fundingStreamId = @fundingStreamId
+                                AND c.deleted = false
+                                AND c.documentType = 'PublishedProviderVersion'
+                                AND (c.content.status = 'Draft' OR c.content.status = 'Updated')
+                                ORDER BY c.content.date desc",
+                 Parameters = new[]
+                 {
+                    new CosmosDbQueryParameter("@specificationId", specificationId),
+                    new CosmosDbQueryParameter("@fundingStreamId", fundingStreamId),
+                    new CosmosDbQueryParameter("@providerId", providerId)
+                 }
+             });
+        }
 
         public async Task<PublishedProviderVersion> GetPublishedProviderVersion(string fundingStreamId,
             string fundingPeriodId,
