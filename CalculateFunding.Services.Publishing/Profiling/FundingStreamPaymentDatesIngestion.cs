@@ -18,8 +18,8 @@ namespace CalculateFunding.Services.Publishing.Profiling
         private readonly IFundingStreamPaymentDatesRepository _fundingStreamPaymentDates;
         private readonly ICsvUtils _csvUtils;
 
-        public FundingStreamPaymentDatesIngestion(IFundingStreamPaymentDatesRepository fundingStreamPaymentDates, 
-            IPublishingResiliencePolicies resiliencePolicies, 
+        public FundingStreamPaymentDatesIngestion(IFundingStreamPaymentDatesRepository fundingStreamPaymentDates,
+            IPublishingResiliencePolicies resiliencePolicies,
             ICsvUtils csvUtils,
             ILogger logger)
         {
@@ -27,7 +27,7 @@ namespace CalculateFunding.Services.Publishing.Profiling
             Guard.ArgumentNotNull(csvUtils, nameof(csvUtils));
             Guard.ArgumentNotNull(resiliencePolicies?.FundingStreamPaymentDatesRepository, nameof(resiliencePolicies.FundingStreamPaymentDatesRepository));
             Guard.ArgumentNotNull(logger, nameof(logger));
-            
+
             _fundingStreamPaymentDates = fundingStreamPaymentDates;
             _resilience = resiliencePolicies.FundingStreamPaymentDatesRepository;
             _logger = logger;
@@ -44,7 +44,7 @@ namespace CalculateFunding.Services.Publishing.Profiling
 
                 FundingStreamPaymentDate[] fundingStreamPaymentDates = _csvUtils.AsPocos<FundingStreamPaymentDate>(paymentDatesCsv)
                     .ToArray();
-                
+
                 _logger.Information($"Saving payment dates for {fundingStreamId}-{fundingPeriodId}");
 
                 await _resilience.ExecuteAsync(() => _fundingStreamPaymentDates.SaveFundingStreamUpdatedDates(new FundingStreamPaymentDates
@@ -53,13 +53,13 @@ namespace CalculateFunding.Services.Publishing.Profiling
                     FundingStreamId = fundingStreamId,
                     PaymentDates = fundingStreamPaymentDates
                 }));
-                
+
                 _logger.Information($"Saving payment dates for {fundingStreamId}-{fundingPeriodId}. {fundingStreamPaymentDates.Length} in total");
 
                 return new OkResult();
 
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.Error(ex, "Unable to import paymentDatesCsv");
 

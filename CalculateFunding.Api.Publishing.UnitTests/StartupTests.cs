@@ -1,11 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Reflection;
 using CalculateFunding.Api.Publishing.Controllers;
-using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Tests.Common;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NSubstitute;
 
 namespace CalculateFunding.Api.Publishing.UnitTests
 {
@@ -41,9 +38,9 @@ namespace CalculateFunding.Api.Publishing.UnitTests
                 { "calcsClient:ApiKey", "Local" },
             };
         }
-        
-        protected override Assembly EntryAssembly => typeof(PublishingController).Assembly;
-        
+
+        protected override Assembly EntryAssembly => typeof(PublishedProvidersController).Assembly;
+
         protected override void RegisterDependencies()
         {
             new Startup(CreateTestConfiguration())

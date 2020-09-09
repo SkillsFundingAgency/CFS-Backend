@@ -34,7 +34,7 @@ namespace CalculateFunding.Services.Publishing.Profiling.Custom
             Guard.ArgumentNotNull(publishedFundingRepository, nameof(publishedFundingRepository));
             Guard.ArgumentNotNull(resiliencePolicies?.PublishedFundingRepository, nameof(resiliencePolicies.PublishedFundingRepository));
             Guard.ArgumentNotNull(logger, nameof(logger));
-            
+
             _publishedProviderVersionCreation = publishedProviderStatusUpdateService;
             _requestValidation = requestValidation;
             _publishedFundingRepository = publishedFundingRepository;
@@ -52,22 +52,22 @@ namespace CalculateFunding.Services.Publishing.Profiling.Custom
             if (!validationResult.IsValid)
             {
                 string validationErrors = validationResult.Errors.Select(_ => _.ErrorMessage).Join(", ");
-                
+
                 _logger.Information(
                     $"Unable to process apply custom profile request. Request was invalid. \n{validationErrors}");
-                
+
                 return validationResult.AsBadRequest();
             }
 
             string publishedProviderId = request.PublishedProviderId;
-            
-            PublishedProvider publishedProvider = await _publishedFundingResilience.ExecuteAsync(() => 
+
+            PublishedProvider publishedProvider = await _publishedFundingResilience.ExecuteAsync(() =>
                 _publishedFundingRepository.GetPublishedProviderById(publishedProviderId, publishedProviderId));
 
             PublishedProviderVersion current = publishedProvider.Current;
 
             current.CustomProfiles = request.ProfileOverrides.DeepCopy();
-            
+
             Dictionary<string, FundingLine> fundingLines = current.FundingLines.ToDictionary(_ => _.FundingLineCode);
 
             foreach (FundingLineProfileOverrides profileOverride in request.ProfileOverrides)
@@ -86,17 +86,17 @@ namespace CalculateFunding.Services.Publishing.Profiling.Custom
                 current.AddProfilingAudit(profileOverride.FundingLineCode, author);
             }
 
-            await _publishedProviderVersionCreation.UpdatePublishedProviderStatus(new[] {publishedProvider}, 
-                author, 
+            await _publishedProviderVersionCreation.UpdatePublishedProviderStatus(new[] { publishedProvider },
+                author,
                 current.Status switch
                 {
                     PublishedProviderStatus.Draft => PublishedProviderStatus.Draft,
                     _ => PublishedProviderStatus.Updated
                 });
-            
+
             _logger.Information(
                 $"Successfully applied custom profiling {request.CustomProfileName} to published provider {publishedProviderId}");
-            
+
             return new NoContentResult();
         }
     }

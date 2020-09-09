@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using CalculateFunding.Api.Publishing.Controllers;
-using CalculateFunding.Services.Core.FeatureToggles;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
@@ -15,30 +14,30 @@ using NSubstitute;
 namespace CalculateFunding.Api.Publishing.UnitTests.Controllers
 {
     [TestClass]
-    public class PublishedProviderControllerTests
+    public class ProviderProfileInformationControllerTests
     {
-        private PublishedProvidersController _controller;
-        private IDeletePublishedProvidersService _deletePublishedProvidersService;
-        private IFeatureToggle _featureToggle;
+        private ProviderProfileInformationController _controller;
+
+        private IProfileTotalsService _profileTotalsService;
 
         private string _fundingStreamId;
         private string _fundPeriodId;
+        private string _providerId;
         private string _correlationId;
         private string _userId;
         private string _userName;
 
-        private IActionResult _result;
-
         [TestInitialize]
         public void SetUp()
         {
-            _featureToggle = Substitute.For<IFeatureToggle>();
-            _deletePublishedProvidersService = Substitute.For<IDeletePublishedProvidersService>();
+            _profileTotalsService = Substitute.For<IProfileTotalsService>();
 
-            _controller = new PublishedProvidersController(Substitute.For<IProviderFundingPublishingService>());
+            _controller = new ProviderProfileInformationController(
+                _profileTotalsService);
 
             _fundingStreamId = NewRandomString();
             _fundPeriodId = NewRandomString();
+            _providerId = NewRandomString();
             _correlationId = NewRandomString();
             _userId = NewRandomString();
             _userName = NewRandomString();
@@ -67,46 +66,53 @@ namespace CalculateFunding.Api.Publishing.UnitTests.Controllers
         }
 
         [TestMethod]
-        public async Task DeletePublishProvidersIfDeleteForbiddenReturns403Response()
+        public async Task GetLatestProfileTotalsForPublishedProviderDelegatesToProfileTotalService()
         {
-            GivenThatDeletingPublishedProvidersIsForbidden();
+            IActionResult expectedResult = Substitute.For<IActionResult>();
 
-            await WhenThePublishedProvidersAreDeleted();
+            GivenTheProfilesTotalResponse(expectedResult);
 
-            _result
+            IActionResult actualResult = await _controller.GetLatestProfileTotalsForPublishedProvider(_fundingStreamId,
+                _fundPeriodId,
+                _providerId);
+
+            actualResult
                 .Should()
-                .BeOfType<ForbidResult>();
+                .BeSameAs(expectedResult);
         }
 
         [TestMethod]
-        public async Task DeletePublishProvidersDelegatesToDeleteServiceWhenFeatureNotForbidden()
+        public async Task GetAllProfileTotalsForPublishedProviderDelegatesToProfileTotalService()
         {
-            await WhenThePublishedProvidersAreDeleted();
+            IActionResult expectedResult = Substitute.For<IActionResult>();
 
-            await _deletePublishedProvidersService
-                .Received(1)
-                .QueueDeletePublishedProvidersJob(_fundingStreamId,
-                    _fundPeriodId,
-                    _correlationId);
+            GivenAllTheProfilesTotalResponse(expectedResult);
 
-            _result
-                .Should()
-                .BeOfType<OkResult>();
-        }
-
-        private void GivenThatDeletingPublishedProvidersIsForbidden()
-        {
-            _featureToggle
-                .IsDeletePublishedProviderForbidden()
-                .Returns(true);
-        }
-
-        private async Task WhenThePublishedProvidersAreDeleted()
-        {
-            _result = await _controller.DeletePublishedProviders(_fundingStreamId,
+            IActionResult actualResult = await _controller.GetAllReleasedProfileTotalsForPublishedProvider(_fundingStreamId,
                 _fundPeriodId,
-                _deletePublishedProvidersService,
-                _featureToggle);
+                _providerId);
+
+            actualResult
+                .Should()
+                .BeSameAs(expectedResult);
+        }
+
+        private void GivenTheProfilesTotalResponse(IActionResult result)
+        {
+            _profileTotalsService
+                .GetPaymentProfileTotalsForFundingStreamForProvider(_fundingStreamId,
+                    _fundPeriodId,
+                    _providerId)
+                .Returns(result);
+        }
+
+        private void GivenAllTheProfilesTotalResponse(IActionResult result)
+        {
+            _profileTotalsService
+                .GetAllReleasedPaymentProfileTotalsForFundingStreamForProvider(_fundingStreamId,
+                    _fundPeriodId,
+                    _providerId)
+                .Returns(result);
         }
 
         private string NewRandomString()
