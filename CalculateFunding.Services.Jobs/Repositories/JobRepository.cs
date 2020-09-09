@@ -142,12 +142,14 @@ namespace CalculateFunding.Services.Jobs.Repositories
                                     AND r.deleted = false 
                                     AND r.content.specificationId = @SpecificationId
                                     AND r.content.jobDefinitionId = @JobDefinitionId
+                                    AND r.content.created > @Date
                                     ORDER BY r.content.created DESC";
 
             List<CosmosDbQueryParameter> cosmosDbQueryParameters = new List<CosmosDbQueryParameter>
             {
                 new CosmosDbQueryParameter("@SpecificationId", specificationId),
                 new CosmosDbQueryParameter("@JobDefinitionId", jobDefinitionId),
+                new CosmosDbQueryParameter("@Date", DateTimeOffset.UtcNow.AddDays(-1))
             };
 
             IEnumerable<dynamic> latestJobResults = await _cosmosRepository.DynamicQuery(new CosmosDbQuery(query, cosmosDbQueryParameters));

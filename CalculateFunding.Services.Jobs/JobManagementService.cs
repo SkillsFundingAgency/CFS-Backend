@@ -218,7 +218,7 @@ namespace CalculateFunding.Services.Jobs
         private async Task UpdateJobCache(Job job)
         {
             Job latest = await _jobRepository.GetLatestJobBySpecificationIdAndDefinitionId(job.SpecificationId, job.JobDefinitionId);
-            if (latest != null && latest.Id != job.Id)
+            if (latest != null)
             {
                 string cacheKey = $"{CacheKeys.LatestJobs}{job.SpecificationId}:{job.JobDefinitionId}";
                 await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync(cacheKey, latest));
@@ -443,6 +443,11 @@ namespace CalculateFunding.Services.Jobs
                             IEnumerable<JobDefinition> jobDefinitions = await _jobDefinitionsService.GetAllJobDefinitions();
 
                             JobDefinition jobDefinition = jobDefinitions.FirstOrDefault(j => j.Id == parentJob.JobDefinitionId);
+
+                            if (parentJob.CompletionStatus == CompletionStatus.Superseded)
+                            {
+                                return;
+                            }
 
                             // if the parent job has pre-completion jobs and is not completing then we need to queue the pre-completion jobs
                             if (jobDefinition != null && jobDefinition.PreCompletionJobs.AnyWithNullCheck() && parentJob.RunningStatus != RunningStatus.Completing)
