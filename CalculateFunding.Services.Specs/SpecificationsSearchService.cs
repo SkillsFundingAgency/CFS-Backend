@@ -153,7 +153,8 @@ namespace CalculateFunding.Services.Specs
                             FundingStreamNames = m.Result.FundingStreamNames,
                             Status = m.Result.Status,
                             LastUpdatedDate = m.Result.LastUpdatedDate.ToNullableLocal(),
-                            Description = m.Result.Description
+                            Description = m.Result.Description,
+                            IsSelectedForFunding = m.Result.IsSelectedForFunding
                         });
                     }
                 }

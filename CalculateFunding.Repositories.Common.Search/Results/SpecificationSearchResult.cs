@@ -18,5 +18,7 @@ namespace CalculateFunding.Repositories.Common.Search.Results
         public string Description { get; set; }
 
         public DateTimeOffset? LastUpdatedDate { get; set; }
+
+        public bool IsSelectedForFunding { get; set; }
     }
 }

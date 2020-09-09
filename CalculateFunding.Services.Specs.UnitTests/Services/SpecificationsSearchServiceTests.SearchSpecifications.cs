@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -6,6 +7,7 @@ using System.Threading.Tasks;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Repositories.Common.Search.Results;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -49,7 +51,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 PageNumber = 0,
                 Top = 1
             };
-            
+
             ILogger logger = CreateLogger();
 
             SpecificationsSearchService service = CreateSearchService(logger: logger);
@@ -76,7 +78,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 PageNumber = 1,
                 Top = 0
             };
-            
+
             ILogger logger = CreateLogger();
 
             SpecificationsSearchService service = CreateSearchService(logger: logger);
@@ -183,7 +185,28 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 SearchTerm = "testTerm",
             };
 
-            SearchResults<SpecificationIndex> searchResults = new SearchResults<SpecificationIndex>();
+            SpecificationIndex expectedSpecificationIndex = new SpecificationIndex()
+            {
+                Id = "test-sp1",
+                Name = "test-sp1-name",
+                FundingPeriodName = "fp",
+                FundingStreamNames = new[] { "fs" },
+                Status = "test-status",
+                Description = "des",
+                IsSelectedForFunding = true,
+                LastUpdatedDate = new DateTimeOffset(new DateTime(2020, 09, 08, 10, 40, 15))
+            };
+
+            SearchResults<SpecificationIndex> searchResults = new SearchResults<SpecificationIndex>()
+            {
+                Results = new List<Repositories.Common.Search.SearchResult<SpecificationIndex>>()
+                {
+                    new Repositories.Common.Search.SearchResult<SpecificationIndex>()
+                    {
+                        Result = expectedSpecificationIndex
+                    }
+                }
+            };
 
             ILogger logger = CreateLogger();
 
@@ -198,9 +221,15 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             IActionResult result = await service.SearchSpecifications(model);
 
             //Assert
-            result
-                 .Should()
-                 .BeOfType<OkObjectResult>();
+            SpecificationSearchResults searchResult = result
+                                                     .Should()
+                                                     .BeOfType<OkObjectResult>()
+                                                     .Which
+                                                     .Value
+                                                     .As<SpecificationSearchResults>();
+
+            searchResult.Results.Count().Should().Be(1);
+            AssertSearchResults(expectedSpecificationIndex, searchResult.Results.First());
 
             await
                 searchRepository
@@ -539,6 +568,18 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 searchRepository
                     .Received(4)
                     .Search(Arg.Any<string>(), Arg.Any<SearchParameters>());
+        }
+
+        private void AssertSearchResults(SpecificationIndex expectedSpecificationIndex, SpecificationSearchResult specificationSearchResult)
+        {
+            specificationSearchResult.Id.Should().Be(expectedSpecificationIndex.Id);
+            specificationSearchResult.Name.Should().Be(expectedSpecificationIndex.Name);
+            specificationSearchResult.FundingPeriodName.Should().Be(expectedSpecificationIndex.FundingPeriodName);
+            specificationSearchResult.FundingStreamNames.Should().BeEquivalentTo(expectedSpecificationIndex.FundingStreamNames);
+            specificationSearchResult.Status.Should().Be(expectedSpecificationIndex.Status);
+            specificationSearchResult.Description.Should().Be(expectedSpecificationIndex.Description);
+            specificationSearchResult.LastUpdatedDate.Should().Be(expectedSpecificationIndex.LastUpdatedDate);
+            specificationSearchResult.IsSelectedForFunding.Should().Be(expectedSpecificationIndex.IsSelectedForFunding);
         }
     }
 }
