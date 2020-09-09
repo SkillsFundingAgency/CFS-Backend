@@ -52,7 +52,7 @@ namespace CalculateFunding.Services.Publishing
 
             if (latestPublishedProviderVersion == null)
             {
-                return new NotFoundResult();
+                return new OkObjectResult(new Dictionary<string, decimal>());
             }
 
             ProfileTotal[] profileTotals = new PaymentFundingLineProfileTotals(latestPublishedProviderVersion)
@@ -69,18 +69,13 @@ namespace CalculateFunding.Services.Publishing
             Guard.IsNullOrWhiteSpace(fundingPeriodId, nameof(fundingPeriodId));
             Guard.IsNullOrWhiteSpace(providerId, nameof(providerId));
 
-            PublishedProviderVersion[] publishedProviderVersions = (await _resilience.ExecuteAsync(() =>
-                _publishedFunding.GetPublishedProviderVersions(fundingStreamId, fundingPeriodId, providerId, "Released"))).ToArray();
+            IEnumerable<PublishedProviderVersion> publishedProviderVersions = await _resilience.ExecuteAsync(() =>
+                _publishedFunding.GetPublishedProviderVersions(fundingStreamId, fundingPeriodId, providerId, "Released"));
 
-            if (publishedProviderVersions.IsNullOrEmpty())
-            {
-                return new NotFoundResult();
-            }
-
-            return new OkObjectResult(publishedProviderVersions.ToDictionary(_ => _.Version, 
+            return new OkObjectResult(publishedProviderVersions?.ToDictionary(_ => _.Version, 
                 _ => new ProfilingVersion { Date = _.Date, 
                     ProfileTotals = new PaymentFundingLineProfileTotals(_),
-                    Version = _.Version }));
+                    Version = _.Version }) ?? new Dictionary<int, ProfilingVersion>());
         }
 
         public async Task<IActionResult> GetPublishedProviderProfileTotalsForSpecificationForProviderForFundingLine(
