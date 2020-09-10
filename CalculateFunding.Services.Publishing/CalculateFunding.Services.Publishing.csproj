@@ -14,7 +14,7 @@
 	  <PackageReference Include="CalculateFunding.Common.ApiClient.Calcs" Version="4.2.0" />
 
 	  <PackageReference Include="CalculateFunding.Common.ApiClient.Profiling" Version="3.6.0" />
-    <PackageReference Include="CalculateFunding.Common.JobManagement" Version="4.1.0" />
+    <PackageReference Include="CalculateFunding.Common.JobManagement" Version="4.2.0" />
     <PackageReference Include="CalculateFunding.Common.ApiClient.Specifications" Version="6.13.0" />   
 
     <PackageReference Include="CalculateFunding.Common.Models" Version="2.1.0" />

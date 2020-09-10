@@ -114,7 +114,7 @@ namespace CalculateFunding.Tests.Common
             {
                 if(!IsDevelopment)
                 {
-                    await ((IServiceBusService)messengerService).CreateSubscription("smoketest", uniqueId);
+                    await ((IServiceBusService)messengerService).CreateSubscription("smoketest", uniqueId, new TimeSpan(1,0,0,0));
                 }
 
                 if (!IsDevelopment && topicName != null)
