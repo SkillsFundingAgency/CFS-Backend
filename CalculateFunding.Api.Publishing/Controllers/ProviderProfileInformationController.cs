@@ -32,6 +32,7 @@ namespace CalculateFunding.Api.Publishing.Controllers
         /// <returns></returns>
         [HttpGet("api/publishedproviders/{fundingStreamId}/{fundingPeriodId}/{providerId}/profileTotals")]
         [ProducesResponseType(200, Type = typeof(IEnumerable<ProfileTotal>))]
+        [ProducesResponseType(404)]
         public async Task<IActionResult> GetLatestProfileTotalsForPublishedProvider([FromRoute] string fundingStreamId,
             [FromRoute] string fundingPeriodId,
             [FromRoute] string providerId)
@@ -50,6 +51,7 @@ namespace CalculateFunding.Api.Publishing.Controllers
         /// <returns></returns>
         [HttpGet("api/publishedproviders/{fundingStreamId}/{fundingPeriodId}/{providerId}/allProfileTotals")]
         [ProducesResponseType(200, Type = typeof(IDictionary<int, ProfilingVersion>))]
+        [ProducesResponseType(404)]
         [SwaggerOperation(Description = "Result is keyed by provider version ID. A new record is returned for each released version.")]
         public async Task<IActionResult> GetAllReleasedProfileTotalsForPublishedProvider([FromRoute] string fundingStreamId,
             [FromRoute] string fundingPeriodId,
@@ -68,9 +70,9 @@ namespace CalculateFunding.Api.Publishing.Controllers
         /// <param name="fundingStreamId">Funding Stream Id</param>
         /// <param name="fundingLineId">Funding line id/code</param>
         /// <returns></returns>
+        [HttpGet("api/publishedproviderfundinglinedetails/{specificationId}/{providerId}/{fundingStreamId}/{fundingLineId}")]
         [ProducesResponseType(200, Type = typeof(FundingLineProfile))]
         [ProducesResponseType(404)]
-        [HttpGet("api/publishedproviderfundinglinedetails/{specificationId}/{providerId}/{fundingStreamId}/{fundingLineId}")]
         public async Task<IActionResult> GetFundingLinePublishedProviderDetails(
            [FromRoute] string specificationId,
            [FromRoute] string providerId,
@@ -87,8 +89,9 @@ namespace CalculateFunding.Api.Publishing.Controllers
         /// <param name="fundingStreamId"></param>
         /// <param name="fundingLineCode"></param>
         /// <returns></returns>
-        [ProducesResponseType(200, Type = typeof(bool))]
         [HttpGet("api/publishedproviderfundinglinedetails/{specificationId}/{providerId}/{fundingStreamId}/{fundingLineCode}/change-exists")]
+        [ProducesResponseType(200, Type = typeof(bool))]
+        [ProducesResponseType(404)]
         public async Task<IActionResult> PreviousProfileExistsForSpecificationForProviderForFundingLine(
             [FromRoute] string specificationId,
             [FromRoute] string providerId,
@@ -105,6 +108,8 @@ namespace CalculateFunding.Api.Publishing.Controllers
         /// <param name="fundingStreamId">Funding Stream Id</param>
         /// <param name="fundingLineCode">Funding line code</param>
         /// <returns></returns>
+        [ProducesResponseType(200, Type = typeof(List<FundingLineChange>))]
+        [ProducesResponseType(404)]
         [HttpGet("api/publishedproviderfundinglinedetails/{specificationId}/{providerId}/{fundingStreamId}/{fundingLineCode}/changes")]
         public async Task<IActionResult> GetPreviousProfilesForSpecificationForProviderForFundingLine(
             [FromRoute] string specificationId,
@@ -124,6 +129,7 @@ namespace CalculateFunding.Api.Publishing.Controllers
         /// <returns></returns>
         [HttpGet("api/fundingstreams/{fundingStreamId}/fundingperiods/{fundingPeriodId}/providers/{providerId}/profilinghistory")]
         [ProducesResponseType(typeof(IEnumerable<PaymentFundingLineProfileTotals>), 200)]
+        [ProducesResponseType(404)]
         public async Task<IActionResult> GetProfileHistory([FromRoute] string fundingStreamId,
             [FromRoute] string fundingPeriodId,
             [FromRoute] string providerId,

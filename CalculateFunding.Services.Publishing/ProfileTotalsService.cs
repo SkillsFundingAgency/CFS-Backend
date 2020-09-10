@@ -52,7 +52,7 @@ namespace CalculateFunding.Services.Publishing
 
             if (latestPublishedProviderVersion == null)
             {
-                return new OkObjectResult(new Dictionary<string, decimal>());
+                return new NotFoundResult();
             }
 
             ProfileTotal[] profileTotals = new PaymentFundingLineProfileTotals(latestPublishedProviderVersion)
@@ -103,11 +103,6 @@ namespace CalculateFunding.Services.Publishing
             IEnumerable<ProfileVariationPointer> profileVariationPointers 
                 = await _specificationService.GetProfileVariationPointers(specificationId);
 
-            if (profileVariationPointers == null)
-            {
-                return new NotFoundResult();
-            }
-
             FundingLineProfile fundingLineProfile = new FundingLineProfile
             {
                 ProfilePatternKey = latestPublishedProviderVersion.ProfilePatternKeys?
@@ -117,7 +112,7 @@ namespace CalculateFunding.Services.Publishing
             };
 
             ProfileVariationPointer currentProfileVariationPointer
-                = profileVariationPointers.SingleOrDefault(_ => 
+                = profileVariationPointers?.SingleOrDefault(_ => 
                     _.FundingStreamId == fundingStreamId && _.FundingLineId == fundingLineCode);
 
             ProfileTotal[] profileTotals = new PaymentFundingLineProfileTotals(latestPublishedProviderVersion, fundingLineCode)
@@ -216,6 +211,8 @@ namespace CalculateFunding.Services.Publishing
             string fundingStreamId,
             string fundingLineCode)
         {
+            List<FundingLineChange> fundingLineChanges = new List<FundingLineChange>();
+
             IEnumerable<PublishedProviderVersion> publishedProviderVersions = await _resilience.ExecuteAsync(() =>
                 _publishedFunding.GetPublishedProviderVersionsForApproval(
                     specificationId,
@@ -230,10 +227,7 @@ namespace CalculateFunding.Services.Publishing
 
             IEnumerable<PublishedProviderVersion> historyPublishedProviderVersions = 
                 publishedProviderVersions.Except(new[] { latestPublishedProviderVersion });
-
             latestPublishedProviderVersion = historyPublishedProviderVersions.FirstOrDefault();
-
-            List<FundingLineChange> fundingLineChanges = new List<FundingLineChange>();
 
             IEnumerable<FundingStream> fundingStreams = await _policiesService.GetFundingStreams();
 

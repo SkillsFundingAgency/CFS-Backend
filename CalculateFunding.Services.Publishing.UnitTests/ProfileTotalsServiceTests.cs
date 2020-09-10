@@ -176,7 +176,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         }
 
         [TestMethod]
-        public async Task Returns404ResponseIfNoPublishedProviderBySpecificationIdLocated()
+        public async Task Returns404IfNoPublishedProviderBySpecificationIdLocated()
         {
             IActionResult result = await WhenGetPublishedProviderProfileTotalsForSpecificationForProviderForFundingLine(
                 NewRandomString(),
@@ -190,7 +190,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         }
 
         [TestMethod]
-        public async Task Returns404ResponseIfNoProfileVariationPointerLocated()
+        public async Task Returns404IfNoProfileVariationPointerLocated()
         {
             string specificationId = NewRandomString();
             string providerId = NewRandomString();
@@ -416,7 +416,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         }
         
         [TestMethod]
-        public async Task ReturnsEmptyDictionaryWhenNoReleasedPublishedProviderResultsForTheParameters()
+        public async Task Returns404WhenNoReleasedPublishedProviderResultsForTheParameters()
         {
             string fundingStreamId = NewRandomString();
             string fundingPeriodId = NewRandomString();
@@ -427,12 +427,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 fundingPeriodId,
                 providerId);
 
-            OkObjectResult objectResult = result as OkObjectResult;
-            IDictionary<string, decimal> profileTotals = objectResult.Value as IDictionary<string, decimal>;
-
-            profileTotals
+            result
                 .Should()
-                .BeEmpty();
+                .BeOfType<NotFoundResult>();
         }
 
         [TestMethod]
@@ -481,7 +478,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         }
 
         [TestMethod]
-        public async Task Returns404ResponseIfNoPublishedProviderForApprovalLocatedForPreviousRecordsExistsCheck()
+        public async Task Returns404IfNoPublishedProviderForApprovalLocatedForPreviousRecordsExistsCheck()
         {
             IActionResult result = await WhenTheProfilesCheckForPreviousRecordExists(
                 NewRandomString(),
@@ -590,7 +587,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         }
 
         [TestMethod]
-        public async Task Returns404ResponseIfNoPublishedProviderForApprovalLocatedForPreviousRecords()
+        public async Task Returns404IfNoPublishedProviderForApprovalLocatedForPreviousRecords()
         {
             IActionResult result = await WhenTheProfilesCheckForPreviousRecords(
                 NewRandomString(),
