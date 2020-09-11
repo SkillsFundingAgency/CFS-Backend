@@ -98,9 +98,9 @@ namespace CalculateFunding.Services.Policy
             
             string cacheKey = GetCacheKeyFundingStructure(specificationId, fundingStreamId, fundingPeriodId);
 
-            DateTimeOffset? timestamp = await _cacheResilience.ExecuteAsync(() => _cacheProvider.GetAsync<DateTimeOffset?>(cacheKey));
+            DateTimeOffset timestamp = await _cacheResilience.ExecuteAsync(() => _cacheProvider.GetAsync<DateTimeOffset>(cacheKey));
 
-            return timestamp.GetValueOrDefault();
+            return timestamp;
         }
 
         private static string GetCacheKeyFundingStructure(string specificationId,

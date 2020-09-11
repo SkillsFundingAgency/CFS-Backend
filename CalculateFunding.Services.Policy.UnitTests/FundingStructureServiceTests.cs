@@ -203,14 +203,12 @@ namespace CalculateFunding.Services.Policy
                 .Be("specificationId");
         }
         
-        
-        
 
         private void GivenTheLastModifiedDateForTheFundingStructure(string specificationId,
             string fundingStreamId,
             string fundingPeriodId,
             DateTimeOffset lastModified)
-            => _cacheProvider.GetAsync<DateTimeOffset?>($"{CacheKeys.FundingLineStructureTimestamp}{specificationId}:{fundingStreamId}:{fundingPeriodId}")
+            => _cacheProvider.GetAsync<DateTimeOffset>($"{CacheKeys.FundingLineStructureTimestamp}{specificationId}:{fundingStreamId}:{fundingPeriodId}")
                 .Returns(lastModified);
 
         private async Task<DateTimeOffset> WhenTheLastModifiedDateIsQueried(string specificationId,
