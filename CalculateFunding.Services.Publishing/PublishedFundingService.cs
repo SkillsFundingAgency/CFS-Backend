@@ -69,11 +69,9 @@ namespace CalculateFunding.Services.Publishing
 
             _logger.Information($"Fetching existing published funding");
 
-            string fundingPeriodId = await _policiesService.GetFundingPeriodId(specification.FundingPeriod.Id);
-
             // Get latest version of existing published funding
             IEnumerable <PublishedFunding> publishedFunding = await _publishingResiliencePolicy.ExecuteAsync(() =>
-                _publishedFundingDataService.GetCurrentPublishedFunding(fundingStream.Id, fundingPeriodId));
+                _publishedFundingDataService.GetCurrentPublishedFunding(fundingStream.Id, specification.FundingPeriod.Id));
 
             _logger.Information($"Fetched {publishedFunding.Count()} existing published funding items");
 

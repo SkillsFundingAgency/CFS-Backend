@@ -188,7 +188,6 @@ namespace CalculateFunding.Services.Publishing
             IEnumerable<string> fundingLineCodes = await _publishedFundingDataService.GetPublishedProviderFundingLines(specificationId);
             IEnumerable<string> fundingStreamIds = specification.FundingStreams.Select(fs => fs.Id); //this will only ever be a single I think
             
-            string fundingPeriodId = await _policiesService.GetFundingPeriodId(specification.FundingPeriod.Id);
             PublishedFundingCsvJobsRequest publishedFundingCsvJobsRequest = new PublishedFundingCsvJobsRequest
             {
                 SpecificationId = specificationId,
@@ -196,9 +195,10 @@ namespace CalculateFunding.Services.Publishing
                 User = author,
                 FundingLineCodes = fundingLineCodes,
                 FundingStreamIds = fundingStreamIds,
-                FundingPeriodId = fundingPeriodId,
+                FundingPeriodId = specification.FundingPeriod.Id,
                 IsSpecificationSelectedForFunding = specification.IsSelectedForFunding
             };
+
             await generateCsvJobs.CreateJobs(publishedFundingCsvJobsRequest);
         }
 

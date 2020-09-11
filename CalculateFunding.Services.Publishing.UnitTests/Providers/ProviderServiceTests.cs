@@ -148,9 +148,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Providers
 
             AndTheApiResponseScopedProviderIdsContainsProviderIds(specificationId, apiproviders.Select(_ => _.ProviderId));
 
-            AndTheFundingPeriodId();
-            
-
             (IDictionary<string, PublishedProvider> PublishedProvidersForFundingStream,
              IDictionary<string, PublishedProvider> ScopedPublishedProviders) = await WhenPublishedProvidersAreReturned(specification);
 
@@ -291,12 +288,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Providers
         {
             _publishedFundingDataService.GetCurrentPublishedProviders(FundingStreamId, FundingPeriodId)
                 .Returns(publishedProviders);
-        }
-
-        private void AndTheFundingPeriodId()
-        {
-            _policiesService.GetFundingPeriodId(Arg.Any<string>())
-                .Returns(FundingPeriodId);
         }
 
         private async Task<(IDictionary<string, PublishedProvider> PublishedProvidersForFundingStream, IDictionary<string, PublishedProvider> ScopedPublishedProviders)> WhenPublishedProvidersAreReturned(SpecificationSummary specification)

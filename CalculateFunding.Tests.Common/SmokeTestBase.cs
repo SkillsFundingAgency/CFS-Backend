@@ -246,7 +246,7 @@ namespace CalculateFunding.Tests.Common
             {
                 ((IServiceBusService)messengerService)
                 .Received(1)
-                .CreateSubscription("smoketest", uniqueId);
+                .CreateSubscription("smoketest", uniqueId, Arg.Is<TimeSpan>(_ => _.Days == 1));
 
                 ((IServiceBusService)messengerService)
                     .Received(1)

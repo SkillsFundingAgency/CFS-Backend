@@ -163,13 +163,11 @@ namespace CalculateFunding.Services.Publishing
             // Get existing published providers for this specification
             _logger.Information("Looking up existing published providers from cosmos for refresh job");
 
-            string fundingPeriodId = await _policiesService.GetFundingPeriodId(specification.FundingPeriod.Id);
-
             IDictionary<string, List<PublishedProvider>> existingPublishedProvidersByFundingStream = new Dictionary<string, List<PublishedProvider>>();
             foreach (Reference fundingStream in specification.FundingStreams)
             {
                 List<PublishedProvider> publishedProviders = (await _publishingResiliencePolicy.ExecuteAsync(() =>
-                _publishedFundingDataService.GetCurrentPublishedProviders(fundingStream.Id, fundingPeriodId))).ToList();
+                _publishedFundingDataService.GetCurrentPublishedProviders(fundingStream.Id, specification.FundingPeriod.Id))).ToList();
 
                 existingPublishedProvidersByFundingStream.Add(fundingStream.Id, publishedProviders);
                 _logger.Information($"Found {publishedProviders.Count} existing published providers for funding stream {fundingStream.Id} from cosmos for refresh job");
@@ -213,8 +211,8 @@ namespace CalculateFunding.Services.Publishing
                         jobId, 
                         author, 
                         correlationId, 
-                        existingPublishedProvidersByFundingStream[fundingStream.Id], 
-                        fundingPeriodId);
+                        existingPublishedProvidersByFundingStream[fundingStream.Id],
+                        specification.FundingPeriod.Id);
                 }
             }
             finally

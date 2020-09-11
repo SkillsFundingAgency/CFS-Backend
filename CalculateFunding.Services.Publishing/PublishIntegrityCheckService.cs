@@ -113,8 +113,6 @@ namespace CalculateFunding.Services.Publishing
             {
                 throw new NonRetriableException($"Could not find specification with id '{specificationId}'");
             }
-
-            string fundingPeriodId = await _policiesService.GetFundingPeriodId(specification.FundingPeriod.Id);
             
             foreach (Reference fundingStream in specification.FundingStreams)
             {

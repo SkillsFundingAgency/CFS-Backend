@@ -20,7 +20,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
     public class PublishedProviderFundingServiceTests
     {
         private IPublishedFundingDataService _publishedFunding;
-        private IPoliciesService _policiesService;
         private ISpecificationService _specificationService;
         private ISpecificationIdServiceRequestValidator _validator;
         private ValidationResult _validationResult;
@@ -46,7 +45,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
                 .Returns(_validationResult);
 
             _publishedFunding = Substitute.For<IPublishedFundingDataService>();
-            _policiesService = Substitute.For<IPoliciesService>();
             _specificationService = Substitute.For<ISpecificationService>();
 
             _service = new PublishedProviderFundingService(new ResiliencePolicies
@@ -55,8 +53,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
             },
                 _publishedFunding,
                 _specificationService,
-                _validator,
-                _policiesService);
+                _validator);
         }
 
         [TestMethod]
@@ -90,8 +87,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
                 s.WithFundingStreamIds(new[] { _fundingStreamId });
             }));
 
-            AndTheFundingPeriodId(_fundingPeriodId);
-
             await WhenThePublishedProvidersAreQueried();
 
             ThenTheResponseShouldBe<OkObjectResult>(_ =>
@@ -109,12 +104,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
             _specificationService
                 .GetSpecificationSummaryById(Arg.Is(_specificationId))
                 .Returns(_specificationSummary);
-        }
-
-        private void AndTheFundingPeriodId(string fundingPeriodId)
-        {
-            _policiesService.GetFundingPeriodId(Arg.Any<string>())
-                .Returns(fundingPeriodId);
         }
 
         private async Task WhenThePublishedProvidersAreQueried()

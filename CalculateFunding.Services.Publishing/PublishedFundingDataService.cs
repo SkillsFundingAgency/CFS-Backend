@@ -58,7 +58,7 @@ namespace CalculateFunding.Services.Publishing
 
             ConcurrentBag<PublishedProvider> results = new ConcurrentBag<PublishedProvider>();
 
-            string fundingPeriodId = await _policiesService.GetFundingPeriodId(specificationSummary.FundingPeriod.Id);
+            string fundingPeriodId = specificationSummary?.FundingPeriod?.Id;
 
             if (fundingPeriodId.IsNullOrWhitespace())
             {

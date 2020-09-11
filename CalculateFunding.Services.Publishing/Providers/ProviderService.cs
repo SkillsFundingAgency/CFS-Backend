@@ -145,11 +145,9 @@ namespace CalculateFunding.Services.Publishing.Providers
                 throw new ArgumentOutOfRangeException(nameof(fundingStreamId));
             }
 
-            string fundingPeriodId = await _policiesService.GetFundingPeriodId(specificationFundingPeriodId);
-
             return scopedProviders.Where(_ =>
                     !publishedProviders.ContainsKey($"{_.ProviderId}"))
-                .Select(_ => CreatePublishedProvider(_, fundingPeriodId, fundingStreamId, specificationId, "Add by system because published provider doesn't already exist"))
+                .Select(_ => CreatePublishedProvider(_, specificationFundingPeriodId, fundingStreamId, specificationId, "Add by system because published provider doesn't already exist"))
                 .ToDictionary(_ => _.Current.ProviderId, _ => _);
         }
 
@@ -188,10 +186,8 @@ namespace CalculateFunding.Services.Publishing.Providers
         {
             _logger.Information($"Retrieving published provider results for {fundingStream.Id} in specification {specification.Id}");
             
-            string fundingPeriodId = await _policiesService.GetFundingPeriodId(specification.FundingPeriod.Id);
-
             IEnumerable<PublishedProvider> publishedProvidersResult =
-                await _publishedFundingDataService.GetCurrentPublishedProviders(fundingStream.Id, fundingPeriodId);
+                await _publishedFundingDataService.GetCurrentPublishedProviders(fundingStream.Id, specification.FundingPeriod.Id);
 
             // Ensure linq query evaluates only once
             Dictionary<string, PublishedProvider> publishedProvidersForFundingStream = publishedProvidersResult.ToDictionary(_ => _.Current.ProviderId);
