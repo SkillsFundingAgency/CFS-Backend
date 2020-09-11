@@ -42,7 +42,8 @@ namespace CalculateFunding.Api.Policy.Controllers
         [HttpCacheFactory(0, ViewModelType = typeof(FundingStructure))]
         public async Task<IActionResult> GetFundingStructureWithCalculationResults([FromQuery] string fundingStreamId,
             [FromQuery] string fundingPeriodId,
-            [FromQuery] string specificationId)
-            => await _fundingStructureService.GetFundingStructureWithCalculationResults(fundingStreamId, fundingPeriodId, specificationId);
+            [FromQuery] string specificationId,
+            [FromQuery] string providerId)
+            => await _fundingStructureService.GetFundingStructureWithCalculationResults(fundingStreamId, fundingPeriodId, specificationId, providerId);
     }
 }
