@@ -135,14 +135,14 @@ namespace CalculateFunding.Services.Specs
             jobType switch
             {
                 { } type when type != JobType.CalcResult &&
-                              type == JobType.Released ||
+                              (type == JobType.Released ||
                               type == JobType.History ||
                               type ==  JobType.HistoryProfileValues ||
                               type ==  JobType.CurrentProfileValues ||
                               type ==  JobType.CurrentState ||
                               type ==  JobType.CurrentOrganisationGroupValues ||
                               type ==  JobType.HistoryOrganisationGroupValues ||
-                              type ==  JobType.HistoryPublishedProviderEstate => ReportCategory.History,
+                              type ==  JobType.HistoryPublishedProviderEstate) => ReportCategory.History,
                 JobType.CalcResult => ReportCategory.Live,
                 _ => ReportCategory.Undefined
             };
@@ -151,13 +151,14 @@ namespace CalculateFunding.Services.Specs
             jobType switch
             {
                 { } type when type != JobType.CalcResult &&
-                              type == JobType.Released ||
+                              (type == JobType.Released ||
                               type == JobType.History ||
                               type ==  JobType.HistoryProfileValues ||
                               type ==  JobType.CurrentProfileValues ||
+                              type == JobType.CurrentState ||
                               type ==  JobType.CurrentOrganisationGroupValues ||
                               type ==  JobType.HistoryOrganisationGroupValues ||
-                              type ==  JobType.HistoryPublishedProviderEstate => ReportType.FundingLine,
+                              type ==  JobType.HistoryPublishedProviderEstate) => ReportType.FundingLine,
                 JobType.CalcResult => ReportType.CalculationResult,
                 _ => throw new ArgumentOutOfRangeException()
             };

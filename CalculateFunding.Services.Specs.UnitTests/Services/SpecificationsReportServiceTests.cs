@@ -225,12 +225,48 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .Be((int)HttpStatusCode.NotFound);
         }
 
+        private static IEnumerable<object[]> JobTypeExamples()
+        {
+            yield return new object[]
+            {
+                JobType.CurrentOrganisationGroupValues
+            };
+            yield return new object[]
+            {
+                JobType.CurrentProfileValues
+            };
+            yield return new object[]
+            {
+                JobType.CurrentState
+            };
+            yield return new object[]
+            {
+                JobType.History
+            };
+            yield return new object[]
+            {
+                JobType.HistoryOrganisationGroupValues
+            };
+            yield return new object[]
+            {
+                JobType.HistoryProfileValues
+            };
+            yield return new object[]
+            {
+                JobType.HistoryPublishedProviderEstate
+            };
+            yield return new object[]
+            {
+                JobType.Released
+            };
+        }
+
         [TestMethod]
-        public async Task DownloadReport_GivenFileNameAndType_ReturnsDownloadUrl()
+        [DynamicData(nameof(JobTypeExamples), DynamicDataSourceType.Method)]
+        public async Task DownloadReport_GivenFileNameAndType_ReturnsDownloadUrl(JobType jobType)
         {
             string sasUrl = "http://www.test.com/test.csv";
 
-            JobType jobType = JobType.Released;
             string fundingLineCode = NewRandomString();
             string fundingPeriodId = NewRandomString();
             string fundingStreamId = NewRandomString();
@@ -245,7 +281,9 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 SpecificationId = specificationId
             };
 
-            string expectedBlobName = $"funding-lines-{specificationId}-{jobType}-{fundingLineCode}-{fundingStreamId}.csv";
+            string expectedBlobName = jobType == JobType.HistoryPublishedProviderEstate ?
+                $"funding-lines-{specificationId}-{jobType}-{fundingPeriodId}.csv" :
+                $"funding-lines-{specificationId}-{jobType}-{fundingLineCode}-{fundingStreamId}.csv";
 
             _blobClient
                 .GetBlobSasUrl(expectedBlobName, Arg.Any<DateTimeOffset>(), SharedAccessBlobPermissions.Read, PublishedProviderVersionsContainerName)
@@ -290,6 +328,8 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .Should()
                 .Be(fundingLineFileName);
         }
+
+
 
         private Uri BuildUri(string fileName, string extension)
         {
