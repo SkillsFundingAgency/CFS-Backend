@@ -23,7 +23,7 @@
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Jobs" Version="2.4.0" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Policies" Version="3.9.0" />
 
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Profiling" Version="1.5.0" />   
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Profiling" Version="1.6.0" />   
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Providers" Version="4.2.0" />
     <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Specifications" Version="3.10.0" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.13.1" />

@@ -14,6 +14,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
         private Reference _lastUpdatedUser;
         private string _profilePatternKey;
         private string _profilePatternName;
+        private string _profilePatternDescription;
         private string _fundingLineCode;
         private string _fundingLineName;
         private string _providerName;
@@ -71,6 +72,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
             return this;
         }
 
+        public FundingLineProfileBuilder WithProfilePatternDescription(string profilePatternDescription)
+        {
+            _profilePatternDescription = profilePatternDescription;
+
+            return this;
+        }
+
         public FundingLineProfileBuilder WithFundingLineCode(string fundingLineCode)
         {
             _fundingLineCode = fundingLineCode;
@@ -120,6 +128,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Profiling
                 FundingLineCode = _fundingLineCode,
                 FundingLineName = _fundingLineName,
                 ProfilePatternName = _profilePatternName,
+                ProfilePatternDescription = _profilePatternDescription,
                 AmountAlreadyPaid = _amountAlreadyPaid.GetValueOrDefault(),
                 CarryOverAmount = _carryOverAmount.GetValueOrDefault(NewRandomNumberBetween(1000, 99999)),
                 LastUpdatedDate = _lastUpdatedDate.GetValueOrDefault(NewRandomDateTime().DateTime),

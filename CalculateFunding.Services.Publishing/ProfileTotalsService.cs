@@ -347,6 +347,7 @@ namespace CalculateFunding.Services.Publishing
                     LastUpdatedDate = latestPublishedProviderVersion.GetLatestFundingLineDate(fundingLineCode),
                     ProfilePatternKey = profilePatternKey,
                     ProfilePatternName = apiProfilePatternKey?.ProfilePatternDisplayName,
+                    ProfilePatternDescription = apiProfilePatternKey?.ProfilePatternDescription,
                     ProfileTotalAmount = profileTotals.Sum(_ => _.Value),
                     ProfileTotals = profileTotals
                 };

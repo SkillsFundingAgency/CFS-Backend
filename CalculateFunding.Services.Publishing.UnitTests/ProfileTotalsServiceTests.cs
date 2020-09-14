@@ -810,6 +810,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             Reference profileAuditUser = NewReference(u => u.WithId(userId));
             string templateVersion = NewRandomString();
             string profilePatternDisplayName = NewRandomString();
+            string profilePatternDisplayDescription = NewRandomString();
 
             GivenTheLatestPublishedProviderVersionBySpecificationId(
                 specificationId,
@@ -932,6 +933,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .WithLastUpdatedDate(profileAuditDate)
                 .WithProfilePatternKey(profilePatternKey)
                 .WithProfilePatternName(profilePatternDisplayName)
+                .WithProfilePatternDescription(profilePatternDisplayDescription)
                 .WithProfileTotalAmount(1500)
                 .WithProfileTotals(new[]
                 {
