@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Datasets" Version="5.3.0" />
+    <PackageReference Include="CalculateFunding.Common.Config.ApiClient.Datasets" Version="5.4.0" />
     <PackageReference Include="CalculateFunding.Common.TemplateMetadata" Version="2.2.0" />
     <PackageReference Include="CalculateFunding.Common.TemplateMetadata.Schema10" Version="2.1.0" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.13.1" />
