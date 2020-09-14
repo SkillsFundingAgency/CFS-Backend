@@ -15,6 +15,7 @@ namespace CalculateFunding.Models.Specs
         CurrentOrganisationGroupValues,
         HistoryOrganisationGroupValues,
         HistoryPublishedProviderEstate,
+        PublishedGroups,
         CalcResult
     }
 }
